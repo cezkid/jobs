@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Finder</title>
+<meta name="description" content="Finds new jobs that match what you want and tailors your resume to each one. Install in one step.">
+<style>
+  :root {
+    --bg: #fbfaf7; --fg: #1d1d1b; --muted: #5d5b55; --card: #ffffff; --line: #dedbd2;
+    --accent: #1f5fbf; --accent-fg: #ffffff; --ok: #1d7a3a; --key: #f1efe9;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161614; --fg: #f1efe9; --muted: #b3b0a7; --card: #1f1f1c; --line: #3a3934;
+      --accent: #6aa3ff; --accent-fg: #0d1420; --ok: #5fd184; --key: #2b2a26;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 20px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 16px 48px; }
+  h1 { font-size: 2.2em; margin: 0 0 4px; }
+  .lede { color: var(--muted); margin: 0 0 28px; }
+  h2 { font-size: 1.15em; margin: 32px 0 10px; }
+  a { color: var(--accent); }
+  .need { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+  .need p { margin: 0; }
+  .choose { display: flex; gap: 14px; flex-wrap: wrap; }
+  .choose button {
+    flex: 1 1 260px; font: inherit; font-size: 1.2em; font-weight: 700; padding: 22px 16px;
+    border-radius: 14px; border: 2px solid var(--accent); background: var(--accent); color: var(--accent-fg);
+    cursor: pointer;
+  }
+  .choose button:focus-visible { outline: 4px solid var(--fg); outline-offset: 3px; }
+  .copied {
+    display: none; margin-top: 14px; padding: 14px 18px; border-radius: 12px;
+    border: 2px solid var(--ok); color: var(--ok); font-size: 1.3em; font-weight: 700;
+  }
+  .copied.show { display: block; }
+  ol.steps { padding-left: 1.4em; margin: 0; }
+  ol.steps li { margin: 0 0 14px; padding-left: 6px; }
+  kbd {
+    display: inline-block; min-width: 1.8em; padding: 2px 10px; margin: 0 2px; text-align: center;
+    font: inherit; font-weight: 700; background: var(--key); border: 1px solid var(--line);
+    border-bottom-width: 4px; border-radius: 8px;
+  }
+  .switch { font-size: 0.85em; color: var(--muted); }
+  .switch button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+  details { margin-top: 28px; color: var(--muted); font-size: 0.85em; }
+  code.line {
+    display: block; margin-top: 8px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 8px; font-size: 0.85em; overflow-wrap: anywhere; color: var(--fg);
+  }
+  .phone { display: none; font-size: 1.3em; font-weight: 700; }
+  body.is-phone .phone { display: block; }
+  body.is-phone .desktop { display: none; }
+  .mac-only { display: none; }
+  body.is-mac .mac-only { display: revert; }
+  body.is-mac .win-only { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Job Finder</h1>
+  <p class="lede">Finds new jobs that match what you want, tells you each morning when new ones arrive, and makes
+    a version of your resume for any job you pick. You just talk to it in plain English.</p>
+
+  <p class="phone">Open this link on your Windows or Mac computer to install Job Finder.</p>
+
+  <div class="desktop">
+    <div class="need">
+      <p><strong>You need:</strong> a Windows or Mac computer, and a paid
+        <a href="https://claude.ai/upgrade">Claude (Pro or Max)</a> or
+        <a href="https://chatgpt.com/#pricing">ChatGPT (Plus or Pro)</a> account.</p>
+    </div>
+
+    <h2>1. Which AI do you pay for?</h2>
+    <div class="choose">
+      <button type="button" data-ai="1">I use Claude</button>
+      <button type="button" data-ai="2">I use ChatGPT</button>
+    </div>
+    <div class="copied" id="copied" role="status" aria-live="polite">Copied! Now do step 2.</div>
+
+    <h2>2. Paste it and press Enter</h2>
+    <ol class="steps win-only">
+      <li>Press <kbd>Windows key</kbd> + <kbd>R</kbd> (a small "Run" box opens)</li>
+      <li>Press <kbd>Ctrl</kbd> + <kbd>V</kbd></li>
+      <li>Press <kbd>Enter</kbd></li>
+    </ol>
+    <ol class="steps mac-only">
+      <li>Press <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <strong>Terminal</strong>, press <kbd>Enter</kbd></li>
+      <li>Press <kbd>Cmd</kbd> + <kbd>V</kbd></li>
+      <li>Press <kbd>Enter</kbd></li>
+    </ol>
+    <p class="switch"><span class="win-only">On a Mac? </span><span class="mac-only">On Windows? </span>
+      <button type="button" id="switch-os"><span class="win-only">Show Mac steps</span><span class="mac-only">Show Windows steps</span></button></p>
+
+    <h2>3. Wait, then sign in</h2>
+    <p>A window shows progress (about 5 minutes). Don't close it. VS Code opens by itself.
+      Click <strong>Sign in</strong> on the right-hand panel, then press <kbd>Enter</kbd>.</p>
+
+    <h2>Something went wrong?</h2>
+    <p>Do it again from step 1 - it's safe to repeat. Your resume and settings are kept.</p>
+
+    <details>
+      <summary>Copy button didn't work?</summary>
+      Select this whole line, copy it, then do step 2:
+      <code class="line" id="line"></code>
+    </details>
+
+    <details>
+      <summary>What stays private?</summary>
+      Your resume, job folders and search settings stay on your computer. Job searches send only
+      your search settings to freehire.me. Your resume is read by your own Claude or ChatGPT account
+      while it helps you. Job Finder is free and open source:
+      <a href="https://github.com/cezkid/jobs">github.com/cezkid/jobs</a>.
+    </details>
+  </div>
+</main>
+<script>
+  const RAW = "https://raw.githubusercontent.com/cezkid/jobs/main/app/install/";
+  const LINES = {
+    win: ai => `powershell -c "$env:JOBS_AI='${ai}';irm ${RAW}install-windows.ps1|iex"`,
+    mac: ai => `curl -fsSL ${RAW}install-mac.sh | JOBS_AI=${ai} bash`,
+  };
+  const ua = navigator.userAgent;
+  // iPadOS reports Mac UA => touch points tell it apart
+  const isPhone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  let os = /Mac/i.test(navigator.userAgentData?.platform || navigator.platform || ua) ? "mac" : "win";
+  let ai = "1";
+
+  function render() {
+    document.body.classList.toggle("is-phone", isPhone);
+    document.body.classList.toggle("is-mac", os === "mac");
+    document.getElementById("line").textContent = LINES[os](ai);
+  }
+
+  async function copy(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const area = document.createElement("textarea");
+      area.value = text;
+      document.body.append(area);
+      area.select();
+      const ok = document.execCommand("copy");
+      area.remove();
+      return ok;
+    }
+  }
+
+  document.querySelectorAll("[data-ai]").forEach(button => button.addEventListener("click", async () => {
+    ai = button.dataset.ai;
+    render();
+    const note = document.getElementById("copied");
+    const ok = await copy(LINES[os](ai));
+    note.textContent = ok ? "Copied! Now do step 2." : "Could not copy. Open \"Copy button didn't work?\" below.";
+    note.classList.add("show");
+  }));
+  document.getElementById("switch-os").addEventListener("click", () => {
+    os = os === "mac" ? "win" : "mac";
+    document.getElementById("copied").classList.remove("show");
+    render();
+  });
+  render();
+</script>
+</body>
+</html>

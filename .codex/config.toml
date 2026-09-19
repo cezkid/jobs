@@ -1,0 +1,7 @@
+# Loads only once user trusts this folder; command allow list: rules/default.rules
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+# job search + uv sync reach internet
+network_access = true

@@ -1,0 +1,31 @@
+{
+  "files.exclude": {
+    "app": true,
+    "docs": true,
+    "**/.data": true,
+    ".agents": true,
+    ".claude": true,
+    ".codex": true,
+    ".github": true,
+    ".vscode": true,
+    ".venv": true,
+    ".pytest_cache": true,
+    "**/__pycache__": true,
+    ".gitattributes": true,
+    ".gitignore": true,
+    "AGENTS.md": true,
+    "CLAUDE.md": true,
+    "README.md": true,
+    "pyproject.toml": true,
+    "uv.lock": true
+  },
+  "explorer.sortOrder": "modified",
+  "workbench.startupEditor": "none",
+  "workbench.tips.enabled": false,
+  "extensions.ignoreRecommendations": true,
+  "workbench.editorAssociations": {
+    "*.md": "vscode.markdown.preview.editor"
+  },
+  "git.openRepositoryInParentFolders": "never",
+  "scm.showActionButton": false
+}

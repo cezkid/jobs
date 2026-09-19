@@ -1,0 +1,45 @@
+# Example search: remote US first, one city area second. Swap category + cities for user's own.
+# Probe every value before keeping it (uv run app/jobs.py probe); unknown slug answers 0, not error.
+# Outside tech seniority, work_mode, employment_type null on most rows (docs/freehire.md) => not filtered here.
+
+profile:
+  name: finance jobs
+
+# Order = rank tier order. Row matching two passes keeps LAST pass's tier.
+passes:
+  - tier: remote
+    label: Remote US
+    params:
+      category: [finance]
+      # remote rows always carry work_mode => safe filter here
+      work_mode: [remote]
+      countries: [us]
+      # bounds fetch only; novelty = seen table
+      posted_within_days: 3
+      sort: posted_at
+      order: desc
+  - tier: local
+    label: Springfield area
+    params:
+      category: [finance]
+      # exact /geo/cities values (uv run app/jobs.py probe --city springfield); cities alone -
+      # geography facets OR together (docs/freehire.md)
+      cities: [Springfield]
+      sort: posted_at
+      order: desc
+
+# Applied before ranking, case-insensitive. categories = enrichment.category, local only.
+blocklist:
+  # jobgether reposter; builtin-integration-sandbox test postings w/o requirements (docs/freehire.md)
+  companies: [jobgether, builtin-integration-sandbox]
+  sources: []
+  categories: []
+  # substring of title
+  title_phrases: []
+
+rank:
+  boost_collections: [fortune500, bigtech, unicorn, yc]
+  # annualized USD salary_min; boost only, never filter
+  salary_floor_usd: 60000
+  # company spanning this many enrichment categories -> printed by `rank --suspects`
+  suspect_min_categories: 5

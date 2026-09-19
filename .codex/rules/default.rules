@@ -1,0 +1,24 @@
+prefix_rule(
+  pattern = ["uv", "run", "app/jobs.py"],
+  decision = "allow",
+  justification = "Job Finder commands",
+  match = ["uv run app/jobs.py find --limit 15"],
+  not_match = ["uv run python -c 'print(1)'"],
+)
+
+prefix_rule(
+  pattern = ["uv", "sync"],
+  decision = "allow",
+)
+
+prefix_rule(
+  pattern = ["uv", "run", "pytest"],
+  decision = "allow",
+)
+
+prefix_rule(
+  pattern = ["git", ["status", "diff", "log", "pull", "check-ignore"]],
+  decision = "allow",
+  match = ["git pull --ff-only"],
+  not_match = ["git push"],
+)

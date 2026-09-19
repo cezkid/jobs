@@ -1,0 +1,8 @@
+# personal data: settings, resume, job folders, db, log, email password
+My Jobs/
+My Resume/
+My Settings/
+.data/
+.venv/
+__pycache__/
+.pytest_cache/

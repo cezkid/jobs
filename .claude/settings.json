@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "defaultMode": "acceptEdits",
+    "allow": [
+      "Bash(uv run app/jobs.py *)",
+      "Bash(uv run pytest*)",
+      "Bash(uv sync*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git pull*)",
+      "Bash(git check-ignore*)",
+      "WebFetch"
+    ]
+  }
+}

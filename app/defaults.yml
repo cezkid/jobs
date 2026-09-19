@@ -1,0 +1,33 @@
+# Keys every profile shares; My Settings/Search settings.yml overrides any of them (mappings merge, lists replace).
+
+# name heads digest subject + TUI title
+profile:
+  name: jobs
+
+api:
+  base: https://freehire.me/api/v1
+  page_limit: 100
+  timeout_s: 30
+
+# paths relative to repo root
+db: .data/jobs.db
+
+# optional email; SMTP over implicit TLS, credentials + recipient in .data/email.env
+# absent => daily run notifies on desktop instead
+alert:
+  smtp_host: smtp.gmail.com
+  smtp_port: 465
+  timeout_s: 30
+
+# local_daily: autorun.py on this computer's clock, poll + notify/email once
+# poll + digest: systemd calendars for VPS (deploy/render_units.py)
+schedule:
+  local_daily: "08:00"
+  poll: "*:0/30"
+  digest: "08:00 America/New_York"
+
+# My Resume/ + My Jobs/ gitignored (PII); one folder per job under jobs_dir
+resume:
+  master: My Resume/Resume details.yml
+  input_pdf: My Resume/Original resume.pdf
+  jobs_dir: My Jobs

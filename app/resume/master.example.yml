@@ -1,0 +1,72 @@
+# Shape of My Resume/Resume details.yml (gitignored, real facts). Validated by resume/schema.py.
+# Facts, not prose: tailorer selects + rewrites, never invents.
+contact:
+  name: Jane Doe
+  email: jane@example.com
+  phone: "+1 555 010 0100"
+  location: Springfield, IL
+  links: [https://github.com/janedoe]
+
+summary: Senior frontend engineer shipping Vue + TypeScript product UI, recent work on LLM-backed search.
+
+roles:
+  - id: acme
+    company: Acme Inc.
+    title: Senior Software Engineer
+    location: Remote
+    blurb: Customer support platform | acme.com
+    start: "2023-02"
+    end: present
+    # role postdates AI work => may carry ai_work bullets
+    ai_era: true
+    bullets:
+      - id: acme-rag-search
+        claim: Built retrieval-augmented search over support docs, eval harness scoring answer grounding
+        metrics: [deflected 23% of tier-1 tickets]
+        stack: [Vue, TypeScript, pgvector, Claude]
+        ai_work: true
+      - id: acme-inp
+        claim: Cut checkout INP by moving cart recalculation off main thread
+        metrics: [INP 410ms -> 170ms]
+        stack: [Vue 3, Web Workers, Vite]
+
+  - id: globex
+    company: Globex Corporation
+    title: Software Engineer
+    start: "2019-06"
+    end: "2023-01"
+    ai_era: false
+    bullets:
+      - id: globex-design-system
+        claim: Led design system migration across product surfaces
+        metrics: [42 components, 6 teams]
+        stack: [Vue, Storybook, TypeScript]
+
+projects:
+  - id: evalkit
+    name: evalkit
+    start: "2024-05"
+    end: present
+    ai_era: true
+    bullets:
+      - id: evalkit-cli
+        claim: Open-source CLI diffing LLM eval runs across prompt versions
+        stack: [Python, Claude]
+        ai_work: true
+
+skills:
+  - group: Frontend
+    items: [Vue, TypeScript, TanStack Query, Vite, Playwright]
+  - group: AI
+    items: [Retrieval-augmented generation (RAG), eval harnesses]
+
+education:
+  - institution: State University
+    degree: B.S.
+    field: Computer Science
+    details: Minor in Mathematics
+    end: "2019-05"
+
+certifications: []
+
+languages: [English, Spanish]
