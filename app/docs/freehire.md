@@ -9,7 +9,10 @@ before trusting count.
 - `GET /jobs/search` -> `{"data":[...],"meta":{"total":N,"limit":L,"offset":O}}`.
 - Pagination ceiling `offset+limit <= 10000` => pass wider than 10k rows truncates silently;
   narrow it w/ `posted_within_days`.
-- `GET /jobs/facets?<same filters>` -> live counts per facet value.
+- `GET /jobs/facets?<same filters>` -> live counts per facet value. Lists EVERY valid value for
+  every facet in one call => `uv run app/jobs.py probe --facets [<facet>]` instead of guessing
+  slugs one probe at a time (unknown slug answers 0, never error, so a guess loop is silent
+  and slow). 47 `category` values, 2026-09-20.
 - `GET /geo/cities?q=<text>` -> exact `cities=` values (`uv run app/jobs.py probe --city <text>`).
   `cities=` matches exact value only: `new york` misses `New York City`.
 - Row fields: `public_slug` `title` `company` `company_slug` `url` `source` `location` `cities`
@@ -23,7 +26,8 @@ before trusting count.
 
 `healthcare` 29,971 - `sales` 85,154 - `finance` 16,233 - `legal` 10,673 - `education` 3,463.
 `nursing` and `customer_support` answer 0 - real slugs `healthcare`, `support`. Unknown slug
-returns 0, never error => probe every slug before committing it to profile.
+returns 0, never error => never guess: `probe --facets category countries=us` lists all 47 w/
+counts in one call.
 
 ## Defects handled in code
 
