@@ -77,6 +77,13 @@ def smtp_sender(config: dict, user: str, password: str, to: str) -> Callable[[Em
     return send
 
 
+def check_login(config: dict, user: str, password: str, connect=smtplib.SMTP_SSL) -> None:
+    """Sign in and hang up. Proves credentials before a scheduled run depends on them."""
+    smtp = config["alert"]
+    with connect(smtp["smtp_host"], smtp["smtp_port"], timeout=smtp["timeout_s"]) as server:
+        server.login(user, password)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Email unseen ranked jobs, then mark seen")
     ap.add_argument("--db", help="override config db path")
@@ -92,6 +99,17 @@ def main() -> None:
             print(msg["Subject"])
             print(msg.get_body(("plain",)).get_content())
         print(f"{len(ranked)} new (dry run)")
+        user, password = os.environ.get("SMTP_USER"), os.environ.get("SMTP_PASSWORD")
+        if not (user and password):
+            print(f"email not set up ({cfg.EMAIL_ENV} missing SMTP_USER/SMTP_PASSWORD); "
+                  "daily run notifies on this computer instead")
+            return
+        try:
+            check_login(config, user, password)
+        except Exception as exc:
+            sys.exit(f"email sign-in failed: {exc}\nFix SMTP_USER/SMTP_PASSWORD in {cfg.EMAIL_ENV} "
+                     "(Gmail needs an app password, not the account password).")
+        print(f"email sign-in ok: {user} -> {os.environ.get('ALERT_TO') or user}")
         return
     missing = [k for k in ("SMTP_USER", "SMTP_PASSWORD") if not os.environ.get(k)]
     if missing:
