@@ -14,18 +14,33 @@ it or start over?
 
 ## 1. Interview
 
-Ask, one batch, plain words:
-- what kind of work (job titles, field); experience level if it matters
-- where: remote, which cities/areas, or both - which they prefer
-- full time / part time / contract
-- lowest yearly pay they'd consider (used to rank higher-paying jobs first, never to hide jobs)
-- companies they never want to see
+Clickable choices, not prose questions (`AGENTS.md` #User = not technical). Measure BEFORE asking
+so every option carries a live count: `uv run app/jobs.py probe --facets countries=us` gives all
+47 categories + every other facet in one call.
+
+Round 1, one batch of 4:
+- what kind of work - 4 grouped families of `category` values, `multiSelect`, counts per option
+- where: remote only / remote first / local first / local only
+- full time / part time / contract, `multiSelect` + "doesn't matter"
+- lowest yearly pay - 4 bands (ranks higher-paying first, never hides jobs; say so in the question)
+
+Round 2, narrows round 1 (batch of 3):
+- which exact roles inside the family they picked, `multiSelect`, counts per option
+- which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
+  the `cities` facet, so they click instead of typing; "Other" covers the rest
+- career level - context for ranking + tailoring only; never a `seniority` filter (facet null on
+  30-45% of rows, junior lives in title string)
+
+Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
+`jobgether` + `builtin-integration-sandbox` silently, tell them at wrap-up they can say "stop
+showing jobs from <company>" any time.
 
 ## 2. Build search (internal - don't narrate commands)
 
 - Start from `app/profiles/example.yml`.
-- Field -> `category=` (tech: `skills=` often tighter). Unknown slug answers 0, not error:
-  probe each guess (`uv run app/jobs.py probe category=<slug> countries=us`).
+- Field -> `category=` (tech: `skills=` often tighter). NEVER guess slugs one probe at a time:
+  `uv run app/jobs.py probe --facets category countries=us` lists every valid value w/ live count
+  in one call (unknown slug answers 0, not error, so a guess loop is silent and slow).
 - One tier per location group, preferred first: remote tier `work_mode=remote` +
   `countries=us`; city tier `cities=` ALONE (geography facets OR together, `cfg` rejects mix).
   Exact city values: `uv run app/jobs.py probe --city <text>`.
@@ -34,7 +49,15 @@ Ask, one batch, plain words:
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).
 - Tell user in plain numbers: "About 170 finance jobs match right now - 132 remote, 36 around
-  Springfield. Sample: <3 titles>." Ask: looks right, too many, too few? Adjust + re-probe.
+  Springfield. Sample: <3 titles>." Ask as clicks: looks right / too many, narrow it / too few,
+  widen it - each option naming what you'd actually change. Adjust + re-probe.
+- "Too many" + a named technology => search `skills=<tech>` alone, drop `category=`. Then read
+  100 rows' `enrichment.category` and blocklist the non-role ones the tag leaks onto: measure it
+  (`skills=react` 2026-09-20 leaked Sales Consultant, Payment Operations Analyst, Product
+  Designer, Product Manager), never guess the list.
+- Rank has NO per-skill boost (`rank.py`: tier, collections, salary only), and a row matching two
+  passes keeps the LAST pass's tier. So "X first, everything else after" is NOT expressible w/
+  overlapping passes - either narrow the search to X, or leave it wide. Say which you did.
 
 Write `My Settings/Search settings.yml`: `profile.name` (their words, e.g. "accounting jobs" -
 heads notification + email), `passes`, `blocklist` (keep `jobgether` + their companies),
@@ -61,12 +84,17 @@ for any of these? Say number."
 
 ## 5. Daily check (on by default)
 
-`uv run app/jobs.py autorun on` w/o asking (08:00 from `app/defaults.yml`), then
-`uv run app/jobs.py daily` + `uv run app/jobs.py autorun status` - log tail must show
-"notified" or "0 new". Tell them: each morning computer checks for jobs and pops up a
-notification when new ones arrive; clicking it opens Job Finder. First one covers every current
-match, later ones only new jobs. Computer must be on; missed run happens when it next starts
-(Windows) or wakes (Mac). Ask: different time? Email too?
+`uv run app/jobs.py autorun on` w/o asking (08:00 from `app/defaults.yml`). Ask time + email as
+two clickable questions (time: keep 08:00 / 3 other times; email: popup only / email too).
+
+Ask BEFORE the first `uv run app/jobs.py daily`: that run marks every current match seen, so a
+later `email --dry-run` prints "0 new" and the user never sees their own digest. Order = ask ->
+write `.data/email.env` if they said yes -> `email --dry-run` (real preview + sign-in) -> `daily`
+-> `uv run app/jobs.py autorun status`; log tail must show "notified"/"emailed" or "0 new".
+
+Tell them: each morning computer checks for jobs and pops up a notification when new ones arrive;
+clicking it opens Job Finder. First one covers every current match, later ones only new jobs.
+Computer must be on; missed run happens when it next starts (Windows) or wakes (Mac).
 - Different time -> `schedule.local_daily: "HH:MM"` in search settings, `autorun on` again.
 
 Email too (only if they say yes):
@@ -78,8 +106,9 @@ Email too (only if they say yes):
 - Write `.data/email.env` from `app/email.env.example`: `SMTP_USER`, `SMTP_PASSWORD` (spaces
   removed), `ALERT_TO` if different inbox. Yahoo: also `alert.smtp_host: smtp.mail.yahoo.com`
   in search settings.
-- Email replaces notification. Test: `uv run app/jobs.py email --dry-run` shows what goes;
-  next scheduled run emails (log tail "emailed").
+- Email replaces notification. Test: `uv run app/jobs.py email --dry-run` shows what goes and
+  signs in to prove the app password (exits nonzero on bad credentials); next scheduled run
+  emails (log tail "emailed").
 
 ## 6. Wrap up
 
