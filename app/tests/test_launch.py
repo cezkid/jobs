@@ -1,5 +1,8 @@
+import json
+import re
 from urllib.parse import parse_qs, urlparse
 
+import cfg
 import launch
 import notify
 
@@ -42,3 +45,10 @@ def test_pdf_opens_in_system_viewer_other_files_in_vscode(tmp_path, monkeypatch)
     jobs.open_for_user(str(page))
     assert viewer == [pdf.resolve().as_uri()]
     assert tabs == [str(page.resolve())]
+
+
+def test_workspace_hides_builtin_vscode_chat():
+    # without this the built-in Copilot chat owns the right-hand panel on first open
+    raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
+    settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
+    assert settings["chat.disableAIFeatures"] is True

@@ -1,5 +1,6 @@
 import copy
 
+import pymupdf
 import pytest
 import typst
 
@@ -37,7 +38,7 @@ def test_markup_characters_render_literally(master, tmp_path):
     master["roles"][0]["bullets"][0]["claim"] = "Shipped #flags $cost_model *bold* @team <tag> [x] under 5ms"
     path, results = render.render(render.page_model(master), tmp_path, budget=False)
     assert failed(results) == {}
-    assert "#flags $cost_model *bold* @team <tag> [x]" in render.pdftotext(path, None)
+    assert "#flags $cost_model *bold* @team <tag> [x]" in render.pdf_text(path, sort=True)
 
 
 def test_prose_block_over_cap_fails(master, tmp_path):
@@ -59,3 +60,16 @@ def test_unscrubbed_typst_output_fails_metadata(master, tmp_path):
 def test_budget_enforced_only_when_asked(master, tmp_path):
     _, results = render.render(render.page_model(master), tmp_path, budget=True)
     assert set(failed(results)) == {"budget"}
+
+
+def test_two_column_layout_fails_single_column(tmp_path):
+    # right column written into the stream first: a parser reads across, a person reads down
+    doc = pymupdf.open()
+    page = doc.new_page()
+    for x, side in ((320, "right"), (60, "left")):
+        for y, line in ((100, "one"), (120, "two")):
+            page.insert_text((x, y), f"{side} {line}")
+    path = tmp_path / "two-column.pdf"
+    doc.save(path)
+    doc.close()
+    assert render.tokens(render.pdf_text(path, sort=True)) != render.tokens(render.pdf_text(path, sort=False))
