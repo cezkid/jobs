@@ -42,3 +42,54 @@ def test_parse_params_splits_lists_and_rejects_bare_key():
     }
     with pytest.raises(SystemExit):
         probe.parse_params(["category"])
+
+
+FACETS = {"category": {"finance": 16032, "healthcare": 30032, "sales": 84609},
+          "work_mode": {"remote": 5871, "hybrid": 900}}
+
+
+def facet_client() -> httpx.Client:
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v1/jobs/facets"
+        assert request.url.params["countries"] == "us"
+        return httpx.Response(200, json={"data": {"total": 754737, "facets": FACETS}})
+
+    return httpx.Client(transport=httpx.MockTransport(handler))
+
+
+def test_facet_values_sorts_every_facet_by_count():
+    with facet_client() as client:
+        got = probe.facet_values(client, BASE, {"countries": "us"})
+    assert list(got) == ["category", "work_mode"]
+    assert got["category"] == [("sales", 84609), ("healthcare", 30032), ("finance", 16032)]
+
+
+def test_facet_values_narrows_to_one_facet():
+    with facet_client() as client:
+        got = probe.facet_values(client, BASE, {"countries": "us"}, "work_mode")
+    assert got == {"work_mode": [("remote", 5871), ("hybrid", 900)]}
+
+
+def test_facet_values_rejects_unknown_facet_instead_of_answering_empty():
+    with facet_client() as client:
+        with pytest.raises(SystemExit, match="category, work_mode"):
+            probe.facet_values(client, BASE, {"countries": "us"}, "seniority")
+
+
+def test_facets_flag_does_not_swallow_a_filter_param(monkeypatch, capsys):
+    real_client = httpx.Client
+    seen = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.update(request.url.params)
+        return httpx.Response(200, json={"data": {"total": 754737, "facets": FACETS}})
+
+    monkeypatch.setattr("sys.argv", ["probe", "--facets", "countries=us"])
+    monkeypatch.setattr(probe.cfg, "defaults", lambda: {"api": {"base": BASE, "timeout_s": 5}})
+    monkeypatch.setattr(probe.httpx, "Client", lambda **kw: real_client(transport=httpx.MockTransport(handler)))
+    probe.main()
+    # countries=us reached the request as a filter, not as the facet name
+    assert seen == {"countries": "us"}
+    out = capsys.readouterr().out
+    assert out.startswith("category: sales 84609")
+    assert "work_mode: remote 5871" in out

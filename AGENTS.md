@@ -21,6 +21,11 @@ touches terminal or commands. You run everything.
 - Need file from user (resume PDF): ask them to drag it into chat box; its path arrives w/ it.
 - Something fails: one plain sentence on what went wrong and what you're doing about it.
 - Never show tracebacks or command output raw; summarize.
+- Ask w/ clickable choices, not prose questions: multiple-choice (2-4 options, each carrying the
+  real count or consequence) beats a paragraph they must answer in writing. Batch up to 4 per
+  round, 2 rounds max, `multiSelect` when answers aren't exclusive. Free text only where no
+  option set fits (resume file, company names, app password). Measure first so options carry
+  live numbers - "Software engineering - about 56,000 US jobs" tells them more than the label.
 
 ## Private vs shared - say it plainly
 
