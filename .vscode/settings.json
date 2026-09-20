@@ -22,6 +22,8 @@
   "explorer.sortOrder": "modified",
   "workbench.startupEditor": "none",
   "workbench.tips.enabled": false,
+  // else VS Code's own Copilot chat owns the right-hand panel and the user talks to it, not Claude/ChatGPT
+  "chat.disableAIFeatures": true,
   "extensions.ignoreRecommendations": true,
   "workbench.editorAssociations": {
     "*.md": "vscode.markdown.preview.editor"

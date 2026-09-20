@@ -3,8 +3,6 @@ import difflib
 import json
 import math
 import re
-import shutil
-import subprocess
 import sys
 import time
 from datetime import date
@@ -144,12 +142,11 @@ def tokens(text: str) -> list[str]:
     return WORD.findall(text.casefold())
 
 
-def pdftotext(path: Path, mode: str | None) -> str:
-    exe = shutil.which("pdftotext")
-    if not exe:
-        raise RuntimeError("pdftotext not on PATH - install poppler (poppler-utils)")
-    argv = [exe, "-enc", "UTF-8", *([mode] if mode else []), str(path), "-"]
-    return subprocess.run(argv, capture_output=True, check=True).stdout.decode("utf-8")
+def pdf_text(path: Path, sort: bool) -> str:
+    """sort=True: order a reader sees. sort=False: order the content stream hands a parser."""
+    # pymupdf, never poppler's pdftotext: already a dependency, so no install the user cannot do
+    with pymupdf.open(path) as doc:
+        return "\n".join(page.get_text(sort=sort) for page in doc)
 
 
 def first_divergence(a: list[str], b: list[str]) -> str:
@@ -163,16 +160,17 @@ def check(path: Path, model: dict, budget: bool) -> list[tuple[str, bool, str]]:
     def gate(name: str, ok: bool, detail: str = "") -> None:
         results.append((name, ok, detail))
 
-    reading, layout, raw = (pdftotext(path, m) for m in (None, "-layout", "-raw"))
+    reading, stream = (pdf_text(path, sort) for sort in (True, False))
     want = [t for s in page_strings(model) for t in tokens(s)]
     got = tokens(reading)
     matcher = difflib.SequenceMatcher(None, want, got, autojunk=False)
     recovered = sum(block.size for block in matcher.get_matching_blocks()) / max(len(want), 1)
     gate("round-trip", recovered >= MIN_RECOVERY, f"{recovered:.1%} in-order word recovery (floor {MIN_RECOVERY:.0%})")
 
-    orders = {"layout": tokens(layout), "raw": tokens(raw)}
-    diverged = [f"{mode} {first_divergence(got, seq)}" for mode, seq in orders.items() if seq != got]
-    gate("single-column", not diverged, "; ".join(diverged) or "default = layout = raw")
+    # columns/tables read down one side visually but jump across in the stream => the two orders split
+    in_stream = tokens(stream)
+    diverged = in_stream != got
+    gate("single-column", not diverged, first_divergence(got, in_stream) if diverged else "read order = stream order")
     gate("ligatures", not LIGATURE.search(reading), "U+FB00-FB06 absent")
     missing = [part for part in model["contact"]["parts"] if part.casefold() not in reading.casefold()]
     gate("contact-in-body", not missing, f"missing from text layer: {missing}" if missing else "every contact part in text layer")
