@@ -106,6 +106,63 @@ def test_craft_rules_only_warn(master, model):
     assert {"resume-verb", "rule-of-three", "same-verb-opening"} <= rules(findings, lint.WARN)
 
 
+def test_lead_bullet_without_number_warns_when_a_later_one_carries_it(master, model):
+    acme(model)["bullets"] = [
+        "Rebuilt the Vue design system with the platform team",
+        "Cut INP 410ms -> 170ms",
+    ]
+    findings = lint.lint(model, master)
+    assert "lead-bullet-weak" in rules(findings, lint.WARN)
+    assert rules(findings) == set()
+
+
+def test_strongest_bullet_first_clears_the_order_rule(master, model):
+    acme(model)["bullets"] = [
+        "Cut INP 410ms -> 170ms",
+        "Rebuilt the Vue design system with the platform team",
+    ]
+    assert "lead-bullet-weak" not in rules(lint.lint(model, master), lint.WARN)
+
+
+def test_role_dates_overlapping_next_role_warn(master):
+    master["roles"][1]["end"] = master["roles"][0]["start"]
+    findings = lint.lint(render.page_model(master), master)
+    assert "role-dates-overlap" in rules(findings, lint.WARN)
+    assert rules(findings) == set()
+
+
+def test_same_employer_overlap_says_so_in_the_detail(master):
+    master["roles"][1]["company"] = master["roles"][0]["company"]
+    master["roles"][1]["end"] = master["roles"][0]["start"]
+    findings = lint.lint(render.page_model(master), master)
+    detail = next(f.detail for f in findings if f.rule == "role-dates-overlap")
+    assert "SAME employer" in detail
+
+
+def test_canonical_casing_warns_on_drifted_spelling(master, model):
+    acme(model)["bullets"] = ["Rebuilt the Typescript design system"]
+    findings = lint.lint(model, master)
+    assert "canonical-casing" in rules(findings, lint.WARN)
+    assert rules(findings) == set()
+
+
+def test_canonical_casing_quiet_when_spelling_is_right(master, model):
+    acme(model)["bullets"] = ["Rebuilt the TypeScript design system"]
+    assert "canonical-casing" not in rules(lint.lint(model, master), lint.WARN)
+
+
+def test_a_domain_in_the_contact_line_is_not_a_misspelling(master, model):
+    assert "canonical-casing" not in rules(lint.lint(model, master), lint.WARN)
+
+
+def test_older_role_with_more_bullets_than_a_newer_one_warns(master, model):
+    entries = [e for s in model["sections"] for e in s.get("entries", [])
+               if e.get("id") in {r["id"] for r in master["roles"]}]
+    entries[0]["bullets"] = ["Cut INP 410ms -> 170ms"]
+    entries[1]["bullets"] = ["Cut INP 410ms -> 170ms", "Shipped 4 Vue screens", "Wrote 9 Jest suites"]
+    assert "bullet-taper" in rules(lint.lint(model, master), lint.WARN)
+
+
 def test_company_without_legal_id_warns_never_fails(master):
     master["roles"][1]["company"] = "Mount Sinai Hospital"
     findings = lint.lint(render.page_model(master), master)

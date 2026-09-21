@@ -33,5 +33,48 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
 5. Open PDF for them; say it's in `My Jobs/<Company - Title>/`, private to this computer, ready
    to upload.
 
+Wording the user asks about:
+- Industry term: keep it spelled exactly as the field writes it - screeners match the string, and
+  dropping it loses the keyword. Put its plain meaning in the same sentence instead ("WCAG 2.1 AA
+  accessibility"), once per page, not in every bullet. `skills` items stay bare - that block is the
+  keyword list, explaining there only bloats it.
+- Bullet order inside one role: strongest first (the opening bullet is the one always read),
+  relevance over chronology, a bullet w/ a number outranks one w/o, weakest last. `resume-lint`
+  warns `lead-bullet-weak` when a role opens w/o a number while a later bullet carries one.
+
+Identity = employer, title, dates. Verified w/ HR, so never reword one to fit a posting - `lint`
+FAILs `title-changed`, `employer-changed`, `dates-changed`. A posting's title goes in
+`title_mirror` (suffix only: "Software Engineer (Full Stack Engineer)"), never in place of
+theirs. A self-added narrowing suffix ("Software Engineer (Frontend)") is the user's to drop:
+it carries no verification risk, but it labels them narrower than their bullets and leaves the
+mirror stacking two parentheticals. Ask whose wording it is before touching it.
+
+`resume-lint` also WARNs on the shape of the master resume, all judgement calls, none fatal:
+`role-dates-overlap` (one role ends after the next begins - same employer means a promotion
+recorded wrong, different employers usually means real concurrent work), `bullet-taper` (an
+older role given more bullets than a newer one), `canonical-casing` (NginX, JQuery - one
+correct spelling per name, URLs exempt), `lead-bullet-weak`.
+
+Keywords the user is missing: measure, never guess. Their own matched rows carry a `skills`
+list - count it across `jobs.db`, subtract what they list, and show the top gaps w/ real
+percentages. Offer only the ones their bullets already evidence (AWS when EC2 is on the page,
+LLM when they built AI tooling) and let them confirm each; a keyword they cannot defend in an
+interview is worse than a missing one.
+
+Positioning = the user's own words, not a verified fact (unlike employer, title, dates), so it is
+theirs to choose - but measure before advising, never opine:
+
+- Specialization in `summary` ("full stack" vs "front-end"): count both words across their matched
+  titles and the pay behind each (`jobs.db`), then check the label survives their bullets. A full
+  stack claim carrying one back-end bullet in thirteen gets probed in the first interview. A
+  qualifier keeps a broad claim honest: "Full stack software engineer, front-end focused".
+- Years: lead with them, counted from the first role that genuinely does the work, and say which
+  role you counted from so they can correct it.
+- Location: count how their target rows name theirs (`location` in `jobs.db`). A town of 30k
+  matches nothing a screener searches; the metro name matches every row. Say plainly what dropping
+  the state costs - remote rows that restrict hiring by state need it. Longer location = longer
+  contact line: `contact-line (info)` reports the wrap, and on a full page that wrap costs a whole
+  page, so re-render before promising the wording.
+
 Never invent experience to close gap. Tailor/render/lint crash or wrong output from tracked code
 -> `AGENTS.md` #Framework defects.
