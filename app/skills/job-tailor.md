@@ -33,5 +33,14 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
 5. Open PDF for them; say it's in `My Jobs/<Company - Title>/`, private to this computer, ready
    to upload.
 
+Wording the user asks about:
+- Industry term: keep it spelled exactly as the field writes it - screeners match the string, and
+  dropping it loses the keyword. Put its plain meaning in the same sentence instead ("WCAG 2.1 AA
+  accessibility"), once per page, not in every bullet. `skills` items stay bare - that block is the
+  keyword list, explaining there only bloats it.
+- Bullet order inside one role: strongest first (the opening bullet is the one always read),
+  relevance over chronology, a bullet w/ a number outranks one w/o, weakest last. `resume-lint`
+  warns `lead-bullet-weak` when a role opens w/o a number while a later bullet carries one.
+
 Never invent experience to close gap. Tailor/render/lint crash or wrong output from tracked code
 -> `AGENTS.md` #Framework defects.

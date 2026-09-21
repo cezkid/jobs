@@ -51,6 +51,7 @@ TOOL_RELEASED = {
     re.compile(r"\bGPT-4", re.I): "2023-03",
     re.compile(r"\bClaude\b", re.I): "2023-03",
 }
+NUMBER = re.compile(r"\d")
 # number, or word w/ optional .js / C++ / C# tail
 TOKEN = re.compile(r"\d+(?:[.,]\d+)*|[^\W\d_]+(?:[.+#][^\W\d_]+|[+#]+)*")
 SENTENCE_START = re.compile(r"(^|[.;:!?]\s+)$")
@@ -178,6 +179,10 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
             for a, b in zip(firsts, firsts[1:]):
                 if a == b:
                     findings.append(Finding(WARN, "same-verb-opening", where, f"consecutive bullets open {a!r}"))
+            bullets = entry["bullets"]
+            # opening bullet is the one always read; a measured claim there outranks a vague one
+            if len(bullets) > 1 and not NUMBER.search(bullets[0]) and any(NUMBER.search(b) for b in bullets[1:]):
+                findings.append(Finding(WARN, "lead-bullet-weak", where, "opening bullet carries no number, a later one does"))
             lengths += [len(b.split()) for b in entry["bullets"]]
     if len(lengths) >= 3:
         cv = statistics.pstdev(lengths) / statistics.mean(lengths)
