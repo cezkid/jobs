@@ -1,6 +1,5 @@
 {
   "permissions": {
-    "defaultMode": "acceptEdits",
     "allow": [
       "Bash(uv run app/jobs.py *)",
       "Bash(uv run pytest*)",
