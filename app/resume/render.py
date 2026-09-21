@@ -12,11 +12,10 @@ import pymupdf
 import typst
 
 import cfg
-from resume import schema
+from resume import schema, typeface
 
 HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE / "templates" / "resume.typ"
-FONTS = HERE / "fonts"
 MONTH_NAMES = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 SEP = " | "
 WORD = re.compile(r"\w+")
@@ -34,14 +33,25 @@ MAX_PAGES = 2
 MIN_LAST_PAGE_FILL = 0.6
 # density sets tailor's word window: two-page floor = 1.6 x words/page, so denser page => narrower window
 # ceiling must clear 2 x words/page or word_windows() clips the two-page window to nothing
-# measured 2026-09-21: filling last lines takes a page from 310 to 360 words (window 577-720), CPL 97;
-# 650 left only 577-650, and any denser page emptied the window outright
-# a wrapped block's last line stops here; below it the line is a stub wasting its whole row
-MIN_LINE_FILL = 0.55
-# a line this full means the break after it was the text wrapping, not a deliberate "\" break
-WRAPPED_LINE = 0.80
-MARGIN_X_IN = 1.05
+# measured in Caladea 2026-09-21 on a full-length resume: 378 words a page (window 605-755),
+# 100 characters on a bullet line. The ceiling is what a change of font moves, so it is set
+# clear of one: 860 keeps a two-page window open on any page up to 537 words
+# a wrapped paragraph's last line stops here; below it the line is a stub wasting its whole row.
+# measured 2026-09-21: tails cluster low and then stop - 3-30% full in Source Sans 3, 24-35%
+# in Caladea, nothing between there and a filled line either way. Any cut inside that empty
+# gap flags the same lines, so this is a threshold, not a knob to tune, and not font-specific
+MIN_LINE_FILL = 0.40
+# resume.typ holds the summary to this share of the column, so its lines wrap short of the edge
+SUMMARY_WIDTH = 0.90
+# 0.85in, not the 1.05 this started at: the text needs the width back that tracking spends.
+# Wider than this buys nothing - past the point where every bullet fits one line, the page is
+# bound vertically, and 0.75in moved neither page count nor widow count on a real resume
+MARGIN_X_IN = 0.85
 MARGIN_Y_IN = 0.75
+# letterspacing added to every glyph. Caladea is fitted tight for economy, which at 11pt reads
+# cramped; +0.015em opens it for 1.5% of the line, which the column above pays for. Not a free
+# knob: measure.py adds tracking * SIZE per character, so moving it moves every width with it
+TRACKING_EM = 0.015
 PT_PER_IN = 72
 
 
@@ -105,8 +115,10 @@ def page_model(master: dict) -> dict:
     }
 
 
-def with_page(model: dict) -> dict:
-    return {**model, "page": {"margin_x_in": MARGIN_X_IN, "margin_y_in": MARGIN_Y_IN}}
+def with_page(model: dict, font: str = typeface.DEFAULT) -> dict:
+    """Page setup the template needs but the page content does not carry: margins, family, fit."""
+    return {**model, "page": {"margin_x_in": MARGIN_X_IN, "margin_y_in": MARGIN_Y_IN,
+                              "tracking_em": TRACKING_EM, "font": font}}
 
 
 def page_strings(model: dict) -> list[str]:
@@ -129,10 +141,12 @@ def file_name(model: dict) -> str:
     return re.sub(r"[^A-Za-z0-9_-]", "", re.sub(r"\s+", "_", model["contact"]["name"].strip())) + "_Resume.pdf"
 
 
-def compile_pdf(model: dict) -> bytes:
+def compile_pdf(model: dict, font: str = typeface.DEFAULT) -> bytes:
+    # one family's folder, no system fonts: a face the family lacks can never be filled in
+    # silently from another, so what renders is what measure.py measured
     pdf = typst.compile(
-        str(TEMPLATE), font_paths=[str(FONTS)], ignore_system_fonts=True,
-        sys_inputs={"data": json.dumps(with_page(model), ensure_ascii=False)}, pdf_standards="ua-1",
+        str(TEMPLATE), font_paths=[str(typeface.folder(typeface.use(font)))], ignore_system_fonts=True,
+        sys_inputs={"data": json.dumps(with_page(model, font), ensure_ascii=False)}, pdf_standards="ua-1",
     )
     return scrub(pdf, model["title"])
 
@@ -160,7 +174,7 @@ def first_divergence(a: list[str], b: list[str]) -> str:
     return f"word {i}: {' '.join(a[i:i + 6])!r} vs {' '.join(b[i:i + 6])!r}"
 
 
-def check(path: Path, model: dict, budget: bool) -> list[tuple[str, bool, str]]:
+def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT) -> list[tuple[str, bool, str]]:
     results: list[tuple[str, bool, str]] = []
 
     def gate(name: str, ok: bool, detail: str = "") -> None:
@@ -219,13 +233,13 @@ def check(path: Path, model: dict, budget: bool) -> list[tuple[str, bool, str]]:
         pages, fill = doc.page_count, used - doc.page_count + 1
         page_ok = pages == 1 or (pages <= MAX_PAGES and fill >= MIN_LAST_PAGE_FILL)
         page_detail = f"{pages} page(s), last {fill:.0%} full (at most {MAX_PAGES}; a 2nd page fills {MIN_LAST_PAGE_FILL:.0%}+)"
-        # contact facts are the user's to change, never the tailorer's: a stub there must not block the loop
-        stubs = runts(doc, SEP.join(model["contact"]["parts"]))
+        stubs = runts(doc, model, font)
+        blocked = [s for s in stubs if s["fixable"]]
         detail = f"{words} words (target {WORD_BUDGET[0]}-{WORD_BUDGET[1]})"
         windows = " or ".join(f"{low}-{high}" for low, high in word_windows(words, used))
         if budget:
             gate("pages", page_ok, page_detail)
-            gate("line-fill", not stubs, stub_detail(stubs))
+            gate("line-fill", not blocked, stub_detail(stubs))
             ok = WORD_BUDGET[0] <= words <= WORD_BUDGET[1]
             gate("budget", ok, detail if ok else f"{detail}; words fitting page rules at this density: {windows or 'none at this density'}")
         else:
@@ -265,33 +279,85 @@ def line_edges(line: dict) -> tuple[str, float, float]:
             min(s["bbox"][0] for s in spans), max(s["bbox"][2] for s in spans))
 
 
-def runts(doc, exempt: str = "") -> list[dict]:
-    """Wrapped blocks ending in a stub line: text, how full it is, chars to cut or add.
+def first_word_widths(page) -> dict[tuple[int, int], float]:
+    """(block, line) -> width of that line's first word; "words" numbers lines as "dict" does."""
+    return {(b, l): x1 - x0 for x0, _, x1, _, _, b, l, w in page.get_text("words") if w == 0}
 
-    A block's last line only counts when the line before it ran nearly to the margin - that
-    is what separates text that wrapped from a deliberate break (entry sublines use "\\").
+
+def rewritable(model: dict) -> set[str]:
+    """Page text the tailorer may reword: summary, bullets, skills lines.
+
+    Headings, dates, contact and education come straight from the user's own facts, so a stub
+    in one is reported and never failed - nothing the tailorer writes could move it.
+    """
+    out = {squeezed(model["summary"])} if model["summary"] else set()
+    for section in model["sections"]:
+        for entry in section.get("entries", []):
+            out.update(squeezed(b) for b in entry["bullets"])
+        if section["title"] == "Skills":
+            out.update(squeezed(f"{l['label']}: {l['text']}") for l in section.get("lines", []))
+    return out
+
+
+def paragraphs(page, lines: list[dict], block: int, edge: float, space: float) -> list[list[tuple[str, float, float]]]:
+    """Split a block where the text did NOT wrap.
+
+    A line continues the one above only when that line had no room left for this line's first
+    word. Measured, never guessed from how full a line looks: a deliberate break (an entry
+    subline after "\\") leaves room, so it starts a paragraph of its own. `space` is the word
+    space the wrap would have had to fit into, which is the font's, not a constant.
+    """
+    firsts = first_word_widths(page)
+    runs, current = [], [line_edges(lines[0])]
+    for i, line in enumerate(lines[1:], 1):
+        edges = line_edges(line)
+        if current[-1][2] + space + firsts.get((block, i), 0.0) > edge:
+            current.append(edges)
+        else:
+            runs.append(current)
+            current = [edges]
+    runs.append(current)
+    return runs
+
+
+def runts(doc, model: dict, font: str = typeface.DEFAULT) -> list[dict]:
+    """Paragraphs ending in a stub line: the text, how full it is, chars to cut or to add.
+
+    Every measurement is in points off the rendered page - character counts never decide, since
+    one glyph runs 3.2x the width of another. Chars appear only in the advice, converted at the
+    paragraph's own measured width per character.
     """
     left = MARGIN_X_IN * PT_PER_IN
     width = doc[0].rect.width - 2 * left
+    space = typeface.advance(font, " ") + TRACKING_EM * typeface.SIZE
+    summary = squeezed(model["summary"] or "")
+    can_fix = rewritable(model)
     found = []
     for page in doc:
-        for block in page.get_text("dict")["blocks"]:
-            lines = block.get("lines", [])
-            if len(lines) < 2:
+        for block, raw in enumerate(page.get_text("dict")["blocks"]):
+            lines = raw.get("lines", [])
+            if not lines:
                 continue
-            if exempt and squeezed("".join(line_edges(l)[0] for l in lines)) == squeezed(exempt):
-                continue
-            if (line_edges(lines[-2])[2] - left) / width < WRAPPED_LINE:
-                continue
-            text, ink_left, ink_right = line_edges(lines[-1])
-            fill = (ink_right - left) / width
-            if fill >= MIN_LINE_FILL:
-                continue
-            per_char = (ink_right - ink_left) / len(text) if text.strip() else 0
-            found.append({
-                "text": text.strip(), "fill": fill, "cut": len(text.strip()),
-                "add": math.ceil((MIN_LINE_FILL - fill) * width / per_char) if per_char else 0,
-            })
+            whole = squeezed("".join(line_edges(l)[0] for l in lines))
+            narrow = bool(summary) and summary in whole
+            edge = left + width * (SUMMARY_WIDTH if narrow else 1.0)
+            for run in paragraphs(page, lines, block, edge, space):
+                if len(run) < 2:
+                    continue
+                text, ink_left, ink_right = run[-1]
+                fill = (ink_right - ink_left) / (edge - ink_left)
+                if fill >= MIN_LINE_FILL:
+                    continue
+                chars = sum(len(t) for t, _, _ in run)
+                per_char = sum(r - l for _, l, r in run) / chars if chars else 0
+                tail, slack = ink_right - ink_left, edge - run[-2][2]
+                body = squeezed("".join(t for t, _, _ in run)).replace("\u2022", "")
+                found.append({
+                    "text": text.strip(), "fill": fill,
+                    "cut": math.ceil((tail + space - slack) / per_char) if per_char else 0,
+                    "add": math.ceil((MIN_LINE_FILL * (edge - ink_left) - tail) / per_char) if per_char else 0,
+                    "fixable": any(body and body in c for c in can_fix),
+                })
     return found
 
 
@@ -300,7 +366,9 @@ def stub_detail(found: list[dict], show: int = 8) -> str:
     if not found:
         return "every wrapped block fills its last line"
     listed = "; ".join(
-        f"{r['text']!r} {r['fill']:.0%} full, cut {r['cut']} or add ~{r['add']}" for r in found[:show]
+        f"{r['text']!r} {r['fill']:.0%} full, cut {r['cut']} or add ~{r['add']}"
+        + ("" if r["fixable"] else " (user's own facts - reported only)")
+        for r in found[:show]
     )
     more = f" (+{len(found) - show} more)" if len(found) > show else ""
     return f"{len(found)} line(s) end in a stub: {listed}{more}"
@@ -314,11 +382,11 @@ def word_windows(words: int, used: float) -> list[tuple[int, int]]:
     return [w for w in (one, two) if w[0] <= w[1]]
 
 
-def render(model: dict, out_dir: Path, budget: bool) -> tuple[Path, list[tuple[str, bool, str]]]:
+def render(model: dict, out_dir: Path, budget: bool, font: str = typeface.DEFAULT) -> tuple[Path, list[tuple[str, bool, str]]]:
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / file_name(model)
-    path.write_bytes(compile_pdf(model))
-    return path, check(path, model, budget)
+    path.write_bytes(compile_pdf(model, font))
+    return path, check(path, model, budget, font)
 
 
 def main() -> None:
@@ -326,9 +394,10 @@ def main() -> None:
     ap.add_argument("--master", type=Path, help="master yml (default config resume.master)")
     args = ap.parse_args()
     started = time.perf_counter()
-    master_path = args.master or cfg.resume_path(cfg.load(), "master")
+    config = cfg.load() if args.master is None else cfg.load_or_defaults()
+    master_path = args.master or cfg.resume_path(config, "master")
     master = schema.load(master_path)
-    path, results = render(page_model(master), master_path.parent, budget=False)
+    path, results = render(page_model(master), master_path.parent, budget=False, font=cfg.resume_font(config))
     for name, ok, detail in results:
         print(f"  {'pass' if ok else 'FAIL'}  {name:22} {detail}")
     for gap in schema.employment_gaps(master, date.today()):
