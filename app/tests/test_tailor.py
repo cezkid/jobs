@@ -64,12 +64,19 @@ def test_valid_selection_has_no_violations(master, tailored):
     (lambda t: t["coverage"].pop(), "requirement 1 missing"),
     (lambda t: t["coverage"][1].update(requirement=5), "requirement 5 out of range"),
     (lambda t: t["coverage"][1].update(evidence=["acme-rag-search"]), "'acme-rag-search' not a source of any on-page bullet"),
-    (lambda t: t["entries"][0]["bullets"][0].update(text="x" * 181), "181 chars"),
+    (lambda t: t["entries"][0]["bullets"][0].update(text="x" * 191), "191 chars"),
+    (lambda t: t["entries"][0]["bullets"][0].update(text="x" * 120), "wraps to a stub line"),
 ])
 def test_selection_violations(master, tailored, mutate, expected):
     mutate(tailored)
     violations = tailor.check_selection(master, JOB, tailored)
     assert any(expected in v for v in violations), violations
+
+
+@pytest.mark.parametrize("size", [tailor.ONE_LINE_CHARS, tailor.TWO_LINE_CHARS[0], tailor.TWO_LINE_CHARS[1]])
+def test_bullet_filling_either_band_passes(master, tailored, size):
+    tailored["entries"][0]["bullets"][0]["text"] = "x" * size
+    assert not [v for v in tailor.check_selection(master, JOB, tailored) if "chars" in v]
 
 
 def test_moved_entity_resolves_through_inference(master, tailored):

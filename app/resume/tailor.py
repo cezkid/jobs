@@ -12,10 +12,20 @@ import cfg
 from resume import handoff, jd, lint, render, report, schema
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
-# plan #Visual spec: bullets/role 6 max, 1-2 lines at ~90 CPL
+# plan #Visual spec: bullets/role 6 max, 1-2 lines; measured 2026-09-21: a bullet line holds ~97 chars
 MAX_BULLETS_PER_ENTRY = 6
-LINE_CHARS = 90
+LINE_CHARS = 97
 MAX_BULLET_LINES = 2
+# a bullet fills one line or fills two; land between and it wraps to a stub wasting a whole row.
+# chars only approximate rendered width - render.py's line-fill gate on the real PDF is the backstop
+ONE_LINE_CHARS = LINE_CHARS - 2
+TWO_LINE_CHARS = (round(LINE_CHARS * 1.6), LINE_CHARS * MAX_BULLET_LINES - 4)
+# one-liners among the two-liners keep lint's uniform-bullet-length CV off the floor
+ONE_LINE_SHARE = 5
+# lint counts words where the bands count characters; resume prose runs ~6.2 chars a word
+CHARS_PER_WORD = 6.2
+ONE_LINE_WORDS = round(ONE_LINE_CHARS / CHARS_PER_WORD)
+TWO_LINE_WORDS = round(sum(TWO_LINE_CHARS) / 2 / CHARS_PER_WORD)
 SKILLS_TITLE = "Skills"
 
 TAILORED_SCHEMA = obj(
@@ -31,7 +41,10 @@ SYSTEM = f"""You tailor one candidate's resume to one job posting. Input JSON: `
 Entries
 - `entries` lists every master role id, plus any project ids worth page space. Never drop a role: dates must stay contiguous. Oldest roles may carry zero bullets.
 - Each bullet's `sources` = ids of master bullets from the SAME entry that it restates. Never move a claim into another role or project. Order bullets by relevance to this job.
-- Bullets per entry: 3-5 for recent roles ({MAX_BULLETS_PER_ENTRY} max), 2-3 for older, 0 for the oldest. 15-25 words each, never over {LINE_CHARS * MAX_BULLET_LINES} characters.
+- Bullets per entry: 3-5 for recent roles ({MAX_BULLETS_PER_ENTRY} max), 2-3 for older, 0 for the oldest. 15-25 words each.
+- Every bullet either fills one line ({ONE_LINE_CHARS} characters or fewer) or fills two ({TWO_LINE_CHARS[0]}-{TWO_LINE_CHARS[1]}). Land between and the bullet wraps to a stub line carrying two or three words, wasting a whole row: write to the nearer edge, never into that gap.
+- Mix the two lengths: at least one bullet in {ONE_LINE_SHARE} fills a single line, so the page never reads templated.
+- Skills group items follow the same rule: fill each line or stop short of wrapping, never spill 2-3 items onto a line of their own.
 - `title_mirror`: null, or part of the posting's title copied exactly, on a role whose work genuinely matches it. Rendered as "Master Title (mirror)". Never abbreviate.
 
 Wording
@@ -141,8 +154,13 @@ def check_selection(master: dict, job: dict, tailored: dict) -> list[str]:
                     violations.append(f"{where} bullet {n}: source {source!r} belongs to {owner.get(source)!r}, not this entry")
             if t["id"] in entries and (unsourced := unsourced_entities(entries[t["id"]], bullet, tailored["inferences"])):
                 violations.append(f"{where} bullet {n}: {unsourced} in none of its sources' facts or inferences: {bullet['text']!r}")
-            if len(bullet["text"]) > LINE_CHARS * MAX_BULLET_LINES:
-                violations.append(f"{where} bullet {n}: {len(bullet['text'])} chars (max {LINE_CHARS * MAX_BULLET_LINES}): {bullet['text']!r}")
+            size = len(bullet["text"])
+            if size > TWO_LINE_CHARS[1]:
+                violations.append(f"{where} bullet {n}: {size} chars (max {TWO_LINE_CHARS[1]}): {bullet['text']!r}")
+            elif ONE_LINE_CHARS < size < TWO_LINE_CHARS[0]:
+                violations.append(
+                    f"{where} bullet {n}: {size} chars wraps to a stub line - cut to {ONE_LINE_CHARS} "
+                    f"or grow to {TWO_LINE_CHARS[0]}-{TWO_LINE_CHARS[1]}: {bullet['text']!r}")
         mirror = t["title_mirror"]
         if mirror:
             if t["id"] not in roles:

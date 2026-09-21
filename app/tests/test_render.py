@@ -62,6 +62,45 @@ def test_budget_enforced_only_when_asked(master, tmp_path):
     assert set(failed(results)) == {"budget"}
 
 
+def stub_bullet() -> str:
+    """Runs past one line, then leaves two words alone on the second."""
+    return "Shipped " + "payment reconciliation and ledger export tooling " * 2 + "across two teams"
+
+
+def test_stub_line_fails_line_fill(master, tmp_path):
+    master["roles"][0]["bullets"][0]["claim"] = stub_bullet()
+    path, results = render.render(render.page_model(master), tmp_path, budget=True)
+    with pymupdf.open(path) as doc:
+        stub, = render.runts(doc)
+    assert stub["text"] == "export tooling across two teams" and stub["fill"] < render.MIN_LINE_FILL
+    # detail names the text and both ways out, so the writer never has to guess
+    detail = failed(results)["line-fill"]
+    assert stub["text"] in detail and f"cut {stub['cut']}" in detail and f"add ~{stub['add']}" in detail
+
+
+def test_line_fill_reports_but_never_fails_untailored(master, tmp_path):
+    master["roles"][0]["bullets"][0]["claim"] = stub_bullet()
+    _, results = render.render(render.page_model(master), tmp_path, budget=False)
+    assert "line-fill" not in failed(results)
+    assert "across two teams" in {n: d for n, _, d in results}["line-fill (info)"]
+
+
+def test_deliberate_break_after_short_line_is_not_a_stub(master, tmp_path):
+    # entry heading, then the subline on its own row via "\": a short row that never wrapped
+    model = render.page_model(master)
+    path, _ = render.render(model, tmp_path, budget=False)
+    with pymupdf.open(path) as doc:
+        assert [r["text"] for r in render.runts(doc)] == []
+
+
+def test_third_page_fails_pages(master, tmp_path):
+    master["roles"] *= 12
+    for n, role in enumerate(master["roles"]):
+        role["id"] = f"{role['id']}-{n}"
+    _, results = render.render(render.page_model(master), tmp_path, budget=True)
+    assert "3 page(s)" in failed(results)["pages"]
+
+
 def test_two_column_layout_fails_single_column(tmp_path):
     # right column written into the stream first: a parser reads across, a person reads down
     doc = pymupdf.open()

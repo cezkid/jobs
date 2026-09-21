@@ -91,6 +91,11 @@ Job folder: `First_Last_Resume.pdf`, `Job posting.md`, `Check before sending.md`
 gaps, gates, every inference to confirm), `.data/` (jd, task, answer). Found by slug in
 `.data/jd.json`, never by folder name.
 
+Tailored copies are held to the page: `pages` gate = at most 2, a 2nd page 60%+ full;
+`line-fill` gate = no wrapped block ends in a 2-3 word stub, measured off the rendered PDF.
+Bullets fill one line or fill two, never between. Untailored `resume-render` reports both as
+info only. Code measures and names each stub with chars to cut or add; the AI rewrites.
+
 ### Daily check
 
 `uv run app/jobs.py autorun on|off|status` schedules `daily` (Windows Task Scheduler / launchd):

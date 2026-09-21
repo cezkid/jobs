@@ -69,6 +69,11 @@ format), you write answer JSON yourself at path it names, then run check command
 Check fails -> read violations, fix JSON, rerun; after 2 failed retries tell user plainly and
 stop. No other program writes resume content.
 
+Tailored page rules (gates `pages` + `line-fill`, tailored copies only): at most 2 pages, a
+2nd page 60%+ full; every bullet fills one line or fills two - land between and it wraps to a
+2-3 word stub wasting a whole row. Gate detail names each stub + chars to cut or add. Code
+measures, you rewrite the words.
+
 ## Skills
 
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing

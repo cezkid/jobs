@@ -29,11 +29,17 @@ MIN_RECOVERY = 0.98
 # Ladders/Kickresume: summary cap = longest block detectors never get to read as prose
 MAX_BLOCK_WORDS = 57
 MAX_BYTES = 1_000_000
-WORD_BUDGET = (500, 650)
+WORD_BUDGET = (500, 860)
 MAX_PAGES = 2
 MIN_LAST_PAGE_FILL = 0.6
 # density sets tailor's word window: two-page floor = 1.6 x words/page, so denser page => narrower window
-# measured 2026-09-17: these give 312 words/page (window 500-623) + CPL 97; 407-499 words/page yields NO window
+# ceiling must clear 2 x words/page or word_windows() clips the two-page window to nothing
+# measured 2026-09-21: filling last lines takes a page from 310 to 360 words (window 577-720), CPL 97;
+# 650 left only 577-650, and any denser page emptied the window outright
+# a wrapped block's last line stops here; below it the line is a stub wasting its whole row
+MIN_LINE_FILL = 0.55
+# a line this full means the break after it was the text wrapping, not a deliberate "\" break
+WRAPPED_LINE = 0.80
 MARGIN_X_IN = 1.05
 MARGIN_Y_IN = 0.75
 PT_PER_IN = 72
@@ -212,14 +218,20 @@ def check(path: Path, model: dict, budget: bool) -> list[tuple[str, bool, str]]:
         used = pages_used(doc)
         pages, fill = doc.page_count, used - doc.page_count + 1
         page_ok = pages == 1 or (pages <= MAX_PAGES and fill >= MIN_LAST_PAGE_FILL)
-        detail = f"{words} words (target {WORD_BUDGET[0]}-{WORD_BUDGET[1]}), {pages} page(s), last {fill:.0%} full"
+        page_detail = f"{pages} page(s), last {fill:.0%} full (at most {MAX_PAGES}; a 2nd page fills {MIN_LAST_PAGE_FILL:.0%}+)"
+        # contact facts are the user's to change, never the tailorer's: a stub there must not block the loop
+        stubs = runts(doc, SEP.join(model["contact"]["parts"]))
+        detail = f"{words} words (target {WORD_BUDGET[0]}-{WORD_BUDGET[1]})"
+        windows = " or ".join(f"{low}-{high}" for low, high in word_windows(words, used))
         if budget:
-            ok = WORD_BUDGET[0] <= words <= WORD_BUDGET[1] and page_ok
-            windows = " or ".join(f"{low}-{high}" for low, high in word_windows(words, used)) or "none at this density"
-            gate("budget", ok, detail if ok else f"{detail}; words fitting page rules at this density: {windows}")
+            gate("pages", page_ok, page_detail)
+            gate("line-fill", not stubs, stub_detail(stubs))
+            ok = WORD_BUDGET[0] <= words <= WORD_BUDGET[1]
+            gate("budget", ok, detail if ok else f"{detail}; words fitting page rules at this density: {windows or 'none at this density'}")
         else:
-            windows = " or ".join(f"{low}-{high}" for low, high in word_windows(words, used)) or "NONE at this density"
-            gate("budget (info)", True, f"{detail}; tailored page fits at {windows}")
+            gate("pages (info)", True, page_detail)
+            gate("line-fill (info)", True, stub_detail(stubs))
+            gate("budget (info)", True, f"{detail}; tailored page fits at {windows or 'NONE at this density'}")
     return results
 
 
@@ -240,6 +252,58 @@ def pages_used(doc) -> float:
     """Full pages before last + last page's filled fraction: 1.35 = page 2 35% full."""
     top, bottom = text_area(doc)
     return doc.page_count - 1 + (max(baselines(doc)[-1], default=top) - top) / (bottom - top)
+
+
+def squeezed(text: str) -> str:
+    return "".join(text.split())
+
+
+def line_edges(line: dict) -> tuple[str, float, float]:
+    """Line's text with its left and right ink edges; spans, never the block bbox."""
+    spans = line["spans"]
+    return ("".join(s["text"] for s in spans),
+            min(s["bbox"][0] for s in spans), max(s["bbox"][2] for s in spans))
+
+
+def runts(doc, exempt: str = "") -> list[dict]:
+    """Wrapped blocks ending in a stub line: text, how full it is, chars to cut or add.
+
+    A block's last line only counts when the line before it ran nearly to the margin - that
+    is what separates text that wrapped from a deliberate break (entry sublines use "\\").
+    """
+    left = MARGIN_X_IN * PT_PER_IN
+    width = doc[0].rect.width - 2 * left
+    found = []
+    for page in doc:
+        for block in page.get_text("dict")["blocks"]:
+            lines = block.get("lines", [])
+            if len(lines) < 2:
+                continue
+            if exempt and squeezed("".join(line_edges(l)[0] for l in lines)) == squeezed(exempt):
+                continue
+            if (line_edges(lines[-2])[2] - left) / width < WRAPPED_LINE:
+                continue
+            text, ink_left, ink_right = line_edges(lines[-1])
+            fill = (ink_right - left) / width
+            if fill >= MIN_LINE_FILL:
+                continue
+            per_char = (ink_right - ink_left) / len(text) if text.strip() else 0
+            found.append({
+                "text": text.strip(), "fill": fill, "cut": len(text.strip()),
+                "add": math.ceil((MIN_LINE_FILL - fill) * width / per_char) if per_char else 0,
+            })
+    return found
+
+
+def stub_detail(found: list[dict], show: int = 8) -> str:
+    """One line per gate, so: shortest wording that still says which text and how much."""
+    if not found:
+        return "every wrapped block fills its last line"
+    listed = "; ".join(
+        f"{r['text']!r} {r['fill']:.0%} full, cut {r['cut']} or add ~{r['add']}" for r in found[:show]
+    )
+    more = f" (+{len(found) - show} more)" if len(found) > show else ""
+    return f"{len(found)} line(s) end in a stub: {listed}{more}"
 
 
 def word_windows(words: int, used: float) -> list[tuple[int, int]]:
