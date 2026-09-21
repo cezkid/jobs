@@ -1,4 +1,7 @@
-# Shape of My Resume/Resume details.yml (gitignored, real facts). Validated by resume/schema.py.
+# Every field resume/schema.py accepts, shown at once. Validated by resume/schema.py.
+# Real files (My Resume/Resume details.yml, gitignored) hold the plain form a non-technical user
+# edits: bullets are sentences, and id / metrics / stack / ai_era are derived at load or kept in
+# .data/resume-index.yml. Both load; this file also keeps the older shape covered by tests.
 # Facts, not prose: tailorer selects + rewrites, never invents.
 contact:
   name: Jane Doe
