@@ -257,6 +257,7 @@ def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT) -
         page_detail = f"{pages} page(s), last {fill:.0%} full (at most {MAX_PAGES}; a 2nd page fills {MIN_LAST_PAGE_FILL:.0%}+)"
         stubs = runts(doc, model, font)
         blocked = [s for s in stubs if s["fixable"]]
+        gate("contact-line (info)", True, contact_detail(contact_rows(doc, model)))
         detail = f"{words} words (target {WORD_BUDGET[0]}-{WORD_BUDGET[1]})"
         windows = " or ".join(f"{low}-{high}" for low, high in word_windows(words, used))
         if budget:
@@ -381,6 +382,28 @@ def runts(doc, model: dict, font: str = typeface.DEFAULT) -> list[dict]:
                     "fixable": any(body and body in c for c in can_fix),
                 })
     return found
+
+
+def contact_rows(doc, model: dict) -> int:
+    """Rows the contact line really occupies. Read off the page, never measured - measure.py is
+    up to 4% out on this one line because the template spaces its separators itself. A wrap here
+    costs a row at the top of the page and, on a full page, a whole extra page."""
+    parts = model.get("contact", {}).get("parts") or []
+    anchor = next((p for p in parts if "@" in p), next(iter(parts), ""))
+    if not anchor or not doc.page_count:
+        return 1
+    for raw in doc[0].get_text("dict")["blocks"]:
+        lines = raw.get("lines", [])
+        text = "".join(span.get("text", "") for line in lines for span in line.get("spans", []))
+        if anchor in text:
+            return len(lines)
+    return 1
+
+
+def contact_detail(rows: int) -> str:
+    if rows == 1:
+        return "fits one row"
+    return f"wraps to {rows} rows - shorten the location or a link; on a full page this costs a whole page"
 
 
 def stub_detail(found: list[dict], show: int = 8) -> str:
