@@ -88,3 +88,9 @@ def test_overlapping_role_covers_gap(master):
 def test_trailing_gap_reported(master):
     master["roles"][0]["end"] = "2026-01"
     assert schema.employment_gaps(master, TODAY) == [{"after": "2026-01", "before": "2026-09", "months": 7}]
+
+
+def test_a_job_with_no_lines_is_rejected(master):
+    # details.schema.json says minItems 1; the page would show a heading with nothing under it
+    master["roles"][0]["bullets"] = []
+    assert any("bullets: empty" in e for e in errors_for(master))

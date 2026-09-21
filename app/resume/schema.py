@@ -71,7 +71,8 @@ def expand_entry(entry, named: str, taken: set[str], index: dict) -> dict:
     if "ai_era" not in out:
         out["ai_era"] = in_ai_era(out)
     if isinstance(out.get("bullets"), list):
-        out["bullets"] = [expand_bullet(b, f"{out['id']}-{n}", index) for n, b in enumerate(out["bullets"], 1)]
+        out["bullets"] = [expand_bullet(b, f"{out['id']}-{n}", index, out["ai_era"])
+                          for n, b in enumerate(out["bullets"], 1)]
     return out
 
 
@@ -87,7 +88,7 @@ def derive_id(entry: dict, named: str, taken: set[str]) -> str:
     return unique(base or "entry", taken)
 
 
-def expand_bullet(bullet, derived_id: str, index: dict):
+def expand_bullet(bullet, derived_id: str, index: dict, ai_era: bool = True):
     if isinstance(bullet, str):
         bullet = {"claim": bullet}
     elif isinstance(bullet, dict):
@@ -97,6 +98,11 @@ def expand_bullet(bullet, derived_id: str, index: dict):
     bullet.setdefault("id", derived_id)
     if isinstance(bullet.get("claim"), str):
         for key, value in facts.attach(bullet["claim"], index).items():
+            # the notes are keyed by the claim and outlive the dates: a job moved back before
+            # the AI era must not be handed an ai_work flag the file never carried, which would
+            # only fail the file on the user's behalf. What they wrote is still lint's ai-era rule.
+            if key == "ai_work" and not ai_era:
+                continue
             bullet.setdefault(key, value)
     if not bullet.get("ai_work"):  # says nothing; kept only where true, so masters compare equal
         bullet.pop("ai_work", None)
@@ -206,6 +212,9 @@ def validate_entry(entry, where: str, named: tuple[str, ...], bullet_ids: set[st
         errors.append(f"{where}: end {end} before start {start}")
     ai_era = optional(entry, "ai_era", bool, where, errors) or False
     bullets = field(entry, "bullets", list, where, errors) or []
+    if "bullets" in entry and not bullets:
+        # details.schema.json says minItems 1; an entry with none renders as a heading over nothing
+        errors.append(f"{where}.bullets: empty")
     for j, bullet in enumerate(bullets):
         validate_bullet(bullet, f"{where}.bullets[{j}]", ai_era, bullet_ids, errors)
 
