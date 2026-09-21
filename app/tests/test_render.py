@@ -144,3 +144,45 @@ def test_two_column_layout_fails_single_column(tmp_path):
     doc.save(path)
     doc.close()
     assert render.tokens(render.pdf_text(path, sort=True)) != render.tokens(render.pdf_text(path, sort=False))
+
+
+def test_contact_parts_carry_addresses_and_bare_host_gets_scheme(master):
+    master["contact"]["links"] = ["linkedin.com/in/janedoe", "https://github.com/janedoe"]
+    model = render.page_model(master)
+    assert list(zip(model["contact"]["parts"], model["contact"]["part_urls"])) == [
+        ("Springfield, IL", ""),
+        ("jane@example.com", "mailto:jane@example.com"),
+        ("+1 555 010 0100", "tel:+15550100100"),
+        ("linkedin.com/in/janedoe", "https://linkedin.com/in/janedoe"),
+        ("https://github.com/janedoe", "https://github.com/janedoe"),
+    ]
+
+
+def test_local_phone_keeps_its_digits_without_inventing_a_country_code(master):
+    master["contact"]["phone"] = "(555) 010-0100"
+    assert render.page_model(master)["contact"]["part_urls"][2] == "tel:5550100100"
+
+
+def test_contact_links_reach_the_pdf_and_leave_the_text_layer_alone(master, tmp_path):
+    master["contact"]["links"] = ["linkedin.com/in/janedoe"]
+    model = render.page_model(master)
+    path, results = render.render(model, tmp_path, budget=False)
+    assert failed(results) == {}
+    with pymupdf.open(path) as doc:
+        targets = {link["uri"] for link in doc[0].get_links() if link.get("uri")}
+        header = doc[0].get_text().splitlines()[1]
+    assert targets == {
+        "mailto:jane@example.com", "tel:+15550100100", "https://linkedin.com/in/janedoe",
+    }
+    assert header == render.SEP.join(render.page_model(master)["contact"]["parts"])
+
+
+def test_part_without_an_address_stays_plain_text(master, tmp_path):
+    master["contact"]["links"] = []
+    master["contact"].pop("phone")
+    model = render.page_model(master)
+    assert model["contact"]["part_urls"] == ["", "mailto:jane@example.com"]
+    path, results = render.render(model, tmp_path, budget=False)
+    assert failed(results) == {}
+    with pymupdf.open(path) as doc:
+        assert [link["uri"] for link in doc[0].get_links()] == ["mailto:jane@example.com"]

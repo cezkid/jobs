@@ -73,6 +73,25 @@ def joined(*parts) -> str | None:
     return SEP.join(kept) if kept else None
 
 
+def href(text: str) -> str:
+    """Contact link as the user writes it (linkedin.com/in/name) -> address a PDF reader opens."""
+    return text if text.startswith(("http://", "https://")) else f"https://{text}"
+
+
+def dial(text: str) -> str:
+    """Phone as written -> tel: address. Keeps a written +country code, never invents one."""
+    return "tel:" + ("+" if text.lstrip().startswith("+") else "") + re.sub(r"\D", "", text)
+
+
+def contact_parts(contact: dict) -> list[tuple[str, str]]:
+    """Every contact part in page order, each with the address it opens ("" = plain text)."""
+    pairs = [(contact["location"], ""), (contact["email"], f"mailto:{contact['email']}")]
+    if contact.get("phone"):
+        pairs.append((contact["phone"], dial(contact["phone"])))
+    pairs += [(link, href(link)) for link in contact.get("links", [])]
+    return [(text, url) for text, url in pairs if text]
+
+
 def page_model(master: dict) -> dict:
     """Master facts -> exactly what lands on page, in page order. Tailorer emits same shape."""
     contact = master["contact"]
@@ -104,11 +123,14 @@ def page_model(master: dict) -> dict:
         ]})
     if master.get("languages"):
         sections.append({"title": "Languages", "lines": [{"text": ", ".join(master["languages"])}]})
+    parts = contact_parts(contact)
     return {
         "title": f"{contact['name']} Resume",
         "contact": {
             "name": contact["name"],
-            "parts": [p for p in (contact["location"], contact["email"], contact.get("phone"), *contact.get("links", [])) if p],
+            "parts": [text for text, _ in parts],
+            # same length as parts, "" where the part is not a link => template zips them by index
+            "part_urls": [url for _, url in parts],
         },
         "summary": master.get("summary"),
         "sections": sections,

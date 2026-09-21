@@ -37,7 +37,14 @@
 #text(size: 20pt, weight: 700, fill: accent, tracking: -0.01em)[#d.contact.name]
 #v(-4pt)
 // box per part => wrap breaks at separators only, never inside an email or url (contact-in-body gate)
-#d.contact.parts.map(part => box(part)).join(sep)
+// part_urls is parallel to parts, "" where the part is not a link => that part stays plain text.
+// link() takes the part as a string body, so nothing here is parsed as markup, and a link
+// carries the same glyphs at the same widths => measurement and the text layer are untouched
+#let urls = d.contact.at("part_urls", default: ())
+#d.contact.parts.enumerate().map(p => {
+  let url = urls.at(p.at(0), default: "")
+  box(if url == "" { p.at(1) } else { link(url, p.at(1)) })
+}).join(sep)
 
 #if d.summary != none [
   #block(above: 10pt, width: 90%)[#d.summary]
