@@ -51,6 +51,17 @@ TOOL_RELEASED = {
     re.compile(r"\bGPT-4", re.I): "2023-03",
     re.compile(r"\bClaude\b", re.I): "2023-03",
 }
+NUMBER = re.compile(r"\d")
+# tech names w/ exactly one correct spelling - drift between bullets reads as carelessness
+CANONICAL = {re.compile(rf"\b{p}\b", re.I): c for p, c in (
+    (r"nginx", "NGINX"), (r"jquery", "jQuery"), (r"angular\.?js", "AngularJS"),
+    (r"node\.?js", "Node.js"), (r"github", "GitHub"), (r"gitlab", "GitLab"),
+    (r"javascript", "JavaScript"), (r"typescript", "TypeScript"), (r"mysql", "MySQL"),
+    (r"mariadb", "MariaDB"), (r"mongodb", "MongoDB"), (r"graphql", "GraphQL"),
+    (r"kubernetes", "Kubernetes"), (r"eslint", "ESLint"), (r"webpack", "Webpack"),
+)}
+# a domain or handle is lowercase by convention - github.com is not a misspelling of GitHub
+URL_OR_HANDLE = re.compile(r"\b(?:https?://|www\.)\S+|\b[\w.+-]+@[\w.-]+\.\w+|\b[\w-]+\.(?:com|net|org|io|dev|me|co|ai)\b", re.I)
 # number, or word w/ optional .js / C++ / C# tail
 TOKEN = re.compile(r"\d+(?:[.,]\d+)*|[^\W\d_]+(?:[.+#][^\W\d_]+|[+#]+)*")
 SENTENCE_START = re.compile(r"(^|[.;:!?]\s+)$")
@@ -131,6 +142,15 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
         if not schema.LEGAL_IDENTIFIER.search(role["company"].strip()):
             findings.append(Finding(WARN, "company-legal-id", f"roles/{role['id']}", f"{role['company']!r} lacks Inc./LLC/...; add if employer has one"))
 
+    # dates are verified w/ HR; roles are newest-first, so an end past the next start is a claim to check
+    for newer, older in zip(master["roles"], master["roles"][1:]):
+        if older["end"] == schema.PRESENT or older["end"] < newer["start"]:
+            continue
+        detail = f"ends {older['end']}, but {newer['company']} starts {newer['start']}"
+        if older["company"].strip().casefold() == newer["company"].strip().casefold():
+            detail += " - SAME employer, so a promotion here reads as an error, not concurrent work"
+        findings.append(Finding(WARN, "role-dates-overlap", f"roles/{older['id']}", detail))
+
     for i, inference in enumerate(inferences):
         unknown = [b for b in inference.get("from", []) if b not in bullet_ids]
         if not inference.get("from") or unknown:
@@ -146,6 +166,11 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
         is_bullet = kind == "bullet"
         if words := sorted({m.group().lower() for m in STYLE_WORDS.finditer(text)}):
             hit("style-word", where, text, f"{', '.join(words)}", own)
+        scrubbed = URL_OR_HANDLE.sub(" ", text)
+        for pattern, canon in CANONICAL.items():
+            for m in pattern.finditer(scrubbed):
+                if m.group() != canon:
+                    findings.append(Finding(WARN, "canonical-casing", where, f"{m.group()!r} -> {canon!r}: {text!r}"))
         if EM_DASH in text:
             hit("em-dash", where, text, "U+2014", own)
         if MARKDOWN.search(text):
@@ -169,6 +194,14 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
         if is_bullet and entry_id in entries:
             check_ai_era(entries[entry_id], where, text, findings)
 
+    role_ids = {r["id"] for r in master["roles"]}
+    for section in model["sections"]:
+        # newest role first: an older entry given more space than a newer one buries current work
+        counts = [(entry_where(section["title"], e), len(e["bullets"])) for e in section.get("entries", []) if e.get("id") in role_ids]
+        for (_, newer), (where, older) in zip(counts, counts[1:]):
+            if older > newer:
+                findings.append(Finding(WARN, "bullet-taper", where, f"{older} bullets under an older role, more than the {newer} above it"))
+
     lengths = []
     for section in model["sections"]:
         for entry in section.get("entries", []):
@@ -178,6 +211,10 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
             for a, b in zip(firsts, firsts[1:]):
                 if a == b:
                     findings.append(Finding(WARN, "same-verb-opening", where, f"consecutive bullets open {a!r}"))
+            bullets = entry["bullets"]
+            # opening bullet is the one always read; a measured claim there outranks a vague one
+            if len(bullets) > 1 and not NUMBER.search(bullets[0]) and any(NUMBER.search(b) for b in bullets[1:]):
+                findings.append(Finding(WARN, "lead-bullet-weak", where, "opening bullet carries no number, a later one does"))
             lengths += [len(b.split()) for b in entry["bullets"]]
     if len(lengths) >= 3:
         cv = statistics.pstdev(lengths) / statistics.mean(lengths)

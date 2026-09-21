@@ -133,6 +133,20 @@ def test_spilling_past_two_pages_fails_pages(master, tmp_path):
     assert f"{pages} page(s)" in failed(results)["pages"]
 
 
+def test_contact_line_reports_when_it_wraps(master, tmp_path):
+    # a metro-area location is longer than a town, and the contact line is where that first shows
+    master["contact"]["location"] = "Greater Springfield and Shelbyville Metropolitan Area"
+    _, results = render.render(render.page_model(master), tmp_path, budget=False)
+    detail = {n: d for n, _, d in results}["contact-line (info)"]
+    assert "wraps to 2 rows" in detail
+    assert "contact-line (info)" not in failed(results)
+
+
+def test_contact_line_quiet_when_it_fits(master, tmp_path):
+    _, results = render.render(render.page_model(master), tmp_path, budget=False)
+    assert {n: d for n, _, d in results}["contact-line (info)"] == "fits one row"
+
+
 def test_two_column_layout_fails_single_column(tmp_path):
     # right column written into the stream first: a parser reads across, a person reads down
     doc = pymupdf.open()
