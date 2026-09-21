@@ -14,6 +14,17 @@ def test_first_run_prompts_setup(tmp_path, monkeypatch):
     assert launch.prompt() == launch.RETURN_PROMPT
 
 
+def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
+    # fresh install ships none of them => START HERE.md promised a file list the user never saw
+    monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "has_claude", lambda: False)
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "code", lambda args: None)
+    launch.main()
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["My Jobs", "My Resume", "My Settings"]
+    launch.main()  # second launch leaves what is already there alone
+
+
 def test_claude_uri_carries_prompt():
     uri = urlparse(launch.claude_uri("any new jobs?"))
     assert (uri.scheme, uri.netloc, uri.path) == ("vscode", "anthropic.claude-code", "/open")
