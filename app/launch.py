@@ -1,3 +1,4 @@
+import json
 import shutil
 import subprocess
 import sys
@@ -8,6 +9,9 @@ import cfg
 import notify
 
 CLAUDE_EXTENSION = "anthropic.claude-code"
+# VS Code ships no PDF viewer: clicking a resume shows "binary ... unsupported text encoding"
+# instead of the page. Installed once at launch, so copies installed before this fix get it too.
+PDF_EXTENSION = "tomoki1207.pdf"
 VSCODE_EXTENSIONS = Path.home() / ".vscode" / "extensions"
 START_PAGE = cfg.ROOT / "START HERE.md"
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
@@ -27,6 +31,26 @@ def has_claude(extensions: Path = VSCODE_EXTENSIONS) -> bool:
     return any(extensions.glob(f"{CLAUDE_EXTENSION}-*"))
 
 
+def has_pdf_viewer(extensions: Path = VSCODE_EXTENSIONS) -> bool:
+    # any extension already claiming .pdf counts => never replace the viewer the user chose,
+    # and never a second one (two defaults => VS Code asks which editor, every single click)
+    for manifest in extensions.glob("*/package.json"):
+        try:
+            contributes = json.loads(manifest.read_text(encoding="utf-8")).get("contributes") or {}
+        except (OSError, ValueError):
+            continue
+        for editor in contributes.get("customEditors") or []:
+            for selector in editor.get("selector") or []:
+                if str(selector.get("filenamePattern", "")).lower().endswith(".pdf"):
+                    return True
+    return False
+
+
+def ensure_pdf_viewer() -> None:
+    if not has_pdf_viewer():
+        code(["--install-extension", PDF_EXTENSION, "--force"], quiet=True)
+
+
 def register_protocol() -> None:
     # toast click -> jobfinder: URL -> Desktop launcher; per-user key, no admin
     import winreg
@@ -38,11 +62,11 @@ def register_protocol() -> None:
         winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{WINDOWS_LAUNCHER}"')
 
 
-def code(args: list[str]) -> None:
+def code(args: list[str], quiet: bool = False) -> None:
     exe = shutil.which("code")
     if not exe:
         sys.exit("VS Code not found; run the Job Finder installer again")
-    subprocess.run([exe, *args], check=False)
+    subprocess.run([exe, *args], check=False, capture_output=quiet)
 
 
 def main() -> None:
@@ -50,6 +74,8 @@ def main() -> None:
         register_protocol()
     # before VS Code opens => file list shows the private folders even on a brand-new install
     cfg.ensure_private_dirs()
+    # before VS Code opens => the first click on a resume already shows the page
+    ensure_pdf_viewer()
     # trust off for this window only => no "trust the authors?" dialog
     code(["--disable-workspace-trust", str(cfg.ROOT), str(START_PAGE)])
     # separate call: --open-url beside folder args drops the folder (measured 2026-09-19)
