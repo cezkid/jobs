@@ -12,6 +12,15 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
 2. `prepare` makes `My Jobs/<Company - Title>/` + task file. Do task yourself (`AGENTS.md`
    #AI writing steps), then `uv run app/jobs.py tailor check <slug>`. FAIL lines -> fix
    `tailored.json`, rerun check; never hand over PDF while check fails.
+   - `gate pages` -> 3+ pages, or a 2nd page under 60% full. Cut or add bullets, never retype
+     the layout.
+   - `gate line-fill` -> named bullets wrap to a stub line of 2-3 words, wasting a whole row.
+     Detail gives each one's text + chars to cut (pull it onto one line) or add (fill the
+     second). Rewrite those bullets only; keep every claim sourced.
+   - `bullet N: ... wraps to a stub line` from selection check catches the same thing before a
+     render: a bullet must fill one line or fill two, never land between.
+   - Stub in the contact line is reported, never failed - only the user can drop a link from
+     `Resume details.yml`. Mention it, let them choose.
 3. Read `Check before sending.md` in job folder: coverage, gaps, gate results, then every
    inference = claim not in their original resume. Ask each in plain words: "New version says
    you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is 'led' accurate?" No -> fix
