@@ -5,8 +5,8 @@ import sys
 import webbrowser
 from pathlib import Path
 
-# VS Code ships no PDF viewer => system app
-SYSTEM_VIEWER_SUFFIXES = {".pdf"}
+# VS Code reads PDFs only through a viewer extension (launch.py installs one) => else system app
+VIEWER_EXTENSION_SUFFIXES = {".pdf"}
 COMMANDS = {
     "find": (None, "check for new jobs, then list ranked matches (rank args pass through)"),
     "poll": ("ingest.freehire", "check for new jobs only"),
@@ -22,7 +22,7 @@ COMMANDS = {
     "tailor": ("resume.tailor", "tailored resume for one job: posting | prepare | check"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
     "launch": ("launch", "open VS Code on START HERE, Claude tab pre-filled (Desktop launcher)"),
-    "open": (None, "open file or link for user: VS Code tab, PDF in system viewer, link in browser"),
+    "open": (None, "open file or link for user: VS Code tab (PDF too), link in browser"),
     "tui": ("tui", "terminal job browser (developers)"),
 }
 
@@ -32,10 +32,17 @@ def run_module(module: str, args: list[str]) -> None:
     importlib.import_module(module).main()
 
 
+def opens_as_tab(path: Path) -> bool:
+    if path.suffix.lower() not in VIEWER_EXTENSION_SUFFIXES:
+        return True
+    import launch
+    return launch.has_pdf_viewer()
+
+
 def open_for_user(target: str) -> None:
     path = Path(target)
     code = shutil.which("code")
-    if path.exists() and code and path.suffix.lower() not in SYSTEM_VIEWER_SUFFIXES:
+    if path.exists() and code and opens_as_tab(path):
         subprocess.run([code, "-r", str(path.resolve())], check=False)
     else:
         webbrowser.open(path.resolve().as_uri() if path.exists() else target)
