@@ -57,7 +57,7 @@ root holds user folders, tool config and `docs/` (install page, GitHub Pages fro
 
 ```sh
 git clone https://github.com/cezkid/jobs && cd jobs && uv sync
-mkdir "My Settings" && cp app/profiles/example.yml "My Settings/Search settings.yml"
+mkdir -p "My Settings" && cp app/profiles/example.yml "My Settings/Search settings.yml"
 uv run app/jobs.py probe category=finance work_mode=remote countries=us   # count before committing filter
 uv run app/jobs.py find
 ```
