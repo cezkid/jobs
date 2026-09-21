@@ -69,5 +69,17 @@ def resume_path(config: dict, key: str) -> Path:
     return ROOT / config["resume"][key]
 
 
+def resume_font(config: dict) -> str:
+    """Typeface the resume renders in. A user who asks for another gets it here; every page
+    measurement follows from the file, so nothing else needs changing (resume/typeface.py)."""
+    return config["resume"]["font"]
+
+
+def load_or_defaults() -> dict:
+    """Merged settings when the user has them, the shipped defaults when they do not - for the
+    commands that can run off an explicit path before setup (resume-render --master)."""
+    return load() if config_path().exists() else defaults()
+
+
 def tier_order(config: dict) -> list[str]:
     return [p["tier"] for p in config["passes"]]

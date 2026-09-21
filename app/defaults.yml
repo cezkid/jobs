@@ -28,6 +28,8 @@ schedule:
 
 # My Resume/ + My Jobs/ gitignored (PII); one folder per job under jobs_dir
 resume:
+  # typeface the PDF is set in; a folder of that name in app/resume/fonts holds the files
+  font: Caladea
   master: My Resume/Resume details.yml
   input_pdf: My Resume/Original resume.pdf
   jobs_dir: My Jobs

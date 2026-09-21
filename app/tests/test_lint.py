@@ -3,7 +3,7 @@ import copy
 import pytest
 
 import cfg
-from resume import lint, render, schema
+from resume import lint, render, schema, tailor
 
 EXAMPLE = cfg.APP / "resume" / "master.example.yml"
 
@@ -111,3 +111,30 @@ def test_company_without_legal_id_warns_never_fails(master):
     findings = lint.lint(render.page_model(master), master)
     assert "company-legal-id" in rules(findings, lint.WARN)
     assert rules(findings) == set()
+
+
+def filler(words: int) -> str:
+    return "Shipped " + " ".join(f"item{n}" for n in range(words - 1))
+
+
+def set_bullets(model: dict, sizes: list[int]) -> None:
+    pool = iter(sizes * 20)
+    for section in model["sections"]:
+        for entry in section.get("entries", []):
+            entry["bullets"] = [filler(next(pool)) for _ in entry["bullets"]]
+
+
+# the craft floor counts WORDS, where the page rules measure rendered width: a bullet that
+# fills one line runs about 14 words, one that fills two about 27
+ONE_LINE, TWO_LINE = 14, 27
+
+
+def test_bullets_all_in_one_band_read_uniform(master, model):
+    # two-line bullets alone cluster word counts, and the craft floor is what asks for a mix
+    set_bullets(model, [TWO_LINE])
+    assert "uniform-bullet-length" in rules(lint.lint(model, master), lint.WARN)
+
+
+def test_one_line_bullet_every_fifth_clears_the_craft_floor(master, model):
+    set_bullets(model, [ONE_LINE, *[TWO_LINE] * (tailor.ONE_LINE_SHARE - 1)])
+    assert "uniform-bullet-length" not in rules(lint.lint(model, master), lint.WARN)
