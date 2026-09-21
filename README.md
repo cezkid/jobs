@@ -77,9 +77,17 @@ No model CLI. Command writes task file (rules, input, answer schema); chat AI wr
 JSON; check command validates schema + gates. `My Resume/Resume details.yml` = single source of
 resume facts, hand edits win; shape `app/resume/master.example.yml`.
 
+That file is the non-technical user's editing surface, so it holds their facts and nothing else:
+bullets are plain sentences, and ids, `metrics`, `stack` and `ai_era` are derived at load
+(`resume/schema.py` #expand) or read from `.data/resume-index.yml` (`resume/facts.py`), keyed by
+the claim. Both shapes load - a file still carrying those fields keeps exactly what it says, and
+a hand-written id is never renumbered. `app/resume/details.schema.json` is wired into
+`.vscode/settings.json`, so a mistyped fact is underlined as the user types it.
+
 ```sh
 uv run app/jobs.py resume-import prepare --pdf <path>   # -> .data/resume-task.md; AI writes .data/resume-mapped.json
 uv run app/jobs.py resume-import finish                 # traceability gate -> Resume details.yml
+uv run app/jobs.py resume-tidy                          # rewrite details as plain facts (notes -> .data)
 uv run app/jobs.py resume-render                        # untailored PDF + parse gates
 uv run app/jobs.py resume-lint                          # AI-tell + honesty lint
 uv run app/jobs.py tailor prepare <slug>                # My Jobs/<Company - Title>/ + .data/task.md

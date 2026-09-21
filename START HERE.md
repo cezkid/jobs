@@ -19,6 +19,26 @@ ChatGPT icon on the left side of this window, then type: **set me up**. For exam
 
 The AI does all the work. You never need to type commands or edit files.
 
+## Changing your resume details yourself
+
+Everything Job Finder knows about your career sits in one file: **Resume details.yml**, inside
+My Resume. Click it and you'll see your jobs, newest first, with one line for each thing you
+did there, in your own words. Change a line, add a line, delete a job you'd rather leave off -
+then ask the chat for a fresh resume and it uses what you wrote. Your edits always win.
+
+Two things to keep an eye on:
+
+- Leave the spacing at the start of each line alone. The lines are lined up on purpose.
+- Write dates as the year, a dash, then the month: **2023-02** means February 2023. The job
+  you're in now ends with the word **present**.
+
+If you type something the file can't use, it gets a red underline right away and hovering over
+it says what's wrong. Nothing is broken until you fix it - you can also just say "I mistyped
+something in my resume details" and the chat will sort it out.
+
+You never have to touch this file. "Change my phone number" or "take the Drupal line
+off my resume" in the chat does the same thing.
+
 ## How your tailored resume is laid out
 
 When Job Finder makes a resume for a job, it holds it to two rules so it reads like someone

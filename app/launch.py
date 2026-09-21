@@ -1,4 +1,5 @@
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -12,6 +13,9 @@ CLAUDE_EXTENSION = "anthropic.claude-code"
 # VS Code ships no PDF viewer: clicking a resume shows "binary ... unsupported text encoding"
 # instead of the page. Installed once at launch, so copies installed before this fix get it too.
 PDF_EXTENSION = "tomoki1207.pdf"
+# marks a mistyped resume fact in red while the user types it (.vscode/settings.json #yaml.schemas);
+# without it the mistake surfaces later as a render error they cannot read
+YAML_EXTENSION = "redhat.vscode-yaml"
 VSCODE_EXTENSIONS = Path.home() / ".vscode" / "extensions"
 CLAUDE_SETTINGS = Path.home() / ".claude" / "settings.json"
 START_PAGE = cfg.ROOT / "START HERE.md"
@@ -29,7 +33,7 @@ def claude_uri(text: str) -> str:
 
 
 def has_claude(extensions: Path = VSCODE_EXTENSIONS) -> bool:
-    return any(extensions.glob(f"{CLAUDE_EXTENSION}-*"))
+    return has_extension(CLAUDE_EXTENSION, extensions)
 
 
 def has_pdf_viewer(extensions: Path = VSCODE_EXTENSIONS) -> bool:
@@ -50,6 +54,51 @@ def has_pdf_viewer(extensions: Path = VSCODE_EXTENSIONS) -> bool:
 def ensure_pdf_viewer() -> None:
     if not has_pdf_viewer():
         code(["--install-extension", PDF_EXTENSION, "--force"], quiet=True)
+
+
+def has_extension(name: str, extensions: Path = VSCODE_EXTENSIONS) -> bool:
+    return any(extensions.glob(f"{name}-*"))
+
+
+def vscode_settings() -> Path:
+    if sys.platform == "win32":
+        return Path(os.environ.get("APPDATA", Path.home())) / "Code" / "User" / "settings.json"
+    if sys.platform == "darwin":
+        return Path.home() / "Library" / "Application Support" / "Code" / "User" / "settings.json"
+    return Path.home() / ".config" / "Code" / "User" / "settings.json"
+
+
+def add_setting(text: str, line: str) -> str:
+    """One more setting into VS Code's own settings file, left otherwise byte for byte.
+
+    That file is JSON with comments and trailing commas allowed, and developers' copies use both;
+    reading it as JSON and writing it back drops every comment they wrote, so the text is edited
+    in place instead.
+    """
+    if "}" not in text:
+        return "{\n  " + line + "\n}\n"
+    end = text.rindex("}")
+    head = text[:end].rstrip()
+    separator = "" if head.endswith(("{", ",")) else ","
+    return f"{head}{separator}\n  {line}\n" + text[end:]
+
+
+TELEMETRY = '"redhat.telemetry.enabled": false'
+
+
+def ensure_yaml_checker(settings: Path | None = None) -> None:
+    # the extension asks each new user to decide about telemetry in a popup. Answering that is no
+    # part of looking for a job, so it is answered here first - only when they have not answered.
+    settings = settings or vscode_settings()
+    try:
+        text = settings.read_text(encoding="utf-8") if settings.exists() else ""
+        if "redhat.telemetry.enabled" not in text:
+            settings.parent.mkdir(parents=True, exist_ok=True)
+            settings.write_text(add_setting(text, TELEMETRY), encoding="utf-8")
+    except OSError:
+        pass
+    if not has_extension(YAML_EXTENSION):
+        code(["--install-extension", YAML_EXTENSION, "--force"], quiet=True)
 
 
 def register_protocol() -> None:
@@ -100,6 +149,8 @@ def main() -> None:
     cfg.ensure_private_dirs()
     # before VS Code opens => the first click on a resume already shows the page
     ensure_pdf_viewer()
+    # before VS Code opens => a typo in the resume facts is underlined on the first edit
+    ensure_yaml_checker()
     # trust off for this window only => no "trust the authors?" dialog
     code(["--disable-workspace-trust", str(cfg.ROOT), str(START_PAGE)])
     # separate call: --open-url beside folder args drops the folder (measured 2026-09-19)

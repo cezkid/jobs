@@ -19,6 +19,7 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: False)
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: None)
     launch.main()
@@ -70,6 +71,7 @@ def test_pdf_viewer_installed_once_and_never_over_the_users_own(tmp_path, monkey
     launch.ensure_pdf_viewer()
     assert installed == [["--install-extension", launch.PDF_EXTENSION, "--force"]]
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     launch.ensure_pdf_viewer()
     assert len(installed) == 1
 
@@ -105,6 +107,7 @@ def test_pdf_opens_as_tab_with_viewer_system_viewer_without(tmp_path, monkeypatc
     monkeypatch.setattr(jobs.webbrowser, "open", viewer.append)
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: tabs.append(args[-1]))
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     jobs.open_for_user(str(pdf))
     jobs.open_for_user(str(page))
     assert (viewer, tabs) == ([], [str(pdf.resolve()), str(page.resolve())])
@@ -118,3 +121,29 @@ def test_workspace_hides_builtin_vscode_chat():
     raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
     settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
     assert settings["chat.disableAIFeatures"] is True
+
+
+def test_yaml_checker_installed_once_and_telemetry_answered(tmp_path, monkeypatch):
+    # user is asked to decide about Red Hat telemetry on first activation otherwise, mid job search
+    installed = []
+    monkeypatch.setattr(launch, "code", lambda args, quiet=False: installed.append(args))
+    monkeypatch.setattr(launch, "has_extension", lambda name: False)
+    settings = tmp_path / "User" / "settings.json"
+    launch.ensure_yaml_checker(settings)
+    assert launch.TELEMETRY in settings.read_text(encoding="utf-8")
+    assert installed == [["--install-extension", launch.YAML_EXTENSION, "--force"]]
+    monkeypatch.setattr(launch, "has_extension", lambda name: True)
+    launch.ensure_yaml_checker(settings)
+    assert settings.read_text(encoding="utf-8").count("redhat.telemetry.enabled") == 1
+    assert len(installed) == 1
+
+
+def test_vscode_settings_keep_comments_and_trailing_commas():
+    # developers' own settings files carry both; a JSON round-trip would silently delete them
+    jsonc = '{\n  // mine\n  "editor.tabSize": 2,\n}\n'
+    merged = launch.add_setting(jsonc, launch.TELEMETRY)
+    assert "// mine" in merged and merged.count("\"editor.tabSize\": 2") == 1
+    assert re.sub(r",(\s*})", r"\1", merged).strip().endswith(launch.TELEMETRY + "\n}")
+    assert launch.add_setting("", launch.TELEMETRY) == "{\n  " + launch.TELEMETRY + "\n}\n"
+    assert launch.add_setting("{}", launch.TELEMETRY) == "{\n  " + launch.TELEMETRY + "\n}"
+    assert json.loads(launch.add_setting('{\n  "a": 1\n}\n', launch.TELEMETRY)) == {"a": 1, "redhat.telemetry.enabled": False}
