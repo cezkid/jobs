@@ -11,7 +11,7 @@ import cfg
 ZIP_URL = "https://github.com/cezkid/jobs/archive/refs/heads/main.zip"
 DOWNLOAD_TIMEOUT_S = 60
 # gitignored => never in zip; swap must never touch them either
-PRIVATE = {"My Jobs", "My Resume", "My Settings", ".data", ".venv"}
+PRIVATE = {*cfg.PRIVATE_DIRS, ".data", ".venv"}
 OFFLINE = "Could not check for updates; continuing."
 
 
