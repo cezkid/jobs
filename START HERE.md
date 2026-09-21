@@ -34,6 +34,14 @@ Those stray part-lines are worth more than they look: on a resume they can waste
 page, which is what pushes a two-page resume onto a third. If the AI can't make something
 fit, it tells you in plain words rather than handing you a resume that breaks the rules.
 
+Your resume is set in a serif typeface called Caladea. It is the same shape and size as
+Cambria, the font on every copy of Microsoft Word, so it looks familiar to whoever opens it -
+and it is a free version, so nobody has to install anything. It was picked because it fits
+more words on a line than the alternatives, which is what keeps those dangling part-lines off
+your page - and the spare room goes back into the page as slightly wider letter spacing, so it
+reads open rather than crammed. If you would rather have a different one, just ask - say which font you want and it
+gets set up for you, and everything about how the page fits is worked out again for it.
+
 ## What's private and what's shared
 
 **Everything in the file list on the left is yours and private.** It stays on this computer

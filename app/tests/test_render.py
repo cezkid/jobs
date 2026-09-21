@@ -5,7 +5,7 @@ import pytest
 import typst
 
 import cfg
-from resume import render, schema
+from resume import measure, render, schema, typeface
 
 EXAMPLE = cfg.APP / "resume" / "master.example.yml"
 
@@ -51,7 +51,7 @@ def test_unscrubbed_typst_output_fails_metadata(master, tmp_path):
     model = render.page_model(master)
     path = tmp_path / render.file_name(model)
     path.write_bytes(typst.compile(
-        str(render.TEMPLATE), font_paths=[str(render.FONTS)], ignore_system_fonts=True,
+        str(render.TEMPLATE), font_paths=[str(typeface.folder(typeface.DEFAULT))], ignore_system_fonts=True,
         sys_inputs={"data": render.json.dumps(render.with_page(model))},
     ))
     assert "creator" in failed(render.check(path, model, budget=False))["metadata-wiped"]
@@ -71,8 +71,8 @@ def test_stub_line_fails_line_fill(master, tmp_path):
     master["roles"][0]["bullets"][0]["claim"] = stub_bullet()
     path, results = render.render(render.page_model(master), tmp_path, budget=True)
     with pymupdf.open(path) as doc:
-        stub, = render.runts(doc)
-    assert stub["text"] == "export tooling across two teams" and stub["fill"] < render.MIN_LINE_FILL
+        stub = next(r for r in render.runts(doc, render.page_model(master)) if "two teams" in r["text"])
+    assert stub["fill"] < render.MIN_LINE_FILL and stub["fixable"]
     # detail names the text and both ways out, so the writer never has to guess
     detail = failed(results)["line-fill"]
     assert stub["text"] in detail and f"cut {stub['cut']}" in detail and f"add ~{stub['add']}" in detail
@@ -85,20 +85,52 @@ def test_line_fill_reports_but_never_fails_untailored(master, tmp_path):
     assert "across two teams" in {n: d for n, _, d in results}["line-fill (info)"]
 
 
-def test_deliberate_break_after_short_line_is_not_a_stub(master, tmp_path):
-    # entry heading, then the subline on its own row via "\": a short row that never wrapped
+def test_long_heading_never_makes_its_date_subline_a_stub(master, tmp_path):
+    # a title this long fills its line (92%), so judging the break by how full the line looks
+    # calls the "\"-forced subline a wrap. The tailorer cannot fix dates, so that deadlocks it.
+    master["roles"][1]["title"] = "Software Engineer, Design Systems and Component Platform Group"
     model = render.page_model(master)
     path, _ = render.render(model, tmp_path, budget=False)
     with pymupdf.open(path) as doc:
-        assert [r["text"] for r in render.runts(doc)] == []
+        assert not [r for r in render.runts(doc, model) if "2019" in r["text"]]
 
 
-def test_third_page_fails_pages(master, tmp_path):
+def summary_ending_in_a_stub(font: str) -> str:
+    """Grown a word at a time until it spills - which word that is depends on the font, so
+    the summary is measured into shape rather than written out and left to rot."""
+    words = ("Senior frontend engineer shipping Vue and TypeScript product UI with LLM-backed "
+             "search over support docs and the eval harnesses behind them").split()
+    out = []
+    for word in words:
+        out.append(word)
+        lines, fill = measure.fit(font, " ".join(out), measure.SUMMARY)
+        if lines == 2 and fill < render.MIN_LINE_FILL:
+            return " ".join(out)
+    raise AssertionError(f"no stub reachable in {font} from these words")
+
+
+def test_summary_stub_is_seen_in_its_narrower_column(master, tmp_path):
+    # resume.typ holds the summary to 90%, so its lines stop short of the column even when
+    # full: judging the break by fill against the full column makes summary stubs invisible
+    master["summary"] = summary_ending_in_a_stub(typeface.DEFAULT)
+    model = render.page_model(master)
+    path, _ = render.render(model, tmp_path, budget=False)
+    with pymupdf.open(path) as doc:
+        stub, = render.runts(doc, model)
+    assert stub["text"] == master["summary"].rsplit(" ", 1)[1] and stub["fixable"]
+
+
+def test_spilling_past_two_pages_fails_pages(master, tmp_path):
+    # how many pages 12 copies of the roles fill depends on the font, so assert the rule the
+    # gate states - past MAX_PAGES - not a page count only one family produces
     master["roles"] *= 12
     for n, role in enumerate(master["roles"]):
         role["id"] = f"{role['id']}-{n}"
-    _, results = render.render(render.page_model(master), tmp_path, budget=True)
-    assert "3 page(s)" in failed(results)["pages"]
+    path, results = render.render(render.page_model(master), tmp_path, budget=True)
+    with pymupdf.open(path) as doc:
+        pages = doc.page_count
+    assert pages > render.MAX_PAGES
+    assert f"{pages} page(s)" in failed(results)["pages"]
 
 
 def test_two_column_layout_fails_single_column(tmp_path):

@@ -5,8 +5,9 @@
 
 #set document(title: d.title)
 #set page(paper: "us-letter", margin: (x: d.page.margin_x_in * 1in, y: d.page.margin_y_in * 1in), header: none, footer: none)
+// family comes from settings (resume.font) so page rules and measurements stay one source
 // ligatures off => extracted text never carries U+FB01/FB02
-#set text(font: "Source Sans 3", size: 11pt, fill: ink, lang: "en", hyphenate: false, ligatures: false)
+#set text(font: d.page.font, size: 11pt, tracking: d.page.tracking_em * 1em, fill: ink, lang: "en", hyphenate: false, ligatures: false)
 // default edges: line pitch = cap-height (~0.66em) + leading => 1.40
 #set par(justify: false, leading: 0.74em, spacing: 0.74em)
 #set list(marker: [•], indent: 0.2em, body-indent: 0.5em, spacing: 0.74em + 3.5pt)

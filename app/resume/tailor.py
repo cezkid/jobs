@@ -1,4 +1,5 @@
 import argparse
+import functools
 import json
 import re
 import sys
@@ -9,24 +10,25 @@ import httpx
 import pymupdf
 
 import cfg
-from resume import handoff, jd, lint, render, report, schema
+from resume import handoff, jd, lint, measure, render, report, schema, typeface
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
-# plan #Visual spec: bullets/role 6 max, 1-2 lines; measured 2026-09-21: a bullet line holds ~97 chars
+# plan #Visual spec: bullets/role 6 max, 1-2 lines. A bullet is judged on its RENDERED width
+# (resume/measure.py, real font advances), never on a character count: one glyph runs 3.1x the
+# width of another, so counting characters mis-sizes a line by a quarter
 MAX_BULLETS_PER_ENTRY = 6
-LINE_CHARS = 97
 MAX_BULLET_LINES = 2
-# a bullet fills one line or fills two; land between and it wraps to a stub wasting a whole row.
-# chars only approximate rendered width - render.py's line-fill gate on the real PDF is the backstop
-ONE_LINE_CHARS = LINE_CHARS - 2
-TWO_LINE_CHARS = (round(LINE_CHARS * 1.6), LINE_CHARS * MAX_BULLET_LINES - 4)
-# one-liners among the two-liners keep lint's uniform-bullet-length CV off the floor
+# one-line bullets among the two-line ones keep lint's uniform-bullet-length CV off the floor
 ONE_LINE_SHARE = 5
-# lint counts words where the bands count characters; resume prose runs ~6.2 chars a word
-CHARS_PER_WORD = 6.2
-ONE_LINE_WORDS = round(ONE_LINE_CHARS / CHARS_PER_WORD)
-TWO_LINE_WORDS = round(sum(TWO_LINE_CHARS) / 2 / CHARS_PER_WORD)
 SKILLS_TITLE = "Skills"
+# prose the character guides are read off: a writer thinks in characters, so the prompt has to
+# quote some, but how many fit is a property of the font. Wrapping this in the configured font
+# is what turns one into the other - no number here survives a font change unmeasured.
+GUIDE_PROSE = (
+    "Built retrieval-augmented search over support documentation with an evaluation harness "
+    "scoring answer grounding, cutting first-tier ticket volume across the support platform "
+    "and shipping the change to every customer region in the same quarter without regression"
+)
 
 TAILORED_SCHEMA = obj(
     summary=NULLABLE,
@@ -36,15 +38,43 @@ TAILORED_SCHEMA = obj(
     coverage=array(obj(requirement={"type": "integer"}, evidence=STRINGS, note=STRING)),
 )
 
-SYSTEM = f"""You tailor one candidate's resume to one job posting. Input JSON: `master` (candidate facts, stable ids), `job` (posting + indexed requirements), `budget`. You emit selection + rewrite JSON; code lays out the page and checks every rule below.
+
+def char_guides(font: str) -> tuple[int, tuple[int, int]]:
+    """Characters that land a bullet on the right side of the fill bands, in THIS font.
+
+    Found by wrapping real prose, not assumed: where one line stops fitting, where a second
+    first clears the fill floor, and where a third would start. Each edge is pulled one word
+    inside the true boundary, because the writer edits in words - a bullet written exactly to
+    the boundary crosses it the moment a word changes, and bullet_shape sends it back.
+
+    In Caladea at 11pt that is 91 characters or fewer for one line, 145-194 to fill two; the gap
+    between is what makes a stub. Another family moves all three, which is why they are read
+    off the font here instead of being written down.
+    """
+    avail = measure.bullet(font)
+    # one average word of this prose, the space before it included: the unit an edit moves by
+    slack = measure.width(font, GUIDE_PROSE) / len(GUIDE_PROSE.split())
+    sized = {n: (measure.fit(font, GUIDE_PROSE[:n], avail), measure.width(font, GUIDE_PROSE[:n]))
+             for n in range(1, len(GUIDE_PROSE) + 1)}
+    one = [n for n, ((lines, _), w) in sized.items() if lines == 1 and w <= avail - slack]
+    two = [n for n, ((lines, _), _w) in sized.items() if lines == MAX_BULLET_LINES]
+    filled = [n for n in two if sized[n][0][1] * avail >= render.MIN_LINE_FILL * avail + slack]
+    high = [n for n in two if sized[n][1] <= MAX_BULLET_LINES * avail - slack]
+    return max(one), (min(filled), max(high))
+
+
+@functools.cache
+def system(font: str) -> str:
+    one_line_chars, two_line_chars = char_guides(font)
+    return f"""You tailor one candidate's resume to one job posting. Input JSON: `master` (candidate facts, stable ids), `job` (posting + indexed requirements), `budget`. You emit selection + rewrite JSON; code lays out the page and checks every rule below.
 
 Entries
 - `entries` lists every master role id, plus any project ids worth page space. Never drop a role: dates must stay contiguous. Oldest roles may carry zero bullets.
 - Each bullet's `sources` = ids of master bullets from the SAME entry that it restates. Never move a claim into another role or project. Order bullets by relevance to this job.
-- Bullets per entry: 3-5 for recent roles ({MAX_BULLETS_PER_ENTRY} max), 2-3 for older, 0 for the oldest. 15-25 words each.
-- Every bullet either fills one line ({ONE_LINE_CHARS} characters or fewer) or fills two ({TWO_LINE_CHARS[0]}-{TWO_LINE_CHARS[1]}). Land between and the bullet wraps to a stub line carrying two or three words, wasting a whole row: write to the nearer edge, never into that gap.
-- Mix the two lengths: at least one bullet in {ONE_LINE_SHARE} fills a single line, so the page never reads templated.
-- Skills group items follow the same rule: fill each line or stop short of wrapping, never spill 2-3 items onto a line of their own.
+- Bullets per entry: 3-5 for recent roles ({MAX_BULLETS_PER_ENTRY} max), 2-3 for older, 0 for the oldest.
+- Every bullet either fits ONE line or FILLS two. Land between and it wraps to a stub carrying a few words, wasting a whole row. The check measures rendered width in the real font, so character counts are a guide only: about {one_line_chars} characters or fewer fits one line, {two_line_chars[0]}-{two_line_chars[1]} fills two. Write to the nearer edge, never into the gap.
+- Mix the two: at least one bullet in {ONE_LINE_SHARE} fits a single line, so the page never reads templated.
+- Skills groups follow the same rule on their rendered "Label: items" line - trim items to one line, or add until a second line is {render.MIN_LINE_FILL:.0%} full.
 - `title_mirror`: null, or part of the posting's title copied exactly, on a role whose work genuinely matches it. Rendered as "Master Title (mirror)". Never abbreviate.
 
 Wording
@@ -58,7 +88,7 @@ Wording
 - No "not only X but also Y", no filler lists of three, no two consecutive bullets opening with the same word.
 
 Summary
-- `summary`: at most {render.MAX_BLOCK_WORDS} words, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit.
+- `summary`: at most {render.MAX_BLOCK_WORDS} words, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. It sits in a narrower column than the bullets, so the same rule applies: one line, or two with the second well filled.
 
 Skills
 - `skills`: master skill groups reordered and filtered for this job, most relevant first. Items copied from master; a group label may be renamed.
@@ -72,6 +102,7 @@ Coverage
 
 Budget
 - Page word count must land inside one of budget.page_words windows (measured from this candidate's page density: a page either fits on one page or fills most of a second). Fixed parts (contact, headings, dates, education) take budget.fixed_words, so summary + bullets + skills must land inside the matching budget.generated_words window."""
+
 
 def entries_by_id(master: dict) -> dict:
     return {e["id"]: e for e in [*master["roles"], *master.get("projects", [])]}
@@ -113,11 +144,11 @@ def page_words(model: dict) -> int:
     return sum(len(render.tokens(s)) for s in render.page_strings(model))
 
 
-def build_request(master: dict, job: dict) -> dict:
-    """Everything AI tailors from; pure function of master + JD => byte-identical per slug."""
+def build_request(master: dict, job: dict, font: str = typeface.DEFAULT) -> dict:
+    """Everything AI tailors from; pure function of master + JD + font => byte-identical per slug."""
     fixed = page_words(page_model(master, skeleton(master)))
     untailored = render.page_model(master)
-    with pymupdf.open(stream=render.compile_pdf(untailored), filetype="pdf") as doc:
+    with pymupdf.open(stream=render.compile_pdf(untailored, font), filetype="pdf") as doc:
         windows = render.word_windows(page_words(untailored), render.pages_used(doc))
     payload = {
         "job": {
@@ -128,10 +159,32 @@ def build_request(master: dict, job: dict) -> dict:
                    "generated_words": [[low - fixed, high - fixed] for low, high in windows]},
         "master": master,
     }
-    return {"system": SYSTEM, "schema": TAILORED_SCHEMA, "prompt": json.dumps(payload, indent=1, ensure_ascii=False)}
+    return {"system": system(font), "schema": TAILORED_SCHEMA, "prompt": json.dumps(payload, indent=1, ensure_ascii=False)}
 
 
-def check_selection(master: dict, job: dict, tailored: dict) -> list[str]:
+def bullet_shape(text: str, where: str, font: str = typeface.DEFAULT) -> list[str]:
+    """Bullet must fit one line or fill two - measured in points off the font, not in characters.
+
+    The gap between those two is what leaves a stub line carrying a few words and wasting a whole
+    row. render.py's line-fill gate re-checks this on the rendered PDF and has the last word.
+    """
+    avail = measure.bullet(font)
+    lines, fill = measure.fit(font, text, avail)
+    if lines > MAX_BULLET_LINES:
+        over = measure.width(font, text) - avail * MAX_BULLET_LINES
+        return [f"{where}: renders {lines} lines (max {MAX_BULLET_LINES}) - cut "
+                f"{measure.chars_for(font, text, over)} chars: {text!r}"]
+    if lines > 1 and fill < render.MIN_LINE_FILL:
+        tail = measure.wrap(font, text, avail)[-1]
+        cut = measure.chars_for(font, text, measure.width(font, text) - avail)
+        add = measure.chars_for(font, text, render.MIN_LINE_FILL * avail - measure.width(font, tail))
+        grow = f", or add ~{add} to fill two" if add > 0 else ""
+        return [f"{where}: wraps to a line only {fill:.0%} full - cut {cut} chars to fit one line"
+                f"{grow}: {text!r}"]
+    return []
+
+
+def check_selection(master: dict, job: dict, tailored: dict, font: str = typeface.DEFAULT) -> list[str]:
     """Rules lint cannot see: entry ids, claim ownership, mirror source, coverage shape."""
     violations: list[str] = []
     entries = entries_by_id(master)
@@ -154,13 +207,7 @@ def check_selection(master: dict, job: dict, tailored: dict) -> list[str]:
                     violations.append(f"{where} bullet {n}: source {source!r} belongs to {owner.get(source)!r}, not this entry")
             if t["id"] in entries and (unsourced := unsourced_entities(entries[t["id"]], bullet, tailored["inferences"])):
                 violations.append(f"{where} bullet {n}: {unsourced} in none of its sources' facts or inferences: {bullet['text']!r}")
-            size = len(bullet["text"])
-            if size > TWO_LINE_CHARS[1]:
-                violations.append(f"{where} bullet {n}: {size} chars (max {TWO_LINE_CHARS[1]}): {bullet['text']!r}")
-            elif ONE_LINE_CHARS < size < TWO_LINE_CHARS[0]:
-                violations.append(
-                    f"{where} bullet {n}: {size} chars wraps to a stub line - cut to {ONE_LINE_CHARS} "
-                    f"or grow to {TWO_LINE_CHARS[0]}-{TWO_LINE_CHARS[1]}: {bullet['text']!r}")
+            violations += bullet_shape(bullet["text"], f"{where} bullet {n}", font)
         mirror = t["title_mirror"]
         if mirror:
             if t["id"] not in roles:
@@ -215,11 +262,11 @@ def lint_inferences(tailored: dict) -> list[dict]:
     return [{"claim": i["claim"], "from": i["sources"]} for i in tailored["inferences"]]
 
 
-def evaluate(master: dict, job: dict, tailored: dict, out_dir: Path) -> dict:
+def evaluate(master: dict, job: dict, tailored: dict, out_dir: Path, font: str = typeface.DEFAULT) -> dict:
     model = page_model(master, tailored)
-    pdf, gates = render.render(model, out_dir, budget=True)
+    pdf, gates = render.render(model, out_dir, budget=True, font=font)
     findings = lint.lint(model, master, lint_inferences(tailored))
-    selection = check_selection(master, job, tailored)
+    selection = check_selection(master, job, tailored, font)
     failed = [
         *selection,
         *(f"lint {f.rule} at {f.where}: {f.detail}" for f in findings if f.severity == lint.FAIL),
@@ -292,7 +339,7 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
     data.mkdir(parents=True, exist_ok=True)
     write_json(data / "jd.json", job)
     (job_dir / POSTING_FILE).write_text(report.posting_md(job), encoding="utf-8")
-    request = build_request(master, job)
+    request = build_request(master, job, cfg.resume_font(config))
     handoff.write_task(data / "task.md", data / "tailored.json", request["system"], request["schema"],
                        request["prompt"], check_command(job["public_slug"]))
     print(f"job folder: {job_dir}")
@@ -306,7 +353,7 @@ def check(config: dict, slug: str) -> int:
     data = job_dir / JOB_DATA
     job = json.loads((data / "jd.json").read_text(encoding="utf-8"))
     tailored = handoff.read_answer(data / "tailored.json", TAILORED_SCHEMA)
-    result = evaluate(master, job, tailored, job_dir)
+    result = evaluate(master, job, tailored, job_dir, cfg.resume_font(config))
     rows = coverage_rows(job, tailored)
     gaps = schema.employment_gaps(master, date.today())
     (job_dir / CHECK_FILE).write_text(
