@@ -70,7 +70,7 @@ def system(font: str) -> str:
 
 Entries
 - `entries` lists every master role id, plus any project ids worth page space. Never drop a role: dates must stay contiguous. Oldest roles may carry zero bullets.
-- Each bullet's `sources` = ids of master bullets from the SAME entry that it restates. Never move a claim into another role or project. Order bullets by relevance to this job.
+- Each bullet's `sources` = ids of master bullets from the SAME entry that it restates. Never move a claim into another role or project. Order bullets by relevance to this job: strongest first, since the opening bullet is the one always read. A bullet carrying a number outranks one without it; the weakest ends the entry.
 - Bullets per entry: 3-5 for recent roles ({MAX_BULLETS_PER_ENTRY} max), 2-3 for older, 0 for the oldest.
 - Every bullet either fits ONE line or FILLS two. Land between and it wraps to a stub carrying a few words, wasting a whole row. The check measures rendered width in the real font, so character counts are a guide only: about {one_line_chars} characters or fewer fits one line, {two_line_chars[0]}-{two_line_chars[1]} fills two. Write to the nearer edge, never into the gap.
 - Mix the two: at least one bullet in {ONE_LINE_SHARE} fits a single line, so the page never reads templated.
@@ -83,6 +83,7 @@ Wording
 - Numbers only as written in master claims or metrics. Never invent or round one.
 - AI/LLM wording only inside entries whose `ai_era` is true (absent = false).
 - Where the posting names a technology differently from master, spell both forms once, full name then short form: "Electronic Health Record (EHR)", and list the new form in `inferences`.
+- A specialist term stays spelled exactly as the field writes it - screeners match the string, so never swap it for a plain paraphrase. Carry its meaning in the same sentence instead ("WCAG 2.1 AA accessibility", "CI/CD build and release time"), so a non-specialist reader loses nothing. Gloss a term once per page, not in every bullet; `skills` items stay bare.
 - Plain text: no markdown, no em dashes, no non-breaking or zero-width spaces.
 - Never use: {", ".join((*lint.STYLE_WORD_LIST, *lint.HEDGE_LIST, *lint.RESUME_VERB_LIST))}.
 - No "not only X but also Y", no filler lists of three, no two consecutive bullets opening with the same word.

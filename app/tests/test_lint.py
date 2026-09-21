@@ -106,6 +106,24 @@ def test_craft_rules_only_warn(master, model):
     assert {"resume-verb", "rule-of-three", "same-verb-opening"} <= rules(findings, lint.WARN)
 
 
+def test_lead_bullet_without_number_warns_when_a_later_one_carries_it(master, model):
+    acme(model)["bullets"] = [
+        "Rebuilt the Vue design system with the platform team",
+        "Cut INP 410ms -> 170ms",
+    ]
+    findings = lint.lint(model, master)
+    assert "lead-bullet-weak" in rules(findings, lint.WARN)
+    assert rules(findings) == set()
+
+
+def test_strongest_bullet_first_clears_the_order_rule(master, model):
+    acme(model)["bullets"] = [
+        "Cut INP 410ms -> 170ms",
+        "Rebuilt the Vue design system with the platform team",
+    ]
+    assert "lead-bullet-weak" not in rules(lint.lint(model, master), lint.WARN)
+
+
 def test_company_without_legal_id_warns_never_fails(master):
     master["roles"][1]["company"] = "Mount Sinai Hospital"
     findings = lint.lint(render.page_model(master), master)
