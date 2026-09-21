@@ -74,6 +74,27 @@ def test_pdf_viewer_installed_once_and_never_over_the_users_own(tmp_path, monkey
     assert len(installed) == 1
 
 
+def test_auto_mode_turned_on_for_the_user_once(tmp_path):
+    # without it the user is asked to approve nearly every step, which reads like an error
+    settings = tmp_path / ".claude" / "settings.json"
+    launch.ensure_auto_mode(settings)
+    written = json.loads(settings.read_text(encoding="utf-8"))
+    assert written["permissions"]["defaultMode"] == "auto"
+    assert written["skipAutoPermissionPrompt"] is True
+    settings.write_text(json.dumps(
+        {"theme": "dark", "permissions": {"defaultMode": "plan", "allow": ["Read"]}}),
+        encoding="utf-8")
+    launch.ensure_auto_mode(settings)  # a mode the user chose themselves stays untouched
+    assert json.loads(settings.read_text(encoding="utf-8"))["permissions"]["defaultMode"] == "plan"
+
+
+def test_workspace_never_sets_a_permission_mode_of_its_own():
+    # this folder's own mode outranks the user's, and "auto" is ignored from here => every
+    # mode named here is a mode that costs the user prompts
+    settings = json.loads((cfg.ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    assert "defaultMode" not in settings.get("permissions", {})
+
+
 def test_pdf_opens_as_tab_with_viewer_system_viewer_without(tmp_path, monkeypatch):
     import jobs
     pdf, page = tmp_path / "Resume.pdf", tmp_path / "Job posting.md"
