@@ -42,5 +42,24 @@ Wording the user asks about:
   relevance over chronology, a bullet w/ a number outranks one w/o, weakest last. `resume-lint`
   warns `lead-bullet-weak` when a role opens w/o a number while a later bullet carries one.
 
+Identity = employer, title, dates. Verified w/ HR, so never reword one to fit a posting - `lint`
+FAILs `title-changed`, `employer-changed`, `dates-changed`. A posting's title goes in
+`title_mirror` (suffix only: "Software Engineer (Full Stack Engineer)"), never in place of
+theirs. A self-added narrowing suffix ("Software Engineer (Frontend)") is the user's to drop:
+it carries no verification risk, but it labels them narrower than their bullets and leaves the
+mirror stacking two parentheticals. Ask whose wording it is before touching it.
+
+`resume-lint` also WARNs on the shape of the master resume, all judgement calls, none fatal:
+`role-dates-overlap` (one role ends after the next begins - same employer means a promotion
+recorded wrong, different employers usually means real concurrent work), `bullet-taper` (an
+older role given more bullets than a newer one), `canonical-casing` (NginX, JQuery - one
+correct spelling per name, URLs exempt), `lead-bullet-weak`.
+
+Keywords the user is missing: measure, never guess. Their own matched rows carry a `skills`
+list - count it across `jobs.db`, subtract what they list, and show the top gaps w/ real
+percentages. Offer only the ones their bullets already evidence (AWS when EC2 is on the page,
+LLM when they built AI tooling) and let them confirm each; a keyword they cannot defend in an
+interview is worse than a missing one.
+
 Never invent experience to close gap. Tailor/render/lint crash or wrong output from tracked code
 -> `AGENTS.md` #Framework defects.
