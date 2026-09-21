@@ -61,5 +61,20 @@ percentages. Offer only the ones their bullets already evidence (AWS when EC2 is
 LLM when they built AI tooling) and let them confirm each; a keyword they cannot defend in an
 interview is worse than a missing one.
 
+Positioning = the user's own words, not a verified fact (unlike employer, title, dates), so it is
+theirs to choose - but measure before advising, never opine:
+
+- Specialization in `summary` ("full stack" vs "front-end"): count both words across their matched
+  titles and the pay behind each (`jobs.db`), then check the label survives their bullets. A full
+  stack claim carrying one back-end bullet in thirteen gets probed in the first interview. A
+  qualifier keeps a broad claim honest: "Full stack software engineer, front-end focused".
+- Years: lead with them, counted from the first role that genuinely does the work, and say which
+  role you counted from so they can correct it.
+- Location: count how their target rows name theirs (`location` in `jobs.db`). A town of 30k
+  matches nothing a screener searches; the metro name matches every row. Say plainly what dropping
+  the state costs - remote rows that restrict hiring by state need it. Longer location = longer
+  contact line: `contact-line (info)` reports the wrap, and on a full page that wrap costs a whole
+  page, so re-render before promising the wording.
+
 Never invent experience to close gap. Tailor/render/lint crash or wrong output from tracked code
 -> `AGENTS.md` #Framework defects.
