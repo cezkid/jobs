@@ -69,6 +69,17 @@ format), you write answer JSON yourself at path it names, then run check command
 Check fails -> read violations, fix JSON, rerun; after 2 failed retries tell user plainly and
 stop. No other program writes resume content.
 
+Tailored page rules (gates `pages` + `line-fill`, tailored copies only): at most 2 pages, a
+2nd page 60%+ full; every bullet fills one line or fills two - land between and it wraps to a
+stub wasting a whole row. Width is measured in points (`resume/measure.py`, real font advances),
+never counted in characters. Gate detail names each stub + chars to cut or add, and marks the
+ones in the user's own facts as report-only. Code measures, you rewrite the words.
+
+Typeface = `resume.font` in settings, default Caladea, files in `app/resume/fonts/<family>/`.
+User asks for another font -> add that folder, set the name, rerun render; every width is read
+off the file so no number needs editing. Measure widows before adopting one: chars per line is
+what decides page count. Why Caladea + how to add one: `app/docs/typeface.md`.
+
 ## Skills
 
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing

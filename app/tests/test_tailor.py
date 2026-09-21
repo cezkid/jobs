@@ -3,7 +3,7 @@ import copy
 import pytest
 
 import cfg
-from resume import report, schema, tailor
+from resume import measure, report, schema, tailor, typeface
 
 EXAMPLE = cfg.APP / "resume" / "master.example.yml"
 JOB = {
@@ -54,6 +54,14 @@ def test_valid_selection_has_no_violations(master, tailored):
     assert tailor.check_selection(master, JOB, tailored) == []
 
 
+def filler(lines: float) -> str:
+    """Real words sized to a share of the bullet column - characters cannot express this."""
+    words, out = "shipped ledger export tooling across regional payment teams".split(), []
+    while measure.width(typeface.DEFAULT, " ".join(out)) < measure.bullet(typeface.DEFAULT) * lines:
+        out.append(words[len(out) % len(words)])
+    return " ".join(out[:-1])
+
+
 @pytest.mark.parametrize("mutate, expected", [
     (lambda t: t["entries"].pop(), "role 'globex' dropped"),
     (lambda t: t["entries"].append({"id": "initech", "title_mirror": None, "bullets": []}), "'initech' not a master role"),
@@ -64,12 +72,19 @@ def test_valid_selection_has_no_violations(master, tailored):
     (lambda t: t["coverage"].pop(), "requirement 1 missing"),
     (lambda t: t["coverage"][1].update(requirement=5), "requirement 5 out of range"),
     (lambda t: t["coverage"][1].update(evidence=["acme-rag-search"]), "'acme-rag-search' not a source of any on-page bullet"),
-    (lambda t: t["entries"][0]["bullets"][0].update(text="x" * 181), "181 chars"),
+    (lambda t: t["entries"][0]["bullets"][0].update(text=filler(3.0)), "lines (max 2)"),
+    (lambda t: t["entries"][0]["bullets"][0].update(text=filler(1.2)), "wraps to a line only"),
 ])
 def test_selection_violations(master, tailored, mutate, expected):
     mutate(tailored)
     violations = tailor.check_selection(master, JOB, tailored)
     assert any(expected in v for v in violations), violations
+
+
+@pytest.mark.parametrize("lines", [0.95, 1.6, 1.95])
+def test_bullet_filling_one_line_or_two_passes(master, tailored, lines):
+    tailored["entries"][0]["bullets"][0]["text"] = filler(lines)
+    assert not [v for v in tailor.check_selection(master, JOB, tailored) if "line" in v]
 
 
 def test_moved_entity_resolves_through_inference(master, tailored):

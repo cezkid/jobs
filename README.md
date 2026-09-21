@@ -91,6 +91,24 @@ Job folder: `First_Last_Resume.pdf`, `Job posting.md`, `Check before sending.md`
 gaps, gates, every inference to confirm), `.data/` (jd, task, answer). Found by slug in
 `.data/jd.json`, never by folder name.
 
+Tailored copies are held to the page: `pages` gate = at most 2, a 2nd page 60%+ full;
+`line-fill` gate = no wrapped paragraph ends in a stub line. Both measure the rendered PDF in
+points - a line counts as wrapped only when the line above had no room for its first word, so a
+deliberate break (an entry subline) is never mistaken for one. Bullets fill one line or fill
+two, checked before rendering by `resume/measure.py` against real font advances, never character
+counts: one glyph runs 3.2x the width of another. Untailored `resume-render` reports both as
+info only. Stubs in the user's own facts (contact, dates, education) are reported, never failed.
+
+Typeface is `resume.font` (default Caladea - Cambria's metrics under the OFL, in
+`app/resume/fonts/Caladea/`). Which family renders decides what fits: on one real resume the
+spread between families runs 85-101 characters a line, which is the difference between 2 pages
+with no stub lines and 3 pages with nineteen. So nothing is hardcoded - `resume/typeface.py`
+resolves the family and column widths, the word space, the writer's character guides and the
+page word windows are all read off the file. The page trades three settings against each
+other - family, side margin (`MARGIN_X_IN` 0.85in) and letterspacing (`TRACKING_EM` +0.015em,
+which `measure.width` adds back per character). Measurements, why Caladea over Georgia even
+with the margins eased, and how to add a family: `app/docs/typeface.md`.
+
 ### Daily check
 
 `uv run app/jobs.py autorun on|off|status` schedules `daily` (Windows Task Scheduler / launchd):

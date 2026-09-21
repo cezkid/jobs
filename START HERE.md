@@ -19,6 +19,29 @@ ChatGPT icon on the left side of this window, then type: **set me up**. For exam
 
 The AI does all the work. You never need to type commands or edit files.
 
+## How your tailored resume is laid out
+
+When Job Finder makes a resume for a job, it holds it to two rules so it reads like someone
+laid it out by hand:
+
+- **Never more than two pages.** One page is fine. If it runs onto a second page, that page
+  has to be at least well over half full, so you never get a stray line or two on its own.
+- **No lines with a few words dangling.** Every line of a bullet point is filled out. If a
+  sentence would spill two or three words onto a line of their own, the AI rewrites it -
+  either shortening it to fit, or saying a little more so the line fills.
+
+Those stray part-lines are worth more than they look: on a resume they can waste most of a
+page, which is what pushes a two-page resume onto a third. If the AI can't make something
+fit, it tells you in plain words rather than handing you a resume that breaks the rules.
+
+Your resume is set in a serif typeface called Caladea. It is the same shape and size as
+Cambria, the font on every copy of Microsoft Word, so it looks familiar to whoever opens it -
+and it is a free version, so nobody has to install anything. It was picked because it fits
+more words on a line than the alternatives, which is what keeps those dangling part-lines off
+your page - and the spare room goes back into the page as slightly wider letter spacing, so it
+reads open rather than crammed. If you would rather have a different one, just ask - say which font you want and it
+gets set up for you, and everything about how the page fits is worked out again for it.
+
 ## What's private and what's shared
 
 **Everything in the file list on the left is yours and private.** It stays on this computer
