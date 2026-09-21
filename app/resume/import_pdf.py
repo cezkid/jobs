@@ -8,10 +8,9 @@ from datetime import date
 from pathlib import Path
 
 import pymupdf
-import yaml
 
 import cfg
-from resume import handoff, schema
+from resume import facts, handoff, schema, tidy
 
 ZERO_WIDTH = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
 LINE_BULLET = re.compile("^[ \t]*[\u25cf\u2022\u25aa\u25e6\u00b7]", re.M)
@@ -282,11 +281,11 @@ def finish(config: dict) -> None:
 
     today = date.today()
     master, assumptions = build(mapped, today)
-    header = [f"# Imported from {pdf.name} {today.isoformat()}; hand edits win, re-import needs --force"]
-    header += [f"# assumed {a}" for a in assumptions]
-    body = yaml.safe_dump(master, sort_keys=False, allow_unicode=True, width=10_000)
+    extra = [f"# Read out of {pdf.name} on {today.isoformat()}; importing again needs --force."]
+    extra += [f"# assumed {a}" for a in assumptions]
+    facts.write(master)
     master_path.parent.mkdir(parents=True, exist_ok=True)
-    master_path.write_text("\n".join(header) + "\n" + body, encoding="utf-8")
+    master_path.write_text(tidy.dump(tidy.strip(master), extra), encoding="utf-8")
 
     errors = schema.validate(master)
     print(f"wrote {master_path} in {time.perf_counter() - started:.1f}s")

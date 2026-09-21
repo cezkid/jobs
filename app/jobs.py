@@ -17,6 +17,7 @@ COMMANDS = {
     "daily": ("daily", "poll + notify (or email if set up), as the daily schedule runs it"),
     "autorun": ("autorun", "daily schedule on | off | status"),
     "resume-import": ("resume.import_pdf", "resume PDF -> resume details: prepare | finish"),
+    "resume-tidy": ("resume.tidy", "rewrite resume details as plain facts, notes out of sight"),
     "resume-render": ("resume.render", "render untailored resume PDF + checks"),
     "resume-lint": ("resume.lint", "wording + honesty lint on untailored resume"),
     "tailor": ("resume.tailor", "tailored resume for one job: posting | prepare | check"),

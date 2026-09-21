@@ -19,6 +19,12 @@
     "pyproject.toml": true,
     "uv.lock": true
   },
+  // red underline the moment a resume fact is mistyped, instead of an error hours later at render
+  "yaml.schemas": {
+    "./app/resume/details.schema.json": "My Resume/Resume details.yml"
+  },
+  "yaml.validate": true,
+  "yaml.format.enable": false,
   "explorer.sortOrder": "modified",
   "workbench.startupEditor": "none",
   "workbench.tips.enabled": false,

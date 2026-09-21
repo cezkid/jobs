@@ -28,7 +28,8 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
    you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is 'led' accurate?" No -> fix
    `tailored.json` or `My Resume/Resume details.yml`, rerun check; never leave unconfirmed claim.
 4. Gaps they can truthfully fill ("Do you have IV certification?") -> add fact to
-   `Resume details.yml`, redo task, rerun check.
+   `Resume details.yml` as one plain sentence under `bullets:` (never an id or metrics list -
+   `AGENTS.md` #Resume details), redo task, rerun check.
 5. Open PDF for them; say it's in `My Jobs/<Company - Title>/`, private to this computer, ready
    to upload.
 

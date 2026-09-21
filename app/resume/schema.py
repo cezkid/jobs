@@ -4,6 +4,9 @@ from pathlib import Path
 
 import yaml
 
+import cfg
+from resume import facts
+
 PRESENT = "present"
 MONTH = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 ID = re.compile(r"^[a-z0-9][a-z0-9-]*$")
@@ -15,14 +18,100 @@ LEGAL_IDENTIFIER = re.compile(
 )
 # HBS/Accenture 2021: gap past this = automatic screen-out at ~half of employers
 MAX_GAP_MONTHS = 6
+NON_SLUG = re.compile(r"[^a-z0-9]+")
+# ChatGPT landed Nov 2022: a job still running in 2023 may name AI work, one that ended earlier
+# cannot without backdating it. A file may still say ai_era by hand and that wins.
+AI_ERA_FROM = "2023-01"
 
 
-def load(path: Path) -> dict:
-    master = yaml.safe_load(path.read_text(encoding="utf-8"))
+def load(path: Path, index_path: Path | None = None) -> dict:
+    master = expand(yaml.safe_load(path.read_text(encoding="utf-8")), facts.read(index_path))
     errors = validate(master)
     if errors:
         raise ValueError(f"{path}:\n  " + "\n  ".join(errors))
     return master
+
+
+def slug(value: str) -> str:
+    return NON_SLUG.sub("-", value.casefold()).strip("-")
+
+
+def unique(base: str, taken: set[str]) -> str:
+    candidate, n = base, 2
+    while candidate in taken:
+        candidate, n = f"{base}-{n}", n + 1
+    taken.add(candidate)
+    return candidate
+
+
+def expand(raw, index: dict | None = None) -> dict:
+    """User-facing shape -> internal shape the rest of app/resume reads.
+
+    The file the user edits carries their facts only: bullets are plain sentences, and ids,
+    metrics, stack and ai_era are derived here or read from the hidden notes (resume/facts.py).
+    Files still carrying those fields by hand keep exactly what they say - import output before
+    this change, and any hand-set override, both load unchanged.
+    """
+    if not isinstance(raw, dict):
+        return raw
+    master, index = dict(raw), index or {}
+    taken = {e["id"] for key in ("roles", "projects") for e in master.get(key) or []
+             if isinstance(e, dict) and isinstance(e.get("id"), str)}
+    for key, named in (("roles", "company"), ("projects", "name")):
+        if isinstance(master.get(key), list):
+            master[key] = [expand_entry(e, named, taken, index) for e in master[key]]
+    return master
+
+
+def expand_entry(entry, named: str, taken: set[str], index: dict) -> dict:
+    if not isinstance(entry, dict):
+        return entry
+    out = dict(entry)
+    out["id"] = out.get("id") or derive_id(out, named, taken)
+    if "ai_era" not in out:
+        out["ai_era"] = in_ai_era(out)
+    if isinstance(out.get("bullets"), list):
+        out["bullets"] = [expand_bullet(b, f"{out['id']}-{n}", index, out["ai_era"])
+                          for n, b in enumerate(out["bullets"], 1)]
+    return out
+
+
+def derive_id(entry: dict, named: str, taken: set[str]) -> str:
+    # same id the importer wrote: company (legal identifier dropped), plus title when a company
+    # holds two roles, so tailored answers and job folders keep pointing at the same bullets
+    name = entry.get(named)
+    if not isinstance(name, str) or not name.strip():
+        return ""
+    base = slug(LEGAL_IDENTIFIER.sub("", name.strip()))
+    if named == "company" and base in taken and isinstance(entry.get("title"), str):
+        base = f"{base}-{slug(entry['title'])}"
+    return unique(base or "entry", taken)
+
+
+def expand_bullet(bullet, derived_id: str, index: dict, ai_era: bool = True):
+    if isinstance(bullet, str):
+        bullet = {"claim": bullet}
+    elif isinstance(bullet, dict):
+        bullet = dict(bullet)
+    else:
+        return bullet
+    bullet.setdefault("id", derived_id)
+    if isinstance(bullet.get("claim"), str):
+        for key, value in facts.attach(bullet["claim"], index).items():
+            # the notes are keyed by the claim and outlive the dates: a job moved back before
+            # the AI era must not be handed an ai_work flag the file never carried, which would
+            # only fail the file on the user's behalf. What they wrote is still lint's ai-era rule.
+            if key == "ai_work" and not ai_era:
+                continue
+            bullet.setdefault(key, value)
+    if not bullet.get("ai_work"):  # says nothing; kept only where true, so masters compare equal
+        bullet.pop("ai_work", None)
+    return bullet
+
+
+def in_ai_era(entry: dict) -> bool:
+    end = entry.get("end")
+    return end == PRESENT or (isinstance(end, str) and MONTH.match(end) and end >= AI_ERA_FROM)
 
 
 def month_index(value: str, today: date) -> int:
@@ -123,6 +212,9 @@ def validate_entry(entry, where: str, named: tuple[str, ...], bullet_ids: set[st
         errors.append(f"{where}: end {end} before start {start}")
     ai_era = optional(entry, "ai_era", bool, where, errors) or False
     bullets = field(entry, "bullets", list, where, errors) or []
+    if "bullets" in entry and not bullets:
+        # details.schema.json says minItems 1; an entry with none renders as a heading over nothing
+        errors.append(f"{where}.bullets: empty")
     for j, bullet in enumerate(bullets):
         validate_bullet(bullet, f"{where}.bullets[{j}]", ai_era, bullet_ids, errors)
 
