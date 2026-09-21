@@ -48,6 +48,8 @@ def code(args: list[str]) -> None:
 def main() -> None:
     if sys.platform == "win32":
         register_protocol()
+    # before VS Code opens => file list shows the private folders even on a brand-new install
+    cfg.ensure_private_dirs()
     # trust off for this window only => no "trust the authors?" dialog
     code(["--disable-workspace-trust", str(cfg.ROOT), str(START_PAGE)])
     # separate call: --open-url beside folder args drops the folder (measured 2026-09-19)

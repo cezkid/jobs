@@ -8,6 +8,9 @@ ROOT = APP.parent
 DEFAULTS = APP / "defaults.yml"
 PROFILES = APP / "profiles"
 SETTINGS = ROOT / "My Settings" / "Search settings.yml"
+# user's own folders: created empty at launch so VS Code's file list matches START HERE.md
+# before anything is saved - user sees what is private on day one
+PRIVATE_DIRS = ("My Resume", "My Jobs", "My Settings")
 # hidden from user in VS Code: db, log, email password, AI task files
 DATA = ROOT / ".data"
 EMAIL_ENV = DATA / "email.env"
@@ -20,6 +23,11 @@ GEOGRAPHY_PARAMS = {"regions", "countries", "cities"}
 
 def config_path() -> Path:
     return Path(os.environ.get("JOBS_CONFIG") or SETTINGS)
+
+
+def ensure_private_dirs(root: Path | None = None) -> None:
+    for name in PRIVATE_DIRS:
+        ((root or ROOT) / name).mkdir(parents=True, exist_ok=True)
 
 
 def merge(base: dict, over: dict) -> dict:

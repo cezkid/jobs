@@ -30,6 +30,9 @@ and is never sent to the Job Finder maintainer or to anyone else who uses Job Fi
 | My Resume | Your original resume and the details Job Finder uses to build new versions | Private - only on this computer |
 | My Settings | What jobs you're looking for | Private - only on this computer |
 
+**My Resume and My Jobs start out empty.** My Resume fills up when you show Job Finder your
+resume, and My Jobs gets a folder each time you pick a job to apply for. Nothing is missing.
+
 Some things are hidden from the list so they don't get in your way:
 
 - **Your job list, and your email password if you turn on email** - private, stay on this
