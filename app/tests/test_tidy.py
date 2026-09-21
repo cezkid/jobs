@@ -161,3 +161,17 @@ def test_editor_marks_a_mistyped_fact(tmp_path):
     assert errors(bad_date)
     assert errors({"contact": good["contact"]})  # roles missing entirely
 
+
+def test_a_job_moved_before_the_ai_era_is_not_handed_an_ai_note_it_never_carried(plain, tmp_path):
+    # the notes are keyed by the claim, so they outlive the dates: re-attaching the flag would
+    # fail the whole file over a line the user only changed the dates on
+    master = schema.load(plain, notes(tmp_path))
+    master["roles"][0]["bullets"][0]["ai_work"] = True
+    facts.write(master, notes(tmp_path))
+    assert schema.load(plain, notes(tmp_path))["roles"][0]["bullets"][0]["ai_work"] is True
+
+    plain.write_text(PLAIN.replace("  start: 2023-02\n  end: present", "  start: 2019-01\n  end: 2019-06")
+                     .replace("  start: 2019-06\n  end: 2022-11", "  start: 2018-01\n  end: 2018-06"), encoding="utf-8")
+    moved = schema.load(plain, notes(tmp_path))
+    assert moved["roles"][0]["ai_era"] is False
+    assert "ai_work" not in moved["roles"][0]["bullets"][0]
