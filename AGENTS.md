@@ -52,7 +52,8 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
   hand edits win), untailored `First_Last_Resume.pdf`.
 - `My Jobs/<Company - Title>/` - one per tailored job: `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
-- `.data/` - `jobs.db`, `daily.log`, `email.env`, AI task files for import + pasted postings.
+- `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import +
+  pasted postings.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `resume/`, `profiles/`
@@ -61,6 +62,15 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.
 Tests: `uv run pytest` (live gates hit freehire API).
+
+## Resume details = user's own file
+
+`Resume details.yml` holds their facts only: bullets are plain sentences. Ids, `metrics`,
+`stack`, `ai_era` are derived at load or read from `.data/resume-index.yml`, keyed by the claim -
+so adding a fact = adding a sentence, never an id or a metrics list. Older files carrying those
+fields still load unchanged; `uv run app/jobs.py resume-tidy` rewrites one back to plain form
+(keeps a backup, never renumbers a bullet already tailored against). Reword a claim and its
+notes drop off - harmless, the next import writes them again.
 
 ## AI writing steps
 
