@@ -87,6 +87,7 @@ Wording
 - Plain text: no markdown, no em dashes, no non-breaking or zero-width spaces.
 - Never use: {", ".join((*lint.STYLE_WORD_LIST, *lint.HEDGE_LIST, *lint.RESUME_VERB_LIST, *lint.GRADE_LIST))}. A grade the reader cannot check says nothing; write the fact that earned it.
 - Bullet punctuation follows master: if its claims end in a period every bullet does, if none do none do.
+- Every clause adds something the reader did not have. Cut a clause that is true of any instance of the thing named ("a component library, so screens reuse existing pieces"), restates the bullet's own opening, or would be true of anyone in the role.
 - No "not only X but also Y", no filler lists of three, no two consecutive bullets opening with the same word.
 
 Summary

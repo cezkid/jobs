@@ -55,6 +55,7 @@ What earns the line its space.
 | Rule | Basis | |
 |---|---|---|
 | A bullet carries **evidence**: an outcome metric where one exists, otherwise scope (how many, how large, how often) or a named qualitative result - approval won, process adopted, audit passed. Scope counts as evidence only when the writer can say where the number came from. A bullet with no evidence is reported, never filled. | The most contested point in the set, and the wording is deliberate. MIT's PAR framework ends every bullet in a result; Emory gives "Action Verb + task, resulting in quantitative outcome". But **Arizona states outright that not every bullet requires a numeric result** - results are "most often left out" and included "whenever possible". Emory's own framework splits quantification into *scale* questions (how many projects, how many people) and *results* questions (by what percentage, how much time): a bullet quantified on scope alone is quantified. | **report** - the nearest enforceable proxy is `specificity` |
+| **Every clause adds something the reader did not already have.** Three ways a clause fails: it is true of any instance of the thing named ("a component library, so new screens assemble from existing pieces"); it restates the bullet's own opening; or it would be true of anyone holding the role ("shipping features end to end"). | Tier 1 bans a claim the reader *cannot* check. This is its mirror - a clause the reader does not *need* checked, because it is true by definition - and it costs the same: nothing conveyed. At a 7-second first pass, words that carry nothing are not neutral, they are spent. It is also the shape the sources describe as the AI tell: Insight Global 2025 finds rejection tracks "generic, uncontextualised content", and Arizona warns against bullets written to "sound professional". A definitional clause is a duty statement wearing an outcome's clothes, which Harvard, Emory and Berkeley all rank last. | enforce: `empty-clause` (new), for the purpose-clause form only; the redundant and generic forms are **report** |
 | Achievements over duties | The most consistently stated rule found, with no dissent. Harvard lists "not demonstrating results" among its top resume mistakes; Emory's "do not include" list is headed by "daily job duties and tasks"; Berkeley: employers care about "the impact that your work had", not "just what work you did". | **report** - the difference is in the facts behind the sentence, not its shape |
 | Scope numbers and change numbers do different jobs; a role whose bullets are all one kind is worth noticing | Emory separates "Scale Questions" from "Results Questions"; MIT treats scale ("over 100,000 data points", "size of your department, event, budget") as a mode distinct from percentage change. Both count as quantification. | **report only.** Enforcing it would demand a scope number for a role that has none - Tier 1 wins |
 | No hedged opener | Arizona names the constructions to cut: "helped to", "worked on", "responsible for". Dissent worth recording: UConn lists "assisted" and "collaborated" among its *recommended* verbs, so the objection is to the hedged opening, not to every collaborative word. | enforce: `hedge` |
@@ -126,6 +127,7 @@ candidate's own words and FAILs on generated text - the candidate's register sta
 | `company-legal-id` | an employer name missing Inc./LLC | WARN |
 | `round-metric` | a generated `10|15|20|25|30|40|50|100%` absent from master | via `hit()` |
 | `unmeasurable-grade` | a grade the reader cannot check, in a bullet or the summary | via `hit()` |
+| `empty-clause` | a purpose clause (so, allowing, enabling, ...) naming no number, proper noun or known tool | via `hit()` |
 | `specificity` | a bullet naming no product, stack item, number or proper noun | via `hit()` |
 | `style-word` | 19 words over-represented in generated prose | via `hit()` |
 | `hedge` | helped, contributed to, assisted with, played a key role | WARN |
@@ -138,6 +140,37 @@ candidate's own words and FAILs on generated text - the candidate's register sta
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
 | `em-dash`, `markdown`, `invisible-unicode` | characters that betray generated text | via `hit()` |
 | `pages`, `line-fill`, `contact-line`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
+
+## The blind spot this document had
+
+`empty-clause` was added after the rubric had already passed a bullet no hiring manager should
+have to read: *"Expanded the shared component library to every micro-frontend, so new
+screens assemble from existing pieces and every app shares one consistent interface."* Fourteen
+of its twenty-two words explain what a component library is, and they sat in the first line of
+the most recent role - the single most-read line on the page.
+
+It passed every tier. Accuracy: nothing false. Substance: a real scope number. Relevance: right
+role, leading position. Clarity: one sentence, the number names what it counts. The rubric had a
+rule against saying something the reader cannot check and no rule against saying something the
+reader already knows, and those are the same failure measured from opposite ends.
+
+The general form is worth keeping in mind when adding any rule here: a tier that asks only "is
+this true?" and "is there evidence?" will pass a sentence that is true, evidenced and empty.
+
+**Measured before shipping.** Purpose-clause form only:
+
+| corpus | bullets | hits | false positives |
+|---|---|---|---|
+| real resume | 29 | 1 | 0 |
+| `master.example.yml` | 4 | 0 | 0 |
+| same candidate's prior resume (out of sample) | 32 | 1 | 0 |
+| constructed adversarial clauses | 8 | 4 | **1** |
+
+The one constructed false positive - *"Added Storybook so designers review components before
+merge"* - names a real workflow change in plain words with no number or proper noun in the
+clause. That is the rule's known limit: it detects *names nothing specific*, which correlates
+with *adds nothing* without being the same thing. It is a WARN through `hit()` for that reason,
+so a candidate's own wording is only ever reported.
 
 ## Considered, not mechanised
 
