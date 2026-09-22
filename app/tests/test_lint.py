@@ -69,6 +69,20 @@ def test_unmeasurable_grade_fails_generated_warns_own_wording(master, model):
     assert "unmeasurable-grade" not in rules(own)
 
 
+def test_empty_purpose_clause_fails_generated_warns_own_wording(master, model):
+    text = "Expanded the Vue component library, so new screens assemble from existing pieces"
+    assert "empty-clause" in rules(lint.lint(with_bullet(model, text), master))
+    master["roles"][0]["bullets"][0]["claim"] = text
+    own = lint.lint(render.page_model(master), master)
+    assert "empty-clause" in rules(own, lint.WARN)
+    assert "empty-clause" not in rules(own)
+
+
+def test_purpose_clause_naming_something_stays_quiet(master, model):
+    named = with_bullet(model, "Rebuilt the Vue index so queries return in under 200ms")
+    assert "empty-clause" not in {f.rule for f in lint.lint(named, master)}
+
+
 def test_grade_word_inside_employer_name_stays_quiet(master):
     master["roles"][0]["company"] = "Seamless Robotics Inc."
     findings = lint.lint(render.page_model(master), master)

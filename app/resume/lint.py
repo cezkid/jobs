@@ -39,6 +39,9 @@ ROUND_PERCENT = re.compile(r"\b(10|15|20|25|30|40|50|100)%")
 HEDGES = any_phrase(HEDGE_LIST)
 RESUME_VERBS = any_phrase(RESUME_VERB_LIST)
 GRADES = any_phrase(GRADE_LIST)
+# a purpose clause naming nothing specific is usually the definition of the thing just named
+EMPTY_CLAUSE = re.compile(
+    r",?\s+\b(so that|so|allowing|enabling|letting|helping|ensuring|giving|making|thereby|which)\b", re.I)
 NOT_ONLY = re.compile(r"\bnot only\b.*\bbut also\b", re.I)
 TRIAD = re.compile(r"\b[\w-]+, [\w-]+,? and [\w-]+\b")
 # pre-AI role (ai_era false) naming any of these = backdated AI claim
@@ -186,6 +189,10 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
         for m in ROUND_PERCENT.finditer(text):
             if m.group() not in corpus:
                 hit("round-metric", where, text, f"{m.group()} absent from master", own)
+        if is_bullet and (clause := EMPTY_CLAUSE.search(text)):
+            tail = text[clause.end():]
+            if not (NUMBER.search(tail) or any(c.isupper() for c in tail) or any(t in norm(tail) for t in known_terms)):
+                hit("empty-clause", where, text, f"{clause.group(1)!r} clause names nothing specific", own)
         # employer names and section headings are not claims about quality: claim kinds only
         if kind in ("bullet", "summary") and (graded := sorted({m.group().lower() for m in GRADES.finditer(text)})):
             hit("unmeasurable-grade", where, text, f"{', '.join(graded)} - grade the reader cannot check", own)
