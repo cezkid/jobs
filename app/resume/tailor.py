@@ -85,7 +85,8 @@ Wording
 - Where the posting names a technology differently from master, spell both forms once, full name then short form: "Electronic Health Record (EHR)", and list the new form in `inferences`.
 - A specialist term stays spelled exactly as the field writes it - screeners match the string, so never swap it for a plain paraphrase. Carry its meaning in the same sentence instead ("WCAG 2.1 AA accessibility", "CI/CD build and release time"), so a non-specialist reader loses nothing. Gloss a term once per page, not in every bullet; `skills` items stay bare.
 - Plain text: no markdown, no em dashes, no non-breaking or zero-width spaces.
-- Never use: {", ".join((*lint.STYLE_WORD_LIST, *lint.HEDGE_LIST, *lint.RESUME_VERB_LIST))}.
+- Never use: {", ".join((*lint.STYLE_WORD_LIST, *lint.HEDGE_LIST, *lint.RESUME_VERB_LIST, *lint.GRADE_LIST))}. A grade the reader cannot check says nothing; write the fact that earned it.
+- Bullet punctuation follows master: if its claims end in a period every bullet does, if none do none do.
 - No "not only X but also Y", no filler lists of three, no two consecutive bullets opening with the same word.
 
 Summary
@@ -97,6 +98,7 @@ Skills
 Honesty
 - Implied-but-unwritten claims are allowed only when master bullets support them. Each one gets an `inferences` entry: `claim` = the exact added wording, `sources` = supporting master bullet ids. Any company, tool, number or credential absent from master must appear in an inference.
 - Never change employer, title, dates, degrees or certifications.
+- Accuracy outranks relevance: never add a term, number or grade to match a requirement or fill a line. A requirement with no master claim behind it is a coverage gap, not a word to insert.
 
 Coverage
 - `coverage`: exactly one entry per job requirement index. `evidence` = ids of master bullets you placed on the page whose page text alone proves it; empty = gap. `note` = short phrase: how it is proven, or what is missing.

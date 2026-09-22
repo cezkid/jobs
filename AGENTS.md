@@ -90,6 +90,11 @@ User asks for another font -> add that folder, set the name, rerun render; every
 off the file so no number needs editing. Measure widows before adopting one: chars per line is
 what decides page count. Why Caladea + how to add one: `app/docs/typeface.md`.
 
+What a bullet has to do - accuracy > substance > relevance > clarity, which rules code enforces
+vs only reports, and which common resume advice the evidence does not support: `app/docs/bullets.md`.
+Read before adding a wording rule; it records what was measured and rejected, so a killed rule
+does not get proposed again.
+
 ## Skills
 
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing

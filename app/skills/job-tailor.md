@@ -23,6 +23,9 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
      they can shorten a link or blurb in `Resume details.yml`. Mention it, let them choose.
    - Want a different typeface -> `app/docs/typeface.md` #Changing it. Chars per line move with
      it, so redo the task file (`tailor prepare`) after, never reuse the old answer.
+   - Rewriting a bullet -> `app/docs/bullets.md`: accuracy outranks fit, so never add a number,
+     term or grade to fill a line or match a requirement. A bullet with no evidence behind it is
+     a question for the user, never a line to fill in.
 3. Read `Check before sending.md` in job folder: coverage, gaps, gate results, then every
    inference = claim not in their original resume. Ask each in plain words: "New version says
    you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is 'led' accurate?" No -> fix
