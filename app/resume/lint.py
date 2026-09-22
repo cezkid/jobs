@@ -20,6 +20,11 @@ STYLE_WORD_LIST = (
 )
 HEDGE_LIST = ("helped", "contributed to", "assisted with", "played a key role")
 RESUME_VERB_LIST = ("leveraged", "spearheaded", "orchestrated", "synergized", "drove innovation")
+# a grade the reader cannot check carries no information; the fact that earned it does (docs/bullets.md)
+GRADE_LIST = (
+    "advanced", "best-in-class", "world-class", "cutting-edge", "state-of-the-art", "industry-leading",
+    "best-of-breed", "top-tier", "seamless", "robust",
+)
 
 
 def any_phrase(phrases: tuple[str, ...]) -> re.Pattern:
@@ -33,6 +38,7 @@ INVISIBLE = re.compile("[\u00a0\u202f\u200b\u200c\u200d\u2060\ufeff]")
 ROUND_PERCENT = re.compile(r"\b(10|15|20|25|30|40|50|100)%")
 HEDGES = any_phrase(HEDGE_LIST)
 RESUME_VERBS = any_phrase(RESUME_VERB_LIST)
+GRADES = any_phrase(GRADE_LIST)
 NOT_ONLY = re.compile(r"\bnot only\b.*\bbut also\b", re.I)
 TRIAD = re.compile(r"\b[\w-]+, [\w-]+,? and [\w-]+\b")
 # pre-AI role (ai_era false) naming any of these = backdated AI claim
@@ -180,6 +186,9 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
         for m in ROUND_PERCENT.finditer(text):
             if m.group() not in corpus:
                 hit("round-metric", where, text, f"{m.group()} absent from master", own)
+        # employer names and section headings are not claims about quality: claim kinds only
+        if kind in ("bullet", "summary") and (graded := sorted({m.group().lower() for m in GRADES.finditer(text)})):
+            hit("unmeasurable-grade", where, text, f"{', '.join(graded)} - grade the reader cannot check", own)
         if is_bullet and not (re.search(r"\d", text) or any(c.isupper() for c in text[1:]) or AI_TERMS.search(text) or any(t in norm(text) for t in known_terms)):
             hit("specificity", where, text, "no product, stack item, number or proper noun", own)
         # heading may carry JD's title as mirror suffix => check_entry_identity owns it
