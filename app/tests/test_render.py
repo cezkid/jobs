@@ -78,6 +78,30 @@ def test_stub_line_fails_line_fill(master, tmp_path):
     assert stub["text"] in detail and f"cut {stub['cut']}" in detail and f"add ~{stub['add']}" in detail
 
 
+def test_add_advice_aims_at_a_filled_row_not_at_the_floor(master, tmp_path, monkeypatch):
+    """Worked back from MIN_LINE_FILL, the advice on a 39%-full row read "add ~1" - true, and
+    useless: one character clears the gate and leaves 60% of the row empty."""
+    master["roles"][0]["bullets"][0]["claim"] = stub_bullet()
+    model = render.page_model(master)
+    path, _ = render.render(model, tmp_path, budget=False)
+
+    def asked(target: float) -> dict:
+        monkeypatch.setattr(render, "TARGET_LINE_FILL", target)
+        with pymupdf.open(path) as doc:
+            return next(r for r in render.runts(doc, model) if "two teams" in r["text"])
+
+    target, floor = render.TARGET_LINE_FILL, render.MIN_LINE_FILL  # monkeypatch moves them
+    here = asked(target)["fill"]
+    assert asked(here)["add"] <= 1, "aiming where the line already sits should ask for nothing"
+    assert asked(floor)["add"] < asked(target)["add"]
+
+
+def test_fill_target_sits_above_the_floor_and_short_of_the_edge():
+    # short of the edge on purpose: the row has to absorb the words the advice asks for without
+    # spilling the last one into a new row, which is the stub it was sent to remove
+    assert render.MIN_LINE_FILL < render.TARGET_LINE_FILL < 1
+
+
 def test_line_fill_reports_but_never_fails_untailored(master, tmp_path):
     master["roles"][0]["bullets"][0]["claim"] = stub_bullet()
     _, results = render.render(render.page_model(master), tmp_path, budget=False)

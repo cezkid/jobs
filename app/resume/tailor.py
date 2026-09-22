@@ -39,6 +39,15 @@ TAILORED_SCHEMA = obj(
 )
 
 
+# low edge of the two-line window the writer is handed. Not render.TARGET_LINE_FILL: a second
+# line is capped by what two lines hold, so aiming the window that high leaves nothing to aim
+# in. Window width measured in Caladea 2026-09-22, in characters of guide prose: 49 at the 40%
+# floor, 28 at 60%, 14 at 75%, 4 at 85%, empty at 90%. 60% is the fullest edge that still
+# leaves the writer about four words of choice, and it retires the 145-char bullet the old edge
+# advertised as "fills two" while its second row came out 48% empty.
+TWO_LINE_FILL = 0.60
+
+
 def char_guides(font: str) -> tuple[int, tuple[int, int]]:
     """Characters that land a bullet on the right side of the fill bands, in THIS font.
 
@@ -58,7 +67,7 @@ def char_guides(font: str) -> tuple[int, tuple[int, int]]:
              for n in range(1, len(GUIDE_PROSE) + 1)}
     one = [n for n, ((lines, _), w) in sized.items() if lines == 1 and w <= avail - slack]
     two = [n for n, ((lines, _), _w) in sized.items() if lines == MAX_BULLET_LINES]
-    filled = [n for n in two if sized[n][0][1] * avail >= render.MIN_LINE_FILL * avail + slack]
+    filled = [n for n in two if sized[n][0][1] * avail >= TWO_LINE_FILL * avail + slack]
     high = [n for n in two if sized[n][1] <= MAX_BULLET_LINES * avail - slack]
     return max(one), (min(filled), max(high))
 
@@ -74,7 +83,7 @@ Entries
 - Bullets per entry: 3-5 for recent roles ({MAX_BULLETS_PER_ENTRY} max), 2-3 for older, 0 for the oldest.
 - Every bullet either fits ONE line or FILLS two. Land between and it wraps to a stub carrying a few words, wasting a whole row. The check measures rendered width in the real font, so character counts are a guide only: about {one_line_chars} characters or fewer fits one line, {two_line_chars[0]}-{two_line_chars[1]} fills two. Write to the nearer edge, never into the gap.
 - Mix the two: at least one bullet in {ONE_LINE_SHARE} fits a single line, so the page never reads templated.
-- Skills groups follow the same rule on their rendered "Label: items" line - trim items to one line, or add until a second line is {render.MIN_LINE_FILL:.0%} full.
+- Skills groups follow the same rule on their rendered "Label: items" line - trim items to one line, or add until a second line is {render.TARGET_LINE_FILL:.0%} full. A group is not capped at two lines, so it can always be filled rather than left short.
 - `title_mirror`: null, or part of the posting's title copied exactly, on a role whose work genuinely matches it. Rendered as "Master Title (mirror)". Never abbreviate.
 
 Wording
@@ -181,7 +190,7 @@ def bullet_shape(text: str, where: str, font: str = typeface.DEFAULT) -> list[st
     if lines > 1 and fill < render.MIN_LINE_FILL:
         tail = measure.wrap(font, text, avail)[-1]
         cut = measure.chars_for(font, text, measure.width(font, text) - avail)
-        add = measure.chars_for(font, text, render.MIN_LINE_FILL * avail - measure.width(font, tail))
+        add = measure.chars_for(font, text, render.TARGET_LINE_FILL * avail - measure.width(font, tail))
         grow = f", or add ~{add} to fill two" if add > 0 else ""
         return [f"{where}: wraps to a line only {fill:.0%} full - cut {cut} chars to fit one line"
                 f"{grow}: {text!r}"]
