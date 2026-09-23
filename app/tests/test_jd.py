@@ -51,6 +51,21 @@ def test_missing_requirements_rejected():
         jd.parse(raw_job(enrichment={}))
 
 
+def test_empty_requirements_are_their_own_error_kind():
+    """A postable listing with no requirement bullets is a different case from a malformed one.
+
+    Callers offer the pasted-posting path for the first and cannot for the second, so the two
+    must be distinguishable - while staying a ValueError, which existing callers catch.
+    """
+    with pytest.raises(jd.NoRequirements):
+        jd.parse(raw_job(enrichment={}))
+    assert issubclass(jd.NoRequirements, ValueError)
+    raw = raw_job(enrichment={"requirements": [{"text": "Vue", "priority": "nice"}]})
+    with pytest.raises(ValueError) as bad:
+        jd.parse(raw)
+    assert not isinstance(bad.value, jd.NoRequirements)
+
+
 def test_unknown_priority_rejected():
     raw = raw_job(enrichment={"requirements": [{"text": "Vue", "priority": "nice"}]})
     with pytest.raises(ValueError, match="unknown requirement priorities"):

@@ -3,7 +3,7 @@ import copy
 import pytest
 
 import cfg
-from resume import measure, report, schema, tailor, typeface
+from resume import jd, measure, report, schema, tailor, typeface
 
 EXAMPLE = cfg.APP / "resume" / "master.example.yml"
 JOB = {
@@ -138,6 +138,25 @@ def test_job_dir_reused_for_same_job_suffixed_for_other(tmp_path):
     assert tailor.job_dir_for(tmp_path, JOB) == first
     other = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"})
     assert other.name == "Acme - Senior Vue Engineer, Search (2)"
+
+
+def test_prepare_on_a_posting_without_requirements_explains_instead_of_crashing(tmp_path, monkeypatch):
+    """The user-facing half of jd.NoRequirements: a plain way out, never a traceback."""
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    config = cfg.defaults()
+    master_path = cfg.resume_path(config, "master")
+    master_path.parent.mkdir(parents=True, exist_ok=True)
+    master_path.write_text(EXAMPLE.read_text(encoding="utf-8"), encoding="utf-8")
+
+    def no_requirements(*_args):
+        raise jd.NoRequirements("senior-payroll-analyst: enrichment.requirements empty")
+
+    monkeypatch.setattr(jd, "fetch", no_requirements)
+    with pytest.raises(SystemExit) as exited:
+        tailor.prepare(config, "senior-payroll-analyst", None, "")
+    said = str(exited.value)
+    assert "no requirements" in said and "tailor posting" in said
+    assert "Traceback" not in said
 
 
 def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tailored):
