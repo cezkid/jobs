@@ -76,12 +76,24 @@ def test_tui_launches_and_filters_senior_plus(polled):
 
 
 def test_detail_jd_beats_stored_truncation(polled):
+    """Detail endpoint carries the whole JD; the stored description is cut at 999 chars.
+
+    Which live posting ranks first is not this test's subject, and some real listings carry no
+    requirement bullets at all - asserting on whichever row sorted top made a passing suite
+    depend on today's job market. Walk until one fetches, and say so if none does.
+    """
     config, conn, _ = polled
-    job = next(j for j in rank.rank(store.all_jobs(conn), config) if j["tier"] == "remote" and j["description"])
+    ranked = [j for j in rank.rank(store.all_jobs(conn), config) if j["tier"] == "remote" and j["description"]]
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
-        full = jd.fetch(client, config["api"]["base"], job["public_slug"])
-    assert len(full["text"]) > len(html_to_text(job["description"]))
-    assert full["requirements"]
+        for job in ranked[:10]:
+            try:
+                full = jd.fetch(client, config["api"]["base"], job["public_slug"])
+            except jd.NoRequirements:
+                continue
+            assert len(full["text"]) > len(html_to_text(job["description"]))
+            assert full["requirements"]
+            return
+    pytest.skip(f"no requirements on any of the top {len(ranked[:10])} remote postings today")
 
 
 def test_second_poll_closes_nothing_new(polled):
