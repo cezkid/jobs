@@ -20,6 +20,7 @@ COMMANDS = {
     "resume-tidy": ("resume.tidy", "rewrite resume details as plain facts, notes out of sight"),
     "resume-render": ("resume.render", "render untailored resume PDF + checks"),
     "resume-lint": ("resume.lint", "wording + honesty lint on untailored resume"),
+    "resume-fit": ("resume.fit", "does this wording fit a line? candidates, or every bullet"),
     "tailor": ("resume.tailor", "tailored resume for one job: posting | prepare | check"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
     "launch": ("launch", "open VS Code on START HERE, Claude tab pre-filled (Desktop launcher)"),
