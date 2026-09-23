@@ -19,6 +19,11 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
      second). Rewrite those bullets only; keep every claim sourced.
    - `bullet N: wraps to a line only N% full` from the selection check catches the same thing
      before any render, measuring the real font: a bullet fills one line or fills two.
+   - `uv run app/jobs.py resume-fit "<wording>" ...` asks the same question about wordings not
+     written into any file yet - several at once, or `-` to read them a line at a time. It
+     prints the two target sizes first, so aim at an edge instead of writing then measuring.
+     `thin` = clears the gate and still wastes most of a row; bare `resume-fit` checks every
+     bullet already in `Resume details.yml` without rendering.
    - Stubs in the user's own facts (contact, dates, education) are reported, never failed - only
      they can shorten a link or blurb in `Resume details.yml`. Mention it, let them choose.
    - Want a different typeface -> `app/docs/typeface.md` #Changing it. Chars per line move with
