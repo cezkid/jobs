@@ -35,10 +35,19 @@ def fetch(client: httpx.Client, base: str, slug: str) -> dict:
     return parse(resp.json()["data"])
 
 
+class NoRequirements(ValueError):
+    """The API returned a posting with nothing to tailor against.
+
+    Not a bug and not rare - some real listings carry only prose. It is separate from the other
+    ValueError here so a caller can tell "this posting cannot be tailored automatically, offer
+    the pasted-text path" apart from "this response is malformed", and say so instead of dying.
+    """
+
+
 def checked(slug: str, requirements: list[dict], where: str) -> list[dict]:
     # coverage gate scores against requirements => row w/o them cannot be tailored
     if not requirements:
-        raise ValueError(f"{slug}: {where} empty")
+        raise NoRequirements(f"{slug}: {where} empty")
     bad = sorted({r["priority"] for r in requirements} - set(PRIORITIES))
     if bad:
         raise ValueError(f"{slug}: unknown requirement priorities {bad}")

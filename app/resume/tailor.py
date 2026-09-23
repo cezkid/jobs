@@ -346,7 +346,15 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
         job = jd.from_text(posting_file.read_text(encoding="utf-8"), url, got)
     else:
         with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
-            job = jd.fetch(client, config["api"]["base"], slug)
+            try:
+                job = jd.fetch(client, config["api"]["base"], slug)
+            except jd.NoRequirements:
+                # every gate downstream scores against requirements, so there is no degraded
+                # tailoring to fall back to - only the pasted-posting path, which reads them
+                # off the page the listing links to. Say that; never hand the user a traceback.
+                sys.exit(f"{slug}: this posting lists no requirements, so there is nothing to "
+                         f"tailor against. Save the posting page's text to a file, then run:\n"
+                         f'  uv run app/jobs.py tailor posting "<text file>" --url "<posting url>"')
     job_dir = job_dir_for(cfg.resume_path(config, "jobs_dir"), job)
     data = job_dir / JOB_DATA
     data.mkdir(parents=True, exist_ok=True)
