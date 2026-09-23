@@ -141,6 +141,30 @@ candidate's own words and FAILs on generated text - the candidate's register sta
 | `em-dash`, `markdown`, `invisible-unicode` | characters that betray generated text | via `hit()` |
 | `pages`, `line-fill`, `contact-line`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
 
+## What the fill advice aims at
+
+`line-fill` fails below `MIN_LINE_FILL` (40%), and for a while the advice printed beside it was
+worked back from that same number. On a skills line rendering 39% full that came out as **"cut
+41 or add ~1"**: adding one character does clear the gate, and leaves 60% of the row empty. The
+floor answers "is this bad enough to stop the page"; it was never an answer to "how much would
+fill this line".
+
+So the two are now separate numbers, and only the advice moved - **no resume that passed before
+fails now**. Raising the floor to 90% instead was measured and rejected: three lines on a real
+resume that passes today would fail, two of them skills lists, and the fix for those is padding
+a tool list with tools the candidate does not use.
+
+| Number | Where | Value | Why there |
+|---|---|---|---|
+| `MIN_LINE_FILL` | `render.py`, the FAIL gate | 40% | Unchanged. Tails cluster at 3-35% and then stop; nothing lands between there and a filled line, so it is a threshold, not a knob |
+| `TARGET_LINE_FILL` | `render.py`, what `add ~N` aims at | 90% | The wrapped blocks on the corpus that read as filled land at 93% and 98%. The 10% left over is what stops the last word the advice asks for from spilling into a row of its own |
+| `TWO_LINE_FILL` | `tailor.py`, low edge of the writer's two-line window | 60% | **Not** `TARGET_LINE_FILL`: a bullet's second line is capped by what two lines hold, so aiming the window that high empties it. Window width in Caladea, in characters: 49 at 40%, 28 at 60%, 14 at 75%, 4 at 85%, **empty at 90%.** 60% is the fullest edge still leaving about four words of choice |
+
+The window edge is the one that changes what gets written. At 40% it advertised a 145-character
+bullet as one that "fills two" while its second row came out 48% empty - which is where a real
+resume's 49%-full second row, carrying ten words and half a line of white space, came from. The
+edge is now 166 characters, and 145-165 joins the gap the writer is told never to write into.
+
 ## The blind spot this document had
 
 `empty-clause` was added after the rubric had already passed a bullet no hiring manager should

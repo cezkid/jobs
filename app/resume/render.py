@@ -41,6 +41,14 @@ MIN_LAST_PAGE_FILL = 0.6
 # in Caladea, nothing between there and a filled line either way. Any cut inside that empty
 # gap flags the same lines, so this is a threshold, not a knob to tune, and not font-specific
 MIN_LINE_FILL = 0.40
+# what a short line is told to AIM at, which is not where the gate stops failing. Advice worked
+# back from the floor answers "what clears the gate", and on a 39%-full row that came out as
+# "add ~1" - true, and useless, since one character leaves the row 60% empty. Measured in
+# Caladea 2026-09-22: the wrapped blocks on the corpus that read as filled land at 93% and 98%,
+# so 90% is the nearest round edge under both, and the 10% it leaves is what keeps an added
+# word from spilling into a row of its own. Raising MIN_LINE_FILL to here instead would fail
+# three lines on a resume that passes today, two of them skills lists - the floor stays put.
+TARGET_LINE_FILL = 0.90
 # resume.typ holds the summary to this share of the column, so its lines wrap short of the edge
 SUMMARY_WIDTH = 0.90
 # 0.85in, not the 1.05 this started at: the text needs the width back that tracking spends.
@@ -346,6 +354,10 @@ def paragraphs(page, lines: list[dict], block: int, edge: float, space: float) -
 def runts(doc, model: dict, font: str = typeface.DEFAULT) -> list[dict]:
     """Paragraphs ending in a stub line: the text, how full it is, chars to cut or to add.
 
+    `cut` pulls the tail up onto the line above; `add` fills the row it is on, aiming at
+    TARGET_LINE_FILL and not at the floor the gate happens to fail below. Neither number can
+    start a new row: `add` stops short of the edge by design.
+
     Every measurement is in points off the rendered page - character counts never decide, since
     one glyph runs 3.2x the width of another. Chars appear only in the advice, converted at the
     paragraph's own measured width per character.
@@ -378,7 +390,7 @@ def runts(doc, model: dict, font: str = typeface.DEFAULT) -> list[dict]:
                 found.append({
                     "text": text.strip(), "fill": fill,
                     "cut": math.ceil((tail + space - slack) / per_char) if per_char else 0,
-                    "add": math.ceil((MIN_LINE_FILL * (edge - ink_left) - tail) / per_char) if per_char else 0,
+                    "add": math.ceil((TARGET_LINE_FILL * (edge - ink_left) - tail) / per_char) if per_char else 0,
                     "fixable": any(body and body in c for c in can_fix),
                 })
     return found
@@ -411,7 +423,7 @@ def stub_detail(found: list[dict], show: int = 8) -> str:
     if not found:
         return "every wrapped block fills its last line"
     listed = "; ".join(
-        f"{r['text']!r} {r['fill']:.0%} full, cut {r['cut']} or add ~{r['add']}"
+        f"{r['text']!r} {r['fill']:.0%} full, cut {r['cut']} or add ~{r['add']} to fill"
         + ("" if r["fixable"] else " (user's own facts - reported only)")
         for r in found[:show]
     )

@@ -1,3 +1,4 @@
+import re
 import shutil
 
 import pymupdf
@@ -81,7 +82,9 @@ def test_char_guides_bracket_the_gap_that_makes_a_stub():
     prose, avail = tailor.GUIDE_PROSE, measure.bullet(typeface.DEFAULT)
     assert measure.fit(typeface.DEFAULT, prose[:one], avail)[0] == 1
     lines, fill = measure.fit(typeface.DEFAULT, prose[:low], avail)
-    assert lines == tailor.MAX_BULLET_LINES and fill >= render.MIN_LINE_FILL
+    # the low edge is where the window starts, so it has to be a length worth writing to, not
+    # merely one the gate stops failing: at the old MIN_LINE_FILL edge it came out 48% empty
+    assert lines == tailor.MAX_BULLET_LINES and fill >= tailor.TWO_LINE_FILL
     assert measure.fit(typeface.DEFAULT, prose[:high], avail)[0] == tailor.MAX_BULLET_LINES
 
 
@@ -89,3 +92,22 @@ def test_a_bullet_written_into_the_gap_is_sent_back():
     one, (low, _) = tailor.char_guides(typeface.DEFAULT)
     middle = tailor.GUIDE_PROSE[:(one + low) // 2]
     assert [v for v in tailor.bullet_shape(middle, "gap", typeface.DEFAULT) if "wraps to a line only" in v]
+
+
+def test_two_line_window_stays_wide_enough_to_write_in():
+    # a second line is capped by what two lines hold, so the window narrows as its low edge
+    # rises - measured in Caladea: 49 characters at 40%, 28 at 60%, 4 at 85%, empty at 90%.
+    # Anything that shrinks it past a few words leaves the writer no length to choose.
+    _, (low, high) = tailor.char_guides(typeface.DEFAULT)
+    assert high - low >= 20
+
+
+def test_advice_to_fill_two_lines_lands_inside_the_two_line_window():
+    """Following the advice has to end somewhere legal: filled, and still two lines."""
+    prose, avail = tailor.GUIDE_PROSE, measure.bullet(typeface.DEFAULT)
+    one, (low, _) = tailor.char_guides(typeface.DEFAULT)
+    stubbed = prose[:(one + low) // 2]
+    violation, = tailor.bullet_shape(stubbed, "gap", typeface.DEFAULT)
+    add = int(re.search(r"add ~(\d+)", violation).group(1))
+    lines, fill = measure.fit(typeface.DEFAULT, prose[:len(stubbed) + add], avail)
+    assert lines == tailor.MAX_BULLET_LINES and fill >= tailor.TWO_LINE_FILL
