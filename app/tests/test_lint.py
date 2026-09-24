@@ -1,4 +1,5 @@
 import copy
+import re
 
 import pytest
 
@@ -34,14 +35,38 @@ def with_bullet(model, text: str) -> dict:
 def test_untailored_example_has_no_failures(master, model):
     findings = lint.lint(model, master)
     assert rules(findings) == set()
-    assert rules(findings, lint.WARN) == {"style-word", "specificity"}
+    assert rules(findings, lint.WARN) == {"specificity"}
 
 
 def test_style_word_fails_generated_warns_own_wording(master, model):
-    own = lint.lint(model, master)
-    assert any(f.rule == "style-word" and f.severity == lint.WARN for f in own)
     generated = with_bullet(model, "Meticulously built Vue search, cutting INP 410ms -> 170ms")
     assert "style-word" in rules(lint.lint(generated, master))
+    master["roles"][0]["bullets"][0]["claim"] = "Meticulously built Vue search"
+    own = lint.lint(render.page_model(master), master)
+    assert "style-word" in rules(own, lint.WARN) and "style-word" not in rules(own)
+
+
+def test_scope_words_are_evidence_not_style(master, model):
+    generated = with_bullet(model, "Built Vue search across 6 teams, within 2 quarters")
+    assert "style-word" not in {f.rule for f in lint.lint(generated, master)}
+
+
+def test_grade_word_the_facts_or_posting_use_is_a_term_not_a_grade(master, model):
+    posted = with_bullet(copy.deepcopy(model), "Built advanced Vue search for the insights team")
+    assert {"unmeasurable-grade", "style-word"} <= rules(lint.lint(posted, master))
+    assert rules(lint.lint(posted, master, posting="Advanced search for our Consumer Insights group")) == set()
+    world = with_bullet(copy.deepcopy(model), "Built world-class Vue search")
+    assert "unmeasurable-grade" in rules(lint.lint(world, master, posting="Advanced search"))
+    master["certifications"] = [{"name": "Advanced Cardiac Life Support (ACLS)"}]
+    spelled = with_bullet(copy.deepcopy(model), "Held Advanced Cardiac Life Support (ACLS) on 6 teams")
+    assert rules(lint.lint(spelled, master)) == set()
+
+
+def test_hedge_the_facts_use_is_their_account_of_their_part(master, model):
+    master["roles"][0]["bullets"][1]["claim"] = "Assisted with checkout INP work in Vue"
+    generated = with_bullet(model, "Assisted with Vue checkout INP work")
+    assert "hedge" not in rules(lint.lint(generated, master), lint.WARN)
+    assert "hedge" in rules(lint.lint(with_bullet(model, "Helped build Vue search"), master), lint.WARN)
 
 
 @pytest.mark.parametrize("text, rule", [
@@ -69,13 +94,25 @@ def test_unmeasurable_grade_fails_generated_warns_own_wording(master, model):
     assert "unmeasurable-grade" not in rules(own)
 
 
-def test_empty_purpose_clause_fails_generated_warns_own_wording(master, model):
+def test_empty_purpose_clause_only_ever_warns(master, model):
     text = "Expanded the Vue component library, so new screens assemble from existing pieces"
-    assert "empty-clause" in rules(lint.lint(with_bullet(model, text), master))
+    generated = lint.lint(with_bullet(model, text), master)
+    assert "empty-clause" in rules(generated, lint.WARN) and "empty-clause" not in rules(generated)
     master["roles"][0]["bullets"][0]["claim"] = text
     own = lint.lint(render.page_model(master), master)
     assert "empty-clause" in rules(own, lint.WARN)
     assert "empty-clause" not in rules(own)
+
+
+def test_thousands_separator_is_the_same_number(master, model):
+    master["roles"][0]["bullets"][0]["metrics"] = ["1000 tickets a week"]
+    assert rules(lint.lint(with_bullet(model, "Built Vue search over 1,000 tickets a week"), master)) == set()
+
+
+@pytest.mark.parametrize("written", ["20 percent", "20 per cent"])
+def test_round_metric_written_out_in_master_passes(master, model, written):
+    master["roles"][0]["bullets"][0]["metrics"] = [f"deflected {written} of tickets"]
+    assert rules(lint.lint(with_bullet(model, "Built Vue search, deflecting 20% of tickets"), master)) == set()
 
 
 def test_purpose_clause_naming_something_stays_quiet(master, model):
@@ -104,6 +141,23 @@ def test_sentence_initial_capital_not_entity():
 def test_ai_term_in_pre_ai_role_fails(master, model):
     model["sections"][0]["entries"][1]["bullets"][0] = "Led design system migration w/ LLM codemods, 42 components"
     assert "ai-era" in rules(lint.lint(model, master))
+
+
+def test_rag_status_report_is_not_ai_work(master, model):
+    model["sections"][0]["entries"][1]["bullets"][0] = "Led design system migration, 42 components, with a weekly RAG status report"
+    assert "ai-era" not in {f.rule for f in lint.lint(model, master)}
+
+
+@pytest.mark.parametrize("text", ["Ran quarterly performance evals for 6 teams", "Fine-tuned Storybook for 6 teams"])
+def test_words_other_fields_use_are_not_ai_terms(master, model, text):
+    model["sections"][0]["entries"][1]["bullets"][0] = text
+    assert "ai-era" not in {f.rule for f in lint.lint(model, master)}
+
+
+def test_ai_term_in_own_wording_warns(master):
+    master["roles"][1]["bullets"][0]["claim"] = "Led design system migration w/ LLM codemods"
+    findings = lint.lint(render.page_model(master), master)
+    assert "ai-era" in rules(findings, lint.WARN) and "ai-era" not in rules(findings)
 
 
 def test_tool_released_after_role_end_fails(master, model):
@@ -224,3 +278,12 @@ def test_bullets_all_in_one_band_read_uniform(master, model):
 def test_one_line_bullet_every_fifth_clears_the_craft_floor(master, model):
     set_bullets(model, [ONE_LINE, *[TWO_LINE] * (tailor.ONE_LINE_SHARE - 1)])
     assert "uniform-bullet-length" not in rules(lint.lint(model, master), lint.WARN)
+
+
+def test_every_rule_has_a_plain_reason_and_the_doc_carries_it():
+    source = (cfg.APP / "resume" / "lint.py").read_text(encoding="utf-8")
+    emitted = set(re.findall(r'(?:Finding\(\w+, |hit\(|\(\()"([a-z-]+)"', source))
+    emitted |= set(re.findall(r'\("([a-z-]+)", [A-Z_]+\)', source))
+    assert emitted and emitted <= lint.WHY.keys(), emitted - lint.WHY.keys()
+    doc = (cfg.APP / "docs" / "bullets.md").read_text(encoding="utf-8")
+    assert all(f"| `{rule}` | {why} |" in doc for rule, why in lint.WHY.items())
