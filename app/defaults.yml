@@ -34,11 +34,13 @@ resume:
   input_pdf: My Resume/Original resume.pdf
   jobs_dir: My Jobs
 
-# Ranking (rank.py). Order: tier > likely ghost / level / hours mismatch > pay floor > pay >
-# employer lists > first seen. Nothing here hides a job except stale_days.
+# Ranking (rank.py). Order: tier > not seen lately (may be closed) > likely ghost / level /
+# hours mismatch > pay floor > pay > employer lists > first seen. Nothing here hides a job.
 rank:
-  # open job no check has returned in this many days is hidden: filled jobs outside a pass's
-  # posted_within_days window are never re-fetched, so never marked closed
+  # open job no check has returned in more than this many days sorts to the bottom of its tier
+  # ("may be closed") and is never announced as new: filled jobs outside a pass's
+  # posted_within_days window are never re-fetched, so never marked closed. Shown, not hidden:
+  # an open job hidden costs the user a chance, a closed one shown costs a click
   stale_days: 14
   # freehire `reality`: relisted this often, or listed this many days, or class likely-evergreen
   # => sorted below fresh jobs in its tier. 2026-09-24, 500 newest US rows: repost_count 1 on

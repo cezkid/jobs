@@ -57,8 +57,9 @@ def build_message(ranked: list[dict], config: dict) -> EmailMessage:
 
 
 def unseen_ranked(conn, config: dict) -> list[dict]:
-    # rank every open row so a repost of a job already sent collapses into it, not in as new
-    return [j for j in rank.rank(store.all_jobs(conn), config) if not j["seen"]]
+    # rank every open row so a repost of a job already sent collapses into it, not in as new;
+    # stale rows (likely filled) are never announced - they stay in the chat list only
+    return [j for j in rank.rank(store.all_jobs(conn), config) if not j["seen"] and not j["stale"]]
 
 
 def run(conn, config: dict, send: Callable[[EmailMessage], None]) -> int:

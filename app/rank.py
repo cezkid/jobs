@@ -1,7 +1,7 @@
 import argparse
 import re
 from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import cfg
 import store
@@ -131,9 +131,13 @@ def mismatches(job: dict, rc: dict) -> list[str]:
     return out
 
 
-def stale(job: dict, cutoff: str) -> bool:
-    # no fetch returned it lately => likely filled (close_missing only sees its fetch window)
-    return bool(job.get("fetched_at")) and job["fetched_at"] < cutoff
+def stale_for(job: dict, rc: dict, now: datetime) -> int | None:
+    """Days since any fetch returned it, when past rank.stale_days - likely filled
+    (close_missing only sees its fetch window). Demoted, not hidden: may still be open."""
+    if not job.get("fetched_at"):
+        return None
+    days = (now - datetime.strptime(job["fetched_at"][:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)).days
+    return days if days > rc["stale_days"] else None
 
 
 def dedupe_key(job: dict) -> tuple[str, str, str]:
@@ -142,14 +146,15 @@ def dedupe_key(job: dict) -> tuple[str, str, str]:
 
 
 def collapse(jobs: list[dict]) -> list[dict]:
-    """One row per (company, title, place): the copy with pay, else the earliest seen.
+    """One row per (company, title, place): a live copy over a stale one, then the copy with
+    pay, else the earliest seen.
     Kept row carries `duplicates` (other slugs) and `seen` (any copy already notified)."""
     groups = defaultdict(list)
     for j in jobs:
         groups[dedupe_key(j)].append(j)
     kept = []
     for group in groups.values():
-        group.sort(key=lambda j: (not has_salary(j), j.get("first_fetched_at") or j.get("posted_at") or ""))
+        group.sort(key=lambda j: (bool(j.get("stale")), not has_salary(j), j.get("first_fetched_at") or j.get("posted_at") or ""))
         best = dict(group[0], duplicates=[j["public_slug"] for j in group[1:]],
                     seen=any(j.get("alerted_at") for j in group))
         kept.append(best)
@@ -160,10 +165,11 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     rc = config["rank"]
     tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
     now = now or datetime.now(timezone.utc)
-    cutoff = (now - timedelta(days=rc["stale_days"])).strftime(store.ISO)
-    kept = collapse([j for j in jobs if not blocked(j, config["blocklist"]) and not stale(j, cutoff)])
+    kept = collapse([dict(j, stale=stale_for(j, rc, now)) for j in jobs if not blocked(j, config["blocklist"])])
     # Order, most decisive first:
     # tier - user's own where-first choice;
+    # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
+    #   yet shown - hiding an open job costs a chance, showing a closed one costs a click;
     # demerits - likely ghost / wrong level / wrong hours: a trustworthy fitting job beats any pay;
     # pay floor - user's stated minimum (top of range, so a range spanning it counts);
     # pay - a fact about this job, so it outranks employer lists;
@@ -173,6 +179,7 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     kept.sort(key=lambda j: age(j, now) if age(j, now) is not None else 1 << 30)
     kept.sort(key=lambda j: (
         tiers.get(j["tier"], len(tiers)),
+        bool(j["stale"]),
         len(doubts(j, rc)) + len(mismatches(j, rc)),
         not meets_floor(j, rc["salary_floor_usd"]),
         -(annual_usd(j) or 0),
@@ -207,6 +214,8 @@ def reasons(job: dict, config: dict, now: datetime | None = None) -> str:
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
     parts += doubts(job, rc) + mismatches(job, rc)
+    if job.get("stale"):
+        parts.append(f"may be closed - not seen in {job['stale']}d")
     return " · ".join(p for p in parts if p)
 
 
