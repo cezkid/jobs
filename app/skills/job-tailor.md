@@ -12,8 +12,13 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
 2. `prepare` makes `My Jobs/<Company - Title>/` + task file. Do task yourself (`AGENTS.md`
    #AI writing steps), then `uv run app/jobs.py tailor check <slug>`. FAIL lines -> fix
    `tailored.json`, rerun check; never hand over PDF while check fails.
-   - `gate pages` -> 3+ pages, or a 2nd page under 60% full. Cut or add bullets, never retype
-     the layout. User wants 3 pages or a layout the gates fail -> push back (below).
+   - `gate pages` -> 3+ pages, or a 2nd page under 60% full (1 page is fine). Cut or add
+     bullets, never retype the layout. User wants 3 pages or a layout the gates fail -> push
+     back (below).
+   - `budget (info)` -> every true fact still falls short of a full page. Report it, never pad.
+   - Skills item not in their resume -> check fails; items are copied, never added.
+   - Roles last in the list that ended 15+ years ago may be left off (never a middle one).
+   - Coverage may cite certifications, education or kept skills items, not only bullets.
    - `gate line-fill` -> named paragraphs end in a stub line, wasting a whole row. Detail gives
      each one's text, how full it is, and chars to cut (pull it onto one line) or add (fill the
      second). Rewrite those bullets only; keep every claim sourced.
@@ -32,13 +37,16 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
    - Rewriting a bullet -> `app/docs/bullets.md`: accuracy outranks fit, so never add a number,
      term or grade to fill a line or match a requirement. A bullet with no evidence behind it is
      a question for the user, never a line to fill in.
-3. Read `Check before sending.md` in job folder: coverage, gaps, gate results, then every
-   inference = claim not in their original resume. Ask each in plain words: "New version says
-   you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is 'led' accurate?" No -> fix
-   `tailored.json` or `My Resume/Resume details.yml`, rerun check; never leave unconfirmed claim.
-4. Gaps they can truthfully fill ("Do you have IV certification?") -> add fact to
-   `Resume details.yml` as one plain sentence under `bullets:` (never an id or metrics list -
-   `AGENTS.md` #Resume details), redo task, rerun check.
+3. Read `Check before sending.md` in job folder: "Ready to send?", "What the job asks for, and
+   where your resume shows it", "Asked for, not shown", "Wording notes", "What changed from your
+   resume". Walk them through "To confirm - is each of these true?" item by item, mirrored title
+   included: "New version says you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is
+   'led' accurate?" No -> fix `tailored.json` or `My Resume/Resume details.yml`, rerun check;
+   never leave unconfirmed claim. Each "why:" on a left-out line is a suggestion - they can
+   overrule it; put it back and rerun check.
+4. "Asked for, not shown" items they can truthfully fill ("Do you have IV certification?") ->
+   add fact to `Resume details.yml` as one plain sentence under `bullets:` (never an id or
+   metrics list - `AGENTS.md` #Resume details), redo task, rerun check.
 5. Open PDF for them; say it's in `My Jobs/<Company - Title>/`, private to this computer, ready
    to upload.
 
@@ -51,14 +59,15 @@ Wording the user asks about:
   one always read), relevance over chronology; among equally relevant, a bullet w/ a number goes
   first; weakest last (`app/docs/bullets.md` Tier 3). `resume-lint` warns `lead-bullet-weak` when
   a role opens w/o a number while a later bullet carries one.
-- Licence or certification the posting requires and they hold -> near the top (summary or first
-  skills group), spelled as the posting spells it; screeners filter on it.
+- Licence or certification the posting requires and they hold -> Certifications moves up under
+  the summary automatically; the summary may name it too, spelled as the posting spells it.
 
 User asks to... (`AGENTS.md` #Lead, explain, push back - say why in plain words, once):
 - Add a skill, tool, number or certification they don't have, or a bigger title -> Hold.
   "Employers check work history, and anything on the page gets asked about in interview. I've
   listed it as missing in your checklist instead." Have it after all -> step 4.
-- Delete a job -> push back: say the gap it leaves in months and that long gaps get screened out
+- Delete a job -> last in the list + ended 15+ years ago: fine, it's the 10-15 year convention.
+  Any other -> push back: say the gap it leaves in months and that long gaps get screened out
   at about half of employers (HBS/Accenture 2021). Offer zero bullets: title + dates stay, no
   lines. Still want it gone -> leave it out.
 - 3+ pages, or keep a line the gates fail -> push back: two pages is career-centre consensus, and
@@ -72,10 +81,11 @@ User asks to... (`AGENTS.md` #Lead, explain, push back - say why in plain words,
 Identity = employer, title, dates. Verified w/ HR, so never reword one to fit a posting - `lint`
 FAILs `title-changed`, `employer-changed`, `dates-changed`. A posting's title goes in
 `title_mirror` (suffix only: "Software Engineer (Full Stack Engineer)"), never in place of
-theirs. Using a mirror -> show them first: "Your title stays 'Software Engineer'; I'd add the
-posting's name in brackets. OK?" A self-added narrowing suffix ("Software Engineer (Frontend)")
-is the user's to drop: it carries no verification risk, but it labels them narrower than their
-bullets and leaves the mirror stacking two parentheticals. Ask whose wording it is before touching it.
+theirs: whole words of the posting title only, never a level word their own title lacks (Staff
+Nurse never mirrored as Nurse Manager - check fails it). They confirm every mirror in "To
+confirm" (step 3). A self-added narrowing suffix ("Software Engineer (Frontend)") is the user's
+to drop: it carries no verification risk, but it labels them narrower than their bullets and
+leaves the mirror stacking two parentheticals. Ask whose wording it is before touching it.
 
 `resume-lint` also WARNs on the shape of the master resume, all judgement calls, none fatal:
 `role-dates-overlap` (one role ends after the next begins - same employer means a promotion
