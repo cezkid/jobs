@@ -346,3 +346,65 @@ def test_career_break_is_not_an_unknown_entry(master):
     master["career_break"] = [{"reason": "Travel", "start": "2023-01", "end": "2023-01"}]
     master["roles"][1]["end"] = "2022-12"
     assert rules(lint.lint(render.page_model(master), master)) == set()
+
+
+def own_bullet(master, text: str) -> dict:
+    master["roles"][0]["bullets"][0]["claim"] = text
+    return render.page_model(master)
+
+
+def found(findings, rule: str) -> list:
+    return [f for f in findings if f.rule == rule]
+
+
+def test_british_spelling_warns_on_own_words_and_fails_on_generated(master, model):
+    mine = copy.deepcopy(master)
+    own = found(lint.lint(own_bullet(mine, "Shot 100 live theatre events in Vue"), mine), "spelling")
+    assert [f.severity for f in own] == [lint.WARN] and "theatre -> theater" in own[0].detail
+    generated = found(lint.lint(with_bullet(model, "Organised 12 Vue releases"), master), "spelling")
+    assert [f.severity for f in generated] == [lint.FAIL] and "organised -> organized" in generated[0].detail
+
+
+def test_typo_named_with_its_likely_word_and_field_terms_left_alone(master, model):
+    typo = found(lint.lint(with_bullet(model, "Shipped managment reports in Vue"), master), "spelling")
+    assert [f.severity for f in typo] == [lint.FAIL] and "did you mean management?" in typo[0].detail
+    for fine in ("Precepted 6 nurses on a 32-bed med-surg unit in Epic",
+                 "Advertised expertise across the enterprise in Vue",
+                 "Won 2 sponsors: Rockin' Robin Diner, Globex",
+                 "Helped onboard 3 engineers to Vue"):
+        assert found(lint.lint(with_bullet(copy.deepcopy(model), fine), master), "spelling") == [], fine
+
+
+def test_a_word_the_posting_uses_is_not_a_typo_in_generated_text(master, model):
+    text = "Cut telemtry cost in Vue"
+    assert found(lint.lint(with_bullet(copy.deepcopy(model), text), master), "spelling")
+    assert not found(lint.lint(with_bullet(model, text), master, posting="telemtry"), "spelling")
+
+
+@pytest.mark.parametrize("text, flagged", [
+    ("Set up 12 live streaming channels on AWS", "live-streaming channels"),
+    ("Full stack engineer on Vue", "Full-stack engineer"),
+    ("Shipped features end to end in Vue", None),
+    ("Wrote end-to-end tests in Vue", None),
+])
+def test_open_compound_before_a_noun_warns(master, model, text, flagged):
+    hits = found(lint.lint(with_bullet(model, text), master), "compound-modifier")
+    assert [f.severity for f in hits] == ([lint.WARN] if flagged else [])
+    assert not flagged or flagged in hits[0].detail
+
+
+def test_one_opening_word_on_four_bullets_warns_once(master, model):
+    acme(model)["bullets"] = [f"Built {n} Vue screens for checkout" for n in range(3)]
+    assert not found(lint.lint(copy.deepcopy(model), master), "overused-opening")
+    acme(model)["bullets"].append("Built 9 Vue screens for search")
+    assert [f.detail for f in found(lint.lint(model, master), "overused-opening")] == ["4 bullets open with 'built'"]
+
+
+@pytest.mark.parametrize("text, words", [
+    ("I successfully led our Vue migration", "I, our, successfully"),
+    ("Triaged 30 patients a shift in a Level I trauma center", None),
+    ("Cut lazy loading time in Vue 40%", None),
+])
+def test_filler_words_warn_and_level_i_is_not_a_pronoun(master, model, text, words):
+    hits = found(lint.lint(with_bullet(model, text), master), "filler-word")
+    assert [f.detail.split(":")[0] for f in hits] == ([words] if words else [])

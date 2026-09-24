@@ -108,6 +108,11 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   ask the full name (forms say "Do not use abbreviations"). `language-level` -> ask each
   language's level w/ choices (Native / Fluent / Professional / Conversational / Basic) - their
   fact, never guessed - then one line each: `Spanish (Fluent)`.
+- Fill the gaps: `uv run app/jobs.py resume-gaps prepare`, do the task yourself (it lists lines
+  with no number + a leadership question per recent job), asking the user in chat - clickable
+  "I know it / skip" choices, the number as free text. Only what they say goes in; never guess or
+  round, and skipping is fine. Then `uv run app/jobs.py resume-gaps finish` (FAIL = a number or
+  name not in their answer; fix the answer file). Tell them it kept a backup of the old file.
 - `uv run app/jobs.py resume-render` + `uv run app/jobs.py resume-lint`; fix failures w/ user.
   Lint warn `company-legal-id` = ignore (hospitals, schools, agencies carry no Inc./LLC).
   Open rendered PDF in `My Resume/` for them to look at.

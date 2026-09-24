@@ -112,9 +112,13 @@ Wording
 - Bullet punctuation follows master: if its claims end in a period every bullet does, if none do none do.
 - Every clause adds something the reader did not have. Cut a clause that is true of any instance of the thing named ("a component library, so screens reuse existing pieces"), restates the bullet's own opening, or would be true of anyone in the role.
 - No "not only X but also Y", no filler lists of three, no two consecutive bullets opening with the same word.
+- No one opening word on more than {lint.MAX_SAME_OPENING - 1} bullets across the page. Vary it only with a verb the source fact supports: "Built" may become "Shipped" when the thing shipped, never "Led" when the candidate did not lead.
+- US English spelling (theater, center, organize). A two-word modifier before its noun takes a hyphen: full-stack engineer, live-streaming channels, end-to-end tests; after it, none: shipped features end to end.
+- No "successfully", "actively", or first person (I, my, we, our).
 
 Summary
-- `summary`: at most {render.MAX_BLOCK_WORDS} words, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. It may name a licence or certification the posting requires and the candidate holds. It sits in a narrower column than the bullets, so the same rule applies: one line, or two with the second well filled.
+- `summary`: at most {render.MAX_BLOCK_WORDS} words and {render.MAX_SUMMARY_LINES} lines, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. It may name a licence or certification the posting requires and the candidate holds. Build it only from facts in master. It sits in a narrower column than the bullets, and its last line follows the bullet rule: well filled, never a stub.
+- A `headline` in master prints above the summary exactly as written; the summary need not repeat it.
 - When the posting's requirements name a certification the candidate holds, code moves Certifications up to sit under the summary.
 
 Skills
@@ -298,6 +302,9 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
                                   f"not in the candidate's own title {roles[t['id']]['title']!r}")
             if schema.ABBREVIATED_TITLE.search(mirror):
                 violations.append(f"{where}: title_mirror {mirror!r} abbreviated")
+
+    if tailored["summary"] and (rows := measure.fit(font, tailored["summary"], measure.SUMMARY)[0]) > render.MAX_SUMMARY_LINES:
+        violations.append(f"summary: renders {rows} lines (max {render.MAX_SUMMARY_LINES}) - shorten it")
 
     master_items = {lint.norm(i) for g in master.get("skills", []) for i in g["items"]}
     violations += [f"skills: {i!r} not in the candidate's skills - items are copied, never added"

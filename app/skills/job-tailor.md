@@ -117,5 +117,11 @@ theirs to choose - but measure before advising, never opine:
   contact line: `contact-line (info)` reports the wrap, and on a full page that wrap costs a whole
   page, so re-render before promising the wording.
 
+Lint `specificity` or `lead-bullet-weak` on their own lines, or they ask how to make lines stronger
+-> offer `resume-gaps` (`job-setup` step 3): asks them for the real numbers + leadership, merges
+only what they say. `spelling` / `compound-modifier` on their own words -> show the fix, their call
+(US employers read "theatre" as a typo; VMock takes its whole language score for one).
+`overused-opening` -> vary the verb only where the fact supports another one.
+
 Never invent experience to close gap. Tailor/render/lint crash or wrong output from tracked code
 -> `AGENTS.md` #Framework defects.

@@ -113,3 +113,14 @@ def test_ashby_form_becomes_shared_questions():
     assert got["_systemfield_name"]["key"] == "name" and got["_systemfield_resume"]["kind"] == "file"
     assert got["abc"]["key"] == "linkedin" and got["def"]["options"] == ["10+"] and got["ghi"]["kind"] == "yesno"
     assert got["new"]["kind"] == "text" and got["new"]["native"] == "SomeNewType"  # unknown type: typed as text
+
+
+def test_open_chrome_found_by_its_command_line_when_the_port_file_is_gone(tmp_path, monkeypatch):
+    from apply import browser
+    monkeypatch.setattr(browser, "PROFILE", tmp_path)
+    monkeypatch.setattr(browser, "PORT_FILE", tmp_path / "job-finder-port")
+    line = f"/Applications/Google Chrome --remote-debugging-port=55211 --user-data-dir={tmp_path} --no-first-run\n"
+    monkeypatch.setattr(browser.subprocess, "run", lambda *a, **k: browser.subprocess.CompletedProcess(a, 0, line, ""))
+    monkeypatch.setattr(browser, "answers", lambda port: port == 55211)
+    assert browser.live_port() == 55211
+    assert (tmp_path / "job-finder-port").read_text() == "55211"

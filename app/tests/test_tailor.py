@@ -4,7 +4,7 @@ from datetime import date
 import pytest
 
 import cfg
-from resume import jd, measure, report, schema, tailor, typeface
+from resume import jd, measure, render, report, schema, tailor, typeface
 
 EXAMPLE = cfg.APP / "resume" / "master.example.yml"
 JOB = {
@@ -264,3 +264,13 @@ def test_year_only_end_is_old_only_once_the_whole_year_is(master):
     master["roles"][1].update(start="2008", end="2011")
     assert tailor.droppable(master, date(2026, 12, 1)) == {"globex"}
     assert tailor.droppable(master, date(2026, 9, 1)) == set()
+
+
+def test_summary_may_run_four_lines_not_five(master, tailored):
+    job = {"title": "Senior Vue Engineer", "requirements": []}
+    words = "Senior Software Engineer shipping Vue and TypeScript product UI with LLM search".split()
+    for count, ok in ((45, True), (57, False)):
+        tailored["summary"] = " ".join((words * 8)[:count])
+        problems = [v for v in tailor.check_selection(master, job, tailored) if v.startswith("summary")]
+        assert (problems == []) is ok, (count, problems)
+    assert f"{render.MAX_SUMMARY_LINES} lines" in tailor.system("Caladea")

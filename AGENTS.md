@@ -70,6 +70,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Resume + postings you work on | this AI chat (Claude or ChatGPT) | User's own AI account |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
+| Resume PDF scored on VMock | VMock, on the user's school / career-service sign-in | VMock + that service, once user says yes to the upload |
 | Code fix only, after user says yes | maintainer | Everyone who uses Job Finder |
 
 Everything user sees in VS Code file list is private; program is hidden. Private folders never
@@ -80,12 +81,13 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
 - `START HERE.md` - user's guide, opens w/ VS Code. Plain words only.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;
-  their edits win on wording, employer/title/dates change only to fix a mistake), untailored
-  `First_Last_Resume.pdf`.
+  their edits win on wording, employer/title/dates change only to fix a mistake; optional
+  one-line `headline` above the summary), untailored `First_Last_Resume.pdf`, `Vmock feedback.md`
+  (last VMock score, if they use VMock).
 - `My Jobs/<Company - Title>/` - one per tailored job: `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
-- `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import +
-  pasted postings.
+- `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import,
+  pasted postings + `resume-gaps`, `vmock/<VMock resume number>/feedback.json`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `attribution.py` (Claude credit on
@@ -107,8 +109,10 @@ notes drop off - harmless, the next import writes them again.
 
 ## AI writing steps
 
-Resume import, pasted posting and tailoring: command writes task file (rules, input, answer
-format), you write answer JSON yourself at path it names, then run check command it prints.
+Resume import, pasted posting, tailoring and `resume-gaps` (asks the user for the numbers +
+leadership their lines leave out; only their answers go in): command writes task file (rules,
+input, answer format), you write answer JSON yourself at path it names, then run check command
+it prints.
 Check fails -> read violations, fix JSON, rerun; after 2 failed retries tell user plainly and
 stop. No other program writes resume content.
 
@@ -118,6 +122,11 @@ reported (`budget (info)`), never padded. Every bullet fills one line or fills t
 between and it wraps to a stub wasting a whole row. Width is measured in points
 (`resume/measure.py`, real font advances), never counted in characters. Gate detail names each
 stub + chars to cut or add, and marks the ones in the user's own facts as report-only. Code measures, you rewrite the words.
+
+Page hygiene gates, both copies: all text black (links aside), no letters spaced apart inside a
+word, same space under every heading - what VMock's format checks failed on (`app/docs/vmock.md`).
+VMock score: `uv run app/jobs.py vmock read [url]`; `vmock upload <pdf> --yes` spends one of
+the user's uploads - ask first, every time.
 
 Typeface = `resume.font` in settings, default Caladea, files in `app/resume/fonts/<family>/`.
 User asks for another font -> open-licence fonts only (Georgia, Cambria, Calibri, Times can't

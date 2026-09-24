@@ -1,4 +1,5 @@
 import argparse
+import functools
 import re
 import statistics
 import sys
@@ -82,6 +83,93 @@ TOKEN = re.compile(r"\d+(?:[.,]\d+)*|[^\W\d_]+(?:[.+#][^\W\d_]+|[+#]+)*")
 SENTENCE_START = re.compile(r"(^|[.;:!?]\s+)$")
 # craft floor, unmeasured (plan #AI-tell lint WARN ONLY): bullet lengths this uniform read templated
 MIN_BULLET_LENGTH_CV = 0.15
+# one opening word leading this many bullets anywhere on the page. VMock (2026-09-24) marked
+# "Built" x8 as overused; 4 is the user's own threshold, decided that day, not a measured one
+MAX_SAME_OPENING = 4
+# VMock's filler list, trimmed to the words that are filler wherever they appear: "the", "that",
+# "which", "their" are on its list too, and are ordinary English. "lazy" was its own false
+# positive - "lazy loading" is a technique - so no word here is ever matched inside a compound
+FILLER_LIST = ("successfully", "actively")
+FILLER = any_phrase(FILLER_LIST)
+# first person, lower case only: "US" and "UK" are places. "I" only opening a sentence, where it
+# is the pronoun - "Level I trauma center" is a rating
+PRONOUN = re.compile(r"\b(me|my|we|our|ours|myself|ourselves)\b|(?:^|[.;:!?]\s+)(I)\b(?!\.)")
+# two-word modifiers that take a hyphen before the noun they describe (Chicago 7.89, AP):
+# "live-streaming channels", "full-stack engineer". Flagged only when a word follows that is not a
+# preposition or conjunction, so "shipped features end to end" and "streaming live" stay unflagged
+COMPOUND_LIST = (
+    "live streaming", "end to end", "full stack", "real time", "open source", "front end", "back end",
+    "cross functional", "high traffic", "long term", "short term", "large scale", "high quality",
+    "data driven", "user facing", "customer facing", "client facing", "mission critical", "day to day",
+    "hands on", "in house", "third party", "cross platform", "fast paced", "high volume", "low latency",
+    "multi tenant", "patient centered", "evidence based", "detail oriented", "full time", "part time",
+)
+COMPOUND = re.compile(rf"\b({'|'.join(' '.join(map(re.escape, p.split())) for p in COMPOUND_LIST)}) ([a-z]\w*(?:\.\w+)*)", re.I)
+NOT_A_NOUN = {"and", "or", "to", "for", "in", "on", "at", "with", "of", "by", "from", "as", "the", "a", "an",
+              "across", "into", "than", "that", "which", "while", "since", "so", "but", "via", "per", "is", "was"}
+# British forms a US screener reads as misspellings: VMock marked "theatre" as a spelling error
+# 2026-09-24, and a spelling error costs its whole language score. Word -> US form, explicit forms
+# only: "advertise", "expertise", "enterprise" and "analyses" are US English and must never match
+US_FORMS = {
+    **{uk + end: us + end for uk, us in (
+        ("colour", "color"), ("behaviour", "behavior"), ("favour", "favor"), ("honour", "honor"),
+        ("labour", "labor"), ("neighbour", "neighbor"), ("flavour", "flavor"), ("humour", "humor"),
+        ("endeavour", "endeavor"), ("harbour", "harbor"), ("rumour", "rumor"), ("vapour", "vapor"))
+       for end in ("", "s", "ed", "ing", "ful", "ite", "ites", "able", "al", "ally", "hood", "er", "ers")},
+    **{uk + end: us + end for uk, us in (
+        ("theatre", "theater"), ("centre", "center"), ("metre", "meter"), ("fibre", "fiber"),
+        ("litre", "liter"), ("calibre", "caliber"), ("spectre", "specter"), ("sombre", "somber"))
+       for end in ("", "s")},
+    **{stem + "is" + end: stem + "iz" + end for stem in (
+        "organ", "real", "recogn", "priorit", "optim", "standard", "custom", "util", "modern", "minim",
+        "maxim", "special", "visual", "summar", "final", "central", "digit", "monet", "local", "initial",
+        "synchron", "categor", "author", "emphas", "character", "mobil", "normal", "sanit", "stabil",
+        "capital", "container", "parameter", "token", "serial", "virtual", "personal", "operational",
+        "commercial", "industrial", "global", "hospital", "apolog", "critic", "familiar", "memor",
+        "publiс", "revolution", "scrutin", "symbol", "systemat", "harmon", "internation", "rational",
+        "decentral", "democrat", "energ", "incentiv", "institutional", "item", "legal", "neutral",
+        "penal", "revital", "subsid", "util", "vocal", "author")
+       for end in ("e", "es", "ed", "ing", "ation", "ations", "er", "ers", "able")},
+    **{"analys" + end: "analyz" + end for end in ("e", "ed", "ing", "er", "ers")},
+    **{"paralys" + end: "paralyz" + end for end in ("e", "ed", "ing")},
+    "centred": "centered", "centring": "centering", "modelling": "modeling", "modelled": "modeled",
+    "modeller": "modeler", "travelled": "traveled", "travelling": "traveling", "traveller": "traveler",
+    "travellers": "travelers", "labelled": "labeled", "labelling": "labeling", "cancelled": "canceled",
+    "cancelling": "canceling", "levelled": "leveled", "signalling": "signaling", "fuelled": "fueled",
+    "counselling": "counseling", "counsellor": "counselor", "counsellors": "counselors",
+    "channelled": "channeled", "licence": "license", "licences": "licenses", "licenced": "licensed",
+    "defence": "defense", "offence": "offense", "practise": "practice", "practised": "practiced",
+    "practising": "practicing", "grey": "gray", "enrol": "enroll", "enrolment": "enrollment",
+    "enrolments": "enrollments", "fulfil": "fulfill", "fulfilment": "fulfillment", "judgement": "judgment",
+    "programme": "program", "programmes": "programs", "catalogue": "catalog", "catalogues": "catalogs",
+    "catalogued": "cataloged", "analogue": "analog", "aluminium": "aluminum", "cheque": "check",
+    "cheques": "checks", "tyre": "tire", "tyres": "tires", "mould": "mold", "manoeuvre": "maneuver",
+    "paediatric": "pediatric", "paediatrics": "pediatrics", "orthopaedic": "orthopedic",
+    "orthopaedics": "orthopedics", "anaesthesia": "anesthesia", "anaesthetic": "anesthetic",
+    "anaesthetist": "anesthetist", "haemoglobin": "hemoglobin", "oestrogen": "estrogen",
+    "gynaecology": "gynecology", "encyclopaedia": "encyclopedia", "ageing": "aging",
+    "sceptical": "skeptical", "storey": "story", "storeys": "stories", "draught": "draft",
+    "plough": "plow", "kerb": "curb", "jewellery": "jewelry", "pyjamas": "pajamas", "towards": "toward",
+}
+# work words a general dictionary lacks. pyspellchecker's English list is a word-frequency list
+# from subtitles and misses "workflow", "dataset", "analytics", "telehealth" - so a word here is
+# one a hiring manager reads as ordinary, not one it has checked. Add to it; never shorten it to
+# make a resume flag
+WORK_WORDS = frozenset("""
+agentic analytics api apis app apps backend backends chatbot chatbots cli codebase codebases config
+configs dataset datasets devops dropdown dropdowns ecommerce edtech fintech frontend frontends fullstack
+healthtech iframe iframes kanban linter linters linting livestream livestreaming livestreams login logins
+logout metadata microservice microservices middleware monorepo monorepos namespace namespaces offboarding
+offboard offboards offsite onboard onboards onboarded onboarding onsite podcast podcasts polyfill polyfills prefetch prefetching refactor
+refactored refactoring refactors repo repos rerender rerenders roadmap roadmaps runtime runtimes sdk sdks
+serverless signin signup signups standup standups telehealth telemedicine theming timestamp timestamps
+toolchain toolchains transpile transpiled triaged triaging ui unmount upsell upsells url urls ux webinar
+webinars webpage webpages wireframe wireframes wireframing workflow workflows preop postop med meds ehr emr
+surg dev devs diff diffs diffing hackathon hackathons enablement precept precepted preceptor readmission
+readmissions jan feb mar apr jun jul aug sep sept oct nov dec
+""".split())
+WORD_CHUNK = re.compile(r"\S+")
+EDGE_PUNCT = "()[]{}\"'“”‘’,.;:!?"
 
 # rule -> one plain sentence a non-technical user reads in "Check before sending.md", and the
 # chat can say when asked why. Mirrored in docs/bullets.md #Why each rule - keep the two in step
@@ -117,6 +205,10 @@ WHY = {
     "abbreviated-school": "Application forms match your school against a list of full names, so a short form like \"CC\" matches nothing.",
     "language-level": "Resume readers store each language with its own level, so write one per line with the level in brackets, like Spanish (Fluent).",
     "old-graduation-year": "A graduation year from 15+ years ago can invite age bias; you may leave the year off.",
+    "spelling": "Resume scanners count a spelling mistake against the whole page, and US employers read British spellings as mistakes.",
+    "compound-modifier": "Two words describing the next one take a hyphen - live-streaming channels, full-stack engineer.",
+    "overused-opening": "One word starts many of your lines; a different true verb here and there reads less repetitive.",
+    "filler-word": "Words like 'successfully' or 'my' take room and add nothing the line does not already say.",
 }
 # contact location: a house number, apartment or suite, or a ZIP code is more than a city and state
 STREET = re.compile(r"^\s*\d+\s+\w|\b(apt|apartment|suite|ste|unit)\b\.?|#\s*\d|\b\d{5}(-\d{4})?\b", re.I)
@@ -160,6 +252,8 @@ def page_items(model: dict):
     """(kind, where, text, entry id or None) for every string on page."""
     yield "contact", "contact", model["contact"]["name"], None
     yield "contact", "contact", render.SEP.join(model["contact"]["parts"]), None
+    if model.get("headline"):
+        yield "headline", "headline", model["headline"], None
     if model.get("summary"):
         yield "summary", "summary", model["summary"], None
     for section in model["sections"]:
@@ -206,6 +300,54 @@ def entities(text: str) -> list[str]:
     return found
 
 
+@functools.cache
+def dictionary():
+    """English word list, loaded once: 160k words, ~0.3s."""
+    from spellchecker import SpellChecker
+    return SpellChecker(language="en", distance=1)
+
+
+def plain_words(text: str) -> list[str]:
+    """Lower-case words a dictionary can judge: names, acronyms, versions and tool names left out.
+
+    A capital anywhere but a sentence's first letter marks a name ("React", "Ohio", "AWS"); a
+    digit, dot, slash-joined or + # @ token is a version, file, handle or tool ("i18next",
+    "Node.js", "C#"). Hyphenated words are judged part by part."""
+    out, start = [], True
+    for chunk in WORD_CHUNK.findall(URL_OR_HANDLE.sub(" ", text)):
+        word = chunk.strip(EDGE_PUNCT)
+        # after a colon or semicolon a capital is a name ("sponsors: Rockin' Robin Diner"), not a new sentence
+        opens, start = start, chunk.rstrip(")\"'”’").endswith((".", "!", "?"))
+        if not word or re.search(r"[\d.+#@_&/\\]", word):
+            continue
+        word = re.sub(r"['’]s$", "", word)
+        if word[1:] != word[1:].lower() or (word[0].isupper() and not opens):
+            continue
+        out += [part.lower() for part in word.split("-") if part.isalpha()]
+    return out
+
+
+def misspelled(text: str, allowed: set[str]) -> list[str]:
+    """Unknown words one letter away from a known one - the shape of a typo ("managment",
+    "recieved"). A word with no near neighbour is a field's own term far more often than a slip
+    ("readmissions", "precepted"), so it is left alone. British forms are british()'s."""
+    words = [w for w in plain_words(text) if w not in allowed and w not in WORK_WORDS and w not in US_FORMS]
+    found = []
+    for word in sorted(set(dictionary().unknown(words))):
+        if near := dictionary().candidates(word):
+            found.append(f"{word} (did you mean {dictionary().correction(word) or sorted(near)[0]}?)")
+    return found
+
+
+def british(text: str) -> list[str]:
+    return sorted({f"{w} -> {US_FORMS[w]}" for w in plain_words(text) if w in US_FORMS})
+
+
+def open_compounds(text: str) -> list[str]:
+    return [f"{m.group(1)} {m.group(2)} -> {m.group(1).replace(' ', '-')} {m.group(2)}"
+            for m in COMPOUND.finditer(text) if m.group(2).lower() not in NOT_A_NOUN]
+
+
 def lint(model: dict, master: dict, inferences: list[dict] | None = None, posting: str = "") -> list[Finding]:
     """`posting` = the job's own text: a style or grade word it uses is its term, not the writer's."""
     inferences = inferences or []
@@ -219,6 +361,10 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
     known_terms |= {norm(i) for g in master.get("skills", []) for i in g["items"]}
     entries = {e["id"]: e for e in [*master["roles"], *master.get("projects", [])]}
     bullet_ids = {b["id"] for e in entries.values() for b in e["bullets"]}
+    # a tool or item the user lists is a word they use; generated text may also use any word
+    # the user's facts or the posting do - a typo there is the user's, flagged on their own line
+    listed = {w for t in known_terms for w in plain_words(t)}
+    vouched_words = listed | set(plain_words(corpus)) | set(plain_words(posting))
 
     for role in master["roles"]:
         if not schema.LEGAL_IDENTIFIER.search(role["company"].strip()):
@@ -292,6 +438,18 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
                 findings.append(Finding(WARN, rule, where, f"{m.group()!r}: {text!r}"))
         if is_bullet and entry_id in entries:
             check_ai_era(entries[entry_id], where, text, findings, own)
+        if kind in ("bullet", "summary", "headline", "line", "subline"):
+            if typos := misspelled(text, listed if own else vouched_words):
+                hit("spelling", where, text, f"possible typo: {', '.join(typos)}", own)
+            if uk := british(text):
+                hit("spelling", where, text, f"British spelling: {', '.join(uk)}", own)
+            for fix in open_compounds(text):
+                findings.append(Finding(WARN, "compound-modifier", where, f"{fix}: {text!r}"))
+        if kind in ("bullet", "summary", "headline"):
+            filler = sorted({m.group().lower() for m in FILLER.finditer(text)} |
+                            {m.group(1) or m.group(2) for m in PRONOUN.finditer(text)})
+            if filler:
+                findings.append(Finding(WARN, "filler-word", where, f"{', '.join(filler)}: {text!r}"))
 
     role_ids = {r["id"] for r in master["roles"]}
     for section in model["sections"]:
@@ -315,6 +473,16 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
             if len(bullets) > 1 and not NUMBER.search(bullets[0]) and any(NUMBER.search(b) for b in bullets[1:]):
                 findings.append(Finding(WARN, "lead-bullet-weak", where, "opening bullet carries no number, a later one does"))
             lengths += [len(b.split()) for b in entry["bullets"]]
+    openings: dict[str, int] = {}
+    for section in model["sections"]:
+        for entry in section.get("entries", []):
+            for bullet in entry["bullets"]:
+                if bullet.split():
+                    first = bullet.split()[0].strip(EDGE_PUNCT).casefold()
+                    openings[first] = openings.get(first, 0) + 1
+    for word, count in sorted(openings.items(), key=lambda kv: -kv[1]):
+        if count >= MAX_SAME_OPENING:
+            findings.append(Finding(WARN, "overused-opening", "page", f"{count} bullets open with {word!r}"))
     if len(lengths) >= 3:
         cv = statistics.pstdev(lengths) / statistics.mean(lengths)
         if cv < MIN_BULLET_LENGTH_CV:
