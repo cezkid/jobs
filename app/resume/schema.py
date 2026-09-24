@@ -8,7 +8,10 @@ import cfg
 from resume import facts
 
 PRESENT = "present"
-MONTH = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+# year-month, or a year alone: a resume that gave only years keeps only years, never an invented month
+MONTH = re.compile(r"^\d{4}(-(0[1-9]|1[0-2]))?$")
+DATE_FIELDS = {"roles": ("start", "end"), "projects": ("start", "end"), "career_break": ("start", "end"),
+               "education": ("end",), "certifications": ("date",)}
 ID = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 # Greenhouse parse rules: titles unabbreviated (error); company legal identifier = lint warn only,
 # hospitals, schools, agencies carry none
@@ -55,12 +58,23 @@ def expand(raw, index: dict | None = None) -> dict:
     if not isinstance(raw, dict):
         return raw
     master, index = dict(raw), index or {}
+    for key, named in DATE_FIELDS.items():
+        if isinstance(master.get(key), list):
+            master[key] = [year_as_text(e, named) for e in master[key]]
     taken = {e["id"] for key in ("roles", "projects") for e in master.get(key) or []
              if isinstance(e, dict) and isinstance(e.get("id"), str)}
     for key, named in (("roles", "company"), ("projects", "name")):
         if isinstance(master.get(key), list):
             master[key] = [expand_entry(e, named, taken, index) for e in master[key]]
     return master
+
+
+def year_as_text(entry, named: tuple[str, ...]):
+    """A year typed without quotes reads as a number; it means the same year as "2019"."""
+    if not isinstance(entry, dict):
+        return entry
+    return {k: str(v) if k in named and isinstance(v, int) and not isinstance(v, bool) else v
+            for k, v in entry.items()}
 
 
 def expand_entry(entry, named: str, taken: set[str], index: dict) -> dict:
@@ -111,14 +125,31 @@ def expand_bullet(bullet, derived_id: str, index: dict, ai_era: bool = True):
 
 def in_ai_era(entry: dict) -> bool:
     end = entry.get("end")
-    return end == PRESENT or (isinstance(end, str) and MONTH.match(end) and end >= AI_ERA_FROM)
+    return end == PRESENT or bool(isinstance(end, str) and MONTH.match(end)
+                                  and month_index(end, date.today(), end=True) >= month_index(AI_ERA_FROM, date.today()))
 
 
-def month_index(value: str, today: date) -> int:
+def year_only(value: str) -> bool:
+    return value != PRESENT and "-" not in value
+
+
+def month_index(value: str, today: date, end: bool = False) -> int:
+    """Months since year 0. A year alone reads as its widest span: January as a start, December as an end."""
     if value == PRESENT:
         return today.year * 12 + today.month - 1
+    if year_only(value):
+        return int(value) * 12 + (11 if end else 0)
     year, month = value.split("-")
     return int(year) * 12 + int(month) - 1
+
+
+def compare(a: str, b: str, today: date) -> int:
+    """-1, 0 or 1 at the precision both dates carry: "2019" and "2019-06" are the same year, so equal."""
+    if year_only(a) or year_only(b):
+        x, y = (today.year if v == PRESENT else int(v[:4]) for v in (a, b))
+    else:
+        x, y = month_index(a, today), month_index(b, today)
+    return (x > y) - (x < y)
 
 
 def month_label(index: int) -> str:
@@ -126,7 +157,11 @@ def month_label(index: int) -> str:
 
 
 def employment_gaps(master: dict, today: date) -> list[dict]:
-    spans = sorted((month_index(r["start"], today), month_index(r["end"], today)) for r in master["roles"])
+    # a career break the user named covers its months: it is time accounted for, not a hole
+    spans = sorted((month_index(r["start"], today), month_index(r["end"], today, end=True))
+                   for r in [*master["roles"], *(master.get("career_break") or [])])
+    if not spans:
+        return []
     now = month_index(PRESENT, today)
     gaps = []
     covered_through = spans[0][1]
@@ -152,10 +187,9 @@ def validate(master) -> list[str]:
     optional(master, "summary", str, "master", errors)
 
     bullet_ids: set[str] = set()
+    # no jobs yet is a real resume (a student, a first job): Education leads the page instead
     roles = field(master, "roles", list, "master", errors)
     if roles is not None:
-        if not roles:
-            errors.append("master.roles: empty")
         for i, role in enumerate(roles):
             validate_entry(role, f"roles[{i}]", ("company", "title"), bullet_ids, errors)
             if isinstance(role, dict):
@@ -163,8 +197,23 @@ def validate(master) -> list[str]:
         check_reverse_chronological(roles, "roles", errors)
     projects = optional(master, "projects", list, "master", errors) or []
     for i, project in enumerate(projects):
-        validate_entry(project, f"projects[{i}]", ("name",), bullet_ids, errors)
+        validate_entry(project, f"projects[{i}]", ("name",), bullet_ids, errors, dated=False)
     check_reverse_chronological(projects, "projects", errors)
+    for i, gap in enumerate(optional(master, "career_break", list, "master", errors) or []):
+        where = f"career_break[{i}]"
+        if isinstance(gap, dict):
+            text(gap, "reason", where, errors)
+            check_span(gap, where, errors, required=True)
+        else:
+            errors.append(f"{where}: expected mapping")
+    for i, section in enumerate(optional(master, "other", list, "master", errors) or []):
+        where = f"other[{i}]"
+        if isinstance(section, dict):
+            text(section, "heading", where, errors)
+            if not strings(section, "lines", where, errors, required=True):
+                errors.append(f"{where}.lines: empty")
+        else:
+            errors.append(f"{where}: expected mapping")
 
     for i, group in enumerate(optional(master, "skills", list, "master", errors) or []):
         where = f"skills[{i}]"
@@ -181,6 +230,7 @@ def validate(master) -> list[str]:
             optional(school, "field", str, where, errors)
             optional(school, "details", str, where, errors)
             month(school, "end", where, errors, required=False)
+            optional(school, "hide_year", bool, where, errors)
         else:
             errors.append(f"{where}: expected mapping")
     for i, cert in enumerate(optional(master, "certifications", list, "master", errors) or []):
@@ -195,7 +245,9 @@ def validate(master) -> list[str]:
     return errors
 
 
-def validate_entry(entry, where: str, named: tuple[str, ...], bullet_ids: set[str], errors: list[str]) -> None:
+def validate_entry(entry, where: str, named: tuple[str, ...], bullet_ids: set[str], errors: list[str],
+                   dated: bool = True) -> None:
+    """`dated` False = a project: its dates may be left out, both together."""
     if not isinstance(entry, dict):
         errors.append(f"{where}: expected mapping")
         return
@@ -206,10 +258,7 @@ def validate_entry(entry, where: str, named: tuple[str, ...], bullet_ids: set[st
         text(entry, key, where, errors)
     optional(entry, "location", str, where, errors)
     optional(entry, "blurb", str, where, errors)
-    start = month(entry, "start", where, errors, required=True)
-    end = month(entry, "end", where, errors, required=True, allow_present=True)
-    if start and end and end != PRESENT and end < start:
-        errors.append(f"{where}: end {end} before start {start}")
+    check_span(entry, where, errors, required=dated or "start" in entry or "end" in entry)
     ai_era = optional(entry, "ai_era", bool, where, errors) or False
     bullets = field(entry, "bullets", list, where, errors) or []
     if "bullets" in entry and not bullets:
@@ -238,6 +287,13 @@ def validate_bullet(bullet, where: str, entry_ai_era: bool, bullet_ids: set[str]
         errors.append(f"{where}: ai_work bullet inside entry with ai_era false")
 
 
+def check_span(entry: dict, where: str, errors: list[str], required: bool) -> None:
+    start = month(entry, "start", where, errors, required=required)
+    end = month(entry, "end", where, errors, required=required, allow_present=True)
+    if start and end and month_index(end, date.today(), end=True) < month_index(start, date.today()):
+        errors.append(f"{where}: end {end} before start {start}")
+
+
 def check_role_title(role: dict, where: str, errors: list[str]) -> None:
     title = role.get("title")
     if isinstance(title, str) and ABBREVIATED_TITLE.search(title):
@@ -245,9 +301,27 @@ def check_role_title(role: dict, where: str, errors: list[str]) -> None:
 
 
 def check_reverse_chronological(entries: list, where: str, errors: list[str]) -> None:
-    starts = [e.get("start") for e in entries if isinstance(e, dict)]
-    if all(isinstance(s, str) and MONTH.match(s) for s in starts) and starts != sorted(starts, reverse=True):
-        errors.append(f"{where}: not newest-first by start")
+    if pair := out_of_order(entries):
+        newer, older = (describe(e) for e in pair)
+        errors.append(f"{where}: {older} is listed above {newer}, which started later - "
+                      "put the newest first by moving one of them")
+
+
+def out_of_order(entries: list) -> tuple[dict, dict] | None:
+    """First (entry, the one above it) where the lower one started later. Undated entries are skipped."""
+    dated = [e for e in entries if isinstance(e, dict) and isinstance(e.get("start"), str) and MONTH.match(e["start"])]
+    today = date.today()
+    return next(((b, a) for a, b in zip(dated, dated[1:]) if compare(b["start"], a["start"], today) > 0), None)
+
+
+def newest_first(entries: list) -> list:
+    """Stable newest-first by start: equal starts keep the order they were written in."""
+    return sorted(entries, key=lambda e: month_index(e["start"], date.today()), reverse=True)
+
+
+def describe(entry: dict) -> str:
+    name = " at ".join(entry[k] for k in ("title", "company") if entry.get(k)) or entry.get("name", "")
+    return f"'{name}' (started {entry['start']})"
 
 
 def field(obj: dict, key: str, kind: type, where: str, errors: list[str]):
@@ -290,6 +364,6 @@ def month(obj: dict, key: str, where: str, errors: list[str], required: bool, al
         return value
     # unquoted YYYY-MM-DD loads as date => rejected, YYYY-MM loads as str
     if not isinstance(value, str) or not MONTH.match(value):
-        errors.append(f"{where}.{key}: {value!r} not YYYY-MM" + (" or present" if allow_present else ""))
+        errors.append(f"{where}.{key}: {value!r} not YYYY-MM or YYYY" + (" or present" if allow_present else ""))
         return None
     return value

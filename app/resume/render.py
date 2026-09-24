@@ -5,6 +5,7 @@ import math
 import re
 import sys
 import time
+import unicodedata
 from datetime import date
 from pathlib import Path
 
@@ -65,11 +66,19 @@ MARGIN_Y_IN = 0.75
 # knob: measure.py adds tracking * SIZE per character, so moving it moves every width with it
 TRACKING_EM = 0.015
 PT_PER_IN = 72
+# Education leads a page with no jobs, or a fresh graduate's: a degree finished this recently
+# over less than this much work is the strongest thing on the page (NACE, most career centres)
+FRESH_GRAD_MONTHS = 12
+EARLY_CAREER_MONTHS = 24
+BREAK_HEADING = "Career break - "
 
 
-def month_label(value: str) -> str:
+def month_label(value: str, years: bool = False) -> str:
+    """`years` = print the year alone: a span where either end has only a year shows years on both."""
     if value == schema.PRESENT:
         return "Present"
+    if years or schema.year_only(value):
+        return value[:4]
     year, month = value.split("-")
     return f"{MONTH_NAMES[int(month) - 1]} {year}"
 
@@ -77,7 +86,8 @@ def month_label(value: str) -> str:
 def span_label(entry: dict) -> str | None:
     if "start" not in entry or "end" not in entry:
         return None
-    return f"{month_label(entry['start'])} - {month_label(entry['end'])}"
+    years = schema.year_only(entry["start"]) or schema.year_only(entry["end"])
+    return f"{month_label(entry['start'], years)} - {month_label(entry['end'], years)}"
 
 
 def joined(*parts) -> str | None:
@@ -104,17 +114,47 @@ def contact_parts(contact: dict) -> list[tuple[str, str]]:
     return [(text, url) for text, url in pairs if text]
 
 
-def page_model(master: dict) -> dict:
+def experience(master: dict) -> list[dict]:
+    """Roles as written, each career break placed by its dates above the first role that began before it."""
+    entries = [{
+        "id": r["id"], "heading": r["title"], "org": r["company"],
+        "subline": joined(span_label(r), r.get("location"), r.get("blurb")),
+        "bullets": [b["claim"] for b in r["bullets"]],
+    } for r in master["roles"]]
+    starts = [r["start"] for r in master["roles"]]
+    today = date.today()
+    for gap in reversed(schema.newest_first(master.get("career_break") or [])):
+        at = next((i for i, s in enumerate(starts) if schema.compare(s, gap["start"], today) < 0), len(starts))
+        entries.insert(at, {"heading": BREAK_HEADING + gap["reason"], "subline": span_label(gap),
+                            "bullets": [], "career_break": True})
+        starts.insert(at, gap["start"])
+    return entries
+
+
+def education_first(master: dict, today: date) -> bool:
+    """No jobs, or a degree finished within a year over under two years of work."""
+    if not master["roles"]:
+        return True
+    ends = [schema.month_index(s["end"], today, end=True) for s in master.get("education") or [] if s.get("end")]
+    worked = sum(schema.month_index(r["end"], today, end=True) - schema.month_index(r["start"], today) + 1
+                 for r in master["roles"])
+    return bool(ends) and schema.month_index(schema.PRESENT, today) - max(ends) <= FRESH_GRAD_MONTHS \
+        and worked < EARLY_CAREER_MONTHS
+
+
+def education_line(school: dict) -> dict:
+    # hide_year: the user's choice to leave an old graduation year off; the degree still shows
+    year = "" if school.get("hide_year") else school.get("end", "")[:4]
+    return {"text": joined(", ".join(p for p in (school["degree"], school.get("field")) if p),
+                           school["institution"], school.get("details"), year)}
+
+
+def page_model(master: dict, today: date | None = None) -> dict:
     """Master facts -> exactly what lands on page, in page order. Tailorer emits same shape."""
     contact = master["contact"]
-    sections = [{
-        "title": "Experience",
-        "entries": [{
-            "id": r["id"], "heading": r["title"], "org": r["company"],
-            "subline": joined(span_label(r), r.get("location"), r.get("blurb")),
-            "bullets": [b["claim"] for b in r["bullets"]],
-        } for r in master["roles"]],
-    }]
+    sections = []
+    if entries := experience(master):
+        sections.append({"title": "Experience", "entries": entries})
     if master.get("projects"):
         sections.append({"title": "Projects", "entries": [{
             "id": p["id"], "heading": p["name"], "subline": span_label(p), "bullets": [b["claim"] for b in p["bullets"]],
@@ -124,15 +164,19 @@ def page_model(master: dict) -> dict:
             {"label": g["group"], "text": ", ".join(g["items"])} for g in master["skills"]
         ]})
     if master.get("education"):
-        sections.append({"title": "Education", "lines": [{"text": joined(
-            ", ".join(p for p in (s["degree"], s.get("field")) if p), s["institution"], s.get("details"),
-            s.get("end", "")[:4],
-        )} for s in master["education"]]})
+        education = {"title": "Education", "lines": [education_line(s) for s in master["education"]]}
+        if education_first(master, today or date.today()):
+            sections.insert(0, education)
+        else:
+            sections.append(education)
     if master.get("certifications"):
         sections.append({"title": "Certifications", "lines": [
             {"text": joined(c["name"], c.get("issuer"), c.get("date") and month_label(c["date"]))}
             for c in master["certifications"]
         ]})
+    # volunteer work, awards, clearances, publications: the user's own heading and lines, verbatim
+    for other in master.get("other") or []:
+        sections.append({"title": other["heading"], "lines": [{"text": line} for line in other["lines"]]})
     if master.get("languages"):
         sections.append({"title": "Languages", "lines": [{"text": ", ".join(master["languages"])}]})
     parts = contact_parts(contact)
@@ -172,7 +216,10 @@ def page_strings(model: dict) -> list[str]:
 
 
 def file_name(model: dict) -> str:
-    return re.sub(r"[^A-Za-z0-9_-]", "", re.sub(r"\s+", "_", model["contact"]["name"].strip())) + "_Resume.pdf"
+    """José Núñez -> Jose_Nunez_Resume.pdf: accents folded, never dropped with their letter."""
+    folded = "".join(c for c in unicodedata.normalize("NFKD", model["contact"]["name"]) if not unicodedata.combining(c))
+    name = re.sub(r"[^A-Za-z0-9_-]", "", re.sub(r"\s+", "_", folded.strip())).strip("_-")
+    return f"{name}_Resume.pdf" if re.search(r"[A-Za-z0-9]", name) else "Resume.pdf"
 
 
 def compile_pdf(model: dict, font: str = typeface.DEFAULT) -> bytes:
@@ -457,7 +504,8 @@ def thin(windows: list[tuple[int, int]], available: int | None) -> bool:
 
 
 def role_headings(model: dict) -> list[str]:
-    return [e["heading"] for s in model["sections"] if s["title"] == "Experience" for e in s.get("entries", [])]
+    return [e["heading"] for s in model["sections"] if s["title"] == "Experience"
+            for e in s.get("entries", []) if not e.get("career_break")]
 
 
 def render(model: dict, out_dir: Path, budget: bool, font: str = typeface.DEFAULT,

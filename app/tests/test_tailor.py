@@ -248,3 +248,19 @@ def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tail
     checked = (job_dir / tailor.CHECK_FILE).read_text(encoding="utf-8")
     assert "## Ready to send?" in checked and "| Must have? | Shown? |" in checked
     assert list(job_dir.glob("*_Resume.pdf"))
+
+
+def test_career_break_and_other_sections_stay_on_the_tailored_page(master, tailored):
+    master["roles"][1]["end"] = "2021-01"
+    master["career_break"] = [{"reason": "Caring for a family member", "start": "2021-02", "end": "2023-01"}]
+    master["other"] = [{"heading": "Awards", "lines": ["Employee of the Year, 2022"]}]
+    model = tailor.page_model(master, tailored)
+    headings = [e["heading"] for e in model["sections"][0]["entries"]]
+    assert headings[1] == "Career break - Caring for a family member"
+    assert {"title": "Awards", "lines": [{"text": "Employee of the Year, 2022"}]} in model["sections"]
+
+
+def test_year_only_end_is_old_only_once_the_whole_year_is(master):
+    master["roles"][1].update(start="2008", end="2011")
+    assert tailor.droppable(master, date(2026, 12, 1)) == {"globex"}
+    assert tailor.droppable(master, date(2026, 9, 1)) == set()

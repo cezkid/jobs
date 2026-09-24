@@ -271,3 +271,65 @@ def test_part_without_an_address_stays_plain_text(master, tmp_path):
     assert failed(results) == {}
     with pymupdf.open(path) as doc:
         assert [link["uri"] for link in doc[0].get_links()] == ["mailto:jane@example.com"]
+
+
+def test_year_only_end_prints_years_on_both_ends(master):
+    master["roles"][1].update(start="2019-06", end="2023")
+    master["certifications"] = [{"name": "First Aid", "date": "2021"}, {"name": "CPR", "date": "2022-03"}]
+    model = render.page_model(master)
+    assert model["sections"][0]["entries"][1]["subline"] == "2019 - 2023"
+    certs = next(s for s in model["sections"] if s["title"] == "Certifications")
+    assert [l["text"] for l in certs["lines"]] == ["First Aid | 2021", "CPR | Mar 2022"]
+
+
+def test_other_sections_follow_certifications_verbatim(master):
+    master["certifications"] = [{"name": "First Aid"}]
+    master["other"] = [{"heading": "Volunteer Work", "lines": ["Riverside Food Bank, driver, 2020 - 2022"]}]
+    model = render.page_model(master)
+    titles = [s["title"] for s in model["sections"]]
+    assert titles[titles.index("Certifications") + 1] == "Volunteer Work"
+    assert model["sections"][titles.index("Volunteer Work")]["lines"] == [{"text": "Riverside Food Bank, driver, 2020 - 2022"}]
+
+
+def test_undated_project_renders_without_a_date(master):
+    del master["projects"][0]["start"], master["projects"][0]["end"]
+    project = render.page_model(master)["sections"][1]["entries"][0]
+    assert project["subline"] is None
+
+
+def test_education_leads_with_no_jobs_or_a_fresh_degree(master):
+    today = render.date(2026, 9, 24)
+    assert [s["title"] for s in render.page_model(master, today)["sections"]][0] == "Experience"
+    master["education"][0]["end"] = "2026-05"
+    master["roles"] = [{**master["roles"][0], "start": "2025-06"}]
+    assert render.page_model(master, today)["sections"][0]["title"] == "Education"
+    master["roles"][0]["start"] = "2023-06"  # three years of work: experience leads again
+    assert render.page_model(master, today)["sections"][0]["title"] == "Experience"
+    master["roles"] = []
+    assert [s["title"] for s in render.page_model(master, today)["sections"]][:2] == ["Education", "Projects"]
+
+
+def test_hide_year_leaves_the_graduation_year_off(master):
+    master["education"][0]["hide_year"] = True
+    education = next(s for s in render.page_model(master)["sections"] if s["title"] == "Education")
+    assert education["lines"] == [{"text": "B.S., Computer Science | State University | Minor in Mathematics"}]
+
+
+def test_career_break_sits_between_jobs_by_date_and_renders(master, tmp_path):
+    master["roles"][1]["end"] = "2021-01"
+    master["career_break"] = [{"reason": "Caring for a family member", "start": "2021-02", "end": "2023-01"}]
+    entries = render.page_model(master)["sections"][0]["entries"]
+    assert [e["heading"] for e in entries] == [
+        "Senior Software Engineer", "Career break - Caring for a family member", "Software Engineer"]
+    assert entries[1]["subline"] == "Feb 2021 - Jan 2023" and entries[1]["bullets"] == []
+    _, results = render.render(render.page_model(master), tmp_path, budget=False)
+    assert failed(results) == {}
+
+
+@pytest.mark.parametrize("name, file", [
+    ("José Núñez", "Jose_Nunez_Resume.pdf"),
+    ("Zoë Renée O'Brien", "Zoe_Renee_OBrien_Resume.pdf"),
+    ("李娜", "Resume.pdf"),
+])
+def test_file_name_folds_accents_and_falls_back(name, file):
+    assert render.file_name({"contact": {"name": name}}) == file

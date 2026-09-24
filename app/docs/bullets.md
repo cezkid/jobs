@@ -141,6 +141,7 @@ candidate's own words and FAILs on generated text - the candidate's register sta
 | `bullet-taper` | an older role carrying more bullets than the newer one above it | WARN |
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
 | `em-dash`, `markdown`, `invisible-unicode` | characters that betray generated text | via `hit()` |
+| `street-address`, `personal-details`, `old-graduation-year` | on the user's own file (`resume-lint` only): a house number, apartment, suite or ZIP in the location; a birth date, age, marital status or nationality anywhere; a degree ended 15+ years ago without `hide_year` | WARN |
 | `pages`, `line-fill`, `contact-line`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
 | `budget` | page words outside every window at this page's density: one page 75-100% full, or two with the second 60%+. Facts too few for even the lowest window report, never fail | FAIL / info |
 | `no-abbreviated-title` | Sr./Jr. in a role heading - never in a name ("Robert Hayes Jr.") or employer | FAIL |
@@ -179,6 +180,9 @@ sending.md" prints first. Mirrored from `lint.WHY`; `test_lint` keeps the two in
 | `em-dash` | Long dashes are a common sign of AI-written text. |
 | `markdown` | Formatting symbols would show up as stray characters. |
 | `invisible-unicode` | An invisible character could trip up job-site software. |
+| `street-address` | City and state is enough; a street address adds nothing and exposes you. |
+| `personal-details` | US employers don't expect these; they invite bias. |
+| `old-graduation-year` | A graduation year from 15+ years ago can invite age bias; you may leave the year off. |
 
 ## What the fill advice aims at
 
@@ -259,6 +263,12 @@ below replaced a rule argued or measured wrong - re-propose the old form only wi
 | Skills lines filled by adding items | Trim or merge groups; never add a low-value item; a skills item not in master FAILs | Filling a line with a tool the candidate barely used is padding (see [What the fill advice aims at](#what-the-fill-advice-aims-at)) |
 | Line fit by any cut | Never cut a number or name to fit; shorten other words | The number is the evidence (Tier 2) |
 | `title_mirror` substring match | Whole words; FAIL when it adds a seniority word the candidate's title lacks; listed for the user to confirm | "Nurse Manager" mirrored onto "Staff Nurse" claims a promotion |
+| Year-only dates stretched to January-December on import, printed as "Jan 2019 - Dec 2021" | A year stays a year; a span with a year-only end prints years only; comparisons run at the precision both dates carry | An invented month is a date a background check may not match (Tier 1) |
+| Any all-caps PDF line skipped by import recovery as a heading | Only named section headings skipped | "ACTIVE TS/SCI CLEARANCE" or "BLS/ACLS CERTIFIED" could be dropped without tripping the gate; every left-out line is now printed for the user |
+| No place for volunteer work, awards, clearances; projects needed dates | `other` sections printed verbatim; projects may be undated | A fact with no field was a fact lost on import |
+| Education always after Experience | First when there are no jobs, or a degree ended within 12 months over under 24 months of work | A new graduate's strongest line was at the bottom |
+| Nothing said a street address, birth date or marital status was on the page | `street-address`, `personal-details` WARN on the untailored resume; `old-graduation-year` WARN suggests `hide_year` | US hiring does not ask for these and they invite bias; the year is never hidden without the user's say |
+| A gap was only ever a gap | `career_break` entries shown with the jobs, no lines under them, and counted as covered time | A named break answers the question a silent gap raises |
 | Dropped items unexplained; report in rule slugs and ids | `reasons` per dropped bullet, role and skill; "Check before sending.md" in plain words, ids and rule names only in a trailing parenthetical | The user can challenge every decision only if each one carries a visible reason |
 
 ## Considered, not mechanised

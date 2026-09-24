@@ -4,6 +4,7 @@ import statistics
 import sys
 import time
 from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 import cfg
@@ -111,7 +112,18 @@ WHY = {
     "em-dash": "Long dashes are a common sign of AI-written text.",
     "markdown": "Formatting symbols would show up as stray characters.",
     "invisible-unicode": "An invisible character could trip up job-site software.",
+    "street-address": "City and state is enough; a street address adds nothing and exposes you.",
+    "personal-details": "US employers don't expect these; they invite bias.",
+    "old-graduation-year": "A graduation year from 15+ years ago can invite age bias; you may leave the year off.",
 }
+# contact location: a house number, apartment or suite, or a ZIP code is more than a city and state
+STREET = re.compile(r"^\s*\d+\s+\w|\b(apt|apartment|suite|ste|unit)\b\.?|#\s*\d|\b\d{5}(-\d{4})?\b", re.I)
+# asked for on some CVs abroad; on a US resume they only give a screener grounds it may not use
+PERSONAL = re.compile(
+    r"\b(date of birth|D\.?O\.?B\b|place of birth|born (on |in )?\d|age:?\s*\d{2}\b|\d{2}\s*(years|yrs)\s*old|"
+    r"marital status|married|divorced|widowed|nationality|religion:|gender:)", re.I)
+# Indeed/AARP: past this a graduation year dates the candidate more than it informs
+OLD_GRADUATION_YEARS = 15
 
 
 @dataclass(frozen=True)
@@ -205,8 +217,9 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
             findings.append(Finding(WARN, "company-legal-id", f"roles/{role['id']}", f"{role['company']!r} lacks Inc./LLC/...; add if employer has one"))
 
     # dates are verified w/ HR; roles are newest-first, so an end past the next start is a claim to check
+    today = date.today()
     for newer, older in zip(master["roles"], master["roles"][1:]):
-        if older["end"] == schema.PRESENT or older["end"] < newer["start"]:
+        if older["end"] == schema.PRESENT or not overlaps(older["end"], newer["start"], today):
             continue
         detail = f"ends {older['end']}, but {newer['company']} starts {newer['start']}"
         if older["company"].strip().casefold() == newer["company"].strip().casefold():
@@ -301,6 +314,12 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
     return findings
 
 
+def overlaps(end: str, start: str, today: date) -> bool:
+    """Same month = overlap; same year, when either says only a year, is a handover, not an overlap."""
+    order = schema.compare(end, start, today)
+    return order > 0 or (order == 0 and not (schema.year_only(end) or schema.year_only(start)))
+
+
 def check_ai_era(entry: dict, where: str, text: str, findings: list[Finding], own: bool = False) -> None:
     # the candidate's own sentence is theirs to explain (a date typo, a word their field uses
     # otherwise): reported. Tailoring adding the same word is a backdated claim: failed.
@@ -310,12 +329,14 @@ def check_ai_era(entry: dict, where: str, text: str, findings: list[Finding], ow
     if entry["end"] == schema.PRESENT:
         return
     for pattern, released in TOOL_RELEASED.items():
-        if (m := pattern.search(text)) and entry["end"] < released:
+        if (m := pattern.search(text)) and schema.compare(entry["end"], released, date.today()) < 0:
             findings.append(Finding(severity, "ai-era", where, f"{m.group()!r} released {released}, entry ended {entry['end']}"))
 
 
 def check_entry_identity(entry: dict, where: str, entries: dict, findings: list[Finding]) -> None:
     """Employer, title, dates = what verification catches; mirrored title allowed only as suffix."""
+    if entry.get("career_break"):
+        return
     source = entries.get(entry.get("id"))
     if source is None:
         findings.append(Finding(FAIL, "unknown-entry", where, f"id {entry.get('id')!r} not in master roles/projects"))
@@ -330,13 +351,30 @@ def check_entry_identity(entry: dict, where: str, entries: dict, findings: list[
         findings.append(Finding(FAIL, "dates-changed", where, f"subline {entry.get('subline')!r} lacks {span!r}"))
 
 
+def master_findings(master: dict, today: date) -> list[Finding]:
+    """Checks on the user's own file, not any one page: what it discloses, never what it claims."""
+    findings = []
+    location = master["contact"]["location"]
+    if m := STREET.search(location):
+        findings.append(Finding(WARN, "street-address", "contact", f"{m.group().strip()!r} in {location!r}"))
+    for text in master_strings(master):
+        if m := PERSONAL.search(text):
+            findings.append(Finding(WARN, "personal-details", "resume", f"{m.group()!r}: {text!r}"))
+    for i, school in enumerate(master.get("education") or []):
+        end = school.get("end")
+        if end and not school.get("hide_year") and today.year - int(end[:4]) >= OLD_GRADUATION_YEARS:
+            findings.append(Finding(WARN, "old-graduation-year", f"education[{i}]",
+                                    f"{school['degree']} ended {end[:4]}; hide_year: true leaves the year off"))
+    return findings
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Lint untailored master page: AI-tell rules + honesty vs master")
     ap.add_argument("--master", type=Path, help="master yml (default config resume.master)")
     args = ap.parse_args()
     started = time.perf_counter()
     master = schema.load(args.master or cfg.resume_path(cfg.load(), "master"))
-    findings = lint(render.page_model(master), master)
+    findings = lint(render.page_model(master), master) + master_findings(master, date.today())
     for f in findings:
         print(f"  {f.severity}  {f.rule:22} {f.where:28} {f.detail}")
     fails = sum(f.severity == FAIL for f in findings)
