@@ -324,6 +324,16 @@ def test_shortened_school_name_warns(master):
     assert lint.master_findings(master, TODAY) == []
 
 
+@pytest.mark.parametrize("line, warns", [
+    ("Spanish (Fluent)", False), ("Mandarin Chinese (Professional working proficiency)", False),
+    ("French (B2)", False), ("Spanish", True), ("English and Spanish - fluent", True),
+    ("English, Spanish (Fluent)", True), ("English/Spanish (Native)", True),
+])
+def test_language_needs_its_own_level(master, line, warns):
+    master["languages"] = [line]
+    assert (rules(lint.master_findings(master, TODAY), lint.WARN) == {"language-level"}) is warns
+
+
 def test_same_year_handover_is_not_an_overlap(master):
     master["roles"][0]["start"] = "2023"
     master["roles"][1]["end"] = "2023"
