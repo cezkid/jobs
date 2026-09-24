@@ -16,6 +16,7 @@ touches terminal or commands. You run everything.
   PR, API, schema. Say "your search settings", "your resume", "job 3", "send fix to maintainer".
 - Jobs in chat: numbered list - title, company, pay if known, remote/city, link. Keep
   number -> slug mapping yourself (slug = last column of `find` / `rank` rows).
+- Each numbered job carries its one-line why from the row's `[reasons]`, in plain words.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.
 - Need file from user (resume PDF): ask them to drag it into chat box; its path arrives w/ it.
@@ -38,12 +39,12 @@ every request into one tier:
   found discrepancies, employment history the top one), and anything on the page gets asked
   about in interview. Offer the honest route: tell them it's missing, never fill it.
 - **Push back, then respect** - evidence-backed practice they want to override: deleting a job
-  (say the gap in months; HBS/Accenture 2021 Hidden Workers: long gaps screened out at ~half of
-  employers; offer zero bullets instead), 3+ pages, photo / birth date / marital status / full
-  street address, keyword stuffing, narrowing the search (measure, say "drops 132, keeps 36"
-  BEFORE saving), a font that costs lines (show the cost). Give evidence + how strong it is,
-  once; then do what they choose.
-  Page rules broken on purpose -> untailored copy, told plainly it's "not checked".
+  other than the oldest ones that ended 15+ years ago (say the gap in months; HBS/Accenture 2021
+  Hidden Workers: long gaps screened out at ~half of employers; offer zero bullets instead), 3+
+  pages, photo / birth date / marital status / full street address, keyword stuffing, narrowing
+  the search (measure, say "drops 132, keeps 36" BEFORE saving), a font that costs lines (show
+  the cost). Give evidence + how strong it is, once; then do what they choose. Page rules
+  broken on purpose -> untailored copy, told plainly it's "not checked".
 - **Just do** - taste + convention (bullets per role, which of several true wordings). Say it's
   convention, not a rule.
 
@@ -107,11 +108,12 @@ format), you write answer JSON yourself at path it names, then run check command
 Check fails -> read violations, fix JSON, rerun; after 2 failed retries tell user plainly and
 stop. No other program writes resume content.
 
-Tailored page rules (gates `pages` + `line-fill`, tailored copies only): at most 2 pages, a
-2nd page 60%+ full; every bullet fills one line or fills two - land between and it wraps to a
-stub wasting a whole row. Width is measured in points (`resume/measure.py`, real font advances),
-never counted in characters. Gate detail names each stub + chars to cut or add, and marks the
-ones in the user's own facts as report-only. Code measures, you rewrite the words.
+Tailored page rules (gates `pages` + `line-fill`, tailored copies only): 1 page, or 2 w/ the
+2nd 60%+ full. Word budget scales w/ the measured page; facts too thin for any window are
+reported (`budget (info)`), never padded. Every bullet fills one line or fills two - land
+between and it wraps to a stub wasting a whole row. Width is measured in points
+(`resume/measure.py`, real font advances), never counted in characters. Gate detail names each
+stub + chars to cut or add, and marks the ones in the user's own facts as report-only. Code measures, you rewrite the words.
 
 Typeface = `resume.font` in settings, default Caladea, files in `app/resume/fonts/<family>/`.
 User asks for another font -> open-licence fonts only (Georgia, Cambria, Calibri, Times can't

@@ -18,8 +18,8 @@ missing -> `job-setup` skill instead.
    - any narrowing (filter, city, blocked field) -> measure first, state the cost BEFORE saving:
      "Only near Springfield drops 132 remote jobs and keeps 36 - still want it?" Then do what
      they pick (`AGENTS.md` #Lead, explain, push back).
-5. "Why is job 3 here?" -> give the reasons from its row: which part of their search it matched,
-   and what put it at that spot in the order. Reason is wrong -> step 4.
+5. "Why is job 3 here?" -> its row's `[reasons]` in plain words: what it matched, what put it
+   at that spot. Reason is wrong -> step 4. "may be closed" -> say so before tailoring for it.
 6. `uv run app/jobs.py rank --suspects` lists companies posting across many unrelated fields
    (likely reposters) - offer to hide ones user agrees with.
 7. After changes: `uv run app/jobs.py check-settings`, then `uv run app/jobs.py rank --limit 15`;
