@@ -18,11 +18,11 @@ def db_path(tmp_path):
     with conn:
         store.upsert(conn, [
             make_job("senior-a", seniority="senior"),
-            make_job("staff-b", seniority="staff", collections=["yc"]),
+            make_job("staff-b", seniority="staff", collections=["fortune500"]),
             make_job("principal-c", seniority="principal", tier="local"),
             make_job("closed-d", seniority="senior", closed_at="2026-09-15T00:00:00Z"),
             make_job("blocked-e", seniority="lead", company_slug="jobgether"),
-        ], "2026-09-15T12:00:00Z")
+        ], store.utc_now())
     conn.close()
     return path
 
@@ -54,7 +54,7 @@ def test_null_seniority_rows_visible_as_unspecified(tmp_path):
     path = tmp_path / "jobs.db"
     conn = store.connect(path)
     with conn:
-        store.upsert(conn, [make_job("rn-a", seniority=None), make_job("senior-b")], "2026-09-15T12:00:00Z")
+        store.upsert(conn, [make_job("rn-a", seniority=None), make_job("senior-b")], store.utc_now())
     conn.close()
 
     async def scenario():

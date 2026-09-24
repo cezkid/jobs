@@ -8,7 +8,8 @@ before trusting count.
 - Base `https://freehire.me/api/v1`, keyless, `x-ratelimit-limit: 600`.
 - `GET /jobs/search` -> `{"data":[...],"meta":{"total":N,"limit":L,"offset":O}}`.
 - Pagination ceiling `offset+limit <= 10000` => pass wider than 10k rows truncates silently;
-  narrow it w/ `posted_within_days`.
+  narrow it w/ `posted_within_days`. Truncated pass closes nothing (`ingest/freehire.py`): rows
+  past the ceiling were never fetched, so their absence proves nothing.
 - `GET /jobs/facets?<same filters>` -> live counts per facet value. Lists EVERY valid value for
   every facet in one call => `uv run app/jobs.py probe --facets [<facet>]` instead of guessing
   slugs one probe at a time (unknown slug answers 0, never error, so a guess loop is silent
@@ -28,6 +29,24 @@ before trusting count.
 `nursing` and `customer_support` answer 0 - real slugs `healthcare`, `support`. Unknown slug
 returns 0, never error => never guess: `probe --facets category countries=us` lists all 47 w/
 counts in one call.
+
+## `reality` + pay fields (2026-09-24, 500 newest US rows)
+
+- `reality` = `{class, age_days, repost_count, mass_posting_count, fake_freshness}`, on every
+  row. `class` facet: `fresh` 181k, `stale` 587k, `likely-evergreen` 7.7k (no ghost class).
+  `repost_count` 1 on 446/500, 3+ on 19. `age_days` median 70 on `stale`. `fake_freshness` true
+  on 133/500: `posted_at` restamped while `age_days` stays old => age shown + sorted from
+  `age_days`, `posted_at` only fallback. Rank demotes (never hides) `repost_count >=
+  rank.repost_demote`, `age_days >= rank.old_days`, `likely-evergreen`.
+- `salary_period` null on 315/500, incl. rows w/ pay; `hour` 17k rows US-wide. Period missing
+  => value < 1000 hourly, < 10000 monthly (`rank.pay`). One `month` row read 70000-100000 -
+  label wrong at source, left as is.
+
+## Closing + stale rows
+
+`close_missing` closes only rows posted inside a pass's `posted_within_days` window: older rows
+are never re-fetched, so never closed. `rank` hides open rows no fetch returned in
+`rank.stale_days` (default 14) days, read off `jobs.fetched_at`.
 
 ## Defects handled in code
 
@@ -61,8 +80,11 @@ seniority as `unspecified`.
 
 Hard filter drops rows w/ NO data, not rows that fail:
 - `salary_min=<floor>` cut 177 -> 40; only 91 of 247 carried salary. => `rank.salary_floor_usd`
-  boost.
-- `collections` cut 177 -> 21. => `rank.boost_collections` boost.
+  boost, compared to TOP of posted range ($55k-$90k meets $60k); rows then ordered by midpoint.
+- `collections` cut 177 -> 21. => `rank.boost_collections` boost, below pay: `bigtech`
+  `unicorn` `yc` mean nothing outside tech, so only order rows w/o pay. Default `fortune500`.
+- `employment_type` / level: same null problem => `rank.employment_types` + `rank.career_level`
+  demote clear mismatches (title words, stated type); null never demoted.
 - `category=frontend,fullstack` cut 247 -> 103, dropped React roles filed under
   `software_engineering`. => tech search by one skill uses `skills=` alone, no `category=`.
 - `seniority` facet skewed (senior 168, junior 3, middle 6): junior levels live in title string,

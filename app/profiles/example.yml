@@ -28,18 +28,20 @@ passes:
       sort: posted_at
       order: desc
 
-# Applied before ranking, case-insensitive. categories = enrichment.category, local only.
+# Applied before ranking, case-insensitive. companies = slug or company name (Inc/LLC ignored);
+# categories = enrichment.category, local only.
 blocklist:
   # jobgether reposter; builtin-integration-sandbox test postings w/o requirements (docs/freehire.md)
   companies: [jobgether, builtin-integration-sandbox]
   sources: []
   categories: []
-  # substring of title
+  # whole words/phrases in title ("intern" never hides "Internal Auditor");
+  # preview: uv run app/jobs.py rank --would-hide "<phrase>"
   title_phrases: []
 
+# other rank keys + what they do: app/defaults.yml
 rank:
-  boost_collections: [fortune500, bigtech, unicorn, yc]
-  # annualized USD salary_min; boost only, never filter
+  # fortune500 spans every field; bigtech/unicorn/yc only mean something in tech
+  boost_collections: [fortune500]
+  # yearly USD, top of posted range; boost only, never filter
   salary_floor_usd: 60000
-  # company spanning this many enrichment categories -> printed by `rank --suspects`
-  suspect_min_categories: 5

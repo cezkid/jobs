@@ -21,8 +21,7 @@ def level(job: dict) -> str:
 
 
 def salary_label(job: dict) -> str:
-    salary = rank.annual_usd_min(job)
-    return f"${salary // 1000}k" if salary else ""
+    return rank.pay_label(job)
 
 
 class JobsApp(App):
