@@ -27,6 +27,10 @@ to change, and `git diff --cached` carries no name, email, phone or address of y
 6. `gh pr create --repo cezkid/jobs --fill` then fill template sections (repro, cause, fix,
    test run).
 
+Claude credit follows your Claude Code `attribution` setting: `uv run app/jobs.py attribution`
+shows it, `attribution hook` strips "Co-Authored-By: Claude" from commits while it is off, and
+`attribution strip --pr <file>` does the same for PR text.
+
 No fix possible (upstream API, unclear cause): `gh issue create --repo cezkid/jobs` w/ repro
 command, expected vs actual output, date.
 
