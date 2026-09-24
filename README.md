@@ -75,7 +75,8 @@ boosts, never filters (`app/docs/freehire.md` #Filters vs rank boosts).
 
 No model CLI. Command writes task file (rules, input, answer schema); chat AI writes answer
 JSON; check command validates schema + gates. `My Resume/Resume details.yml` = single source of
-resume facts, hand edits win; shape `app/resume/master.example.yml`.
+resume facts - user's edits win on wording, employer/title/dates change only to fix a mistake
+(`AGENTS.md` #Lead, explain, push back); shape `app/resume/master.example.yml`.
 
 That file is the non-technical user's editing surface, so it holds their facts and nothing else:
 bullets are plain sentences, and ids, `metrics`, `stack` and `ai_era` are derived at load

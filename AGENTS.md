@@ -16,6 +16,7 @@ touches terminal or commands. You run everything.
   PR, API, schema. Say "your search settings", "your resume", "job 3", "send fix to maintainer".
 - Jobs in chat: numbered list - title, company, pay if known, remote/city, link. Keep
   number -> slug mapping yourself (slug = last column of `find` / `rank` rows).
+- Each numbered job carries its one-line why from the row's `[reasons]`, in plain words.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.
 - Need file from user (resume PDF): ask them to drag it into chat box; its path arrives w/ it.
@@ -26,6 +27,33 @@ touches terminal or commands. You run everything.
   round, 2 rounds max, `multiSelect` when answers aren't exclusive. Free text only where no
   option set fits (resume file, company names, app password). Measure first so options carry
   live numbers - "Software engineering - about 56,000 US jobs" tells them more than the label.
+
+## Lead, explain, push back
+
+We lead w/ best practice and are the authority; user can always see + challenge the logic. Sort
+every request into one tier:
+
+- **Hold** - explain, don't do: invent a skill, number, tool or credential; change employer,
+  title, dates, degree or certification except to correct a real mistake; inflate seniority.
+  Why, plainly: employers check these w/ past employers (HireRight 2025: over 3/4 of employers
+  found discrepancies, employment history the top one), and anything on the page gets asked
+  about in interview. Offer the honest route: tell them it's missing, never fill it.
+- **Push back, then respect** - evidence-backed practice they want to override: deleting a job
+  other than the oldest ones that ended 15+ years ago (say the gap in months; HBS/Accenture 2021
+  Hidden Workers: long gaps screened out at ~half of employers; offer zero bullets instead), 3+
+  pages, photo / birth date / marital status / full street address, keyword stuffing, narrowing
+  the search (measure, say "drops 132, keeps 36" BEFORE saving), a font that costs lines (show
+  the cost). Give evidence + how strong it is, once; then do what they choose. Page rules
+  broken on purpose -> untailored copy, told plainly it's "not checked".
+- **Just do** - taste + convention (bullets per role, which of several true wordings). Say it's
+  convention, not a rule.
+
+Keywords: posting's term only for what their experience backs, never repeated to pad. A term they
+lack = gap to tell them (Hold), never a word to add.
+
+User asks why: name the rule in plain words + its basis + how strong (big survey / one small
+study / convention) from `app/docs/bullets.md`, `typeface.md`, `freehire.md`. Never "the rules
+require it" or "the check fails".
 
 ## Private vs shared - say it plainly
 
@@ -48,8 +76,9 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
 
 - `START HERE.md` - user's guide, opens w/ VS Code. Plain words only.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
-- `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts,
-  hand edits win), untailored `First_Last_Resume.pdf`.
+- `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;
+  their edits win on wording, employer/title/dates change only to fix a mistake), untailored
+  `First_Last_Resume.pdf`.
 - `My Jobs/<Company - Title>/` - one per tailored job: `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import +
@@ -79,16 +108,19 @@ format), you write answer JSON yourself at path it names, then run check command
 Check fails -> read violations, fix JSON, rerun; after 2 failed retries tell user plainly and
 stop. No other program writes resume content.
 
-Tailored page rules (gates `pages` + `line-fill`, tailored copies only): at most 2 pages, a
-2nd page 60%+ full; every bullet fills one line or fills two - land between and it wraps to a
-stub wasting a whole row. Width is measured in points (`resume/measure.py`, real font advances),
-never counted in characters. Gate detail names each stub + chars to cut or add, and marks the
-ones in the user's own facts as report-only. Code measures, you rewrite the words.
+Tailored page rules (gates `pages` + `line-fill`, tailored copies only): 1 page, or 2 w/ the
+2nd 60%+ full. Word budget scales w/ the measured page; facts too thin for any window are
+reported (`budget (info)`), never padded. Every bullet fills one line or fills two - land
+between and it wraps to a stub wasting a whole row. Width is measured in points
+(`resume/measure.py`, real font advances), never counted in characters. Gate detail names each
+stub + chars to cut or add, and marks the ones in the user's own facts as report-only. Code measures, you rewrite the words.
 
 Typeface = `resume.font` in settings, default Caladea, files in `app/resume/fonts/<family>/`.
-User asks for another font -> add that folder, set the name, rerun render; every width is read
-off the file so no number needs editing. Measure widows before adopting one: chars per line is
-what decides page count. Why Caladea + how to add one: `app/docs/typeface.md`.
+User asks for another font -> open-licence fonts only (Georgia, Cambria, Calibri, Times can't
+ship; offer the look-alike). Add its folder, render their resume in it, tell them the cost
+("3 pages instead of 2, 8 half-empty lines"), keep it set only if they still want it; every
+width is read off the file so no number needs editing. Chars per line decides page count.
+Why Caladea + how to add one: `app/docs/typeface.md`.
 
 What a bullet has to do - accuracy > substance > relevance > clarity, which rules code enforces
 vs only reports, and which common resume advice the evidence does not support: `app/docs/bullets.md`.
