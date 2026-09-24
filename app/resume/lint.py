@@ -12,10 +12,11 @@ from resume import render, schema
 FAIL = "fail"
 WARN = "warn"
 
-# PubMed 2010-2024 excess style words (delves 25.2x, showcasing 9.2x, underscores 9.1x) + ten-marker set + flowery cluster
+# PubMed 2010-2024 excess style words (delves 25.2x, showcasing 9.2x, underscores 9.1x) + ten-marker set + flowery cluster.
+# "across" and "within" left 2026-09-24: they carry scope ("across 6 teams"), which is evidence (docs/bullets.md)
 STYLE_WORD_LIST = (
-    "delve", "delves", "delved", "delving", "showcasing", "underscores", "across", "additionally", "comprehensive",
-    "crucial", "enhancing", "exhibited", "insights", "notably", "particularly", "within", "meticulously", "intricate",
+    "delve", "delves", "delved", "delving", "showcasing", "underscores", "additionally", "comprehensive",
+    "crucial", "enhancing", "exhibited", "insights", "notably", "particularly", "meticulously", "intricate",
     "pivotal",
 )
 HEDGE_LIST = ("helped", "contributed to", "assisted with", "played a key role")
@@ -44,13 +45,16 @@ EMPTY_CLAUSE = re.compile(
     r",?\s+\b(so that|so|allowing|enabling|letting|helping|ensuring|giving|making|thereby|which)\b", re.I)
 NOT_ONLY = re.compile(r"\bnot only\b.*\bbut also\b", re.I)
 TRIAD = re.compile(r"\b[\w-]+, [\w-]+,? and [\w-]+\b")
-# pre-AI role (ai_era false) naming any of these = backdated AI claim
+# pre-AI role (ai_era false) naming any of these = backdated AI claim. Words other fields use
+# for other things stay out: evals (clinical, performance), embeddings (maths), fine-tuning (any tuning)
 AI_TERMS = re.compile(
-    r"\b(LLMs?|GPT[-\w.]*|ChatGPT|Claude|OpenAI|Anthropic|Gemini|LangChain|LlamaIndex|RAG|retrieval-augmented|"
-    r"embeddings?|vector (search|database|store)|pgvector|Pinecone|AI agents?|LLM agents?|agentic|"
-    r"prompt engineering|fine-tun\w+|Copilot|evals?|eval harness\w*)\b",
+    r"\b(LLMs?|GPT[-\w.]*|ChatGPT|Claude|OpenAI|Anthropic|Gemini|LangChain|LlamaIndex|retrieval-augmented|"
+    r"vector (search|database|store)|pgvector|Pinecone|AI agents?|LLM agents?|agentic|"
+    r"prompt engineering|Copilot|eval harness\w*)\b",
     re.I,
 )
+# capitals only, and never the red-amber-green status every project manager reports in
+AI_ACRONYM = re.compile(r"\bRAG\b(?![- ](status|rating|report|dashboard|chart)s?\b)")
 # first public release; role ending before it cannot have used it
 TOOL_RELEASED = {
     re.compile(r"\bCopilot\b", re.I): "2021-06",
@@ -61,6 +65,7 @@ TOOL_RELEASED = {
     re.compile(r"\bClaude\b", re.I): "2023-03",
 }
 NUMBER = re.compile(r"\d")
+PERCENT_WORDS = r"\s*(%|percent\b|per cent\b)"
 # tech names w/ exactly one correct spelling - drift between bullets reads as carelessness
 CANONICAL = {re.compile(rf"\b{p}\b", re.I): c for p, c in (
     (r"nginx", "NGINX"), (r"jquery", "jQuery"), (r"angular\.?js", "AngularJS"),
@@ -76,6 +81,37 @@ TOKEN = re.compile(r"\d+(?:[.,]\d+)*|[^\W\d_]+(?:[.+#][^\W\d_]+|[+#]+)*")
 SENTENCE_START = re.compile(r"(^|[.;:!?]\s+)$")
 # craft floor, unmeasured (plan #AI-tell lint WARN ONLY): bullet lengths this uniform read templated
 MIN_BULLET_LENGTH_CV = 0.15
+
+# rule -> one plain sentence a non-technical user reads in "Check before sending.md", and the
+# chat can say when asked why. Mirrored in docs/bullets.md #Why each rule - keep the two in step
+WHY = {
+    "title-changed": "Your job title must match what your employer's records say.",
+    "employer-changed": "The employer's name must match what their records say.",
+    "dates-changed": "Job dates must match what your employer's records say.",
+    "unknown-entry": "Every job on the page has to come from your resume.",
+    "inference-source": "New wording has to point back to something your resume already says.",
+    "unresolved-entity": "A number, tool or name appears that your resume never mentions.",
+    "ai-era": "AI wording on a job that ended before those tools existed reads as backdated.",
+    "role-dates-overlap": "Two jobs overlap in dates - fine if both were real, but a checker will ask.",
+    "company-legal-id": "Employer names are often written with Inc. or LLC in official records.",
+    "round-metric": "A round percentage your resume never states looks made up.",
+    "unmeasurable-grade": "Words like 'world-class' can't be checked; the fact behind them says more.",
+    "empty-clause": "Part of this line may explain something the reader already knows.",
+    "specificity": "This line names nothing a reader can picture: no number, tool or name.",
+    "style-word": "This word shows up far more in AI-written text than in people's writing.",
+    "hedge": "'Helped' or 'assisted' is fine when it is true; just check it describes your part.",
+    "resume-verb": "Words like 'spearheaded' read as filler when every line uses one.",
+    "rule-of-three": "Lists of three in a row are a pattern readers link with AI writing.",
+    "not-only-but-also": "'Not only ... but also' is a pattern readers link with AI writing.",
+    "same-verb-opening": "Two lines in a row start with the same word.",
+    "uniform-bullet-length": "Every line is about the same length, which reads as templated.",
+    "lead-bullet-weak": "The first line under this job has no number, but a later one does.",
+    "bullet-taper": "An older job has more lines than a newer one.",
+    "canonical-casing": "A tool name is spelled differently from its official spelling.",
+    "em-dash": "Long dashes are a common sign of AI-written text.",
+    "markdown": "Formatting symbols would show up as stray characters.",
+    "invisible-unicode": "An invisible character could trip up job-site software.",
+}
 
 
 @dataclass(frozen=True)
@@ -122,6 +158,21 @@ def entry_where(section_title: str, entry: dict) -> str:
     return f"{section_title}/{entry.get('id', entry['heading'])}"
 
 
+def ai_term(text: str) -> re.Match | None:
+    return AI_TERMS.search(text) or AI_ACRONYM.search(text)
+
+
+def entity_key(token: str) -> str:
+    """Compare form: "1,000" and "1000" are one number."""
+    return (token.replace(",", "") if token[:1].isdigit() else token).casefold()
+
+
+def vouched(word: str, text: str, facts: list[str], posting: str) -> bool:
+    """Word the posting uses, or another of the candidate's facts: a term of the field, not a grade added."""
+    pattern = re.compile(rf"\b{re.escape(word)}\b", re.I)
+    return bool(pattern.search(posting)) or any(pattern.search(s) for s in facts if norm(s) != norm(text))
+
+
 def entities(text: str) -> list[str]:
     """Numbers + capitalized tokens, minus sentence-initial capital on plain word."""
     found = []
@@ -135,13 +186,15 @@ def entities(text: str) -> list[str]:
     return found
 
 
-def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> list[Finding]:
+def lint(model: dict, master: dict, inferences: list[dict] | None = None, posting: str = "") -> list[Finding]:
+    """`posting` = the job's own text: a style or grade word it uses is its term, not the writer's."""
     inferences = inferences or []
     findings: list[Finding] = []
     master_page = [norm(s) for s in render.page_strings(render.page_model(master))]
-    verbatim = set(master_page) | {norm(s) for s in master_strings(master)}
-    corpus = " ".join(master_strings(master))
-    known = {t.casefold() for t in TOKEN.findall(corpus)}
+    facts = master_strings(master)
+    verbatim = set(master_page) | {norm(s) for s in facts}
+    corpus = " ".join(facts)
+    known = {entity_key(t) for t in TOKEN.findall(corpus)}
     known_terms = {norm(s) for e in [*master["roles"], *master.get("projects", [])] for b in e["bullets"] for s in b.get("stack", [])}
     known_terms |= {norm(i) for g in master.get("skills", []) for i in g["items"]}
     entries = {e["id"]: e for e in [*master["roles"], *master.get("projects", [])]}
@@ -164,16 +217,19 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
         unknown = [b for b in inference.get("from", []) if b not in bullet_ids]
         if not inference.get("from") or unknown:
             findings.append(Finding(FAIL, "inference-source", f"inferences[{i}]", f"from {inference.get('from')} - unknown ids {unknown}"))
-        known |= {t.casefold() for t in TOKEN.findall(inference.get("claim", ""))}
+        known |= {entity_key(t) for t in TOKEN.findall(inference.get("claim", ""))}
 
     def hit(rule: str, where: str, text: str, detail: str, own_wording: bool) -> None:
         # candidate's own wording never hard-fails: target register, reported so selection can skip it
         findings.append(Finding(WARN if own_wording else FAIL, rule, where, f"{detail}: {text!r}"))
 
+    def unvouched(pattern: re.Pattern, text: str) -> list[str]:
+        return sorted({w for m in pattern.finditer(text) if not vouched(w := m.group().lower(), text, facts, posting)})
+
     for kind, where, text, entry_id in page_items(model):
         own = norm(text) in verbatim
         is_bullet = kind == "bullet"
-        if words := sorted({m.group().lower() for m in STYLE_WORDS.finditer(text)}):
+        if words := unvouched(STYLE_WORDS, text):
             hit("style-word", where, text, f"{', '.join(words)}", own)
         scrubbed = URL_OR_HANDLE.sub(" ", text)
         for pattern, canon in CANONICAL.items():
@@ -187,28 +243,34 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
         if INVISIBLE.search(text):
             hit("invisible-unicode", where, text, f"U+{ord(INVISIBLE.search(text).group()):04X}", own)
         for m in ROUND_PERCENT.finditer(text):
-            if m.group() not in corpus:
+            if not re.search(rf"\b{m.group(1)}{PERCENT_WORDS}", corpus, re.I):
                 hit("round-metric", where, text, f"{m.group()} absent from master", own)
+        # report only, always: it detects "names nothing specific", which is not the same as
+        # "adds nothing" (1 false positive in 8 constructed clauses, docs/bullets.md)
         if is_bullet and (clause := EMPTY_CLAUSE.search(text)):
             tail = text[clause.end():]
             if not (NUMBER.search(tail) or any(c.isupper() for c in tail) or any(t in norm(tail) for t in known_terms)):
-                hit("empty-clause", where, text, f"{clause.group(1)!r} clause names nothing specific", own)
+                findings.append(Finding(WARN, "empty-clause", where, f"{clause.group(1)!r} clause names nothing specific: {text!r}"))
         # employer names and section headings are not claims about quality: claim kinds only
-        if kind in ("bullet", "summary") and (graded := sorted({m.group().lower() for m in GRADES.finditer(text)})):
+        if kind in ("bullet", "summary") and (graded := unvouched(GRADES, text)):
             hit("unmeasurable-grade", where, text, f"{', '.join(graded)} - grade the reader cannot check", own)
-        if is_bullet and not (re.search(r"\d", text) or any(c.isupper() for c in text[1:]) or AI_TERMS.search(text) or any(t in norm(text) for t in known_terms)):
+        if is_bullet and not (re.search(r"\d", text) or any(c.isupper() for c in text[1:]) or ai_term(text) or any(t in norm(text) for t in known_terms)):
             hit("specificity", where, text, "no product, stack item, number or proper noun", own)
         # heading may carry JD's title as mirror suffix => check_entry_identity owns it
         if not own and kind != "heading":
-            unresolved = sorted({e for e in entities(text) if e.casefold() not in known})
+            unresolved = sorted({e for e in entities(text) if entity_key(e) not in known})
             if unresolved:
                 findings.append(Finding(FAIL, "unresolved-entity", where, f"{unresolved} in no master fact or inference: {text!r}"))
 
-        for rule, pattern in (("hedge", HEDGES), ("resume-verb", RESUME_VERBS), ("not-only-but-also", NOT_ONLY), ("rule-of-three", TRIAD)):
+        # a hedge or verb the facts already use is the candidate's own account of their part
+        for rule, pattern in (("hedge", HEDGES), ("resume-verb", RESUME_VERBS)):
+            if kind in ("bullet", "summary") and (words := unvouched(pattern, text)):
+                findings.append(Finding(WARN, rule, where, f"{words[0]!r}: {text!r}"))
+        for rule, pattern in (("not-only-but-also", NOT_ONLY), ("rule-of-three", TRIAD)):
             if kind in ("bullet", "summary") and (m := pattern.search(text)):
                 findings.append(Finding(WARN, rule, where, f"{m.group()!r}: {text!r}"))
         if is_bullet and entry_id in entries:
-            check_ai_era(entries[entry_id], where, text, findings)
+            check_ai_era(entries[entry_id], where, text, findings, own)
 
     role_ids = {r["id"] for r in master["roles"]}
     for section in model["sections"]:
@@ -239,14 +301,17 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None) -> lis
     return findings
 
 
-def check_ai_era(entry: dict, where: str, text: str, findings: list[Finding]) -> None:
-    if not entry.get("ai_era") and (m := AI_TERMS.search(text)):
-        findings.append(Finding(FAIL, "ai-era", where, f"{m.group()!r} inside entry with ai_era false: {text!r}"))
+def check_ai_era(entry: dict, where: str, text: str, findings: list[Finding], own: bool = False) -> None:
+    # the candidate's own sentence is theirs to explain (a date typo, a word their field uses
+    # otherwise): reported. Tailoring adding the same word is a backdated claim: failed.
+    severity = WARN if own else FAIL
+    if not entry.get("ai_era") and (m := ai_term(text)):
+        findings.append(Finding(severity, "ai-era", where, f"{m.group()!r} inside entry with ai_era false: {text!r}"))
     if entry["end"] == schema.PRESENT:
         return
     for pattern, released in TOOL_RELEASED.items():
         if (m := pattern.search(text)) and entry["end"] < released:
-            findings.append(Finding(FAIL, "ai-era", where, f"{m.group()!r} released {released}, entry ended {entry['end']}"))
+            findings.append(Finding(severity, "ai-era", where, f"{m.group()!r} released {released}, entry ended {entry['end']}"))
 
 
 def check_entry_identity(entry: dict, where: str, entries: dict, findings: list[Finding]) -> None:
