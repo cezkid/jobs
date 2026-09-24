@@ -153,7 +153,7 @@
         }
       }
     },
-    "languages": { "type": "array", "items": { "type": "string" }, "description": "Languages you speak, one line each." },
+    "languages": { "type": "array", "items": { "type": "string" }, "description": "Languages you speak, one per line, level in brackets: Spanish (Fluent). Levels: Native, Fluent, Professional, Conversational, Basic." },
     "other": {
       "type": "array",
       "description": "Anything else worth a heading of its own: volunteer work, awards, a security clearance, publications. Printed exactly as written, after your certifications.",

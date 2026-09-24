@@ -21,6 +21,12 @@ to gates.
 4. Copy each file you fixed from install into same path under `.data/upstream`. Run
    CONTRIBUTING steps + every gate below INSIDE `.data/upstream`; diff there = only your fix
    (install older than upstream would revert others' work - fix that first).
+5. Claude credit (Claude Code only): `uv run app/jobs.py attribution`. `not set` -> ask once,
+   clickable: "Leave Claude's name off my fixes" / "Credit Claude" (adds "Co-Authored-By: Claude"
+   to each change and "Generated with Claude Code" to its description). Save w/
+   `attribution off` / `attribution on` - their own Claude Code setting, every project, so say
+   so. Then `uv run app/jobs.py attribution hook` (commit-msg hook in `.data/upstream`: strips
+   the lines on every commit while the setting is off). Off -> never type them yourself either.
 
 ## Gate 0 - consent
 
@@ -50,6 +56,9 @@ settings baked into tests or docs; replace w/ neutral values.
 `uv run pytest` green on branch. Tail goes into PR template `Test run`.
 
 ## Ship
+
+PR text: write body to a file, `uv run app/jobs.py attribution strip --pr <file>`, then
+`gh pr create --body-file <file>` (strip changes nothing when their setting leaves credit on).
 
 Tell user in one or two plain sentences what gets sent ("fix to how Job Finder reads job
 locations, plus test - none of your files"), then run CONTRIBUTING steps. `gh` login failed ->

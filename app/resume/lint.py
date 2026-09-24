@@ -115,6 +115,7 @@ WHY = {
     "street-address": "City and state is enough; a street address adds nothing and exposes you.",
     "personal-details": "US employers don't expect these; they invite bias.",
     "abbreviated-school": "Application forms match your school against a list of full names, so a short form like \"CC\" matches nothing.",
+    "language-level": "Resume readers store each language with its own level, so write one per line with the level in brackets, like Spanish (Fluent).",
     "old-graduation-year": "A graduation year from 15+ years ago can invite age bias; you may leave the year off.",
 }
 # contact location: a house number, apartment or suite, or a ZIP code is more than a city and state
@@ -125,6 +126,10 @@ PERSONAL = re.compile(
     r"marital status|married|divorced|widowed|nationality|religion:|gender:)", re.I)
 # forms match the school against a list of full names ("Do not use abbreviations"): "Lakeview CC" matches nothing
 ABBREVIATED_SCHOOL = re.compile(r"\b(CC|CCC|Univ|Coll|Inst)\b\.?|\bU\.? of\b")
+# one language, then its level in brackets: parsers store language + level as a pair
+# (Textkernel LanguageCompetencies), so "English and Spanish - fluent" gives one or neither a level
+LANGUAGE_LINE = re.compile(r"[^\W\d_][\w .'-]*?\s*\([^()]+\)")
+SEVERAL_LANGUAGES = re.compile(r",|/|&|\band\b", re.I)
 # Indeed/AARP: past this a graduation year dates the candidate more than it informs
 OLD_GRADUATION_YEARS = 15
 
@@ -371,6 +376,11 @@ def master_findings(master: dict, today: date) -> list[Finding]:
         if end and not school.get("hide_year") and today.year - int(end[:4]) >= OLD_GRADUATION_YEARS:
             findings.append(Finding(WARN, "old-graduation-year", f"education[{i}]",
                                     f"{school['degree']} ended {end[:4]}; hide_year: true leaves the year off"))
+    for i, line in enumerate(master.get("languages") or []):
+        name = line.split("(")[0]
+        if not LANGUAGE_LINE.fullmatch(line.strip()) or SEVERAL_LANGUAGES.search(name):
+            findings.append(Finding(WARN, "language-level", f"languages[{i}]",
+                                    f"{line!r}: one language per line, level in brackets - Spanish (Fluent)"))
     return findings
 
 
