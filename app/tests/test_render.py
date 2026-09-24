@@ -62,6 +62,53 @@ def test_budget_enforced_only_when_asked(master, tmp_path):
     assert set(failed(results)) == {"budget"}
 
 
+def fill_one_page(master: dict, tmp_path) -> tuple[list, int]:
+    """Add one-line bullets until the page is three-quarters full or more, still one page."""
+    n = 0
+    while True:
+        model = render.page_model(master)
+        path, results = render.render(model, tmp_path, budget=True)
+        with pymupdf.open(path) as doc:
+            used = render.pages_used(doc)
+        if used >= 0.85:
+            assert used <= 1, "overshot onto a second page"
+            return results, len(render.tokens(render.pdf_text(path, sort=True)))
+        n += 1
+        master["roles"][0]["bullets"].append({"id": f"acme-{n}", "claim": f"Shipped ledger export tooling for {n} regional payment teams in Vue"})
+
+
+def test_one_page_resume_mostly_full_passes_budget(master, tmp_path):
+    # the old fixed floor of 500 words sat above a full page (378 in Caladea): every one-page
+    # resume failed, however right one page was for the career on it
+    results, words = fill_one_page(master, tmp_path)
+    assert words < 500
+    assert "budget" not in failed(results), failed(results)
+
+
+def test_one_page_window_is_a_share_of_the_page_not_a_fixed_count():
+    assert render.word_windows(378, 1.0) == [(284, 378), (605, 756)]
+    assert render.word_windows(350, 0.9)[0] == (292, 388)
+
+
+def test_facts_too_thin_for_any_window_report_never_fail(master, tmp_path):
+    model = render.page_model(master)
+    words = sum(len(render.tokens(t)) for t in render.page_strings(model))
+    _, results = render.render(model, tmp_path, budget=True, available=words)
+    assert "budget" not in failed(results)
+    assert "never padded" in {n: d for n, _, d in results}["budget (info)"]
+
+
+def test_jr_in_a_name_or_employer_is_not_an_abbreviated_title(master, tmp_path):
+    master["contact"]["name"] = "Robert Hayes Jr."
+    master["roles"][0]["company"] = "Martin Luther King Jr. Hospital"
+    _, results = render.render(render.page_model(master), tmp_path, budget=False)
+    assert failed(results) == {}
+    model = render.page_model(master)
+    model["sections"][0]["entries"][0]["heading"] = "Sr. Software Engineer"
+    _, results = render.render(model, tmp_path, budget=False)
+    assert "no-abbreviated-title" in failed(results)
+
+
 def stub_bullet() -> str:
     """Runs past one line, then leaves two words alone on the second."""
     return "Shipped " + "payment reconciliation and ledger export tooling " * 2 + "across two teams"

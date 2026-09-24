@@ -95,8 +95,9 @@ the file:
   Lato, 2.20pt in Source Sans 3).
 - `tailor.char_guides()` - the character counts quoted in the writer's prompt, found by
   wrapping real prose in the configured font: 91 or fewer for one line, 145-194 to fill two.
-- `render.WORD_BUDGET` - the outer clamp on page words, set clear of a font change: 860 keeps
-  a two-page window open on any page up to 537 words. Caladea measures 378.
+- `render.MAX_WORDS` - the outer clamp on page words, set clear of a font change: 860 keeps
+  a two-page window open on any page up to 537 words. Caladea measures 378. The floors are
+  shares of the page (`render.ONE_PAGE_FILL`, `MIN_LAST_PAGE_FILL`), so they move with it.
 - `render.TRACKING_EM` is not a free knob. Typst adds it after every glyph, spaces included,
   so `measure.width()` adds `TRACKING_EM * SIZE` per character - calibrated against a rendered
   page, exact to four decimals. Leave it out and every width is short by 1.5%. The one place

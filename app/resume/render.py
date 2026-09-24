@@ -28,14 +28,18 @@ MIN_RECOVERY = 0.98
 # Ladders/Kickresume: summary cap = longest block detectors never get to read as prose
 MAX_BLOCK_WORDS = 57
 MAX_BYTES = 1_000_000
-WORD_BUDGET = (500, 860)
 MAX_PAGES = 2
 MIN_LAST_PAGE_FILL = 0.6
-# density sets tailor's word window: two-page floor = 1.6 x words/page, so denser page => narrower window
-# ceiling must clear 2 x words/page or word_windows() clips the two-page window to nothing
-# measured in Caladea 2026-09-21 on a full-length resume: 378 words a page (window 605-755),
-# 100 characters on a bullet line. The ceiling is what a change of font moves, so it is set
-# clear of one: 860 keeps a two-page window open on any page up to 537 words
+# a one-page resume is judged full from here: the floor is a share of what this page holds,
+# never a fixed count. The fixed 500 it replaced sat above a full page (378 words in Caladea),
+# so the one-page window was empty and every one-page resume failed the budget - the page
+# length best practice prefers for a short career was the one the gate could not pass.
+ONE_PAGE_FILL = 0.75
+# density sets tailor's word windows: one page = 0.75-1 x words/page, two = 1.6-2 x. Measured
+# in Caladea 2026-09-21 on a full-length resume: 378 words a page (windows 284-378, 605-756),
+# 100 characters on a bullet line. Only the ceiling is a count, and it is what a change of font
+# moves, so it is set clear of one: 860 keeps a two-page window open on any page up to 537 words
+MAX_WORDS = 860
 # a wrapped paragraph's last line stops here; below it the line is a stub wasting its whole row.
 # measured 2026-09-21: tails cluster low and then stop - 3-30% full in Source Sans 3, 24-35%
 # in Caladea, nothing between there and a filled line either way. Any cut inside that empty
@@ -204,7 +208,10 @@ def first_divergence(a: list[str], b: list[str]) -> str:
     return f"word {i}: {' '.join(a[i:i + 6])!r} vs {' '.join(b[i:i + 6])!r}"
 
 
-def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT) -> list[tuple[str, bool, str]]:
+def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT,
+          available: int | None = None) -> list[tuple[str, bool, str]]:
+    """`available` = words the user's facts reach when every one is on the page. Below the
+    lowest window, the budget is reported and never failed: only invention could close it."""
     results: list[tuple[str, bool, str]] = []
 
     def gate(name: str, ok: bool, detail: str = "") -> None:
@@ -224,8 +231,9 @@ def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT) -
     gate("ligatures", not LIGATURE.search(reading), "U+FB00-FB06 absent")
     missing = [part for part in model["contact"]["parts"] if part.casefold() not in reading.casefold()]
     gate("contact-in-body", not missing, f"missing from text layer: {missing}" if missing else "every contact part in text layer")
-    abbreviated = schema.ABBREVIATED_TITLE.findall(reading)
-    gate("no-abbreviated-title", not abbreviated, f"{len(abbreviated)} Sr./Jr.")
+    # role headings only: "Jr." in a name or "Martin Luther King Jr. Hospital" is not a title
+    abbreviated = [h for h in role_headings(model) if schema.ABBREVIATED_TITLE.search(h)]
+    gate("no-abbreviated-title", not abbreviated, f"Sr./Jr. in {abbreviated}" if abbreviated else "role titles spelled out")
 
     longest = max(len(tokens(s)) for s in page_strings(model))
     gate("no-prose-block", longest <= MAX_BLOCK_WORDS, f"longest block {longest} words (cap {MAX_BLOCK_WORDS})")
@@ -266,13 +274,17 @@ def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT) -
         stubs = runts(doc, model, font)
         blocked = [s for s in stubs if s["fixable"]]
         gate("contact-line (info)", True, contact_detail(contact_rows(doc, model)))
-        detail = f"{words} words (target {WORD_BUDGET[0]}-{WORD_BUDGET[1]})"
-        windows = " or ".join(f"{low}-{high}" for low, high in word_windows(words, used))
+        fits = word_windows(words, used)
+        windows = " or ".join(f"{low}-{high}" for low, high in fits)
+        detail = f"{words} words (fits page rules at {windows or 'none at this density'})"
         if budget:
             gate("pages", page_ok, page_detail)
             gate("line-fill", not blocked, stub_detail(stubs))
-            ok = WORD_BUDGET[0] <= words <= WORD_BUDGET[1]
-            gate("budget", ok, detail if ok else f"{detail}; words fitting page rules at this density: {windows or 'none at this density'}")
+            if thin(fits, available):
+                gate("budget (info)", True, f"{detail}; every fact on the page reaches {available} - "
+                                           "short of a full page, reported only, never padded")
+            else:
+                gate("budget", any(low <= words <= high for low, high in fits), detail)
         else:
             gate("pages (info)", True, page_detail)
             gate("line-fill (info)", True, stub_detail(stubs))
@@ -432,18 +444,28 @@ def stub_detail(found: list[dict], show: int = 8) -> str:
 
 
 def word_windows(words: int, used: float) -> list[tuple[int, int]]:
-    """Word counts passing budget gate if page density holds: one page, or two w/ last page past fill floor."""
+    """Word counts passing budget gate if page density holds: one page mostly full, or two w/ last page past fill floor."""
     per_page = words / used
-    one = (WORD_BUDGET[0], min(WORD_BUDGET[1], math.floor(per_page)))
-    two = (max(WORD_BUDGET[0], math.ceil(per_page * (MAX_PAGES - 1 + MIN_LAST_PAGE_FILL))), min(WORD_BUDGET[1], math.floor(per_page * MAX_PAGES)))
+    one = (math.ceil(per_page * ONE_PAGE_FILL), min(MAX_WORDS, math.floor(per_page)))
+    two = (math.ceil(per_page * (MAX_PAGES - 1 + MIN_LAST_PAGE_FILL)), min(MAX_WORDS, math.floor(per_page * MAX_PAGES)))
     return [w for w in (one, two) if w[0] <= w[1]]
 
 
-def render(model: dict, out_dir: Path, budget: bool, font: str = typeface.DEFAULT) -> tuple[Path, list[tuple[str, bool, str]]]:
+def thin(windows: list[tuple[int, int]], available: int | None) -> bool:
+    """Facts too few to reach even the lowest window: the gate must not ask for more words."""
+    return available is not None and bool(windows) and available < min(low for low, _ in windows)
+
+
+def role_headings(model: dict) -> list[str]:
+    return [e["heading"] for s in model["sections"] if s["title"] == "Experience" for e in s.get("entries", [])]
+
+
+def render(model: dict, out_dir: Path, budget: bool, font: str = typeface.DEFAULT,
+           available: int | None = None) -> tuple[Path, list[tuple[str, bool, str]]]:
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / file_name(model)
     path.write_bytes(compile_pdf(model, font))
-    return path, check(path, model, budget, font)
+    return path, check(path, model, budget, font, available)
 
 
 def main() -> None:
