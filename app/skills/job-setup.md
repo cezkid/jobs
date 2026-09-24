@@ -32,7 +32,9 @@ Round 2, narrows round 1 (batch of 3):
   30-45% of rows, junior lives in title string)
 
 Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
-`jobgether` + `builtin-integration-sandbox` silently, tell them at wrap-up they can say "stop
+`jobgether` + `builtin-integration-sandbox` w/o asking, but say why in one sentence when you
+first show matches: "I've hidden Jobgether - it re-posts other companies' jobs, and in a test
+it took 4 of the top 12 spots - plus some fake test postings." At wrap-up: they can say "stop
 showing jobs from <company>" any time.
 
 ## 2. Build search (internal - don't narrate commands)
@@ -72,7 +74,16 @@ heads notification + email), `passes`, `blocklist` (keep `jobgether` + their com
   `uv run app/jobs.py resume-import finish`. Gate fails -> copy source text more exactly, rerun.
 - Read `My Resume/Resume details.yml`; confirm w/ user in plain words: jobs + dates, schools,
   contact details. Header `# assumed` lines = year-only dates import guessed - ask real months.
-  Their corrections -> edit that file yourself.
+  Their corrections -> edit that file yourself (wording is theirs; employer, title, dates change
+  only to fix a real mistake - `AGENTS.md` #Lead, explain, push back).
+- Photo, birth date, marital status or full street address came in -> push back once: US
+  convention is to leave them off (invites bias; city + state is enough) - convention, not a
+  study. Offer to remove; their call.
+- `gap` line from `finish` (6+ months) -> raise kindly, never as a fault: "There's a 9-month
+  break between X and Y. Long breaks with no explanation get screened out at about half of
+  employers; a one-line reason fixes most of that (caring for family, study, relocation). Want
+  one?" Yes -> one plain line in their words, for the application form or a cover note; study,
+  freelance or volunteering they really did can go in as its own entry. No -> leave it.
 - `uv run app/jobs.py resume-render` + `uv run app/jobs.py resume-lint`; fix failures w/ user.
   Lint warn `company-legal-id` = ignore (hospitals, schools, agencies carry no Inc./LLC).
   Open rendered PDF in `My Resume/` for them to look at.
@@ -113,7 +124,7 @@ Email too (only if they say yes):
 ## 6. Wrap up
 
 Tell them: open "Job Finder" on Desktop any time and say things like "any new jobs?",
-"make my resume for job 3", "stop showing jobs from <company>", "change my search". `START
-HERE.md` (open on left) repeats this and shows what's private.
+"make my resume for job 3", "stop showing jobs from <company>", "change my search" - and ask
+"why?" about anything it does. `START HERE.md` (open on left) repeats this and shows what's private.
 
 Defect in tracked code hit during setup -> `AGENTS.md` #Framework defects.

@@ -27,6 +27,33 @@ touches terminal or commands. You run everything.
   option set fits (resume file, company names, app password). Measure first so options carry
   live numbers - "Software engineering - about 56,000 US jobs" tells them more than the label.
 
+## Lead, explain, push back
+
+We lead w/ best practice and are the authority; user can always see + challenge the logic. Sort
+every request into one tier:
+
+- **Hold** - explain, don't do: invent a skill, number, tool or credential; change employer,
+  title, dates, degree or certification except to correct a real mistake; inflate seniority.
+  Why, plainly: employers check these w/ past employers (HireRight 2025: over 3/4 of employers
+  found discrepancies, employment history the top one), and anything on the page gets asked
+  about in interview. Offer the honest route: tell them it's missing, never fill it.
+- **Push back, then respect** - evidence-backed practice they want to override: deleting a job
+  (say the gap in months; HBS/Accenture 2021 Hidden Workers: long gaps screened out at ~half of
+  employers; offer zero bullets instead), 3+ pages, photo / birth date / marital status / full
+  street address, keyword stuffing, narrowing the search (measure, say "drops 132, keeps 36"
+  BEFORE saving), a font that costs lines (show the cost). Give evidence + how strong it is,
+  once; then do what they choose.
+  Page rules broken on purpose -> untailored copy, told plainly it's "not checked".
+- **Just do** - taste + convention (bullets per role, which of several true wordings). Say it's
+  convention, not a rule.
+
+Keywords: posting's term only for what their experience backs, never repeated to pad. A term they
+lack = gap to tell them (Hold), never a word to add.
+
+User asks why: name the rule in plain words + its basis + how strong (big survey / one small
+study / convention) from `app/docs/bullets.md`, `typeface.md`, `freehire.md`. Never "the rules
+require it" or "the check fails".
+
 ## Private vs shared - say it plainly
 
 User must always know what stays on their computer and what leaves it. Explain w/ this table
@@ -48,8 +75,9 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
 
 - `START HERE.md` - user's guide, opens w/ VS Code. Plain words only.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
-- `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts,
-  hand edits win), untailored `First_Last_Resume.pdf`.
+- `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;
+  their edits win on wording, employer/title/dates change only to fix a mistake), untailored
+  `First_Last_Resume.pdf`.
 - `My Jobs/<Company - Title>/` - one per tailored job: `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import +
@@ -86,9 +114,11 @@ never counted in characters. Gate detail names each stub + chars to cut or add, 
 ones in the user's own facts as report-only. Code measures, you rewrite the words.
 
 Typeface = `resume.font` in settings, default Caladea, files in `app/resume/fonts/<family>/`.
-User asks for another font -> add that folder, set the name, rerun render; every width is read
-off the file so no number needs editing. Measure widows before adopting one: chars per line is
-what decides page count. Why Caladea + how to add one: `app/docs/typeface.md`.
+User asks for another font -> open-licence fonts only (Georgia, Cambria, Calibri, Times can't
+ship; offer the look-alike). Add its folder, render their resume in it, tell them the cost
+("3 pages instead of 2, 8 half-empty lines"), keep it set only if they still want it; every
+width is read off the file so no number needs editing. Chars per line decides page count.
+Why Caladea + how to add one: `app/docs/typeface.md`.
 
 What a bullet has to do - accuracy > substance > relevance > clarity, which rules code enforces
 vs only reports, and which common resume advice the evidence does not support: `app/docs/bullets.md`.

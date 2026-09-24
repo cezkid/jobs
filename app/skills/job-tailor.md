@@ -13,7 +13,7 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
    #AI writing steps), then `uv run app/jobs.py tailor check <slug>`. FAIL lines -> fix
    `tailored.json`, rerun check; never hand over PDF while check fails.
    - `gate pages` -> 3+ pages, or a 2nd page under 60% full. Cut or add bullets, never retype
-     the layout.
+     the layout. User wants 3 pages or a layout the gates fail -> push back (below).
    - `gate line-fill` -> named paragraphs end in a stub line, wasting a whole row. Detail gives
      each one's text, how full it is, and chars to cut (pull it onto one line) or add (fill the
      second). Rewrite those bullets only; keep every claim sourced.
@@ -26,8 +26,9 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
      bullet already in `Resume details.yml` without rendering.
    - Stubs in the user's own facts (contact, dates, education) are reported, never failed - only
      they can shorten a link or blurb in `Resume details.yml`. Mention it, let them choose.
-   - Want a different typeface -> `app/docs/typeface.md` #Changing it. Chars per line move with
-     it, so redo the task file (`tailor prepare`) after, never reuse the old answer.
+   - Want a different typeface -> `app/docs/typeface.md` #Changing it: open licence only, render
+     it and tell them the cost (pages, half-empty lines) before keeping it. Chars per line move
+     with it, so redo the task file (`tailor prepare`) after, never reuse the old answer.
    - Rewriting a bullet -> `app/docs/bullets.md`: accuracy outranks fit, so never add a number,
      term or grade to fill a line or match a requirement. A bullet with no evidence behind it is
      a question for the user, never a line to fill in.
@@ -46,16 +47,35 @@ Wording the user asks about:
   dropping it loses the keyword. Put its plain meaning in the same sentence instead ("WCAG 2.1 AA
   accessibility"), once per page, not in every bullet. `skills` items stay bare - that block is the
   keyword list, explaining there only bloats it.
-- Bullet order inside one role: strongest first (the opening bullet is the one always read),
-  relevance over chronology, a bullet w/ a number outranks one w/o, weakest last. `resume-lint`
-  warns `lead-bullet-weak` when a role opens w/o a number while a later bullet carries one.
+- Bullet order inside one role: most relevant to THIS posting first (the opening bullet is the
+  one always read), relevance over chronology; among equally relevant, a bullet w/ a number goes
+  first; weakest last (`app/docs/bullets.md` Tier 3). `resume-lint` warns `lead-bullet-weak` when
+  a role opens w/o a number while a later bullet carries one.
+- Licence or certification the posting requires and they hold -> near the top (summary or first
+  skills group), spelled as the posting spells it; screeners filter on it.
+
+User asks to... (`AGENTS.md` #Lead, explain, push back - say why in plain words, once):
+- Add a skill, tool, number or certification they don't have, or a bigger title -> Hold.
+  "Employers check work history, and anything on the page gets asked about in interview. I've
+  listed it as missing in your checklist instead." Have it after all -> step 4.
+- Delete a job -> push back: say the gap it leaves in months and that long gaps get screened out
+  at about half of employers (HBS/Accenture 2021). Offer zero bullets: title + dates stay, no
+  lines. Still want it gone -> leave it out.
+- 3+ pages, or keep a line the gates fail -> push back: two pages is career-centre consensus, and
+  the first read is seconds long (one small study, 30 recruiters). Still want it -> give them the
+  untailored copy (`resume-render`, page rules report-only there), told plainly it's "not
+  checked". Never a tailored PDF while check fails.
+- Photo, birth date, marital status, full street address -> push back: US career-centre
+  convention is to leave them off (invites bias, some employers discard such resumes; city +
+  state is enough) - convention, not a study. Their call.
 
 Identity = employer, title, dates. Verified w/ HR, so never reword one to fit a posting - `lint`
 FAILs `title-changed`, `employer-changed`, `dates-changed`. A posting's title goes in
 `title_mirror` (suffix only: "Software Engineer (Full Stack Engineer)"), never in place of
-theirs. A self-added narrowing suffix ("Software Engineer (Frontend)") is the user's to drop:
-it carries no verification risk, but it labels them narrower than their bullets and leaves the
-mirror stacking two parentheticals. Ask whose wording it is before touching it.
+theirs. Using a mirror -> show them first: "Your title stays 'Software Engineer'; I'd add the
+posting's name in brackets. OK?" A self-added narrowing suffix ("Software Engineer (Frontend)")
+is the user's to drop: it carries no verification risk, but it labels them narrower than their
+bullets and leaves the mirror stacking two parentheticals. Ask whose wording it is before touching it.
 
 `resume-lint` also WARNs on the shape of the master resume, all judgement calls, none fatal:
 `role-dates-overlap` (one role ends after the next begins - same employer means a promotion
