@@ -71,6 +71,23 @@ PT_PER_IN = 72
 FRESH_GRAD_MONTHS = 12
 EARLY_CAREER_MONTHS = 24
 BREAK_HEADING = "Career break - "
+# first word of a degree, dots dropped + upper-cased -> the name forms list. Not an abbreviation
+# of its own (GED, "Certificate") => printed as written
+DEGREES = {
+    "AA": "Associate of Arts", "AS": "Associate of Science", "AAS": "Associate of Applied Science",
+    "AFA": "Associate of Fine Arts", "BA": "Bachelor of Arts", "AB": "Bachelor of Arts",
+    "BS": "Bachelor of Science", "BSC": "Bachelor of Science", "BFA": "Bachelor of Fine Arts",
+    "BBA": "Bachelor of Business Administration", "BSN": "Bachelor of Science in Nursing",
+    "BENG": "Bachelor of Engineering", "BED": "Bachelor of Education", "BARCH": "Bachelor of Architecture",
+    "BMUS": "Bachelor of Music", "BSW": "Bachelor of Social Work", "MA": "Master of Arts",
+    "MS": "Master of Science", "MSC": "Master of Science", "MBA": "Master of Business Administration",
+    "MFA": "Master of Fine Arts", "MED": "Master of Education", "MENG": "Master of Engineering",
+    "MPH": "Master of Public Health", "MSW": "Master of Social Work", "MPA": "Master of Public Administration",
+    "MSN": "Master of Science in Nursing", "LLM": "Master of Laws", "PHD": "Doctor of Philosophy",
+    "EDD": "Doctor of Education", "JD": "Juris Doctor", "MD": "Doctor of Medicine",
+    "DDS": "Doctor of Dental Surgery", "PHARMD": "Doctor of Pharmacy", "PSYD": "Doctor of Psychology",
+    "DNP": "Doctor of Nursing Practice",
+}
 
 
 def month_label(value: str, years: bool = False) -> str:
@@ -142,11 +159,23 @@ def education_first(master: dict, today: date) -> bool:
         and worked < EARLY_CAREER_MONTHS
 
 
-def education_line(school: dict) -> dict:
+def degree_name(degree: str) -> str:
+    """"B.S. in Nursing" -> "Bachelor of Science in Nursing". Application forms (Workday, iCIMS,
+    Taleo) pick the degree from a spelled-out list, so an abbreviation matches nothing and the
+    field stays blank. Unknown first words stay as written."""
+    first, _, rest = degree.strip().partition(" ")
+    full = DEGREES.get(first.replace(".", "").upper())
+    return f"{full} {rest}".strip() if full else degree
+
+
+def education_entry(school: dict) -> dict:
+    """School on its own heading line, degree line under it: the same two-line shape as a job,
+    so a parser splits institution from degree instead of reading one line as the school name."""
     # hide_year: the user's choice to leave an old graduation year off; the degree still shows
     year = "" if school.get("hide_year") else school.get("end", "")[:4]
-    return {"text": joined(", ".join(p for p in (school["degree"], school.get("field")) if p),
-                           school["institution"], school.get("details"), year)}
+    degree = ", ".join(p for p in (degree_name(school["degree"]), school.get("field")) if p)
+    return {"heading": school["institution"], "subline": joined(degree, school.get("details"), year),
+            "bullets": []}
 
 
 def page_model(master: dict, today: date | None = None) -> dict:
@@ -164,7 +193,7 @@ def page_model(master: dict, today: date | None = None) -> dict:
             {"label": g["group"], "text": ", ".join(g["items"])} for g in master["skills"]
         ]})
     if master.get("education"):
-        education = {"title": "Education", "lines": [education_line(s) for s in master["education"]]}
+        education = {"title": "Education", "entries": [education_entry(s) for s in master["education"]]}
         if education_first(master, today or date.today()):
             sections.insert(0, education)
         else:
@@ -278,6 +307,9 @@ def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT,
     gate("ligatures", not LIGATURE.search(reading), "U+FB00-FB06 absent")
     missing = [part for part in model["contact"]["parts"] if part.casefold() not in reading.casefold()]
     gate("contact-in-body", not missing, f"missing from text layer: {missing}" if missing else "every contact part in text layer")
+    split = unsplit_entries(model, reading)
+    gate("entry-lines", not split, f"not on their own lines: {split}" if split
+         else "every job and school reads back as a heading line, then its detail line")
     # role headings only: "Jr." in a name or "Martin Luther King Jr. Hospital" is not a title
     abbreviated = [h for h in role_headings(model) if schema.ABBREVIATED_TITLE.search(h)]
     gate("no-abbreviated-title", not abbreviated, f"Sr./Jr. in {abbreviated}" if abbreviated else "role titles spelled out")
@@ -337,6 +369,25 @@ def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT,
             gate("line-fill (info)", True, stub_detail(stubs))
             gate("budget (info)", True, f"{detail}; tailored page fits at {windows or 'NONE at this density'}")
     return results
+
+
+def unsplit_entries(model: dict, reading: str) -> list[str]:
+    """Headings whose line, or the detail line under it, a parser would not get whole.
+
+    Application forms fill title/company/dates and school/degree from line shape: a heading line,
+    then its detail line. A heading merged into a neighbour, or split across rows, lands in the
+    wrong field - the one-line "Degree, Field | School" read as a school name is why this exists.
+    """
+    lines = [squeezed(l).casefold() for l in reading.splitlines() if l.strip()]
+    bad = []
+    for section in model["sections"]:
+        for e in section.get("entries", []):
+            head = joined(e["heading"], e.get("org"))
+            at = [i for i, line in enumerate(lines) if line == squeezed(head).casefold()]
+            sub = squeezed(e.get("subline") or "").casefold()
+            if not at or (sub and not any(i + 1 < len(lines) and sub.startswith(lines[i + 1]) for i in at)):
+                bad.append(head)
+    return bad
 
 
 def text_area(doc) -> tuple[float, float]:

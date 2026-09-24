@@ -114,6 +114,7 @@ WHY = {
     "invisible-unicode": "An invisible character could trip up job-site software.",
     "street-address": "City and state is enough; a street address adds nothing and exposes you.",
     "personal-details": "US employers don't expect these; they invite bias.",
+    "abbreviated-school": "Application forms match your school against a list of full names, so a short form like \"CC\" matches nothing.",
     "old-graduation-year": "A graduation year from 15+ years ago can invite age bias; you may leave the year off.",
 }
 # contact location: a house number, apartment or suite, or a ZIP code is more than a city and state
@@ -122,6 +123,8 @@ STREET = re.compile(r"^\s*\d+\s+\w|\b(apt|apartment|suite|ste|unit)\b\.?|#\s*\d|
 PERSONAL = re.compile(
     r"\b(date of birth|D\.?O\.?B\b|place of birth|born (on |in )?\d|age:?\s*\d{2}\b|\d{2}\s*(years|yrs)\s*old|"
     r"marital status|married|divorced|widowed|nationality|religion:|gender:)", re.I)
+# forms match the school against a list of full names ("Do not use abbreviations"): "Lakeview CC" matches nothing
+ABBREVIATED_SCHOOL = re.compile(r"\b(CC|CCC|Univ|Coll|Inst)\b\.?|\bU\.? of\b")
 # Indeed/AARP: past this a graduation year dates the candidate more than it informs
 OLD_GRADUATION_YEARS = 15
 
@@ -335,9 +338,9 @@ def check_ai_era(entry: dict, where: str, text: str, findings: list[Finding], ow
 
 def check_entry_identity(entry: dict, where: str, entries: dict, findings: list[Finding]) -> None:
     """Employer, title, dates = what verification catches; mirrored title allowed only as suffix."""
-    if entry.get("career_break"):
+    if "id" not in entry:  # career break or school: straight from the user's facts, never tailored
         return
-    source = entries.get(entry.get("id"))
+    source = entries.get(entry["id"])
     if source is None:
         findings.append(Finding(FAIL, "unknown-entry", where, f"id {entry.get('id')!r} not in master roles/projects"))
         return
@@ -361,6 +364,9 @@ def master_findings(master: dict, today: date) -> list[Finding]:
         if m := PERSONAL.search(text):
             findings.append(Finding(WARN, "personal-details", "resume", f"{m.group()!r}: {text!r}"))
     for i, school in enumerate(master.get("education") or []):
+        if m := ABBREVIATED_SCHOOL.search(school["institution"]):
+            findings.append(Finding(WARN, "abbreviated-school", f"education[{i}]",
+                                    f"{m.group()!r} in {school['institution']!r}: write the school's full name"))
         end = school.get("end")
         if end and not school.get("hide_year") and today.year - int(end[:4]) >= OLD_GRADUATION_YEARS:
             findings.append(Finding(WARN, "old-graduation-year", f"education[{i}]",
