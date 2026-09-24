@@ -152,12 +152,13 @@ def page_model(master: dict, tailored: dict, job: dict | None = None) -> dict:
     sections = []
     for section in base["sections"]:
         if "entries" in section:
-            # a career break is the user's own account of the time: on the page as written, never selected
+            # no id = never selected: a career break (the user's own account of the time) or a school,
+            # both on the page as written
             entries = [
-                e if e.get("career_break") else
+                e if "id" not in e else
                 {**e, "heading": mirrored(e["heading"], chosen[e["id"]]["title_mirror"]),
                  "bullets": [b["text"] for b in chosen[e["id"]]["bullets"]]}
-                for e in section["entries"] if e.get("career_break") or e["id"] in chosen
+                for e in section["entries"] if "id" not in e or e["id"] in chosen
             ]
             if entries:
                 sections.append({**section, "entries": entries})

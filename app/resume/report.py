@@ -38,6 +38,7 @@ GATE_WHY = {
     "single-column": "Text reads top to bottom in one column",
     "ligatures": "No joined letters that software misreads",
     "contact-in-body": "Your contact details are readable text, not hidden in a header",
+    "entry-lines": "Each job and school has its own name line with details under it, so application forms can fill their fields",
     "no-abbreviated-title": "Job titles are spelled out (Senior, not Sr.)",
     "no-prose-block": "No paragraph too long for a quick read",
     "size": "The file is small enough to upload anywhere",
