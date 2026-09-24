@@ -13,16 +13,12 @@ import rank
 import store
 
 
+# digest lists the best this many; the rest wait in the chat, still marked seen
+DIGEST_CAP = 25
+
+
 def facts(job: dict, config: dict) -> list[str]:
-    parts = [job["company"] or job["company_slug"] or "?"]
-    salary = rank.annual_usd_min(job)
-    if salary:
-        parts.append(f"${salary // 1000}k+")
-    hits = [c for c in job["collections"] if c in config["rank"]["boost_collections"]]
-    if hits:
-        parts.append(",".join(hits))
-    parts.append((job["posted_at"] or "")[:10])
-    return parts
+    return [job["company"] or job["company_slug"] or "?", rank.reasons(job, config)]
 
 
 def by_tier(ranked: list[dict], config: dict) -> list[tuple[str, list[dict]]]:
@@ -34,10 +30,9 @@ def by_tier(ranked: list[dict], config: dict) -> list[tuple[str, list[dict]]]:
 
 
 def build_message(ranked: list[dict], config: dict) -> EmailMessage:
-    sections = by_tier(ranked, config)
-    counts = ", ".join(f"{len(rows)} {label}" for label, rows in sections)
+    counts = ", ".join(f"{len(rows)} {label}" for label, rows in by_tier(ranked, config))
     text, markup = [], []
-    for label, rows in sections:
+    for label, rows in by_tier(ranked[:DIGEST_CAP], config):
         text.append(f"== {label} ==")
         markup.append(f"<h3>{html.escape(label)}</h3><ul>")
         for j in rows:
@@ -48,20 +43,33 @@ def build_message(ranked: list[dict], config: dict) -> EmailMessage:
                 f" - {html.escape(detail)}</li>"
             )
         markup.append("</ul>")
+    if len(ranked) > DIGEST_CAP:
+        more = f"{len(ranked) - DIGEST_CAP} more - ask the chat to see them"
+        text.append(more)
+        markup.append(f"<p>{html.escape(more)}</p>")
     msg = EmailMessage()
     msg["Subject"] = f"{len(ranked)} new {config['profile']['name']} ({counts})"
     msg.set_content("\n".join(text))
     msg.add_alternative("".join(markup), subtype="html")
+    # desktop pop-up has room for a line, not a digest (notify.sender)
+    msg.preview = "; ".join(j["title"] for j in ranked[:3])
     return msg
 
 
+def unseen_ranked(conn, config: dict) -> list[dict]:
+    # rank every open row so a repost of a job already sent collapses into it, not in as new;
+    # stale rows (likely filled) are never announced - they stay in the chat list only
+    return [j for j in rank.rank(store.all_jobs(conn), config) if not j["seen"] and not j["stale"]]
+
+
 def run(conn, config: dict, send: Callable[[EmailMessage], None]) -> int:
-    ranked = rank.rank(store.unseen_open(conn), config)
+    ranked = unseen_ranked(conn, config)
     if not ranked:
         return 0
     send(build_message(ranked, config))
+    # only after send succeeds => failed send retries tomorrow
     with conn:
-        store.mark_seen(conn, [j["public_slug"] for j in ranked], store.utc_now())
+        store.mark_seen(conn, [s for j in ranked for s in [j["public_slug"], *j["duplicates"]]], store.utc_now())
     return len(ranked)
 
 
@@ -93,7 +101,7 @@ def main() -> None:
     config = cfg.load()
     conn = store.connect(args.db or cfg.db_path(config))
     if args.dry_run:
-        ranked = rank.rank(store.unseen_open(conn), config)
+        ranked = unseen_ranked(conn, config)
         if ranked:
             msg = build_message(ranked, config)
             print(msg["Subject"])

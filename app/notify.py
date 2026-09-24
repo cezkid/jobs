@@ -44,4 +44,5 @@ def notify(title: str, body: str) -> None:
 
 
 def sender() -> Callable[[EmailMessage], None]:
-    return lambda msg: notify(msg["Subject"], HINT)
+    # preview = top titles (alert.build_message) or what to do next; hint when absent
+    return lambda msg: notify(msg["Subject"], getattr(msg, "preview", "") or HINT)
