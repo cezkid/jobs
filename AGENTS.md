@@ -86,7 +86,7 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
   pasted postings.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `resume/`, `apply/` (Workday filler), `profiles/`
+  `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (Workday filler), `profiles/`
   (example search), `skills/`, `install/`, `deploy/`, `docs/`, `tests/`.
 - `docs/index.html` - install page, GitHub Pages (`https://cezkid.github.io/jobs`).
 
