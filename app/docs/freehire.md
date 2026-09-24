@@ -42,6 +42,16 @@ counts in one call.
   => value < 1000 hourly, < 10000 monthly (`rank.pay`). One `month` row read 70000-100000 -
   label wrong at source, left as is.
 
+## Visa sponsorship (2026-09-24, `countries=us`)
+
+`enrichment.visa_sponsorship`: `false` 36,846, `true` 13,775 of 775,975 rows - null on 93.5%, so
+a `visa_sponsorship=` filter drops nearly every job. Weak label: of 12 full postings (one per
+company) marked `false`, 4 say so in the text ("visa sponsorship is not available"), 8 say
+nothing; of 12 marked `true`, none mentions sponsorship. Search rows carry only the first
+~1000 chars of `description`, so the full posting is read via `GET /jobs/<slug>`. => user who
+needs a sponsor (`work_authorization.needs_sponsorship`): `false` rows demoted w/ reason, never
+hidden; `true` never boosted. Tailoring reads the full posting and quotes the line.
+
 ## Closing + stale rows
 
 `close_missing` closes only rows posted inside a pass's `posted_within_days` window: older rows

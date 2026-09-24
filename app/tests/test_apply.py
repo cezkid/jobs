@@ -60,3 +60,10 @@ def test_script_is_valid_javascript(master, tmp_path):
     out = tmp_path / "apply.js"
     out.write_text(profile.script(profile.answers(master)), encoding="utf-8")
     assert subprocess.run(["node", "--check", str(out)], capture_output=True).returncode == 0
+
+
+def test_work_authorization_reads_setup_answers_and_never_guesses_unset():
+    said = profile.work_authorization({"work_authorization": {"authorized_us": True, "needs_sponsorship": False}})
+    assert said == "authorized to work in the US: yes; needs visa sponsorship: no"
+    assert profile.work_authorization(profile.cfg.defaults()) == (
+        "authorized to work in the US: not set - ask them; needs visa sponsorship: not set - ask them")

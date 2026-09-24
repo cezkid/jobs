@@ -24,13 +24,26 @@ Round 1, one batch of 4:
 - full time / part time / contract, `multiSelect` + "doesn't matter"
 - lowest yearly pay - 4 bands (ranks higher-paying first, never hides jobs; say so in the question)
 
-Round 2, narrows round 1 (batch of 3):
+Round 2, narrows round 1 (batch of 4):
 - which exact roles inside the family they picked, `multiSelect`, counts per option
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
   the `cities` facet, so they click instead of typing; "Other" covers the rest
 - career level (entry / mid / senior / leader) - `rank.career_level`: titles clearly above or
   below it sort lower, never hidden; never a `seniority` filter (facet null on 30-45% of rows,
   junior lives in title string)
+- work permit, one question - nearly every US application asks both "legally authorized to work
+  in the US without restriction?" and "will you now or in the future require sponsorship?", so
+  ask once here; each form still shows them the answer before they click Save. Options ->
+  `work_authorization` (`authorized_us`, `needs_sponsorship`):
+  - Yes, never need sponsorship (US citizen, green card, refugee/asylee) -> true, false
+  - Allowed now, will need it later (OPT, STEM OPT, H-1B transfer) -> true, true
+  - Need sponsorship to start -> false, true
+  - Ask me on each application -> leave both null
+  Say in the question it stays on this computer (no job search sends it). Needs sponsorship ->
+  count from `probe --facets visa_sponsorship` on their category: "freehire marks 36,846 US jobs
+  'no visa sponsorship' - they'll sort lower, never hidden". Never guess it from name, school
+  or where they studied. Their answer is sworn on the form: never help shade it (`AGENTS.md`
+  #Lead, explain, push back - Hold).
 
 Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
 `jobgether` + `builtin-integration-sandbox` w/o asking, but say why in one sentence when you
@@ -66,7 +79,7 @@ showing jobs from <company>" any time.
 Write `My Settings/Search settings.yml`: `profile.name` (their words, e.g. "accounting jobs" -
 heads notification + email), `passes`, `blocklist` (keep `jobgether` + their companies),
 `rank.salary_floor_usd`, `rank.career_level`, `rank.employment_types` (full/part time/contract
-answer; [] for "doesn't matter"); decisive counts + date as comment beside each param. Then
+answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date as comment beside each param. Then
 `uv run app/jobs.py check-settings`.
 
 ## 3. Resume

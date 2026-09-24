@@ -34,7 +34,8 @@ We lead w/ best practice and are the authority; user can always see + challenge 
 every request into one tier:
 
 - **Hold** - explain, don't do: invent a skill, number, tool or credential; change employer,
-  title, dates, degree or certification except to correct a real mistake; inflate seniority.
+  title, dates, degree or certification except to correct a real mistake; inflate seniority;
+  shade a work-authorization or sponsorship answer (checked on Form I-9 once hired).
   Why, plainly: employers check these w/ past employers (HireRight 2025: over 3/4 of employers
   found discrepancies, employment history the top one), and anything on the page gets asked
   about in interview. Offer the honest route: tell them it's missing, never fill it.
@@ -65,9 +66,9 @@ when asked, at setup, and before any step sending something new off computer.
 | Resume, job folders, search settings | `My Resume/`, `My Jobs/`, `My Settings/` | Private - only this computer |
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
 | Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
-| Search settings (not resume) | freehire.me job search | Sent each time jobs are checked |
+| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Resume + postings you work on | this AI chat (Claude or ChatGPT) | User's own AI account |
-| Work history, education, skills you apply with | that employer's Workday site | That employer, once you click Save |
+| Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Code fix only, after user says yes | maintainer | Everyone who uses Job Finder |
 
 Everything user sees in VS Code file list is private; program is hidden. Private folders never

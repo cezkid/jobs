@@ -133,6 +133,22 @@ def test_seniority_mismatch_demoted_nulls_untouched():
     assert rank.mismatches(make_job("i", title="Internal Auditor"), senior["rank"]) == []
 
 
+def test_no_sponsorship_demoted_only_for_a_user_who_needs_it():
+    jobs = [
+        make_job("no-sponsor", enrichment={"visa_sponsorship": False}, **usd(200000)),
+        make_job("unsaid", enrichment={}, **usd(100000)),
+        make_job("sponsors", enrichment={"visa_sponsorship": True}, **usd(90000)),
+    ]
+    needs = cfg.merge(CONFIG, {"work_authorization": {"needs_sponsorship": True}})
+    assert slugs(rank.rank(jobs, needs, NOW)) == ["unsaid", "sponsors", "no-sponsor"]
+    assert rank.reasons(jobs[0], needs, NOW).endswith("says no visa sponsorship")
+    # citizen, green card, or not asked: the label changes nothing
+    for answer in (False, None):
+        config = cfg.merge(CONFIG, {"work_authorization": {"needs_sponsorship": answer}})
+        assert slugs(rank.rank(jobs, config, NOW)) == ["no-sponsor", "unsaid", "sponsors"]
+        assert "sponsorship" not in rank.reasons(jobs[0], config, NOW)
+
+
 def test_title_phrase_matches_whole_words_only():
     config = cfg.merge(CONFIG, {"blocklist": {"title_phrases": ["intern"]}})
     jobs = [make_job("aud", title="Internal Auditor"), make_job("tax", title="Tax Intern (Summer)")]
