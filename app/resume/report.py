@@ -125,7 +125,7 @@ def diff_md(master: dict, tailored: dict, model: dict) -> str:
     restated = bullet_texts(tailored)
     reasons = reasons_by_id(tailored)
     chosen = {t["id"]: t for t in tailored["entries"]}
-    headings = {e["id"]: e["heading"] for s in model["sections"] for e in s.get("entries", [])}
+    headings = {e["id"]: e["heading"] for s in model["sections"] for e in s.get("entries", []) if e.get("id")}
     out = ["# What changed from your resume", ""]
 
     mirrors = [t for t in tailored["entries"] if t["title_mirror"]]

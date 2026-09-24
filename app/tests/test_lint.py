@@ -287,3 +287,45 @@ def test_every_rule_has_a_plain_reason_and_the_doc_carries_it():
     assert emitted and emitted <= lint.WHY.keys(), emitted - lint.WHY.keys()
     doc = (cfg.APP / "docs" / "bullets.md").read_text(encoding="utf-8")
     assert all(f"| `{rule}` | {why} |" in doc for rule, why in lint.WHY.items())
+
+
+TODAY = lint.date(2026, 9, 24)
+
+
+def test_example_file_discloses_nothing_it_should_not(master):
+    assert lint.master_findings(master, TODAY) == []
+
+
+@pytest.mark.parametrize("location", ["12 Elm Street, Springfield, IL", "Springfield, IL 62701", "Springfield, IL, Apt 4"])
+def test_street_address_warns(master, location):
+    master["contact"]["location"] = location
+    assert rules(lint.master_findings(master, TODAY), lint.WARN) == {"street-address"}
+
+
+@pytest.mark.parametrize("text", ["Date of birth: 1990-04-02", "Marital status: single", "Nationality: Canadian", "Age: 34"])
+def test_personal_details_warn(master, text):
+    master["summary"] = text
+    assert rules(lint.master_findings(master, TODAY), lint.WARN) == {"personal-details"}
+
+
+def test_old_graduation_year_suggests_hiding_never_hides(master):
+    master["education"][0]["end"] = "2008-05"
+    findings = lint.master_findings(master, TODAY)
+    assert rules(findings, lint.WARN) == {"old-graduation-year"} and "hide_year" in findings[0].detail
+    assert "2008" in render.page_model(master)["sections"][-2]["lines"][0]["text"]
+    master["education"][0]["hide_year"] = True
+    assert lint.master_findings(master, TODAY) == []
+
+
+def test_same_year_handover_is_not_an_overlap(master):
+    master["roles"][0]["start"] = "2023"
+    master["roles"][1]["end"] = "2023"
+    assert "role-dates-overlap" not in rules(lint.lint(render.page_model(master), master), lint.WARN)
+    master["roles"][1]["end"] = "2024"
+    assert "role-dates-overlap" in rules(lint.lint(render.page_model(master), master), lint.WARN)
+
+
+def test_career_break_is_not_an_unknown_entry(master):
+    master["career_break"] = [{"reason": "Travel", "start": "2023-01", "end": "2023-01"}]
+    master["roles"][1]["end"] = "2022-12"
+    assert rules(lint.lint(render.page_model(master), master)) == set()

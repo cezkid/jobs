@@ -62,6 +62,7 @@ MAPPED = {
     }],
     "certifications": [],
     "languages": ["English", "Spanish"],
+    "other": [],
 }
 
 
@@ -94,13 +95,14 @@ def test_omitted_line_lowers_recovery(mapped):
     assert ratio < import_pdf.MIN_RECOVERY
 
 
-def test_build_validates_and_flags_year_only_dates(mapped):
+def test_build_validates_and_keeps_year_only_dates_as_years(mapped):
     master, assumptions = import_pdf.build(mapped, TODAY)
     assert schema.validate(master) == []
     assert [r["id"] for r in master["roles"]] == ["acme", "globex", "globex-software-engineer-intern"]
     assert master["roles"][0]["start"] == "2023-02" and master["roles"][0]["end"] == schema.PRESENT
-    assert master["roles"][1]["start"] == "2019-01" and master["roles"][1]["end"] == "2023-12"
-    assert "roles[1].start: '2019' year only -> month 01" in assumptions
+    # no invented month: the PDF said 2019 - 2023, so the file says 2019 and 2023
+    assert master["roles"][1]["start"] == "2019" and master["roles"][1]["end"] == "2023"
+    assert assumptions == []
     assert master["roles"][0]["bullets"][0] == {
         "id": "acme-1",
         "claim": "Built retrieval search over support docs, deflected 23% of tier-1 tickets",
@@ -161,3 +163,47 @@ def test_extract_rejects_glyph_id_text(tmp_path):
 
 def test_mapped_fixture_matches_answer_schema(mapped):
     assert handoff.violations(mapped, import_pdf.MAPPED_SCHEMA, "answer") == []
+
+
+def test_all_caps_credential_counts_only_named_headings_skip():
+    lines = import_pdf.content_lines("Work Experience:\nSKILLS & ABILITIES\nACTIVE TS/SCI CLEARANCE\nBLS/ACLS CERTIFIED\n")
+    assert lines == ["ACTIVE TS/SCI CLEARANCE", "BLS/ACLS CERTIFIED"]
+
+
+def test_dropped_credential_line_is_reported_and_other_section_traces_it(mapped):
+    source = SOURCE + "SECURITY CLEARANCE\nACTIVE TS/SCI CLEARANCE\n"
+    assert "ACTIVE TS/SCI CLEARANCE" in import_pdf.recovery(mapped, source)[1]
+    mapped["other"] = [{"heading": "SECURITY CLEARANCE", "lines": ["ACTIVE TS/SCI CLEARANCE"]}]
+    assert import_pdf.untraced(mapped, source) == []
+    assert "ACTIVE TS/SCI CLEARANCE" not in import_pdf.recovery(mapped, source)[1]
+    master, _ = import_pdf.build(mapped, TODAY)
+    assert master["other"] == [{"heading": "SECURITY CLEARANCE", "lines": ["ACTIVE TS/SCI CLEARANCE"]}]
+    assert schema.validate(master) == []
+
+
+def test_every_left_out_line_is_printed_plainly(capsys):
+    import_pdf.left_out(["Volunteer, Riverside Food Bank", "English and Spanish"])
+    out = capsys.readouterr().out
+    assert "2 line(s) of the PDF are not fully in the resume details" in out
+    assert "  - Volunteer, Riverside Food Bank\n" in out and "  - English and Spanish\n" in out
+    import_pdf.left_out([])
+    assert "nothing" in capsys.readouterr().out
+
+
+def test_undated_project_and_year_only_certificate_build_as_written(mapped):
+    mapped["projects"] = [{"name": "Garden planner", "dates": None, "bullets": [
+        {"claim": "Wrote Storybook stories", "metrics": [], "stack": [], "ai_work": False}]}]
+    mapped["certifications"] = [{"name": "First Aid", "issuer": None, "date": "2021"}]
+    master, _ = import_pdf.build(mapped, TODAY)
+    assert "start" not in master["projects"][0]
+    assert master["certifications"] == [{"name": "First Aid", "date": "2021"}]
+    assert schema.validate(master) == []
+
+
+def test_roles_out_of_order_are_sorted_newest_first_and_said(mapped):
+    mapped["roles"].reverse()
+    master, assumptions = import_pdf.build(mapped, TODAY)
+    assert [r["title"] for r in master["roles"]] == [
+        "Senior Software Engineer", "Software Engineer", "Software Engineer Intern"]
+    assert "the PDF listed jobs out of date order - they are now newest first" in assumptions
+    assert schema.validate(master) == []

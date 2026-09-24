@@ -29,6 +29,16 @@ ENDPOINT = re.compile(r"^(?:(?P<month>[a-z]{3})[a-z]*\.?\s+)?(?P<year>\d{4})$")
 RANGE_SEP = re.compile(r"\s*-\s*|\s+to\s+")
 PRESENT_WORDS = {"present", "current", "now"}
 NON_SLUG = re.compile(r"[^a-z0-9]+")
+# a section heading carries no fact, so it is the one line recovery may skip. Named, never guessed
+# from capitals: "ACTIVE TS/SCI CLEARANCE" or "BLS/ACLS CERTIFIED" is all caps and a real credential
+HEADING = re.compile(
+    r"^(?:(?:professional|work|relevant|technical|core|key|additional|other|selected|career|volunteer)\s+)?"
+    r"(?:experience|work history|employment(?: history)?|history|education(?: and training)?|training|"
+    r"skills(?: and abilities)?|competencies|summary|profile|objective|about(?: me)?|"
+    r"certifications?(?: and licen[cs]es?)?|licen[cs]es?(?: and certifications?)?|credentials|projects|languages|"
+    r"volunteer(?:ing)?|work|awards(?: and honors)?|honors(?: and awards)?|achievements|accomplishments|"
+    r"publications|interests|activities|affiliations|memberships|references|qualifications|highlights|expertise)"
+    r"\s*:?$", re.I)
 
 SYSTEM = """You map resume text extracted from a PDF onto fixed fields. You never write, rephrase, correct or expand.
 
@@ -41,6 +51,8 @@ Rules:
 - `metrics` = verbatim number phrases inside the claim. `stack` = verbatim technology names inside the claim.
 - `ai_work` true only when the claim itself describes AI/LLM work.
 - Skills: `group` is your short label; `items` = each pipe- or comma-separated entry copied verbatim.
+- `dates` on a project may be null when the source gives none.
+- `other` = every section fitting none of the fields above (volunteer work, awards, clearances, publications, licences outside a certifications list): `heading` as written, `lines` each source line copied verbatim, dates left inside the line.
 - Every non-heading source line must land in some field."""
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
@@ -59,6 +71,7 @@ MAPPED_SCHEMA = obj(
     education=array(obj(institution=STRING, degree=STRING, field=NULLABLE, details=NULLABLE, end=NULLABLE)),
     certifications=array(obj(name=STRING, issuer=NULLABLE, date=NULLABLE)),
     languages=STRINGS,
+    other=array(obj(heading=STRING, lines=STRINGS)),
 )
 
 
@@ -112,6 +125,10 @@ def traced_strings(mapped: dict) -> list[tuple[str, str]]:
             add(f"certifications[{i}].{key}", cert[key])
     for i, v in enumerate(mapped["languages"]):
         add(f"languages[{i}]", v)
+    for i, section in enumerate(mapped["other"]):
+        add(f"other[{i}].heading", section["heading"])
+        for k, v in enumerate(section["lines"]):
+            add(f"other[{i}].lines[{k}]", v)
     return out
 
 
@@ -121,8 +138,8 @@ def untraced(mapped: dict, source: str) -> list[str]:
 
 
 def content_lines(source: str) -> list[str]:
-    # all-caps line = section heading => carries no fact
-    return [line.strip() for line in source.splitlines() if WORD.search(line) and not line.isupper()]
+    return [line.strip() for line in source.splitlines()
+            if WORD.search(line) and not HEADING.match(normalize(line).replace("&", "and"))]
 
 
 def recovery(mapped: dict, source: str) -> tuple[float, list[str]]:
@@ -146,7 +163,7 @@ def unique(base: str, taken: set[str]) -> str:
     return candidate
 
 
-def parse_endpoint(text: str, is_end: bool, where: str, today: date, assumptions: list[str]) -> str | None:
+def parse_endpoint(text: str, where: str, today: date, assumptions: list[str]) -> str | None:
     value = normalize(text)
     if value in PRESENT_WORDS:
         return schema.PRESENT
@@ -155,13 +172,8 @@ def parse_endpoint(text: str, is_end: bool, where: str, today: date, assumptions
         # left unset => schema flags field missing; hand edit settles it
         assumptions.append(f"{where}: unparseable date {text!r}, set by hand")
         return None
-    if match["month"]:
-        month = MONTHS.index(match["month"]) + 1
-    else:
-        # year-only source => widest honest span, flagged for hand edit
-        month = 12 if is_end else 1
-        assumptions.append(f"{where}: {text!r} year only -> month {month:02d}")
-    result = f"{match['year']}-{month:02d}"
+    # year-only source stays a year: a month the resume never gave is one a checker may not find
+    result = f"{match['year']}-{MONTHS.index(match['month']) + 1:02d}" if match["month"] else match["year"]
     if schema.month_index(result, today) > schema.month_index(schema.PRESENT, today):
         assumptions.append(f"{where}: {result} after today")
     return result
@@ -175,8 +187,8 @@ def parse_range(text: str | None, where: str, today: date, assumptions: list[str
         assumptions.append(f"{where}: dates {text!r} not start - end, set by hand")
         return {}
     return {
-        "start": parse_endpoint(parts[0], False, f"{where}.start", today, assumptions),
-        "end": parse_endpoint(parts[1], True, f"{where}.end", today, assumptions),
+        "start": parse_endpoint(parts[0], f"{where}.start", today, assumptions),
+        "end": parse_endpoint(parts[1], f"{where}.end", today, assumptions),
     }
 
 
@@ -233,12 +245,15 @@ def build(mapped: dict, today: date) -> tuple[dict, list[str]]:
         }))
     education = []
     for i, s in enumerate(mapped["education"]):
-        end = s["end"] and parse_endpoint(s["end"], True, f"education[{i}].end", today, assumptions)
+        end = s["end"] and parse_endpoint(s["end"], f"education[{i}].end", today, assumptions)
         education.append(drop_empty({**s, "end": end}))
     certifications = []
     for i, c in enumerate(mapped["certifications"]):
-        when = c["date"] and parse_endpoint(c["date"], False, f"certifications[{i}].date", today, assumptions)
+        when = c["date"] and parse_endpoint(c["date"], f"certifications[{i}].date", today, assumptions)
         certifications.append(drop_empty({**c, "date": when}))
+    if schema.out_of_order(roles):
+        roles = schema.newest_first(roles)
+        assumptions.append("the PDF listed jobs out of date order - they are now newest first")
     master = drop_empty({
         "contact": drop_empty(mapped["contact"]),
         "summary": mapped["summary"],
@@ -248,6 +263,7 @@ def build(mapped: dict, today: date) -> tuple[dict, list[str]]:
         "education": education,
         "certifications": certifications,
         "languages": mapped["languages"],
+        "other": [drop_empty(o) for o in mapped["other"] if o["lines"]],
     })
     return master, assumptions
 
@@ -274,8 +290,7 @@ def finish(config: dict) -> None:
     print(f"recovery {ratio:.1%} (floor {MIN_RECOVERY:.0%}), untraced {len(failures)}")
     for line in failures:
         print(f"  untraced {line}")
-    for line in dropped:
-        print(f"  dropped  {line}")
+    left_out(dropped)
     if failures or ratio < MIN_RECOVERY:
         sys.exit(f"gate failed, nothing written; fix {ANSWER} to copy source text exactly, then rerun")
 
@@ -298,6 +313,17 @@ def finish(config: dict) -> None:
         print(f"  schema   {e}")
     if errors:
         sys.exit(f"schema errors above need hand edits in {master_path.name}")
+
+
+def left_out(dropped: list[str]) -> None:
+    """Every PDF line not fully in the details file, pass or fail: the user decides, not the floor."""
+    if not dropped:
+        print("left out: nothing - every line of the PDF is in the resume details")
+        return
+    print(f"left out: {len(dropped)} line(s) of the PDF are not fully in the resume details. "
+          "Read each one to the user; any that is a real fact goes back in:")
+    for line in dropped:
+        print(f"  - {line}")
 
 
 def main() -> None:
