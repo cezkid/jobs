@@ -77,6 +77,14 @@ def test_all_seen_run_marks_every_row_seen(conn):
     assert store.unseen_open(conn) == []
 
 
+def test_stale_row_never_announced(conn):
+    store.upsert(conn, [make_job("gone", title="Clerk")], "2026-01-01T00:00:00Z")
+    store.upsert(conn, [make_job("live", title="Teller")], NOW)
+    sent = []
+    assert alert.run(conn, CONFIG, sent.append) == 1
+    assert "jobs/gone" not in plain(sent[0])
+
+
 def test_repost_of_sent_job_is_not_new(conn):
     store.upsert(conn, [make_job("a", title="Clerk")], NOW)
     alert.run(conn, CONFIG, lambda m: None)

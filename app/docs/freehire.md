@@ -45,8 +45,10 @@ counts in one call.
 ## Closing + stale rows
 
 `close_missing` closes only rows posted inside a pass's `posted_within_days` window: older rows
-are never re-fetched, so never closed. `rank` hides open rows no fetch returned in
-`rank.stale_days` (default 14) days, read off `jobs.fetched_at`.
+are never re-fetched, so never closed. `rank` sorts open rows no fetch returned in more than
+`rank.stale_days` (default 14) days, read off `jobs.fetched_at`, to the bottom of their tier w/
+reason "may be closed - not seen in Nd"; digest never announces them. Demoted, not hidden:
+hiding a still-open job costs a chance, showing a closed one costs a click.
 
 ## Defects handled in code
 

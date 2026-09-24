@@ -46,9 +46,29 @@ def test_rank_order_tier_trust_floor_pay_collections_recency():
     ]
 
 
-def test_stale_row_excluded_fresh_kept():
-    jobs = [make_job("gone", fetched_at="2026-08-30T00:00:00Z"), make_job("live", fetched_at="2026-09-14T00:00:00Z")]
-    assert slugs(rank.rank(jobs, CONFIG, NOW)) == ["live"]
+def test_stale_row_sorts_last_in_tier_with_reason():
+    jobs = [
+        make_job("gone", fetched_at="2026-08-30T00:00:00Z", **usd(200000)),
+        make_job("ghost", fetched_at="2026-09-14T00:00:00Z", reality={"repost_count": 9}),
+        make_job("live", fetched_at="2026-09-14T00:00:00Z"),
+        make_job("local", tier="local", fetched_at="2026-09-14T00:00:00Z"),
+    ]
+    ranked = rank.rank(jobs, CONFIG, NOW)
+    assert slugs(ranked) == ["live", "ghost", "gone", "local"]
+    assert rank.reasons(ranked[2], CONFIG, NOW).endswith("may be closed - not seen in 16d")
+
+
+def test_live_copy_beats_stale_duplicate():
+    jobs = [make_job("old-copy", title="Clerk", fetched_at="2026-08-01T00:00:00Z", **usd(50000)),
+            make_job("live-copy", title="Clerk", fetched_at="2026-09-14T00:00:00Z")]
+    assert slugs(rank.rank(jobs, CONFIG, NOW)) == ["live-copy"]
+
+
+def test_old_salaried_row_above_old_unsalaried_row():
+    old = {"age_days": 95, "class": "stale"}
+    jobs = [make_job("unpaid", reality=old, posted_at="2026-09-15T11:00:00Z"),
+            make_job("paid", reality=dict(old, age_days=102), **usd(80000, 110000))]
+    assert slugs(rank.rank(jobs, CONFIG, NOW)) == ["paid", "unpaid"]
 
 
 def test_reposted_old_or_evergreen_rows_sort_below_fresh():
