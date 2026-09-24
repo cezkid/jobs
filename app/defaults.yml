@@ -33,3 +33,28 @@ resume:
   master: My Resume/Resume details.yml
   input_pdf: My Resume/Original resume.pdf
   jobs_dir: My Jobs
+
+# Ranking (rank.py). Order: tier > likely ghost / level / hours mismatch > pay floor > pay >
+# employer lists > first seen. Nothing here hides a job except stale_days.
+rank:
+  # open job no check has returned in this many days is hidden: filled jobs outside a pass's
+  # posted_within_days window are never re-fetched, so never marked closed
+  stale_days: 14
+  # freehire `reality`: relisted this often, or listed this many days, or class likely-evergreen
+  # => sorted below fresh jobs in its tier. 2026-09-24, 500 newest US rows: repost_count 1 on
+  # 446, 3+ on 19; age_days median 70 on `stale` class (75% of all rows) => 90 flags the tail
+  repost_demote: 3
+  old_days: 90
+  # setup answers; a title/type that clearly contradicts them sorts lower, never hidden.
+  # career_level: entry | mid | senior | leader | null (any). Titles w/o level words untouched.
+  career_level: null
+  # any of full_time part_time contract internship fellowship; [] = doesn't matter.
+  # Rows w/o employment_type (~30-45%) never demoted.
+  employment_types: []
+  # yearly USD; a job whose top of range reaches it ranks above those that don't. Boost only.
+  salary_floor_usd: 0
+  # freehire employer lists; only order jobs with no pay listed. bigtech/unicorn/yc are
+  # tech-only - add them for a tech search. fortune500 spans every field (54k US rows 2026-09-24)
+  boost_collections: [fortune500]
+  # company spanning this many enrichment categories -> printed by `rank --suspects`
+  suspect_min_categories: 5

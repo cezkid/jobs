@@ -28,8 +28,9 @@ Round 2, narrows round 1 (batch of 3):
 - which exact roles inside the family they picked, `multiSelect`, counts per option
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
   the `cities` facet, so they click instead of typing; "Other" covers the rest
-- career level - context for ranking + tailoring only; never a `seniority` filter (facet null on
-  30-45% of rows, junior lives in title string)
+- career level (entry / mid / senior / leader) - `rank.career_level`: titles clearly above or
+  below it sort lower, never hidden; never a `seniority` filter (facet null on 30-45% of rows,
+  junior lives in title string)
 
 Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
 `jobgether` + `builtin-integration-sandbox` silently, tell them at wrap-up they can say "stop
@@ -55,13 +56,15 @@ showing jobs from <company>" any time.
   100 rows' `enrichment.category` and blocklist the non-role ones the tag leaks onto: measure it
   (`skills=react` 2026-09-20 leaked Sales Consultant, Payment Operations Analyst, Product
   Designer, Product Manager), never guess the list.
-- Rank has NO per-skill boost (`rank.py`: tier, collections, salary only), and a row matching two
+- Rank has NO per-skill boost (`rank.py`: tier, likely-ghost/level/hours mismatch, pay,
+  employer lists, age - `app/defaults.yml` #rank), and a row matching two
   passes keeps the LAST pass's tier. So "X first, everything else after" is NOT expressible w/
   overlapping passes - either narrow the search to X, or leave it wide. Say which you did.
 
 Write `My Settings/Search settings.yml`: `profile.name` (their words, e.g. "accounting jobs" -
 heads notification + email), `passes`, `blocklist` (keep `jobgether` + their companies),
-`rank.salary_floor_usd`; decisive counts + date as comment beside each param. Then
+`rank.salary_floor_usd`, `rank.career_level`, `rank.employment_types` (full/part time/contract
+answer; [] for "doesn't matter"); decisive counts + date as comment beside each param. Then
 `uv run app/jobs.py check-settings`.
 
 ## 3. Resume

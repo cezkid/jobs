@@ -16,7 +16,8 @@ def query_params(params: dict) -> dict:
     return {k: ",".join(v) if isinstance(v, list) else v for k, v in params.items()}
 
 
-def fetch_pass(client: httpx.Client, base: str, params: dict, page_limit: int) -> list[dict]:
+def fetch_pass(client: httpx.Client, base: str, params: dict, page_limit: int) -> tuple[list[dict], bool]:
+    """Rows + whether the API ceiling cut the pass short (rows past it were never seen)."""
     rows, offset = [], 0
     while True:
         limit = min(page_limit, API_OFFSET_CEILING - offset)
@@ -29,7 +30,7 @@ def fetch_pass(client: httpx.Client, base: str, params: dict, page_limit: int) -
         if total > API_OFFSET_CEILING:
             print(f"warning: total {total} exceeds API offset ceiling, truncated", file=sys.stderr)
         if not body["data"] or offset >= min(total, API_OFFSET_CEILING):
-            return rows
+            return rows, total > API_OFFSET_CEILING
 
 
 def normalize(raw: dict, tier: str) -> dict:
@@ -80,13 +81,15 @@ def run(config: dict, conn, client: httpx.Client) -> dict[str, dict]:
     api = config["api"]
     summary = {}
     for p in config["passes"]:
-        rows = [normalize(r, p["tier"]) for r in fetch_pass(client, api["base"], p["params"], api["page_limit"])]
+        raw, truncated = fetch_pass(client, api["base"], p["params"], api["page_limit"])
+        rows = [normalize(r, p["tier"]) for r in raw]
         with conn:
             store.upsert(conn, rows, now)
-            closed = store.close_missing(
+            # truncated pass never saw rows past the ceiling => absence proves nothing
+            closed = 0 if truncated else store.close_missing(
                 conn, p["tier"], {r["public_slug"] for r in rows}, posted_since(p["params"], now_dt), now
             )
-        summary[p["tier"]] = {"fetched": len(rows), "closed": closed}
+        summary[p["tier"]] = {"fetched": len(rows), "closed": closed, "truncated": truncated}
     return summary
 
 
