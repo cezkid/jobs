@@ -1,6 +1,7 @@
 // Page model arrives as JSON (resume/render.py page_model) => strings never parsed as markup
 #let d = json(bytes(sys.inputs.data))
-#let accent = rgb("#1F3A5F")
+// one ink for every glyph: resume format guidance is black text throughout, and render.py's
+// text-color gate holds the page to it
 #let ink = rgb("#1A1A1A")
 
 #set document(title: d.title)
@@ -16,26 +17,33 @@
 
 #let sep = [ #h(0.3em)|#h(0.3em) ]
 
+// no letterspacing of its own: at +0.08em a PDF-to-HTML reader split EXPERIENCE into
+// "EXP E R I ENC E", while body text at the page's +0.015em came back whole - split-words gate
 #let section(heading-text, body) = {
   block(above: 14pt, below: 6pt, sticky: true)[
-    #text(size: 11.5pt, weight: 600, fill: accent, tracking: 0.08em)[#upper(heading-text)]
+    #text(size: 11.5pt, weight: 600)[#upper(heading-text)]
     #v(-6pt)
-    #line(length: 100%, stroke: 0.6pt + accent)
+    #line(length: 100%, stroke: 0.6pt + ink)
   ]
   body
 }
 
+// first thing under a heading sits the same distance below it in every section, entry or line:
+// a job's 10pt lead there made EXPERIENCE 7.5pt looser than SKILLS; consistent spacing after
+// section headings is standard format guidance - heading-gap gate
+#let first-gap = 0.74em + 2.5pt
+
 // dates inline, never h(1fr) right column: pdftotext default mode read it as 2nd column, after bullets
 // no bullets (a school, a career break) => spaced like a line, not a job: two rows, no empty list gap
-#let entry(e) = block(above: 0.74em + if e.bullets.len() > 0 { 10pt } else { 2.5pt }, below: 0pt, breakable: true)[
+#let entry(e, first) = block(above: if first { first-gap } else { 0.74em + if e.bullets.len() > 0 { 10pt } else { 2.5pt } }, below: 0pt, breakable: true)[
   #block(below: if e.bullets.len() > 0 { 0.74em + 2.5pt } else { 0pt }, sticky: true)[
-    #text(weight: 600, fill: accent)[#e.heading]#if e.at("org", default: none) != none [#sep#text(weight: 600)[#e.org]]
+    #text(weight: 600)[#e.heading]#if e.at("org", default: none) != none [#sep#text(weight: 600)[#e.org]]
     #if e.at("subline", default: none) != none [ \ #text(number-width: "tabular")[#e.subline]]
   ]
   #if e.bullets.len() > 0 { list(..e.bullets.map(b => [#b])) }
 ]
 
-#text(size: 20pt, weight: 700, fill: accent, tracking: -0.01em)[#d.contact.name]
+#text(size: 20pt, weight: 700, tracking: -0.01em)[#d.contact.name]
 #v(-4pt)
 // box per part => wrap breaks at separators only, never inside an email or url (contact-in-body gate)
 // part_urls is parallel to parts, "" where the part is not a link => that part stays plain text.
@@ -47,15 +55,21 @@
   box(if url == "" { p.at(1) } else { link(url, p.at(1)) })
 }).join(sep)
 
+// the user's own one-line headline: what they are, in their words, read first (a branding headline)
+#let headline = d.at("headline", default: none)
+#if headline != none [
+  #block(above: 10pt)[#text(weight: 600)[#headline]]
+]
+
 #if d.summary != none [
-  #block(above: 10pt, width: 90%)[#d.summary]
+  #block(above: if headline != none { first-gap } else { 10pt }, width: 90%)[#d.summary]
 ]
 
 #for s in d.sections {
   section(s.title, {
-    for e in s.at("entries", default: ()) { entry(e) }
+    for (i, e) in s.at("entries", default: ()).enumerate() { entry(e, i == 0) }
     for line in s.at("lines", default: ()) {
-      block(above: 0.74em + 2.5pt, below: 0pt)[
+      block(above: first-gap, below: 0pt)[
         #if line.at("label", default: none) != none [#text(weight: 600)[#line.label: ]]#line.text
       ]
     }

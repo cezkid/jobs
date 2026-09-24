@@ -199,3 +199,17 @@ def test_new_sections_round_trip_and_the_editor_accepts_them(tmp_path):
     assert schema.load(path, notes(tmp_path)) == before
     written = path.read_text(encoding="utf-8")
     assert written.index("career_break:") < written.index("education:") < written.index("other:")
+
+
+def test_headline_is_one_optional_line_that_round_trips(tmp_path):
+    doc = yaml.safe_load(PLAIN)
+    doc["headline"] = "Software Engineer | Python, SQL"
+    assert [e.message for e in jsonschema.Draft7Validator(DETAILS_SCHEMA).iter_errors(doc)] == []
+    path = tmp_path / "Resume details.yml"
+    path.write_text(yaml.safe_dump(doc), encoding="utf-8")
+    before = schema.load(path, notes(tmp_path))
+    tidy.tidy(path, notes(tmp_path))
+    assert schema.load(path, notes(tmp_path)) == before
+    written = path.read_text(encoding="utf-8")
+    assert written.index("contact:") < written.index("headline:") < written.index("roles:")
+    assert schema.validate({**before, "headline": "two\nlines"}) == ["master.headline: one line of text"]

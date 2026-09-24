@@ -5,7 +5,7 @@
 questions from setup, every other question blank for the AI to fill with the user.
 `fill <slug>` opens the form in Job Finder's Chrome, types each answer, prints what took, and lets
 go - the window stays open for the user to check and click Submit.
-Systems + how to add one: app/docs/apply-systems.md.
+Systems + how to add one: app/docs/apply/apply-systems.md.
 """
 import argparse
 import sys
@@ -28,7 +28,7 @@ def system_for(url: str):
     if system is None:
         other = systems.elsewhere(url)
         sys.exit(other or "this application system is not supported yet - give the user the tailored PDF "
-                          "and answers to paste; to add it see app/docs/apply-systems.md")
+                          "and answers to paste; to add it see app/docs/apply/apply-systems.md")
     return system
 
 

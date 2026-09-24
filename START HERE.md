@@ -1,49 +1,43 @@
 # Job Finder
 
-Finds new jobs that match what you want, tells you each morning when new ones arrive, and
-makes a version of your resume for any job you pick. The AI does all the work - you never
-type commands or edit files.
+Finds jobs that match what you want, tells you each morning when new ones arrive, and makes a
+resume for any job you pick - checked line by line against your own facts and against what
+hiring research says works. The AI does all the work: you never type commands or edit files.
 
 ## Ask it
 
 Open the AI chat and type in plain English (using ChatGPT? click its icon on the left first):
 
-- "Set me up" (the first time) · "Any new jobs?" · "Why is job 3 on my list?"
-- "Make my resume for job 3" · "Why did you change that?"
-- "What does the AI do to my resume?" · "Who can see my information?"
-- "Stop showing jobs from Acme Staffing" · "Email me the new jobs too"
+- **Start:** "Set me up" · "Who can see my information?"
+- **Jobs:** "Any new jobs?" · "Why is job 3 on my list?" · "Stop showing jobs from Acme Staffing"
+- **Your resume:** "How good is my resume?" · "Help me add numbers to my resume" ·
+  "Change my phone number"
+- **For one job:** "Make my resume for job 3" · "Why did you change that?" · "Help me apply to job 3"
 
-## What the AI does with your resume
+## How your resume is made
 
-- Works on one job posting at a time, not the job market in general.
-- Never makes anything up: no new numbers, tools or certifications. Employers, job titles and
-  dates are never changed.
-- Uses the posting's words only for things you really have. Anything the job asks for that you
-  don't have is told to you as missing, never faked.
-- Puts what matters most for this job first. Licences or certifications the job requires go
-  near the top.
-- The program, not the AI, checks every line against your own facts. You confirm each reworded
-  line in "Check before sending" before you get the PDF.
-- Its rules follow current hiring research - ask "why?" about any of them. Ask for something
-  that would hurt your chances and it tells you why, then it's your call. The one thing it
-  won't do is make something up.
+Every resume follows the same rules: true first, then real results, then fit to the job, then
+easy to read. Nothing is ever made up - no number, tool or qualification you didn't give, and
+employers, titles and dates stay as your records show them. The page layout is checked
+automatically every time, so it always reads cleanly to people and to hiring software.
+
+**[What makes a good resume](Guides/What%20makes%20a%20good%20resume.md)** - each rule in one line, how strong
+the evidence is, and the advice we don't follow. Ask "why?" about any of it in the chat.
+
+**Resume feedback** in My Resume - how your own resume reads: what stands out, what's worth a
+look, and what to do next. Ask "how good is my resume?" to refresh it.
+
+**Check before sending** in each job folder - what changed for that job, what the job asks for
+that your resume shows (and what it doesn't). You confirm each reworded line before you send it.
 
 ## Your resume details
 
-Your career sits in **Resume details.yml** in My Resume, in your own words. Change or add a
-line, then ask for a fresh resume. Your wording wins; employers, titles and dates change only
-to fix a mistake. A typing mistake gets a red underline - hover over it, or just tell the chat.
-You never have to open it: "change my phone number" in the chat works too.
-
-## Layout
-
-One or two pages, a second page mostly full. No lines with a few words dangling. Set in
-Caladea, which looks like Word's Cambria - ask for another font and it tells you what it costs.
+Your career lives in **Resume details.yml** in My Resume, in your own words. Change a line, or
+just tell the chat, then ask for a fresh resume. A typing mistake gets a red underline.
 
 ## Private vs shared
 
-**Everything in the file list on the left is private and stays on this computer.** My Resume
-and My Jobs start empty and fill as you use Job Finder.
+**Everything in the file list on the left is private and stays on this computer.**
 
 | What | Where | Who sees it |
 |---|---|---|
@@ -52,6 +46,7 @@ and My Jobs start empty and fill as you use Job Finder.
 | The Job Finder program | Hidden | Public - the same for everyone |
 | Your search (never your resume or work-permit answer) | freehire.me, the job site | Sent each time jobs are checked |
 | Your resume + postings you work on | The AI chat (Claude or ChatGPT) | Your own AI account |
+| What you apply with | That employer's job site | That employer, once you click Submit |
 | A fix to the program, only if you say yes | Job Finder's maintainer | Everyone who uses Job Finder |
 
 Daily email (if on) goes from your own email to you; the morning pop-up never leaves this computer.

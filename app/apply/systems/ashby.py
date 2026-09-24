@@ -1,6 +1,6 @@
 """Ashby (jobs.ashbyhq.com): questions from its public job board, answers typed into its widgets.
 
-Measured facts and why each rule exists: app/docs/ashby.md.
+Measured facts and why each rule exists: app/docs/apply/ashby.md.
 """
 import re
 from pathlib import Path

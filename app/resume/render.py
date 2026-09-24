@@ -28,6 +28,10 @@ INFO_LEAK_KEYS = ("author", "creator", "producer", "creationDate", "modDate")
 MIN_RECOVERY = 0.98
 # Ladders/Kickresume: summary cap = longest block detectors never get to read as prose
 MAX_BLOCK_WORDS = 57
+# career guidance puts a summary at about 3-6 lines: up to four rows at the summary's width.
+# It was two, set by the tailoring prompt; the word cap above was never the limit - 57 words
+# already run to about five rows in Caladea (~12 words a row at 90% width)
+MAX_SUMMARY_LINES = 4
 MAX_BYTES = 1_000_000
 MAX_PAGES = 2
 MIN_LAST_PAGE_FILL = 0.6
@@ -54,6 +58,19 @@ MIN_LINE_FILL = 0.40
 # word from spilling into a row of its own. Raising MIN_LINE_FILL to here instead would fail
 # three lines on a resume that passes today, two of them skills lists - the floor stays put.
 TARGET_LINE_FILL = 0.90
+# a gap between two letters of one word past this share of the type size reads, to some resume
+# scanners, as a space. Measured 2026-09-24: a PDF-to-HTML conversion used by resume screening
+# tools split headings set at +0.08em into "EXP E R I ENC E" and "SKI L L S", and read body words
+# at +0.015em whole. PyMuPDF, pdfminer and pypdf read both whole, so no extractor here stands in
+# for it; the gap itself is what the gate measures. 0.04em sits between the two measured points
+MAX_LETTER_GAP_EM = 0.04
+# a text span this dark or darker is black: format guidance for scanned resumes is black text
+# throughout (the page ink #1A1A1A counts; navy #1F3A5F does not). Links may carry colour - a
+# blue email or LinkedIn is accepted - so spans on a link are not held to it
+MAX_INK_CHANNEL = 0x33
+# baselines are read to the hundredth: two sections spaced alike come back within this of each other
+HEADING_GAP_TOLERANCE_PT = 1.0
+HEADING_SIZE = 11.5
 # resume.typ holds the summary to this share of the column, so its lines wrap short of the edge
 SUMMARY_WIDTH = 0.90
 # 0.85in, not the 1.05 this started at: the text needs the width back that tracking spends.
@@ -217,6 +234,7 @@ def page_model(master: dict, today: date | None = None) -> dict:
             # same length as parts, "" where the part is not a link => template zips them by index
             "part_urls": [url for _, url in parts],
         },
+        "headline": master.get("headline"),
         "summary": master.get("summary"),
         "sections": sections,
     }
@@ -230,6 +248,8 @@ def with_page(model: dict, font: str = typeface.DEFAULT) -> dict:
 
 def page_strings(model: dict) -> list[str]:
     out = [model["contact"]["name"], SEP.join(model["contact"]["parts"])]
+    if model.get("headline"):
+        out.append(model["headline"])
     if model["summary"]:
         out.append(model["summary"])
     for s in model["sections"]:
@@ -341,6 +361,17 @@ def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT,
         leaks += XMP_LEAK.findall(doc.get_xml_metadata())
         gate("metadata-wiped", not leaks, f"leaks: {leaks}" if leaks else "creator/producer/author/company/dates empty")
 
+        wide = spaced_letters(doc)
+        gate("split-words", not wide, f"letters spaced apart in {wide}" if wide
+             else f"no gap inside a word wider than {MAX_LETTER_GAP_EM}em")
+        colored = colored_text(doc)
+        gate("text-color", not colored, f"not black: {colored}" if colored else "every word black, links aside")
+        gaps = heading_gaps(doc, model)
+        spread = max(gaps.values()) - min(gaps.values()) if gaps else 0.0
+        gate("heading-gap", spread <= HEADING_GAP_TOLERANCE_PT,
+             ", ".join(f"{t} {g:.1f}pt" for t, g in gaps.items()) + " below the heading"
+             if spread > HEADING_GAP_TOLERANCE_PT else "same space under every section heading")
+
         top, bottom = text_area(doc)
         stray = [y for page in baselines(doc) for y in page if not top < y <= bottom]
         gate("no-header-footer", not stray, f"{len(stray)} text spans outside top/bottom margin")
@@ -353,6 +384,8 @@ def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT,
         stubs = runts(doc, model, font)
         blocked = [s for s in stubs if s["fixable"]]
         gate("contact-line (info)", True, contact_detail(contact_rows(doc, model)))
+        if model.get("headline"):
+            gate("headline (info)", True, headline_detail(block_rows(doc, model["headline"])))
         fits = word_windows(words, used)
         windows = " or ".join(f"{low}-{high}" for low, high in fits)
         detail = f"{words} words (fits page rules at {windows or 'none at this density'})"
@@ -504,6 +537,82 @@ def runts(doc, model: dict, font: str = typeface.DEFAULT) -> list[dict]:
                     "fixable": any(body and body in c for c in can_fix),
                 })
     return found
+
+
+def words_in(doc):
+    """(size, text, chars) per span, one entry per run of non-space characters."""
+    for page in doc:
+        for block in page.get_text("rawdict")["blocks"]:
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    word: list[dict] = []
+                    for c in [*span["chars"], None]:
+                        if c is None or c["c"].isspace():
+                            if len(word) > 1:
+                                yield span["size"], "".join(ch["c"] for ch in word), word
+                            word = []
+                        else:
+                            word.append(c)
+
+
+def spaced_letters(doc, show: int = 6) -> list[str]:
+    """Words carrying a gap between two of their letters past MAX_LETTER_GAP_EM of the type size.
+
+    Gap = where the next letter starts less where this one's advance ends: letterspacing plus
+    kerning, which is what a scanner guessing word breaks from positions sees."""
+    found = []
+    for size, text, chars in words_in(doc):
+        gaps = [b["origin"][0] - (a["origin"][0] + a["bbox"][2] - a["bbox"][0]) for a, b in zip(chars, chars[1:])]
+        if max(gaps) > MAX_LETTER_GAP_EM * size and text not in found:
+            found.append(text)
+    return found[:show]
+
+
+def near_black(color: int) -> bool:
+    return all((color >> shift) & 0xFF <= MAX_INK_CHANNEL for shift in (16, 8, 0))
+
+
+def colored_text(doc, show: int = 6) -> list[str]:
+    """Text spans in a colour, links aside (their rectangles, from the page's own link list)."""
+    found = []
+    for page in doc:
+        links = [pymupdf.Rect(link["from"]) for link in page.get_links()]
+        for block in page.get_text("dict")["blocks"]:
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    box = pymupdf.Rect(span["bbox"])
+                    if span["text"].strip() and not near_black(span["color"]) \
+                            and not any(box.intersects(r) for r in links):
+                        found.append(f"{span['text'].strip()!r} #{span['color']:06X}")
+    return found[:show]
+
+
+def heading_gaps(doc, model: dict) -> dict[str, float]:
+    """Section heading -> baseline distance to the first line under it, read off the page."""
+    titles = {s["title"].upper() for s in model["sections"]}
+    out = {}
+    for page in doc:
+        spans = sorted((s["origin"][1], s["text"].strip(), s["size"]) for b in page.get_text("dict")["blocks"]
+                       for line in b.get("lines", []) for s in line["spans"] if s["text"].strip())
+        for i, (y, text, size) in enumerate(spans):
+            if text in titles and abs(size - HEADING_SIZE) < 0.1:
+                below = next((other for other, _, _ in spans[i + 1:] if other > y + 1), None)
+                if below is not None:
+                    out[text] = below - y
+    return out
+
+
+def block_rows(doc, text: str) -> int:
+    """Rows the block holding `text` occupies on page 1 - read off the page, like the contact line."""
+    for raw in doc[0].get_text("dict")["blocks"] if doc.page_count else []:
+        lines = raw.get("lines", [])
+        if squeezed(text) in squeezed("".join(s["text"] for line in lines for s in line["spans"])):
+            return len(lines)
+    return 1
+
+
+def headline_detail(rows: int) -> str:
+    return "fits one row" if rows == 1 else f"wraps to {rows} rows - a headline reads as one line; shorten it"
 
 
 def contact_rows(doc, model: dict) -> int:

@@ -2,7 +2,7 @@
 the resume and setup where they state it outright, the rest left for the AI to ask the user.
 
 A system (`apply/systems/<name>.py`) turns its own form into these questions; everything below
-works the same for every system. How to add one: app/docs/apply-systems.md.
+works the same for every system. How to add one: app/docs/apply/apply-systems.md.
 """
 import json
 from pathlib import Path

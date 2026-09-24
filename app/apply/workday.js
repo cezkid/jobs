@@ -1,6 +1,6 @@
 // Workday "My Experience" filler, run in the page via the Claude Chrome extension (javascript_tool).
 // `uv run app/jobs.py apply <slug>` appends `window.__jf.run(DATA)`. Facts behind each rule:
-// app/docs/workday.md. Fills only; never clicks Save and Continue or Submit.
+// app/docs/apply/workday.md. Fills only; never clicks Save and Continue or Submit.
 window.__jf = (() => {
   // hidden tab (window behind others) => setTimeout throttled to ~1/min; MessageChannel is not
   const mc = new MessageChannel(), q = [];

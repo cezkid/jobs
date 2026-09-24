@@ -2,11 +2,11 @@
 
 Fill a job application for the user, stopping before every Save/Submit. Workday (`*.myworkdayjobs.com`
 or `wd<N>.myworkday...`) through the Claude Chrome extension - Steps below. Every other supported
-system (Ashby today; list in `app/docs/apply-systems.md`) through Job Finder's own Chrome window -
+system (Ashby today; list in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
 #Other systems below. Unsupported system: `apply-form prepare` says so - offer the tailored PDF +
 answers to paste by hand, and mention it can be taught (`apply-systems.md` #Add a system).
 User not technical - `AGENTS.md` #User = not technical binds. What was measured and why each
-rule exists: `app/docs/workday.md`. New tenant quirk found -> add it there, same PR as the fix.
+rule exists: `app/docs/apply/workday.md`. New tenant quirk found -> add it there, same PR as the fix.
 
 ## Hard limits (safety rules - never relax)
 
@@ -41,7 +41,7 @@ rule exists: `app/docs/workday.md`. New tenant quirk found -> add it there, same
 5. `problems` from status: `ASK` = nearest choice picked or none on the form's list -> tell the
    user plainly with the choices, fix per their answer. `FAIL` = field not found -> screenshot
    is blank in a hidden window, so read labels via `read_page`/`find`, fix by hand once, and
-   record the new label in `app/docs/workday.md`.
+   record the new label in `app/docs/apply/workday.md`.
 6. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
    item, what is left (resume upload, website, questions), and that nothing is saved until they
    click **Save and Continue**. Later steps (questions, disclosures, review) = ask, never guess.
@@ -51,9 +51,9 @@ window is hidden (they come back black) - use `status()`, `errors()` or `find`.
 
 ## Other systems (Ashby, ...)
 
-Hard limits above all apply. How it works + per-system facts: `app/docs/apply-systems.md`.
+Hard limits above all apply. How it works + per-system facts: `app/docs/apply/apply-systems.md`.
 Ashby's own "Autofill from resume" fills contact boxes only - tell a user who thinks the resume
-"failed" that it did not (`app/docs/ashby.md`).
+"failed" that it did not (`app/docs/apply/ashby.md`).
 
 1. Tailored resume check as step 1 above.
 2. `uv run app/jobs.py apply-form prepare <slug> "<posting link>"` -> picks the system from the

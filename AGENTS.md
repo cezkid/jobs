@@ -3,7 +3,7 @@
 Polls freehire's keyless job API for user's search, stores rows in SQLite, ranks them, notifies
 daily of new rows (desktop notification; email optional), and tailors user's resume to one
 posting. Works for any occupation.
-API facts + measured pitfalls: `app/docs/freehire.md` - read before changing any filter or
+API facts + measured pitfalls: `app/docs/jobs/freehire.md` - read before changing any filter or
 ingest code. Read by Claude Code (via `CLAUDE.md`), Codex / ChatGPT, Copilot, Cursor, Gemini.
 
 ## User = not technical
@@ -53,7 +53,9 @@ Keywords: posting's term only for what their experience backs, never repeated to
 lack = gap to tell them (Hold), never a word to add.
 
 User asks why: name the rule in plain words + its basis + how strong (big survey / one small
-study / convention) from `app/docs/bullets.md`, `typeface.md`, `freehire.md`. Never "the rules
+study / convention) from `app/docs/resume/bullets.md`, `app/docs/resume/typeface.md`, `app/docs/jobs/freehire.md`
+(index: `app/docs/README.md`). User asks what makes
+a good resume: `Guides/What makes a good resume.md` (plain words, in the file list, linked from `START HERE.md`) - open it. Never "the rules
 require it" or "the check fails".
 
 ## Private vs shared - say it plainly
@@ -78,14 +80,18 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
 ## Layout
 
 - `START HERE.md` - user's guide, opens w/ VS Code. Plain words only.
+- `Guides/` - plain-words guides in the user's file list (`What makes a good resume.md`); link,
+  don't repeat, from `START HERE.md` and reports. Program docs by area: `app/docs/README.md`.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;
-  their edits win on wording, employer/title/dates change only to fix a mistake), untailored
-  `First_Last_Resume.pdf`.
+  their edits win on wording, employer/title/dates change only to fix a mistake; optional
+  one-line `headline` above the summary), untailored `First_Last_Resume.pdf`, `Resume feedback.md`
+  (`resume-feedback`: how their resume reads - numbers, wording, leadership / initiative /
+  teamwork, details + dates; layout never scored, the gates enforce it).
 - `My Jobs/<Company - Title>/` - one per tailored job: `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
-- `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import +
-  pasted postings.
+- `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import,
+  pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `attribution.py` (Claude credit on
@@ -107,8 +113,10 @@ notes drop off - harmless, the next import writes them again.
 
 ## AI writing steps
 
-Resume import, pasted posting and tailoring: command writes task file (rules, input, answer
-format), you write answer JSON yourself at path it names, then run check command it prints.
+Resume import, pasted posting, tailoring and `resume-gaps` (asks the user for the numbers +
+leadership their lines leave out; only their answers go in): command writes task file (rules,
+input, answer format), you write answer JSON yourself at path it names, then run check command
+it prints.
 Check fails -> read violations, fix JSON, rerun; after 2 failed retries tell user plainly and
 stop. No other program writes resume content.
 
@@ -119,15 +127,18 @@ between and it wraps to a stub wasting a whole row. Width is measured in points
 (`resume/measure.py`, real font advances), never counted in characters. Gate detail names each
 stub + chars to cut or add, and marks the ones in the user's own facts as report-only. Code measures, you rewrite the words.
 
+Page hygiene gates, both copies: all text black (links aside), no letters spaced apart inside a
+word, same space under every heading (`app/docs/resume/page-format.md`).
+
 Typeface = `resume.font` in settings, default Caladea, files in `app/resume/fonts/<family>/`.
 User asks for another font -> open-licence fonts only (Georgia, Cambria, Calibri, Times can't
 ship; offer the look-alike). Add its folder, render their resume in it, tell them the cost
 ("3 pages instead of 2, 8 half-empty lines"), keep it set only if they still want it; every
 width is read off the file so no number needs editing. Chars per line decides page count.
-Why Caladea + how to add one: `app/docs/typeface.md`.
+Why Caladea + how to add one: `app/docs/resume/typeface.md`.
 
 What a bullet has to do - accuracy > substance > relevance > clarity, which rules code enforces
-vs only reports, and which common resume advice the evidence does not support: `app/docs/bullets.md`.
+vs only reports, and which common resume advice the evidence does not support: `app/docs/resume/bullets.md`.
 Read before adding a wording rule; it records what was measured and rejected, so a killed rule
 does not get proposed again.
 
@@ -137,7 +148,7 @@ Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stu
 there. `job-setup` first run + search changes, `job-find` new jobs + cleanup, `job-tailor`
 resume for one posting, `job-apply` fill an application - Workday via Chrome extension, Ashby
 and later systems via Job Finder's own Chrome (never clicks Save/Submit; systems + how to add
-one `app/docs/apply-systems.md`), `report-defect` send fix upstream.
+one `app/docs/apply/apply-systems.md`), `report-defect` send fix upstream.
 
 ## Personal data - never stage
 

@@ -25,7 +25,8 @@ HEADER = [
 ]
 NOTES = {
     "contact": ["# Your name and how an employer reaches you."],
-    "summary": ["# The short pitch at the top of the page - one or two lines."],
+    "headline": ["# One line above the summary: your real title and main skills. Optional."],
+    "summary": ["# The short pitch at the top of the page - up to four lines."],
     "roles": [
         "# Your jobs, newest first. Under each one, every line is one thing you did there.",
         "# 2023-02 means February 2023. The job you are in now ends with the word: present",
@@ -39,7 +40,7 @@ NOTES = {
                   "# Levels: Native, Fluent, Professional, Conversational, Basic."],
     "other": ["# Anything else worth a heading: volunteer work, awards, clearances. Printed as written."],
 }
-ORDER = ["contact", "summary", "roles", "career_break", "projects", "skills", "education", "certifications",
+ORDER = ["contact", "headline", "summary", "roles", "career_break", "projects", "skills", "education", "certifications",
          "other", "languages"]
 ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "ai_era",
                "bullets", "lines"]

@@ -32,7 +32,7 @@ def report(font: str, text: str, where: str, avail: float) -> tuple[str, str]:
     `bullet_shape` speaks for the page: under `MIN_LINE_FILL` a row is wasted badly enough to
     stop the render. It is not the number to write at. A second line 45% full clears that gate
     and still throws away half a row, so a tool that answers "should I write this?" with the
-    gate's threshold hands back an `ok` on the exact shape `app/docs/bullets.md` was written to
+    gate's threshold hands back an `ok` on the exact shape `app/docs/resume/bullets.md` was written to
     stamp out. `thin` is that band: allowed on the page, not what to aim at.
     """
     lines, fill = measure.fit(font, text, avail)

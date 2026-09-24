@@ -184,6 +184,9 @@ def validate(master) -> list[str]:
             text(contact, key, "contact", errors)
         optional(contact, "phone", str, "contact", errors)
         strings(contact, "links", "contact", errors)
+    if headline := optional(master, "headline", str, "master", errors):
+        if not headline.strip() or "\n" in headline:
+            errors.append("master.headline: one line of text")
     optional(master, "summary", str, "master", errors)
 
     bullet_ids: set[str] = set()

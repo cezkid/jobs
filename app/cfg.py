@@ -15,7 +15,7 @@ PRIVATE_DIRS = ("My Resume", "My Jobs", "My Settings")
 DATA = ROOT / ".data"
 EMAIL_ENV = DATA / "email.env"
 DAILY_LOG = DATA / "daily.log"
-# q= matches description prose => off-lane titles for any occupation (docs/freehire.md)
+# q= matches description prose => off-lane titles for any occupation (docs/jobs/freehire.md)
 FORBIDDEN_PARAMS = {"q"}
 # API ORs these together => two in one pass widen, never narrow
 GEOGRAPHY_PARAMS = {"regions", "countries", "cities"}
@@ -52,10 +52,10 @@ def load(path: Path | None = None) -> dict:
     for p in config["passes"]:
         bad = FORBIDDEN_PARAMS & p["params"].keys()
         if bad:
-            raise ValueError(f"pass {p['tier']}: forbidden params {sorted(bad)} (docs/freehire.md)")
+            raise ValueError(f"pass {p['tier']}: forbidden params {sorted(bad)} (docs/jobs/freehire.md)")
         geo = GEOGRAPHY_PARAMS & p["params"].keys()
         if len(geo) > 1:
-            raise ValueError(f"pass {p['tier']}: {sorted(geo)} OR together, keep one (docs/freehire.md)")
+            raise ValueError(f"pass {p['tier']}: {sorted(geo)} OR together, keep one (docs/jobs/freehire.md)")
     return config
 
 

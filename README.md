@@ -46,12 +46,13 @@ list. START HERE explains exactly what leaves your computer and when.
 
 ## For developers
 
-Thin client over freehire's keyless job API (`app/docs/freehire.md`): polls search profile,
+Thin client over freehire's keyless job API (`app/docs/jobs/freehire.md`): polls search profile,
 dedupes, ranks, notifies daily of new rows (desktop notification, email optional), tailors
 resume to one posting as PDF. Discovery + tailoring only - no application tracking, no
 auto-apply. Needs Python 3.11+ and [uv](https://docs.astral.sh/uv/). All code under `app/`;
-root holds user folders, tool config and `docs/` (install page, GitHub Pages from `main`
-`/docs`). AI layer: `AGENTS.md` (single source; `CLAUDE.md` imports it), skill bodies
+root holds user folders, tool config, `Guides/` (plain-words guides the user sees in the file
+list) and `docs/` (install page, GitHub Pages from `main` `/docs`). Program docs - measured
+facts and evidence per area - are indexed in [`app/docs/README.md`](app/docs/README.md). AI layer: `AGENTS.md` (single source; `CLAUDE.md` imports it), skill bodies
 `app/skills/`, stubs `.claude/skills/` + `.agents/skills/`, pre-approved commands
 `.claude/settings.json` + `.codex/`.
 
@@ -69,7 +70,7 @@ freehire API).
 
 Filter choice: facet w/ many null values (probe tally `-`) drops every null row, not only
 mismatches - outside tech `seniority` null on most rows. Salary and top companies rank as
-boosts, never filters (`app/docs/freehire.md` #Filters vs rank boosts).
+boosts, never filters (`app/docs/jobs/freehire.md` #Filters vs rank boosts).
 
 ### Resume steps - any AI
 
@@ -116,7 +117,7 @@ resolves the family and column widths, the word space, the writer's character gu
 page word windows are all read off the file. The page trades three settings against each
 other - family, side margin (`MARGIN_X_IN` 0.85in) and letterspacing (`TRACKING_EM` +0.015em,
 which `measure.width` adds back per character). Measurements, why Caladea over Georgia even
-with the margins eased, and how to add a family: `app/docs/typeface.md`.
+with the margins eased, and how to add a family: `app/docs/resume/typeface.md`.
 
 ### Daily check
 
