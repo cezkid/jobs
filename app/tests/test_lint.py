@@ -312,8 +312,15 @@ def test_old_graduation_year_suggests_hiding_never_hides(master):
     master["education"][0]["end"] = "2008-05"
     findings = lint.master_findings(master, TODAY)
     assert rules(findings, lint.WARN) == {"old-graduation-year"} and "hide_year" in findings[0].detail
-    assert "2008" in render.page_model(master)["sections"][-2]["lines"][0]["text"]
+    assert "2008" in render.page_model(master)["sections"][-2]["entries"][0]["subline"]
     master["education"][0]["hide_year"] = True
+    assert lint.master_findings(master, TODAY) == []
+
+
+def test_shortened_school_name_warns(master):
+    master["education"][0]["institution"] = "Lakeview CC"
+    assert rules(lint.master_findings(master, TODAY), lint.WARN) == {"abbreviated-school"}
+    master["education"][0]["institution"] = "Lakeview Community College"
     assert lint.master_findings(master, TODAY) == []
 
 
