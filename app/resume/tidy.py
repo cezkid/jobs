@@ -35,7 +35,8 @@ NOTES = {
     "skills": ["# The skills block. 'group' is the heading, 'items' are the words under it."],
     "education": ["# Schools, newest first. hide_year: true leaves the year off the page."],
     "certifications": ["# Licences and certifications. Leave it as [] if you have none."],
-    "languages": ["# Languages you speak, one line each."],
+    "languages": ["# Languages you speak, one per line, level in brackets: Spanish (Fluent).",
+                  "# Levels: Native, Fluent, Professional, Conversational, Basic."],
     "other": ["# Anything else worth a heading: volunteer work, awards, clearances. Printed as written."],
 }
 ORDER = ["contact", "summary", "roles", "career_break", "projects", "skills", "education", "certifications",

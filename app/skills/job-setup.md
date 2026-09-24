@@ -91,7 +91,10 @@ answer; [] for "doesn't matter"); decisive counts + date as comment beside each 
   one?" Yes -> `career_break` entry (dates + reason in their words; shows on the page, closes
   the gap) or study / freelance / volunteering they really did as its own entry. No -> leave it.
 - Lint warns `street-address`, `personal-details` -> the push back above. `old-graduation-year`
-  (15+ years) -> offer `hide_year` (age bias; convention), their call.
+  (15+ years) -> offer `hide_year` (age bias; convention), their call. `abbreviated-school` ->
+  ask the full name (forms say "Do not use abbreviations"). `language-level` -> ask each
+  language's level w/ choices (Native / Fluent / Professional / Conversational / Basic) - their
+  fact, never guessed - then one line each: `Spanish (Fluent)`.
 - `uv run app/jobs.py resume-render` + `uv run app/jobs.py resume-lint`; fix failures w/ user.
   Lint warn `company-legal-id` = ignore (hospitals, schools, agencies carry no Inc./LLC).
   Open rendered PDF in `My Resume/` for them to look at.
