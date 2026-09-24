@@ -9,6 +9,9 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
      `uv run app/jobs.py tailor posting .data/posting.txt --url "<link if given>"`; do printed
      task yourself, then run command it prints (`tailor prepare --posting ...`)
    - link only: fetch page text, write to `.data/posting.txt`, same as pasted
+   - `work_authorization.needs_sponsorship` true in search settings and the posting rules it
+     out ("no visa sponsorship", "without current or future sponsorship") -> quote that line
+     before tailoring; they're likely screened out on that question alone. Their call to go on.
 2. `prepare` makes `My Jobs/<Company - Title>/` + task file. Do task yourself (`AGENTS.md`
    #AI writing steps), then `uv run app/jobs.py tailor check <slug>`. FAIL lines -> fix
    `tailored.json`, rerun check; never hand over PDF while check fails.

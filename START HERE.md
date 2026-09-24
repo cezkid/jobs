@@ -50,7 +50,7 @@ and My Jobs start empty and fill as you use Job Finder.
 | Your resume, job folders, search | My Resume, My Jobs, My Settings | Only this computer |
 | Your job list, email password (if email is on) | Hidden | Only this computer |
 | The Job Finder program | Hidden | Public - the same for everyone |
-| Your search (never your resume) | freehire.me, the job site | Sent each time jobs are checked |
+| Your search (never your resume or work-permit answer) | freehire.me, the job site | Sent each time jobs are checked |
 | Your resume + postings you work on | The AI chat (Claude or ChatGPT) | Your own AI account |
 | A fix to the program, only if you say yes | Job Finder's maintainer | Everyone who uses Job Finder |
 

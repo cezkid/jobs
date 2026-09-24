@@ -131,6 +131,13 @@ def mismatches(job: dict, rc: dict) -> list[str]:
     return out
 
 
+def sponsorship(job: dict, config: dict) -> list[str]:
+    """User needs a visa sponsor and freehire marks this job as never sponsoring. A weak label
+    (docs/freehire.md #Visa sponsorship): demoted like a mismatch, never hidden."""
+    needs = (config.get("work_authorization") or {}).get("needs_sponsorship")
+    return ["says no visa sponsorship"] if needs and (job.get("enrichment") or {}).get("visa_sponsorship") is False else []
+
+
 def stale_for(job: dict, rc: dict, now: datetime) -> int | None:
     """Days since any fetch returned it, when past rank.stale_days - likely filled
     (close_missing only sees its fetch window). Demoted, not hidden: may still be open."""
@@ -170,7 +177,8 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
     #   yet shown - hiding an open job costs a chance, showing a closed one costs a click;
-    # demerits - likely ghost / wrong level / wrong hours: a trustworthy fitting job beats any pay;
+    # demerits - likely ghost / wrong level / wrong hours / no sponsor for a user who needs one:
+    #   a trustworthy fitting job beats any pay;
     # pay floor - user's stated minimum (top of range, so a range spanning it counts);
     # pay - a fact about this job, so it outranks employer lists;
     # collections - employer lists, mostly tech-only, so they only order rows pay can't
@@ -180,7 +188,7 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     kept.sort(key=lambda j: (
         tiers.get(j["tier"], len(tiers)),
         bool(j["stale"]),
-        len(doubts(j, rc)) + len(mismatches(j, rc)),
+        len(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config)),
         not meets_floor(j, rc["salary_floor_usd"]),
         -(annual_usd(j) or 0),
         not collections_hit(j, rc["boost_collections"]),
@@ -213,7 +221,7 @@ def reasons(job: dict, config: dict, now: datetime | None = None) -> str:
     parts = [place, label or "pay not listed", *hits, age_label(job, now or datetime.now(timezone.utc))]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
-    parts += doubts(job, rc) + mismatches(job, rc)
+    parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config)
     if job.get("stale"):
         parts.append(f"may be closed - not seen in {job['stale']}d")
     return " · ".join(p for p in parts if p)

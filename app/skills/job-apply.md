@@ -12,9 +12,16 @@ rule exists: `app/docs/workday.md`. New tenant quirk found -> add it there, same
 - Never click **Save and Continue**, **Submit**, or anything irreversible. Fill, then tell them
   to check the page and click it. They say "click it for me" -> still ask once per click.
 - Upload the resume PDF only after they say yes (name the file).
-- Never answer on their behalf: work authorization, sponsorship, salary, relocation, start date,
-  voluntary disclosures (gender, race, veteran, disability), how-did-you-hear. Ask each with
-  clickable choices; disclosures always offer "I don't wish to answer".
+- Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
+  race, veteran, disability), how-did-you-hear. Ask each with clickable choices; disclosures
+  always offer "I don't wish to answer".
+- Work authorization + sponsorship: `apply` prints their setup answers. Use one only when the
+  form asks that same thing about the US (without restriction; sponsorship now or in the
+  future), and name the choice you picked so they check it before Save. Other wording (another
+  country, this employer only, which visa, "are you on OPT?") or `not set` -> ask with choices,
+  offer to save a new answer to `work_authorization` in search settings. Never pick the answer
+  that gets past a filter: employers check it on Form I-9 in the first days of the job, and a
+  false answer is grounds to withdraw the offer.
 - Cookie banner -> **Decline** (non-essential off).
 
 ## Steps

@@ -74,6 +74,14 @@ def answers(master: dict, tailored: dict | None = None) -> dict:
             "languages": [language(line) for line in master.get("languages") or []]}
 
 
+def work_authorization(config: dict) -> str:
+    """The two work-permit answers from setup; unset = ask the user on the form, never guess."""
+    wa = config.get("work_authorization") or {}
+    said = lambda v: "not set - ask them" if v is None else "yes" if v else "no"
+    return (f"authorized to work in the US: {said(wa.get('authorized_us'))}; "
+            f"needs visa sponsorship: {said(wa.get('needs_sponsorship'))}")
+
+
 def script(data: dict) -> str:
     return FILLER.read_text(encoding="utf-8") + f"\nwindow.__jf.run({json.dumps(data, ensure_ascii=False)});\n'started'\n"
 
@@ -97,6 +105,7 @@ def main() -> None:
     out.write_text(script(data), encoding="utf-8")
     print(f"wrote {out} ({len(data['work'])} jobs, {len(data['education'])} schools, {len(data['skills'])} skills, "
           f"{'tailored' if tailored else 'own resume'} bullets)")
+    print(work_authorization(config))
 
 
 if __name__ == "__main__":

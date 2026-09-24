@@ -34,8 +34,17 @@ resume:
   input_pdf: My Resume/Original resume.pdf
   jobs_dir: My Jobs
 
+# Setup answers to the two questions nearly every US application asks. Stay on this computer:
+# no job search sends them (only `passes` params go to freehire). null = not asked -> apply asks.
+work_authorization:
+  # allowed to work in the US for any employer, without restriction
+  authorized_us: null
+  # needs an employer to sponsor a visa, now or later (H-1B; OPT/STEM OPT ending counts).
+  # true => jobs freehire marks "no visa sponsorship" sort lower, never hidden
+  needs_sponsorship: null
+
 # Ranking (rank.py). Order: tier > not seen lately (may be closed) > likely ghost / level /
-# hours mismatch > pay floor > pay > employer lists > first seen. Nothing here hides a job.
+# hours / sponsorship mismatch > pay floor > pay > employer lists > first seen. Nothing here hides a job.
 rank:
   # open job no check has returned in more than this many days sorts to the bottom of its tier
   # ("may be closed") and is never announced as new: filled jobs outside a pass's
