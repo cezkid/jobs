@@ -7,9 +7,11 @@
   "additionalProperties": false,
   "definitions": {
     "month": {
-      "type": "string",
-      "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$",
-      "description": "Year then month, like 2023-02 for February 2023."
+      "anyOf": [
+        { "type": "string", "pattern": "^[0-9]{4}(-(0[1-9]|1[0-2]))?$" },
+        { "type": "integer", "minimum": 1900, "maximum": 2100 }
+      ],
+      "description": "Year then month, like 2023-02 for February 2023. A year alone, like 2023, when you only know the year - the page then shows years only."
     },
     "bullets": {
       "type": "array",
@@ -51,8 +53,7 @@
     "summary": { "type": "string", "description": "The short pitch at the top of the page - one or two lines." },
     "roles": {
       "type": "array",
-      "minItems": 1,
-      "description": "Your jobs, newest first.",
+      "description": "Your jobs, newest first. Leave it as [] if you have not had one yet.",
       "items": {
         "type": "object",
         "required": ["company", "title", "start", "end", "bullets"],
@@ -75,12 +76,26 @@
         }
       }
     },
-    "projects": {
+    "career_break": {
       "type": "array",
-      "description": "Worth showing but not a job: side projects, teaching, volunteering.",
+      "description": "Time away from work, said plainly. Shown with your jobs in date order, without any lines under it.",
       "items": {
         "type": "object",
-        "required": ["name", "start", "end", "bullets"],
+        "required": ["reason", "start", "end"],
+        "additionalProperties": false,
+        "properties": {
+          "reason": { "type": "string", "minLength": 1, "description": "A few words, like Caring for a family member. Shown as Career break - your words." },
+          "start": { "$ref": "#/definitions/month" },
+          "end": { "oneOf": [{ "$ref": "#/definitions/month" }, { "const": "present" }] }
+        }
+      }
+    },
+    "projects": {
+      "type": "array",
+      "description": "Worth showing but not a job: side projects, teaching. Dates may be left out; give both or neither.",
+      "items": {
+        "type": "object",
+        "required": ["name", "bullets"],
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string" },
@@ -119,7 +134,8 @@
           "degree": { "type": "string", "minLength": 1, "description": "BA, AA, certificate, whatever it was called." },
           "field": { "type": "string" },
           "details": { "type": "string" },
-          "end": { "$ref": "#/definitions/month" }
+          "end": { "$ref": "#/definitions/month" },
+          "hide_year": { "type": "boolean", "description": "true leaves the year off the page. Worth it for a degree finished 15 or more years ago." }
         }
       }
     },
@@ -137,6 +153,19 @@
         }
       }
     },
-    "languages": { "type": "array", "items": { "type": "string" }, "description": "Languages you speak, one line each." }
+    "languages": { "type": "array", "items": { "type": "string" }, "description": "Languages you speak, one line each." },
+    "other": {
+      "type": "array",
+      "description": "Anything else worth a heading of its own: volunteer work, awards, a security clearance, publications. Printed exactly as written, after your certifications.",
+      "items": {
+        "type": "object",
+        "required": ["heading", "lines"],
+        "additionalProperties": false,
+        "properties": {
+          "heading": { "type": "string", "minLength": 1, "description": "The section heading, like Volunteer Work." },
+          "lines": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 }, "description": "One line each. Put any dates inside the line." }
+        }
+      }
+    }
   }
 }

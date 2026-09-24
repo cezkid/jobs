@@ -91,6 +91,7 @@ def system(font: str) -> str:
 
 Entries
 - `entries` lists every master role id, plus any project ids worth page space. Keep every role: dates must stay contiguous. One exception: roles at the END of the master list (the oldest) that ended {OLD_ROLE_YEARS}+ years ago may be dropped when they prove nothing this posting requires. Never drop a role while an older one stays on the page.
+- `career_break` and `other` in master go on the page exactly as written: never list, reword or drop them.
 - Each bullet's `sources` = ids of master bullets from the SAME entry that it restates. Never move a claim into another role or project. Order bullets by relevance to this job: strongest first, since the opening bullet is the one always read. A bullet carrying a number outranks one without it; the weakest ends the entry.
 - Every requirement with priority `required` that a master claim proves gets that claim on the page, and it leads its entry.
 - Bullets per entry, by relevance to this posting, recency breaking ties: 3-5 for a recent role ({MAX_BULLETS_PER_ENTRY} max), 2-3 for older. An old role that proves a required item keeps the bullets proving it; 0 bullets for the oldest only when it proves nothing required.
@@ -151,10 +152,12 @@ def page_model(master: dict, tailored: dict, job: dict | None = None) -> dict:
     sections = []
     for section in base["sections"]:
         if "entries" in section:
+            # a career break is the user's own account of the time: on the page as written, never selected
             entries = [
+                e if e.get("career_break") else
                 {**e, "heading": mirrored(e["heading"], chosen[e["id"]]["title_mirror"]),
                  "bullets": [b["text"] for b in chosen[e["id"]]["bullets"]]}
-                for e in section["entries"] if e["id"] in chosen
+                for e in section["entries"] if e.get("career_break") or e["id"] in chosen
             ]
             if entries:
                 sections.append({**section, "entries": entries})
@@ -238,7 +241,8 @@ def droppable(master: dict, today: date) -> set[str]:
     cutoff = f"{today.year - OLD_ROLE_YEARS:04d}-{today.month:02d}"
     out = set()
     for role in reversed(master["roles"]):
-        if role["end"] == schema.PRESENT or role["end"] > cutoff:
+        # a year alone reads as its December: a role is never called old on a month it may not have ended in
+        if schema.month_index(role["end"], today, end=True) > schema.month_index(cutoff, today):
             break
         out.add(role["id"])
     return out
