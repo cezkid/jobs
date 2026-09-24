@@ -69,6 +69,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Resume + postings you work on | this AI chat (Claude or ChatGPT) | User's own AI account |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
+| Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Code fix only, after user says yes | maintainer | Everyone who uses Job Finder |
 
 Everything user sees in VS Code file list is private; program is hidden. Private folders never
@@ -87,8 +88,9 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
   pasted postings.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (Workday filler), `profiles/`
-  (example search), `skills/`, `install/`, `deploy/`, `docs/`, `tests/`.
+  `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `attribution.py` (Claude credit on
+  fixes), `resume/`, `apply/` (application fillers), `profiles/` (example search), `skills/`,
+  `install/`, `deploy/`, `docs/`, `tests/`.
 - `docs/index.html` - install page, GitHub Pages (`https://cezkid.github.io/jobs`).
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.
@@ -133,8 +135,9 @@ does not get proposed again.
 
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing
 there. `job-setup` first run + search changes, `job-find` new jobs + cleanup, `job-tailor`
-resume for one posting, `job-apply` fill a Workday application via Chrome extension (never
-clicks Save/Submit; Workday facts `app/docs/workday.md`), `report-defect` send fix upstream.
+resume for one posting, `job-apply` fill an application - Workday via Chrome extension, Ashby
+and later systems via Job Finder's own Chrome (never clicks Save/Submit; systems + how to add
+one `app/docs/apply-systems.md`), `report-defect` send fix upstream.
 
 ## Personal data - never stage
 
