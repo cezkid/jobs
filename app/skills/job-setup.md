@@ -72,8 +72,11 @@ heads notification + email), `passes`, `blocklist` (keep `jobgether` + their com
   `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing).
 - Do printed task yourself (`AGENTS.md` #AI writing steps), then
   `uv run app/jobs.py resume-import finish`. Gate fails -> copy source text more exactly, rerun.
+  Read every "left out" line it prints to user; real facts go back in (awards, volunteering,
+  clearances -> `other`), never silently dropped.
 - Read `My Resume/Resume details.yml`; confirm w/ user in plain words: jobs + dates, schools,
-  contact details. Header `# assumed` lines = year-only dates import guessed - ask real months.
+  contact details. Year-only dates stay years (never guess months). Header `# assumed` lines =
+  dates import couldn't read, or jobs re-sorted newest first - check each w/ user.
   Their corrections -> edit that file yourself (wording is theirs; employer, title, dates change
   only to fix a real mistake - `AGENTS.md` #Lead, explain, push back).
 - Photo, birth date, marital status or full street address came in -> push back once: US
@@ -82,8 +85,10 @@ heads notification + email), `passes`, `blocklist` (keep `jobgether` + their com
 - `gap` line from `finish` (6+ months) -> raise kindly, never as a fault: "There's a 9-month
   break between X and Y. Long breaks with no explanation get screened out at about half of
   employers; a one-line reason fixes most of that (caring for family, study, relocation). Want
-  one?" Yes -> one plain line in their words, for the application form or a cover note; study,
-  freelance or volunteering they really did can go in as its own entry. No -> leave it.
+  one?" Yes -> `career_break` entry (dates + reason in their words; shows on the page, closes
+  the gap) or study / freelance / volunteering they really did as its own entry. No -> leave it.
+- Lint warns `street-address`, `personal-details` -> the push back above. `old-graduation-year`
+  (15+ years) -> offer `hide_year` (age bias; convention), their call.
 - `uv run app/jobs.py resume-render` + `uv run app/jobs.py resume-lint`; fix failures w/ user.
   Lint warn `company-legal-id` = ignore (hospitals, schools, agencies carry no Inc./LLC).
   Open rendered PDF in `My Resume/` for them to look at.
