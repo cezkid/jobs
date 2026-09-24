@@ -89,7 +89,7 @@ reach maintainer or other users - git ignores them, and `/report-defect` gates c
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `attribution.py` (Claude credit on
-  fixes), `resume/`, `apply/` (Workday + Ashby fillers), `profiles/` (example search), `skills/`,
+  fixes), `resume/`, `apply/` (application fillers), `profiles/` (example search), `skills/`,
   `install/`, `deploy/`, `docs/`, `tests/`.
 - `docs/index.html` - install page, GitHub Pages (`https://cezkid.github.io/jobs`).
 
@@ -135,9 +135,9 @@ does not get proposed again.
 
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing
 there. `job-setup` first run + search changes, `job-find` new jobs + cleanup, `job-tailor`
-resume for one posting, `job-apply` fill a Workday application via Chrome extension or an
-Ashby one via Job Finder's own Chrome window (never clicks Save/Submit; Workday facts
-`app/docs/workday.md`, Ashby `app/docs/ashby.md`), `report-defect` send fix upstream.
+resume for one posting, `job-apply` fill an application - Workday via Chrome extension, Ashby
+and later systems via Job Finder's own Chrome (never clicks Save/Submit; systems + how to add
+one `app/docs/apply-systems.md`), `report-defect` send fix upstream.
 
 ## Personal data - never stage
 

@@ -1,8 +1,8 @@
 # Ashby application forms - measured facts
 
 Ashby runs the careers site for many tech employers (`jobs.ashbyhq.com/<company>/<posting id>`).
-`app/apply/ashby.py` reads the form's questions from Ashby's public job board, then fills them in
-a real Chrome window and lets go before **Submit**. Each fact names the tenant it was measured
+`app/apply/systems/ashby.py` reads the form's questions from Ashby's public job board and types
+answers into its widgets; the shared steps (`apply-form`) are in `apply-systems.md`. Each fact names the tenant it was measured
 on by letter, never the employer; add yours as a new line.
 
 ## Ashby's own "Autofill from resume" (tenant A, 2026-09)
@@ -27,16 +27,14 @@ File, ValueSelect, LongText, Boolean. Voluntary disclosure (EEO) surveys are not
 |---|---|---|
 | every question | wrapper `div[data-field-path="<path>"]`, same path as the form definition | find each box by path, never by label |
 | String, Email, Phone, LongText | plain input / textarea | Playwright `fill` (React takes it) |
-| Location | `input[role=combobox]`; places appear as `[role=option]` after typing | type slowly, pick the option starting with the city; shows as "City, State, Country" |
-| Boolean | two buttons Yes / No + hidden checkbox (checked = Yes, unchecked for both No and unanswered) | click the button by name; check the box only for Yes |
-| ValueSelect | radio group, option labels = `selectableValues` | click the label with the exact text |
+| Location | `input[role=combobox]`; places appear as `[role=option]` after typing | type slowly, pick the option starting with the city, none -> clear + ASK (never the first option); shows as "City, State, Country" |
+| Boolean | two buttons Yes / No, the chosen one `aria-pressed="true"`; hidden checkbox checked = Yes, unchecked for both No and unanswered | click the button by name unless already chosen (whether a second click clears it is unmeasured - avoided); poll `aria-pressed` up to 3s - it is set a moment after the click |
+| ValueSelect | radio group, option labels = `selectableValues` | click the label with the exact text; confirm its radio is checked |
 | File (`_systemfield_resume`) | `input[type=file]` in the Resume box; separate from the "Autofill from resume" uploader | upload into the Resume box only, first, so nothing re-fills over typed answers |
 
 ## Browser
 
-Chrome is started as a normal window with its own profile (`.data/apply-browser`) and a debugging
-port; the filler attaches, fills, and disconnects. No `--enable-automation`: `navigator.webdriver`
-reads `false`, so the employer's spam check sees an ordinary browser when the user clicks Submit.
+Shared with every system: `apply-systems.md`, `app/apply/browser.py`.
 
 ## Tenant notes
 
