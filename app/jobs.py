@@ -23,6 +23,7 @@ COMMANDS = {
     "resume-fit": ("resume.fit", "does this wording fit a line? candidates, or every bullet"),
     "tailor": ("resume.tailor", "tailored resume for one job: posting | prepare | check"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
+    "apply-ashby": ("apply.ashby", "fill an Ashby application in Chrome, stops before Submit: prepare | fill"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
     "launch": ("launch", "open VS Code on START HERE, Claude tab pre-filled (Desktop launcher)"),
     "open": (None, "open file or link for user: VS Code tab (PDF too), link in browser"),

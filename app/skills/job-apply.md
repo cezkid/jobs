@@ -1,8 +1,9 @@
 # job-apply
 
-Fill a Workday job application for the user through the Claude Chrome extension. Any company whose
-careers site is `*.myworkdayjobs.com` (or `wd<N>.myworkday...`). Other application systems: not
-yet - say so, offer the tailored PDF + answers to paste by hand.
+Fill a job application for the user, stopping before every Save/Submit. Workday (`*.myworkdayjobs.com`
+or `wd<N>.myworkday...`) through the Claude Chrome extension - Steps below. Ashby
+(`jobs.ashbyhq.com/...`) through Job Finder's own Chrome window - #Ashby below. Other application
+systems: not yet - say so, offer the tailored PDF + answers to paste by hand.
 User not technical - `AGENTS.md` #User = not technical binds. What was measured and why each
 rule exists: `app/docs/workday.md`. New tenant quirk found -> add it there, same PR as the fix.
 
@@ -46,3 +47,21 @@ rule exists: `app/docs/workday.md`. New tenant quirk found -> add it there, same
 
 Token care: send `apply.js` once; poll with the short status call only; no screenshots while the
 window is hidden (they come back black) - use `status()`, `errors()` or `find`.
+
+## Ashby
+
+Hard limits above all apply. Facts + why: `app/docs/ashby.md`. Ashby's own "Autofill from resume"
+fills contact boxes only - tell a user who thinks the resume "failed" that it did not.
+
+1. Tailored resume check as step 1 above.
+2. `uv run app/jobs.py apply-ashby prepare <slug> "<posting link>"` -> writes the job's
+   `.data/ashby-answers.json`, prints every question: `ok` (from resume or search settings) or
+   `NEEDED`. Rerun keeps answers already written.
+3. Fill each blank `answer` in that file: facts from the resume only (honesty rules of
+   `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. Resume
+   box: `answer: true` only after they said yes to uploading the named file. Location: the city they
+   live in. Answers from search settings: name them to the user.
+4. `uv run app/jobs.py apply-ashby fill <slug>` -> opens Chrome on the form, fills, prints one line
+   per question. `FAIL`/`ASK` -> tell the user plainly, fix, record the quirk in `app/docs/ashby.md`.
+5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
+   any banner (application limits), and that nothing is sent until they click **Submit**.
