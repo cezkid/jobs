@@ -175,3 +175,27 @@ def test_a_job_moved_before_the_ai_era_is_not_handed_an_ai_note_it_never_carried
     moved = schema.load(plain, notes(tmp_path))
     assert moved["roles"][0]["ai_era"] is False
     assert "ai_work" not in moved["roles"][0]["bullets"][0]
+
+
+def test_header_says_wording_wins_but_employer_title_and_dates_are_checked():
+    header = " ".join(tidy.HEADER)
+    assert "your edits always win" not in header
+    assert "wording always wins" in header and "only to fix a mistake" in header
+
+
+def test_new_sections_round_trip_and_the_editor_accepts_them(tmp_path):
+    doc = yaml.safe_load(PLAIN)
+    doc["roles"][1].update(start="2019", end="2022")
+    doc["career_break"] = [{"reason": "Caring for a family member", "start": "2022", "end": "2023-01"}]
+    doc["education"] = [{"institution": "State University", "degree": "BA", "end": "2004", "hide_year": True}]
+    doc["other"] = [{"heading": "Volunteer Work", "lines": ["Riverside Food Bank, driver, 2020 - 2022"]}]
+    assert [e.message for e in jsonschema.Draft7Validator(DETAILS_SCHEMA).iter_errors(doc)] == []
+    typed = yaml.safe_load(PLAIN.replace("start: 2019-06", "start: 2019"))  # a year typed bare is fine too
+    assert [e.message for e in jsonschema.Draft7Validator(DETAILS_SCHEMA).iter_errors(typed)] == []
+    path = tmp_path / "Resume details.yml"
+    path.write_text(yaml.safe_dump(doc), encoding="utf-8")
+    before = schema.load(path, notes(tmp_path))
+    tidy.tidy(path, notes(tmp_path))
+    assert schema.load(path, notes(tmp_path)) == before
+    written = path.read_text(encoding="utf-8")
+    assert written.index("career_break:") < written.index("education:") < written.index("other:")

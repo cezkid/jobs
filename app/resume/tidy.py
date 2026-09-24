@@ -19,9 +19,9 @@ import cfg
 from resume import facts, schema
 
 HEADER = [
-    "# Your resume facts. This is the only place Job Finder reads them from.",
-    "# Edit anything here, then ask your AI for a fresh resume - your edits always win.",
-    "# Two rules: keep the spacing as it is, and write dates as year-month, like 2023-02.",
+    "# Your resume facts, the only place Job Finder reads them from. Your wording always wins.",
+    "# Employer, job title and dates: change them only to fix a mistake - employers check them.",
+    "# Keep the spacing as it is. Dates are year-month, like 2023-02, or a year alone, like 2023.",
 ]
 NOTES = {
     "contact": ["# Your name and how an employer reaches you."],
@@ -30,14 +30,18 @@ NOTES = {
         "# Your jobs, newest first. Under each one, every line is one thing you did there.",
         "# 2023-02 means February 2023. The job you are in now ends with the word: present",
     ],
-    "projects": ["# Worth showing but not a job: side projects, teaching, volunteering."],
+    "career_break": ["# Time away from work, said plainly: reason, then start and end. Shown with your jobs."],
+    "projects": ["# Worth showing but not a job: side projects, teaching. Dates may be left out."],
     "skills": ["# The skills block. 'group' is the heading, 'items' are the words under it."],
-    "education": ["# Schools, newest first."],
+    "education": ["# Schools, newest first. hide_year: true leaves the year off the page."],
     "certifications": ["# Licences and certifications. Leave it as [] if you have none."],
     "languages": ["# Languages you speak, one line each."],
+    "other": ["# Anything else worth a heading: volunteer work, awards, clearances. Printed as written."],
 }
-ORDER = ["contact", "summary", "roles", "projects", "skills", "education", "certifications", "languages"]
-ENTRY_ORDER = ["company", "name", "title", "location", "blurb", "start", "end", "ai_era", "bullets"]
+ORDER = ["contact", "summary", "roles", "career_break", "projects", "skills", "education", "certifications",
+         "other", "languages"]
+ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "ai_era",
+               "bullets", "lines"]
 ORDERS = {"contact": ["name", "email", "phone", "location", "links"]}
 # plain scalar would read back as something else: leading indicator, a key, a comment, a number
 SPECIAL = re.compile(r"""^[\s#&*!|>%@`,\[\]{}?:'"-]|:\s|\s#|:$|\s$""")
