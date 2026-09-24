@@ -102,6 +102,17 @@ reports parser pass rates of 88% (Workday), 91% (Greenhouse), 93% (Lever). A wel
 in an unparseable container does not exist. `render.py` emits a single-column, heading-led page
 and the render gates check for tables, images and header/footer text for this reason.
 
+Readable is not the same as filled in. An application form (Workday, iCIMS, Taleo, SuccessFactors)
+fills its fields from *line shape*: a heading line, then the detail line under it. Measured on a
+Workday form, 2026-09: the one-line education format `BA, Field | School` came back as the school
+name "Field | School", the Degree box empty ("BA" is not on its spelled-out list) and a school
+written as "<Town> CC" unmatched. So `render.py` prints a school the way it prints a job - institution on its own line,
+spelled-out degree and field under it (`DEGREES`) - the `entry-lines` gate re-reads every PDF to
+confirm each heading and its detail line come back whole, and `abbreviated-school` warns on a
+shortened school name. Skills are a different matter: Workday often leaves its Skills box empty
+whatever the page does, because it adds only terms on its own skill list. That is the form, not
+the file - convention, not measured, and nothing on the page fixes it.
+
 **An unexplained gap is the problem, not the gap.** LiveCareer (2025) reports over half of job
 seekers had at least a one-month gap that year and one in four a gap of 12 months or more; a 2025
 MyPerfectResume survey reports 79% of hiring managers would still hire with a properly explained
@@ -141,7 +152,7 @@ candidate's own words and FAILs on generated text - the candidate's register sta
 | `bullet-taper` | an older role carrying more bullets than the newer one above it | WARN |
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
 | `em-dash`, `markdown`, `invisible-unicode` | characters that betray generated text | via `hit()` |
-| `street-address`, `personal-details`, `old-graduation-year` | on the user's own file (`resume-lint` only): a house number, apartment, suite or ZIP in the location; a birth date, age, marital status or nationality anywhere; a degree ended 15+ years ago without `hide_year` | WARN |
+| `street-address`, `personal-details`, `old-graduation-year`, `abbreviated-school` | on the user's own file (`resume-lint` only): a house number, apartment, suite or ZIP in the location; a birth date, age, marital status or nationality anywhere; a degree ended 15+ years ago without `hide_year`; a school name shortened (CC, Univ., U of) | WARN |
 | `pages`, `line-fill`, `contact-line`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
 | `budget` | page words outside every window at this page's density: one page 75-100% full, or two with the second 60%+. Facts too few for even the lowest window report, never fail | FAIL / info |
 | `no-abbreviated-title` | Sr./Jr. in a role heading - never in a name ("Robert Hayes Jr.") or employer | FAIL |
@@ -182,6 +193,7 @@ sending.md" prints first. Mirrored from `lint.WHY`; `test_lint` keeps the two in
 | `invisible-unicode` | An invisible character could trip up job-site software. |
 | `street-address` | City and state is enough; a street address adds nothing and exposes you. |
 | `personal-details` | US employers don't expect these; they invite bias. |
+| `abbreviated-school` | Application forms match your school against a list of full names, so a short form like "CC" matches nothing. |
 | `old-graduation-year` | A graduation year from 15+ years ago can invite age bias; you may leave the year off. |
 
 ## What the fill advice aims at

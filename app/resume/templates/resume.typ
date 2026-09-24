@@ -26,12 +26,13 @@
 }
 
 // dates inline, never h(1fr) right column: pdftotext default mode read it as 2nd column, after bullets
-#let entry(e) = block(above: 0.74em + 10pt, below: 0pt, breakable: true)[
-  #block(below: 0.74em + 2.5pt, sticky: true)[
+// no bullets (a school, a career break) => spaced like a line, not a job: two rows, no empty list gap
+#let entry(e) = block(above: 0.74em + if e.bullets.len() > 0 { 10pt } else { 2.5pt }, below: 0pt, breakable: true)[
+  #block(below: if e.bullets.len() > 0 { 0.74em + 2.5pt } else { 0pt }, sticky: true)[
     #text(weight: 600, fill: accent)[#e.heading]#if e.at("org", default: none) != none [#sep#text(weight: 600)[#e.org]]
     #if e.at("subline", default: none) != none [ \ #text(number-width: "tabular")[#e.subline]]
   ]
-  #list(..e.bullets.map(b => [#b]))
+  #if e.bullets.len() > 0 { list(..e.bullets.map(b => [#b])) }
 ]
 
 #text(size: 20pt, weight: 700, fill: accent, tracking: -0.01em)[#d.contact.name]

@@ -5,7 +5,7 @@ import pytest
 import typst
 
 import cfg
-from resume import measure, render, schema, typeface
+from resume import measure, render, schema, tailor, typeface
 
 EXAMPLE = cfg.APP / "resume" / "master.example.yml"
 
@@ -25,7 +25,8 @@ def test_page_model_orders_sections_and_labels_dates(master):
     acme = model["sections"][0]["entries"][0]
     assert acme["subline"] == "Feb 2023 - Present | Remote | Customer support platform | acme.com"
     assert acme["bullets"][0] == master["roles"][0]["bullets"][0]["claim"]
-    assert model["sections"][3]["lines"] == [{"text": "B.S., Computer Science | State University | Minor in Mathematics | 2019"}]
+    assert model["sections"][3]["entries"] == [{"heading": "State University", "bullets": [],
+                                                "subline": "Bachelor of Science, Computer Science | Minor in Mathematics | 2019"}]
     assert render.file_name(model) == "Jane_Doe_Resume.pdf"
 
 
@@ -312,7 +313,43 @@ def test_education_leads_with_no_jobs_or_a_fresh_degree(master):
 def test_hide_year_leaves_the_graduation_year_off(master):
     master["education"][0]["hide_year"] = True
     education = next(s for s in render.page_model(master)["sections"] if s["title"] == "Education")
-    assert education["lines"] == [{"text": "B.S., Computer Science | State University | Minor in Mathematics"}]
+    assert education["entries"][0]["subline"] == "Bachelor of Science, Computer Science | Minor in Mathematics"
+
+
+@pytest.mark.parametrize("written, printed", [
+    ("BA", "Bachelor of Arts"), ("B.S. in Nursing", "Bachelor of Science in Nursing"), ("Ph.D.", "Doctor of Philosophy"),
+    ("MBA", "Master of Business Administration"), ("Associate of Arts", "Associate of Arts"), ("GED", "GED"),
+])
+def test_degree_is_spelled_out_for_application_forms(written, printed):
+    assert render.degree_name(written) == printed
+
+
+def test_school_and_degree_read_back_on_their_own_lines(master, tmp_path):
+    """One-line "BA, Field | School" came back from Workday as the school name: never again."""
+    master["education"] = [{"institution": "Riverside State University", "degree": "BA",
+                            "field": "Studio Art"},
+                           {"institution": "Lakeview Community College", "degree": "AA", "field": "Graphic Design"}]
+    path, results = render.render(render.page_model(master), tmp_path, budget=False)
+    assert failed(results) == {}
+    lines = [l.strip() for l in render.pdf_text(path, sort=True).splitlines() if l.strip()]
+    at = lines.index("Riverside State University")
+    assert lines[at + 1] == "Bachelor of Arts, Studio Art"
+    assert lines[lines.index("Lakeview Community College") + 1] == "Associate of Arts, Graphic Design"
+
+
+def test_entry_lines_gate_catches_a_merged_heading(master):
+    model = render.page_model(master)
+    reading = "State University Bachelor of Science, Computer Science | Minor in Mathematics | 2019"
+    school = next(s for s in model["sections"] if s["title"] == "Education")
+    assert render.unsplit_entries({"sections": [school]}, reading) == ["State University"]
+
+
+def test_tailored_page_keeps_every_school(master):
+    tailored = {"summary": None, "skills": [],
+                "entries": [{"id": r["id"], "title_mirror": None, "bullets": []} for r in master["roles"]]}
+    model = tailor.page_model(master, tailored)
+    assert [e["heading"] for s in model["sections"] if s["title"] == "Education" for e in s["entries"]] == \
+        [s["institution"] for s in master["education"]]
 
 
 def test_career_break_sits_between_jobs_by_date_and_renders(master, tmp_path):
