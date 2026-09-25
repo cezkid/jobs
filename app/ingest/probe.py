@@ -75,7 +75,7 @@ def main() -> None:
     params = parse_params(raw)
     bad = cfg.FORBIDDEN_PARAMS & params.keys()
     if bad:
-        raise SystemExit(f"forbidden params {sorted(bad)} (docs/freehire.md)")
+        raise SystemExit(f"forbidden params {sorted(bad)} (docs/jobs/freehire.md)")
     # defaults only => runs before config.yml exists
     api = cfg.defaults()["api"]
     with httpx.Client(timeout=api["timeout_s"]) as client:

@@ -133,7 +133,7 @@ def mismatches(job: dict, rc: dict) -> list[str]:
 
 def sponsorship(job: dict, config: dict) -> list[str]:
     """User needs a visa sponsor and freehire marks this job as never sponsoring. A weak label
-    (docs/freehire.md #Visa sponsorship): demoted like a mismatch, never hidden."""
+    (docs/jobs/freehire.md #Visa sponsorship): demoted like a mismatch, never hidden."""
     needs = (config.get("work_authorization") or {}).get("needs_sponsorship")
     return ["says no visa sponsorship"] if needs and (job.get("enrichment") or {}).get("visa_sponsorship") is False else []
 

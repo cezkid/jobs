@@ -34,10 +34,10 @@ User not technical - `AGENTS.md` #User = not technical binds. Needs
      bullet already in `Resume details.yml` without rendering.
    - Stubs in the user's own facts (contact, dates, education) are reported, never failed - only
      they can shorten a link or blurb in `Resume details.yml`. Mention it, let them choose.
-   - Want a different typeface -> `app/docs/typeface.md` #Changing it: open licence only, render
+   - Want a different typeface -> `app/docs/resume/typeface.md` #Changing it: open licence only, render
      it and tell them the cost (pages, half-empty lines) before keeping it. Chars per line move
      with it, so redo the task file (`tailor prepare`) after, never reuse the old answer.
-   - Rewriting a bullet -> `app/docs/bullets.md`: accuracy outranks fit, so never add a number,
+   - Rewriting a bullet -> `app/docs/resume/bullets.md`: accuracy outranks fit, so never add a number,
      term or grade to fill a line or match a requirement. A bullet with no evidence behind it is
      a question for the user, never a line to fill in.
 3. Read `Check before sending.md` in job folder: "Ready to send?", "What the job asks for, and
@@ -60,7 +60,7 @@ Wording the user asks about:
   keyword list, explaining there only bloats it.
 - Bullet order inside one role: most relevant to THIS posting first (the opening bullet is the
   one always read), relevance over chronology; among equally relevant, a bullet w/ a number goes
-  first; weakest last (`app/docs/bullets.md` Tier 3). `resume-lint` warns `lead-bullet-weak` when
+  first; weakest last (`app/docs/resume/bullets.md` Tier 3). `resume-lint` warns `lead-bullet-weak` when
   a role opens w/o a number while a later bullet carries one.
 - Licence or certification the posting requires and they hold -> Certifications moves up under
   the summary automatically; the summary may name it too, spelled as the posting spells it.
@@ -116,6 +116,15 @@ theirs to choose - but measure before advising, never opine:
   the state costs - remote rows that restrict hiring by state need it. Longer location = longer
   contact line: `contact-line (info)` reports the wrap, and on a full page that wrap costs a whole
   page, so re-render before promising the wording.
+
+"How good is my resume?" -> `uv run app/jobs.py resume-feedback`, open `My Resume/Resume feedback.md`,
+summarize its "At a glance" + next steps. Rerun after any change to their file: it says what moved.
+
+Lint `specificity` or `lead-bullet-weak` on their own lines, or they ask how to make lines stronger
+-> offer `resume-gaps` (`job-setup` step 3): asks them for the real numbers + leadership, merges
+only what they say. `spelling` / `compound-modifier` on their own words -> show the fix, their call
+(US employers read "theatre" as a typo; automated scorers count one error against the page).
+`overused-opening` -> vary the verb only where the fact supports another one.
 
 Never invent experience to close gap. Tailor/render/lint crash or wrong output from tracked code
 -> `AGENTS.md` #Framework defects.

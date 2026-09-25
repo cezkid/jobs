@@ -6,6 +6,7 @@ dependencies = [
     "httpx>=0.28.1",
     "playwright>=1.63.0",
     "pymupdf>=1.28.2",
+    "pyspellchecker>=0.8",
     "python-dotenv>=1.2.3",
     "pyyaml>=6.0.3",
     "textual>=8.2.8",

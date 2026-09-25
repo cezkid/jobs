@@ -1,6 +1,6 @@
 # Example search: remote US first, one city area second. Swap category + cities for user's own.
 # Probe every value before keeping it (uv run app/jobs.py probe); unknown slug answers 0, not error.
-# Outside tech seniority, work_mode, employment_type null on most rows (docs/freehire.md) => not filtered here.
+# Outside tech seniority, work_mode, employment_type null on most rows (docs/jobs/freehire.md) => not filtered here.
 
 profile:
   name: finance jobs
@@ -23,7 +23,7 @@ passes:
     params:
       category: [finance]
       # exact /geo/cities values (uv run app/jobs.py probe --city springfield); cities alone -
-      # geography facets OR together (docs/freehire.md)
+      # geography facets OR together (docs/jobs/freehire.md)
       cities: [Springfield]
       sort: posted_at
       order: desc
@@ -31,7 +31,7 @@ passes:
 # Applied before ranking, case-insensitive. companies = slug or company name (Inc/LLC ignored);
 # categories = enrichment.category, local only.
 blocklist:
-  # jobgether reposter; builtin-integration-sandbox test postings w/o requirements (docs/freehire.md)
+  # jobgether reposter; builtin-integration-sandbox test postings w/o requirements (docs/jobs/freehire.md)
   companies: [jobgether, builtin-integration-sandbox]
   sources: []
   categories: []

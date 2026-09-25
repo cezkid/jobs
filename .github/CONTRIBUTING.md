@@ -36,4 +36,4 @@ command, expected vs actual output, date.
 
 ## freehire findings
 
-New measured API behavior -> `app/docs/freehire.md`, dated, w/ counts that settled it.
+New measured API behavior -> `app/docs/jobs/freehire.md`, dated, w/ counts that settled it.

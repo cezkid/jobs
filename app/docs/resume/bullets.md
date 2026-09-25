@@ -161,7 +161,12 @@ candidate's own words and FAILs on generated text - the candidate's register sta
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
 | `em-dash`, `markdown`, `invisible-unicode` | characters that betray generated text | via `hit()` |
 | `street-address`, `personal-details`, `old-graduation-year`, `abbreviated-school` | on the user's own file (`resume-lint` only): a house number, apartment, suite or ZIP in the location; a birth date, age, marital status or nationality anywhere; a degree ended 15+ years ago without `hide_year`; a school name shortened (CC, Univ., U of); a languages line that is not one language with its level in brackets | WARN |
+| `spelling` | a British form (`US_FORMS`: theatre, colour, organise, modelling, licence...) or an unknown word one letter from a known one - the shape of a typo, with the likely word named. Skills, stack items, `WORK_WORDS` (workflow, dataset, telehealth...), names and tool tokens never flagged; generated text may use any word the facts or posting use. Automated scorers treat one spelling error as a failure for the whole page | via `hit()` |
+| `compound-modifier` | one of 32 two-word modifiers left open before its noun: *live streaming channels*, *full stack engineer*. Never after the noun (*shipped end to end*) | WARN |
+| `overused-opening` | one opening word on 4+ bullets across the page (convention, not measured) | WARN |
+| `filler-word` | *successfully*, *actively*, first person (me, my, we, our; *I* only opening a sentence). Common filler lists add *the, that, which, their* and match *lazy* inside "lazy loading" - both left out | WARN |
 | `pages`, `line-fill`, `contact-line`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
+| `split-words`, `text-color`, `heading-gap` | letters of a word spaced 0.04em+ apart; text not black outside a link; unequal space under section headings - see [page-format.md](page-format.md) | FAIL |
 | `budget` | page words outside every window at this page's density: one page 75-100% full, or two with the second 60%+. Facts too few for even the lowest window report, never fail | FAIL / info |
 | `no-abbreviated-title` | Sr./Jr. in a role heading - never in a name ("Robert Hayes Jr.") or employer | FAIL |
 | selection: mirror, skills, coverage, dropped role | `tailor.check_selection`: a mirror claiming a level, a skills item not in master, coverage evidence not on the page, a role dropped other than from the old end | FAIL |
@@ -204,6 +209,10 @@ sending.md" prints first. Mirrored from `lint.WHY`; `test_lint` keeps the two in
 | `abbreviated-school` | Application forms match your school against a list of full names, so a short form like "CC" matches nothing. |
 | `language-level` | Resume readers store each language with its own level, so write one per line with the level in brackets, like Spanish (Fluent). |
 | `old-graduation-year` | A graduation year from 15+ years ago can invite age bias; you may leave the year off. |
+| `spelling` | Resume scanners count a spelling mistake against the whole page, and US employers read British spellings as mistakes. |
+| `compound-modifier` | Two words describing the next one take a hyphen - live-streaming channels, full-stack engineer. |
+| `overused-opening` | One word starts many of your lines; a different true verb here and there reads less repetitive. |
+| `filler-word` | Words like 'successfully' or 'my' take room and add nothing the line does not already say. |
 
 ## What the fill advice aims at
 
@@ -290,6 +299,8 @@ below replaced a rule argued or measured wrong - re-propose the old form only wi
 | Education always after Experience | First when there are no jobs, or a degree ended within 12 months over under 24 months of work | A new graduate's strongest line was at the bottom |
 | Nothing said a street address, birth date or marital status was on the page | `street-address`, `personal-details` WARN on the untailored resume; `old-graduation-year` WARN suggests `hide_year` | US hiring does not ask for these and they invite bias; the year is never hidden without the user's say |
 | A gap was only ever a gap | `career_break` entries shown with the jobs, no lines under them, and counted as covered time | A named break answers the question a silent gap raises |
+| Summary one or two lines (tailoring prompt, file notes) | Up to four lines, the last well filled; the 57-word cap unchanged | Career guidance puts a summary at 3-6 lines. The word cap was never what held it to two: 57 words already run to about five lines at the summary's width (~12 words a line in Caladea), so raising it to 90 would have allowed seven |
+| No spelling check | `spelling` WARN on the user's words, FAIL on generated ones, typo-shaped words and British forms only | Automated scorers fail the page on one spelling error, and US readers take *theatre* for one. A general dictionary alone flagged *workflow*, *dataset*, *telehealth*: only an unknown word one letter from a known one is flagged |
 | Dropped items unexplained; report in rule slugs and ids | `reasons` per dropped bullet, role and skill; "Check before sending.md" in plain words, ids and rule names only in a trailing parenthetical | The user can challenge every decision only if each one carries a visible reason |
 
 ## Considered, not mechanised

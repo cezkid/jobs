@@ -50,7 +50,8 @@
         "links": { "type": "array", "items": { "type": "string" }, "description": "LinkedIn, a portfolio, anything worth a click." }
       }
     },
-    "summary": { "type": "string", "description": "The short pitch at the top of the page - one or two lines." },
+    "headline": { "type": "string", "minLength": 1, "description": "One line above your summary saying what you do - your real title and main skills, like Software Engineer | React.js, TypeScript, Node.js. Leave it out if you prefer none." },
+    "summary": { "type": "string", "description": "The short pitch at the top of the page - up to four lines." },
     "roles": {
       "type": "array",
       "description": "Your jobs, newest first. Leave it as [] if you have not had one yet.",

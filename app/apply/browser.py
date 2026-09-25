@@ -3,9 +3,10 @@ fill, and let go of. Shared by every application system.
 
 No automation flag, so `navigator.webdriver` is false and the employer's spam check sees an
 ordinary browser when the user clicks Submit. The profile lives in `.data/` - sign-ins stay on
-this computer and never touch the user's everyday Chrome. Facts: app/docs/apply-systems.md.
+this computer and never touch the user's everyday Chrome. Facts: app/docs/apply/apply-systems.md.
 """
 import contextlib
+import re
 import shutil
 import socket
 import subprocess
@@ -44,10 +45,40 @@ def live_port() -> int | None:
     starting another Chrome on the same profile only hands the link to the first one."""
     try:
         port = int(PORT_FILE.read_text().split()[0])
-        httpx.get(f"http://127.0.0.1:{port}/json/version", timeout=1)
-        return port
-    except (OSError, ValueError, IndexError, httpx.HTTPError):
+    except (OSError, ValueError, IndexError):
+        # file gone while Chrome still runs (seen 2026-09-24): without this, the next start only
+        # hands the link to the open window and waits on a port that never answers
+        port = running_port()
+    if port is None or not answers(port):
         return None
+    if not PORT_FILE.exists():
+        PORT_FILE.write_text(str(port))
+    return port
+
+
+def answers(port: int) -> bool:
+    try:
+        httpx.get(f"http://127.0.0.1:{port}/json/version", timeout=1)
+        return True
+    except httpx.HTTPError:
+        return False
+
+
+def running_port() -> int | None:
+    """Debugging port off the command line of a Chrome running on Job Finder's profile."""
+    if sys.platform == "win32":
+        command = ["powershell", "-NoProfile", "-Command",
+                   "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | ForEach-Object CommandLine"]
+    else:
+        command = ["ps", "-axww", "-o", "command="]
+    try:
+        listed = subprocess.run(command, capture_output=True, text=True, timeout=10).stdout
+    except (OSError, subprocess.SubprocessError):
+        return None
+    for line in listed.splitlines():
+        if str(PROFILE) in line and (m := re.search(r"--remote-debugging-port=(\d+)", line)):
+            return int(m.group(1))
+    return None
 
 
 def free_port() -> int:

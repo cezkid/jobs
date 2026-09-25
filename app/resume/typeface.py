@@ -1,7 +1,7 @@
 """The typeface the resume is set in, and the file every width is measured from.
 
 One family ships: Caladea, which carries Cambria's metrics under the OFL. It was picked on
-numbers that can be re-run, not on taste - `app/docs/typeface.md` records them. A page fits
+numbers that can be re-run, not on taste - `app/docs/resume/typeface.md` records them. A page fits
 what it fits because of the font: swap the family and column fits, stub lines and word budgets
 all move with it, so the family is a setting (`resume.font`) and nothing downstream hardcodes
 a file name.

@@ -2,7 +2,7 @@
 
 `apply <slug>` uses that job's tailored bullets and skills when `tailor` made them, else the user's
 own facts. Output: `<job folder>/.data/apply.js` = `workday.js` + `window.__jf.run(DATA)`.
-Workday rules and why: app/docs/workday.md.
+Workday rules and why: app/docs/apply/workday.md.
 """
 import argparse
 import json

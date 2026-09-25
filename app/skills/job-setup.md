@@ -1,7 +1,7 @@
 # job-setup
 
 User not technical - `AGENTS.md` #User = not technical binds every step. You run all commands.
-Read `app/docs/freehire.md` first: geography, null-facet and `q=` rules below come from it.
+Read `app/docs/jobs/freehire.md` first: geography, null-facet and `q=` rules below come from it.
 
 Open w/ short paragraph: you'll ask what they're looking for, check how many jobs match, read
 their resume, then show first matches; takes ~10 minutes. Add privacy in plain words:
@@ -108,9 +108,18 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   ask the full name (forms say "Do not use abbreviations"). `language-level` -> ask each
   language's level w/ choices (Native / Fluent / Professional / Conversational / Basic) - their
   fact, never guessed - then one line each: `Spanish (Fluent)`.
+- Fill the gaps: `uv run app/jobs.py resume-gaps prepare`, do the task yourself (it lists lines
+  with no number + a leadership question per recent job), asking the user in chat - clickable
+  "I know it / skip" choices, the number as free text. Only what they say goes in; never guess or
+  round, and skipping is fine. Then `uv run app/jobs.py resume-gaps finish` (FAIL = a number or
+  name not in their answer; fix the answer file). Tell them it kept a backup of the old file.
 - `uv run app/jobs.py resume-render` + `uv run app/jobs.py resume-lint`; fix failures w/ user.
   Lint warn `company-legal-id` = ignore (hospitals, schools, agencies carry no Inc./LLC).
   Open rendered PDF in `My Resume/` for them to look at.
+- `uv run app/jobs.py resume-feedback` -> `My Resume/Resume feedback.md`; open it and walk them
+  through "At a glance" in plain words. `Worth a look` on numbers or leadership -> offer the
+  fill-the-gaps step above; wording notes -> show each fix, their call. Page layout is never in
+  it: the render gates enforce it on every PDF.
 
 ## 4. First matches
 

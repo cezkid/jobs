@@ -370,3 +370,35 @@ def test_career_break_sits_between_jobs_by_date_and_renders(master, tmp_path):
 ])
 def test_file_name_folds_accents_and_falls_back(name, file):
     assert render.file_name({"contact": {"name": name}}) == file
+
+
+def test_headline_prints_between_contact_and_summary(master, tmp_path):
+    master["headline"] = "Software Engineer | Vue, TypeScript, LLM search"
+    path, results = render.render(render.page_model(master), tmp_path, budget=False)
+    assert failed(results) == {}
+    assert dict((n, d) for n, _, d in results)["headline (info)"] == "fits one row"
+    text = render.pdf_text(path, sort=True)
+    assert text.index("jane@") < text.index(master["headline"]) < text.index(master["summary"][:30])
+
+
+def old_style_template(tmp_path, monkeypatch):
+    """The page before the format fixes: navy headings letterspaced, a job's lead under its heading."""
+    old = render.TEMPLATE.read_text(encoding="utf-8")
+    old = old.replace("#text(size: 11.5pt, weight: 600)", '#text(size: 11.5pt, weight: 600, fill: rgb("#1F3A5F"), tracking: 0.08em)')
+    old = old.replace("if first { first-gap }", "if false { first-gap }")
+    template = tmp_path / "resume.typ"
+    template.write_text(old, encoding="utf-8")
+    monkeypatch.setattr(render, "TEMPLATE", template)
+
+
+def test_colour_letterspacing_and_heading_gap_fail_their_gates(master, tmp_path, monkeypatch):
+    old_style_template(tmp_path, monkeypatch)
+    _, results = render.render(render.page_model(master), tmp_path / "out", budget=False)
+    found = failed(results)
+    assert set(found) == {"split-words", "text-color", "heading-gap"}
+    assert "EXPERIENCE" in found["split-words"] and "#1F3A5F" in found["text-color"]
+
+
+def test_black_is_the_page_ink_and_navy_is_not():
+    assert render.near_black(0x1A1A1A) and render.near_black(0x000000)
+    assert not render.near_black(0x1F3A5F) and not render.near_black(0x0000EE)

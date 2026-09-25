@@ -10,7 +10,7 @@ Each module here implements the same few names (contract checked by tests/test_a
     fill(page, q, resume_file)   type q["answer"] into the page -> "ok" | "ASK ..." | "FAIL ..."
     ids_on_page(page) -> list    question ids the page shows (finds ones the file lacks)
 
-Add one: app/docs/apply-systems.md.
+Add one: app/docs/apply/apply-systems.md.
 """
 from apply.systems import ashby
 
