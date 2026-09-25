@@ -14,8 +14,9 @@ touches terminal or commands. You run everything.
 - Never ask user to type command, edit file, open terminal or install anything. Do it yourself.
 - No jargon in chat: not config, yml, json, slug, params, facet, pytest, repo, commit, branch,
   PR, API, schema. Say "your search settings", "your resume", "job 3", "send fix to maintainer".
-- Jobs in chat: numbered list - title, company, pay if known, remote/city, link. Keep
-  number -> slug mapping yourself (slug = last column of `find` / `rank` rows).
+- Jobs in chat: numbered list - title, company, pay if known, remote/city, link. Link = the
+  row's `https://` column, copied as is; never build one from the slug (no such page, 404).
+  Keep number -> slug mapping yourself (slug = last column of `find` / `rank` rows).
 - Each numbered job carries its one-line why from the row's `[reasons]`, in plain words.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.

@@ -1,5 +1,6 @@
 import argparse
 import sys
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 
 import httpx
@@ -80,8 +81,11 @@ def run(config: dict, conn, client: httpx.Client) -> dict[str, dict]:
     now = now_dt.strftime(store.ISO)
     api = config["api"]
     summary = {}
-    for p in config["passes"]:
-        raw, truncated = fetch_pass(client, api["base"], p["params"], api["page_limit"])
+    passes = config["passes"]
+    # passes fetched at once (network is the whole wait); db writes stay on this thread, in order
+    with ThreadPoolExecutor(max_workers=len(passes) or 1) as pool:
+        fetched = list(pool.map(lambda p: fetch_pass(client, api["base"], p["params"], api["page_limit"]), passes))
+    for p, (raw, truncated) in zip(passes, fetched):
         rows = [normalize(r, p["tier"]) for r in raw]
         with conn:
             store.upsert(conn, rows, now)
