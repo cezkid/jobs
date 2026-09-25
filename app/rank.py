@@ -240,6 +240,13 @@ def suspects(jobs: list[dict], min_categories: int) -> list[tuple[str, set[str]]
     return sorted(((c, s) for c, s in cats.items() if len(s) >= min_categories), key=lambda cs: -len(cs[1]))
 
 
+def row(job: dict, config: dict, now: datetime) -> str:
+    """One printed line; link = the posting's real address, slug last (AI keeps number -> slug)."""
+    new = "-" if job["seen"] else "NEW"
+    return (f"{new:3} {job['tier']:6} {job['title'][:60]} | {job['company']}  [{reasons(job, config, now)}]  "
+            f"{job['url']}  {job['public_slug']}")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Print ranked open jobs")
     ap.add_argument("--db", help="override config db path")
@@ -262,8 +269,7 @@ def main() -> None:
         return
     now = datetime.now(timezone.utc)
     for j in rank(jobs, config, now)[: args.limit]:
-        new = "-" if j["seen"] else "NEW"
-        print(f"{new:3} {j['tier']:6} {j['title'][:60]} | {j['company']}  [{reasons(j, config, now)}]  {j['public_slug']}")
+        print(row(j, config, now))
 
 
 if __name__ == "__main__":

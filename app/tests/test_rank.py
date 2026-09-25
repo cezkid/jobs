@@ -178,3 +178,9 @@ def test_suspects_flags_category_spread():
     jobs = [make_job(str(i), company_slug="spray", category=c) for i, c in enumerate(["design", "sre", "ml_ai"])]
     jobs.append(make_job("x", company_slug="focused", category="frontend"))
     assert [c for c, _ in rank.suspects(jobs, 3)] == ["spray"]
+
+
+def test_row_carries_real_link_before_slug():
+    job = {**make_job("j1", url="https://job-boards.greenhouse.io/acme/jobs/42"), "seen": False}
+    fields = rank.row(job, CONFIG, NOW).split()
+    assert fields[-2:] == ["https://job-boards.greenhouse.io/acme/jobs/42", "j1"]

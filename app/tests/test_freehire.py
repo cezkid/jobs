@@ -34,3 +34,16 @@ def test_complete_pass_closes_absent(conn):
     with client(1, ["a"]) as c:
         summary = freehire.run(CONFIG, conn, c)
     assert summary["remote"] == {"fetched": 1, "closed": 1, "truncated": False}
+
+
+def test_passes_fetched_together_land_in_own_tier(conn):
+    config = {**CONFIG, "passes": [{"tier": "remote", "params": {"cities": ["a"]}},
+                                   {"tier": "local", "params": {"cities": ["b"]}}]}
+
+    def handler(request):
+        slug = request.url.params["cities"]
+        return httpx.Response(200, json={"data": [raw(slug)], "meta": {"total": 1}})
+    with httpx.Client(transport=httpx.MockTransport(handler)) as c:
+        summary = freehire.run(config, conn, c)
+    assert list(summary) == ["remote", "local"]
+    assert {j["public_slug"]: j["tier"] for j in store.all_jobs(conn)} == {"a": "remote", "b": "local"}

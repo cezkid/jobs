@@ -5,7 +5,8 @@ missing -> `job-setup` skill instead.
 
 1. `uv run app/jobs.py find --limit 15` (checks for new jobs, then ranks). Row columns: `NEW` (not yet
    notified) or `-`, tier, `title | company`, `[why]` in plain words (place, pay, employer list,
-   first seen, reposts, level/hours mismatch), slug (last). Repeat "why" to the user when asked.
+   first seen, reposts, level/hours mismatch), link (the posting itself - show this one, never
+   build a link from the slug), slug (last). Repeat "why" to the user when asked.
 2. Show as `AGENTS.md` numbered list, grouped by tier label (e.g. "Remote US", "Springfield area").
    Keep number -> slug mapping. Add one plain sentence on how the list is ordered, read off
    `rank.py` #rank + their search settings, never recited from memory.
