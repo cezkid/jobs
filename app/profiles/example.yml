@@ -5,6 +5,7 @@
 profile:
   name: finance jobs
 
+# No posted_within_days: each pass starts at 7 days, widens when thin (app/defaults.yml window).
 # Order = rank tier order. Row matching two passes keeps LAST pass's tier.
 passes:
   - tier: remote
@@ -14,8 +15,6 @@ passes:
       # remote rows always carry work_mode => safe filter here
       work_mode: [remote]
       countries: [us]
-      # bounds fetch only; novelty = seen table
-      posted_within_days: 3
       sort: posted_at
       order: desc
   - tier: local

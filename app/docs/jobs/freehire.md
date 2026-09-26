@@ -55,7 +55,9 @@ hidden; `true` never boosted. Tailoring reads the full posting and quotes the li
 ## Closing + stale rows
 
 `close_missing` closes only rows posted inside a pass's `posted_within_days` window: older rows
-are never re-fetched, so never closed. `rank` sorts open rows no fetch returned in more than
+are never re-fetched, so never closed. Window = the one the pass actually fetched at: each pass starts at
+`window.days` (7) or its own `posted_within_days`, widens through `window.widen_to` while it
+returns fewer than `window.min_jobs` (30) rows (`app/defaults.yml`, counts measured 2026-09-26). `rank` sorts open rows no fetch returned in more than
 `rank.stale_days` (default 14) days, read off `jobs.fetched_at`, to the bottom of their tier w/
 reason "may be closed - not seen in Nd"; digest never announces them. Demoted, not hidden:
 hiding a still-open job costs a chance, showing a closed one costs a click.

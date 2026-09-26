@@ -69,6 +69,21 @@ def normalize(raw: dict, tier: str) -> dict:
     }
 
 
+def windows(params: dict, window: dict) -> list[int]:
+    """Days to try in order: pass's own or default start, then each wider step."""
+    start = params.get("posted_within_days", window["days"])
+    return [start] + [d for d in window["widen_to"] if d > start]
+
+
+def fetch_widening(client: httpx.Client, base: str, params: dict, page_limit: int, window: dict) -> tuple[list[dict], bool, int]:
+    """Narrowest window returning min_jobs rows, else the widest. Rows, truncated, days used."""
+    for days in windows(params, window):
+        rows, truncated = fetch_pass(client, base, {**params, "posted_within_days": days}, page_limit)
+        if len(rows) >= window["min_jobs"]:
+            break
+    return rows, truncated, days
+
+
 def posted_since(params: dict, now: datetime) -> str | None:
     days = params.get("posted_within_days")
     if days is None:
@@ -84,16 +99,17 @@ def run(config: dict, conn, client: httpx.Client) -> dict[str, dict]:
     passes = config["passes"]
     # passes fetched at once (network is the whole wait); db writes stay on this thread, in order
     with ThreadPoolExecutor(max_workers=len(passes) or 1) as pool:
-        fetched = list(pool.map(lambda p: fetch_pass(client, api["base"], p["params"], api["page_limit"]), passes))
-    for p, (raw, truncated) in zip(passes, fetched):
+        fetched = list(pool.map(
+            lambda p: fetch_widening(client, api["base"], p["params"], api["page_limit"], config["window"]), passes))
+    for p, (raw, truncated, days) in zip(passes, fetched):
         rows = [normalize(r, p["tier"]) for r in raw]
         with conn:
             store.upsert(conn, rows, now)
             # truncated pass never saw rows past the ceiling => absence proves nothing
             closed = 0 if truncated else store.close_missing(
-                conn, p["tier"], {r["public_slug"] for r in rows}, posted_since(p["params"], now_dt), now
+                conn, p["tier"], {r["public_slug"] for r in rows}, posted_since({"posted_within_days": days}, now_dt), now
             )
-        summary[p["tier"]] = {"fetched": len(rows), "closed": closed, "truncated": truncated}
+        summary[p["tier"]] = {"fetched": len(rows), "closed": closed, "truncated": truncated, "days": days}
     return summary
 
 
@@ -106,7 +122,7 @@ def main() -> None:
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
         summary = run(config, conn, client)
     for tier, s in summary.items():
-        print(f"{tier}: fetched {s['fetched']}, closed {s['closed']}")
+        print(f"{tier}: fetched {s['fetched']} ({s['days']} days), closed {s['closed']}")
 
 
 if __name__ == "__main__":
