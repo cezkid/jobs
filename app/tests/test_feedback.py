@@ -32,7 +32,7 @@ def test_areas_count_numbers_and_what_the_lines_show(tmp_path):
     assert [c for _, c in result["shown"]["Teamwork"]] == [DETAILS["roles"][0]["bullets"][1]] and moved == []
     text = report.read_text(encoding="utf-8")
     assert "- Wrote Jest tests for the checkout screens. (Software Engineer at Acme Inc.)" in text
-    assert "Help me add numbers to my resume" in text and "Page layout is not in here" in text
+    assert "Help me add numbers to my resume" in text and "Page layout not scored here" in text
     assert "Presentation" not in text and "## At a glance" in text
 
 

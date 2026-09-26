@@ -81,38 +81,39 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
 
     problems = len(result["failed"])
     out += ["", "## Ready to send?", "",
-            f"Not yet - {problems} problem(s) below get fixed first." if problems else "Yes - every check passed."]
+            f"Not yet - {problems} to fix first." if problems else f"Yes - all {len(result['gates'])} page checks passed."]
     if problems:
         out += ["", "### Still to fix", ""]
         out += [gate_line(name, ok, detail) for name, ok, detail in result["gates"] if not ok]
         out += [f"- A tailoring rule was broken: {v}" for v in result["selection"]]
         out += [f"- {lint.WHY.get(f.rule, f.rule)} {f.detail} ({f.rule})" for f in result["findings"] if f.severity == lint.FAIL]
-    out += ["", "### Checks on the page", ""]
-    out += [gate_line(name, ok, detail) for name, ok, detail in result["gates"] if ok]
+    # passed checks = one count, not a 22-line list; only the ones carrying a note are spelled out
+    info = [gate_line(name, ok, detail) for name, ok, detail in result["gates"] if ok and name.endswith("(info)")]
+    if info:
+        out += ["", "### Notes", "", *info]
 
     ordered = sorted(rows, key=lambda r: (PRIORITY_ORDER.index(r["priority"]), r["status"] != "gap", r["index"]))
     met = sum(r["status"] == "met" for r in rows)
-    out += ["", "## What the job asks for, and where your resume shows it", "",
+    out += ["", "## What they ask vs your resume", "",
             f"Shown: {met} of {len(rows)}.", "",
-            "| Must have? | Shown? | What they ask | Where your resume shows it |", "| --- | --- | --- | --- |"]
+            "| Need | Shown? | They ask | Your line |", "| --- | --- | --- | --- |"]
     for r in ordered:
         must = "Must have" if r["priority"] == "required" else "Nice to have"
-        shown = "; ".join(r.get("shown") or []) or r["note"]
+        shown = (r.get("shown") or [r["note"]])[0]  # one line proves it; the rest repeat the page
         out.append(f"| {must} | {'Yes' if r['status'] == 'met' else 'Not shown'} | {cell(r['text'])} | {cell(shown)} |")
 
     gap_rows = [r for r in ordered if r["status"] == "gap"]
     if gap_rows:
-        out += ["", "## Asked for, not shown", "",
-                "If you do have one of these, say so and it can be added - only if it is true.", ""]
+        out += ["", "## Asked for, not shown", "", "Have one? Say so - added only if true.", ""]
         out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {r['text']} - {r['note']}"
                 for r in gap_rows]
     if gaps:
-        out += ["", "## Breaks between jobs longer than 6 months", ""]
+        out += ["", "## Breaks over 6 months", ""]
         out += [f"- {g['after']} to {g['before']}: {g['months']} months" for g in gaps]
 
     notes = [f for f in result["findings"] if f.severity != lint.FAIL]
     if notes:
-        out += ["", "## Wording notes", "", "Worth a look, none of them stop the resume going out.", ""]
+        out += ["", "## Wording notes", "", "Worth a look; none block sending.", ""]
         out += [f"- {lint.WHY.get(f.rule, f.rule)} {f.detail} ({f.rule}, {f.where})" for f in notes]
     return "\n".join(out) + "\n"
 
