@@ -23,7 +23,17 @@
   }
   main { max-width: 760px; margin: 0 auto; padding: 32px 16px 48px; }
   h1 { font-size: 2.2em; margin: 0 0 4px; }
-  .lede { color: var(--muted); margin: 0 0 32px; }
+  .lede { color: var(--muted); margin: 0 0 20px; }
+  ul.does, .private ul { list-style: none; padding: 0; margin: 0; }
+  ul.does { margin: 0 0 20px; font-weight: 600; }
+  ul.does li::before { content: "\2713"; color: var(--ok); margin-right: 10px; }
+  .private {
+    margin: 0 0 32px; padding: 12px 16px; border: 2px solid var(--ok); border-radius: 12px;
+    background: var(--card); font-size: 0.85em;
+  }
+  .private strong { color: var(--ok); }
+  .private ul { margin-top: 4px; color: var(--muted); }
+  .private li::before { content: "\2022"; margin-right: 8px; }
   a { color: var(--accent); }
   ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 0; }
   ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 2em minmax(0, 1fr); gap: 0 12px; margin: 0 0 26px; }
@@ -62,7 +72,6 @@
   footer .gh { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
   footer .gh:hover { color: var(--fg); }
   footer .gh svg { width: 20px; height: 20px; fill: currentColor; }
-  details { margin-top: 28px; color: var(--muted); font-size: 0.85em; }
   .phone { display: none; font-size: 1.3em; font-weight: 700; }
   body.is-phone .phone { display: block; }
   body.is-phone .desktop { display: none; }
@@ -75,8 +84,23 @@
 <body>
 <main>
   <h1>CEZ Job Finder</h1>
-  <p class="lede">Finds jobs that fit you and tailors your resume to each one. Needs a paid
+  <p class="lede">A free job-search helper on your computer. Needs a paid
     <a href="https://claude.ai/upgrade">Claude</a> or <a href="https://chatgpt.com/#pricing">ChatGPT</a> plan.</p>
+
+  <ul class="does">
+    <li>Finds new jobs that fit you, every day</li>
+    <li>Tailors your resume to any job</li>
+    <li>Fills the application - you press Submit</li>
+  </ul>
+
+  <div class="private">
+    <strong>Private:</strong> no account, nothing uploaded to us.
+    <ul>
+      <li>Resume and settings stay on your computer</li>
+      <li>Job searches send only your search words</li>
+      <li>Your own AI plan reads your resume to help</li>
+    </ul>
+  </div>
 
   <p class="phone">Open this page on your Windows or Mac computer to install.</p>
 
@@ -118,11 +142,6 @@
 
     <p class="switch"><button type="button" id="switch-os"><span class="win-only">Mac steps</span><span class="mac-only">Windows steps</span></button>
       · Stuck? Run it again - your files are kept.</p>
-
-    <details>
-      <summary>What stays private?</summary>
-      Your resume and settings stay on your computer.
-    </details>
   </div>
 
   <footer>
