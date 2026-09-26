@@ -1,10 +1,14 @@
-# Paste-line install (docs/index.html): powershell -c "$env:JOBS_AI='1';irm <raw url of this file>|iex"
-# Per-user installs only => no admin prompt. JOBS_AI 2 = ChatGPT, else Claude.
+# Paste-line install (docs/index.html), pasted into Terminal / PowerShell:
+#   powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm <raw url of this file>))) 1"
+# No $ in line => outer PowerShell expands nothing, same line works in cmd. Older line
+# (JOBS_AI env + irm|iex) still works. Per-user installs only => no admin prompt.
+# AI: 2 = ChatGPT, else Claude.
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $ZipUrl = 'https://github.com/cezkid/jobs/archive/refs/heads/main.zip'
 $Dir = if ($env:JOBS_DIR) { $env:JOBS_DIR } else { Join-Path $HOME 'jobs' }
-$AiExtension = if ($env:JOBS_AI -eq '2') { 'openai.chatgpt' } else { 'anthropic.claude-code' }
+$Ai = if ($args.Count) { "$($args[0])" } else { $env:JOBS_AI }
+$AiExtension = if ($Ai -eq '2') { 'openai.chatgpt' } else { 'anthropic.claude-code' }
 $VsCodeBin = "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin"
 $StepCount = 5
 
@@ -20,8 +24,19 @@ try {
     Write-Host "`nInstalling Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
     Refresh-Path
 
+    # uv's installer refuses Windows' default policy (Restricted) => this window only, nothing saved
+    try { Set-ExecutionPolicy Bypass -Scope Process -Force } catch {}
+
     Step 1 'installing uv (runs Job Finder)...'
-    if (-not (Have 'uv')) { Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression; Refresh-Path }
+    if (-not (Have 'uv')) {
+        try { Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression } catch {}
+        Refresh-Path
+    }
+    # policy locked by computer's owner (work laptop) => uv's installer still refuses; winget doesn't check
+    if (-not (Have 'uv') -and (Have 'winget')) {
+        winget install --id astral-sh.uv -e --silent --scope user --accept-package-agreements --accept-source-agreements
+        Refresh-Path
+    }
     if (-not (Have 'uv')) { throw 'Could not install uv.' }
 
     Step 2 'installing VS Code...'

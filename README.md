@@ -18,10 +18,10 @@ Code and your AI's panel (only what's missing, no admin prompt), then opens VS C
 **Sign in** on the right-hand panel, then press Enter. Safe to run again: it repairs the
 program and keeps your files.
 
-**Windows** - press Windows key + R, paste, Enter:
+**Windows** - right-click Start, click Terminal (older Windows: Windows PowerShell), paste, Enter:
 
 ```
-powershell -c "$env:JOBS_AI='1';irm https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-windows.ps1|iex"
+powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-windows.ps1))) 1"
 ```
 
 **Mac** - Cmd + Space, type `Terminal`, Enter, paste, Enter:
@@ -132,11 +132,17 @@ recipient. SMTP host, schedule: `app/defaults.yml`, overridable in search settin
 
 ### Install scripts
 
-`docs/index.html` copies one line carrying `JOBS_AI` (1 Claude, 2 ChatGPT, unset = Claude) =>
-installers ask nothing. Pasted line, never downloaded file: download hits SmartScreen /
-Gatekeeper. `app/install/install-windows.ps1` (`irm|iex`) and `install-mac.sh` (`curl|bash`):
-per-user uv, VS Code (user installer / `~/Applications`), AI extension, repo zip -> `~/jobs`
-(top-level entries replaced, My folders + `.data/` untouched), `uv sync`, Desktop launcher ->
+`docs/index.html` copies one line carrying the AI (1 Claude, 2 ChatGPT, unset = Claude; Mac
+`JOBS_AI`, Windows the trailing argument) => installers ask nothing. Pasted line, never
+downloaded file: download hits SmartScreen / Gatekeeper. Windows line goes into Terminal, not
+Win+R: security software blocks download-and-run lines typed into the Run box (the "ClickFix"
+malware pattern) with "Windows cannot access the specified device, path or file". Line has no
+`$` so the outer PowerShell passes it through unexpanded (also runs from cmd), and
+`-ExecutionPolicy Bypass` (this process only) because uv's installer refuses Windows' default
+`Restricted` policy; policy locked by Group Policy -> uv via winget.
+`app/install/install-windows.ps1` (`irm` into a script block) and `install-mac.sh`
+(`curl|bash`): per-user uv, VS Code (user installer / `~/Applications`), AI extension, repo zip
+-> `~/jobs` (top-level entries replaced, My folders + `.data/` untouched), `uv sync`, Desktop launcher ->
 `app/install/start-*` (`update`, `launch`). No git, gh or admin. `update`: `.git` present ->
 `git pull --ff-only`, else zip swap of program files. `launch`: registers `jobfinder:`
 protocol (Windows, HKCU), opens VS Code w/ `--disable-workspace-trust` (no trust dialog), then

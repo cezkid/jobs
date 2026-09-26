@@ -86,8 +86,9 @@
 
     <h2>2. Paste it and press Enter</h2>
     <ol class="steps win-only">
-      <li>Press <kbd>Windows key</kbd> + <kbd>R</kbd> (a small "Run" box opens)</li>
-      <li>Press <kbd>Ctrl</kbd> + <kbd>V</kbd></li>
+      <li>Right-click the <strong>Start</strong> button, then click <strong>Terminal</strong>
+        (older Windows: <strong>Windows PowerShell</strong>) - not the one marked Admin</li>
+      <li>Press <kbd>Ctrl</kbd> + <kbd>V</kbd> (nothing appears? right-click inside the window)</li>
       <li>Press <kbd>Enter</kbd></li>
     </ol>
     <ol class="steps mac-only">
@@ -123,7 +124,8 @@
 <script>
   const RAW = "https://raw.githubusercontent.com/cezkid/jobs/main/app/install/";
   const LINES = {
-    win: ai => `powershell -c "$env:JOBS_AI='${ai}';irm ${RAW}install-windows.ps1|iex"`,
+    // no $ in the line => PowerShell pastes it unchanged; Bypass = this window only (uv's installer needs it)
+    win: ai => `powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm ${RAW}install-windows.ps1))) ${ai}"`,
     mac: ai => `curl -fsSL ${RAW}install-mac.sh | JOBS_AI=${ai} bash`,
   };
   const ua = navigator.userAgent;
