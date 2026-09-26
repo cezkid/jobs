@@ -27,6 +27,7 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: True)
     monkeypatch.setattr(launch, "ensure_auto_mode", lambda: None)
+    monkeypatch.setattr(launch, "ensure_chat_sidebar", lambda: None)
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
@@ -187,3 +188,32 @@ def test_mac_icon_is_an_app_not_a_terminal_script():
     assert "osacompile" in maker and ".app" in maker
     installer = (cfg.APP / "install" / "install-mac.sh").read_text(encoding="utf-8")
     assert "make-icon-mac.sh" in installer and ".command\"" not in installer
+
+
+def test_chat_sidebar_shown_again_after_user_closed_it(tmp_path):
+    # VS Code remembers a closed sidebar per folder => next launch showed only START HERE
+    import sqlite3
+    root = tmp_path / "jobs folder"
+    root.mkdir()
+    other, mine = tmp_path / "ws" / "a", tmp_path / "ws" / "b"
+    for folder, target in ((other, tmp_path / "elsewhere"), (mine, root)):
+        folder.mkdir(parents=True)
+        (folder / "workspace.json").write_text(json.dumps({"folder": target.as_uri()}))
+        with sqlite3.connect(folder / "state.vscdb") as db:
+            db.execute("CREATE TABLE ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)")
+            db.execute("INSERT INTO ItemTable VALUES ('workbench.auxiliaryBar.hidden', 'true')")
+        db.close()
+    launch.ensure_chat_sidebar(root, tmp_path / "ws")
+
+    def hidden(folder):
+        with sqlite3.connect(folder / "state.vscdb") as db:
+            value = db.execute("SELECT value FROM ItemTable WHERE key = ?",
+                               ("workbench.auxiliaryBar.hidden",)).fetchone()[0]
+        db.close()
+        return value
+    assert hidden(mine) == "false"
+    assert hidden(other) == "true"  # another folder's layout left alone
+
+
+def test_chat_sidebar_first_window_left_to_setting(tmp_path):
+    launch.ensure_chat_sidebar(tmp_path, tmp_path / "no-storage-yet")  # nothing to fix, no error
