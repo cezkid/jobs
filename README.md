@@ -35,7 +35,8 @@ Code with **START HERE** and the chat. Ask "any new jobs?", "make my resume for 
 ## Private
 
 File list (My Jobs, My Resume, My Settings) stays on your computer. Program = public, open
-source, hidden. START HERE lists what leaves and when.
+source, hidden. START HERE lists what leaves and when. Resume is read in user's own AI chat;
+setup offers to switch off AI training on their account (`Guides/Keep your chats out of AI training.md`).
 
 ## For developers
 

@@ -72,10 +72,15 @@ when asked, at setup, and before any step sending something new off computer.
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
-| Resume + postings you work on | this AI chat (Claude or ChatGPT) | User's own AI account |
+| Resume + postings you work on | this AI chat (Claude or ChatGPT) | User's own AI account; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
+
+AI training = setting on user's own AI account; only they can change it (`job-setup` offers it
+before the first question). User asks -> open `Guides/Keep your chats out of AI training.md`, walk
+through it. Their name + resume still reach the AI either way - never say otherwise. Never ask
+them to rate a chat (thumbs, feedback): that chat can be trained on even w/ the switch off.
 
 Everything in the VS Code file list is private; program is hidden. Private folders never reach
 maintainer or other users - git ignores them, `/report-defect` gates check it.
@@ -83,7 +88,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 ## Layout
 
 - `START HERE.md` - user's guide, opens w/ VS Code. Plain words only.
-- `Guides/` - plain-words guides in the user's file list (`What makes a good resume.md`); link,
+- `Guides/` - plain-words guides in the user's file list (`What makes a good resume.md`,
+  `Keep your chats out of AI training.md`); link,
   don't repeat, from `START HERE.md` and reports.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;

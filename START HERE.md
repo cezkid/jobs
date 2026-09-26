@@ -38,6 +38,9 @@ and job boards. Each job links to the real posting. New ones checked every morni
 | Your resume + jobs you ask about | Your own AI chat account |
 | What you apply with | That employer, when you click Submit |
 
+**AI training:** on a personal Claude or ChatGPT plan, your chats may help train future AI
+unless you switch it off. How, and what it doesn't cover: **[Keep your chats out of AI training](Guides/Keep%20your%20chats%20out%20of%20AI%20training.md)**
+
 **If CEZ Job Finder itself breaks:** the AI can repair the program and asks before sharing that
 repair with its maker. Only the repaired program code is sent - never your resume, jobs,
 settings or anything personal.
