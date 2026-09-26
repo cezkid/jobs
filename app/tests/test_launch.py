@@ -1,17 +1,9 @@
 import json
 import re
-from urllib.parse import parse_qs, urlparse
 
 import cfg
 import launch
 import notify
-
-
-def test_first_run_prompts_setup(tmp_path, monkeypatch):
-    monkeypatch.setattr(launch.cfg, "SETTINGS", tmp_path / "missing.yml")
-    assert launch.prompt() == launch.FIRST_PROMPT
-    (tmp_path / "missing.yml").write_text("x")
-    assert launch.prompt() == launch.RETURN_PROMPT
 
 
 def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
@@ -27,10 +19,18 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     launch.main()  # second launch leaves what is already there alone
 
 
-def test_claude_uri_carries_prompt():
-    uri = urlparse(launch.claude_uri("any new jobs?"))
-    assert (uri.scheme, uri.netloc, uri.path) == ("vscode", "anthropic.claude-code", "/open")
-    assert parse_qs(uri.query) == {"prompt": ["any new jobs?"]}
+def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch):
+    # the extension's open link always makes a tab in the active group => START HERE hidden
+    calls = []
+    monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "has_claude", lambda: True)
+    monkeypatch.setattr(launch, "ensure_auto_mode", lambda: None)
+    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
+    launch.main()
+    assert calls == [["--disable-workspace-trust", str(tmp_path), str(launch.START_PAGE)]]
 
 
 def test_claude_detected_by_extension_folder(tmp_path):
@@ -149,27 +149,13 @@ def test_vscode_settings_keep_comments_and_trailing_commas():
     assert json.loads(launch.add_setting('{\n  "a": 1\n}\n', launch.TELEMETRY)) == {"a": 1, "redhat.telemetry.enabled": False}
 
 
-def test_claude_link_opens_without_an_allow_question(tmp_path):
-    # otherwise every launch stops on "Allow 'Claude Code for VS Code' extension to open this URI?"
-    settings = tmp_path / "User" / "settings.json"
-    launch.ensure_uri_trust(settings)
-    assert json.loads(settings.read_text(encoding="utf-8")) == {launch.URI_TRUST: [launch.CLAUDE_EXTENSION]}
-    launch.ensure_uri_trust(settings)
-    assert settings.read_text(encoding="utf-8").count(launch.CLAUDE_EXTENSION) == 1
-    settings.write_text('{\n  // mine\n  "' + launch.URI_TRUST + '": ["other.ext"],\n}\n', encoding="utf-8")
-    launch.ensure_uri_trust(settings)  # their own list keeps its ids, comments and commas
-    text = settings.read_text(encoding="utf-8")
-    assert "// mine" in text and f'["{launch.CLAUDE_EXTENSION}", "other.ext"]' in text
-    settings.write_text('{"' + launch.URI_TRUST + '": [ ]}', encoding="utf-8")
-    launch.ensure_uri_trust(settings)
-    assert json.loads(settings.read_text(encoding="utf-8"))[launch.URI_TRUST] == [launch.CLAUDE_EXTENSION]
-
-
 def test_chat_opens_in_the_right_sidebar_not_a_tab():
     # default puts the chat in a tab and leaves Claude's right-hand sidebar empty, doing nothing
     raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
     settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
     assert settings["claudeCode.preferredLocation"] == "sidebar"
+    # sidebar shown on open => START HERE in the middle, chat beside it
+    assert settings["workbench.secondarySideBar.defaultVisibility"] == "visible"
     assert settings["claudeCode.hideOnboarding"] is True
 
 

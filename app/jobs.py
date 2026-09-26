@@ -28,7 +28,7 @@ COMMANDS = {
     "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
-    "launch": ("launch", "open VS Code on START HERE, Claude tab pre-filled (Desktop launcher)"),
+    "launch": ("launch", "open VS Code on START HERE, chat in right sidebar (Desktop launcher)"),
     "open": (None, "open file or link for user: VS Code tab (PDF too), link in browser"),
     "tui": ("tui", "terminal job browser (developers)"),
 }

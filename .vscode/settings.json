@@ -32,6 +32,8 @@
   "chat.disableAIFeatures": true,
   // chat in the right-hand sidebar: the default opens it as a tab and leaves that sidebar empty
   "claudeCode.preferredLocation": "sidebar",
+  // right-hand sidebar shown on open => START HERE in the middle, chat beside it
+  "workbench.secondarySideBar.defaultVisibility": "visible",
   // no developer checklist in the chat; only prompts + answers, steps one click away
   "claudeCode.hideOnboarding": true,
   "claudeCode.focusView": true,
