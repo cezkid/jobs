@@ -4,8 +4,8 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
-from urllib.parse import quote
 
 import cfg
 import notify
@@ -20,18 +20,13 @@ YAML_EXTENSION = "redhat.vscode-yaml"
 VSCODE_EXTENSIONS = Path.home() / ".vscode" / "extensions"
 CLAUDE_SETTINGS = Path.home() / ".claude" / "settings.json"
 START_PAGE = cfg.ROOT / "START HERE.md"
+# file named in the same call as the folder opens before VS Code knows its formatted view =>
+# plain text, and the tab stays text on every later launch. Opened 6 s after the window it
+# comes up formatted (fresh window each way, measured 2026-09-26: 0 s text, 6 s formatted)
+START_PAGE_DELAY_S = 6
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
-FIRST_PROMPT = "set me up"
-RETURN_PROMPT = "any new jobs?"
-
-
-def prompt() -> str:
-    return RETURN_PROMPT if cfg.SETTINGS.exists() else FIRST_PROMPT
-
-
-def claude_uri(text: str) -> str:
-    return f"vscode://{CLAUDE_EXTENSION}/open?prompt={quote(text)}"
-
+MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
+OLD_MAC_ICON = Path.home() / "Desktop" / f"{cfg.NAME}.command"
 
 def has_claude(extensions: Path = VSCODE_EXTENSIONS) -> bool:
     return has_extension(CLAUDE_EXTENSION, extensions)
@@ -102,29 +97,6 @@ def ensure_yaml_checker(settings: Path | None = None) -> None:
         code(["--install-extension", YAML_EXTENSION, "--force"], quiet=True)
 
 
-URI_TRUST = "extensions.confirmedUriHandlerExtensionIds"
-
-
-def ensure_uri_trust(settings: Path | None = None) -> None:
-    # without it every launch stops on "Allow 'Claude Code for VS Code' extension to open this
-    # URI?" - Open / Cancel, a question the user cannot judge. VS Code skips it for ids listed here.
-    settings = settings or vscode_settings()
-    try:
-        text = settings.read_text(encoding="utf-8") if settings.exists() else ""
-        if f'"{CLAUDE_EXTENSION}"' in text:
-            return
-        listed = re.search(rf'"{re.escape(URI_TRUST)}"\s*:\s*\[', text)
-        if listed:  # their own list stays; the id goes first so no comma needs placing after it
-            spacer = "" if re.match(r"\s*\]", text[listed.end():]) else ", "
-            text = f'{text[:listed.end()]}"{CLAUDE_EXTENSION}"{spacer}{text[listed.end():]}'
-        else:
-            text = add_setting(text, f'"{URI_TRUST}": ["{CLAUDE_EXTENSION}"]')
-        settings.parent.mkdir(parents=True, exist_ok=True)
-        settings.write_text(text, encoding="utf-8")
-    except OSError:
-        pass
-
-
 def register_protocol() -> None:
     # toast click -> jobfinder: URL -> Desktop launcher; per-user key, no admin
     import winreg
@@ -134,6 +106,13 @@ def register_protocol() -> None:
         winreg.SetValueEx(k, "URL Protocol", 0, winreg.REG_SZ, "")
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, rf"{key}\shell\open\command") as k:
         winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{WINDOWS_LAUNCHER}"')
+
+
+def ensure_mac_icon(old: Path = OLD_MAC_ICON) -> None:
+    # installs before 2026-09-26 got a .command icon: its Terminal window stays open after VS
+    # Code is up. Swapped once for the app icon; this launch's window still shows, later ones don't
+    if old.exists():
+        subprocess.run(["bash", str(MAC_ICON_MAKER)], check=False, capture_output=True)
 
 
 def ensure_auto_mode(settings: Path = CLAUDE_SETTINGS) -> None:
@@ -169,19 +148,25 @@ def code(args: list[str], quiet: bool = False) -> None:
 def main() -> None:
     if sys.platform == "win32":
         register_protocol()
+    if sys.platform == "darwin":
+        ensure_mac_icon()
     # before VS Code opens => file list shows the private folders even on a brand-new install
     cfg.ensure_private_dirs()
     # before VS Code opens => the first click on a resume already shows the page
     ensure_pdf_viewer()
     # before VS Code opens => a typo in the resume facts is underlined on the first edit
     ensure_yaml_checker()
-    # trust off for this window only => no "trust the authors?" dialog
-    code(["--disable-workspace-trust", str(cfg.ROOT), str(START_PAGE)])
-    # separate call: --open-url beside folder args drops the folder (measured 2026-09-19)
     if has_claude():
         ensure_auto_mode()
-        ensure_uri_trust()
-        code(["--open-url", claude_uri(prompt())])
+    # trust off for this window only => no "trust the authors?" dialog. Chat comes up in the
+    # right-hand sidebar beside this page (.vscode/settings.json #secondarySideBar). No
+    # vscode://anthropic.claude-code/open link: it always opens chat as a tab in the active
+    # group, on top of START HERE, and every file the AI then opens lands on top of the chat
+    # (extension 2.1.283, measured 2026-09-26)
+    window = ["--disable-workspace-trust", str(cfg.ROOT)]
+    code(window)
+    time.sleep(START_PAGE_DELAY_S)
+    code([*window, str(START_PAGE)])  # folder again => lands in this window, not the last used
 
 
 if __name__ == "__main__":

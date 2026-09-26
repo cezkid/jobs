@@ -1,17 +1,9 @@
 import json
 import re
-from urllib.parse import parse_qs, urlparse
 
 import cfg
 import launch
 import notify
-
-
-def test_first_run_prompts_setup(tmp_path, monkeypatch):
-    monkeypatch.setattr(launch.cfg, "SETTINGS", tmp_path / "missing.yml")
-    assert launch.prompt() == launch.FIRST_PROMPT
-    (tmp_path / "missing.yml").write_text("x")
-    assert launch.prompt() == launch.RETURN_PROMPT
 
 
 def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
@@ -21,16 +13,30 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: None)
+    monkeypatch.setattr(launch.time, "sleep", lambda s: None)
     launch.main()
     assert sorted(p.name for p in tmp_path.iterdir()) == ["My Jobs", "My Resume", "My Settings"]
     launch.main()  # second launch leaves what is already there alone
 
 
-def test_claude_uri_carries_prompt():
-    uri = urlparse(launch.claude_uri("any new jobs?"))
-    assert (uri.scheme, uri.netloc, uri.path) == ("vscode", "anthropic.claude-code", "/open")
-    assert parse_qs(uri.query) == {"prompt": ["any new jobs?"]}
+def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch):
+    # the extension's open link always makes a tab in the active group => START HERE hidden
+    calls = []
+    monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "has_claude", lambda: True)
+    monkeypatch.setattr(launch, "ensure_auto_mode", lambda: None)
+    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
+    monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
+    monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(s))
+    launch.main()
+    window = ["--disable-workspace-trust", str(tmp_path)]
+    # START HERE after the window is up => formatted, not plain text
+    assert calls == [window, launch.START_PAGE_DELAY_S, [*window, str(launch.START_PAGE)]]
 
 
 def test_claude_detected_by_extension_folder(tmp_path):
@@ -149,27 +155,13 @@ def test_vscode_settings_keep_comments_and_trailing_commas():
     assert json.loads(launch.add_setting('{\n  "a": 1\n}\n', launch.TELEMETRY)) == {"a": 1, "redhat.telemetry.enabled": False}
 
 
-def test_claude_link_opens_without_an_allow_question(tmp_path):
-    # otherwise every launch stops on "Allow 'Claude Code for VS Code' extension to open this URI?"
-    settings = tmp_path / "User" / "settings.json"
-    launch.ensure_uri_trust(settings)
-    assert json.loads(settings.read_text(encoding="utf-8")) == {launch.URI_TRUST: [launch.CLAUDE_EXTENSION]}
-    launch.ensure_uri_trust(settings)
-    assert settings.read_text(encoding="utf-8").count(launch.CLAUDE_EXTENSION) == 1
-    settings.write_text('{\n  // mine\n  "' + launch.URI_TRUST + '": ["other.ext"],\n}\n', encoding="utf-8")
-    launch.ensure_uri_trust(settings)  # their own list keeps its ids, comments and commas
-    text = settings.read_text(encoding="utf-8")
-    assert "// mine" in text and f'["{launch.CLAUDE_EXTENSION}", "other.ext"]' in text
-    settings.write_text('{"' + launch.URI_TRUST + '": [ ]}', encoding="utf-8")
-    launch.ensure_uri_trust(settings)
-    assert json.loads(settings.read_text(encoding="utf-8"))[launch.URI_TRUST] == [launch.CLAUDE_EXTENSION]
-
-
 def test_chat_opens_in_the_right_sidebar_not_a_tab():
     # default puts the chat in a tab and leaves Claude's right-hand sidebar empty, doing nothing
     raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
     settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
     assert settings["claudeCode.preferredLocation"] == "sidebar"
+    # sidebar shown on open => START HERE in the middle, chat beside it
+    assert settings["workbench.secondarySideBar.defaultVisibility"] == "visible"
     assert settings["claudeCode.hideOnboarding"] is True
 
 
@@ -177,3 +169,21 @@ def test_start_page_leads_with_the_first_step():
     # users read the whole page and still did not know what to do
     page = (cfg.ROOT / "START HERE.md").read_text(encoding="utf-8")
     assert page.split("\n## ")[1].startswith("Do this now") and "set me up" in page
+
+
+def test_old_mac_icon_swapped_for_app_once(tmp_path, monkeypatch):
+    # .command icon leaves a Terminal window open after every launch
+    runs = []
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    launch.ensure_mac_icon(tmp_path / "CEZ Job Finder.command")
+    assert runs == []  # no old icon => nothing made, a deleted icon stays deleted
+    (tmp_path / "CEZ Job Finder.command").write_text("")
+    launch.ensure_mac_icon(tmp_path / "CEZ Job Finder.command")
+    assert runs == [["bash", str(launch.MAC_ICON_MAKER)]]
+
+
+def test_mac_icon_is_an_app_not_a_terminal_script():
+    maker = (launch.MAC_ICON_MAKER).read_text(encoding="utf-8")
+    assert "osacompile" in maker and ".app" in maker
+    installer = (cfg.APP / "install" / "install-mac.sh").read_text(encoding="utf-8")
+    assert "make-icon-mac.sh" in installer and ".command\"" not in installer

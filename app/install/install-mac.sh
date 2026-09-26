@@ -80,9 +80,7 @@ rm -rf "$staging"
 step 5 "getting CEZ Job Finder ready..."
 (cd "$DIR" && uv sync --quiet) || fail "could not get CEZ Job Finder ready."
 
-launcher="$HOME/Desktop/CEZ Job Finder.command"
-printf '#!/bin/bash\nexec bash "%s/app/install/start-mac.sh"\n' "$DIR" > "$launcher"
-chmod +x "$launcher"
+bash "$DIR/app/install/make-icon-mac.sh"
 
 printf '\n\033[32mDone. Next time, double-click "CEZ Job Finder" on your Desktop.\033[0m\n'
 printf '\033[32mVS Code opens now. Click Sign in on the right-hand panel, then press Enter.\033[0m\n'
