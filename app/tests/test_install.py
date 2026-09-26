@@ -22,15 +22,18 @@ def page_steps() -> str:
 
 def test_windows_line_survives_being_pasted_into_powershell():
     # "$env:JOBS_AI=..." pasted into PowerShell => outer shell expands $env before the child runs
-    for line in page_line("win"), readme_line("powershell "):
+    for line in page_line("win"), readme_line("irm "):
         assert "$" not in line, line
 
 
-def test_windows_line_lets_uv_installer_run():
+def test_windows_line_runs_in_the_window_and_script_lets_uv_installer_run():
+    # "powershell -ExecutionPolicy Bypass -c 'irm | iex'" => child got an empty download on a real PC
+    # ("iex: Cannot bind argument to parameter 'Command' because it is an empty string") while the
+    # same irm typed in the window got the whole file => run in the window, no second powershell
+    for line in page_line("win"), readme_line("irm "):
+        assert re.fullmatch(r"irm https://\S+/install-windows\.ps1 \| iex", line), line
     # Windows default policy Restricted => uv's installer stops: "requires an execution policy in
-    # [Unrestricted, RemoteSigned, Bypass]"; Bypass on the line + in script = this window only
-    for line in page_line("win"), readme_line("powershell "):
-        assert line.startswith("powershell -ExecutionPolicy Bypass "), line
+    # [Unrestricted, RemoteSigned, Bypass]"; script sets Bypass for this window only
     script = (INSTALL / "install-windows.ps1").read_text(encoding="utf-8")
     assert script.index("Set-ExecutionPolicy Bypass -Scope Process") < script.index("astral.sh/uv/install.ps1")
     assert "CurrentUser" not in script  # never changes the user's setting for good
@@ -38,7 +41,7 @@ def test_windows_line_lets_uv_installer_run():
 
 def test_one_line_per_computer_and_installer_asks_the_ai():
     # AI picked on the page => hidden, per-choice line; one visible line + a question in the window
-    for line in page_line("win"), page_line("mac"), readme_line("powershell "), readme_line("curl "):
+    for line in page_line("win"), page_line("mac"), readme_line("irm "), readme_line("curl "):
         assert "JOBS_AI" not in line and not re.search(r"\s[12]\s*\"?$", line), line
     assert "data-ai" not in PAGE.read_text(encoding="utf-8")
     for name in "install-windows.ps1", "install-mac.sh":

@@ -1,6 +1,8 @@
-# Paste-line install (docs/index.html), pasted into PowerShell (cmd works too):
-#   powershell -ExecutionPolicy Bypass -c "irm <raw url of this file> | iex"
-# One line for everyone: no $ => outer shell expands nothing; AI asked below, not on the page.
+# Paste-line install (docs/index.html), pasted into PowerShell:
+#   irm <raw url of this file> | iex
+# Runs in the user's own window, no second powershell: a child started w/ -ExecutionPolicy Bypass
+# got an empty download on a real PC while the same irm in the window got the whole file. iex
+# ignores execution policy; Bypass for uv's installer is set below. AI asked below, not on the page.
 # Per-user installs only => no admin prompt.
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'

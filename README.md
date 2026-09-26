@@ -21,7 +21,7 @@ run again: it repairs the program and keeps your files.
 **Windows** - click Start, type `PowerShell`, open Windows PowerShell, paste, Enter:
 
 ```
-powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-windows.ps1 | iex"
+irm https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-windows.ps1 | iex
 ```
 
 **Mac** - click the magnifying glass top-right, type `Terminal`, open it, paste, Enter:
@@ -135,9 +135,11 @@ first (1 Claude, 2 ChatGPT), skipped when `JOBS_AI` is set or a re-run finds eit
 already in VS Code. Pasted line, never downloaded file: download hits SmartScreen / Gatekeeper.
 Steps open PowerShell / Terminal by clicking, never Win+R: security software blocks
 download-and-run lines typed into the Run box (the "ClickFix" malware pattern) with "Windows
-cannot access the specified device, path or file". Windows line has no `$` so the outer shell
-passes it through unexpanded (PowerShell or cmd), and `-ExecutionPolicy Bypass` (this process
-only) because uv's installer refuses Windows' default `Restricted` policy; policy locked by Group
+cannot access the specified device, path or file". Windows line is plain `irm | iex` in the
+PowerShell window itself: no `$` for the window to expand, and no second `powershell -c` (one
+started w/ `-ExecutionPolicy Bypass` got an empty download on a real PC while the same `irm` in the
+window got the whole file). `iex` ignores execution policy; the script sets `Bypass` for this
+window only because uv's installer refuses Windows' default `Restricted`; policy locked by Group
 Policy -> uv via winget.
 `app/install/install-windows.ps1` (`irm|iex`) and `install-mac.sh`
 (`curl|bash`): per-user uv, VS Code (user installer / `~/Applications`), AI extension, repo zip

@@ -120,10 +120,10 @@
 </main>
 <script>
   const RAW = "https://raw.githubusercontent.com/cezkid/jobs/main/app/install/";
-  // one line per computer; the installer asks which AI. No $ in the Windows line => PowerShell and
-  // cmd pass it on unchanged; Bypass = this window only (uv's installer refuses Windows' default)
+  // one line per computer; the installer asks which AI. Windows line runs in the PowerShell window
+  // itself (a second powershell got an empty download on a real PC); script sets Bypass for uv
   const LINES = {
-    win: `powershell -ExecutionPolicy Bypass -c "irm ${RAW}install-windows.ps1 | iex"`,
+    win: `irm ${RAW}install-windows.ps1 | iex`,
     mac: `curl -fsSL ${RAW}install-mac.sh | bash`,
   };
   const ua = navigator.userAgent;
