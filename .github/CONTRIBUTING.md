@@ -11,7 +11,7 @@ to change, and `git diff --cached` carries no name, email, phone or address of y
 
 ## Defect PR
 
-1. Reproduce; fix cause, not symptom (config, schema, upstream call - not call site that tripped).
+1. Reproduce; fix cause, not symptom (config, schema, upstream call - not the call site).
 2. Add or adjust test in `app/tests/` covering it.
 3. `uv run pytest` green (live gates hit freehire API; note in PR if API was down).
 4. Branch + commit, staging paths explicitly (never `git add -A`):

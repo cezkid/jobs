@@ -5,8 +5,8 @@ or `wd<N>.myworkday...`) through the Claude Chrome extension - Steps below. Ever
 system (Ashby today; list in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
 #Other systems below. Unsupported system: `apply-form prepare` says so - offer the tailored PDF +
 answers to paste by hand, and mention it can be taught (`apply-systems.md` #Add a system).
-User not technical - `AGENTS.md` #User = not technical binds. What was measured and why each
-rule exists: `app/docs/apply/workday.md`. New tenant quirk found -> add it there, same PR as the fix.
+User not technical - `AGENTS.md` #User = not technical binds. Why each rule exists (measured):
+`app/docs/apply/workday.md`. New tenant quirk found -> add it there, same PR as the fix.
 
 ## Hard limits (safety rules - never relax)
 
@@ -39,19 +39,18 @@ rule exists: `app/docs/apply/workday.md`. New tenant quirk found -> add it there
    `await new Promise(r => setTimeout(r, 25000)); window.__jf.status()` until `done: true`.
    Never send it twice: rerun only parts with `window.__jf.run(<data>, ['skills'])` if needed.
 5. `problems` from status: `ASK` = nearest choice picked or none on the form's list -> tell the
-   user plainly with the choices, fix per their answer. `FAIL` = field not found -> screenshot
-   is blank in a hidden window, so read labels via `read_page`/`find`, fix by hand once, and
-   record the new label in `app/docs/apply/workday.md`.
+   user plainly with the choices, fix per their answer. `FAIL` = field not found -> read labels
+   via `read_page`/`find`, fix by hand once, record the new label in `app/docs/apply/workday.md`.
 6. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
    item, what is left (resume upload, website, questions), and that nothing is saved until they
    click **Save and Continue**. Later steps (questions, disclosures, review) = ask, never guess.
 
-Token care: send `apply.js` once; poll with the short status call only; no screenshots while the
-window is hidden (they come back black) - use `status()`, `errors()` or `find`.
+Token care: poll with the short status call only; no screenshots while the window is hidden
+(they come back black) - use `status()`, `errors()` or `find`.
 
 ## Other systems (Ashby, ...)
 
-Hard limits above all apply. How it works + per-system facts: `app/docs/apply/apply-systems.md`.
+Hard limits above apply. Per-system facts: `app/docs/apply/apply-systems.md`.
 Ashby's own "Autofill from resume" fills contact boxes only - tell a user who thinks the resume
 "failed" that it did not (`app/docs/apply/ashby.md`).
 
@@ -61,7 +60,7 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    search settings) or `NEEDED`. Rerun keeps answers already written.
 3. Fill each blank `answer` in that file: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
-   question: `answer: true` only after they said yes to uploading the named file. Location: the
+   question: `answer: true` only after they said yes to the named file (hard limits). Location: the
    city they live in. Answers from search settings: name them to the user.
 4. `uv run app/jobs.py apply-form fill <slug>` -> opens the form in Job Finder's Chrome, fills,
    prints one line per question. `FAIL`/`ASK` -> tell the user plainly, fix, record the quirk in

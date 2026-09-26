@@ -1,40 +1,39 @@
 # job-setup
 
-User not technical - `AGENTS.md` #User = not technical binds every step. You run all commands.
+`AGENTS.md` #User = not technical binds every step.
 Read `app/docs/jobs/freehire.md` first: geography, null-facet and `q=` rules below come from it.
 
 Open w/ short paragraph: you'll ask what they're looking for, check how many jobs match, read
-their resume, then show first matches; takes ~10 minutes. Add privacy in plain words:
-everything in their file list (My Jobs, My Resume, My Settings) stays on this computer; job
-searches send only their search settings to freehire.me; their resume is read here in this AI
-chat; nothing goes to CEZ Job Finder's maintainer without asking them first.
+their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGENTS.md`
+#Private vs shared): their file list (My Jobs, My Resume, My Settings) stays on this computer;
+job searches send only their search settings to freehire.me; resume is read here in this AI
+chat; nothing goes to CEZ Job Finder's maintainer without asking first.
 
 `My Settings/Search settings.yml` exists -> summarize current search in plain words, ask: change
 it or start over?
 
 ## 1. Interview
 
-Clickable choices, not prose questions (`AGENTS.md` #User = not technical). Measure BEFORE asking
-so every option carries a live count: `uv run app/jobs.py probe --facets countries=us` gives all
-47 categories + every other facet in one call. Then ask ONE question at a time, in this order
-(never batched - it shows as tabs, see `AGENTS.md`).
+Measure BEFORE asking so every option carries a live count: `uv run app/jobs.py probe --facets
+countries=us` gives all 47 categories + every other facet in one call. Then ask ONE question at
+a time, in this order (never batched - shows as tabs).
 
 First, broad:
-- what kind of work - 4 grouped families of `category` values, `multiSelect`, counts per option
+- what kind of work - 4 grouped families of `category` values, `multiSelect`
 - where: remote only / remote first / local first / local only
 - full time / part time / contract, `multiSelect` + "doesn't matter"
 - lowest yearly pay - 4 bands (ranks higher-paying first, never hides jobs; say so in the question)
 
 Then narrowing what they picked:
-- which exact roles inside the family they picked, `multiSelect`, counts per option
+- which exact roles inside the family they picked, `multiSelect`
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
-  the `cities` facet, so they click instead of typing; "Other" covers the rest
+  the `cities` facet; "Other" covers the rest
 - career level (entry / mid / senior / leader) - `rank.career_level`: titles clearly above or
   below it sort lower, never hidden; never a `seniority` filter (facet null on 30-45% of rows,
   junior lives in title string)
 - work permit, one question - nearly every US application asks both "legally authorized to work
   in the US without restriction?" and "will you now or in the future require sponsorship?", so
-  ask once here; each form still shows them the answer before they click Save. Options ->
+  ask once here; each form still shows the answer before Save. Options ->
   `work_authorization` (`authorized_us`, `needs_sponsorship`):
   - Yes, never need sponsorship (US citizen, green card, refugee/asylee) -> true, false
   - Allowed now, will need it later (OPT, STEM OPT, H-1B transfer) -> true, true
@@ -43,8 +42,7 @@ Then narrowing what they picked:
   Say in the question it stays on this computer (no job search sends it). Needs sponsorship ->
   count from `probe --facets visa_sponsorship` on their category: "freehire marks 36,846 US jobs
   'no visa sponsorship' - they'll sort lower, never hidden". Never guess it from name, school
-  or where they studied. Their answer is sworn on the form: never help shade it (`AGENTS.md`
-  #Lead, explain, push back - Hold).
+  or where they studied. Never help shade it (`AGENTS.md` #Lead, explain, push back - Hold).
 
 Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
 `jobgether` + `builtin-integration-sandbox` w/o asking, but say why in one sentence when you
@@ -55,9 +53,9 @@ showing jobs from <company>" any time.
 ## 2. Build search (internal - don't narrate commands)
 
 - Start from `app/profiles/example.yml`.
-- Field -> `category=` (tech: `skills=` often tighter). NEVER guess slugs one probe at a time:
+- Field -> `category=` (tech: `skills=` often tighter). NEVER guess slugs:
   `uv run app/jobs.py probe --facets category countries=us` lists every valid value w/ live count
-  in one call (unknown slug answers 0, not error, so a guess loop is silent and slow).
+  (unknown slug answers 0, not error - a guess loop is silent and slow).
 - One tier per location group, preferred first: remote tier `work_mode=remote` +
   `countries=us`; city tier `cities=` ALONE (geography facets OR together, `cfg` rejects mix).
   Exact city values: `uv run app/jobs.py probe --city <text>`.
@@ -73,9 +71,9 @@ showing jobs from <company>" any time.
   (`skills=react` 2026-09-20 leaked Sales Consultant, Payment Operations Analyst, Product
   Designer, Product Manager), never guess the list.
 - Rank has NO per-skill boost (`rank.py`: tier, likely-ghost/level/hours mismatch, pay,
-  employer lists, age - `app/defaults.yml` #rank), and a row matching two
-  passes keeps the LAST pass's tier. So "X first, everything else after" is NOT expressible w/
-  overlapping passes - either narrow the search to X, or leave it wide. Say which you did.
+  employer lists, age - `app/defaults.yml` #rank), and a row matching two passes keeps the LAST
+  pass's tier. So "X first, everything else after" is NOT expressible w/ overlapping passes -
+  narrow to X or leave it wide. Say which you did.
 
 Write `My Settings/Search settings.yml`: `profile.name` (their words, e.g. "accounting jobs" -
 heads notification + email), `passes`, `blocklist` (keep `jobgether` + their companies),
@@ -85,7 +83,7 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 
 ## 3. Resume
 
-- Ask them to drag resume PDF into chat box. Then
+- Ask for resume PDF (drag into chat), then
   `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing).
 - Do printed task yourself (`AGENTS.md` #AI writing steps), then
   `uv run app/jobs.py resume-import finish`. Gate fails -> copy source text more exactly, rerun.
@@ -94,11 +92,11 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 - Read `My Resume/Resume details.yml`; confirm w/ user in plain words: jobs + dates, schools,
   contact details. Year-only dates stay years (never guess months). Header `# assumed` lines =
   dates import couldn't read, or jobs re-sorted newest first - check each w/ user.
-  Their corrections -> edit that file yourself (wording is theirs; employer, title, dates change
-  only to fix a real mistake - `AGENTS.md` #Lead, explain, push back).
+  Corrections -> edit that file yourself (wording theirs; employer, title, dates only to fix a
+  real mistake - `AGENTS.md` #Lead, explain, push back).
 - Photo, birth date, marital status or full street address came in -> push back once: US
-  convention is to leave them off (invites bias; city + state is enough) - convention, not a
-  study. Offer to remove; their call.
+  convention leaves them off (invites bias; city + state is enough) - convention, not a study.
+  Offer to remove; their call.
 - `gap` line from `finish` (6+ months) -> raise kindly, never as a fault: "There's a 9-month
   break between X and Y. Long breaks with no explanation get screened out at about half of
   employers; a one-line reason fixes most of that (caring for family, study, relocation). Want
@@ -109,18 +107,18 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   ask the full name (forms say "Do not use abbreviations"). `language-level` -> ask each
   language's level w/ choices (Native / Fluent / Professional / Conversational / Basic) - their
   fact, never guessed - then one line each: `Spanish (Fluent)`.
-- Fill the gaps: `uv run app/jobs.py resume-gaps prepare`, do the task yourself (it lists lines
+- Fill the gaps: `uv run app/jobs.py resume-gaps prepare`, do the task yourself (lists lines
   with no number + a leadership question per recent job), asking the user in chat - clickable
   "I know it / skip" choices, the number as free text. Only what they say goes in; never guess or
-  round, and skipping is fine. Then `uv run app/jobs.py resume-gaps finish` (FAIL = a number or
+  round; skipping is fine. Then `uv run app/jobs.py resume-gaps finish` (FAIL = a number or
   name not in their answer; fix the answer file). Tell them it kept a backup of the old file.
 - `uv run app/jobs.py resume-render` + `uv run app/jobs.py resume-lint`; fix failures w/ user.
   Lint warn `company-legal-id` = ignore (hospitals, schools, agencies carry no Inc./LLC).
   Open rendered PDF in `My Resume/` for them to look at.
 - `uv run app/jobs.py resume-feedback` -> `My Resume/Resume feedback.md`; open it and walk them
-  through "At a glance" in plain words. `Worth a look` on numbers or leadership -> offer the
-  fill-the-gaps step above; wording notes -> show each fix, their call. Page layout is never in
-  it: the render gates enforce it on every PDF.
+  through "At a glance" in plain words. `Worth a look` on numbers or leadership -> offer
+  fill-the-gaps above; wording notes -> show each fix, their call. Page layout never in it
+  (render gates enforce it).
 
 ## 4. First matches
 
@@ -129,15 +127,15 @@ for any of these? Say number."
 
 ## 5. Daily check (on by default)
 
-`uv run app/jobs.py autorun on` w/o asking (08:00 from `app/defaults.yml`). Ask time + email as
-two clickable questions, one after the other (time: keep 08:00 / 3 other times; email: popup only / email too).
+`uv run app/jobs.py autorun on` w/o asking (08:00 from `app/defaults.yml`). Ask time, then email
+(time: keep 08:00 / 3 other times; email: popup only / email too).
 
 Ask BEFORE the first `uv run app/jobs.py daily`: that run marks every current match seen, so a
 later `email --dry-run` prints "0 new" and the user never sees their own digest. Order = ask ->
 write `.data/email.env` if they said yes -> `email --dry-run` (real preview + sign-in) -> `daily`
 -> `uv run app/jobs.py autorun status`; log tail must show "notified"/"emailed" or "0 new".
 
-Tell them: each morning computer checks for jobs and pops up a notification when new ones arrive;
+Tell them: each morning computer checks for jobs, pops up a notification when new ones arrive;
 clicking it opens CEZ Job Finder. First one covers every current match, later ones only new jobs.
 Computer must be on; missed run happens when it next starts (Windows) or wakes (Mac).
 - Different time -> `schedule.local_daily: "HH:MM"` in search settings, `autorun on` again.
@@ -147,13 +145,12 @@ Email too (only if they say yes):
   sender uses implicit TLS only).
 - Gmail needs app password: 2-Step Verification on, then https://myaccount.google.com/apppasswords
   -> create "CEZ Job Finder" -> 16-letter code. Open that page for them; walk through it. Tell
-  them: code stays in hidden file on this computer, used only to send them their own email.
+  them: code stays in hidden file on this computer, used only to send their own email.
 - Write `.data/email.env` from `app/email.env.example`: `SMTP_USER`, `SMTP_PASSWORD` (spaces
   removed), `ALERT_TO` if different inbox. Yahoo: also `alert.smtp_host: smtp.mail.yahoo.com`
   in search settings.
-- Email replaces notification. Test: `uv run app/jobs.py email --dry-run` shows what goes and
-  signs in to prove the app password (exits nonzero on bad credentials); next scheduled run
-  emails (log tail "emailed").
+- Email replaces notification. `email --dry-run` (order above) exits nonzero on bad
+  credentials; next scheduled run emails (log tail "emailed").
 
 ## 6. Wrap up
 
