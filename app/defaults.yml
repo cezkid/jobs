@@ -9,6 +9,16 @@ api:
   page_limit: 100
   timeout_s: 30
 
+# How far back each search looks. Starts at `days` (a pass's own posted_within_days wins);
+# a pass returning fewer than `min_jobs` retries at the next of `widen_to`, stops at the last.
+# 2026-09-26 live counts, 7/14/30/90 days: finance Springfield 2/7/17/30, legal Denver
+# 19/39/70/130, React NYC 253/475/682/1218 => busy searches stay fresh, small ones still fill
+# a list. Ends at 90 = rank.old_days: older rows sort low anyway. min_jobs 0 = never widen.
+window:
+  days: 7
+  min_jobs: 30
+  widen_to: [14, 30, 60, 90]
+
 # paths relative to repo root
 db: .data/jobs.db
 

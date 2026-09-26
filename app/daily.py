@@ -33,7 +33,7 @@ def check(config: dict, send: Sender) -> None:
     conn = store.connect(cfg.db_path(config))
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
         for tier, s in freehire.run(config, conn, client).items():
-            print(f"{tier}: fetched {s['fetched']}, closed {s['closed']}" + (" (cut at ceiling)" if s["truncated"] else ""))
+            print(f"{tier}: fetched {s['fetched']} ({s['days']} days), closed {s['closed']}" + (" (cut at ceiling)" if s["truncated"] else ""))
     new = alert.run(conn, config, send[0])
     print(f"{new} new, {send[1]}" if new else "0 new, nothing sent")
 
