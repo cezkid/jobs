@@ -28,6 +28,19 @@
   "explorer.sortOrder": "modified",
   "workbench.startupEditor": "none",
   "workbench.tips.enabled": false,
+  // one program, not a code editor: developer controls out of sight, nothing the user needs gone.
+  // Tab buttons + status bar stay: Claude's new-chat and open-chat buttons live there
+  // Tabs stay (START HERE, resume, posting side by side); file list + its icons stay, moved to a
+  // small row on top (ChatGPT's icon lives there)
+  "window.title": "CEZ Job Finder",
+  "window.commandCenter": false,
+  "workbench.layoutControl.enabled": false,
+  "workbench.navigationControl.enabled": false,
+  "workbench.activityBar.location": "top",
+  "workbench.editor.empty.hint": "hidden",
+  "breadcrumbs.enabled": false,
+  "explorer.openEditors.visible": 0,
+  "editor.minimap.enabled": false,
   // else VS Code's own Copilot chat owns the right-hand panel and the user talks to it, not Claude/ChatGPT
   "chat.disableAIFeatures": true,
   // chat in the right-hand sidebar: the default opens it as a tab and leaves that sidebar empty
