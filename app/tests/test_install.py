@@ -4,33 +4,51 @@ import cfg
 
 PAGE = cfg.ROOT / "docs" / "index.html"
 README = cfg.ROOT / "README.md"
-WINDOWS = cfg.APP / "install" / "install-windows.ps1"
+INSTALL = cfg.APP / "install"
 
 
-def windows_lines():
-    page = re.search(r"win: ai => `(.+?)`,", PAGE.read_text(encoding="utf-8")).group(1)
-    readme = next(l for l in README.read_text(encoding="utf-8").splitlines() if l.startswith("powershell "))
-    return [page.replace("${RAW}", "https://x/").replace("${ai}", "1"), readme]
+def page_line(os: str) -> str:
+    return re.search(rf"{os}: `(.+?)`,", PAGE.read_text(encoding="utf-8")).group(1).replace("${RAW}", "https://x/")
+
+
+def readme_line(start: str) -> str:
+    return next(l for l in README.read_text(encoding="utf-8").splitlines() if l.startswith(start))
+
+
+def page_steps() -> str:
+    body = PAGE.read_text(encoding="utf-8")
+    return body[body.index('<div class="desktop">'):body.index("<summary>What stays private?")]
 
 
 def test_windows_line_survives_being_pasted_into_powershell():
     # "$env:JOBS_AI=..." pasted into PowerShell => outer shell expands $env before the child runs
-    for line in windows_lines():
+    for line in page_line("win"), readme_line("powershell "):
         assert "$" not in line, line
 
 
 def test_windows_line_lets_uv_installer_run():
     # Windows default policy Restricted => uv's installer stops: "requires an execution policy in
     # [Unrestricted, RemoteSigned, Bypass]"; Bypass on the line + in script = this window only
-    for line in windows_lines():
+    for line in page_line("win"), readme_line("powershell "):
         assert line.startswith("powershell -ExecutionPolicy Bypass "), line
-    script = WINDOWS.read_text(encoding="utf-8")
+    script = (INSTALL / "install-windows.ps1").read_text(encoding="utf-8")
     assert script.index("Set-ExecutionPolicy Bypass -Scope Process") < script.index("astral.sh/uv/install.ps1")
     assert "CurrentUser" not in script  # never changes the user's setting for good
 
 
-def test_windows_steps_use_terminal_not_run_box():
-    # security software blocks download-and-run lines typed into Win+R (ClickFix pattern)
-    page = PAGE.read_text(encoding="utf-8")
-    steps = re.search(r'<ol class="steps win-only">(.+?)</ol>', page, re.S).group(1)
-    assert "Terminal" in steps and "+ <kbd>R</kbd>" not in steps
+def test_one_line_per_computer_and_installer_asks_the_ai():
+    # AI picked on the page => hidden, per-choice line; one visible line + a question in the window
+    for line in page_line("win"), page_line("mac"), readme_line("powershell "), readme_line("curl "):
+        assert "JOBS_AI" not in line and not re.search(r"\s[12]\s*\"?$", line), line
+    assert "data-ai" not in PAGE.read_text(encoding="utf-8")
+    for name in "install-windows.ps1", "install-mac.sh":
+        script = (INSTALL / name).read_text(encoding="utf-8")
+        assert "Which AI do you pay for?" in script and "--list-extensions" in script, name
+
+
+def test_steps_open_the_window_by_clicking_not_key_combos():
+    # security software blocks download-and-run lines typed into Win+R (ClickFix pattern);
+    # key combos are also where non-technical users get lost
+    steps = page_steps()
+    assert "PowerShell" in steps and "Terminal" in steps
+    assert not re.search(r"<kbd>(Windows key|Win|Cmd|Ctrl)</kbd>", steps)

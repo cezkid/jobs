@@ -13,24 +13,22 @@ it in plain English in VS Code's AI panel; it does the rest.
 
 ## Install (once, about 5 minutes)
 
-Copy the line for your computer and AI, paste it where shown, press Enter. It installs uv, VS
-Code and your AI's panel (only what's missing, no admin prompt), then opens VS Code. Click
-**Sign in** on the right-hand panel, then press Enter. Safe to run again: it repairs the
-program and keeps your files.
+Copy the line for your computer, paste it where shown, press Enter, then type 1 (Claude) or 2
+(ChatGPT) when asked. It installs uv, VS Code and your AI's panel (only what's missing, no admin
+prompt), then opens VS Code. Click **Sign in** on the right-hand panel, then press Enter. Safe to
+run again: it repairs the program and keeps your files.
 
-**Windows** - right-click Start, click Terminal (older Windows: Windows PowerShell), paste, Enter:
+**Windows** - click Start, type `PowerShell`, open Windows PowerShell, paste, Enter:
 
 ```
-powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-windows.ps1))) 1"
+powershell -ExecutionPolicy Bypass -c "irm https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-windows.ps1 | iex"
 ```
 
-**Mac** - Cmd + Space, type `Terminal`, Enter, paste, Enter:
+**Mac** - click the magnifying glass top-right, type `Terminal`, open it, paste, Enter:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-mac.sh | JOBS_AI=1 bash
+curl -fsSL https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-mac.sh | bash
 ```
-
-ChatGPT instead of Claude: change `1` to `2`.
 
 ## Everyday use
 
@@ -132,15 +130,16 @@ recipient. SMTP host, schedule: `app/defaults.yml`, overridable in search settin
 
 ### Install scripts
 
-`docs/index.html` copies one line carrying the AI (1 Claude, 2 ChatGPT, unset = Claude; Mac
-`JOBS_AI`, Windows the trailing argument) => installers ask nothing. Pasted line, never
-downloaded file: download hits SmartScreen / Gatekeeper. Windows line goes into Terminal, not
-Win+R: security software blocks download-and-run lines typed into the Run box (the "ClickFix"
-malware pattern) with "Windows cannot access the specified device, path or file". Line has no
-`$` so the outer PowerShell passes it through unexpanded (also runs from cmd), and
-`-ExecutionPolicy Bypass` (this process only) because uv's installer refuses Windows' default
-`Restricted` policy; policy locked by Group Policy -> uv via winget.
-`app/install/install-windows.ps1` (`irm` into a script block) and `install-mac.sh`
+`docs/index.html` shows one line per computer w/ a copy button; the installer asks which AI
+first (1 Claude, 2 ChatGPT), skipped when `JOBS_AI` is set or a re-run finds either AI panel
+already in VS Code. Pasted line, never downloaded file: download hits SmartScreen / Gatekeeper.
+Steps open PowerShell / Terminal by clicking, never Win+R: security software blocks
+download-and-run lines typed into the Run box (the "ClickFix" malware pattern) with "Windows
+cannot access the specified device, path or file". Windows line has no `$` so the outer shell
+passes it through unexpanded (PowerShell or cmd), and `-ExecutionPolicy Bypass` (this process
+only) because uv's installer refuses Windows' default `Restricted` policy; policy locked by Group
+Policy -> uv via winget.
+`app/install/install-windows.ps1` (`irm|iex`) and `install-mac.sh`
 (`curl|bash`): per-user uv, VS Code (user installer / `~/Applications`), AI extension, repo zip
 -> `~/jobs` (top-level entries replaced, My folders + `.data/` untouched), `uv sync`, Desktop launcher ->
 `app/install/start-*` (`update`, `launch`). No git, gh or admin. `update`: `.git` present ->

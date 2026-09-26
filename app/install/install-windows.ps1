@@ -1,14 +1,12 @@
-# Paste-line install (docs/index.html), pasted into Terminal / PowerShell:
-#   powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm <raw url of this file>))) 1"
-# No $ in line => outer PowerShell expands nothing, same line works in cmd. Older line
-# (JOBS_AI env + irm|iex) still works. Per-user installs only => no admin prompt.
-# AI: 2 = ChatGPT, else Claude.
+# Paste-line install (docs/index.html), pasted into PowerShell (cmd works too):
+#   powershell -ExecutionPolicy Bypass -c "irm <raw url of this file> | iex"
+# One line for everyone: no $ => outer shell expands nothing; AI asked below, not on the page.
+# Per-user installs only => no admin prompt.
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 $ZipUrl = 'https://github.com/cezkid/jobs/archive/refs/heads/main.zip'
 $Dir = if ($env:JOBS_DIR) { $env:JOBS_DIR } else { Join-Path $HOME 'jobs' }
-$Ai = if ($args.Count) { "$($args[0])" } else { $env:JOBS_AI }
-$AiExtension = if ($Ai -eq '2') { 'openai.chatgpt' } else { 'anthropic.claude-code' }
+$AiArg = if ($args.Count) { "$($args[0])" } else { $env:JOBS_AI }
 $VsCodeBin = "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin"
 $StepCount = 5
 
@@ -19,10 +17,28 @@ function Refresh-Path {
         [Environment]::GetEnvironmentVariable('Path', 'User'), "$HOME\.local\bin", $VsCodeBin) -join ';'
 }
 function Check($what) { if ($LASTEXITCODE) { throw "Could not $what." } }
+# asked first, while the user is still at the window; 1 Claude, 2 ChatGPT
+function Pick-Ai {
+    if ($AiArg) { return $AiArg }
+    if (Have 'code') {  # re-run to repair => keep the AI already set up, no question
+        $have = @(cmd /c 'code --list-extensions 2>nul')
+        if ($have -contains 'anthropic.claude-code') { return '1' }
+        if ($have -contains 'openai.chatgpt') { return '2' }
+    }
+    Write-Host "`nWhich AI do you pay for?" -ForegroundColor Cyan
+    Write-Host '  1 = Claude'
+    Write-Host '  2 = ChatGPT'
+    while ($true) {
+        $answer = (Read-Host 'Type 1 or 2, then press Enter').Trim().ToLower()
+        if ($answer -in '1', 'claude') { return '1' }
+        if ($answer -in '2', 'chatgpt') { return '2' }
+    }
+}
 
 try {
     Write-Host "`nInstalling Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
     Refresh-Path
+    $AiExtension = if ((Pick-Ai) -eq '2') { 'openai.chatgpt' } else { 'anthropic.claude-code' }
 
     # uv's installer refuses Windows' default policy (Restricted) => this window only, nothing saved
     try { Set-ExecutionPolicy Bypass -Scope Process -Force } catch {}

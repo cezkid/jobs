@@ -28,18 +28,23 @@
   a { color: var(--accent); }
   .need { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
   .need p { margin: 0; }
-  .choose { display: flex; gap: 14px; flex-wrap: wrap; }
-  .choose button {
-    flex: 1 1 260px; font: inherit; font-size: 1.2em; font-weight: 700; padding: 22px 16px;
-    border-radius: 14px; border: 2px solid var(--accent); background: var(--accent); color: var(--accent-fg);
-    cursor: pointer;
+  .command {
+    display: flex; align-items: flex-start; gap: 10px; padding: 14px 14px 14px 16px;
+    background: var(--card); border: 2px solid var(--line); border-radius: 12px;
   }
-  .choose button:focus-visible { outline: 4px solid var(--fg); outline-offset: 3px; }
-  .copied {
-    display: none; margin-top: 14px; padding: 14px 18px; border-radius: 12px;
-    border: 2px solid var(--ok); color: var(--ok); font-size: 1.3em; font-weight: 700;
+  .command code {
+    flex: 1; min-width: 0; font: 0.8em/1.5 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+    overflow-wrap: anywhere; user-select: all; color: var(--fg);
   }
-  .copied.show { display: block; }
+  #copy {
+    flex: none; display: flex; align-items: center; gap: 6px; font: inherit; font-size: 0.8em; font-weight: 700;
+    padding: 6px 12px; border-radius: 8px; border: 1px solid var(--accent); background: var(--accent);
+    color: var(--accent-fg); cursor: pointer;
+  }
+  #copy svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
+  #copy.done { background: var(--ok); border-color: var(--ok); }
+  #copy:focus-visible { outline: 4px solid var(--fg); outline-offset: 3px; }
+  .hint { margin: 12px 0 0; }
   ol.steps { padding-left: 1.4em; margin: 0; }
   ol.steps li { margin: 0 0 14px; padding-left: 6px; }
   kbd {
@@ -50,10 +55,6 @@
   .switch { font-size: 0.85em; color: var(--muted); }
   .switch button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
   details { margin-top: 28px; color: var(--muted); font-size: 0.85em; }
-  code.line {
-    display: block; margin-top: 8px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line);
-    border-radius: 8px; font-size: 0.85em; overflow-wrap: anywhere; color: var(--fg);
-  }
   .phone { display: none; font-size: 1.3em; font-weight: 700; }
   body.is-phone .phone { display: block; }
   body.is-phone .desktop { display: none; }
@@ -77,40 +78,36 @@
         <a href="https://chatgpt.com/#pricing">ChatGPT (Plus or Pro)</a> account.</p>
     </div>
 
-    <h2>1. Which AI do you pay for?</h2>
-    <div class="choose">
-      <button type="button" data-ai="1">I use Claude</button>
-      <button type="button" data-ai="2">I use ChatGPT</button>
-    </div>
-    <div class="copied" id="copied" role="status" aria-live="polite">Copied! Now do step 2.</div>
+    <h2>1. Open <span class="win-only">PowerShell</span><span class="mac-only">Terminal</span></h2>
+    <p class="win-only">Click the <strong>Start</strong> button, type <strong>PowerShell</strong>, then click
+      <strong>Windows PowerShell</strong> in the results. A window opens with a blinking cursor.</p>
+    <p class="mac-only">Click the magnifying glass at the top-right of your screen, type <strong>Terminal</strong>,
+      then click <strong>Terminal</strong> in the results. A window opens with a blinking cursor.</p>
 
-    <h2>2. Paste it and press Enter</h2>
-    <ol class="steps win-only">
-      <li>Right-click the <strong>Start</strong> button, then click <strong>Terminal</strong>
-        (older Windows: <strong>Windows PowerShell</strong>) - not the one marked Admin</li>
-      <li>Press <kbd>Ctrl</kbd> + <kbd>V</kbd> (nothing appears? right-click inside the window)</li>
-      <li>Press <kbd>Enter</kbd></li>
-    </ol>
-    <ol class="steps mac-only">
-      <li>Press <kbd>Cmd</kbd> + <kbd>Space</kbd>, type <strong>Terminal</strong>, press <kbd>Enter</kbd></li>
-      <li>Press <kbd>Cmd</kbd> + <kbd>V</kbd></li>
-      <li>Press <kbd>Enter</kbd></li>
-    </ol>
+    <h2>2. Copy this line into that window</h2>
+    <div class="command">
+      <code id="line"></code>
+      <button type="button" id="copy" aria-label="Copy the line">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg>
+        <span id="copy-label">Copy</span>
+      </button>
+    </div>
+    <p class="hint">Click <strong>Copy</strong>, then click inside the window and
+      <span class="win-only">right-click to paste</span><span class="mac-only">choose <strong>Edit &gt; Paste</strong></span>.
+      Press <kbd>Enter</kbd>.</p>
     <p class="switch"><span class="win-only">On a Mac? </span><span class="mac-only">On Windows? </span>
       <button type="button" id="switch-os"><span class="win-only">Show Mac steps</span><span class="mac-only">Show Windows steps</span></button></p>
 
-    <h2>3. Wait, then sign in</h2>
-    <p>A window shows progress (about 5 minutes). Don't close it. VS Code opens by itself.
+    <h2>3. Answer one question</h2>
+    <p>It asks which AI you pay for. Type <strong>1</strong> for Claude or <strong>2</strong> for ChatGPT,
+      then press <kbd>Enter</kbd>.</p>
+
+    <h2>4. Wait, then sign in</h2>
+    <p>The window shows progress (about 5 minutes). Don't close it. VS Code opens by itself.
       Click <strong>Sign in</strong> on the right-hand panel, then press <kbd>Enter</kbd>.</p>
 
     <h2>Something went wrong?</h2>
     <p>Do it again from step 1 - it's safe to repeat. Your resume and settings are kept.</p>
-
-    <details>
-      <summary>Copy button didn't work?</summary>
-      Select this whole line, copy it, then do step 2:
-      <code class="line" id="line"></code>
-    </details>
 
     <details>
       <summary>What stays private?</summary>
@@ -123,21 +120,25 @@
 </main>
 <script>
   const RAW = "https://raw.githubusercontent.com/cezkid/jobs/main/app/install/";
+  // one line per computer; the installer asks which AI. No $ in the Windows line => PowerShell and
+  // cmd pass it on unchanged; Bypass = this window only (uv's installer refuses Windows' default)
   const LINES = {
-    // no $ in the line => PowerShell pastes it unchanged; Bypass = this window only (uv's installer needs it)
-    win: ai => `powershell -ExecutionPolicy Bypass -c "& ([scriptblock]::Create((irm ${RAW}install-windows.ps1))) ${ai}"`,
-    mac: ai => `curl -fsSL ${RAW}install-mac.sh | JOBS_AI=${ai} bash`,
+    win: `powershell -ExecutionPolicy Bypass -c "irm ${RAW}install-windows.ps1 | iex"`,
+    mac: `curl -fsSL ${RAW}install-mac.sh | bash`,
   };
   const ua = navigator.userAgent;
   // iPadOS reports Mac UA => touch points tell it apart
   const isPhone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
   let os = /Mac/i.test(navigator.userAgentData?.platform || navigator.platform || ua) ? "mac" : "win";
-  let ai = "1";
+  const button = document.getElementById("copy");
+  const label = document.getElementById("copy-label");
 
   function render() {
     document.body.classList.toggle("is-phone", isPhone);
     document.body.classList.toggle("is-mac", os === "mac");
-    document.getElementById("line").textContent = LINES[os](ai);
+    document.getElementById("line").textContent = LINES[os];
+    button.classList.remove("done");
+    label.textContent = "Copy";
   }
 
   async function copy(text) {
@@ -155,17 +156,14 @@
     }
   }
 
-  document.querySelectorAll("[data-ai]").forEach(button => button.addEventListener("click", async () => {
-    ai = button.dataset.ai;
-    render();
-    const note = document.getElementById("copied");
-    const ok = await copy(LINES[os](ai));
-    note.textContent = ok ? "Copied! Now do step 2." : "Could not copy. Open \"Copy button didn't work?\" below.";
-    note.classList.add("show");
-  }));
+  button.addEventListener("click", async () => {
+    const ok = await copy(LINES[os]);
+    button.classList.toggle("done", ok);
+    // copy blocked => line is selectable by hand (one click selects all of it)
+    label.textContent = ok ? "Copied" : "Select the line and copy it";
+  });
   document.getElementById("switch-os").addEventListener("click", () => {
     os = os === "mac" ? "win" : "mac";
-    document.getElementById("copied").classList.remove("show");
     render();
   });
   render();
