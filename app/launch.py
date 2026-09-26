@@ -2,10 +2,13 @@ import json
 import os
 import re
 import shutil
+import sqlite3
 import subprocess
 import sys
 import time
 from pathlib import Path
+from urllib.parse import unquote, urlparse
+from urllib.request import url2pathname
 
 import cfg
 import notify
@@ -18,7 +21,7 @@ PDF_EXTENSION = "tomoki1207.pdf"
 # without it the mistake surfaces later as a render error they cannot read
 YAML_EXTENSION = "redhat.vscode-yaml"
 VSCODE_EXTENSIONS = Path.home() / ".vscode" / "extensions"
-CLAUDE_SETTINGS = Path.home() / ".claude" / "settings.json"
+CLAUDE_STATE = Path.home() / ".claude.json"
 START_PAGE = cfg.ROOT / "START HERE.md"
 # file named in the same call as the folder opens before VS Code knows its formatted view =>
 # plain text, and the tab stays text on every later launch. Opened 6 s after the window it
@@ -62,6 +65,36 @@ def vscode_settings() -> Path:
     if sys.platform == "darwin":
         return Path.home() / "Library" / "Application Support" / "Code" / "User" / "settings.json"
     return Path.home() / ".config" / "Code" / "User" / "settings.json"
+
+
+def workspace_state(root: Path, storage: Path | None = None) -> Path | None:
+    """VS Code's remembered layout for this folder; None before its first window."""
+    storage = storage or vscode_settings().parent / "workspaceStorage"
+    for marker in storage.glob("*/workspace.json"):
+        try:
+            uri = json.loads(marker.read_text(encoding="utf-8")).get("folder") or ""
+        except (OSError, ValueError):
+            continue
+        folder = Path(url2pathname(unquote(urlparse(uri).path)))
+        if os.path.normcase(folder) == os.path.normcase(root) and (marker.parent / "state.vscdb").exists():
+            return marker.parent / "state.vscdb"
+    return None
+
+
+def ensure_chat_sidebar(root: Path | None = None, storage: Path | None = None) -> None:
+    # workspace setting secondarySideBar.defaultVisibility only counts in a folder's first window;
+    # after the user closes the sidebar once VS Code keeps it closed => only START HERE, no chat
+    # (measured 2026-09-26). The one remembered flag is set back before the window opens.
+    state = workspace_state(root or cfg.ROOT, storage)
+    if not state:
+        return
+    try:
+        with sqlite3.connect(state, timeout=2) as db:
+            db.execute("INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)",
+                       ("workbench.auxiliaryBar.hidden", "false"))
+        db.close()
+    except sqlite3.Error:
+        pass
 
 
 def add_setting(text: str, line: str) -> str:
@@ -115,28 +148,27 @@ def ensure_mac_icon(old: Path = OLD_MAC_ICON) -> None:
         subprocess.run(["bash", str(MAC_ICON_MAKER)], check=False, capture_output=True)
 
 
-def ensure_auto_mode(settings: Path = CLAUDE_SETTINGS) -> None:
-    # Auto mode lets the AI panel answer its own permission questions. Only the user's own
-    # Claude settings can turn it on: the same key in this folder's .claude/settings.json is
-    # ignored as repo-controlled, and would also outrank the user file (measured 2026-09-21).
-    # Without it the user is asked to approve nearly every step Job Finder takes.
+def ensure_claude_trust(root: Path | None = None, state: Path = CLAUDE_STATE) -> None:
+    # this folder's .claude/settings.json lets the AI run Job Finder's own steps and write only
+    # inside My Jobs / My Resume / My Settings / .data without asking. Claude ignores that list
+    # until the folder is trusted (measured 2026-09-26: untrusted => every write blocked; trusted
+    # => those folders written, a file beside them still blocked). Trust is kept per folder, so
+    # nothing changes in the user's other projects - unlike auto mode, which is user-wide only.
+    folder = str(root or cfg.ROOT)
     try:
-        current = json.loads(settings.read_text(encoding="utf-8")) if settings.exists() else {}
+        current = json.loads(state.read_text(encoding="utf-8")) if state.exists() else {}
     except (OSError, ValueError):
         return
     if not isinstance(current, dict):
         return
-    permissions = current.get("permissions") or {}
-    if permissions.get("defaultMode"):  # a mode the user picked themselves => leave it alone
+    projects = current.setdefault("projects", {})
+    if not isinstance(projects, dict) or (projects.get(folder) or {}).get("hasTrustDialogAccepted"):
         return
-    current["permissions"] = {**permissions, "defaultMode": "auto"}
-    current["skipAutoPermissionPrompt"] = True  # else first launch asks to opt in to auto mode
+    projects[folder] = {**(projects.get(folder) or {}), "hasTrustDialogAccepted": True}
     try:
-        settings.parent.mkdir(parents=True, exist_ok=True)
-        settings.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
+        state.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
     except OSError:
         pass
-
 
 def code(args: list[str], quiet: bool = False) -> None:
     exe = shutil.which("code")
@@ -157,7 +189,8 @@ def main() -> None:
     # before VS Code opens => a typo in the resume facts is underlined on the first edit
     ensure_yaml_checker()
     if has_claude():
-        ensure_auto_mode()
+        ensure_claude_trust()
+        ensure_chat_sidebar()
     # trust off for this window only => no "trust the authors?" dialog. Chat comes up in the
     # right-hand sidebar beside this page (.vscode/settings.json #secondarySideBar). No
     # vscode://anthropic.claude-code/open link: it always opens chat as a tab in the active

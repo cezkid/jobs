@@ -26,7 +26,8 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     calls = []
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: True)
-    monkeypatch.setattr(launch, "ensure_auto_mode", lambda: None)
+    monkeypatch.setattr(launch, "ensure_claude_trust", lambda: None)
+    monkeypatch.setattr(launch, "ensure_chat_sidebar", lambda: None)
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
@@ -82,18 +83,33 @@ def test_pdf_viewer_installed_once_and_never_over_the_users_own(tmp_path, monkey
     assert len(installed) == 1
 
 
-def test_auto_mode_turned_on_for_the_user_once(tmp_path):
-    # without it the user is asked to approve nearly every step, which reads like an error
-    settings = tmp_path / ".claude" / "settings.json"
-    launch.ensure_auto_mode(settings)
-    written = json.loads(settings.read_text(encoding="utf-8"))
-    assert written["permissions"]["defaultMode"] == "auto"
-    assert written["skipAutoPermissionPrompt"] is True
-    settings.write_text(json.dumps(
-        {"theme": "dark", "permissions": {"defaultMode": "plan", "allow": ["Read"]}}),
-        encoding="utf-8")
-    launch.ensure_auto_mode(settings)  # a mode the user chose themselves stays untouched
-    assert json.loads(settings.read_text(encoding="utf-8"))["permissions"]["defaultMode"] == "plan"
+def test_claude_trusts_this_folder_only(tmp_path):
+    # untrusted folder => its permission list ignored, user asked before every step
+    state = tmp_path / ".claude.json"
+    root = tmp_path / "jobs"
+    launch.ensure_claude_trust(root, state)
+    assert json.loads(state.read_text())["projects"][str(root)] == {"hasTrustDialogAccepted": True}
+    state.write_text(json.dumps({"theme": "dark", "projects": {
+        "/elsewhere": {"hasTrustDialogAccepted": False}, str(root): {"lastCost": 1}}}))
+    launch.ensure_claude_trust(root, state)
+    written = json.loads(state.read_text())
+    assert written["theme"] == "dark" and written["projects"]["/elsewhere"] == {"hasTrustDialogAccepted": False}
+    assert written["projects"][str(root)] == {"lastCost": 1, "hasTrustDialogAccepted": True}
+    state.write_text("{broken")
+    launch.ensure_claude_trust(root, state)  # a file Claude is mid-way writing stays as it is
+    assert state.read_text() == "{broken"
+
+
+def test_launcher_never_changes_claude_for_other_projects():
+    # auto mode is user-wide only => setting it changed Claude in the user's coding projects too
+    source = (cfg.APP / "launch.py").read_text(encoding="utf-8")
+    assert "defaultMode" not in source and '".claude" / "settings.json"' not in source
+
+
+def test_workspace_lets_the_ai_write_only_job_finder_folders():
+    allow = json.loads((cfg.ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))["permissions"]["allow"]
+    edits = {rule for rule in allow if rule.startswith(("Edit", "Write"))}
+    assert edits == {"Edit(/My Jobs/**)", "Edit(/My Resume/**)", "Edit(/My Settings/**)", "Edit(/.data/**)"}
 
 
 def test_workspace_never_sets_a_permission_mode_of_its_own():
@@ -187,3 +203,32 @@ def test_mac_icon_is_an_app_not_a_terminal_script():
     assert "osacompile" in maker and ".app" in maker
     installer = (cfg.APP / "install" / "install-mac.sh").read_text(encoding="utf-8")
     assert "make-icon-mac.sh" in installer and ".command\"" not in installer
+
+
+def test_chat_sidebar_shown_again_after_user_closed_it(tmp_path):
+    # VS Code remembers a closed sidebar per folder => next launch showed only START HERE
+    import sqlite3
+    root = tmp_path / "jobs folder"
+    root.mkdir()
+    other, mine = tmp_path / "ws" / "a", tmp_path / "ws" / "b"
+    for folder, target in ((other, tmp_path / "elsewhere"), (mine, root)):
+        folder.mkdir(parents=True)
+        (folder / "workspace.json").write_text(json.dumps({"folder": target.as_uri()}))
+        with sqlite3.connect(folder / "state.vscdb") as db:
+            db.execute("CREATE TABLE ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)")
+            db.execute("INSERT INTO ItemTable VALUES ('workbench.auxiliaryBar.hidden', 'true')")
+        db.close()
+    launch.ensure_chat_sidebar(root, tmp_path / "ws")
+
+    def hidden(folder):
+        with sqlite3.connect(folder / "state.vscdb") as db:
+            value = db.execute("SELECT value FROM ItemTable WHERE key = ?",
+                               ("workbench.auxiliaryBar.hidden",)).fetchone()[0]
+        db.close()
+        return value
+    assert hidden(mine) == "false"
+    assert hidden(other) == "true"  # another folder's layout left alone
+
+
+def test_chat_sidebar_first_window_left_to_setting(tmp_path):
+    launch.ensure_chat_sidebar(tmp_path, tmp_path / "no-storage-yet")  # nothing to fix, no error

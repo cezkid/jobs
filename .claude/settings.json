@@ -9,7 +9,14 @@
       "Bash(git log*)",
       "Bash(git pull*)",
       "Bash(git check-ignore*)",
-      "WebFetch"
+      "WebFetch",
+      "Edit(/My Jobs/**)",
+      "Edit(/My Resume/**)",
+      "Edit(/My Settings/**)",
+      "Edit(/.data/**)",
+      "Read(~/Downloads/**)",
+      "Read(~/Desktop/**)",
+      "Read(~/Documents/**)"
     ]
   }
 }
