@@ -1,4 +1,4 @@
-# Job Finder
+# CEZ Job Finder
 
 Finds jobs that match what you want, tells you each morning when new ones arrive, and makes a
 resume for any job you pick - checked line by line against your own facts and against what
@@ -43,14 +43,14 @@ just tell the chat, then ask for a fresh resume. A typing mistake gets a red und
 |---|---|---|
 | Your resume, job folders, search | My Resume, My Jobs, My Settings | Only this computer |
 | Your job list, email password (if email is on) | Hidden | Only this computer |
-| The Job Finder program | Hidden | Public - the same for everyone |
+| The CEZ Job Finder program | Hidden | Public - the same for everyone |
 | Your search (never your resume or work-permit answer) | freehire.me, the job site | Sent each time jobs are checked |
 | Your resume + postings you work on | The AI chat (Claude or ChatGPT) | Your own AI account |
 | What you apply with | That employer's job site | That employer, once you click Submit |
-| A fix to the program, only if you say yes | Job Finder's maintainer | Everyone who uses Job Finder |
+| A fix to the program, only if you say yes | CEZ Job Finder's maintainer | Everyone who uses CEZ Job Finder |
 
 Daily email (if on) goes from your own email to you; the morning pop-up never leaves this computer.
 
-## Opening Job Finder
+## Opening CEZ Job Finder
 
-Double-click **Job Finder** on your Desktop, or click the morning notification.
+Double-click **CEZ Job Finder** on your Desktop, or click the morning notification.

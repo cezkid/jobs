@@ -14,8 +14,8 @@ import notify
 import store
 from ingest import freehire
 
-FAILED = "Job Finder couldn't check for jobs today"
-FAILED_HINT = 'Open Job Finder and ask: "why didn\'t today\'s job check work?"'
+FAILED = f"{cfg.NAME} couldn't check for jobs today"
+FAILED_HINT = f'Open {cfg.NAME} and ask: "why didn\'t today\'s job check work?"'
 Sender = tuple[Callable[[EmailMessage], None], str]
 
 

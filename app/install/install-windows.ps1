@@ -1,6 +1,8 @@
-# Paste-line install (docs/index.html), pasted into PowerShell (cmd works too):
-#   powershell -ExecutionPolicy Bypass -c "irm <raw url of this file> | iex"
-# One line for everyone: no $ => outer shell expands nothing; AI asked below, not on the page.
+# Paste-line install (docs/index.html), pasted into PowerShell:
+#   irm <raw url of this file> | iex
+# Runs in the user's own window, no second powershell: a child started w/ -ExecutionPolicy Bypass
+# got an empty download on a real PC while the same irm in the window got the whole file. iex
+# ignores execution policy; Bypass for uv's installer is set below. AI asked below, not on the page.
 # Per-user installs only => no admin prompt.
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -36,14 +38,14 @@ function Pick-Ai {
 }
 
 try {
-    Write-Host "`nInstalling Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
+    Write-Host "`nInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
     Refresh-Path
     $AiExtension = if ((Pick-Ai) -eq '2') { 'openai.chatgpt' } else { 'anthropic.claude-code' }
 
     # uv's installer refuses Windows' default policy (Restricted) => this window only, nothing saved
     try { Set-ExecutionPolicy Bypass -Scope Process -Force } catch {}
 
-    Step 1 'installing uv (runs Job Finder)...'
+    Step 1 'installing uv (runs CEZ Job Finder)...'
     if (-not (Have 'uv')) {
         try { Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression } catch {}
         Refresh-Path
@@ -59,7 +61,8 @@ try {
     if (-not (Have 'code')) {
         $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
         $setup = Join-Path $env:TEMP 'VSCodeUserSetup.exe'
-        Invoke-WebRequest "https://update.code.visualstudio.com/latest/win32-$arch-user/stable" -OutFile $setup
+        # -UseBasicParsing: Dec 2025 update (CVE-2025-54100) asks before IE-engine parsing, Enter = cancel
+        Invoke-WebRequest -UseBasicParsing "https://update.code.visualstudio.com/latest/win32-$arch-user/stable" -OutFile $setup
         Start-Process $setup -ArgumentList '/VERYSILENT', '/NORESTART', '/MERGETASKS=!runcode' -Wait
         Refresh-Path
     }
@@ -69,12 +72,12 @@ try {
     cmd /c "code --install-extension $AiExtension --force >nul 2>&1"
     Check 'add the AI panel to VS Code'
 
-    Step 4 "downloading Job Finder to $Dir..."
+    Step 4 "downloading CEZ Job Finder to $Dir..."
     # staging under $Dir => Move-Item stays on one drive; My folders + .data never in zip
     $staging = Join-Path $Dir '.data\install'
     if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
     New-Item -ItemType Directory -Force $staging | Out-Null
-    Invoke-WebRequest $ZipUrl -OutFile "$staging\jobs.zip"
+    Invoke-WebRequest -UseBasicParsing $ZipUrl -OutFile "$staging\jobs.zip"
     Expand-Archive "$staging\jobs.zip" $staging
     Get-ChildItem -Force "$staging\jobs-main" | ForEach-Object {
         $dest = Join-Path $Dir $_.Name
@@ -83,26 +86,26 @@ try {
     }
     Remove-Item $staging -Recurse -Force
 
-    Step 5 'getting Job Finder ready...'
+    Step 5 'getting CEZ Job Finder ready...'
     Push-Location $Dir
     uv sync --quiet
     Pop-Location
-    Check 'get Job Finder ready'
+    Check 'get CEZ Job Finder ready'
 
     $start = Join-Path $Dir 'app\install\start-windows.bat'
     $link = (New-Object -ComObject WScript.Shell).CreateShortcut(
-        (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Job Finder.lnk'))
+        (Join-Path ([Environment]::GetFolderPath('Desktop')) 'CEZ Job Finder.lnk'))
     $link.TargetPath = $start
     $link.WorkingDirectory = $Dir
     $codeExe = Join-Path (Split-Path (Split-Path (Get-Command code).Source)) 'Code.exe'
     if (Test-Path $codeExe) { $link.IconLocation = "$codeExe,0" }
     $link.Save()
 
-    Write-Host "`nDone. Next time, open 'Job Finder' on your Desktop." -ForegroundColor Green
+    Write-Host "`nDone. Next time, open 'CEZ Job Finder' on your Desktop." -ForegroundColor Green
     Write-Host 'VS Code opens now. Click Sign in on the right-hand panel, then press Enter.' -ForegroundColor Green
     if (-not $env:JOBS_NO_LAUNCH) { & $start }
 } catch {
     Write-Host "`nInstall stopped: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host 'Run the same steps again. If it fails twice, send a photo of this window to whoever shared Job Finder with you.'
+    Write-Host 'Run the same steps again. If it fails twice, send a photo of this window to whoever shared CEZ Job Finder with you.'
     Read-Host 'Press Enter to close'
 }

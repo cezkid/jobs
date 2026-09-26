@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Job Finder</title>
+<title>CEZ Job Finder</title>
 <meta name="description" content="Finds new jobs that match what you want and tailors your resume to each one. Install in one step.">
 <style>
   :root {
@@ -23,18 +23,26 @@
   }
   main { max-width: 760px; margin: 0 auto; padding: 32px 16px 48px; }
   h1 { font-size: 2.2em; margin: 0 0 4px; }
-  .lede { color: var(--muted); margin: 0 0 28px; }
-  h2 { font-size: 1.15em; margin: 32px 0 10px; }
+  .lede { color: var(--muted); margin: 0 0 32px; }
   a { color: var(--accent); }
-  .need { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
-  .need p { margin: 0; }
+  ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 0; }
+  ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 2em minmax(0, 1fr); gap: 0 12px; margin: 0 0 26px; }
+  ol.steps > li::before {
+    content: counter(step); width: 1.6em; height: 1.6em; border-radius: 50%; display: grid; place-items: center;
+    background: var(--accent); color: var(--accent-fg); font-weight: 700; font-size: 0.9em;
+  }
+  ol.steps > li > * { grid-column: 2; }
+  ol.steps > li > :first-child { grid-row: 1; }
+  .step { margin: 0; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .app { width: 40px; height: 40px; flex: none; }
+  .sub { margin: 2px 0 0; color: var(--muted); font-size: 0.85em; }
   .command {
     display: flex; align-items: flex-start; gap: 10px; padding: 14px 14px 14px 16px;
-    background: var(--card); border: 2px solid var(--line); border-radius: 12px;
+    background: var(--card); border: 2px solid var(--line); border-radius: 12px; margin-top: 10px;
   }
   .command code {
     flex: 1; min-width: 0; font: 0.8em/1.5 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
-    overflow-wrap: anywhere; user-select: all; color: var(--fg);
+    word-break: break-all; user-select: all; color: var(--fg);
   }
   #copy {
     flex: none; display: flex; align-items: center; gap: 6px; font: inherit; font-size: 0.8em; font-weight: 700;
@@ -44,16 +52,16 @@
   #copy svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
   #copy.done { background: var(--ok); border-color: var(--ok); }
   #copy:focus-visible { outline: 4px solid var(--fg); outline-offset: 3px; }
-  .hint { margin: 12px 0 0; }
-  ol.steps { padding-left: 1.4em; margin: 0; }
-  ol.steps li { margin: 0 0 14px; padding-left: 6px; }
-  kbd {
-    display: inline-block; min-width: 1.8em; padding: 2px 10px; margin: 0 2px; text-align: center;
-    font: inherit; font-weight: 700; background: var(--key); border: 1px solid var(--line);
-    border-bottom-width: 4px; border-radius: 8px;
-  }
   .switch { font-size: 0.85em; color: var(--muted); }
   .switch button { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; text-decoration: underline; cursor: pointer; }
+  footer {
+    margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.8em;
+    display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+  }
+  footer a { color: inherit; }
+  footer .gh { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+  footer .gh:hover { color: var(--fg); }
+  footer .gh svg { width: 20px; height: 20px; fill: currentColor; }
   details { margin-top: 28px; color: var(--muted); font-size: 0.85em; }
   .phone { display: none; font-size: 1.3em; font-weight: 700; }
   body.is-phone .phone { display: block; }
@@ -61,69 +69,76 @@
   .mac-only { display: none; }
   body.is-mac .mac-only { display: revert; }
   body.is-mac .win-only { display: none; }
+  body.is-mac .step.mac-only { display: flex; }
 </style>
 </head>
 <body>
 <main>
-  <h1>Job Finder</h1>
-  <p class="lede">Finds new jobs that match what you want, tells you each morning when new ones arrive, and makes
-    a version of your resume for any job you pick. You just talk to it in plain English.</p>
+  <h1>CEZ Job Finder</h1>
+  <p class="lede">Finds jobs that fit you and tailors your resume to each one. Needs a paid
+    <a href="https://claude.ai/upgrade">Claude</a> or <a href="https://chatgpt.com/#pricing">ChatGPT</a> plan.</p>
 
-  <p class="phone">Open this link on your Windows or Mac computer to install Job Finder.</p>
+  <p class="phone">Open this page on your Windows or Mac computer to install.</p>
 
   <div class="desktop">
-    <div class="need">
-      <p><strong>You need:</strong> a Windows or Mac computer, and a paid
-        <a href="https://claude.ai/upgrade">Claude (Pro or Max)</a> or
-        <a href="https://chatgpt.com/#pricing">ChatGPT (Plus or Pro)</a> account.</p>
-    </div>
+    <ol class="steps">
+      <li>
+        <p class="step win-only">
+          <svg class="app" viewBox="0 0 40 40" role="img" aria-label="PowerShell icon">
+            <path d="M9 6h29l-7 28H2z" fill="#2c6fbd"/>
+            <path d="M11 13l9 7-11 8" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M19 28h9" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
+          </svg>
+          Open Windows PowerShell</p>
+        <p class="step mac-only">
+          <svg class="app" viewBox="0 0 40 40" role="img" aria-label="Terminal icon">
+            <rect x="2" y="3" width="36" height="34" rx="8" fill="#2b2b2b" stroke="#8a8a8a" stroke-width="1.5"/>
+            <path d="M9 13l6 5-6 5" fill="none" stroke="#f2f2f2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M18 24h8" stroke="#f2f2f2" stroke-width="2.6" stroke-linecap="round"/>
+          </svg>
+          Open Terminal</p>
+        <p class="sub win-only">Start menu, type PowerShell</p>
+        <p class="sub mac-only">Spotlight, type Terminal</p>
+      </li>
+      <li>
+        <p class="step">Paste this and press Enter</p>
+        <div class="command">
+          <code id="line"></code>
+          <button type="button" id="copy" aria-label="Copy the line">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg>
+            <span id="copy-label">Copy</span>
+          </button>
+        </div>
+      </li>
+      <li>
+        <p class="step">Type 1 for Claude or 2 for ChatGPT</p>
+        <p class="sub">VS Code opens in about 5 minutes. Click Sign in.</p>
+      </li>
+    </ol>
 
-    <h2>1. Open <span class="win-only">PowerShell</span><span class="mac-only">Terminal</span></h2>
-    <p class="win-only">Click the <strong>Start</strong> button, type <strong>PowerShell</strong>, then click
-      <strong>Windows PowerShell</strong> in the results. A window opens with a blinking cursor.</p>
-    <p class="mac-only">Click the magnifying glass at the top-right of your screen, type <strong>Terminal</strong>,
-      then click <strong>Terminal</strong> in the results. A window opens with a blinking cursor.</p>
-
-    <h2>2. Copy this line into that window</h2>
-    <div class="command">
-      <code id="line"></code>
-      <button type="button" id="copy" aria-label="Copy the line">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg>
-        <span id="copy-label">Copy</span>
-      </button>
-    </div>
-    <p class="hint">Click <strong>Copy</strong>, then click inside the window and
-      <span class="win-only">right-click to paste</span><span class="mac-only">choose <strong>Edit &gt; Paste</strong></span>.
-      Press <kbd>Enter</kbd>.</p>
-    <p class="switch"><span class="win-only">On a Mac? </span><span class="mac-only">On Windows? </span>
-      <button type="button" id="switch-os"><span class="win-only">Show Mac steps</span><span class="mac-only">Show Windows steps</span></button></p>
-
-    <h2>3. Answer one question</h2>
-    <p>It asks which AI you pay for. Type <strong>1</strong> for Claude or <strong>2</strong> for ChatGPT,
-      then press <kbd>Enter</kbd>.</p>
-
-    <h2>4. Wait, then sign in</h2>
-    <p>The window shows progress (about 5 minutes). Don't close it. VS Code opens by itself.
-      Click <strong>Sign in</strong> on the right-hand panel, then press <kbd>Enter</kbd>.</p>
-
-    <h2>Something went wrong?</h2>
-    <p>Do it again from step 1 - it's safe to repeat. Your resume and settings are kept.</p>
+    <p class="switch"><button type="button" id="switch-os"><span class="win-only">Mac steps</span><span class="mac-only">Windows steps</span></button>
+      · Stuck? Run it again - your files are kept.</p>
 
     <details>
       <summary>What stays private?</summary>
-      Your resume, job folders and search settings stay on your computer. Job searches send only
-      your search settings to freehire.me. Your resume is read by your own Claude or ChatGPT account
-      while it helps you. Job Finder is free and open source:
-      <a href="https://github.com/cezkid/jobs">github.com/cezkid/jobs</a>.
+      Your resume and settings stay on your computer.
     </details>
   </div>
+
+  <footer>
+    <span>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></span>
+    <a class="gh" href="https://github.com/cezkid/jobs" aria-label="Source code on GitHub" title="Source code on GitHub">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      Source
+    </a>
+  </footer>
 </main>
 <script>
   const RAW = "https://raw.githubusercontent.com/cezkid/jobs/main/app/install/";
-  // one line per computer; the installer asks which AI. No $ in the Windows line => PowerShell and
-  // cmd pass it on unchanged; Bypass = this window only (uv's installer refuses Windows' default)
+  // one line per computer; the installer asks which AI. Windows line runs in the PowerShell window
+  // itself (a second powershell got an empty download on a real PC); script sets Bypass for uv
   const LINES = {
-    win: `powershell -ExecutionPolicy Bypass -c "irm ${RAW}install-windows.ps1 | iex"`,
+    win: `irm ${RAW}install-windows.ps1 | iex`,
     mac: `curl -fsSL ${RAW}install-mac.sh | bash`,
   };
   const ua = navigator.userAgent;

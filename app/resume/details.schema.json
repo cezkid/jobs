@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Resume details",
-  "description": "Your resume facts. Job Finder reads this file every time it makes a resume for you.",
+  "description": "Your resume facts. CEZ Job Finder reads this file every time it makes a resume for you.",
   "type": "object",
   "required": ["contact", "roles"],
   "additionalProperties": false,

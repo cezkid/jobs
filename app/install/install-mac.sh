@@ -14,7 +14,7 @@ VSCODE_APP="/Applications/Visual Studio Code.app"
 step() { printf '\n\033[36mStep %s of %s: %s\033[0m\n' "$1" "$STEP_COUNT" "$2"; }
 fail() {
   printf '\n\033[31mInstall stopped: %s\033[0m\n' "$1"
-  echo "Run the same steps again. If it fails twice, send a photo of this window to whoever shared Job Finder with you."
+  echo "Run the same steps again. If it fails twice, send a photo of this window to whoever shared CEZ Job Finder with you."
   exit 1
 }
 have() { command -v "$1" >/dev/null 2>&1; }
@@ -39,10 +39,10 @@ pick_ai() {
   done
 }
 
-printf '\n\033[36mInstalling Job Finder. This takes about 5 minutes - keep this window open.\033[0m\n'
+printf '\n\033[36mInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open.\033[0m\n'
 if [ "$(pick_ai)" = 2 ]; then ai_extension=openai.chatgpt; else ai_extension=anthropic.claude-code; fi
 
-step 1 "installing uv (runs Job Finder)..."
+step 1 "installing uv (runs CEZ Job Finder)..."
 have uv || curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null || fail "could not install uv."
 have uv || fail "could not install uv."
 
@@ -63,12 +63,12 @@ have code || fail "could not install VS Code."
 step 3 "adding the AI panel to VS Code..."
 code --install-extension "$ai_extension" --force >/dev/null 2>&1 || fail "could not add the AI panel to VS Code."
 
-step 4 "downloading Job Finder to $DIR..."
+step 4 "downloading CEZ Job Finder to $DIR..."
 # My folders + .data never in zip => replacing every top-level entry keeps them
 staging="$DIR/.data/install"
 rm -rf "$staging"
 mkdir -p "$staging"
-curl -fsSL -o "$staging/jobs.zip" "$ZIP_URL" || fail "could not download Job Finder."
+curl -fsSL -o "$staging/jobs.zip" "$ZIP_URL" || fail "could not download CEZ Job Finder."
 unzip -q "$staging/jobs.zip" -d "$staging"
 for entry in "$staging"/jobs-main/* "$staging"/jobs-main/.[!.]*; do
   [ -e "$entry" ] || continue
@@ -77,13 +77,13 @@ for entry in "$staging"/jobs-main/* "$staging"/jobs-main/.[!.]*; do
 done
 rm -rf "$staging"
 
-step 5 "getting Job Finder ready..."
-(cd "$DIR" && uv sync --quiet) || fail "could not get Job Finder ready."
+step 5 "getting CEZ Job Finder ready..."
+(cd "$DIR" && uv sync --quiet) || fail "could not get CEZ Job Finder ready."
 
-launcher="$HOME/Desktop/Job Finder.command"
+launcher="$HOME/Desktop/CEZ Job Finder.command"
 printf '#!/bin/bash\nexec bash "%s/app/install/start-mac.sh"\n' "$DIR" > "$launcher"
 chmod +x "$launcher"
 
-printf '\n\033[32mDone. Next time, double-click "Job Finder" on your Desktop.\033[0m\n'
+printf '\n\033[32mDone. Next time, double-click "CEZ Job Finder" on your Desktop.\033[0m\n'
 printf '\033[32mVS Code opens now. Click Sign in on the right-hand panel, then press Enter.\033[0m\n'
 [ -n "${JOBS_NO_LAUNCH:-}" ] || exec bash "$DIR/app/install/start-mac.sh"

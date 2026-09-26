@@ -5,11 +5,12 @@ from email.message import EmailMessage
 from xml.sax.saxutils import escape, quoteattr
 
 import autorun
+import cfg
 
 PROTOCOL = "jobfinder"
 # toast needs registered app id; PowerShell's ships w/ Windows
 POWERSHELL_APP_ID = r"{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe"
-HINT = 'Open Job Finder and ask: "any new jobs?"'
+HINT = f'Open {cfg.NAME} and ask: "any new jobs?"'
 MAC_SCRIPT = ["-e", "on run argv", "-e", "display notification (item 2 of argv) with title (item 1 of argv)",
               "-e", "end run"]
 

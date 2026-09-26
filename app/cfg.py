@@ -3,6 +3,8 @@ from pathlib import Path
 
 import yaml
 
+# what the user sees: Desktop icon, notifications, guides; installers + docs spell it out
+NAME = "CEZ Job Finder"
 APP = Path(__file__).resolve().parent
 ROOT = APP.parent
 DEFAULTS = APP / "defaults.yml"
@@ -45,7 +47,7 @@ def load(path: Path | None = None) -> dict:
     path = path or config_path()
     if not path.exists():
         raise SystemExit(
-            f"{path} missing. Ask your AI to set up Job Finder (job-setup skill), "
+            f"{path} missing. Ask your AI to set up {NAME} (job-setup skill), "
             "or copy app/profiles/example.yml there and edit it."
         )
     config = merge(defaults(), yaml.safe_load(path.read_text(encoding="utf-8")) or {})

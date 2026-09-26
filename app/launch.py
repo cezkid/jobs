@@ -106,7 +106,7 @@ def register_protocol() -> None:
     import winreg
     key = rf"Software\Classes\{notify.PROTOCOL}"
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, key) as k:
-        winreg.SetValueEx(k, "", 0, winreg.REG_SZ, "URL:Job Finder")
+        winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f"URL:{cfg.NAME}")
         winreg.SetValueEx(k, "URL Protocol", 0, winreg.REG_SZ, "")
     with winreg.CreateKey(winreg.HKEY_CURRENT_USER, rf"{key}\shell\open\command") as k:
         winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{WINDOWS_LAUNCHER}"')
@@ -138,7 +138,7 @@ def ensure_auto_mode(settings: Path = CLAUDE_SETTINGS) -> None:
 def code(args: list[str], quiet: bool = False) -> None:
     exe = shutil.which("code")
     if not exe:
-        sys.exit("VS Code not found; run the Job Finder installer again")
+        sys.exit(f"VS Code not found; run the {cfg.NAME} installer again")
     subprocess.run([exe, *args], check=False, capture_output=quiet)
 
 
