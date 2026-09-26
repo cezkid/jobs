@@ -16,15 +16,16 @@ it or start over?
 
 Clickable choices, not prose questions (`AGENTS.md` #User = not technical). Measure BEFORE asking
 so every option carries a live count: `uv run app/jobs.py probe --facets countries=us` gives all
-47 categories + every other facet in one call.
+47 categories + every other facet in one call. Then ask ONE question at a time, in this order
+(never batched - it shows as tabs, see `AGENTS.md`).
 
-Round 1, one batch of 4:
+First, broad:
 - what kind of work - 4 grouped families of `category` values, `multiSelect`, counts per option
 - where: remote only / remote first / local first / local only
 - full time / part time / contract, `multiSelect` + "doesn't matter"
 - lowest yearly pay - 4 bands (ranks higher-paying first, never hides jobs; say so in the question)
 
-Round 2, narrows round 1 (batch of 4):
+Then narrowing what they picked:
 - which exact roles inside the family they picked, `multiSelect`, counts per option
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
   the `cities` facet, so they click instead of typing; "Other" covers the rest
@@ -129,7 +130,7 @@ for any of these? Say number."
 ## 5. Daily check (on by default)
 
 `uv run app/jobs.py autorun on` w/o asking (08:00 from `app/defaults.yml`). Ask time + email as
-two clickable questions (time: keep 08:00 / 3 other times; email: popup only / email too).
+two clickable questions, one after the other (time: keep 08:00 / 3 other times; email: popup only / email too).
 
 Ask BEFORE the first `uv run app/jobs.py daily`: that run marks every current match seen, so a
 later `email --dry-run` prints "0 new" and the user never sees their own digest. Order = ask ->

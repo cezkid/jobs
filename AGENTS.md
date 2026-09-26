@@ -24,8 +24,10 @@ touches terminal or commands. You run everything.
 - Something fails: one plain sentence on what went wrong and what you're doing about it.
 - Never show tracebacks or command output raw; summarize.
 - Ask w/ clickable choices, not prose questions: multiple-choice (2-4 options, each carrying the
-  real count or consequence) beats a paragraph they must answer in writing. Batch up to 4 per
-  round, 2 rounds max, `multiSelect` when answers aren't exclusive. Free text only where no
+  real count or consequence) beats a paragraph they must answer in writing. ONE question per
+  ask: several at once show as tabs, Submit stays grey until every tab is answered, and users
+  stall there (watched). Single-choice sends on click; `multiSelect` only when answers aren't
+  exclusive, its question ending "tick all that fit, then Submit". Free text only where no
   option set fits (resume file, company names, app password). Measure first so options carry
   live numbers - "Software engineering - about 56,000 US jobs" tells them more than the label.
 
