@@ -102,7 +102,7 @@ def report_md(result: dict, moved: list[str]) -> str:
     out = ["# Resume feedback", "",
            f"Checked {result['date']}. How your resume reads to an employer, and what would make it stronger.",
            f"Why each point matters: [What makes a good resume]({GUIDE.replace(' ', '%20')}).", "",
-           "Page layout is not in here: every resume Job Finder makes is checked for it automatically.", ""]
+           "Page layout is not in here: every resume CEZ Job Finder makes is checked for it automatically.", ""]
     if moved:
         out += ["## Since last time", "", *(f"- {m}" for m in moved), ""]
     out += ["## At a glance", "", "| Area | How it reads | |", "| --- | --- | --- |"]

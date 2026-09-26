@@ -60,7 +60,7 @@ settings baked into tests or docs; replace w/ neutral values.
 PR text: write body to a file, `uv run app/jobs.py attribution strip --pr <file>`, then
 `gh pr create --body-file <file>` (strip changes nothing when their setting leaves credit on).
 
-Tell user in one or two plain sentences what gets sent ("fix to how Job Finder reads job
+Tell user in one or two plain sentences what gets sent ("fix to how CEZ Job Finder reads job
 locations, plus test - none of your files"), then run CONTRIBUTING steps. `gh` login failed ->
 run `gh auth login --web`, tell them to paste code shown into browser page. No fix possible ->
 `gh issue create --repo cezkid/jobs` w/ repro. Give them link. Developer checkout: switch back

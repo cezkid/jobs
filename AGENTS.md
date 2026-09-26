@@ -8,7 +8,7 @@ ingest code. Read by Claude Code (via `CLAUDE.md`), Codex / ChatGPT, Copilot, Cu
 
 ## User = not technical
 
-User opens VS Code through "Job Finder" desktop shortcut, chats w/ you in AI panel, never
+User opens VS Code through "CEZ Job Finder" desktop shortcut, chats w/ you in AI panel, never
 touches terminal or commands. You run everything.
 
 - Never ask user to type command, edit file, open terminal or install anything. Do it yourself.
@@ -68,12 +68,12 @@ when asked, at setup, and before any step sending something new off computer.
 |---|---|---|
 | Resume, job folders, search settings | `My Resume/`, `My Jobs/`, `My Settings/` | Private - only this computer |
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
-| Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
+| CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Resume + postings you work on | this AI chat (Claude or ChatGPT) | User's own AI account |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
-| Code fix only, after user says yes | maintainer | Everyone who uses Job Finder |
+| Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 
 Everything user sees in VS Code file list is private; program is hidden. Private folders never
 reach maintainer or other users - git ignores them, and `/report-defect` gates check it.
@@ -163,7 +163,7 @@ Defect = bug, crash, wrong result or misleading doc in TRACKED file (code, `app/
 
 On finding one:
 1. Fix cause locally, add/adjust test, run `uv run pytest`.
-2. ASK user, plain words: "I found and fixed a problem in Job Finder itself. Want me to send the
+2. ASK user, plain words: "I found and fixed a problem in CEZ Job Finder itself. Want me to send the
    fix to the maintainer so everyone gets it? Only the code change goes - none of your resume or
    search details."
 3. Yes -> `report-defect` skill. No -> leave fix local, say so.

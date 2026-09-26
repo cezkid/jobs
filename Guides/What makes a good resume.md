@@ -1,6 +1,6 @@
 # What makes a good resume
 
-What Job Finder holds every resume to, and why. Each point says how strong the evidence is: a
+What CEZ Job Finder holds every resume to, and why. Each point says how strong the evidence is: a
 **big survey**, a **small study**, or **convention** (what career centres and recruiters agree
 on, without a study behind it). Each section links to the full evidence and sources.
 
@@ -13,7 +13,7 @@ When rules pull against each other, this order decides:
   of employers found a mismatch on a candidate's resume last year, work history most often.
   *Big survey (HireRight 2025).*
 - **Every number is one you can explain in an interview.** Anything on the page gets asked about.
-  Job Finder never adds a number, tool or qualification you did not give it. *Convention, and
+  CEZ Job Finder never adds a number, tool or qualification you did not give it. *Convention, and
   the reason for the rest of this list.*
 - **No grades you can't prove** - "world-class", "cutting-edge". The fact that earned the praise
   says more. *Convention (career centres).*
@@ -54,7 +54,7 @@ In depth: [fitting the job](../app/docs/resume/bullets.md#tier-3---relevance)
 - **US spelling, no typos, no repeated openings, no filler** ("successfully", "I", "my").
   Screening tools count one spelling error against the whole page. *Convention.*
 - **A plain page software reads in order:** one column, black text, no tables, pictures or
-  headers, every word readable back whole. Job Finder checks this on every resume it makes, so
+  headers, every word readable back whole. CEZ Job Finder checks this on every resume it makes, so
   you never have to. *Recruiting-software documentation.*
 - **One or two pages.** *Convention.*
 - **Leave off** photo, birth date, marital status and street address. US employers don't ask for
@@ -75,5 +75,5 @@ In depth: [advice the evidence didn't support](../app/docs/resume/bullets.md#wha
 
 ## See how yours reads
 
-Say **"how good is my resume?"** Job Finder writes **Resume feedback** in My Resume: what
+Say **"how good is my resume?"** CEZ Job Finder writes **Resume feedback** in My Resume: what
 stands out, what's worth a look, and what to do next.

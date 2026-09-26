@@ -38,14 +38,14 @@ function Pick-Ai {
 }
 
 try {
-    Write-Host "`nInstalling Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
+    Write-Host "`nInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
     Refresh-Path
     $AiExtension = if ((Pick-Ai) -eq '2') { 'openai.chatgpt' } else { 'anthropic.claude-code' }
 
     # uv's installer refuses Windows' default policy (Restricted) => this window only, nothing saved
     try { Set-ExecutionPolicy Bypass -Scope Process -Force } catch {}
 
-    Step 1 'installing uv (runs Job Finder)...'
+    Step 1 'installing uv (runs CEZ Job Finder)...'
     if (-not (Have 'uv')) {
         try { Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression } catch {}
         Refresh-Path
@@ -72,7 +72,7 @@ try {
     cmd /c "code --install-extension $AiExtension --force >nul 2>&1"
     Check 'add the AI panel to VS Code'
 
-    Step 4 "downloading Job Finder to $Dir..."
+    Step 4 "downloading CEZ Job Finder to $Dir..."
     # staging under $Dir => Move-Item stays on one drive; My folders + .data never in zip
     $staging = Join-Path $Dir '.data\install'
     if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
@@ -86,26 +86,26 @@ try {
     }
     Remove-Item $staging -Recurse -Force
 
-    Step 5 'getting Job Finder ready...'
+    Step 5 'getting CEZ Job Finder ready...'
     Push-Location $Dir
     uv sync --quiet
     Pop-Location
-    Check 'get Job Finder ready'
+    Check 'get CEZ Job Finder ready'
 
     $start = Join-Path $Dir 'app\install\start-windows.bat'
     $link = (New-Object -ComObject WScript.Shell).CreateShortcut(
-        (Join-Path ([Environment]::GetFolderPath('Desktop')) 'Job Finder.lnk'))
+        (Join-Path ([Environment]::GetFolderPath('Desktop')) 'CEZ Job Finder.lnk'))
     $link.TargetPath = $start
     $link.WorkingDirectory = $Dir
     $codeExe = Join-Path (Split-Path (Split-Path (Get-Command code).Source)) 'Code.exe'
     if (Test-Path $codeExe) { $link.IconLocation = "$codeExe,0" }
     $link.Save()
 
-    Write-Host "`nDone. Next time, open 'Job Finder' on your Desktop." -ForegroundColor Green
+    Write-Host "`nDone. Next time, open 'CEZ Job Finder' on your Desktop." -ForegroundColor Green
     Write-Host 'VS Code opens now. Click Sign in on the right-hand panel, then press Enter.' -ForegroundColor Green
     if (-not $env:JOBS_NO_LAUNCH) { & $start }
 } catch {
     Write-Host "`nInstall stopped: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host 'Run the same steps again. If it fails twice, send a photo of this window to whoever shared Job Finder with you.'
+    Write-Host 'Run the same steps again. If it fails twice, send a photo of this window to whoever shared CEZ Job Finder with you.'
     Read-Host 'Press Enter to close'
 }

@@ -1,4 +1,4 @@
-# Job Finder
+# CEZ Job Finder
 
 Finds new job postings that match what you're looking for, in any field, tells you about new
 ones each morning, and makes a version of your resume tailored to any job you pick. You talk to
@@ -32,14 +32,14 @@ curl -fsSL https://raw.githubusercontent.com/cezkid/jobs/main/app/install/instal
 
 ## Everyday use
 
-Double-click **Job Finder** on your Desktop, or click the morning "new jobs" notification. It
+Double-click **CEZ Job Finder** on your Desktop, or click the morning "new jobs" notification. It
 updates itself and opens VS Code with a **START HERE** page and the AI chat ready. Ask the AI
 things like "any new jobs?" or "make my resume for job 3".
 
 ## What's private
 
 Everything you see in VS Code's file list (My Jobs, My Resume, My Settings) is private and
-stays on your computer. The Job Finder program is public, open source and hidden from that
+stays on your computer. The CEZ Job Finder program is public, open source and hidden from that
 list. START HERE explains exactly what leaves your computer and when.
 
 ## For developers

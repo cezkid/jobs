@@ -19,7 +19,7 @@ import cfg
 from resume import facts, schema
 
 HEADER = [
-    "# Your resume facts, the only place Job Finder reads them from. Your wording always wins.",
+    "# Your resume facts, the only place CEZ Job Finder reads them from. Your wording always wins.",
     "# Employer, job title and dates: change them only to fix a mistake - employers check them.",
     "# Keep the spacing as it is. Dates are year-month, like 2023-02, or a year alone, like 2023.",
 ]
