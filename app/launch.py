@@ -25,6 +25,8 @@ START_PAGE = cfg.ROOT / "START HERE.md"
 # comes up formatted (fresh window each way, measured 2026-09-26: 0 s text, 6 s formatted)
 START_PAGE_DELAY_S = 6
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
+MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
+OLD_MAC_ICON = Path.home() / "Desktop" / f"{cfg.NAME}.command"
 
 def has_claude(extensions: Path = VSCODE_EXTENSIONS) -> bool:
     return has_extension(CLAUDE_EXTENSION, extensions)
@@ -106,6 +108,13 @@ def register_protocol() -> None:
         winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{WINDOWS_LAUNCHER}"')
 
 
+def ensure_mac_icon(old: Path = OLD_MAC_ICON) -> None:
+    # installs before 2026-09-26 got a .command icon: its Terminal window stays open after VS
+    # Code is up. Swapped once for the app icon; this launch's window still shows, later ones don't
+    if old.exists():
+        subprocess.run(["bash", str(MAC_ICON_MAKER)], check=False, capture_output=True)
+
+
 def ensure_auto_mode(settings: Path = CLAUDE_SETTINGS) -> None:
     # Auto mode lets the AI panel answer its own permission questions. Only the user's own
     # Claude settings can turn it on: the same key in this folder's .claude/settings.json is
@@ -139,6 +148,8 @@ def code(args: list[str], quiet: bool = False) -> None:
 def main() -> None:
     if sys.platform == "win32":
         register_protocol()
+    if sys.platform == "darwin":
+        ensure_mac_icon()
     # before VS Code opens => file list shows the private folders even on a brand-new install
     cfg.ensure_private_dirs()
     # before VS Code opens => the first click on a resume already shows the page

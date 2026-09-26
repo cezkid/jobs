@@ -13,6 +13,7 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: None)
     monkeypatch.setattr(launch.time, "sleep", lambda s: None)
     launch.main()
@@ -29,6 +30,7 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
     monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(s))
     launch.main()
@@ -167,3 +169,21 @@ def test_start_page_leads_with_the_first_step():
     # users read the whole page and still did not know what to do
     page = (cfg.ROOT / "START HERE.md").read_text(encoding="utf-8")
     assert page.split("\n## ")[1].startswith("Do this now") and "set me up" in page
+
+
+def test_old_mac_icon_swapped_for_app_once(tmp_path, monkeypatch):
+    # .command icon leaves a Terminal window open after every launch
+    runs = []
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    launch.ensure_mac_icon(tmp_path / "CEZ Job Finder.command")
+    assert runs == []  # no old icon => nothing made, a deleted icon stays deleted
+    (tmp_path / "CEZ Job Finder.command").write_text("")
+    launch.ensure_mac_icon(tmp_path / "CEZ Job Finder.command")
+    assert runs == [["bash", str(launch.MAC_ICON_MAKER)]]
+
+
+def test_mac_icon_is_an_app_not_a_terminal_script():
+    maker = (launch.MAC_ICON_MAKER).read_text(encoding="utf-8")
+    assert "osacompile" in maker and ".app" in maker
+    installer = (cfg.APP / "install" / "install-mac.sh").read_text(encoding="utf-8")
+    assert "make-icon-mac.sh" in installer and ".command\"" not in installer
