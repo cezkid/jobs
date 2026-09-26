@@ -1,13 +1,13 @@
 #!/bin/bash
-# Paste-line install (docs/index.html): curl -fsSL <raw url of this file> | JOBS_AI=1 bash
-# Per-user installs only => no admin prompt, no Apple developer tools. JOBS_AI 2 = ChatGPT, else Claude.
+# Paste-line install (docs/index.html): curl -fsSL <raw url of this file> | bash
+# One line for everyone: AI asked below, not on the page (JOBS_AI 1 Claude / 2 ChatGPT skips it).
+# Per-user installs only => no admin prompt, no Apple developer tools.
 set -euo pipefail
 ZIP_URL=https://github.com/cezkid/jobs/archive/refs/heads/main.zip
 DIR="${JOBS_DIR:-$HOME/jobs}"
 BIN="$HOME/.local/bin"
 export PATH="$BIN:$PATH"
 STEP_COUNT=5
-if [ "${JOBS_AI:-}" = 2 ]; then ai_extension=openai.chatgpt; else ai_extension=anthropic.claude-code; fi
 VSCODE_APP="/Applications/Visual Studio Code.app"
 [ -d "$VSCODE_APP" ] || VSCODE_APP="$HOME/Applications/Visual Studio Code.app"
 
@@ -18,8 +18,29 @@ fail() {
   exit 1
 }
 have() { command -v "$1" >/dev/null 2>&1; }
+# asked first, while the user is still at the window; stdin is the piped script => ask on /dev/tty
+pick_ai() {
+  if [ -n "${JOBS_AI:-}" ]; then echo "$JOBS_AI"; return; fi
+  if have code; then  # re-run to repair => keep the AI already set up, no question
+    local have_ext
+    have_ext=$(code --list-extensions 2>/dev/null || true)
+    if grep -qx anthropic.claude-code <<<"$have_ext"; then echo 1; return; fi
+    if grep -qx openai.chatgpt <<<"$have_ext"; then echo 2; return; fi
+  fi
+  printf '\n\033[36mWhich AI do you pay for?\033[0m\n  1 = Claude\n  2 = ChatGPT\n' >/dev/tty
+  local answer
+  while true; do
+    printf 'Type 1 or 2, then press Enter: ' >/dev/tty
+    read -r answer </dev/tty || { echo 1; return; }
+    case "$(tr '[:upper:]' '[:lower:]' <<<"$answer" | tr -d ' ')" in
+      1|claude) echo 1; return ;;
+      2|chatgpt) echo 2; return ;;
+    esac
+  done
+}
 
 printf '\n\033[36mInstalling Job Finder. This takes about 5 minutes - keep this window open.\033[0m\n'
+if [ "$(pick_ai)" = 2 ]; then ai_extension=openai.chatgpt; else ai_extension=anthropic.claude-code; fi
 
 step 1 "installing uv (runs Job Finder)..."
 have uv || curl -LsSf https://astral.sh/uv/install.sh | sh >/dev/null || fail "could not install uv."
