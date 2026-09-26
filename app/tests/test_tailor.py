@@ -246,7 +246,7 @@ def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tail
     tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", tailored)
     tailor.check(config, "acme-senior-vue-engineer-search")
     checked = (job_dir / tailor.CHECK_FILE).read_text(encoding="utf-8")
-    assert "## Ready to send?" in checked and "| Must have? | Shown? |" in checked
+    assert "## Ready to send?" in checked and "| Need | Shown? |" in checked
     assert list(job_dir.glob("*_Resume.pdf"))
 
 

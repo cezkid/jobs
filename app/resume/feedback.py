@@ -100,9 +100,9 @@ def plain(rule: str, where: str, detail: str) -> str:
 
 def report_md(result: dict, moved: list[str]) -> str:
     out = ["# Resume feedback", "",
-           f"Checked {result['date']}. How your resume reads to an employer, and what would make it stronger.",
-           f"Why each point matters: [What makes a good resume]({GUIDE.replace(' ', '%20')}).", "",
-           "Page layout is not in here: every resume CEZ Job Finder makes is checked for it automatically.", ""]
+           f"Checked {result['date']}. How it reads to an employer + what would strengthen it.",
+           f"Why: [What makes a good resume]({GUIDE.replace(' ', '%20')}). "
+           "Page layout not scored here - checked automatically on every resume.", ""]
     if moved:
         out += ["## Since last time", "", *(f"- {m}" for m in moved), ""]
     out += ["## At a glance", "", "| Area | How it reads | |", "| --- | --- | --- |"]
@@ -111,37 +111,37 @@ def report_md(result: dict, moved: list[str]) -> str:
 
     if result["bare"]:
         out += ["", "## Lines without a number", "",
-                "A number lets a reader picture the size of the work - how many, how often, what changed. "
-                "Only add one you know; say \"help me add numbers to my resume\" and the chat asks you line by line.", ""]
+                "A number shows the size of the work. Only add ones you know - "
+                "say \"help me add numbers to my resume\", the chat asks line by line.", ""]
         out += [f"- {claim} ({where})" for where, claim in result["bare"]]
     notes = result["notes"]
     wording = [n for n in notes if n[0] in WORDING]
     if wording:
-        out += ["", "## Wording notes", "", "None of these stop a resume going out; each is worth a look.", ""]
+        out += ["", "## Wording notes", "", "Worth a look; none block sending.", ""]
         out += [plain(*n) for n in wording]
     personal = [n for n in notes if n[0] in (*PERSONAL, *DATES, *EVIDENCE)]
     if personal or result["gaps"]:
         out += ["", "## Details and dates", ""]
         out += [plain(*n) for n in personal]
-        out += [f"- A break of {g['months']} months between jobs ({g['after']} to {g['before']}). "
-                "A one-line reason answers the question it raises." for g in result["gaps"]]
+        out += [f"- {g['months']}-month break between jobs ({g['after']} to {g['before']}). "
+                "A one-line reason answers the question." for g in result["gaps"]]
     out += ["", "## What your lines show", ""]
     for quality, found in result["shown"].items():
         out.append(f"**{quality}** - {len(found)} line(s)" + (":" if found else
-                   ". If you led, started or worked with others on something, say so in the chat - only what really happened."))
+                   ". Led, started or worked with others on something? Say so in the chat - only what happened."))
         out += [f"- {claim} ({where})" for where, claim in found]
         out.append("")
     steps = []
     if result["bare"]:
-        steps.append("\"Help me add numbers to my resume\" - the chat asks about each line above; skip any you don't know.")
+        steps.append("\"Help me add numbers to my resume\" - asks about each line above; skip any you don't know.")
     if wording:
-        steps.append("\"Go through the wording notes\" - you decide on each one; nothing changes without your yes.")
+        steps.append("\"Go through the wording notes\" - you decide each; nothing changes without your yes.")
     if any(q in look for q in QUALITIES):
-        steps.append("\"Help me show leadership\" - the chat asks what you led, started or taught.")
+        steps.append("\"Help me show leadership\" - asks what you led, started or taught.")
     if steps:
         out += ["## Next steps", "", *(f"{n}. {s}" for n, s in enumerate(steps, 1))]
     else:
-        out += ["## Next steps", "", "Nothing stands out. Pick a job and ask for a resume made for it."]
+        out += ["## Next steps", "", "Nothing stands out. Pick a job, ask for a resume made for it."]
     return "\n".join(out).rstrip() + "\n"
 
 

@@ -1,46 +1,41 @@
 # CEZ Job Finder
 
-Finds new job postings that match what you're looking for, in any field, tells you about new
-ones each morning, and makes a version of your resume tailored to any job you pick. You talk to
-it in plain English in VS Code's AI panel; it does the rest.
+Finds jobs in any field, tells you each morning about new ones, makes your resume for any job
+you pick. You chat in plain English in VS Code's AI panel; it does the rest.
 
-**Easiest: open https://cezkid.github.io/jobs** - one button, one paste, done.
+**Easiest: https://cezkid.github.io/jobs** - one button, one paste.
 
-## What you need
+## Need
 
-- Windows 10/11 or a Mac
-- Paid Claude (Pro or Max) - https://claude.ai - or ChatGPT (Plus or Pro)
+- Windows 10/11 or Mac
+- Paid Claude (Pro/Max) or ChatGPT (Plus/Pro)
 
-## Install (once, about 5 minutes)
+## Install (once, ~5 min)
 
-Copy the line for your computer, paste it where shown, press Enter, then type 1 (Claude) or 2
-(ChatGPT) when asked. It installs uv, VS Code and your AI's panel (only what's missing, no admin
-prompt), then opens VS Code. Click **Sign in** on the right-hand panel, then press Enter. Safe to
-run again: it repairs the program and keeps your files.
+Paste the line for your computer, press Enter, type 1 (Claude) or 2 (ChatGPT) when asked.
+Installs only what's missing, no admin prompt, opens VS Code. Safe to rerun - keeps your files.
 
-**Windows** - click Start, type `PowerShell`, open Windows PowerShell, paste, Enter:
+**Windows** - Start, type `PowerShell`, open it, paste, Enter:
 
 ```
 irm https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-windows.ps1 | iex
 ```
 
-**Mac** - click the magnifying glass top-right, type `Terminal`, open it, paste, Enter:
+**Mac** - magnifying glass top-right, type `Terminal`, open it, paste, Enter:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-mac.sh | bash
 ```
 
-## Everyday use
+## Everyday
 
-Double-click **CEZ Job Finder** on your Desktop, or click the morning "new jobs" notification. It
-updates itself and opens VS Code with a **START HERE** page and the AI chat ready. Ask the AI
-things like "any new jobs?" or "make my resume for job 3".
+Double-click **CEZ Job Finder** on your Desktop, or click the morning notification. Opens VS
+Code with **START HERE** and the chat. Ask "any new jobs?", "make my resume for job 3".
 
-## What's private
+## Private
 
-Everything you see in VS Code's file list (My Jobs, My Resume, My Settings) is private and
-stays on your computer. The CEZ Job Finder program is public, open source and hidden from that
-list. START HERE explains exactly what leaves your computer and when.
+File list (My Jobs, My Resume, My Settings) stays on your computer. Program = public, open
+source, hidden. START HERE lists what leaves and when.
 
 ## For developers
 

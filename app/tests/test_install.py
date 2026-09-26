@@ -17,7 +17,7 @@ def readme_line(start: str) -> str:
 
 def page_steps() -> str:
     body = PAGE.read_text(encoding="utf-8")
-    return body[body.index('<div class="desktop">'):body.index("<summary>What stays private?")]
+    return body[body.index('<div class="desktop">'):body.index("<footer>")]
 
 
 def test_windows_line_survives_being_pasted_into_powershell():

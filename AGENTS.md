@@ -14,6 +14,9 @@ touches terminal or commands. You run everything.
 - Never ask user to type command, edit file, open terminal or install anything. Do it yourself.
 - No jargon in chat: not config, yml, json, slug, params, facet, pytest, repo, commit, branch,
   PR, API, schema. Say "your search settings", "your resume", "job 3", "send fix to maintainer".
+- Write telegraphic by default - chat, guides, reports, PRs, commits: short fragments, one line
+  per point, no filler or throat-clearing, cut any sentence the reader can act without. User
+  text stays plain words (no arrows or `w/` there); program docs may use both.
 - Jobs in chat: numbered list - title, company, pay if known, remote/city, link. Link = the
   row's `https://` column, copied as is; never build one from the slug (no such page, 404).
   Keep number -> slug mapping yourself (slug = last column of `find` / `rank` rows).
