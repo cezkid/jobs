@@ -52,3 +52,13 @@ def test_steps_open_the_window_by_clicking_not_key_combos():
     steps = page_steps()
     assert "PowerShell" in steps and "Terminal" in steps
     assert not re.search(r"<kbd>(Windows key|Win|Cmd|Ctrl)</kbd>", steps)
+
+
+def test_windows_downloads_never_stop_on_parsing_prompt():
+    # Windows PowerShell 5.1 since Dec 2025 (CVE-2025-54100): Invoke-WebRequest w/o -UseBasicParsing
+    # asks "Script Execution Risk ... continue?", Enter = No => download cancelled mid-install
+    script = (INSTALL / "install-windows.ps1").read_text(encoding="utf-8")
+    calls = [l for l in script.splitlines() if re.search(r"\b(Invoke-WebRequest|iwr)\b", l) and not l.lstrip().startswith("#")]
+    assert calls
+    for line in calls:
+        assert "-UseBasicParsing" in line, line

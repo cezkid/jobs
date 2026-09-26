@@ -59,7 +59,8 @@ try {
     if (-not (Have 'code')) {
         $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
         $setup = Join-Path $env:TEMP 'VSCodeUserSetup.exe'
-        Invoke-WebRequest "https://update.code.visualstudio.com/latest/win32-$arch-user/stable" -OutFile $setup
+        # -UseBasicParsing: Dec 2025 update (CVE-2025-54100) asks before IE-engine parsing, Enter = cancel
+        Invoke-WebRequest -UseBasicParsing "https://update.code.visualstudio.com/latest/win32-$arch-user/stable" -OutFile $setup
         Start-Process $setup -ArgumentList '/VERYSILENT', '/NORESTART', '/MERGETASKS=!runcode' -Wait
         Refresh-Path
     }
@@ -74,7 +75,7 @@ try {
     $staging = Join-Path $Dir '.data\install'
     if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
     New-Item -ItemType Directory -Force $staging | Out-Null
-    Invoke-WebRequest $ZipUrl -OutFile "$staging\jobs.zip"
+    Invoke-WebRequest -UseBasicParsing $ZipUrl -OutFile "$staging\jobs.zip"
     Expand-Archive "$staging\jobs.zip" $staging
     Get-ChildItem -Force "$staging\jobs-main" | ForEach-Object {
         $dest = Join-Path $Dir $_.Name
