@@ -9,6 +9,22 @@ their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGE
 job searches send only their search settings to freehire.me; resume is read here in this AI
 chat; nothing goes to CEZ Job Finder's maintainer without asking first.
 
+Then, BEFORE any interview question (their answers - work permit, pay - are typed into this
+chat too), AI training, one question. Personal Claude (Free/Pro/Max) and ChatGPT (Free/Go/Plus/
+Pro) plans may train on chats unless the user switches it off; work plans (Claude Team/Enterprise,
+ChatGPT Business/Enterprise/Edu) and developer (API key) sign-ins don't by default. Only the user
+can change it - no setting here reaches their account. Ask: "What you tell me and your resume are
+read in this chat. Want your chats kept out of AI training? One switch, 30 seconds." Options: Yes,
+show me / Already off, or a work account / Leave it on. Yes -> open
+`Guides/Keep your chats out of AI training.md`, then the settings page for THEIR AI (Claude:
+`https://claude.ai/settings/data-privacy-controls`; ChatGPT: `https://chatgpt.com`, then
+Settings, Data controls), walk them through the one switch, ask "Done?" before going on. Can't check it's
+off - take their word. One ask, never nudge either way. Never ask them to rate or thumbs a chat:
+feedback lets the AI company train on that whole chat even w/ the switch off. Codex's separate
+"Include environments" setting covers cloud code copies only (private folders never in them) -
+not a second switch to add. Menu names differ from the guide -> fix the guide
+(`AGENTS.md` #Framework defects).
+
 `My Settings/Search settings.yml` exists -> summarize current search in plain words, ask: change
 it or start over?
 
@@ -39,7 +55,7 @@ Then narrowing what they picked:
   - Allowed now, will need it later (OPT, STEM OPT, H-1B transfer) -> true, true
   - Need sponsorship to start -> false, true
   - Ask me on each application -> leave both null
-  Say in the question it stays on this computer (no job search sends it). Needs sponsorship ->
+  Say in the question it's saved only on this computer (no job search sends it). Needs sponsorship ->
   count from `probe --facets visa_sponsorship` on their category: "freehire marks 36,846 US jobs
   'no visa sponsorship' - they'll sort lower, never hidden". Never guess it from name, school
   or where they studied. Never help shade it (`AGENTS.md` #Lead, explain, push back - Hold).
