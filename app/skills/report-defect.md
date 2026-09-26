@@ -1,8 +1,7 @@
 # report-defect
 
-Mechanics: `.github/CONTRIBUTING.md` #Defect PR - follow it step by step. This skill adds gates
-+ setup for installed copy. User not technical: run everything yourself, report outcome in
-plain words.
+Mechanics: `.github/CONTRIBUTING.md` #Defect PR, step by step. This skill adds gates + setup
+for installed copy. User not technical: run everything yourself, report outcome in plain words.
 
 ## Setup - installed copy has no git
 
@@ -24,9 +23,9 @@ to gates.
 5. Claude credit (Claude Code only): `uv run app/jobs.py attribution`. `not set` -> ask once,
    clickable: "Leave Claude's name off my fixes" / "Credit Claude" (adds "Co-Authored-By: Claude"
    to each change and "Generated with Claude Code" to its description). Save w/
-   `attribution off` / `attribution on` - their own Claude Code setting, every project, so say
-   so. Then `uv run app/jobs.py attribution hook` (commit-msg hook in `.data/upstream`: strips
-   the lines on every commit while the setting is off). Off -> never type them yourself either.
+   `attribution off` / `attribution on` - their own Claude Code setting, every project; say so.
+   Then `uv run app/jobs.py attribution hook` (commit-msg hook in `.data/upstream` strips the
+   lines while off). Off -> never type them yourself either.
 
 ## Gate 0 - consent
 
@@ -35,7 +34,8 @@ User said yes to sending fix to maintainer in THIS conversation, for THIS fix. O
 
 ## Gate 1 - scope
 
-- `git status --short`: only files belonging to fix; stage by path, never `-A` / `-a`.
+- `git status --short`: only files belonging to fix; stage by path (`AGENTS.md` #Personal data -
+  never stage).
 - `git check-ignore <staged paths>` prints nothing.
 - Nothing under `My Jobs/`, `My Resume/`, `My Settings/`, `.data/` staged.
 
@@ -62,6 +62,5 @@ PR text: write body to a file, `uv run app/jobs.py attribution strip --pr <file>
 
 Tell user in one or two plain sentences what gets sent ("fix to how CEZ Job Finder reads job
 locations, plus test - none of your files"), then run CONTRIBUTING steps. `gh` login failed ->
-run `gh auth login --web`, tell them to paste code shown into browser page. No fix possible ->
-`gh issue create --repo cezkid/jobs` w/ repro. Give them link. Developer checkout: switch back
-to `main` after (`git switch main`) so launcher's update keeps working.
+Setup step 2. No fix possible -> issue per CONTRIBUTING. Give them link. Developer checkout:
+switch back to `main` after (`git switch main`) so launcher's update keeps working.

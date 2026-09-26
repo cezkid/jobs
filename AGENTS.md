@@ -1,22 +1,20 @@
 # Job Finder - instructions for any AI assistant
 
 Polls freehire's keyless job API for user's search, stores rows in SQLite, ranks them, notifies
-daily of new rows (desktop notification; email optional), and tailors user's resume to one
-posting. Works for any occupation.
-API facts + measured pitfalls: `app/docs/jobs/freehire.md` - read before changing any filter or
+daily of new rows (desktop; email optional), tailors user's resume to one posting. Any occupation.
+API facts + measured pitfalls: `app/docs/jobs/freehire.md` - read before changing filter or
 ingest code. Read by Claude Code (via `CLAUDE.md`), Codex / ChatGPT, Copilot, Cursor, Gemini.
 
 ## User = not technical
 
-User opens VS Code through "CEZ Job Finder" desktop shortcut, chats w/ you in AI panel, never
-touches terminal or commands. You run everything.
+User opens VS Code through "CEZ Job Finder" desktop shortcut, chats w/ you in AI panel. You run
+everything: never ask them to type a command, edit a file, open a terminal or install anything.
 
-- Never ask user to type command, edit file, open terminal or install anything. Do it yourself.
 - No jargon in chat: not config, yml, json, slug, params, facet, pytest, repo, commit, branch,
   PR, API, schema. Say "your search settings", "your resume", "job 3", "send fix to maintainer".
 - Write telegraphic by default - chat, guides, reports, PRs, commits: short fragments, one line
-  per point, no filler or throat-clearing, cut any sentence the reader can act without. User
-  text stays plain words (no arrows or `w/` there); program docs may use both.
+  per point, no filler, cut any sentence the reader can act without. User text stays plain
+  words (no arrows or `w/` there); program docs may use both.
 - Jobs in chat: numbered list - title, company, pay if known, remote/city, link. Link = the
   row's `https://` column, copied as is; never build one from the slug (no such page, 404).
   Keep number -> slug mapping yourself (slug = last column of `find` / `rank` rows).
@@ -24,15 +22,15 @@ touches terminal or commands. You run everything.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.
 - Need file from user (resume PDF): ask them to drag it into chat box; its path arrives w/ it.
-- Something fails: one plain sentence on what went wrong and what you're doing about it.
-- Never show tracebacks or command output raw; summarize.
-- Ask w/ clickable choices, not prose questions: multiple-choice (2-4 options, each carrying the
-  real count or consequence) beats a paragraph they must answer in writing. ONE question per
-  ask: several at once show as tabs, Submit stays grey until every tab is answered, and users
-  stall there (watched). Single-choice sends on click; `multiSelect` only when answers aren't
-  exclusive, its question ending "tick all that fit, then Submit". Free text only where no
-  option set fits (resume file, company names, app password). Measure first so options carry
-  live numbers - "Software engineering - about 56,000 US jobs" tells them more than the label.
+- Something fails: one plain sentence on what went wrong + what you're doing about it. Never
+  show tracebacks or raw command output.
+- Ask w/ clickable choices, not prose questions: 2-4 options, each carrying the real count or
+  consequence. ONE question per ask: several at once show as tabs, Submit stays grey until
+  every tab is answered, and users stall there (watched). Single-choice sends on click;
+  `multiSelect` only when answers aren't exclusive, its question ending "tick all that fit, then
+  Submit". Free text only where no option set fits (resume file, company names, app password).
+  Measure first so options carry live numbers - "Software engineering - about 56,000 US jobs"
+  tells them more than the label.
 
 ## Lead, explain, push back
 
@@ -59,10 +57,9 @@ Keywords: posting's term only for what their experience backs, never repeated to
 lack = gap to tell them (Hold), never a word to add.
 
 User asks why: name the rule in plain words + its basis + how strong (big survey / one small
-study / convention) from `app/docs/resume/bullets.md`, `app/docs/resume/typeface.md`, `app/docs/jobs/freehire.md`
-(index: `app/docs/README.md`). User asks what makes
-a good resume: `Guides/What makes a good resume.md` (plain words, in the file list, linked from `START HERE.md`) - open it. Never "the rules
-require it" or "the check fails".
+study / convention) from `app/docs/resume/bullets.md`, `typeface.md`, `app/docs/jobs/freehire.md`
+(index: `app/docs/README.md`). Never "the rules require it" or "the check fails". User asks what
+makes a good resume: open `Guides/What makes a good resume.md`.
 
 ## Private vs shared - say it plainly
 
@@ -80,14 +77,14 @@ when asked, at setup, and before any step sending something new off computer.
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 
-Everything user sees in VS Code file list is private; program is hidden. Private folders never
-reach maintainer or other users - git ignores them, and `/report-defect` gates check it.
+Everything in the VS Code file list is private; program is hidden. Private folders never reach
+maintainer or other users - git ignores them, `/report-defect` gates check it.
 
 ## Layout
 
 - `START HERE.md` - user's guide, opens w/ VS Code. Plain words only.
 - `Guides/` - plain-words guides in the user's file list (`What makes a good resume.md`); link,
-  don't repeat, from `START HERE.md` and reports. Program docs by area: `app/docs/README.md`.
+  don't repeat, from `START HERE.md` and reports.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;
   their edits win on wording, employer/title/dates change only to fix a mistake; optional
@@ -113,25 +110,24 @@ Tests: `uv run pytest` (live gates hit freehire API).
 `Resume details.yml` holds their facts only: bullets are plain sentences. Ids, `metrics`,
 `stack`, `ai_era` are derived at load or read from `.data/resume-index.yml`, keyed by the claim -
 so adding a fact = adding a sentence, never an id or a metrics list. Older files carrying those
-fields still load unchanged; `uv run app/jobs.py resume-tidy` rewrites one back to plain form
-(keeps a backup, never renumbers a bullet already tailored against). Reword a claim and its
-notes drop off - harmless, the next import writes them again.
+fields still load; `uv run app/jobs.py resume-tidy` rewrites one to plain form (keeps a backup,
+never renumbers a bullet already tailored against). Reworded claim loses its notes - harmless,
+next import rewrites them.
 
 ## AI writing steps
 
 Resume import, pasted posting, tailoring and `resume-gaps` (asks the user for the numbers +
 leadership their lines leave out; only their answers go in): command writes task file (rules,
-input, answer format), you write answer JSON yourself at path it names, then run check command
-it prints.
-Check fails -> read violations, fix JSON, rerun; after 2 failed retries tell user plainly and
-stop. No other program writes resume content.
+input, answer format), you write answer JSON at the path it names, run the check it prints.
+Check fails -> fix JSON per violations, rerun; after 2 failed retries tell user plainly, stop. No other program writes resume content.
 
 Tailored page rules (gates `pages` + `line-fill`, tailored copies only): 1 page, or 2 w/ the
 2nd 60%+ full. Word budget scales w/ the measured page; facts too thin for any window are
 reported (`budget (info)`), never padded. Every bullet fills one line or fills two - land
 between and it wraps to a stub wasting a whole row. Width is measured in points
 (`resume/measure.py`, real font advances), never counted in characters. Gate detail names each
-stub + chars to cut or add, and marks the ones in the user's own facts as report-only. Code measures, you rewrite the words.
+stub + chars to cut or add, marks ones in the user's own facts report-only. Code measures, you
+rewrite the words.
 
 Page hygiene gates, both copies: all text black (links aside), no letters spaced apart inside a
 word, same space under every heading (`app/docs/resume/page-format.md`).
@@ -139,22 +135,20 @@ word, same space under every heading (`app/docs/resume/page-format.md`).
 Typeface = `resume.font` in settings, default Caladea, files in `app/resume/fonts/<family>/`.
 User asks for another font -> open-licence fonts only (Georgia, Cambria, Calibri, Times can't
 ship; offer the look-alike). Add its folder, render their resume in it, tell them the cost
-("3 pages instead of 2, 8 half-empty lines"), keep it set only if they still want it; every
-width is read off the file so no number needs editing. Chars per line decides page count.
+("3 pages instead of 2, 8 half-empty lines"), keep it only if they still want it; widths are
+read off the file, no number to edit. Chars per line decides page count.
 Why Caladea + how to add one: `app/docs/resume/typeface.md`.
 
 What a bullet has to do - accuracy > substance > relevance > clarity, which rules code enforces
-vs only reports, and which common resume advice the evidence does not support: `app/docs/resume/bullets.md`.
-Read before adding a wording rule; it records what was measured and rejected, so a killed rule
-does not get proposed again.
+vs only reports, which common advice the evidence does not support: `app/docs/resume/bullets.md`.
+Read before adding a wording rule - it records rules measured and rejected, so none returns.
 
 ## Skills
 
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing
 there. `job-setup` first run + search changes, `job-find` new jobs + cleanup, `job-tailor`
-resume for one posting, `job-apply` fill an application - Workday via Chrome extension, Ashby
-and later systems via Job Finder's own Chrome (never clicks Save/Submit; systems + how to add
-one `app/docs/apply/apply-systems.md`), `report-defect` send fix upstream.
+resume for one posting, `job-apply` fill an application, never Save/Submit (systems + adding one:
+`app/docs/apply/apply-systems.md`), `report-defect` send fix upstream.
 
 ## Personal data - never stage
 
