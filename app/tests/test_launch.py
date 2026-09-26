@@ -14,6 +14,7 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: None)
+    monkeypatch.setattr(launch.time, "sleep", lambda s: None)
     launch.main()
     assert sorted(p.name for p in tmp_path.iterdir()) == ["My Jobs", "My Resume", "My Settings"]
     launch.main()  # second launch leaves what is already there alone
@@ -29,8 +30,11 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
+    monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(s))
     launch.main()
-    assert calls == [["--disable-workspace-trust", str(tmp_path), str(launch.START_PAGE)]]
+    window = ["--disable-workspace-trust", str(tmp_path)]
+    # START HERE after the window is up => formatted, not plain text
+    assert calls == [window, launch.START_PAGE_DELAY_S, [*window, str(launch.START_PAGE)]]
 
 
 def test_claude_detected_by_extension_folder(tmp_path):

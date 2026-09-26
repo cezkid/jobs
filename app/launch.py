@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import cfg
@@ -19,6 +20,10 @@ YAML_EXTENSION = "redhat.vscode-yaml"
 VSCODE_EXTENSIONS = Path.home() / ".vscode" / "extensions"
 CLAUDE_SETTINGS = Path.home() / ".claude" / "settings.json"
 START_PAGE = cfg.ROOT / "START HERE.md"
+# file named in the same call as the folder opens before VS Code knows its formatted view =>
+# plain text, and the tab stays text on every later launch. Opened 6 s after the window it
+# comes up formatted (fresh window each way, measured 2026-09-26: 0 s text, 6 s formatted)
+START_PAGE_DELAY_S = 6
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
 
 def has_claude(extensions: Path = VSCODE_EXTENSIONS) -> bool:
@@ -147,7 +152,10 @@ def main() -> None:
     # vscode://anthropic.claude-code/open link: it always opens chat as a tab in the active
     # group, on top of START HERE, and every file the AI then opens lands on top of the chat
     # (extension 2.1.283, measured 2026-09-26)
-    code(["--disable-workspace-trust", str(cfg.ROOT), str(START_PAGE)])
+    window = ["--disable-workspace-trust", str(cfg.ROOT)]
+    code(window)
+    time.sleep(START_PAGE_DELAY_S)
+    code([*window, str(START_PAGE)])  # folder again => lands in this window, not the last used
 
 
 if __name__ == "__main__":
