@@ -147,3 +147,19 @@ def test_vscode_settings_keep_comments_and_trailing_commas():
     assert launch.add_setting("", launch.TELEMETRY) == "{\n  " + launch.TELEMETRY + "\n}\n"
     assert launch.add_setting("{}", launch.TELEMETRY) == "{\n  " + launch.TELEMETRY + "\n}"
     assert json.loads(launch.add_setting('{\n  "a": 1\n}\n', launch.TELEMETRY)) == {"a": 1, "redhat.telemetry.enabled": False}
+
+
+def test_claude_link_opens_without_an_allow_question(tmp_path):
+    # otherwise every launch stops on "Allow 'Claude Code for VS Code' extension to open this URI?"
+    settings = tmp_path / "User" / "settings.json"
+    launch.ensure_uri_trust(settings)
+    assert json.loads(settings.read_text(encoding="utf-8")) == {launch.URI_TRUST: [launch.CLAUDE_EXTENSION]}
+    launch.ensure_uri_trust(settings)
+    assert settings.read_text(encoding="utf-8").count(launch.CLAUDE_EXTENSION) == 1
+    settings.write_text('{\n  // mine\n  "' + launch.URI_TRUST + '": ["other.ext"],\n}\n', encoding="utf-8")
+    launch.ensure_uri_trust(settings)  # their own list keeps its ids, comments and commas
+    text = settings.read_text(encoding="utf-8")
+    assert "// mine" in text and f'["{launch.CLAUDE_EXTENSION}", "other.ext"]' in text
+    settings.write_text('{"' + launch.URI_TRUST + '": [ ]}', encoding="utf-8")
+    launch.ensure_uri_trust(settings)
+    assert json.loads(settings.read_text(encoding="utf-8"))[launch.URI_TRUST] == [launch.CLAUDE_EXTENSION]

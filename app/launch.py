@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -101,6 +102,29 @@ def ensure_yaml_checker(settings: Path | None = None) -> None:
         code(["--install-extension", YAML_EXTENSION, "--force"], quiet=True)
 
 
+URI_TRUST = "extensions.confirmedUriHandlerExtensionIds"
+
+
+def ensure_uri_trust(settings: Path | None = None) -> None:
+    # without it every launch stops on "Allow 'Claude Code for VS Code' extension to open this
+    # URI?" - Open / Cancel, a question the user cannot judge. VS Code skips it for ids listed here.
+    settings = settings or vscode_settings()
+    try:
+        text = settings.read_text(encoding="utf-8") if settings.exists() else ""
+        if f'"{CLAUDE_EXTENSION}"' in text:
+            return
+        listed = re.search(rf'"{re.escape(URI_TRUST)}"\s*:\s*\[', text)
+        if listed:  # their own list stays; the id goes first so no comma needs placing after it
+            spacer = "" if re.match(r"\s*\]", text[listed.end():]) else ", "
+            text = f'{text[:listed.end()]}"{CLAUDE_EXTENSION}"{spacer}{text[listed.end():]}'
+        else:
+            text = add_setting(text, f'"{URI_TRUST}": ["{CLAUDE_EXTENSION}"]')
+        settings.parent.mkdir(parents=True, exist_ok=True)
+        settings.write_text(text, encoding="utf-8")
+    except OSError:
+        pass
+
+
 def register_protocol() -> None:
     # toast click -> jobfinder: URL -> Desktop launcher; per-user key, no admin
     import winreg
@@ -156,6 +180,7 @@ def main() -> None:
     # separate call: --open-url beside folder args drops the folder (measured 2026-09-19)
     if has_claude():
         ensure_auto_mode()
+        ensure_uri_trust()
         code(["--open-url", claude_uri(prompt())])
 
 
