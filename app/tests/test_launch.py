@@ -181,6 +181,18 @@ def test_chat_opens_in_the_right_sidebar_not_a_tab():
     assert settings["claudeCode.hideOnboarding"] is True
 
 
+def test_window_shows_job_finder_not_a_code_editor():
+    # users saw a developer tool: search box, layout buttons, breadcrumbs
+    raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
+    settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
+    assert settings["window.title"] == cfg.NAME
+    assert not settings["window.commandCenter"]
+    assert settings["workbench.activityBar.location"] != "hidden"  # ChatGPT's icon is there
+    # hiding tab buttons / status bar hid Claude's new-chat and open-chat buttons with them
+    assert settings.get("workbench.editor.editorActionsLocation", "default") != "hidden"
+    assert settings.get("workbench.statusBar.visible", True)
+
+
 def test_start_page_leads_with_the_first_step():
     # users read the whole page and still did not know what to do
     page = (cfg.ROOT / "START HERE.md").read_text(encoding="utf-8")
