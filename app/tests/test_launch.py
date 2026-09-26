@@ -163,3 +163,17 @@ def test_claude_link_opens_without_an_allow_question(tmp_path):
     settings.write_text('{"' + launch.URI_TRUST + '": [ ]}', encoding="utf-8")
     launch.ensure_uri_trust(settings)
     assert json.loads(settings.read_text(encoding="utf-8"))[launch.URI_TRUST] == [launch.CLAUDE_EXTENSION]
+
+
+def test_chat_opens_in_the_right_sidebar_not_a_tab():
+    # default puts the chat in a tab and leaves Claude's right-hand sidebar empty, doing nothing
+    raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
+    settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
+    assert settings["claudeCode.preferredLocation"] == "sidebar"
+    assert settings["claudeCode.hideOnboarding"] is True
+
+
+def test_start_page_leads_with_the_first_step():
+    # users read the whole page and still did not know what to do
+    page = (cfg.ROOT / "START HERE.md").read_text(encoding="utf-8")
+    assert page.split("\n## ")[1].startswith("Do this now") and "set me up" in page

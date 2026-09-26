@@ -30,6 +30,11 @@
   "workbench.tips.enabled": false,
   // else VS Code's own Copilot chat owns the right-hand panel and the user talks to it, not Claude/ChatGPT
   "chat.disableAIFeatures": true,
+  // chat in the right-hand sidebar: the default opens it as a tab and leaves that sidebar empty
+  "claudeCode.preferredLocation": "sidebar",
+  // no developer checklist in the chat; only prompts + answers, steps one click away
+  "claudeCode.hideOnboarding": true,
+  "claudeCode.focusView": true,
   "extensions.ignoreRecommendations": true,
   "workbench.editorAssociations": {
     "*.md": "vscode.markdown.preview.editor"
