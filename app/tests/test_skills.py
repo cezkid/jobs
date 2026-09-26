@@ -29,3 +29,11 @@ def test_commands_named_in_instructions_exist():
     docs = [*BODIES.glob("*.md"), cfg.ROOT / "AGENTS.md", cfg.ROOT / "START HERE.md"]
     used = {m for p in docs for m in COMMAND.findall(p.read_text(encoding="utf-8"))}
     assert used <= jobs.COMMANDS.keys()
+
+
+def test_questions_asked_one_at_a_time():
+    # several questions at once show as tabs with Submit greyed until all are answered; users stalled
+    docs = [cfg.ROOT / "AGENTS.md", BODIES / "job-setup.md"]
+    for doc in docs:
+        text = doc.read_text(encoding="utf-8")
+        assert "ONE question" in text and "batch of 4" not in text.lower()
