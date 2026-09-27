@@ -75,11 +75,12 @@ def answers(master: dict, tailored: dict | None = None) -> dict:
 
 
 def work_authorization(config: dict) -> str:
-    """The two work-permit answers from setup; unset = ask the user on the form, never guess."""
+    """The work-permit answers from setup; unset = ask the user on the form, never guess."""
     wa = config.get("work_authorization") or {}
     said = lambda v: "not set - ask them" if v is None else "yes" if v else "no"
     return (f"authorized to work in the US: {said(wa.get('authorized_us'))}; "
-            f"needs visa sponsorship: {said(wa.get('needs_sponsorship'))}")
+            f"needs visa sponsorship: {said(wa.get('needs_sponsorship'))}; "
+            f"US citizen or permanent resident: {said(wa.get('citizen_or_permanent_resident'))}")
 
 
 def script(data: dict) -> str:

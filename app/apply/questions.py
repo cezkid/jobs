@@ -68,14 +68,18 @@ def from_resume(q: dict, contact: dict) -> str:
 
 
 def work_permit(q: dict, config: dict):
-    """Setup's two work-permit answers, only for the same US question asked the same way."""
+    """Setup's work-permit answers, only for the same US question asked the same way."""
     wa, title = config.get("work_authorization") or {}, q["title"].casefold()
+    us = "u.s." in title or "us" in title.split() or "united states" in title
     if q["kind"] != "yesno":
         return None
     if "authorized to work in the u" in title and "without restriction" in title:
         return wa.get("authorized_us")
-    if "sponsorship" in title and "future" in title and ("u.s." in title or "us" in title.split()):
+    if "sponsorship" in title and "future" in title and us:
         return wa.get("needs_sponsorship")
+    # another country's "citizen or permanent resident" is a different question
+    if "citizen" in title and ("green card" in title or ("permanent resident" in title and us)):
+        return wa.get("citizen_or_permanent_resident")
     return None
 
 

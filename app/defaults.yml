@@ -44,7 +44,7 @@ resume:
   input_pdf: My Resume/Original resume.pdf
   jobs_dir: My Jobs
 
-# Setup answers to the two questions nearly every US application asks. Stay on this computer:
+# Setup answers to the work-permit questions US applications ask. Stay on this computer:
 # no job search sends them (only `passes` params go to freehire). null = not asked -> apply asks.
 work_authorization:
   # allowed to work in the US for any employer, without restriction
@@ -52,6 +52,9 @@ work_authorization:
   # needs an employer to sponsor a visa, now or later (H-1B; OPT/STEM OPT ending counts).
   # true => jobs freehire marks "no visa sponsorship" sort lower, never hidden
   needs_sponsorship: null
+  # US citizen or lawful permanent resident (green card). Asked outright by employers that
+  # require it (government work, export-controlled products); refugee/asylee status is not
+  citizen_or_permanent_resident: null
 
 # Ranking (rank.py). Order: tier > not seen lately (may be closed) > likely ghost / level /
 # hours / sponsorship mismatch > pay floor > pay > employer lists > first seen. Nothing here hides a job.

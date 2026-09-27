@@ -73,6 +73,17 @@ def test_work_permit_only_for_the_same_us_question():
     assert unset[0]["answer"] is None and unset[0]["source"] == questions.ASK
 
 
+def test_citizen_or_green_card_answered_only_for_the_us():
+    config = {"work_authorization": {"citizen_or_permanent_resident": True}}
+    us = [q("Are you a US citizen or lawful permanent resident?", "yesno"),
+          q("Are you a U.S. citizen or green card holder?", "yesno")]
+    assert [a["answer"] for a in questions.draft(us, CONTACT, config=config)] == ["Yes", "Yes"]
+    canada = [q("Are you a Canadian citizen or permanent resident?", "yesno")]
+    assert questions.draft(canada, CONTACT, config=config)[0]["answer"] is None
+    unset = questions.draft(us, CONTACT, config={"work_authorization": {}})
+    assert unset[0]["answer"] is None and unset[0]["source"] == questions.ASK
+
+
 def test_blank_required_questions_are_listed():
     answers = [{**q("A"), "answer": None}, {**q("B", required=False), "answer": None},
                {**q("C", "multichoice"), "answer": []}, {**q("D", "yesno"), "answer": "No"}]
