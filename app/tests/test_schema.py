@@ -50,6 +50,15 @@ def test_duplicate_bullet_id_rejected(master):
     assert any("duplicate" in e for e in errors_for(master))
 
 
+def test_new_sentence_never_takes_a_kept_id():
+    # tidy kept "acme-3" on a bullet now at position 2; a sentence added after it sits at 3
+    raw = {"roles": [{"company": "Acme", "title": "Engineer", "start": "2020-01", "end": "present",
+                      "bullets": ["First fact.", {"id": "acme-3", "claim": "Kept fact."}, "New fact."]}]}
+    ids = [b["id"] for b in schema.expand(raw)["roles"][0]["bullets"]]
+    assert ids == ["acme-1", "acme-3", "acme-4"]
+    assert not any("duplicate" in e for e in schema.validate(schema.expand(raw)))
+
+
 def test_full_date_rejected(master):
     master["roles"][1]["start"] = date(2019, 6, 1)
     assert any("not YYYY-MM" in e for e in errors_for(master))
