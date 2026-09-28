@@ -63,7 +63,10 @@ def test_script_is_valid_javascript(master, tmp_path):
 
 
 def test_work_authorization_reads_setup_answers_and_never_guesses_unset():
-    said = profile.work_authorization({"work_authorization": {"authorized_us": True, "needs_sponsorship": False}})
-    assert said == "authorized to work in the US: yes; needs visa sponsorship: no"
+    said = profile.work_authorization({"work_authorization": {
+        "authorized_us": True, "needs_sponsorship": False, "citizen_or_permanent_resident": True}})
+    assert said == ("authorized to work in the US: yes; needs visa sponsorship: no; "
+                    "US citizen or permanent resident: yes")
     assert profile.work_authorization(profile.cfg.defaults()) == (
-        "authorized to work in the US: not set - ask them; needs visa sponsorship: not set - ask them")
+        "authorized to work in the US: not set - ask them; needs visa sponsorship: not set - ask them; "
+        "US citizen or permanent resident: not set - ask them")

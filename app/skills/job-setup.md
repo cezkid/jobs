@@ -48,13 +48,16 @@ Then narrowing what they picked:
   below it sort lower, never hidden; never a `seniority` filter (facet null on 30-45% of rows,
   junior lives in title string)
 - work permit, one question - nearly every US application asks both "legally authorized to work
-  in the US without restriction?" and "will you now or in the future require sponsorship?", so
-  ask once here; each form still shows the answer before Save. Options ->
-  `work_authorization` (`authorized_us`, `needs_sponsorship`):
-  - Yes, never need sponsorship (US citizen, green card, refugee/asylee) -> true, false
-  - Allowed now, will need it later (OPT, STEM OPT, H-1B transfer) -> true, true
-  - Need sponsorship to start -> false, true
-  - Ask me on each application -> leave both null
+  in the US without restriction?" and "will you now or in the future require sponsorship?", and
+  employers that require it (government work, security products) ask "US citizen or permanent
+  resident (green card)?" - so ask once here; each form still shows the answer before Save.
+  Options -> `work_authorization` (`authorized_us`, `needs_sponsorship`,
+  `citizen_or_permanent_resident`):
+  - US citizen or green card holder -> true, false, true
+  - Other status, never need sponsorship (refugee, asylee) -> true, false, false
+  - Allowed now, will need it later (OPT, STEM OPT, H-1B transfer) -> true, true, false
+  - Need sponsorship to start -> false, true, false
+  - "Ask me on each application" (typed under Other) -> leave all null
   Say in the question it's saved only on this computer (no job search sends it). Needs sponsorship ->
   count from `probe --facets visa_sponsorship` on their category: "freehire marks 36,846 US jobs
   'no visa sponsorship' - they'll sort lower, never hidden". Never guess it from name, school
