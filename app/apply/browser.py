@@ -6,6 +6,7 @@ ordinary browser when the user clicks Submit. The profile lives in `.data/` - si
 this computer and never touch the user's everyday Chrome. Facts: app/docs/apply/apply-systems.md.
 """
 import contextlib
+import os
 import re
 import shutil
 import socket
@@ -27,6 +28,8 @@ CHROME = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
     r"C:\Program Files\Google\Chrome\Application\chrome.exe",
     r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+    # Chrome installed w/o admin rights lands per user
+    str(Path(os.environ.get("LOCALAPPDATA", "")) / "Google" / "Chrome" / "Application" / "chrome.exe"),
     "google-chrome", "google-chrome-stable", "chromium", "chromium-browser",
 ]
 
