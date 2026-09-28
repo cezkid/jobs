@@ -6,8 +6,8 @@ what it fits because of the font: swap the family and column fits, stub lines an
 all move with it, so the family is a setting (`resume.font`) and nothing downstream hardcodes
 a file name.
 
-A different family is a folder of TTFs dropped in beside Caladea, named exactly as the font
-names itself, plus that name in the user's settings - no code change. `check()` is what
+A different family is a folder of TTFs in `.data/fonts/`, named exactly as the font names
+itself, plus that name in the user's settings - no code change. `check()` is what
 makes that safe: it runs before the first compile and says, in plain words, what a folder
 is missing. Typst is handed that one folder and no system fonts, so a family can never
 half-substitute another.
@@ -17,7 +17,11 @@ from pathlib import Path
 
 import pymupdf
 
+import cfg
+
 DIR = Path(__file__).resolve().parent / "fonts"
+# fonts user adds: update replaces app/ whole => folder beside Caladea gone next launch
+USER_DIR = cfg.DATA / "fonts"
 # the family that ships; what renders unless the user's settings name another
 DEFAULT = "Caladea"
 # body size the template sets; every measurement in measure.py is taken at it
@@ -39,17 +43,18 @@ STYLE_WEIGHTS = {
 
 def folder(family: str) -> Path:
     """Folder holding `family`, named as the font names itself."""
-    path = DIR / family
-    if not path.is_dir():
-        raise SystemExit(
-            f"No font called {family!r} in {DIR}. Installed: {', '.join(installed()) or 'none'}. "
-            f"To add one, put its .ttf files in a folder named exactly as the font names itself."
-        )
-    return path
+    for base in (DIR, USER_DIR):
+        if (base / family).is_dir():
+            return base / family
+    raise SystemExit(
+        f"No font called {family!r}. Installed: {', '.join(installed()) or 'none'}. "
+        f"To add one, put its .ttf files in {USER_DIR / family}, named exactly as the font names itself."
+    )
 
 
 def installed() -> list[str]:
-    return sorted(p.name for p in DIR.iterdir() if p.is_dir() and any(p.glob("*.ttf")))
+    return sorted({p.name for base in (DIR, USER_DIR) if base.is_dir()
+                   for p in base.iterdir() if p.is_dir() and any(p.glob("*.ttf"))})
 
 
 def faces(family: str) -> dict[int, Path]:

@@ -111,3 +111,11 @@ def test_advice_to_fill_two_lines_lands_inside_the_two_line_window():
     add = int(re.search(r"add ~(\d+)", violation).group(1))
     lines, fill = measure.fit(typeface.DEFAULT, prose[:len(stubbed) + add], avail)
     assert lines == tailor.MAX_BULLET_LINES and fill >= tailor.TWO_LINE_FILL
+
+
+def test_added_family_lives_outside_program_folder(tmp_path, monkeypatch):
+    # update replaces app/ whole => family added beside Caladea vanished on next launch
+    monkeypatch.setattr(typeface, "USER_DIR", tmp_path)
+    family_dir(tmp_path, "Carlito")
+    assert typeface.folder("Carlito") == tmp_path / "Carlito"
+    assert "Carlito" in typeface.installed()

@@ -44,8 +44,10 @@ def mac_plist(uv: str, root: Path, at: tuple[int, int]) -> bytes:
 
 
 def powershell(script: str) -> subprocess.CompletedProcess:
+    # daily run = pythonw, no console => powershell opens its own window each run unless told not to
+    hidden = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
     return subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", script],
-                          capture_output=True, text=True)
+                          capture_output=True, text=True, creationflags=hidden)
 
 
 def uv_binary(name: str) -> str:

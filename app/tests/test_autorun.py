@@ -24,3 +24,13 @@ def test_mac_plist_runs_daily_at_time():
     assert plist["ProgramArguments"][-1] == "app/daily.py"
     assert plist["StartCalendarInterval"] == {"Hour": 8, "Minute": 30}
     assert plist["StandardOutPath"] == str(cfg.DAILY_LOG)
+
+
+def test_powershell_never_opens_a_window_on_windows(monkeypatch):
+    # daily run = pythonw => child powershell got its own visible console each run (measured 2026-09-28)
+    seen = {}
+    monkeypatch.setattr(autorun.sys, "platform", "win32")
+    monkeypatch.setattr(autorun.subprocess, "CREATE_NO_WINDOW", 0x08000000, raising=False)
+    monkeypatch.setattr(autorun.subprocess, "run", lambda args, **kw: seen.update(kw))
+    autorun.powershell("'x'")
+    assert seen["creationflags"] == 0x08000000

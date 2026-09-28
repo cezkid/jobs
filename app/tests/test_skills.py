@@ -37,3 +37,13 @@ def test_questions_asked_one_at_a_time():
     for doc in docs:
         text = doc.read_text(encoding="utf-8")
         assert "ONE question" in text and "batch of 4" not in text.lower()
+
+
+def test_every_allowed_command_runs_without_asking_in_powershell_too():
+    # Windows w/o Git => Claude runs commands in PowerShell; Bash(...) rules never match there
+    # (measured 2026-09-28: `uv run app/jobs.py check-settings` denied until PowerShell twin added)
+    import json
+    allow = json.loads((cfg.ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))["permissions"]["allow"]
+    bash = {r.removeprefix("Bash(") for r in allow if r.startswith("Bash(")}
+    powershell = {r.removeprefix("PowerShell(") for r in allow if r.startswith("PowerShell(")}
+    assert bash == powershell

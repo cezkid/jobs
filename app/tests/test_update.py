@@ -56,3 +56,35 @@ def test_git_checkout_pulls_instead(tmp_path, monkeypatch):
     monkeypatch.setattr(update, "download", lambda: (_ for _ in ()).throw(AssertionError("no zip for git checkout")))
     assert update.update(tmp_path) == "Up to date."
     assert calls == [["git", "-C", str(tmp_path), "pull", "--ff-only", "-q"]]
+
+
+def test_claude_dont_ask_again_answers_survive_update(tmp_path, monkeypatch):
+    write(tmp_path / ".claude" / "settings.json", "old")
+    write(tmp_path / ".claude" / "settings.local.json", "mine")
+    new = archive({".claude/settings.json": "new", "app/jobs.py": "new"})
+    monkeypatch.setattr(update, "download", lambda: new)
+
+    assert update.update(tmp_path) == "Up to date."
+    assert (tmp_path / ".claude" / "settings.json").read_text(encoding="utf-8") == "new"
+    assert (tmp_path / ".claude" / "settings.local.json").read_text(encoding="utf-8") == "mine"
+
+
+def test_folder_in_use_leaves_whole_old_copy(tmp_path, monkeypatch):
+    # Windows refuses renaming folder w/ open file => swap stopped halfway mixed versions
+    write(tmp_path / "README.md", "old")
+    write(tmp_path / "app" / "jobs.py", "old")
+    write(tmp_path / "docs" / "index.html", "old")
+    new = archive({"README.md": "new", "app/jobs.py": "new", "brand-new.md": "new", "docs/index.html": "new"})
+    monkeypatch.setattr(update, "download", lambda: new)
+    rename = update.Path.rename
+
+    def locked(self, target):
+        if self == tmp_path / "docs":
+            raise PermissionError(5, "Access is denied")
+        return rename(self, target)
+
+    monkeypatch.setattr(update.Path, "rename", locked)
+    assert update.update(tmp_path) == update.IN_USE
+    for name in ("README.md", "app/jobs.py", "docs/index.html"):
+        assert (tmp_path / name).read_text(encoding="utf-8") == "old"
+    assert not (tmp_path / "brand-new.md").exists()
