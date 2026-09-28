@@ -10,6 +10,7 @@ import cfg
 PROTOCOL = "jobfinder"
 # toast needs registered app id; PowerShell's ships w/ Windows
 POWERSHELL_APP_ID = r"{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe"
+OFF_REASON = "Windows notifications are switched off - turn them on in Settings > System > Notifications"
 HINT = f'Open {cfg.NAME} and ask: "any new jobs?"'
 MAC_SCRIPT = ["-e", "on run argv", "-e", "display notification (item 2 of argv) with title (item 1 of argv)",
               "-e", "end run"]
@@ -29,7 +30,10 @@ def windows_script(title: str, body: str) -> str:
 [Windows.Data.Xml.Dom.XmlDocument, Windows.Data.Xml.Dom.XmlDocument, ContentType = WindowsRuntime] | Out-Null
 $x = New-Object Windows.Data.Xml.Dom.XmlDocument
 $x.LoadXml('{xml}')
-[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('{POWERSHELL_APP_ID}').Show([Windows.UI.Notifications.ToastNotification]::new($x))
+$n = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('{POWERSHELL_APP_ID}')
+# switched off => Show() discards toast w/o error
+if ($n.Setting -ne 'Enabled') {{ [Console]::Error.WriteLine("{OFF_REASON} ($($n.Setting))"); exit 3 }}
+$n.Show([Windows.UI.Notifications.ToastNotification]::new($x))
 """
 
 

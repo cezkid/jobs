@@ -153,6 +153,8 @@ Ask BEFORE the first `uv run app/jobs.py daily`: that run marks every current ma
 later `email --dry-run` prints "0 new" and the user never sees their own digest. Order = ask ->
 write `.data/email.env` if they said yes -> `email --dry-run` (real preview + sign-in) -> `daily`
 -> `uv run app/jobs.py autorun status`; log tail must show "notified"/"emailed" or "0 new".
+Tail says notifications switched off -> their own Windows setting: walk them through Settings >
+System > Notifications on, rerun `daily` (nothing marked seen while it failed).
 
 Tell them: each morning computer checks for jobs, pops up a notification when new ones arrive;
 clicking it opens CEZ Job Finder. First one covers every current match, later ones only new jobs.

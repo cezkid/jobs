@@ -2,6 +2,8 @@ import json
 import re
 from pathlib import PurePosixPath, PureWindowsPath
 
+import pytest
+
 import cfg
 import launch
 import notify
@@ -51,6 +53,17 @@ def test_toast_escapes_text_and_opens_job_finder():
     script = notify.windows_script("3 new <jobs> & O'Brien's", notify.HINT)
     assert "&lt;jobs&gt; &amp; O''Brien''s" in script
     assert f'launch="{notify.PROTOCOL}:open"' in script
+
+
+def test_toast_switched_off_fails_instead_of_vanishing(monkeypatch):
+    # measured 2026-09-28: account notifications off => Show() rc 0, toast in no history
+    script = notify.windows_script("t", "b")
+    assert script.index("$n.Setting -ne 'Enabled'") < script.index("$n.Show(")
+    failed = type("R", (), {"returncode": 3, "stderr": f"{notify.OFF_REASON} (DisabledForUser)\n"})
+    monkeypatch.setattr(notify.sys, "platform", "win32")
+    monkeypatch.setattr(notify.autorun, "powershell", lambda script: failed)
+    with pytest.raises(RuntimeError, match="Settings > System > Notifications"):
+        notify.notify("t", "b")
 
 
 def pdf_extension(extensions, name="tomoki1207.pdf-1.2.2", pattern="*.pdf"):
