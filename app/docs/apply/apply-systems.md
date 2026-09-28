@@ -8,6 +8,7 @@ small plug-in.
 |---|---|---|---|
 | Workday | `<co>.wd<N>.myworkdayjobs.com` | `apply` script, run by the Claude Chrome extension (sign-in wall, multi-page) | `workday.md` |
 | Ashby | `jobs.ashbyhq.com/<co>/<id>` | `apply-form`, Job Finder's own Chrome | `ashby.md` |
+| UKG Pro Recruiting | `recruiting<N>.ultipro.com/<tenant>/JobBoard/<board>/OpportunityDetail?opportunityId=<id>` | `apply-form`, Job Finder's own Chrome; user signs in first, questions read off the signed-in form | `ukg.md` |
 
 Not yet: Greenhouse (`boards.greenhouse.io`, `job-boards.greenhouse.io`), Lever (`jobs.lever.co`),
 SmartRecruiters, iCIMS, Workable. `apply-form prepare` says so plainly -> user gets tailored PDF
@@ -26,7 +27,7 @@ SmartRecruiters, iCIMS, Workable. `apply-form prepare` says so plainly -> user g
 ## Add a system
 
 1. **Measure first.** Live posting. Where questions come from: public job-board API (Ashby,
-   Greenhouse, Lever have one), else read the page. Find the steady hook on each question box -
+   Greenhouse, Lever have one), else read the page (UKG: its own page data, after sign-in). Find the steady hook on each question box -
    never generated class names like `_active_1svni_57` (change each release).
 2. **Write `systems/<name>.py`** per contract in `systems/__init__.py`: `NAME`, `READY`,
    `matches`, `application_url`, `questions`, `fill`, `ids_on_page`. Native types ->

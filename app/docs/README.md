@@ -18,6 +18,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/apply-systems.md](apply/apply-systems.md) | How application filling works, systems supported, adding one |
 | Applying | [apply/workday.md](apply/workday.md) | Workday forms, filled through the Chrome extension |
 | Applying | [apply/ashby.md](apply/ashby.md) | Ashby forms, filled in Job Finder's own Chrome |
+| Applying | [apply/ukg.md](apply/ukg.md) | UKG Pro Recruiting forms: sign-in first, resume sections saved as added |
 
 Assistant instructions: [AGENTS.md](../../AGENTS.md) + skills in [../skills/](../skills/).
 Contributing: [.github/CONTRIBUTING.md](../../.github/CONTRIBUTING.md).

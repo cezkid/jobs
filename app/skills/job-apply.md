@@ -2,7 +2,7 @@
 
 Fill a job application for the user, stopping before every Save/Submit. Workday (`*.myworkdayjobs.com`
 or `wd<N>.myworkday...`) through the Claude Chrome extension - Steps below. Every other supported
-system (Ashby today; list in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
+system (Ashby, UKG today; list in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
 #Other systems below. Unsupported system: `apply-form prepare` says so - offer the tailored PDF +
 answers to paste by hand, and mention it can be taught (`apply-systems.md` #Add a system).
 User not technical - `AGENTS.md` #User = not technical binds. Why each rule exists (measured):
@@ -16,7 +16,8 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
 - Upload the resume PDF only after they say yes (name the file).
 - Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
   race, veteran, disability), how-did-you-hear. Ask each with clickable choices; disclosures
-  always offer "I don't wish to answer".
+  always offer "I don't wish to answer". User asks to reuse a disclosure answer -> save it under
+  `self_identification` in search settings; saved there -> use it, name it before Submit.
 - Work authorization, sponsorship, citizenship: `apply` prints their setup answers. Use one only
   when the form asks that same thing about the US (without restriction; sponsorship now or in the
   future; US citizen or permanent resident / green card), and name the choice you picked so they
@@ -63,6 +64,10 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
    question: `answer: true` only after they said yes to the named file (hard limits). Location: the
    city they live in. Answers from search settings: name them to the user.
+   UKG: form shows only after sign-in - `prepare` stops on the sign-in page in Job Finder's
+   Chrome; user signs in or creates the account there, then rerun `prepare`. Its
+   `resume-sections` question (add work history, education, skills, links from the resume): UKG
+   saves each to their account on the site as it is added, before Submit - say so, then ask.
 4. `uv run app/jobs.py apply-form fill <slug>` -> opens the form in Job Finder's Chrome, fills,
    prints one line per question. `FAIL`/`ASK` -> tell the user plainly, fix, record the quirk in
    that system's doc.
