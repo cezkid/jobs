@@ -672,7 +672,10 @@ def render(model: dict, out_dir: Path, budget: bool, font: str = typeface.DEFAUL
            available: int | None = None) -> tuple[Path, list[tuple[str, bool, str]]]:
     out_dir.mkdir(parents=True, exist_ok=True)
     path = out_dir / file_name(model)
-    path.write_bytes(compile_pdf(model, font))
+    try:
+        path.write_bytes(compile_pdf(model, font))
+    except PermissionError:  # Windows: PDF open in Acrobat-style viewer => write denied
+        sys.exit(f"{path.name} is open in another program - close it there, then try again")
     return path, check(path, model, budget, font, available)
 
 

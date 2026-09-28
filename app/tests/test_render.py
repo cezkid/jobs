@@ -35,6 +35,14 @@ def test_example_master_passes_every_gate(master, tmp_path):
     assert failed(results) == {}
 
 
+def test_pdf_locked_by_viewer_exits_plainly(master, tmp_path, monkeypatch):
+    def denied(*_):
+        raise PermissionError(13, "Permission denied")
+    monkeypatch.setattr(render.Path, "write_bytes", denied)
+    with pytest.raises(SystemExit, match="Jane_Doe_Resume.pdf is open in another program"):
+        render.render(render.page_model(master), tmp_path, budget=False)
+
+
 def test_markup_characters_render_literally(master, tmp_path):
     master["roles"][0]["bullets"][0]["claim"] = "Shipped #flags $cost_model *bold* @team <tag> [x] under 5ms"
     path, results = render.render(render.page_model(master), tmp_path, budget=False)
