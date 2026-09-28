@@ -147,6 +147,17 @@ def test_pdf_opens_as_tab_with_viewer_system_viewer_without(tmp_path, monkeypatc
     assert viewer == [pdf.resolve().as_uri()]
 
 
+def test_vscode_started_on_its_own_hidden_console(monkeypatch):
+    # shared launcher console => its terminal window stayed open while VS Code ran
+    runs = []
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "code")
+    monkeypatch.setattr(launch.sys, "platform", "win32")
+    monkeypatch.setattr(launch.subprocess, "CREATE_NO_WINDOW", 0x08000000, raising=False)
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(kw["creationflags"]))
+    launch.code(["folder"])
+    assert runs == [0x08000000]
+
+
 def test_workspace_hides_builtin_vscode_chat():
     # without this the built-in Copilot chat owns the right-hand panel on first open
     raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")

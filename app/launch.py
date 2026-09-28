@@ -187,7 +187,10 @@ def code(args: list[str], quiet: bool = False) -> None:
     exe = shutil.which("code")
     if not exe:
         sys.exit(f"VS Code not found; run the {cfg.NAME} installer again")
-    subprocess.run([exe, *args], check=False, capture_output=quiet)
+    # VS Code started cold inherits console => launcher's terminal window stays up until VS Code
+    # quits, and closing it can take VS Code down (measured 2026-09-28, Windows Terminal)
+    own_hidden_console = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
+    subprocess.run([exe, *args], check=False, capture_output=quiet, creationflags=own_hidden_console)
 
 
 def main() -> None:
