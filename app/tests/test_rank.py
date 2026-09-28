@@ -156,6 +156,21 @@ def test_title_phrase_matches_whole_words_only():
     assert slugs(rank.would_hide(jobs, "intern", CONFIG["blocklist"])) == ["tax"]
 
 
+def test_title_keep_spares_phrase_inside_wider_title():
+    blocklist = {"title_phrases": ["staff"],
+                 "title_keep": ["member of technical staff", "senior/staff", "senior, staff"]}
+    config = cfg.merge(CONFIG, {"blocklist": blocklist})
+    jobs = [make_job("staff", title="Staff Frontend Engineer"),
+            make_job("above", title="Senior Staff Engineer"),
+            make_job("mts", title="Member of Technical Staff, Product"),
+            make_job("either", title="Senior / Staff Full Stack Engineer"),
+            make_job("paren", title="Software Engineer (Senior, Staff+)"),
+            make_job("mts-staff", title="Staff Member of Technical Staff")]
+    assert slugs(rank.rank(jobs, config, NOW)) == ["mts", "either", "paren"]
+    hidden = rank.would_hide(jobs, "staff", {"title_keep": blocklist["title_keep"]})
+    assert slugs(hidden) == ["staff", "above", "mts-staff"]
+
+
 def test_company_blocklist_matches_name_as_well_as_slug():
     config = cfg.merge(CONFIG, {"blocklist": {"companies": ["Staffing Pros"]}})
     jobs = [make_job("a", company="Staffing Pros LLC", company_slug="staffingpros-2"), make_job("b")]

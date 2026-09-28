@@ -48,7 +48,20 @@ def blocked(job: dict, blocklist: dict) -> bool:
             return True
     if norm_company(job.get("company")) in {norm_company(c) for c in blocklist.get("companies") or []}:
         return True
-    title = job.get("title") or ""
+    return title_blocked(job.get("title") or "", blocklist)
+
+
+def slashes(text: str) -> str:
+    """"Senior / Staff" and "Senior/Staff" read alike."""
+    return re.sub(r"\s*/\s*", "/", text)
+
+
+def title_blocked(title: str, blocklist: dict) -> bool:
+    """title_phrases match whole words, never inside a title_keep phrase: keep "member of
+    technical staff" + phrase "staff" hides "Staff Engineer", not "Member of Technical Staff"."""
+    title = slashes(title)
+    for keep in blocklist.get("title_keep") or []:
+        title = words(re.escape(slashes(keep))).sub(" ", title)
     return any(words(re.escape(p)).search(title) for p in blocklist.get("title_phrases") or [])
 
 
@@ -229,7 +242,8 @@ def reasons(job: dict, config: dict, now: datetime | None = None) -> str:
 
 def would_hide(jobs: list[dict], phrase: str, blocklist: dict) -> list[dict]:
     """Rows a new title phrase would hide that nothing hides today."""
-    return [j for j in jobs if not blocked(j, blocklist) and blocked(j, {"title_phrases": [phrase]})]
+    probe = {"title_phrases": [phrase], "title_keep": blocklist.get("title_keep")}
+    return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
 
 
 def suspects(jobs: list[dict], min_categories: int) -> list[tuple[str, set[str]]]:
