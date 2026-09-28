@@ -5,7 +5,7 @@ import pkgutil
 import pytest
 
 from apply import questions, systems
-from apply.systems import ashby
+from apply.systems import ashby, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -125,6 +125,93 @@ def test_ashby_form_becomes_shared_questions():
     assert got["abc"]["key"] == "linkedin" and got["def"]["options"] == ["10+"] and got["ghi"]["kind"] == "yesno"
     assert got["new"]["kind"] == "text" and got["new"]["native"] == "SomeNewType"  # unknown type: typed as text
 
+
+
+# --- UKG Pro Recruiting ---
+
+UKG_BASE = "https://recruiting2.ultipro.com/acme1001/JobBoard/0a1b2c3d-0000-4000-8000-00000000b0a4"
+UKG_ID = "0a1b2c3d-0000-4000-8000-0000000000f1"
+# SNAPSHOT as read off a signed-in form (tenant A, 2026-09), employer renamed, no answers in it
+UKG_FORM = {
+    "signin": False, "upload": True, "referral": True, "startDate": True,
+    "fields": [
+        {"id": "Country", "label": "Country", "required": False, "options": ["Canada", "United States"]},
+        {"id": "AddressLine1", "label": "Address 1", "required": True, "options": []},
+        {"id": "State", "label": "State / Province", "required": True, "options": ["Alabama", "New Jersey"]},
+        {"id": "Phone", "label": "Primary Phone", "required": True, "options": []},
+        {"id": "ApplicantSource", "label": "How did you hear about this opportunity?", "required": True,
+         "options": ["Acme Careers", "LinkedIn", "Other"]}],
+    "questions": [
+        {"Id": "0a1b2c3d-0000-4000-8000-000000000001", "ResponseType": "MultipleChoice", "Choices": ["Yes", "No"],
+         "Question": "Have you ever been employed within the executive or legislative branch of the U.S. Federal\nGovernment?"},
+        {"Id": "0a1b2c3d-0000-4000-8000-000000000002", "ResponseType": "Text", "Choices": [],
+         "Question": "What state are you currently located in?"},
+        {"Id": "11111111-2222-3333-4444-555555555555", "ResponseType": "MultipleChoice",
+         "Choices": ["0-2", "3-5", "6+"], "Question": "Years of experience?"},
+        {"Id": "66666666-7777-8888-9999-000000000000", "ResponseType": "Numeric", "Choices": [],
+         "Question": "Desired salary?"}],
+    "eeo": [
+        {"id": "Gender", "label": "Gender", "required": True, "options": ["Male", "Female"], "decline": True},
+        {"id": "EthnicOrigin", "label": "Race", "required": False, "options": ["White", "Asian"], "decline": True},
+        {"id": "USFederalContractor", "label": "Are you a protected veteran?", "required": True,
+         "options": ["Yes", "No"], "decline": True}],
+}
+
+
+def test_ukg_link_detail_or_apply_with_or_without_tracking_tail():
+    want = f"{UKG_BASE}/OpportunityApply?opportunityId={UKG_ID}"
+    for url in (f"{UKG_BASE}/OpportunityDetail?opportunityId={UKG_ID}", want,
+                f"{UKG_BASE}/OpportunityDetail?opportunityId={UKG_ID}&utm_source=freehire.me",
+                f"{UKG_BASE}/OpportunityDetail?utm_source=freehire.me&opportunityId={UKG_ID}"):
+        assert systems.for_url(url) is ukg and ukg.application_url(url) == want
+    assert systems.for_url("https://recruiting.ultipro.com/acme1001/JobBoard/list") is None
+    with pytest.raises(ValueError):
+        ukg.parse_url("https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a")
+
+
+def test_ukg_form_becomes_shared_questions():
+    got = {x["id"]: x for x in ukg.from_snapshot(UKG_FORM)}
+    assert got["Phone"]["key"] == "phone" and got["Phone"]["kind"] == "phone"
+    assert got["AddressLine1"]["key"] is None and got["State"]["options"] == ["Alabama", "New Jersey"]
+    assert got["resume"]["kind"] == "file" and got["start-date"]["kind"] == "date"
+    assert got["employeereferral"]["kind"] == "yesno"
+    fed = got["0a1b2c3d-0000-4000-8000-000000000001"]
+    assert fed["kind"] == "yesno" and "Federal Government?" in fed["title"]  # line break in the title folded
+    assert got["0a1b2c3d-0000-4000-8000-000000000002"]["kind"] == "longtext"
+    assert got["11111111-2222-3333-4444-555555555555"]["kind"] == "choice"
+    assert got["66666666-7777-8888-9999-000000000000"]["kind"] == "number"
+    assert got["Gender"]["options"] == ["Male", "Female", ukg.DECLINE]  # decline is a checkbox beside the list
+    assert got["EthnicOrigin"]["required"] is False  # Race shows only after "Not Hispanic/Latino"
+    last = list(got.values())[-1]
+    assert last["id"] == ukg.PROFILE and last["required"] is False and "as it is added" in last["title"]
+
+
+def test_ukg_form_questions_asked_not_guessed():
+    config = {"work_authorization": {"authorized_us": True, "needs_sponsorship": False}}
+    drafted = questions.draft(ukg.from_snapshot(UKG_FORM), CONTACT, config=config)
+    answered = {a["id"]: a["answer"] for a in drafted if a["answer"]}
+    assert answered == {"Phone": "555-0100"}  # everything else - address, disclosures, sections - asked
+
+
+def test_ukg_resume_sections_mapping():
+    assert [ukg.degree_word(d) for d in ("BA", "B.S.", "AA", "MBA", "MS", "PhD", "Doctor of Medicine", "")] == \
+        ["Bachelor", "Bachelor", "Associate", "Master", "Master", "Doctor", "Doctor", None]
+    majors = ["Art", "Art Education", "Art History", "Computer Science"]
+    assert ukg.major_option("Art Education in School and Community", majors) == "Art Education"
+    assert ukg.major_option("computer science", majors) == "Computer Science"
+    assert ukg.major_option("Artificial Intelligence", majors) is None  # never a partial word
+    assert ukg.month_year("2023-02") == ("Feb", "2023") and ukg.month_year("2016") == ("", "2016")
+    assert ukg.month_year("present") is None and ukg.month_year(None) is None
+    assert [ukg.link_title(u) for u in ("linkedin.com/in/ada", "https://github.com/ada", "ada.dev")] == \
+        ["LinkedIn", "GitHub", "Website"]
+
+
+def test_ukg_work_description_uses_tailored_lines_first():
+    role = {"id": "acme", "bullets": [{"claim": "Master line."}]}
+    tailored = {"entries": [{"id": "acme", "bullets": [{"text": "Tailored line one."}, {"text": "Two."}]}]}
+    assert ukg.description(role, tailored) == "- Tailored line one.\n- Two."
+    assert ukg.description(role, {}) == "- Master line."
+    assert len(ukg.description({"id": "x", "bullets": [{"claim": "x" * 3000}]}, {})) == 2000
 
 def test_open_chrome_found_by_its_command_line_when_the_port_file_is_gone(tmp_path, monkeypatch):
     from apply import browser

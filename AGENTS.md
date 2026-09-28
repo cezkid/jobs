@@ -75,6 +75,8 @@ when asked, at setup, and before any step sending something new off computer.
 | Resume + postings you work on | this AI chat (Claude or ChatGPT) | User's own AI account; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
+| Work history, education, skills, links you apply with | that employer's UKG site | That employer, as each is added (only after you say yes) |
+| Contact details, answers, resume you apply with | that employer's UKG site | That employer, once you click Submit |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 
 AI training = setting on user's own AI account; only they can change it (`job-setup` offers it
