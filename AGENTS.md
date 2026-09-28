@@ -138,7 +138,8 @@ rewrite the words.
 Page hygiene gates, both copies: all text black (links aside), no letters spaced apart inside a
 word, same space under every heading (`app/docs/resume/page-format.md`).
 
-Typeface = `resume.font` in settings, default Caladea, files in `app/resume/fonts/<family>/`.
+Typeface = `resume.font` in settings, default Caladea (`app/resume/fonts/`); added family goes in
+`.data/fonts/<family>/` - update replaces `app/` whole.
 User asks for another font -> open-licence fonts only (Georgia, Cambria, Calibri, Times can't
 ship; offer the look-alike). Add its folder, render their resume in it, tell them the cost
 ("3 pages instead of 2, 8 half-empty lines"), keep it only if they still want it; widths are

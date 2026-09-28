@@ -107,8 +107,9 @@ resume:
   font: Caladea
 ```
 
-Name must match folder in `app/resume/fonts/` + the font's own name. Add a family: its `.ttf`
-files in a folder of that name - regular + bold minimum, semibold used when present.
+Name must match folder + font's own name. Shipped family: `app/resume/fonts/`. Add a family: its
+`.ttf` files in `.data/fonts/<name>/` - regular + bold minimum, semibold used when present.
+Never under `app/`: update swaps that folder whole, added family gone next launch.
 `typeface.check()` runs before first compile, names what a folder lacks. Typst gets that one
 folder, no system fonts -> no half-substitution.
 
