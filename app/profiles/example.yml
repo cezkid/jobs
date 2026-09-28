@@ -37,6 +37,9 @@ blocklist:
   # whole words/phrases in title ("intern" never hides "Internal Auditor");
   # preview: uv run app/jobs.py rank --would-hide "<phrase>"
   title_phrases: []
+  # phrases title_phrases never match inside, e.g. phrase "staff" + keep "member of technical
+  # staff" or "senior/staff" (job open at senior level too); " / " reads as "/"
+  title_keep: []
 
 # other rank keys + what they do: app/defaults.yml
 rank:

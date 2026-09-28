@@ -15,7 +15,9 @@ missing -> `job-setup` skill instead.
    - reposter / staffing agency -> `blocklist.companies`
    - wrong field -> `blocklist.categories` (enrichment.category, local only)
    - misleading title -> `blocklist.title_phrases` (whole words, case-insensitive); first
-     `uv run app/jobs.py rank --would-hide "<phrase>"`, tell user the count it hides
+     `uv run app/jobs.py rank --would-hide "<phrase>"`, tell user the count it hides; read
+     the titles - phrase also inside a wider title ("Member of Technical Staff", "Senior/Staff")
+     -> `blocklist.title_keep` spares those, say count kept
    - whole search too wide -> tighten params, measured w/ `uv run app/jobs.py probe` first
    - any narrowing (filter, city, blocked field) -> measure, state the cost BEFORE saving, do
      what they pick (`AGENTS.md` #Lead, explain, push back).
