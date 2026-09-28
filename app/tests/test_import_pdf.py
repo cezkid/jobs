@@ -219,6 +219,20 @@ def test_professional_development_heading_is_skipped(line):
         "Led professional development for 40 staff"]
 
 
+def test_copied_skill_group_label_counts_as_kept(mapped):
+    source = "SKILLS\nAgile Practice - Scrum, Kanban\n"
+    mapped["skills"] = [{"group": "Agile Practice", "items": ["Scrum", "Kanban"]}]
+    assert import_pdf.recovery(mapped, source) == (1.0, [])
+    assert all(".group" not in path for path, _ in import_pdf.traced_strings(mapped))
+
+
+def test_made_up_skill_group_label_stays_untraced(mapped):
+    source = SOURCE + "SKILLS\nScrum, Kanban\n"
+    mapped["skills"] = [{"group": "Methods", "items": ["Scrum", "Kanban"]}]
+    assert import_pdf.untraced(mapped, source) == []
+    assert "Scrum, Kanban" not in import_pdf.recovery(mapped, source)[1]
+
+
 def test_dropped_credential_line_is_reported_and_other_section_traces_it(mapped):
     source = SOURCE + "SECURITY CLEARANCE\nACTIVE TS/SCI CLEARANCE\n"
     assert "ACTIVE TS/SCI CLEARANCE" in import_pdf.recovery(mapped, source)[1]

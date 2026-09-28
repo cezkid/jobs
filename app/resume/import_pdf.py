@@ -149,6 +149,9 @@ def content_lines(source: str) -> list[str]:
 
 def recovery(mapped: dict, source: str) -> tuple[float, list[str]]:
     got = Counter(w for _, v in traced_strings(mapped) for w in WORD.findall(normalize(v)))
+    # a skill group label stays untraced (AI may coin its own), but one copied from the source
+    # ("Agile Practice - Scrum, Kanban") holds that line's words; counted here or the line reads left out
+    got.update(w for group in mapped["skills"] for w in WORD.findall(normalize(group["group"])))
     lines = content_lines(source)
     want = Counter(w for line in lines for w in WORD.findall(normalize(line)))
     ratio = sum((want & got).values()) / max(sum(want.values()), 1)
