@@ -13,7 +13,9 @@ import cfg
 from resume import facts, handoff, schema, tidy
 
 ZERO_WIDTH = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
-LINE_BULLET = re.compile("^[ \t]*[\u25cf\u2022\u25aa\u25e6\u00b7]", re.M)
+# Word exports its 2nd-level bullet as a plain "o" (Courier New) and Symbol/Wingdings bullets as
+# private-use U+F0A7 / U+F0B7; left in, each bullet line gains a stray "o" word recovery counts missing
+LINE_BULLET = re.compile("^[ \t]*(?:[\u25cf\u2022\u25aa\u25e6\u00b7\uf0a7\uf0b7]|o(?=[ \t]|$))", re.M)
 FOLD = str.maketrans({
     "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"',
     "\u2013": "-", "\u2014": "-", "\u00a0": " ", "\u202f": " ",

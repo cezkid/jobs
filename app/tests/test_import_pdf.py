@@ -156,6 +156,21 @@ def test_extract_strips_bullet_glyphs(tmp_path):
     assert "\u2022" not in text and "Built search" in text
 
 
+@pytest.mark.parametrize("line", ["o\tLed hiring", "o Led hiring", "  o Led hiring", "\uf0a7 Led hiring", "\uf0b7Led hiring"])
+def test_word_bullets_stripped(line):
+    assert import_pdf.LINE_BULLET.sub("", line).strip() == "Led hiring"
+
+
+@pytest.mark.parametrize("line", ["onboarding new hires", "owned the roadmap", "Led a team o five"])
+def test_words_starting_or_holding_o_untouched(line):
+    assert import_pdf.LINE_BULLET.sub("", line) == line
+
+
+def test_extract_strips_word_o_bullet(tmp_path):
+    text = import_pdf.extract(pdf_with(tmp_path, "Jane Doe\no Led hiring\nonboarding new hires"))
+    assert text.split("\n")[1].strip() == "Led hiring" and "onboarding new hires" in text
+
+
 def test_extract_rejects_glyph_id_text(tmp_path):
     with pytest.raises(ValueError, match="ToUnicode"):
         import_pdf.extract(pdf_with(tmp_path, "0123 4567 89 ## %% 0123"))
