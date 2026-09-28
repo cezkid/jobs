@@ -37,7 +37,8 @@ NON_SLUG = re.compile(r"[^a-z0-9]+")
 # from capitals: "ACTIVE TS/SCI CLEARANCE" or "BLS/ACLS CERTIFIED" is all caps and a real credential
 HEADING = re.compile(
     r"^(?:(?:professional|work|relevant|technical|core|key|additional|other|selected|career|volunteer)\s+)?"
-    r"(?:experience|work history|employment(?: history)?|history|education(?: and training)?|training|"
+    r"(?:experience|work history|employment(?: history)?|history|education(?: and (?:training|professional development))?|"
+    r"training|professional development|"
     r"skills(?: and abilities)?|competencies|summary|profile|objective|about(?: me)?|"
     r"certifications?(?: and licen[cs]es?)?|licen[cs]es?(?: and certifications?)?|credentials|projects|languages|"
     r"volunteer(?:ing)?|work|awards(?: and honors)?|honors(?: and awards)?|achievements|accomplishments|"

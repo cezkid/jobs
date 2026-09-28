@@ -211,6 +211,14 @@ def test_all_caps_credential_counts_only_named_headings_skip():
     assert lines == ["ACTIVE TS/SCI CLEARANCE", "BLS/ACLS CERTIFIED"]
 
 
+@pytest.mark.parametrize("line", [
+    "EDUCATION & PROFESSIONAL DEVELOPMENT", "Education and Professional Development:", "PROFESSIONAL DEVELOPMENT",
+])
+def test_professional_development_heading_is_skipped(line):
+    assert import_pdf.content_lines(f"{line}\nLed professional development for 40 staff\n") == [
+        "Led professional development for 40 staff"]
+
+
 def test_dropped_credential_line_is_reported_and_other_section_traces_it(mapped):
     source = SOURCE + "SECURITY CLEARANCE\nACTIVE TS/SCI CLEARANCE\n"
     assert "ACTIVE TS/SCI CLEARANCE" in import_pdf.recovery(mapped, source)[1]
