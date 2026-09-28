@@ -31,6 +31,9 @@ CHROME = [
     # Chrome installed w/o admin rights lands per user
     str(Path(os.environ.get("LOCALAPPDATA", "")) / "Google" / "Chrome" / "Application" / "chrome.exe"),
     "google-chrome", "google-chrome-stable", "chromium", "chromium-browser",
+    # Chromium w/ same debugging protocol, on every Windows 10/11 => no Chrome install asked of user
+    r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
 ]
 
 
@@ -71,7 +74,7 @@ def running_port() -> int | None:
     """Debugging port off the command line of a Chrome running on Job Finder's profile."""
     if sys.platform == "win32":
         command = ["powershell", "-NoProfile", "-Command",
-                   "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe'\" | ForEach-Object CommandLine"]
+                   "Get-CimInstance Win32_Process -Filter \"Name='chrome.exe' OR Name='msedge.exe'\" | ForEach-Object CommandLine"]
     else:
         command = ["ps", "-axww", "-o", "command="]
     try:

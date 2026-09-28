@@ -57,6 +57,9 @@ an employer's spam check sees at Submit):
 Second application reuses the open window: new tab via `/json/new`. Another Chrome on the same
 profile would just hand the link to the first, no port to attach to.
 
+No Chrome on Windows -> Edge (ships w/ Windows 10/11), same flags + profile. Measured 2026-09-28,
+Edge via `page_at`: `webdriver` `false`; window outlives command (PowerShell + Bash tool both).
+
 ## Shared rules (every system)
 
 - Resume answers only what it states outright: name, email, phone, links. Location asked.
