@@ -1,5 +1,6 @@
 import json
 import re
+from pathlib import PurePosixPath, PureWindowsPath
 
 import cfg
 import launch
@@ -87,17 +88,25 @@ def test_claude_trusts_this_folder_only(tmp_path):
     # untrusted folder => its permission list ignored, user asked before every step
     state = tmp_path / ".claude.json"
     root = tmp_path / "jobs"
+    keys = launch.claude_project_keys(root)
     launch.ensure_claude_trust(root, state)
-    assert json.loads(state.read_text())["projects"][str(root)] == {"hasTrustDialogAccepted": True}
+    assert all(json.loads(state.read_text())["projects"][k] == {"hasTrustDialogAccepted": True} for k in keys)
     state.write_text(json.dumps({"theme": "dark", "projects": {
-        "/elsewhere": {"hasTrustDialogAccepted": False}, str(root): {"lastCost": 1}}}))
+        "/elsewhere": {"hasTrustDialogAccepted": False}, keys[0]: {"lastCost": 1}}}))
     launch.ensure_claude_trust(root, state)
     written = json.loads(state.read_text())
     assert written["theme"] == "dark" and written["projects"]["/elsewhere"] == {"hasTrustDialogAccepted": False}
-    assert written["projects"][str(root)] == {"lastCost": 1, "hasTrustDialogAccepted": True}
+    assert written["projects"][keys[0]] == {"lastCost": 1, "hasTrustDialogAccepted": True}
     state.write_text("{broken")
     launch.ensure_claude_trust(root, state)  # a file Claude is mid-way writing stays as it is
     assert state.read_text() == "{broken"
+
+
+def test_claude_trust_keys_match_claude_lookup():
+    # backslash key or one drive case only => VS Code session untrusted, every step asks
+    win = PureWindowsPath(r"C:\Users\x\jobs")
+    assert launch.claude_project_keys(win) == ["c:/Users/x/jobs", "C:/Users/x/jobs"]
+    assert launch.claude_project_keys(PurePosixPath("/Users/x/jobs")) == ["/Users/x/jobs"]
 
 
 def test_launcher_never_changes_claude_for_other_projects():

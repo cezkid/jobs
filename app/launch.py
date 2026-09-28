@@ -148,13 +148,21 @@ def ensure_mac_icon(old: Path = OLD_MAC_ICON) -> None:
         subprocess.run(["bash", str(MAC_ICON_MAKER)], check=False, capture_output=True)
 
 
+def claude_project_keys(folder: Path) -> list[str]:
+    # Claude looks folder up by forward-slash path, drive letter case-sensitive; VS Code starts it
+    # on `c:/...`, terminal on `C:/...` (measured 2026-09-28: backslash or other-case key => untrusted)
+    posix = folder.as_posix()
+    if len(posix) < 2 or posix[1] != ":":
+        return [posix]
+    return [posix[0].lower() + posix[1:], posix[0].upper() + posix[1:]]
+
+
 def ensure_claude_trust(root: Path | None = None, state: Path = CLAUDE_STATE) -> None:
     # this folder's .claude/settings.json lets the AI run Job Finder's own steps and write only
     # inside My Jobs / My Resume / My Settings / .data without asking. Claude ignores that list
     # until the folder is trusted (measured 2026-09-26: untrusted => every write blocked; trusted
     # => those folders written, a file beside them still blocked). Trust is kept per folder, so
     # nothing changes in the user's other projects - unlike auto mode, which is user-wide only.
-    folder = str(root or cfg.ROOT)
     try:
         current = json.loads(state.read_text(encoding="utf-8")) if state.exists() else {}
     except (OSError, ValueError):
@@ -162,9 +170,14 @@ def ensure_claude_trust(root: Path | None = None, state: Path = CLAUDE_STATE) ->
     if not isinstance(current, dict):
         return
     projects = current.setdefault("projects", {})
-    if not isinstance(projects, dict) or (projects.get(folder) or {}).get("hasTrustDialogAccepted"):
+    if not isinstance(projects, dict):
         return
-    projects[folder] = {**(projects.get(folder) or {}), "hasTrustDialogAccepted": True}
+    untrusted = [k for k in claude_project_keys(root or cfg.ROOT)
+                 if not (projects.get(k) or {}).get("hasTrustDialogAccepted")]
+    if not untrusted:
+        return
+    for key in untrusted:
+        projects[key] = {**(projects.get(key) or {}), "hasTrustDialogAccepted": True}
     try:
         state.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
     except OSError:
