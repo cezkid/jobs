@@ -143,6 +143,32 @@ def test_unparseable_endpoint_left_for_hand_edit(mapped):
     assert master["roles"][0]["end"] == schema.PRESENT
 
 
+@pytest.mark.parametrize("dates, start, end", [
+    ("10/24 - Present", "2024-10", schema.PRESENT),
+    ("07/07 - 06/13", "2007-07", "2013-06"),
+    ("03/2019 - 11/2021", "2019-03", "2021-11"),
+    ("06/98 - 12/99", "1998-06", "1999-12"),
+])
+def test_word_numeric_dates_parse(dates, start, end):
+    assumptions = []
+    assert import_pdf.parse_range(dates, "roles[0]", TODAY, assumptions) == {"start": start, "end": end}
+    assert assumptions == []
+
+
+def test_two_digit_year_turns_1900s_only_past_next_year():
+    # TODAY is 2026: "27" can be a start date next year, "28" can't => 1928
+    assert import_pdf.endpoint("01/27", TODAY) == "2027-01"
+    assert import_pdf.endpoint("01/28", TODAY) == "1928-01"
+
+
+@pytest.mark.parametrize("bad", ["13/20", "00/2020"])
+def test_numeric_month_out_of_range_left_for_hand_edit(bad):
+    assumptions = []
+    parsed = import_pdf.parse_range(f"{bad} - Present", "roles[0]", TODAY, assumptions)
+    assert parsed == {"start": None, "end": schema.PRESENT}
+    assert assumptions == [f"roles[0].start: unparseable date {bad!r}, set by hand"]
+
+
 def pdf_with(tmp_path, text: str):
     path = tmp_path / "resume.pdf"
     with pymupdf.open() as doc:

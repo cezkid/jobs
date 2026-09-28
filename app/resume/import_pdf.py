@@ -28,6 +28,8 @@ MIN_ALPHA_RATIO = 0.5
 MIN_RECOVERY = 0.98
 MONTHS = ("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec")
 ENDPOINT = re.compile(r"^(?:(?P<month>[a-z]{3})[a-z]*\.?\s+)?(?P<year>\d{4})$")
+# Word resumes write "10/24" or "03/2019"; slash is no range separator, so a part stays whole
+NUMERIC_ENDPOINT = re.compile(r"^(?P<month>\d{1,2})/(?P<year>\d{2}|\d{4})$")
 RANGE_SEP = re.compile(r"\s*-\s*|\s+to\s+")
 PRESENT_WORDS = {"present", "current", "now"}
 NON_SLUG = re.compile(r"[^a-z0-9]+")
@@ -165,17 +167,31 @@ def unique(base: str, taken: set[str]) -> str:
     return candidate
 
 
+def endpoint(value: str, today: date) -> str | None:
+    if match := NUMERIC_ENDPOINT.match(value):
+        if not 1 <= int(match["month"]) <= 12:
+            return None
+        year = int(match["year"])
+        if len(match["year"]) == 2:
+            # "98" is 1998, not 2098: a 20YY past next year can't be a real date on a resume
+            year += 2000 if 2000 + year <= today.year + 1 else 1900
+        return f"{year}-{int(match['month']):02d}"
+    match = ENDPOINT.match(value)
+    if not match or (match["month"] and match["month"] not in MONTHS):
+        return None
+    # year-only source stays a year: a month the resume never gave is one a checker may not find
+    return f"{match['year']}-{MONTHS.index(match['month']) + 1:02d}" if match["month"] else match["year"]
+
+
 def parse_endpoint(text: str, where: str, today: date, assumptions: list[str]) -> str | None:
     value = normalize(text)
     if value in PRESENT_WORDS:
         return schema.PRESENT
-    match = ENDPOINT.match(value)
-    if not match or (match["month"] and match["month"] not in MONTHS):
+    result = endpoint(value, today)
+    if result is None:
         # left unset => schema flags field missing; hand edit settles it
         assumptions.append(f"{where}: unparseable date {text!r}, set by hand")
         return None
-    # year-only source stays a year: a month the resume never gave is one a checker may not find
-    result = f"{match['year']}-{MONTHS.index(match['month']) + 1:02d}" if match["month"] else match["year"]
     if schema.month_index(result, today) > schema.month_index(schema.PRESENT, today):
         assumptions.append(f"{where}: {result} after today")
     return result
