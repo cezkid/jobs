@@ -270,3 +270,118 @@ def test_roles_out_of_order_are_sorted_newest_first_and_said(mapped):
         "Senior Software Engineer", "Software Engineer", "Software Engineer Intern"]
     assert "the PDF listed jobs out of date order - they are now newest first" in assumptions
     assert schema.validate(master) == []
+
+
+# Word export shape (plan-8yi): Symbol bullet byte B7 (A7 for the square) carries a ToUnicode map
+# to private-use U+F0B7 / U+F0A7, 2nd level is a plain "o", dates MM/YY or MM/YYYY
+WORD_SOURCE = """Alex Rivera
+Riverton, OH | alex.rivera@example.com | (555) 010-0199
+PROFESSIONAL SUMMARY
+Operations lead for regional freight and warehouse teams.
+PROFESSIONAL EXPERIENCE
+Northwind Logistics\tColumbus, OH
+Operations Manager\t10/24 - Present
+\xb7\tCut dock-to-stock time 18% by redesigning the receiving flow
+o\tTrained 12 new leads on the warehouse system
+o Ran weekly safety reviews across 3 shifts
+Contoso Freight\tDayton, OH
+Shift Supervisor\t03/2019 - 09/2024
+\xa7\tScheduled 40 drivers across two depots
+Fabrikam Supply\tAkron, OH
+Inventory Clerk\t07/07 - 06/13
+\xb7\tCounted cycle stock for 2,000 bins each quarter
+SKILLS
+Agile Practice - Scrum, Kanban
+Warehouse Systems - SAP EWM, Manhattan WMS
+EDUCATION & PROFESSIONAL DEVELOPMENT
+Ohio State University
+B.S. Industrial Engineering\t05/2007
+Lean Six Sigma Green Belt, ASQ\t03/2019
+"""
+WORD_MAPPED = {
+    "contact": {
+        "name": "Alex Rivera", "email": "alex.rivera@example.com", "phone": "(555) 010-0199",
+        "location": "Riverton, OH", "links": [],
+    },
+    "summary": "Operations lead for regional freight and warehouse teams.",
+    "roles": [
+        {
+            "company": "Northwind Logistics", "title": "Operations Manager", "location": "Columbus, OH", "blurb": None,
+            "dates": "10/24 - Present",
+            "bullets": [
+                {"claim": "Cut dock-to-stock time 18% by redesigning the receiving flow",
+                 "metrics": ["18%"], "stack": [], "ai_work": False},
+                {"claim": "Trained 12 new leads on the warehouse system", "metrics": ["12 new leads"], "stack": [],
+                 "ai_work": False},
+                {"claim": "Ran weekly safety reviews across 3 shifts", "metrics": ["3 shifts"], "stack": [],
+                 "ai_work": False},
+            ],
+        },
+        {
+            "company": "Contoso Freight", "title": "Shift Supervisor", "location": "Dayton, OH", "blurb": None,
+            "dates": "03/2019 - 09/2024",
+            "bullets": [{"claim": "Scheduled 40 drivers across two depots", "metrics": ["40 drivers"], "stack": [],
+                         "ai_work": False}],
+        },
+        {
+            "company": "Fabrikam Supply", "title": "Inventory Clerk", "location": "Akron, OH", "blurb": None,
+            "dates": "07/07 - 06/13",
+            "bullets": [{"claim": "Counted cycle stock for 2,000 bins each quarter", "metrics": ["2,000 bins"],
+                         "stack": [], "ai_work": False}],
+        },
+    ],
+    "projects": [],
+    "skills": [
+        {"group": "Agile Practice", "items": ["Scrum", "Kanban"]},
+        {"group": "Warehouse Systems", "items": ["SAP EWM", "Manhattan WMS"]},
+    ],
+    "education": [{
+        "institution": "Ohio State University", "degree": "B.S.", "field": "Industrial Engineering", "details": None,
+        "end": "05/2007",
+    }],
+    "certifications": [{"name": "Lean Six Sigma Green Belt", "issuer": "ASQ", "date": "03/2019"}],
+    "languages": [],
+    "other": [],
+}
+SYMBOL_TO_UNICODE = b"""/CIDInit /ProcSet findresource begin 12 dict begin begincmap
+/CMapName /Symbol-UCS def /CMapType 2 def
+1 begincodespacerange <00> <FF> endcodespacerange
+2 beginbfchar <B7> <F0B7> <A7> <F0A7> endbfchar
+endcmap CMapName currentdict /CMap defineresource pop end end"""
+
+
+def word_pdf(tmp_path):
+    path = tmp_path / "word-resume.pdf"
+    with pymupdf.open() as doc:
+        page = doc.new_page()
+        page.insert_text((72, 72), WORD_SOURCE, fontname="helv", fontsize=10)
+        for font_xref, *_ in page.get_fonts():
+            cmap = doc.get_new_xref()
+            doc.update_object(cmap, "<<>>")
+            doc.update_stream(cmap, SYMBOL_TO_UNICODE)
+            doc.xref_set_key(font_xref, "ToUnicode", f"{cmap} 0 R")
+        doc.save(path)
+    return path
+
+
+def test_word_resume_imports_whole_and_dated(tmp_path):
+    pdf = word_pdf(tmp_path)
+    with pymupdf.open(pdf) as doc:
+        raw = doc[0].get_text()
+    # reads back the way Word's PDF does, so the test proves the strip, not a stand-in glyph
+    assert "\uf0b7" in raw and "\uf0a7" in raw and "\no\t" in raw
+    source = import_pdf.extract(pdf)
+    assert "\uf0b7" not in source and "\uf0a7" not in source
+    mapped = copy.deepcopy(WORD_MAPPED)
+    assert handoff.violations(mapped, import_pdf.MAPPED_SCHEMA, "answer") == []
+    assert import_pdf.untraced(mapped, source) == []
+    ratio, dropped = import_pdf.recovery(mapped, source)
+    assert dropped == []
+    assert ratio >= import_pdf.MIN_RECOVERY
+    master, assumptions = import_pdf.build(mapped, TODAY)
+    assert assumptions == []
+    assert [(r["start"], r["end"]) for r in master["roles"]] == [
+        ("2024-10", schema.PRESENT), ("2019-03", "2024-09"), ("2007-07", "2013-06")]
+    assert master["education"][0]["end"] == "2007-05"
+    assert master["certifications"][0]["date"] == "2019-03"
+    assert schema.validate(master) == []
