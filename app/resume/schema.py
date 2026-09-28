@@ -85,8 +85,28 @@ def expand_entry(entry, named: str, taken: set[str], index: dict) -> dict:
     if "ai_era" not in out:
         out["ai_era"] = in_ai_era(out)
     if isinstance(out.get("bullets"), list):
-        out["bullets"] = [expand_bullet(b, f"{out['id']}-{n}", index, out["ai_era"])
-                          for n, b in enumerate(out["bullets"], 1)]
+        out["bullets"] = [expand_bullet(b, derived, index, out["ai_era"])
+                          for b, derived in zip(out["bullets"], bullet_ids(out["id"], out["bullets"]))]
+    return out
+
+
+def bullet_ids(entry_id: str, bullets: list) -> list[str]:
+    """Position ids for plain sentences (`<entry>-<n>`). A sentence whose position id a kept id
+    already holds (tidy keeps `acme-11` on its bullet wherever it now sits) takes the next
+    number past the list instead: adding a fact stays adding a sentence, and no other id moves."""
+    kept = {b["id"] for b in bullets if isinstance(b, dict) and isinstance(b.get("id"), str) and b["id"]}
+    used, spare = set(kept), len(bullets)
+    out = []
+    for n, bullet in enumerate(bullets, 1):
+        if isinstance(bullet, dict) and bullet.get("id"):
+            out.append(bullet["id"])
+            continue
+        candidate = f"{entry_id}-{n}"
+        while candidate in used:
+            spare += 1
+            candidate = f"{entry_id}-{spare}"
+        used.add(candidate)
+        out.append(candidate)
     return out
 
 
