@@ -8,8 +8,17 @@ for installed copy. User not technical: run everything yourself, report outcome 
 Install downloads zip => no `.git`, no git, no gh. `.git` present -> developer checkout, skip
 to gates.
 
-1. Tools, missing only: Windows `winget install --id Git.Git -e --silent
-   --accept-package-agreements --accept-source-agreements`, same for `GitHub.cli`. Mac: `git
+1. Windows: start EVERY PowerShell call of this skill w/ line below, check included. Each call
+   inherits PATH VS Code started with => git/gh installed after that stay "not recognized"
+   until VS Code quits, next chat too:
+
+   ```powershell
+   $env:Path = [Environment]::GetEnvironmentVariable('Path', 'User') + ';' + [Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + $env:Path
+   ```
+
+   Tools, missing only: Windows `winget install --id Git.Git -e --silent --scope user
+   --accept-package-agreements --accept-source-agreements`, same for `GitHub.cli` (user scope =
+   no admin prompt, work laptop too). Mac: `git
    --version` (Apple dialog -> tell user click **Install**, wait); gh = latest
    `gh_<ver>_macOS_<arm64|amd64>.zip` from `github.com/cli/cli/releases`, `bin/gh` ->
    `~/.local/bin/`.

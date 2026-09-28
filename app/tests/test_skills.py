@@ -39,6 +39,15 @@ def test_questions_asked_one_at_a_time():
         assert "ONE question" in text and "batch of 4" not in text.lower()
 
 
+def test_report_defect_finds_git_and_gh_right_after_winget_install():
+    # AI shell calls inherit VS Code's launch PATH: registry change after launch invisible to every call
+    # (measured 2026-09-28: user env var set via registry absent from next PowerShell call)
+    text = (BODIES / "report-defect.md").read_text(encoding="utf-8")
+    installs = re.findall(r"winget install [^`]+", text)
+    assert installs and all("--scope user" in i for i in installs)
+    assert "$env:Path = [Environment]::GetEnvironmentVariable('Path', 'User')" in text
+
+
 def test_every_allowed_command_runs_without_asking_in_powershell_too():
     # Windows w/o Git => Claude runs commands in PowerShell; Bash(...) rules never match there
     # (measured 2026-09-28: `uv run app/jobs.py check-settings` denied until PowerShell twin added)
