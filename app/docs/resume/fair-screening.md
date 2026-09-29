@@ -142,7 +142,7 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 | Saved break words reused on forms | `career_break[i].explain` (1-2 sentences the user approved, never on the page) fills a work-break text box: breaks in the question's window ("last 5 years", "since 2019") or all, newest first w/ dates when several; any of them unexplained -> left blank. Source "read it before Submit"; no other sensitive kind ever filled | done (plan-1fw.6) |
 | Old jobs left off the page stay off forms | `questions.form_roles`: Workday (`apply --complete-history` when the form asks for it) + UKG work history get the tailored page's jobs when `contact.form_jobs: page`, every job when `all` or the form asks for complete / all employment history (leaving jobs out there is a false answer); unset -> no jobs added, the ask printed w/ counts ("same 4 jobs as your resume, or all 6") | done (plan-1fw.7) |
 | Break severity, no penalty numbers at user | `schema.gap_note`: 6+ months a line, 12+ a line + real recent work; running search nothing | done (plan-1fw.4) |
-| Old graduation year offered, not forced | `lint` `old-graduation-year` (`OLD_GRADUATION_YEARS` = 15) offers `hide_year` | offer done; 20-year bundle recommendation pending (plan-1fw.9) |
+| Old dates offered, not forced | `lint` `old-graduation-year` + `old-certification-year` (`OLD_GRADUATION_YEARS` = 15) offer `hide_year` (degrees + certifications); degree 20+ years (`AGE_BUNDLE_YEARS`) -> detail recommends it, `resume-feedback` adds the bundle note once (grad + cert years, jobs ended 15+ years ago, long years count) w/ its small cost. No years-of-experience cap | done (plan-1fw.9) |
 
 ## Advice we don't follow
 

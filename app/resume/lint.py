@@ -204,7 +204,8 @@ WHY = {
     "personal-details": "US employers don't expect these; they invite bias.",
     "abbreviated-school": "Application forms match your school against a list of full names, so a short form like \"CC\" matches nothing.",
     "language-level": "Resume readers store each language with its own level, so write one per line with the level in brackets, like Spanish (Fluent).",
-    "old-graduation-year": "A graduation year from 15+ years ago can invite age bias; you may leave the year off.",
+    "old-graduation-year": "A graduation year from 15+ years ago lets a reader guess age; you may leave the year off and keep the degree.",
+    "old-certification-year": "A certification year from 15+ years ago lets a reader guess age; you may leave the year off and keep the certification.",
     "spelling": "Resume scanners count a spelling mistake against the whole page, and US employers read British spellings as mistakes.",
     "compound-modifier": "Two words describing the next one take a hyphen - live-streaming channels, full-stack engineer.",
     "overused-opening": "One word starts many of your lines; a different true verb here and there reads less repetitive.",
@@ -224,6 +225,10 @@ LANGUAGE_LINE = re.compile(r"[^\W\d_][\w .'-]*?\s*\([^()]+\)")
 SEVERAL_LANGUAGES = re.compile(r",|/|&|\band\b", re.I)
 # Indeed/AARP: past this a graduation year dates the candidate more than it informs
 OLD_GRADUATION_YEARS = 15
+# degree this old ~ implied age 42+: every band where an audit found a penalty, with margin. Grad
+# year alone moved callbacks, shorter history alone did not -> years hidden together or not at all.
+# Threshold = judgement from the audits, untested (docs/resume/fair-screening.md "Age cues")
+AGE_BUNDLE_YEARS = 20
 
 
 @dataclass(frozen=True)
@@ -527,6 +532,18 @@ def check_entry_identity(entry: dict, where: str, entries: dict, findings: list[
         findings.append(Finding(FAIL, "dates-changed", where, f"subline {entry.get('subline')!r} lacks {span!r}"))
 
 
+def age_bundle_due(master: dict, today: date) -> bool:
+    """A degree 20+ years old: leaving off the years that show age is recommended, as one set.
+    Fires on the dates in the file only, the same for everyone."""
+    return any(s.get("end") and today.year - int(s["end"][:4]) >= AGE_BUNDLE_YEARS for s in master.get("education") or [])
+
+
+def hide_year_advice(master: dict, today: date) -> str:
+    if age_bundle_due(master, today):
+        return "recommended: hide_year: true, with the other years that show age"
+    return "hide_year: true leaves the year off"
+
+
 def master_findings(master: dict, today: date) -> list[Finding]:
     """Checks on the user's own file, not any one page: what it discloses, never what it claims."""
     findings = []
@@ -543,7 +560,12 @@ def master_findings(master: dict, today: date) -> list[Finding]:
         end = school.get("end")
         if end and not school.get("hide_year") and today.year - int(end[:4]) >= OLD_GRADUATION_YEARS:
             findings.append(Finding(WARN, "old-graduation-year", f"education[{i}]",
-                                    f"{school['degree']} ended {end[:4]}; hide_year: true leaves the year off"))
+                                    f"{school['degree']} ended {end[:4]}; {hide_year_advice(master, today)}"))
+    for i, cert in enumerate(master.get("certifications") or []):
+        when = cert.get("date")
+        if when and not cert.get("hide_year") and today.year - int(when[:4]) >= OLD_GRADUATION_YEARS:
+            findings.append(Finding(WARN, "old-certification-year", f"certifications[{i}]",
+                                    f"{cert['name']} dated {when[:4]}; {hide_year_advice(master, today)}"))
     for i, line in enumerate(master.get("languages") or []):
         name = line.split("(")[0]
         if not LANGUAGE_LINE.fullmatch(line.strip()) or SEVERAL_LANGUAGES.search(name):

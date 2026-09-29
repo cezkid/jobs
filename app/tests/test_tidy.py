@@ -189,6 +189,7 @@ def test_new_sections_round_trip_and_the_editor_accepts_them(tmp_path):
     doc["career_break"] = [{"reason": "Caring for a family member", "start": "2022", "end": "2023-01",
                             "explain": "I cared for a family member full time."}]
     doc["education"] = [{"institution": "State University", "degree": "BA", "end": "2004", "hide_year": True}]
+    doc["certifications"] = [{"name": "Certified Nursing Assistant", "date": "2005-03", "hide_year": True}]
     doc["other"] = [{"heading": "Volunteer Work", "lines": ["Riverside Food Bank, driver, 2020 - 2022"]}]
     assert [e.message for e in jsonschema.Draft7Validator(DETAILS_SCHEMA).iter_errors(doc)] == []
     typed = yaml.safe_load(PLAIN.replace("start: 2019-06", "start: 2019"))  # a year typed bare is fine too

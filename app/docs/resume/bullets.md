@@ -147,7 +147,7 @@ one instance.
 | `bullet-taper` | older role more bullets than newer above | WARN |
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
 | `em-dash`, `markdown`, `invisible-unicode` | generated-text characters | via `hit()` |
-| `street-address`, `personal-details`, `old-graduation-year`, `abbreviated-school` | own file only (`resume-lint`): house number, apartment, suite, ZIP in location; birth date, age, marital status, nationality; degree 15+ years ago w/o `hide_year`; shortened school (CC, Univ., U of); languages line not one language + bracketed level | WARN |
+| `street-address`, `personal-details`, `old-graduation-year`, `old-certification-year`, `abbreviated-school` | own file only (`resume-lint`): house number, apartment, suite, ZIP in location; birth date, age, marital status, nationality; degree or certification 15+ years ago w/o `hide_year` (degree 20+ years -> detail recommends it, feedback adds the bundle note once); shortened school (CC, Univ., U of); languages line not one language + bracketed level | WARN |
 | `spelling` | British form (`US_FORMS`: theatre, colour, organise, modelling, licence...) or unknown word one letter from a known one, likely word named. Skips skills, stack, `WORK_WORDS` (workflow, dataset, telehealth...), names, tool tokens; generated may use any facts/posting word. Scorers fail the page on one error | via `hit()` |
 | `compound-modifier` | one of 32 open two-word modifiers before noun (*live streaming channels*, *full stack engineer*); never after (*shipped end to end*) | WARN |
 | `overused-opening` | one opener on 4+ bullets (convention, unmeasured) | WARN |
@@ -195,7 +195,8 @@ Mirrored from `lint.WHY`; `test_lint` keeps them in step.
 | `personal-details` | US employers don't expect these; they invite bias. |
 | `abbreviated-school` | Application forms match your school against a list of full names, so a short form like "CC" matches nothing. |
 | `language-level` | Resume readers store each language with its own level, so write one per line with the level in brackets, like Spanish (Fluent). |
-| `old-graduation-year` | A graduation year from 15+ years ago can invite age bias; you may leave the year off. |
+| `old-graduation-year` | A graduation year from 15+ years ago lets a reader guess age; you may leave the year off and keep the degree. |
+| `old-certification-year` | A certification year from 15+ years ago lets a reader guess age; you may leave the year off and keep the certification. |
 | `spelling` | Resume scanners count a spelling mistake against the whole page, and US employers read British spellings as mistakes. |
 | `compound-modifier` | Two words describing the next one take a hyphen - live-streaming channels, full-stack engineer. |
 | `overused-opening` | One word starts many of your lines; a different true verb here and there reads less repetitive. |
@@ -267,7 +268,7 @@ true resume forever. Re-propose an old form only w/ new evidence.
 | Import recovery skipped any all-caps line as heading | Named section headings only | "ACTIVE TS/SCI CLEARANCE", "BLS/ACLS CERTIFIED" could drop silently; every left-out line now shown |
 | No volunteer/awards/clearances; projects needed dates | `other` sections verbatim; undated projects OK | Fact w/o field = lost on import |
 | Education always after Experience | First when no jobs, or degree ended within 12 months over under 24 months of work | New graduate's strongest line was last |
-| Nothing flagged street address, birth date, marital status | `street-address`, `personal-details` WARN (untailored); `old-graduation-year` suggests `hide_year` | US hiring doesn't ask; invites bias; year never hidden w/o user's say |
+| Nothing flagged street address, birth date, marital status | `street-address`, `personal-details` WARN (untailored); `old-graduation-year` + `old-certification-year` suggest `hide_year`; degree 20+ years old -> recommended as one bundle (grad + cert years, oldest roles, long years count) | US hiring doesn't ask; invites bias; year never hidden w/o user's say. Grad year alone moved callbacks, shorter history alone didn't (fair-screening.md "Age cues") |
 | Gap only ever a gap | `career_break` entries w/ jobs, no lines, counted as covered | Named break answers what a silent gap raises |
 | Summary 1-2 lines (prompt, file notes) | Up to 4, last well filled; 57-word cap unchanged | Guidance: 3-6 lines. 57 words already ~5 lines (~12 words/line Caladea); cap 90 would allow 7 |
 | No spelling check | `spelling` WARN own, FAIL generated; typo-shaped + British only | Scorers fail page on one error; US reads *theatre* as one. Plain dictionary flagged *workflow*, *dataset*, *telehealth* -> one-letter-off unknowns only |

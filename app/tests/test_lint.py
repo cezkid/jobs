@@ -317,6 +317,25 @@ def test_old_graduation_year_suggests_hiding_never_hides(master):
     assert lint.master_findings(master, TODAY) == []
 
 
+def test_degree_20_years_old_recommends_the_year_off_15_only_offers(master):
+    master["education"][0]["end"] = "2011-05"  # 15 years
+    assert "recommended" not in lint.master_findings(master, TODAY)[0].detail
+    master["education"][0]["end"] = "2006-05"  # 20 years
+    detail = lint.master_findings(master, TODAY)[0].detail
+    assert detail.startswith("B.S. ended 2006; recommended: hide_year: true") and "older" not in detail
+
+
+def test_old_certification_year_offers_hiding_and_the_page_honours_it(master):
+    master["certifications"] = [{"name": "Certified Nursing Assistant", "issuer": "Acme Board", "date": "2009-03"}]
+    findings = lint.master_findings(master, TODAY)
+    assert [(f.rule, f.where) for f in findings] == [("old-certification-year", "certifications[0]")]
+    assert "hide_year" in findings[0].detail and "recommended" not in findings[0].detail
+    master["certifications"][0]["hide_year"] = True
+    assert lint.master_findings(master, TODAY) == []
+    master["certifications"].append({"name": "Food Safety", "date": "2016-01"})  # 10 years: no offer
+    assert lint.master_findings(master, TODAY) == []
+
+
 def test_shortened_school_name_warns(master):
     master["education"][0]["institution"] = "Lakeview CC"
     assert rules(lint.master_findings(master, TODAY), lint.WARN) == {"abbreviated-school"}

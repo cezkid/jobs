@@ -149,7 +149,7 @@
           "field": { "type": "string" },
           "details": { "type": "string" },
           "end": { "$ref": "#/definitions/month" },
-          "hide_year": { "type": "boolean", "description": "true leaves the year off the page. Worth it for a degree finished 15 or more years ago." }
+          "hide_year": { "type": "boolean", "description": "true leaves the year off the page. Worth it for a degree finished 15 or more years ago; recommended at 20 or more, with your other old years." }
         }
       }
     },
@@ -163,7 +163,8 @@
         "properties": {
           "name": { "type": "string", "minLength": 1 },
           "issuer": { "type": "string" },
-          "date": { "$ref": "#/definitions/month" }
+          "date": { "$ref": "#/definitions/month" },
+          "hide_year": { "type": "boolean", "description": "true leaves the date off the page. Worth it for a certification from 15 or more years ago." }
         }
       }
     },

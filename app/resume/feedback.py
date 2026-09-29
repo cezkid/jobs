@@ -44,8 +44,16 @@ WORDING = ("spelling", "compound-modifier", "overused-opening", "same-verb-openi
            "style-word", "unmeasurable-grade", "hedge", "resume-verb", "empty-clause", "em-dash",
            "markdown", "invisible-unicode", "canonical-casing", "uniform-bullet-length")
 EVIDENCE = ("lead-bullet-weak",)
-PERSONAL = ("street-address", "personal-details", "old-graduation-year", "abbreviated-school", "language-level")
+AGE = ("old-graduation-year", "old-certification-year")
+PERSONAL = ("street-address", "personal-details", *AGE, "abbreviated-school", "language-level")
 DATES = ("role-dates-overlap", "bullet-taper")
+# once per report, not per year: the years only help left off together (docs/resume/fair-screening.md "Age cues")
+BUNDLE = ("Your degree is {years}+ years old, so we recommend leaving off, together, every year that lets a reader "
+          "guess age: the graduation year, certification years from {old}+ years ago{jobs}, and a long count like "
+          "\"25 years of experience\" (say \"{old}+ years\" or leave the count out). In the studies, a shorter job "
+          "history changed nothing while the graduation year still showed. Small cost: in one survey of 1,000 hiring "
+          "managers, 60% said a resume should show the graduation year. Your call - say \"leave off the years that "
+          "show age\" in the chat.")
 
 
 def bullets(master: dict) -> list[tuple[str, str]]:
@@ -67,6 +75,9 @@ def assess(master: dict, today: date) -> dict:
     share = len(numbered) / len(lines) if lines else 0.0
     shown = {q: [(w, c) for w, c in lines if re.search(p, c, re.I)] for q, p in QUALITIES.items()}
     gaps = schema.employment_gaps(master, today)
+    old_jobs = [r for r in master["roles"]
+                if r["end"] != schema.PRESENT and today.year - int(r["end"][:4]) >= lint.OLD_GRADUATION_YEARS]
+    bundle = lint.age_bundle_due(master, today) and any(f.rule in AGE for f in counted)
     areas = {
         "Numbers and scope": (status(share, NUMBER_STRONG, NUMBER_GOOD),
                               f"{len(numbered)} of {len(lines)} lines say how many, how much or what changed"),
@@ -79,7 +90,7 @@ def assess(master: dict, today: date) -> dict:
                                        f"{sum(f.rule in (*PERSONAL, *DATES) for f in counted) + len(gaps)} note(s)"),
     }
     return {"date": today.isoformat(), "areas": areas, "bare": bare, "shown": shown, "gaps": gaps,
-            "notes": [(f.rule, f.where, f.detail) for f in counted]}
+            "notes": [(f.rule, f.where, f.detail) for f in counted], "bundle": {"old_jobs": len(old_jobs)} if bundle else None}
 
 
 def changes(now: dict, before: dict | None) -> list[str]:
@@ -128,6 +139,10 @@ def report_md(result: dict, moved: list[str]) -> str:
             current = schema.gap_is_current(g, today)
             span = f"since your last job ({g['after']} to now)" if current else f"between jobs ({g['after']} to {g['before']})"
             out.append(f"- {g['months']}-month break {span}. {schema.gap_note(g['months'], current)}")
+        if result["bundle"]:
+            n = result["bundle"]["old_jobs"]
+            jobs = f", the {n} job(s) that ended {lint.OLD_GRADUATION_YEARS}+ years ago (kept with no lines, or left off)" if n else ""
+            out += ["", BUNDLE.format(years=lint.AGE_BUNDLE_YEARS, old=lint.OLD_GRADUATION_YEARS, jobs=jobs)]
     out += ["", "## What your lines show", ""]
     for quality, found in result["shown"].items():
         out.append(f"**{quality}** - {len(found)} line(s)" + (":" if found else

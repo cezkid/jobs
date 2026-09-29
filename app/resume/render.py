@@ -217,7 +217,8 @@ def page_model(master: dict, today: date | None = None) -> dict:
             sections.append(education)
     if master.get("certifications"):
         sections.append({"title": "Certifications", "lines": [
-            {"text": joined(c["name"], c.get("issuer"), c.get("date") and month_label(c["date"]))}
+            # hide_year: the user's choice to leave an old certification date off, as for a degree
+            {"text": joined(c["name"], c.get("issuer"), c.get("date") and not c.get("hide_year") and month_label(c["date"]))}
             for c in master["certifications"]
         ]})
     # volunteer work, awards, clearances, publications: the user's own heading and lines, verbatim

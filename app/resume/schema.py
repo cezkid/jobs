@@ -318,6 +318,7 @@ def validate(master) -> list[str]:
             text(cert, "name", where, errors)
             optional(cert, "issuer", str, where, errors)
             month(cert, "date", where, errors, required=False)
+            optional(cert, "hide_year", bool, where, errors)
         else:
             errors.append(f"{where}: expected mapping")
     strings(master, "languages", "master", errors)
