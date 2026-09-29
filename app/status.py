@@ -1,5 +1,6 @@
 import argparse
 import json
+import shutil
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -23,6 +24,9 @@ LINK_LINE = "- Link: "
 # resume made this many days ago -> asked "did you send it?" at chat start; untouched this long
 # -> drops out of Waiting on you
 ASK_AFTER_DAYS, QUIET_AFTER_DAYS = 3, 14
+# still being worked on => worth asking "is it still open?"; no / offer / not sending are done
+IN_PROGRESS = ("saved", "resume_made", "applied", "heard_back", "interview")
+CLOSED_DIR = "Closed"
 
 
 def state_key(word: str) -> str:
@@ -233,6 +237,51 @@ def to_ask(conn, now: str) -> dict | None:
     return oldest
 
 
+def _day(at: str) -> str:
+    return at[:10]
+
+
+def still_open(conn, row: dict, stale_days: int, now: str) -> tuple[str, str]:
+    """Open / may be closed / can't tell, w/ why - read off the job list only, never the
+    employer's page (that would send something new off the computer). A pasted posting or a job
+    applied outside was never on the list, so nothing can say it closed."""
+    job = (row["public_slug"] and conn.execute("SELECT * FROM jobs WHERE public_slug = ?", (row["public_slug"],)).fetchone()) \
+        or (row["url"] and conn.execute("SELECT * FROM jobs WHERE url = ?", (row["url"],)).fetchone())
+    if not job:
+        return "can't tell", "never on your job list (pasted or found elsewhere) - check the link"
+    if job["closed_at"]:
+        return "may be closed", f"gone from your job search since {_day(job['closed_at'])}"
+    # measured from the last check, not today: a morning check that stopped running must not
+    # turn every job "closed"
+    last = conn.execute("SELECT MAX(fetched_at) FROM jobs").fetchone()[0]
+    unseen = int(_days(job["fetched_at"], last))
+    if unseen > stale_days:
+        return "may be closed", f"not seen in {unseen} days"
+    if (idle := int(_days(last, now))) > stale_days:
+        return "can't tell", f"no job check in {idle} days - check the link"
+    return "open", f"on your job list, seen {_day(job['fetched_at'])}"
+
+
+def in_progress(conn) -> list[dict]:
+    marks = ",".join("?" * len(IN_PROGRESS))
+    return [dict(r) for r in conn.execute(
+        f"SELECT * FROM applications WHERE state IN ({marks}) ORDER BY state_at", IN_PROGRESS)]
+
+
+def move_closed(jobs_dir: Path, key: str) -> Path:
+    """Job folder -> My Jobs/Closed/, only after the user said yes. Moved, never deleted;
+    never over a folder already there."""
+    f = next((f for f in folders(jobs_dir) if job_key(f["url"], f["company"], f["title"]) == key), None)
+    if f is None:
+        raise NotFound("no job folder for that job")
+    target = jobs_dir / CLOSED_DIR / f["dir"].name
+    if target.exists():
+        raise NotFound(f"{target} already exists - left both where they are")
+    target.parent.mkdir(exist_ok=True)
+    shutil.move(str(f["dir"]), str(target))
+    return target
+
+
 def when(day: str | None, now: str) -> str:
     return date.fromisoformat(day).strftime("%Y-%m-%dT12:00:00Z") if day else now
 
@@ -242,7 +291,9 @@ def main() -> None:
     steps = ap.add_subparsers(dest="step")
     steps.add_parser("list", help="every job w/ a status, newest first (default)")
     steps.add_parser("ask", help="chat start: the one job to ask 'did you send it?' about, if any")
-    for name, helptext in (("show", "one job's status"), ("set", "record a job's status")):
+    steps.add_parser("open", help="each job in progress: open, may be closed, or can't tell - and why")
+    for name, helptext in (("show", "one job's status"), ("set", "record a job's status"),
+                           ("move-closed", "move a job's folder to My Jobs/Closed - only after the user said yes")):
         p = steps.add_parser(name, help=helptext)
         p.add_argument("job", nargs="?", help="job number, slug, the job's https link, or its job folder name")
         p.add_argument("--company")
@@ -272,10 +323,21 @@ def main() -> None:
             print(f"resume made {int(_days(row['state_at'], now))} days ago - ask once: did you send it?"
                   f" (Sent -> applied, Not yet -> nothing, Not sending -> not_sending)")
             return
+        if args.step == "open":
+            now, stale_days = store.utc_now(), config.get("rank", cfg.defaults()["rank"])["stale_days"]
+            rows = numbered(conn, in_progress(conn))
+            for row in rows:
+                print(line(row) + "\n      " + " - ".join(still_open(conn, row, stale_days, now)))
+            if not rows:
+                print("no jobs in progress")
+            return
         try:
             job = resolve(conn, jobs_dir, args.job, args.company, args.title, args.url)
             if args.step == "set":
                 set_state(conn, job, state_key(args.state), when(args.on, store.utc_now()))
+            if args.step == "move-closed":
+                print(f"moved to {move_closed(jobs_dir, job['key'])}")
+                return
         except (NotFound, ValueError) as e:
             sys.exit(str(e))
         row = get(conn, job["key"])

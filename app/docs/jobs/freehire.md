@@ -62,6 +62,13 @@ returns fewer than `window.min_jobs` (30) rows (`app/defaults.yml`, counts measu
 reason "may be closed - not seen in Nd"; digest never announces them. Demoted, not hidden:
 hiding a still-open job costs a chance, showing a closed one costs a click.
 
+Jobs in progress (`status open`, `status.still_open`) read the same signals: `closed_at` set ->
+"may be closed - gone from your job search since D"; unseen more than `rank.stale_days` ->
+"may be closed - not seen in N days", counted from the last check, not today, so a morning
+check that stopped running reads "can't tell - no job check in N days", never closed. Pasted
+postings + jobs applied outside have no row => "can't tell - check the link". No re-fetch of
+the employer's page: it would send a new thing off the computer.
+
 ## Defects handled in code
 
 - **`q=` forbidden** (2026-09-15). Matches description prose: `q=react` returned "Lifecycle

@@ -225,3 +225,63 @@ def test_ask_command_prints_one_question_or_nothing(cli, tmp_path, capsys):
     assert "Umbrella - Nurse" in out[0] and "did you send it?" in out[1] and len(out) == 2
     cli("ask")
     assert capsys.readouterr().out == "nothing to ask\n"
+
+
+def test_still_open_says_open_may_be_closed_or_cant_tell_with_why(conn, tmp_path):
+    store.upsert(conn, [make_job("live"), make_job("gone"), make_job("old")], "2026-09-10T12:00:00Z")
+    store.upsert(conn, [make_job("live")], NOW)
+    store.upsert(conn, [make_job("gone")], "2026-09-27T12:00:00Z")
+    conn.execute("UPDATE jobs SET closed_at = ? WHERE public_slug = 'gone'", (NOW,))
+    make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    for ref in ("live", "gone", "old", PASTED_URL):
+        status.set_state(conn, status.resolve(conn, tmp_path, ref), "resume_made", NOW)
+    status.set_state(conn, status.resolve(conn, tmp_path, company="Initech", title="Analyst"), "applied", NOW)
+    said = {(r["public_slug"] or r["key"]): status.still_open(conn, r, 14, NOW) for r in status.in_progress(conn)}
+    assert said == {
+        "live": ("open", "on your job list, seen 2026-09-29"),
+        "gone": ("may be closed", "gone from your job search since 2026-09-29"),
+        "old": ("may be closed", "not seen in 19 days"),
+        "g-da": ("can't tell", "never on your job list (pasted or found elsewhere) - check the link"),
+        "outside:initech|analyst": ("can't tell", "never on your job list (pasted or found elsewhere) - check the link"),
+    }
+
+
+def test_morning_check_stopped_is_cant_tell_not_closed(conn, tmp_path):
+    store.upsert(conn, [make_job("a")], "2026-09-10T12:00:00Z")
+    status.set_state(conn, status.resolve(conn, tmp_path, "a"), "applied", NOW)
+    assert status.still_open(conn, status.in_progress(conn)[0], 14, NOW) == \
+        ("can't tell", "no job check in 19 days - check the link")
+
+
+def test_finished_jobs_are_not_in_progress(conn, tmp_path):
+    for company, state in (("A", "no"), ("B", "offer"), ("C", "not_sending"), ("D", "interview")):
+        status.set_state(conn, status.resolve(conn, tmp_path, company=company, title="Nurse"), state, NOW)
+    assert [r["company"] for r in status.in_progress(conn)] == ["D"]
+
+
+def test_open_command_lists_each_job_in_progress_without_network(cli, tmp_path, capsys, monkeypatch):
+    import urllib.request
+    monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: pytest.fail("no network call"))
+    cli("open")
+    assert capsys.readouterr().out == "no jobs in progress\n"
+    make_folder(tmp_path / "My Jobs", "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    cli("open")
+    out = capsys.readouterr().out.splitlines()
+    assert "Globex - Data Analyst" in out[0] and out[1].strip().startswith("can't tell - never on your job list")
+
+
+def test_closed_folder_moves_only_when_asked_never_deleted(cli, tmp_path, capsys):
+    jobs = tmp_path / "My Jobs"
+    d = make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    cli("open")
+    cli("set", PASTED_URL, "applied")
+    assert d.is_dir()  # reading + recording never moves a folder
+    cli("move-closed", PASTED_URL)
+    assert not d.exists() and (jobs / "Closed" / "Globex - Data Analyst" / tailor.CHECK_FILE).exists()
+    capsys.readouterr()
+    cli("show", PASTED_URL)
+    assert "Applied" in capsys.readouterr().out  # status kept after the move
+    make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    with pytest.raises(SystemExit, match="already exists"):
+        cli("move-closed", PASTED_URL)
+    assert (jobs / "Globex - Data Analyst").is_dir()
