@@ -30,12 +30,12 @@ curl -fsSL https://raw.githubusercontent.com/cezkid/jobs/main/app/install/instal
 ## Everyday
 
 Double-click **CEZ Job Finder** on your Desktop, or click the morning notification. Opens VS
-Code with **START HERE** and the chat. Ask "any new jobs?", "make my resume for job 3".
+Code with the **Today** page (START HERE on first run) and the chat. Ask "any new jobs?", "make my resume for job 3".
 
 ## Private
 
 File list (My Jobs, My Resume, My Settings) stays on your computer. Program = public, open
-source, hidden. START HERE lists what leaves and when. Resume is read in user's own AI chat;
+source, hidden. `Guides/Who sees what.md` lists what leaves and when. Resume is read in user's own AI chat;
 setup offers to switch off AI training on their account (`Guides/Keep your chats out of AI training.md`).
 
 ## For developers

@@ -25,10 +25,12 @@ WAITING_MAX, FOLLOW_UP_MAX, NEW_MAX = 5, 5, 10
 FOLLOW_UP_DAYS = 21
 # applied or further along: counted as progress on the page
 SENT = ("applied", "heard_back", "interview", "no", "offer")
+# START HERE is first-run steps only; everything else it said lives in these (launch.py)
 GUIDES = (
+    ("What you can ask", "Guides/What%20you%20can%20ask.md"),
+    ("Who sees what", "Guides/Who%20sees%20what.md"),
     ("What makes a good resume", "Guides/What%20makes%20a%20good%20resume.md"),
     ("Keep your chats out of AI training", "Guides/Keep%20your%20chats%20out%20of%20AI%20training.md"),
-    ("Who sees what", "START%20HERE.md#who-sees-what"),
 )
 SAY = (
     "find new jobs",

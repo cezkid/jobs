@@ -37,3 +37,26 @@ def test_desktop_is_last_resort_after_email(monkeypatch):
     assert [label for _, label in daily.senders(daily.cfg.defaults())] == ["emailed to me@example.com", "notified"]
     monkeypatch.delenv("SMTP_PASSWORD")
     assert [label for _, label in daily.senders(daily.cfg.defaults())] == ["notified"]
+
+
+def test_today_page_rebuilt_after_each_check(monkeypatch):
+    # VS Code left open for days showed the page from the day it was opened
+    calls = []
+    monkeypatch.setattr(daily.cfg, "load", lambda: {"x": 1})
+    monkeypatch.setattr(daily, "check", lambda config, send: calls.append("check"))
+    monkeypatch.setattr(daily.today, "write", lambda config: calls.append(("today", config)))
+    daily.work()
+    assert calls == ["check", ("today", {"x": 1})]
+
+
+def test_today_page_failing_is_not_a_failed_check(monkeypatch):
+    # jobs were found and announced: "couldn't check for jobs today" would be untrue
+    got = []
+
+    def broken(config):
+        raise SystemExit("another chat is updating the Today page - try again in a minute")
+    monkeypatch.setattr(daily.cfg, "load", lambda: {})
+    monkeypatch.setattr(daily, "check", lambda config, send: None)
+    monkeypatch.setattr(daily.today, "write", broken)
+    assert daily.guarded(daily.work, lambda: [(got.append, "notified")])
+    assert got == []

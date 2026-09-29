@@ -41,7 +41,7 @@ AI time is minutes, confirming lines is the user's, and questions spread over se
 unseen - a tab badge is the only sign one waits.
 
 - Never offer or open extra chats yourself. A new chat opens as a tab over their resume or
-  START HERE, and files you open then land on top of it (Claude extension 2.1.283, measured).
+  START HERE / Today, and files you open then land on top of it (Claude extension 2.1.283, measured).
 - User asks how anyway: hover the icons at the top of the chat - "New session" starts one,
   "Session history" lists past chats. Say it works; both chats share their files safely.
 - Job numbers are stored, not per chat: "job 12" names the same job in any chat. Company + title
@@ -129,12 +129,14 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 
 ## Layout
 
-- `START HERE.md` - user's guide, opens w/ VS Code. Plain words only.
+- `START HERE.md` - first-run steps only ("type set me up"); launcher opens it until search
+  settings exist, then `Today.md`. Plain words only.
 - `Today.md` - generated (`today`): waiting on you, follow up, new since last check, not
-  finished; each item ends w/ the words to say. Private, gitignored; never edit by hand.
-- `Guides/` - plain-words guides in the user's file list (`What makes a good resume.md`,
-  `Keep your chats out of AI training.md`); link,
-  don't repeat, from `START HERE.md` and reports.
+  finished; each item ends w/ the words to say. Rebuilt at launch + after each morning check.
+  Private, gitignored; never edit by hand.
+- `Guides/` - plain-words guides in the user's file list (`What you can ask.md`, `Who sees
+  what.md`, `What makes a good resume.md`, `Keep your chats out of AI training.md`); link,
+  don't repeat, from `START HERE.md`, the Today page and reports.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;
   their edits win on wording, employer/title/dates change only to fix a mistake; optional

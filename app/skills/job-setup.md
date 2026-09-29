@@ -177,6 +177,8 @@ Email too (only if they say yes):
 
 Tell them: open "CEZ Job Finder" on Desktop any time and say things like "any new jobs?",
 "make my resume for job 3", "stop showing jobs from <company>", "change my search" - and ask
-"why?" about anything it does. `START HERE.md` (open on left) repeats this and shows what's private.
+"why?" about anything it does. Next launch opens the Today page (what's waiting, newest jobs)
+instead of START HERE; `Guides/What you can ask.md` + `Guides/Who sees what.md` repeat this and
+show what's private.
 
 Defect in tracked code hit during setup -> `AGENTS.md` #Framework defects.

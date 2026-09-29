@@ -12,6 +12,7 @@ import alert
 import cfg
 import notify
 import store
+import today
 from ingest import freehire
 
 FAILED = f"{cfg.NAME} couldn't check for jobs today"
@@ -37,6 +38,17 @@ def check(config: dict, send: Sender) -> None:
     with alert.lock(cfg.db_path(config)):
         new = alert.run(conn, config, send[0])
     print(f"{new} new, {send[1]}" if new else "0 new, nothing sent")
+
+
+def refresh_today(config: dict) -> None:
+    """Today page rebuilt after each check => a VS Code window left open for days shows this
+    morning's jobs (the formatted view reloads when the file changes). Jobs were found either
+    way: a page that fails to write is logged, never reported as a failed check."""
+    try:
+        today.write(config)
+        print("Today page updated")
+    except (Exception, SystemExit):
+        traceback.print_exc()
 
 
 def failure_message(exc: BaseException) -> EmailMessage:
@@ -68,16 +80,18 @@ def guarded(work: Callable[[], None], ways: Callable[[], list[Sender]]) -> bool:
         return False
 
 
+def work() -> None:
+    config = cfg.load()
+    check(config, senders(config)[0])
+    refresh_today(config)
+
+
 def main() -> None:
     # scheduled run has no console => everything lands in daily log
     cfg.DATA.mkdir(exist_ok=True)
     sys.stdout = sys.stderr = cfg.DAILY_LOG.open("a", encoding="utf-8")
     print(f"== {datetime.now().isoformat(timespec='seconds')}")
     load_dotenv(cfg.EMAIL_ENV)
-
-    def work() -> None:
-        config = cfg.load()
-        check(config, senders(config)[0])
 
     def ways() -> list[Sender]:
         # broken settings must not stop the failure report

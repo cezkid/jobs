@@ -2,7 +2,9 @@
 
 **Users**, plain words, in the file list:
 
-- [START HERE](../../START%20HERE.md) - what Job Finder does, what to ask, who sees what.
+- [START HERE](../../START%20HERE.md) - first-run steps; Today page opens instead once set up.
+- [What you can ask](../../Guides/What%20you%20can%20ask.md) - what to say, where jobs come from, how the resume is made.
+- [Who sees what](../../Guides/Who%20sees%20what.md) - what stays on the computer, what leaves and when.
 - [What makes a good resume](../../Guides/What%20makes%20a%20good%20resume.md) - every rule
   in one line, w/ strength of its evidence.
 
