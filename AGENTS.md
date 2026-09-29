@@ -15,10 +15,12 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Write telegraphic by default - chat, guides, reports, PRs, commits: short fragments, one line
   per point, no filler, cut any sentence the reader can act without. User text stays plain
   words (no arrows or `w/` there); program docs may use both.
-- Jobs in chat: numbered list - title, company, pay if known, remote/city, link. Link = the
-  row's `https://` column, copied as is; never build one from the slug (no such page, 404).
-  Keep number -> slug mapping yourself (slug = last column of `find` / `rank` rows).
-- Each numbered job carries its one-line why from the row's `[reasons]`, in plain words.
+- Jobs in chat: each led by its job number - title, company, pay if known, remote/city, link.
+  Number = the row's first column (`#12` -> "Job 12"): given the first time a job is shown,
+  never changed, same in every chat, the email and the Today page. Write "**Job 12** - ...",
+  never a `12.` list (chat renumbers it 1, 2, 3). Commands take it as is (`tailor prepare 12`).
+  Link = the row's `https://` column, copied as is; never build one from the slug (404).
+- Each job carries its one-line why from the row's `[reasons]`, in plain words.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.
 - Need file from user (resume PDF): ask them to drag it into chat box; its path arrives w/ it.
@@ -42,8 +44,8 @@ unseen - a tab badge is the only sign one waits.
   START HERE, and files you open then land on top of it (Claude extension 2.1.283, measured).
 - User asks how anyway: hover the icons at the top of the chat - "New session" starts one,
   "Session history" lists past chats. Say it works; both chats share their files safely.
-- Job numbers belong to the chat that listed them; another chat has none. Across chats name a
-  job by company + title or its link (`tailor prepare "<link>"` resolves it).
+- Job numbers are stored, not per chat: "job 12" names the same job in any chat. Company + title
+  or its link work too (`tailor prepare "<link>"`, `status show --company C --title T`).
 - Shared files are safe to run side by side: each pasted posting + each job folder is its own,
   resume saves, job alerts and the application window wait their turn (`app/locks.py`). A wait
   over a minute ends w/ a plain "another chat is ..." line - pass it on, try again after.

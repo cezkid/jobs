@@ -32,7 +32,7 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
 
 1. Tailored resume for this job exists (`My Jobs/<folder>/`)? No -> `job-tailor` skill first, or
    ask whether to use their own resume as is.
-2. `uv run app/jobs.py apply <slug>` (no slug = own resume) -> writes `apply.js`, prints counts.
+2. `uv run app/jobs.py apply <job number>` (none = own resume) -> writes `apply.js`, prints counts.
 3. Browser: `tabs_context_mcp` (createIfEmpty), new tab, navigate to the posting's apply link.
    Sign-in page -> step aside (limits). "Autofill with Resume" / "Apply Manually" / "Use My Last
    Application" -> ask which; autofill only pre-fills, our fill overwrites it anyway.
@@ -57,9 +57,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
 "failed" that it did not (`app/docs/apply/ashby.md`).
 
 1. Tailored resume check as step 1 above.
-2. `uv run app/jobs.py apply-form prepare <slug> "<posting link>"` -> picks the system from the
-   link, writes the job's `.data/application.json`, prints every question: `ok` (from resume or
-   search settings) or `NEEDED`. Rerun keeps answers already written.
+2. `uv run app/jobs.py apply-form prepare <job number> "<posting link>"` -> picks the system
+   from the link, writes the job's `.data/application.json`, prints every question: `ok` (from
+   resume or search settings) or `NEEDED`. Rerun keeps answers already written.
 3. Fill each blank `answer` in that file: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
    question: `answer: true` only after they said yes to the named file (hard limits). Location: the
@@ -68,8 +68,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Chrome; user signs in or creates the account there, then rerun `prepare`. Its
    `resume-sections` question (add work history, education, skills, links from the resume): UKG
    saves each to their account on the site as it is added, before Submit - say so, then ask.
-4. `uv run app/jobs.py apply-form fill <slug>` -> opens the form in Job Finder's Chrome, fills,
-   prints one line per question. `FAIL`/`ASK` -> tell the user plainly, fix, record the quirk in
-   that system's doc.
+4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
+   fills, prints one line per question. `FAIL`/`ASK` -> tell the user plainly, fix, record the
+   quirk in that system's doc.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
    any banner (application limits), and that nothing is sent until they click **Submit**.

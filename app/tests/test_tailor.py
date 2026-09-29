@@ -228,7 +228,7 @@ def test_prepare_on_a_posting_without_requirements_explains_instead_of_crashing(
     assert "Traceback" not in said
 
 
-def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tailored):
+def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tailored, capsys):
     monkeypatch.setattr(cfg, "ROOT", tmp_path)
     config = cfg.defaults()
     master_path = cfg.resume_path(config, "master")
@@ -239,12 +239,13 @@ def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tail
     tailor.write_json(tailor.posting_files(posting)[1], {k: JOB[k] for k in ("title", "company", "requirements")})
 
     tailor.prepare(config, None, posting, JOB["url"])
+    assert "job 1, job folder:" in capsys.readouterr().out
     job_dir = tmp_path / "My Jobs" / "Acme - Senior Vue Engineer, Search"
     assert "5+ years Vue" in (job_dir / tailor.POSTING_FILE).read_text(encoding="utf-8")
     assert (job_dir / tailor.JOB_DATA / "task.md").exists()
 
     tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", tailored)
-    tailor.check(config, "acme-senior-vue-engineer-search")
+    tailor.check(config, "job 1")
     checked = (job_dir / tailor.CHECK_FILE).read_text(encoding="utf-8")
     assert "## Ready to send?" in checked and "| Need | Shown? |" in checked
     assert list(job_dir.glob("*_Resume.pdf"))
@@ -271,6 +272,22 @@ def test_row_link_names_the_job_like_its_slug(tmp_path, monkeypatch):
     with pytest.raises(SystemExit) as exited:
         tailor.slug_for(config, "https://elsewhere.example/job")
     assert "not a job on your list" in str(exited.value)
+
+
+def test_job_number_names_the_job_in_any_chat(tmp_path, monkeypatch):
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    config = cfg.defaults()
+    cfg.db_path(config).parent.mkdir(parents=True, exist_ok=True)
+    conn = store.connect(cfg.db_path(config))
+    with conn:
+        listed = store.number(conn, "acme-analyst")
+        outside = store.number(conn, "outside:initech|analyst")
+    conn.close()
+    assert tailor.slug_for(config, f"job {listed}") == "acme-analyst"
+    with pytest.raises(SystemExit, match="no posting on file"):
+        tailor.slug_for(config, str(outside))
+    with pytest.raises(SystemExit, match="job 99: no job has that number"):
+        tailor.slug_for(config, "99")
 
 
 def test_same_named_jobs_prepared_at_once_get_own_folders(tmp_path):

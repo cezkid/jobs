@@ -2,6 +2,7 @@ import pytest
 
 import alert
 import cfg
+import rank
 import store
 from conftest import make_job
 
@@ -16,6 +17,11 @@ def plain(msg) -> str:
 
 def markup(msg) -> str:
     return msg.get_body(("html",)).get_content()
+
+
+def shown(rows: list[dict]) -> list[dict]:
+    """Digest rows arrive numbered (alert.unseen_ranked)."""
+    return [dict(j, num=i) for i, j in enumerate(rows, 1)]
 
 
 def test_second_run_alerts_on_zero_rows(conn):
@@ -49,7 +55,7 @@ def test_failed_send_marks_nothing_seen(conn):
 
 def test_digest_caps_at_top_25_and_counts_the_rest():
     ranked = [make_job(f"r{i}") for i in range(30)] + [make_job("n0", tier="local")]
-    msg = alert.build_message(ranked, CONFIG)
+    msg = alert.build_message(shown(ranked), CONFIG)
     assert msg["Subject"] == "31 new finance jobs (30 Remote US, 1 Springfield area)"
     body = plain(msg)
     assert body.count("https://boards.greenhouse.io/") == 25
@@ -59,7 +65,7 @@ def test_digest_caps_at_top_25_and_counts_the_rest():
 
 
 def test_short_digest_lists_every_row_grouped_by_tier():
-    msg = alert.build_message([make_job("r0"), make_job("n0", tier="local")], CONFIG)
+    msg = alert.build_message(shown([make_job("r0"), make_job("n0", tier="local")]), CONFIG)
     body = plain(msg)
     assert body.count("https://boards.greenhouse.io/") == 2
     assert body.index("== Remote US ==") < body.index("== Springfield area ==")
@@ -68,7 +74,7 @@ def test_short_digest_lists_every_row_grouped_by_tier():
 
 def test_popup_preview_names_top_three_titles():
     ranked = [make_job(s, title=t) for s, t in [("a", "Payroll Clerk"), ("b", "Auditor"), ("c", "Controller"), ("d", "Teller")]]
-    assert alert.build_message(ranked, CONFIG).preview == "Payroll Clerk; Auditor; Controller"
+    assert alert.build_message(shown(ranked), CONFIG).preview == "#1 Payroll Clerk; #2 Auditor; #3 Controller"
 
 
 def test_all_seen_run_marks_every_row_seen(conn):
@@ -95,9 +101,20 @@ def test_repost_of_sent_job_is_not_new(conn):
 def test_html_escapes_title_and_url():
     job = make_job("x", title="Sr <UI> & Eng", url='https://x.io/a?b=1&c="2"', collections=["yc", "us-h1b-sponsor"],
                    salary_min=150000, salary_currency="USD")
-    msg = alert.build_message([job], CONFIG)
-    assert '<a href="https://x.io/a?b=1&amp;c=&quot;2&quot;">Sr &lt;UI&gt; &amp; Eng</a>' in markup(msg)
-    assert "Sr <UI> & Eng - Acme | remote · $150k (meets your pay) · first seen" in plain(msg)
+    msg = alert.build_message(shown([job]), CONFIG)
+    assert 'Job 1: <a href="https://x.io/a?b=1&amp;c=&quot;2&quot;">Sr &lt;UI&gt; &amp; Eng</a>' in markup(msg)
+    assert "Job 1: Sr <UI> & Eng - Acme | remote · $150k (meets your pay) · first seen" in plain(msg)
+
+
+def test_email_names_each_job_by_its_list_number(tmp_path):
+    db = tmp_path / "jobs.db"
+    first = store.connect(db)
+    store.upsert(first, [make_job("a", title="Clerk"), make_job("b", title="Teller")], NOW)
+    listed = {j["public_slug"]: j["num"] for j in store.numbered(first, rank.rank(store.all_jobs(first), CONFIG))}
+    sent = []
+    alert.run(store.connect(db), CONFIG, sent.append)
+    body = plain(sent[0])
+    assert f"Job {listed['a']}: Clerk" in body and f"Job {listed['b']}: Teller" in body
 
 
 class FakeSMTP:

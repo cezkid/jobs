@@ -39,9 +39,9 @@ def build_message(ranked: list[dict], config: dict) -> EmailMessage:
         markup.append(f"<h3>{html.escape(label)}</h3><ul>")
         for j in rows:
             detail = " | ".join(facts(j, config))
-            text += [f"{j['title']} - {detail}", f"  {j['url']}", ""]
+            text += [f"Job {j['num']}: {j['title']} - {detail}", f"  {j['url']}", ""]
             markup.append(
-                f'<li><a href="{html.escape(j["url"], quote=True)}">{html.escape(j["title"])}</a>'
+                f'<li>Job {j["num"]}: <a href="{html.escape(j["url"], quote=True)}">{html.escape(j["title"])}</a>'
                 f" - {html.escape(detail)}</li>"
             )
         markup.append("</ul>")
@@ -54,14 +54,17 @@ def build_message(ranked: list[dict], config: dict) -> EmailMessage:
     msg.set_content("\n".join(text))
     msg.add_alternative("".join(markup), subtype="html")
     # desktop pop-up has room for a line, not a digest (notify.sender)
-    msg.preview = "; ".join(j["title"] for j in ranked[:3])
+    msg.preview = "; ".join(f"#{j['num']} {j['title']}" for j in ranked[:3])
     return msg
 
 
 def unseen_ranked(conn, config: dict) -> list[dict]:
+    """Numbered where the digest lists them => "job 12" in the email = job 12 in the chat."""
     # rank every open row so a repost of a job already sent collapses into it, not in as new;
     # stale rows (likely filled) are never announced - they stay in the chat list only
-    return [j for j in rank.rank(store.all_jobs(conn), config) if not j["seen"] and not j["stale"]]
+    ranked = [j for j in rank.rank(store.all_jobs(conn), config) if not j["seen"] and not j["stale"]]
+    store.numbered(conn, ranked[:DIGEST_CAP])
+    return ranked
 
 
 def lock(db: Path | str):

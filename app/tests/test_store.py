@@ -47,3 +47,42 @@ def test_seen_excludes_from_unseen(conn):
     assert [j["public_slug"] for j in store.unseen_open(conn)] == ["b"]
     store.mark_seen(conn, ["a", "b"], LATER)
     assert store.unseen_open(conn) == []
+
+
+def test_numbers_follow_first_sight_and_never_change(tmp_path):
+    db = tmp_path / "jobs.db"
+    chat = store.connect(db)
+    assert [j["num"] for j in store.numbered(chat, [{"public_slug": "b"}, {"public_slug": "a"}])] == [1, 2]
+    other_chat = store.connect(db)
+    assert [j["num"] for j in store.numbered(other_chat, [{"public_slug": "a"}, {"public_slug": "c"}])] == [2, 3]
+    assert store.number(chat, "b") == 1
+
+
+def test_numbers_never_reused(tmp_path):
+    conn = store.connect(tmp_path / "jobs.db")
+    store.number(conn, "a")
+    conn.execute("DELETE FROM numbers")
+    assert store.number(conn, "b") == 2
+
+
+def test_repost_keeps_the_number_its_copy_was_shown_with(conn):
+    first = store.number(conn, "a")
+    store.number(conn, "x")
+    assert store.number(conn, "a-again", "a") == first
+
+
+def test_number_words_resolve_to_the_job(conn):
+    n = store.number(conn, "acme-clerk")
+    for said in (str(n), f"#{n}", f"job {n}", f"Job #{n}", f" job{n} "):
+        assert store.key_for(conn, said) == "acme-clerk"
+    assert store.key_for(conn, "acme-clerk") == "acme-clerk"
+    assert store.key_for(conn, "https://x.io/jobs/12") == "https://x.io/jobs/12"
+
+
+def test_unknown_number_says_so(conn):
+    try:
+        store.key_for(conn, "job 99")
+    except LookupError as e:
+        assert "job 99" in str(e)
+    else:
+        raise AssertionError("unknown number resolved")

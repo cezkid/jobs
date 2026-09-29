@@ -255,10 +255,11 @@ def suspects(jobs: list[dict], min_categories: int) -> list[tuple[str, set[str]]
 
 
 def row(job: dict, config: dict, now: datetime) -> str:
-    """One printed line; link = the posting's real address, slug last (AI keeps number -> slug)."""
+    """One printed line: job number first (same in every chat, email, Today page), link = the
+    posting's real address, slug last."""
     new = "-" if job["seen"] else "NEW"
-    return (f"{new:3} {job['tier']:6} {job['title'][:60]} | {job['company']}  [{reasons(job, config, now)}]  "
-            f"{job['url']}  {job['public_slug']}")
+    return (f"#{job['num']:<4} {new:3} {job['tier']:6} {job['title'][:60]} | {job['company']}  "
+            f"[{reasons(job, config, now)}]  {job['url']}  {job['public_slug']}")
 
 
 def main() -> None:
@@ -282,7 +283,7 @@ def main() -> None:
             print(f"  {j['title']} | {j['company']}")
         return
     now = datetime.now(timezone.utc)
-    for j in rank(jobs, config, now)[: args.limit]:
+    for j in store.numbered(conn, rank(jobs, config, now)[: args.limit]):
         print(row(j, config, now))
 
 

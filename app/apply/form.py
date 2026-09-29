@@ -1,9 +1,9 @@
 """Fill a job application on any supported system in the user's own Chrome window - never Submit.
 
-`prepare <slug> <link>` picks the system from the link, reads the form's questions and writes
-`<job folder>/.data/application.json`: contact boxes answered from the resume, the US work-permit
-questions from setup, every other question blank for the AI to fill with the user.
-`fill <slug>` opens the form in Job Finder's Chrome, types each answer, prints what took, and lets
+`prepare <job> <link>` (job = its number or slug) picks the system from the link, reads the form's
+questions and writes `<job folder>/.data/application.json`: contact boxes answered from the resume,
+the US work-permit questions from setup, every other question blank for the AI to fill with the user.
+`fill <job>` opens the form in Job Finder's Chrome, types each answer, prints what took, and lets
 go - the window stays open for the user to check and click Submit.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
@@ -17,7 +17,7 @@ from resume import render, schema, tailor
 
 
 def job_dir(config: dict, slug: str) -> Path:
-    found = tailor.find_job_dir(cfg.resume_path(config, "jobs_dir"), slug)
+    found = tailor.find_job_dir(cfg.resume_path(config, "jobs_dir"), tailor.by_number(config, slug))
     if found is None:
         sys.exit(f"no job folder for {slug}; run tailor first")
     return found

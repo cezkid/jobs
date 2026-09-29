@@ -115,9 +115,13 @@ def _from_folder(f: dict) -> dict:
 
 def resolve(conn, jobs_dir: Path, job: str | None = None, company: str | None = None,
             title: str | None = None, url: str | None = None) -> dict:
-    """Listed job (slug or link), pasted posting (its link, slug or job folder name), or a job
-    applied outside Job Finder (company + title, link optional) -> key, url, company, title."""
+    """Job number, listed job (slug or link), pasted posting (its link, slug or job folder name),
+    or a job applied outside Job Finder (company + title, link optional) -> key, url, company, title."""
     found = None
+    try:
+        job = job and store.key_for(conn, job)
+    except LookupError as e:
+        raise NotFound(str(e)) from None
     if job and job.startswith(("http://", "https://")):
         url = job
     elif job:
@@ -172,9 +176,17 @@ def all_statuses(conn) -> list[dict]:
     return [dict(r) for r in conn.execute("SELECT * FROM applications ORDER BY state_at DESC")]
 
 
+def numbered(conn, rows: list[dict]) -> list[dict]:
+    """Same number the job had on the list; a job w/o a slug (applied outside) gets its own."""
+    with conn:
+        for r in rows:
+            r["num"] = store.number(conn, r["public_slug"] or r["key"])
+    return rows
+
+
 def line(row: dict) -> str:
     name = " - ".join(x for x in (row["company"], row["title"]) if x)
-    return f"{STATES[row['state']]:13} {row['state_at'][:10]}  {name}  {row['url'] or '(no link)'}"
+    return f"#{row['num']:<4} {STATES[row['state']]:13} {row['state_at'][:10]}  {name}  {row['url'] or '(no link)'}"
 
 
 def when(day: str | None, now: str) -> str:
@@ -187,7 +199,7 @@ def main() -> None:
     steps.add_parser("list", help="every job w/ a status, newest first (default)")
     for name, helptext in (("show", "one job's status"), ("set", "record a job's status")):
         p = steps.add_parser(name, help=helptext)
-        p.add_argument("job", nargs="?", help="slug, the job's https link, or its job folder name")
+        p.add_argument("job", nargs="?", help="job number, slug, the job's https link, or its job folder name")
         p.add_argument("--company")
         p.add_argument("--title")
         p.add_argument("--url", help="link for a job applied outside Job Finder")
@@ -202,7 +214,7 @@ def main() -> None:
     try:
         backfill(conn, jobs_dir)
         if args.step in (None, "list"):
-            rows = all_statuses(conn)
+            rows = numbered(conn, all_statuses(conn))
             print("\n".join(map(line, rows)) if rows else "no jobs w/ a status yet")
             return
         try:
@@ -212,7 +224,7 @@ def main() -> None:
         except (NotFound, ValueError) as e:
             sys.exit(str(e))
         row = get(conn, job["key"])
-        print(line(row) if row else f"no status yet: {job['company']} - {job['title']}")
+        print(line(numbered(conn, [row])[0]) if row else f"no status yet: {job['company']} - {job['title']}")
     finally:
         conn.close()
 

@@ -195,7 +195,8 @@ def test_suspects_flags_category_spread():
     assert [c for c, _ in rank.suspects(jobs, 3)] == ["spray"]
 
 
-def test_row_carries_real_link_before_slug():
-    job = {**make_job("j1", url="https://job-boards.greenhouse.io/acme/jobs/42"), "seen": False}
+def test_row_leads_with_job_number_and_carries_real_link_before_slug():
+    job = {**make_job("j1", url="https://job-boards.greenhouse.io/acme/jobs/42"), "seen": False, "num": 7}
     fields = rank.row(job, CONFIG, NOW).split()
+    assert fields[0] == "#7"
     assert fields[-2:] == ["https://job-boards.greenhouse.io/acme/jobs/42", "j1"]

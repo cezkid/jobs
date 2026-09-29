@@ -73,6 +73,24 @@ def test_outside_job_with_link_needs_company_and_title(conn, tmp_path):
     assert status.resolve(conn, tmp_path, "https://careers.initech.com/9")["title"] == "Analyst"
 
 
+def test_job_number_names_the_same_job_as_on_the_list(conn, tmp_path):
+    store.upsert(conn, [make_job("a")], NOW)
+    make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    listed, pasted = store.number(conn, "a"), store.number(conn, "g-da")
+    assert status.resolve(conn, tmp_path, f"job {listed}")["key"] == status.resolve(conn, tmp_path, "a")["key"]
+    assert status.resolve(conn, tmp_path, f"#{pasted}")["key"] == PASTED_URL
+    with pytest.raises(status.NotFound, match="job 99"):
+        status.resolve(conn, tmp_path, "99")
+
+
+def test_outside_job_gets_a_number_too(conn, tmp_path):
+    job = status.resolve(conn, tmp_path, company="Initech", title="Analyst")
+    status.set_state(conn, job, "applied", NOW)
+    [row] = status.numbered(conn, status.all_statuses(conn))
+    assert status.line(row).startswith(f"#{row['num']} ")
+    assert status.resolve(conn, tmp_path, str(row["num"]))["key"] == job["key"]
+
+
 def test_unknown_job_name_is_not_found(conn, tmp_path):
     with pytest.raises(status.NotFound):
         status.resolve(conn, tmp_path, "no-such-slug")
@@ -138,7 +156,7 @@ def test_one_command_sets_and_reads_each_source(cli, tmp_path, capsys):
     cli("set", "applied", "--company", "Initech", "--title", "Analyst", "--on", "2026-09-20")
     capsys.readouterr()
     cli("show", "--company", "initech", "--title", "analyst")
-    assert capsys.readouterr().out.startswith("Applied       2026-09-20  Initech - Analyst  (no link)")
+    assert capsys.readouterr().out.startswith("#3    Applied       2026-09-20  Initech - Analyst  (no link)")
     cli()
     out = capsys.readouterr().out
     assert "Applied" in out and "Acme - Engineer" in out

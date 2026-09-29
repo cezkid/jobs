@@ -89,13 +89,13 @@ def script(data: dict) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="application answers -> script for the Chrome extension to run")
-    ap.add_argument("slug", nargs="?", help="job with a tailored resume; omit = your own resume facts")
+    ap.add_argument("slug", nargs="?", help="job number or slug of a job with a tailored resume; omit = your own resume facts")
     args = ap.parse_args()
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
     tailored, out = None, cfg.DATA / "apply.js"
     if args.slug:
-        job_dir = tailor.find_job_dir(cfg.resume_path(config, "jobs_dir"), args.slug)
+        job_dir = tailor.find_job_dir(cfg.resume_path(config, "jobs_dir"), tailor.by_number(config, args.slug))
         if job_dir is None:
             sys.exit(f"no job folder for {args.slug}; run tailor first")
         saved = job_dir / tailor.JOB_DATA / "tailored.json"
