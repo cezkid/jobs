@@ -12,10 +12,12 @@ from pathlib import Path
 import yaml
 
 import cfg
+import locks
 
 PATH = cfg.DATA / "resume-index.yml"
 KEYS = ("metrics", "stack")
 FLAGS = ("ai_work",)
+BUSY = "another chat is saving your resume right now - try again in a minute"
 
 
 def key(claim: str) -> str:
@@ -46,8 +48,13 @@ def write(master: dict, path: Path | None = None) -> Path:
     path = path or PATH
     path.parent.mkdir(parents=True, exist_ok=True)
     body = yaml.safe_dump(collect(master), sort_keys=True, allow_unicode=True, width=10_000)
-    path.write_text("# Working notes for app/resume - written by the program, never by hand.\n" + body, encoding="utf-8")
+    locks.write_atomic(path, "# Working notes for app/resume - written by the program, never by hand.\n" + body)
     return path
+
+
+def resume_lock(notes: Path | None = None):
+    """Held while a command rewrites Resume details.yml + these notes as one step."""
+    return locks.held((notes or PATH).parent / "resume.lock", BUSY)
 
 
 def attach(claim: str, index: dict) -> dict:

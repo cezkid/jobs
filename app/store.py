@@ -63,7 +63,8 @@ def utc_now() -> str:
 
 
 def connect(path: Path | str) -> sqlite3.Connection:
-    conn = sqlite3.connect(path)
+    # another chat or the morning check may be writing: wait for it instead of "database is locked"
+    conn = sqlite3.connect(path, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
     return conn

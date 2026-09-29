@@ -16,6 +16,7 @@ from pathlib import Path
 import yaml
 
 import cfg
+import locks
 from resume import facts, handoff, lint, schema, tidy
 
 STRING, NULLABLE, obj, array = handoff.STRING, handoff.NULLABLE, handoff.obj, handoff.array
@@ -103,6 +104,11 @@ def problems(asked: list[dict], answers: list[dict], master: dict) -> list[str]:
 
 def merge(path: Path, asked: list[dict], answers: list[dict], notes: Path | None = None) -> tuple[int, int, Path]:
     """Write answered lines into the user's file; skipped ones untouched. (changed, added, backup)."""
+    with facts.resume_lock(notes):
+        return _merge(path, asked, answers, notes)
+
+
+def _merge(path: Path, asked: list[dict], answers: list[dict], notes: Path | None) -> tuple[int, int, Path]:
     master = schema.load(path, notes)
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))
     by_id = {q["id"]: q for q in asked}
@@ -127,7 +133,7 @@ def merge(path: Path, asked: list[dict], answers: list[dict], notes: Path | None
     if not changed + added:
         return 0, 0, backup
     shutil.copyfile(path, backup)
-    path.write_text(tidy.dump(raw), encoding="utf-8")
+    locks.write_atomic(path, tidy.dump(raw))
     try:
         schema.load(path, notes)
     except ValueError:

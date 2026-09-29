@@ -4,10 +4,16 @@
 
 1. Source:
    - job from list: `uv run app/jobs.py tailor prepare <slug>`
-   - pasted text: write it to `.data/posting.txt`, then
-     `uv run app/jobs.py tailor posting .data/posting.txt --url "<link if given>"`; do printed
+   - pasted text: write it to `.data/postings/<company-title>.txt` (own file per posting - another
+     chat may be on a different one), then
+     `uv run app/jobs.py tailor posting "<that file>" --url "<link if given>"`; do printed
      task yourself, then run command it prints (`tailor prepare --posting ...`)
-   - link only: fetch page text, write to `.data/posting.txt`, same as pasted
+   - link only: `tailor prepare "<link>"` first - a job on their list resolves to its row (a new
+     chat has no numbered list). "not a job on your list" -> fetch page text, same as pasted
+   - several jobs in one ask ("jobs 2, 5 and 7") -> this chat, one after another, never extra
+     chats: prepare + write + check each; then walk step 3 one job at a time, naming it
+     ("Acme - Data Analyst: 3 lines to confirm"). Confirming is the user's work, and one stream
+     of questions is all a user answers without stalling (`AGENTS.md` #User = not technical).
    - `work_authorization.needs_sponsorship` true in search settings and the posting rules it
      out ("no visa sponsorship", "without current or future sponsorship") -> quote that line
      before tailoring; they're likely screened out on that question alone. Their call to go on.
