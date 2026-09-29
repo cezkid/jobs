@@ -12,6 +12,9 @@ HOURLY_BELOW, MONTHLY_BELOW = 1000, 10000
 COMPANY_SUFFIXES = {"inc", "llc", "ltd", "corp", "corporation", "co", "company", "plc", "lp", "llp"}
 COLLECTION_NAMES = {"fortune500": "Fortune 500", "bigtech": "big tech", "mag7": "Magnificent 7",
                     "unicorn": "unicorn startup", "yc": "Y Combinator"}
+# posting this much older than its day on the user's list => its own age shown too (a repost or
+# long-open job reaching the list now); closer than that the two read the same
+POSTING_AGE_GAP = 7
 # title words that clearly contradict a stated career level; a title without any is never demoted
 _JUNIOR = r"intern|internship|junior|jr|entry[ -]level|trainee|apprentice"
 _TOP = r"director|vp|vice president|chief|head of"
@@ -223,9 +226,22 @@ def age_label(job: dict, now: datetime) -> str:
     return "" if days is None else "first seen today" if days < 1 else f"first seen {days}d ago"
 
 
+def added(job: dict, now: datetime) -> str:
+    """Age that agrees w/ "new" (Today page, email): when the job reached their list (first
+    fetch), not freehire's first sighting - that alone read "new" next to "first seen 66d ago"
+    (real install). Posting's own age added only when POSTING_AGE_GAP+ days older."""
+    since = job.get("first_fetched_at")
+    listed = 0 if not since else max(0, (now - datetime.strptime(since, store.ISO).replace(tzinfo=timezone.utc)).days)
+    out = "added to your list " + ("today" if listed < 1 else "1 day ago" if listed == 1 else f"{listed} days ago")
+    posting = age(job, now)
+    if posting is not None and posting - listed >= POSTING_AGE_GAP:
+        out += f" · posting first seen {posting} days ago"
+    return out
+
+
 def reasons(job: dict, config: dict, now: datetime | None = None, when: str | None = None) -> str:
     """Why the row sits where it does, in plain words, most decisive first. when = the age words
-    in place of age_label (Today page: when it reached the user's list)."""
+    in place of age_label (Today page + email: added, when it reached the user's list)."""
     rc = config["rank"]
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
     label = pay_label(job)

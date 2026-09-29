@@ -103,7 +103,23 @@ def test_html_escapes_title_and_url():
                    salary_min=150000, salary_currency="USD")
     msg = alert.build_message(shown([job]), CONFIG)
     assert 'Job 1: <a href="https://x.io/a?b=1&amp;c=&quot;2&quot;">Sr &lt;UI&gt; &amp; Eng</a>' in markup(msg)
-    assert "Job 1: Sr <UI> & Eng - Acme | remote · $150k (meets your pay) · first seen" in plain(msg)
+    assert "Job 1: Sr <UI> & Eng - Acme | remote · $150k (meets your pay) · added to your list today" in plain(msg)
+
+
+def test_email_age_agrees_with_new(conn):
+    # reposted posting freehire first saw 66 days ago, reaching the list in this check (real install)
+    store.upsert(conn, [make_job("repost", title="Clerk", reality={"age_days": 66}),
+                        make_job("fresh", title="Teller", reality={"age_days": 3})], NOW)
+    sent = []
+    alert.run(conn, CONFIG, sent.append)
+    body, html_body = plain(sent[0]), markup(sent[0])
+    line = {slug: next(ln for ln in body.splitlines() if ln.startswith("Job") and t in ln)
+            for slug, t in (("repost", "Clerk"), ("fresh", "Teller"))}
+    assert line["repost"].endswith("added to your list today · posting first seen 66 days ago")
+    assert line["fresh"].endswith("added to your list today")
+    assert "first seen 66d" not in body and "first seen 66d" not in html_body
+    # pop-up: titles only, so no age there to contradict "new"
+    assert "first seen" not in sent[0].preview
 
 
 def test_email_names_each_job_by_its_list_number(tmp_path):

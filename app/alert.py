@@ -4,6 +4,7 @@ import os
 import smtplib
 import sys
 from collections.abc import Callable
+from datetime import datetime, timezone
 from email.message import EmailMessage
 from pathlib import Path
 
@@ -19,8 +20,9 @@ import store
 DIGEST_CAP = 25
 
 
-def facts(job: dict, config: dict) -> list[str]:
-    return [job["company"] or job["company_slug"] or "?", rank.reasons(job, config)]
+def facts(job: dict, config: dict, now: datetime) -> list[str]:
+    # age = when it reached their list, as on the Today page - never "new" next to "first seen 66d ago"
+    return [job["company"] or job["company_slug"] or "?", rank.reasons(job, config, now, rank.added(job, now))]
 
 
 def by_tier(ranked: list[dict], config: dict) -> list[tuple[str, list[dict]]]:
@@ -31,14 +33,15 @@ def by_tier(ranked: list[dict], config: dict) -> list[tuple[str, list[dict]]]:
     ]
 
 
-def build_message(ranked: list[dict], config: dict) -> EmailMessage:
+def build_message(ranked: list[dict], config: dict, now: datetime | None = None) -> EmailMessage:
+    now = now or datetime.now(timezone.utc)
     counts = ", ".join(f"{len(rows)} {label}" for label, rows in by_tier(ranked, config))
     text, markup = [], []
     for label, rows in by_tier(ranked[:DIGEST_CAP], config):
         text.append(f"== {label} ==")
         markup.append(f"<h3>{html.escape(label)}</h3><ul>")
         for j in rows:
-            detail = " | ".join(facts(j, config))
+            detail = " | ".join(facts(j, config, now))
             text += [f"Job {j['num']}: {j['title']} - {detail}", f"  {j['url']}", ""]
             markup.append(
                 f'<li>Job {j["num"]}: <a href="{html.escape(j["url"], quote=True)}">{html.escape(j["title"])}</a>'
@@ -53,7 +56,8 @@ def build_message(ranked: list[dict], config: dict) -> EmailMessage:
     msg["Subject"] = f"{len(ranked)} new {config['profile']['name']} ({counts})"
     msg.set_content("\n".join(text))
     msg.add_alternative("".join(markup), subtype="html")
-    # desktop pop-up has room for a line, not a digest (notify.sender)
+    # desktop pop-up has room for a line, not a digest (notify.sender): titles only, no age -
+    # "added to your list" there would push the 2nd and 3rd title out of view
     msg.preview = "; ".join(f"#{j['num']} {j['title']}" for j in ranked[:3])
     return msg
 
