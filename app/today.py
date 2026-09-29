@@ -25,6 +25,9 @@ BRIEF_MAX = 3
 # applied this long ago, no reply => worth a check-in if they have a contact there. Convention
 # (recruiter advice: 1-3 weeks), not a measured rule - the page says so
 FOLLOW_UP_DAYS = 21
+# posting this much older than its day on the user's list => its own age shown too (a repost or
+# long-open job reaching the list now); closer than that the two read the same
+POSTING_AGE_GAP = 7
 # applied or further along: counted as progress on the page
 SENT = ("applied", "heard_back", "interview", "no", "offer")
 # START HERE is first-run steps only; everything else it said lives in these (launch.py)
@@ -119,13 +122,25 @@ def new_jobs(conn, config: dict, now: datetime) -> list[dict]:
     return out
 
 
+def added(job: dict, now: datetime) -> str:
+    """Age that agrees w/ "new": when the job reached their list (first fetch), not freehire's
+    first sighting - that alone read "new" next to "first seen 66d ago" (real install)."""
+    now_iso = now.astimezone(timezone.utc).strftime(store.ISO)
+    listed = int(status._days(job["first_fetched_at"], now_iso))
+    out = f"added to your list {days_ago(job['first_fetched_at'], now_iso)}"
+    posting = rank.age(job, now)
+    if posting is not None and posting - listed >= POSTING_AGE_GAP:
+        out += f" · posting first seen {posting} days ago"
+    return out
+
+
 def new_section(conn, config: dict, now: datetime) -> list[str]:
     rows = new_jobs(conn, config, now)
     if not rows:
         return []
     out = ["## New since last check", ""]
     for j in store.numbered(conn, rows[:NEW_MAX]):
-        out += item(j, rank.reasons(j, config, now), j["url"], say(f"resume for job {j['num']}"))
+        out += item(j, rank.reasons(j, config, now, added(j, now)), j["url"], say(f"resume for job {j['num']}"))
     if len(rows) > NEW_MAX:
         out.append(f"- {len(rows) - NEW_MAX} more - ask the chat. {say('show me more new jobs')}")
     return out + [""]

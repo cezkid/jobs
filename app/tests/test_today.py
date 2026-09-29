@@ -55,11 +55,11 @@ No reply 21+ days after applying. A short check-in is common if you have a conta
 ## New since last check
 
 - **Job 3** - Senior Vue Engineer paid, Acme
-  - remote · $150k-190k (meets your pay) · first seen 1d ago
+  - remote · $150k-190k (meets your pay) · added to your list today
   - https://boards.greenhouse.io/acme/jobs/paid
   - Say: "resume for job 3"
 - **Job 4** - Senior Vue Engineer plain, Acme
-  - remote · pay not listed · first seen 1d ago
+  - remote · pay not listed · added to your list today
   - https://boards.greenhouse.io/acme/jobs/plain
   - Say: "resume for job 4"
 
@@ -119,6 +119,20 @@ def test_new_is_last_check_or_unannounced_only(conn, tmp_path):
     store.upsert(conn, [job("stale")], "2026-09-01T12:00:00Z")
     conn.execute("UPDATE jobs SET fetched_at = ? WHERE public_slug != 'stale'", (CHECK,))
     assert [j["public_slug"] for j in today.new_jobs(conn, CONFIG, NOW)] == ["latest", "never"]
+
+
+def test_new_job_age_agrees_with_new(conn, tmp_path):
+    # reposted posting freehire first saw 66 days ago, reaching the list in this check (real install)
+    store.upsert(conn, [job("repost", reality={"age_days": 66}), job("fresh", reality={"age_days": 3})], CHECK)
+    lines = {j: next(line for line in page(conn, tmp_path).split(f"/jobs/{j}")[0].splitlines()[::-1] if "·" in line)
+             for j in ("repost", "fresh")}
+    assert lines["repost"].endswith("added to your list today · posting first seen 66 days ago")
+    assert lines["fresh"].endswith("added to your list today")
+    assert "first seen 66d" not in page(conn, tmp_path)
+    # still unannounced from an earlier check: its own day on the list, never freehire's
+    store.upsert(conn, [job("waited", reality={"age_days": 40})], "2026-09-26T12:00:00Z")
+    conn.execute("UPDATE jobs SET fetched_at = ?", (CHECK,))
+    assert "added to your list 3 days ago · posting first seen 40 days ago" in page(conn, tmp_path)
 
 
 def test_new_leaves_out_jobs_already_in_progress(conn, tmp_path):

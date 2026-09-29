@@ -223,15 +223,17 @@ def age_label(job: dict, now: datetime) -> str:
     return "" if days is None else "first seen today" if days < 1 else f"first seen {days}d ago"
 
 
-def reasons(job: dict, config: dict, now: datetime | None = None) -> str:
-    """Why the row sits where it does, in plain words, most decisive first."""
+def reasons(job: dict, config: dict, now: datetime | None = None, when: str | None = None) -> str:
+    """Why the row sits where it does, in plain words, most decisive first. when = the age words
+    in place of age_label (Today page: when it reached the user's list)."""
     rc = config["rank"]
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
     label = pay_label(job)
     if label and rc["salary_floor_usd"]:
         label += " (meets your pay)" if meets_floor(job, rc["salary_floor_usd"]) else " (below your pay)"
     hits = [COLLECTION_NAMES.get(c, c) for c in job.get("collections") or [] if c in rc["boost_collections"]]
-    parts = [place, label or "pay not listed", *hits, age_label(job, now or datetime.now(timezone.utc))]
+    parts = [place, label or "pay not listed", *hits,
+             age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
     parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config)
