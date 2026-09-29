@@ -161,6 +161,12 @@ def test_career_break_covers_the_gap(master):
     master["career_break"] = [{"reason": "Caring for a family member", "start": "2021-02", "end": "2023-01"}]
     assert errors_for(master) == []
     assert schema.employment_gaps(master, TODAY) == []
+    master["career_break"][0]["explain"] = "I cared for a family member full time."
+    assert errors_for(master) == []
+    master["career_break"][0]["explain"] = " "
+    assert "career_break[0].explain: empty" in errors_for(master)
+    master["career_break"][0]["explain"] = ["two", "lines"]
+    assert "career_break[0].explain: expected str, got list" in errors_for(master)
     master["career_break"][0].pop("reason")
     assert "career_break[0].reason: missing" in errors_for(master)
 

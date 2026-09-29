@@ -32,7 +32,8 @@ NOTES = {
         "# Your jobs, newest first. Under each one, every line is one thing you did there.",
         "# 2023-02 means February 2023. The job you are in now ends with the word: present",
     ],
-    "career_break": ["# Time away from work, said plainly: reason, then start and end. Shown with your jobs."],
+    "career_break": ["# Time away from work, said plainly: reason, then start and end. Shown with your jobs.",
+                     "# explain: optional, your own words for forms that ask about a break. Never on the page."],
     "projects": ["# Worth showing but not a job: side projects, teaching. Dates may be left out."],
     "skills": ["# The skills block. 'group' is the heading, 'items' are the words under it."],
     "education": ["# Schools, newest first. hide_year: true leaves the year off the page."],
@@ -43,7 +44,7 @@ NOTES = {
 }
 ORDER = ["contact", "headline", "summary", "roles", "career_break", "projects", "skills", "education", "certifications",
          "other", "languages"]
-ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "ai_era",
+ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "explain", "ai_era",
                "bullets", "lines"]
 ORDERS = {"contact": ["name", "legal_first", "legal_middle", "legal_last", "other_names", "form_name", "email", "phone",
                       "location", "links"]}

@@ -1,6 +1,7 @@
 import importlib
 import inspect
 import pkgutil
+from datetime import date
 
 import pytest
 
@@ -209,6 +210,53 @@ def test_prepare_line_names_the_sensitive_kind():
     assert form.line(a) == "  [NEEDED] date: Date of birth (sensitive: date of birth)"
     (plain,) = questions.draft([q("Why us?", "longtext", required=False)], CONTACT)
     assert form.line(plain) == "  [optional] longtext: Why us?"
+
+
+BREAKS = [{"reason": "Caring for a family member", "start": "2021-02", "end": "2023-01",
+           "explain": "I cared for a family member full time and kept my skills current."},
+          {"reason": "Travel", "start": "2012", "end": "2013", "explain": "I travelled for a year."}]
+TODAY = date(2026, 9, 29)
+
+
+def test_work_break_question_answered_from_the_users_saved_words():
+    newest = q("Explain any gaps in employment", "longtext")
+    (a,) = questions.draft([newest], CONTACT, breaks=BREAKS[:1])
+    assert a["answer"] == BREAKS[0]["explain"]
+    assert a["source"] == "resume - sensitive: work break - read it before Submit"
+    assert form.line(a) == "  [ok] longtext: Explain any gaps in employment (sensitive: work break - read it before Submit)"
+    # a window the question names: the 2012 break is outside the last 5 years
+    last5 = q("Explain any gaps in employment in the last 5 years", "longtext")
+    assert questions.break_answer(last5, BREAKS, TODAY) == BREAKS[0]["explain"]
+    # no window: every break, each after its dates, newest first
+    every = questions.break_answer(q("Please explain any gaps in your employment history", "longtext"), BREAKS, TODAY)
+    assert every == f"Feb 2021 - Jan 2023: {BREAKS[0]['explain']}\n2012 - 2013: {BREAKS[1]['explain']}"
+    assert questions.break_answer(q("Employment gaps since 2020", "text"), BREAKS, TODAY) == BREAKS[0]["explain"]
+    assert questions.break_answer(q("Explain gaps in employment in the past ten years"), BREAKS, TODAY) \
+        == BREAKS[0]["explain"]
+    # a re-prepare refreshes the program's answer from the latest saved words; the user's own edit stays
+    later = [{**BREAKS[0], "explain": "Reworded."}]
+    assert questions.draft([newest], CONTACT, [a], breaks=later)[0]["answer"] == "Reworded."
+    theirs = [{"id": newest["id"], "answer": "Their words.", "source": "user"}]
+    assert questions.draft([newest], CONTACT, theirs, breaks=later)[0]["answer"] == "Their words."
+
+
+def test_work_break_question_stays_needed_without_saved_words_for_every_break_it_asks_about():
+    gaps = q("Please explain any gaps in your employment history", "longtext")
+    unexplained = [BREAKS[0], {k: v for k, v in BREAKS[1].items() if k != "explain"}]
+    for breaks in (None, [], unexplained):  # part of the story would read as the whole of it
+        (a,) = questions.draft([gaps], CONTACT, breaks=breaks)
+        assert a["answer"] is None and a["source"] == "ask the user - sensitive: work break"
+    last_year = q("Any gaps in employment in the last 1 year? Explain.", "text")
+    assert questions.break_answer(last_year, BREAKS, TODAY) is None  # no break in the window: theirs to say
+    assert questions.break_answer(q("Do you have gaps in your employment?", "yesno"), BREAKS, TODAY) is None
+
+
+@pytest.mark.parametrize("title, kind", [("Date of birth", "date"), ("Have you ever been convicted of a crime?", "text"),
+                                         ("Do you need a reasonable accommodation?", "longtext"),
+                                         ("What year did you graduate?", "text")])
+def test_saved_break_words_never_answer_another_sensitive_kind(title, kind):
+    (a,) = questions.draft([q(title, kind)], CONTACT, breaks=BREAKS)
+    assert a["answer"] is None and a["source"].startswith("ask the user - sensitive: ")
 
 
 def test_blank_required_questions_are_listed():

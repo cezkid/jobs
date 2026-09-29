@@ -277,6 +277,8 @@ def validate(master) -> list[str]:
         if isinstance(gap, dict):
             text(gap, "reason", where, errors)
             check_span(gap, where, errors, required=True)
+            if "explain" in gap:
+                text(gap, "explain", where, errors)
         else:
             errors.append(f"{where}: expected mapping")
     for i, section in enumerate(optional(master, "other", list, "master", errors) or []):

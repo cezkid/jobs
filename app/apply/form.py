@@ -40,7 +40,8 @@ def system_for(url: str):
 
 
 def line(a: dict) -> str:
-    """One question as prepare prints it; a sensitive one names its kind so the AI asks, never fills."""
+    """One question as prepare prints it; a sensitive one names its kind so the AI asks, never fills -
+    or, a work break answered from the user's saved words, shows them those words before Submit."""
     state = "ok" if not questions.blank(a["answer"]) else ("NEEDED" if a["required"] else "optional")
     opts = f" options={a['options']}" if a["options"] else ""
     tag = f" ({a['source'].split(' - ', 1)[1]})" if " - sensitive: " in a["source"] else ""
@@ -55,7 +56,8 @@ def prepare(slug: str, url: str) -> None:
     out = folder / tailor.JOB_DATA / questions.FILE
     old = questions.load(out)
     same_form = old and old.get("url") == system.application_url(url)
-    answers = questions.draft(system.questions(url), master["contact"], old["questions"] if same_form else None, config)
+    answers = questions.draft(system.questions(url), master["contact"], old["questions"] if same_form else None, config,
+                              master.get("career_break"))
     questions.save(out, {"system": system.NAME, "url": system.application_url(url), "questions": answers})
     print(f"{system.NAME} form -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
     for a in answers:

@@ -7,7 +7,10 @@ works the same for every system. How to add one: app/docs/apply/apply-systems.md
 import json
 import re
 import unicodedata
+from datetime import date
 from pathlib import Path
+
+from resume import render, schema
 
 # what a question asks for, whatever the system calls it; a system maps each of its types to one
 KINDS = {"text", "longtext", "email", "phone", "url", "number", "date", "location",
@@ -41,6 +44,12 @@ SENSITIVE = [
     ("disability or health", re.compile(r"\bdisabilit|\bdisabled\b|\bimpairment|reasonable accommodation|"
                                         r"\b(medical|health|mental health) (condition|history|issue|problem)s?\b")),
 ]
+# the time a work-break question asks about: "in the last 5 years", "past ten years", "since 2019"
+WORD_NUMBER = {w: n for n, w in enumerate("one two three four five six seven eight nine ten".split(), 1)}
+LAST_YEARS = re.compile(r"\b(?:last|past) (\d{1,2}|" + "|".join(WORD_NUMBER) + r") years?\b")
+SINCE_YEAR = re.compile(r"\bsince ((?:19|20)\d\d)\b")
+# a work-break question answered from the user's saved words: named, so the AI shows it before Submit
+READ_FIRST = "read it before Submit"
 # answers the program wrote itself; the user's own (via the AI) survive a second prepare
 AUTO = ("resume", "search settings")
 NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
@@ -187,13 +196,45 @@ def sensitive(q: dict, contact: dict) -> str | None:
                  and not (kind == "date of birth" and q["kind"] == "yesno")), None)
 
 
+def window_start(title: str, today: date) -> int | None:
+    """First month a work-break question asks about, or None when it names no window (every break)."""
+    t = " ".join(title.casefold().split())
+    if m := LAST_YEARS.search(t):
+        years = WORD_NUMBER.get(m[1]) or int(m[1])
+        return schema.month_index(f"{today.year - years}-{today.month:02d}", today)
+    if m := SINCE_YEAR.search(t):
+        return schema.month_index(m[1], today)
+    return None
+
+
+def break_answer(q: dict, breaks: list[dict], today: date | None = None) -> str | None:
+    """A work-break question in the user's own saved words (career_break explain), text boxes only.
+    Breaks = those the question's window reaches ("last 5 years"), else all. Any of them without
+    saved words, or none at all -> None, the user answers: part of the story reads as the whole of
+    it. Several -> each after its dates, newest first."""
+    if q["kind"] not in ("text", "longtext"):
+        return None
+    today = today or date.today()
+    start = window_start(q["title"], today)
+    asked = [b for b in schema.newest_first(breaks)
+             if start is None or schema.month_index(b["end"], today, end=True) >= start]
+    if not asked or any(not (b.get("explain") or "").strip() for b in asked):
+        return None
+    if len(asked) == 1:
+        return asked[0]["explain"].strip()
+    sep = "\n" if q["kind"] == "longtext" else " "
+    return sep.join(f"{render.span_label(b)}: {b['explain'].strip()}" for b in asked)
+
+
 def blank(answer) -> bool:
     return answer in (None, "", [])
 
 
-def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None) -> list[dict]:
+def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
+          breaks: list[dict] | None = None) -> list[dict]:
     """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept -
-    on a sensitive question only the user's own, never one the program filled."""
+    on a sensitive question only the user's own, never one the program filled. The one sensitive
+    kind the program fills: a work break, from words the user saved for it (`breaks`)."""
     kept = {a["id"]: a for a in old or [] if not blank(a.get("answer"))}
     out = []
     for q in qs:
@@ -201,8 +242,10 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         if q["id"] in kept and not (tag and kept[q["id"]].get("source", "").startswith(AUTO)):
             out.append({**q, "answer": kept[q["id"]]["answer"], "source": kept[q["id"]].get("source", "")})
             continue
+        if tag == "work break" and (saved := break_answer(q, breaks or [])):
+            out.append({**q, "answer": saved, "source": f"resume - sensitive: {tag} - {READ_FIRST}"})
+            continue
         if tag:
-            # plan-1fw.6 hook: a break explanation the user saved (career_break explain) fills "work break" here
             out.append({**q, "answer": None, "source": f"{ASK} - sensitive: {tag}"})
             continue
         home = (config or {}).get("home_address") or {}

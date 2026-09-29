@@ -139,6 +139,7 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 | Name on the page vs legal name | `contact.legal_*` only in boxes labelled legal; plain Name box asks once (`form_name`), never guessed from a 3+ word name | done (plan-1fw.3) |
 | Other names used | `contact.other_names` -> "other names" boxes + background-check forms only | done (plan-1fw.3) |
 | Sensitive questions never auto-answered | `questions.SENSITIVE` tags date of birth, graduation date, criminal history, work break, disability or health, other names (none saved); answer left blank even when a saved answer fits, `apply-form prepare` prints the kind. "18 or older?" is a plain yes/no, not tagged | done (plan-1fw.5) |
+| Saved break words reused on forms | `career_break[i].explain` (1-2 sentences the user approved, never on the page) fills a work-break text box: breaks in the question's window ("last 5 years", "since 2019") or all, newest first w/ dates when several; any of them unexplained -> left blank. Source "read it before Submit"; no other sensitive kind ever filled | done (plan-1fw.6) |
 | Break severity, no penalty numbers at user | `schema.gap_note`: 6+ months a line, 12+ a line + real recent work; running search nothing | done (plan-1fw.4) |
 | Old graduation year offered, not forced | `lint` `old-graduation-year` (`OLD_GRADUATION_YEARS` = 15) offers `hide_year` | offer done; 20-year bundle recommendation pending (plan-1fw.9) |
 

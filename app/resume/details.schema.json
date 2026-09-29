@@ -98,7 +98,8 @@
         "properties": {
           "reason": { "type": "string", "minLength": 1, "description": "A few words, like Caring for a family member. Shown as Career break - your words." },
           "start": { "$ref": "#/definitions/month" },
-          "end": { "oneOf": [{ "$ref": "#/definitions/month" }, { "const": "present" }] }
+          "end": { "oneOf": [{ "$ref": "#/definitions/month" }, { "const": "present" }] },
+          "explain": { "type": "string", "minLength": 1, "description": "Optional. One or two sentences the user approved for application questions about a break - no medical or case details. Never on the page; never written without the user." }
         }
       }
     },
