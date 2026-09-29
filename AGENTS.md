@@ -121,8 +121,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by
-  side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
+  `rank.py`, `status.py` (where each job stands: saved ... applied ... offer), `alert.py`,
+  `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/`, `deploy/`, `docs/`, `tests/`.
 - `docs/index.html` - install page, GitHub Pages (`https://cezkid.github.io/jobs`).
 

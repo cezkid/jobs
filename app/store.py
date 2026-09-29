@@ -55,6 +55,23 @@ CREATE TABLE IF NOT EXISTS seen (
     public_slug TEXT PRIMARY KEY,
     alerted_at TEXT NOT NULL
 );
+-- where each job the user acts on stands (status.py). Keyed by posting link, not slug: pasted
+-- postings + jobs applied outside Job Finder have no jobs row
+CREATE TABLE IF NOT EXISTS applications (
+    key TEXT PRIMARY KEY,
+    url TEXT,
+    company TEXT,
+    title TEXT,
+    public_slug TEXT,
+    state TEXT NOT NULL,
+    state_at TEXT NOT NULL,
+    added_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS application_log (
+    key TEXT NOT NULL,
+    state TEXT NOT NULL,
+    at TEXT NOT NULL
+);
 """
 
 
