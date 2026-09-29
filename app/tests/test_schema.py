@@ -163,3 +163,10 @@ def test_no_jobs_yet_is_a_valid_file(master):
     master["roles"] = []
     assert errors_for(master) == []
     assert schema.employment_gaps(master, TODAY) == []
+
+
+def test_shown_end_is_blank_when_the_user_hides_the_year():
+    assert schema.shown_end({"end": "1998-05"}) == "1998-05"
+    assert schema.shown_end({"end": "1998-05", "hide_year": True}) == ""
+    assert schema.shown_end({"end": "1998", "hide_year": False}) == "1998"
+    assert schema.shown_end({}) == ""

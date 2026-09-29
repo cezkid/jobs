@@ -66,7 +66,7 @@ def answers(master: dict, tailored: dict | None = None) -> dict:
     } for r in master["roles"]]
     education = [{
         "school": s["institution"], "degree": degree(s["degree"]), "field": field_of_study(s.get("field")),
-        "end": "" if s.get("hide_year") else s.get("end", ""),
+        "end": schema.shown_end(s),
     } for s in master.get("education") or []]
     groups = tailored["skills"] if tailored else master.get("skills") or []
     skills = list(dict.fromkeys(item for g in groups for item in g["items"]))

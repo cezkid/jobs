@@ -11,6 +11,7 @@ from pathlib import Path
 
 from apply import browser
 from apply.questions import question
+from resume import schema
 
 NAME = "UKG"
 POSTING_URL = re.compile(
@@ -211,7 +212,7 @@ def put_file(page, path: str) -> str:
 def resume_facts(resume_file: str | None) -> tuple[dict, dict]:
     """Master resume + this job's tailored lines (tailored copy's bullets go on the site, same as the PDF)."""
     import cfg
-    from resume import schema, tailor
+    from resume import tailor
     master = schema.load(cfg.resume_path(cfg.load(), "master"))
     tailored = {}
     if resume_file:
@@ -338,7 +339,7 @@ def add_education(page, schools: list[dict]) -> list[str]:
         major = major_option(field, box("major-dropdown").evaluate("e => [...e.options].slice(1).map(o => o.text.trim())"))
         if major:
             box("major-dropdown").select_option(label=major)
-        if when := month_year(school.get("end")):
+        if when := month_year(schema.shown_end(school)):  # hide_year: left blank, as on the page
             if when[0]:
                 box("to-month-dropdown").select_option(label=when[0])
             put_text(box("to-year-textbox"), when[1])

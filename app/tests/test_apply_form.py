@@ -313,3 +313,35 @@ def test_fill_uploads_the_pdf_from_where_its_folder_is_now(tmp_path, monkeypatch
     pdf.unlink()
     form.fill("7")
     assert uploaded[-1] is None  # no PDF there => nothing uploaded, never a stale one
+
+
+class FakeUkgBox:
+    """Any UKG locator: records what is typed or picked, by the data-automation name."""
+    def __init__(self, log, name=""):
+        self.log, self.name = log, name
+
+    def locator(self, selector):
+        return FakeUkgBox(self.log, selector.split("=")[-1].split("]")[0])
+
+    first = property(lambda self: self)
+    inner_text = lambda self: ""
+    evaluate = lambda self, script: []
+    select_option = lambda self, label: self.log.append((self.name, label))
+
+
+def education_filled(monkeypatch, school: dict) -> list:
+    log = []
+    monkeypatch.setattr(ukg, "panel", lambda page, name: FakeUkgBox(log))
+    monkeypatch.setattr(ukg, "open_entry", lambda p, probe: None)
+    monkeypatch.setattr(ukg, "pick_typeahead", lambda page, box, typed, starts: typed)
+    monkeypatch.setattr(ukg, "save_entry", lambda page, p: "ok")
+    monkeypatch.setattr(ukg, "put_text", lambda box, value: log.append((box.name, value)) or "ok")
+    assert ukg.add_education(None, [school]) == ["Acme State University: ok"]
+    return log
+
+
+def test_ukg_education_leaves_a_hidden_graduation_year_blank(monkeypatch):
+    school = {"institution": "Acme State University", "degree": "BA", "end": "1998-05"}
+    assert ("to-year-textbox", "1998") in education_filled(monkeypatch, dict(school))
+    filled = education_filled(monkeypatch, dict(school, hide_year=True))
+    assert not [f for f in filled if f[0].startswith("to-")]  # neither month nor year

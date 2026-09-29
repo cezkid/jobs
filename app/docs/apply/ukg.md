@@ -53,9 +53,13 @@ on the site at once** (`POST .../Candidate/InsertWorkExperience`, measured) - be
 | Panel | Boxes | Rule |
 |---|---|---|
 | Work experience | `job-title-textbox`, `company-textbox`, `location-textbox`, `from-month-dropdown` (Jan..Dec), `from-year-textbox`, `to-...` same, `description-textarea` (2000 chars) | To left blank = "Current". Description = this job's tailored lines (same as the PDF), else the resume's |
-| Education | `school-textbox` + `degree-textbox` = typeaheads (suggestions `.tt-suggestion`), `major-dropdown` (fixed list, ~270), `description-textarea` | school: site's spelling when listed ("... College (NJ)"), else typed. Degree searched by word: BA -> "Bachelors", AA -> "Associates", M -> "Masters", PhD -> "Doctorate"; none -> cancel + ASK. Major: exact or longest prefix of the field, else blank; field goes in description |
+| Education | `school-textbox` + `degree-textbox` = typeaheads (suggestions `.tt-suggestion`), `major-dropdown` (fixed list, ~270), `description-textarea` | school: site's spelling when listed ("... College (NJ)"), else typed. Degree searched by word: BA -> "Bachelors", AA -> "Associates", M -> "Masters", PhD -> "Doctorate"; none -> cancel + ASK. Major: exact or longest prefix of the field, else blank; field goes in description. `hide_year` -> To month + year left blank (same as the page) |
 | Skills | pencil `primary-action-button`, `item-typeahead` + `item-add-button`, each skill gets a level select (default Not Specified) | type, click Add; **never Escape - it closes the editor**. Level left Not Specified (a self-rating) |
 | Links | rows `#LinkName<i>` / `#LinkUrl<i>`, `primary-action-button` adds a row | needs `change` event - without it Save says "Link name must not be empty" |
+
+Unmeasured: whether UKG saves an education entry w/ no graduation year (`hide_year`). If it
+refuses, `save_entry` reads the reason off the page -> ASK; user picks: add the year by hand or leave
+the entry off.
 
 - First typeahead search after an editor opens comes back empty while its list loads
   ("Bachelor" -> nothing, same again -> "Bachelors"): wait, retype once.

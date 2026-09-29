@@ -149,6 +149,12 @@ def in_ai_era(entry: dict) -> bool:
                                   and month_index(end, date.today(), end=True) >= month_index(AI_ERA_FROM, date.today()))
 
 
+def shown_end(school: dict) -> str:
+    """Graduation date as the user lets it show: "" when they chose hide_year (the page, every
+    application form), else the end as written. One place, so no form fills a year the page hides."""
+    return "" if school.get("hide_year") else school.get("end") or ""
+
+
 def year_only(value: str) -> bool:
     return value != PRESENT and "-" not in value
 
