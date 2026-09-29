@@ -134,7 +134,7 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 | Choice | Where it's carried | State |
 |---|---|---|
 | Ranking never sees the resume | `rank.py` scores jobs from search settings only: no name, school, date or address reaches it | done |
-| Tailor AI task without name + contact | `tailor.build_request` sends the resume file minus the contact block | pending (plan-1fw.2): today the whole file goes |
+| Tailor AI task without name + contact | `tailor.build_request` sends the resume file minus the contact block; resume import still sends the name (reads the PDF text as is) | done (plan-1fw.2) |
 | Graduation year hidden everywhere | `hide_year` -> `schema.shown_end`, used by page, Workday profile, UKG | done (plan-1fw.1) |
 | Name on the page vs legal name | `contact.legal_*` only in boxes labelled legal; plain Name box asks once (`form_name`), never guessed from a 3+ word name | done (plan-1fw.3) |
 | Other names used | `contact.other_names` -> "other names" boxes + background-check forms only | done (plan-1fw.3) |

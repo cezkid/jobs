@@ -1,4 +1,5 @@
 import copy
+import json
 from datetime import date
 from pathlib import Path
 
@@ -105,6 +106,13 @@ def test_request_is_byte_identical_per_master_and_job(master):
     first = tailor.build_request(master, JOB)
     assert first == tailor.build_request(copy.deepcopy(master), copy.deepcopy(JOB))
     assert '"generated_words"' in first["prompt"]
+
+
+def test_request_leaves_out_name_and_contact(master):
+    prompt = tailor.build_request(master, JOB)["prompt"]
+    assert "contact" not in json.loads(prompt)["master"]
+    contact = master["contact"]
+    assert not [v for v in [contact["name"], contact["email"], contact["phone"], *contact["links"]] if v in prompt]
 
 
 def test_coverage_rows_drop_off_page_evidence(master, tailored):
