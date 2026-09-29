@@ -64,7 +64,7 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
   It picks the oldest job only and never repeats within 3 days - never add others to it.
 - Resume made, untouched 14+ days -> drops out of Waiting on you + never asked about: kept,
   never nagged. User mentions one anyway ("I heard back from Acme") -> `status set`.
-- User says it in passing ("applied to Ramp", "got an interview") -> `status set` by number,
+- User says it in passing ("applied to Acme", "got an interview") -> `status set` by number,
   link or `--company C --title T`, confirm in one line. Never a count of unsent resumes.
 - Still open? `status open`: each job in progress -> open / may be closed / can't tell, w/ its
   reason; say that reason, never more sure than it. Pasted or found elsewhere = can't tell (never
