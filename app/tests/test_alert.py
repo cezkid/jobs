@@ -125,3 +125,31 @@ def test_check_login_signs_in_with_configured_host():
 def test_check_login_raises_on_bad_password():
     with pytest.raises(RuntimeError, match="not accepted"):
         alert.check_login(CONFIG, "me@gmail.com", "typo", connect=FakeSMTP)
+
+
+def test_morning_check_and_email_step_at_once_send_once(tmp_path):
+    import threading
+
+    db = tmp_path / "jobs.db"
+    first = store.connect(db)
+    with first:
+        store.upsert(first, [make_job("a")], NOW)
+    sent = []
+
+    def send_slowly(msg):
+        sent.append(msg)
+        threading.Event().wait(0.3)
+
+    def check():
+        conn = store.connect(db)
+        with alert.lock(db):
+            alert.run(conn, CONFIG, send_slowly)
+        conn.close()
+
+    both = [threading.Thread(target=check) for _ in range(2)]
+    for t in both:
+        t.start()
+    for t in both:
+        t.join()
+    assert len(sent) == 1
+    assert not (tmp_path / "alert.lock").exists()

@@ -13,6 +13,7 @@ The AI asks a few questions, then shows your first jobs. You never type commands
 - **Jobs:** "Any new jobs?" · "Why is job 3 on my list?" · "Stop showing jobs from Acme Staffing"
 - **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number"
 - **One job:** "Make my resume for job 3" · "Why did you change that?" · "Help me apply to job 3"
+- **Several jobs:** "Make my resume for jobs 2, 5 and 7" - one chat does them in turn
 - **Anything:** "Who can see my information?" · "Why?"
 
 ## Where the jobs come from

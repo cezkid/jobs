@@ -10,6 +10,7 @@ import httpx
 import pymupdf
 
 import cfg
+import store
 from resume import handoff, jd, lint, measure, render, report, schema, typeface
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
@@ -404,8 +405,6 @@ JOB_DATA = ".data"
 ILLEGAL_IN_NAME = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 # Windows path limit leaves room for My Jobs/<name>/.data/<file> under deep home dirs
 MAX_FOLDER_CHARS = 80
-POSTING_TASK = cfg.DATA / "posting-task.md"
-POSTING_ANSWER = cfg.DATA / "posting.json"
 CHECK_FILE = "Check before sending.md"
 POSTING_FILE = "Job posting.md"
 
@@ -426,15 +425,21 @@ def find_job_dir(root: Path, slug: str) -> Path | None:
 
 
 def job_dir_for(root: Path, job: dict) -> Path:
-    """Same job => same folder; other job w/ same company + title => ' (2)' suffix."""
+    """Same job => same folder; other job w/ same company + title => ' (2)' suffix.
+
+    New folder is created here, not checked then made => two chats preparing two same-named
+    jobs at once never land in one folder."""
     found = find_job_dir(root, job["public_slug"])
     if found:
         return found
     base = folder_name(job)
     candidate, n = root / base, 2
-    while candidate.exists():
-        candidate, n = root / f"{base} ({n})", n + 1
-    return candidate
+    while True:
+        try:
+            candidate.mkdir(parents=True)
+            return candidate
+        except FileExistsError:
+            candidate, n = root / f"{base} ({n})", n + 1
 
 
 def write_json(path: Path, value) -> None:
@@ -445,16 +450,38 @@ def check_command(slug: str) -> str:
     return f'uv run app/jobs.py tailor check "{slug}"'
 
 
+def posting_files(text_file: Path) -> tuple[Path, Path]:
+    """Task + answer beside the pasted text, named after it => two chats, two postings, no
+    shared file. `.data/posting.txt` keeps the old `posting-task.md` + `posting.json`."""
+    return text_file.with_name(f"{text_file.stem}-task.md"), text_file.with_suffix(".json")
+
+
 def posting(text_file: Path, url: str) -> None:
     then = f'uv run app/jobs.py tailor prepare --posting "{text_file}"' + (f' --url "{url}"' if url else "")
-    handoff.write_task(POSTING_TASK, POSTING_ANSWER, jd.EXTRACT_SYSTEM, jd.EXTRACT_SCHEMA,
+    handoff.write_task(*posting_files(text_file), jd.EXTRACT_SYSTEM, jd.EXTRACT_SCHEMA,
                        text_file.read_text(encoding="utf-8").strip(), then)
+
+
+def slug_for(config: dict, job: str) -> str:
+    """Row's own link works as well as its slug => a new chat, which never saw the numbered
+    list, can still name a list job by the link the user copies from it."""
+    if not job.startswith(("http://", "https://")):
+        return job
+    conn = store.connect(cfg.db_path(config))
+    try:
+        row = conn.execute("SELECT public_slug FROM jobs WHERE url = ?", (job,)).fetchone()
+    finally:
+        conn.close()
+    if row is None:
+        sys.exit(f"{job}: not a job on your list. Save the posting page's text to a file, then run:\n"
+                 f'  uv run app/jobs.py tailor posting "<text file>" --url "{job}"')
+    return row["public_slug"]
 
 
 def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str) -> None:
     master = schema.load(cfg.resume_path(config, "master"))
     if posting_file:
-        got = handoff.read_answer(POSTING_ANSWER, jd.EXTRACT_SCHEMA)
+        got = handoff.read_answer(posting_files(posting_file)[1], jd.EXTRACT_SCHEMA)
         job = jd.from_text(posting_file.read_text(encoding="utf-8"), url, got)
     else:
         with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
@@ -511,7 +538,7 @@ def main() -> None:
     p.add_argument("text_file", type=Path)
     p.add_argument("--url", default="")
     p = steps.add_parser("prepare", help="job folder + AI tailoring task")
-    p.add_argument("slug", nargs="?", help="jobs.public_slug; omit with --posting")
+    p.add_argument("slug", nargs="?", help="jobs.public_slug or the row's https link; omit with --posting")
     p.add_argument("--posting", type=Path, help="pasted posting text file, after posting step")
     p.add_argument("--url", default="", help="posting URL, with --posting")
     p = steps.add_parser("check", help="check AI's tailored.json: PDF, gates, Check before sending.md")
@@ -524,7 +551,7 @@ def main() -> None:
     if args.step == "prepare":
         if bool(args.slug) == bool(args.posting):
             ap.error("prepare takes either slug or --posting")
-        prepare(config, args.slug, args.posting, args.url)
+        prepare(config, args.slug and slug_for(config, args.slug), args.posting, args.url)
     else:
         sys.exit(check(config, args.slug))
 

@@ -222,3 +222,16 @@ def test_open_chrome_found_by_its_command_line_when_the_port_file_is_gone(tmp_pa
     monkeypatch.setattr(browser, "answers", lambda port: port == 55211)
     assert browser.live_port() == 55211
     assert (tmp_path / "job-finder-port").read_text() == "55211"
+
+
+def test_port_file_naming_a_closed_chrome_falls_back_to_the_open_one(tmp_path, monkeypatch):
+    # two chats started Chrome at once: the second handed its link over, its port never answers
+    from apply import browser
+    monkeypatch.setattr(browser, "PROFILE", tmp_path)
+    monkeypatch.setattr(browser, "PORT_FILE", tmp_path / "job-finder-port")
+    (tmp_path / "job-finder-port").write_text("40001")
+    line = f"/Applications/Google Chrome --remote-debugging-port=55211 --user-data-dir={tmp_path}\n"
+    monkeypatch.setattr(browser.subprocess, "run", lambda *a, **k: browser.subprocess.CompletedProcess(a, 0, line, ""))
+    monkeypatch.setattr(browser, "answers", lambda port: port == 55211)
+    assert browser.live_port() == 55211
+    assert (tmp_path / "job-finder-port").read_text() == "55211"

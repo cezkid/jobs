@@ -5,10 +5,12 @@ import smtplib
 import sys
 from collections.abc import Callable
 from email.message import EmailMessage
+from pathlib import Path
 
 from dotenv import load_dotenv
 
 import cfg
+import locks
 import rank
 import store
 
@@ -60,6 +62,11 @@ def unseen_ranked(conn, config: dict) -> list[dict]:
     # rank every open row so a repost of a job already sent collapses into it, not in as new;
     # stale rows (likely filled) are never announced - they stay in the chat list only
     return [j for j in rank.rank(store.all_jobs(conn), config) if not j["seen"] and not j["stale"]]
+
+
+def lock(db: Path | str):
+    """Morning check + a chat's email step at once => one message, not the same jobs twice."""
+    return locks.held(Path(db).with_name("alert.lock"), "another job alert is being sent right now - try again in a minute")
 
 
 def run(conn, config: dict, send: Callable[[EmailMessage], None]) -> int:
@@ -124,7 +131,8 @@ def main() -> None:
         sys.exit(f"{', '.join(missing)} not set. Put them in {cfg.EMAIL_ENV} (see app/email.env.example).")
     user = os.environ["SMTP_USER"]
     to = os.environ.get("ALERT_TO") or user
-    new = run(conn, config, smtp_sender(config, user, os.environ["SMTP_PASSWORD"], to))
+    with lock(args.db or cfg.db_path(config)):
+        new = run(conn, config, smtp_sender(config, user, os.environ["SMTP_PASSWORD"], to))
     print(f"{new} new, emailed to {to}" if new else "0 new, nothing sent")
 
 

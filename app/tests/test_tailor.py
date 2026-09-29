@@ -4,6 +4,7 @@ from datetime import date
 import pytest
 
 import cfg
+import store
 from resume import jd, measure, render, report, schema, tailor, typeface
 
 EXAMPLE = cfg.APP / "resume" / "master.example.yml"
@@ -229,14 +230,13 @@ def test_prepare_on_a_posting_without_requirements_explains_instead_of_crashing(
 
 def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tailored):
     monkeypatch.setattr(cfg, "ROOT", tmp_path)
-    monkeypatch.setattr(tailor, "POSTING_ANSWER", tmp_path / "posting.json")
     config = cfg.defaults()
     master_path = cfg.resume_path(config, "master")
     master_path.parent.mkdir(parents=True)
     master_path.write_text(EXAMPLE.read_text(encoding="utf-8"), encoding="utf-8")
     posting = tmp_path / "posting.txt"
     posting.write_text(JOB["text"], encoding="utf-8")
-    tailor.write_json(tailor.POSTING_ANSWER, {k: JOB[k] for k in ("title", "company", "requirements")})
+    tailor.write_json(tailor.posting_files(posting)[1], {k: JOB[k] for k in ("title", "company", "requirements")})
 
     tailor.prepare(config, None, posting, JOB["url"])
     job_dir = tmp_path / "My Jobs" / "Acme - Senior Vue Engineer, Search"
@@ -248,6 +248,36 @@ def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tail
     checked = (job_dir / tailor.CHECK_FILE).read_text(encoding="utf-8")
     assert "## Ready to send?" in checked and "| Need | Shown? |" in checked
     assert list(job_dir.glob("*_Resume.pdf"))
+
+
+def test_two_pasted_postings_never_share_task_or_answer(tmp_path):
+    a, b = tmp_path / "acme analyst.txt", tmp_path / "globex analyst.txt"
+    assert set(tailor.posting_files(a)).isdisjoint(tailor.posting_files(b))
+    # a chat mid-way through the old single-file steps still finds its answer
+    assert tailor.posting_files(tmp_path / "posting.txt") == (tmp_path / "posting-task.md", tmp_path / "posting.json")
+
+
+def test_row_link_names_the_job_like_its_slug(tmp_path, monkeypatch):
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    config = cfg.defaults()
+    cfg.db_path(config).parent.mkdir(parents=True, exist_ok=True)
+    conn = store.connect(cfg.db_path(config))
+    with conn:
+        store.upsert(conn, [{c: None for c in store.COLS} | {"public_slug": "acme-analyst", "tier": "a",
+                            "title": "Analyst", "url": "https://acme.example/jobs/1"}], store.utc_now())
+    conn.close()
+    assert tailor.slug_for(config, "acme-analyst") == "acme-analyst"
+    assert tailor.slug_for(config, "https://acme.example/jobs/1") == "acme-analyst"
+    with pytest.raises(SystemExit) as exited:
+        tailor.slug_for(config, "https://elsewhere.example/job")
+    assert "not a job on your list" in str(exited.value)
+
+
+def test_same_named_jobs_prepared_at_once_get_own_folders(tmp_path):
+    # neither has written jd.json yet - the moment two chats race
+    first = tailor.job_dir_for(tmp_path, JOB)
+    second = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"})
+    assert first != second and first.is_dir() and second.is_dir()
 
 
 def test_career_break_and_other_sections_stay_on_the_tailored_page(master, tailored):

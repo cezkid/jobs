@@ -10,6 +10,7 @@ from pathlib import Path
 import pymupdf
 
 import cfg
+import locks
 from resume import facts, handoff, schema, tidy
 
 ZERO_WIDTH = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
@@ -320,9 +321,10 @@ def finish(config: dict) -> None:
     master, assumptions = build(mapped, today)
     extra = [f"# Read out of {pdf.name} on {today.isoformat()}; importing again needs --force."]
     extra += [f"# assumed {a}" for a in assumptions]
-    facts.write(master)
     master_path.parent.mkdir(parents=True, exist_ok=True)
-    master_path.write_text(tidy.dump(tidy.strip(master), extra), encoding="utf-8")
+    with facts.resume_lock():
+        facts.write(master)
+        locks.write_atomic(master_path, tidy.dump(tidy.strip(master), extra))
 
     errors = schema.validate(master)
     print(f"wrote {master_path} in {time.perf_counter() - started:.1f}s")

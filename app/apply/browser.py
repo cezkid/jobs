@@ -19,6 +19,7 @@ from urllib.parse import quote
 import httpx
 
 import cfg
+import locks
 
 PROFILE = cfg.DATA / "apply-browser"
 # port we started Chrome on. Never --remote-debugging-port=0: Chrome then sets
@@ -52,12 +53,14 @@ def live_port() -> int | None:
     try:
         port = int(PORT_FILE.read_text().split()[0])
     except (OSError, ValueError, IndexError):
-        # file gone while Chrome still runs (seen 2026-09-24): without this, the next start only
-        # hands the link to the open window and waits on a port that never answers
-        port = running_port()
+        port = None
     if port is None or not answers(port):
-        return None
-    if not PORT_FILE.exists():
+        # file gone while Chrome still runs (seen 2026-09-24), or naming a Chrome that handed its
+        # link to the one already open: without this, every next start only hands the link over
+        # and waits on a port that never answers, until the user closes Chrome
+        port = running_port()
+        if port is None or not answers(port):
+            return None
         PORT_FILE.write_text(str(port))
     return port
 
@@ -98,6 +101,12 @@ def open_tab(url: str) -> int:
     reads `navigator.webdriver = true`, which an employer's spam check can flag (measured 2026-09).
     Job Finder's Chrome already open -> new tab in it: a second Chrome on the same profile only
     hands the link to the first and never opens its port."""
+    # two chats applying at once => one starts Chrome, the other waits and opens a tab in it
+    with locks.held(PROFILE.parent / "apply-browser.lock", "the application window is still opening - try again in a minute"):
+        return _open_tab(url)
+
+
+def _open_tab(url: str) -> int:
     if port := live_port():
         httpx.put(f"http://127.0.0.1:{port}/json/new?{quote(url, safe='')}", timeout=10).raise_for_status()
         return port
@@ -107,10 +116,14 @@ def open_tab(url: str) -> int:
     subprocess.Popen([chrome(), f"--remote-debugging-port={port}", f"--user-data-dir={PROFILE}",
                       "--no-first-run", "--no-default-browser-check", url],
                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    # our own port, not live_port(): its process scan would run every half second while Chrome starts
     for _ in range(60):
-        if port := live_port():
+        if answers(port):
             return port
         time.sleep(0.5)
+    # link handed to a Chrome already open that the port file lost track of
+    if found := live_port():
+        return found
     sys.exit("Chrome did not start")
 
 

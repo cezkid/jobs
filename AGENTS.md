@@ -32,6 +32,22 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   Measure first so options carry live numbers - "Software engineering - about 56,000 US jobs"
   tells them more than the label.
 
+## Several chats
+
+Default = one chat. Several jobs at once -> same chat, one after another (`job-tailor` step 1):
+AI time is minutes, confirming lines is the user's, and questions spread over several tabs go
+unseen - a tab badge is the only sign one waits.
+
+- Never offer or open extra chats yourself. A new chat opens as a tab over their resume or
+  START HERE, and files you open then land on top of it (Claude extension 2.1.283, measured).
+- User asks how anyway: hover the icons at the top of the chat - "New session" starts one,
+  "Session history" lists past chats. Say it works; both chats share their files safely.
+- Job numbers belong to the chat that listed them; another chat has none. Across chats name a
+  job by company + title or its link (`tailor prepare "<link>"` resolves it).
+- Shared files are safe to run side by side: each pasted posting + each job folder is its own,
+  resume saves, job alerts and the application window wait their turn (`app/locks.py`). A wait
+  over a minute ends w/ a plain "another chat is ..." line - pass it on, try again after.
+
 ## Lead, explain, push back
 
 We lead w/ best practice and are the authority; user can always see + challenge the logic. Sort
@@ -105,9 +121,9 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `attribution.py` (Claude credit on
-  fixes), `resume/`, `apply/` (application fillers), `profiles/` (example search), `skills/`,
-  `install/`, `deploy/`, `docs/`, `tests/`.
+  `rank.py`, `alert.py`, `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by
+  side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
+  `profiles/` (example search), `skills/`, `install/`, `deploy/`, `docs/`, `tests/`.
 - `docs/index.html` - install page, GitHub Pages (`https://cezkid.github.io/jobs`).
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.

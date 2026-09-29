@@ -16,6 +16,7 @@ from pathlib import Path
 import yaml
 
 import cfg
+import locks
 from resume import facts, schema
 
 HEADER = [
@@ -142,6 +143,11 @@ def strip_entry(entry: dict) -> dict:
 
 
 def tidy(path: Path, notes: Path | None = None) -> tuple[Path, Path, int, int]:
+    with facts.resume_lock(notes):
+        return _tidy(path, notes)
+
+
+def _tidy(path: Path, notes: Path | None) -> tuple[Path, Path, int, int]:
     before = len(path.read_text(encoding="utf-8").splitlines())
     master = schema.load(path, notes)
     facts.write(master, notes)
@@ -149,7 +155,7 @@ def tidy(path: Path, notes: Path | None = None) -> tuple[Path, Path, int, int]:
     backup = (notes or facts.PATH).parent / f"{path.stem} before tidy.yml"
     backup.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(path, backup)
-    path.write_text(text, encoding="utf-8")
+    locks.write_atomic(path, text)
     if schema.load(path, notes) != master:
         shutil.copyfile(backup, path)
         raise ValueError("rewritten resume file did not hold the same facts - put the old one back")
