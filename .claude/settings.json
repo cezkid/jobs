@@ -26,5 +26,19 @@
       "Read(~/Desktop/**)",
       "Read(~/Documents/**)"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "uv run app/jobs.py today --brief",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
   }
 }

@@ -112,7 +112,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
-| Resume + postings you work on | this AI chat (Claude or ChatGPT) | User's own AI account; personal plans may train on it unless switched off |
+| Resume + postings you work on; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude or ChatGPT) | User's own AI account; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Work history, education, skills, links you apply with | that employer's UKG site | That employer, as each is added (only after you say yes) |
@@ -133,7 +133,9 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   settings exist, then `Today.md`. Plain words only.
 - `Today.md` - generated (`today`): waiting on you, follow up, new since last check, not
   finished; each item ends w/ the words to say. Rebuilt at launch + after each morning check.
-  Private, gitignored; never edit by hand.
+  Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
+  --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
+  no resume text. Other AIs have no hook - they keep the page.
 - `Guides/` - plain-words guides in the user's file list (`What you can ask.md`, `Who sees
   what.md`, `What makes a good resume.md`, `Keep your chats out of AI training.md`); link,
   don't repeat, from `START HERE.md`, the Today page and reports.

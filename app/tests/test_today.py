@@ -1,3 +1,5 @@
+import json
+import re
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -218,3 +220,62 @@ def test_page_is_private():
     assert "Today.md" in (ROOT / ".gitignore").read_text(encoding="utf-8").splitlines()
     gate = (ROOT / "app/skills/report-defect.md").read_text(encoding="utf-8")
     assert "`Today.md`" in gate
+
+
+BRIEF = """Job Finder today (same as their Today page). If the user only greets you or asks what's next, answer with this in plain words, each job written "**Job 12** - title, company", never a 1. 2. 3. list; otherwise use it only when it helps. Never say how many resumes are unsent.
+- Waiting on you (resume made, not sent): Job 1 - Data Analyst, Globex, resume made 5 days ago
+- Follow up (applied 21+ days, no reply): Job 2 - Senior Vue Engineer old, Acme, applied 29 days ago
+- New since last check: 2. Top: Job 3 - Senior Vue Engineer paid, Acme; Job 4 - Senior Vue Engineer plain, Acme
+- Not finished: The morning job check is off."""
+
+
+def test_chat_brief_matches_the_page(conn, tmp_path):
+    make_folder(tmp_path, "Globex - Data Analyst", "https://jobs.lever.co/globex/1", "Globex", "Data Analyst", None)
+    status.backfill(conn, tmp_path)
+    conn.execute("UPDATE applications SET state_at = '2026-09-24T12:00:00Z'")
+    conn.commit()
+    store.upsert(conn, [job("old")], "2026-08-01T12:00:00Z")
+    applied(conn, "old", "2026-08-31T12:00:00Z")
+    store.upsert(conn, [job("plain"), job("paid", salary_min=150000, salary_max=190000,
+                                           salary_currency="USD", salary_period="year")], CHECK)
+    todo = ["The morning job check is off. Say: \"turn on the morning job check\""]
+    assert today.brief(conn, CONFIG, tmp_path, NOW, todo) == BRIEF
+    # same numbers as the page, whichever is built first
+    assert "**Job 3** - Senior Vue Engineer paid" in page(conn, tmp_path, todo)
+
+
+def test_chat_brief_stays_short_on_a_full_list(conn, tmp_path):
+    # hook output lands in every new chat's context: a few hundred tokens at most
+    store.upsert(conn, [job(f"j{i}", title=f"Senior Staff Platform Engineer {i}", company=f"Company Name {i}")
+                        for i in range(400)], CHECK)
+    for i in range(20):
+        make_folder(tmp_path, f"Company Name {i} - Role {i}", f"https://x.test/{i}", f"Company Name {i}", f"Role {i}", None)
+    for i in range(20, 40):
+        applied(conn, f"j{i}", "2026-08-01T12:00:00Z")
+    text = today.brief(conn, CONFIG, tmp_path, NOW, ["a", "b"])
+    assert len(text) < 1400
+    assert len(re.findall(r"Job \d+ -", text)) == 9
+    assert "Waiting on you" in text and "20" not in text.split("Follow up")[0]
+
+
+def test_chat_brief_never_reads_resume_or_settings(conn, tmp_path):
+    source = (ROOT / "app" / "today.py").read_text(encoding="utf-8")
+    body = source.split("def brief(")[1].split("\ndef lock(")[0]
+    assert "resume_path(config, \"master\")" not in body and "read_text" not in body and "yaml" not in body
+    assert "Nothing new since the last check." in today.brief(conn, CONFIG, tmp_path, NOW, [])
+
+
+def test_chat_brief_silent_before_setup_or_on_failure(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(cfg, "config_path", lambda: tmp_path / "missing.yml")
+    today.print_brief()
+    (tmp_path / "missing.yml").write_text("{", encoding="utf-8")
+    today.print_brief()
+    assert capsys.readouterr() == ("", "")
+
+
+def test_claude_hook_runs_the_brief_other_ais_keep_the_page():
+    settings = json.loads((ROOT / ".claude" / "settings.json").read_text(encoding="utf-8"))
+    [entry] = settings["hooks"]["SessionStart"]
+    assert entry["matcher"] == "startup|clear"
+    assert [h["command"] for h in entry["hooks"]] == ["uv run app/jobs.py today --brief"]
+    assert "today" not in (ROOT / ".codex" / "config.toml").read_text(encoding="utf-8")

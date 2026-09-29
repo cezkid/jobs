@@ -20,6 +20,8 @@ import store
 
 PAGE = cfg.ROOT / "Today.md"
 WAITING_MAX, FOLLOW_UP_MAX, NEW_MAX = 5, 5, 10
+# jobs per line in the chat brief: a few hundred tokens at most, the page holds the rest
+BRIEF_MAX = 3
 # applied this long ago, no reply => worth a check-in if they have a contact there. Convention
 # (recruiter advice: 1-3 weeks), not a measured rule - the page says so
 FOLLOW_UP_DAYS = 21
@@ -79,9 +81,13 @@ def waiting(conn, now: str) -> list[str]:
     return out + [""]
 
 
-def follow_up(conn, now: str) -> list[str]:
-    rows = [r for r in status.in_progress(conn)
+def follow_up_rows(conn, now: str) -> list[dict]:
+    return [r for r in status.in_progress(conn)
             if r["state"] == "applied" and status._days(r["state_at"], now) >= FOLLOW_UP_DAYS]
+
+
+def follow_up(conn, now: str) -> list[str]:
+    rows = follow_up_rows(conn, now)
     if not rows:
         return []
     out = ["## Follow up", "",
@@ -158,6 +164,51 @@ def build(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) ->
     return "\n".join(out)
 
 
+def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) -> str:
+    """The page in a few lines for a new Claude chat (session-start hook, .claude/settings.json)
+    => a plain "hi" gets what's next w/o a command. Job numbers, titles, companies only - the
+    postings they work on reach the chat anyway; never resume text, name, contact or settings.
+    Other AIs have no such hook: they keep the page."""
+    now_iso = now.astimezone(timezone.utc).strftime(store.ISO)
+    status.backfill(conn, jobs_dir)
+
+    def jobs(rows: list[dict], when: str = "") -> str:
+        return "; ".join(f"Job {r['num']} - {name(r)}" + (f", {when} {days_ago(r['state_at'], now_iso)}" if when else "")
+                         for r in rows)
+
+    out = ["Job Finder today (same as their Today page). If the user only greets you or asks what's next,"
+           " answer with this in plain words, each job written"
+           " \"**Job 12** - title, company\", never a 1. 2. 3. list; otherwise use it only when it helps."
+           " Never say how many resumes are unsent."]
+    if rows := status.waiting(conn, now_iso)[:BRIEF_MAX]:
+        out.append(f"- Waiting on you (resume made, not sent): {jobs(status.numbered(conn, rows), 'resume made')}")
+    if rows := follow_up_rows(conn, now_iso)[:BRIEF_MAX]:
+        out.append(f"- Follow up (applied {FOLLOW_UP_DAYS}+ days, no reply): {jobs(status.numbered(conn, rows), 'applied')}")
+    if rows := new_jobs(conn, config, now):
+        out.append(f"- New since last check: {len(rows)}. Top: {jobs(store.numbered(conn, rows[:BRIEF_MAX]))}")
+    out += [f"- Not finished: {t.split(' Say: ')[0]}" for t in todo]
+    if len(out) == 1:
+        out.append("- Nothing new since the last check.")
+    return "\n".join(out)
+
+
+def print_brief() -> None:
+    """Hook entry: prints nothing before setup (START HERE covers it) or on any failure - a new
+    chat must never open on an error."""
+    try:
+        if not cfg.config_path().exists():
+            return
+        config = cfg.load()
+        conn = store.connect(cfg.db_path(config))
+        try:
+            print(brief(conn, config, cfg.resume_path(config, "jobs_dir"), datetime.now().astimezone(),
+                        unfinished(config)))
+        finally:
+            conn.close()
+    except Exception:
+        return
+
+
 def lock():
     """Two chats (or a chat + the launcher) rebuilding at once => one writes, the other waits."""
     return locks.held(cfg.DATA / "today.lock", "another chat is updating the Today page - try again in a minute")
@@ -178,7 +229,11 @@ def write(config: dict, page: Path = PAGE, now: datetime | None = None) -> Path:
 def main() -> None:
     ap = argparse.ArgumentParser(description="Write Today.md: waiting on you, follow up, new jobs, not finished")
     ap.add_argument("--print", action="store_true", help="print the page instead of writing it")
+    ap.add_argument("--brief", action="store_true", help="print a few lines for a new chat (Claude session-start hook)")
     args = ap.parse_args()
+    if args.brief:
+        print_brief()
+        return
     config = cfg.load()
     if args.print:
         conn = store.connect(cfg.db_path(config))
