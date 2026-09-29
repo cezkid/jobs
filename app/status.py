@@ -20,6 +20,9 @@ STATES = {
     "not_sending": "Not sending",
 }
 LINK_LINE = "- Link: "
+# resume made this many days ago -> asked "did you send it?" at chat start; untouched this long
+# -> drops out of Waiting on you
+ASK_AFTER_DAYS, QUIET_AFTER_DAYS = 3, 14
 
 
 def state_key(word: str) -> str:
@@ -55,50 +58,63 @@ def folder_link(job_dir: Path) -> str | None:
     return None
 
 
-def folders(jobs_dir: Path) -> list[dict]:
-    """Every job folder, read only: link from Check before sending.md (jd.json as fallback),
+def folder(job_dir: Path) -> dict | None:
+    """One job folder, read only: link from Check before sending.md (jd.json as fallback),
     company + title from jd.json, else from the 'Company - Title' folder name."""
-    out = []
+    check, saved = job_dir / tailor.CHECK_FILE, job_dir / tailor.JOB_DATA / "jd.json"
+    if not check.exists() and not saved.exists():
+        return None
+    jd = json.loads(saved.read_text(encoding="utf-8")) if saved.exists() else {}
+    company, _, title = job_dir.name.partition(" - ")
+    company, title = (jd.get("company") or company), (jd.get("title") or title or company)
+    made = check.exists()
+    return {
+        "dir": job_dir, "url": folder_link(job_dir) or jd.get("url") or None,
+        "company": company, "title": title, "public_slug": jd.get("public_slug"),
+        "state": "resume_made" if made else "saved",
+        "at": datetime.fromtimestamp((check if made else saved).stat().st_mtime, timezone.utc).strftime(store.ISO),
+    }
+
+
+def folders(jobs_dir: Path) -> list[dict]:
     if not jobs_dir.is_dir():
-        return out
-    for job_dir in sorted(p for p in jobs_dir.iterdir() if p.is_dir()):
-        check, saved = job_dir / tailor.CHECK_FILE, job_dir / tailor.JOB_DATA / "jd.json"
-        if not check.exists() and not saved.exists():
-            continue
-        jd = json.loads(saved.read_text(encoding="utf-8")) if saved.exists() else {}
-        company, _, title = job_dir.name.partition(" - ")
-        company, title = (jd.get("company") or company), (jd.get("title") or title or company)
-        made = check.exists()
-        out.append({
-            "dir": job_dir, "url": folder_link(job_dir) or jd.get("url") or None,
-            "company": company, "title": title, "public_slug": jd.get("public_slug"),
-            "state": "resume_made" if made else "saved",
-            "at": datetime.fromtimestamp((check if made else saved).stat().st_mtime, timezone.utc).strftime(store.ISO),
-        })
-    return out
+        return []
+    return [f for d in sorted(p for p in jobs_dir.iterdir() if p.is_dir()) if (f := folder(d))]
 
 
 def _log(conn, key: str, state: str, at: str) -> None:
     conn.execute("INSERT INTO application_log VALUES (?, ?, ?)", (key, state, at))
 
 
+def _record(conn, f: dict, at: str) -> bool:
+    """New job -> its folder's state; saved -> resume made. A status already recorded (applied,
+    not sending ...) is never overridden."""
+    key = job_key(f["url"], f["company"], f["title"])
+    row = conn.execute("SELECT state FROM applications WHERE key = ?", (key,)).fetchone()
+    if row is None:
+        conn.execute("INSERT INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                     (key, f["url"], f["company"], f["title"], f["public_slug"], f["state"], at, at))
+        _log(conn, key, f["state"], at)
+        return True
+    if row["state"] == "saved" and f["state"] == "resume_made":
+        conn.execute("UPDATE applications SET state = ?, state_at = ? WHERE key = ?", (f["state"], at, key))
+        _log(conn, key, f["state"], at)
+    return False
+
+
 def backfill(conn, jobs_dir: Path) -> int:
-    """Job folder w/ a resume = resume made; folder still being tailored = saved. Never
-    overrides a status already recorded, except saved -> resume made once the resume exists."""
-    added = 0
-    for f in folders(jobs_dir):
-        key = job_key(f["url"], f["company"], f["title"])
-        row = conn.execute("SELECT state FROM applications WHERE key = ?", (key,)).fetchone()
-        if row is None:
-            conn.execute("INSERT INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-                         (key, f["url"], f["company"], f["title"], f["public_slug"], f["state"], f["at"], f["at"]))
-            _log(conn, key, f["state"], f["at"])
-            added += 1
-        elif row["state"] == "saved" and f["state"] == "resume_made":
-            conn.execute("UPDATE applications SET state = ?, state_at = ? WHERE key = ?", (f["state"], f["at"], key))
-            _log(conn, key, f["state"], f["at"])
+    """Job folder w/ a resume = resume made; folder still being tailored = saved."""
+    added = sum(_record(conn, f, f["at"]) for f in folders(jobs_dir))
     conn.commit()
     return added
+
+
+def record_made(conn, job_dir: Path, at: str) -> None:
+    """`tailor check` passed => resume made, w/o the user saying so."""
+    f = folder(job_dir)
+    if f and f["state"] == "resume_made":
+        _record(conn, f, at)
+        conn.commit()
 
 
 class NotFound(LookupError):
@@ -189,6 +205,34 @@ def line(row: dict) -> str:
     return f"#{row['num']:<4} {STATES[row['state']]:13} {row['state_at'][:10]}  {name}  {row['url'] or '(no link)'}"
 
 
+def _days(since: str, now: str) -> float:
+    return (datetime.strptime(now, store.ISO) - datetime.strptime(since, store.ISO)).total_seconds() / 86400
+
+
+def waiting(conn, now: str) -> list[dict]:
+    """Resume made, not sent yet, oldest first. Untouched 14+ days -> drops out quietly: kept,
+    never deleted, never asked about again."""
+    rows = conn.execute("SELECT * FROM applications WHERE state = 'resume_made' ORDER BY state_at")
+    return [dict(r) for r in rows if _days(r["state_at"], now) < QUIET_AFTER_DAYS]
+
+
+def to_ask(conn, now: str) -> dict | None:
+    """The one job to ask 'did you send it?' about at chat start: oldest resume made 3+ days
+    ago, unless it was asked in the last 3 days. One job, never a stack; the ask is recorded
+    here, so a second chat opened the same day asks nothing."""
+    with conn:
+        due = [r for r in waiting(conn, now) if _days(r["state_at"], now) >= ASK_AFTER_DAYS]
+        if not due:
+            return None
+        oldest = due[0]
+        asked = conn.execute("SELECT at FROM asked WHERE key = ?", (oldest["key"],)).fetchone()
+        if asked and _days(asked["at"], now) < ASK_AFTER_DAYS:
+            return None
+        conn.execute("INSERT INTO asked VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET at = excluded.at",
+                     (oldest["key"], now))
+    return oldest
+
+
 def when(day: str | None, now: str) -> str:
     return date.fromisoformat(day).strftime("%Y-%m-%dT12:00:00Z") if day else now
 
@@ -197,6 +241,7 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Where each job stands: saved, resume made, applied, heard back ...")
     steps = ap.add_subparsers(dest="step")
     steps.add_parser("list", help="every job w/ a status, newest first (default)")
+    steps.add_parser("ask", help="chat start: the one job to ask 'did you send it?' about, if any")
     for name, helptext in (("show", "one job's status"), ("set", "record a job's status")):
         p = steps.add_parser(name, help=helptext)
         p.add_argument("job", nargs="?", help="job number, slug, the job's https link, or its job folder name")
@@ -216,6 +261,16 @@ def main() -> None:
         if args.step in (None, "list"):
             rows = numbered(conn, all_statuses(conn))
             print("\n".join(map(line, rows)) if rows else "no jobs w/ a status yet")
+            return
+        if args.step == "ask":
+            now = store.utc_now()
+            row = to_ask(conn, now)
+            if row is None:
+                print("nothing to ask")
+                return
+            print(line(numbered(conn, [row])[0]))
+            print(f"resume made {int(_days(row['state_at'], now))} days ago - ask once: did you send it?"
+                  f" (Sent -> applied, Not yet -> nothing, Not sending -> not_sending)")
             return
         try:
             job = resolve(conn, jobs_dir, args.job, args.company, args.title, args.url)

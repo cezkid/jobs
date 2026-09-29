@@ -46,6 +46,8 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
 6. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
    item, what is left (resume upload, website, questions), and that nothing is saved until they
    click **Save and Continue**. Later steps (questions, disclosures, review) = ask, never guess.
+7. Last, once they're done on the page: `AGENTS.md` #Where each job stands - one clickable
+   "Did you send it?" (below).
 
 Token care: poll with the short status call only; no screenshots while the window is hidden
 (they come back black) - use `status()`, `errors()` or `find`.
@@ -73,3 +75,12 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    quirk in that system's doc.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
    any banner (application limits), and that nothing is sent until they click **Submit**.
+6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).
+
+## Did you send it?
+
+End of every apply, one question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):
+- **Sent** -> `uv run app/jobs.py status set 12 applied`
+- **Not yet** -> nothing; a later chat asks again in a few days (`status ask`)
+- **Not sending** -> `uv run app/jobs.py status set 12 not_sending`
+Say what was recorded in one line. Never click Submit to make the answer true (hard limits).

@@ -554,7 +554,15 @@ def check(config: dict, slug: str) -> int:
     required_gaps = [r for r in rows if r["status"] == "gap" and r["priority"] == "required"]
     print(f"coverage {met}/{len(rows)} met, {len(required_gaps)} required gap(s)")
     print(f"{'FAILED - fix tailored.json, rerun check' if result['failed'] else 'passed'}: {job_dir}")
-    return 1 if result["failed"] else 0
+    if result["failed"]:
+        return 1
+    import status  # status reads job folders through this module
+    conn = store.connect(cfg.db_path(config))
+    try:
+        status.record_made(conn, job_dir, store.utc_now())
+    finally:
+        conn.close()
+    return 0
 
 
 def main() -> None:

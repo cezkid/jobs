@@ -321,3 +321,26 @@ def test_summary_may_run_four_lines_not_five(master, tailored):
         problems = [v for v in tailor.check_selection(master, job, tailored) if v.startswith("summary")]
         assert (problems == []) is ok, (count, problems)
     assert f"{render.MAX_SUMMARY_LINES} lines" in tailor.system("Caladea")
+
+
+def test_passed_check_marks_resume_made_with_no_typing(tmp_path, monkeypatch, master, tailored):
+    import status
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    config = cfg.defaults()
+    master_path = cfg.resume_path(config, "master")
+    master_path.parent.mkdir(parents=True)
+    master_path.write_text(EXAMPLE.read_text(encoding="utf-8"), encoding="utf-8")
+    posting = tmp_path / "posting.txt"
+    posting.write_text(JOB["text"], encoding="utf-8")
+    tailor.write_json(tailor.posting_files(posting)[1], {k: JOB[k] for k in ("title", "company", "requirements")})
+    tailor.prepare(config, None, posting, JOB["url"])
+    job_dir = tmp_path / "My Jobs" / "Acme - Senior Vue Engineer, Search"
+
+    conn = store.connect(cfg.db_path(config))
+    tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", {**tailored, "entries": []})
+    assert tailor.check(config, "job 1") == 1
+    assert status.get(conn, JOB["url"]) is None  # failed check: no resume to send yet
+    tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", tailored)
+    assert tailor.check(config, "job 1") == 0
+    assert status.get(conn, JOB["url"])["state"] == "resume_made"
+    conn.close()

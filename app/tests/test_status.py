@@ -1,5 +1,6 @@
 import json
 import sys
+from datetime import date, timedelta
 
 import pytest
 
@@ -163,3 +164,64 @@ def test_one_command_sets_and_reads_each_source(cli, tmp_path, capsys):
     assert f"Heard back    " in out and PASTED_URL in out
     with pytest.raises(SystemExit, match="not a status"):
         cli("set", "a", "ghosted")
+
+
+def made_on(conn, tmp_path, name, url, at):
+    make_folder(tmp_path, name, url, *name.split(" - "), name)
+    status.set_state(conn, status.resolve(conn, tmp_path, url), "resume_made", at)
+
+
+def test_passed_check_records_resume_made_without_moving_a_job_on(conn, tmp_path):
+    d = make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    status.record_made(conn, d, NOW)
+    assert (status.get(conn, PASTED_URL)["state"], status.get(conn, PASTED_URL)["state_at"]) == ("resume_made", NOW)
+    status.set_state(conn, status.resolve(conn, tmp_path, PASTED_URL), "applied", NOW)
+    status.record_made(conn, d, LATER)  # tailored again after sending: still applied
+    assert status.get(conn, PASTED_URL)["state"] == "applied"
+    still_tailoring = make_folder(tmp_path, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "a-1", made=False)
+    status.record_made(conn, still_tailoring, NOW)
+    assert status.get(conn, "https://acme.com/j/1") is None
+
+
+def test_resume_made_untouched_14_days_drops_out_quietly(conn, tmp_path):
+    made_on(conn, tmp_path, "Old - Nurse", "https://old.example/1", "2026-09-10T12:00:00Z")    # 19 days
+    made_on(conn, tmp_path, "Edge - Nurse", "https://edge.example/1", "2026-09-15T12:00:01Z")  # just under 14
+    made_on(conn, tmp_path, "New - Nurse", "https://new.example/1", "2026-09-28T12:00:00Z")
+    assert [r["company"] for r in status.waiting(conn, NOW)] == ["Edge", "New"]
+    assert status.get(conn, "https://old.example/1")["state"] == "resume_made"  # kept, not deleted
+    assert status.to_ask(conn, NOW)["company"] == "Edge"  # never the dropped one
+
+
+def test_chat_start_asks_about_the_oldest_job_only_once_in_3_days(conn, tmp_path):
+    made_on(conn, tmp_path, "Acme - Analyst", "https://acme.example/1", "2026-09-24T12:00:00Z")
+    made_on(conn, tmp_path, "Globex - Analyst", "https://globex.example/1", "2026-09-22T12:00:00Z")
+    made_on(conn, tmp_path, "Fresh - Analyst", "https://fresh.example/1", "2026-09-28T12:00:00Z")
+    assert status.to_ask(conn, NOW)["company"] == "Globex"
+    # second chat same day, or the day after: no question at all - not the next job in line
+    assert status.to_ask(conn, NOW) is None
+    assert status.to_ask(conn, "2026-10-01T12:00:00Z") is None
+    assert status.to_ask(conn, "2026-10-02T12:00:00Z")["company"] == "Globex"  # 'Not yet' 3 days ago
+    status.set_state(conn, status.resolve(conn, tmp_path, "https://globex.example/1"), "applied", "2026-10-02T12:00:00Z")
+    assert status.to_ask(conn, "2026-10-02T12:00:00Z")["company"] == "Acme"
+
+
+def test_nothing_to_ask_before_3_days(conn, tmp_path):
+    made_on(conn, tmp_path, "Acme - Analyst", "https://acme.example/1", "2026-09-27T12:00:00Z")
+    assert status.to_ask(conn, NOW) is None
+
+
+def test_ask_command_prints_one_question_or_nothing(cli, tmp_path, capsys):
+    cli("ask")
+    assert capsys.readouterr().out == "nothing to ask\n"
+    cli("set", "resume made", "--company", "Initech", "--title", "Analyst", "--on", "2026-09-01")
+    capsys.readouterr()
+    cli("ask")
+    assert capsys.readouterr().out == "nothing to ask\n"  # 14+ days old: dropped quietly
+    five_days_ago = (date.today() - timedelta(days=5)).isoformat()
+    cli("set", "resume made", "--company", "Umbrella", "--title", "Nurse", "--on", five_days_ago)
+    capsys.readouterr()
+    cli("ask")
+    out = capsys.readouterr().out.splitlines()
+    assert "Umbrella - Nurse" in out[0] and "did you send it?" in out[1] and len(out) == 2
+    cli("ask")
+    assert capsys.readouterr().out == "nothing to ask\n"

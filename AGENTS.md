@@ -50,6 +50,23 @@ unseen - a tab badge is the only sign one waits.
   resume saves, job alerts and the application window wait their turn (`app/locks.py`). A wait
   over a minute ends w/ a plain "another chat is ..." line - pass it on, try again after.
 
+## Where each job stands
+
+Status = saved, resume made, applied, heard back, interview, no, offer, not sending
+(`uv run app/jobs.py status`). Users never type it unasked - so it is recorded or asked:
+
+- `tailor check` passing records "resume made" itself.
+- `job-apply` ends w/ one clickable "Did you send it?": Sent / Not yet / Not sending.
+- First reply of a chat that asks nothing else: `uv run app/jobs.py status ask`. Prints a job ->
+  after their request, ONE clickable question naming it ("Job 12 - Acme, Data Analyst: resume
+  made 5 days ago. Did you send it?"): Sent -> `status set 12 applied`, Not sending ->
+  `status set 12 not_sending`, Not yet -> nothing. Prints "nothing to ask" -> say nothing.
+  It picks the oldest job only and never repeats within 3 days - never add others to it.
+- Resume made, untouched 14+ days -> drops out of Waiting on you + never asked about: kept,
+  never nagged. User mentions one anyway ("I heard back from Acme") -> `status set`.
+- User says it in passing ("applied to Ramp", "got an interview") -> `status set` by number,
+  link or `--company C --title T`, confirm in one line. Never a count of unsent resumes.
+
 ## Lead, explain, push back
 
 We lead w/ best practice and are the authority; user can always see + challenge the logic. Sort

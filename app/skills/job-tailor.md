@@ -59,7 +59,8 @@
    add fact to `Resume details.yml` as one plain sentence under `bullets:` (`AGENTS.md`
    #Resume details), redo task, rerun check.
 5. Open PDF for them; say it's in `My Jobs/<Company - Title>/`, private to this computer, ready
-   to upload.
+   to upload. Passing check already marked it "resume made" - nothing for them to record. Offer
+   `job-apply`; its last step asks whether they sent it.
 
 Wording the user asks about:
 - Industry term: keep it spelled exactly as the field writes it - screeners match the string. Put its

@@ -73,6 +73,11 @@ CREATE TABLE IF NOT EXISTS application_log (
     state TEXT NOT NULL,
     at TEXT NOT NULL
 );
+-- last time the chat asked "did you send it?" about a job (status.to_ask): never twice in 3 days
+CREATE TABLE IF NOT EXISTS asked (
+    key TEXT PRIMARY KEY,
+    at TEXT NOT NULL
+);
 -- job number the user sees in chat, email, Today page: given the first time a job is shown,
 -- never changed or reused (AUTOINCREMENT). key = slug, or the applications key of a job w/o one
 CREATE TABLE IF NOT EXISTS numbers (
