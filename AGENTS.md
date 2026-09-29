@@ -108,7 +108,7 @@ when asked, at setup, and before any step sending something new off computer.
 
 | What | Where | Who sees it |
 |---|---|---|
-| Resume, job folders, search settings | `My Resume/`, `My Jobs/`, `My Settings/` | Private - only this computer |
+| Resume, job folders, search settings, Today page | `My Resume/`, `My Jobs/`, `My Settings/`, `Today.md` | Private - only this computer |
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
@@ -130,6 +130,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 ## Layout
 
 - `START HERE.md` - user's guide, opens w/ VS Code. Plain words only.
+- `Today.md` - generated (`today`): waiting on you, follow up, new since last check, not
+  finished; each item ends w/ the words to say. Private, gitignored; never edit by hand.
 - `Guides/` - plain-words guides in the user's file list (`What makes a good resume.md`,
   `Keep your chats out of AI training.md`); link,
   don't repeat, from `START HERE.md` and reports.
@@ -145,7 +147,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `status.py` (where each job stands: saved ... applied ... offer), `alert.py`,
+  `rank.py`, `status.py` (where each job stands: saved ... applied ... offer), `today.py` (Today page), `alert.py`,
   `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/`, `deploy/`, `docs/`, `tests/`.
 - `docs/index.html` - install page, GitHub Pages (`https://cezkid.github.io/jobs`).
@@ -201,7 +203,7 @@ resume for one posting, `job-apply` fill an application, never Save/Submit (syst
 
 ## Personal data - never stage
 
-`My Jobs/`, `My Resume/`, `My Settings/`, `.data/`. All gitignored; never `git add -f` them,
+`My Jobs/`, `My Resume/`, `My Settings/`, `.data/`, `Today.md`. All gitignored; never `git add -f` them,
 never `git add -A` / `-a` - stage paths by name.
 
 ## Framework defects

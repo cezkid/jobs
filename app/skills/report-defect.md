@@ -46,7 +46,7 @@ User said yes to sending fix to maintainer in THIS conversation, for THIS fix. O
 - `git status --short`: only files belonging to fix; stage by path (`AGENTS.md` #Personal data -
   never stage).
 - `git check-ignore <staged paths>` prints nothing.
-- Nothing under `My Jobs/`, `My Resume/`, `My Settings/`, `.data/` staged.
+- Nothing under `My Jobs/`, `My Resume/`, `My Settings/`, `.data/` staged, nor `Today.md`.
 
 ## Gate 2 - personal data
 
