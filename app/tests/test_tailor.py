@@ -172,6 +172,16 @@ def test_mirror_claiming_a_level_the_candidate_lacks_fails(master, tailored):
     assert any("claims manager" in v for v in violations), violations
 
 
+def test_report_names_each_break_with_its_note(tmp_path):
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [], "selection": [], "findings": []}
+    gaps = [{"after": "2019-03", "before": "2020-06", "months": 14},
+            {"after": "2026-01", "before": "2026-09", "months": 7}]
+    text = report.report_md(JOB, {}, result, [], gaps, date(2026, 9, 16)).split(
+        f"## Breaks over {schema.MAX_GAP_MONTHS} months")[1]
+    assert "- 2019-03 to 2020-06: 14 months. Worth a line, plus recent work" in text
+    assert "- 2026-01 to 2026-09: 7 months. Your search so far - nothing to explain on the page." in text
+
+
 def test_report_speaks_plain_words_and_gives_reasons(master, tailored):
     tailored["entries"][1]["bullets"][0]["text"] = master["roles"][1]["bullets"][0]["claim"]
     tailored["inferences"] = [{"claim": "Web Workers", "sources": ["acme-inp"]}]

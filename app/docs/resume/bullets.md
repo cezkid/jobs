@@ -57,7 +57,7 @@ Getting in front of a person.
 | Rule | Basis | |
 |---|---|---|
 | Posting's literal term for anything searched (tools, certifications, licences, titles, hard skills) - **only for what the candidate has.** Replaces wording, never introduces a thing; unbacked term = gap to report. | Mechanism = recruiter *search*: Greenhouse Boolean (AND/OR/NOT, quotes, wildcards); Lever matches variations, **not** acronyms; Jobscan: 97.4% of Fortune 500 on detectable ATS, 76.4% of recruiters search posting skills. | already in `tailor.py`; `unresolved-entity` + `inferences` enforce possession |
-| Don't write for an auto-rejecter | "75% auto-rejected" = Preptel, defunct vendor, no method. Enhancv 2025 (n=25 US recruiters): 92% no auto-reject on formatting, keywords, match score; the 8% use knock-outs. Density not a score. **Knock-outs real but narrow**: work authorisation, licences, location, minimum qualifications, long gap (HBS/Accenture 2021 *Hidden Workers*, `schema.py:20`). | n/a |
+| Don't write for an auto-rejecter | "75% auto-rejected" = Preptel, defunct vendor, no method. Enhancv 2025 (n=25 US recruiters): 92% no auto-reject on formatting, keywords, match score; the 8% use knock-outs. Density not a score. **Knock-outs real but narrow**: work authorisation, licences, location, minimum qualifications, long gap (HBS/Accenture 2021 *Hidden Workers*, `schema.MAX_GAP_MONTHS`). | n/a |
 | Lead each role w/ bullet most relevant to **this** posting | Indeed: most important at top. Berkeley: follow "the order or priority that the employer has stated in their position description". | already in `tailor.py`; `lead-bullet-weak` warns: opener no number, later one has |
 | Bullet counts follow relevance, recency breaking ties | Emory flat "3-5 bullet points below each role"; taper backed by no source or data: convention. `tailor.py` ladder (3-5 recent, 6 max, 2-3 older) ranks by relevance: role proving a *required* item keeps those bullets; oldest -> 0 only if it proves nothing required. Every proven required item on page, leading its entry (Berkeley). `bullet-taper` catches *inversion* only; even spread passes. | soft; `bullet-taper` WARN |
 | 10-15 years, older only if exceptionally relevant | Indeed, Monster, Coursera: relevance + age-discrimination exposure. Consensus, no study fixes cut-off. Drop only from list end, ended 15+ years ago (`tailor.OLD_ROLE_YEARS`); mid-career drop = date hole (gap, below). | enforce: `check_selection` fails other drops |
@@ -100,10 +100,22 @@ standard scale (ILR US government, CEFR Europe). "English and Spanish - fluent i
 and speaking" pairs level w/ one or neither. Vendor docs + convention, unmeasured.
 `language-level` warns; level asked, never guessed.
 
-**Unexplained gap is the problem, not the gap.** LiveCareer 2025: over half of seekers had a 1+
-month gap, 1 in 4 12+ months; MyPerfectResume 2025: 79% of hiring managers would hire w/ an
-explained gap. Under ~3 months: nothing. `schema.py` flags past 6 (HBS/Accenture 2021). Past 18
-months: no wording guidance in sources - real hole.
+**Gap length matters; a reason helps, doesn't erase it.** `schema.MAX_GAP_MONTHS` = 6 flags,
+`LONG_GAP_MONTHS` = 12 raises the note (`gap_note`):
+- Filters: Hidden Workers (HBS/Accenture 2021) Fig 7 - 48% of execs whose software ranks or
+  filters said it filtered middle-skill candidates on gaps over 6 months. US/UK/DE pooled,
+  self-reported, 2020. *One big survey, self-report.* Not "half of all employers".
+- Length: D'hert/Baert/Lippens 2024 meta-analysis (~67k applicants, 7 countries pooled) - 7-12
+  months n.s., 13-18 months -21% callbacks, 19-36 months -27%. US studies see the fall by ~8
+  months (Kroft 2013). *Strong, pooled; onset earlier in US.*
+- Reason: Namingit 2021 (US, 3,771 applications, mostly 7-12 month gaps) - callbacks 27.4% no
+  gap, 25.6% explained, 23.3% unexplained: explaining recovered ~55% of the penalty. Reason was an
+  illness + full recovery, in the cover letter. *One US field study.* Kristal 2023 (UK, n=9,022,
+  2.5-yr gap): childcare line no effect vs silence - but that trial found no clear gap penalty
+  either. *One UK trial.*
+- So: 6-12 months, a one-line reason is worth adding. 12+, a line plus recent work, study or
+  volunteering really done. Search still running = no penalty talk, never numbers at the user.
+- Vendor surveys (LiveCareer, MyPerfectResume 2025) dropped: no method, contradicted on length.
 
 **Short tenure is not a bullet problem.** Remedy = contract/part-time marker, or nothing. Indeed
 Hiring Lab 2025: median tenure ~2 years 3 months, job-hopping slowing. Pattern draws scrutiny, not
@@ -301,4 +313,6 @@ Ladders eye-tracking study, 2018 (n=30), via HR Dive. Jobscan ATS Usage Report 2
 guidance 2026. Greenhouse Boolean search docs. Career centres: Harvard FAS Mignone Center, MIT
 CAPD, Emory CPD, UC Berkeley, University of Arizona, UConn. National Resume Writers' Association.
 Indeed Career Guide; Indeed Hiring Lab 2025. HBS/Accenture, *Hidden Workers: Untapped Talent*,
-2021 (cited by `schema.py`). LiveCareer 2025; MyPerfectResume 2025; Textkernel.
+2021, Fig 7 (cited by `schema.py`). D'hert, Baert, Lippens, IZA DP 17141, 2024 (gap meta-analysis).
+Kroft, Lange, Notowidigdo, QJE 2013. Namingit, Blandin, Schwab, "Sick and Tell", 2021. Kristal
+et al., Behavioural Insights Team CV trial, 2023. Textkernel.

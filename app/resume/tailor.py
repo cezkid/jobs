@@ -557,9 +557,10 @@ def check(config: dict, slug: str) -> int:
     tailored = handoff.read_answer(data / "tailored.json", TAILORED_SCHEMA)
     result = evaluate(master, job, tailored, job_dir, cfg.resume_font(config))
     rows = coverage_rows(job, tailored, master)
-    gaps = schema.employment_gaps(master, date.today())
+    today = date.today()
+    gaps = schema.employment_gaps(master, today)
     (job_dir / CHECK_FILE).write_text(
-        report.report_md(job, tailored, result, rows, gaps) + "\n" + report.diff_md(master, tailored, result["model"]),
+        report.report_md(job, tailored, result, rows, gaps, today) + "\n" + report.diff_md(master, tailored, result["model"]),
         encoding="utf-8")
 
     for name, ok, detail in result["gates"]:

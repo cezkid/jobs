@@ -101,6 +101,26 @@ def test_trailing_gap_reported(master):
     assert schema.employment_gaps(master, TODAY) == [{"after": "2026-01", "before": "2026-09", "months": 7}]
 
 
+def test_gap_note_by_length():
+    assert schema.gap_note(5, current=False) == ""
+    assert schema.gap_note(7, current=False) == "A one-line reason is worth adding."
+    assert schema.gap_note(13, current=False).startswith("Worth a line, plus recent work")
+
+
+def test_gap_note_for_a_search_still_running_carries_no_penalty():
+    assert schema.gap_note(7, current=True) == "Your search so far - nothing to explain on the page."
+    long = schema.gap_note(13, current=True)
+    assert long.startswith("Your search so far") and "recent work" in long.lower()
+    assert not any(ch.isdigit() for ch in long + schema.gap_note(7, current=False))
+
+
+def test_gap_is_current_only_when_it_runs_to_today(master):
+    master["roles"][0]["end"] = "2026-01"
+    assert [schema.gap_is_current(g, TODAY) for g in schema.employment_gaps(master, TODAY)] == [True]
+    master["roles"][0].update(start="2023-09", end="present")
+    assert [schema.gap_is_current(g, TODAY) for g in schema.employment_gaps(master, TODAY)] == [False]
+
+
 def test_a_job_with_no_lines_is_rejected(master):
     # details.schema.json says minItems 1; the page would show a heading with nothing under it
     master["roles"][0]["bullets"] = []

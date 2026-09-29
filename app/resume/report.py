@@ -1,5 +1,7 @@
+from datetime import date
+
 import rank
-from resume import lint
+from resume import lint, schema
 
 PRIORITY_ORDER = ("required", "preferred")
 
@@ -89,7 +91,8 @@ def posting_history(job: dict) -> str:
     ) if part)
 
 
-def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: list[dict]) -> str:
+def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: list[dict],
+              today: date | None = None) -> str:
     enrichment = job.get("enrichment") or {}
     facts = [
         ("Link", job["url"]), ("Posted on", job.get("source")), ("Level", enrichment.get("seniority")),
@@ -127,8 +130,10 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
         out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {r['text']} - {r['note']}"
                 for r in gap_rows]
     if gaps:
-        out += ["", "## Breaks over 6 months", ""]
-        out += [f"- {g['after']} to {g['before']}: {g['months']} months" for g in gaps]
+        today = today or date.today()
+        out += ["", f"## Breaks over {schema.MAX_GAP_MONTHS} months", ""]
+        out += [f"- {g['after']} to {g['before']}: {g['months']} months. "
+                + schema.gap_note(g["months"], schema.gap_is_current(g, today)) for g in gaps]
 
     notes = [f for f in result["findings"] if f.severity != lint.FAIL]
     if notes:

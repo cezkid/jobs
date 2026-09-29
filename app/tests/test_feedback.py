@@ -60,3 +60,14 @@ def test_wording_and_personal_notes_land_in_their_sections(tmp_path):
     text = report.read_text(encoding="utf-8")
     assert "theatre -> theater" in text.split("## Wording notes")[1].split("##")[0]
     assert "street address" in text.split("## Details and dates")[1]
+
+
+def test_breaks_get_a_note_by_length_and_a_running_search_none_as_a_fault(tmp_path):
+    details = {**DETAILS, "roles": [
+        {**DETAILS["roles"][0], "start": "2020-01", "end": "2025-06"},
+        {**DETAILS["roles"][0], "company": "Beta LLC", "start": "2017-01", "end": "2018-06"},
+    ]}
+    report, result, _ = feedback.run(write(tmp_path, details), TODAY, tmp_path / "state.json")
+    text = report.read_text(encoding="utf-8").split("## Details and dates")[1]
+    assert "- 18-month break between jobs (2018-06 to 2020-01). Worth a line, plus recent work" in text
+    assert "- 14-month break since your last job (2025-06 to now). Your search so far" in text

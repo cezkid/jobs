@@ -123,8 +123,11 @@ def report_md(result: dict, moved: list[str]) -> str:
     if personal or result["gaps"]:
         out += ["", "## Details and dates", ""]
         out += [plain(*n) for n in personal]
-        out += [f"- {g['months']}-month break between jobs ({g['after']} to {g['before']}). "
-                "A one-line reason answers the question." for g in result["gaps"]]
+        today = date.fromisoformat(result["date"])
+        for g in result["gaps"]:
+            current = schema.gap_is_current(g, today)
+            span = f"since your last job ({g['after']} to now)" if current else f"between jobs ({g['after']} to {g['before']})"
+            out.append(f"- {g['months']}-month break {span}. {schema.gap_note(g['months'], current)}")
     out += ["", "## What your lines show", ""]
     for quality, found in result["shown"].items():
         out.append(f"**{quality}** - {len(found)} line(s)" + (":" if found else

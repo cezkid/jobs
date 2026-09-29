@@ -133,9 +133,9 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   convention leaves them off (invites bias; city + state is enough) - convention, not a study.
   Offer to remove; their call.
 - `gap` line from `finish` (6+ months) -> raise kindly, never as a fault: "There's a 9-month
-  break between X and Y. Long breaks with no explanation get screened out at about half of
-  employers; a one-line reason fixes most of that (caring for family, study, relocation). Want
-  one?" Yes -> `career_break` entry (dates + reason in their words; shows on the page, closes
+  break between X and Y. A one-line reason is worth adding (caring for family, study,
+  relocation) - in one US study it won back over half of what the break cost. Want one?"
+  Yes -> `career_break` entry (dates + reason in their words; shows on the page, closes
   the gap) or study / freelance / volunteering they really did as its own entry. No -> leave it.
 - Lint warns `street-address`, `personal-details` -> the push back above. `old-graduation-year`
   (15+ years) -> offer `hide_year` (age bias; convention), their call. `abbreviated-school` ->

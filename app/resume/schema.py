@@ -19,8 +19,13 @@ ABBREVIATED_TITLE = re.compile(r"\b(Sr|Jr)\b\.?", re.I)
 LEGAL_IDENTIFIER = re.compile(
     r"\b(Inc|LLC|L\.L\.C|Ltd|Corp|Corporation|Co|Company|GmbH|PBC|LP|LLP|PLC|S\.A|B\.V|AG|Pty)\.?$"
 )
-# HBS/Accenture 2021: gap past this = automatic screen-out at ~half of employers
+# Gap past this gets flagged. Hidden Workers (HBS/Accenture 2021, Fig 7): 48% of execs whose
+# software ranks or filters said it filtered middle-skill candidates on gaps over 6 months
+# (US/UK/DE pooled, self-reported, 2020). US field studies show callbacks falling by ~8 months.
 MAX_GAP_MONTHS = 6
+# Past this the penalty grows: 7-country meta-analysis (D'hert/Baert/Lippens 2024) 13-18 months
+# -21%, 19-36 months -27% callbacks. Explaining recovered ~55% of the penalty in one US study.
+LONG_GAP_MONTHS = 12
 NON_SLUG = re.compile(r"[^a-z0-9]+")
 # the name a plain Name / First / Last box gets when the page name is not the legal one
 FORM_NAMES = ("legal", "page")
@@ -200,6 +205,24 @@ def employment_gaps(master: dict, today: date) -> list[dict]:
             gaps.append({"after": month_label(covered_through), "before": month_label(start), "months": months})
         covered_through = max(covered_through, end)
     return gaps
+
+
+def gap_is_current(gap: dict, today: date) -> bool:
+    """Break still running today = the search itself, not a hole in the past."""
+    return gap["before"] == month_label(month_index(PRESENT, today))
+
+
+def gap_note(months: int, current: bool) -> str:
+    """Plain words for one break; no penalty numbers, least of all for a search still running."""
+    if months <= MAX_GAP_MONTHS:
+        return ""
+    if current:
+        said = "Your search so far - nothing to explain on the page."
+        return said + (" Recent work, study or volunteering you really did is worth adding, if any."
+                       if months >= LONG_GAP_MONTHS else "")
+    if months < LONG_GAP_MONTHS:
+        return "A one-line reason is worth adding."
+    return "Worth a line, plus recent work, study or volunteering you really did, if any."
 
 
 def check_legal_name(contact: dict, errors: list[str]) -> None:
