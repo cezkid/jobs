@@ -520,3 +520,77 @@ def test_ukg_education_leaves_a_hidden_graduation_year_blank(monkeypatch):
     assert ("to-year-textbox", "1998") in education_filled(monkeypatch, dict(school))
     filled = education_filled(monkeypatch, dict(school, hide_year=True))
     assert not [f for f in filled if f[0].startswith("to-")]  # neither month nor year
+
+
+# --- old jobs left off the tailored page: same on the form unless the user or the form says all ---
+
+def jobs(form_jobs=None) -> dict:
+    roles = [{"id": i, "title": "Clerk", "company": i.title(), "start": "2000-01", "end": "2001-01", "bullets": []}
+             for i in ("acme", "globex", "initech", "hooli")]
+    return {"contact": {"name": "Jane Doe"} | ({"form_jobs": form_jobs} if form_jobs else {}), "roles": roles}
+
+
+PAGE = {"entries": [{"id": "acme"}, {"id": "globex"}, {"id": "project-x"}]}  # oldest two left off
+
+
+def ids(roles):
+    return [r["id"] for r in roles]
+
+
+def test_form_jobs_same_as_page_all_or_asked_never_guessed():
+    roles, note = questions.form_roles(jobs(), PAGE)
+    assert roles == [] and note.startswith("ASK") and "same 2 jobs as your resume, or all 4 jobs" in note
+    assert "15+ years ago" in note and "contact.form_jobs" in note
+    assert (ids(questions.form_roles(jobs("page"), PAGE)[0]), questions.form_roles(jobs("page"), PAGE)[1]) == (
+        ["acme", "globex"], None)
+    assert questions.form_roles(jobs("all"), PAGE) == (jobs()["roles"], None)
+    # nothing left off the page, or no tailored page: every job, nothing to ask
+    assert questions.form_roles(jobs(), {"entries": [{"id": i} for i in ids(jobs()["roles"])]}) == (jobs()["roles"], None)
+    assert questions.form_roles(jobs(), None) == (jobs()["roles"], None)
+
+
+def test_form_asking_for_complete_history_gets_every_job_whatever_they_chose():
+    for choice in (None, "page"):
+        roles, note = questions.form_roles(jobs(choice), PAGE, complete=True)
+        assert ids(roles) == ["acme", "globex", "initech", "hooli"] and "complete work history" in note
+        assert not note.startswith("ASK")
+
+
+@pytest.mark.parametrize("text, complete", [
+    ("Please list your complete employment history.", True),
+    ("Enter your full work history, starting with the most recent.", True),
+    ("Give a complete history of your employment", True),
+    ("List all previous employers for the last 10 years", True),
+    ("Include every employer since high school", True),
+    ("Work Experience\nAdd your most recent jobs", False),
+    ("Acme is an equal opportunity employer. All employment decisions are made without regard to race.", False),
+    ("View all jobs | Search all positions", False),
+])
+def test_complete_history_read_off_the_form(text, complete):
+    assert questions.asks_complete_history(text) is complete
+
+
+class FakePage:
+    def __init__(self, text=""):
+        self.text = text
+
+    def locator(self, selector):
+        return type("Body", (), {"inner_text": lambda _: self.text})()
+
+
+def ukg_profile(monkeypatch, master, tailored, text="") -> tuple[str, list]:
+    added = []
+    monkeypatch.setattr(ukg, "resume_facts", lambda resume_file: (master, tailored))
+    monkeypatch.setattr(ukg, "add_work", lambda page, roles, t: added.extend(ids(roles)) or [f"{r['id']}: ok" for r in roles])
+    monkeypatch.setattr(ukg, "add_education", lambda page, schools: [])
+    monkeypatch.setattr(ukg, "add_skills", lambda page, items: ["skills: ok"])
+    monkeypatch.setattr(ukg, "add_links", lambda page, links: ["links: ok"])
+    return ukg.put_profile(FakePage(text), "resume.pdf"), added
+
+
+def test_ukg_work_history_takes_the_same_jobs_as_the_page(monkeypatch):
+    result, added = ukg_profile(monkeypatch, jobs(), PAGE)
+    assert added == [] and result.startswith("ASK") and "same 2 jobs" in result
+    assert ukg_profile(monkeypatch, jobs("page"), PAGE)[1] == ["acme", "globex"]
+    result, added = ukg_profile(monkeypatch, jobs("page"), PAGE, "Work Experience - list your complete work history")
+    assert added == ["acme", "globex", "initech", "hooli"] and result.startswith("ok") and "complete work history" in result

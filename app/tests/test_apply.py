@@ -70,3 +70,32 @@ def test_work_authorization_reads_setup_answers_and_never_guesses_unset():
     assert profile.work_authorization(profile.cfg.defaults()) == (
         "authorized to work in the US: not set - ask them; needs visa sponsorship: not set - ask them; "
         "US citizen or permanent resident: not set - ask them")
+
+
+def test_workday_script_takes_only_the_jobs_it_is_given(master):
+    first = master["roles"][:1]
+    assert [w["company"] for w in profile.answers(master, None, first)["work"]] == [first[0]["company"]]
+    assert len(profile.answers(master)["work"]) == len(master["roles"])
+
+
+def test_workday_apply_asks_which_jobs_before_writing_a_script(master, tmp_path, monkeypatch, capsys):
+    # tailored page left the oldest job off, no choice saved: the ask is printed, no script to send
+    job = tmp_path / "Acme - Clerk"
+    (job / profile.tailor.JOB_DATA).mkdir(parents=True)
+    kept = [{"id": r["id"], "bullets": []} for r in master["roles"][:-1]]
+    (job / profile.tailor.JOB_DATA / "tailored.json").write_text(profile.json.dumps({"entries": kept, "skills": []}))
+    stale = job / profile.tailor.JOB_DATA / "apply.js"
+    stale.write_text("old")
+    monkeypatch.setattr(profile.cfg, "load", lambda: {})
+    monkeypatch.setattr(profile.cfg, "resume_path", lambda config, key: tmp_path)
+    monkeypatch.setattr(profile.schema, "load", lambda path: master)
+    monkeypatch.setattr(profile.tailor, "find_job_dir", lambda jobs, slug: job)
+    monkeypatch.setattr(profile.sys, "argv", ["apply", "acme-clerk"])
+    profile.main()
+    assert capsys.readouterr().out.startswith("ASK") and not stale.exists()
+    master["contact"]["form_jobs"] = "page"
+    profile.main()
+    assert f"({len(kept)} jobs," in capsys.readouterr().out and stale.exists()
+    monkeypatch.setattr(profile.sys, "argv", ["apply", "acme-clerk", "--complete-history"])
+    profile.main()
+    assert f"({len(master['roles'])} jobs," in capsys.readouterr().out

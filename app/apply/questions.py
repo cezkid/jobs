@@ -50,6 +50,15 @@ LAST_YEARS = re.compile(r"\b(?:last|past) (\d{1,2}|" + "|".join(WORD_NUMBER) + r
 SINCE_YEAR = re.compile(r"\bsince ((?:19|20)\d\d)\b")
 # a work-break question answered from the user's saved words: named, so the AI shows it before Submit
 READ_FIRST = "read it before Submit"
+# a form asking for every job: leaving the oldest off there is a false answer, so all of them go.
+# Not "all employment decisions" (equal-opportunity text) nor "view all jobs" (site menus).
+COMPLETE_HISTORY = re.compile(r"\b(complete|full|entire|whole) (\w+ )?(employment|work|job|career) history\b|"
+                              r"\b(complete|full|entire) history of (your )?(employment|work)\b|"
+                              r"\ball (of )?(your )?(previous|prior|past|former) (employers|employment|jobs|positions)\b|"
+                              r"\b(all|every) (of )?(your )?employers?\b")
+ASK_JOBS = ("ASK no jobs added yet - ask the user once: same {page} jobs as your resume, or all {all} jobs "
+            "(the {left} left off ended {years}+ years ago; a form adds each with its dates). Save the answer as "
+            "contact.form_jobs (page or all) in resume details, then run this again")
 # answers the program wrote itself; the user's own (via the AI) survive a second prepare
 AUTO = ("resume", "search settings")
 NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
@@ -167,6 +176,30 @@ def from_resume(q: dict, contact: dict) -> str:
     if q["kind"] == "phone":
         return contact.get("phone", "")
     return ""
+
+
+def asks_complete_history(text: str) -> bool:
+    return bool(COMPLETE_HISTORY.search(" ".join(text.casefold().split())))
+
+
+def form_roles(master: dict, tailored: dict | None = None, complete: bool = False) -> tuple[list[dict], str | None]:
+    """The jobs a form's work history gets, + a note for the AI. Tailoring may leave the oldest off
+    the page (tailor.OLD_ROLE_YEARS); a form adding them with dates puts that age cue back. Same
+    jobs as the page when the user chose it (contact.form_jobs: page); all when they chose all or
+    the form asks for complete history. Unset -> none, and the note starting ASK asks, counts
+    and all - never guessed."""
+    roles = master.get("roles") or []
+    shown = {e["id"] for e in (tailored or {}).get("entries") or []}
+    page = [r for r in roles if r["id"] in shown] if shown else roles
+    choice = (master.get("contact") or {}).get("form_jobs")
+    if len(page) == len(roles) or choice == "all":
+        return roles, None
+    if complete:
+        return roles, f"all {len(roles)} jobs: the form asks for complete work history - tell the user"
+    if choice == "page":
+        return page, None
+    from resume import tailor
+    return [], ASK_JOBS.format(page=len(page), all=len(roles), left=len(roles) - len(page), years=tailor.OLD_ROLE_YEARS)
 
 
 def work_permit(q: dict, config: dict):

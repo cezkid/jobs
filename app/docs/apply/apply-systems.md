@@ -36,6 +36,8 @@ SmartRecruiters, iCIMS, Workable. `apply-form prepare` says so plainly -> user g
    labelled legal / background check -> `contact.legal_*`; preferred -> page name; other /
    maiden -> `other_names`; plain Name / First / Last -> NEEDED when page name != legal name
    until `contact.form_name` says which. First/last never split from a 3+ word name or initial.
+   Work history: jobs from `questions.form_roles` (tailored page's jobs vs all, `contact.form_jobs`;
+   form asking complete history -> all; `asks_complete_history` reads the form text), never `master["roles"]`.
 3. **`fill` checks what took.** Read value / selected state back after typing; return `ok`,
    `ASK <why>` (nearest choice, or nothing matched) or `FAIL <why>`. Never click Submit, Next or
    Save.

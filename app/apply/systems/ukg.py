@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 
 from apply import browser
-from apply.questions import question
+from apply.questions import asks_complete_history, form_roles, question
 from resume import schema
 
 NAME = "UKG"
@@ -393,10 +393,13 @@ def add_links(page, links: list[str]) -> list[str]:
 def put_profile(page, resume_file: str | None) -> str:
     master, tailored = resume_facts(resume_file)
     skills = tailored.get("skills") or master.get("skills") or []
-    report = (add_work(page, master.get("roles", []), tailored) + add_education(page, master.get("education", []))
+    # same jobs as the tailored page unless they chose all or the form asks for complete history
+    roles, note = form_roles(master, tailored, asks_complete_history(page.locator("body").inner_text()))
+    report = (add_work(page, roles, tailored) + ([note] if note else [])
+              + add_education(page, master.get("education", []))
               + add_skills(page, [i for g in skills for i in g["items"]])
               + add_links(page, (master.get("contact") or {}).get("links") or []))
-    bad = [r for r in report if " FAIL" in r or " ASK" in r]
+    bad = [r for r in report if " FAIL" in f" {r}" or " ASK" in f" {r}"]
     return ("ASK " if bad else "ok - ") + "; ".join(bad or report)
 
 

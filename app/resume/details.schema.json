@@ -52,7 +52,8 @@
         "legal_middle": { "type": "string", "minLength": 1, "description": "Middle name as on your ID, if you have one. Optional." },
         "legal_last": { "type": "string", "minLength": 1, "description": "Last name as on your ID. Give it with legal_first, or leave both out." },
         "other_names": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Names you used before, like a maiden name or another spelling. Only for application boxes asking for other names, like a background check." },
-        "form_name": { "enum": ["legal", "page"], "description": "Which name goes in a plain Name box on applications when it differs from the top of your page: legal, or page for the name at the top of your resume." }
+        "form_name": { "enum": ["legal", "page"], "description": "Which name goes in a plain Name box on applications when it differs from the top of your page: legal, or page for the name at the top of your resume." },
+        "form_jobs": { "enum": ["page", "all"], "description": "Which jobs go in an application's work history when your tailored resume left the oldest off: page for the same jobs as the resume, all for every job. A form asking for your complete work history always gets all." }
       },
       "dependencies": {
         "legal_first": ["legal_last"],

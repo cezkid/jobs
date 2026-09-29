@@ -29,6 +29,8 @@ LONG_GAP_MONTHS = 12
 NON_SLUG = re.compile(r"[^a-z0-9]+")
 # the name a plain Name / First / Last box gets when the page name is not the legal one
 FORM_NAMES = ("legal", "page")
+# which jobs a form's work history gets when tailoring left the oldest off the page (apply/questions.form_roles)
+FORM_JOBS = ("page", "all")
 # ChatGPT landed Nov 2022: a job still running in 2023 may name AI work, one that ended earlier
 # cannot without backdating it. A file may still say ai_era by hand and that wins.
 AI_ERA_FROM = "2023-01"
@@ -241,6 +243,8 @@ def check_legal_name(contact: dict, errors: list[str]) -> None:
         errors.append(f"contact.form_name: one of {', '.join(FORM_NAMES)}")
     elif form_name and not legal["first"]:
         errors.append("contact.form_name: needs legal_first and legal_last")
+    if (form_jobs := contact.get("form_jobs")) is not None and form_jobs not in FORM_JOBS:
+        errors.append(f"contact.form_jobs: one of {', '.join(FORM_JOBS)}")
 
 
 def validate(master) -> list[str]:

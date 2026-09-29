@@ -46,8 +46,8 @@ ORDER = ["contact", "headline", "summary", "roles", "career_break", "projects", 
          "other", "languages"]
 ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "explain", "ai_era",
                "bullets", "lines"]
-ORDERS = {"contact": ["name", "legal_first", "legal_middle", "legal_last", "other_names", "form_name", "email", "phone",
-                      "location", "links"]}
+ORDERS = {"contact": ["name", "legal_first", "legal_middle", "legal_last", "other_names", "form_name", "form_jobs",
+                      "email", "phone", "location", "links"]}
 # plain scalar would read back as something else: leading indicator, a key, a comment, a number
 SPECIAL = re.compile(r"""^[\s#&*!|>%@`,\[\]{}?:'"-]|:\s|\s#|:$|\s$""")
 RESERVED = re.compile(r"^(true|false|null|yes|no|on|off|~|-?\d[\d,]*(\.\d+)?)$", re.I)
