@@ -25,7 +25,7 @@ HEADER = [
     "# Keep the spacing as it is. Dates are year-month, like 2023-02, or a year alone, like 2023.",
 ]
 NOTES = {
-    "contact": ["# Your name and how an employer reaches you."],
+    "contact": ["# Your name and how an employer reaches you. legal_first / legal_last: name on your ID, forms only."],
     "headline": ["# One line above the summary: your real title and main skills. Optional."],
     "summary": ["# The short pitch at the top of the page - up to four lines."],
     "roles": [
@@ -45,7 +45,8 @@ ORDER = ["contact", "headline", "summary", "roles", "career_break", "projects", 
          "other", "languages"]
 ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "ai_era",
                "bullets", "lines"]
-ORDERS = {"contact": ["name", "email", "phone", "location", "links"]}
+ORDERS = {"contact": ["name", "legal_first", "legal_middle", "legal_last", "other_names", "form_name", "email", "phone",
+                      "location", "links"]}
 # plain scalar would read back as something else: leading indicator, a key, a comment, a number
 SPECIAL = re.compile(r"""^[\s#&*!|>%@`,\[\]{}?:'"-]|:\s|\s#|:$|\s$""")
 RESERVED = re.compile(r"^(true|false|null|yes|no|on|off|~|-?\d[\d,]*(\.\d+)?)$", re.I)

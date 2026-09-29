@@ -213,3 +213,28 @@ def test_headline_is_one_optional_line_that_round_trips(tmp_path):
     written = path.read_text(encoding="utf-8")
     assert written.index("contact:") < written.index("headline:") < written.index("roles:")
     assert schema.validate({**before, "headline": "two\nlines"}) == ["master.headline: one line of text"]
+
+
+def test_legal_name_both_or_neither_and_round_trips_after_the_page_name(tmp_path):
+    doc = yaml.safe_load(PLAIN)
+    doc["contact"] = {"name": "J. Doe", "email": "jane@example.com", "location": "Springfield, IL",
+                      "legal_first": "Jane", "legal_middle": "Quinn", "legal_last": "Doe",
+                      "other_names": ["Jane Roe"], "form_name": "legal"}
+    assert [e.message for e in jsonschema.Draft7Validator(DETAILS_SCHEMA).iter_errors(doc)] == []
+    path = tmp_path / "Resume details.yml"
+    path.write_text(yaml.safe_dump(doc), encoding="utf-8")
+    before = schema.load(path, notes(tmp_path))
+    tidy.tidy(path, notes(tmp_path))
+    assert schema.load(path, notes(tmp_path)) == before
+    written = path.read_text(encoding="utf-8")
+    order = ["name:", "legal_first:", "legal_middle:", "legal_last:", "other_names:", "form_name:", "email:"]
+    assert [written.index(f"  {k}") for k in order] == sorted(written.index(f"  {k}") for k in order)
+
+    half = {**before, "contact": {k: v for k, v in before["contact"].items() if k not in ("legal_last", "form_name")}}
+    assert "contact.legal_first/legal_last: give both or neither" in schema.validate(half)
+    assert [e.message for e in jsonschema.Draft7Validator(DETAILS_SCHEMA).iter_errors({**doc, **half})]
+    wrong = {**before, "contact": {**before["contact"], "form_name": "nickname"}}
+    assert schema.validate(wrong) == ["contact.form_name: one of legal, page"]
+    alone = {**before, "contact": {**doc["contact"], "legal_first": None, "legal_middle": None, "legal_last": None}}
+    alone["contact"] = {k: v for k, v in alone["contact"].items() if v is not None}
+    assert schema.validate(alone) == ["contact.form_name: needs legal_first and legal_last"]

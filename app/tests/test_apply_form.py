@@ -43,7 +43,8 @@ def test_resume_answers_only_what_it_states():
           q("Email", "email"), q("Phone", "phone"), q("LinkedIn Profile URL", key="linkedin"),
           q("GitHub", key="github"), q("Location", "location", key="location"), q("Why us?", "longtext")]
     got = {a["title"]: a["answer"] for a in questions.draft(qs, CONTACT)}
-    assert got["Name"] == "Ada King Lovelace" and got["First name"] == "Ada" and got["Last name"] == "King Lovelace"
+    assert got["Name"] == "Ada King Lovelace"
+    assert got["First name"] is None and got["Last name"] is None  # Ada King / Lovelace or Ada / King Lovelace
     assert got["Email"] == "ada@example.com" and got["Phone"] == "555-0100"
     assert got["LinkedIn Profile URL"] == "https://www.linkedin.com/in/ada"
     assert got["GitHub"] == "https://www.github.com/ada"
@@ -54,6 +55,67 @@ def test_link_questions_recognised_by_title():
     assert questions.key_from_title("LinkedIn Profile URL", "text") == "linkedin"
     assert questions.key_from_title("Portfolio or website", "url") == "website"
     assert questions.key_from_title("Why LinkedIn?", "longtext") is None
+
+
+NAME_BOXES = [q("Name", key="name"), q("First name", key="first_name"), q("Last name", key="last_name")]
+
+
+def name_answers(contact, boxes=NAME_BOXES):
+    return {a["title"]: (a["answer"], a["source"]) for a in questions.draft(boxes, contact)}
+
+
+@pytest.mark.parametrize("name, first, last", [
+    ("Ada Lovelace", "Ada", "Lovelace"),        # two words: said outright
+    ("Mary Ann Smith", None, None),             # Mary Ann / Smith or Mary / Ann Smith: never guessed
+    ("J. Smith", None, None),                   # an initial on the page is not what a form wants
+    ("Ada L", None, None),
+    ("Sukarno", "Sukarno", None),               # a mononym has no last name to give
+])
+def test_first_and_last_only_when_the_name_says_it_outright(name, first, last):
+    got = name_answers({"name": name})
+    assert got["Name"][0] == name
+    assert (got["First name"][0], got["Last name"][0]) == (first, last)
+    assert all(source == questions.ASK for answer, source in got.values() if answer is None)
+
+
+def test_name_boxes_recognised_by_title():
+    want = {"Legal first name": "legal_first", "Full legal name": "legal_name", "Name for background check": "legal_name",
+            "Preferred name": "preferred_name", "Preferred first name": "preferred_first",
+            "What name do you go by?": "preferred_name", "Other names used": "other_names", "Maiden name": "other_names",
+            "Surname": "last_name", "Middle name": "middle_name", "Full name": "name",
+            "Referrer name": None, "Hiring manager name": None, "Name of school": None, "Username": None}
+    assert {t: questions.key_from_title(t, "text") for t in want} == want
+
+
+LEGAL = {"name": "J. Doe", "legal_first": "Jane", "legal_middle": "Quinn", "legal_last": "Doe",
+         "other_names": ["Jane Roe"]}
+
+
+def test_legal_box_gets_legal_name_and_preferred_box_the_page_name():
+    boxes = [q(t, key=questions.key_from_title(t, "text")) for t in
+             ("Legal first name", "Legal last name", "Full legal name", "Preferred name", "Other names used")]
+    got = name_answers(LEGAL, boxes)
+    assert got["Legal first name"][0] == "Jane" and got["Legal last name"][0] == "Doe"
+    assert got["Full legal name"][0] == "Jane Quinn Doe"
+    assert got["Preferred name"][0] == "J. Doe"
+    assert got["Other names used"][0] == "Jane Roe"
+    assert name_answers({"name": "J. Doe"}, boxes)["Full legal name"] == (None, questions.ASK)  # no legal fields
+
+
+def test_plain_name_box_asks_once_when_page_and_legal_differ_then_reuses_the_answer():
+    got = name_answers(LEGAL)
+    assert got["Name"] == got["First name"] == got["Last name"] == (None, questions.ASK_FORM_NAME)
+    legal = name_answers({**LEGAL, "form_name": "legal"})
+    assert [legal[t][0] for t in ("Name", "First name", "Last name")] == ["Jane Quinn Doe", "Jane", "Doe"]
+    page = name_answers({**LEGAL, "form_name": "page"})
+    assert [page[t][0] for t in ("Name", "First name", "Last name")] == ["J. Doe", "J.", "Doe"]
+
+
+@pytest.mark.parametrize("page", ["José García", "jose garcia", "JOSÉ  GARCÍA", "José Luis García"])
+def test_accents_case_spacing_and_a_left_out_middle_name_are_no_mismatch(page):
+    got = name_answers({"name": page, "legal_first": "José", "legal_middle": "Luis", "legal_last": "García"})
+    assert got["Name"][0] == page
+    assert (got["First name"][0], got["Last name"][0]) == ("José", "García")
 
 
 def test_earlier_answers_survive_a_second_prepare():

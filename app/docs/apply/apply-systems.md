@@ -32,7 +32,10 @@ SmartRecruiters, iCIMS, Workable. `apply-form prepare` says so plainly -> user g
 2. **Write `systems/<name>.py`** per contract in `systems/__init__.py`: `NAME`, `READY`,
    `matches`, `application_url`, `questions`, `fill`, `ids_on_page`. Native types ->
    `questions.KINDS`, native system fields -> `questions.KEYS`. Unknown types -> `text`, native
-   name kept in `native`.
+   name kept in `native`. Employer's own boxes: `key_from_title` (links, names). Names: box
+   labelled legal / background check -> `contact.legal_*`; preferred -> page name; other /
+   maiden -> `other_names`; plain Name / First / Last -> NEEDED when page name != legal name
+   until `contact.form_name` says which. First/last never split from a 3+ word name or initial.
 3. **`fill` checks what took.** Read value / selected state back after typing; return `ok`,
    `ASK <why>` (nearest choice, or nothing matched) or `FAIL <why>`. Never click Submit, Next or
    Save.

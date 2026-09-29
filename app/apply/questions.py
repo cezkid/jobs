@@ -5,18 +5,28 @@ A system (`apply/systems/<name>.py`) turns its own form into these questions; ev
 works the same for every system. How to add one: app/docs/apply/apply-systems.md.
 """
 import json
+import re
+import unicodedata
 from pathlib import Path
 
 # what a question asks for, whatever the system calls it; a system maps each of its types to one
 KINDS = {"text", "longtext", "email", "phone", "url", "number", "date", "location",
          "yesno", "choice", "multichoice", "file"}
 # what a question is about when the system marks it (its own system field ids, or a title match)
-KEYS = {"name", "first_name", "last_name", "email", "phone", "location", "resume",
-        "linkedin", "github", "website", "street", "city", "state", "zip", None}
+KEYS = {"name", "first_name", "middle_name", "last_name", "legal_name", "legal_first", "legal_middle",
+        "legal_last", "preferred_name", "preferred_first", "other_names", "email", "phone", "location",
+        "resume", "linkedin", "github", "website", "street", "city", "state", "zip", None}
 # home address boxes, answered from `home_address` in search settings (never on the resume)
 ADDRESS = {"street", "city", "state", "zip"}
 # questions that are the user's to answer, never guessed (job-apply hard limits)
 ASK = "ask the user"
+# a plain Name box when the page name is not the legal one: the user picks once, contact.form_name keeps it
+ASK_FORM_NAME = "ask the user once - legal name or the name on your resume"
+# a name box about someone else (a referrer, a manager, the school) is never theirs to fill from contact
+OTHER_PERSON = re.compile(r"\brefer|manager|supervisor|emergency|reference|recruiter|employer|company|school|"
+                          r"universit|college|spouse|relative|user ?name|business|organi[sz]ation")
+PLAIN_NAME = {"name", "first_name", "middle_name", "last_name"}
+NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
 FILE = "application.json"
 
 
@@ -28,9 +38,31 @@ def question(id: str, title: str, kind: str, required: bool, options=(), key=Non
             "required": required, "options": list(options)}
 
 
-def key_from_title(title: str, kind: str) -> str | None:
-    """Link boxes are the employer's own questions on most systems: recognise them by title."""
+def name_key(title: str) -> str | None:
+    """Which of the user's names a box asks for. Labelled legal or for a background check -> legal
+    name; preferred -> the name on the page; other / previous / maiden -> other names used."""
     t = title.casefold()
+    words = re.findall(r"[a-z]+", t)
+    if not ({"name", "names", "surname"} & set(words)) or OTHER_PERSON.search(t):
+        return None
+    if {"other", "previous", "former", "prior", "maiden", "alias", "aliases"} & set(words):
+        return "other_names"
+    parts = [p for p, said in NAME_PART.items() if set(said) & set(words)]
+    part = parts[0] if len(parts) == 1 else None  # "Name (first and last)" is the whole name
+    if "legal" in words or "background" in words:
+        return f"legal_{part}" if part else "legal_name"
+    if "preferred" in words or "nickname" in words or "go by" in t:
+        return "preferred_first" if part == "first" else "preferred_name" if part is None else None
+    if part:
+        return f"{part}_name"
+    return "name" if parts or set(words) <= {"name", "full", "your"} else None
+
+
+def key_from_title(title: str, kind: str) -> str | None:
+    """Link + name boxes are the employer's own questions on most systems: recognise them by title."""
+    t = title.casefold()
+    if kind == "text" and (key := name_key(title)):
+        return key
     if kind in ("text", "url"):
         for key in ("linkedin", "github"):
             if key in t:
@@ -47,14 +79,56 @@ def link(contact: dict, host: str) -> str:
     return ""
 
 
+def same_name(a: str, b: str) -> bool:
+    """José / JOSE / jose are one name: accents, case and spacing never make a mismatch."""
+    def fold(s: str) -> str:
+        return " ".join("".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+                        .casefold().split())
+    return fold(a) == fold(b)
+
+
+def initial(word: str) -> bool:
+    return len(word.rstrip(".")) == 1
+
+
+def split(name: str, initials_ok: bool) -> tuple[str, str] | None:
+    """First + last only when the name says it outright: two words. "Mary Ann Smith" could be
+    Mary Ann / Smith or Mary / Ann Smith, and an initial on the page is rarely what a form wants."""
+    words = name.split()
+    if len(words) == 2 and (initials_ok or not any(initial(w) for w in words)):
+        return words[0], words[1]
+    return None
+
+
+def names(contact: dict) -> tuple[dict, str]:
+    """The answer for every name box, and where a blank plain Name / First / Last box goes. Legal
+    name only from the user's own legal fields; a plain box gets it only when it is the page name
+    or they chose it (contact.form_name)."""
+    page = (contact.get("name") or "").strip()
+    first, middle, last = (contact.get(f"legal_{p}") or "" for p in ("first", "middle", "last"))
+    one = len(page.split()) == 1  # a mononym: first name only, no last name to give
+    pair = (page, "") if one else split(page, initials_ok=False) or ("", "")
+    out = {"name": page, "preferred_name": page, "preferred_first": pair[0],
+           "other_names": ", ".join(contact.get("other_names") or [])}
+    if not (first and last):
+        return out | {"first_name": pair[0], "last_name": pair[1]}, ASK
+    legal = " ".join(w for w in (first, middle, last) if w)
+    out |= {"legal_name": legal, "legal_first": first, "legal_middle": middle, "legal_last": last}
+    choice = contact.get("form_name")
+    if choice == "legal" or same_name(page, legal) or same_name(page, f"{first} {last}"):
+        return out | {"name": legal if choice == "legal" else page, "first_name": first, "middle_name": middle,
+                      "last_name": last}, ASK
+    if choice == "page":
+        chosen = (page, "") if one else split(page, initials_ok=True) or ("", "")
+        return out | {"first_name": chosen[0], "last_name": chosen[1]}, ASK
+    return out | {"name": ""}, ASK_FORM_NAME
+
+
 def from_resume(q: dict, contact: dict) -> str:
     """Answer only what the resume states outright. Location stays the user's: a resume says
     "City Area", forms want the town they live in."""
-    name = (contact.get("name") or "").split()
     by_key = {
-        "name": contact.get("name", ""),
-        "first_name": name[0] if name else "",
-        "last_name": " ".join(name[1:]),
+        **names(contact)[0],
         "email": contact.get("email", ""),
         "phone": contact.get("phone", ""),
         "linkedin": link(contact, "linkedin."),
@@ -106,7 +180,8 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
             out.append({**q, "answer": "Yes" if permit else "No", "source": "search settings - name it to the user"})
             continue
         answer = from_resume(q, contact)
-        out.append({**q, "answer": answer or None, "source": "resume" if answer else ASK})
+        source = names(contact)[1] if q["key"] in PLAIN_NAME else ASK
+        out.append({**q, "answer": answer or None, "source": "resume" if answer else source})
     return out
 
 

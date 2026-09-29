@@ -22,6 +22,8 @@ LEGAL_IDENTIFIER = re.compile(
 # HBS/Accenture 2021: gap past this = automatic screen-out at ~half of employers
 MAX_GAP_MONTHS = 6
 NON_SLUG = re.compile(r"[^a-z0-9]+")
+# the name a plain Name / First / Last box gets when the page name is not the legal one
+FORM_NAMES = ("legal", "page")
 # ChatGPT landed Nov 2022: a job still running in 2023 may name AI work, one that ended earlier
 # cannot without backdating it. A file may still say ai_era by hand and that wins.
 AI_ERA_FROM = "2023-01"
@@ -200,6 +202,24 @@ def employment_gaps(master: dict, today: date) -> list[dict]:
     return gaps
 
 
+def check_legal_name(contact: dict, errors: list[str]) -> None:
+    """Legal name only for forms that ask for it (apply/questions.py): both parts or none, so a
+    form never gets half a legal name next to half the page name."""
+    legal = {p: optional(contact, f"legal_{p}", str, "contact", errors) for p in ("first", "middle", "last")}
+    if any(v is not None and not v.strip() for v in legal.values()):
+        errors.append("contact.legal_*: empty")
+    if bool(legal["first"]) != bool(legal["last"]):
+        errors.append("contact.legal_first/legal_last: give both or neither")
+    elif legal["middle"] and not legal["first"]:
+        errors.append("contact.legal_middle: needs legal_first and legal_last")
+    strings(contact, "other_names", "contact", errors)
+    form_name = contact.get("form_name")
+    if form_name is not None and form_name not in FORM_NAMES:
+        errors.append(f"contact.form_name: one of {', '.join(FORM_NAMES)}")
+    elif form_name and not legal["first"]:
+        errors.append("contact.form_name: needs legal_first and legal_last")
+
+
 def validate(master) -> list[str]:
     errors: list[str] = []
     if not isinstance(master, dict):
@@ -210,6 +230,7 @@ def validate(master) -> list[str]:
             text(contact, key, "contact", errors)
         optional(contact, "phone", str, "contact", errors)
         strings(contact, "links", "contact", errors)
+        check_legal_name(contact, errors)
     if headline := optional(master, "headline", str, "master", errors):
         if not headline.strip() or "\n" in headline:
             errors.append("master.headline: one line of text")
