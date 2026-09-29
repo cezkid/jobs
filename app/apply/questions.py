@@ -26,6 +26,23 @@ ASK_FORM_NAME = "ask the user once - legal name or the name on your resume"
 OTHER_PERSON = re.compile(r"\brefer|manager|supervisor|emergency|reference|recruiter|employer|company|school|"
                           r"universit|college|spouse|relative|user ?name|business|organi[sz]ation")
 PLAIN_NAME = {"name", "first_name", "middle_name", "last_name"}
+# questions only the user answers, however well a saved answer seems to fit: the AI names the kind and
+# asks (fair-screening.md). "Are you 18 or older?" is not one - a plain yes/no, answered truthfully.
+SENSITIVE = [
+    ("date of birth", re.compile(r"\bdate of birth\b|\bbirth ?date\b|\bbirthday\b|\bd\.?o\.?b\b")),
+    ("graduation date", re.compile(r"\bgraduation (date|year)|\b(date|year)s? (of |you )?graduat|"
+                                   r"\b(when|year) did you graduate|\bgrad(uation)? (yr|year)")),
+    ("criminal history", re.compile(r"\bcriminal\b(?! (justice|law|defen[cs]e|investigat))|\bconvict(ed|ions?)\b|"
+                                    r"\bfelon(y|ies)\b|\bmisdemeanou?rs?\b|(?<!cardiac )\barrest(ed|s)?\b|"
+                                    r"\bpleaded guilty|\bpled guilty|\bno contest\b")),
+    ("work break", re.compile(r"\b(gaps?|breaks?) (in|between) (your )?(employment|work|career|jobs)|"
+                              r"\b(employment|career|work history) (gaps?|breaks?)\b|\bunemploy|"
+                              r"\bexplain any gaps\b")),
+    ("disability or health", re.compile(r"\bdisabilit|\bdisabled\b|\bimpairment|reasonable accommodation|"
+                                        r"\b(medical|health|mental health) (condition|history|issue|problem)s?\b")),
+]
+# answers the program wrote itself; the user's own (via the AI) survive a second prepare
+AUTO = ("resume", "search settings")
 NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
 FILE = "application.json"
 
@@ -159,17 +176,34 @@ def work_permit(q: dict, config: dict):
     return None
 
 
+def sensitive(q: dict, contact: dict) -> str | None:
+    """What a sensitive question is about, or None. Other names count only when the user saved none:
+    saved ones are theirs to give (resume details)."""
+    title = " ".join(q["title"].casefold().split())
+    if "other_names" in (q["key"], name_key(q["title"])) and not contact.get("other_names"):
+        return "other names"
+    # a yes/no on the birth date ("does it make you 18 or older?") is an age check, not the date itself
+    return next((kind for kind, pattern in SENSITIVE if pattern.search(title)
+                 and not (kind == "date of birth" and q["kind"] == "yesno")), None)
+
+
 def blank(answer) -> bool:
     return answer in (None, "", [])
 
 
 def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None) -> list[dict]:
-    """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept."""
+    """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept -
+    on a sensitive question only the user's own, never one the program filled."""
     kept = {a["id"]: a for a in old or [] if not blank(a.get("answer"))}
     out = []
     for q in qs:
-        if q["id"] in kept:
+        tag = sensitive(q, contact)
+        if q["id"] in kept and not (tag and kept[q["id"]].get("source", "").startswith(AUTO)):
             out.append({**q, "answer": kept[q["id"]]["answer"], "source": kept[q["id"]].get("source", "")})
+            continue
+        if tag:
+            # plan-1fw.6 hook: a break explanation the user saved (career_break explain) fills "work break" here
+            out.append({**q, "answer": None, "source": f"{ASK} - sensitive: {tag}"})
             continue
         home = (config or {}).get("home_address") or {}
         if q["key"] in ADDRESS and home.get(q["key"]):

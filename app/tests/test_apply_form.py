@@ -4,7 +4,7 @@ import pkgutil
 
 import pytest
 
-from apply import questions, systems
+from apply import form, questions, systems
 from apply.systems import ashby, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
@@ -144,6 +144,71 @@ def test_citizen_or_green_card_answered_only_for_the_us():
     assert questions.draft(canada, CONTACT, config=config)[0]["answer"] is None
     unset = questions.draft(us, CONTACT, config={"work_authorization": {}})
     assert unset[0]["answer"] is None and unset[0]["source"] == questions.ASK
+
+
+SENSITIVE = [
+    ("Date of birth", "date", "date of birth"),
+    ("Birthdate (MM/DD/YYYY)", "text", "date of birth"),
+    ("DOB", "date", "date of birth"),
+    ("Graduation date", "date", "graduation date"),
+    ("What year did you graduate from high school?", "number", "graduation date"),
+    ("Year of graduation", "number", "graduation date"),
+    ("When did you graduate?", "text", "graduation date"),
+    ("Have you ever been convicted of a felony?", "yesno", "criminal history"),
+    ("Do you have any criminal convictions in the last 7 years?", "yesno", "criminal history"),
+    ("Have you ever been arrested or pleaded guilty to a misdemeanor?", "yesno", "criminal history"),
+    ("Please explain any gaps in your employment history", "longtext", "work break"),
+    ("Why were you unemployed between jobs?", "longtext", "work break"),
+    ("Tell us about any career break longer than six months", "longtext", "work break"),
+    ("Do you have a disability or medical condition we should know about?", "yesno", "disability or health"),
+    ("Voluntary Self-Identification of Disability", "choice", "disability or health"),
+    ("Will you need a reasonable accommodation to complete the interview?", "yesno", "disability or health"),
+    ("Other names used", "text", "other names"),
+    ("Have you ever been known by any other names?", "text", "other names"),
+]
+NEAR_MISSES = ["Are you at least 18 years of age?", "Does your date of birth make you 18 or older?", "Post-graduation plans",
+               "Do you hold a graduate degree?", "Experience in a recording studio", "Degree in criminal justice?",
+               "Years of experience with criminal defense cases", "BLS certification for cardiac arrest",
+               "Describe a gap analysis you led", "Are you available over spring break?",
+               "Experience with medical devices", "Tell us about your health and safety training",
+               "Previous employer name", "Why us?"]
+
+
+@pytest.mark.parametrize("title, kind, want", SENSITIVE)
+def test_sensitive_questions_tagged_and_left_for_the_user(title, kind, want):
+    (a,) = questions.draft([q(title, kind, key=questions.key_from_title(title, kind))], CONTACT)
+    assert questions.sensitive(a, CONTACT) == want
+    assert a["answer"] is None and a["source"] == f"{questions.ASK} - sensitive: {want}"
+
+
+@pytest.mark.parametrize("title", NEAR_MISSES)
+def test_near_miss_titles_not_tagged(title):
+    kind = "yesno" if title.endswith("?") else "text"
+    assert questions.sensitive(q(title, kind, key=questions.key_from_title(title, kind)), CONTACT) is None
+
+
+def test_sensitive_question_stays_blank_even_when_a_saved_answer_fits():
+    config = {"work_authorization": {"authorized_us": True}}
+    both = q("Are you authorized to work in the U.S. without restriction, and have you ever been convicted of a "
+             "crime?", "yesno")
+    assert questions.draft([both], CONTACT, config=config)[0]["answer"] is None
+    # a program-filled answer from before the tag is dropped; the user's own answer survives
+    auto = [{"id": both["id"], "answer": "Yes", "source": "search settings - name it to the user"}]
+    assert questions.draft([both], CONTACT, auto, config)[0]["answer"] is None
+    theirs = [{"id": both["id"], "answer": "No", "source": "user"}]
+    assert questions.draft([both], CONTACT, theirs, config)[0]["answer"] == "No"
+    # other names saved in resume details are theirs to give: no tag, answer filled
+    other = q("Other names used", key="other_names")
+    assert questions.draft([other], LEGAL)[0]["answer"] == "Jane Roe"
+    assert questions.draft([other], CONTACT, [{"id": other["id"], "answer": "Jane Roe", "source": "resume"}])[0][
+        "answer"] is None
+
+
+def test_prepare_line_names_the_sensitive_kind():
+    (a,) = questions.draft([q("Date of birth", "date")], CONTACT)
+    assert form.line(a) == "  [NEEDED] date: Date of birth (sensitive: date of birth)"
+    (plain,) = questions.draft([q("Why us?", "longtext", required=False)], CONTACT)
+    assert form.line(plain) == "  [optional] longtext: Why us?"
 
 
 def test_blank_required_questions_are_listed():

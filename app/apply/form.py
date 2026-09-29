@@ -39,6 +39,14 @@ def system_for(url: str):
     return system
 
 
+def line(a: dict) -> str:
+    """One question as prepare prints it; a sensitive one names its kind so the AI asks, never fills."""
+    state = "ok" if not questions.blank(a["answer"]) else ("NEEDED" if a["required"] else "optional")
+    opts = f" options={a['options']}" if a["options"] else ""
+    tag = f" ({a['source'].split(' - ', 1)[1]})" if " - sensitive: " in a["source"] else ""
+    return f"  [{state}] {a['kind']}: {a['title']}{opts}{tag}"
+
+
 def prepare(slug: str, url: str) -> None:
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
@@ -51,9 +59,7 @@ def prepare(slug: str, url: str) -> None:
     questions.save(out, {"system": system.NAME, "url": system.application_url(url), "questions": answers})
     print(f"{system.NAME} form -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
     for a in answers:
-        state = "ok" if not questions.blank(a["answer"]) else ("NEEDED" if a["required"] else "optional")
-        opts = f" options={a['options']}" if a["options"] else ""
-        print(f"  [{state}] {a['kind']}: {a['title']}{opts}")
+        print(line(a))
     print("Write answers into the file (file kind: answer = true only after the user said yes to uploading), "
           f"then: uv run app/jobs.py apply-form fill {slug}")
 

@@ -138,7 +138,7 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 | Graduation year hidden everywhere | `hide_year` -> `schema.shown_end`, used by page, Workday profile, UKG | done (plan-1fw.1) |
 | Name on the page vs legal name | `contact.legal_*` only in boxes labelled legal; plain Name box asks once (`form_name`), never guessed from a 3+ word name | done (plan-1fw.3) |
 | Other names used | `contact.other_names` -> "other names" boxes + background-check forms only | done (plan-1fw.3) |
-| Sensitive questions never auto-answered | `questions.draft` fills only name, contact + work-permit answers; birth, age, graduation, criminal-history, gap questions go to the user | done today; explicit tag pending (plan-1fw.5) |
+| Sensitive questions never auto-answered | `questions.SENSITIVE` tags date of birth, graduation date, criminal history, work break, disability or health, other names (none saved); answer left blank even when a saved answer fits, `apply-form prepare` prints the kind. "18 or older?" is a plain yes/no, not tagged | done (plan-1fw.5) |
 | Break severity, no penalty numbers at user | `schema.gap_note`: 6+ months a line, 12+ a line + real recent work; running search nothing | done (plan-1fw.4) |
 | Old graduation year offered, not forced | `lint` `old-graduation-year` (`OLD_GRADUATION_YEARS` = 15) offers `hide_year` | offer done; 20-year bundle recommendation pending (plan-1fw.9) |
 
