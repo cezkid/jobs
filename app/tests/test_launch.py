@@ -327,3 +327,16 @@ def test_chat_sidebar_shown_again_after_user_closed_it(tmp_path):
 
 def test_chat_sidebar_first_window_left_to_setting(tmp_path):
     launch.ensure_chat_sidebar(tmp_path, tmp_path / "no-storage-yet")  # nothing to fix, no error
+
+
+def test_mac_notification_says_how_to_open(monkeypatch):
+    # click opens Script Editor (notification belongs to osascript) => the text carries the way in
+    calls = []
+    monkeypatch.setattr(notify.sys, "platform", "darwin")
+    monkeypatch.setattr(notify.subprocess, "run", lambda args, **kw: calls.append((args, kw)))
+    notify.notify("3 new jobs", "Engineer; Designer")
+    args, kw = calls[0]
+    assert args[0] == "osascript" and kw["check"]
+    assert args[-3:] == ["3 new jobs", "Engineer; Designer", notify.MAC_SUBTITLE]
+    assert "subtitle (item 3 of argv)" in " ".join(args)
+    assert "Desktop" in notify.MAC_SUBTITLE and notify.cfg.NAME in notify.MAC_SUBTITLE

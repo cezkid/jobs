@@ -27,5 +27,5 @@ and job boards. Each job links to the real posting. New ones checked every morni
 
 ## Coming back
 
-Double-click **CEZ Job Finder** on your Desktop, or click the morning notification. The
-**Today** page opens: what's waiting on you and the newest jobs.
+Double-click **CEZ Job Finder** on your Desktop (on Windows, clicking the morning notification
+works too). The **Today** page opens: what's waiting on you and the newest jobs.
