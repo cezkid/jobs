@@ -118,14 +118,26 @@ def put_yes_no(box, value) -> str:
     return f"FAIL {word} not selected"
 
 
+def checked_soon(radio) -> bool:
+    for _ in range(30):  # the page marks the choice a moment after the click
+        if radio.is_checked():
+            return True
+        radio.page.wait_for_timeout(100)
+    return False
+
+
 def put_choice(box, value) -> str:
     for v in value if isinstance(value, list) else [value]:
         exact = re.compile(rf"^\s*{re.escape(str(v))}\s*$")
         label = box.locator("label", has_text=exact)
         if label.count():
-            label.first.click()
             target = box.locator(f'input[id="{label.first.get_attribute("for")}"]')
-            if target.count() and not target.first.is_checked():
+            if not target.count():
+                label.first.click()
+                continue
+            if not target.first.is_checked():  # never click a chosen one: a second click clears it
+                label.first.click()
+            if not checked_soon(target.first):
                 return f"FAIL '{v}' not selected"
             continue
         combo = box.locator("input[role=combobox]")  # long lists show as a search box
