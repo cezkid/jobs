@@ -462,9 +462,25 @@ def posting(text_file: Path, url: str) -> None:
                        text_file.read_text(encoding="utf-8").strip(), then)
 
 
+def by_number(config: dict, job: str) -> str:
+    """Job number ("12", "job 12") -> its slug; slug or link as is. Numbers are stored, so any
+    chat, the email and the Today page name the same job by the same number."""
+    conn = store.connect(cfg.db_path(config))
+    try:
+        key = store.key_for(conn, job)
+    except LookupError as e:
+        sys.exit(f"{e} - name it by its link instead")
+    finally:
+        conn.close()
+    if key.startswith("outside:"):
+        sys.exit(f"{job}: no posting on file for this job. Save the posting page's text to a file, then run:\n"
+                 f'  uv run app/jobs.py tailor posting "<text file>" --url "<posting url>"')
+    return key
+
+
 def slug_for(config: dict, job: str) -> str:
-    """Row's own link works as well as its slug => a new chat, which never saw the numbered
-    list, can still name a list job by the link the user copies from it."""
+    """Job number, slug or the row's own link -> slug; a link the user copied works as well."""
+    job = by_number(config, job)
     if not job.startswith(("http://", "https://")):
         return job
     conn = store.connect(cfg.db_path(config))
@@ -476,6 +492,15 @@ def slug_for(config: dict, job: str) -> str:
         sys.exit(f"{job}: not a job on your list. Save the posting page's text to a file, then run:\n"
                  f'  uv run app/jobs.py tailor posting "<text file>" --url "{job}"')
     return row["public_slug"]
+
+
+def job_number(config: dict, slug: str) -> int:
+    conn = store.connect(cfg.db_path(config))
+    try:
+        with conn:
+            return store.number(conn, slug)
+    finally:
+        conn.close()
 
 
 def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str) -> None:
@@ -502,12 +527,13 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
     request = build_request(master, job, cfg.resume_font(config))
     handoff.write_task(data / "task.md", data / "tailored.json", request["system"], request["schema"],
                        request["prompt"], check_command(job["public_slug"]))
-    print(f"job folder: {job_dir}")
+    # pasted posting's first sight => it gets its number here
+    print(f"job {job_number(config, job['public_slug'])}, job folder: {job_dir}")
 
 
 def check(config: dict, slug: str) -> int:
     master = schema.load(cfg.resume_path(config, "master"))
-    job_dir = find_job_dir(cfg.resume_path(config, "jobs_dir"), slug)
+    job_dir = find_job_dir(cfg.resume_path(config, "jobs_dir"), by_number(config, slug))
     if job_dir is None:
         sys.exit(f"no job folder for {slug}; run tailor prepare first")
     data = job_dir / JOB_DATA
@@ -528,7 +554,15 @@ def check(config: dict, slug: str) -> int:
     required_gaps = [r for r in rows if r["status"] == "gap" and r["priority"] == "required"]
     print(f"coverage {met}/{len(rows)} met, {len(required_gaps)} required gap(s)")
     print(f"{'FAILED - fix tailored.json, rerun check' if result['failed'] else 'passed'}: {job_dir}")
-    return 1 if result["failed"] else 0
+    if result["failed"]:
+        return 1
+    import status  # status reads job folders through this module
+    conn = store.connect(cfg.db_path(config))
+    try:
+        status.record_made(conn, job_dir, store.utc_now())
+    finally:
+        conn.close()
+    return 0
 
 
 def main() -> None:
@@ -538,11 +572,11 @@ def main() -> None:
     p.add_argument("text_file", type=Path)
     p.add_argument("--url", default="")
     p = steps.add_parser("prepare", help="job folder + AI tailoring task")
-    p.add_argument("slug", nargs="?", help="jobs.public_slug or the row's https link; omit with --posting")
+    p.add_argument("slug", nargs="?", help="job number, jobs.public_slug or the row's https link; omit with --posting")
     p.add_argument("--posting", type=Path, help="pasted posting text file, after posting step")
     p.add_argument("--url", default="", help="posting URL, with --posting")
     p = steps.add_parser("check", help="check AI's tailored.json: PDF, gates, Check before sending.md")
-    p.add_argument("slug")
+    p.add_argument("slug", help="job number or slug")
     args = ap.parse_args()
     if args.step == "posting":
         posting(args.text_file, args.url)

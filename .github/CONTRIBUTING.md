@@ -6,7 +6,7 @@ doc. Your own search settings being too wide or narrow is tuning, not defect.
 ## Never commit personal data
 
 Gitignored, and must stay out of every commit and diff: `My Jobs/`, `My Resume/`,
-`My Settings/`, `.data/`. Before commit: `git status --short` lists only files you meant
+`My Settings/`, `.data/`, `Today.md`. Before commit: `git status --short` lists only files you meant
 to change, and `git diff --cached` carries no name, email, phone or address of yours.
 
 ## Defect PR

@@ -23,6 +23,8 @@ YAML_EXTENSION = "redhat.vscode-yaml"
 VSCODE_EXTENSIONS = Path.home() / ".vscode" / "extensions"
 CLAUDE_STATE = Path.home() / ".claude.json"
 START_PAGE = cfg.ROOT / "START HERE.md"
+# once set up, START HERE ("type set me up") is the wrong page: Today (waiting on you, new jobs)
+TODAY_PAGE = cfg.ROOT / "Today.md"
 # file named in the same call as the folder opens before VS Code knows its formatted view =>
 # plain text, and the tab stays text on every later launch. Opened 6 s after the window it
 # comes up formatted (fresh window each way, measured 2026-09-26: 0 s text, 6 s formatted)
@@ -193,6 +195,20 @@ def code(args: list[str], quiet: bool = False) -> None:
     subprocess.run([exe, *args], check=False, capture_output=quiet, creationflags=own_hidden_console)
 
 
+def first_page(settings: Path | None = None, page: Path | None = None) -> Path:
+    """START HERE until search settings exist, then Today, rebuilt now so a page last written days
+    ago never shows old news. Rebuild fails => the last Today page still beats setup steps; none
+    yet => START HERE. The launcher itself must never fail on it."""
+    settings, page = settings or cfg.config_path(), page or TODAY_PAGE
+    if not settings.exists():
+        return START_PAGE
+    try:
+        import today  # here, not on top: a broken page module must not stop VS Code opening
+        return today.write(cfg.load(settings), page)
+    except (Exception, SystemExit):
+        return page if page.exists() else START_PAGE
+
+
 def main() -> None:
     if sys.platform == "win32":
         register_protocol()
@@ -214,8 +230,9 @@ def main() -> None:
     # (extension 2.1.283, measured 2026-09-26)
     window = ["--disable-workspace-trust", str(cfg.ROOT)]
     code(window)
+    page = first_page()  # while the window comes up
     time.sleep(START_PAGE_DELAY_S)
-    code([*window, str(START_PAGE)])  # folder again => lands in this window, not the last used
+    code([*window, str(page)])  # folder again => lands in this window, not the last used
 
 
 if __name__ == "__main__":

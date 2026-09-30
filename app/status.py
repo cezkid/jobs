@@ -1,0 +1,350 @@
+import argparse
+import json
+import shutil
+import sys
+from datetime import date, datetime, timezone
+from pathlib import Path
+
+import cfg
+import store
+from resume import tailor
+
+# state -> what the user reads. Order = the path a job usually takes
+STATES = {
+    "saved": "Saved",
+    "resume_made": "Resume made",
+    "applied": "Applied",
+    "heard_back": "Heard back",
+    "interview": "Interview",
+    "no": "They said no",
+    "offer": "Offer",
+    "not_sending": "Not sending",
+}
+LINK_LINE = "- Link: "
+# resume made this many days ago -> asked "did you send it?" at chat start; untouched this long
+# -> drops out of Waiting on you
+ASK_AFTER_DAYS, QUIET_AFTER_DAYS = 3, 14
+# still being worked on => worth asking "is it still open?"; no / offer / not sending are done
+IN_PROGRESS = ("saved", "resume_made", "applied", "heard_back", "interview")
+CLOSED_DIR = "Closed"
+
+
+def state_key(word: str) -> str:
+    """'resume made', 'Heard-back', 'not_sending' -> key; the AI passes the user's own words."""
+    key = "_".join(word.casefold().replace("-", " ").replace("_", " ").split())
+    by_label = {"_".join(label.casefold().split()): k for k, label in STATES.items()}
+    if key in STATES:
+        return key
+    if key in by_label:
+        return by_label[key]
+    raise ValueError(f"{word}: not a status; use one of {', '.join(STATES)}")
+
+
+def outside_key(company: str, title: str) -> str:
+    return "outside:" + " ".join(company.casefold().split()) + "|" + " ".join(title.casefold().split())
+
+
+def job_key(url: str | None, company: str, title: str) -> str:
+    return url.strip() if url and url.strip() else outside_key(company, title)
+
+
+def _same(a: str | None, b: str | None) -> bool:
+    return " ".join((a or "").casefold().split()) == " ".join((b or "").casefold().split())
+
+
+def folder_link(job_dir: Path) -> str | None:
+    check = job_dir / tailor.CHECK_FILE
+    if not check.exists():
+        return None
+    for line in check.read_text(encoding="utf-8").splitlines():
+        if line.startswith(LINK_LINE):
+            return line[len(LINK_LINE):].strip() or None
+    return None
+
+
+def folder(job_dir: Path) -> dict | None:
+    """One job folder, read only: link from Check before sending.md (jd.json as fallback),
+    company + title from jd.json, else from the 'Company - Title' folder name."""
+    check, saved = job_dir / tailor.CHECK_FILE, job_dir / tailor.JOB_DATA / "jd.json"
+    if not check.exists() and not saved.exists():
+        return None
+    jd = json.loads(saved.read_text(encoding="utf-8")) if saved.exists() else {}
+    company, _, title = job_dir.name.partition(" - ")
+    company, title = (jd.get("company") or company), (jd.get("title") or title or company)
+    made = check.exists()
+    return {
+        "dir": job_dir, "url": folder_link(job_dir) or jd.get("url") or None,
+        "company": company, "title": title, "public_slug": jd.get("public_slug"),
+        "state": "resume_made" if made else "saved",
+        "at": datetime.fromtimestamp((check if made else saved).stat().st_mtime, timezone.utc).strftime(store.ISO),
+    }
+
+
+def folders(jobs_dir: Path) -> list[dict]:
+    if not jobs_dir.is_dir():
+        return []
+    return [f for d in sorted(p for p in jobs_dir.iterdir() if p.is_dir()) if (f := folder(d))]
+
+
+def _log(conn, key: str, state: str, at: str) -> None:
+    conn.execute("INSERT INTO application_log VALUES (?, ?, ?)", (key, state, at))
+
+
+def _record(conn, f: dict, at: str) -> bool:
+    """New job -> its folder's state; saved -> resume made. A status already recorded (applied,
+    not sending ...) is never overridden."""
+    key = job_key(f["url"], f["company"], f["title"])
+    row = conn.execute("SELECT state FROM applications WHERE key = ?", (key,)).fetchone()
+    if row is None:
+        conn.execute("INSERT INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                     (key, f["url"], f["company"], f["title"], f["public_slug"], f["state"], at, at))
+        _log(conn, key, f["state"], at)
+        return True
+    if row["state"] == "saved" and f["state"] == "resume_made":
+        conn.execute("UPDATE applications SET state = ?, state_at = ? WHERE key = ?", (f["state"], at, key))
+        _log(conn, key, f["state"], at)
+    return False
+
+
+def backfill(conn, jobs_dir: Path) -> int:
+    """Job folder w/ a resume = resume made; folder still being tailored = saved."""
+    added = sum(_record(conn, f, f["at"]) for f in folders(jobs_dir))
+    conn.commit()
+    return added
+
+
+def record_made(conn, job_dir: Path, at: str) -> None:
+    """`tailor check` passed => resume made, w/o the user saying so."""
+    f = folder(job_dir)
+    if f and f["state"] == "resume_made":
+        _record(conn, f, at)
+        conn.commit()
+
+
+class NotFound(LookupError):
+    pass
+
+
+def _from_jobs_row(row) -> dict:
+    return {"url": row["url"], "company": row["company"] or "", "title": row["title"], "public_slug": row["public_slug"]}
+
+
+def _from_folder(f: dict) -> dict:
+    return {k: f[k] for k in ("url", "company", "title", "public_slug")}
+
+
+def resolve(conn, jobs_dir: Path, job: str | None = None, company: str | None = None,
+            title: str | None = None, url: str | None = None) -> dict:
+    """Job number, listed job (slug or link), pasted posting (its link, slug or job folder name),
+    or a job applied outside Job Finder (company + title, link optional) -> key, url, company, title."""
+    found = None
+    try:
+        job = job and store.key_for(conn, job)
+    except LookupError as e:
+        raise NotFound(str(e)) from None
+    if job and job.startswith(("http://", "https://")):
+        url = job
+    elif job:
+        row = conn.execute("SELECT * FROM jobs WHERE public_slug = ?", (job,)).fetchone()
+        found = _from_jobs_row(row) if row else next(
+            (_from_folder(f) for f in folders(jobs_dir) if job in (f["public_slug"], f["dir"].name)), None)
+        if found is None:
+            found = next((dict(r) for r in conn.execute("SELECT * FROM applications") if _same(r["key"], job)), None)
+        if found is None:
+            raise NotFound(f"{job}: no such job on your list or in your job folders")
+    if found is None and url:
+        url = url.strip()
+        row = conn.execute("SELECT * FROM applications WHERE key = ? OR url = ?", (url, url)).fetchone()
+        jobs_row = conn.execute("SELECT * FROM jobs WHERE url = ?", (url,)).fetchone()
+        folder = next((f for f in folders(jobs_dir) if f["url"] == url), None)
+        found = (dict(row) if row else _from_jobs_row(jobs_row) if jobs_row
+                 else _from_folder(folder) if folder else None)
+    if found is None and company and title:
+        row = next((r for r in conn.execute("SELECT * FROM applications")
+                    if _same(r["company"], company) and _same(r["title"], title)), None)
+        listed = [r for r in conn.execute("SELECT * FROM jobs WHERE closed_at IS NULL")
+                  if _same(r["company"], company) and _same(r["title"], title)]
+        folder = next((f for f in folders(jobs_dir) if _same(f["company"], company) and _same(f["title"], title)), None)
+        found = (dict(row) if row else _from_jobs_row(listed[0]) if len(listed) == 1
+                 else _from_folder(folder) if folder
+                 else {"url": url or None, "company": company.strip(), "title": title.strip(), "public_slug": None})
+    if found is None:
+        raise NotFound("name the job: its link, or company + title" if not url
+                       else f"{url}: not a job on your list or in your job folders - add company + title")
+    found = {k: found.get(k) for k in ("url", "company", "title", "public_slug")}
+    found["key"] = job_key(found["url"], found["company"] or "", found["title"] or "")
+    return found
+
+
+def set_state(conn, job: dict, state: str, at: str) -> None:
+    conn.execute(
+        "INSERT INTO applications VALUES (?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT (key) DO UPDATE SET"
+        " state = excluded.state, state_at = excluded.state_at,"
+        " url = COALESCE(applications.url, excluded.url),"
+        " public_slug = COALESCE(applications.public_slug, excluded.public_slug)",
+        (job["key"], job["url"], job["company"], job["title"], job["public_slug"], state, at, at))
+    _log(conn, job["key"], state, at)
+    conn.commit()
+
+
+def get(conn, key: str) -> dict | None:
+    row = conn.execute("SELECT * FROM applications WHERE key = ?", (key,)).fetchone()
+    return dict(row) if row else None
+
+
+def all_statuses(conn) -> list[dict]:
+    return [dict(r) for r in conn.execute("SELECT * FROM applications ORDER BY state_at DESC")]
+
+
+def numbered(conn, rows: list[dict]) -> list[dict]:
+    """Same number the job had on the list; a job w/o a slug (applied outside) gets its own."""
+    with conn:
+        for r in rows:
+            r["num"] = store.number(conn, r["public_slug"] or r["key"])
+    return rows
+
+
+def line(row: dict) -> str:
+    name = " - ".join(x for x in (row["company"], row["title"]) if x)
+    return f"#{row['num']:<4} {STATES[row['state']]:13} {row['state_at'][:10]}  {name}  {row['url'] or '(no link)'}"
+
+
+def _days(since: str, now: str) -> float:
+    return (datetime.strptime(now, store.ISO) - datetime.strptime(since, store.ISO)).total_seconds() / 86400
+
+
+def waiting(conn, now: str) -> list[dict]:
+    """Resume made, not sent yet, oldest first. Untouched 14+ days -> drops out quietly: kept,
+    never deleted, never asked about again."""
+    rows = conn.execute("SELECT * FROM applications WHERE state = 'resume_made' ORDER BY state_at")
+    return [dict(r) for r in rows if _days(r["state_at"], now) < QUIET_AFTER_DAYS]
+
+
+def to_ask(conn, now: str) -> dict | None:
+    """The one job to ask 'did you send it?' about at chat start: oldest resume made 3+ days
+    ago, unless it was asked in the last 3 days. One job, never a stack; the ask is recorded
+    here, so a second chat opened the same day asks nothing."""
+    with conn:
+        due = [r for r in waiting(conn, now) if _days(r["state_at"], now) >= ASK_AFTER_DAYS]
+        if not due:
+            return None
+        oldest = due[0]
+        asked = conn.execute("SELECT at FROM asked WHERE key = ?", (oldest["key"],)).fetchone()
+        if asked and _days(asked["at"], now) < ASK_AFTER_DAYS:
+            return None
+        conn.execute("INSERT INTO asked VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET at = excluded.at",
+                     (oldest["key"], now))
+    return oldest
+
+
+def _day(at: str) -> str:
+    return at[:10]
+
+
+def still_open(conn, row: dict, stale_days: int, now: str) -> tuple[str, str]:
+    """Open / may be closed / can't tell, w/ why - read off the job list only, never the
+    employer's page (that would send something new off the computer). A pasted posting or a job
+    applied outside was never on the list, so nothing can say it closed."""
+    job = (row["public_slug"] and conn.execute("SELECT * FROM jobs WHERE public_slug = ?", (row["public_slug"],)).fetchone()) \
+        or (row["url"] and conn.execute("SELECT * FROM jobs WHERE url = ?", (row["url"],)).fetchone())
+    if not job:
+        return "can't tell", "never on your job list (pasted or found elsewhere) - check the link"
+    if job["closed_at"]:
+        return "may be closed", f"gone from your job search since {_day(job['closed_at'])}"
+    # measured from the last check, not today: a morning check that stopped running must not
+    # turn every job "closed"
+    last = conn.execute("SELECT MAX(fetched_at) FROM jobs").fetchone()[0]
+    unseen = int(_days(job["fetched_at"], last))
+    if unseen > stale_days:
+        return "may be closed", f"not seen in {unseen} days"
+    if (idle := int(_days(last, now))) > stale_days:
+        return "can't tell", f"no job check in {idle} days - check the link"
+    return "open", f"on your job list, seen {_day(job['fetched_at'])}"
+
+
+def in_progress(conn) -> list[dict]:
+    marks = ",".join("?" * len(IN_PROGRESS))
+    return [dict(r) for r in conn.execute(
+        f"SELECT * FROM applications WHERE state IN ({marks}) ORDER BY state_at", IN_PROGRESS)]
+
+
+def move_closed(jobs_dir: Path, key: str) -> Path:
+    """Job folder -> My Jobs/Closed/, only after the user said yes. Moved, never deleted;
+    never over a folder already there."""
+    f = next((f for f in folders(jobs_dir) if job_key(f["url"], f["company"], f["title"]) == key), None)
+    if f is None:
+        raise NotFound("no job folder for that job")
+    target = jobs_dir / CLOSED_DIR / f["dir"].name
+    if target.exists():
+        raise NotFound(f"{target} already exists - left both where they are")
+    target.parent.mkdir(exist_ok=True)
+    shutil.move(str(f["dir"]), str(target))
+    return target
+
+
+def when(day: str | None, now: str) -> str:
+    return date.fromisoformat(day).strftime("%Y-%m-%dT12:00:00Z") if day else now
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser(description="Where each job stands: saved, resume made, applied, heard back ...")
+    steps = ap.add_subparsers(dest="step")
+    steps.add_parser("list", help="every job w/ a status, newest first (default)")
+    steps.add_parser("ask", help="chat start: the one job to ask 'did you send it?' about, if any")
+    steps.add_parser("open", help="each job in progress: open, may be closed, or can't tell - and why")
+    for name, helptext in (("show", "one job's status"), ("set", "record a job's status"),
+                           ("move-closed", "move a job's folder to My Jobs/Closed - only after the user said yes")):
+        p = steps.add_parser(name, help=helptext)
+        p.add_argument("job", nargs="?", help="job number, slug, the job's https link, or its job folder name")
+        p.add_argument("--company")
+        p.add_argument("--title")
+        p.add_argument("--url", help="link for a job applied outside Job Finder")
+        if name == "set":
+            p.add_argument("state", help=" | ".join(STATES))
+            p.add_argument("--on", help="YYYY-MM-DD it happened, when not today")
+    # `set <job> <state>` or `set <state> --company C --title T`: argparse fills state first
+    args = ap.parse_args()
+    config = cfg.load_or_defaults()
+    jobs_dir = cfg.resume_path(config, "jobs_dir")
+    conn = store.connect(cfg.db_path(config))
+    try:
+        backfill(conn, jobs_dir)
+        if args.step in (None, "list"):
+            rows = numbered(conn, all_statuses(conn))
+            print("\n".join(map(line, rows)) if rows else "no jobs w/ a status yet")
+            return
+        if args.step == "ask":
+            now = store.utc_now()
+            row = to_ask(conn, now)
+            if row is None:
+                print("nothing to ask")
+                return
+            print(line(numbered(conn, [row])[0]))
+            print(f"resume made {int(_days(row['state_at'], now))} days ago - ask once: did you send it?"
+                  f" (Sent -> applied, Not yet -> nothing, Not sending -> not_sending)")
+            return
+        if args.step == "open":
+            now, stale_days = store.utc_now(), config.get("rank", cfg.defaults()["rank"])["stale_days"]
+            rows = numbered(conn, in_progress(conn))
+            for row in rows:
+                print(line(row) + "\n      " + " - ".join(still_open(conn, row, stale_days, now)))
+            if not rows:
+                print("no jobs in progress")
+            return
+        try:
+            job = resolve(conn, jobs_dir, args.job, args.company, args.title, args.url)
+            if args.step == "set":
+                set_state(conn, job, state_key(args.state), when(args.on, store.utc_now()))
+            if args.step == "move-closed":
+                print(f"moved to {move_closed(jobs_dir, job['key'])}")
+                return
+        except (NotFound, ValueError) as e:
+            sys.exit(str(e))
+        row = get(conn, job["key"])
+        print(line(numbered(conn, [row])[0]) if row else f"no status yet: {job['company']} - {job['title']}")
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    main()

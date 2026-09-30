@@ -3,10 +3,12 @@
 User not technical - `AGENTS.md` #User = not technical binds. `My Settings/Search settings.yml`
 missing -> `job-setup` skill instead.
 
-1. `uv run app/jobs.py find --limit 15` (checks for new jobs, then ranks). Row columns: `NEW` (not yet
+1. `uv run app/jobs.py find --limit 15` (checks for new jobs, then ranks). Row columns: `#12` job
+   number (the user's name for it - same in email, Today page, every chat), `NEW` (not yet
    notified) or `-`, tier, `title | company`, `[why]` in plain words (place, pay, employer list,
    first seen, reposts, level/hours mismatch), link (the posting - show this one), slug (last).
-2. Show as `AGENTS.md` numbered list, grouped by tier label (e.g. "Remote US", "Springfield area").
+2. Show as `AGENTS.md` job list, each led by its own number ("**Job 12**"), grouped by tier label
+   (e.g. "Remote US", "Springfield area"). Numbers aren't 1, 2, 3 - never renumber them.
    Add one plain sentence on how the list is ordered, read off
    `rank.py` #rank + their search settings, never recited from memory.
 3. Ask which look good. Good -> offer tailored resume (`job-tailor` skill).
@@ -21,7 +23,7 @@ missing -> `job-setup` skill instead.
    - whole search too wide -> tighten params, measured w/ `uv run app/jobs.py probe` first
    - any narrowing (filter, city, blocked field) -> measure, state the cost BEFORE saving, do
      what they pick (`AGENTS.md` #Lead, explain, push back).
-5. "Why is job 3 here?" -> its row's `[reasons]`: what it matched, what put it at that spot.
+5. "Why is job 12 here?" -> its row's `[reasons]`: what it matched, what put it at that spot.
    Reason is wrong -> step 4. "may be closed" -> say so before tailoring for it.
 6. `uv run app/jobs.py rank --suspects` lists companies posting across many unrelated fields
    (likely reposters) - offer to hide ones user agrees with.

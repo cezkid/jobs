@@ -1,6 +1,7 @@
 import json
 import re
 from pathlib import PurePosixPath, PureWindowsPath
+from urllib.parse import unquote
 
 import pytest
 
@@ -19,6 +20,7 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: None)
     monkeypatch.setattr(launch.time, "sleep", lambda s: None)
+    monkeypatch.setattr(launch, "first_page", lambda: launch.START_PAGE)
     launch.main()
     assert sorted(p.name for p in tmp_path.iterdir()) == ["My Jobs", "My Resume", "My Settings"]
     launch.main()  # second launch leaves what is already there alone
@@ -37,10 +39,58 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
     monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(s))
+    monkeypatch.setattr(launch, "first_page", lambda: tmp_path / "Today.md")
     launch.main()
     window = ["--disable-workspace-trust", str(tmp_path)]
-    # START HERE after the window is up => formatted, not plain text
-    assert calls == [window, launch.START_PAGE_DELAY_S, [*window, str(launch.START_PAGE)]]
+    # page after the window is up => formatted, not plain text
+    assert calls == [window, launch.START_PAGE_DELAY_S, [*window, str(tmp_path / "Today.md")]]
+
+
+def test_first_run_opens_start_here_then_today(tmp_path, monkeypatch):
+    # returning users landed on "type set me up" every launch, weeks after setting up
+    settings, page = tmp_path / "Search settings.yml", tmp_path / "Today.md"
+    written = []
+
+    def write(config, to):
+        written.append(to)
+        to.write_text("# Today\n")
+        return to
+    monkeypatch.setattr(launch.cfg, "load", lambda path: {})
+    import today
+    monkeypatch.setattr(today, "write", write)
+    assert launch.first_page(settings, page) == launch.START_PAGE and written == []
+    settings.write_text("")
+    # rebuilt at launch => never last week's page
+    assert launch.first_page(settings, page) == page and written == [page]
+
+
+def test_today_page_that_fails_never_stops_the_launch(tmp_path, monkeypatch):
+    settings, page = tmp_path / "Search settings.yml", tmp_path / "Today.md"
+    settings.write_text("")
+
+    def broken(config, to):
+        raise SystemExit("another chat is updating the Today page - try again in a minute")
+    monkeypatch.setattr(launch.cfg, "load", lambda path: {})
+    import today
+    monkeypatch.setattr(today, "write", broken)
+    assert launch.first_page(settings, page) == launch.START_PAGE  # no page yet => setup steps
+    page.write_text("# Today\n")
+    assert launch.first_page(settings, page) == page  # last page beats setup steps
+
+
+def test_start_here_content_still_reachable_from_today():
+    # START HERE trimmed to first-run steps: what it said moved to guides the Today page links
+    import today
+    start = (cfg.ROOT / "START HERE.md").read_text(encoding="utf-8")
+    guides = {unquote(link) for _, link in today.GUIDES}
+    assert {"Guides/What you can ask.md", "Guides/Who sees what.md"} <= guides
+    for guide in guides:
+        assert (cfg.ROOT / guide).exists()
+    moved = "".join((cfg.ROOT / g).read_text(encoding="utf-8") for g in guides)
+    for said in ("Why is job 3 on my list?", "freehire.me", "Resume details.yml", "Only you - this computer",
+                 "Keep your chats out of AI training", "Only the repaired program code is sent"):
+        assert said in moved
+    assert "set me up" in start and "## Who sees what" not in start
 
 
 def test_claude_detected_by_extension_folder(tmp_path):
@@ -277,3 +327,16 @@ def test_chat_sidebar_shown_again_after_user_closed_it(tmp_path):
 
 def test_chat_sidebar_first_window_left_to_setting(tmp_path):
     launch.ensure_chat_sidebar(tmp_path, tmp_path / "no-storage-yet")  # nothing to fix, no error
+
+
+def test_mac_notification_says_how_to_open(monkeypatch):
+    # click opens Script Editor (notification belongs to osascript) => the text carries the way in
+    calls = []
+    monkeypatch.setattr(notify.sys, "platform", "darwin")
+    monkeypatch.setattr(notify.subprocess, "run", lambda args, **kw: calls.append((args, kw)))
+    notify.notify("3 new jobs", "Engineer; Designer")
+    args, kw = calls[0]
+    assert args[0] == "osascript" and kw["check"]
+    assert args[-3:] == ["3 new jobs", "Engineer; Designer", notify.MAC_SUBTITLE]
+    assert "subtitle (item 3 of argv)" in " ".join(args)
+    assert "Desktop" in notify.MAC_SUBTITLE and notify.cfg.NAME in notify.MAC_SUBTITLE

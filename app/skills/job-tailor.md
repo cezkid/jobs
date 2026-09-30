@@ -3,14 +3,16 @@
 `AGENTS.md` #User = not technical binds. Needs `My Resume/Resume details.yml` (missing -> `job-setup` skill step 3).
 
 1. Source:
-   - job from list: `uv run app/jobs.py tailor prepare <slug>`
+   - job by number ("job 12" - from any chat, the email or the Today page):
+     `uv run app/jobs.py tailor prepare 12`; slug works too
    - pasted text: write it to `.data/postings/<company-title>.txt` (own file per posting - another
      chat may be on a different one), then
      `uv run app/jobs.py tailor posting "<that file>" --url "<link if given>"`; do printed
      task yourself, then run command it prints (`tailor prepare --posting ...`)
-   - link only: `tailor prepare "<link>"` first - a job on their list resolves to its row (a new
-     chat has no numbered list). "not a job on your list" -> fetch page text, same as pasted
-   - several jobs in one ask ("jobs 2, 5 and 7") -> this chat, one after another, never extra
+   - link only: `tailor prepare "<link>"` first - a job on their list resolves to its row.
+     "not a job on your list" -> fetch page text, same as pasted
+   - `prepare` prints `job N` - a pasted posting gets its number there; call it that from then on
+   - several jobs in one ask ("jobs 12, 15 and 40") -> this chat, one after another, never extra
      chats: prepare + write + check each; then walk step 3 one job at a time, naming it
      ("Acme - Data Analyst: 3 lines to confirm"). Confirming is the user's work, and one stream
      of questions is all a user answers without stalling (`AGENTS.md` #User = not technical).
@@ -20,7 +22,7 @@
    - posting requires US citizenship or a green card and `citizen_or_permanent_resident` is
      false -> same: quote the line first. Unset -> ask once, save the answer.
 2. `prepare` makes `My Jobs/<Company - Title>/` + task file. Do task yourself (`AGENTS.md`
-   #AI writing steps), then `uv run app/jobs.py tailor check <slug>`. FAIL lines -> fix
+   #AI writing steps), then `uv run app/jobs.py tailor check <job number>`. FAIL lines -> fix
    `tailored.json`, rerun check; never hand over PDF while check fails.
    - `gate pages` -> 3+ pages, or a 2nd page under 60% full (1 page is fine). Cut or add
      bullets, never retype the layout. User wants 3 pages or a layout the gates fail -> push
@@ -57,7 +59,8 @@
    add fact to `Resume details.yml` as one plain sentence under `bullets:` (`AGENTS.md`
    #Resume details), redo task, rerun check.
 5. Open PDF for them; say it's in `My Jobs/<Company - Title>/`, private to this computer, ready
-   to upload.
+   to upload. Passing check already marked it "resume made" - nothing for them to record. Offer
+   `job-apply`; its last step asks whether they sent it.
 
 Wording the user asks about:
 - Industry term: keep it spelled exactly as the field writes it - screeners match the string. Put its

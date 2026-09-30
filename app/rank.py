@@ -12,6 +12,9 @@ HOURLY_BELOW, MONTHLY_BELOW = 1000, 10000
 COMPANY_SUFFIXES = {"inc", "llc", "ltd", "corp", "corporation", "co", "company", "plc", "lp", "llp"}
 COLLECTION_NAMES = {"fortune500": "Fortune 500", "bigtech": "big tech", "mag7": "Magnificent 7",
                     "unicorn": "unicorn startup", "yc": "Y Combinator"}
+# posting this much older than its day on the user's list => its own age shown too (a repost or
+# long-open job reaching the list now); closer than that the two read the same
+POSTING_AGE_GAP = 7
 # title words that clearly contradict a stated career level; a title without any is never demoted
 _JUNIOR = r"intern|internship|junior|jr|entry[ -]level|trainee|apprentice"
 _TOP = r"director|vp|vice president|chief|head of"
@@ -223,15 +226,30 @@ def age_label(job: dict, now: datetime) -> str:
     return "" if days is None else "first seen today" if days < 1 else f"first seen {days}d ago"
 
 
-def reasons(job: dict, config: dict, now: datetime | None = None) -> str:
-    """Why the row sits where it does, in plain words, most decisive first."""
+def added(job: dict, now: datetime) -> str:
+    """Age that agrees w/ "new" (Today page, email): when the job reached their list (first
+    fetch), not freehire's first sighting - that alone read "new" next to "first seen 66d ago"
+    (real install). Posting's own age added only when POSTING_AGE_GAP+ days older."""
+    since = job.get("first_fetched_at")
+    listed = 0 if not since else max(0, (now - datetime.strptime(since, store.ISO).replace(tzinfo=timezone.utc)).days)
+    out = "added to your list " + ("today" if listed < 1 else "1 day ago" if listed == 1 else f"{listed} days ago")
+    posting = age(job, now)
+    if posting is not None and posting - listed >= POSTING_AGE_GAP:
+        out += f" · posting first seen {posting} days ago"
+    return out
+
+
+def reasons(job: dict, config: dict, now: datetime | None = None, when: str | None = None) -> str:
+    """Why the row sits where it does, in plain words, most decisive first. when = the age words
+    in place of age_label (Today page + email: added, when it reached the user's list)."""
     rc = config["rank"]
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
     label = pay_label(job)
     if label and rc["salary_floor_usd"]:
         label += " (meets your pay)" if meets_floor(job, rc["salary_floor_usd"]) else " (below your pay)"
     hits = [COLLECTION_NAMES.get(c, c) for c in job.get("collections") or [] if c in rc["boost_collections"]]
-    parts = [place, label or "pay not listed", *hits, age_label(job, now or datetime.now(timezone.utc))]
+    parts = [place, label or "pay not listed", *hits,
+             age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
     parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config)
@@ -255,10 +273,11 @@ def suspects(jobs: list[dict], min_categories: int) -> list[tuple[str, set[str]]
 
 
 def row(job: dict, config: dict, now: datetime) -> str:
-    """One printed line; link = the posting's real address, slug last (AI keeps number -> slug)."""
+    """One printed line: job number first (same in every chat, email, Today page), link = the
+    posting's real address, slug last."""
     new = "-" if job["seen"] else "NEW"
-    return (f"{new:3} {job['tier']:6} {job['title'][:60]} | {job['company']}  [{reasons(job, config, now)}]  "
-            f"{job['url']}  {job['public_slug']}")
+    return (f"#{job['num']:<4} {new:3} {job['tier']:6} {job['title'][:60]} | {job['company']}  "
+            f"[{reasons(job, config, now)}]  {job['url']}  {job['public_slug']}")
 
 
 def main() -> None:
@@ -282,7 +301,7 @@ def main() -> None:
             print(f"  {j['title']} | {j['company']}")
         return
     now = datetime.now(timezone.utc)
-    for j in rank(jobs, config, now)[: args.limit]:
+    for j in store.numbered(conn, rank(jobs, config, now)[: args.limit]):
         print(row(j, config, now))
 
 

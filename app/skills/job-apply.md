@@ -32,7 +32,7 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
 
 1. Tailored resume for this job exists (`My Jobs/<folder>/`)? No -> `job-tailor` skill first, or
    ask whether to use their own resume as is.
-2. `uv run app/jobs.py apply <slug>` (no slug = own resume) -> writes `apply.js`, prints counts.
+2. `uv run app/jobs.py apply <job number>` (none = own resume) -> writes `apply.js`, prints counts.
 3. Browser: `tabs_context_mcp` (createIfEmpty), new tab, navigate to the posting's apply link.
    Sign-in page -> step aside (limits). "Autofill with Resume" / "Apply Manually" / "Use My Last
    Application" -> ask which; autofill only pre-fills, our fill overwrites it anyway.
@@ -46,6 +46,8 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
 6. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
    item, what is left (resume upload, website, questions), and that nothing is saved until they
    click **Save and Continue**. Later steps (questions, disclosures, review) = ask, never guess.
+7. Last, once they're done on the page: `AGENTS.md` #Where each job stands - one clickable
+   "Did you send it?" (below).
 
 Token care: poll with the short status call only; no screenshots while the window is hidden
 (they come back black) - use `status()`, `errors()` or `find`.
@@ -57,9 +59,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
 "failed" that it did not (`app/docs/apply/ashby.md`).
 
 1. Tailored resume check as step 1 above.
-2. `uv run app/jobs.py apply-form prepare <slug> "<posting link>"` -> picks the system from the
-   link, writes the job's `.data/application.json`, prints every question: `ok` (from resume or
-   search settings) or `NEEDED`. Rerun keeps answers already written.
+2. `uv run app/jobs.py apply-form prepare <job number> "<posting link>"` -> picks the system
+   from the link, writes the job's `.data/application.json`, prints every question: `ok` (from
+   resume or search settings) or `NEEDED`. Rerun keeps answers already written.
 3. Fill each blank `answer` in that file: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
    question: `answer: true` only after they said yes to the named file (hard limits). Location: the
@@ -68,8 +70,17 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Chrome; user signs in or creates the account there, then rerun `prepare`. Its
    `resume-sections` question (add work history, education, skills, links from the resume): UKG
    saves each to their account on the site as it is added, before Submit - say so, then ask.
-4. `uv run app/jobs.py apply-form fill <slug>` -> opens the form in Job Finder's Chrome, fills,
-   prints one line per question. `FAIL`/`ASK` -> tell the user plainly, fix, record the quirk in
-   that system's doc.
+4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
+   fills, prints one line per question. `FAIL`/`ASK` -> tell the user plainly, fix, record the
+   quirk in that system's doc.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
    any banner (application limits), and that nothing is sent until they click **Submit**.
+6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).
+
+## Did you send it?
+
+End of every apply, one question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):
+- **Sent** -> `uv run app/jobs.py status set 12 applied`
+- **Not yet** -> nothing; a later chat asks again in a few days (`status ask`)
+- **Not sending** -> `uv run app/jobs.py status set 12 not_sending`
+Say what was recorded in one line. Never click Submit to make the answer true (hard limits).

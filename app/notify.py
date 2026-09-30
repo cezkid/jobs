@@ -12,7 +12,12 @@ PROTOCOL = "jobfinder"
 POWERSHELL_APP_ID = r"{1AC14E77-02E7-4E5D-B744-2EB1AE5198B7}\WindowsPowerShell\v1.0\powershell.exe"
 OFF_REASON = "Windows notifications are switched off - turn them on in Settings > System > Notifications"
 HINT = f'Open {cfg.NAME} and ask: "any new jobs?"'
-MAC_SCRIPT = ["-e", "on run argv", "-e", "display notification (item 2 of argv) with title (item 1 of argv)",
+# macOS delivers osascript's notification as Script Editor's, so a click opens Script Editor, not
+# Job Finder (usernoted log, macOS 26.4.1). An applet posting its own is refused outright; a
+# helper app needs a paid Developer ID. Accepted limitation => the pop-up itself says how to open
+MAC_SUBTITLE = f"To open: double-click {cfg.NAME} on your Desktop"
+MAC_SCRIPT = ["-e", "on run argv", "-e",
+              "display notification (item 2 of argv) with title (item 1 of argv) subtitle (item 3 of argv)",
               "-e", "end run"]
 
 
@@ -43,7 +48,7 @@ def notify(title: str, body: str) -> None:
         if result.returncode:
             raise RuntimeError(f"notification failed: {result.stderr.strip()}")
     elif sys.platform == "darwin":
-        subprocess.run(["osascript", *MAC_SCRIPT, title, body], check=True, capture_output=True)
+        subprocess.run(["osascript", *MAC_SCRIPT, title, body, MAC_SUBTITLE], check=True, capture_output=True)
     else:
         raise RuntimeError("notifications support Windows + macOS; set up email instead")
 

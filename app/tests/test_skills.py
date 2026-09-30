@@ -39,6 +39,14 @@ def test_questions_asked_one_at_a_time():
         assert "ONE question" in text and "batch of 4" not in text.lower()
 
 
+def test_status_is_asked_not_remembered():
+    # users never type 'I applied to Acme' unasked: apply ends w/ the question, chat start asks one job
+    apply = (BODIES / "job-apply.md").read_text(encoding="utf-8")
+    assert apply.count("Did you send it?") >= 3 and "status set 12 applied" in apply
+    agents = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    assert "uv run app/jobs.py status ask" in agents and "ONE clickable question" in agents
+
+
 def test_report_defect_finds_git_and_gh_right_after_winget_install():
     # AI shell calls inherit VS Code's launch PATH: registry change after launch invisible to every call
     # (measured 2026-09-28: user env var set via registry absent from next PowerShell call)

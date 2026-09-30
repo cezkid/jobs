@@ -6,3 +6,6 @@ My Settings/
 .venv/
 __pycache__/
 .pytest_cache/
+
+# generated Today page: your jobs + progress
+Today.md

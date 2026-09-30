@@ -1,4 +1,5 @@
 import json
+import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -55,7 +56,38 @@ CREATE TABLE IF NOT EXISTS seen (
     public_slug TEXT PRIMARY KEY,
     alerted_at TEXT NOT NULL
 );
+-- where each job the user acts on stands (status.py). Keyed by posting link, not slug: pasted
+-- postings + jobs applied outside Job Finder have no jobs row
+CREATE TABLE IF NOT EXISTS applications (
+    key TEXT PRIMARY KEY,
+    url TEXT,
+    company TEXT,
+    title TEXT,
+    public_slug TEXT,
+    state TEXT NOT NULL,
+    state_at TEXT NOT NULL,
+    added_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS application_log (
+    key TEXT NOT NULL,
+    state TEXT NOT NULL,
+    at TEXT NOT NULL
+);
+-- last time the chat asked "did you send it?" about a job (status.to_ask): never twice in 3 days
+CREATE TABLE IF NOT EXISTS asked (
+    key TEXT PRIMARY KEY,
+    at TEXT NOT NULL
+);
+-- job number the user sees in chat, email, Today page: given the first time a job is shown,
+-- never changed or reused (AUTOINCREMENT). key = slug, or the applications key of a job w/o one
+CREATE TABLE IF NOT EXISTS numbers (
+    num INTEGER PRIMARY KEY AUTOINCREMENT,
+    key TEXT NOT NULL UNIQUE,
+    at TEXT NOT NULL
+);
 """
+# "12", "#12", "job 12" -> 12
+NUMBER = re.compile(r"(?:job\s*)?#?\s*(\d+)", re.I)
 
 
 def utc_now() -> str:
@@ -126,3 +158,34 @@ def unseen_open(conn: sqlite3.Connection) -> list[dict]:
 
 def mark_seen(conn: sqlite3.Connection, slugs: list[str], now: str) -> None:
     conn.executemany("INSERT OR IGNORE INTO seen VALUES (?, ?)", [(s, now) for s in slugs])
+
+
+def number(conn: sqlite3.Connection, key: str, *copies: str) -> int:
+    """Job's number, given on first sight. Stored => every chat, the email + Today page read the
+    same one. copies = other postings of the same job (rank.collapse duplicates): if one was
+    shown before, its number stays the job's number."""
+    keys = [key, *copies]
+    known = conn.execute(f"SELECT MIN(num) FROM numbers WHERE key IN ({', '.join('?' * len(keys))})", keys).fetchone()[0]
+    if known is not None:
+        return known
+    conn.execute("INSERT OR IGNORE INTO numbers (key, at) VALUES (?, ?)", (key, utc_now()))
+    return conn.execute("SELECT num FROM numbers WHERE key = ?", (key,)).fetchone()[0]
+
+
+def numbered(conn: sqlite3.Connection, jobs: list[dict]) -> list[dict]:
+    """Sets `num` on each row about to be shown, in shown order => a first list reads 1, 2, 3."""
+    with conn:
+        for j in jobs:
+            j["num"] = number(conn, j["public_slug"], *j.get("duplicates") or [])
+    return jobs
+
+
+def key_for(conn: sqlite3.Connection, ref: str) -> str:
+    """Job number ("12", "#12", "job 12") -> its slug (or applications key); anything else as is."""
+    m = NUMBER.fullmatch(ref.strip())
+    if not m:
+        return ref
+    row = conn.execute("SELECT key FROM numbers WHERE num = ?", (int(m[1]),)).fetchone()
+    if row is None:
+        raise LookupError(f"job {m[1]}: no job has that number")
+    return row["key"]
