@@ -93,3 +93,33 @@ def test_facets_flag_does_not_swallow_a_filter_param(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert out.startswith("category: sales 84609")
     assert "work_mode: remote 5871" in out
+
+
+def test_probe_and_facets_stop_on_a_filter_the_search_ignores():
+    def handler(request: httpx.Request) -> httpx.Response:
+        meta = {"total": 798143, "ignored_params": [{"param": "bogus_param"}]}
+        if request.url.path.endswith("/facets"):
+            return httpx.Response(200, json={"data": {"facets": FACETS}, "meta": meta})
+        return httpx.Response(200, json={"data": [row("Anything")], "meta": meta})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        with pytest.raises(SystemExit, match="bogus_param"):
+            probe.probe(client, BASE, {"bogus_param": "1"})
+        with pytest.raises(SystemExit, match="bogus_param"):
+            probe.facet_values(client, BASE, {"bogus_param": "1"})
+
+
+def test_title_counts_per_form_open_and_last_30_days():
+    asked = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        params = dict(request.url.params)
+        asked.append(params)
+        totals = {('"registered nurse"', None): 50, ('"registered nurse"', "30"): 11,
+                  ('"RN"', None): 19827, ('"RN"', "30"): 6400}
+        return httpx.Response(200, json={"data": [], "meta": {"total": totals[params["q"], params.get("posted_within_days")]}})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        got = probe.title_counts(client, BASE, {"countries": ["us"]}, ["registered nurse", "RN"])
+    assert got == [("registered nurse", 50, 11), ("RN", 19827, 6400)]
+    assert all(a["q_fields"] == "title" and a["countries"] == "us" and a["limit"] == "1" for a in asked)

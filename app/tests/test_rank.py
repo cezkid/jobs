@@ -73,7 +73,7 @@ def test_old_salaried_row_above_old_unsalaried_row():
 
 def test_reposted_old_or_evergreen_rows_sort_below_fresh():
     jobs = [
-        make_job("reposted", reality={"repost_count": 4}, posted_at="2026-09-15T11:00:00Z"),
+        make_job("reposted", reality={"repost_count": 5, "mass_posting_count": 1}, posted_at="2026-09-15T11:00:00Z"),
         make_job("old", reality={"age_days": 120}, posted_at="2026-09-15T11:00:00Z"),
         make_job("evergreen", reality={"class": "likely-evergreen"}, posted_at="2026-09-15T11:00:00Z"),
         make_job("fresh", reality={"repost_count": 1, "age_days": 3, "class": "fresh"}, posted_at="2026-09-01T00:00:00Z"),
@@ -113,6 +113,41 @@ def test_missing_period_inferred_and_hourly_shown_per_hour():
     assert rank.pay(make_job("y", **usd(70000, None, None)))[2] == "year"
     assert rank.pay_label(make_job("y", **usd(70000, 90000))) == "$70k-90k"
     assert rank.annual_usd(make_job("c", salary_min=200000, salary_currency="CAD")) is None
+
+
+def test_copies_open_at_once_are_not_reposts():
+    """repost_count counts open copies too: 3 of 3 open = one role in 3 places, never relisted."""
+    copies = make_job("copies", reality={"repost_count": 3, "mass_posting_count": 3, "class": "fresh"},
+                      posted_at="2026-09-15T11:00:00Z")
+    relisted = make_job("relisted", reality={"repost_count": 6, "mass_posting_count": 3},
+                        posted_at="2026-09-15T11:00:00Z")
+    assert "reposted" not in rank.reasons(copies, CONFIG, NOW)
+    assert rank.doubts(copies, CONFIG["rank"]) == []
+    assert rank.doubts(relisted, CONFIG["rank"]) == ["reposted 3x"]
+    assert slugs(rank.rank([relisted, copies], CONFIG, NOW)) == ["copies", "relisted"]
+
+
+def test_ghost_signals_count_once():
+    """old + reposted + evergreen is one doubt about the posting, not three: pay decides between
+    it and a job w/ one other demerit."""
+    config = level_config(career_level="entry")
+    ghost = make_job("ghost", title="Accountant", reality={"repost_count": 9, "mass_posting_count": 1,
+                                                          "age_days": 200, "class": "likely-evergreen"}, **usd(120000))
+    senior = make_job("senior", title="Senior Accountant", **usd(60000))
+    assert len(rank.doubts(ghost, config["rank"])) == 3
+    assert slugs(rank.rank([senior, ghost], config, NOW)) == ["ghost", "senior"]
+
+
+def test_clearance_named_demoted_only_when_cannot_hold():
+    cleared = make_job("cleared", title="Systems Analyst", requires_clearance=True, **usd(150000))
+    plain = make_job("plain", title="Data Analyst", **usd(90000))
+    assert "needs a security clearance" in rank.reasons(cleared, CONFIG, NOW)
+    assert slugs(rank.rank([plain, cleared], CONFIG, NOW)) == ["cleared", "plain"]
+    for answer in ({"can_hold_clearance": False}, {"citizen_or_permanent_resident": False}):
+        config = cfg.merge(CONFIG, {"work_authorization": answer})
+        assert slugs(rank.rank([cleared, plain], config, NOW)) == ["plain", "cleared"], answer
+    green_card = cfg.merge(CONFIG, {"work_authorization": {"citizen_or_permanent_resident": True}})
+    assert rank.can_hold_clearance(green_card) is None
 
 
 def level_config(**rank_over):
@@ -179,7 +214,7 @@ def test_company_blocklist_matches_name_as_well_as_slug():
 
 def test_reasons_say_why_in_plain_words():
     job = make_job("r", collections=["fortune500"], posted_at="2026-09-12T10:00:00Z",
-                   reality={"repost_count": 2}, **usd(70000, 90000))
+                   reality={"repost_count": 3, "mass_posting_count": 1}, **usd(70000, 90000))
     assert rank.reasons(job, CONFIG, NOW) == (
         "remote · $70k-90k (meets your pay) · Fortune 500 · first seen 3d ago · reposted 2x")
     local = make_job("l", work_mode="onsite", cities=["Springfield"], posted_at="2026-09-15T10:00:00Z")

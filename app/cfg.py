@@ -17,8 +17,9 @@ PRIVATE_DIRS = ("My Resume", "My Jobs", "My Settings")
 DATA = ROOT / ".data"
 EMAIL_ENV = DATA / "email.env"
 DAILY_LOG = DATA / "daily.log"
-# q= matches description prose => off-lane titles for any occupation (docs/jobs/freehire.md)
-FORBIDDEN_PARAMS = {"q"}
+# q= alone matches description prose => off-lane titles for any occupation; w/ q_fields=title it
+# matches titles only (docs/jobs/freehire.md #Title search)
+TITLE_ONLY = "title"
 # API ORs these together => two in one pass widen, never narrow
 GEOGRAPHY_PARAMS = {"regions", "countries", "cities"}
 
@@ -52,13 +53,24 @@ def load(path: Path | None = None) -> dict:
         )
     config = merge(defaults(), yaml.safe_load(path.read_text(encoding="utf-8")) or {})
     for p in config["passes"]:
-        bad = FORBIDDEN_PARAMS & p["params"].keys()
-        if bad:
-            raise ValueError(f"pass {p['tier']}: forbidden params {sorted(bad)} (docs/jobs/freehire.md)")
+        if problem := q_problem(p["params"]):
+            raise ValueError(f"pass {p['tier']}: {problem}")
         geo = GEOGRAPHY_PARAMS & p["params"].keys()
         if len(geo) > 1:
             raise ValueError(f"pass {p['tier']}: {sorted(geo)} OR together, keep one (docs/jobs/freehire.md)")
     return config
+
+
+def q_problem(params: dict) -> str | None:
+    """q only as one title phrase: alone it matches description prose (q=react returned a
+    Lifecycle Marketing Manager), and the job search has no OR, so a list can't mean either form."""
+    if "q" not in params:
+        return None
+    if params.get("q_fields") not in (TITLE_ONLY, [TITLE_ONLY]):
+        return "q matches posting text unless q_fields: title (docs/jobs/freehire.md #Title search)"
+    if isinstance(params["q"], list):
+        return "q: one title phrase per pass - the job search has no OR (docs/jobs/freehire.md #Title search)"
+    return None
 
 
 def db_path(config: dict) -> Path:

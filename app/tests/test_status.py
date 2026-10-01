@@ -47,6 +47,14 @@ def test_listed_job_by_slug_and_link(conn, tmp_path):
     assert status.get(conn, by_link["key"])["public_slug"] == "a"
 
 
+def test_plain_link_finds_listed_job(conn, tmp_path):
+    """Pasted from the employer's page: no utm_source tag, same job."""
+    store.upsert(conn, [make_job("a", url="https://boards.greenhouse.io/acme/jobs/a?utm_source=freehire.me")], NOW)
+    status.set_state(conn, status.resolve(conn, tmp_path, "a"), "applied", NOW)
+    plain = status.resolve(conn, tmp_path, "https://boards.greenhouse.io/acme/jobs/a")
+    assert plain["public_slug"] == "a" and status.get(conn, plain["key"])["state"] == "applied"
+
+
 def test_pasted_posting_by_link_slug_or_folder(conn, tmp_path):
     make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "globex-data-analyst")
     status.sort_folders(conn, tmp_path)  # renamed 'Job N - Globex - Data Analyst', filed under its stage
@@ -276,9 +284,11 @@ def test_finished_jobs_are_not_in_progress(conn, tmp_path):
     assert [r["company"] for r in status.in_progress(conn)] == ["D"]
 
 
-def test_open_command_lists_each_job_in_progress_without_network(cli, tmp_path, capsys, monkeypatch):
+def test_open_command_never_asks_about_a_pasted_posting(cli, tmp_path, capsys, monkeypatch):
+    """A pasted posting's slug is made up locally - the job search can't know it."""
     import urllib.request
     monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: pytest.fail("no network call"))
+    monkeypatch.setattr(status.httpx.Client, "get", lambda *a, **k: pytest.fail("no network call"))
     cli("open")
     assert capsys.readouterr().out == "no jobs in progress\n"
     make_folder(tmp_path / "My Jobs", "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
@@ -425,3 +435,43 @@ def test_two_chats_filing_at_once_take_turns(conn, jobs):
         with pytest.raises(SystemExit, match="another chat is moving job folders"):
             status.sort_folders(conn, jobs, wait_s=0)
     assert len(status.sort_folders(conn, jobs)[0]) == 1
+
+
+def test_job_search_says_closed_gone_or_seen_for_listed_jobs(conn, tmp_path, monkeypatch, capsys):
+    """Its listing id only, never the employer's page; unreachable -> the list's own answer."""
+    import httpx
+    answers = {
+        "/v1/jobs/closed": httpx.Response(200, json={"data": {"closed_at": "2026-09-21T11:33:35Z"}}),
+        "/v1/jobs/gone": httpx.Response(404, json={"error": "not found"}),
+        "/v1/jobs/seen": httpx.Response(200, json={"data": {"closed_at": None, "last_seen_at": "2026-09-29T02:00:00Z"}}),
+        "/v1/jobs/quiet": httpx.Response(200, json={"data": {"closed_at": None, "last_seen_at": "2026-09-01T02:00:00Z"}}),
+    }
+    asked = []
+
+    def handler(request):
+        asked.append(request.url.path)
+        if request.url.path == "/v1/jobs/down":
+            raise httpx.ConnectError("offline")
+        return answers[request.url.path]
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        said = {slug: status.ask_job_search(client, "https://api.test/v1", slug, 14, NOW)
+                for slug in ("closed", "gone", "seen", "quiet", "down")}
+    assert said == {
+        "closed": ("may be closed", "the job search marked it closed on 2026-09-21"),
+        "gone": ("may be closed", "the job search no longer lists it"),
+        "seen": ("open", "the job search saw it 2026-09-29"),
+        "quiet": ("may be closed", "the job search last saw it on 2026-09-01"),
+        "down": None,
+    }
+    assert all("acme" not in path for path in asked)
+
+
+def test_closed_posting_not_waiting_asked_once_as_closed(conn, tmp_path):
+    store.upsert(conn, [make_job("gone")], "2026-09-20T12:00:00Z")
+    status.set_state(conn, status.resolve(conn, tmp_path, "gone"), "resume_made", "2026-09-24T12:00:00Z")
+    conn.execute("UPDATE jobs SET closed_at = '2026-09-26T08:00:00Z' WHERE public_slug = 'gone'")
+    assert status.waiting(conn, NOW) == []
+    asked = status.to_ask(conn, NOW)
+    assert asked["public_slug"] == "gone" and asked["closed_since"] == "2026-09-26"
+    assert status.to_ask(conn, NOW) is None

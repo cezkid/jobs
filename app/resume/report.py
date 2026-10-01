@@ -1,3 +1,4 @@
+import rank
 from resume import lint
 
 PRIORITY_ORDER = ("required", "preferred")
@@ -75,14 +76,24 @@ def ready(check_text: str) -> bool:
     return READY in check_text
 
 
+def posting_history(job: dict) -> str:
+    """The job search's history numbers in words. Reposted = earlier copies that closed
+    (rank.reposts); copies open at once are one role in several places, not a relisting."""
+    reality = job.get("reality") or {}
+    copies = reality.get("mass_posting_count") or 1
+    return ", ".join(part for part in (
+        reality.get("class") and f"listing type {reality['class']}",
+        reality.get("age_days") is not None and f"days old {reality['age_days']}",
+        reality.get("repost_count") is not None and f"times reposted {rank.reposts(job)}",
+        copies > 1 and f"copies open at once {copies}",
+    ) if part)
+
+
 def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: list[dict]) -> str:
-    enrichment, reality = job.get("enrichment") or {}, job.get("reality") or {}
-    history = ", ".join(f"{label} {reality[k]}" for k, label in
-                        (("class", "listing type"), ("age_days", "days old"), ("repost_count", "times reposted"))
-                        if reality.get(k) is not None)
+    enrichment = job.get("enrichment") or {}
     facts = [
         ("Link", job["url"]), ("Posted on", job.get("source")), ("Level", enrichment.get("seniority")),
-        ("Pay", salary_label(job)), ("Posting history", history), ("Your resume file", result["pdf"].name),
+        ("Pay", salary_label(job)), ("Posting history", posting_history(job)), ("Your resume file", result["pdf"].name),
     ]
     out = [f"# {job['title']} - {job['company']}", ""]
     out += [f"- {k}: {v}" for k, v in facts if v]

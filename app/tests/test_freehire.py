@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import httpx
+import pytest
 
 import store
 from conftest import make_job
@@ -56,6 +57,17 @@ def test_passes_fetched_together_land_in_own_tier(conn):
     assert {j["public_slug"]: j["tier"] for j in store.all_jobs(conn)} == {"a": "remote", "b": "local"}
 
 
+def test_ignored_filter_stops_before_anything_is_stored(conn):
+    """The job search answers a filter it doesn't know w/ every job, flagged only in meta."""
+    def handler(request):
+        return httpx.Response(200, json={"data": [raw("flood")], "meta": {
+            "total": 798143, "ignored_params": [{"param": "categry"}]}})
+    with httpx.Client(transport=httpx.MockTransport(handler)) as c, pytest.raises(SystemExit) as stop:
+        freehire.run(CONFIG, conn, c)
+    assert "categry" in str(stop.value) and "798,143" in str(stop.value)
+    assert store.all_jobs(conn) == []
+
+
 def by_days(counts: dict[int, int]) -> httpx.Client:
     """Fake API answering `counts[days]` rows per posted_within_days; records days asked."""
     asked = []
@@ -107,3 +119,16 @@ def test_close_uses_window_actually_fetched(conn):
     config = {**CONFIG, "window": {**WINDOW, "min_jobs": 3}}
     with by_days({7: 0, 14: 0, 30: 1}) as c:
         assert freehire.run(config, conn, c)["remote"]["closed"] == 1
+
+
+def test_title_words_sent_as_one_exact_phrase():
+    """Unquoted, "nurse" matched Nursery titles; already-quoted words are left alone."""
+    assert freehire.query_params({"q": "registered nurse", "q_fields": "title"})["q"] == '"registered nurse"'
+    assert freehire.query_params({"q": '"RN"'})["q"] == '"RN"'
+    assert "q" not in freehire.query_params({"category": ["healthcare"]})
+
+
+def test_clearance_flag_kept_true_or_none():
+    """The job search sends true or nothing - nothing is not 'no clearance needed'."""
+    assert freehire.normalize({**raw("a"), "requires_clearance": True}, "remote")["requires_clearance"] is True
+    assert freehire.normalize(raw("b"), "remote")["requires_clearance"] is None

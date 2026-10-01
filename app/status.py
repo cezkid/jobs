@@ -3,6 +3,8 @@ import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+import httpx
+
 import cfg
 import locks
 import store
@@ -164,10 +166,10 @@ def resolve(conn, jobs_dir: Path, job: str | None = None, company: str | None = 
         if found is None:
             raise NotFound(f"{job}: no such job on your list or in your job folders")
     if found is None and url:
-        url = url.strip()
-        row = conn.execute("SELECT * FROM applications WHERE key = ? OR url = ?", (url, url)).fetchone()
-        jobs_row = conn.execute("SELECT * FROM jobs WHERE url = ?", (url,)).fetchone()
-        folder = next((f for f in folders(jobs_dir) if f["url"] == url), None)
+        url, want = url.strip(), store.link_key(url)
+        row = conn.execute("SELECT * FROM applications WHERE link_key(key) = ? OR link_key(url) = ?", (want, want)).fetchone()
+        jobs_row = store.jobs_by_link(conn, url)
+        folder = next((f for f in folders(jobs_dir) if f["url"] and store.link_key(f["url"]) == want), None)
         found = (dict(row) if row else _from_jobs_row(jobs_row) if jobs_row
                  else _from_folder(folder) if folder else None)
     if found is None and company and title:
@@ -224,19 +226,33 @@ def _days(since: str, now: str) -> float:
     return (datetime.strptime(now, store.ISO) - datetime.strptime(since, store.ISO)).total_seconds() / 86400
 
 
-def waiting(conn, now: str) -> list[dict]:
-    """Resume made, not sent yet, oldest first. Untouched 14+ days -> drops out quietly: kept,
-    never deleted, never asked about again."""
+def posting_closed(conn, row: dict) -> str | None:
+    """Day the job search dropped this job's posting; None while listed, or never on the list."""
+    job = (row.get("public_slug") and conn.execute(
+        "SELECT closed_at FROM jobs WHERE public_slug = ?", (row["public_slug"],)).fetchone()) \
+        or store.jobs_by_link(conn, row.get("url"))
+    return _day(job["closed_at"]) if job and job["closed_at"] else None
+
+
+def _made(conn, now: str) -> list[dict]:
     rows = conn.execute("SELECT * FROM applications WHERE state = 'resume_made' ORDER BY state_at")
     return [dict(r) for r in rows if _days(r["state_at"], now) < QUIET_AFTER_DAYS]
+
+
+def waiting(conn, now: str) -> list[dict]:
+    """Resume made, not sent yet, posting still listed, oldest first. Untouched 14+ days -> drops
+    out quietly: kept, never deleted, never asked about again. A posting gone from the job
+    search is no longer waiting on the user: to_ask settles it once instead."""
+    return [r for r in _made(conn, now) if not posting_closed(conn, r)]
 
 
 def to_ask(conn, now: str) -> dict | None:
     """The one job to ask 'did you send it?' about at chat start: oldest resume made 3+ days
     ago, unless it was asked in the last 3 days. One job, never a stack; the ask is recorded
-    here, so a second chat opened the same day asks nothing."""
+    here, so a second chat opened the same day asks nothing. Posting gone from the job search
+    -> `closed_since` set: asked whether it went before it closed."""
     with conn:
-        due = [r for r in waiting(conn, now) if _days(r["state_at"], now) >= ASK_AFTER_DAYS]
+        due = [r for r in _made(conn, now) if _days(r["state_at"], now) >= ASK_AFTER_DAYS]
         if not due:
             return None
         oldest = due[0]
@@ -245,11 +261,38 @@ def to_ask(conn, now: str) -> dict | None:
             return None
         conn.execute("INSERT INTO asked VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET at = excluded.at",
                      (oldest["key"], now))
-    return oldest
+    return dict(oldest, closed_since=posting_closed(conn, oldest))
 
 
 def _day(at: str) -> str:
     return at[:10]
+
+
+def listed(conn, row: dict) -> bool:
+    return bool(row.get("public_slug") and conn.execute(
+        "SELECT 1 FROM jobs WHERE public_slug = ?", (row["public_slug"],)).fetchone())
+
+
+def ask_job_search(client, base: str, slug: str, stale_days: int, now: str) -> tuple[str, str] | None:
+    """The job search's own word on one listed job - sends its listing id, nothing about the
+    user; never the employer's page. Measured 2026-10-01 on 6 jobs our list had dropped: 3 came
+    back w/ closed_at, 3 answered 404 (gone from the catalogue). Its closed_at can follow its
+    own age rule, so "may be closed", never "closed". None -> unreachable: the list answers."""
+    try:
+        resp = client.get(f"{base}/jobs/{slug}")
+    except httpx.HTTPError:
+        return None
+    if resp.status_code == 404:
+        return "may be closed", "the job search no longer lists it"
+    if resp.status_code != 200:
+        return None
+    data = resp.json().get("data") or {}
+    if data.get("closed_at"):
+        return "may be closed", f"the job search marked it closed on {_day(data['closed_at'])}"
+    seen = data.get("last_seen_at")
+    if seen and _days(seen[:19] + "Z", now) > stale_days:
+        return "may be closed", f"the job search last saw it on {_day(seen)}"
+    return "open", f"the job search saw it {_day(seen)}" if seen else "the job search lists it"
 
 
 def still_open(conn, row: dict, stale_days: int, now: str) -> tuple[str, str]:
@@ -257,7 +300,7 @@ def still_open(conn, row: dict, stale_days: int, now: str) -> tuple[str, str]:
     employer's page (that would send something new off the computer). A pasted posting or a job
     applied outside was never on the list, so nothing can say it closed."""
     job = (row["public_slug"] and conn.execute("SELECT * FROM jobs WHERE public_slug = ?", (row["public_slug"],)).fetchone()) \
-        or (row["url"] and conn.execute("SELECT * FROM jobs WHERE url = ?", (row["url"],)).fetchone())
+        or store.jobs_by_link(conn, row["url"])
     if not job:
         return "can't tell", "never on your job list (pasted or found elsewhere) - check the link"
     if job["closed_at"]:
@@ -394,14 +437,24 @@ def main() -> None:
                 print("nothing to ask")
                 return
             print(line(numbered(conn, [row])[0]))
-            print(f"resume made {int(_days(row['state_at'], now))} days ago - ask once: did you send it?"
-                  f" (Sent -> applied, Not yet -> nothing, Not sending -> not_sending)")
+            made = f"resume made {int(_days(row['state_at'], now))} days ago"
+            if row["closed_since"]:
+                print(f"{made}; posting gone from the job search since {row['closed_since']} (may be closed)"
+                      f" - ask once: did you send it before it closed? (Sent -> applied, Not sent -> closed)")
+            else:
+                print(f"{made} - ask once: did you send it?"
+                      f" (Sent -> applied, Not yet -> nothing, Not sending -> not_sending)")
             return
         if args.step == "open":
             now, stale_days = store.utc_now(), config.get("rank", cfg.defaults()["rank"])["stale_days"]
+            api = config.get("api", cfg.defaults()["api"])
             rows = numbered(conn, in_progress(conn))
-            for row in rows:
-                print(line(row) + "\n      " + " - ".join(still_open(conn, row, stale_days, now)))
+            with httpx.Client(timeout=api["timeout_s"]) as client:
+                for row in rows:
+                    # only a job that was on the list has a listing id the job search knows; a
+                    # pasted posting's slug is made up here
+                    said = listed(conn, row) and ask_job_search(client, api["base"], row["public_slug"], stale_days, now)
+                    print(line(row) + "\n      " + " - ".join(said or still_open(conn, row, stale_days, now)))
             if not rows:
                 print("no jobs in progress")
             return

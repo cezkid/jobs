@@ -116,7 +116,13 @@ def collections_hit(job: dict, boost: list[str]) -> bool:
 
 
 def reposts(job: dict) -> int:
-    return (job.get("reality") or {}).get("repost_count") or 0
+    """Earlier postings of this role that closed: repost_count less mass_posting_count. Both
+    count postings sharing the role's fingerprint, the second only the open ones, the job
+    itself included - so a role open in 3 cities at once reads 3/3, reposted 0. Raw
+    repost_count called those copies "reposted 3x" on 75 of 111 demoted rows of a real list
+    (docs/jobs/freehire.md #reality); freehire's own reality classifier subtracts the same way."""
+    r = job.get("reality") or {}
+    return max(0, (r.get("repost_count") or 0) - (r.get("mass_posting_count") or 1))
 
 
 def doubts(job: dict, rc: dict) -> list[str]:
@@ -152,6 +158,21 @@ def sponsorship(job: dict, config: dict) -> list[str]:
     (docs/jobs/freehire.md #Visa sponsorship): demoted like a mismatch, never hidden."""
     needs = (config.get("work_authorization") or {}).get("needs_sponsorship")
     return ["says no visa sponsorship"] if needs and (job.get("enrichment") or {}).get("visa_sponsorship") is False else []
+
+
+def clearance(job: dict) -> list[str]:
+    """Job asks for a US security clearance (the job search's own flag: Secret, TS/SCI,
+    polygraph...; 45,763 US jobs 2026-10-01). Named on every such job, so a user can see it."""
+    return ["needs a security clearance"] if job.get("requires_clearance") else []
+
+
+def can_hold_clearance(config: dict) -> bool | None:
+    """Setup's answer; else US clearances go to citizens only, so "neither citizen nor green card"
+    settles it. A green card alone doesn't - asked, never guessed."""
+    wa = config.get("work_authorization") or {}
+    if wa.get("can_hold_clearance") is not None:
+        return wa["can_hold_clearance"]
+    return False if wa.get("citizen_or_permanent_resident") is False else None
 
 
 def stale_for(job: dict, rc: dict, now: datetime) -> int | None:
@@ -193,7 +214,8 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
     #   yet shown - hiding an open job costs a chance, showing a closed one costs a click;
-    # demerits - likely ghost / wrong level / wrong hours / no sponsor for a user who needs one:
+    # demerits - likely ghost / wrong level / wrong hours / no sponsor for a user who needs one /
+    #   a clearance the user can't hold:
     #   a trustworthy fitting job beats any pay;
     # pay floor - user's stated minimum (top of range, so a range spanning it counts);
     # pay - a fact about this job, so it outranks employer lists;
@@ -204,7 +226,10 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     kept.sort(key=lambda j: (
         tiers.get(j["tier"], len(tiers)),
         bool(j["stale"]),
-        len(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config)),
+        # ghost reasons are one verdict told several ways (likely-evergreen = two of old,
+        # reposted, many copies open, "always hiring" text), so they count once
+        bool(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config))
+        + (bool(clearance(j)) and can_hold_clearance(config) is False),
         not meets_floor(j, rc["salary_floor_usd"]),
         -(annual_usd(j) or 0),
         not collections_hit(j, rc["boost_collections"]),
@@ -252,7 +277,7 @@ def reasons(job: dict, config: dict, now: datetime | None = None, when: str | No
              age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
-    parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config)
+    parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config) + clearance(job)
     if job.get("stale"):
         parts.append(f"may be closed - not seen in {job['stale']}d")
     return " · ".join(p for p in parts if p)

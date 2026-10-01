@@ -6,7 +6,8 @@ Read `app/docs/jobs/freehire.md` first: geography, null-facet and `q=` rules bel
 Open w/ short paragraph: you'll ask what they're looking for, check how many jobs match, read
 their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGENTS.md`
 #Private vs shared): their file list (My Jobs, My Resume, My Settings) stays on this computer;
-job searches send only their search settings to freehire.me; resume is read here in this AI
+job searches send only their search settings to freehire.me (a resume made for a listed job, or
+"still open?", sends that job's listing id - nothing about them); resume is read here in this AI
 chat; nothing goes to CEZ Job Finder's maintainer without asking first.
 
 Then, BEFORE any interview question (their answers - work permit, pay - are typed into this
@@ -41,7 +42,13 @@ First, broad:
 - lowest yearly pay - 4 bands (ranks higher-paying first, never hides jobs; say so in the question)
 
 Then narrowing what they picked:
-- which exact roles inside the family they picked, `multiSelect`
+- which exact roles inside the family they picked, `multiSelect`. Then count the role itself,
+  every way its title is written (their words + the short form: "registered nurse" + RN,
+  "certified public accountant" + CPA): `uv run app/jobs.py probe --title "registered nurse"
+  --title RN countries=us`. A category count says nothing about one role (Healthcare ~32,000;
+  "registered nurse" 50, RN ~19,800). Every form under 30 posted in the last 30 days -> one plain
+  line: "The job search we use carries few <role> jobs - about N posted in the last month across
+  the US." Offer: keep going anyway / widen to related roles - never pretend the count is bigger.
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
   the `cities` facet; "Other" covers the rest
 - career level (entry / mid / senior / leader) - `rank.career_level`: titles clearly above or
@@ -62,6 +69,13 @@ Then narrowing what they picked:
   count from `probe --facets visa_sponsorship` on their category: "freehire marks 36,846 US jobs
   'no visa sponsorship' - they'll sort lower, never hidden". Never guess it from name, school
   or where they studied. Never help shade it (`AGENTS.md` #Lead, explain, push back - Hold).
+- security clearance, one question, only when it matters: `probe --facets requires_clearance
+  <their pass params>` shows 1 in 20 or more of their matches need one (judgement, not a
+  measured cut-off), and the work-permit answer didn't settle it (neither citizen nor green card
+  -> can't hold one, no question). "About N of your matches need a US security clearance - only
+  US citizens can hold one. Can you?" Yes, I have one or can get one / No / Not sure ->
+  `work_authorization.can_hold_clearance` true / false / null. No -> they sort lower, never
+  hidden; every such job says "needs a security clearance" either way.
 
 Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
 `jobgether` + `builtin-integration-sandbox` w/o asking, but say why in one sentence when you
@@ -78,7 +92,9 @@ showing jobs from <company>" any time.
 - One tier per location group, preferred first: remote tier `work_mode=remote` +
   `countries=us`; city tier `cities=` ALONE (geography facets OR together, `cfg` rejects mix).
   Exact city values: `uv run app/jobs.py probe --city <text>`.
-- Never `q=` (`cfg` rejects it).
+- `q=` only as one exact title phrase w/ `q_fields: title` (`cfg` rejects any other use) - for a
+  role its category is too wide for (RN inside healthcare). The job search has no OR: one form
+  per pass, the one w/ most postings; say which other forms it leaves out.
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).

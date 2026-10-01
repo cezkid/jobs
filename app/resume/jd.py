@@ -29,7 +29,8 @@ EXTRACT_SYSTEM = f"""Read one pasted job posting. Emit its title, hiring company
 
 
 def fetch(client: httpx.Client, base: str, slug: str) -> dict:
-    # jobs.description truncated at 999 chars => detail endpoint only full-JD source
+    # search rows carry ~1,000 chars of description; the detail endpoint has it whole. Sends the
+    # job's listing id, nothing about the user (AGENTS.md privacy table)
     resp = client.get(f"{base}/jobs/{slug}")
     resp.raise_for_status()
     return parse(resp.json()["data"])

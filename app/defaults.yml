@@ -56,6 +56,10 @@ work_authorization:
   # US citizen or lawful permanent resident (green card). Asked outright by employers that
   # require it (government work, export-controlled products); refugee/asylee status is not
   citizen_or_permanent_resident: null
+  # can hold a US security clearance (citizens only; a green card is not enough). false => jobs
+  # asking for one sort lower, never hidden; "needs a security clearance" shows on them either way.
+  # null + citizen_or_permanent_resident false counts as false
+  can_hold_clearance: null
 
 # Home address application forms ask for (UKG requires it). Saved only when the user says to keep
 # it; never on the resume (full street address = privacy risk, no hiring value). null = asked.
@@ -75,9 +79,11 @@ rank:
   # posted_within_days window are never re-fetched, so never marked closed. Shown, not hidden:
   # an open job hidden costs the user a chance, a closed one shown costs a click
   stale_days: 14
-  # freehire `reality`: relisted this often, or listed this many days, or class likely-evergreen
-  # => sorted below fresh jobs in its tier. 2026-09-24, 500 newest US rows: repost_count 1 on
-  # 446, 3+ on 19; age_days median 70 on `stale` class (75% of all rows) => 90 flags the tail
+  # freehire `reality`: relisted this often (earlier copies that closed = repost_count less
+  # mass_posting_count; copies open at once are one role in several places), or listed this many
+  # days, or class likely-evergreen => one doubt, sorted below fresh jobs in its tier.
+  # 2026-09-24, 500 newest US rows: age_days median 70 on `stale` class (75% of all rows) => 90
+  # flags the tail. 2026-09-30, 1,275 open rows: 36 relisted 3+ times
   repost_demote: 3
   old_days: 90
   # setup answers; a title/type that clearly contradicts them sorts lower, never hidden.

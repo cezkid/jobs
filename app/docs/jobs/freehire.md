@@ -18,10 +18,14 @@ before trusting count.
   `cities=` matches exact value only: `new york` misses `New York City`.
 - Row fields: `public_slug` `title` `company` `company_slug` `url` `source` `location` `cities`
   `countries` `regions` `work_mode` `skills` `collections` `posted_at` `created_at`
-  `last_seen_at` `closed_at` `description` `enrichment` `reality`.
+  `last_seen_at` `closed_at` `description` `enrichment` `reality` `requires_clearance` (true or
+  absent: 45,763 US rows, 2026-10-01).
 - Filter facets: `category` `skills` `work_mode` `countries` `regions` `cities`
   `employment_type` `seniority` `collections` `company_size` `salary_min` + `salary_currency`
-  `visa_sponsorship` `experience_years_min` `posted_within_days` `sort` `order`.
+  `visa_sponsorship` `experience_years_min` `posted_within_days` `sort` `order`, + (2026-10-01)
+  `q` w/ `q_fields=title` ([Title search](#title-search)), `requires_clearance`,
+  `open_within_days` (first-seen date; posted<=7d 76,484 vs open<=7d 67,666 US - not used yet),
+  `<facet>_exclude` (null-safe: `category_exclude=marketing` = 798,143 - 27,237 exactly).
 
 ## Category slugs (2026-09-19, `countries=us`)
 
@@ -33,11 +37,21 @@ counts in one call.
 ## `reality` + pay fields (2026-09-24, 500 newest US rows)
 
 - `reality` = `{class, age_days, repost_count, mass_posting_count, fake_freshness}`, on every
-  row. `class` facet: `fresh` 181k, `stale` 587k, `likely-evergreen` 7.7k (no ghost class).
-  `repost_count` 1 on 446/500, 3+ on 19. `age_days` median 70 on `stale`. `fake_freshness` true
-  on 133/500: `posted_at` restamped while `age_days` stays old => age shown + sorted from
-  `age_days`, `posted_at` only fallback. Rank demotes (never hides) `repost_count >=
-  rank.repost_demote`, `age_days >= rank.old_days`, `likely-evergreen`.
+  row. `class` facet: `fresh` 181k, `stale` 587k, `likely-evergreen` 7.7k. `age_days` median 70
+  on `stale`. `fake_freshness` true on 133/500: `posted_at` restamped while `age_days` stays old
+  => age shown + sorted from `age_days`, `posted_at` only fallback.
+- `repost_count` = postings sharing the role's fingerprint, any status; `mass_posting_count` =
+  the open ones; both count the job itself. Relisted = `repost_count - mass_posting_count`
+  (earlier copies that closed) - freehire's own classifier subtracts the same way. Raw
+  `repost_count` (2026-09-30) called copies open at once "reposted": 75 of 111 demoted rows on a
+  real 1,275-row list (38 at 3/3, class fresh); live 500 newest US rows, 30 of 35 with
+  `repost_count >= 3`. `likely-evergreen` = 2 of: 90+ days old, relisted 3+, 5+ copies open, "always
+  hiring" text.
+- Rank demotes (never hides) relisted `>= rank.repost_demote`, `age_days >= rank.old_days`,
+  `likely-evergreen` - one doubt however many fire, each named in reasons.
+- Separate `ghost` object `{level: possible|likely, criteria}` exists in freehire's code, computed
+  on read; absent on 100/100 likely-evergreen US rows + the detail row checked (2026-10-01).
+  Dormant - re-probe before using it.
 - `salary_period` null on 315/500, incl. rows w/ pay; `hour` 17k rows US-wide. Period missing
   => value < 1000 hourly, < 10000 monthly (`rank.pay`). One `month` row read 70000-100000 -
   label wrong at source, left as is.
@@ -69,11 +83,26 @@ check that stopped running reads "can't tell - no job check in N days", never cl
 postings + jobs applied outside have no row => "can't tell - check the link". No re-fetch of
 the employer's page: it would send a new thing off the computer.
 
+`status open` first asks the job search itself, `GET /jobs/<slug>` per listed job in progress
+(listing id only; privacy table row). Search never returns a closed row, the detail endpoint
+does. Measured 2026-10-01 on 6 rows our list had closed: 3 answered 200 w/ `closed_at`, 3
+answered 404 (gone from the catalogue); an open row: `closed_at` null, `last_seen_at` = last
+crawl that found it. => closed_at -> "may be closed - the job search marked it closed on D"
+(its own rules include closing by age, so never "closed"); 404 -> "may be closed - the job
+search no longer lists it"; `last_seen_at` older than `rank.stale_days` -> "may be closed";
+else open. Request fails -> the list's own signals above.
+
 ## Defects handled in code
 
-- **`q=` forbidden** (2026-09-15). Matches description prose: `q=react` returned "Lifecycle
-  Marketing Manager". Same for any occupation keyword. `cfg.FORBIDDEN_PARAMS` rejects it; use
-  `category=` / `skills=`.
+- **`q=` alone matches prose** (2026-09-15). `q=react` returned "Lifecycle Marketing Manager".
+  Same for any occupation keyword. `cfg.q_problem` rejects `q` w/o `q_fields: title` - see
+  [Title search](#title-search).
+- **Unknown filter = every job** (2026-09-30). A misspelled param is ignored, not refused:
+  `bogus_param=1` -> 798,143 US rows, flagged only in `meta.ignored_params` (`[{"param": ...}]`,
+  search + facets). `freehire.understood` stops the pass before anything is stored.
+- **Every link tagged** (2026-09-30). `url` carries `utm_source=freehire.me` (1431 of 1431 stored
+  rows); a link copied from the employer's page doesn't. `store.link_key` drops `utm_*` before
+  comparing; links stay as served.
 - **Geography facets OR together** (2026-09-19). `regions` `countries` `cities` in one pass widen,
   never narrow: `countries=us` + `cities=new york,...` returned all-US hybrid/onsite (461 rows vs
   93 real). `cfg.load` rejects two in one pass; city tier uses `cities` alone.
@@ -110,6 +139,39 @@ Hard filter drops rows w/ NO data, not rows that fail:
   `software_engineering`. => tech search by one skill uses `skills=` alone, no `category=`.
 - `seniority` facet skewed (senior 168, junior 3, middle 6): junior levels live in title string,
   not facet.
+
+## Title search
+
+`q=<words>&q_fields=title` matches titles only. Measured 2026-10-01, `countries=us`:
+
+| title | unquoted | quoted (exact phrase) |
+|---|---|---|
+| nurse | 269 | 111 |
+| registered nurse | 240 | 50 |
+| RN | 19,851 | 19,827 |
+| teacher | 85 | 69 |
+| accountant | 52 | 18 |
+| medical assistant | 3,759 | 275 |
+| data analyst | 23,232 | 3,462 |
+| software engineer | 37,068 | 30,043 |
+
+Unquoted, one word also matches longer words ("nurse" -> "Nursery ...", 35 of the first 100) and
+several words match any of them ("staff accountant" 12,818, mostly Staff ... Engineer) =>
+`freehire.phrase` always quotes. No OR: `"registered nurse" OR "rn"` -> 24 (titles holding both)
+=> one phrase per pass (`cfg.q_problem` rejects a list). `probe --title A --title B` counts each
+form, open + posted in the last 30 days.
+
+## What the job source leaves out
+
+freehire is an IT job board and prunes the rest by design (their catalog-pruning design,
+2026-07-25; dictionary `internal/dict/classify/nontech.go`): titles on a hands-on/non-tech list
+are deleted at every company, and non-tech roles at companies w/ no tech evidence. The list holds
+whole words - nurse, registered nurse, lpn, cna, teacher, accountant, pharmacist, therapist,
+driver, cashier, warehouse... - so the short form can survive: Healthcare 31,964 US jobs, 17,849
+titled RN, 50 "registered nurse"; teacher 69, accountant 18 open (0 posted in 30 days)
+(2026-10-01). => a category count says nothing about one role: setup counts every form of the
+user's title (`probe --title`) and says plainly when the source carries few. Counts move as
+pruning waves run - re-measure, never quote these.
 
 ## Rejected sources (2026-09-15)
 
