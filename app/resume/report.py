@@ -1,7 +1,7 @@
 from datetime import date
 
 import rank
-from resume import lint, schema
+from resume import knockout, lint, schema
 
 PRIORITY_ORDER = ("required", "preferred")
 
@@ -94,7 +94,7 @@ def posting_history(job: dict) -> str:
 
 
 def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: list[dict],
-              today: date | None = None) -> str:
+              today: date | None = None, master: dict | None = None) -> str:
     enrichment = job.get("enrichment") or {}
     facts = [
         ("Link", job["url"]), ("Posted on", job.get("source")), ("Level", enrichment.get("seniority")),
@@ -122,20 +122,37 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
         out += ["", "### Notes", "", *info]
 
     ordered = sorted(rows, key=lambda r: (PRIORITY_ORDER.index(r["priority"]), r["status"] != "gap", r["index"]))
-    met = sum(r["status"] == "met" for r in rows)
+    # traits are shown in interview, never a line to add: apart, and out of the count
+    asked = [r for r in ordered if not r.get("trait")]
+    met = sum(r["status"] == "met" for r in asked)
     out += ["", "## What they ask vs your resume", "",
-            f"Shown: {met} of {len(rows)}.", "",
+            f"Shown: {met} of {len(asked)}.", "",
             "| Need | Shown? | They ask | Your line |", "| --- | --- | --- | --- |"]
-    for r in ordered:
+    for r in asked:
         must = "Must have" if r["priority"] == "required" else "Nice to have"
         shown = (r.get("shown") or [r["note"]])[0]  # one line proves it; the rest repeat the page
-        out.append(f"| {must} | {'Yes' if r['status'] == 'met' else 'Not shown'} | {cell(r['text'])} | {cell(shown)} |")
+        said = f"Yes - {r['strength']}" if r["status"] == "met" and r.get("strength") else (
+            "Yes" if r["status"] == "met" else "Not shown")
+        out.append(f"| {must} | {said} | {cell(r['text'])} | {cell(shown)} |")
 
-    gap_rows = [r for r in ordered if r["status"] == "gap"]
+    gap_rows = [r for r in asked if r["status"] == "gap"]
     if gap_rows:
         out += ["", "## Asked for, not shown", "", "Have one? Say so - added only if true.", ""]
         out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {r['text']} - {r['note']}"
                 for r in gap_rows]
+    if short := knockout.shortfalls(master or {}, job, today or date.today()):
+        out += ["", "## Minimum asks your resume doesn't show", "", "Your call - quoted so you can decide.", ""]
+        out += [f"- {line}" for line in short]
+    skills_only = [r for r in asked if r["priority"] == "required" and r.get("strength") == "Skills list only"]
+    if skills_only:
+        out += ["", "## In your Skills list only", "",
+                "A must-have no line shows you doing. Used it at a job? Say where - your own sentence goes in.", ""]
+        out += [f"- {r['text']}" for r in skills_only]
+    traits = [r for r in ordered if r.get("trait")]
+    if traits:
+        out += ["", "## Soft skills they ask for", "",
+                "Shown in interview and in how your lines read - not a line to add.", ""]
+        out += [f"- {r['text']}" for r in traits]
     if gaps:
         today = today or date.today()
         out += ["", f"## Breaks over {schema.MAX_GAP_MONTHS} months", ""]

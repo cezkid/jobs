@@ -68,6 +68,17 @@ def status(share: float, strong: float, good: float) -> str:
     return STRONG if share >= strong else GOOD if share >= good else LOOK
 
 
+def unlisted_tools(master: dict) -> list[str]:
+    """Tools the lines name (their stack notes) that the Skills list leaves out - a search for one
+    finds it only in a line. Measured 2026-10-01 on a real resume: 4, all real tools. The reverse,
+    skills no line names (27 of 60 there), is never reported: the full list is where search terms
+    land (docs/resume/page-format.md #Advice declined, "Cut skills to 6-12")."""
+    listed = {lint.norm(p) for g in master.get("skills") or [] for i in g["items"]
+              for p in [i, *re.split(r"\s*/\s*", i)]}
+    tools = [s for e in [*master["roles"], *master.get("projects", [])] for b in e["bullets"] for s in b.get("stack", [])]
+    return sorted({t for t in tools if lint.norm(t) not in listed}, key=str.casefold)
+
+
 def assess(master: dict, today: date) -> dict:
     lines = bullets(master)
     findings = lint.lint(render.page_model(master), master) + lint.master_findings(master, today)
@@ -92,7 +103,8 @@ def assess(master: dict, today: date) -> dict:
                                        f"{sum(f.rule in (*PERSONAL, *DATES) for f in counted) + len(gaps)} note(s)"),
     }
     return {"date": today.isoformat(), "areas": areas, "bare": bare, "shown": shown, "gaps": gaps,
-            "notes": [(f.rule, f.where, f.detail) for f in counted], "bundle": {"old_jobs": len(old_jobs)} if bundle else None}
+            "notes": [(f.rule, f.where, f.detail) for f in counted], "bundle": {"old_jobs": len(old_jobs)} if bundle else None,
+            "unlisted": unlisted_tools(master)}
 
 
 def changes(now: dict, before: dict | None) -> list[str]:
@@ -147,6 +159,9 @@ def report_md(result: dict, moved: list[str]) -> str:
             out += ["", BUNDLE.format(years=lint.AGE_BUNDLE_YEARS, old=lint.OLD_GRADUATION_YEARS, jobs=jobs)]
         out += ["", "Worried about bias - your name, age or a break? Ask any time, or read "
                     f"[Unfair hiring - what's known, what helps]({BIAS_GUIDE.replace(' ', '%20')})."]
+    if result.get("unlisted"):
+        out += ["", "## Tools your lines name, not in your Skills list", "",
+                "Add any you'd want a search to find there - your call: " + ", ".join(result["unlisted"]) + "."]
     out += ["", "## What your lines show", ""]
     for quality, found in result["shown"].items():
         out.append(f"**{quality}** - {len(found)} line(s)" + (":" if found else
