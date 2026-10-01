@@ -90,6 +90,7 @@ def test_workday_apply_asks_which_jobs_before_writing_a_script(master, tmp_path,
     monkeypatch.setattr(profile.cfg, "resume_path", lambda config, key: tmp_path)
     monkeypatch.setattr(profile.schema, "load", lambda path: master)
     monkeypatch.setattr(profile.tailor, "find_job_dir", lambda jobs, slug: job)
+    monkeypatch.setattr(profile.tailor, "by_number", lambda config, ref: ref)
     monkeypatch.setattr(profile.sys, "argv", ["apply", "acme-clerk"])
     profile.main()
     assert capsys.readouterr().out.startswith("ASK") and not stale.exists()
