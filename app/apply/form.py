@@ -12,9 +12,11 @@ Systems + how to add one: app/docs/apply/apply-systems.md.
 import argparse
 import re
 import sys
+from datetime import date
 from pathlib import Path
 
 import cfg
+from apply import answers as saved_answers
 from apply import browser, questions, readahead, systems
 from resume import render, schema, tailor
 
@@ -77,13 +79,17 @@ def prepare(slug: str, url: str) -> None:
     name, app_url = (system.NAME, system.application_url(url)) if system else (PASTE, url)
     asked = system.questions(url) if system else readahead.as_questions(form)
     same_form = old and old.get("url") == app_url
+    keeping = config.get("saved_answers")
     answers = questions.draft(asked, master["contact"], old["questions"] if same_form else None, config,
-                              master.get("career_break"))
+                              master.get("career_break"), saved_answers.load() if keeping else [])
     questions.save(out, {"system": name, "url": app_url, "questions": answers})
     where = f"{name} form" if system else f"{(form.get('provider') or 'this').title()} form, read ahead (no options captured)"
     print(f"{where} -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
     for a in answers:
         print(line(a))
+    if keeping is None:
+        print("ask once: keep the user's own answers for the next form (named before Submit, on this computer)? "
+              "Yes -> saved_answers: true in search settings, No -> false")
     print("Write answers into the file (file kind: answer = true only after the user said yes to uploading; a "
           f"question marked '{questions.YOURS}' or 'sensitive': the user's own answer, its source set to "
           f"'{questions.USER_SAID}'), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}")
@@ -109,6 +115,7 @@ def paste(slug: str) -> None:
     path = folder / ANSWERS_FILE
     path.write_text("\n".join(out), encoding="utf-8")
     print(f"written: {path}")
+    remember(config, folder, data)
 
 
 def page_text(page) -> str:
@@ -166,7 +173,16 @@ def fill(slug: str) -> None:
               + (f" - still to do on the page: {'; '.join(left)}" if left else ""))
     if extra:
         print(f"  {len(extra)} question(s) on the page not in the answers file - user answers them on screen")
+    remember(config, folder, data)
     print("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.")
+
+
+def remember(config: dict, folder: Path, data: dict) -> None:
+    """The user's own answers on this form, kept for the next one - only after they said yes."""
+    if config.get("saved_answers"):
+        n = saved_answers.keep(data["questions"], folder.name.split(" - ")[0], "", date.today().isoformat())
+        if n:
+            print(f"kept {n} of the user's answers for next time (My Settings/Saved answers.yml)")
 
 
 def main() -> None:

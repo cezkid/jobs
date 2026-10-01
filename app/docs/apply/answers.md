@@ -32,6 +32,22 @@ from the user, marked `source: "you said"`; `fill` and `paste` refuse any other 
 salary is the user's number on the employer's file. Work permit + sponsorship come only from
 setup's answers, the US question asked the same way (`questions.work_permit`).
 
+## Saved answers (`app/apply/answers.py`)
+
+After one yes (`saved_answers: true` in search settings, asked once at the first form), the user's
+own answers - source "you said" - are kept in `My Settings/Saved answers.yml` (visible, private),
+one per topic or question, newest wins. The next form:
+
+| Recalled how | Questions | Why |
+|---|---|---|
+| Filled, named before Submit | 18 or older, notice period, how you heard, the same question word for word | true on any form; a wrong one is cheap |
+| Offered first, never filled | pay expected (beside the posting's pay), moving for the job, start date, written answers | each depends on this job |
+| Never kept | work permit + sponsorship, current pay, sensitive kinds, voluntary questions about them, where they live, two topics in one question | setup answers the US permit questions; the rest are the user's every time |
+
+Basis: one form corpus, 647,795 forms (2026-09) - how you heard 61,762, 18+ 30,337, salary 24,762,
+notice 7,841; 69% of 12,352 labels in a 4,000-form sample recall nothing. Saves typing on the
+common few; most questions are still asked.
+
 ## On the page
 
 `fill` reads the opened page first: one that says the job is closed ("no longer accepting

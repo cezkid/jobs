@@ -69,6 +69,10 @@ follow_up:
   heard_back: 15
   interview: 12
 
+# keep the user's own answers from application forms for the next one (My Settings/Saved answers.yml,
+# each named before Submit; never work permit, pay filled, or sensitive). null = ask once.
+saved_answers: null
+
 # Home address application forms ask for (UKG requires it). Saved only when the user says to keep
 # it; never on the resume (full street address = privacy risk, no hiring value). null = asked.
 home_address:

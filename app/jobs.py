@@ -30,6 +30,7 @@ COMMANDS = {
     "follow-up": ("followup", "draft a follow-up email for one job into its folder - the user sends it: JOB [--name NAME]"),
     "interview": ("interview", "interview practice or debrief for one job: requirements, backing lines, pay: JOB"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
+    "answers": ("apply.answers", "the user's saved answers from application forms: list | forget N"),
     "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
