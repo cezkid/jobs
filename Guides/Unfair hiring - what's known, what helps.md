@@ -48,8 +48,9 @@ that isn't asking for your legal name.
 - **It has a small cost.** Some hiring managers like to see the year. *Survey.*
 - **Never a false date.** Leaving one off is fine. A required form box: answer truthfully. An
   optional one: blank is fine.
-- **Some states limit when employers may ask** your age, birth date or graduation dates -
-  California, Colorado, Connecticut, Delaware, Oregon. Which applies depends on where the job is
+- **Some states limit when employers may ask** your age, birth date or graduation dates:
+  California at every step before an offer, Oregon until the first interview, Colorado,
+  Connecticut and Delaware on the first application. Which applies depends on where the job is
   and the employer's size. *Law.*
 
 ## Work breaks
@@ -74,14 +75,14 @@ A few words is enough - never a diagnosis. What you type in the chat goes to you
 ## A record
 
 - **Answer only what a question asks, and only when it asks.** Read the exact wording: a
-  conviction or any arrest, and how many years back. *Law.*
-- **Sealed or expunged records often don't count** - rules differ by state. Free legal aid can
-  check yours. *Law.*
+  conviction or any arrest, and how many years back.
+- **Many states bar employers from asking about sealed, dismissed or juvenile records** - rules
+  differ by state. Free legal aid can check yours. *Law.*
 - **Your resume doesn't have to mention it.** List real work, training or study done in custody
   under its real name. Don't call the time "personal leave" - background checks show the dates.
-- **Fair-chance rules make employers ask later.** Federal agencies and contractors: only after an
-  offer. Private employers in 15 states, DC and 21 cities or counties: each place sets its own
-  timing. *Law.*
+- **Fair-chance rules make employers ask later.** Federal agencies, and federal contractors for
+  jobs tied to a federal contract: only after a conditional offer. Private employers in at least
+  15 states, DC and 21 cities or counties (a 2021 count): each place sets its own timing. *Law.*
 - **A certificate of rehabilitation (or relief) helps.** In one study it nearly closed the gap.
   *Small study (Leasure and Andersen 2016).*
 
@@ -101,8 +102,8 @@ No case details needed in the chat - what you type goes to your AI account.
 
 - **Telling an employer is always your choice.** Questions about disability on forms are
   voluntary. In one big study, disclosing cost interest, mostly at small firms. *Big study.*
-- **You can ask for adjustments** on timed tests and video interviews - extra time, captions.
-  *Law.*
+- **You can ask for adjustments in the hiring process** - for example extra time on a timed
+  test, or captions in a video interview. *Law.*
 - **Before an offer, employers may not ask medical or disability questions.** *Law.*
 
 ## Ask any time
