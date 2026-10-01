@@ -291,6 +291,7 @@ positives = dead.
 | `bare-percentage-without-baseline` | 3 hits, all true, all good bullets | Fix needs a number candidate lacks. Report only |
 | `years-claim` - summary "N+ years" above whole years the dated jobs add up to | 6 claims in 10 real tailored summaries (2026-10-01): **0 over**; `unresolved-entity` already fails a years number in no fact | Unproven. Tier 1 basis real (numbers defensible); re-propose w/ a hit |
 | `verb-upgrade` - generated bullet opens led / managed / owned ... while every cited source opens assisted / helped / supported ... | 218 generated bullets: 10 strong-verb openers, **0 upgrades** | Unproven; the prompt bans upgrades. resume-gaps refuses one in a user's answer (`lint.upgraded_verb`) - that path writes from their words, a contract, not a lint guess |
+| `skills-without-a-line` - skill item no bullet names | 27 of 60 items on a real resume (2026-10-01), all true | Report would push cutting real skills; the full list is where search terms land ([page-format.md](page-format.md) #Advice declined, "Cut skills to 6-12"). The reverse - tools lines name that Skills leaves out - is reported (`feedback.unlisted_tools`: 4 of 4 real) |
 | `stale-tech-in-skills` - tool as current skill past end of life | 1 true positive, 0 false positives | Judgment, not measurement: needs occupation-specific end-of-life table; tool is for any occupation. Weakest evidence: staffing-firm advice, no measured penalty. Revisit w/ an occupation-neutral source |
 
 ## What did not survive

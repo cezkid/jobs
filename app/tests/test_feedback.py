@@ -99,3 +99,11 @@ def test_bundle_note_waits_for_20_years_and_for_a_year_still_showing(tmp_path):
     hidden["certifications"][0]["hide_year"] = True
     report, result, _ = feedback.run(write(tmp_path, hidden), TODAY, tmp_path / "state.json")
     assert result["bundle"] is None and "every year that lets a reader guess age" not in report.read_text(encoding="utf-8")
+
+
+def test_tools_named_in_lines_but_missing_from_skills_are_listed(tmp_path):
+    """The reverse - a skill no line names - never is: the full list is where search terms land."""
+    master = feedback.schema.load(write(tmp_path, DETAILS))
+    master["roles"][0]["bullets"][0]["stack"] = ["Mailchimp", "Vue"]
+    master["skills"] = [{"group": "Tools", "items": ["Vue/Vuex", "Figma"]}]
+    assert feedback.unlisted_tools(master) == ["Mailchimp"]
