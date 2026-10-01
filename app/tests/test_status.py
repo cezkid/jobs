@@ -22,8 +22,8 @@ def make_folder(jobs_dir, name, url, company, title, slug, made=True):
     (d / tailor.JOB_DATA / "jd.json").write_text(json.dumps(
         {"public_slug": slug, "company": company, "title": title, "url": url}), encoding="utf-8")
     if made:
-        (d / tailor.CHECK_FILE).write_text(f"# {title} - {company}\n\n- Link: {url}\n- Posted on: pasted\n",
-                                           encoding="utf-8")
+        (d / tailor.CHECK_FILE).write_text(f"# {title} - {company}\n\n- Link: {url}\n- Posted on: pasted\n\n"
+                                           f"## Ready to send?\n\nYes - all 22 page checks passed.\n", encoding="utf-8")
     return d
 
 
@@ -138,7 +138,13 @@ def test_backfill_never_overrides_recorded_status_but_upgrades_saved(conn, tmp_p
 
     d = make_folder(tmp_path, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1", made=False)
     status.backfill(conn, tmp_path)
-    (d / tailor.CHECK_FILE).write_text("# Engineer - Acme\n\n- Link: https://acme.com/j/1\n", encoding="utf-8")
+    # a failed check writes its report too: still saved, never "resume made" in Waiting on you
+    (d / tailor.CHECK_FILE).write_text("# Engineer - Acme\n\n- Link: https://acme.com/j/1\n\n"
+                                       "## Ready to send?\n\nNot yet - 2 to fix first.\n", encoding="utf-8")
+    status.backfill(conn, tmp_path)
+    assert status.get(conn, "https://acme.com/j/1")["state"] == "saved"
+    (d / tailor.CHECK_FILE).write_text("# Engineer - Acme\n\n- Link: https://acme.com/j/1\n\n"
+                                       "## Ready to send?\n\nYes - all 22 page checks passed.\n", encoding="utf-8")
     status.backfill(conn, tmp_path)
     assert status.get(conn, "https://acme.com/j/1")["state"] == "resume_made"
 

@@ -6,7 +6,7 @@ from pathlib import Path
 import cfg
 import locks
 import store
-from resume import tailor
+from resume import report, tailor
 
 # state -> what the user reads. Order = the path a job usually takes
 STATES = {
@@ -60,28 +60,26 @@ def _same(a: str | None, b: str | None) -> bool:
     return " ".join((a or "").casefold().split()) == " ".join((b or "").casefold().split())
 
 
-def folder_link(job_dir: Path) -> str | None:
-    check = job_dir / tailor.CHECK_FILE
-    if not check.exists():
-        return None
-    for line in check.read_text(encoding="utf-8").splitlines():
+def folder_link(text: str) -> str | None:
+    for line in text.splitlines():
         if line.startswith(LINK_LINE):
             return line[len(LINK_LINE):].strip() or None
     return None
 
 
 def folder(job_dir: Path) -> dict | None:
-    """One job folder, read only: its job file names the job, Check before sending.md the link.
-    No readable job file => not a job folder (a stray note, a half-copied folder): never
-    counted, numbered or moved."""
+    """One job folder, read only: its job file names the job, Check before sending.md the link +
+    whether the resume passed (resume made; a failed check is still saved). No readable job file
+    => not a job folder (a stray note, a half-copied folder): never counted, numbered or moved."""
     jd = tailor.read_jd(job_dir)
     if jd is None:
         return None
     check, saved = job_dir / tailor.CHECK_FILE, job_dir / tailor.JOB_DATA / "jd.json"
     try:
-        made = check.exists()
+        text = check.read_text(encoding="utf-8") if check.exists() else ""
+        made = report.ready(text)
         at = datetime.fromtimestamp((check if made else saved).stat().st_mtime, timezone.utc).strftime(store.ISO)
-        link = folder_link(job_dir)
+        link = folder_link(text)
     except OSError:  # moved or deleted while being read
         return None
     return {

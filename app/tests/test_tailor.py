@@ -358,6 +358,8 @@ def test_passed_check_marks_resume_made_with_no_typing(tmp_path, monkeypatch, ma
     tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", {**tailored, "entries": []})
     assert tailor.check(config, "job 1") == 1
     assert status.get(conn, JOB["url"]) is None  # failed check: no resume to send yet
+    status.backfill(conn, tmp_path / "My Jobs")  # Today page / chat start read the folder later
+    assert status.get(conn, JOB["url"])["state"] == "saved"
     tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", tailored)
     assert tailor.check(config, "job 1") == 0
     assert status.get(conn, JOB["url"])["state"] == "resume_made"
