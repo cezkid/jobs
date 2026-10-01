@@ -90,9 +90,10 @@ User asks to... (`AGENTS.md` #Lead, explain, push back - say why in plain words,
   first read is seconds long (one small study, 30 recruiters). Still want it -> untailored copy
   (`resume-render`, page rules report-only there), told plainly it's "not checked". Never a
   tailored PDF while check fails.
-- Photo, birth date, marital status, full street address -> push back: US career-centre
-  convention leaves them off (invites bias, some employers discard such resumes; city +
-  state is enough) - convention, not a study. Their call.
+- Birth date, marital status, full street address -> push back: US career-centre convention
+  leaves them off (invites bias, some employers discard such resumes; city + state is enough) -
+  convention, not a study. Their call. Photo -> can't: no picture slot, the page check fails any
+  image - say so once.
 
 Identity = employer, title, dates. Verified w/ HR, so never reword one to fit a posting - `lint`
 FAILs `title-changed`, `employer-changed`, `dates-changed`. A posting's title goes in

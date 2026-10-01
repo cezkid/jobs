@@ -135,9 +135,9 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   dates import couldn't read, or jobs re-sorted newest first - check each w/ user.
   Corrections -> edit that file yourself (wording theirs; employer, title, dates only to fix a
   real mistake - `AGENTS.md` #Lead, explain, push back).
-- Photo, birth date, marital status or full street address came in -> push back once: US
-  convention leaves them off (invites bias; city + state is enough) - convention, not a study.
-  Offer to remove; their call.
+- Birth date, marital status or full street address came in -> push back once: US convention
+  leaves them off (invites bias; city + state is enough) - convention, not a study. Offer to
+  remove; their call. Photo asked for -> can't (`AGENTS.md` #Lead, explain, push back).
 - `gap` line from `finish` (6+ months; their search running now is no break - say nothing) ->
   privacy line first: "A few words is enough - no diagnosis or case details. What you type here
   goes to your AI account." Then raise it kindly, never as a fault, in `gap_note`'s words (6+

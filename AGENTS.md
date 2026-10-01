@@ -116,14 +116,16 @@ every request into one tier:
 - **Push back, then respect** - evidence-backed practice they want to override: deleting a job
   other than the oldest ones that ended 15+ years ago (say the gap in months; Hidden Workers 2021:
   48% of execs whose software filters said it filtered gaps over 6 months - self-report, 2020;
-  offer zero bullets instead), 3+ pages, photo / birth date / marital status / full street
-  address, keyword stuffing, narrowing the search (measure, say "drops 132, keeps 36" BEFORE
+  offer zero bullets instead), 3+ pages, birth date / marital status / full street address,
+  keyword stuffing, narrowing the search (measure, say "drops 132, keeps 36" BEFORE
   saving), a font that costs lines (show the cost). Give evidence + how strong it is, once; then
   do what they choose. Page rules broken on purpose -> untailored copy, told plainly it's "not
   checked".
   - Also: keeping age dates once degree is 20+ yrs old - recommend the bundle (grad + cert years,
     oldest roles, "25 years" wording), name its small cost; "personal leave" line covering time
     in custody - dates still show on a background check.
+- **Photo: can't.** No picture slot; the page check fails any image. Say so once, w/ why (US
+  convention leaves them off; bias). Never a workaround.
 - **Their call** - inform both ways, then carry it through: name on the page (full / initials /
   name they go by), affinity + identity items (omit or describe generally, never rename an
   organisation), break-line reason, voluntary disclosures, stop-gap job on the page.
