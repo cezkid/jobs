@@ -38,7 +38,9 @@ a time, in this order (never batched - shows as tabs).
 First, broad:
 - what kind of work - 4 grouped families of `category` values, `multiSelect`
 - where: remote only / remote first / local first / local only
-- full time / part time / contract, `multiSelect` + "doesn't matter"
+- full time / part time / contract, `multiSelect` + "doesn't matter". Types they didn't pick ->
+  `blocklist.employment_types` (hidden, by the job search's own tag; untagged jobs stay) - say the
+  count each hides from `probe --facets employment_type <their params>` before saving
 - lowest yearly pay - 4 bands (ranks higher-paying first, never hides jobs; say so in the question)
 
 Then narrowing what they picked:
@@ -75,7 +77,8 @@ Then narrowing what they picked:
   -> can't hold one, no question). "About N of your matches need a US security clearance - only
   US citizens can hold one. Can you?" Yes, I have one or can get one / No / Not sure ->
   `work_authorization.can_hold_clearance` true / false / null. No -> they sort lower, never
-  hidden; every such job says "needs a security clearance" either way.
+  hidden; every such job says "needs a security clearance" either way. Can hold one but don't
+  want government / defense work -> `blocklist.clearance: true` hides them (say the count).
 
 Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
 `jobgether` + `builtin-integration-sandbox` w/o asking, but say why in one sentence when you
@@ -104,7 +107,12 @@ showing jobs from <company>" any time.
 - "Too many" + a named technology => search `skills=<tech>` alone, drop `category=`. Then read
   100 rows' `enrichment.category` and blocklist the non-role ones the tag leaks onto: measure it
   (`skills=react` 2026-09-20 leaked Sales Consultant, Payment Operations Analyst, Product
-  Designer, Product Manager), never guess the list.
+  Designer, Product Manager), never guess the list. Then the titles: a skill tag also lands on
+  roles outside their kind of work (`skills=react` 2026-10-01, 1,275 rows: back-end 127, data /
+  AI 108, managers 99, mobile 28, testing 13). Count each group w/ `rank --would-hide "<word>"`,
+  read its titles (a full-stack or front-end title caught -> `title_keep`), then ONE clickable
+  multiSelect w/ counts: "Which kinds should I hide? Tick all that fit, then Submit" ->
+  `blocklist.title_phrases`.
 - Rank has NO per-skill boost (`rank.py`: tier, likely-ghost/level/hours mismatch, pay,
   employer lists, age - `app/defaults.yml` #rank), and a row matching two passes keeps the LAST
   pass's tier. So "X first, everything else after" is NOT expressible w/ overlapping passes -

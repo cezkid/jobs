@@ -22,6 +22,9 @@ missing -> `job-setup` skill instead.
      `uv run app/jobs.py rank --would-hide "<phrase>"`, tell user the count it hides; read
      the titles - phrase also inside a wider title ("Member of Technical Staff", "Senior/Staff")
      -> `blocklist.title_keep` spares those, say count kept
+   - "too many irrelevant jobs" -> group the open titles by kind of work (back-end, data / AI,
+     managers, mobile, testing), count each w/ `rank --would-hide`, ONE clickable multiSelect w/
+     counts, then `blocklist.title_phrases` (+ `title_keep` for full-stack / front-end titles caught)
    - wrong kind of job ("no part-time", "no contract") -> `blocklist.employment_types`; count rows
      w/ that tag first (untagged rows stay)
    - "no government / security clearance jobs" -> `blocklist.clearance: true`; count w/
