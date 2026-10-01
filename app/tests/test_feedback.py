@@ -60,6 +60,7 @@ def test_wording_and_personal_notes_land_in_their_sections(tmp_path):
     text = report.read_text(encoding="utf-8")
     assert "theatre -> theater" in text.split("## Wording notes")[1].split("##")[0]
     assert "street address" in text.split("## Details and dates")[1]
+    assert "[Unfair hiring - what's known, what helps](../Guides/Unfair%20hiring" in text.split("## Details and dates")[1]
 
 
 def test_breaks_get_a_note_by_length_and_a_running_search_none_as_a_fault(tmp_path):

@@ -7,6 +7,8 @@
 - [Who sees what](../../Guides/Who%20sees%20what.md) - what stays on the computer, what leaves and when.
 - [What makes a good resume](../../Guides/What%20makes%20a%20good%20resume.md) - every rule
   in one line, w/ strength of its evidence.
+- [Unfair hiring - what's known, what helps](../../Guides/Unfair%20hiring%20-%20what's%20known,%20what%20helps.md) -
+  name, age, breaks, records, AI screening: what helps, w/ strength of its evidence.
 
 **AI assistant + contributors** - measured facts + evidence behind the code. Read the area's doc
 before changing it: each records what was measured and rejected, so a retired rule stays retired.

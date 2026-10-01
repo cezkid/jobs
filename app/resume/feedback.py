@@ -22,6 +22,8 @@ from resume import lint, render, schema
 REPORT_NAME = "Resume feedback.md"
 STATE = cfg.DATA / "resume-feedback.json"
 GUIDE = "../Guides/What makes a good resume.md"
+# shown under Details and dates - fires on dates/details in the file, the same line for everyone
+BIAS_GUIDE = "../Guides/Unfair hiring - what's known, what helps.md"
 STRONG, GOOD, LOOK = "Strong", "Good", "Worth a look"
 # share of lines carrying a number or scope. Career guidance asks for evidence on most lines,
 # not all (docs/resume/bullets.md: "every bullet needs a metric" did not survive) - convention, not measured
@@ -143,6 +145,8 @@ def report_md(result: dict, moved: list[str]) -> str:
             n = result["bundle"]["old_jobs"]
             jobs = f", the {n} job(s) that ended {lint.OLD_GRADUATION_YEARS}+ years ago (kept with no lines, or left off)" if n else ""
             out += ["", BUNDLE.format(years=lint.AGE_BUNDLE_YEARS, old=lint.OLD_GRADUATION_YEARS, jobs=jobs)]
+        out += ["", "Worried about bias - your name, age or a break? Ask any time, or read "
+                    f"[Unfair hiring - what's known, what helps]({BIAS_GUIDE.replace(' ', '%20')})."]
     out += ["", "## What your lines show", ""]
     for quality, found in result["shown"].items():
         out.append(f"**{quality}** - {len(found)} line(s)" + (":" if found else

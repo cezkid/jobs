@@ -62,6 +62,11 @@ More: [readability](../app/docs/resume/bullets.md#tier-4---clarity) ·
 More: [rejected advice](../app/docs/resume/bullets.md#what-did-not-survive) ·
 [format advice declined](../app/docs/resume/page-format.md#advice-declined)
 
+## Bias you can't fix with wording
+
+Name, age, a break, a record: what's known and what helps -
+**[Unfair hiring - what's known, what helps](Unfair%20hiring%20-%20what's%20known,%20what%20helps.md)**
+
 ## See how yours reads
 
 Say **"how good is my resume?"** - answer lands in **Resume feedback**, in My Resume.

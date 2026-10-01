@@ -23,7 +23,7 @@ Covers this chat in VS Code too.
 ## Work or school account?
 
 Claude Team or Enterprise, ChatGPT Business, Enterprise or Edu: chats aren't used for training
-by default. Nothing to do. Same if you signed in with a developer (API) key.
+by default. Nothing to do. Same if you signed in with a developer API key.
 
 ## What the switch does and doesn't do
 

@@ -11,6 +11,8 @@ Type in the chat box on the right, in your own words. You never type commands or
 - **Where things stand:** "I sent job 3" · "I heard back from job 3" · "Is job 3 still open?" ·
   "Job 3 is closed"
 - **Anything:** "Who can see my information?" · "Why?"
+- **Bias:** worried about bias - your name, age or a break? Ask any time.
+  **[Unfair hiring - what's known, what helps](Unfair%20hiring%20-%20what's%20known,%20what%20helps.md)**
 
 Job numbers stay the same everywhere: the chat, the Today page and the morning email.
 
