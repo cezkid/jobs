@@ -12,7 +12,9 @@ KINDS = {"text", "longtext", "email", "phone", "url", "number", "date", "locatio
          "yesno", "choice", "multichoice", "file"}
 # what a question is about when the system marks it (its own system field ids, or a title match)
 KEYS = {"name", "first_name", "last_name", "email", "phone", "location", "resume",
-        "linkedin", "github", "website", None}
+        "linkedin", "github", "website", "street", "city", "state", "zip", None}
+# home address boxes, answered from `home_address` in search settings (never on the resume)
+ADDRESS = {"street", "city", "state", "zip"}
 # questions that are the user's to answer, never guessed (job-apply hard limits)
 ASK = "ask the user"
 FILE = "application.json"
@@ -94,6 +96,10 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
     for q in qs:
         if q["id"] in kept:
             out.append({**q, "answer": kept[q["id"]]["answer"], "source": kept[q["id"]].get("source", "")})
+            continue
+        home = (config or {}).get("home_address") or {}
+        if q["key"] in ADDRESS and home.get(q["key"]):
+            out.append({**q, "answer": str(home[q["key"]]), "source": "search settings - name it to the user"})
             continue
         permit = work_permit(q, config or {})
         if permit is not None:

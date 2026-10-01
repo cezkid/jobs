@@ -32,14 +32,14 @@ The rest read by element id / `data-automation` (below). `SNAPSHOT` in `ukg.py` 
 | What | On the page | Filler rule |
 |---|---|---|
 | Name, email | `#FirstName`, `#FamilyName`, email as text - from the account | never filled; page says change the name on "My presence" before Submit |
-| Phone, address | `#Phone` (tel), `#AddressLine1`, `#City`, `#PostalCode`; address, city, state, zip required | `fill` + `change` event + blur; phone read back by digits. Address = user's, asked |
+| Phone, address | `#Phone` (tel), `#AddressLine1`, `#City`, `#PostalCode`; address, city, state, zip required | `fill` + `change` event + blur; phone read back by digits. Address = user's: `home_address` in search settings, else asked |
 | Country, State | `select#Country`, `select#State` | select by label; State list reloads after Country - wait for the option (up to 10s) |
 | How did you hear | `select#ApplicantSource` | asked, never guessed |
 | Referral | radios `data-automation=yes-employee-referral-radio` / `no-...` | check; referral name box shows only after Yes |
 | Start date | UKG date picker `[data-automation=available-start-date-datepicker]`: 3 inputs Month / Day / Year inside a web component | type each part, Tab out, read back. Required |
 | Screening questions | `[data-automation=application-knockout-question]` in `ApplicationQuestions` order; hidden templates inside each block reuse the same `data-automation` | find block by GUID via `ko.dataFor(block).Id`; MultipleChoice = radio w/ `span.radio-text`, click visible one by exact text; Text = visible `textarea[data-automation=text-response]`; Numeric = `input[data-automation=numeric-response]` |
 | Resume | `input[type=file][data-automation=upload-file-input]` in `[data-automation=application-documents]`; row shows file name, Document Type defaults to Resume | upload only after user's yes; confirm file name shows |
-| Self-identification | `select#Gender`, `#HispanicOrigin`, `#EthnicOrigin` (Race - shown only after "Not Hispanic/Latino"), `#USFederalContractor` (protected veteran); each has an "I decline to say" checkbox in its `.form-group` | select by label; "I decline to say" = tick that checkbox. Asked unless user saved answers under `self_identification` |
+| Self-identification | `select#Gender`, `#HispanicOrigin`, `#EthnicOrigin` (Race - shown only after "Not Hispanic/Latino"), `#USFederalContractor` (protected veteran); each has an "I decline to say" checkbox in its `.form-group` | select by label; "I decline to say" = tick that checkbox - only when shown: Race hidden (list + box) after "Hispanic/Latino" -> skipped, else ticking waits 30s and fails (2026-09-30). Asked unless user saved answers under `self_identification` |
 | Behaviors, Motivations, Availability | tag pickers + day grid, optional | left for the user - self-description, never guessed |
 
 ## Work history, education, skills, links (resume sections)
@@ -63,6 +63,12 @@ on the site at once** (`POST .../Candidate/InsertWorkExperience`, measured) - be
   .help-block`; hint lines ("Leave this blank if you currently work here") share `.help-block`.
 - Rerun safe: work entry skipped when "Title, Company" already listed, school by name, skill by
   text, link by `href`.
+
+## Sent or not
+
+No sent page in history. Signed in: My Presence (`.../Candidate/ViewPresence`) -> Applications
+tab lists Job / Status / Date applied, or "You have not yet applied to any opportunities". Detail
+page keeps "Apply now" either way - not a sign. `app/docs/apply/sent.md`.
 
 ## Browser
 
