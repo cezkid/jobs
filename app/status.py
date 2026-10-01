@@ -39,6 +39,24 @@ STAGES = {
     "heard_back": "3 Heard back", "interview": "3 Heard back", "offer": "3 Heard back",
     "no": "4 Closed", "not_sending": "4 Closed", "closed": "4 Closed",
 }
+# stage folders under names since changed: removed once empty (a job inside is filed out first,
+# never deleted); a stray Finder .DS_Store doesn't count as content
+RETIRED_STAGES = ("1 To send", "2 Sent")
+
+
+def retire_stages(jobs_dir: Path) -> list[Path]:
+    gone = []
+    for name in RETIRED_STAGES:
+        d = jobs_dir / name
+        if not d.is_dir() or any(c.name != ".DS_Store" for c in d.iterdir()):
+            continue
+        try:
+            (d / ".DS_Store").unlink(missing_ok=True)
+            d.rmdir()
+            gone.append(d)
+        except OSError:  # something appeared or is open: left for next time
+            pass
+    return gone
 
 
 def state_key(word: str) -> str:
@@ -377,6 +395,8 @@ def sort_folders(conn, jobs_dir: Path, key: str | None = None,
             if key in (None, folder_key(f)) and (to := placed(conn, f, jobs_dir)) and to != f["dir"]]
     moved, stuck = [], []
     if not todo:
+        if key is None:
+            retire_stages(jobs_dir)
         return moved, stuck
     with lock(wait_s):
         for d, to in todo:
@@ -392,6 +412,8 @@ def sort_folders(conn, jobs_dir: Path, key: str | None = None,
                 moved.append((d, to))
             except OSError as e:
                 stuck.append((d, f"could not move now - {e.strerror or type(e).__name__}"))
+        if key is None:
+            retire_stages(jobs_dir)
     return moved, stuck
 
 
