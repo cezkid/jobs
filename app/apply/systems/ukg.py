@@ -22,8 +22,8 @@ MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", 
 # UKG screening question type -> shared kind; Yes/No choices become yesno below
 KIND = {"MultipleChoice": "choice", "Text": "longtext", "Numeric": "number"}
 # contact boxes the form shows under the account's name; name + email come from the account itself
-FIELDS = {"Country": ("choice", None), "AddressLine1": ("text", None), "City": ("text", None),
-          "State": ("choice", None), "PostalCode": ("text", None), "Phone": ("phone", "phone"),
+FIELDS = {"Country": ("choice", None), "AddressLine1": ("text", "street"), "City": ("text", "city"),
+          "State": ("choice", "state"), "PostalCode": ("text", "zip"), "Phone": ("phone", "phone"),
           "ApplicantSource": ("choice", None)}
 DECLINE = "I decline to say"
 PROFILE = "resume-sections"
@@ -146,12 +146,14 @@ def put_select(page, select, value: str) -> str:
 
 def put_self_id(page, q: dict) -> str:
     select = page.locator(f"#{q['id']}")
+    # before the decline box too: Race (list + box) shows only after "Not Hispanic/Latino", and
+    # ticking its hidden box waited 30s then failed (2026-09-30)
+    if not select.is_visible():
+        return "skipped - not shown for the other answers"
     if q["answer"] == DECLINE:
         box = page.locator(f".form-group:has(#{q['id']}) input[type=checkbox]").first
         box.check()
         return "ok" if box.is_checked() else "FAIL decline box not ticked"
-    if not select.is_visible():  # Race shows only after "Not Hispanic/Latino"
-        return "skipped - not shown for the other answers"
     return put_select(page, select, q["answer"])
 
 

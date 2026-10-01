@@ -65,7 +65,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
 3. Fill each blank `answer` in that file: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
    question: `answer: true` only after they said yes to the named file (hard limits). Location: the
-   city they live in. Answers from search settings: name them to the user.
+   city they live in. Home address: `home_address` in search settings fills it; not set -> ask, offer to
+   keep it there (never on the resume). Answers from search settings: name them to the user.
    UKG: form shows only after sign-in - `prepare` stops on the sign-in page in Job Finder's
    Chrome; user signs in or creates the account there, then rerun `prepare`. Its
    `resume-sections` question (add work history, education, skills, links from the resume): UKG
@@ -78,6 +79,12 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
 6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).
 
 ## Did you send it?
+
+Look first, ask second (`app/docs/apply/sent.md`). Once they say they're done on the page, read
+the tab yourself: Greenhouse address ends `/confirmation`; Workday lands on Candidate Home
+(`/jobTasks/completed/application`); UKG -> My Presence, Applications lists the job. Shown ->
+`status set 12 applied`, say so in one line, no question. Ashby + any page showing nothing ->
+ask below.
 
 End of every apply, one question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):
 - **Sent** -> `uv run app/jobs.py status set 12 applied`

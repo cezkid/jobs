@@ -172,7 +172,7 @@ def test_ukg_link_detail_or_apply_with_or_without_tracking_tail():
 def test_ukg_form_becomes_shared_questions():
     got = {x["id"]: x for x in ukg.from_snapshot(UKG_FORM)}
     assert got["Phone"]["key"] == "phone" and got["Phone"]["kind"] == "phone"
-    assert got["AddressLine1"]["key"] is None and got["State"]["options"] == ["Alabama", "New Jersey"]
+    assert got["AddressLine1"]["key"] == "street" and got["State"]["options"] == ["Alabama", "New Jersey"]
     assert got["resume"]["kind"] == "file" and got["start-date"]["kind"] == "date"
     assert got["employeereferral"]["kind"] == "yesno"
     fed = got["0a1b2c3d-0000-4000-8000-000000000001"]
@@ -191,6 +191,37 @@ def test_ukg_form_questions_asked_not_guessed():
     drafted = questions.draft(ukg.from_snapshot(UKG_FORM), CONTACT, config=config)
     answered = {a["id"]: a["answer"] for a in drafted if a["answer"]}
     assert answered == {"Phone": "555-0100"}  # everything else - address, disclosures, sections - asked
+
+
+def test_ukg_address_from_saved_home_address_only():
+    config = {"home_address": {"street": "1 Main St", "city": "Springfield", "state": "Ohio", "zip": "04501"}}
+    drafted = {a["id"]: a for a in questions.draft(ukg.from_snapshot(UKG_FORM), CONTACT, config=config)}
+    got = {i: drafted[i]["answer"] for i in ("AddressLine1", "City", "State", "PostalCode") if i in drafted}
+    assert got == {i: v for i, v in {"AddressLine1": "1 Main St", "City": "Springfield", "State": "Ohio",
+                                     "PostalCode": "04501"}.items() if i in drafted}
+    assert all(drafted[i]["source"].startswith("search settings") for i in got)
+
+
+class FakeBox:
+    def __init__(self, visible): self.visible, self.checked = visible, False
+    def is_visible(self): return self.visible
+    def is_checked(self): return self.checked
+    def check(self):
+        assert self.visible, "ticked a hidden box"  # Playwright waits 30s, then fails
+        self.checked = True
+    @property
+    def first(self): return self
+
+
+class FakeSelfIdPage:
+    def __init__(self, visible): self.box = FakeBox(visible)
+    def locator(self, selector): return self.box
+
+
+def test_ukg_decline_skipped_when_race_is_hidden():
+    q = {"id": "EthnicOrigin", "answer": ukg.DECLINE}
+    assert ukg.put_self_id(FakeSelfIdPage(visible=False), q).startswith("skipped")  # Hispanic/Latino hides Race
+    assert ukg.put_self_id(FakeSelfIdPage(visible=True), q) == "ok"
 
 
 def test_ukg_resume_sections_mapping():

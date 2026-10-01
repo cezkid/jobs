@@ -56,6 +56,16 @@ work_authorization:
   # require it (government work, export-controlled products); refugee/asylee status is not
   citizen_or_permanent_resident: null
 
+# Home address application forms ask for (UKG requires it). Saved only when the user says to keep
+# it; never on the resume (full street address = privacy risk, no hiring value). null = asked.
+home_address:
+  street: null
+  city: null
+  # full name ("Ohio") - forms pick it off a list by name
+  state: null
+  # quoted: a ZIP starting with 0 would lose it as a number
+  zip: null
+
 # Ranking (rank.py). Order: tier > not seen lately (may be closed) > likely ghost / level /
 # hours / sponsorship mismatch > pay floor > pay > employer lists > first seen. Nothing here hides a job.
 rank:

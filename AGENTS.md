@@ -66,6 +66,10 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
   never nagged. User mentions one anyway ("I heard back from Acme") -> `status set`.
 - User says it in passing ("applied to Acme", "got an interview") -> `status set` by number,
   link or `--company C --title T`, confirm in one line. Never a count of unsent resumes.
+- Unsure what they sent ("which did I apply to?"): `status sent` - reads browser history on this
+  computer (nothing leaves it; say so), each job not marked sent -> sent / likely not sent /
+  can't tell, w/ why. Sent -> `status set`, say which page showed it; the rest -> ONE clickable
+  multiSelect "which did you send?", never more sure than its reason. Facts: `app/docs/apply/sent.md`.
 - Still open? `status open`: each job in progress -> open / may be closed / can't tell, w/ its
   reason; say that reason, never more sure than it. Pasted or found elsewhere = can't tell (never
   on the job list) - never guess from the posting. Never fetches the employer's page (would send

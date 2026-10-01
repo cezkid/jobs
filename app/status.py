@@ -292,6 +292,8 @@ def main() -> None:
     steps.add_parser("list", help="every job w/ a status, newest first (default)")
     steps.add_parser("ask", help="chat start: the one job to ask 'did you send it?' about, if any")
     steps.add_parser("open", help="each job in progress: open, may be closed, or can't tell - and why")
+    steps.add_parser("sent", help="each job not marked sent: sent page in this computer's browser history? sent,"
+                     " likely not sent, can't tell - and why")
     for name, helptext in (("show", "one job's status"), ("set", "record a job's status"),
                            ("move-closed", "move a job's folder to My Jobs/Closed - only after the user said yes")):
         p = steps.add_parser(name, help=helptext)
@@ -330,6 +332,18 @@ def main() -> None:
                 print(line(row) + "\n      " + " - ".join(still_open(conn, row, stale_days, now)))
             if not rows:
                 print("no jobs in progress")
+            return
+        if args.step == "sent":
+            import sent
+            visits, unread = sent.all_visits()
+            rows = numbered(conn, [r for r in in_progress(conn) if r["state"] in ("saved", "resume_made")])
+            for row in rows:
+                print(line(row) + "\n      " + " - ".join(sent.verdict(row, visits)))
+            if not rows:
+                print("no jobs waiting to be sent")
+            if unread:
+                print("could not read: " + ", ".join(unread) + " (macOS: Safari needs Full Disk Access)"
+                      * ("Safari" in unread))
             return
         try:
             job = resolve(conn, jobs_dir, args.job, args.company, args.title, args.url)

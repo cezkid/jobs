@@ -21,6 +21,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/workday.md](apply/workday.md) | Workday forms, filled through the Chrome extension |
 | Applying | [apply/ashby.md](apply/ashby.md) | Ashby forms, filled in Job Finder's own Chrome |
 | Applying | [apply/ukg.md](apply/ukg.md) | UKG Pro Recruiting forms: sign-in first, resume sections saved as added |
+| Applying | [apply/sent.md](apply/sent.md) | Was it sent? Sent page + applied list per system, browser-history check, what it can't see |
 
 Assistant instructions: [AGENTS.md](../../AGENTS.md) + skills in [../skills/](../skills/).
 Contributing: [.github/CONTRIBUTING.md](../../.github/CONTRIBUTING.md).
