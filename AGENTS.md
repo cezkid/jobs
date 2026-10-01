@@ -65,7 +65,7 @@ unseen - a tab badge is the only sign one waits.
 Status = saved, resume made, applied, heard back, interview, no, offer, not sending, closed
 (`uv run app/jobs.py status`). Users never type it unasked - so it is recorded or asked:
 
-- Each job's folder lives under its stage: `My Jobs/1 To send` (saved, resume made), `2 Sent`,
+- Each job's folder lives under its stage: `My Jobs/1 To apply` (saved, resume made), `2 Applied`,
   `3 Heard back` (heard back, interview, offer), `4 Closed` (no, not sending, closed). `status
   set` moves it + prints `folder: <path>` - paths printed earlier are stale, use that one
   (`status show 12` prints it too). "not moved now" (file open on Windows) -> say it moves at next
@@ -207,7 +207,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   (`resume-feedback`: how their resume reads - numbers, wording, leadership / initiative /
   teamwork, details + dates; layout never scored, the gates enforce it).
 - `My Jobs/<stage>/Job N - Company - Title/` - one per tailored job, under where it stands
-  (`1 To send` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
+  (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.

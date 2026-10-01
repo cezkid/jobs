@@ -34,8 +34,8 @@ IN_PROGRESS = ("saved", "resume_made", "applied", "heard_back", "interview")
 # applied, interviewing, closed) - convention, not a measured rule. Numbered => every file list
 # (VS Code, Finder, Explorer, a browser's upload box) shows the stages in this order
 STAGES = {
-    "saved": "1 To send", "resume_made": "1 To send",
-    "applied": "2 Sent",
+    "saved": "1 To apply", "resume_made": "1 To apply",
+    "applied": "2 Applied",
     "heard_back": "3 Heard back", "interview": "3 Heard back", "offer": "3 Heard back",
     "no": "4 Closed", "not_sending": "4 Closed", "closed": "4 Closed",
 }
@@ -401,7 +401,7 @@ def folder_of(jobs_dir: Path, key: str) -> Path | None:
 
 def file_job(conn, jobs_dir: Path, job_dir: Path) -> tuple[Path, str | None]:
     """A job tailored (again) => its folder filed now, before any path is handed out. Tailoring a
-    closed one again reopens it (saved => To send). -> folder, status it left when reopened."""
+    closed one again reopens it (saved => To apply). -> folder, status it left when reopened."""
     f = folder(job_dir)
     if f is None:
         return job_dir, None

@@ -29,7 +29,7 @@ and job boards. Each job links to the real posting. New ones checked every morni
 - Your facts: **Resume details.yml** in My Resume. Change a line, or tell the chat.
 - Nothing made up. Employers, titles, dates stay as you gave them.
 - One resume per job, in **My Jobs**. You approve every reworded line first.
-- My Jobs is sorted by where each job stands: **To send**, **Sent**, **Heard back**, **Closed**.
+- My Jobs is sorted by where each job stands: **To apply**, **Applied**, **Heard back**, **Closed**.
   Tell the chat what happened and the folder moves on its own. Move one yourself and it goes
   back next time you start.
 - Why it's written that way: **[What makes a good resume](What%20makes%20a%20good%20resume.md)**

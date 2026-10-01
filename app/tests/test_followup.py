@@ -46,7 +46,7 @@ def test_command_writes_the_draft_into_the_job_folder(tmp_path, monkeypatch, cap
     import store
     from test_status import make_folder
     jobs_dir = tmp_path / "My Jobs"
-    folder = make_folder(jobs_dir / "2 Sent", "Job 1 - Globex - Data Analyst", "https://jobs.lever.co/globex/1",
+    folder = make_folder(jobs_dir / "2 Applied", "Job 1 - Globex - Data Analyst", "https://jobs.lever.co/globex/1",
                          "Globex", "Data Analyst", "g-da")
     config = {"db": str(tmp_path / "jobs.db"), "resume": {"jobs_dir": str(jobs_dir), "master": str(tmp_path / "r.yml")}}
     monkeypatch.setattr(followup.cfg, "load", lambda: config)
