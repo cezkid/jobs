@@ -397,7 +397,7 @@ def evaluate(master: dict, job: dict, tailored: dict, out_dir: Path, font: str =
     # every fact on the page is the most words the truth can reach: below a window, budget reports
     available = page_words(render.page_model(master))
     pdf, gates = render.render(model, out_dir, budget=True, font=font, available=available)
-    findings = lint.lint(model, master, lint_inferences(tailored), posting_text(job))
+    findings = lint.lint(model, master, lint_inferences(tailored), posting_text(job), font)
     selection = check_selection(master, job, tailored, font)
     failed = [
         *selection,

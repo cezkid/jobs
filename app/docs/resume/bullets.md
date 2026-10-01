@@ -147,6 +147,7 @@ one instance.
 | `bullet-taper` | older role more bullets than newer above | WARN |
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
 | `em-dash`, `markdown`, `invisible-unicode` | generated-text characters | via `hit()` |
+| `font-coverage` | a character the typeface can't draw (✓ ★ Greek μ; Vietnamese ị ạ ơ ư in Caladea) - Typst prints it in a font of its own. Own facts (a name, an employer) WARN: can't be rewritten | via `hit()`, own or every missing letter in their facts -> WARN |
 | `street-address`, `personal-details`, `old-graduation-year`, `old-certification-year`, `abbreviated-school` | own file only (`resume-lint`): house number, apartment, suite, ZIP in location; birth date, age, marital status, nationality; degree or certification 15+ years ago w/o `hide_year` (degree 20+ years -> detail recommends it, feedback adds the bundle note once); shortened school (CC, Univ., U of); languages line not one language + bracketed level | WARN |
 | `spelling` | British form (`US_FORMS`: theatre, colour, organise, modelling, licence...) or unknown word one letter from a known one, likely word named. Skips skills, stack, `WORK_WORDS` (workflow, dataset, telehealth...), names, tool tokens; generated may use any facts/posting word. Scorers fail the page on one error | via `hit()` |
 | `compound-modifier` | one of 32 open two-word modifiers before noun (*live streaming channels*, *full stack engineer*); never after (*shipped end to end*) | WARN |
@@ -189,6 +190,7 @@ Mirrored from `lint.WHY`; `test_lint` keeps them in step.
 | `bullet-taper` | An older job has more lines than a newer one. |
 | `canonical-casing` | A tool name is spelled differently from its official spelling. |
 | `em-dash` | Long dashes are a common sign of AI-written text. |
+| `font-coverage` | Your resume's typeface has no shape for this character, so it prints in another typeface that looks out of place. |
 | `markdown` | Formatting symbols would show up as stray characters. |
 | `invisible-unicode` | An invisible character could trip up job-site software. |
 | `street-address` | City and state is enough; a street address adds nothing and exposes you. |

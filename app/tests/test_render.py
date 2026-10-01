@@ -317,6 +317,14 @@ def test_project_location_and_blurb_print_under_its_name(master, tmp_path):
     assert failed(render.check(path, model, budget=False)) == {}
 
 
+def test_unforeseen_substitution_fails_typeface_gate(master, tmp_path, monkeypatch):
+    """A letter drawn in another font that nothing predicted = the width model is wrong."""
+    master["contact"]["name"] = "Thị Doe"
+    monkeypatch.setattr(render.typeface, "missing_glyphs", lambda family, text: [])
+    _, results = render.render(render.page_model(master), tmp_path, budget=False)
+    assert "LibertinusSerif" in failed(results)["typeface"]
+
+
 def test_education_leads_with_no_jobs_or_a_fresh_degree(master):
     today = render.date(2026, 9, 24)
     assert [s["title"] for s in render.page_model(master, today)["sections"]][0] == "Experience"

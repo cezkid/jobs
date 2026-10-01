@@ -280,6 +280,16 @@ def test_one_line_bullet_every_fifth_clears_the_craft_floor(master, model):
     assert "uniform-bullet-length" not in rules(lint.lint(model, master), lint.WARN)
 
 
+def test_missing_letter_fails_generated_warns_own(master, model):
+    """A check mark the writer added can go; the user's own name can't be rewritten."""
+    model["contact"]["name"] = master["contact"]["name"] = "Thị Doe"
+    model["sections"][0]["entries"][0]["bullets"][0] = "Shipped 3 releases ✓ on time"
+    findings = lint.lint(model, master)
+    fails = [f for f in findings if f.rule == "font-coverage" and f.severity == lint.FAIL]
+    warns = [f for f in findings if f.rule == "font-coverage" and f.severity == lint.WARN]
+    assert [f.where for f in warns] == ["contact"] and "✓" in fails[0].detail
+
+
 def test_every_rule_has_a_plain_reason_and_the_doc_carries_it():
     source = (cfg.APP / "resume" / "lint.py").read_text(encoding="utf-8")
     emitted = set(re.findall(r'(?:Finding\(\w+, |hit\(|\(\()"([a-z-]+)"', source))

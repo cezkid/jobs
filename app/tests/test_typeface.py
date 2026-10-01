@@ -119,3 +119,17 @@ def test_added_family_lives_outside_program_folder(tmp_path, monkeypatch):
     family_dir(tmp_path, "Carlito")
     assert typeface.folder("Carlito") == tmp_path / "Carlito"
     assert "Carlito" in typeface.installed()
+
+
+def test_letters_typst_composes_count_as_covered():
+    """Caladea draws "ễ" from e + accents; "ị" needs a dot-below mark it lacks."""
+    assert typeface.covered(typeface.DEFAULT, "ễ") and typeface.covered(typeface.DEFAULT, "ș")
+    assert typeface.missing_glyphs(typeface.DEFAULT, "Nguyễn Thị Ạnh ✓ ✓") == ["ị", "Ạ", "✓"]
+    assert typeface.missing_glyphs(typeface.DEFAULT, "José Núñez, Łukasz, ≥ 5 µg") == []
+
+
+def test_letter_the_family_lacks_is_named_with_the_face_that_drew_it(master, tmp_path):
+    master["contact"]["name"] = "Thị Doe"
+    _, results = render.render(render.page_model(master), tmp_path, budget=False)
+    gate = {name: (ok, detail) for name, ok, detail in results}
+    assert gate["typeface (info)"][0] and "'ị' in LibertinusSerif" in gate["typeface (info)"][1]

@@ -46,6 +46,7 @@ GATE_WHY = {
     "no-prose-block": "No paragraph too long for a quick read",
     "size": "The file is small enough to upload anywhere",
     "fonts": "Fonts are built into the file",
+    "typeface": "Every letter prints in your resume's typeface",
     "no-images": "No pictures that software cannot read",
     "tagged": "The file is tagged for screen readers",
     "no-table": "No tables that software reads out of order",

@@ -9,7 +9,7 @@ from datetime import date
 from pathlib import Path
 
 import cfg
-from resume import render, schema
+from resume import render, schema, typeface
 
 FAIL = "fail"
 WARN = "warn"
@@ -198,6 +198,7 @@ WHY = {
     "bullet-taper": "An older job has more lines than a newer one.",
     "canonical-casing": "A tool name is spelled differently from its official spelling.",
     "em-dash": "Long dashes are a common sign of AI-written text.",
+    "font-coverage": "Your resume's typeface has no shape for this character, so it prints in another typeface that looks out of place.",
     "markdown": "Formatting symbols would show up as stray characters.",
     "invisible-unicode": "An invisible character could trip up job-site software.",
     "street-address": "City and state is enough; a street address adds nothing and exposes you.",
@@ -353,7 +354,8 @@ def open_compounds(text: str) -> list[str]:
             for m in COMPOUND.finditer(text) if m.group(2).lower() not in NOT_A_NOUN]
 
 
-def lint(model: dict, master: dict, inferences: list[dict] | None = None, posting: str = "") -> list[Finding]:
+def lint(model: dict, master: dict, inferences: list[dict] | None = None, posting: str = "",
+         font: str = typeface.DEFAULT) -> list[Finding]:
     """`posting` = the job's own text: a style or grade word it uses is its term, not the writer's."""
     inferences = inferences or []
     findings: list[Finding] = []
@@ -410,6 +412,11 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
                     findings.append(Finding(WARN, "canonical-casing", where, f"{m.group()!r} -> {canon!r}: {text!r}"))
         if EM_DASH in text:
             hit("em-dash", where, text, "U+2014", own)
+        # a letter the typeface lacks prints in another one; in the user's own facts (a name, an
+        # employer) it can't be rewritten away, so it only warns
+        if missing := typeface.missing_glyphs(font, text):
+            hit("font-coverage", where, text, f"{' '.join(missing)} not in {font}",
+                own or all(c in corpus for c in missing))
         if MARKDOWN.search(text):
             hit("markdown", where, text, f"{MARKDOWN.search(text).group()!r}", own)
         if INVISIBLE.search(text):
@@ -579,8 +586,9 @@ def main() -> None:
     ap.add_argument("--master", type=Path, help="master yml (default config resume.master)")
     args = ap.parse_args()
     started = time.perf_counter()
-    master = schema.load(args.master or cfg.resume_path(cfg.load(), "master"))
-    findings = lint(render.page_model(master), master) + master_findings(master, date.today())
+    config = cfg.load()
+    master = schema.load(args.master or cfg.resume_path(config, "master"))
+    findings = lint(render.page_model(master), master, font=cfg.resume_font(config)) + master_findings(master, date.today())
     for f in findings:
         print(f"  {f.severity}  {f.rule:22} {f.where:28} {f.detail}")
     fails = sum(f.severity == FAIL for f in findings)

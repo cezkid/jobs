@@ -275,8 +275,9 @@ def file_name(model: dict) -> str:
 
 
 def compile_pdf(model: dict, font: str = typeface.DEFAULT) -> bytes:
-    # one family's folder, no system fonts: a face the family lacks can never be filled in
-    # silently from another, so what renders is what measure.py measured
+    # one family's folder, no system fonts. Typst still fills a character the family lacks from
+    # its own bundled fonts (typeface.missing_glyphs) - lint names those before this compile, the
+    # `typeface` gate reads the PDF after it
     pdf = typst.compile(
         str(TEMPLATE), font_paths=[str(typeface.folder(typeface.use(font)))], ignore_system_fonts=True,
         sys_inputs={"data": json.dumps(with_page(model, font), ensure_ascii=False)}, pdf_standards="ua-1",
@@ -305,6 +306,22 @@ def pdf_text(path: Path, sort: bool) -> str:
 def first_divergence(a: list[str], b: list[str]) -> str:
     i = next((i for i, (x, y) in enumerate(zip(a, b)) if x != y), min(len(a), len(b)))
     return f"word {i}: {' '.join(a[i:i + 6])!r} vs {' '.join(b[i:i + 6])!r}"
+
+
+def foreign_glyphs(doc: pymupdf.Document, family: str) -> dict[str, str]:
+    """Each character drawn in a face outside `family` -> that face's name."""
+    want = re.sub(r"[\W_]", "", family).casefold()
+    out: dict[str, str] = {}
+    for page in doc:
+        for block in page.get_text("rawdict")["blocks"]:
+            for line in block.get("lines", []):
+                for span in line["spans"]:
+                    face = span["font"].split("+")[-1]
+                    if not re.sub(r"[\W_]", "", face).casefold().startswith(want):
+                        for ch in span["chars"]:
+                            if not ch["c"].isspace():
+                                out.setdefault(ch["c"], face)
+    return out
 
 
 def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT,
@@ -351,6 +368,16 @@ def check(path: Path, model: dict, budget: bool, font: str = typeface.DEFAULT,
         gate("fonts", bool(fonts) and not bad_fonts, f"{len(fonts)} embedded w/ ToUnicode" if not bad_fonts else f"missing embed/ToUnicode: {bad_fonts}")
         images = sum(len(page.get_images()) for page in doc)
         gate("no-images", images == 0, f"{images} images")
+        drawn = foreign_glyphs(doc, font)
+        predicted = set(typeface.missing_glyphs(font, "".join(page_strings(model))))
+        surprise = {c: f for c, f in drawn.items() if c not in predicted}
+        if surprise:
+            gate("typeface", False, "drawn in another typeface, unforeseen by the width model: " + ", ".join(
+                f"{c!r} in {f}" for c, f in surprise.items()))
+        elif drawn:
+            gate("typeface (info)", True, "lint names these: " + ", ".join(f"{c!r} in {f}" for c, f in drawn.items()))
+        else:
+            gate("typeface", True, f"every letter in {font}")
 
         catalog = doc.xref_object(doc.pdf_catalog())
         struct_types = {m for x in range(1, doc.xref_length()) for m in re.findall(r"/S /(\w+)", doc.xref_object(x))}
