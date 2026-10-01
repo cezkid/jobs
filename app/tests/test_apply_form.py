@@ -594,3 +594,19 @@ def test_ukg_work_history_takes_the_same_jobs_as_the_page(monkeypatch):
     assert ukg_profile(monkeypatch, jobs("page"), PAGE)[1] == ["acme", "globex"]
     result, added = ukg_profile(monkeypatch, jobs("page"), PAGE, "Work Experience - list your complete work history")
     assert added == ["acme", "globex", "initech", "hooli"] and result.startswith("ok") and "complete work history" in result
+
+
+def test_resume_found_after_the_page_name_changed(tmp_path, monkeypatch):
+    """Tailored as Jane_Doe_Resume.pdf, page name since changed to initials: the folder's one
+    resume PDF is the one; two of them -> none, never a guess."""
+    from apply import form
+    monkeypatch.setattr(form.cfg, "resume_path", lambda config, key: tmp_path / "details.yml")
+    monkeypatch.setattr(form.schema, "load", lambda path: {"contact": {"name": "J. Doe"}})
+    folder = tmp_path / "Job 3 - Acme - Clerk"
+    folder.mkdir()
+    (folder / "Jane_Doe_Resume.pdf").write_bytes(b"%PDF-1.7")
+    assert form.resume_for({}, folder) == str(folder / "Jane_Doe_Resume.pdf")
+    (folder / "Other_Resume.pdf").write_bytes(b"%PDF-1.7")
+    assert form.resume_for({}, folder) is None
+    (folder / "J_Doe_Resume.pdf").write_bytes(b"%PDF-1.7")
+    assert form.resume_for({}, folder) == str(folder / "J_Doe_Resume.pdf")

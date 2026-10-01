@@ -119,7 +119,9 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 ## 3. Resume
 
 - Ask for resume PDF (drag into chat), then
-  `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing).
+  `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing: it
+  replaces Resume details.yml - legal-name fields, career breaks, hidden years and language
+  levels added since are lost; say so before running it).
 - Do printed task yourself (`AGENTS.md` #AI writing steps), then
   `uv run app/jobs.py resume-import finish`. Gate fails -> copy source text more exactly, rerun.
   Read every "left out" line it prints to user; real facts go back in (awards, volunteering,
@@ -132,16 +134,32 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 - Photo, birth date, marital status or full street address came in -> push back once: US
   convention leaves them off (invites bias; city + state is enough) - convention, not a study.
   Offer to remove; their call.
-- `gap` line from `finish` (6+ months) -> raise kindly, never as a fault: "There's a 9-month
-  break between X and Y. A one-line reason is worth adding (caring for family, study,
-  relocation) - in one US study it won back over half of what the break cost. Want one?"
-  Yes -> `career_break` entry (dates + reason in their words; shows on the page, closes
-  the gap) or study / freelance / volunteering they really did as its own entry. No -> leave it.
+- `gap` line from `finish` (6+ months; their search running now is no break - say nothing) ->
+  privacy line first: "A few words is enough - no diagnosis or case details. What you type here
+  goes to your AI account." Then raise it kindly, never as a fault, in `gap_note`'s words (6+
+  months: a line; 12+: a line + recent work, study or volunteering really done; never penalty
+  numbers). Their call, said plainly: "a line saves the reader guessing - small help for health
+  and layoffs, no difference for childcare in one trial". ONE clickable question: Family care /
+  Health matter, now resolved or managed / Study or training / Something else - I'll say ("Leave
+  it off" under Other). Answer -> `career_break` entry (dates + their reason; on the page, closes
+  the gap); work, study or volunteering they really did -> its own entry. Never suggest paying for
+  a course (no US study behind it). Layoff, when true -> one line under the last job instead:
+  "Role cut in company-wide layoff, Jul 2025". Time in custody: the page needn't name it - real
+  work, training or study done there under its real name; "personal leave" for it -> push back
+  once (dates show on a background check). Facts: `app/docs/resume/fair-screening.md` #Work breaks.
 - Lint warns `street-address`, `personal-details` -> the push back above. `old-graduation-year`
-  (15+ years) -> offer `hide_year` (age bias; convention), their call. `abbreviated-school` ->
-  ask the full name (forms say "Do not use abbreviations"). `language-level` -> ask each
-  language's level w/ choices (Native / Fluent / Professional / Conversational / Basic) - their
-  fact, never guessed - then one line each: `Spanish (Fluent)`.
+  / `old-certification-year` (15+ years) -> offer `hide_year`, their call; degree 20+ years
+  (detail says so) -> recommend the one bundle - graduation + certificate years, jobs that ended
+  15+ years ago, long year counts ("25 years") - and name its small cost (some hiring managers
+  like to see the year; vendor survey). Words: "this year lets a reader guess age", never
+  "because you're older". `abbreviated-school` -> ask the full name (forms say "Do not use
+  abbreviations").
+- Languages, every user, once (a fact in their file, same question for all): "Do you speak any
+  other languages?" Yes -> each one's level w/ choices (Native / Fluent / Professional /
+  Conversational / Basic) - their fact, never guessed - then one line each: `Spanish (Fluent)`.
+  `language-level` warns -> the same level question.
+- Names: no name question in setup. A legal-name split, initials or a name they go by come up at
+  the first application (`job-apply` #Names) or when they ask.
 - Fill the gaps: `uv run app/jobs.py resume-gaps prepare`, do the task yourself (lists lines
   with no number + a leadership question per recent job), asking the user in chat - clickable
   "I know it / skip" choices, the number as free text. Only what they say goes in; never guess or
@@ -193,7 +211,8 @@ Email too (only if they say yes):
 
 Tell them: open "CEZ Job Finder" on Desktop any time and say things like "any new jobs?",
 "make my resume for job 3", "stop showing jobs from <company>", "change my search" - and ask
-"why?" about anything it does. Next launch opens the Today page (what's waiting, newest jobs)
+"why?" about anything it does. Same line for everyone: "Worried about bias - your name, age or
+a break? Ask any time." Next launch opens the Today page (what's waiting, newest jobs)
 instead of START HERE; `Guides/What you can ask.md` + `Guides/Who sees what.md` repeat this and
 show what's private.
 

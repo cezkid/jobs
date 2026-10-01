@@ -137,7 +137,8 @@ User asks why: name the rule in plain words + its basis + how strong (big survey
 study / convention) from `app/docs/resume/bullets.md`, `typeface.md`, `app/docs/jobs/freehire.md`;
 names, age, breaks, records, laws: `app/docs/resume/fair-screening.md` (index: `app/docs/README.md`).
 Never "the rules require it" or "the check fails". User asks what makes a good resume: open
-`Guides/What makes a good resume.md`.
+`Guides/What makes a good resume.md`; worried about bias (name, age, a break, a record): answer in
+3-5 lines, open `Guides/Unfair hiring - what's known, what helps.md` only if they want more.
 
 ## Private vs shared - say it plainly
 
@@ -176,7 +177,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
   no resume text. Other AIs have no hook - they keep the page.
 - `Guides/` - plain-words guides in the user's file list (`What you can ask.md`, `Who sees
-  what.md`, `What makes a good resume.md`, `Keep your chats out of AI training.md`); link,
+  what.md`, `What makes a good resume.md`, `Unfair hiring - what's known, what helps.md`, `Keep
+  your chats out of AI training.md`); link,
   don't repeat, from `START HERE.md`, the Today page and reports.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;

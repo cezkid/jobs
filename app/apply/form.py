@@ -25,9 +25,14 @@ def job_dir(config: dict, slug: str) -> Path:
 
 def resume_for(config: dict, folder: Path) -> str | None:
     """The job's tailored PDF where its folder is now - never a path saved earlier: the folder
-    moves when its status does (sent, heard back ...)."""
+    moves when its status does (sent, heard back ...). The file is named from the name on the page,
+    which can change after tailoring (initials, a name they go by) -> then the one *_Resume.pdf
+    there; none or several -> None, fill says why."""
     resume = folder / render.file_name(schema.load(cfg.resume_path(config, "master")))
-    return str(resume) if resume.exists() else None
+    if resume.exists():
+        return str(resume)
+    found = sorted(folder.glob("*_Resume.pdf"))
+    return str(found[0]) if len(found) == 1 else None
 
 
 def system_for(url: str):
@@ -77,6 +82,10 @@ def fill(slug: str) -> None:
         sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     system = system_for(data["url"])
     resume = resume_for(config, folder)
+    if resume is None and any(q["kind"] == "file" and q.get("answer") is True for q in data["questions"]):
+        pdfs = [p.name for p in folder.glob("*_Resume.pdf")]
+        print(f"no resume uploaded: {'several resume PDFs in ' + folder.name + ' - ' + ', '.join(pdfs) if pdfs else 'no tailored resume PDF in ' + folder.name} "
+              "- the user uploads one by hand, or make the resume again")
     report = []
     with browser.page_at(data["url"]) as page:
         page.locator(system.READY).first.wait_for(timeout=30000)
