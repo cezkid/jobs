@@ -25,7 +25,7 @@ COMMANDS = {
     "resume-fit": ("resume.fit", "does this wording fit a line? candidates, or every bullet"),
     "tailor": ("resume.tailor", "tailored resume for one job: posting | prepare | check"),
     "today": ("today", "write Today.md: waiting on you, follow up, new since last check, not finished"),
-    "status": ("status", "where each job stands: list | show JOB | set JOB STATE (or --company --title)"),
+    "status": ("status", "where each job stands: list | show JOB | set JOB STATE (or --company --title) | sort"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
     "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),

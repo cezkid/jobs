@@ -30,8 +30,8 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
 
 ## Steps
 
-1. Tailored resume for this job exists (`My Jobs/<folder>/`)? No -> `job-tailor` skill first, or
-   ask whether to use their own resume as is.
+1. Tailored resume for this job exists (`status show 12` prints its `folder:`)? No -> `job-tailor`
+   skill first, or ask whether to use their own resume as is.
 2. `uv run app/jobs.py apply <job number>` (none = own resume) -> writes `apply.js`, prints counts.
 3. Browser: `tabs_context_mcp` (createIfEmpty), new tab, navigate to the posting's apply link.
    Sign-in page -> step aside (limits). "Autofill with Resume" / "Apply Manually" / "Use My Last
@@ -90,4 +90,5 @@ End of every apply, one question, clickable, naming the job ("Job 12 - Acme, Dat
 - **Sent** -> `uv run app/jobs.py status set 12 applied`
 - **Not yet** -> nothing; a later chat asks again in a few days (`status ask`)
 - **Not sending** -> `uv run app/jobs.py status set 12 not_sending`
-Say what was recorded in one line. Never click Submit to make the answer true (hard limits).
+Say what was recorded in one line ("Job 12 marked sent - its folder is now in My Jobs, Sent").
+Never click Submit to make the answer true (hard limits).

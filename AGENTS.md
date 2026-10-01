@@ -47,14 +47,21 @@ unseen - a tab badge is the only sign one waits.
 - Job numbers are stored, not per chat: "job 12" names the same job in any chat. Company + title
   or its link work too (`tailor prepare "<link>"`, `status show --company C --title T`).
 - Shared files are safe to run side by side: each pasted posting + each job folder is its own,
-  resume saves, job alerts and the application window wait their turn (`app/locks.py`). A wait
-  over a minute ends w/ a plain "another chat is ..." line - pass it on, try again after.
+  resume saves, job alerts, job folder moves and the application window wait their turn
+  (`app/locks.py`). A wait over a minute ends w/ a plain "another chat is ..." line - pass it on,
+  try again after.
 
 ## Where each job stands
 
-Status = saved, resume made, applied, heard back, interview, no, offer, not sending
+Status = saved, resume made, applied, heard back, interview, no, offer, not sending, closed
 (`uv run app/jobs.py status`). Users never type it unasked - so it is recorded or asked:
 
+- Each job's folder lives under its stage: `My Jobs/1 To send` (saved, resume made), `2 Sent`,
+  `3 Heard back` (heard back, interview, offer), `4 Closed` (no, not sending, closed). `status
+  set` moves it + prints `folder: <path>` - paths printed earlier are stale, use that one
+  (`status show 12` prints it too). "not moved now" (file open on Windows) -> say it moves at next
+  start. Launch files any folder out of place; one they drag by hand goes back - they tell you
+  instead. Never moved on a timer, never deleted. Why + rules: `app/docs/jobs/job-folders.md`.
 - `tailor check` passing records "resume made" itself.
 - `job-apply` ends w/ one clickable "Did you send it?": Sent / Not yet / Not sending.
 - First reply of a chat that asks nothing else: `uv run app/jobs.py status ask`. Prints a job ->
@@ -73,8 +80,9 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
 - Still open? `status open`: each job in progress -> open / may be closed / can't tell, w/ its
   reason; say that reason, never more sure than it. Pasted or found elsewhere = can't tell (never
   on the job list) - never guess from the posting. Never fetches the employer's page (would send
-  something new off computer: privacy table row + user yes first). Never delete a job folder;
-  one they call closed -> offer to move it to My Jobs/Closed, `status move-closed 12` on yes only.
+  something new off computer: privacy table row + user yes first). "May be closed" -> ask, one
+  clickable question; yes, or they say it's closed / no reply after following up ->
+  `status set 12 closed` (folder to 4 Closed, kept). Never delete a job folder.
 
 ## Lead, explain, push back
 
@@ -149,13 +157,14 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   one-line `headline` above the summary), untailored `First_Last_Resume.pdf`, `Resume feedback.md`
   (`resume-feedback`: how their resume reads - numbers, wording, leadership / initiative /
   teamwork, details + dates; layout never scored, the gates enforce it).
-- `My Jobs/<Company - Title>/` - one per tailored job: `First_Last_Resume.pdf`,
+- `My Jobs/<stage>/Job N - Company - Title/` - one per tailored job, under where it stands
+  (`1 To send` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `status.py` (where each job stands: saved ... applied ... offer), `today.py` (Today page), `alert.py`,
+  `rank.py`, `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/`, `deploy/`, `docs/`, `tests/`.
 - `docs/index.html` - install page, GitHub Pages (`https://cezkid.github.io/jobs`).

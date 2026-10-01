@@ -403,43 +403,55 @@ def evaluate(master: dict, job: dict, tailored: dict, out_dir: Path, font: str =
 
 JOB_DATA = ".data"
 ILLEGAL_IN_NAME = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
-# Windows path limit leaves room for My Jobs/<name>/.data/<file> under deep home dirs
+# Windows path limit leaves room for My Jobs/<stage>/<name>/.data/<file> under deep home dirs
 MAX_FOLDER_CHARS = 80
 CHECK_FILE = "Check before sending.md"
 POSTING_FILE = "Job posting.md"
 
 
-def folder_name(job: dict) -> str:
-    name = f"{job['company']} - {job['title']}" if job["company"] else job["title"]
-    name = " ".join(ILLEGAL_IN_NAME.sub(" ", name).split())
-    if len(name) > MAX_FOLDER_CHARS:
-        name = name[:MAX_FOLDER_CHARS + 1].rsplit(" ", 1)[0]
-    return name.rstrip(" .,-&") or job["public_slug"]
+def folder_name(job: dict, num: int) -> str:
+    """'Job 12 - Acme - Data Analyst': same number as the chat, Today page + email; the number
+    is never cut, the words are."""
+    prefix = f"Job {num}"
+    words = f"{job['company']} - {job['title']}" if job.get("company") else job.get("title") or ""
+    words = " ".join(ILLEGAL_IN_NAME.sub(" ", words).split())
+    room = MAX_FOLDER_CHARS - len(prefix) - len(" - ")
+    if len(words) > room:
+        words = words[:room + 1].rsplit(" ", 1)[0]
+    words = words.rstrip(" .,-&")
+    return f"{prefix} - {words}" if words else prefix
+
+
+def read_jd(job_dir: Path) -> dict | None:
+    """The job a folder holds; unreadable or gone mid-read => not a job folder, never a crash."""
+    try:
+        jd = json.loads((job_dir / JOB_DATA / "jd.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    return jd if isinstance(jd, dict) else None
+
+
+def job_dirs(root: Path) -> list[Path]:
+    """Every job folder under My Jobs, at any depth: found by the job file inside, never by
+    its name or place - a folder moved or renamed by hand is still found."""
+    if not root.is_dir():
+        return []
+    return sorted({p.parent.parent for p in root.glob(f"**/{JOB_DATA}/jd.json")} - {root})
 
 
 def find_job_dir(root: Path, slug: str) -> Path | None:
-    for saved in root.glob(f"*/{JOB_DATA}/jd.json"):
-        if json.loads(saved.read_text(encoding="utf-8"))["public_slug"] == slug:
-            return saved.parent.parent
-    return None
+    return next((d for d in job_dirs(root) if (read_jd(d) or {}).get("public_slug") == slug), None)
 
 
-def job_dir_for(root: Path, job: dict) -> Path:
-    """Same job => same folder; other job w/ same company + title => ' (2)' suffix.
-
-    New folder is created here, not checked then made => two chats preparing two same-named
-    jobs at once never land in one folder."""
+def job_dir_for(root: Path, job: dict, num: int, stage: str) -> Path:
+    """Same job => same folder, wherever its status filed it; new job => under `stage`. The
+    number makes the name the job's own, so two chats preparing it at once share one folder."""
     found = find_job_dir(root, job["public_slug"])
     if found:
         return found
-    base = folder_name(job)
-    candidate, n = root / base, 2
-    while True:
-        try:
-            candidate.mkdir(parents=True)
-            return candidate
-        except FileExistsError:
-            candidate, n = root / f"{base} ({n})", n + 1
+    path = root / stage / folder_name(job, num)
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def write_json(path: Path, value) -> None:
@@ -494,15 +506,6 @@ def slug_for(config: dict, job: str) -> str:
     return row["public_slug"]
 
 
-def job_number(config: dict, slug: str) -> int:
-    conn = store.connect(cfg.db_path(config))
-    try:
-        with conn:
-            return store.number(conn, slug)
-    finally:
-        conn.close()
-
-
 def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str) -> None:
     master = schema.load(cfg.resume_path(config, "master"))
     if posting_file:
@@ -519,16 +522,29 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
                 sys.exit(f"{slug}: this posting lists no requirements, so there is nothing to "
                          f"tailor against. Save the posting page's text to a file, then run:\n"
                          f'  uv run app/jobs.py tailor posting "<text file>" --url "<posting url>"')
-    job_dir = job_dir_for(cfg.resume_path(config, "jobs_dir"), job)
+    import status  # status files job folders; it reads them through this module
+    jobs_dir = cfg.resume_path(config, "jobs_dir")
+    conn = store.connect(cfg.db_path(config))
+    try:
+        # pasted posting's first sight => it gets its number here; committed before it names a folder
+        with conn:
+            num = store.number(conn, job["public_slug"])
+        job_dir = job_dir_for(jobs_dir, job, num, status.STAGES["saved"])
+        data = job_dir / JOB_DATA
+        data.mkdir(parents=True, exist_ok=True)
+        write_json(data / "jd.json", job)
+        # filed before any path is handed out => the task file's answer path is where it stays
+        job_dir, reopened = status.file_job(conn, jobs_dir, job_dir)
+    finally:
+        conn.close()
     data = job_dir / JOB_DATA
-    data.mkdir(parents=True, exist_ok=True)
-    write_json(data / "jd.json", job)
     (job_dir / POSTING_FILE).write_text(report.posting_md(job), encoding="utf-8")
     request = build_request(master, job, cfg.resume_font(config))
     handoff.write_task(data / "task.md", data / "tailored.json", request["system"], request["schema"],
                        request["prompt"], check_command(job["public_slug"]))
-    # pasted posting's first sight => it gets its number here
-    print(f"job {job_number(config, job['public_slug'])}, job folder: {job_dir}")
+    print(f"job {num}, job folder: {job_dir}")
+    if reopened:
+        print(f"was marked {reopened} - back in {job_dir.parent.name}")
 
 
 def check(config: dict, slug: str) -> int:
@@ -556,7 +572,7 @@ def check(config: dict, slug: str) -> int:
     print(f"{'FAILED - fix tailored.json, rerun check' if result['failed'] else 'passed'}: {job_dir}")
     if result["failed"]:
         return 1
-    import status  # status reads job folders through this module
+    import status  # status files job folders; it reads them through this module
     conn = store.connect(cfg.db_path(config))
     try:
         status.record_made(conn, job_dir, store.utc_now())

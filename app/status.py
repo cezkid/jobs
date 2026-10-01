@@ -1,11 +1,10 @@
 import argparse
-import json
-import shutil
 import sys
 from datetime import date, datetime, timezone
 from pathlib import Path
 
 import cfg
+import locks
 import store
 from resume import tailor
 
@@ -19,14 +18,23 @@ STATES = {
     "no": "They said no",
     "offer": "Offer",
     "not_sending": "Not sending",
+    "closed": "Closed",
 }
 LINK_LINE = "- Link: "
 # resume made this many days ago -> asked "did you send it?" at chat start; untouched this long
 # -> drops out of Waiting on you
 ASK_AFTER_DAYS, QUIET_AFTER_DAYS = 3, 14
-# still being worked on => worth asking "is it still open?"; no / offer / not sending are done
+# still being worked on => worth asking "is it still open?"; no / offer / not sending / closed are done
 IN_PROGRESS = ("saved", "resume_made", "applied", "heard_back", "interview")
-CLOSED_DIR = "Closed"
+# status -> its job folder's place under My Jobs. Same pipeline job-search trackers use (to apply,
+# applied, interviewing, closed) - convention, not a measured rule. Numbered => every file list
+# (VS Code, Finder, Explorer, a browser's upload box) shows the stages in this order
+STAGES = {
+    "saved": "1 To send", "resume_made": "1 To send",
+    "applied": "2 Sent",
+    "heard_back": "3 Heard back", "interview": "3 Heard back", "offer": "3 Heard back",
+    "no": "4 Closed", "not_sending": "4 Closed", "closed": "4 Closed",
+}
 
 
 def state_key(word: str) -> str:
@@ -63,27 +71,32 @@ def folder_link(job_dir: Path) -> str | None:
 
 
 def folder(job_dir: Path) -> dict | None:
-    """One job folder, read only: link from Check before sending.md (jd.json as fallback),
-    company + title from jd.json, else from the 'Company - Title' folder name."""
-    check, saved = job_dir / tailor.CHECK_FILE, job_dir / tailor.JOB_DATA / "jd.json"
-    if not check.exists() and not saved.exists():
+    """One job folder, read only: its job file names the job, Check before sending.md the link.
+    No readable job file => not a job folder (a stray note, a half-copied folder): never
+    counted, numbered or moved."""
+    jd = tailor.read_jd(job_dir)
+    if jd is None:
         return None
-    jd = json.loads(saved.read_text(encoding="utf-8")) if saved.exists() else {}
-    company, _, title = job_dir.name.partition(" - ")
-    company, title = (jd.get("company") or company), (jd.get("title") or title or company)
-    made = check.exists()
+    check, saved = job_dir / tailor.CHECK_FILE, job_dir / tailor.JOB_DATA / "jd.json"
+    try:
+        made = check.exists()
+        at = datetime.fromtimestamp((check if made else saved).stat().st_mtime, timezone.utc).strftime(store.ISO)
+        link = folder_link(job_dir)
+    except OSError:  # moved or deleted while being read
+        return None
     return {
-        "dir": job_dir, "url": folder_link(job_dir) or jd.get("url") or None,
-        "company": company, "title": title, "public_slug": jd.get("public_slug"),
-        "state": "resume_made" if made else "saved",
-        "at": datetime.fromtimestamp((check if made else saved).stat().st_mtime, timezone.utc).strftime(store.ISO),
+        "dir": job_dir, "url": link or jd.get("url") or None,
+        "company": jd.get("company") or "", "title": jd.get("title") or "", "public_slug": jd.get("public_slug"),
+        "state": "resume_made" if made else "saved", "at": at,
     }
 
 
 def folders(jobs_dir: Path) -> list[dict]:
-    if not jobs_dir.is_dir():
-        return []
-    return [f for d in sorted(p for p in jobs_dir.iterdir() if p.is_dir()) if (f := folder(d))]
+    return [f for d in tailor.job_dirs(jobs_dir) if (f := folder(d))]
+
+
+def folder_key(f: dict) -> str:
+    return job_key(f["url"], f["company"], f["title"])
 
 
 def _log(conn, key: str, state: str, at: str) -> None:
@@ -268,18 +281,78 @@ def in_progress(conn) -> list[dict]:
         f"SELECT * FROM applications WHERE state IN ({marks}) ORDER BY state_at", IN_PROGRESS)]
 
 
-def move_closed(jobs_dir: Path, key: str) -> Path:
-    """Job folder -> My Jobs/Closed/, only after the user said yes. Moved, never deleted;
-    never over a folder already there."""
-    f = next((f for f in folders(jobs_dir) if job_key(f["url"], f["company"], f["title"]) == key), None)
+def lock(wait_s: float = 60):
+    """Two chats (or a chat + the launcher) filing folders at once => one moves, the other waits."""
+    return locks.held(cfg.DATA / "job-folders.lock", "another chat is moving job folders - try again in a minute",
+                      wait_s)
+
+
+def placed(conn, f: dict, jobs_dir: Path) -> Path | None:
+    """Where a job folder belongs: under the stage its status names, as 'Job N - Company - Title'.
+    No status yet => where a new one starts (saved / resume made)."""
+    row = get(conn, folder_key(f))
+    stage = STAGES.get(row["state"] if row else f["state"])
+    if stage is None:
+        return None
+    with conn:  # committed => the number in the name is the one every chat reads
+        num = store.number(conn, f["public_slug"] or folder_key(f))
+    return jobs_dir / stage / tailor.folder_name(f, num)
+
+
+def sort_folders(conn, jobs_dir: Path, key: str | None = None,
+                 wait_s: float = 60) -> tuple[list[tuple[Path, Path]], list[tuple[Path, str]]]:
+    """Every job folder (key => that job's only) -> where `placed` says. Renamed, never copied,
+    merged, overwritten or deleted. Can't move now (a file open on Windows, name taken) => stays
+    whole where it is, said why, tried again next time. Deepest first => a job folder dragged
+    inside another is filed before the outer one moves. Emptied stage folders stay."""
+    todo = [(f["dir"], to) for f in sorted(folders(jobs_dir), key=lambda f: -len(f["dir"].parts))
+            if key in (None, folder_key(f)) and (to := placed(conn, f, jobs_dir)) and to != f["dir"]]
+    moved, stuck = [], []
+    if not todo:
+        return moved, stuck
+    with lock(wait_s):
+        for d, to in todo:
+            if not d.is_dir():  # another chat filed it first
+                continue
+            try:
+                # same folder under other letter case (macOS, Windows) => a rename, not a clash
+                if to.exists() and not to.samefile(d):
+                    stuck.append((d, f"{to.parent.name}/{to.name} already there - left both"))
+                    continue
+                to.parent.mkdir(parents=True, exist_ok=True)
+                d.rename(to)
+                moved.append((d, to))
+            except OSError as e:
+                stuck.append((d, f"could not move now - {e.strerror or type(e).__name__}"))
+    return moved, stuck
+
+
+def folder_of(jobs_dir: Path, key: str) -> Path | None:
+    return next((f["dir"] for f in folders(jobs_dir) if folder_key(f) == key), None)
+
+
+def file_job(conn, jobs_dir: Path, job_dir: Path) -> tuple[Path, str | None]:
+    """A job tailored (again) => its folder filed now, before any path is handed out. Tailoring a
+    closed one again reopens it (saved => To send). -> folder, status it left when reopened."""
+    f = folder(job_dir)
     if f is None:
-        raise NotFound("no job folder for that job")
-    target = jobs_dir / CLOSED_DIR / f["dir"].name
-    if target.exists():
-        raise NotFound(f"{target} already exists - left both where they are")
-    target.parent.mkdir(exist_ok=True)
-    shutil.move(str(f["dir"]), str(target))
-    return target
+        return job_dir, None
+    key, reopened = folder_key(f), None
+    row = get(conn, key)
+    if row and STAGES.get(row["state"]) == STAGES["closed"]:
+        reopened = STATES[row["state"]]
+        set_state(conn, row, "saved", store.utc_now())
+    sort_folders(conn, jobs_dir, key)
+    return folder_of(jobs_dir, key) or job_dir, reopened
+
+
+def sort_jobs(config: dict, wait_s: float = 5) -> tuple[list, list]:
+    """Launch: every misplaced job folder filed before the Today page is built."""
+    conn = store.connect(cfg.db_path(config))
+    try:
+        return sort_folders(conn, cfg.resume_path(config, "jobs_dir"), wait_s=wait_s)
+    finally:
+        conn.close()
 
 
 def when(day: str | None, now: str) -> str:
@@ -294,8 +367,9 @@ def main() -> None:
     steps.add_parser("open", help="each job in progress: open, may be closed, or can't tell - and why")
     steps.add_parser("sent", help="each job not marked sent: sent page in this computer's browser history? sent,"
                      " likely not sent, can't tell - and why")
-    for name, helptext in (("show", "one job's status"), ("set", "record a job's status"),
-                           ("move-closed", "move a job's folder to My Jobs/Closed - only after the user said yes")):
+    steps.add_parser("sort", help="file every job folder under the stage its status names (launch does it too)")
+    for name, helptext in (("show", "one job's status + its folder"),
+                           ("set", "record a job's status; its folder moves to that stage")):
         p = steps.add_parser(name, help=helptext)
         p.add_argument("job", nargs="?", help="job number, slug, the job's https link, or its job folder name")
         p.add_argument("--company")
@@ -345,17 +419,29 @@ def main() -> None:
                 print("could not read: " + ", ".join(unread) + " (macOS: Safari needs Full Disk Access)"
                       * ("Safari" in unread))
             return
+        if args.step == "sort":
+            moved, stuck = sort_folders(conn, jobs_dir)
+            for old, new in moved:
+                print(f"moved: {old.relative_to(jobs_dir)} -> {new.relative_to(jobs_dir)}")
+            for d, why in stuck:
+                print(f"left: {d.relative_to(jobs_dir)} - {why}")
+            if not moved and not stuck:
+                print("every job folder is where its status says")
+            return
+        stuck = []
         try:
             job = resolve(conn, jobs_dir, args.job, args.company, args.title, args.url)
             if args.step == "set":
                 set_state(conn, job, state_key(args.state), when(args.on, store.utc_now()))
-            if args.step == "move-closed":
-                print(f"moved to {move_closed(jobs_dir, job['key'])}")
-                return
+                stuck = sort_folders(conn, jobs_dir, job["key"])[1]
         except (NotFound, ValueError) as e:
             sys.exit(str(e))
         row = get(conn, job["key"])
         print(line(numbered(conn, [row])[0]) if row else f"no status yet: {job['company']} - {job['title']}")
+        # moved folder => old paths in the chat are stale; this line is the one to use
+        if d := folder_of(jobs_dir, job["key"]):
+            print(f"folder: {d}" + "".join(f" - not moved now ({why}); moves at next launch or status sort"
+                                           for _, why in stuck))
     finally:
         conn.close()
 

@@ -50,7 +50,7 @@ No reply 21+ days after applying. A short check-in is common if you have a conta
 - **Job 2** - Senior Vue Engineer old, Acme
   - Applied 29 days ago, no reply yet
   - https://boards.greenhouse.io/acme/jobs/old
-  - Say: "I heard back from job 2" - or "mark job 2 as no"
+  - Say: "I heard back from job 2" - or "job 2 is closed"
 
 ## New since last check
 
@@ -180,6 +180,17 @@ def test_progress_counts_interviews_and_offers(conn, tmp_path):
     for slug, state in (("a", "interview"), ("b", "offer"), ("c", "no")):
         status.set_state(conn, status.resolve(conn, tmp_path, slug), state, CHECK)
     assert "So far: 3 sent, 1 interview, 1 offer." in page(conn, tmp_path)
+
+
+def test_closed_after_sending_still_counts_as_sent(conn, tmp_path):
+    # closing a job after it was sent never un-sends it; one never sent was never progress
+    store.upsert(conn, [job("a"), job("b")], CHECK)
+    applied(conn, "a", "2026-09-01T12:00:00Z")
+    status.set_state(conn, status.resolve(conn, tmp_path, "b"), "resume_made", "2026-09-20T12:00:00Z")
+    for slug in ("a", "b"):
+        status.set_state(conn, status.resolve(conn, tmp_path, slug), "closed", CHECK)
+    text = page(conn, tmp_path)
+    assert "So far: 1 sent." in text and "## Follow up" not in text and "## Waiting on you" not in text
 
 
 def test_not_finished_only_when_true(tmp_path, monkeypatch):

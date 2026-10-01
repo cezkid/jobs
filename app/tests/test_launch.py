@@ -64,6 +64,42 @@ def test_first_run_opens_start_here_then_today(tmp_path, monkeypatch):
     assert launch.first_page(settings, page) == page and written == [page]
 
 
+def test_launch_files_job_folders_before_building_today(tmp_path, monkeypatch):
+    # a folder moved by hand, or one a file kept from moving last time, is back in its stage
+    # before the page that points at it is written
+    settings, page = tmp_path / "Search settings.yml", tmp_path / "Today.md"
+    settings.write_text("")
+    calls = []
+    monkeypatch.setattr(launch.cfg, "load", lambda path: {})
+    import status
+    import today
+    monkeypatch.setattr(status, "sort_jobs", lambda config: calls.append("sort"))
+    monkeypatch.setattr(today, "write", lambda config, to: calls.append("today") or to)
+    assert launch.first_page(settings, page) == page and calls == ["sort", "today"]
+
+
+def test_job_folders_that_fail_to_file_never_stop_the_page(tmp_path, monkeypatch):
+    settings, page = tmp_path / "Search settings.yml", tmp_path / "Today.md"
+    settings.write_text("")
+    monkeypatch.setattr(launch.cfg, "load", lambda path: {})
+    import status
+    import today
+    for failure in (OSError("file in use"), SystemExit("another chat is moving job folders")):
+        def broken(config, failure=failure):
+            raise failure
+        monkeypatch.setattr(status, "sort_jobs", broken)
+        monkeypatch.setattr(today, "write", lambda config, to: to)
+        assert launch.first_page(settings, page) == page
+
+
+def test_file_list_reads_in_stage_order():
+    # "modified" reshuffled 1 To send ... 4 Closed whenever a job moved; compact folders squeezed
+    # a stage holding one job onto its job's row
+    raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
+    settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
+    assert settings["explorer.sortOrder"] == "default" and settings["explorer.compactFolders"] is False
+
+
 def test_today_page_that_fails_never_stops_the_launch(tmp_path, monkeypatch):
     settings, page = tmp_path / "Search settings.yml", tmp_path / "Today.md"
     settings.write_text("")
