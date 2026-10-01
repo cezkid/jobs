@@ -22,6 +22,10 @@ missing -> `job-setup` skill instead.
      `uv run app/jobs.py rank --would-hide "<phrase>"`, tell user the count it hides; read
      the titles - phrase also inside a wider title ("Member of Technical Staff", "Senior/Staff")
      -> `blocklist.title_keep` spares those, say count kept
+   - wrong kind of job ("no part-time", "no contract") -> `blocklist.employment_types`; count rows
+     w/ that tag first (untagged rows stay)
+   - "no government / security clearance jobs" -> `blocklist.clearance: true`; count w/
+     `probe --facets requires_clearance <their params>`
    - whole search too wide -> tighten params, measured w/ `uv run app/jobs.py probe` first
    - any narrowing (filter, city, blocked field) -> measure, state the cost BEFORE saving, do
      what they pick (`AGENTS.md` #Lead, explain, push back).

@@ -235,3 +235,11 @@ def test_row_leads_with_job_number_and_carries_real_link_before_slug():
     fields = rank.row(job, CONFIG, NOW).split()
     assert fields[0] == "#7"
     assert fields[-2:] == ["https://job-boards.greenhouse.io/acme/jobs/42", "j1"]
+
+
+def test_blocklist_hides_by_type_and_clearance_never_untagged():
+    block = {**CONFIG["blocklist"], "employment_types": ["part_time", "contract"], "clearance": True}
+    assert rank.blocked(make_job("p", employment_type="part_time"), block)
+    assert rank.blocked(make_job("c", requires_clearance=True), block)
+    assert not rank.blocked(make_job("u", employment_type=None), block)
+    assert not rank.blocked(make_job("c", requires_clearance=True), CONFIG["blocklist"])

@@ -51,6 +51,11 @@ def blocked(job: dict, blocklist: dict) -> bool:
             return True
     if norm_company(job.get("company")) in {norm_company(c) for c in blocklist.get("companies") or []}:
         return True
+    # the job search's own tags: a job w/o one is never hidden by them
+    if job.get("employment_type") and job["employment_type"] in (blocklist.get("employment_types") or []):
+        return True
+    if blocklist.get("clearance") and job.get("requires_clearance"):
+        return True
     return title_blocked(job.get("title") or "", blocklist)
 
 

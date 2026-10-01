@@ -40,6 +40,11 @@ blocklist:
   # phrases title_phrases never match inside, e.g. phrase "staff" + keep "member of technical
   # staff" or "senior/staff" (job open at senior level too); " / " reads as "/"
   title_keep: []
+  # the job search's own tags, hidden outright (rank.employment_types only sorts lower): any of
+  # full_time part_time contract internship fellowship. A job w/o the tag is never hidden
+  employment_types: []
+  # true = hide jobs the job search flags as needing a US security clearance (government, defense)
+  clearance: false
 
 # other rank keys + what they do: app/defaults.yml
 rank:
