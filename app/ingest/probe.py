@@ -15,7 +15,7 @@ TALLY_FIELDS = ("category", "seniority", "employment_type")
 def probe(client: httpx.Client, base: str, params: dict) -> dict:
     resp = client.get(f"{base}/jobs/search", params={**freehire.query_params(params), "limit": SAMPLE_SIZE})
     resp.raise_for_status()
-    body = resp.json()
+    body = freehire.understood(resp.json())
     rows = body["data"]
     tallies = {f: Counter((r.get("enrichment") or {}).get(f) for r in rows) for f in TALLY_FIELDS}
     tallies["work_mode"] = Counter(r.get("work_mode") for r in rows)
@@ -27,7 +27,7 @@ def facet_values(client: httpx.Client, base: str, params: dict, facet: str = "")
     """Every valid value + live count in one call. Beats guessing slugs: unknown slug answers 0, not error."""
     resp = client.get(f"{base}/jobs/facets", params=freehire.query_params(params))
     resp.raise_for_status()
-    facets = resp.json()["data"]["facets"]
+    facets = freehire.understood(resp.json())["data"]["facets"]
     if facet and facet not in facets:
         raise SystemExit(f"{facet!r}: no such facet. available: {', '.join(sorted(facets))}")
     names = [facet] if facet else sorted(facets)

@@ -17,6 +17,22 @@ def query_params(params: dict) -> dict:
     return {k: ",".join(v) if isinstance(v, list) else v for k, v in params.items()}
 
 
+def ignored(body: dict) -> list[str]:
+    """Filters the job search did not understand. It answers them with every job, never an error
+    (2026-09-30: bogus_param=1 -> 798,143 US rows, meta.ignored_params [{"param": "bogus_param"}])."""
+    return [p.get("param", "?") if isinstance(p, dict) else str(p)
+            for p in (body.get("meta") or {}).get("ignored_params") or []]
+
+
+def understood(body: dict) -> dict:
+    """Stop before a misspelled filter floods the list w/ the whole catalogue."""
+    if bad := ignored(body):
+        total = (body.get("meta") or {}).get("total")
+        raise SystemExit(f"search settings name a filter the job search doesn't know ({', '.join(bad)}) - it "
+                         f"answered with every job{f' ({total:,})' if total else ''}. Nothing saved.")
+    return body
+
+
 def fetch_pass(client: httpx.Client, base: str, params: dict, page_limit: int) -> tuple[list[dict], bool]:
     """Rows + whether the API ceiling cut the pass short (rows past it were never seen)."""
     rows, offset = [], 0
@@ -24,7 +40,7 @@ def fetch_pass(client: httpx.Client, base: str, params: dict, page_limit: int) -
         limit = min(page_limit, API_OFFSET_CEILING - offset)
         resp = client.get(f"{base}/jobs/search", params={**query_params(params), "limit": limit, "offset": offset})
         resp.raise_for_status()
-        body = resp.json()
+        body = understood(resp.json())
         rows += body["data"]
         offset += limit
         total = body["meta"]["total"]

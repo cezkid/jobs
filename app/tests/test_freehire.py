@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 import httpx
+import pytest
 
 import store
 from conftest import make_job
@@ -54,6 +55,17 @@ def test_passes_fetched_together_land_in_own_tier(conn):
         summary = freehire.run(config, conn, c)
     assert list(summary) == ["remote", "local"]
     assert {j["public_slug"]: j["tier"] for j in store.all_jobs(conn)} == {"a": "remote", "b": "local"}
+
+
+def test_ignored_filter_stops_before_anything_is_stored(conn):
+    """The job search answers a filter it doesn't know w/ every job, flagged only in meta."""
+    def handler(request):
+        return httpx.Response(200, json={"data": [raw("flood")], "meta": {
+            "total": 798143, "ignored_params": [{"param": "categry"}]}})
+    with httpx.Client(transport=httpx.MockTransport(handler)) as c, pytest.raises(SystemExit) as stop:
+        freehire.run(CONFIG, conn, c)
+    assert "categry" in str(stop.value) and "798,143" in str(stop.value)
+    assert store.all_jobs(conn) == []
 
 
 def by_days(counts: dict[int, int]) -> httpx.Client:
