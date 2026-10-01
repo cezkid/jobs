@@ -23,6 +23,7 @@ import yaml
 import cfg
 import locks
 from resume import facts, handoff, lint, schema, tidy
+from resume.carry import claim_key as carry_key
 
 STRING, NULLABLE, obj, array = handoff.STRING, handoff.NULLABLE, handoff.obj, handoff.array
 TASK = cfg.DATA / "gaps-task.md"
@@ -44,6 +45,8 @@ NUMBER_ASK = ("Can you put a real number on this - how many (people, users, scre
 LEADERSHIP_ASK = ("At {company} ({title}), did you lead, mentor or train anyone, or start something "
                   "others then used - a process, tool, event or program? Only what really happened, "
                   "and how many people if you know.")
+FACT_ASK = ("Something real you said in practice that {at} doesn't show yet - add it, in your own words? "
+            "Only what happened, never something you tried out.")
 ANSWER_SCHEMA = obj(answers=array(obj(id=STRING, said=NULLABLE, claim=NULLABLE)))
 SYSTEM = """You help the candidate add facts only they know. Every line you write comes from their own answer.
 
@@ -56,6 +59,7 @@ Answer
 - One entry per question: `id` as given; `said` = the user's answer in their own words, null if skipped.
 - `claim`: null when skipped, when the answer says no, or when it adds nothing. For `number`: the line rewritten to carry what they said, keeping the rest of their wording. For `part`: the line rewritten to say what they themselves did, in their words - "helped" stays when that is the truth; never a stronger verb (led, managed, owned) than they used. For `leadership`: one new line in their words, opening with what they did ("Mentored 3 junior engineers on ...").
 - Never write what the answer denies: "I didn't lead the 4 new hires" puts neither "led" nor "4" in a line.
+- For `fact` (interview practice): only a fact the user said happened AND agreed to add - never something they improvised, hedged or tried out ("I could say ..."). `claim` = one new line in their words; null for every job they added nothing to.
 - Every number, name and tool in `claim` must appear in the original line or in `said` - the check fails anything else.
 - One sentence, US spelling, no em dash. Aim for one full line or two (`uv run app/jobs.py resume-fit "<line>"` tells you which)."""
 
@@ -80,11 +84,44 @@ def questions(master: dict) -> list[dict]:
     return out
 
 
-def prepare(path: Path) -> list[dict]:
-    asked = questions(schema.load(path))
+def fact_questions(master: dict) -> list[dict]:
+    """One per job + project: where a fact the user stated in interview practice goes."""
+    out = []
+    for section in ("roles", "projects"):
+        for i, entry in enumerate(master.get(section) or []):
+            at = " at ".join(x for x in (entry.get("title") or entry.get("name"), entry.get("company")) if x)
+            out.append({"id": f"q{len(out) + 1}", "kind": "fact", "section": section, "entry": i, "bullet": None,
+                        "line": None, "ask": FACT_ASK.format(at=at), "job": entry.get("title", entry.get("name")),
+                        "at": entry.get("company"), "already": [b["claim"] for b in entry["bullets"]]})
+    return out
+
+
+def files(job_dir: Path | None) -> tuple[Path, Path, Path]:
+    """(task, answer, questions): a job's interview facts sit in its own folder, so two chats never
+    cross-wire; the resume-wide numbers + leadership round keeps .data/."""
+    if job_dir is None:
+        return TASK, ANSWER, cfg.DATA / "gaps-questions.yml"
+    data = job_dir / tailor_data()
+    return data / "facts-task.md", data / "facts.json", data / "facts-questions.yml"
+
+
+def tailor_data() -> str:
+    from resume import tailor  # tailor imports this module's neighbours; resolved at call time
+    return tailor.JOB_DATA
+
+
+def prepare(path: Path, job_dir: Path | None = None) -> list[dict]:
+    task, answer, saved = files(job_dir)
+    master = schema.load(path)
+    asked = fact_questions(master) if job_dir else questions(master)
     payload = yaml.safe_dump({"questions": asked}, sort_keys=False, allow_unicode=True, width=10_000)
-    (cfg.DATA / "gaps-questions.yml").write_text(payload, encoding="utf-8")
-    handoff.write_task(TASK, ANSWER, SYSTEM, ANSWER_SCHEMA, payload, "uv run app/jobs.py resume-gaps finish")
+    saved.parent.mkdir(parents=True, exist_ok=True)
+    saved.write_text(payload, encoding="utf-8")
+    then = "uv run app/jobs.py resume-gaps finish" + (f' --job "{job_dir.name}"' if job_dir else "")
+    handoff.write_task(task, answer, SYSTEM, ANSWER_SCHEMA, payload, then)
+    if job_dir:
+        print(f"{len(asked)} job(s) a stated fact could go under")
+        return asked
     kinds = {k: sum(q["kind"] == k for q in asked) for k in ("number", "part", "leadership")}
     print(f"{kinds['number']} line(s) without a number, {kinds['part']} saying 'helped' or 'we', "
           f"{kinds['leadership']} leadership question(s)")
@@ -132,7 +169,9 @@ def problems(asked: list[dict], answers: list[dict], master: dict) -> list[str]:
             out.append(f"{a['id']}: {extra} in neither the old line nor the user's answer: {a['claim']!r}")
         if lint.EM_DASH in a["claim"] or "\n" in a["claim"]:
             out.append(f"{a['id']}: one plain line, no em dash: {a['claim']!r}")
-        if q["kind"] != "leadership" and master[q["section"]][q["entry"]]["bullets"][q["bullet"]]["claim"] != q["line"]:
+        if q["kind"] == "fact" and carry_key(a["claim"]) in {carry_key(c) for c in q["already"]}:
+            out.append(f"{a['id']}: already a line under that job: {a['claim']!r}")
+        if q["kind"] not in ("leadership", "fact") and master[q["section"]][q["entry"]]["bullets"][q["bullet"]]["claim"] != q["line"]:
             out.append(f"{a['id']}: that line changed since the questions were written - run prepare again")
     return out
 
@@ -149,10 +188,11 @@ def _merge(path: Path, asked: list[dict], answers: list[dict], notes: Path | Non
     by_id = {q["id"]: q for q in asked}
     changed = added = 0
     # appends go last so a reworded line's position is never shifted by a new one above it
-    for a in sorted((a for a in answers if a["claim"]), key=lambda a: by_id[a["id"]]["kind"] == "leadership"):
+    appended = ("leadership", "fact")
+    for a in sorted((a for a in answers if a["claim"]), key=lambda a: by_id[a["id"]]["kind"] in appended):
         q = by_id[a["id"]]
         entry, internal = raw[q["section"]][q["entry"]], master[q["section"]][q["entry"]]
-        if q["kind"] != "leadership":  # number, part: the line rewritten in place
+        if q["kind"] not in appended:  # number, part: the line rewritten in place
             bullet = entry["bullets"][q["bullet"]]
             if isinstance(bullet, dict):
                 bullet["claim"] = a["claim"]
@@ -178,9 +218,10 @@ def _merge(path: Path, asked: list[dict], answers: list[dict], notes: Path | Non
     return changed, added, backup
 
 
-def finish(path: Path) -> int:
-    asked = yaml.safe_load((cfg.DATA / "gaps-questions.yml").read_text(encoding="utf-8"))["questions"]
-    answers = handoff.read_answer(ANSWER, ANSWER_SCHEMA)["answers"]
+def finish(path: Path, job_dir: Path | None = None) -> int:
+    _, answer, saved = files(job_dir)
+    asked = yaml.safe_load(saved.read_text(encoding="utf-8"))["questions"]
+    answers = handoff.read_answer(answer, ANSWER_SCHEMA)["answers"]
     if found := problems(asked, answers, schema.load(path)):
         print("\n".join(f"  FAIL  {p}" for p in found))
         print("fix gaps.json, rerun finish")
@@ -197,14 +238,23 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="ask the user for the numbers and leadership their bullets leave out")
     ap.add_argument("step", choices=("prepare", "finish"))
     ap.add_argument("--master", type=Path, help="resume details file (default: the one in settings)")
+    ap.add_argument("--job", help="interview practice: facts the user stated for this job, kept in its folder")
     args = ap.parse_args()
-    path = args.master or cfg.resume_path(cfg.load(), "master")
+    config = cfg.load()
+    path = args.master or cfg.resume_path(config, "master")
     if not path.exists():
         sys.exit(f"{path} missing - import the resume PDF first")
+    job_dir = None
+    if args.job:
+        from resume import tailor
+        job_dir = tailor.find_job_dir(cfg.resume_path(config, "jobs_dir"), tailor.by_number(config, args.job)) \
+            or next((d for d in cfg.resume_path(config, "jobs_dir").glob(f"*/{args.job}") if d.is_dir()), None)
+        if job_dir is None:
+            sys.exit(f"no job folder for {args.job}")
     if args.step == "prepare":
-        prepare(path)
+        prepare(path, job_dir)
     else:
-        sys.exit(finish(path))
+        sys.exit(finish(path, job_dir))
 
 
 if __name__ == "__main__":

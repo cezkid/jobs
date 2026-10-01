@@ -528,6 +528,8 @@ def main() -> None:
         if d := folder_of(jobs_dir, job["key"]):
             print(f"folder: {d}" + "".join(f" - not moved now ({why}); moves at next launch or status sort"
                                            for _, why in stuck))
+        if args.step == "set" and row and row["state"] == "interview":
+            print("offer: interview practice (job-interview skill)")
     finally:
         conn.close()
 

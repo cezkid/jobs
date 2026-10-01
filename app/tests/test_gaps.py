@@ -119,3 +119,20 @@ def test_contrast_clause_not_a_negation(tmp_path):
     asked = gaps.questions(master)
     said = "I didn't lead the team, but I trained 2 new hires on the checkout code"
     assert gaps.problems(asked, [{"id": "q3", "said": said, "claim": "Trained 2 new hires on the checkout code."}], master) == []
+
+
+def test_fact_from_practice_goes_in_their_words_only_once(tmp_path):
+    """Interview practice: a stated fact lands under its job, never one they didn't say."""
+    path, notes = setup(tmp_path)
+    master = schema.load(path, notes)
+    asked = gaps.fact_questions(master)
+    assert [q["kind"] for q in asked] == ["fact", "fact"] and "Software Engineer at Acme Inc." in asked[0]["ask"]
+    ok = [{"id": "q1", "said": "I cut checkout errors from 30 a week to 5", "claim": "Cut checkout errors from 30 a week to 5."},
+          {"id": "q2", "said": None, "claim": None}]
+    assert gaps.problems(asked, ok, master) == []
+    invented = [{"id": "q1", "said": "I cut checkout errors a lot", "claim": "Cut checkout errors 80%."}]
+    assert "['80'] in neither" in gaps.problems(asked, invented, master)[0]
+    again = [{"id": "q1", "said": "I wrote Jest tests for the checkout screens", "claim": "Wrote Jest tests for the checkout screens."}]
+    assert "already a line" in gaps.problems(asked, again, master)[0]
+    gaps.merge(path, asked, ok, notes)
+    assert schema.load(path, notes)["roles"][0]["bullets"][-1]["claim"] == "Cut checkout errors from 30 a week to 5."

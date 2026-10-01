@@ -328,3 +328,13 @@ def test_follow_up_quiet_one_stretch_after_logged_then_suggests_closing(conn, tm
     text = "\n".join(today.follow_up(conn, "2026-10-12T12:00:00Z", CONFIG["follow_up"]))
     assert "You followed up 22 days ago, still no reply" in text and 'Say: "job 1 is closed"' in text
     assert status.get(conn, key)["state"] == "applied"  # a follow-up is never a status
+
+
+def test_interview_section_until_a_follow_up_is_due(conn, tmp_path):
+    store.upsert(conn, [job("talk")], CHECK)
+    status.set_state(conn, status.resolve(conn, Path("/nowhere"), "talk"), "interview", "2026-09-25T12:00:00Z")
+    text = page(conn, tmp_path)
+    assert 'Say: "practise my interview for job 1" - or "I had the interview for job 1"' in text.split("## Interviews")[1]
+    status.set_state(conn, status.resolve(conn, Path("/nowhere"), "talk"), "interview", "2026-09-10T12:00:00Z")
+    text = page(conn, tmp_path)
+    assert "## Interviews" not in text and "Interview 19 days ago, no reply yet" in text.split("## Follow up")[1]
