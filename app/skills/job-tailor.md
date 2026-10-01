@@ -28,7 +28,7 @@
      degree level vs the highest listed) -> say each in plain words, quoting the posting, before
      writing; ONE clickable question: Tailor anyway / Skip this job. Never say they'd be screened
      out - how firm a minimum is varies by employer; their call.
-2. `prepare` makes `My Jobs/1 To apply/Job N - Company - Title/` + task file (job already sent ->
+2. `prepare` makes `My Jobs/1 To apply/N - Company - Title/` + task file (job already sent ->
    folder stays in its stage; a closed one reopens - prepare says "back in 1 To apply", tell
    them). Do task yourself (`AGENTS.md` #AI writing steps), then
    `uv run app/jobs.py tailor check <job number>`. FAIL lines -> fix `tailored.json`, rerun

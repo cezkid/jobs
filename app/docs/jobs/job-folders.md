@@ -9,7 +9,7 @@ My Jobs/
   2 Applied/         applied
   3 Heard back/   heard back, interview, offer
   4 Closed/       they said no, not sending, closed
-    Job 12 - Acme - Data Analyst/
+    12 - Acme - Data Analyst/
       First_Last_Resume.pdf, Job posting.md, Check before sending.md, Application answers.md, Cover
       letter.md + First_Last_Cover_Letter.pdf, Follow-up email.md (when asked for), .data/ (jd.json, apply-form.json, task, answers)
 ```

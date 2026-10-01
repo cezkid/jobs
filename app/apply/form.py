@@ -180,7 +180,7 @@ def fill(slug: str) -> None:
 def remember(config: dict, folder: Path, data: dict) -> None:
     """The user's own answers on this form, kept for the next one - only after they said yes."""
     if config.get("saved_answers"):
-        n = saved_answers.keep(data["questions"], folder.name.split(" - ")[0], "", date.today().isoformat())
+        n = saved_answers.keep(data["questions"], "Job " + folder.name.split(" - ")[0], "", date.today().isoformat())
         if n:
             print(f"kept {n} of the user's answers for next time (My Settings/Saved answers.yml)")
 

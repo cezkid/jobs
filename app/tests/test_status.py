@@ -57,7 +57,7 @@ def test_plain_link_finds_listed_job(conn, tmp_path):
 
 def test_pasted_posting_by_link_slug_or_folder(conn, tmp_path):
     make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "globex-data-analyst")
-    status.sort_folders(conn, tmp_path)  # renamed 'Job N - Globex - Data Analyst', filed under its stage
+    status.sort_folders(conn, tmp_path)  # renamed 'N - Globex - Data Analyst', filed under its stage
     [filed] = [f["dir"].name for f in status.folders(tmp_path)]
     for ref in (PASTED_URL, "globex-data-analyst", filed):
         job = status.resolve(conn, tmp_path, ref)
@@ -347,9 +347,9 @@ def test_sort_files_every_folder_by_status_and_number(conn, jobs):
     before = {d.name: files(d) for d in (globex, acme, initech)}
     moved, stuck = status.sort_folders(conn, jobs)
     assert len(moved) == 3 and stuck == []
-    want = {"Globex - Data Analyst": jobs / "2 Applied" / f"Job {g} - Globex - Data Analyst",
-            "Acme - Engineer": jobs / "1 To apply" / f"Job {a} - Acme - Engineer",
-            "Initech - Analyst": jobs / "3 Heard back" / f"Job {i} - Initech - Analyst"}
+    want = {"Globex - Data Analyst": jobs / "2 Applied" / f"{g} - Globex - Data Analyst",
+            "Acme - Engineer": jobs / "1 To apply" / f"{a} - Acme - Engineer",
+            "Initech - Analyst": jobs / "3 Heard back" / f"{i} - Initech - Analyst"}
     for old, new in want.items():
         assert files(new) == before[old] and not (jobs / old).exists()
     assert status.sort_folders(conn, jobs) == ([], [])  # already in place: nothing to do
@@ -387,20 +387,20 @@ def test_taken_name_leaves_both_and_says_so(conn, jobs):
     acme = make_folder(jobs, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
     with conn:
         n = store.number(conn, "acme-1")
-    mine = jobs / "1 To apply" / f"Job {n} - Acme - Engineer"
+    mine = jobs / "1 To apply" / f"{n} - Acme - Engineer"
     mine.mkdir(parents=True)
     (mine / "notes.txt").write_text("my own notes", encoding="utf-8")
     moved, stuck = status.sort_folders(conn, jobs)
-    assert moved == [] and stuck == [(acme, f"1 To apply/Job {n} - Acme - Engineer already there - left both")]
+    assert moved == [] and stuck == [(acme, f"1 To apply/{n} - Acme - Engineer already there - left both")]
     assert acme.is_dir() and (mine / "notes.txt").read_text(encoding="utf-8") == "my own notes"
 
 
 def test_name_differing_only_in_letter_case_is_renamed_not_a_clash(conn, jobs):
     with conn:
         n = store.number(conn, "acme-1")
-    make_folder(jobs / "1 To apply", f"Job {n} - acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    make_folder(jobs / "1 To apply", f"{n} - acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
     moved, stuck = status.sort_folders(conn, jobs)
-    assert stuck == [] and [p.name for p in (jobs / "1 To apply").iterdir()] == [f"Job {n} - Acme - Engineer"]
+    assert stuck == [] and [p.name for p in (jobs / "1 To apply").iterdir()] == [f"{n} - Acme - Engineer"]
 
 
 def test_job_folder_dragged_inside_another_is_filed_first(conn, jobs):
@@ -424,7 +424,7 @@ def test_sort_command_says_what_moved_and_what_stayed(cli, tmp_path, capsys):
     assert capsys.readouterr().out == "every job folder is where its status says\n"
     make_folder(tmp_path / "My Jobs", "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
     cli("sort")
-    assert capsys.readouterr().out == f"moved: Acme - Engineer -> {Path('1 To apply', 'Job 1 - Acme - Engineer')}\n"
+    assert capsys.readouterr().out == f"moved: Acme - Engineer -> {Path('1 To apply', '1 - Acme - Engineer')}\n"
     cli("sort")
     assert capsys.readouterr().out == "every job folder is where its status says\n"
 
@@ -500,7 +500,7 @@ def test_old_stage_folders_go_once_empty_never_with_a_job_inside(conn, jobs):
     status.backfill(conn, jobs)
     status.sort_folders(conn, jobs)
     assert not (jobs / "1 To send").exists() and not (jobs / "2 Sent").exists()
-    assert [p.parent.name for p in jobs.glob("*/Job * - Acme - Engineer")] == ["1 To apply"]
+    assert [p.parent.name for p in jobs.glob("*/* - Acme - Engineer")] == ["1 To apply"]
     (jobs / "2 Sent").mkdir()
     (jobs / "2 Sent" / "notes.txt").write_text("mine")
     status.sort_folders(conn, jobs)

@@ -21,7 +21,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Resume | [resume/typeface.md](resume/typeface.md) | Why Caladea, how widths are measured, adding a font + its cost |
 | Resume | [resume/fair-screening.md](resume/fair-screening.md) | Name, age, work-break, record + AI-screening bias: evidence graded by strength, laws as of 2026-09, what the program carries, advice we don't follow, unverified list |
 | Jobs | [jobs/freehire.md](jobs/freehire.md) | Job API: filters, facets, measured pitfalls - read before touching search or ingest |
-| Jobs | [jobs/job-folders.md](jobs/job-folders.md) | My Jobs layout: stage folders by status, `Job N` names, when folders move, rename-only rules |
+| Jobs | [jobs/job-folders.md](jobs/job-folders.md) | My Jobs layout: stage folders by status, `N - Company - Title` names, when folders move, rename-only rules |
 | Applying | [apply/apply-systems.md](apply/apply-systems.md) | How application filling works, systems supported, adding one |
 | Applying | [apply/workday.md](apply/workday.md) | Workday forms, filled through the Chrome extension |
 | Applying | [apply/ashby.md](apply/ashby.md) | Ashby forms, filled in Job Finder's own Chrome |

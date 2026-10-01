@@ -374,7 +374,7 @@ def lock(wait_s: float = 60):
 
 
 def placed(conn, f: dict, jobs_dir: Path) -> Path | None:
-    """Where a job folder belongs: under the stage its status names, as 'Job N - Company - Title'.
+    """Where a job folder belongs: under the stage its status names, as 'N - Company - Title'.
     No status yet => where a new one starts (saved / resume made)."""
     row = get(conn, folder_key(f))
     stage = STAGES.get(row["state"] if row else f["state"])

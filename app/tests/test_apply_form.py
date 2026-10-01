@@ -450,7 +450,7 @@ def test_fill_uploads_the_pdf_from_where_its_folder_is_now(tmp_path, monkeypatch
 
     from apply import form
     from resume import render, tailor
-    folder = tmp_path / "My Jobs" / "2 Applied" / "Job 7 - Acme - Analyst"
+    folder = tmp_path / "My Jobs" / "2 Applied" / "7 - Acme - Analyst"
     (folder / tailor.JOB_DATA).mkdir(parents=True)
     pdf = folder / render.file_name({"contact": CONTACT})
     pdf.write_bytes(b"%PDF-1.7")

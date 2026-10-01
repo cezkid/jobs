@@ -267,21 +267,21 @@ def test_traits_apart_strength_named_and_skills_only_must_have_asked(master, tai
 
 def test_folder_name_leads_with_the_job_number_and_is_filesystem_safe():
     job = {**JOB, "company": 'Acme: "Health"', "title": "RN / ICU?  Nights."}
-    assert tailor.folder_name(job, 7) == "Job 7 - Acme Health - RN ICU Nights"
-    assert tailor.folder_name({**job, "company": None}, 7) == "Job 7 - RN ICU Nights"
-    assert tailor.folder_name({**job, "company": "", "title": "?"}, 7) == "Job 7"
+    assert tailor.folder_name(job, 7) == "7 - Acme Health - RN ICU Nights"
+    assert tailor.folder_name({**job, "company": None}, 7) == "7 - RN ICU Nights"
+    assert tailor.folder_name({**job, "company": "", "title": "?"}, 7) == "7"
 
 
 def test_long_folder_name_cut_at_word_never_the_number():
     job = {**JOB, "company": "Weights & Biases", "title": "Senior Software Engineer, ML Model Training UI - Weights & Biases"}
     name = tailor.folder_name(job, 1234)
-    assert len(name) <= tailor.MAX_FOLDER_CHARS and name.startswith("Job 1234 - Weights & Biases - ")
+    assert len(name) <= tailor.MAX_FOLDER_CHARS and name.startswith("1234 - Weights & Biases - ")
     assert name.split()[-1] in job["title"].split()
 
 
 def test_job_dir_found_wherever_its_status_filed_it(tmp_path):
     first = tailor.job_dir_for(tmp_path, JOB, 7, "1 To apply")
-    assert first == tmp_path / "1 To apply" / "Job 7 - Acme - Senior Vue Engineer, Search"
+    assert first == tmp_path / "1 To apply" / "7 - Acme - Senior Vue Engineer, Search"
     (first / tailor.JOB_DATA).mkdir(parents=True)
     tailor.write_json(first / tailor.JOB_DATA / "jd.json", JOB)
     sent = tmp_path / "2 Applied" / first.name
@@ -289,7 +289,7 @@ def test_job_dir_found_wherever_its_status_filed_it(tmp_path):
     first.rename(sent)
     assert tailor.job_dir_for(tmp_path, JOB, 7, "1 To apply") == sent == tailor.find_job_dir(tmp_path, JOB["public_slug"])
     other = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"}, 8, "1 To apply")
-    assert other.name == "Job 8 - Acme - Senior Vue Engineer, Search"
+    assert other.name == "8 - Acme - Senior Vue Engineer, Search"
 
 
 def test_unreadable_job_file_is_skipped_not_a_crash(tmp_path):
@@ -333,7 +333,7 @@ def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tail
 
     tailor.prepare(config, None, posting, JOB["url"])
     assert "job 1, job folder:" in capsys.readouterr().out
-    job_dir = tmp_path / "My Jobs" / "1 To apply" / "Job 1 - Acme - Senior Vue Engineer, Search"
+    job_dir = tmp_path / "My Jobs" / "1 To apply" / "1 - Acme - Senior Vue Engineer, Search"
     assert "5+ years Vue" in (job_dir / tailor.POSTING_FILE).read_text(encoding="utf-8")
     assert (job_dir / tailor.JOB_DATA / "task.md").exists()
 
@@ -429,7 +429,7 @@ def test_passed_check_marks_resume_made_with_no_typing(tmp_path, monkeypatch, ma
     posting.write_text(JOB["text"], encoding="utf-8")
     tailor.write_json(tailor.posting_files(posting)[1], {k: JOB[k] for k in ("title", "company", "requirements")})
     tailor.prepare(config, None, posting, JOB["url"])
-    job_dir = tmp_path / "My Jobs" / "1 To apply" / "Job 1 - Acme - Senior Vue Engineer, Search"
+    job_dir = tmp_path / "My Jobs" / "1 To apply" / "1 - Acme - Senior Vue Engineer, Search"
 
     conn = store.connect(cfg.db_path(config))
     tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", {**tailored, "entries": []})
