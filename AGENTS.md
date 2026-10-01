@@ -165,7 +165,7 @@ when asked, at setup, and before any step sending something new off computer.
 
 | What | Where | Who sees it |
 |---|---|---|
-| Resume, job folders, search settings, Today page | `My Resume/`, `My Jobs/`, `My Settings/`, `Today.md` | Private - only this computer |
+| Resume, job folders, search settings, saved form answers, Today page | `My Resume/`, `My Jobs/`, `My Settings/`, `Today.md` | Private - only this computer |
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |

@@ -18,7 +18,11 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
   to check the page and click it. They say "click it for me" -> still ask once per click.
 - Upload the resume PDF only after they say yes (name the file).
 - Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
-  race, veteran, disability), how-did-you-hear. Ask each with clickable choices; disclosures
+  race, veteran, disability), how-did-you-hear - except their own saved answers
+  (`app/docs/apply/answers.md` #Saved answers): how you heard, 18 or older, notice period and the
+  same question filled + named before Submit; pay, relocation, start date only offered as the
+  first choice. `prepare` says "ask once: keep the user's own answers" -> one clickable question,
+  save `saved_answers` in search settings. "Forget my answer to ..." -> `answers list`, `answers forget N`. Ask each with clickable choices; disclosures
   always offer "I don't wish to answer". User asks to reuse a disclosure answer -> save it under
   `self_identification` in search settings; saved there -> use it, name it before Submit.
 - Work authorization, sponsorship, citizenship: `apply` prints their setup answers. Use one only

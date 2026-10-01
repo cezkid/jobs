@@ -65,7 +65,8 @@ YOURS = "yours to answer"
 # answered under any other source is refused before anything is typed or pasted
 USER_SAID = "you said"
 # answers the program wrote itself; the user's own (via the AI) survive a second prepare
-AUTO = ("resume", "search settings")
+SAVED = "saved answer"
+AUTO = ("resume", "search settings", SAVED)
 NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
 FILE = "application.json"
 
@@ -300,10 +301,11 @@ def blank(answer) -> bool:
 
 
 def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
-          breaks: list[dict] | None = None) -> list[dict]:
+          breaks: list[dict] | None = None, saved: list[dict] | None = None) -> list[dict]:
     """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept -
     on a sensitive question only the user's own, never one the program filled. The one sensitive
     kind the program fills: a work break, from words the user saved for it (`breaks`)."""
+    from apply import answers  # it reads this module's lists: imported at call time
     kept = {a["id"]: a for a in old or [] if not blank(a.get("answer"))}
     out = []
     for q in qs:
@@ -321,14 +323,22 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         if q["key"] in ADDRESS and home.get(q["key"]):
             out.append({**q, "answer": str(home[q["key"]]), "source": "search settings - name it to the user"})
             continue
+        hit = answers.recall(saved or [], q)
         if topic := never_draft(q["title"]):
-            out.append({**q, "answer": None, "source": f"{ASK} - {YOURS}: {topic}"})
+            offer = f" - offer saved answer {hit[1]['answer']!r} ({answers.named(hit[1])})" if hit else ""
+            out.append({**q, "answer": None, "source": f"{ASK} - {YOURS}: {topic}{offer}"})
             continue
         permit = work_permit(q, config or {})
         if permit is not None:
             out.append({**q, "answer": "Yes" if permit else "No", "source": "search settings - name it to the user"})
             continue
         answer = from_resume(q, contact)
+        if not answer and hit:
+            mode, entry = hit
+            out.append({**q, "answer": entry["answer"], "source": f"{SAVED} - {answers.named(entry)} - name it to the user"}
+                       if mode == "fill" else
+                       {**q, "answer": None, "source": f"{ASK} - offer saved answer {entry['answer']!r} ({answers.named(entry)})"})
+            continue
         source = names(contact)[1] if q["key"] in PLAIN_NAME else ASK
         out.append({**q, "answer": answer or None, "source": "resume" if answer else source})
     return out
