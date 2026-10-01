@@ -65,3 +65,7 @@ Rejected:
   in Waiting on you / Follow up. Closed is a status now.
 - Folders by date or company: neither answers "what's left to send?"
 - Moving stale resumes on a timer: a resume made weeks ago can still be sent; only the user says.
+
+Renamed stages (`1 To send` -> `1 To apply`, `2 Sent` -> `2 Applied`, 2026-10-01): sort files their
+jobs into the new names, then removes the old folder once it holds nothing (`status.RETIRED_STAGES`).
+A file of the user's own inside keeps it.

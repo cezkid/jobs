@@ -489,3 +489,19 @@ def test_followed_up_is_logged_never_a_status_and_shows_in_history(cli, tmp_path
     assert "Applied" in out[0]
     assert [line.split(None, 1)[1] for line in out[1:4]] == ["Followed up", "Applied", "Resume made"]
     assert out[1].strip().startswith("2026-09-25")
+
+
+def test_old_stage_folders_go_once_empty_never_with_a_job_inside(conn, jobs):
+    """Renamed stages (To send -> To apply, Sent -> Applied) left empty duplicates behind."""
+    (jobs / "1 To send").mkdir(parents=True)
+    (jobs / "1 To send" / ".DS_Store").write_bytes(b"")
+    (jobs / "2 Sent").mkdir()
+    make_folder(jobs / "2 Sent", "Job 9 - Acme - Engineer", "https://acme.com/j/9", "Acme", "Engineer", "acme-9")
+    status.backfill(conn, jobs)
+    status.sort_folders(conn, jobs)
+    assert not (jobs / "1 To send").exists() and not (jobs / "2 Sent").exists()
+    assert [p.parent.name for p in jobs.glob("*/Job * - Acme - Engineer")] == ["1 To apply"]
+    (jobs / "2 Sent").mkdir()
+    (jobs / "2 Sent" / "notes.txt").write_text("mine")
+    status.sort_folders(conn, jobs)
+    assert (jobs / "2 Sent" / "notes.txt").exists()  # the user's own file: folder kept
