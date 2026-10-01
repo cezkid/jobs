@@ -241,6 +241,30 @@ def test_ready_names_lines_to_confirm_and_still_counts_as_made(tailored, tmp_pat
     assert not report.ready("## Ready to send?\n\nNot yet - 2 to fix first.")
 
 
+def test_traits_apart_strength_named_and_skills_only_must_have_asked(master, tailored, tmp_path):
+    """A soft trait is no gap to fill w/ a line; a must-have shown only by the Skills list is."""
+    job = {**JOB, "requirements": [
+        {"text": "5+ years Vue", "priority": "required"},
+        {"text": "TypeScript", "priority": "required"},
+        {"text": "Excellent written and verbal communication skills", "priority": "required"},
+        {"text": "GraphQL", "priority": "preferred"}]}
+    tailored["coverage"] = [
+        {"requirement": 0, "evidence": ["acme-inp"], "note": "Vue on page"},
+        {"requirement": 1, "evidence": ["skills:TypeScript"], "note": "listed"},
+        {"requirement": 2, "evidence": [], "note": "trait"},
+        {"requirement": 3, "evidence": [], "note": "no GraphQL"}]
+    rows = tailor.coverage_rows(job, tailored, master)
+    assert [r["trait"] for r in rows] == [False, False, True, False]
+    assert [r["strength"] for r in rows] == ["a line with a number", "Skills list only", None, None]
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [], "selection": [], "findings": []}
+    text = report.report_md(job, tailored, result, rows, [])
+    assert "Shown: 2 of 3." in text and "| Must have | Yes - a line with a number | 5+ years Vue |" in text
+    assert text.split("## In your Skills list only")[1].split("##")[0].count("- TypeScript") == 1
+    assert "communication" in text.split("## Soft skills they ask for")[1]
+    assert "communication" not in text.split("## Asked for, not shown")[1].split("##")[0]
+    assert not tailor.is_trait("Strong background in UI/UX design collaboration")
+
+
 def test_folder_name_leads_with_the_job_number_and_is_filesystem_safe():
     job = {**JOB, "company": 'Acme: "Health"', "title": "RN / ICU?  Nights."}
     assert tailor.folder_name(job, 7) == "Job 7 - Acme Health - RN ICU Nights"

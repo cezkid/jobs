@@ -53,17 +53,22 @@
    - Rewriting a bullet -> `app/docs/resume/bullets.md`: accuracy outranks fit - never add a
      number, term or grade to fill a line or match a requirement. A bullet with no evidence is a
      question for the user, never a line to fill in.
-3. Read `Check before sending.md` in job folder: "Ready to send?", "What the job asks for, and
-   where your resume shows it", "Asked for, not shown", "Wording notes", "What changed from your
-   resume". Walk them through "To confirm - is each of these true?" item by item, mirrored title
+3. Read `Check before sending.md` in job folder: "Ready to send?", "What they ask vs your
+   resume" (each need shown by a certificate or degree, a line with a number, a line, or the
+   Skills list only), "Asked for, not shown", "In your Skills list only", "Soft skills they ask
+   for", "Wording notes", "What changed from your resume". Walk them through "To confirm - is each of these true?" item by item, mirrored title
    included: "New version says you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is
    'led' accurate?" No -> fix `tailored.json` or `My Resume/Resume details.yml`, rerun check;
    never leave unconfirmed claim. Each "why:" on a left-out line is a suggestion - they can
    overrule it; put it back and rerun check.
-4. "Asked for, not shown" items they can truthfully fill ("Do you have IV certification?") ->
+4. "In your Skills list only" (a must-have no line shows them doing) -> ask where they used it;
+   their own sentence goes in, through `Resume details.yml` (never a line you write for them).
+   "Soft skills they ask for" -> never a line to add: say they show in interview and in how the
+   lines read (bullets.md: soft-skill keywords did not survive).
+5. "Asked for, not shown" items they can truthfully fill ("Do you have IV certification?") ->
    add fact to `Resume details.yml` as one plain sentence under `bullets:` (`AGENTS.md`
    #Resume details), redo task, rerun check.
-5. Open PDF for them; say it's in My Jobs, in the To send folder, under its job number - private
+6. Open PDF for them; say it's in My Jobs, in the To send folder, under its job number - private
    to this computer, ready to upload. Passing check already marked it "resume made" - nothing
    for them to record. Offer `job-apply`; its last step asks whether they sent it.
 
@@ -82,7 +87,7 @@ Wording the user asks about:
 User asks to... (`AGENTS.md` #Lead, explain, push back - say why in plain words, once):
 - Add a skill, tool, number or certification they don't have, or a bigger title -> Hold.
   "Employers check work history, and anything on the page gets asked about in interview. I've
-  listed it as missing in your checklist instead." Have it after all -> step 4.
+  listed it as missing in your checklist instead." Have it after all -> step 5.
 - Delete a job -> last in the list + ended 15+ years ago: fine (10-15 year convention). Any
   other -> push back per `AGENTS.md` (gap in months; offer zero bullets: title + dates stay, no
   lines). Still want it gone -> leave it out.

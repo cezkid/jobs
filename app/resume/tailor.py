@@ -371,6 +371,33 @@ def on_page_sources(tailored: dict) -> set[str]:
     return {s for t in tailored["entries"] for b in t["bullets"] for s in b["sources"]}
 
 
+# soft traits ("strong communication skills"): shown in interview and in how the lines read, never
+# a line of their own - adding soft-skill keywords did not survive (docs/resume/bullets.md). Trait
+# word w/o a digit or a capitalised term (a tool, a product): measured 2026-10-01 on 128 real
+# requirements - 15 held a trait word, 14 traits; "UI/UX design collaboration" kept by its capitals
+TRAITS = re.compile(r"communicat|collaborat|interpersonal|team ?player|teamwork|self-?starter|detail[- ]oriented|"
+                    r"attention to detail|organi[sz]ed|organi[sz]ational|time management|prioriti|problem[- ]solv|"
+                    r"adaptab|flexib|motivated|proactive|passion|curio|empath|growth mindset|work ethic|"
+                    r"positive attitude|fast[- ]paced|multi-?task|independently|accountab|integrity|initiative|"
+                    r"ambigu|bias (?:for|to) action|resourceful", re.I)
+NAMED_TERM = re.compile(r"(?<!^)(?<![.!?]\s)\b[A-Z][\w+#./-]*")
+# how strongly a requirement is shown, strongest first (bullets.md Tier 2: evidence > a keyword)
+STRENGTH = ("certificate or degree", "a line with a number", "a line", "Skills list only")
+
+
+def is_trait(text: str) -> bool:
+    return bool(TRAITS.search(text)) and not re.search(r"\d", text) and not NAMED_TERM.search(text)
+
+
+def evidence_strength(tailored: dict, ref: str) -> str:
+    if EVIDENCE_REF.match(ref):
+        return STRENGTH[0]
+    if ref.startswith(SKILL_REF):
+        return STRENGTH[3]
+    lines = [b["text"] for t in tailored["entries"] for b in t["bullets"] if ref in b["sources"]]
+    return STRENGTH[1] if any(lint.NUMBER.search(line) for line in lines) else STRENGTH[2]
+
+
 def coverage_rows(job: dict, tailored: dict, master: dict) -> list[dict]:
     by_index = {c["requirement"]: c for c in tailored["coverage"]}
     on_page = on_page_sources(tailored)
@@ -378,9 +405,11 @@ def coverage_rows(job: dict, tailored: dict, master: dict) -> list[dict]:
     for i, requirement in enumerate(job["requirements"]):
         claimed = by_index.get(i, {"evidence": [], "note": "not addressed"})
         evidence = [s for s in claimed["evidence"] if not evidence_problem(master, tailored, s, on_page)]
+        strengths = sorted((evidence_strength(tailored, s) for s in evidence), key=STRENGTH.index)
         rows.append({**requirement, "index": i, "evidence": evidence, "note": claimed["note"],
                      "shown": [evidence_text(master, tailored, s) for s in evidence],
-                     "status": "met" if evidence else "gap"})
+                     "status": "met" if evidence else "gap", "strength": strengths[0] if strengths else None,
+                     "trait": is_trait(requirement["text"])})
     return rows
 
 
