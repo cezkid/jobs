@@ -93,7 +93,7 @@ def test_job_folders_that_fail_to_file_never_stop_the_page(tmp_path, monkeypatch
 
 
 def test_file_list_reads_in_stage_order():
-    # "modified" reshuffled 1 To send ... 4 Closed whenever a job moved; compact folders squeezed
+    # "modified" reshuffled 1 To apply ... 4 Closed whenever a job moved; compact folders squeezed
     # a stage holding one job onto its job's row
     raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
     settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))

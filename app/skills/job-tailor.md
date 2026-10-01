@@ -28,8 +28,8 @@
      degree level vs the highest listed) -> say each in plain words, quoting the posting, before
      writing; ONE clickable question: Tailor anyway / Skip this job. Never say they'd be screened
      out - how firm a minimum is varies by employer; their call.
-2. `prepare` makes `My Jobs/1 To send/Job N - Company - Title/` + task file (job already sent ->
-   folder stays in its stage; a closed one reopens - prepare says "back in 1 To send", tell
+2. `prepare` makes `My Jobs/1 To apply/Job N - Company - Title/` + task file (job already sent ->
+   folder stays in its stage; a closed one reopens - prepare says "back in 1 To apply", tell
    them). Do task yourself (`AGENTS.md` #AI writing steps), then
    `uv run app/jobs.py tailor check <job number>`. FAIL lines -> fix `tailored.json`, rerun
    check; never hand over PDF while check fails.
@@ -81,7 +81,7 @@
    (FAIL -> fix `letter.json`, rerun; 2 failed retries -> tell them, stop). Then per paragraph, ONE
    question: "The letter says '...'. It rests on your line '...'. True as written?" Yes / Change it.
    Why each rule: `app/docs/resume/cover-letter.md`.
-7. Open PDF for them; say it's in My Jobs, in the To send folder, under its job number - private
+7. Open PDF for them; say it's in My Jobs, in the To apply folder, under its job number - private
    to this computer, ready to upload. Passing check already marked it "resume made" - nothing
    for them to record. Offer `job-apply`; its last step asks whether they sent it.
 

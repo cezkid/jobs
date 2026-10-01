@@ -127,7 +127,7 @@ def test_folder_without_its_job_file_is_never_a_job(conn, tmp_path, monkeypatch)
     # a note or answers file written at a folder's old path, or a half-copied folder: never a
     # numbered job in Waiting on you, never moved
     monkeypatch.setattr(status.cfg, "DATA", tmp_path / ".data")
-    stray = tmp_path / "1 To send" / "Job 4 - Umbrella - Nurse"
+    stray = tmp_path / "1 To apply" / "Job 4 - Umbrella - Nurse"
     stray.mkdir(parents=True)
     (stray / tailor.CHECK_FILE).write_text("# Nurse - Umbrella\n\n- Link: https://umbrella.com/n\n", encoding="utf-8")
     (stray / "Application answers.md").write_text("answers\n", encoding="utf-8")
@@ -307,13 +307,13 @@ def test_status_set_moves_that_jobs_folder_only(cli, tmp_path, capsys):
     before = files(globex)
     capsys.readouterr()
     cli("set", PASTED_URL, "applied")
-    [sent] = (jobs / "2 Sent").iterdir()
+    [sent] = (jobs / "2 Applied").iterdir()
     assert sent.name.endswith(" - Globex - Data Analyst") and files(sent) == before
     assert f"folder: {sent}\n" in capsys.readouterr().out  # the path the chat uses from now on
     assert acme.is_dir()  # the other job stays where it is until launch or sort
     cli("set", PASTED_URL, "closed")
     assert [d.name for d in (jobs / "4 Closed").iterdir()] == [sent.name]
-    assert (jobs / "2 Sent").is_dir()  # emptied stage kept: nothing deleted, ever
+    assert (jobs / "2 Applied").is_dir()  # emptied stage kept: nothing deleted, ever
     capsys.readouterr()
     cli("show", PASTED_URL)
     assert "Closed" in capsys.readouterr().out
@@ -333,7 +333,7 @@ def jobs(tmp_path, monkeypatch):
 def test_every_status_has_a_stage_in_pipeline_order():
     assert status.STAGES.keys() == status.STATES.keys()
     stages = list(dict.fromkeys(status.STAGES[s] for s in status.STATES))
-    assert stages == ["1 To send", "2 Sent", "3 Heard back", "4 Closed"] == sorted(stages)
+    assert stages == ["1 To apply", "2 Applied", "3 Heard back", "4 Closed"] == sorted(stages)
 
 
 def test_sort_files_every_folder_by_status_and_number(conn, jobs):
@@ -347,8 +347,8 @@ def test_sort_files_every_folder_by_status_and_number(conn, jobs):
     before = {d.name: files(d) for d in (globex, acme, initech)}
     moved, stuck = status.sort_folders(conn, jobs)
     assert len(moved) == 3 and stuck == []
-    want = {"Globex - Data Analyst": jobs / "2 Sent" / f"Job {g} - Globex - Data Analyst",
-            "Acme - Engineer": jobs / "1 To send" / f"Job {a} - Acme - Engineer",
+    want = {"Globex - Data Analyst": jobs / "2 Applied" / f"Job {g} - Globex - Data Analyst",
+            "Acme - Engineer": jobs / "1 To apply" / f"Job {a} - Acme - Engineer",
             "Initech - Analyst": jobs / "3 Heard back" / f"Job {i} - Initech - Analyst"}
     for old, new in want.items():
         assert files(new) == before[old] and not (jobs / old).exists()
@@ -363,7 +363,7 @@ def test_sort_renames_only_never_copies_or_deletes(conn, jobs, monkeypatch):
     status.sort_folders(conn, jobs)
     status.set_state(conn, status.resolve(conn, jobs, PASTED_URL), "applied", NOW)
     status.sort_folders(conn, jobs)
-    assert list((jobs / "1 To send").iterdir()) == [] and len(list((jobs / "2 Sent").iterdir())) == 1
+    assert list((jobs / "1 To apply").iterdir()) == [] and len(list((jobs / "2 Applied").iterdir())) == 1
 
 
 def test_folder_that_cannot_move_now_stays_whole_and_moves_next_time(conn, jobs, monkeypatch):
@@ -387,20 +387,20 @@ def test_taken_name_leaves_both_and_says_so(conn, jobs):
     acme = make_folder(jobs, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
     with conn:
         n = store.number(conn, "acme-1")
-    mine = jobs / "1 To send" / f"Job {n} - Acme - Engineer"
+    mine = jobs / "1 To apply" / f"Job {n} - Acme - Engineer"
     mine.mkdir(parents=True)
     (mine / "notes.txt").write_text("my own notes", encoding="utf-8")
     moved, stuck = status.sort_folders(conn, jobs)
-    assert moved == [] and stuck == [(acme, f"1 To send/Job {n} - Acme - Engineer already there - left both")]
+    assert moved == [] and stuck == [(acme, f"1 To apply/Job {n} - Acme - Engineer already there - left both")]
     assert acme.is_dir() and (mine / "notes.txt").read_text(encoding="utf-8") == "my own notes"
 
 
 def test_name_differing_only_in_letter_case_is_renamed_not_a_clash(conn, jobs):
     with conn:
         n = store.number(conn, "acme-1")
-    make_folder(jobs / "1 To send", f"Job {n} - acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    make_folder(jobs / "1 To apply", f"Job {n} - acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
     moved, stuck = status.sort_folders(conn, jobs)
-    assert stuck == [] and [p.name for p in (jobs / "1 To send").iterdir()] == [f"Job {n} - Acme - Engineer"]
+    assert stuck == [] and [p.name for p in (jobs / "1 To apply").iterdir()] == [f"Job {n} - Acme - Engineer"]
 
 
 def test_job_folder_dragged_inside_another_is_filed_first(conn, jobs):
@@ -409,7 +409,7 @@ def test_job_folder_dragged_inside_another_is_filed_first(conn, jobs):
     make_folder(jobs / "2025" / "old", "Initech - Analyst", "https://initech.com/2", "Initech", "Analyst", "i-2")
     moved, stuck = status.sort_folders(conn, jobs)
     assert len(moved) == 3 and stuck == []
-    assert sorted(p.name.split(" - ", 1)[1] for p in (jobs / "1 To send").iterdir()) == [
+    assert sorted(p.name.split(" - ", 1)[1] for p in (jobs / "1 To apply").iterdir()) == [
         "Acme - Engineer", "Globex - Data Analyst", "Initech - Analyst"]
 
 
@@ -424,7 +424,7 @@ def test_sort_command_says_what_moved_and_what_stayed(cli, tmp_path, capsys):
     assert capsys.readouterr().out == "every job folder is where its status says\n"
     make_folder(tmp_path / "My Jobs", "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
     cli("sort")
-    assert capsys.readouterr().out == f"moved: Acme - Engineer -> {Path('1 To send', 'Job 1 - Acme - Engineer')}\n"
+    assert capsys.readouterr().out == f"moved: Acme - Engineer -> {Path('1 To apply', 'Job 1 - Acme - Engineer')}\n"
     cli("sort")
     assert capsys.readouterr().out == "every job folder is where its status says\n"
 

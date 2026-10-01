@@ -5,8 +5,8 @@ One folder per tailored job, filed under where the job stands. Status (`applicat
 
 ```
 My Jobs/
-  1 To send/      saved, resume made
-  2 Sent/         applied
+  1 To apply/      saved, resume made
+  2 Applied/         applied
   3 Heard back/   heard back, interview, offer
   4 Closed/       they said no, not sending, closed
     Job 12 - Acme - Data Analyst/
@@ -33,12 +33,12 @@ No job file (a stray note, a half-copied folder) => not a job: never counted, nu
 | Trigger | Moves |
 |---|---|
 | `status set N <state>` | that job's folder; prints `folder: <path>` |
-| `tailor prepare` | new job -> `1 To send`; a closed one reopens (saved) -> `1 To send`; filed before any path is printed, so the task file's answer path stays good |
+| `tailor prepare` | new job -> `1 To apply`; a closed one reopens (saved) -> `1 To apply`; filed before any path is printed, so the task file's answer path stays good |
 | launch (`launch.first_page`) | every folder not where its status says, before the Today page is built |
 | `status sort` | same, on demand |
 
 Never from the chat-start hook, the Today rebuild, the morning check or a reading command.
-Never on a timer: a resume made weeks ago stays in To send until the user says otherwise.
+Never on a timer: a resume made weeks ago stays in To apply until the user says otherwise.
 
 Rules (`status.sort_folders`):
 - Rename only - never `shutil.move` (copy + delete fallback can leave a job in two places).

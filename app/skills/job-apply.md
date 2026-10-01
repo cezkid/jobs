@@ -137,5 +137,5 @@ End of every apply, one question, clickable, naming the job ("Job 12 - Acme, Dat
 - **Sent** -> `uv run app/jobs.py status set 12 applied`
 - **Not yet** -> nothing; a later chat asks again in a few days (`status ask`)
 - **Not sending** -> `uv run app/jobs.py status set 12 not_sending`
-Say what was recorded in one line ("Job 12 marked sent - its folder is now in My Jobs, Sent").
+Say what was recorded in one line ("Job 12 marked sent - its folder is now in My Jobs, Applied").
 Never click Submit to make the answer true (hard limits).

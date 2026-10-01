@@ -280,23 +280,23 @@ def test_long_folder_name_cut_at_word_never_the_number():
 
 
 def test_job_dir_found_wherever_its_status_filed_it(tmp_path):
-    first = tailor.job_dir_for(tmp_path, JOB, 7, "1 To send")
-    assert first == tmp_path / "1 To send" / "Job 7 - Acme - Senior Vue Engineer, Search"
+    first = tailor.job_dir_for(tmp_path, JOB, 7, "1 To apply")
+    assert first == tmp_path / "1 To apply" / "Job 7 - Acme - Senior Vue Engineer, Search"
     (first / tailor.JOB_DATA).mkdir(parents=True)
     tailor.write_json(first / tailor.JOB_DATA / "jd.json", JOB)
-    sent = tmp_path / "2 Sent" / first.name
+    sent = tmp_path / "2 Applied" / first.name
     sent.parent.mkdir()
     first.rename(sent)
-    assert tailor.job_dir_for(tmp_path, JOB, 7, "1 To send") == sent == tailor.find_job_dir(tmp_path, JOB["public_slug"])
-    other = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"}, 8, "1 To send")
+    assert tailor.job_dir_for(tmp_path, JOB, 7, "1 To apply") == sent == tailor.find_job_dir(tmp_path, JOB["public_slug"])
+    other = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"}, 8, "1 To apply")
     assert other.name == "Job 8 - Acme - Senior Vue Engineer, Search"
 
 
 def test_unreadable_job_file_is_skipped_not_a_crash(tmp_path):
-    broken = tmp_path / "1 To send" / "Job 3 - Globex - Analyst" / tailor.JOB_DATA
+    broken = tmp_path / "1 To apply" / "Job 3 - Globex - Analyst" / tailor.JOB_DATA
     broken.mkdir(parents=True)
     (broken / "jd.json").write_text("{", encoding="utf-8")
-    good = tailor.job_dir_for(tmp_path, JOB, 7, "1 To send")
+    good = tailor.job_dir_for(tmp_path, JOB, 7, "1 To apply")
     (good / tailor.JOB_DATA).mkdir()
     tailor.write_json(good / tailor.JOB_DATA / "jd.json", JOB)
     assert tailor.find_job_dir(tmp_path, JOB["public_slug"]) == good
@@ -333,7 +333,7 @@ def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tail
 
     tailor.prepare(config, None, posting, JOB["url"])
     assert "job 1, job folder:" in capsys.readouterr().out
-    job_dir = tmp_path / "My Jobs" / "1 To send" / "Job 1 - Acme - Senior Vue Engineer, Search"
+    job_dir = tmp_path / "My Jobs" / "1 To apply" / "Job 1 - Acme - Senior Vue Engineer, Search"
     assert "5+ years Vue" in (job_dir / tailor.POSTING_FILE).read_text(encoding="utf-8")
     assert (job_dir / tailor.JOB_DATA / "task.md").exists()
 
@@ -385,11 +385,11 @@ def test_job_number_names_the_job_in_any_chat(tmp_path, monkeypatch):
 
 def test_same_named_jobs_prepared_at_once_get_own_folders(tmp_path):
     # neither has written jd.json yet - the moment two chats race
-    first = tailor.job_dir_for(tmp_path, JOB, 7, "1 To send")
-    second = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"}, 8, "1 To send")
+    first = tailor.job_dir_for(tmp_path, JOB, 7, "1 To apply")
+    second = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"}, 8, "1 To apply")
     assert first != second and first.is_dir() and second.is_dir()
     # one job prepared in two chats at once: one folder, not a copy
-    assert tailor.job_dir_for(tmp_path, JOB, 7, "1 To send") == first
+    assert tailor.job_dir_for(tmp_path, JOB, 7, "1 To apply") == first
 
 
 def test_career_break_and_other_sections_stay_on_the_tailored_page(master, tailored):
@@ -429,7 +429,7 @@ def test_passed_check_marks_resume_made_with_no_typing(tmp_path, monkeypatch, ma
     posting.write_text(JOB["text"], encoding="utf-8")
     tailor.write_json(tailor.posting_files(posting)[1], {k: JOB[k] for k in ("title", "company", "requirements")})
     tailor.prepare(config, None, posting, JOB["url"])
-    job_dir = tmp_path / "My Jobs" / "1 To send" / "Job 1 - Acme - Senior Vue Engineer, Search"
+    job_dir = tmp_path / "My Jobs" / "1 To apply" / "Job 1 - Acme - Senior Vue Engineer, Search"
 
     conn = store.connect(cfg.db_path(config))
     tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", {**tailored, "entries": []})
@@ -482,8 +482,8 @@ def test_tailoring_a_closed_job_again_brings_it_back_to_send(tmp_path, monkeypat
     assert len(list((tmp_path / "My Jobs" / status.STAGES["not_sending"]).iterdir())) == 1
     capsys.readouterr()
     tailor.prepare(config, None, posting, JOB["url"])
-    assert "was marked Not sending - back in 1 To send" in capsys.readouterr().out
+    assert "was marked Not sending - back in 1 To apply" in capsys.readouterr().out
     assert status.get(conn, JOB["url"])["state"] == "saved"
-    assert len(list((tmp_path / "My Jobs" / "1 To send").iterdir())) == 1
+    assert len(list((tmp_path / "My Jobs" / "1 To apply").iterdir())) == 1
     assert not list((tmp_path / "My Jobs" / status.STAGES["not_sending"]).iterdir())
     conn.close()
