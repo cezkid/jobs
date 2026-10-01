@@ -11,6 +11,7 @@ import pymupdf
 
 import cfg
 import store
+from apply import readahead
 from resume import handoff, jd, knockout, lint, measure, render, report, schema, typeface
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
@@ -543,11 +544,14 @@ def slug_for(config: dict, job: str) -> str:
 
 def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str) -> None:
     master = schema.load(cfg.resume_path(config, "master"))
+    form = None
     if posting_file:
         got = handoff.read_answer(posting_files(posting_file)[1], jd.EXTRACT_SCHEMA)
         job = jd.from_text(posting_file.read_text(encoding="utf-8"), url, got)
     else:
         with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
+            # what the application asks: same request family as the posting, its listing id only
+            form = readahead.fetch(client, config["api"]["base"], slug)
             try:
                 job = jd.fetch(client, config["api"]["base"], slug)
             except jd.NoRequirements:
@@ -568,6 +572,8 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
         data = job_dir / JOB_DATA
         data.mkdir(parents=True, exist_ok=True)
         write_json(data / "jd.json", job)
+        if form is not None:
+            readahead.save(data, form)
         # filed before any path is handed out => the task file's answer path is where it stays
         job_dir, reopened = status.file_job(conn, jobs_dir, job_dir)
     finally:
@@ -599,7 +605,8 @@ def check(config: dict, slug: str) -> int:
     today = date.today()
     gaps = schema.employment_gaps(master, today)
     (job_dir / CHECK_FILE).write_text(
-        report.report_md(job, tailored, result, rows, gaps, today, master) + "\n" + report.diff_md(master, tailored, result["model"]),
+        report.report_md(job, tailored, result, rows, gaps, today, master, readahead.load(job_dir / JOB_DATA))
+        + "\n" + report.diff_md(master, tailored, result["model"]),
         encoding="utf-8")
 
     for name, ok, detail in result["gates"]:

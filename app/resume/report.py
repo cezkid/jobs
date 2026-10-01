@@ -1,6 +1,7 @@
 from datetime import date
 
 import rank
+from apply import readahead
 from resume import knockout, lint, schema
 
 PRIORITY_ORDER = ("required", "preferred")
@@ -94,7 +95,7 @@ def posting_history(job: dict) -> str:
 
 
 def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: list[dict],
-              today: date | None = None, master: dict | None = None) -> str:
+              today: date | None = None, master: dict | None = None, form: dict | None = None) -> str:
     enrichment = job.get("enrichment") or {}
     facts = [
         ("Link", job["url"]), ("Posted on", job.get("source")), ("Level", enrichment.get("seniority")),
@@ -120,6 +121,8 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     info = [gate_line(name, ok, detail) for name, ok, detail in result["gates"] if ok and name.endswith("(info)")]
     if info:
         out += ["", "### Notes", "", *info]
+    if form is not None:
+        out += ["", "## What the application asks", "", *(f"- {line}" for line in readahead.summary(form))]
 
     ordered = sorted(rows, key=lambda r: (PRIORITY_ORDER.index(r["priority"]), r["status"] != "gap", r["index"]))
     # traits are shown in interview, never a line to add: apart, and out of the count

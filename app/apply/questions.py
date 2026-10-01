@@ -59,10 +59,42 @@ COMPLETE_HISTORY = re.compile(r"\b(complete|full|entire|whole) (\w+ )?(employmen
 ASK_JOBS = ("ASK no jobs added yet - ask the user once: same {page} jobs as your resume, or all {all} jobs "
             "(the {left} left off ended {years}+ years ago; a form adds each with its dates). Save the answer as "
             "contact.form_jobs (page or all) in resume details, then run this again")
+# pay, where they live, voluntary questions about them: the user's own answer only, never drafted
+YOURS = "yours to answer"
+# the AI marks an answer the user gave in the chat this way; a never-drafted or sensitive question
+# answered under any other source is refused before anything is typed or pasted
+USER_SAID = "you said"
 # answers the program wrote itself; the user's own (via the AI) survive a second prepare
 AUTO = ("resume", "search settings")
 NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
 FILE = "application.json"
+
+
+# what a question is about, in the user's words - the never-drafted ones first
+TOPICS = (
+    ("the pay you expect", r"salary|compensation|pay (?:expectation|range|requirement)|desired (?:pay|rate)"),
+    ("permission to work", r"authori[sz]ed to work|right to work|work authori[sz]ation|legally (?:able|eligible|permitted)"),
+    ("visa sponsorship", r"sponsor|\bvisa\b"),
+    ("where you live", r"where (?:are you|do you) (?:live|located|based)|(?:state|country|city) of residence|"
+                       r"currently (?:reside|located|live)"),
+    ("voluntary questions about you", r"\bgender\b|\brace\b|ethnic|veteran|sexual orientation|pronoun"),
+    ("working on site", r"on[- ]?site|in[- ]office|in the office|days (?:a|per) week|hybrid"),
+    ("moving for the job", r"relocat"),
+    ("your start date", r"start date|when can you start|available to start|notice period"),
+    ("how you heard", r"how did you (?:hear|find|learn)|where did you (?:hear|find)"),
+    ("being 18 or older", r"\b18 (?:years|or older)|over the age of 18|at least 18"),
+)
+# asked only of the user, never drafted - not even from a setting that seems to fit
+NEVER_DRAFT = ("the pay you expect", "where you live", "voluntary questions about you")
+
+
+
+def topics(text: str) -> list[str]:
+    return [name for name, pattern in TOPICS if re.search(pattern, text, re.I)]
+
+
+def never_draft(text: str) -> str | None:
+    return next((t for t in topics(text) if t in NEVER_DRAFT), None)
 
 
 def question(id: str, title: str, kind: str, required: bool, options=(), key=None, native=None) -> dict:
@@ -289,6 +321,9 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         if q["key"] in ADDRESS and home.get(q["key"]):
             out.append({**q, "answer": str(home[q["key"]]), "source": "search settings - name it to the user"})
             continue
+        if topic := never_draft(q["title"]):
+            out.append({**q, "answer": None, "source": f"{ASK} - {YOURS}: {topic}"})
+            continue
         permit = work_permit(q, config or {})
         if permit is not None:
             out.append({**q, "answer": "Yes" if permit else "No", "source": "search settings - name it to the user"})
@@ -297,6 +332,13 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         source = names(contact)[1] if q["key"] in PLAIN_NAME else ASK
         out.append({**q, "answer": answer or None, "source": "resume" if answer else source})
     return out
+
+
+def unvouched(answers: list[dict]) -> list[dict]:
+    """Never-drafted or sensitive questions answered by anyone but the user (their source still
+    says "ask the user"): the AI wrote them - refused, never typed or pasted."""
+    return [a for a in answers if not blank(a.get("answer")) and (a.get("source") or "").startswith(ASK)
+            and (f" - {YOURS}: " in a["source"] or " - sensitive: " in a["source"])]
 
 
 def missing(answers: list[dict]) -> list[dict]:
