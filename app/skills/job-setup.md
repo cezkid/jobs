@@ -161,8 +161,9 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 - Names: no name question in setup. A legal-name split, initials or a name they go by come up at
   the first application (`job-apply` #Names) or when they ask.
 - Fill the gaps: `uv run app/jobs.py resume-gaps prepare`, do the task yourself (lists lines
-  with no number + a leadership question per recent job), asking the user in chat - clickable
-  "I know it / skip" choices, the number as free text. Only what they say goes in; never guess or
+  with no number, lines saying "helped" or "we" - what was their own part? - and a leadership
+  question per recent job), asking the user in chat ONE question at a time - clickable "I know it /
+  skip" choices, the number as free text. Only what they say goes in; never guess or
   round; skipping is fine. Then `uv run app/jobs.py resume-gaps finish` (FAIL = a number or
   name not in their answer; fix the answer file). Tell them it kept a backup of the old file.
 - `uv run app/jobs.py resume-render` + `uv run app/jobs.py resume-lint`; fix failures w/ user.

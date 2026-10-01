@@ -40,6 +40,10 @@ MARKDOWN = re.compile(r"\*\*|__|^#+\s|##|`|\[[^\]]*\]\([^)]*\)", re.M)
 INVISIBLE = re.compile("[\u00a0\u202f\u200b\u200c\u200d\u2060\ufeff]")
 ROUND_PERCENT = re.compile(r"\b(10|15|20|25|30|40|50|100)%")
 HEDGES = any_phrase(HEDGE_LIST)
+# verbs that claim the work as the writer's own; a line may open with one only if the user said it
+OWNERSHIP = {"lead": r"le(?:d|ad|ads|ading)", "manage": r"manag(?:e|ed|es|ing)", "own": r"own(?:s|ed|ing)?",
+             "direct": r"direct(?:s|ed|ing)?", "head": r"head(?:s|ed|ing)?",
+             "supervise": r"supervis(?:e|ed|es|ing)", "oversee": r"(?:oversaw|oversee|oversees|overseeing)"}
 RESUME_VERBS = any_phrase(RESUME_VERB_LIST)
 GRADES = any_phrase(GRADE_LIST)
 # a purpose clause naming nothing specific is usually the definition of the thing just named
@@ -252,6 +256,16 @@ def master_strings(master) -> list[str]:
     if isinstance(master, list):
         return [s for v in master for s in master_strings(v)]
     return []
+
+
+def upgraded_verb(text: str, sources: list[str]) -> str | None:
+    """The ownership verb opening `text` when none of `sources` uses it: "Assisted with the launch"
+    -> "Led the launch" claims a part nobody said (docs/resume/bullets.md Tier 2, ownership)."""
+    for root, forms in OWNERSHIP.items():
+        if m := re.match(rf"\s*({forms})\b", text, re.I):
+            used = re.compile(rf"\b{forms}\b", re.I)
+            return None if any(used.search(s or "") for s in sources) else m[1]
+    return None
 
 
 def page_items(model: dict):

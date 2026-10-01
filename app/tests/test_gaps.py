@@ -73,3 +73,49 @@ def test_nothing_answered_leaves_the_file_alone(tmp_path):
     asked = gaps.questions(schema.load(path, notes))
     assert gaps.merge(path, asked, [{"id": q["id"], "said": None, "claim": None} for q in asked], notes)[:2] == (0, 0)
     assert path.read_text(encoding="utf-8") == DETAILS
+
+
+HEDGED = DETAILS.replace("  - Wrote Jest tests for the checkout screens.", "  - Helped migrate the checkout to Vue 3.")
+
+
+def test_hedged_line_asks_part_not_number(tmp_path):
+    """A 'helped' or 'we' line leaves the reader guessing whose work it was: that's asked first."""
+    path, notes = setup(tmp_path)
+    path.write_text(HEDGED, encoding="utf-8")
+    asked = gaps.questions(schema.load(path, notes))
+    assert (asked[0]["kind"], asked[0]["line"]) == ("part", "Helped migrate the checkout to Vue 3.")
+    assert '"Helped"' in asked[0]["ask"] and [q["kind"] for q in asked].count("part") == 1
+
+
+def test_part_answer_cannot_upgrade_helped(tmp_path):
+    path, notes = setup(tmp_path)
+    path.write_text(HEDGED, encoding="utf-8")
+    master = schema.load(path, notes)
+    asked = gaps.questions(master)
+    found = gaps.problems(asked, [{"id": "q1", "said": "I moved the cart and payment screens",
+                                   "claim": "Led the checkout migration to Vue 3."}], master)
+    assert "'Led' claims more" in found[0]
+    ok = [{"id": "q1", "said": "I moved the cart and payment screens myself",
+           "claim": "Moved the cart and payment screens to Vue 3."}]
+    assert gaps.problems(asked, ok, master) == []
+    gaps.merge(path, asked, ok, notes)
+    assert schema.load(path, notes)["roles"][0]["bullets"][1]["claim"] == "Moved the cart and payment screens to Vue 3."
+
+
+def test_negated_answer_refused(tmp_path):
+    """'I have not mentored 3 interns' contains '3 interns' - it never goes in."""
+    path, notes = setup(tmp_path)
+    master = schema.load(path, notes)
+    asked = gaps.questions(master)
+    found = gaps.problems(asked, [{"id": "q3", "said": "No, I never mentored the 3 interns",
+                                   "claim": "Mentored 3 interns on the checkout code."}], master)
+    assert "denies '3'" in found[0]
+    assert "says no" in gaps.problems(asked, [{"id": "q3", "said": "Not really.", "claim": "Mentored people."}], master)[0]
+
+
+def test_contrast_clause_not_a_negation(tmp_path):
+    path, notes = setup(tmp_path)
+    master = schema.load(path, notes)
+    asked = gaps.questions(master)
+    said = "I didn't lead the team, but I trained 2 new hires on the checkout code"
+    assert gaps.problems(asked, [{"id": "q3", "said": said, "claim": "Trained 2 new hires on the checkout code."}], master) == []
