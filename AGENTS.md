@@ -67,7 +67,9 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
 - First reply of a chat that asks nothing else: `uv run app/jobs.py status ask`. Prints a job ->
   after their request, ONE clickable question naming it ("Job 12 - Acme, Data Analyst: resume
   made 5 days ago. Did you send it?"): Sent -> `status set 12 applied`, Not sending ->
-  `status set 12 not_sending`, Not yet -> nothing. Prints "nothing to ask" -> say nothing.
+  `status set 12 not_sending`, Not yet -> nothing. Prints "posting gone from the job search" ->
+  ask instead "... may be closed since D. Did you send it before it closed?": Sent -> applied,
+  Not sent -> `status set 12 closed`. Prints "nothing to ask" -> say nothing.
   It picks the oldest job only and never repeats within 3 days - never add others to it.
 - Resume made, untouched 14+ days -> drops out of Waiting on you + never asked about: kept,
   never nagged. User mentions one anyway ("I heard back from Acme") -> `status set`.
@@ -78,11 +80,13 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
   can't tell, w/ why. Sent -> `status set`, say which page showed it; the rest -> ONE clickable
   multiSelect "which did you send?", never more sure than its reason. Facts: `app/docs/apply/sent.md`.
 - Still open? `status open`: each job in progress -> open / may be closed / can't tell, w/ its
-  reason; say that reason, never more sure than it. Pasted or found elsewhere = can't tell (never
-  on the job list) - never guess from the posting. Never fetches the employer's page (would send
-  something new off computer: privacy table row + user yes first). "May be closed" -> ask, one
-  clickable question; yes, or they say it's closed / no reply after following up ->
-  `status set 12 closed` (folder to 4 Closed, kept). Never delete a job folder.
+  reason; say that reason, never more sure than it. A job from the list is asked about at the job
+  search (its listing id only - privacy table); unreachable -> the list's own signals. Pasted or
+  found elsewhere = can't tell (never on the job list) - never guess from the posting. Never
+  fetches the employer's page (would send something new off computer: privacy table row + user
+  yes first). "May be closed" -> ask, one clickable question; yes, or they say it's closed / no
+  reply after following up -> `status set 12 closed` (folder to 4 Closed, kept). Never delete a
+  job folder.
 
 ## Lead, explain, push back
 

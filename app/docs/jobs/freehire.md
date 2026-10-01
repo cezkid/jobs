@@ -79,6 +79,15 @@ check that stopped running reads "can't tell - no job check in N days", never cl
 postings + jobs applied outside have no row => "can't tell - check the link". No re-fetch of
 the employer's page: it would send a new thing off the computer.
 
+`status open` first asks the job search itself, `GET /jobs/<slug>` per listed job in progress
+(listing id only; privacy table row). Search never returns a closed row, the detail endpoint
+does. Measured 2026-10-01 on 6 rows our list had closed: 3 answered 200 w/ `closed_at`, 3
+answered 404 (gone from the catalogue); an open row: `closed_at` null, `last_seen_at` = last
+crawl that found it. => closed_at -> "may be closed - the job search marked it closed on D"
+(its own rules include closing by age, so never "closed"); 404 -> "may be closed - the job
+search no longer lists it"; `last_seen_at` older than `rank.stale_days` -> "may be closed";
+else open. Request fails -> the list's own signals above.
+
 ## Defects handled in code
 
 - **`q=` forbidden** (2026-09-15). Matches description prose: `q=react` returned "Lifecycle
