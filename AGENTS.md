@@ -206,7 +206,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   one-line `headline` above the summary), untailored `First_Last_Resume.pdf`, `Resume feedback.md`
   (`resume-feedback`: how their resume reads - numbers, wording, leadership / initiative /
   teamwork, details + dates; layout never scored, the gates enforce it).
-- `My Jobs/<stage>/Job N - Company - Title/` - one per tailored job, under where it stands
+- `My Jobs/<stage>/N - Company - Title/` - one per tailored job, under where it stands
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import,

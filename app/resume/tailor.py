@@ -446,9 +446,9 @@ POSTING_FILE = "Job posting.md"
 
 
 def folder_name(job: dict, num: int) -> str:
-    """'Job 12 - Acme - Data Analyst': same number as the chat, Today page + email; the number
-    is never cut, the words are."""
-    prefix = f"Job {num}"
+    """'12 - Acme - Data Analyst': same number as the chat, Today page + email ("job 12"); the
+    number is never cut, the words are."""
+    prefix = str(num)
     words = f"{job['company']} - {job['title']}" if job.get("company") else job.get("title") or ""
     words = " ".join(ILLEGAL_IN_NAME.sub(" ", words).split())
     room = MAX_FOLDER_CHARS - len(prefix) - len(" - ")
