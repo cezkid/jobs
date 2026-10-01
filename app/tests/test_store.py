@@ -86,3 +86,24 @@ def test_unknown_number_says_so(conn):
         assert "job 99" in str(e)
     else:
         raise AssertionError("unknown number resolved")
+
+
+def test_link_key_drops_tracking_keeps_job_params_and_fragment():
+    """The job search tags every link utm_source=freehire.me; the employer's page copy has none."""
+    tagged = "https://Boards.Greenhouse.io/acme/jobs/7/?gh_jid=7&utm_source=freehire.me&UTM_medium=x"
+    assert store.link_key(tagged) == store.link_key("https://boards.greenhouse.io/acme/jobs/7?gh_jid=7")
+    assert store.link_key("https://acme.wd5.myworkdayjobs.com/x#/jobs/123") != store.link_key(
+        "https://acme.wd5.myworkdayjobs.com/x#/jobs/124")
+    assert store.link_key("https://x.test/a?id=1") != store.link_key("https://x.test/a?id=2")
+    assert store.link_key("outside:initech|analyst") == "outside:initech|analyst"
+    assert store.link_key(None) == ""
+
+
+def test_jobs_by_link_prefers_open_then_newest(conn):
+    shared = "https://careers.acme.test/apply?utm_source=freehire.me"
+    store.upsert(conn, [make_job("old-city", url=shared)], "2026-09-01T00:00:00Z")
+    store.upsert(conn, [make_job("new-city", url=shared)], "2026-09-20T00:00:00Z")
+    store.upsert(conn, [make_job("closed-city", url=shared)], "2026-09-25T00:00:00Z")
+    conn.execute("UPDATE jobs SET closed_at = '2026-09-26T00:00:00Z' WHERE public_slug = 'closed-city'")
+    assert store.jobs_by_link(conn, "https://careers.acme.test/apply")["public_slug"] == "new-city"
+    assert store.jobs_by_link(conn, "https://elsewhere.test/1") is None

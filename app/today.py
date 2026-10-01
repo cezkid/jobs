@@ -113,11 +113,11 @@ def new_jobs(conn, config: dict, now: datetime) -> list[dict]:
     if last_check is None:
         return []
     announced = {r[0] for r in conn.execute("SELECT public_slug FROM seen WHERE alerted_at >= ?", (last_check,))}
-    acting = {v for r in conn.execute("SELECT public_slug, url FROM applications") for v in r if v}
+    acting = {v for r in conn.execute("SELECT public_slug, link_key(url) FROM applications") for v in r if v}
     out = []
     for j in rank.rank(store.all_jobs(conn), config, now):
         slugs = {j["public_slug"], *j["duplicates"]}
-        if j["stale"] or (j["seen"] and not slugs & announced) or (slugs | {j["url"]}) & acting:
+        if j["stale"] or (j["seen"] and not slugs & announced) or (slugs | {store.link_key(j["url"])}) & acting:
             continue
         out.append(j)
     return out

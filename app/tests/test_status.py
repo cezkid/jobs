@@ -47,6 +47,14 @@ def test_listed_job_by_slug_and_link(conn, tmp_path):
     assert status.get(conn, by_link["key"])["public_slug"] == "a"
 
 
+def test_plain_link_finds_listed_job(conn, tmp_path):
+    """Pasted from the employer's page: no utm_source tag, same job."""
+    store.upsert(conn, [make_job("a", url="https://boards.greenhouse.io/acme/jobs/a?utm_source=freehire.me")], NOW)
+    status.set_state(conn, status.resolve(conn, tmp_path, "a"), "applied", NOW)
+    plain = status.resolve(conn, tmp_path, "https://boards.greenhouse.io/acme/jobs/a")
+    assert plain["public_slug"] == "a" and status.get(conn, plain["key"])["state"] == "applied"
+
+
 def test_pasted_posting_by_link_slug_or_folder(conn, tmp_path):
     make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "globex-data-analyst")
     status.sort_folders(conn, tmp_path)  # renamed 'Job N - Globex - Data Analyst', filed under its stage

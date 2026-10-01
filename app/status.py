@@ -164,10 +164,10 @@ def resolve(conn, jobs_dir: Path, job: str | None = None, company: str | None = 
         if found is None:
             raise NotFound(f"{job}: no such job on your list or in your job folders")
     if found is None and url:
-        url = url.strip()
-        row = conn.execute("SELECT * FROM applications WHERE key = ? OR url = ?", (url, url)).fetchone()
-        jobs_row = conn.execute("SELECT * FROM jobs WHERE url = ?", (url,)).fetchone()
-        folder = next((f for f in folders(jobs_dir) if f["url"] == url), None)
+        url, want = url.strip(), store.link_key(url)
+        row = conn.execute("SELECT * FROM applications WHERE link_key(key) = ? OR link_key(url) = ?", (want, want)).fetchone()
+        jobs_row = store.jobs_by_link(conn, url)
+        folder = next((f for f in folders(jobs_dir) if f["url"] and store.link_key(f["url"]) == want), None)
         found = (dict(row) if row else _from_jobs_row(jobs_row) if jobs_row
                  else _from_folder(folder) if folder else None)
     if found is None and company and title:
@@ -257,7 +257,7 @@ def still_open(conn, row: dict, stale_days: int, now: str) -> tuple[str, str]:
     employer's page (that would send something new off the computer). A pasted posting or a job
     applied outside was never on the list, so nothing can say it closed."""
     job = (row["public_slug"] and conn.execute("SELECT * FROM jobs WHERE public_slug = ?", (row["public_slug"],)).fetchone()) \
-        or (row["url"] and conn.execute("SELECT * FROM jobs WHERE url = ?", (row["url"],)).fetchone())
+        or store.jobs_by_link(conn, row["url"])
     if not job:
         return "can't tell", "never on your job list (pasted or found elsewhere) - check the link"
     if job["closed_at"]:

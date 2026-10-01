@@ -497,7 +497,7 @@ def slug_for(config: dict, job: str) -> str:
         return job
     conn = store.connect(cfg.db_path(config))
     try:
-        row = conn.execute("SELECT public_slug FROM jobs WHERE url = ?", (job,)).fetchone()
+        row = store.jobs_by_link(conn, job)
     finally:
         conn.close()
     if row is None:

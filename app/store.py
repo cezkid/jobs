@@ -3,6 +3,7 @@ import re
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 ISO = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -94,12 +95,36 @@ def utc_now() -> str:
     return datetime.now(timezone.utc).strftime(ISO)
 
 
+def link_key(url: str | None) -> str:
+    """A posting link as both its copies read: the job search tags every link it serves
+    utm_source=freehire.me (1431 of 1431 stored rows, 2026-09-30), a link copied from the
+    employer's page has none. Scheme + host lowercased, utm_* params + trailing slash dropped;
+    other params + the fragment kept - some job ids live there (#/jobs/123). Not a link -> as is."""
+    text = (url or "").strip()
+    parts = urlsplit(text)
+    if not parts.scheme or not parts.netloc:
+        return text
+    query = urlencode([(k, v) for k, v in parse_qsl(parts.query, keep_blank_values=True)
+                       if not k.lower().startswith("utm_")])
+    return urlunsplit((parts.scheme.lower(), parts.netloc.lower(), parts.path.rstrip("/"), query, parts.fragment))
+
+
 def connect(path: Path | str) -> sqlite3.Connection:
     # another chat or the morning check may be writing: wait for it instead of "database is locked"
     conn = sqlite3.connect(path, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
+    conn.create_function("link_key", 1, link_key, deterministic=True)
     return conn
+
+
+def jobs_by_link(conn: sqlite3.Connection, url: str | None) -> sqlite3.Row | None:
+    """The listed job a link names, tracking tags aside. Several rows can share one link (one
+    apply page for every city): an open one first, then the newest fetched."""
+    if not url:
+        return None
+    return conn.execute("SELECT * FROM jobs WHERE link_key(url) = ? ORDER BY closed_at IS NOT NULL, fetched_at DESC",
+                        (link_key(url),)).fetchone()
 
 
 def _encode(row: dict, col: str):

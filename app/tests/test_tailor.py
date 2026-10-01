@@ -197,6 +197,18 @@ def test_posting_history_counts_reposts_beyond_open_copies():
     assert report.posting_history(JOB) == ""
 
 
+def test_slug_for_matches_link_without_tracking(tmp_path, monkeypatch):
+    db = tmp_path / "jobs.db"
+    conn = store.connect(db)
+    from conftest import make_job
+    store.upsert(conn, [make_job("vue-1", url="https://jobs.ashbyhq.com/acme/1?utm_source=freehire.me")], "2026-09-29T00:00:00Z")
+    conn.commit()
+    conn.close()
+    monkeypatch.setattr(cfg, "db_path", lambda config: db)
+    monkeypatch.setattr(tailor, "by_number", lambda config, job: job)
+    assert tailor.slug_for({}, "https://jobs.ashbyhq.com/acme/1") == "vue-1"
+
+
 def test_folder_name_leads_with_the_job_number_and_is_filesystem_safe():
     job = {**JOB, "company": 'Acme: "Health"', "title": "RN / ICU?  Nights."}
     assert tailor.folder_name(job, 7) == "Job 7 - Acme Health - RN ICU Nights"
