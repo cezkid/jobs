@@ -27,6 +27,7 @@ COMMANDS = {
     "today": ("today", "write Today.md: waiting on you, follow up, new since last check, not finished"),
     "status": ("status", "where each job stands: list | show JOB | set JOB STATE (or --company --title) | followed-up JOB | sort"),
     "follow-up": ("followup", "draft a follow-up email for one job into its folder - the user sends it: JOB [--name NAME]"),
+    "interview": ("interview", "interview practice or debrief for one job: requirements, backing lines, pay: JOB"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
     "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),

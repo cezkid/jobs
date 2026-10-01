@@ -119,6 +119,19 @@ def follow_up(conn, now: str, days: dict[str, int]) -> list[str]:
     return out + [""]
 
 
+def interviews(conn, now: str, days: dict[str, int]) -> list[str]:
+    """Jobs at the interview stage, until a follow-up is due (they move to Follow up then)."""
+    due = {r["key"] for r in follow_up_rows(conn, now, days)}
+    rows = [r for r in status.in_progress(conn) if r["state"] == "interview" and r["key"] not in due]
+    if not rows:
+        return []
+    out = ["## Interviews", ""]
+    for r in status.numbered(conn, rows[:FOLLOW_UP_MAX]):
+        out += item(r, f"Interview stage since {days_ago(r['state_at'], now)}", r["url"],
+                    say(f"practise my interview for job {r['num']}") + f' - or "I had the interview for job {r["num"]}"')
+    return out + [""]
+
+
 def new_jobs(conn, config: dict, now: datetime) -> list[dict]:
     """Found in the last check, or not yet announced: the same jobs the email / pop-up named,
     ranked the same way, so "Job 12" here = Job 12 there. Stale rows (likely filled) and jobs
@@ -173,7 +186,8 @@ def build(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) ->
     if line := progress(conn):
         out[-1] += f" {line}"
     out.append("")
-    body = waiting(conn, now_iso) + follow_up(conn, now_iso, config["follow_up"]) + new_section(conn, config, now)
+    body = (waiting(conn, now_iso) + interviews(conn, now_iso, config["follow_up"])
+            + follow_up(conn, now_iso, config["follow_up"]) + new_section(conn, config, now))
     if todo:
         body += ["## Not finished", "", *(f"- {t}" for t in todo), ""]
     out += body or [f"Nothing new since the last check. {say('find new jobs')}", ""]

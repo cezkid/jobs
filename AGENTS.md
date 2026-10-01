@@ -89,7 +89,8 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
 - Resume made, untouched 14+ days -> drops out of Waiting on you + never asked about: kept,
   never nagged. User mentions one anyway ("I heard back from Acme") -> `status set`.
 - User says it in passing ("applied to Acme", "got an interview") -> `status set` by number,
-  link or `--company C --title T`, confirm in one line. Never a count of unsent resumes.
+  link or `--company C --title T`, confirm in one line. Never a count of unsent resumes. An
+  interview -> offer practice once (`job-interview` skill); Today lists it under Interviews.
 - Unsure what they sent ("which did I apply to?"): `status sent` - reads browser history on this
   computer (nothing leaves it; say so), each job not marked sent -> sent / likely not sent /
   can't tell, w/ why. Sent -> `status set`, say which page showed it; the rest -> ONE clickable
@@ -170,7 +171,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
 | Resume + answers you paste | that employer's site (Greenhouse, Lever, Workable ...) | That employer, once you click Submit |
-| Resume + postings you work on; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude or ChatGPT) | User's own AI account; personal plans may train on it unless switched off |
+| Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude or ChatGPT) | User's own AI account; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Work history, education, skills, links you apply with | that employer's UKG site | That employer, as each is added (only after you say yes) |
@@ -264,7 +265,8 @@ Read before adding a wording rule - it records rules measured and rejected, so n
 Bodies in `app/skills/<name>.md`; `.claude/skills/` + `.agents/skills/` hold stubs pointing
 there. `job-setup` first run + search changes, `job-find` new jobs + cleanup, `job-tailor`
 resume for one posting, `job-apply` fill an application, never Save/Submit (systems + adding one:
-`app/docs/apply/apply-systems.md`), `report-defect` send fix upstream.
+`app/docs/apply/apply-systems.md`), `job-interview` practice for an interview + debrief after one,
+`report-defect` send fix upstream.
 
 ## Personal data - never stage
 
