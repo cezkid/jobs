@@ -101,3 +101,19 @@ def test_second_poll_closes_nothing_new(polled):
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
         again = freehire.run(config, conn, client)
     assert again["remote"]["closed"] == 0
+
+
+def test_title_search_is_exact_and_rn_jobs_still_listed():
+    """Title search keeps its measured meaning (quoted = exact phrase, fewer rows than unquoted),
+    and the job source still carries nursing under its short form - it prunes non-tech titles by
+    design (docs/jobs/freehire.md #What the job source leaves out). A fail here = re-measure."""
+    from ingest import probe
+    api = cfg.defaults()["api"]
+    with httpx.Client(timeout=api["timeout_s"]) as client:
+        def total(q):
+            resp = client.get(f"{api['base']}/jobs/search",
+                              params={"q": q, "q_fields": "title", "countries": "us", "limit": 1})
+            return freehire.understood(resp.json())["meta"]["total"]
+        assert total('"nurse"') < total("nurse")
+        (_, rn_open, _), = probe.title_counts(client, api["base"], {"countries": ["us"]}, ["RN"])
+    assert rn_open > 1000
