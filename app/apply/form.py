@@ -133,6 +133,7 @@ def fill(slug: str) -> None:
         sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     system = system_for(data["url"])
     resume = resume_for(config, folder)
+    letter = next((str(p) for p in folder.glob("*_Cover_Letter.pdf")), None)
     if resume is None and any(q["kind"] == "file" and q.get("answer") is True for q in data["questions"]):
         pdfs = [p.name for p in folder.glob("*_Resume.pdf")]
         print(f"no resume uploaded: {'several resume PDFs in ' + folder.name + ' - ' + ', '.join(pdfs) if pdfs else 'no tailored resume PDF in ' + folder.name} "
@@ -149,7 +150,7 @@ def fill(slug: str) -> None:
             if questions.blank(q.get("answer")):
                 continue
             try:
-                result = system.fill(page, q, resume)
+                result = system.fill(page, q, letter if q.get("key") == "cover_letter" else resume)
             except Exception as e:  # one stuck box never stops the rest
                 result = f"FAIL {type(e).__name__}: {str(e).splitlines()[0][:120]}"
             report.append((q["title"], result))

@@ -107,6 +107,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    question: `answer: true` only after they said yes to the named file (hard limits). Location: the
    city they live in. Home address: `home_address` in search settings fills it; not set -> ask, offer to
    keep it there (never on the resume). Answers from search settings: name them to the user.
+   Cover letter box: upload `First_Last_Cover_Letter.pdf` (`fill` puts it in that box only, after
+   their yes) or paste from `Cover letter.md`; none made -> offer `job-tailor` step 6.
    UKG: form shows only after sign-in - `prepare` stops on the sign-in page in Job Finder's
    Chrome; user signs in or creates the account there, then rerun `prepare`. Its
    `resume-sections` question (add work history, education, skills, links from the resume): UKG

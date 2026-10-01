@@ -628,4 +628,6 @@ def test_resume_goes_in_the_resume_box_only():
     assert letter["key"] == "cover_letter"
     assert [questions.key_from_title(t, "file") for t in ("Resume/CV", "Upload your CV", "Portfolio")] == \
         ["resume", "resume", None]
-    assert ashby.fill(Page(), letter, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")
+    assert ashby.fill(Page(), letter, None).startswith("ASK cover letter box - no letter made")
+    other = {**letter, "title": "Portfolio", "key": None}
+    assert ashby.fill(Page(), other, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")

@@ -73,7 +73,15 @@
 5. "Asked for, not shown" items they can truthfully fill ("Do you have IV certification?") ->
    add fact to `Resume details.yml` as one plain sentence under `bullets:` (`AGENTS.md`
    #Resume details), redo task, rerun check.
-6. Open PDF for them; say it's in My Jobs, in the To send folder, under its job number - private
+6. Cover letter - only when "What the application asks" shows a cover letter box (or they ask): ONE
+   question "Job 12's application has a cover letter box. Write one too?" - Yes, about 5 minutes / No,
+   resume only. Yes -> free text: "In one sentence, in your own words: why this job or this company?
+   It goes in exactly as you write it." Save it word for word to `.data/letter-why.txt` in the job
+   folder; `uv run app/jobs.py letter prepare 12`, do the task, `uv run app/jobs.py letter check 12`
+   (FAIL -> fix `letter.json`, rerun; 2 failed retries -> tell them, stop). Then per paragraph, ONE
+   question: "The letter says '...'. It rests on your line '...'. True as written?" Yes / Change it.
+   Why each rule: `app/docs/resume/cover-letter.md`.
+7. Open PDF for them; say it's in My Jobs, in the To send folder, under its job number - private
    to this computer, ready to upload. Passing check already marked it "resume made" - nothing
    for them to record. Offer `job-apply`; its last step asks whether they sent it.
 
