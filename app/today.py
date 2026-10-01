@@ -61,8 +61,12 @@ def item(row: dict, *details: str) -> list[str]:
 
 
 def progress(conn) -> str:
+    """Sent so far, counting a job closed after it was sent: closing it never un-sends it."""
     marks = ",".join("?" * len(SENT))
-    counts = dict(conn.execute(f"SELECT state, COUNT(*) FROM applications WHERE state IN ({marks}) GROUP BY state", SENT).fetchall())
+    counts = dict(conn.execute(
+        f"SELECT state, COUNT(*) FROM applications a WHERE state IN ({marks}) OR (state = 'closed' AND EXISTS"
+        f" (SELECT 1 FROM application_log l WHERE l.key = a.key AND l.state IN ({marks}))) GROUP BY state",
+        SENT + SENT).fetchall())
     parts = [f"{sum(counts.values())} sent"] if counts else []
     parts += [f"{n} {w}" for n, w in ((counts.get("interview", 0), "interview"), (counts.get("offer", 0), "offer")) if n]
     return f"So far: {', '.join(parts)}." if parts else ""
@@ -95,7 +99,7 @@ def follow_up(conn, now: str) -> list[str]:
            " there - that's convention, not a rule. Many employers never write back.", ""]
     for r in status.numbered(conn, rows[:FOLLOW_UP_MAX]):
         out += item(r, f"Applied {days_ago(r['state_at'], now)}, no reply yet", r["url"],
-                    say(f"I heard back from job {r['num']}") + f' - or "mark job {r["num"]} as no"')
+                    say(f"I heard back from job {r['num']}") + f' - or "job {r["num"]} is closed"')
     if len(rows) > FOLLOW_UP_MAX:
         out.append(f"- More in the chat. {say('what should I follow up on')}")
     return out + [""]

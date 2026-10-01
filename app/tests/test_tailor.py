@@ -1,5 +1,6 @@
 import copy
 from datetime import date
+from pathlib import Path
 
 import pytest
 
@@ -187,26 +188,41 @@ def test_report_speaks_plain_words_and_gives_reasons(master, tailored):
     assert "master" not in diff and "`" not in diff
 
 
-def test_folder_name_readable_and_filesystem_safe():
+def test_folder_name_leads_with_the_job_number_and_is_filesystem_safe():
     job = {**JOB, "company": 'Acme: "Health"', "title": "RN / ICU?  Nights."}
-    assert tailor.folder_name(job) == "Acme Health - RN ICU Nights"
+    assert tailor.folder_name(job, 7) == "Job 7 - Acme Health - RN ICU Nights"
+    assert tailor.folder_name({**job, "company": None}, 7) == "Job 7 - RN ICU Nights"
+    assert tailor.folder_name({**job, "company": "", "title": "?"}, 7) == "Job 7"
 
 
-def test_long_folder_name_cut_at_word():
+def test_long_folder_name_cut_at_word_never_the_number():
     job = {**JOB, "company": "Weights & Biases", "title": "Senior Software Engineer, ML Model Training UI - Weights & Biases"}
-    name = tailor.folder_name(job)
-    assert len(name) <= tailor.MAX_FOLDER_CHARS
+    name = tailor.folder_name(job, 1234)
+    assert len(name) <= tailor.MAX_FOLDER_CHARS and name.startswith("Job 1234 - Weights & Biases - ")
     assert name.split()[-1] in job["title"].split()
 
 
-def test_job_dir_reused_for_same_job_suffixed_for_other(tmp_path):
-    first = tailor.job_dir_for(tmp_path, JOB)
-    assert first.name == "Acme - Senior Vue Engineer, Search"
+def test_job_dir_found_wherever_its_status_filed_it(tmp_path):
+    first = tailor.job_dir_for(tmp_path, JOB, 7, "1 To send")
+    assert first == tmp_path / "1 To send" / "Job 7 - Acme - Senior Vue Engineer, Search"
     (first / tailor.JOB_DATA).mkdir(parents=True)
     tailor.write_json(first / tailor.JOB_DATA / "jd.json", JOB)
-    assert tailor.job_dir_for(tmp_path, JOB) == first
-    other = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"})
-    assert other.name == "Acme - Senior Vue Engineer, Search (2)"
+    sent = tmp_path / "2 Sent" / first.name
+    sent.parent.mkdir()
+    first.rename(sent)
+    assert tailor.job_dir_for(tmp_path, JOB, 7, "1 To send") == sent == tailor.find_job_dir(tmp_path, JOB["public_slug"])
+    other = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"}, 8, "1 To send")
+    assert other.name == "Job 8 - Acme - Senior Vue Engineer, Search"
+
+
+def test_unreadable_job_file_is_skipped_not_a_crash(tmp_path):
+    broken = tmp_path / "1 To send" / "Job 3 - Globex - Analyst" / tailor.JOB_DATA
+    broken.mkdir(parents=True)
+    (broken / "jd.json").write_text("{", encoding="utf-8")
+    good = tailor.job_dir_for(tmp_path, JOB, 7, "1 To send")
+    (good / tailor.JOB_DATA).mkdir()
+    tailor.write_json(good / tailor.JOB_DATA / "jd.json", JOB)
+    assert tailor.find_job_dir(tmp_path, JOB["public_slug"]) == good
 
 
 def test_prepare_on_a_posting_without_requirements_explains_instead_of_crashing(tmp_path, monkeypatch):
@@ -240,7 +256,7 @@ def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tail
 
     tailor.prepare(config, None, posting, JOB["url"])
     assert "job 1, job folder:" in capsys.readouterr().out
-    job_dir = tmp_path / "My Jobs" / "Acme - Senior Vue Engineer, Search"
+    job_dir = tmp_path / "My Jobs" / "1 To send" / "Job 1 - Acme - Senior Vue Engineer, Search"
     assert "5+ years Vue" in (job_dir / tailor.POSTING_FILE).read_text(encoding="utf-8")
     assert (job_dir / tailor.JOB_DATA / "task.md").exists()
 
@@ -292,9 +308,11 @@ def test_job_number_names_the_job_in_any_chat(tmp_path, monkeypatch):
 
 def test_same_named_jobs_prepared_at_once_get_own_folders(tmp_path):
     # neither has written jd.json yet - the moment two chats race
-    first = tailor.job_dir_for(tmp_path, JOB)
-    second = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"})
+    first = tailor.job_dir_for(tmp_path, JOB, 7, "1 To send")
+    second = tailor.job_dir_for(tmp_path, {**JOB, "public_slug": "senior-vue-acme-x2"}, 8, "1 To send")
     assert first != second and first.is_dir() and second.is_dir()
+    # one job prepared in two chats at once: one folder, not a copy
+    assert tailor.job_dir_for(tmp_path, JOB, 7, "1 To send") == first
 
 
 def test_career_break_and_other_sections_stay_on_the_tailored_page(master, tailored):
@@ -334,7 +352,7 @@ def test_passed_check_marks_resume_made_with_no_typing(tmp_path, monkeypatch, ma
     posting.write_text(JOB["text"], encoding="utf-8")
     tailor.write_json(tailor.posting_files(posting)[1], {k: JOB[k] for k in ("title", "company", "requirements")})
     tailor.prepare(config, None, posting, JOB["url"])
-    job_dir = tmp_path / "My Jobs" / "Acme - Senior Vue Engineer, Search"
+    job_dir = tmp_path / "My Jobs" / "1 To send" / "Job 1 - Acme - Senior Vue Engineer, Search"
 
     conn = store.connect(cfg.db_path(config))
     tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", {**tailored, "entries": []})
@@ -343,4 +361,50 @@ def test_passed_check_marks_resume_made_with_no_typing(tmp_path, monkeypatch, ma
     tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", tailored)
     assert tailor.check(config, "job 1") == 0
     assert status.get(conn, JOB["url"])["state"] == "resume_made"
+    conn.close()
+
+
+def pasted(tmp_path, monkeypatch) -> tuple[dict, Path]:
+    """Workspace w/ the example resume + the pasted posting answered => prepare runs offline."""
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(cfg, "DATA", tmp_path / ".data")
+    config = cfg.defaults()
+    master_path = cfg.resume_path(config, "master")
+    master_path.parent.mkdir(parents=True)
+    master_path.write_text(EXAMPLE.read_text(encoding="utf-8"), encoding="utf-8")
+    posting = tmp_path / "posting.txt"
+    posting.write_text(JOB["text"], encoding="utf-8")
+    tailor.write_json(tailor.posting_files(posting)[1], {k: JOB[k] for k in ("title", "company", "requirements")})
+    return config, posting
+
+
+def test_prepare_files_a_job_already_sent_under_sent(tmp_path, monkeypatch, capsys):
+    # applied outside Job Finder, tailored after: the task's answer path is where the folder stays
+    import status
+    config, posting = pasted(tmp_path, monkeypatch)
+    conn = store.connect(cfg.db_path(config))
+    status.set_state(conn, status.resolve(conn, tmp_path, company="Acme", title=JOB["title"], url=JOB["url"]),
+                     "applied", store.utc_now())
+    conn.close()
+    tailor.prepare(config, None, posting, JOB["url"])
+    [job_dir] = (tmp_path / "My Jobs" / status.STAGES["applied"]).iterdir()
+    assert f"job folder: {job_dir}" in capsys.readouterr().out
+    assert str(job_dir / tailor.JOB_DATA / "tailored.json") in (job_dir / tailor.JOB_DATA / "task.md").read_text(encoding="utf-8")
+    assert not list((tmp_path / "My Jobs" / status.STAGES["saved"]).iterdir())
+
+
+def test_tailoring_a_closed_job_again_brings_it_back_to_send(tmp_path, monkeypatch, capsys):
+    import status
+    config, posting = pasted(tmp_path, monkeypatch)
+    tailor.prepare(config, None, posting, JOB["url"])
+    conn = store.connect(cfg.db_path(config))
+    status.set_state(conn, status.resolve(conn, tmp_path / "My Jobs", JOB["url"]), "not_sending", store.utc_now())
+    status.sort_folders(conn, tmp_path / "My Jobs")
+    assert len(list((tmp_path / "My Jobs" / status.STAGES["not_sending"]).iterdir())) == 1
+    capsys.readouterr()
+    tailor.prepare(config, None, posting, JOB["url"])
+    assert "was marked Not sending - back in 1 To send" in capsys.readouterr().out
+    assert status.get(conn, JOB["url"])["state"] == "saved"
+    assert len(list((tmp_path / "My Jobs" / "1 To send").iterdir())) == 1
+    assert not list((tmp_path / "My Jobs" / status.STAGES["not_sending"]).iterdir())
     conn.close()

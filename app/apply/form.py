@@ -23,6 +23,13 @@ def job_dir(config: dict, slug: str) -> Path:
     return found
 
 
+def resume_for(config: dict, folder: Path) -> str | None:
+    """The job's tailored PDF where its folder is now - never a path saved earlier: the folder
+    moves when its status does (sent, heard back ...)."""
+    resume = folder / render.file_name(schema.load(cfg.resume_path(config, "master")))
+    return str(resume) if resume.exists() else None
+
+
 def system_for(url: str):
     system = systems.for_url(url)
     if system is None:
@@ -41,9 +48,7 @@ def prepare(slug: str, url: str) -> None:
     old = questions.load(out)
     same_form = old and old.get("url") == system.application_url(url)
     answers = questions.draft(system.questions(url), master["contact"], old["questions"] if same_form else None, config)
-    resume = folder / render.file_name(master)
-    questions.save(out, {"system": system.NAME, "url": system.application_url(url),
-                         "resume_file": str(resume) if resume.exists() else None, "questions": answers})
+    questions.save(out, {"system": system.NAME, "url": system.application_url(url), "questions": answers})
     print(f"{system.NAME} form -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
     for a in answers:
         state = "ok" if not questions.blank(a["answer"]) else ("NEEDED" if a["required"] else "optional")
@@ -55,13 +60,15 @@ def prepare(slug: str, url: str) -> None:
 
 def fill(slug: str) -> None:
     config = cfg.load()
-    saved = job_dir(config, slug) / tailor.JOB_DATA / questions.FILE
+    folder = job_dir(config, slug)
+    saved = folder / tailor.JOB_DATA / questions.FILE
     data = questions.load(saved)
     if data is None:
         sys.exit(f"no answers yet; run: uv run app/jobs.py apply-form prepare {slug} <link>")
     if gaps := questions.missing(data["questions"]):
         sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     system = system_for(data["url"])
+    resume = resume_for(config, folder)
     report = []
     with browser.page_at(data["url"]) as page:
         page.locator(system.READY).first.wait_for(timeout=30000)
@@ -70,7 +77,7 @@ def fill(slug: str) -> None:
             if questions.blank(q.get("answer")):
                 continue
             try:
-                result = system.fill(page, q, data.get("resume_file"))
+                result = system.fill(page, q, resume)
             except Exception as e:  # one stuck box never stops the rest
                 result = f"FAIL {type(e).__name__}: {str(e).splitlines()[0][:120]}"
             report.append((q["title"], result))

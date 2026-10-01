@@ -25,7 +25,11 @@
   },
   "yaml.validate": true,
   "yaml.format.enable": false,
-  "explorer.sortOrder": "modified",
+  // by name => My Jobs reads in pipeline order (1 To send ... 4 Closed), jobs by number inside;
+  // "modified" reshuffled the stages every time a job moved
+  "explorer.sortOrder": "default",
+  // a stage holding one job stays its own row, not "1 To send / Job 3 - ..." squeezed on one line
+  "explorer.compactFolders": false,
   "workbench.startupEditor": "none",
   "workbench.tips.enabled": false,
   // one program, not a code editor: developer controls out of sight, nothing the user needs gone.

@@ -1,6 +1,8 @@
 import json
+import shutil
 import sys
 from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -30,6 +32,7 @@ def test_state_words_the_user_says():
     assert status.state_key("Heard-back") == "heard_back"
     assert status.state_key("They said no") == "no"
     assert status.state_key("not_sending") == "not_sending"
+    assert status.state_key("Closed") == "closed"
     with pytest.raises(ValueError):
         status.state_key("ghosted")
 
@@ -46,7 +49,9 @@ def test_listed_job_by_slug_and_link(conn, tmp_path):
 
 def test_pasted_posting_by_link_slug_or_folder(conn, tmp_path):
     make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "globex-data-analyst")
-    for ref in (PASTED_URL, "globex-data-analyst", "Globex - Data Analyst"):
+    status.sort_folders(conn, tmp_path)  # renamed 'Job N - Globex - Data Analyst', filed under its stage
+    [filed] = [f["dir"].name for f in status.folders(tmp_path)]
+    for ref in (PASTED_URL, "globex-data-analyst", filed):
         job = status.resolve(conn, tmp_path, ref)
         assert (job["key"], job["company"], job["title"]) == (PASTED_URL, "Globex", "Data Analyst")
     status.set_state(conn, status.resolve(conn, tmp_path, PASTED_URL), "interview", NOW)
@@ -110,14 +115,19 @@ def test_backfill_existing_folders_read_only(conn, tmp_path):
     assert {p: p.read_bytes() for p in made.rglob("*") if p.is_file()} == before
 
 
-def test_backfill_link_from_check_file_without_jd(conn, tmp_path):
-    d = tmp_path / "Umbrella - Nurse"
-    d.mkdir()
-    (d / tailor.CHECK_FILE).write_text("# Nurse - Umbrella\n\n- Link: https://umbrella.com/n\n", encoding="utf-8")
-    status.backfill(conn, tmp_path)
-    assert status.get(conn, "https://umbrella.com/n") | {"state_at": None, "added_at": None} == {
-        "key": "https://umbrella.com/n", "url": "https://umbrella.com/n", "company": "Umbrella", "title": "Nurse",
-        "public_slug": None, "state": "resume_made", "state_at": None, "added_at": None}
+def test_folder_without_its_job_file_is_never_a_job(conn, tmp_path, monkeypatch):
+    # a note or answers file written at a folder's old path, or a half-copied folder: never a
+    # numbered job in Waiting on you, never moved
+    monkeypatch.setattr(status.cfg, "DATA", tmp_path / ".data")
+    stray = tmp_path / "1 To send" / "Job 4 - Umbrella - Nurse"
+    stray.mkdir(parents=True)
+    (stray / tailor.CHECK_FILE).write_text("# Nurse - Umbrella\n\n- Link: https://umbrella.com/n\n", encoding="utf-8")
+    (stray / "Application answers.md").write_text("answers\n", encoding="utf-8")
+    broken = make_folder(tmp_path, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    (broken / tailor.JOB_DATA / "jd.json").write_text("{", encoding="utf-8")  # cut off mid-write
+    before = files(tmp_path)
+    assert status.backfill(conn, tmp_path) == 0 and status.sort_folders(conn, tmp_path) == ([], [])
+    assert files(tmp_path) == before and status.all_statuses(conn) == []
 
 
 def test_backfill_never_overrides_recorded_status_but_upgrades_saved(conn, tmp_path):
@@ -142,6 +152,7 @@ def run(monkeypatch, tmp_path, *argv):
 def cli(monkeypatch, tmp_path):
     config = {"db": str(tmp_path / "jobs.db"), "resume": {"jobs_dir": str(tmp_path / "My Jobs")}}
     monkeypatch.setattr(status.cfg, "load_or_defaults", lambda: config)
+    monkeypatch.setattr(status.cfg, "DATA", tmp_path / ".data")
     return lambda *argv: run(monkeypatch, tmp_path, *argv)
 
 
@@ -270,18 +281,141 @@ def test_open_command_lists_each_job_in_progress_without_network(cli, tmp_path, 
     assert "Globex - Data Analyst" in out[0] and out[1].strip().startswith("can't tell - never on your job list")
 
 
-def test_closed_folder_moves_only_when_asked_never_deleted(cli, tmp_path, capsys):
+def test_status_set_moves_that_jobs_folder_only(cli, tmp_path, capsys):
     jobs = tmp_path / "My Jobs"
-    d = make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
-    cli("open")
+    globex = make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    acme = make_folder(jobs, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    for reading in (("open",), (), ("show", PASTED_URL), ("ask",)):
+        cli(*reading)
+    assert globex.is_dir() and acme.is_dir()  # reading never moves a folder
+    before = files(globex)
+    capsys.readouterr()
     cli("set", PASTED_URL, "applied")
-    assert d.is_dir()  # reading + recording never moves a folder
-    cli("move-closed", PASTED_URL)
-    assert not d.exists() and (jobs / "Closed" / "Globex - Data Analyst" / tailor.CHECK_FILE).exists()
+    [sent] = (jobs / "2 Sent").iterdir()
+    assert sent.name.endswith(" - Globex - Data Analyst") and files(sent) == before
+    assert f"folder: {sent}\n" in capsys.readouterr().out  # the path the chat uses from now on
+    assert acme.is_dir()  # the other job stays where it is until launch or sort
+    cli("set", PASTED_URL, "closed")
+    assert [d.name for d in (jobs / "4 Closed").iterdir()] == [sent.name]
+    assert (jobs / "2 Sent").is_dir()  # emptied stage kept: nothing deleted, ever
     capsys.readouterr()
     cli("show", PASTED_URL)
-    assert "Applied" in capsys.readouterr().out  # status kept after the move
+    assert "Closed" in capsys.readouterr().out
+
+
+def files(root: Path) -> dict:
+    """Every file under root by its place inside it => same bytes after a move."""
+    return {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()}
+
+
+@pytest.fixture
+def jobs(tmp_path, monkeypatch):
+    monkeypatch.setattr(status.cfg, "DATA", tmp_path / ".data")
+    return tmp_path / "My Jobs"
+
+
+def test_every_status_has_a_stage_in_pipeline_order():
+    assert status.STAGES.keys() == status.STATES.keys()
+    stages = list(dict.fromkeys(status.STAGES[s] for s in status.STATES))
+    assert stages == ["1 To send", "2 Sent", "3 Heard back", "4 Closed"] == sorted(stages)
+
+
+def test_sort_files_every_folder_by_status_and_number(conn, jobs):
+    globex = make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    acme = make_folder(jobs, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1", made=False)
+    initech = make_folder(jobs, "Initech - Analyst", "https://initech.com/2", "Initech", "Analyst", "i-2")
+    with conn:
+        a, g, i = (store.number(conn, slug) for slug in ("acme-1", "g-da", "i-2"))
+    status.set_state(conn, status.resolve(conn, jobs, PASTED_URL), "applied", NOW)
+    status.set_state(conn, status.resolve(conn, jobs, "https://initech.com/2"), "interview", NOW)
+    before = {d.name: files(d) for d in (globex, acme, initech)}
+    moved, stuck = status.sort_folders(conn, jobs)
+    assert len(moved) == 3 and stuck == []
+    want = {"Globex - Data Analyst": jobs / "2 Sent" / f"Job {g} - Globex - Data Analyst",
+            "Acme - Engineer": jobs / "1 To send" / f"Job {a} - Acme - Engineer",
+            "Initech - Analyst": jobs / "3 Heard back" / f"Job {i} - Initech - Analyst"}
+    for old, new in want.items():
+        assert files(new) == before[old] and not (jobs / old).exists()
+    assert status.sort_folders(conn, jobs) == ([], [])  # already in place: nothing to do
+
+
+def test_sort_renames_only_never_copies_or_deletes(conn, jobs, monkeypatch):
+    # copy-then-delete (shutil.move's fallback when a rename fails) can leave a job in two places
+    for name in ("move", "copytree", "rmtree"):
+        monkeypatch.setattr(shutil, name, lambda *a, **k: pytest.fail("rename only"))
     make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
-    with pytest.raises(SystemExit, match="already exists"):
-        cli("move-closed", PASTED_URL)
-    assert (jobs / "Globex - Data Analyst").is_dir()
+    status.sort_folders(conn, jobs)
+    status.set_state(conn, status.resolve(conn, jobs, PASTED_URL), "applied", NOW)
+    status.sort_folders(conn, jobs)
+    assert list((jobs / "1 To send").iterdir()) == [] and len(list((jobs / "2 Sent").iterdir())) == 1
+
+
+def test_folder_that_cannot_move_now_stays_whole_and_moves_next_time(conn, jobs, monkeypatch):
+    acme = make_folder(jobs, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    before, rename = files(acme), Path.rename
+
+    def busy(self, to):  # Windows: a PDF open in another program pins its folder
+        if self.name == "Acme - Engineer":
+            raise PermissionError(13, "file in use")
+        return rename(self, to)
+    monkeypatch.setattr(Path, "rename", busy)
+    moved, stuck = status.sort_folders(conn, jobs)
+    assert [d.name for d, _ in moved] == ["Globex - Data Analyst"]
+    assert stuck == [(acme, "could not move now - file in use")] and files(acme) == before
+    monkeypatch.setattr(Path, "rename", rename)
+    assert [d.name for d, _ in status.sort_folders(conn, jobs)[0]] == ["Acme - Engineer"]
+
+
+def test_taken_name_leaves_both_and_says_so(conn, jobs):
+    acme = make_folder(jobs, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    with conn:
+        n = store.number(conn, "acme-1")
+    mine = jobs / "1 To send" / f"Job {n} - Acme - Engineer"
+    mine.mkdir(parents=True)
+    (mine / "notes.txt").write_text("my own notes", encoding="utf-8")
+    moved, stuck = status.sort_folders(conn, jobs)
+    assert moved == [] and stuck == [(acme, f"1 To send/Job {n} - Acme - Engineer already there - left both")]
+    assert acme.is_dir() and (mine / "notes.txt").read_text(encoding="utf-8") == "my own notes"
+
+
+def test_name_differing_only_in_letter_case_is_renamed_not_a_clash(conn, jobs):
+    with conn:
+        n = store.number(conn, "acme-1")
+    make_folder(jobs / "1 To send", f"Job {n} - acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    moved, stuck = status.sort_folders(conn, jobs)
+    assert stuck == [] and [p.name for p in (jobs / "1 To send").iterdir()] == [f"Job {n} - Acme - Engineer"]
+
+
+def test_job_folder_dragged_inside_another_is_filed_first(conn, jobs):
+    acme = make_folder(jobs, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    make_folder(acme, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    make_folder(jobs / "2025" / "old", "Initech - Analyst", "https://initech.com/2", "Initech", "Analyst", "i-2")
+    moved, stuck = status.sort_folders(conn, jobs)
+    assert len(moved) == 3 and stuck == []
+    assert sorted(p.name.split(" - ", 1)[1] for p in (jobs / "1 To send").iterdir()) == [
+        "Acme - Engineer", "Globex - Data Analyst", "Initech - Analyst"]
+
+
+def test_closed_is_done_never_asked_or_followed_up(conn, tmp_path):
+    made_on(conn, tmp_path, "Acme - Analyst", "https://acme.example/1", "2026-09-20T12:00:00Z")
+    status.set_state(conn, status.resolve(conn, tmp_path, "https://acme.example/1"), "closed", NOW)
+    assert status.in_progress(conn) == [] and status.waiting(conn, NOW) == [] and status.to_ask(conn, NOW) is None
+
+
+def test_sort_command_says_what_moved_and_what_stayed(cli, tmp_path, capsys):
+    cli("sort")
+    assert capsys.readouterr().out == "every job folder is where its status says\n"
+    make_folder(tmp_path / "My Jobs", "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    cli("sort")
+    assert capsys.readouterr().out == f"moved: Acme - Engineer -> {Path('1 To send', 'Job 1 - Acme - Engineer')}\n"
+    cli("sort")
+    assert capsys.readouterr().out == "every job folder is where its status says\n"
+
+
+def test_two_chats_filing_at_once_take_turns(conn, jobs):
+    make_folder(jobs, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1")
+    with status.lock():
+        with pytest.raises(SystemExit, match="another chat is moving job folders"):
+            status.sort_folders(conn, jobs, wait_s=0)
+    assert len(status.sort_folders(conn, jobs)[0]) == 1

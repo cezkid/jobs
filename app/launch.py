@@ -204,9 +204,22 @@ def first_page(settings: Path | None = None, page: Path | None = None) -> Path:
         return START_PAGE
     try:
         import today  # here, not on top: a broken page module must not stop VS Code opening
-        return today.write(cfg.load(settings), page)
+        config = cfg.load(settings)
+        file_jobs(config)
+        return today.write(config, page)
     except (Exception, SystemExit):
         return page if page.exists() else START_PAGE
+
+
+def file_jobs(config: dict) -> None:
+    """Every job folder under the stage its status names (one moved by hand, one a file kept from
+    moving last time) before the page is built. Never stops the launch: what can't move now
+    waits for the next one."""
+    try:
+        import status
+        status.sort_jobs(config)
+    except (Exception, SystemExit):
+        pass
 
 
 def main() -> None:

@@ -36,7 +36,8 @@ schedule:
   poll: "*:0/30"
   digest: "08:00 America/New_York"
 
-# My Resume/ + My Jobs/ gitignored (PII); one folder per job under jobs_dir
+# My Resume/ + My Jobs/ gitignored (PII); one folder per job under jobs_dir, in the stage its
+# status names (status.STAGES)
 resume:
   # typeface the PDF is set in; a folder of that name in app/resume/fonts holds the files
   font: Caladea

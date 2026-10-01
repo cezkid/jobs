@@ -17,6 +17,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Resume | [resume/page-format.md](resume/page-format.md) | Page hygiene gates (black text, whole words, even heading spacing), headline, summary length, format advice declined |
 | Resume | [resume/typeface.md](resume/typeface.md) | Why Caladea, how widths are measured, adding a font + its cost |
 | Jobs | [jobs/freehire.md](jobs/freehire.md) | Job API: filters, facets, measured pitfalls - read before touching search or ingest |
+| Jobs | [jobs/job-folders.md](jobs/job-folders.md) | My Jobs layout: stage folders by status, `Job N` names, when folders move, rename-only rules |
 | Applying | [apply/apply-systems.md](apply/apply-systems.md) | How application filling works, systems supported, adding one |
 | Applying | [apply/workday.md](apply/workday.md) | Workday forms, filled through the Chrome extension |
 | Applying | [apply/ashby.md](apply/ashby.md) | Ashby forms, filled in Job Finder's own Chrome |

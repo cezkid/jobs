@@ -21,9 +21,11 @@
      before tailoring; they're likely screened out on that question alone. Their call to go on.
    - posting requires US citizenship or a green card and `citizen_or_permanent_resident` is
      false -> same: quote the line first. Unset -> ask once, save the answer.
-2. `prepare` makes `My Jobs/<Company - Title>/` + task file. Do task yourself (`AGENTS.md`
-   #AI writing steps), then `uv run app/jobs.py tailor check <job number>`. FAIL lines -> fix
-   `tailored.json`, rerun check; never hand over PDF while check fails.
+2. `prepare` makes `My Jobs/1 To send/Job N - Company - Title/` + task file (job already sent ->
+   folder stays in its stage; a closed one reopens - prepare says "back in 1 To send", tell
+   them). Do task yourself (`AGENTS.md` #AI writing steps), then
+   `uv run app/jobs.py tailor check <job number>`. FAIL lines -> fix `tailored.json`, rerun
+   check; never hand over PDF while check fails.
    - `gate pages` -> 3+ pages, or a 2nd page under 60% full (1 page is fine). Cut or add
      bullets, never retype the layout. User wants 3 pages or a layout the gates fail -> push
      back (below).
@@ -58,9 +60,9 @@
 4. "Asked for, not shown" items they can truthfully fill ("Do you have IV certification?") ->
    add fact to `Resume details.yml` as one plain sentence under `bullets:` (`AGENTS.md`
    #Resume details), redo task, rerun check.
-5. Open PDF for them; say it's in `My Jobs/<Company - Title>/`, private to this computer, ready
-   to upload. Passing check already marked it "resume made" - nothing for them to record. Offer
-   `job-apply`; its last step asks whether they sent it.
+5. Open PDF for them; say it's in My Jobs, in the To send folder, under its job number - private
+   to this computer, ready to upload. Passing check already marked it "resume made" - nothing
+   for them to record. Offer `job-apply`; its last step asks whether they sent it.
 
 Wording the user asks about:
 - Industry term: keep it spelled exactly as the field writes it - screeners match the string. Put its

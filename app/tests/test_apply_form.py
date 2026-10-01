@@ -266,3 +266,50 @@ def test_port_file_naming_a_closed_chrome_falls_back_to_the_open_one(tmp_path, m
     monkeypatch.setattr(browser, "answers", lambda port: port == 55211)
     assert browser.live_port() == 55211
     assert (tmp_path / "job-finder-port").read_text() == "55211"
+
+
+def test_fill_uploads_the_pdf_from_where_its_folder_is_now(tmp_path, monkeypatch):
+    # job folders move with their status (sent, heard back ...): a path saved at prepare went
+    # stale - Ashby's upload failed, UKG typed the untailored resume's lines with no error
+    import contextlib
+
+    from apply import form
+    from resume import render, tailor
+    folder = tmp_path / "My Jobs" / "2 Sent" / "Job 7 - Acme - Analyst"
+    (folder / tailor.JOB_DATA).mkdir(parents=True)
+    pdf = folder / render.file_name({"contact": CONTACT})
+    pdf.write_bytes(b"%PDF-1.7")
+    questions.save(folder / tailor.JOB_DATA / questions.FILE, {
+        "system": "Fake", "url": "https://jobs.example/1",
+        "resume_file": str(tmp_path / "My Jobs" / "Acme - Analyst" / pdf.name),  # where it was
+        "questions": [{**q("Resume", "file", "resume"), "answer": True}]})
+    monkeypatch.setattr(form.cfg, "load", lambda: {"resume": {"master": "Resume details.yml"}})
+    monkeypatch.setattr(form.schema, "load", lambda path: {"contact": CONTACT})
+    monkeypatch.setattr(form, "job_dir", lambda config, slug: folder)
+    uploaded = []
+
+    class Fake:
+        NAME, READY = "Fake", "form"
+
+        def fill(page, q, resume_file):
+            uploaded.append(resume_file)
+            return "ok"
+
+        def ids_on_page(page):
+            return []
+
+    class Page:
+        first = property(lambda self: self)
+
+        def locator(self, selector):
+            return self
+
+        def wait_for(self, timeout):
+            pass
+    monkeypatch.setattr(form, "system_for", lambda url: Fake)
+    monkeypatch.setattr(form.browser, "page_at", lambda url: contextlib.nullcontext(Page()))
+    form.fill("7")
+    assert uploaded == [str(pdf)]
+    pdf.unlink()
+    form.fill("7")
+    assert uploaded[-1] is None  # no PDF there => nothing uploaded, never a stale one

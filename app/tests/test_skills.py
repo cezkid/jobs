@@ -64,3 +64,11 @@ def test_every_allowed_command_runs_without_asking_in_powershell_too():
     bash = {r.removeprefix("Bash(") for r in allow if r.startswith("Bash(")}
     powershell = {r.removeprefix("PowerShell(") for r in allow if r.startswith("PowerShell(")}
     assert bash == powershell
+
+
+def test_closing_a_job_is_a_status_not_a_folder_move():
+    # a folder-only "closed" left the status saying applied: the job stayed in Waiting on you +
+    # Follow up. Folders follow status now (docs/jobs/job-folders.md)
+    docs = [*BODIES.glob("*.md"), cfg.ROOT / "AGENTS.md", *(cfg.ROOT / "Guides").glob("*.md")]
+    assert not [p.name for p in docs if "move-closed" in p.read_text(encoding="utf-8")]
+    assert "`status set 12 closed`" in (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8")
