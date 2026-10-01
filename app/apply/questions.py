@@ -18,7 +18,7 @@ KINDS = {"text", "longtext", "email", "phone", "url", "number", "date", "locatio
 # what a question is about when the system marks it (its own system field ids, or a title match)
 KEYS = {"name", "first_name", "middle_name", "last_name", "legal_name", "legal_first", "legal_middle",
         "legal_last", "preferred_name", "preferred_first", "other_names", "email", "phone", "location",
-        "resume", "linkedin", "github", "website", "street", "city", "state", "zip", None}
+        "resume", "cover_letter", "linkedin", "github", "website", "street", "city", "state", "zip", None}
 # home address boxes, answered from `home_address` in search settings (never on the resume)
 ADDRESS = {"street", "city", "state", "zip"}
 # questions that are the user's to answer, never guessed (job-apply hard limits)
@@ -96,6 +96,10 @@ def name_key(title: str) -> str | None:
 def key_from_title(title: str, kind: str) -> str | None:
     """Link + name boxes are the employer's own questions on most systems: recognise them by title."""
     t = title.casefold()
+    if kind == "file" and "cover letter" in t:
+        return "cover_letter"
+    if kind == "file" and re.search(r"\b(resume|résumé|cv)\b", t):
+        return "resume"
     if kind == "text" and (key := name_key(title)):
         return key
     if kind in ("text", "url"):

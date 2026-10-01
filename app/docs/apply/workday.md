@@ -13,7 +13,7 @@ never id -> one filler, every tenant. Each fact names its tenant by letter, neve
 | Text box, text area | value kept only once focus leaves; set w/o focus-out shows filled but **Save and Continue** reports "required" (tenant A, 2026-09) | `put` = focusin + value + input event; `out` = blur + focusout |
 | Date (From / To) | two boxes, `dateSectionMonth-input` + `dateSectionYear-input`; month shows w/o leading zero | set each box, typed digits as fallback |
 | Menu (Degree) | button opens `[role=listbox]` popup; options in tenant's wording ("B.A. - Bachelor of Arts") | match inside listbox options only - never stray `promptOption` pills |
-| Search-and-pick (Field of Study, Skills) | type + Enter -> `promptOption` popup; picks become `selectedItem` pills w/ `DELETE_charm` | exclude options inside the field's own pills; remove w/ `DELETE_charm` |
+| Search-and-pick (Field of Study, Skills) | type + Enter -> `promptOption` popup; picks become `selectedItem` pills w/ `DELETE_charm` | exclude options inside the field's own pills; remove w/ `DELETE_charm`. Enter must never move the form on (a Save nobody clicked): address, active step or the field itself changing after Enter stops the whole fill w/ a FAIL - safe on tenant A, unmeasured elsewhere |
 | Repeating sections (Work Experience, Education) | "Add" when empty, "Add Another" after | click last matching button in section, wait for new entry |
 | Page in a hidden window | `setTimeout` throttled to ~once a minute; screenshots black | wait w/ `MessageChannel`, read state w/ `status()` not screenshots |
 | Extension tool call | times out at 45s | fill runs in background; poll `window.__jf.status()` |
