@@ -4,16 +4,27 @@
 questions and writes `<job folder>/.data/application.json`: contact boxes answered from the resume,
 the US work-permit questions from setup, every other question blank for the AI to fill with the user.
 `fill <job>` opens the form in Job Finder's Chrome, types each answer, prints what took, and lets
-go - the window stays open for the user to check and click Submit.
+go - the window stays open for the user to check and click Submit. A system it can't fill whose
+questions were read ahead (apply/readahead.py): `prepare` drafts from those, `paste <job>` writes
+the answers as a page to paste from.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
 import argparse
+import re
 import sys
 from pathlib import Path
 
 import cfg
-from apply import browser, questions, systems
+from apply import browser, questions, readahead, systems
 from resume import render, schema, tailor
+
+# a system the program can't fill: answers drafted from the read-ahead, pasted by the user
+PASTE = "paste"
+ANSWERS_FILE = "Application answers.md"
+# what a closed posting says where its form would be
+CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|(?:position|job|role) (?:has been|is) "
+                    r"(?:filled|closed)|(?:this )?job (?:post(?:ing)? )?(?:is )?closed|isn't accepting applications|"
+                    r"not accepting applications|posting (?:has )?expired", re.I)
 
 
 def job_dir(config: dict, slug: str) -> Path:
@@ -56,19 +67,55 @@ def line(a: dict) -> str:
 def prepare(slug: str, url: str) -> None:
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
-    system = system_for(url)
     folder = job_dir(config, slug)
+    system = systems.for_url(url)
+    form = None if system else readahead.load(folder / tailor.JOB_DATA)
+    if system is None and not (form and form.get("found")):
+        system_for(url)  # says why: filled another way, or not supported
     out = folder / tailor.JOB_DATA / questions.FILE
     old = questions.load(out)
-    same_form = old and old.get("url") == system.application_url(url)
-    answers = questions.draft(system.questions(url), master["contact"], old["questions"] if same_form else None, config,
+    name, app_url = (system.NAME, system.application_url(url)) if system else (PASTE, url)
+    asked = system.questions(url) if system else readahead.as_questions(form)
+    same_form = old and old.get("url") == app_url
+    answers = questions.draft(asked, master["contact"], old["questions"] if same_form else None, config,
                               master.get("career_break"))
-    questions.save(out, {"system": system.NAME, "url": system.application_url(url), "questions": answers})
-    print(f"{system.NAME} form -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
+    questions.save(out, {"system": name, "url": app_url, "questions": answers})
+    where = f"{name} form" if system else f"{(form.get('provider') or 'this').title()} form, read ahead (no options captured)"
+    print(f"{where} -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
     for a in answers:
         print(line(a))
-    print("Write answers into the file (file kind: answer = true only after the user said yes to uploading), "
-          f"then: uv run app/jobs.py apply-form fill {slug}")
+    print("Write answers into the file (file kind: answer = true only after the user said yes to uploading; a "
+          f"question marked '{questions.YOURS}' or 'sensitive': the user's own answer, its source set to "
+          f"'{questions.USER_SAID}'), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}")
+
+
+def paste(slug: str) -> None:
+    """A system the program can't fill: the answers as a page the user pastes from, in order."""
+    config = cfg.load()
+    folder = job_dir(config, slug)
+    data = questions.load(folder / tailor.JOB_DATA / questions.FILE)
+    if data is None:
+        sys.exit(f"no answers yet; run: uv run app/jobs.py apply-form prepare {slug} <link>")
+    if bad := questions.unvouched(data["questions"]):
+        sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
+    out = ["# Application answers", "",
+           "Paste each into the form, in this order. Options weren't read ahead - pick the matching one on the page.",
+           "Check every answer on the page before you click Submit.", ""]
+    for a in data["questions"]:
+        answer = a.get("answer")
+        shown = "(upload your resume PDF here)" if a["kind"] == "file" and answer is True else (
+            "(yours to answer on the page)" if questions.blank(answer) else ", ".join(answer) if isinstance(answer, list) else str(answer))
+        out += [f"**{a['title']}**{' (required)' if a['required'] else ''}", "", shown, ""]
+    path = folder / ANSWERS_FILE
+    path.write_text("\n".join(out), encoding="utf-8")
+    print(f"written: {path}")
+
+
+def page_text(page) -> str:
+    try:
+        return page.locator("body").inner_text(timeout=10000)
+    except Exception:  # unreadable page: the form wait below says what's wrong
+        return ""
 
 
 def fill(slug: str) -> None:
@@ -78,6 +125,10 @@ def fill(slug: str) -> None:
     data = questions.load(saved)
     if data is None:
         sys.exit(f"no answers yet; run: uv run app/jobs.py apply-form prepare {slug} <link>")
+    if data.get("system") == PASTE:
+        sys.exit(f"this form can't be filled here - write the answers to paste: uv run app/jobs.py apply-form paste {slug}")
+    if bad := questions.unvouched(data["questions"]):
+        sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
     if gaps := questions.missing(data["questions"]):
         sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     system = system_for(data["url"])
@@ -88,6 +139,10 @@ def fill(slug: str) -> None:
               "- the user uploads one by hand, or make the resume again")
     report = []
     with browser.page_at(data["url"]) as page:
+        # a closed posting never shows its form: say so instead of timing out on it
+        if said := CLOSED.search(page_text(page)):
+            sys.exit(f"the posting says it's closed (\"{said.group()}\") - nothing filled; ask the user, "
+                     "then status set <job> closed")
         page.locator(system.READY).first.wait_for(timeout=30000)
         # resume first: an upload must never re-trigger anything over typed answers
         for q in sorted(data["questions"], key=lambda q: q["kind"] != "file"):
@@ -102,6 +157,12 @@ def fill(slug: str) -> None:
         extra = [i for i in system.ids_on_page(page) if i not in known]
     for title, result in report:
         print(f"  [{result}] {title}")
+    required = [q for q in data["questions"] if q["required"]]
+    done = {title for title, result in report if result == "ok"}
+    left = [q["title"] for q in required if q["title"] not in done]
+    if required:
+        print(f"required answered {len(required) - len(left)} of {len(required)}"
+              + (f" - still to do on the page: {'; '.join(left)}" if left else ""))
     if extra:
         print(f"  {len(extra)} question(s) on the page not in the answers file - user answers them on screen")
     print("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.")
@@ -115,8 +176,11 @@ def main() -> None:
     p.add_argument("url")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
+    t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
+    t.add_argument("slug")
     args = ap.parse_args()
-    prepare(args.slug, args.url) if args.step == "prepare" else fill(args.slug)
+    {"prepare": lambda: prepare(args.slug, args.url), "fill": lambda: fill(args.slug),
+     "paste": lambda: paste(args.slug)}[args.step]()
 
 
 if __name__ == "__main__":

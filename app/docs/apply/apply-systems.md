@@ -11,8 +11,10 @@ small plug-in.
 | UKG Pro Recruiting | `recruiting<N>.ultipro.com/<tenant>/JobBoard/<board>/OpportunityDetail?opportunityId=<id>` | `apply-form`, Job Finder's own Chrome; user signs in first, questions read off the signed-in form | `ukg.md` |
 
 Not yet: Greenhouse (`boards.greenhouse.io`, `job-boards.greenhouse.io`), Lever (`jobs.lever.co`),
-SmartRecruiters, iCIMS, Workable. `apply-form prepare` says so plainly -> user gets tailored PDF
-+ answers to paste.
+SmartRecruiters, iCIMS, Workable. Where the form's questions were read ahead (Greenhouse, Lever,
+Workable, Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
+`apply-form paste` writes `Application answers.md` to paste from. Otherwise `prepare` says so
+plainly -> user gets tailored PDF + answers to paste.
 
 ## The pieces (`app/apply/`)
 

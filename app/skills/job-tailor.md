@@ -59,7 +59,8 @@
      question for the user, never a line to fill in.
 3. Read `Check before sending.md` in job folder: "Ready to send?", "What they ask vs your
    resume" (each need shown by a certificate or degree, a line with a number, a line, or the
-   Skills list only), "Asked for, not shown", "In your Skills list only", "Soft skills they ask
+   Skills list only), "What the application asks" (read ahead: questions, written answers,
+   topics like pay or sponsorship, a cover letter box), "Asked for, not shown", "In your Skills list only", "Soft skills they ask
    for", "Wording notes", "What changed from your resume". Walk them through "To confirm - is each of these true?" item by item, mirrored title
    included: "New version says you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is
    'led' accurate?" No -> fix `tailored.json` or `My Resume/Resume details.yml`, rerun check;

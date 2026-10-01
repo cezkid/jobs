@@ -117,3 +117,18 @@ def test_title_search_is_exact_and_rn_jobs_still_listed():
         assert total('"nurse"') < total("nurse")
         (_, rn_open, _), = probe.title_counts(client, api["base"], {"countries": ["us"]}, ["RN"])
     assert rn_open > 1000
+
+
+def test_apply_form_read_ahead_keeps_its_shape(polled):
+    """The captured-form endpoint answers listed jobs w/ basics + questions{text, required, answer?};
+    a change here = re-read app/apply/readahead.py before trusting a summary."""
+    from apply import readahead
+    config, conn, _ = polled
+    slugs = [j["public_slug"] for j in store.all_jobs(conn) if j.get("source") in ("greenhouse", "lever", "ashby")][:10]
+    with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
+        forms = [f for s in slugs if (f := readahead.fetch(client, config["api"]["base"], s)) and f["found"]]
+    if not forms:
+        pytest.skip("no captured form among the first listed jobs")
+    for f in forms:
+        assert isinstance(f["basics"], list) and all({"text", "required"} <= q.keys() for q in f["questions"])
+        assert {q.get("answer") for q in f["questions"]} <= {None, *readahead.ANSWER_KIND}
