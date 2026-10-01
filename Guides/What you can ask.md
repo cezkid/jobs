@@ -8,6 +8,7 @@ Type in the chat box on the right, in your own words. You never type commands or
 - **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number"
 - **One job:** "Make my resume for job 3" · "Why did you change that?" · "Help me apply to job 3"
 - **Several jobs:** "Make my resume for jobs 2, 5 and 7" - one chat does them in turn
+- **No reply yet:** "Write a follow-up for job 3" · "I followed up on job 3"
 - **Where things stand:** "I sent job 3" · "I heard back from job 3" · "Is job 3 still open?" ·
   "Job 3 is closed"
 - **Anything:** "Who can see my information?" · "Why?"

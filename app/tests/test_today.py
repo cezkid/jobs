@@ -45,12 +45,12 @@ Tuesday, September 29. So far: 1 sent.
 
 ## Follow up
 
-No reply 21+ days after applying. A short check-in is common if you have a contact there - that's convention, not a rule. Many employers never write back.
+No reply for a while. A short note asking where things stand is common practice - about 3 weeks after applying, about 2 weeks once you've talked with them - if you have someone to write to. Many employers never write back.
 
 - **Job 2** - Senior Vue Engineer old, Acme
   - Applied 29 days ago, no reply yet
   - https://boards.greenhouse.io/acme/jobs/old
-  - Say: "I heard back from job 2" - or "job 2 is closed"
+  - Say: "write a follow-up for job 2" - or "I heard back from job 2", "job 2 is closed"
 
 ## New since last check
 
@@ -249,7 +249,7 @@ def test_page_is_private():
 
 BRIEF = """Job Finder today (same as their Today page). If the user only greets you or asks what's next, answer with this in plain words, each job written "**Job 12** - title, company", never a 1. 2. 3. list; otherwise use it only when it helps. Never say how many resumes are unsent.
 - Waiting on you (resume made, not sent): Job 1 - Data Analyst, Globex, resume made 5 days ago
-- Follow up (applied 21+ days, no reply): Job 2 - Senior Vue Engineer old, Acme, applied 29 days ago
+- Follow up (no reply for a while): Job 2 - Senior Vue Engineer old, Acme, applied 29 days ago
 - New since last check: 2. Top: Job 3 - Senior Vue Engineer paid, Acme; Job 4 - Senior Vue Engineer plain, Acme
 - Not finished: The morning job check is off."""
 
@@ -304,3 +304,27 @@ def test_claude_hook_runs_the_brief_other_ais_keep_the_page():
     assert entry["matcher"] == "startup|clear"
     assert [h["command"] for h in entry["hooks"]] == ["uv run app/jobs.py today --brief"]
     assert "today" not in (ROOT / ".codex" / "config.toml").read_text(encoding="utf-8")
+
+
+def test_follow_up_days_per_stage(conn, tmp_path):
+    """Applied waits 21 days, heard back 15, interview 12 (settings follow_up)."""
+    store.upsert(conn, [job("a"), job("h"), job("i")], CHECK)
+    for slug, state in (("a", "applied"), ("h", "heard_back"), ("i", "interview")):
+        status.set_state(conn, status.resolve(conn, Path("/nowhere"), slug), state, "2026-09-15T12:00:00Z")  # 14 days
+    quiet = [r["public_slug"] for r in today.follow_up_rows(conn, "2026-09-29T12:00:00Z", CONFIG["follow_up"])]
+    assert quiet == ["i"]
+    quiet = [r["public_slug"] for r in today.follow_up_rows(conn, "2026-09-30T12:00:00Z", CONFIG["follow_up"])]
+    assert sorted(quiet) == ["h", "i"]
+
+
+def test_follow_up_quiet_one_stretch_after_logged_then_suggests_closing(conn, tmp_path):
+    store.upsert(conn, [job("old")], CHECK)
+    applied(conn, "old", "2026-08-01T12:00:00Z")
+    key = status.resolve(conn, Path("/nowhere"), "old")["key"]
+    status.log_event(conn, key, "followed_up", "2026-09-20T12:00:00Z")
+    assert today.follow_up_rows(conn, "2026-09-29T12:00:00Z", CONFIG["follow_up"]) == []
+    rows = today.follow_up_rows(conn, "2026-10-12T12:00:00Z", CONFIG["follow_up"])
+    assert rows[0]["chased"] == "2026-09-20T12:00:00Z"
+    text = "\n".join(today.follow_up(conn, "2026-10-12T12:00:00Z", CONFIG["follow_up"]))
+    assert "You followed up 22 days ago, still no reply" in text and 'Say: "job 1 is closed"' in text
+    assert status.get(conn, key)["state"] == "applied"  # a follow-up is never a status

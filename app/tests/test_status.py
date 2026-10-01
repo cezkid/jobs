@@ -475,3 +475,17 @@ def test_closed_posting_not_waiting_asked_once_as_closed(conn, tmp_path):
     asked = status.to_ask(conn, NOW)
     assert asked["public_slug"] == "gone" and asked["closed_since"] == "2026-09-26"
     assert status.to_ask(conn, NOW) is None
+
+
+def test_followed_up_is_logged_never_a_status_and_shows_in_history(cli, tmp_path, capsys):
+    cli("set", "resume made", "--company", "Initech", "--title", "Analyst", "--on", "2026-09-01")
+    with pytest.raises(SystemExit, match="sent and waiting"):
+        cli("followed-up", "--company", "Initech", "--title", "Analyst")
+    cli("set", "applied", "--company", "Initech", "--title", "Analyst", "--on", "2026-09-02")
+    cli("followed-up", "--company", "Initech", "--title", "Analyst", "--on", "2026-09-25")
+    capsys.readouterr()
+    cli("show", "--company", "Initech", "--title", "Analyst")
+    out = capsys.readouterr().out.splitlines()
+    assert "Applied" in out[0]
+    assert [line.split(None, 1)[1] for line in out[1:4]] == ["Followed up", "Applied", "Resume made"]
+    assert out[1].strip().startswith("2026-09-25")
