@@ -33,11 +33,21 @@ counts in one call.
 ## `reality` + pay fields (2026-09-24, 500 newest US rows)
 
 - `reality` = `{class, age_days, repost_count, mass_posting_count, fake_freshness}`, on every
-  row. `class` facet: `fresh` 181k, `stale` 587k, `likely-evergreen` 7.7k (no ghost class).
-  `repost_count` 1 on 446/500, 3+ on 19. `age_days` median 70 on `stale`. `fake_freshness` true
-  on 133/500: `posted_at` restamped while `age_days` stays old => age shown + sorted from
-  `age_days`, `posted_at` only fallback. Rank demotes (never hides) `repost_count >=
-  rank.repost_demote`, `age_days >= rank.old_days`, `likely-evergreen`.
+  row. `class` facet: `fresh` 181k, `stale` 587k, `likely-evergreen` 7.7k. `age_days` median 70
+  on `stale`. `fake_freshness` true on 133/500: `posted_at` restamped while `age_days` stays old
+  => age shown + sorted from `age_days`, `posted_at` only fallback.
+- `repost_count` = postings sharing the role's fingerprint, any status; `mass_posting_count` =
+  the open ones; both count the job itself. Relisted = `repost_count - mass_posting_count`
+  (earlier copies that closed) - freehire's own classifier subtracts the same way. Raw
+  `repost_count` (2026-09-30) called copies open at once "reposted": 75 of 111 demoted rows on a
+  real 1,275-row list (38 at 3/3, class fresh); live 500 newest US rows, 30 of 35 with
+  `repost_count >= 3`. `likely-evergreen` = 2 of: 90+ days old, relisted 3+, 5+ copies open, "always
+  hiring" text.
+- Rank demotes (never hides) relisted `>= rank.repost_demote`, `age_days >= rank.old_days`,
+  `likely-evergreen` - one doubt however many fire, each named in reasons.
+- Separate `ghost` object `{level: possible|likely, criteria}` exists in freehire's code, computed
+  on read; absent on 100/100 likely-evergreen US rows + the detail row checked (2026-10-01).
+  Dormant - re-probe before using it.
 - `salary_period` null on 315/500, incl. rows w/ pay; `hour` 17k rows US-wide. Period missing
   => value < 1000 hourly, < 10000 monthly (`rank.pay`). One `month` row read 70000-100000 -
   label wrong at source, left as is.

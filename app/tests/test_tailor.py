@@ -188,6 +188,15 @@ def test_report_speaks_plain_words_and_gives_reasons(master, tailored):
     assert "master" not in diff and "`" not in diff
 
 
+def test_posting_history_counts_reposts_beyond_open_copies():
+    """3 postings of one role, all 3 open = one role in 3 places: reposted 0, not 3."""
+    copies = {**JOB, "reality": {"class": "fresh", "age_days": 4, "repost_count": 3, "mass_posting_count": 3}}
+    assert report.posting_history(copies) == "listing type fresh, days old 4, times reposted 0, copies open at once 3"
+    relisted = {**JOB, "reality": {"repost_count": 5, "mass_posting_count": 1}}
+    assert report.posting_history(relisted) == "times reposted 4"
+    assert report.posting_history(JOB) == ""
+
+
 def test_folder_name_leads_with_the_job_number_and_is_filesystem_safe():
     job = {**JOB, "company": 'Acme: "Health"', "title": "RN / ICU?  Nights."}
     assert tailor.folder_name(job, 7) == "Job 7 - Acme Health - RN ICU Nights"

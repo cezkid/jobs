@@ -116,7 +116,13 @@ def collections_hit(job: dict, boost: list[str]) -> bool:
 
 
 def reposts(job: dict) -> int:
-    return (job.get("reality") or {}).get("repost_count") or 0
+    """Earlier postings of this role that closed: repost_count less mass_posting_count. Both
+    count postings sharing the role's fingerprint, the second only the open ones, the job
+    itself included - so a role open in 3 cities at once reads 3/3, reposted 0. Raw
+    repost_count called those copies "reposted 3x" on 75 of 111 demoted rows of a real list
+    (docs/jobs/freehire.md #reality); freehire's own reality classifier subtracts the same way."""
+    r = job.get("reality") or {}
+    return max(0, (r.get("repost_count") or 0) - (r.get("mass_posting_count") or 1))
 
 
 def doubts(job: dict, rc: dict) -> list[str]:
@@ -204,7 +210,9 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     kept.sort(key=lambda j: (
         tiers.get(j["tier"], len(tiers)),
         bool(j["stale"]),
-        len(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config)),
+        # ghost reasons are one verdict told several ways (likely-evergreen = two of old,
+        # reposted, many copies open, "always hiring" text), so they count once
+        bool(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config)),
         not meets_floor(j, rc["salary_floor_usd"]),
         -(annual_usd(j) or 0),
         not collections_hit(j, rc["boost_collections"]),
