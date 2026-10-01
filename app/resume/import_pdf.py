@@ -1,4 +1,5 @@
 import argparse
+import copy
 import re
 import shutil
 import sys
@@ -8,10 +9,11 @@ from datetime import date
 from pathlib import Path
 
 import pymupdf
+import yaml
 
 import cfg
 import locks
-from resume import facts, handoff, schema, tidy
+from resume import carry, facts, handoff, schema, tidy
 
 ZERO_WIDTH = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
 # Word exports its 2nd-level bullet as a plain "o" (Courier New) and Symbol/Wingdings bullets as
@@ -302,7 +304,8 @@ def build(mapped: dict, today: date) -> tuple[dict, list[str]]:
 def prepare(config: dict, pdf_from: Path | None, force: bool) -> None:
     pdf, master_path = cfg.resume_path(config, "input_pdf"), cfg.resume_path(config, "master")
     if master_path.exists() and not force:
-        sys.exit(f"{master_path} exists - hand edits live there; --force to overwrite")
+        sys.exit(f"{master_path} exists - hand edits live there; --force to read a new PDF "
+                 "(finish then lists what the new PDF lacks, and keeps what the user picks)")
     if pdf_from:
         pdf.parent.mkdir(parents=True, exist_ok=True)
         if pdf_from.resolve() != pdf.resolve():
@@ -310,7 +313,7 @@ def prepare(config: dict, pdf_from: Path | None, force: bool) -> None:
     handoff.write_task(TASK, ANSWER, SYSTEM, MAPPED_SCHEMA, extract(pdf), FINISH)
 
 
-def finish(config: dict) -> None:
+def finish(config: dict, keep: str | None = None) -> None:
     started = time.perf_counter()
     pdf, master_path = cfg.resume_path(config, "input_pdf"), cfg.resume_path(config, "master")
     source = extract(pdf)
@@ -327,15 +330,33 @@ def finish(config: dict) -> None:
 
     today = date.today()
     master, assumptions = build(mapped, today)
+    plain, kept_copy = tidy.strip(master), None
+    if master_path.exists():
+        # the user's own additions since the last import: listed, kept only when they say so
+        try:
+            old = yaml.safe_load(master_path.read_text(encoding="utf-8")) or {}
+        except yaml.YAMLError:
+            old = {}
+        left = carry.left_behind(old, plain)
+        if any(left.values()) and keep is None:
+            print("The new PDF lacks things in the resume details - nothing written yet:")
+            print("\n".join(carry.describe(left)))
+            print("Ask the user ONE multiSelect question (these groups, w/ what each holds; tick all that fit, "
+                  "then Submit), then:\n  uv run app/jobs.py resume-import finish --keep <groups comma-separated | all | none>")
+            sys.exit(2)
+        kept_copy = carry.backup(master_path)
+        plain = carry.carry(plain, left, carry.kept(keep, left))
     extra = [f"# Read out of {pdf.name} on {today.isoformat()}; importing again needs --force."]
     extra += [f"# assumed {a}" for a in assumptions]
     master_path.parent.mkdir(parents=True, exist_ok=True)
     with facts.resume_lock():
         facts.write(master)
-        locks.write_atomic(master_path, tidy.dump(tidy.strip(master), extra))
+        locks.write_atomic(master_path, tidy.dump(plain, extra))
 
-    errors = schema.validate(master)
+    errors = schema.validate(schema.expand(copy.deepcopy(plain)))
     print(f"wrote {master_path} in {time.perf_counter() - started:.1f}s")
+    if kept_copy:
+        print(f"old file kept at {kept_copy}")
     for a in assumptions:
         print(f"  assumed  {a}")
     dated = all("start" in r and "end" in r for r in master["roles"])
@@ -362,13 +383,15 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Resume PDF -> structured resume details: prepare AI task, then finish")
     ap.add_argument("step", choices=["prepare", "finish"])
     ap.add_argument("--pdf", type=Path, help="prepare: resume anywhere on disk; copied into My Resume first")
-    ap.add_argument("--force", action="store_true", help="prepare: overwrite existing resume details")
+    ap.add_argument("--force", action="store_true", help="prepare: read a new PDF over existing resume details")
+    ap.add_argument("--keep", help="finish, re-import: groups of the old file to keep - "
+                                   f"{', '.join(carry.GROUPS)}, all or none (finish lists them first)")
     args = ap.parse_args()
     config = cfg.load()
     if args.step == "prepare":
         prepare(config, args.pdf, args.force)
     else:
-        finish(config)
+        finish(config, args.keep)
 
 
 if __name__ == "__main__":

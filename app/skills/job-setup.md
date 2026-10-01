@@ -119,9 +119,13 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 ## 3. Resume
 
 - Ask for resume PDF (drag into chat), then
-  `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing: it
-  replaces Resume details.yml - legal-name fields, career breaks, hidden years and language
-  levels added since are lost; say so before running it).
+  `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing).
+  Re-import: `finish` writes nothing yet when the new PDF lacks things in their resume details -
+  it prints up to 3 groups (lines: their wording + added lines and skills; entries: jobs, schools,
+  breaks, sections; details: legal name, hidden years, language levels, notes on a job) w/ counts
+  + examples. ONE clickable multiSelect, each option naming its count ("23 lines you reworded or
+  added"), "tick all that fit, then Submit"; then `finish --keep <ticked, comma-separated | none>`.
+  It backs up the old file first - say so.
 - Do printed task yourself (`AGENTS.md` #AI writing steps), then
   `uv run app/jobs.py resume-import finish`. Gate fails -> copy source text more exactly, rerun.
   Read every "left out" line it prints to user; real facts go back in (awards, volunteering,
