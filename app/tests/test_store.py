@@ -107,3 +107,17 @@ def test_jobs_by_link_prefers_open_then_newest(conn):
     conn.execute("UPDATE jobs SET closed_at = '2026-09-26T00:00:00Z' WHERE public_slug = 'closed-city'")
     assert store.jobs_by_link(conn, "https://careers.acme.test/apply")["public_slug"] == "new-city"
     assert store.jobs_by_link(conn, "https://elsewhere.test/1") is None
+
+
+def test_old_db_gains_clearance_column(tmp_path):
+    """A user's database predates the column: connecting adds it, twice is harmless."""
+    import sqlite3
+    db = tmp_path / "old.db"
+    old = sqlite3.connect(db)
+    old.executescript(store.SCHEMA.replace("    requires_clearance INTEGER,\n", ""))
+    old.close()
+    conn = store.connect(db)
+    store.connect(db).close()
+    assert "requires_clearance" in {r[1] for r in conn.execute("PRAGMA table_info(jobs)")}
+    store.upsert(conn, [make_job("c", requires_clearance=True)], "2026-10-01T00:00:00Z")
+    assert store.all_jobs(conn)[0]["requires_clearance"] == 1

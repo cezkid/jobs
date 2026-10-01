@@ -160,6 +160,21 @@ def sponsorship(job: dict, config: dict) -> list[str]:
     return ["says no visa sponsorship"] if needs and (job.get("enrichment") or {}).get("visa_sponsorship") is False else []
 
 
+def clearance(job: dict) -> list[str]:
+    """Job asks for a US security clearance (the job search's own flag: Secret, TS/SCI,
+    polygraph...; 45,763 US jobs 2026-10-01). Named on every such job, so a user can see it."""
+    return ["needs a security clearance"] if job.get("requires_clearance") else []
+
+
+def can_hold_clearance(config: dict) -> bool | None:
+    """Setup's answer; else US clearances go to citizens only, so "neither citizen nor green card"
+    settles it. A green card alone doesn't - asked, never guessed."""
+    wa = config.get("work_authorization") or {}
+    if wa.get("can_hold_clearance") is not None:
+        return wa["can_hold_clearance"]
+    return False if wa.get("citizen_or_permanent_resident") is False else None
+
+
 def stale_for(job: dict, rc: dict, now: datetime) -> int | None:
     """Days since any fetch returned it, when past rank.stale_days - likely filled
     (close_missing only sees its fetch window). Demoted, not hidden: may still be open."""
@@ -199,7 +214,8 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
     #   yet shown - hiding an open job costs a chance, showing a closed one costs a click;
-    # demerits - likely ghost / wrong level / wrong hours / no sponsor for a user who needs one:
+    # demerits - likely ghost / wrong level / wrong hours / no sponsor for a user who needs one /
+    #   a clearance the user can't hold:
     #   a trustworthy fitting job beats any pay;
     # pay floor - user's stated minimum (top of range, so a range spanning it counts);
     # pay - a fact about this job, so it outranks employer lists;
@@ -212,7 +228,8 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
         bool(j["stale"]),
         # ghost reasons are one verdict told several ways (likely-evergreen = two of old,
         # reposted, many copies open, "always hiring" text), so they count once
-        bool(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config)),
+        bool(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config))
+        + (bool(clearance(j)) and can_hold_clearance(config) is False),
         not meets_floor(j, rc["salary_floor_usd"]),
         -(annual_usd(j) or 0),
         not collections_hit(j, rc["boost_collections"]),
@@ -260,7 +277,7 @@ def reasons(job: dict, config: dict, now: datetime | None = None, when: str | No
              age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
-    parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config)
+    parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config) + clearance(job)
     if job.get("stale"):
         parts.append(f"may be closed - not seen in {job['stale']}d")
     return " · ".join(p for p in parts if p)

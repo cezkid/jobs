@@ -16,7 +16,7 @@ COLS = (
     "employment_type", "seniority", "category",
     "salary_min", "salary_max", "salary_currency", "salary_period",
     "posted_at", "created_at", "last_seen_at", "closed_at",
-    "description", "enrichment", "reality",
+    "description", "enrichment", "reality", "requires_clearance",
 )
 
 SCHEMA = """
@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     description TEXT,
     enrichment TEXT,
     reality TEXT,
+    requires_clearance INTEGER,
     first_fetched_at TEXT NOT NULL,
     fetched_at TEXT NOT NULL
 );
@@ -115,7 +116,19 @@ def connect(path: Path | str) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.executescript(SCHEMA)
     conn.create_function("link_key", 1, link_key, deterministic=True)
+    add_columns(conn)
     return conn
+
+
+def add_columns(conn: sqlite3.Connection) -> None:
+    """Columns newer than a user's database: CREATE TABLE IF NOT EXISTS never adds them."""
+    have = {r[1] for r in conn.execute("PRAGMA table_info(jobs)")}
+    for col, kind in (("requires_clearance", "INTEGER"),):
+        if col not in have:
+            try:
+                conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {kind}")
+            except sqlite3.OperationalError:  # another chat added it a moment ago
+                pass
 
 
 def jobs_by_link(conn: sqlite3.Connection, url: str | None) -> sqlite3.Row | None:

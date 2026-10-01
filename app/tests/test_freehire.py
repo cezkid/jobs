@@ -126,3 +126,9 @@ def test_title_words_sent_as_one_exact_phrase():
     assert freehire.query_params({"q": "registered nurse", "q_fields": "title"})["q"] == '"registered nurse"'
     assert freehire.query_params({"q": '"RN"'})["q"] == '"RN"'
     assert "q" not in freehire.query_params({"category": ["healthcare"]})
+
+
+def test_clearance_flag_kept_true_or_none():
+    """The job search sends true or nothing - nothing is not 'no clearance needed'."""
+    assert freehire.normalize({**raw("a"), "requires_clearance": True}, "remote")["requires_clearance"] is True
+    assert freehire.normalize(raw("b"), "remote")["requires_clearance"] is None

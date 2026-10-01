@@ -93,6 +93,8 @@ def normalize(raw: dict, tier: str) -> dict:
         "description": raw.get("description"),
         "enrichment": e,
         "reality": raw.get("reality") or {},
+        # true or absent, never false: absent = no clearance wording found, not "none needed"
+        "requires_clearance": True if raw.get("requires_clearance") else None,
     }
 
 

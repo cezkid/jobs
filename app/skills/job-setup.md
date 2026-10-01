@@ -69,6 +69,13 @@ Then narrowing what they picked:
   count from `probe --facets visa_sponsorship` on their category: "freehire marks 36,846 US jobs
   'no visa sponsorship' - they'll sort lower, never hidden". Never guess it from name, school
   or where they studied. Never help shade it (`AGENTS.md` #Lead, explain, push back - Hold).
+- security clearance, one question, only when it matters: `probe --facets requires_clearance
+  <their pass params>` shows 1 in 20 or more of their matches need one (judgement, not a
+  measured cut-off), and the work-permit answer didn't settle it (neither citizen nor green card
+  -> can't hold one, no question). "About N of your matches need a US security clearance - only
+  US citizens can hold one. Can you?" Yes, I have one or can get one / No / Not sure ->
+  `work_authorization.can_hold_clearance` true / false / null. No -> they sort lower, never
+  hidden; every such job says "needs a security clearance" either way.
 
 Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
 `jobgether` + `builtin-integration-sandbox` w/o asking, but say why in one sentence when you

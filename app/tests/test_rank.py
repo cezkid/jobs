@@ -138,6 +138,18 @@ def test_ghost_signals_count_once():
     assert slugs(rank.rank([senior, ghost], config, NOW)) == ["ghost", "senior"]
 
 
+def test_clearance_named_demoted_only_when_cannot_hold():
+    cleared = make_job("cleared", title="Systems Analyst", requires_clearance=True, **usd(150000))
+    plain = make_job("plain", title="Data Analyst", **usd(90000))
+    assert "needs a security clearance" in rank.reasons(cleared, CONFIG, NOW)
+    assert slugs(rank.rank([plain, cleared], CONFIG, NOW)) == ["cleared", "plain"]
+    for answer in ({"can_hold_clearance": False}, {"citizen_or_permanent_resident": False}):
+        config = cfg.merge(CONFIG, {"work_authorization": answer})
+        assert slugs(rank.rank([cleared, plain], config, NOW)) == ["plain", "cleared"], answer
+    green_card = cfg.merge(CONFIG, {"work_authorization": {"citizen_or_permanent_resident": True}})
+    assert rank.can_hold_clearance(green_card) is None
+
+
 def level_config(**rank_over):
     return cfg.merge(CONFIG, {"rank": rank_over})
 

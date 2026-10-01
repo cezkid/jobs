@@ -18,10 +18,14 @@ before trusting count.
   `cities=` matches exact value only: `new york` misses `New York City`.
 - Row fields: `public_slug` `title` `company` `company_slug` `url` `source` `location` `cities`
   `countries` `regions` `work_mode` `skills` `collections` `posted_at` `created_at`
-  `last_seen_at` `closed_at` `description` `enrichment` `reality`.
+  `last_seen_at` `closed_at` `description` `enrichment` `reality` `requires_clearance` (true or
+  absent: 45,763 US rows, 2026-10-01).
 - Filter facets: `category` `skills` `work_mode` `countries` `regions` `cities`
   `employment_type` `seniority` `collections` `company_size` `salary_min` + `salary_currency`
-  `visa_sponsorship` `experience_years_min` `posted_within_days` `sort` `order`.
+  `visa_sponsorship` `experience_years_min` `posted_within_days` `sort` `order`, + (2026-10-01)
+  `q` w/ `q_fields=title` ([Title search](#title-search)), `requires_clearance`,
+  `open_within_days` (first-seen date; posted<=7d 76,484 vs open<=7d 67,666 US - not used yet),
+  `<facet>_exclude` (null-safe: `category_exclude=marketing` = 798,143 - 27,237 exactly).
 
 ## Category slugs (2026-09-19, `countries=us`)
 
