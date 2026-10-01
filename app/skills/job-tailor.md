@@ -24,6 +24,10 @@
      before tailoring; they're likely screened out on that question alone. Their call to go on.
    - posting requires US citizenship or a green card and `citizen_or_permanent_resident` is
      false -> same: quote the line first. Unset -> ask once, save the answer.
+   - `prepare` prints "minimum asks the resume details don't meet" (years asked vs dated jobs, a
+     degree level vs the highest listed) -> say each in plain words, quoting the posting, before
+     writing; ONE clickable question: Tailor anyway / Skip this job. Never say they'd be screened
+     out - how firm a minimum is varies by employer; their call.
 2. `prepare` makes `My Jobs/1 To send/Job N - Company - Title/` + task file (job already sent ->
    folder stays in its stage; a closed one reopens - prepare says "back in 1 To send", tell
    them). Do task yourself (`AGENTS.md` #AI writing steps), then

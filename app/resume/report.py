@@ -1,7 +1,7 @@
 from datetime import date
 
 import rank
-from resume import lint, schema
+from resume import knockout, lint, schema
 
 PRIORITY_ORDER = ("required", "preferred")
 
@@ -94,7 +94,7 @@ def posting_history(job: dict) -> str:
 
 
 def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: list[dict],
-              today: date | None = None) -> str:
+              today: date | None = None, master: dict | None = None) -> str:
     enrichment = job.get("enrichment") or {}
     facts = [
         ("Link", job["url"]), ("Posted on", job.get("source")), ("Level", enrichment.get("seniority")),
@@ -140,6 +140,9 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
         out += ["", "## Asked for, not shown", "", "Have one? Say so - added only if true.", ""]
         out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {r['text']} - {r['note']}"
                 for r in gap_rows]
+    if short := knockout.shortfalls(master or {}, job, today or date.today()):
+        out += ["", "## Minimum asks your resume doesn't show", "", "Your call - quoted so you can decide.", ""]
+        out += [f"- {line}" for line in short]
     skills_only = [r for r in asked if r["priority"] == "required" and r.get("strength") == "Skills list only"]
     if skills_only:
         out += ["", "## In your Skills list only", "",

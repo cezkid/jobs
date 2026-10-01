@@ -11,7 +11,7 @@ import pymupdf
 
 import cfg
 import store
-from resume import handoff, jd, lint, measure, render, report, schema, typeface
+from resume import handoff, jd, knockout, lint, measure, render, report, schema, typeface
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
 # plan #Visual spec: bullets/role 6 max, 1-2 lines. A bullet is judged on its RENDERED width
@@ -580,6 +580,10 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
     print(f"job {num}, job folder: {job_dir}")
     if reopened:
         print(f"was marked {reopened} - back in {job_dir.parent.name}")
+    if short := knockout.shortfalls(master, job, date.today()):
+        print("minimum asks the resume details don't meet - say each, quoting the posting, before "
+              "tailoring; ONE question, tailor anyway / skip:")
+        print("\n".join(f"  {line}" for line in short))
 
 
 def check(config: dict, slug: str) -> int:
@@ -595,7 +599,7 @@ def check(config: dict, slug: str) -> int:
     today = date.today()
     gaps = schema.employment_gaps(master, today)
     (job_dir / CHECK_FILE).write_text(
-        report.report_md(job, tailored, result, rows, gaps, today) + "\n" + report.diff_md(master, tailored, result["model"]),
+        report.report_md(job, tailored, result, rows, gaps, today, master) + "\n" + report.diff_md(master, tailored, result["model"]),
         encoding="utf-8")
 
     for name, ok, detail in result["gates"]:
