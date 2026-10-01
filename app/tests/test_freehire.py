@@ -119,3 +119,10 @@ def test_close_uses_window_actually_fetched(conn):
     config = {**CONFIG, "window": {**WINDOW, "min_jobs": 3}}
     with by_days({7: 0, 14: 0, 30: 1}) as c:
         assert freehire.run(config, conn, c)["remote"]["closed"] == 1
+
+
+def test_title_words_sent_as_one_exact_phrase():
+    """Unquoted, "nurse" matched Nursery titles; already-quoted words are left alone."""
+    assert freehire.query_params({"q": "registered nurse", "q_fields": "title"})["q"] == '"registered nurse"'
+    assert freehire.query_params({"q": '"RN"'})["q"] == '"RN"'
+    assert "q" not in freehire.query_params({"category": ["healthcare"]})

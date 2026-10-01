@@ -10,6 +10,8 @@ SAMPLE_SIZE = 100
 SAMPLE_TITLES = 10
 FACET_PREVIEW = 12
 TALLY_FIELDS = ("category", "seniority", "employment_type")
+# --title: how recent "posted lately" is - a month, the setup's thin-search yardstick
+RECENT_DAYS = 30
 
 
 def probe(client: httpx.Client, base: str, params: dict) -> dict:
@@ -32,6 +34,23 @@ def facet_values(client: httpx.Client, base: str, params: dict, facet: str = "")
         raise SystemExit(f"{facet!r}: no such facet. available: {', '.join(sorted(facets))}")
     names = [facet] if facet else sorted(facets)
     return {n: sorted(facets[n].items(), key=lambda kv: (-kv[1], kv[0])) for n in names}
+
+
+def count(client: httpx.Client, base: str, params: dict) -> int:
+    resp = client.get(f"{base}/jobs/search", params={**freehire.query_params(params), "limit": 1})
+    resp.raise_for_status()
+    return freehire.understood(resp.json())["meta"]["total"]
+
+
+def title_counts(client: httpx.Client, base: str, params: dict, forms: list[str]) -> list[tuple[str, int, int]]:
+    """Each way a job title is written (registered nurse, RN) -> open now, posted in the last
+    RECENT_DAYS. A field's category count says nothing about one role: Healthcare held 31,964 US
+    jobs, 17,849 of them titled RN and 50 "registered nurse" (2026-10-01)."""
+    out = []
+    for form in forms:
+        titled = {**params, "q": form, "q_fields": cfg.TITLE_ONLY}
+        out.append((form, count(client, base, titled), count(client, base, {**titled, "posted_within_days": RECENT_DAYS})))
+    return out
 
 
 def city_values(client: httpx.Client, base: str, text: str) -> list[str]:
@@ -61,6 +80,9 @@ def main() -> None:
     )
     ap.add_argument("params", nargs="*", help="key=value; same keys as a profile's passes[].params")
     ap.add_argument("--city", help="list exact cities= values matching this text, then exit")
+    ap.add_argument("--title", action="append", metavar="WORDS",
+                    help="count jobs titled WORDS (exact phrase), open + last 30 days; repeat for each "
+                         "way the title is written (--title 'registered nurse' --title RN), then exit")
     ap.add_argument(
         "--facets", nargs="?", const="", metavar="FACET",
         help="list valid values + counts for every facet (or just FACET), then exit; "
@@ -73,14 +95,17 @@ def main() -> None:
         raw.append(args.facets)
         args.facets = ""
     params = parse_params(raw)
-    bad = cfg.FORBIDDEN_PARAMS & params.keys()
-    if bad:
-        raise SystemExit(f"forbidden params {sorted(bad)} (docs/jobs/freehire.md)")
+    if problem := cfg.q_problem(params):
+        raise SystemExit(problem)
     # defaults only => runs before config.yml exists
     api = cfg.defaults()["api"]
     with httpx.Client(timeout=api["timeout_s"]) as client:
         if args.city:
             print("\n".join(city_values(client, api["base"], args.city)) or "no match")
+            return
+        if args.title:
+            for form, open_now, recent in title_counts(client, api["base"], params, args.title):
+                print(f'"{form}": {open_now} open, {recent} posted in the last {RECENT_DAYS} days')
             return
         if args.facets is not None:
             for name, values in facet_values(client, api["base"], params, args.facets).items():

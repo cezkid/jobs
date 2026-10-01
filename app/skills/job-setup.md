@@ -42,7 +42,13 @@ First, broad:
 - lowest yearly pay - 4 bands (ranks higher-paying first, never hides jobs; say so in the question)
 
 Then narrowing what they picked:
-- which exact roles inside the family they picked, `multiSelect`
+- which exact roles inside the family they picked, `multiSelect`. Then count the role itself,
+  every way its title is written (their words + the short form: "registered nurse" + RN,
+  "certified public accountant" + CPA): `uv run app/jobs.py probe --title "registered nurse"
+  --title RN countries=us`. A category count says nothing about one role (Healthcare ~32,000;
+  "registered nurse" 50, RN ~19,800). Every form under 30 posted in the last 30 days -> one plain
+  line: "The job search we use carries few <role> jobs - about N posted in the last month across
+  the US." Offer: keep going anyway / widen to related roles - never pretend the count is bigger.
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
   the `cities` facet; "Other" covers the rest
 - career level (entry / mid / senior / leader) - `rank.career_level`: titles clearly above or
@@ -79,7 +85,9 @@ showing jobs from <company>" any time.
 - One tier per location group, preferred first: remote tier `work_mode=remote` +
   `countries=us`; city tier `cities=` ALONE (geography facets OR together, `cfg` rejects mix).
   Exact city values: `uv run app/jobs.py probe --city <text>`.
-- Never `q=` (`cfg` rejects it).
+- `q=` only as one exact title phrase w/ `q_fields: title` (`cfg` rejects any other use) - for a
+  role its category is too wide for (RN inside healthcare). The job search has no OR: one form
+  per pass, the one w/ most postings; say which other forms it leaves out.
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).

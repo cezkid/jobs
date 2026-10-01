@@ -90,9 +90,15 @@ else open. Request fails -> the list's own signals above.
 
 ## Defects handled in code
 
-- **`q=` forbidden** (2026-09-15). Matches description prose: `q=react` returned "Lifecycle
-  Marketing Manager". Same for any occupation keyword. `cfg.FORBIDDEN_PARAMS` rejects it; use
-  `category=` / `skills=`.
+- **`q=` alone matches prose** (2026-09-15). `q=react` returned "Lifecycle Marketing Manager".
+  Same for any occupation keyword. `cfg.q_problem` rejects `q` w/o `q_fields: title` - see
+  [Title search](#title-search).
+- **Unknown filter = every job** (2026-09-30). A misspelled param is ignored, not refused:
+  `bogus_param=1` -> 798,143 US rows, flagged only in `meta.ignored_params` (`[{"param": ...}]`,
+  search + facets). `freehire.understood` stops the pass before anything is stored.
+- **Every link tagged** (2026-09-30). `url` carries `utm_source=freehire.me` (1431 of 1431 stored
+  rows); a link copied from the employer's page doesn't. `store.link_key` drops `utm_*` before
+  comparing; links stay as served.
 - **Geography facets OR together** (2026-09-19). `regions` `countries` `cities` in one pass widen,
   never narrow: `countries=us` + `cities=new york,...` returned all-US hybrid/onsite (461 rows vs
   93 real). `cfg.load` rejects two in one pass; city tier uses `cities` alone.
@@ -129,6 +135,39 @@ Hard filter drops rows w/ NO data, not rows that fail:
   `software_engineering`. => tech search by one skill uses `skills=` alone, no `category=`.
 - `seniority` facet skewed (senior 168, junior 3, middle 6): junior levels live in title string,
   not facet.
+
+## Title search
+
+`q=<words>&q_fields=title` matches titles only. Measured 2026-10-01, `countries=us`:
+
+| title | unquoted | quoted (exact phrase) |
+|---|---|---|
+| nurse | 269 | 111 |
+| registered nurse | 240 | 50 |
+| RN | 19,851 | 19,827 |
+| teacher | 85 | 69 |
+| accountant | 52 | 18 |
+| medical assistant | 3,759 | 275 |
+| data analyst | 23,232 | 3,462 |
+| software engineer | 37,068 | 30,043 |
+
+Unquoted, one word also matches longer words ("nurse" -> "Nursery ...", 35 of the first 100) and
+several words match any of them ("staff accountant" 12,818, mostly Staff ... Engineer) =>
+`freehire.phrase` always quotes. No OR: `"registered nurse" OR "rn"` -> 24 (titles holding both)
+=> one phrase per pass (`cfg.q_problem` rejects a list). `probe --title A --title B` counts each
+form, open + posted in the last 30 days.
+
+## What the job source leaves out
+
+freehire is an IT job board and prunes the rest by design (their catalog-pruning design,
+2026-07-25; dictionary `internal/dict/classify/nontech.go`): titles on a hands-on/non-tech list
+are deleted at every company, and non-tech roles at companies w/ no tech evidence. The list holds
+whole words - nurse, registered nurse, lpn, cna, teacher, accountant, pharmacist, therapist,
+driver, cashier, warehouse... - so the short form can survive: Healthcare 31,964 US jobs, 17,849
+titled RN, 50 "registered nurse"; teacher 69, accountant 18 open (0 posted in 30 days)
+(2026-10-01). => a category count says nothing about one role: setup counts every form of the
+user's title (`probe --title`) and says plainly when the source carries few. Counts move as
+pruning waves run - re-measure, never quote these.
 
 ## Rejected sources (2026-09-15)
 

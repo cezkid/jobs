@@ -31,13 +31,19 @@ def test_merge_keeps_sibling_keys_and_replaces_lists():
     assert merged == {"resume": {"model": "sonnet", "timeout_s": 180}, "l": [3]}
 
 
-def test_q_forbidden_category_allowed(tmp_path):
+def test_q_only_as_one_title_phrase(tmp_path):
+    """Alone, q matches posting prose; the job search has no OR, so a list can't mean either form."""
     path = tmp_path / "c.yml"
     path.write_text("passes: [{tier: a, label: A, params: {category: [healthcare]}}]\n", encoding="utf-8")
     assert cfg.load(path)["passes"][0]["params"]["category"] == ["healthcare"]
     path.write_text("passes: [{tier: a, label: A, params: {q: nurse}}]\n", encoding="utf-8")
-    with pytest.raises(ValueError, match="forbidden"):
+    with pytest.raises(ValueError, match="q_fields: title"):
         cfg.load(path)
+    path.write_text("passes: [{tier: a, label: A, params: {q: [registered nurse, RN], q_fields: title}}]\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="no OR"):
+        cfg.load(path)
+    path.write_text("passes: [{tier: a, label: A, params: {q: RN, q_fields: title, countries: [us]}}]\n", encoding="utf-8")
+    assert cfg.load(path)["passes"][0]["params"]["q"] == "RN"
 
 
 def test_mixed_geography_rejected(tmp_path):

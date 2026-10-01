@@ -14,7 +14,18 @@ WINDOW_EDGE_MARGIN = timedelta(hours=1)
 
 
 def query_params(params: dict) -> dict:
-    return {k: ",".join(v) if isinstance(v, list) else v for k, v in params.items()}
+    out = {k: ",".join(v) if isinstance(v, list) else v for k, v in params.items()}
+    if out.get("q"):
+        out["q"] = phrase(out["q"])
+    return out
+
+
+def phrase(words: str) -> str:
+    """Title words as one exact phrase. Unquoted (2026-10-01): "nurse" also matched "Nursery ..."
+    titles (35 of the first 100), "staff accountant" matched any title w/ either word (12,818,
+    mostly Staff ... Engineer)."""
+    words = words.strip()
+    return words if len(words) > 1 and words[0] == words[-1] == '"' else f'"{words}"'
 
 
 def ignored(body: dict) -> list[str]:
