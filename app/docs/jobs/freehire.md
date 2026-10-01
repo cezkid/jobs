@@ -14,6 +14,9 @@ before trusting count.
   every facet in one call => `uv run app/jobs.py probe --facets [<facet>]` instead of guessing
   slugs one probe at a time (unknown slug answers 0, never error, so a guess loop is silent
   and slow). 47 `category` values, 2026-09-20.
+- `GET /jobs/<slug>` -> one posting, description whole (search rows carry ~1,000 chars); also
+  serves closed postings (search never does). `GET /agent/jobs/search` = same filters, full
+  description (5,343 chars vs 994, 2026-10-01) - unused: tailoring fetches one job.
 - `GET /geo/cities?q=<text>` -> exact `cities=` values (`uv run app/jobs.py probe --city <text>`).
   `cities=` matches exact value only: `new york` misses `New York City`.
 - Row fields: `public_slug` `title` `company` `company_slug` `url` `source` `location` `cities`
