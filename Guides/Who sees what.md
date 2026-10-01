@@ -6,6 +6,7 @@
 |---|---|
 | Your resume, jobs, settings, Today page | Only you - this computer |
 | What you're searching for (not your resume) | freehire.me, to find jobs |
+| Which job from your list you make a resume for or ask about (not your resume) | freehire.me, to get the whole posting or see if it's still open |
 | Your resume + jobs you ask about, and the jobs on your Today page when a Claude chat opens | Your own AI chat account |
 | What you apply with | That employer, when you click Submit |
 

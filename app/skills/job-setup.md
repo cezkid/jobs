@@ -6,7 +6,8 @@ Read `app/docs/jobs/freehire.md` first: geography, null-facet and `q=` rules bel
 Open w/ short paragraph: you'll ask what they're looking for, check how many jobs match, read
 their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGENTS.md`
 #Private vs shared): their file list (My Jobs, My Resume, My Settings) stays on this computer;
-job searches send only their search settings to freehire.me; resume is read here in this AI
+job searches send only their search settings to freehire.me (a resume made for a listed job, or
+"still open?", sends that job's listing id - nothing about them); resume is read here in this AI
 chat; nothing goes to CEZ Job Finder's maintainer without asking first.
 
 Then, BEFORE any interview question (their answers - work permit, pay - are typed into this
