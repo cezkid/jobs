@@ -20,6 +20,8 @@ DAILY_LOG = DATA / "daily.log"
 # q= alone matches description prose => off-lane titles for any occupation; w/ q_fields=title it
 # matches titles only (docs/jobs/freehire.md #Title search)
 TITLE_ONLY = "title"
+# shortest wait before a follow-up is suggested: always holds two working days
+MIN_FOLLOW_UP_DAYS = 5
 # API ORs these together => two in one pass widen, never narrow
 GEOGRAPHY_PARAMS = {"regions", "countries", "cities"}
 
@@ -58,6 +60,9 @@ def load(path: Path | None = None) -> dict:
         geo = GEOGRAPHY_PARAMS & p["params"].keys()
         if len(geo) > 1:
             raise ValueError(f"pass {p['tier']}: {sorted(geo)} OR together, keep one (docs/jobs/freehire.md)")
+    for stage, days in (config.get("follow_up") or {}).items():
+        if not isinstance(days, int) or days < MIN_FOLLOW_UP_DAYS:
+            raise ValueError(f"follow_up.{stage}: {days!r} - at least {MIN_FOLLOW_UP_DAYS} days (a weekend can take 3)")
     return config
 
 

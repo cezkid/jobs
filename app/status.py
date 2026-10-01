@@ -22,6 +22,8 @@ STATES = {
     "not_sending": "Not sending",
     "closed": "Closed",
 }
+# what happens to an application w/o changing where it stands: logged beside the states, never one
+EVENTS = {"followed_up": "Followed up"}
 LINK_LINE = "- Link: "
 # resume made this many days ago -> asked "did you send it?" at chat start; untouched this long
 # -> drops out of Waiting on you
@@ -101,6 +103,31 @@ def folder_key(f: dict) -> str:
 
 def _log(conn, key: str, state: str, at: str) -> None:
     conn.execute("INSERT INTO application_log VALUES (?, ?, ?)", (key, state, at))
+
+
+def log_event(conn, key: str, event: str, at: str) -> None:
+    _log(conn, key, event, at)
+    conn.commit()
+
+
+def last_event(conn, key: str, event: str, since: str) -> str | None:
+    """Latest `event` for this job at or after `since` (its current stage's date)."""
+    return conn.execute("SELECT MAX(at) FROM application_log WHERE key = ? AND state = ? AND at >= ?",
+                        (key, event, since)).fetchone()[0]
+
+
+def history(conn, key: str) -> list[tuple[str, str]]:
+    """(day, what) newest first: states + logged events, repeats dropped, a same-day Saved just
+    before Resume made folded into it (one step to the user)."""
+    out: list[tuple[str, str]] = []
+    for state, at in conn.execute("SELECT state, at FROM application_log WHERE key = ? ORDER BY at", (key,)):
+        what = STATES.get(state) or EVENTS.get(state) or state
+        if out and out[-1][1] == what:
+            continue
+        if out and out[-1] == (at[:10], STATES["saved"]) and state == "resume_made":
+            out.pop()
+        out.append((at[:10], what))
+    return out[::-1]
 
 
 def _record(conn, f: dict, at: str) -> bool:
@@ -409,8 +436,9 @@ def main() -> None:
     steps.add_parser("sent", help="each job not marked sent: sent page in this computer's browser history? sent,"
                      " likely not sent, can't tell - and why")
     steps.add_parser("sort", help="file every job folder under the stage its status names (launch does it too)")
-    for name, helptext in (("show", "one job's status + its folder"),
-                           ("set", "record a job's status; its folder moves to that stage")):
+    for name, helptext in (("show", "one job's status, its history + its folder"),
+                           ("set", "record a job's status; its folder moves to that stage"),
+                           ("followed-up", "log a follow-up the user sent; the job stays where it stands")):
         p = steps.add_parser(name, help=helptext)
         p.add_argument("job", nargs="?", help="job number, slug, the job's https link, or its job folder name")
         p.add_argument("--company")
@@ -418,6 +446,7 @@ def main() -> None:
         p.add_argument("--url", help="link for a job applied outside Job Finder")
         if name == "set":
             p.add_argument("state", help=" | ".join(STATES))
+        if name in ("set", "followed-up"):
             p.add_argument("--on", help="YYYY-MM-DD it happened, when not today")
     # `set <job> <state>` or `set <state> --company C --title T`: argparse fills state first
     args = ap.parse_args()
@@ -485,10 +514,16 @@ def main() -> None:
             if args.step == "set":
                 set_state(conn, job, state_key(args.state), when(args.on, store.utc_now()))
                 stuck = sort_folders(conn, jobs_dir, job["key"])[1]
+            if args.step == "followed-up":
+                if (get(conn, job["key"]) or {}).get("state") not in ("applied", "heard_back", "interview"):
+                    raise ValueError("a follow-up is for a job sent and waiting on a reply - record that first")
+                log_event(conn, job["key"], "followed_up", when(args.on, store.utc_now()))
         except (NotFound, ValueError) as e:
             sys.exit(str(e))
         row = get(conn, job["key"])
         print(line(numbered(conn, [row])[0]) if row else f"no status yet: {job['company']} - {job['title']}")
+        if row and args.step != "set":
+            print("\n".join(f"      {day}  {what}" for day, what in history(conn, job["key"])))
         # moved folder => old paths in the chat are stale; this line is the one to use
         if d := folder_of(jobs_dir, job["key"]):
             print(f"folder: {d}" + "".join(f" - not moved now ({why}); moves at next launch or status sort"

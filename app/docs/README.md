@@ -26,6 +26,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/ashby.md](apply/ashby.md) | Ashby forms, filled in Job Finder's own Chrome |
 | Applying | [apply/ukg.md](apply/ukg.md) | UKG Pro Recruiting forms: sign-in first, resume sections saved as added |
 | Applying | [apply/sent.md](apply/sent.md) | Was it sent? Sent page + applied list per system, browser-history check, what it can't see |
+| Applying | [apply/follow-up.md](apply/follow-up.md) | When a quiet job is suggested for a follow-up (days per stage + basis), one nudge per silence, what the draft says and never says |
 
 Assistant instructions: [AGENTS.md](../../AGENTS.md) + skills in [../skills/](../skills/).
 Contributing: [.github/CONTRIBUTING.md](../../.github/CONTRIBUTING.md).

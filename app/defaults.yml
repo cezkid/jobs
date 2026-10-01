@@ -61,6 +61,14 @@ work_authorization:
   # null + citizen_or_permanent_resident false counts as false
   can_hold_clearance: null
 
+# Days w/ no reply before a job shows under Follow up on the Today page, by where it stands.
+# Basis + strength: app/docs/apply/follow-up.md. At least 5 (a weekend can take 3). A logged
+# follow-up quiets it one more stretch; past that the page suggests closing, never a second chase.
+follow_up:
+  applied: 21
+  heard_back: 15
+  interview: 12
+
 # Home address application forms ask for (UKG requires it). Saved only when the user says to keep
 # it; never on the resume (full street address = privacy risk, no hiring value). null = asked.
 home_address:

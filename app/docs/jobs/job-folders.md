@@ -10,7 +10,8 @@ My Jobs/
   3 Heard back/   heard back, interview, offer
   4 Closed/       they said no, not sending, closed
     Job 12 - Acme - Data Analyst/
-      First_Last_Resume.pdf, Job posting.md, Check before sending.md, .data/ (jd.json, task, answers)
+      First_Last_Resume.pdf, Job posting.md, Check before sending.md, Follow-up email.md (when
+      asked for), .data/ (jd.json, task, answers)
 ```
 
 Table: `status.STAGES`. Stage folders appear when a job first needs one; never removed after.

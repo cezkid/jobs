@@ -80,6 +80,12 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
   ask instead "... may be closed since D. Did you send it before it closed?": Sent -> applied,
   Not sent -> `status set 12 closed`. Prints "nothing to ask" -> say nothing.
   It picks the oldest job only and never repeats within 3 days - never add others to it.
+- Follow up: Today lists a sent job quiet past its stage's days (`follow_up` in settings: applied
+  21, heard back 15, interview 12). "write a follow-up for job 12" -> `uv run app/jobs.py follow-up
+  12` writes `Follow-up email.md` in its folder; open it, say they send it from their own email to
+  the person they were in touch with - nothing is sent for them - then ONE question "Sent it?":
+  Sent it -> `status followed-up 12` (never a status; quiets it one more stretch, then the page
+  suggests closing). Never invent an address or urgency. Why: `app/docs/apply/follow-up.md`.
 - Resume made, untouched 14+ days -> drops out of Waiting on you + never asked about: kept,
   never nagged. User mentions one anyway ("I heard back from Acme") -> `status set`.
 - User says it in passing ("applied to Acme", "got an interview") -> `status set` by number,
@@ -168,6 +174,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Work history, education, skills, links you apply with | that employer's UKG site | That employer, as each is added (only after you say yes) |
 | Contact details, answers, resume you apply with | that employer's UKG site | That employer, once you click Submit |
+| Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 
 AI training = setting on user's own AI account; only they can change it (`job-setup` offers it
