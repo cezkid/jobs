@@ -24,6 +24,7 @@ COMMANDS = {
     "resume-gaps": ("resume.gaps", "ask the user for numbers + leadership their lines leave out: prepare | finish"),
     "resume-fit": ("resume.fit", "does this wording fit a line? candidates, or every bullet"),
     "tailor": ("resume.tailor", "tailored resume for one job: posting | prepare | check"),
+    "letter": ("resume.letter", "cover letter for one job, checked like the resume: prepare | check JOB"),
     "today": ("today", "write Today.md: waiting on you, follow up, new since last check, not finished"),
     "status": ("status", "where each job stands: list | show JOB | set JOB STATE (or --company --title) | followed-up JOB | sort"),
     "follow-up": ("followup", "draft a follow-up email for one job into its folder - the user sends it: JOB [--name NAME]"),

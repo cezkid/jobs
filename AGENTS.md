@@ -232,7 +232,7 @@ next import rewrites them.
 
 ## AI writing steps
 
-Resume import, pasted posting, tailoring and `resume-gaps` (asks the user for the numbers +
+Resume import, pasted posting, tailoring, cover letter (`letter`) and `resume-gaps` (asks the user for the numbers +
 leadership their lines leave out; only their answers go in): command writes task file (rules,
 input, answer format), you write answer JSON at the path it names, run the check it prints.
 Check fails -> fix JSON per violations, rerun; after 2 failed retries tell user plainly, stop. No other program writes resume content.

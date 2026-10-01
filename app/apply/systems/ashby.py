@@ -152,9 +152,11 @@ def fill(page, q: dict, resume_file: str | None) -> str:
     box.scroll_into_view_if_needed()
     kind, value = q["kind"], q["answer"]
     if kind == "file":
-        # the resume goes in the resume box only - never a cover letter or other upload box
-        if q.get("key") != "resume":
+        # the resume goes in the resume box only; a cover letter box gets the letter made for this job
+        if q.get("key") not in ("resume", "cover_letter"):
             return f"ASK not the resume box ({q['title']}) - the user uploads their own file there"
+        if q.get("key") == "cover_letter" and not resume_file:
+            return "ASK cover letter box - no letter made for this job (letter prepare), or the user uploads their own"
         return put_file(box, resume_file) if value is True and resume_file else "skipped - upload not approved"
     if kind == "location":
         return put_location(box, value)

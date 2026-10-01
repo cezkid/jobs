@@ -6,7 +6,7 @@ Type in the chat box on the right, in your own words. You never type commands or
 
 - **Jobs:** "Any new jobs?" · "Why is job 3 on my list?" · "Stop showing jobs from Acme Staffing"
 - **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number"
-- **One job:** "Make my resume for job 3" · "What does job 3's application ask?" · "Why did you change that?" ·
+- **One job:** "Make my resume for job 3" · "What does job 3's application ask?" · "Write a cover letter for job 3" · "Why did you change that?" ·
   "Help me apply to job 3"
 - **Several jobs:** "Make my resume for jobs 2, 5 and 7" - one chat does them in turn
 - **Interviews:** "Practise my interview for job 3" · "I had the interview for job 3 - go through it with me"
