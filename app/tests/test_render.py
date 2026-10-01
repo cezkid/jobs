@@ -306,6 +306,17 @@ def test_undated_project_renders_without_a_date(master):
     assert project["subline"] is None
 
 
+def test_project_location_and_blurb_print_under_its_name(master, tmp_path):
+    """The schema takes both; the page dropped them, so the user's own fact never showed."""
+    master["projects"][0].update(location="Remote", blurb="Open-source tool, 40 contributors")
+    project = render.page_model(master)["sections"][1]["entries"][0]
+    assert project["subline"].endswith("Remote | Open-source tool, 40 contributors")
+    model = render.page_model(master)
+    path = tmp_path / "r.pdf"
+    path.write_bytes(render.compile_pdf(model))
+    assert failed(render.check(path, model, budget=False)) == {}
+
+
 def test_education_leads_with_no_jobs_or_a_fresh_degree(master):
     today = render.date(2026, 9, 24)
     assert [s["title"] for s in render.page_model(master, today)["sections"]][0] == "Experience"

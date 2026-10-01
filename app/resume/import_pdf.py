@@ -32,7 +32,11 @@ ENDPOINT = re.compile(r"^(?:(?P<month>[a-z]{3})[a-z]*\.?\s+)?(?P<year>\d{4})$")
 # Word resumes write "10/24" or "03/2019"; slash is no range separator, so a part stays whole
 NUMERIC_ENDPOINT = re.compile(r"^(?P<month>\d{1,2})/(?P<year>\d{2}|\d{4})$")
 RANGE_SEP = re.compile(r"\s*-\s*|\s+to\s+")
-PRESENT_WORDS = {"present", "current", "now"}
+# "2021-03 - 2023-05": a date's own hyphen is no range separator, so ISO months are split first
+ISO_MONTH = re.compile(r"^(?P<year>\d{4})-(?P<month>\d{2})$")
+ISO_RANGE = re.compile(r"^(\d{4}-\d{2})\s*(?:-|to)\s*(\d{4}-\d{2}|\D.*)$")
+# "date" = what "... to date" leaves once " to " splits the range
+PRESENT_WORDS = {"present", "current", "now", "ongoing", "today", "till date", "date"}
 NON_SLUG = re.compile(r"[^a-z0-9]+")
 # a section heading carries no fact, so it is the one line recovery may skip. Named, never guessed
 # from capitals: "ACTIVE TS/SCI CLEARANCE" or "BLS/ACLS CERTIFIED" is all caps and a real credential
@@ -173,6 +177,8 @@ def unique(base: str, taken: set[str]) -> str:
 
 
 def endpoint(value: str, today: date) -> str | None:
+    if match := ISO_MONTH.match(value):
+        return value if 1 <= int(match["month"]) <= 12 else None
     if match := NUMERIC_ENDPOINT.match(value):
         if not 1 <= int(match["month"]) <= 12:
             return None
@@ -205,7 +211,9 @@ def parse_endpoint(text: str, where: str, today: date, assumptions: list[str]) -
 def parse_range(text: str | None, where: str, today: date, assumptions: list[str]) -> dict:
     if not text:
         return {}
-    parts = RANGE_SEP.split(normalize(text))
+    value = normalize(text)
+    iso = ISO_RANGE.match(value)
+    parts = [iso[1], iso[2]] if iso else RANGE_SEP.split(value)
     if len(parts) != 2:
         assumptions.append(f"{where}: dates {text!r} not start - end, set by hand")
         return {}

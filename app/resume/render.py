@@ -203,7 +203,9 @@ def page_model(master: dict, today: date | None = None) -> dict:
         sections.append({"title": "Experience", "entries": entries})
     if master.get("projects"):
         sections.append({"title": "Projects", "entries": [{
-            "id": p["id"], "heading": p["name"], "subline": span_label(p), "bullets": [b["claim"] for b in p["bullets"]],
+            # same detail line as a job: the schema takes location + blurb, so they print
+            "id": p["id"], "heading": p["name"], "subline": joined(span_label(p), p.get("location"), p.get("blurb")),
+            "bullets": [b["claim"] for b in p["bullets"]],
         } for p in master["projects"]]})
     if master.get("skills"):
         sections.append({"title": "Skills", "lines": [
