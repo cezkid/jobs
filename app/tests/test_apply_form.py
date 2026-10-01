@@ -610,3 +610,22 @@ def test_resume_found_after_the_page_name_changed(tmp_path, monkeypatch):
     assert form.resume_for({}, folder) is None
     (folder / "J_Doe_Resume.pdf").write_bytes(b"%PDF-1.7")
     assert form.resume_for({}, folder) == str(folder / "J_Doe_Resume.pdf")
+
+
+def test_resume_goes_in_the_resume_box_only():
+    """A cover letter upload box marked yes still never gets the resume."""
+    from apply.systems import ashby
+
+    class Box:
+        first = property(lambda self: self)
+        count = lambda self: 1
+        scroll_into_view_if_needed = lambda self: None
+
+    class Page:
+        locator = lambda self, selector: Box()
+    letter = {"id": "f1", "title": "Cover Letter", "kind": "file", "answer": True,
+              "key": questions.key_from_title("Cover Letter", "file")}
+    assert letter["key"] == "cover_letter"
+    assert [questions.key_from_title(t, "file") for t in ("Resume/CV", "Upload your CV", "Portfolio")] == \
+        ["resume", "resume", None]
+    assert ashby.fill(Page(), letter, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")

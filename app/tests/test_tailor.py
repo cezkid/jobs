@@ -227,6 +227,20 @@ def test_slug_for_matches_link_without_tracking(tmp_path, monkeypatch):
     assert tailor.slug_for({}, "https://jobs.ashbyhq.com/acme/1") == "vue-1"
 
 
+def test_ready_names_lines_to_confirm_and_still_counts_as_made(tailored, tmp_path):
+    """8 of 10 real job folders said a plain Yes w/ 1-7 lines still unconfirmed."""
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [("pages", True, "1")] * 22,
+              "selection": [], "findings": []}
+    tailored["inferences"] = [{"claim": "Web Workers", "sources": ["acme-inp"]}]
+    text = report.report_md(JOB, tailored, result, [], [])
+    assert 'Yes, once you confirm the 2 line(s) under "To confirm" further down - all 22 page checks passed.' in text
+    assert report.ready(text)
+    tailored["inferences"], tailored["entries"][0]["title_mirror"] = [], None
+    assert "Yes - all 22 page checks passed." in report.report_md(JOB, tailored, result, [], [])
+    assert report.ready("## Ready to send?\n\nYes - all 22 page checks passed.")  # older reports
+    assert not report.ready("## Ready to send?\n\nNot yet - 2 to fix first.")
+
+
 def test_folder_name_leads_with_the_job_number_and_is_filesystem_safe():
     job = {**JOB, "company": 'Acme: "Health"', "title": "RN / ICU?  Nights."}
     assert tailor.folder_name(job, 7) == "Job 7 - Acme Health - RN ICU Nights"

@@ -94,8 +94,9 @@ institution on its own line, spelled-out degree + field under (`DEGREES`); `entr
 each PDF for whole heading + detail lines; `abbreviated-school` warns. Workday Skills box often
 empty regardless (own skill list only) - form, not file; convention, unmeasured.
 
-Languages: own `Languages` heading, one per line, level in brackets (`Spanish (Fluent)`), never in
-Skills. Parsers store language + level (Textkernel data model); Jobscan, Indeed: name-then-level,
+Languages: own `Languages` heading, each w/ its level in brackets (`Spanish (Fluent)`), never in
+Skills. One per entry in the file; the page prints them on one row, comma-separated - each still
+pairs w/ its own level, which is what parsers store (unmeasured which layout parses better). Parsers store language + level (Textkernel data model); Jobscan, Indeed: name-then-level,
 standard scale (ILR US government, CEFR Europe). "English and Spanish - fluent in reading, writing
 and speaking" pairs level w/ one or neither. Vendor docs + convention, unmeasured.
 `language-level` warns; level asked, never guessed.
@@ -147,6 +148,7 @@ one instance.
 | `bullet-taper` | older role more bullets than newer above | WARN |
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
 | `em-dash`, `markdown`, `invisible-unicode` | generated-text characters | via `hit()` |
+| `font-coverage` | a character the typeface can't draw (✓ ★ Greek μ; Vietnamese ị ạ ơ ư in Caladea) - Typst prints it in a font of its own. Own facts (a name, an employer) WARN: can't be rewritten | via `hit()`, own or every missing letter in their facts -> WARN |
 | `street-address`, `personal-details`, `old-graduation-year`, `old-certification-year`, `abbreviated-school` | own file only (`resume-lint`): house number, apartment, suite, ZIP in location; birth date, age, marital status, nationality; degree or certification 15+ years ago w/o `hide_year` (degree 20+ years -> detail recommends it, feedback adds the bundle note once); shortened school (CC, Univ., U of); languages line not one language + bracketed level | WARN |
 | `spelling` | British form (`US_FORMS`: theatre, colour, organise, modelling, licence...) or unknown word one letter from a known one, likely word named. Skips skills, stack, `WORK_WORDS` (workflow, dataset, telehealth...), names, tool tokens; generated may use any facts/posting word. Scorers fail the page on one error | via `hit()` |
 | `compound-modifier` | one of 32 open two-word modifiers before noun (*live streaming channels*, *full stack engineer*); never after (*shipped end to end*) | WARN |
@@ -189,6 +191,7 @@ Mirrored from `lint.WHY`; `test_lint` keeps them in step.
 | `bullet-taper` | An older job has more lines than a newer one. |
 | `canonical-casing` | A tool name is spelled differently from its official spelling. |
 | `em-dash` | Long dashes are a common sign of AI-written text. |
+| `font-coverage` | Your resume's typeface has no shape for this character, so it prints in another typeface that looks out of place. |
 | `markdown` | Formatting symbols would show up as stray characters. |
 | `invisible-unicode` | An invisible character could trip up job-site software. |
 | `street-address` | City and state is enough; a street address adds nothing and exposes you. |
@@ -305,6 +308,18 @@ AI tell.
 **"Every bullet needs an outcome metric."** Contradicted by Arizona, vs Tier 1; enforcing it
 produced a request to invent a cost-savings figure. Report a role w/ no outcome; never demand one
 per bullet.
+
+Common in resume tools, declined 2026-10-01 (re-propose only w/ new evidence):
+
+| Practice | Why not |
+|---|---|
+| A 0-100 "ATS readiness" or job-match score | weights uncalibrated by their makers' own account; layout invisible to them; recruiters don't auto-reject on a score (Enhancv 2025: 92%) - checks named one by one instead (Tier 3) |
+| "Keyword strength" vs the market's top skills | rewards adding terms = stuffing; posting's term only for what they have (Tier 3) |
+| "Quantify with %, ×, $" - only those count as numbers | scope numbers count (Emory, MIT); demanding % invites invented ones (`round-metric`) - same failure as the metric-per-bullet rule above |
+| Points for the posting's exact title anywhere on the page | title mirror = suffix the user confirms, never a level (Tier 1) |
+| The posting's spelling replaces the candidate's | Lever search misses acronyms: both forms, the user's kept (Tier 4) |
+| 3-5 bullets for every role | counts follow relevance, retired 2026-09-24 (Tier 3) |
+| Missing employment dates backfilled from a guess | a date the user never gave can fail a background check (Tier 1) |
 
 ## Sources
 

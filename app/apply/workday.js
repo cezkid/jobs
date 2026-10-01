@@ -27,6 +27,8 @@ window.__jf = (() => {
   const out = (el) => { el.dispatchEvent(new FocusEvent('blur')); el.dispatchEvent(new FocusEvent('focusout', { bubbles: true })); el.blur(); };
   const key = (el, k, code) => ['keydown', 'keyup'].forEach((t) => el.dispatchEvent(new KeyboardEvent(t, { key: k, keyCode: code, which: code, bubbles: true })));
   const click = (el) => { el.scrollIntoView({ block: 'center' }); ['mousedown', 'mouseup'].forEach((t) => el.dispatchEvent(new MouseEvent(t, { bubbles: true }))); el.click(); };
+  // where the form is: a synthetic Enter must never move it on (that is a Save the user never clicked)
+  const where = () => `${location.href}|${txt(document.querySelector('[data-automation-id="progressBarActiveStep"]'))}`;
   function best(opts, wanted) {
     for (const w of wanted) {
       const n = norm(w);
@@ -113,7 +115,9 @@ window.__jf = (() => {
     if (pills(input).some((p) => wanted.some((w) => norm(txt(p)) === norm(w)))) return;
     const tried = [];
     for (const w of wanted) {
+      const at = where();
       put(input, w); key(input, 'Enter', 13); await sleep(600);
+      if (where() !== at || !document.contains(input)) throw new Error('Enter moved the form to another step - stopped filling; tell the user to check the page');
       const opts = await until(() => [...document.querySelectorAll('[data-automation-id="promptOption"]')].filter((o) => shown(o) && !box(input).contains(o) && !/no items/i.test(txt(o))), 3000);
       const hit = opts && (exact ? opts.find((o) => norm(txt(o)) === norm(w)) : best(opts, [w]));
       if (!hit) { tried.push(`${w}: ${opts ? opts.slice(0, 4).map(txt).join(' / ') : 'none'}`); continue; }

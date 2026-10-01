@@ -3,12 +3,17 @@
 Resume scorers and career guides alike mark a bullet without a number as weak, and the easy fix
 they offer is a template - "for {{count}} screens". A template filled by anyone but the user is
 an invented number (docs/resume/bullets.md Tier 1), so this asks instead. `prepare` lists every bullet without a
-number, and a leadership question for each recent job, as an AI task; the AI asks the user in
+number, every bullet saying "helped" or "we" (whose part was it?), and a leadership question for each
+recent job, as an AI task; the AI asks the user in
 chat and writes down only what they said; `finish` checks every number, name and tool in a
-reworded line came from the old line or the user's answer, then merges it into
-My Resume/Resume details.yml with a backup. A skipped question changes nothing.
+reworded line came from the old line or the user's answer - never from a sentence where the
+answer denies it, never a stronger ownership verb than either used - then merges it into
+My Resume/Resume details.yml with a backup. A skipped question changes nothing. Measured on 5 real
+answers (2026-10-01): no negation cue, no upgraded verb - guards against a known failure, not a
+measured one; 2 of the 5 were two words, so no minimum answer length.
 """
 import argparse
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -26,6 +31,13 @@ BACKUP_NAME = "Resume details before gaps.yml"
 # leadership is asked about for the most recent jobs only: what an employer reads first, and a
 # short chat - leadership is read across the page, not demanded of every job
 LEADERSHIP_ROLES = 3
+PART_ASK = ("This line says \"{word}\". What was your own part - what did you do, and what did the "
+            "team do? \"Helped\" stays if that's the truth.")
+# a hedge or "we" leaves the reader guessing whose work it was; one question per line, before a number
+PART_WORDS = re.compile(rf"{lint.HEDGES.pattern}|\b(?:we|our|ours)\b", re.I)
+# "I didn't lead them" holds "lead them": a name or number the answer only denies never goes in
+NEGATION = re.compile(r"n't\b|\bnot\b|\bnever\b|\bno longer\b|\bwithout ever\b|\bcannot\b", re.I)
+REFUSALS = {"no", "none", "nope", "not really", "n/a", "na", "not sure", "don't know", "dont know", "no idea"}
 NUMBER_ASK = ("Can you put a real number on this - how many (people, users, screens, items, "
               "locations), how often, how much faster, cheaper or bigger, or what changed after? "
               "Skip it if you don't know the number for sure.")
@@ -36,13 +48,14 @@ ANSWER_SCHEMA = obj(answers=array(obj(id=STRING, said=NULLABLE, claim=NULLABLE))
 SYSTEM = """You help the candidate add facts only they know. Every line you write comes from their own answer.
 
 Asking
-- Ask the user each question in `questions`, in plain words, in this chat. Batch up to 4 per round with clickable choices where they fit ("I know the number" / "Not sure - skip"); the number itself is free text.
+- Ask the user each question in `questions`, in plain words, in this chat - ONE question per ask, never batched (several at once show as tabs and users stall there). Clickable choices where they fit ("I know it" / "Not sure - skip"); the number itself is free text.
 - Show the line the question is about. Say why once: numbers and scope are what a reader can picture, and anything on the page gets asked about in interview.
 - Never guess, estimate, round or suggest a number. "About 20" is written as the user said it ("about 20", "20+"). Don't know -> skip; skipping costs nothing.
 
 Answer
 - One entry per question: `id` as given; `said` = the user's answer in their own words, null if skipped.
-- `claim`: null when skipped or when the answer adds nothing. For `number`: the line rewritten to carry what they said, keeping the rest of their wording. For `leadership`: one new line in their words, opening with what they did ("Mentored 3 junior engineers on ...").
+- `claim`: null when skipped, when the answer says no, or when it adds nothing. For `number`: the line rewritten to carry what they said, keeping the rest of their wording. For `part`: the line rewritten to say what they themselves did, in their words - "helped" stays when that is the truth; never a stronger verb (led, managed, owned) than they used. For `leadership`: one new line in their words, opening with what they did ("Mentored 3 junior engineers on ...").
+- Never write what the answer denies: "I didn't lead the 4 new hires" puts neither "led" nor "4" in a line.
 - Every number, name and tool in `claim` must appear in the original line or in `said` - the check fails anything else.
 - One sentence, US spelling, no em dash. Aim for one full line or two (`uv run app/jobs.py resume-fit "<line>"` tells you which)."""
 
@@ -53,9 +66,11 @@ def questions(master: dict) -> list[dict]:
     for section in ("roles", "projects"):
         for i, entry in enumerate(master.get(section) or []):
             for j, bullet in enumerate(entry["bullets"]):
-                if not lint.NUMBER.search(bullet["claim"]):
-                    out.append({"id": f"q{len(out) + 1}", "kind": "number", "section": section, "entry": i,
-                                "bullet": j, "line": bullet["claim"], "ask": NUMBER_ASK,
+                word = PART_WORDS.search(bullet["claim"])
+                if word or not lint.NUMBER.search(bullet["claim"]):
+                    out.append({"id": f"q{len(out) + 1}", "kind": "part" if word else "number", "section": section,
+                                "entry": i, "bullet": j, "line": bullet["claim"],
+                                "ask": PART_ASK.format(word=word[0]) if word else NUMBER_ASK,
                                 "job": entry.get("title", entry.get("name")), "at": entry.get("company")})
     for i, role in enumerate(master["roles"][:LEADERSHIP_ROLES]):
         out.append({"id": f"q{len(out) + 1}", "kind": "leadership", "section": "roles", "entry": i, "bullet": None,
@@ -70,8 +85,9 @@ def prepare(path: Path) -> list[dict]:
     payload = yaml.safe_dump({"questions": asked}, sort_keys=False, allow_unicode=True, width=10_000)
     (cfg.DATA / "gaps-questions.yml").write_text(payload, encoding="utf-8")
     handoff.write_task(TASK, ANSWER, SYSTEM, ANSWER_SCHEMA, payload, "uv run app/jobs.py resume-gaps finish")
-    numbers = sum(q["kind"] == "number" for q in asked)
-    print(f"{numbers} line(s) without a number, {len(asked) - numbers} leadership question(s)")
+    kinds = {k: sum(q["kind"] == k for q in asked) for k in ("number", "part", "leadership")}
+    print(f"{kinds['number']} line(s) without a number, {kinds['part']} saying 'helped' or 'we', "
+          f"{kinds['leadership']} leadership question(s)")
     return asked
 
 
@@ -79,6 +95,16 @@ def invented(claim: str, sources: list[str]) -> list[str]:
     """Numbers, names and tools in `claim` found in none of `sources`."""
     known = {lint.entity_key(t) for t in lint.TOKEN.findall(" ".join(s for s in sources if s))}
     return sorted({e for e in lint.entities(claim) if lint.entity_key(e) not in known})
+
+
+def negated(said: str, term: str) -> str | None:
+    """The sentence of `said` naming `term` after a negation cue. A "but" opens a new clause:
+    "I didn't lead it, but I trained 2 new hires" gives the 2."""
+    for sentence in re.split(r"[.;!?]", said):
+        at = sentence.casefold().find(term.casefold())
+        if at >= 0 and NEGATION.search(re.split(r"\bbut\b", sentence[:at], flags=re.I)[-1]):
+            return sentence.strip()
+    return None
 
 
 def problems(asked: list[dict], answers: list[dict], master: dict) -> list[str]:
@@ -91,13 +117,22 @@ def problems(asked: list[dict], answers: list[dict], master: dict) -> list[str]:
         if not (a["said"] or "").strip():
             out.append(f"{a['id']}: claim written but `said` is empty - only the user's answer goes in")
             continue
+        if a["said"].strip().casefold().rstrip(".!") in REFUSALS:
+            out.append(f"{a['id']}: the answer says no ({a['said']!r}) - claim must be null")
+            continue
+        line_keys = {lint.entity_key(t) for t in lint.TOKEN.findall(q["line"] or "")}
+        for term in sorted({e for e in lint.entities(a["claim"]) if lint.entity_key(e) not in line_keys}):
+            if sentence := negated(a["said"], term):
+                out.append(f"{a['id']}: the answer denies {term!r} ({sentence!r}) - write only what they did")
+        if verb := lint.upgraded_verb(a["claim"], [q["line"], a["said"]]):
+            out.append(f"{a['id']}: {verb!r} claims more than the line or the answer says - use their own verb")
         entry = master[q["section"]][q["entry"]]
         header = [entry.get(k) for k in ("company", "title", "name", "location", "blurb")]
         if extra := invented(a["claim"], [q["line"], a["said"], *header]):
             out.append(f"{a['id']}: {extra} in neither the old line nor the user's answer: {a['claim']!r}")
         if lint.EM_DASH in a["claim"] or "\n" in a["claim"]:
             out.append(f"{a['id']}: one plain line, no em dash: {a['claim']!r}")
-        if q["kind"] == "number" and master[q["section"]][q["entry"]]["bullets"][q["bullet"]]["claim"] != q["line"]:
+        if q["kind"] != "leadership" and master[q["section"]][q["entry"]]["bullets"][q["bullet"]]["claim"] != q["line"]:
             out.append(f"{a['id']}: that line changed since the questions were written - run prepare again")
     return out
 
@@ -117,7 +152,7 @@ def _merge(path: Path, asked: list[dict], answers: list[dict], notes: Path | Non
     for a in sorted((a for a in answers if a["claim"]), key=lambda a: by_id[a["id"]]["kind"] == "leadership"):
         q = by_id[a["id"]]
         entry, internal = raw[q["section"]][q["entry"]], master[q["section"]][q["entry"]]
-        if q["kind"] == "number":
+        if q["kind"] != "leadership":  # number, part: the line rewritten in place
             bullet = entry["bullets"][q["bullet"]]
             if isinstance(bullet, dict):
                 bullet["claim"] = a["claim"]

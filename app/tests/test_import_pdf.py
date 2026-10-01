@@ -385,3 +385,19 @@ def test_word_resume_imports_whole_and_dated(tmp_path):
     assert master["education"][0]["end"] == "2007-05"
     assert master["certifications"][0]["date"] == "2019-03"
     assert schema.validate(master) == []
+
+
+@pytest.mark.parametrize("text,start,end", [
+    ("2021-03 - 2023-05", "2021-03", "2023-05"),
+    ("2021-03 to present", "2021-03", "present"),
+    ("Mar 2020 - Ongoing", "2020-03", "present"),
+    ("Jan 2019 - Today", "2019-01", "present"),
+    ("2018 to date", "2018", "present"),
+    ("Jun 2017 - till date", "2017-06", "present"),
+    ("2019-2021", "2019", "2021"),
+])
+def test_iso_and_word_endpoints_parse(text, start, end):
+    """Each used to fall back to 'set by hand': ISO months split on their own hyphen."""
+    assumptions = []
+    got = import_pdf.parse_range(text, "roles[0]", date(2026, 10, 1), assumptions)
+    assert (got, assumptions) == ({"start": start, "end": end}, [])

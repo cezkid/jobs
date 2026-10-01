@@ -46,6 +46,7 @@ GATE_WHY = {
     "no-prose-block": "No paragraph too long for a quick read",
     "size": "The file is small enough to upload anywhere",
     "fonts": "Fonts are built into the file",
+    "typeface": "Every letter prints in your resume's typeface",
     "no-images": "No pictures that software cannot read",
     "tagged": "The file is tagged for screen readers",
     "no-table": "No tables that software reads out of order",
@@ -70,7 +71,8 @@ def gate_line(name: str, ok: bool, detail: str) -> str:
     return f"- {said}" + (f" - {detail}" if name.endswith("(info)") else "") + f" ({key})"
 
 
-READY = "## Ready to send?\n\nYes - "
+# marker status.py reads: an older report's "Yes - all ..." line still counts
+READY = "## Ready to send?\n\nYes"
 
 
 def ready(check_text: str) -> bool:
@@ -102,8 +104,13 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     out += [f"- {k}: {v}" for k, v in facts if v]
 
     problems = len(result["failed"])
+    # wording the resume never says in so many words: still the user's to confirm, so "Yes" names it
+    confirm = len(tailored.get("inferences") or []) + sum(1 for e in tailored.get("entries") or [] if e.get("title_mirror"))
     out += ["", *READY.split("\n")[:2],
-            f"Not yet - {problems} to fix first." if problems else f"Yes - all {len(result['gates'])} page checks passed."]
+            f"Not yet - {problems} to fix first." if problems
+            else f'Yes, once you confirm the {confirm} line(s) under "To confirm" further down - all '
+                 f"{len(result['gates'])} page checks passed." if confirm
+            else f"Yes - all {len(result['gates'])} page checks passed."]
     if problems:
         out += ["", "### Still to fix", ""]
         out += [gate_line(name, ok, detail) for name, ok, detail in result["gates"] if not ok]

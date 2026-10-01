@@ -12,6 +12,7 @@ Wording rules: `bullets.md`; page geometry (lines, fill, typeface): `typeface.md
 | `text-color` | every text span black or near-black (each RGB channel <= 0x33), links aside | scanned-resume guidance = black throughout; coloured name, heading or job title the most common failure. Blue email / LinkedIn link accepted | convention, stated in screening-tool format checks + career-centre guides |
 | `split-words` | no gap between two letters of one word wider than 0.04em of type size | PDF-to-HTML conversion (some screening tools read through it) guesses word breaks from glyph positions. Headings at +0.08em came back "EXP E R I ENC E"; body at +0.015em came back whole | measured 2026-09-24; PyMuPDF, pdfminer, pypdf read both whole -> gap measured, not an extractor's output |
 | `heading-gap` | baseline distance heading -> first line under it agrees across sections within 1pt | even spacing after headings = standard format check. A job opened 10pt lower than a skills line -> EXPERIENCE 7.5pt looser than SKILLS | convention |
+| `typeface` | every character on the page drawn by the resume's own typeface, or named first by lint `font-coverage` (then info) | Typst fills a character the family lacks from its own fonts (Libertinus, New Computer Modern) w/o a word: the line mixes typefaces and its width is off from `measure.py`. Fails only on a substitution nothing predicted | measured 2026-10-01: ✓ -> NewCMMath; ị Ạ Ơ μ ⁹ ★ Greek, Cyrillic -> LibertinusSerif |
 | `headline (info)` | optional headline fits one row | read as one line; wrapped = paragraph | convention |
 
 `test_colour_letterspacing_and_heading_gap_fail_their_gates` re-injects old styling, asserts
@@ -52,3 +53,13 @@ Four lint rules sit beside the page gates - same scorers check them. Plain-words
 | Cut skills to 6-12 | user's full list | skills block = where recruiter search terms land (`bullets.md` Tier 3) |
 | Flag "the", "that", "which", "their", passive voice | not flagged | ordinary English; flagging pushes toward stilted text |
 | "City, ST Zip" | city + state | ZIP adds nothing a US employer needs; `street-address` warns on one |
+| 0.5in margins, a type-size knob (8.5-12pt), A4 | US Letter, 0.85in, 11pt | past 0.85in nothing moves - the page is bound vertically (`typeface.md`); `measure.py` is calibrated at 11pt; fit = rewriting words, never shrinking type; A4 narrows the column 3.4% |
+| Justified text, hyphenation on | left-aligned, no hyphenation | a hyphen splits a keyword recruiters search ("LLM-backed"); `resume.typ` sets both off |
+| Letterspaced headings or name | normal spacing | `split-words`: +0.08em read back "EXP E R I ENC E" |
+| Grey dates or contact line, coloured headings | black throughout | `text-color` |
+| Dates pushed right on the heading line | dates on the line under it | pdftotext read a right column after the bullets (`resume.typ:36`) |
+| Two-column, sidebar or photo templates | one column, no images | `single-column` + `no-images` gates; multi-column sank resumes (Ladders) |
+| Education on one line: "BSc, Field \| School" | school on its own line, degree spelled out under | Workday read 2026-09: school "Field \| School", Degree empty |
+| A "Stack:" line under each job | tools in the lines that used them | a row per job, repeating tools (keywords never repeated to pad) |
+| Certification "Name - Issuer (Year)" w/ a long dash | Name \| Issuer \| Year | `em-dash` |
+| Tracking links in the PDF (to see if it was opened) | links printed as written | link text that doesn't match its target is the pattern mail filters flag as phishing; needs a server; tracks the recruiter unasked |

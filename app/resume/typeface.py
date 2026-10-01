@@ -9,10 +9,12 @@ a file name.
 A different family is a folder of TTFs in `.data/fonts/`, named exactly as the font names
 itself, plus that name in the user's settings - no code change. `check()` is what
 makes that safe: it runs before the first compile and says, in plain words, what a folder
-is missing. Typst is handed that one folder and no system fonts, so a family can never
-half-substitute another.
+is missing. Typst is handed that one folder and no system fonts - but it still carries fonts of
+its own (Libertinus, New Computer Modern) and draws any character the family lacks in one of them,
+without a word. `missing_glyphs` names those characters before the compile, so lint can say so.
 """
 import functools
+import unicodedata
 from pathlib import Path
 
 import pymupdf
@@ -82,6 +84,31 @@ def advance(family: str, text: str) -> float:
     """Advance width of `text` at body size, in points - the one primitive every page rule
     is built on. resume/measure.py wraps it; render.py calls it straight to avoid a cycle."""
     return regular(family).text_length(text, fontsize=SIZE)
+
+
+@functools.cache
+def upright(family: str) -> tuple[pymupdf.Font, ...]:
+    return tuple(pymupdf.Font(fontfile=str(path)) for path in faces(family).values())
+
+
+@functools.cache
+def covered(family: str, char: str) -> bool:
+    """Every upright face draws it, or draws every piece of it: Typst builds a letter the font
+    lacks from its base + accent marks (Caladea draws "ễ" that way; "ị" needs U+0323, which
+    Caladea lacks, so Typst takes the whole letter from Libertinus)."""
+    def drawn(c: str) -> bool:
+        return all(face.has_glyph(ord(c)) for face in upright(family))
+    if char.isspace() or drawn(char):
+        return True
+    pieces = unicodedata.normalize("NFD", char)
+    return len(pieces) > 1 and all(drawn(c) for c in pieces)
+
+
+def missing_glyphs(family: str, text: str) -> list[str]:
+    """Characters `family` can't draw, in order of first use. Typst prints each in a typeface of
+    its own, so the line mixes typefaces and its width is off from measure.py. Measured
+    2026-10-01, Caladea: ✓ -> NewCMMath; α β Δ μ (Greek mu) ⁹ ★ ị Ạ Cyrillic -> LibertinusSerif."""
+    return [c for c in dict.fromkeys(text) if not covered(family, c)]
 
 
 def check(family: str) -> list[str]:

@@ -74,3 +74,15 @@ Edge via `page_at`: `webdriver` `false`; window outlives command (PowerShell + B
 - Upload resume only after user said yes to that named file. Upload first -> no re-parse
   overwrites typed answers.
 - Questions on page but not in answers file (voluntary disclosures): counted, left for user.
+
+## Declined
+
+Seen in other application tools, not done here:
+
+- **Submitting for the user, or Save on their behalf.** Never - they click it (job-apply hard
+  limits). A duplicate or wrong application costs their credibility with that employer.
+- **AI-written answers sent without the user seeing each.** Every free-text answer is theirs to
+  read before Submit; facts only from the resume.
+- **Reading their mailbox** to track replies, **a third-party browser service**, **masking the
+  browser as human**. Nothing leaves the computer that the privacy table doesn't name; the user's
+  own Chrome, seen.

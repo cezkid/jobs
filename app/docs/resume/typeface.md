@@ -111,7 +111,24 @@ Name must match folder + font's own name. Shipped family: `app/resume/fonts/`. A
 `.ttf` files in `.data/fonts/<name>/` - regular + bold minimum, semibold used when present.
 Never under `app/`: update swaps that folder whole, added family gone next launch.
 `typeface.check()` runs before first compile, names what a folder lacks. Typst gets that one
-folder, no system fonts -> no half-substitution.
+folder, no system fonts - but still carries fonts of its own and draws any character the family
+lacks in one of them, silently (measured 2026-10-01: ✓ -> NewCMMath; ị Ạ Ơ μ ⁹ ★, Greek,
+Cyrillic -> LibertinusSerif). `typeface.missing_glyphs` names them before the compile (lint
+`font-coverage`), the `typeface` gate reads the PDF after. Turning Typst's own fonts off
+(`typst.Fonts(include_embedded_fonts=False)`) prints empty boxes w/ no warning - worse.
+
+Letters Caladea draws, counting ones Typst builds from a base letter + accent marks (2026-10-01):
+
+| Script | Drawn |
+|---|---|
+| Latin-1 (é ñ ü ç) | 62 / 62 |
+| Latin Extended-A (ł ş ğ đ ő) | 128 / 128 |
+| Latin Extended-B (ș ț ǎ ơ ư) | 63 / 208 |
+| Vietnamese precomposed (ễ yes; ị ạ ặ ơ ư no) | 30 / 96 |
+| Greek, Cyrillic | 0 |
+
+A name it can't fully draw ("Nguyễn Thị Ạnh") warns, never fails: switch the family (below) to one
+that draws it, measured as any other.
 
 Measure before adopting: render a full resume, count widows, as above. Reads beautifully at 90
 chars/line = wrong font here.
