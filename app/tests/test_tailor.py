@@ -1,4 +1,5 @@
 import copy
+import json
 from datetime import date
 from pathlib import Path
 
@@ -107,6 +108,13 @@ def test_request_is_byte_identical_per_master_and_job(master):
     assert '"generated_words"' in first["prompt"]
 
 
+def test_request_leaves_out_name_and_contact(master):
+    prompt = tailor.build_request(master, JOB)["prompt"]
+    assert "contact" not in json.loads(prompt)["master"]
+    contact = master["contact"]
+    assert not [v for v in [contact["name"], contact["email"], contact["phone"], *contact["links"]] if v in prompt]
+
+
 def test_coverage_rows_drop_off_page_evidence(master, tailored):
     tailored["coverage"][0]["evidence"] = ["acme-rag-search"]
     rows = tailor.coverage_rows(JOB, tailored, master)
@@ -170,6 +178,16 @@ def test_mirror_claiming_a_level_the_candidate_lacks_fails(master, tailored):
     job = {**JOB, "title": "Nurse Manager, ICU"}
     violations = tailor.check_selection(master, job, tailored)
     assert any("claims manager" in v for v in violations), violations
+
+
+def test_report_names_each_break_with_its_note(tmp_path):
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [], "selection": [], "findings": []}
+    gaps = [{"after": "2019-03", "before": "2020-06", "months": 14},
+            {"after": "2026-01", "before": "2026-09", "months": 7}]
+    text = report.report_md(JOB, {}, result, [], gaps, date(2026, 9, 16)).split(
+        f"## Breaks over {schema.MAX_GAP_MONTHS} months")[1]
+    assert "- 2019-03 to 2020-06: 14 months. Worth a line, plus recent work" in text
+    assert "- 2026-01 to 2026-09: 7 months. Your search so far - nothing to explain on the page." in text
 
 
 def test_report_speaks_plain_words_and_gives_reasons(master, tailored):

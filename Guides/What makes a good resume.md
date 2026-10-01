@@ -31,8 +31,10 @@ More: [evidence](../app/docs/resume/bullets.md#tier-2---substance)
   to know, never a word to add. *Convention + recruiting-software docs.*
 - **Most relevant first.** First line under each job always gets read. *Convention.*
 - **Last 10-15 years.** Shorten older jobs; no hole in the middle. *Convention.*
-- **Explain long breaks** in one line. Unexplained gaps screened out at ~half of employers.
-  *Big study (Harvard Business School / Accenture 2021).*
+- **Breaks over 6 months: add a one-line reason.** Over a year: that line, plus any recent work,
+  study or volunteering you really did. Some hiring software filters out breaks over 6 months;
+  longer breaks cost more. A reason won back over half the lost interviews in one US study.
+  *Big survey + studies in several countries; the reason's effect is one study.*
 
 More: [fitting the job](../app/docs/resume/bullets.md#tier-3---relevance)
 
@@ -59,6 +61,11 @@ More: [readability](../app/docs/resume/bullets.md#tier-4---clarity) ·
 
 More: [rejected advice](../app/docs/resume/bullets.md#what-did-not-survive) ·
 [format advice declined](../app/docs/resume/page-format.md#advice-declined)
+
+## Bias you can't fix with wording
+
+Name, age, a break, a record: what's known and what helps -
+**[Unfair hiring - what's known, what helps](Unfair%20hiring%20-%20what's%20known,%20what%20helps.md)**
 
 ## See how yours reads
 

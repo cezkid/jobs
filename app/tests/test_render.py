@@ -324,6 +324,14 @@ def test_hide_year_leaves_the_graduation_year_off(master):
     assert education["entries"][0]["subline"] == "Bachelor of Science, Computer Science | Minor in Mathematics"
 
 
+def test_hide_year_leaves_the_certification_date_off(master):
+    master["certifications"] = [{"name": "Certified Nursing Assistant", "issuer": "Acme Board", "date": "2009-03"}]
+    lines = lambda: next(s for s in render.page_model(master)["sections"] if s["title"] == "Certifications")["lines"]
+    assert "2009" in lines()[0]["text"]
+    master["certifications"][0]["hide_year"] = True
+    assert lines() == [{"text": "Certified Nursing Assistant | Acme Board"}]
+
+
 @pytest.mark.parametrize("written, printed", [
     ("BA", "Bachelor of Arts"), ("B.S. in Nursing", "Bachelor of Science in Nursing"), ("Ph.D.", "Doctor of Philosophy"),
     ("MBA", "Master of Business Administration"), ("Associate of Arts", "Associate of Arts"), ("GED", "GED"),

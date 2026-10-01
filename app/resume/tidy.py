@@ -25,27 +25,30 @@ HEADER = [
     "# Keep the spacing as it is. Dates are year-month, like 2023-02, or a year alone, like 2023.",
 ]
 NOTES = {
-    "contact": ["# Your name and how an employer reaches you."],
+    "contact": ["# Your name and how an employer reaches you. legal_first / legal_last: name on your ID, forms only."],
     "headline": ["# One line above the summary: your real title and main skills. Optional."],
     "summary": ["# The short pitch at the top of the page - up to four lines."],
     "roles": [
         "# Your jobs, newest first. Under each one, every line is one thing you did there.",
         "# 2023-02 means February 2023. The job you are in now ends with the word: present",
     ],
-    "career_break": ["# Time away from work, said plainly: reason, then start and end. Shown with your jobs."],
+    "career_break": ["# Time away from work, said plainly: reason, then start and end. Shown with your jobs.",
+                     "# explain: optional, your own words for forms that ask about a break. Never on the page."],
     "projects": ["# Worth showing but not a job: side projects, teaching. Dates may be left out."],
     "skills": ["# The skills block. 'group' is the heading, 'items' are the words under it."],
     "education": ["# Schools, newest first. hide_year: true leaves the year off the page."],
-    "certifications": ["# Licences and certifications. Leave it as [] if you have none."],
+    "certifications": ["# Licences and certifications. Leave it as [] if you have none.",
+                       "# hide_year: true leaves the date off the page."],
     "languages": ["# Languages you speak, one per line, level in brackets: Spanish (Fluent).",
                   "# Levels: Native, Fluent, Professional, Conversational, Basic."],
     "other": ["# Anything else worth a heading: volunteer work, awards, clearances. Printed as written."],
 }
 ORDER = ["contact", "headline", "summary", "roles", "career_break", "projects", "skills", "education", "certifications",
          "other", "languages"]
-ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "ai_era",
+ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "explain", "ai_era",
                "bullets", "lines"]
-ORDERS = {"contact": ["name", "email", "phone", "location", "links"]}
+ORDERS = {"contact": ["name", "legal_first", "legal_middle", "legal_last", "other_names", "form_name", "form_jobs",
+                      "email", "phone", "location", "links"]}
 # plain scalar would read back as something else: leading indicator, a key, a comment, a number
 SPECIAL = re.compile(r"""^[\s#&*!|>%@`,\[\]{}?:'"-]|:\s|\s#|:$|\s$""")
 RESERVED = re.compile(r"^(true|false|null|yes|no|on|off|~|-?\d[\d,]*(\.\d+)?)$", re.I)

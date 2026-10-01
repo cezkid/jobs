@@ -5,18 +5,63 @@ A system (`apply/systems/<name>.py`) turns its own form into these questions; ev
 works the same for every system. How to add one: app/docs/apply/apply-systems.md.
 """
 import json
+import re
+import unicodedata
+from datetime import date
 from pathlib import Path
+
+from resume import render, schema
 
 # what a question asks for, whatever the system calls it; a system maps each of its types to one
 KINDS = {"text", "longtext", "email", "phone", "url", "number", "date", "location",
          "yesno", "choice", "multichoice", "file"}
 # what a question is about when the system marks it (its own system field ids, or a title match)
-KEYS = {"name", "first_name", "last_name", "email", "phone", "location", "resume",
-        "linkedin", "github", "website", "street", "city", "state", "zip", None}
+KEYS = {"name", "first_name", "middle_name", "last_name", "legal_name", "legal_first", "legal_middle",
+        "legal_last", "preferred_name", "preferred_first", "other_names", "email", "phone", "location",
+        "resume", "linkedin", "github", "website", "street", "city", "state", "zip", None}
 # home address boxes, answered from `home_address` in search settings (never on the resume)
 ADDRESS = {"street", "city", "state", "zip"}
 # questions that are the user's to answer, never guessed (job-apply hard limits)
 ASK = "ask the user"
+# a plain Name box when the page name is not the legal one: the user picks once, contact.form_name keeps it
+ASK_FORM_NAME = "ask the user once - legal name or the name on your resume"
+# a name box about someone else (a referrer, a manager, the school) is never theirs to fill from contact
+OTHER_PERSON = re.compile(r"\brefer|manager|supervisor|emergency|reference|recruiter|employer|company|school|"
+                          r"universit|college|spouse|relative|user ?name|business|organi[sz]ation")
+PLAIN_NAME = {"name", "first_name", "middle_name", "last_name"}
+# questions only the user answers, however well a saved answer seems to fit: the AI names the kind and
+# asks (fair-screening.md). "Are you 18 or older?" is not one - a plain yes/no, answered truthfully.
+SENSITIVE = [
+    ("date of birth", re.compile(r"\bdate of birth\b|\bbirth ?date\b|\bbirthday\b|\bd\.?o\.?b\b")),
+    ("graduation date", re.compile(r"\bgraduation (date|year)|\b(date|year)s? (of |you )?graduat|"
+                                   r"\b(when|year) did you graduate|\bgrad(uation)? (yr|year)")),
+    ("criminal history", re.compile(r"\bcriminal\b(?! (justice|law|defen[cs]e|investigat))|\bconvict(ed|ions?)\b|"
+                                    r"\bfelon(y|ies)\b|\bmisdemeanou?rs?\b|(?<!cardiac )\barrest(ed|s)?\b|"
+                                    r"\bpleaded guilty|\bpled guilty|\bno contest\b")),
+    ("work break", re.compile(r"\b(gaps?|breaks?) (in|between) (your )?(employment|work|career|jobs)|"
+                              r"\b(employment|career|work history) (gaps?|breaks?)\b|\bunemploy|"
+                              r"\bexplain any gaps\b")),
+    ("disability or health", re.compile(r"\bdisabilit|\bdisabled\b|\bimpairment|reasonable accommodation|"
+                                        r"\b(medical|health|mental health) (condition|history|issue|problem)s?\b")),
+]
+# the time a work-break question asks about: "in the last 5 years", "past ten years", "since 2019"
+WORD_NUMBER = {w: n for n, w in enumerate("one two three four five six seven eight nine ten".split(), 1)}
+LAST_YEARS = re.compile(r"\b(?:last|past) (\d{1,2}|" + "|".join(WORD_NUMBER) + r") years?\b")
+SINCE_YEAR = re.compile(r"\bsince ((?:19|20)\d\d)\b")
+# a work-break question answered from the user's saved words: named, so the AI shows it before Submit
+READ_FIRST = "read it before Submit"
+# a form asking for every job: leaving the oldest off there is a false answer, so all of them go.
+# Not "all employment decisions" (equal-opportunity text) nor "view all jobs" (site menus).
+COMPLETE_HISTORY = re.compile(r"\b(complete|full|entire|whole) (\w+ )?(employment|work|job|career) history\b|"
+                              r"\b(complete|full|entire) history of (your )?(employment|work)\b|"
+                              r"\ball (of )?(your )?(previous|prior|past|former) (employers|employment|jobs|positions)\b|"
+                              r"\b(all|every) (of )?(your )?employers?\b")
+ASK_JOBS = ("ASK no jobs added yet - ask the user once: same {page} jobs as your resume, or all {all} jobs "
+            "(the {left} left off ended {years}+ years ago; a form adds each with its dates). Save the answer as "
+            "contact.form_jobs (page or all) in resume details, then run this again")
+# answers the program wrote itself; the user's own (via the AI) survive a second prepare
+AUTO = ("resume", "search settings")
+NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
 FILE = "application.json"
 
 
@@ -28,9 +73,31 @@ def question(id: str, title: str, kind: str, required: bool, options=(), key=Non
             "required": required, "options": list(options)}
 
 
-def key_from_title(title: str, kind: str) -> str | None:
-    """Link boxes are the employer's own questions on most systems: recognise them by title."""
+def name_key(title: str) -> str | None:
+    """Which of the user's names a box asks for. Labelled legal or for a background check -> legal
+    name; preferred -> the name on the page; other / previous / maiden -> other names used."""
     t = title.casefold()
+    words = re.findall(r"[a-z]+", t)
+    if not ({"name", "names", "surname"} & set(words)) or OTHER_PERSON.search(t):
+        return None
+    if {"other", "previous", "former", "prior", "maiden", "alias", "aliases"} & set(words):
+        return "other_names"
+    parts = [p for p, said in NAME_PART.items() if set(said) & set(words)]
+    part = parts[0] if len(parts) == 1 else None  # "Name (first and last)" is the whole name
+    if "legal" in words or "background" in words:
+        return f"legal_{part}" if part else "legal_name"
+    if "preferred" in words or "nickname" in words or "go by" in t:
+        return "preferred_first" if part == "first" else "preferred_name" if part is None else None
+    if part:
+        return f"{part}_name"
+    return "name" if parts or set(words) <= {"name", "full", "your"} else None
+
+
+def key_from_title(title: str, kind: str) -> str | None:
+    """Link + name boxes are the employer's own questions on most systems: recognise them by title."""
+    t = title.casefold()
+    if kind == "text" and (key := name_key(title)):
+        return key
     if kind in ("text", "url"):
         for key in ("linkedin", "github"):
             if key in t:
@@ -47,14 +114,56 @@ def link(contact: dict, host: str) -> str:
     return ""
 
 
+def same_name(a: str, b: str) -> bool:
+    """José / JOSE / jose are one name: accents, case and spacing never make a mismatch."""
+    def fold(s: str) -> str:
+        return " ".join("".join(c for c in unicodedata.normalize("NFKD", s) if not unicodedata.combining(c))
+                        .casefold().split())
+    return fold(a) == fold(b)
+
+
+def initial(word: str) -> bool:
+    return len(word.rstrip(".")) == 1
+
+
+def split(name: str, initials_ok: bool) -> tuple[str, str] | None:
+    """First + last only when the name says it outright: two words. "Mary Ann Smith" could be
+    Mary Ann / Smith or Mary / Ann Smith, and an initial on the page is rarely what a form wants."""
+    words = name.split()
+    if len(words) == 2 and (initials_ok or not any(initial(w) for w in words)):
+        return words[0], words[1]
+    return None
+
+
+def names(contact: dict) -> tuple[dict, str]:
+    """The answer for every name box, and where a blank plain Name / First / Last box goes. Legal
+    name only from the user's own legal fields; a plain box gets it only when it is the page name
+    or they chose it (contact.form_name)."""
+    page = (contact.get("name") or "").strip()
+    first, middle, last = (contact.get(f"legal_{p}") or "" for p in ("first", "middle", "last"))
+    one = len(page.split()) == 1  # a mononym: first name only, no last name to give
+    pair = (page, "") if one else split(page, initials_ok=False) or ("", "")
+    out = {"name": page, "preferred_name": page, "preferred_first": pair[0],
+           "other_names": ", ".join(contact.get("other_names") or [])}
+    if not (first and last):
+        return out | {"first_name": pair[0], "last_name": pair[1]}, ASK
+    legal = " ".join(w for w in (first, middle, last) if w)
+    out |= {"legal_name": legal, "legal_first": first, "legal_middle": middle, "legal_last": last}
+    choice = contact.get("form_name")
+    if choice == "legal" or same_name(page, legal) or same_name(page, f"{first} {last}"):
+        return out | {"name": legal if choice == "legal" else page, "first_name": first, "middle_name": middle,
+                      "last_name": last}, ASK
+    if choice == "page":
+        chosen = (page, "") if one else split(page, initials_ok=True) or ("", "")
+        return out | {"first_name": chosen[0], "last_name": chosen[1]}, ASK
+    return out | {"name": ""}, ASK_FORM_NAME
+
+
 def from_resume(q: dict, contact: dict) -> str:
     """Answer only what the resume states outright. Location stays the user's: a resume says
     "City Area", forms want the town they live in."""
-    name = (contact.get("name") or "").split()
     by_key = {
-        "name": contact.get("name", ""),
-        "first_name": name[0] if name else "",
-        "last_name": " ".join(name[1:]),
+        **names(contact)[0],
         "email": contact.get("email", ""),
         "phone": contact.get("phone", ""),
         "linkedin": link(contact, "linkedin."),
@@ -67,6 +176,30 @@ def from_resume(q: dict, contact: dict) -> str:
     if q["kind"] == "phone":
         return contact.get("phone", "")
     return ""
+
+
+def asks_complete_history(text: str) -> bool:
+    return bool(COMPLETE_HISTORY.search(" ".join(text.casefold().split())))
+
+
+def form_roles(master: dict, tailored: dict | None = None, complete: bool = False) -> tuple[list[dict], str | None]:
+    """The jobs a form's work history gets, + a note for the AI. Tailoring may leave the oldest off
+    the page (tailor.OLD_ROLE_YEARS); a form adding them with dates puts that age cue back. Same
+    jobs as the page when the user chose it (contact.form_jobs: page); all when they chose all or
+    the form asks for complete history. Unset -> none, and the note starting ASK asks, counts
+    and all - never guessed."""
+    roles = master.get("roles") or []
+    shown = {e["id"] for e in (tailored or {}).get("entries") or []}
+    page = [r for r in roles if r["id"] in shown] if shown else roles
+    choice = (master.get("contact") or {}).get("form_jobs")
+    if len(page) == len(roles) or choice == "all":
+        return roles, None
+    if complete:
+        return roles, f"all {len(roles)} jobs: the form asks for complete work history - tell the user"
+    if choice == "page":
+        return page, None
+    from resume import tailor
+    return [], ASK_JOBS.format(page=len(page), all=len(roles), left=len(roles) - len(page), years=tailor.OLD_ROLE_YEARS)
 
 
 def work_permit(q: dict, config: dict):
@@ -85,17 +218,68 @@ def work_permit(q: dict, config: dict):
     return None
 
 
+def sensitive(q: dict, contact: dict) -> str | None:
+    """What a sensitive question is about, or None. Other names count only when the user saved none:
+    saved ones are theirs to give (resume details)."""
+    title = " ".join(q["title"].casefold().split())
+    if "other_names" in (q["key"], name_key(q["title"])) and not contact.get("other_names"):
+        return "other names"
+    # a yes/no on the birth date ("does it make you 18 or older?") is an age check, not the date itself
+    return next((kind for kind, pattern in SENSITIVE if pattern.search(title)
+                 and not (kind == "date of birth" and q["kind"] == "yesno")), None)
+
+
+def window_start(title: str, today: date) -> int | None:
+    """First month a work-break question asks about, or None when it names no window (every break)."""
+    t = " ".join(title.casefold().split())
+    if m := LAST_YEARS.search(t):
+        years = WORD_NUMBER.get(m[1]) or int(m[1])
+        return schema.month_index(f"{today.year - years}-{today.month:02d}", today)
+    if m := SINCE_YEAR.search(t):
+        return schema.month_index(m[1], today)
+    return None
+
+
+def break_answer(q: dict, breaks: list[dict], today: date | None = None) -> str | None:
+    """A work-break question in the user's own saved words (career_break explain), text boxes only.
+    Breaks = those the question's window reaches ("last 5 years"), else all. Any of them without
+    saved words, or none at all -> None, the user answers: part of the story reads as the whole of
+    it. Several -> each after its dates, newest first."""
+    if q["kind"] not in ("text", "longtext"):
+        return None
+    today = today or date.today()
+    start = window_start(q["title"], today)
+    asked = [b for b in schema.newest_first(breaks)
+             if start is None or schema.month_index(b["end"], today, end=True) >= start]
+    if not asked or any(not (b.get("explain") or "").strip() for b in asked):
+        return None
+    if len(asked) == 1:
+        return asked[0]["explain"].strip()
+    sep = "\n" if q["kind"] == "longtext" else " "
+    return sep.join(f"{render.span_label(b)}: {b['explain'].strip()}" for b in asked)
+
+
 def blank(answer) -> bool:
     return answer in (None, "", [])
 
 
-def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None) -> list[dict]:
-    """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept."""
+def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
+          breaks: list[dict] | None = None) -> list[dict]:
+    """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept -
+    on a sensitive question only the user's own, never one the program filled. The one sensitive
+    kind the program fills: a work break, from words the user saved for it (`breaks`)."""
     kept = {a["id"]: a for a in old or [] if not blank(a.get("answer"))}
     out = []
     for q in qs:
-        if q["id"] in kept:
+        tag = sensitive(q, contact)
+        if q["id"] in kept and not (tag and kept[q["id"]].get("source", "").startswith(AUTO)):
             out.append({**q, "answer": kept[q["id"]]["answer"], "source": kept[q["id"]].get("source", "")})
+            continue
+        if tag == "work break" and (saved := break_answer(q, breaks or [])):
+            out.append({**q, "answer": saved, "source": f"resume - sensitive: {tag} - {READ_FIRST}"})
+            continue
+        if tag:
+            out.append({**q, "answer": None, "source": f"{ASK} - sensitive: {tag}"})
             continue
         home = (config or {}).get("home_address") or {}
         if q["key"] in ADDRESS and home.get(q["key"]):
@@ -106,7 +290,8 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
             out.append({**q, "answer": "Yes" if permit else "No", "source": "search settings - name it to the user"})
             continue
         answer = from_resume(q, contact)
-        out.append({**q, "answer": answer or None, "source": "resume" if answer else ASK})
+        source = names(contact)[1] if q["key"] in PLAIN_NAME else ASK
+        out.append({**q, "answer": answer or None, "source": "resume" if answer else source})
     return out
 
 

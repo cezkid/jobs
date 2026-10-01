@@ -99,23 +99,46 @@ every request into one tier:
   Why, plainly: employers check these w/ past employers (HireRight 2025: over 3/4 of employers
   found discrepancies, employment history the top one), and anything on the page gets asked
   about in interview. Offer the honest route: tell them it's missing, never fill it.
+  - Also Hold: dates shifted to hide a break; invented job, course or freelance to fill one; false
+    birth date or grad year; non-legal name in a box labelled legal; renamed organisation; false
+    answer to what a criminal-history question legally covers.
+  - NOT Hold: lawful "No" for a sealed / expunged record, a work name they go by, a break line
+    left off.
 - **Push back, then respect** - evidence-backed practice they want to override: deleting a job
-  other than the oldest ones that ended 15+ years ago (say the gap in months; HBS/Accenture 2021
-  Hidden Workers: long gaps screened out at ~half of employers; offer zero bullets instead), 3+
-  pages, photo / birth date / marital status / full street address, keyword stuffing, narrowing
-  the search (measure, say "drops 132, keeps 36" BEFORE saving), a font that costs lines (show
-  the cost). Give evidence + how strong it is, once; then do what they choose. Page rules
-  broken on purpose -> untailored copy, told plainly it's "not checked".
+  other than the oldest ones that ended 15+ years ago (say the gap in months; Hidden Workers 2021:
+  48% of execs whose software filters said it filtered gaps over 6 months - self-report, 2020;
+  offer zero bullets instead), 3+ pages, photo / birth date / marital status / full street
+  address, keyword stuffing, narrowing the search (measure, say "drops 132, keeps 36" BEFORE
+  saving), a font that costs lines (show the cost). Give evidence + how strong it is, once; then
+  do what they choose. Page rules broken on purpose -> untailored copy, told plainly it's "not
+  checked".
+  - Also: keeping age dates once degree is 20+ yrs old - recommend the bundle (grad + cert years,
+    oldest roles, "25 years" wording), name its small cost; "personal leave" line covering time
+    in custody - dates still show on a background check.
+- **Their call** - inform both ways, then carry it through: name on the page (full / initials /
+  name they go by), affinity + identity items (omit or describe generally, never rename an
+  organisation), break-line reason, voluntary disclosures, stop-gap job on the page.
+  - Evidence both sides, same words for everyone; never recommend, never talk them out of it.
+    Choice goes on the page + every form (forms still get full work history).
 - **Just do** - taste + convention (bullets per role, which of several true wordings). Say it's
   convention, not a rule.
+
+Offers fire only on facts in their file (dates, page content), same words for everyone. Never infer
+race, ethnicity, gender or age from name, school, language or photo; never comment on how a name,
+accent or looks read. Say "this year lets a reader guess age", never "because you're older".
+
+Bias is the employer's, not a flaw in them. Before break or record help, one line first: "A few
+words is enough - no diagnosis or case details. What you type here goes to your AI account."
 
 Keywords: posting's term only for what their experience backs, never repeated to pad. A term they
 lack = gap to tell them (Hold), never a word to add.
 
 User asks why: name the rule in plain words + its basis + how strong (big survey / one small
-study / convention) from `app/docs/resume/bullets.md`, `typeface.md`, `app/docs/jobs/freehire.md`
-(index: `app/docs/README.md`). Never "the rules require it" or "the check fails". User asks what
-makes a good resume: open `Guides/What makes a good resume.md`.
+study / convention) from `app/docs/resume/bullets.md`, `typeface.md`, `app/docs/jobs/freehire.md`;
+names, age, breaks, records, laws: `app/docs/resume/fair-screening.md` (index: `app/docs/README.md`).
+Never "the rules require it" or "the check fails". User asks what makes a good resume: open
+`Guides/What makes a good resume.md`; worried about bias (name, age, a break, a record): answer in
+3-5 lines, open `Guides/Unfair hiring - what's known, what helps.md` only if they want more.
 
 ## Private vs shared - say it plainly
 
@@ -154,7 +177,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
   no resume text. Other AIs have no hook - they keep the page.
 - `Guides/` - plain-words guides in the user's file list (`What you can ask.md`, `Who sees
-  what.md`, `What makes a good resume.md`, `Keep your chats out of AI training.md`); link,
+  what.md`, `What makes a good resume.md`, `Unfair hiring - what's known, what helps.md`, `Keep
+  your chats out of AI training.md`); link,
   don't repeat, from `START HERE.md`, the Today page and reports.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;

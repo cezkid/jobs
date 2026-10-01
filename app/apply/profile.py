@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import cfg
+from apply import questions
 from resume import render, schema, tailor
 
 FILLER = Path(__file__).with_name("workday.js")
@@ -57,16 +58,18 @@ def month(value: str) -> str:
     return "" if value == schema.PRESENT else value
 
 
-def answers(master: dict, tailored: dict | None = None) -> dict:
+def answers(master: dict, tailored: dict | None = None, roles: list[dict] | None = None) -> dict:
+    """Form answers; `roles` = the jobs work history gets (questions.form_roles), default every job."""
+    roles = master["roles"] if roles is None else roles
     chosen = {e["id"]: [b["text"] for b in e["bullets"]] for e in (tailored or {}).get("entries", [])}
     work = [{
         "title": r["title"], "company": r["company"], "location": r.get("location", ""),
         "current": r["end"] == schema.PRESENT, "start": r["start"], "end": month(r["end"]),
         "description": "\n".join(BULLET + b for b in chosen.get(r["id"]) or [b["claim"] for b in r["bullets"]]),
-    } for r in master["roles"]]
+    } for r in roles]
     education = [{
         "school": s["institution"], "degree": degree(s["degree"]), "field": field_of_study(s.get("field")),
-        "end": "" if s.get("hide_year") else s.get("end", ""),
+        "end": schema.shown_end(s),
     } for s in master.get("education") or []]
     groups = tailored["skills"] if tailored else master.get("skills") or []
     skills = list(dict.fromkeys(item for g in groups for item in g["items"]))
@@ -90,6 +93,8 @@ def script(data: dict) -> str:
 def main() -> None:
     ap = argparse.ArgumentParser(description="application answers -> script for the Chrome extension to run")
     ap.add_argument("slug", nargs="?", help="job number or slug of a job with a tailored resume; omit = your own resume facts")
+    ap.add_argument("--complete-history", action="store_true",
+                    help="the form asks for complete work history: every job goes on, whatever the page shows")
     args = ap.parse_args()
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
@@ -101,11 +106,18 @@ def main() -> None:
         saved = job_dir / tailor.JOB_DATA / "tailored.json"
         tailored = json.loads(saved.read_text(encoding="utf-8")) if saved.exists() else None
         out = job_dir / tailor.JOB_DATA / "apply.js"
+    roles, note = questions.form_roles(master, tailored, args.complete_history)
+    if note and note.startswith("ASK"):
+        out.unlink(missing_ok=True)  # an older script must not fill the jobs before they choose
+        print(note)
+        return
     out.parent.mkdir(parents=True, exist_ok=True)
-    data = answers(master, tailored)
+    data = answers(master, tailored, roles)
     out.write_text(script(data), encoding="utf-8")
     print(f"wrote {out} ({len(data['work'])} jobs, {len(data['education'])} schools, {len(data['skills'])} skills, "
           f"{'tailored' if tailored else 'own resume'} bullets)")
+    if note:
+        print(note)
     print(work_authorization(config))
 
 

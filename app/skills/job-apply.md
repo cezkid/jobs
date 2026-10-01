@@ -28,6 +28,38 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
   false answer is grounds to withdraw the offer.
 - Cookie banner -> **Decline** (non-essential off).
 
+## Names, sensitive questions, breaks, old jobs
+
+Their choices, carried the same on every form (`AGENTS.md` #Lead, explain, push back - Their
+call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or record help:
+"A few words is enough - no diagnosis or case details. What you type here goes to your AI account."
+
+- **Names.** Box labelled legal, or a background-check form -> legal name (`contact.legal_first`
+  / `legal_middle` / `legal_last`). Preferred-name box -> the name on their resume. Plain Name /
+  First / Last box when the resume name isn't the legal one -> `prepare` says "ask the user once":
+  ONE clickable question ("Legal name: Jane Quinn Doe" / "Name on your resume: J. Doe"), saved as
+  `contact.form_name` (legal / page). No legal fields yet and their name has 3+ words or an
+  initial -> ask the split w/ clickable options ("First: Maria / Last: Garcia Lopez" · "First:
+  Maria Garcia / Last: Lopez"), save `legal_*`; never guess. "Other names used" box ->
+  `contact.other_names` (maiden name, earlier spelling); none saved -> ask. Workday My
+  Information: after "Autofill with Resume", check Legal Name against the legal fields; a resume
+  name they chose -> tick "I have a preferred name" and enter it. Say once: their email address or
+  LinkedIn may still show their full name.
+- **Sensitive questions** (`prepare` prints `sensitive: <kind>` - birth date, graduation date,
+  criminal history, work break, disability or health, other names): read the exact wording back,
+  never pick for them. Required -> answer truthfully; optional -> blank is fine. Criminal history:
+  "Answer only what it asks - a conviction or any arrest, how many years back. Sealed or expunged
+  records often don't count - rules differ by state; free legal aid can check." Never save a
+  record answer unless they ask.
+- **Work-break box.** A saved explanation (`career_break[i].explain`) fills it marked "read it
+  before Submit" -> read it back before Submit. "Help me explain my break" -> privacy line, draft
+  1-2 sentences from their facts only, they approve each word, save to `explain` (never on the page).
+- **Old jobs on forms.** `apply` / `prepare` prints "ask the user once: same N jobs as your resume,
+  or all M" (the rest ended 15+ years ago; a form adds each with its dates) -> ONE clickable
+  question w/ those counts, save `contact.form_jobs` (page / all). A form asking for complete or
+  all employment history gets all - leaving jobs out there is a false answer (`apply
+  --complete-history` on Workday; UKG reads the form).
+
 ## Steps
 
 1. Tailored resume for this job exists (`status show 12` prints its `folder:`)? No -> `job-tailor`

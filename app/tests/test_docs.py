@@ -61,3 +61,21 @@ def test_privacy_statements_name_the_per_job_request():
               "docs/privacy.html": "which job from your list", "app/skills/job-setup.md": "listing id"}
     missing = [f for f, words in places.items() if words not in (cfg.ROOT / f).read_text(encoding="utf-8")]
     assert missing == []
+
+
+# AGENTS.md #User = not technical: words a user never reads (exceptions: the user's own file name,
+# an AI account's "API key")
+JARGON = re.compile(r"\b(config|yml|json|slug|params|facet|pytest|repo|commit|branch|PR|API|schema)\b")
+JARGON_OK = ("Resume details.yml", "API key")
+
+
+def test_user_guides_carry_no_jargon():
+    found = {}
+    for guide in sorted((cfg.ROOT / "Guides").glob("*.md")):
+        text = guide.read_text(encoding="utf-8")
+        for ok in JARGON_OK:
+            text = text.replace(ok, "")
+        hits = sorted(set(JARGON.findall(text)))
+        if hits:
+            found[guide.name] = hits
+    assert found == {}

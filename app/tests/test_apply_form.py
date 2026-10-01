@@ -1,10 +1,11 @@
 import importlib
 import inspect
 import pkgutil
+from datetime import date
 
 import pytest
 
-from apply import questions, systems
+from apply import form, questions, systems
 from apply.systems import ashby, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
@@ -43,7 +44,8 @@ def test_resume_answers_only_what_it_states():
           q("Email", "email"), q("Phone", "phone"), q("LinkedIn Profile URL", key="linkedin"),
           q("GitHub", key="github"), q("Location", "location", key="location"), q("Why us?", "longtext")]
     got = {a["title"]: a["answer"] for a in questions.draft(qs, CONTACT)}
-    assert got["Name"] == "Ada King Lovelace" and got["First name"] == "Ada" and got["Last name"] == "King Lovelace"
+    assert got["Name"] == "Ada King Lovelace"
+    assert got["First name"] is None and got["Last name"] is None  # Ada King / Lovelace or Ada / King Lovelace
     assert got["Email"] == "ada@example.com" and got["Phone"] == "555-0100"
     assert got["LinkedIn Profile URL"] == "https://www.linkedin.com/in/ada"
     assert got["GitHub"] == "https://www.github.com/ada"
@@ -54,6 +56,67 @@ def test_link_questions_recognised_by_title():
     assert questions.key_from_title("LinkedIn Profile URL", "text") == "linkedin"
     assert questions.key_from_title("Portfolio or website", "url") == "website"
     assert questions.key_from_title("Why LinkedIn?", "longtext") is None
+
+
+NAME_BOXES = [q("Name", key="name"), q("First name", key="first_name"), q("Last name", key="last_name")]
+
+
+def name_answers(contact, boxes=NAME_BOXES):
+    return {a["title"]: (a["answer"], a["source"]) for a in questions.draft(boxes, contact)}
+
+
+@pytest.mark.parametrize("name, first, last", [
+    ("Ada Lovelace", "Ada", "Lovelace"),        # two words: said outright
+    ("Mary Ann Smith", None, None),             # Mary Ann / Smith or Mary / Ann Smith: never guessed
+    ("J. Smith", None, None),                   # an initial on the page is not what a form wants
+    ("Ada L", None, None),
+    ("Sukarno", "Sukarno", None),               # a mononym has no last name to give
+])
+def test_first_and_last_only_when_the_name_says_it_outright(name, first, last):
+    got = name_answers({"name": name})
+    assert got["Name"][0] == name
+    assert (got["First name"][0], got["Last name"][0]) == (first, last)
+    assert all(source == questions.ASK for answer, source in got.values() if answer is None)
+
+
+def test_name_boxes_recognised_by_title():
+    want = {"Legal first name": "legal_first", "Full legal name": "legal_name", "Name for background check": "legal_name",
+            "Preferred name": "preferred_name", "Preferred first name": "preferred_first",
+            "What name do you go by?": "preferred_name", "Other names used": "other_names", "Maiden name": "other_names",
+            "Surname": "last_name", "Middle name": "middle_name", "Full name": "name",
+            "Referrer name": None, "Hiring manager name": None, "Name of school": None, "Username": None}
+    assert {t: questions.key_from_title(t, "text") for t in want} == want
+
+
+LEGAL = {"name": "J. Doe", "legal_first": "Jane", "legal_middle": "Quinn", "legal_last": "Doe",
+         "other_names": ["Jane Roe"]}
+
+
+def test_legal_box_gets_legal_name_and_preferred_box_the_page_name():
+    boxes = [q(t, key=questions.key_from_title(t, "text")) for t in
+             ("Legal first name", "Legal last name", "Full legal name", "Preferred name", "Other names used")]
+    got = name_answers(LEGAL, boxes)
+    assert got["Legal first name"][0] == "Jane" and got["Legal last name"][0] == "Doe"
+    assert got["Full legal name"][0] == "Jane Quinn Doe"
+    assert got["Preferred name"][0] == "J. Doe"
+    assert got["Other names used"][0] == "Jane Roe"
+    assert name_answers({"name": "J. Doe"}, boxes)["Full legal name"] == (None, questions.ASK)  # no legal fields
+
+
+def test_plain_name_box_asks_once_when_page_and_legal_differ_then_reuses_the_answer():
+    got = name_answers(LEGAL)
+    assert got["Name"] == got["First name"] == got["Last name"] == (None, questions.ASK_FORM_NAME)
+    legal = name_answers({**LEGAL, "form_name": "legal"})
+    assert [legal[t][0] for t in ("Name", "First name", "Last name")] == ["Jane Quinn Doe", "Jane", "Doe"]
+    page = name_answers({**LEGAL, "form_name": "page"})
+    assert [page[t][0] for t in ("Name", "First name", "Last name")] == ["J. Doe", "J.", "Doe"]
+
+
+@pytest.mark.parametrize("page", ["José García", "jose garcia", "JOSÉ  GARCÍA", "José Luis García"])
+def test_accents_case_spacing_and_a_left_out_middle_name_are_no_mismatch(page):
+    got = name_answers({"name": page, "legal_first": "José", "legal_middle": "Luis", "legal_last": "García"})
+    assert got["Name"][0] == page
+    assert (got["First name"][0], got["Last name"][0]) == ("José", "García")
 
 
 def test_earlier_answers_survive_a_second_prepare():
@@ -82,6 +145,118 @@ def test_citizen_or_green_card_answered_only_for_the_us():
     assert questions.draft(canada, CONTACT, config=config)[0]["answer"] is None
     unset = questions.draft(us, CONTACT, config={"work_authorization": {}})
     assert unset[0]["answer"] is None and unset[0]["source"] == questions.ASK
+
+
+SENSITIVE = [
+    ("Date of birth", "date", "date of birth"),
+    ("Birthdate (MM/DD/YYYY)", "text", "date of birth"),
+    ("DOB", "date", "date of birth"),
+    ("Graduation date", "date", "graduation date"),
+    ("What year did you graduate from high school?", "number", "graduation date"),
+    ("Year of graduation", "number", "graduation date"),
+    ("When did you graduate?", "text", "graduation date"),
+    ("Have you ever been convicted of a felony?", "yesno", "criminal history"),
+    ("Do you have any criminal convictions in the last 7 years?", "yesno", "criminal history"),
+    ("Have you ever been arrested or pleaded guilty to a misdemeanor?", "yesno", "criminal history"),
+    ("Please explain any gaps in your employment history", "longtext", "work break"),
+    ("Why were you unemployed between jobs?", "longtext", "work break"),
+    ("Tell us about any career break longer than six months", "longtext", "work break"),
+    ("Do you have a disability or medical condition we should know about?", "yesno", "disability or health"),
+    ("Voluntary Self-Identification of Disability", "choice", "disability or health"),
+    ("Will you need a reasonable accommodation to complete the interview?", "yesno", "disability or health"),
+    ("Other names used", "text", "other names"),
+    ("Have you ever been known by any other names?", "text", "other names"),
+]
+NEAR_MISSES = ["Are you at least 18 years of age?", "Does your date of birth make you 18 or older?", "Post-graduation plans",
+               "Do you hold a graduate degree?", "Experience in a recording studio", "Degree in criminal justice?",
+               "Years of experience with criminal defense cases", "BLS certification for cardiac arrest",
+               "Describe a gap analysis you led", "Are you available over spring break?",
+               "Experience with medical devices", "Tell us about your health and safety training",
+               "Previous employer name", "Why us?"]
+
+
+@pytest.mark.parametrize("title, kind, want", SENSITIVE)
+def test_sensitive_questions_tagged_and_left_for_the_user(title, kind, want):
+    (a,) = questions.draft([q(title, kind, key=questions.key_from_title(title, kind))], CONTACT)
+    assert questions.sensitive(a, CONTACT) == want
+    assert a["answer"] is None and a["source"] == f"{questions.ASK} - sensitive: {want}"
+
+
+@pytest.mark.parametrize("title", NEAR_MISSES)
+def test_near_miss_titles_not_tagged(title):
+    kind = "yesno" if title.endswith("?") else "text"
+    assert questions.sensitive(q(title, kind, key=questions.key_from_title(title, kind)), CONTACT) is None
+
+
+def test_sensitive_question_stays_blank_even_when_a_saved_answer_fits():
+    config = {"work_authorization": {"authorized_us": True}}
+    both = q("Are you authorized to work in the U.S. without restriction, and have you ever been convicted of a "
+             "crime?", "yesno")
+    assert questions.draft([both], CONTACT, config=config)[0]["answer"] is None
+    # a program-filled answer from before the tag is dropped; the user's own answer survives
+    auto = [{"id": both["id"], "answer": "Yes", "source": "search settings - name it to the user"}]
+    assert questions.draft([both], CONTACT, auto, config)[0]["answer"] is None
+    theirs = [{"id": both["id"], "answer": "No", "source": "user"}]
+    assert questions.draft([both], CONTACT, theirs, config)[0]["answer"] == "No"
+    # other names saved in resume details are theirs to give: no tag, answer filled
+    other = q("Other names used", key="other_names")
+    assert questions.draft([other], LEGAL)[0]["answer"] == "Jane Roe"
+    assert questions.draft([other], CONTACT, [{"id": other["id"], "answer": "Jane Roe", "source": "resume"}])[0][
+        "answer"] is None
+
+
+def test_prepare_line_names_the_sensitive_kind():
+    (a,) = questions.draft([q("Date of birth", "date")], CONTACT)
+    assert form.line(a) == "  [NEEDED] date: Date of birth (sensitive: date of birth)"
+    (plain,) = questions.draft([q("Why us?", "longtext", required=False)], CONTACT)
+    assert form.line(plain) == "  [optional] longtext: Why us?"
+
+
+BREAKS = [{"reason": "Caring for a family member", "start": "2021-02", "end": "2023-01",
+           "explain": "I cared for a family member full time and kept my skills current."},
+          {"reason": "Travel", "start": "2012", "end": "2013", "explain": "I travelled for a year."}]
+TODAY = date(2026, 9, 29)
+
+
+def test_work_break_question_answered_from_the_users_saved_words():
+    newest = q("Explain any gaps in employment", "longtext")
+    (a,) = questions.draft([newest], CONTACT, breaks=BREAKS[:1])
+    assert a["answer"] == BREAKS[0]["explain"]
+    assert a["source"] == "resume - sensitive: work break - read it before Submit"
+    assert form.line(a) == "  [ok] longtext: Explain any gaps in employment (sensitive: work break - read it before Submit)"
+    # a window the question names: the 2012 break is outside the last 5 years
+    last5 = q("Explain any gaps in employment in the last 5 years", "longtext")
+    assert questions.break_answer(last5, BREAKS, TODAY) == BREAKS[0]["explain"]
+    # no window: every break, each after its dates, newest first
+    every = questions.break_answer(q("Please explain any gaps in your employment history", "longtext"), BREAKS, TODAY)
+    assert every == f"Feb 2021 - Jan 2023: {BREAKS[0]['explain']}\n2012 - 2013: {BREAKS[1]['explain']}"
+    assert questions.break_answer(q("Employment gaps since 2020", "text"), BREAKS, TODAY) == BREAKS[0]["explain"]
+    assert questions.break_answer(q("Explain gaps in employment in the past ten years"), BREAKS, TODAY) \
+        == BREAKS[0]["explain"]
+    # a re-prepare refreshes the program's answer from the latest saved words; the user's own edit stays
+    later = [{**BREAKS[0], "explain": "Reworded."}]
+    assert questions.draft([newest], CONTACT, [a], breaks=later)[0]["answer"] == "Reworded."
+    theirs = [{"id": newest["id"], "answer": "Their words.", "source": "user"}]
+    assert questions.draft([newest], CONTACT, theirs, breaks=later)[0]["answer"] == "Their words."
+
+
+def test_work_break_question_stays_needed_without_saved_words_for_every_break_it_asks_about():
+    gaps = q("Please explain any gaps in your employment history", "longtext")
+    unexplained = [BREAKS[0], {k: v for k, v in BREAKS[1].items() if k != "explain"}]
+    for breaks in (None, [], unexplained):  # part of the story would read as the whole of it
+        (a,) = questions.draft([gaps], CONTACT, breaks=breaks)
+        assert a["answer"] is None and a["source"] == "ask the user - sensitive: work break"
+    last_year = q("Any gaps in employment in the last 1 year? Explain.", "text")
+    assert questions.break_answer(last_year, BREAKS, TODAY) is None  # no break in the window: theirs to say
+    assert questions.break_answer(q("Do you have gaps in your employment?", "yesno"), BREAKS, TODAY) is None
+
+
+@pytest.mark.parametrize("title, kind", [("Date of birth", "date"), ("Have you ever been convicted of a crime?", "text"),
+                                         ("Do you need a reasonable accommodation?", "longtext"),
+                                         ("What year did you graduate?", "text")])
+def test_saved_break_words_never_answer_another_sensitive_kind(title, kind):
+    (a,) = questions.draft([q(title, kind)], CONTACT, breaks=BREAKS)
+    assert a["answer"] is None and a["source"].startswith("ask the user - sensitive: ")
 
 
 def test_blank_required_questions_are_listed():
@@ -313,3 +488,125 @@ def test_fill_uploads_the_pdf_from_where_its_folder_is_now(tmp_path, monkeypatch
     pdf.unlink()
     form.fill("7")
     assert uploaded[-1] is None  # no PDF there => nothing uploaded, never a stale one
+
+
+class FakeUkgBox:
+    """Any UKG locator: records what is typed or picked, by the data-automation name."""
+    def __init__(self, log, name=""):
+        self.log, self.name = log, name
+
+    def locator(self, selector):
+        return FakeUkgBox(self.log, selector.split("=")[-1].split("]")[0])
+
+    first = property(lambda self: self)
+    inner_text = lambda self: ""
+    evaluate = lambda self, script: []
+    select_option = lambda self, label: self.log.append((self.name, label))
+
+
+def education_filled(monkeypatch, school: dict) -> list:
+    log = []
+    monkeypatch.setattr(ukg, "panel", lambda page, name: FakeUkgBox(log))
+    monkeypatch.setattr(ukg, "open_entry", lambda p, probe: None)
+    monkeypatch.setattr(ukg, "pick_typeahead", lambda page, box, typed, starts: typed)
+    monkeypatch.setattr(ukg, "save_entry", lambda page, p: "ok")
+    monkeypatch.setattr(ukg, "put_text", lambda box, value: log.append((box.name, value)) or "ok")
+    assert ukg.add_education(None, [school]) == ["Acme State University: ok"]
+    return log
+
+
+def test_ukg_education_leaves_a_hidden_graduation_year_blank(monkeypatch):
+    school = {"institution": "Acme State University", "degree": "BA", "end": "1998-05"}
+    assert ("to-year-textbox", "1998") in education_filled(monkeypatch, dict(school))
+    filled = education_filled(monkeypatch, dict(school, hide_year=True))
+    assert not [f for f in filled if f[0].startswith("to-")]  # neither month nor year
+
+
+# --- old jobs left off the tailored page: same on the form unless the user or the form says all ---
+
+def jobs(form_jobs=None) -> dict:
+    roles = [{"id": i, "title": "Clerk", "company": i.title(), "start": "2000-01", "end": "2001-01", "bullets": []}
+             for i in ("acme", "globex", "initech", "hooli")]
+    return {"contact": {"name": "Jane Doe"} | ({"form_jobs": form_jobs} if form_jobs else {}), "roles": roles}
+
+
+PAGE = {"entries": [{"id": "acme"}, {"id": "globex"}, {"id": "project-x"}]}  # oldest two left off
+
+
+def ids(roles):
+    return [r["id"] for r in roles]
+
+
+def test_form_jobs_same_as_page_all_or_asked_never_guessed():
+    roles, note = questions.form_roles(jobs(), PAGE)
+    assert roles == [] and note.startswith("ASK") and "same 2 jobs as your resume, or all 4 jobs" in note
+    assert "15+ years ago" in note and "contact.form_jobs" in note
+    assert (ids(questions.form_roles(jobs("page"), PAGE)[0]), questions.form_roles(jobs("page"), PAGE)[1]) == (
+        ["acme", "globex"], None)
+    assert questions.form_roles(jobs("all"), PAGE) == (jobs()["roles"], None)
+    # nothing left off the page, or no tailored page: every job, nothing to ask
+    assert questions.form_roles(jobs(), {"entries": [{"id": i} for i in ids(jobs()["roles"])]}) == (jobs()["roles"], None)
+    assert questions.form_roles(jobs(), None) == (jobs()["roles"], None)
+
+
+def test_form_asking_for_complete_history_gets_every_job_whatever_they_chose():
+    for choice in (None, "page"):
+        roles, note = questions.form_roles(jobs(choice), PAGE, complete=True)
+        assert ids(roles) == ["acme", "globex", "initech", "hooli"] and "complete work history" in note
+        assert not note.startswith("ASK")
+
+
+@pytest.mark.parametrize("text, complete", [
+    ("Please list your complete employment history.", True),
+    ("Enter your full work history, starting with the most recent.", True),
+    ("Give a complete history of your employment", True),
+    ("List all previous employers for the last 10 years", True),
+    ("Include every employer since high school", True),
+    ("Work Experience\nAdd your most recent jobs", False),
+    ("Acme is an equal opportunity employer. All employment decisions are made without regard to race.", False),
+    ("View all jobs | Search all positions", False),
+])
+def test_complete_history_read_off_the_form(text, complete):
+    assert questions.asks_complete_history(text) is complete
+
+
+class FakePage:
+    def __init__(self, text=""):
+        self.text = text
+
+    def locator(self, selector):
+        return type("Body", (), {"inner_text": lambda _: self.text})()
+
+
+def ukg_profile(monkeypatch, master, tailored, text="") -> tuple[str, list]:
+    added = []
+    monkeypatch.setattr(ukg, "resume_facts", lambda resume_file: (master, tailored))
+    monkeypatch.setattr(ukg, "add_work", lambda page, roles, t: added.extend(ids(roles)) or [f"{r['id']}: ok" for r in roles])
+    monkeypatch.setattr(ukg, "add_education", lambda page, schools: [])
+    monkeypatch.setattr(ukg, "add_skills", lambda page, items: ["skills: ok"])
+    monkeypatch.setattr(ukg, "add_links", lambda page, links: ["links: ok"])
+    return ukg.put_profile(FakePage(text), "resume.pdf"), added
+
+
+def test_ukg_work_history_takes_the_same_jobs_as_the_page(monkeypatch):
+    result, added = ukg_profile(monkeypatch, jobs(), PAGE)
+    assert added == [] and result.startswith("ASK") and "same 2 jobs" in result
+    assert ukg_profile(monkeypatch, jobs("page"), PAGE)[1] == ["acme", "globex"]
+    result, added = ukg_profile(monkeypatch, jobs("page"), PAGE, "Work Experience - list your complete work history")
+    assert added == ["acme", "globex", "initech", "hooli"] and result.startswith("ok") and "complete work history" in result
+
+
+def test_resume_found_after_the_page_name_changed(tmp_path, monkeypatch):
+    """Tailored as Jane_Doe_Resume.pdf, page name since changed to initials: the folder's one
+    resume PDF is the one; two of them -> none, never a guess."""
+    from apply import form
+    monkeypatch.setattr(form.cfg, "resume_path", lambda config, key: tmp_path / "details.yml")
+    monkeypatch.setattr(form.schema, "load", lambda path: {"contact": {"name": "J. Doe"}})
+    folder = tmp_path / "Job 3 - Acme - Clerk"
+    folder.mkdir()
+    (folder / "Jane_Doe_Resume.pdf").write_bytes(b"%PDF-1.7")
+    assert form.resume_for({}, folder) == str(folder / "Jane_Doe_Resume.pdf")
+    (folder / "Other_Resume.pdf").write_bytes(b"%PDF-1.7")
+    assert form.resume_for({}, folder) is None
+    (folder / "J_Doe_Resume.pdf").write_bytes(b"%PDF-1.7")
+    assert form.resume_for({}, folder) == str(folder / "J_Doe_Resume.pdf")

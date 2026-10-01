@@ -203,7 +203,13 @@ def page_words(model: dict) -> int:
 
 
 def build_request(master: dict, job: dict, font: str = typeface.DEFAULT) -> dict:
-    """Everything AI tailors from; pure function of master + JD + font => byte-identical per slug."""
+    """Everything AI tailors from; pure function of master + JD + font => byte-identical per slug.
+
+    Master goes without its contact block: rewriting lines never needs the name, email or phone,
+    names shift model judgments (Rozado 2025), and less personal data in the chat is better
+    privacy. Render and gates read master off disk, so the page keeps it. Resume import is the one
+    task that sends the name: it reads the PDF's own text verbatim.
+    """
     fixed = page_words(page_model(master, skeleton(master)))
     untailored = render.page_model(master)
     with pymupdf.open(stream=render.compile_pdf(untailored, font), filetype="pdf") as doc:
@@ -215,7 +221,7 @@ def build_request(master: dict, job: dict, font: str = typeface.DEFAULT) -> dict
         },
         "budget": {"page_words": windows, "fixed_words": fixed,
                    "generated_words": [[low - fixed, high - fixed] for low, high in windows]},
-        "master": master,
+        "master": {k: v for k, v in master.items() if k != "contact"},
     }
     return {"system": system(font), "schema": TAILORED_SCHEMA, "prompt": json.dumps(payload, indent=1, ensure_ascii=False)}
 
@@ -557,9 +563,10 @@ def check(config: dict, slug: str) -> int:
     tailored = handoff.read_answer(data / "tailored.json", TAILORED_SCHEMA)
     result = evaluate(master, job, tailored, job_dir, cfg.resume_font(config))
     rows = coverage_rows(job, tailored, master)
-    gaps = schema.employment_gaps(master, date.today())
+    today = date.today()
+    gaps = schema.employment_gaps(master, today)
     (job_dir / CHECK_FILE).write_text(
-        report.report_md(job, tailored, result, rows, gaps) + "\n" + report.diff_md(master, tailored, result["model"]),
+        report.report_md(job, tailored, result, rows, gaps, today) + "\n" + report.diff_md(master, tailored, result["model"]),
         encoding="utf-8")
 
     for name, ok, detail in result["gates"]:

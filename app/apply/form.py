@@ -25,9 +25,14 @@ def job_dir(config: dict, slug: str) -> Path:
 
 def resume_for(config: dict, folder: Path) -> str | None:
     """The job's tailored PDF where its folder is now - never a path saved earlier: the folder
-    moves when its status does (sent, heard back ...)."""
+    moves when its status does (sent, heard back ...). The file is named from the name on the page,
+    which can change after tailoring (initials, a name they go by) -> then the one *_Resume.pdf
+    there; none or several -> None, fill says why."""
     resume = folder / render.file_name(schema.load(cfg.resume_path(config, "master")))
-    return str(resume) if resume.exists() else None
+    if resume.exists():
+        return str(resume)
+    found = sorted(folder.glob("*_Resume.pdf"))
+    return str(found[0]) if len(found) == 1 else None
 
 
 def system_for(url: str):
@@ -39,6 +44,15 @@ def system_for(url: str):
     return system
 
 
+def line(a: dict) -> str:
+    """One question as prepare prints it; a sensitive one names its kind so the AI asks, never fills -
+    or, a work break answered from the user's saved words, shows them those words before Submit."""
+    state = "ok" if not questions.blank(a["answer"]) else ("NEEDED" if a["required"] else "optional")
+    opts = f" options={a['options']}" if a["options"] else ""
+    tag = f" ({a['source'].split(' - ', 1)[1]})" if " - sensitive: " in a["source"] else ""
+    return f"  [{state}] {a['kind']}: {a['title']}{opts}{tag}"
+
+
 def prepare(slug: str, url: str) -> None:
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
@@ -47,13 +61,12 @@ def prepare(slug: str, url: str) -> None:
     out = folder / tailor.JOB_DATA / questions.FILE
     old = questions.load(out)
     same_form = old and old.get("url") == system.application_url(url)
-    answers = questions.draft(system.questions(url), master["contact"], old["questions"] if same_form else None, config)
+    answers = questions.draft(system.questions(url), master["contact"], old["questions"] if same_form else None, config,
+                              master.get("career_break"))
     questions.save(out, {"system": system.NAME, "url": system.application_url(url), "questions": answers})
     print(f"{system.NAME} form -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
     for a in answers:
-        state = "ok" if not questions.blank(a["answer"]) else ("NEEDED" if a["required"] else "optional")
-        opts = f" options={a['options']}" if a["options"] else ""
-        print(f"  [{state}] {a['kind']}: {a['title']}{opts}")
+        print(line(a))
     print("Write answers into the file (file kind: answer = true only after the user said yes to uploading), "
           f"then: uv run app/jobs.py apply-form fill {slug}")
 
@@ -69,6 +82,10 @@ def fill(slug: str) -> None:
         sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     system = system_for(data["url"])
     resume = resume_for(config, folder)
+    if resume is None and any(q["kind"] == "file" and q.get("answer") is True for q in data["questions"]):
+        pdfs = [p.name for p in folder.glob("*_Resume.pdf")]
+        print(f"no resume uploaded: {'several resume PDFs in ' + folder.name + ' - ' + ', '.join(pdfs) if pdfs else 'no tailored resume PDF in ' + folder.name} "
+              "- the user uploads one by hand, or make the resume again")
     report = []
     with browser.page_at(data["url"]) as page:
         page.locator(system.READY).first.wait_for(timeout=30000)

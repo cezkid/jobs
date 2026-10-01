@@ -19,9 +19,18 @@ ABBREVIATED_TITLE = re.compile(r"\b(Sr|Jr)\b\.?", re.I)
 LEGAL_IDENTIFIER = re.compile(
     r"\b(Inc|LLC|L\.L\.C|Ltd|Corp|Corporation|Co|Company|GmbH|PBC|LP|LLP|PLC|S\.A|B\.V|AG|Pty)\.?$"
 )
-# HBS/Accenture 2021: gap past this = automatic screen-out at ~half of employers
+# Gap past this gets flagged. Hidden Workers (HBS/Accenture 2021, Fig 7): 48% of execs whose
+# software ranks or filters said it filtered middle-skill candidates on gaps over 6 months
+# (US/UK/DE pooled, self-reported, 2020). US field studies show callbacks falling by ~8 months.
 MAX_GAP_MONTHS = 6
+# Past this the penalty grows: 7-country meta-analysis (D'hert/Baert/Lippens 2024) 13-18 months
+# -21%, 19-36 months -27% callbacks. Explaining recovered ~55% of the penalty in one US study.
+LONG_GAP_MONTHS = 12
 NON_SLUG = re.compile(r"[^a-z0-9]+")
+# the name a plain Name / First / Last box gets when the page name is not the legal one
+FORM_NAMES = ("legal", "page")
+# which jobs a form's work history gets when tailoring left the oldest off the page (apply/questions.form_roles)
+FORM_JOBS = ("page", "all")
 # ChatGPT landed Nov 2022: a job still running in 2023 may name AI work, one that ended earlier
 # cannot without backdating it. A file may still say ai_era by hand and that wins.
 AI_ERA_FROM = "2023-01"
@@ -149,6 +158,12 @@ def in_ai_era(entry: dict) -> bool:
                                   and month_index(end, date.today(), end=True) >= month_index(AI_ERA_FROM, date.today()))
 
 
+def shown_end(school: dict) -> str:
+    """Graduation date as the user lets it show: "" when they chose hide_year (the page, every
+    application form), else the end as written. One place, so no form fills a year the page hides."""
+    return "" if school.get("hide_year") else school.get("end") or ""
+
+
 def year_only(value: str) -> bool:
     return value != PRESENT and "-" not in value
 
@@ -194,6 +209,44 @@ def employment_gaps(master: dict, today: date) -> list[dict]:
     return gaps
 
 
+def gap_is_current(gap: dict, today: date) -> bool:
+    """Break still running today = the search itself, not a hole in the past."""
+    return gap["before"] == month_label(month_index(PRESENT, today))
+
+
+def gap_note(months: int, current: bool) -> str:
+    """Plain words for one break; no penalty numbers, least of all for a search still running."""
+    if months <= MAX_GAP_MONTHS:
+        return ""
+    if current:
+        said = "Your search so far - nothing to explain on the page."
+        return said + (" Recent work, study or volunteering you really did is worth adding, if any."
+                       if months >= LONG_GAP_MONTHS else "")
+    if months < LONG_GAP_MONTHS:
+        return "A one-line reason is worth adding."
+    return "Worth a line, plus recent work, study or volunteering you really did, if any."
+
+
+def check_legal_name(contact: dict, errors: list[str]) -> None:
+    """Legal name only for forms that ask for it (apply/questions.py): both parts or none, so a
+    form never gets half a legal name next to half the page name."""
+    legal = {p: optional(contact, f"legal_{p}", str, "contact", errors) for p in ("first", "middle", "last")}
+    if any(v is not None and not v.strip() for v in legal.values()):
+        errors.append("contact.legal_*: empty")
+    if bool(legal["first"]) != bool(legal["last"]):
+        errors.append("contact.legal_first/legal_last: give both or neither")
+    elif legal["middle"] and not legal["first"]:
+        errors.append("contact.legal_middle: needs legal_first and legal_last")
+    strings(contact, "other_names", "contact", errors)
+    form_name = contact.get("form_name")
+    if form_name is not None and form_name not in FORM_NAMES:
+        errors.append(f"contact.form_name: one of {', '.join(FORM_NAMES)}")
+    elif form_name and not legal["first"]:
+        errors.append("contact.form_name: needs legal_first and legal_last")
+    if (form_jobs := contact.get("form_jobs")) is not None and form_jobs not in FORM_JOBS:
+        errors.append(f"contact.form_jobs: one of {', '.join(FORM_JOBS)}")
+
+
 def validate(master) -> list[str]:
     errors: list[str] = []
     if not isinstance(master, dict):
@@ -204,6 +257,7 @@ def validate(master) -> list[str]:
             text(contact, key, "contact", errors)
         optional(contact, "phone", str, "contact", errors)
         strings(contact, "links", "contact", errors)
+        check_legal_name(contact, errors)
     if headline := optional(master, "headline", str, "master", errors):
         if not headline.strip() or "\n" in headline:
             errors.append("master.headline: one line of text")
@@ -227,6 +281,8 @@ def validate(master) -> list[str]:
         if isinstance(gap, dict):
             text(gap, "reason", where, errors)
             check_span(gap, where, errors, required=True)
+            if "explain" in gap:
+                text(gap, "explain", where, errors)
         else:
             errors.append(f"{where}: expected mapping")
     for i, section in enumerate(optional(master, "other", list, "master", errors) or []):
@@ -262,6 +318,7 @@ def validate(master) -> list[str]:
             text(cert, "name", where, errors)
             optional(cert, "issuer", str, where, errors)
             month(cert, "date", where, errors, required=False)
+            optional(cert, "hide_year", bool, where, errors)
         else:
             errors.append(f"{where}: expected mapping")
     strings(master, "languages", "master", errors)

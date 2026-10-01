@@ -10,7 +10,8 @@ import re
 from pathlib import Path
 
 from apply import browser
-from apply.questions import question
+from apply.questions import asks_complete_history, form_roles, question
+from resume import schema
 
 NAME = "UKG"
 POSTING_URL = re.compile(
@@ -211,7 +212,7 @@ def put_file(page, path: str) -> str:
 def resume_facts(resume_file: str | None) -> tuple[dict, dict]:
     """Master resume + this job's tailored lines (tailored copy's bullets go on the site, same as the PDF)."""
     import cfg
-    from resume import schema, tailor
+    from resume import tailor
     master = schema.load(cfg.resume_path(cfg.load(), "master"))
     tailored = {}
     if resume_file:
@@ -338,7 +339,7 @@ def add_education(page, schools: list[dict]) -> list[str]:
         major = major_option(field, box("major-dropdown").evaluate("e => [...e.options].slice(1).map(o => o.text.trim())"))
         if major:
             box("major-dropdown").select_option(label=major)
-        if when := month_year(school.get("end")):
+        if when := month_year(schema.shown_end(school)):  # hide_year: left blank, as on the page
             if when[0]:
                 box("to-month-dropdown").select_option(label=when[0])
             put_text(box("to-year-textbox"), when[1])
@@ -392,10 +393,13 @@ def add_links(page, links: list[str]) -> list[str]:
 def put_profile(page, resume_file: str | None) -> str:
     master, tailored = resume_facts(resume_file)
     skills = tailored.get("skills") or master.get("skills") or []
-    report = (add_work(page, master.get("roles", []), tailored) + add_education(page, master.get("education", []))
+    # same jobs as the tailored page unless they chose all or the form asks for complete history
+    roles, note = form_roles(master, tailored, asks_complete_history(page.locator("body").inner_text()))
+    report = (add_work(page, roles, tailored) + ([note] if note else [])
+              + add_education(page, master.get("education", []))
               + add_skills(page, [i for g in skills for i in g["items"]])
               + add_links(page, (master.get("contact") or {}).get("links") or []))
-    bad = [r for r in report if " FAIL" in r or " ASK" in r]
+    bad = [r for r in report if " FAIL" in f" {r}" or " ASK" in f" {r}"]
     return ("ASK " if bad else "ok - ") + "; ".join(bad or report)
 
 

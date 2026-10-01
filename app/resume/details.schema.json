@@ -47,7 +47,19 @@
         "email": { "type": "string", "minLength": 1 },
         "phone": { "type": "string" },
         "location": { "type": "string", "minLength": 1, "description": "Town and state, like Springfield, IL." },
-        "links": { "type": "array", "items": { "type": "string" }, "description": "LinkedIn, a portfolio, anything worth a click." }
+        "links": { "type": "array", "items": { "type": "string" }, "description": "LinkedIn, a portfolio, anything worth a click." },
+        "legal_first": { "type": "string", "minLength": 1, "description": "First name as on your ID. Only for application boxes that ask for your legal name - never printed on the page. Give it with legal_last, or leave both out." },
+        "legal_middle": { "type": "string", "minLength": 1, "description": "Middle name as on your ID, if you have one. Optional." },
+        "legal_last": { "type": "string", "minLength": 1, "description": "Last name as on your ID. Give it with legal_first, or leave both out." },
+        "other_names": { "type": "array", "items": { "type": "string", "minLength": 1 }, "description": "Names you used before, like a maiden name or another spelling. Only for application boxes asking for other names, like a background check." },
+        "form_name": { "enum": ["legal", "page"], "description": "Which name goes in a plain Name box on applications when it differs from the top of your page: legal, or page for the name at the top of your resume." },
+        "form_jobs": { "enum": ["page", "all"], "description": "Which jobs go in an application's work history when your tailored resume left the oldest off: page for the same jobs as the resume, all for every job. A form asking for your complete work history always gets all." }
+      },
+      "dependencies": {
+        "legal_first": ["legal_last"],
+        "legal_last": ["legal_first"],
+        "legal_middle": ["legal_first", "legal_last"],
+        "form_name": ["legal_first", "legal_last"]
       }
     },
     "headline": { "type": "string", "minLength": 1, "description": "One line above your summary saying what you do - your real title and main skills, like Software Engineer | React.js, TypeScript, Node.js. Leave it out if you prefer none." },
@@ -87,7 +99,8 @@
         "properties": {
           "reason": { "type": "string", "minLength": 1, "description": "A few words, like Caring for a family member. Shown as Career break - your words." },
           "start": { "$ref": "#/definitions/month" },
-          "end": { "oneOf": [{ "$ref": "#/definitions/month" }, { "const": "present" }] }
+          "end": { "oneOf": [{ "$ref": "#/definitions/month" }, { "const": "present" }] },
+          "explain": { "type": "string", "minLength": 1, "description": "Optional. One or two sentences the user approved for application questions about a break - no medical or case details. Never on the page; never written without the user." }
         }
       }
     },
@@ -136,7 +149,7 @@
           "field": { "type": "string" },
           "details": { "type": "string" },
           "end": { "$ref": "#/definitions/month" },
-          "hide_year": { "type": "boolean", "description": "true leaves the year off the page. Worth it for a degree finished 15 or more years ago." }
+          "hide_year": { "type": "boolean", "description": "true leaves the year off the page. Worth it for a degree finished 15 or more years ago; recommended at 20 or more, with your other old years." }
         }
       }
     },
@@ -150,7 +163,8 @@
         "properties": {
           "name": { "type": "string", "minLength": 1 },
           "issuer": { "type": "string" },
-          "date": { "$ref": "#/definitions/month" }
+          "date": { "$ref": "#/definitions/month" },
+          "hide_year": { "type": "boolean", "description": "true leaves the date off the page. Worth it for a certification from 15 or more years ago." }
         }
       }
     },

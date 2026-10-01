@@ -189,7 +189,7 @@ def education_entry(school: dict) -> dict:
     """School on its own heading line, degree line under it: the same two-line shape as a job,
     so a parser splits institution from degree instead of reading one line as the school name."""
     # hide_year: the user's choice to leave an old graduation year off; the degree still shows
-    year = "" if school.get("hide_year") else school.get("end", "")[:4]
+    year = schema.shown_end(school)[:4]
     degree = ", ".join(p for p in (degree_name(school["degree"]), school.get("field")) if p)
     return {"heading": school["institution"], "subline": joined(degree, school.get("details"), year),
             "bullets": []}
@@ -217,7 +217,8 @@ def page_model(master: dict, today: date | None = None) -> dict:
             sections.append(education)
     if master.get("certifications"):
         sections.append({"title": "Certifications", "lines": [
-            {"text": joined(c["name"], c.get("issuer"), c.get("date") and month_label(c["date"]))}
+            # hide_year: the user's choice to leave an old certification date off, as for a degree
+            {"text": joined(c["name"], c.get("issuer"), c.get("date") and not c.get("hide_year") and month_label(c["date"]))}
             for c in master["certifications"]
         ]})
     # volunteer work, awards, clearances, publications: the user's own heading and lines, verbatim
