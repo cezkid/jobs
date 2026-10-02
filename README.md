@@ -3,7 +3,7 @@
 Finds jobs in any field, tells you each morning about new ones, makes your resume for any job
 you pick. You chat in plain English in VS Code's AI panel; it does the rest.
 
-**Easiest: https://cezkid.github.io/jobs** - one button, one paste.
+**Easiest: https://jobs.enrriquez.com** - one button, one paste.
 
 ## Need
 

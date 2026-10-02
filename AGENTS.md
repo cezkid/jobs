@@ -227,7 +227,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   `rank.py`, `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/`, `deploy/`, `docs/`, `tests/`.
-- `docs/index.html` - install page, GitHub Pages (`https://cezkid.github.io/jobs`).
+- `docs/index.html` - install page, GitHub Pages (`https://jobs.enrriquez.com`, `docs/CNAME`; DNS: Cloudflare CNAME `jobs` -> `cezkid.github.io`, DNS only).
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.
 Tests: `uv run pytest` (live gates hit freehire API).
