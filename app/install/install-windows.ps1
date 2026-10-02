@@ -2,7 +2,8 @@
 #   irm <raw url of this file> | iex
 # Runs in the user's own window, no second powershell: a child started w/ -ExecutionPolicy Bypass
 # got an empty download on a real PC while the same irm in the window got the whole file. iex
-# ignores execution policy; Bypass for uv's installer is set below. AI asked below, not on the page.
+# ignores execution policy; Bypass for uv's installer is set below. AI asked below, not on the page
+# (JOBS_AI or an argument skips it: 1|claude, 2|chatgpt, 3|copilot).
 # Per-user installs only => no admin prompt.
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -19,28 +20,50 @@ function Refresh-Path {
         [Environment]::GetEnvironmentVariable('Path', 'User'), "$HOME\.local\bin", $VsCodeBin) -join ';'
 }
 function Check($what) { if ($LASTEXITCODE) { throw "Could not $what." } }
-# asked first, while the user is still at the window; 1 Claude, 2 ChatGPT
-function Pick-Ai {
-    if ($AiArg) { return $AiArg }
-    if (Have 'code') {  # re-run to repair => keep the AI already set up, no question
-        $have = @(cmd /c 'code --list-extensions 2>nul')
-        if ($have -contains 'anthropic.claude-code') { return '1' }
-        if ($have -contains 'openai.chatgpt') { return '2' }
+# 1|claude 2|chatgpt 3|copilot, any case => the word; anything else => $null (asked again)
+function Ai-Word($text) {
+    switch ("$text".Trim().ToLower()) {
+        { $_ -in '1', 'claude' } { return 'claude' }
+        { $_ -in '2', 'chatgpt' } { return 'chatgpt' }
+        { $_ -in '3', 'copilot' } { return 'copilot' }
     }
-    Write-Host "`nWhich AI do you pay for?" -ForegroundColor Cyan
-    Write-Host '  1 = Claude'
-    Write-Host '  2 = ChatGPT'
+    return $null
+}
+# asked first, while the user is still at the window
+# Copilot never guessed from extensions: its chat is built into VS Code for everyone
+function Pick-Ai {
+    $word = Ai-Word $AiArg
+    $saved = Join-Path $Dir '.data\ai'
+    if (-not $word -and (Test-Path $saved)) { $word = Ai-Word (Get-Content $saved -Raw) }
+    if (-not $word -and (Have 'code')) {  # re-run to repair => keep the AI already set up, no question
+        $have = @(cmd /c 'code --list-extensions 2>nul' | ForEach-Object { "$_".ToLower() })
+        if ($have -contains 'anthropic.claude-code') { $word = 'claude' }
+        elseif ($have -contains 'openai.chatgpt') { $word = 'chatgpt' }
+    }
+    if ($word) { return $word }
+    if (-not [Environment]::UserInteractive -or [Console]::IsInputRedirected) {
+        throw 'Could not ask which AI you use. Open PowerShell, paste the install line there and press Enter.'
+    }
+    Write-Host "`nWhich AI do you use?" -ForegroundColor Cyan
+    Write-Host '  1 = Claude (Pro or Max)'
+    Write-Host '  2 = ChatGPT (Plus or Pro)'
+    Write-Host '  3 = GitHub Copilot ($10 a month; small free tier)'
     while ($true) {
-        $answer = (Read-Host 'Type 1 or 2, then press Enter').Trim().ToLower()
-        if ($answer -in '1', 'claude') { return '1' }
-        if ($answer -in '2', 'chatgpt') { return '2' }
+        $word = Ai-Word (Read-Host 'Type 1, 2 or 3, then press Enter')
+        if ($word) { return $word }
     }
 }
 
 try {
     Write-Host "`nInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
     Refresh-Path
-    $AiExtension = if ((Pick-Ai) -eq '2') { 'openai.chatgpt' } else { 'anthropic.claude-code' }
+    $Ai = Pick-Ai
+    # explicit per AI; copilot => none (Copilot Chat built into VS Code 1.140)
+    $AiExtension, $SignIn = switch ($Ai) {
+        'claude' { 'anthropic.claude-code', 'Click Sign in on the chat panel on the right, then press Enter.' }
+        'chatgpt' { 'openai.chatgpt', 'Click the ChatGPT icon at the top left, then Sign in, then press Enter.' }
+        'copilot' { '', 'Click Sign in on the chat panel on the right, then press Enter. No GitHub account? Make one with your Google or Apple account.' }
+    }
 
     # uv's installer refuses Windows' default policy (Restricted) => this window only, nothing saved
     try { Set-ExecutionPolicy Bypass -Scope Process -Force } catch {}
@@ -69,8 +92,10 @@ try {
     if (-not (Have 'code')) { throw 'Could not install VS Code.' }
 
     Step 3 'adding the AI panel to VS Code...'
-    cmd /c "code --install-extension $AiExtension --force >nul 2>&1"
-    Check 'add the AI panel to VS Code'
+    if ($AiExtension) {
+        cmd /c "code --install-extension $AiExtension --force >nul 2>&1"
+        Check 'add the AI panel to VS Code'
+    }
 
     Step 4 "downloading CEZ Job Finder to $Dir..."
     # staging under $Dir => Move-Item stays on one drive; My folders + .data never in zip
@@ -85,6 +110,8 @@ try {
         Move-Item $_.FullName $dest
     }
     Remove-Item $staging -Recurse -Force
+    # private, kept by updates; launcher + `jobs.py ai` read it
+    Set-Content -Path (Join-Path $Dir '.data\ai') -Value $Ai -Encoding ascii
 
     Step 5 'getting CEZ Job Finder ready...'
     Push-Location $Dir
@@ -102,10 +129,11 @@ try {
     $link.Save()
 
     Write-Host "`nDone. Next time, open 'CEZ Job Finder' on your Desktop." -ForegroundColor Green
-    Write-Host 'VS Code opens now. Click Sign in on the right-hand panel, then press Enter.' -ForegroundColor Green
+    Write-Host "VS Code opens now. $SignIn" -ForegroundColor Green
     if (-not $env:JOBS_NO_LAUNCH) { & $start }
 } catch {
     Write-Host "`nInstall stopped: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host 'Run the same steps again. If it fails twice, send a photo of this window to whoever shared CEZ Job Finder with you.'
+    if ([Console]::IsInputRedirected) { exit 1 }  # no window to keep open
     Read-Host 'Press Enter to close'
 }

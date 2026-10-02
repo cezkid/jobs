@@ -33,6 +33,7 @@ COMMANDS = {
     "answers": ("apply.answers", "the user's saved answers from application forms: list | forget N"),
     "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
+    "ai": ("ai", "which AI the user chats with: prints it; ai claude | chatgpt | copilot saves it"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
     "launch": ("launch", "open VS Code on Today (START HERE before setup), chat in right sidebar (Desktop launcher)"),
     "open": (None, "open file or link for user: VS Code tab (PDF too), link in browser"),

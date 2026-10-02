@@ -1,4 +1,9 @@
+import os
 import re
+import shutil
+import subprocess
+
+import pytest
 
 import cfg
 
@@ -42,11 +47,11 @@ def test_windows_line_runs_in_the_window_and_script_lets_uv_installer_run():
 def test_one_line_per_computer_and_installer_asks_the_ai():
     # AI picked on the page => hidden, per-choice line; one visible line + a question in the window
     for line in page_line("win"), page_line("mac"), readme_line("irm "), readme_line("curl "):
-        assert "JOBS_AI" not in line and not re.search(r"\s[12]\s*\"?$", line), line
+        assert "JOBS_AI" not in line and not re.search(r"\s[123]\s*\"?$", line), line
     assert "data-ai" not in PAGE.read_text(encoding="utf-8")
     for name in "install-windows.ps1", "install-mac.sh":
         script = (INSTALL / name).read_text(encoding="utf-8")
-        assert "Which AI do you pay for?" in script and "--list-extensions" in script, name
+        assert "Which AI do you use?" in script and "--list-extensions" in script, name
 
 
 def test_short_lines_fetch_exact_copies_of_the_install_scripts():
@@ -76,3 +81,88 @@ def test_windows_downloads_never_stop_on_parsing_prompt():
     assert calls
     for line in calls:
         assert "-UseBasicParsing" in line, line
+
+
+AI_CHOICES = {"claude": "anthropic.claude-code", "chatgpt": "openai.chatgpt", "copilot": ""}
+
+
+def script(name: str) -> str:
+    return (INSTALL / name).read_text(encoding="utf-8")
+
+
+def mac_pick(tmp_path, answer=None, env=None, extensions="", saved=None, arg=""):
+    # mac installer's own ai_word + pick_ai, run in bash w/ a stub `code` and no real install
+    body = script("install-mac.sh")
+    funcs = body[body.index("ai_word() {"):body.index("printf '\\n\\033[36mInstalling")]
+    (tmp_path / "bin").mkdir(exist_ok=True)
+    stub = tmp_path / "bin" / "code"
+    stub.write_text(f"#!/bin/bash\nprintf '%s' '{extensions}'\n")
+    stub.chmod(0o755)
+    if saved is not None:
+        (tmp_path / ".data").mkdir(exist_ok=True)
+        (tmp_path / ".data" / "ai").write_text(saved)
+    run = f'DIR="{tmp_path}"\nhave() {{ command -v "$1" >/dev/null 2>&1; }}\n{funcs}\npick_ai "{arg}"\n'
+    full_env = {"PATH": f"{tmp_path / 'bin'}:/usr/bin:/bin", **(env or {})}
+    # new session => no /dev/tty, as when nothing is there to ask in
+    return subprocess.run(["bash", "-c", run], capture_output=True, text=True, env=full_env,
+                          stdin=subprocess.DEVNULL, start_new_session=True)
+
+
+@pytest.mark.skipif(not shutil.which("bash") or os.name == "nt", reason="mac installer runs in bash")
+@pytest.mark.parametrize("given,word", [("1", "claude"), ("Claude", "claude"), ("2", "chatgpt"), (" CHATGPT ", "chatgpt"),
+                                        ("3", "copilot"), ("copilot", "copilot")])
+def test_mac_accepts_number_or_name_any_case(tmp_path, given, word):
+    assert mac_pick(tmp_path, env={"JOBS_AI": given}).stdout.strip() == word
+    assert mac_pick(tmp_path, arg=given).stdout.strip() == word
+
+
+@pytest.mark.skipif(not shutil.which("bash") or os.name == "nt", reason="mac installer runs in bash")
+def test_mac_order_saved_choice_then_claude_then_chatgpt_never_copilot(tmp_path):
+    both = "Anthropic.Claude-Code\nopenai.chatgpt\ngithub.copilot-chat\n"
+    assert mac_pick(tmp_path, saved="copilot\n", extensions=both).stdout.strip() == "copilot"
+    assert mac_pick(tmp_path, env={"JOBS_AI": "2"}, saved="copilot\n").stdout.strip() == "chatgpt"
+    (tmp_path / ".data" / "ai").unlink()
+    assert mac_pick(tmp_path, extensions=both).stdout.strip() == "claude"  # extension ids any case
+    assert mac_pick(tmp_path, extensions="openai.chatgpt\n").stdout.strip() == "chatgpt"
+
+
+@pytest.mark.skipif(not shutil.which("bash") or os.name == "nt", reason="mac installer runs in bash")
+def test_mac_nothing_known_and_no_window_to_ask_stops_never_silent_claude(tmp_path):
+    # Copilot built into VS Code => its extension says nothing; unknown word => not taken either
+    out = mac_pick(tmp_path, env={"JOBS_AI": "gemini"}, extensions="github.copilot-chat\n")
+    assert out.returncode != 0 and out.stdout.strip() == ""
+    assert "Terminal" in out.stderr
+
+
+@pytest.mark.parametrize("name", ["install-mac.sh", "install-windows.ps1"])
+def test_installer_three_way_choice_copilot_installs_nothing_choice_saved(name):
+    body = script(name)
+    for line in ("1 = Claude (Pro or Max)", "2 = ChatGPT (Plus or Pro)", "3 = GitHub Copilot ($10 a month; small free tier)",
+                 "Type 1, 2 or 3"):
+        assert line in body, line
+    for number, word in ("1", "claude"), ("2", "chatgpt"), ("3", "copilot"):
+        assert re.search(rf"'?{number}'?, '?{word}'?|{number}\|{word}", body), word
+    # each AI named on its own => no "anything but 2 = Claude" fallback
+    assert "else ai_extension=anthropic.claude-code" not in body and "} else { 'anthropic.claude-code' }" not in body
+    mac = name.endswith(".sh")
+    for word, extension in AI_CHOICES.items():
+        # copilot => empty extension => step 3 skips the install
+        assigned = f"{word}) ai_extension={extension or ''}\n" if mac else f"'{word}' {{ '{extension or ''}', "
+        assert assigned in body, assigned
+    assert ('if [ -n "$ai_extension" ]; then' if mac else "if ($AiExtension) {") in body
+    assert "github.copilot" not in body  # never installed, never used to guess
+    assert re.search(r"\.data[/\\]ai", body)
+    assert "No GitHub account? Make one with your Google or Apple account." in body
+    assert "Click the ChatGPT icon at the top left, then Sign in" in body
+
+
+def test_unknown_answer_asks_again_and_no_window_stops():
+    body = script("install-mac.sh")
+    loop = body[body.index("  while true; do"):body.index("printf '\\n\\033[36mInstalling")]
+    assert 'word=$(ai_word "$answer")' in loop and 'if [ -n "$word" ]; then echo "$word"; return; fi' in loop
+    assert "ai=$(pick_ai \"${1:-}\") || exit 1" in body
+    body = script("install-windows.ps1")
+    pick = body[body.index("function Pick-Ai"):body.index("try {")]
+    assert "while ($true)" in pick and "if ($word) { return $word }" in pick
+    assert "throw 'Could not ask which AI you use." in pick
+    assert "Set-Content -Path (Join-Path $Dir '.data\\ai') -Value $Ai" in body

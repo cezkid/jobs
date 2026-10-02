@@ -8,12 +8,13 @@ you pick. You chat in plain English in VS Code's AI panel; it does the rest.
 ## Need
 
 - Windows 10/11 or Mac
-- Paid Claude (Pro/Max) or ChatGPT (Plus/Pro)
+- Paid Claude (Pro/Max), ChatGPT (Plus/Pro) or GitHub Copilot ($10/month; small free tier)
 
 ## Install (once, ~5 min)
 
-Paste the line for your computer, press Enter, type 1 (Claude) or 2 (ChatGPT) when asked.
-Installs only what's missing, no admin prompt, opens VS Code. Safe to rerun - keeps your files.
+Paste the line for your computer, press Enter, type 1 (Claude), 2 (ChatGPT) or 3 (GitHub Copilot)
+when asked. Installs only what's missing, no admin prompt, opens VS Code. Safe to rerun - keeps
+your files.
 
 **Windows** - Start, type `PowerShell`, open it, paste, Enter:
 
@@ -69,7 +70,8 @@ All code under `app/`; root = user folders, `Guides/`, `docs/` (install page, Gi
 - `docs/` - install site (GitHub Pages); generated files from `uv run app/web/assets.py`, rules in
   [`app/docs/site.md`](app/docs/site.md)
 - Install scripts: `app/install/` - pasted line, not downloaded file -> avoids SmartScreen /
-  Gatekeeper. Test w/o touching `~/jobs`: `JOBS_DIR=<dir> JOBS_NO_LAUNCH=1 JOBS_AI=1`
+  Gatekeeper. Test w/o touching `~/jobs`: `JOBS_DIR=<dir> JOBS_NO_LAUNCH=1 JOBS_AI=claude`
+  (`chatgpt` / `copilot`, or 1 / 2 / 3; saved to `.data/ai`, `uv run app/jobs.py ai` shows or changes it)
 - Linux server: 1 vCPU / 1GB / 10GB, uv at `/usr/local/bin/uv`, repo at `/opt/jobs` owned by
   `jobs`; calendars in `schedule` (`app/defaults.yml`), re-render after changing them
 
