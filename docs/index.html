@@ -399,7 +399,8 @@
   const ua = navigator.userAgent;
   // iPadOS reports Mac UA => touch points tell it apart
   const isPhone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-  let os = /Mac/i.test(navigator.userAgentData?.platform || navigator.platform || ua) ? "mac" : "win";
+  // iPhone/iPad count as Mac => Apple visitors see Mac window dots (phones hide the install steps)
+  let os = /Mac|iPhone|iPad|iPod|iOS/i.test(navigator.userAgentData?.platform || navigator.platform || ua) ? "mac" : "win";
   const button = document.getElementById("copy");
   const label = document.getElementById("copy-label");
   const box = button.closest(".command");
