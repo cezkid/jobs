@@ -18,13 +18,13 @@ Installs only what's missing, no admin prompt, opens VS Code. Safe to rerun - ke
 **Windows** - Start, type `PowerShell`, open it, paste, Enter:
 
 ```
-irm https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-windows.ps1 | iex
+irm https://jobs.enrriquez.com/win | iex
 ```
 
 **Mac** - magnifying glass top-right, type `Terminal`, open it, paste, Enter:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/cezkid/jobs/main/app/install/install-mac.sh | bash
+curl -fsSL https://jobs.enrriquez.com/mac | bash
 ```
 
 ## Everyday

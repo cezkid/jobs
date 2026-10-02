@@ -154,12 +154,12 @@
   </footer>
 </main>
 <script>
-  const RAW = "https://raw.githubusercontent.com/cezkid/jobs/main/app/install/";
+  const SITE = "https://jobs.enrriquez.com/";  // docs/mac + docs/win = copies of app/install scripts
   // one line per computer; the installer asks which AI. Windows line runs in the PowerShell window
   // itself (a second powershell got an empty download on a real PC); script sets Bypass for uv
   const LINES = {
-    win: `irm ${RAW}install-windows.ps1 | iex`,
-    mac: `curl -fsSL ${RAW}install-mac.sh | bash`,
+    win: `irm ${SITE}win | iex`,
+    mac: `curl -fsSL ${SITE}mac | bash`,
   };
   const ua = navigator.userAgent;
   // iPadOS reports Mac UA => touch points tell it apart

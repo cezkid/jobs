@@ -8,7 +8,7 @@ INSTALL = cfg.APP / "install"
 
 
 def page_line(os: str) -> str:
-    return re.search(rf"{os}: `(.+?)`,", PAGE.read_text(encoding="utf-8")).group(1).replace("${RAW}", "https://x/")
+    return re.search(rf"{os}: `(.+?)`,", PAGE.read_text(encoding="utf-8")).group(1).replace("${SITE}", "https://x/")
 
 
 def readme_line(start: str) -> str:
@@ -31,7 +31,7 @@ def test_windows_line_runs_in_the_window_and_script_lets_uv_installer_run():
     # ("iex: Cannot bind argument to parameter 'Command' because it is an empty string") while the
     # same irm typed in the window got the whole file => run in the window, no second powershell
     for line in page_line("win"), readme_line("irm "):
-        assert re.fullmatch(r"irm https://\S+/install-windows\.ps1 \| iex", line), line
+        assert re.fullmatch(r"irm https://\S+ \| iex", line), line
     # Windows default policy Restricted => uv's installer stops: "requires an execution policy in
     # [Unrestricted, RemoteSigned, Bypass]"; script sets Bypass for this window only
     script = (INSTALL / "install-windows.ps1").read_text(encoding="utf-8")
@@ -47,6 +47,17 @@ def test_one_line_per_computer_and_installer_asks_the_ai():
     for name in "install-windows.ps1", "install-mac.sh":
         script = (INSTALL / name).read_text(encoding="utf-8")
         assert "Which AI do you pay for?" in script and "--list-extensions" in script, name
+
+
+def test_short_lines_fetch_exact_copies_of_the_install_scripts():
+    # Pages serves docs/ only, no server redirects => docs/<os>/index.html = byte copy of the script
+    # (index.html => served as text, so irm hands iex a string); edit app/install, then cp here
+    docs = cfg.ROOT / "docs"
+    for os, name in ("mac", "install-mac.sh"), ("win", "install-windows.ps1"):
+        assert (docs / os / "index.html").read_bytes() == (INSTALL / name).read_bytes(), f"cp app/install/{name} docs/{os}/index.html"
+    assert page_line("mac") == readme_line("curl ").replace("https://jobs.enrriquez.com/", "https://x/")
+    assert page_line("win") == readme_line("irm ").replace("https://jobs.enrriquez.com/", "https://x/")
+    assert (docs / "CNAME").read_text().strip() + "/" in PAGE.read_text(encoding="utf-8")
 
 
 def test_steps_open_the_window_by_clicking_not_key_combos():
