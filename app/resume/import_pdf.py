@@ -310,7 +310,8 @@ def prepare(config: dict, pdf_from: Path | None, force: bool) -> None:
         pdf.parent.mkdir(parents=True, exist_ok=True)
         if pdf_from.resolve() != pdf.resolve():
             shutil.copyfile(pdf_from, pdf)
-    handoff.write_task(TASK, ANSWER, SYSTEM, MAPPED_SCHEMA, extract(pdf), FINISH)
+    handoff.write_task(TASK, ANSWER, SYSTEM, MAPPED_SCHEMA, extract(pdf), FINISH,
+                       f"Your resume PDF is unchanged: {pdf}", "the rules for reading your resume")
 
 
 def finish(config: dict, keep: str | None = None) -> None:
@@ -326,7 +327,9 @@ def finish(config: dict, keep: str | None = None) -> None:
         print(f"  untraced {line}")
     left_out(dropped)
     if failures or ratio < MIN_RECOVERY:
-        sys.exit(f"gate failed, nothing written; fix {ANSWER} to copy source text exactly, then rerun")
+        sys.exit(f"gate failed, nothing written; fix {ANSWER} to copy source text exactly, then rerun"
+                 + handoff.stop_text(handoff.failed(ANSWER, quiet=True)))
+    handoff.passed(ANSWER)
 
     today = date.today()
     master, assumptions = build(mapped, today)

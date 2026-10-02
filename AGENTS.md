@@ -257,7 +257,11 @@ next import rewrites them.
 Resume import, pasted posting, tailoring, cover letter (`letter`) and `resume-gaps` (asks the user for the numbers +
 leadership their lines leave out; only their answers go in): command writes task file (rules,
 input, answer format), you write answer JSON at the path it names, run the check it prints.
-Check fails -> fix JSON per violations, rerun; after 2 failed retries tell user plainly, stop. No other program writes resume content.
+Check fails -> fix JSON per violations, rerun. Program counts failed checks per task (reset by a
+new task file); 3rd failure (= 2 failed retries) prints `STOP` + one plain line worded per AI
+(Copilot: its automatic model couldn't meet the rules, Copilot Pro lets them pick a stronger model;
+others: the AI couldn't after 3 tries) + the safe fallback (untailored resume, unchanged PDF ...) -
+pass both on word for word, stop. No other program writes resume content.
 
 Tailored page rules (gates `pages` + `line-fill`, tailored copies only): 1 page, or 2 w/ the
 2nd 60%+ full. Word budget scales w/ the measured page; facts too thin for any window are

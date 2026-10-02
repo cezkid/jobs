@@ -508,10 +508,21 @@ def posting_files(text_file: Path) -> tuple[Path, Path]:
     return text_file.with_name(f"{text_file.stem}-task.md"), text_file.with_suffix(".json")
 
 
+def untailored(config: dict) -> str:
+    """Stop line's safe fallback for a tailoring step: the untailored PDF, when made."""
+    master_path = cfg.resume_path(config, "master")
+    try:
+        pdf = master_path.parent / render.file_name(schema.load(master_path))
+    except (OSError, ValueError, KeyError):
+        return ""
+    return f"Meanwhile your untailored resume is ready to send: {pdf}" if pdf.exists() else ""
+
+
 def posting(text_file: Path, url: str) -> None:
     then = f'uv run app/jobs.py tailor prepare --posting "{text_file}"' + (f' --url "{url}"' if url else "")
     handoff.write_task(*posting_files(text_file), jd.EXTRACT_SYSTEM, jd.EXTRACT_SCHEMA,
-                       text_file.read_text(encoding="utf-8").strip(), then)
+                       text_file.read_text(encoding="utf-8").strip(), then,
+                       untailored(cfg.load_or_defaults()), "the rules for reading the posting")
 
 
 def by_number(config: dict, job: str) -> str:
@@ -586,7 +597,7 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
     (job_dir / POSTING_FILE).write_text(report.posting_md(job), encoding="utf-8")
     request = build_request(master, job, cfg.resume_font(config), cfg.title_mirror_always(config))
     handoff.write_task(data / "task.md", data / "tailored.json", request["system"], request["schema"],
-                       request["prompt"], check_command(job["public_slug"]))
+                       request["prompt"], check_command(job["public_slug"]), untailored(config))
     print(f"job {num}, job folder: {job_dir}")
     if reopened:
         print(f"was marked {reopened} - back in {job_dir.parent.name}")
@@ -624,7 +635,9 @@ def check(config: dict, slug: str) -> int:
     print(f"coverage {met}/{len(rows)} met, {len(required_gaps)} required gap(s)")
     print(f"{'FAILED - fix tailored.json, rerun check' if result['failed'] else 'passed'}: {job_dir}")
     if result["failed"]:
+        handoff.failed(data / "tailored.json")
         return 1
+    handoff.passed(data / "tailored.json")
     import status  # status files job folders; it reads them through this module
     conn = store.connect(cfg.db_path(config))
     try:
