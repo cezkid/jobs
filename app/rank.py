@@ -214,7 +214,8 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     rc = config["rank"]
     tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
     now = now or datetime.now(timezone.utc)
-    kept = collapse([dict(j, stale=stale_for(j, rc, now)) for j in jobs if not blocked(j, config["blocklist"])])
+    kept = collapse([dict(j, stale=stale_for(j, rc, now)) for j in jobs
+                     if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)])
     # Order, most decisive first:
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
@@ -240,6 +241,12 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
         not collections_hit(j, rc["boost_collections"]),
     ))
     return kept
+
+
+def too_old(job: dict, rc: dict, now: datetime) -> bool:
+    """User's own cutoff (rank.max_age_days): first seen longer ago hides. Age unknown stays."""
+    limit, days = rc.get("max_age_days"), age(job, now)
+    return limit is not None and days is not None and days > limit
 
 
 def age(job: dict, now: datetime) -> int | None:

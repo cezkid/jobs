@@ -84,13 +84,16 @@ home_address:
   zip: null
 
 # Ranking (rank.py). Order: tier > not seen lately (may be closed) > likely ghost / level /
-# hours / sponsorship mismatch > pay floor > pay > employer lists > first seen. Nothing here hides a job.
+# hours / sponsorship mismatch > pay floor > pay > employer lists > first seen. Only max_age_days hides a job.
 rank:
   # open job no check has returned in more than this many days sorts to the bottom of its tier
   # ("may be closed") and is never announced as new: filled jobs outside a pass's
   # posted_within_days window are never re-fetched, so never marked closed. Shown, not hidden:
   # an open job hidden costs the user a chance, a closed one shown costs a click
   stale_days: 14
+  # user's own cutoff: hide jobs freehire first saw more than this many days ago (see rank.age;
+  # posted_at is restamped on recrawl, so a 7-day fetch window still returns older jobs). null = keep all
+  max_age_days: null
   # freehire `reality`: relisted this often (earlier copies that closed = repost_count less
   # mass_posting_count; copies open at once are one role in several places), or listed this many
   # days, or class likely-evergreen => one doubt, sorted below fresh jobs in its tier.
