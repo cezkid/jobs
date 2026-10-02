@@ -6,10 +6,13 @@
 
 Makes: docs/fonts/caladea-{regular,bold}.woff2 + OFL.txt (Latin subset of the resume font),
 docs/icon-192.png, icon-512.png, apple-touch-icon.png, icon-maskable-512.png and favicon.ico
-(all rendered from docs/icon.svg), and the share image (og step).
+(all rendered from docs/icon.svg), and the share image docs/og.png (from app/web/og.html).
 
 Everything it writes in docs/ is generated and committed - never hand-edit those files; change
-this script or docs/icon.svg and rerun. docs/icon.svg itself is hand-drawn.
+this script, docs/icon.svg or app/web/og.html and rerun. docs/icon.svg itself is hand-drawn.
+
+Share image changed => bump og.png?v=N in every page's og:image (LinkedIn caches a preview ~7
+days, keyed by URL).
 
 Run from repo root: uv run app/web/assets.py [--only fonts|icons|og]
 Own deps (inline above), so the project's deps stay untouched. Icons + og use Google Chrome.
@@ -25,6 +28,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 CALADEA = ROOT / "app" / "resume" / "fonts" / "Caladea"
+OG_HTML = ROOT / "app" / "web" / "og.html"
+OG_PNG = DOCS / "og.png"
 GEORGIA = Path("/System/Library/Fonts/Supplemental/Georgia.ttf")
 
 UNICODES = [
@@ -54,7 +59,8 @@ def fonts():
         opts.name_IDs = ["*"]
         opts.name_languages = ["*"]
         opts.flavor = "woff2"
-        font = TTFont(CALADEA / f"Caladea-{weight}.ttf")
+        # keep the source's head.modified: a fresh timestamp would change the file every run
+        font = TTFont(CALADEA / f"Caladea-{weight}.ttf", recalcTimestamp=False)
         sub = subset.Subsetter(opts)
         sub.populate(unicodes=UNICODES)
         sub.subset(font)
@@ -145,7 +151,35 @@ def icons(qa=None):
 
 
 def og():
-    print("og: added in the share-image bead")
+    """docs/og.png (1200x630) from app/web/og.html, fonts inlined: Chrome blocks file:// fonts."""
+    import re
+    from playwright.sync_api import sync_playwright
+
+    def inline(m):
+        b64 = base64.b64encode((DOCS / "fonts" / m[1]).read_bytes()).decode()
+        return f'url("data:font/woff2;base64,{b64}")'
+
+    html, n = re.subn(r'url\("/fonts/([\w.-]+\.woff2)"\)', inline, OG_HTML.read_text())
+    if not n:
+        raise SystemExit("og: no /fonts/*.woff2 url() in og.html to inline")
+    with sync_playwright() as p:
+        browser = p.chromium.launch(channel="chrome")
+        page = browser.new_page(
+            viewport={"width": 1200, "height": 630}, device_scale_factor=1, color_scheme="light"
+        )
+        page.set_content(html)
+        page.evaluate("document.fonts.ready")
+        faces = page.evaluate(
+            "[...document.fonts].map(f => `${f.family} ${f.weight}: ${f.status}`)"
+        )
+        bad = [f for f in faces if not f.endswith(": loaded")]
+        if not faces or bad:
+            browser.close()
+            raise SystemExit(f"og: font faces not loaded: {bad or 'none declared'}")
+        png = page.screenshot(full_page=True)
+        browser.close()
+    OG_PNG.write_bytes(png)
+    print(f"docs/og.png: {len(png) / 1024:.1f} KB ({', '.join(faces)})")
 
 
 def main():

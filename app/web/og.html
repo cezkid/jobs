@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CEZ Job Finder share image</title>
+<!-- Source of docs/og.png (1200x630): uv run app/web/assets.py --only og. Tokens + hero sheet
+     copied from docs/index.html. Bottom 90px kept clear (X lays its headline there); key
+     content inside the central 1100x530. Never put the install line on the card. -->
+<style>
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+  :root { --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --line: #c8c8c8; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    position: relative; background: var(--paper); color: var(--ink);
+    font: 24px/1.4 "Caladea", serif;
+  }
+  mark { background: var(--mark); color: var(--ink); padding: 0 0.1em; white-space: nowrap; }
+
+  .top { position: absolute; left: 50px; right: 50px; top: 50px; display: flex; justify-content: space-between; align-items: center; }
+  .brand { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 700; }
+  .brand svg { width: 44px; height: 44px; }
+  .site { font-size: 22px; color: var(--ink-2); }
+
+  .intro { position: absolute; left: 50px; top: 150px; width: 620px; }
+  h1 { margin: 0; font-size: 62px; line-height: 1.08; font-weight: 700; letter-spacing: -0.005em; }
+  h1 span { display: block; }
+  h1 span + span { margin-top: 14px; }
+  .lede { margin: 26px 0 0; font-size: 23px; color: var(--ink-2); white-space: nowrap; }
+
+  figure { position: absolute; right: 56px; top: 138px; width: 420px; margin: 0; isolation: isolate; }
+  .posting { margin: 0 0 18px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; font-size: 18px; line-height: 1.4; }
+  .posting p { margin: 0; }
+  .posting .from { color: var(--ink-2); font-size: 16px; margin-bottom: 2px; }
+  .sheet {
+    position: relative; padding: 22px 26px 20px; background: var(--paper);
+    border: 1px solid var(--ink); font-size: 17px; line-height: 1.42; margin-right: 6px;
+  }
+  .sheet::before {
+    content: ""; position: absolute; inset: -1px; transform: translate(6px, 6px); z-index: -1;
+    background: var(--paper); border: 1px solid var(--ink);
+  }
+  .sheet p { margin: 0; }
+  .sheet .name { font-size: 25px; font-weight: 700; line-height: 1.2; }
+  .sheet .contact { color: var(--ink-2); font-size: 15px; }
+  .sheet hr { border: 0; border-top: 1px solid var(--ink); margin: 10px 0; }
+  .sheet ul { margin: 6px 0 0; padding-left: 1.1em; }
+  .sheet li { margin: 0 0 4px; }
+  .approved { display: flex; align-items: center; gap: 8px; margin: 16px 0 0; font-size: 19px; }
+  .approved svg { width: 24px; height: 24px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="#000"/>
+      <rect x="8" y="4" width="16" height="24" fill="#fff"/>
+      <rect x="10" y="13" width="12" height="6" fill="#FFE433"/>
+      <g stroke="#000" stroke-width="2.4" stroke-linecap="butt">
+        <path d="M11 9.5h10"/>
+        <path d="M11 16h10"/>
+        <path d="M11 22.5h7"/>
+      </g>
+    </svg>
+    CEZ Job Finder
+  </div>
+  <div class="site">jobs.enrriquez.com</div>
+</header>
+
+<div class="intro">
+  <h1><span>New jobs every morning.</span><span>A resume fitted to each job you pick.</span></h1>
+  <p class="lede">Free. Windows and Mac. Uses your paid Claude or ChatGPT plan.</p>
+</div>
+
+<figure>
+  <div class="posting">
+    <p class="from">From the posting</p>
+    <p>"...lead our <mark>support team</mark> and bring down <mark>wait times</mark>..."</p>
+  </div>
+  <div class="sheet">
+    <p class="name">Your Name</p>
+    <p class="contact">City, State | you@example.com</p>
+    <hr>
+    <p><b>Customer Support Lead</b>, 2021 - now</p>
+    <ul>
+      <li>Led <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</li>
+      <li>Wrote the refund guide new hires train on.</li>
+    </ul>
+  </div>
+  <p class="approved"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
+</figure>
+</body>
+</html>
