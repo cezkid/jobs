@@ -161,6 +161,8 @@ def fill(slug: str) -> None:
         if said := CLOSED.search(page_text(page)):
             sys.exit(f"the posting says it's closed (\"{said.group()}\") - nothing filled; ask the user, "
                      "then status set <job> closed")
+        if hasattr(system, "recover"):  # optional: the link landed somewhere without the form
+            system.recover(page, data["url"])
         page.locator(system.READY).first.wait_for(timeout=30000)
         # resume first: an upload must never re-trigger anything over typed answers
         for q in sorted(data["questions"], key=lambda q: q["kind"] != "file"):

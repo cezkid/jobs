@@ -11,6 +11,10 @@ can be taught (`apply-systems.md` #Add a system).
 User not technical - `AGENTS.md` #User = not technical binds. Why each rule exists (measured):
 `app/docs/apply/workday.md`. New tenant quirk found -> add it there, same PR as the fix.
 
+Speed (`AGENTS.md` #Speed): user waits while you work. Form won't load or a box won't fill ->
+unblock by hand once (other link, the upload yourself, tell them the one box to do), hand the
+form over, fix the program after.
+
 ## Hard limits (safety rules - never relax)
 
 - User signs in / creates the account themselves. Never type a password.

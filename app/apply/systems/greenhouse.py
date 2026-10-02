@@ -4,6 +4,7 @@ Measured facts and why each rule exists: app/docs/apply/greenhouse.md.
 """
 import re
 from pathlib import Path
+from urllib.parse import quote, urlsplit
 
 import httpx
 
@@ -44,6 +45,22 @@ def parse_url(url: str) -> tuple[str, str, str]:
 def application_url(url: str) -> str:
     eu, board, job = parse_url(url)
     return f"https://job-boards{eu}.greenhouse.io/{board}/jobs/{job}"
+
+
+def embed_url(url: str, site: str) -> str:
+    """The bare form for a board that sends its job page on to the employer's own site (2026-10): `b=` names that site, so Greenhouse serves the form instead of redirecting."""
+    eu, board, job = parse_url(url)
+    return f"https://job-boards{eu}.greenhouse.io/embed/job_app?for={board}&token={job}&b={quote(site, safe='')}"
+
+
+def recover(page, url: str) -> None:
+    """Landed off Greenhouse (the board redirects to the employer's careers page, no form there)
+    -> open the embedded form for the same job on this tab."""
+    here = urlsplit(page.url)
+    if here.hostname and not here.hostname.endswith("greenhouse.io"):
+        page.goto(embed_url(url, f"{here.scheme}://{here.hostname}"))
+        # upload before its scripts settle -> the page's own "reading 'uploadFile'" error (2026-10)
+        page.wait_for_load_state("networkidle")
 
 
 def from_board(job: dict) -> list[dict]:
