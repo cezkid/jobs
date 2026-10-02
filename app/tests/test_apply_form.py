@@ -673,6 +673,21 @@ GH_JOB = {
                                                           "values": [{"label": "Hispanic or Latino", "value": "4"}]}]}]}]}
 
 
+def test_greenhouse_board_that_redirects_to_employer_site_opens_embedded_form():
+    class Page:
+        def __init__(self, url): self.url, self.went = url, None
+        def goto(self, url): self.went = url
+        def wait_for_load_state(self, state=None): pass
+    link = "https://job-boards.greenhouse.io/acme/jobs/1234567"
+    away = Page("https://careers.example.com/jobs?gh_jid=1234567")
+    greenhouse.recover(away, link)
+    assert away.went == ("https://job-boards.greenhouse.io/embed/job_app?for=acme&token=1234567"
+                         "&b=https%3A%2F%2Fcareers.example.com")
+    home = Page(link)
+    greenhouse.recover(home, link)
+    assert home.went is None
+
+
 def test_greenhouse_form_becomes_shared_questions():
     got = {x["id"]: x for x in greenhouse.from_board(GH_JOB)}
     assert (got["first_name"]["key"], got["email"]["kind"], got["phone"]["kind"]) == ("first_name", "email", "phone")
@@ -756,6 +771,15 @@ def test_saved_voluntary_answers_fill_only_after_the_users_yes():
     # nothing saved for race beyond "not Hispanic": asked, never guessed
     got = questions.draft(asked[1:2], {}, config={"self_identification": {"hispanic_latino": False, "fill_on_forms": True}})
     assert got[0]["answer"] is None
+
+
+def test_saved_voluntary_answers_match_other_wordings():
+    config = {"self_identification": {"gender": "Male", "hispanic_latino": True, "fill_on_forms": True}}
+    asked = [questions.question("g", "Gender Identity", "choice", False, ["Man", "Woman", "Non-Binary"]),
+             questions.question("r", "Race/Ethnicity (Select all that apply)", "multichoice", False,
+                                ["Asian", "Hispanic, Latinx, or Spanish Origin", "White"])]
+    got = questions.draft(asked, {}, config=config)
+    assert [a["answer"] for a in got] == ["Man", ["Hispanic, Latinx, or Spanish Origin"]]
 
 
 def test_answer_dropped_after_filling_is_filled_again_then_flagged():

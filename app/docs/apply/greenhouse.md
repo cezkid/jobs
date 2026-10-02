@@ -43,3 +43,10 @@ never clicked. After Submit the address ends `/confirmation`.
 | Tenant | Measured |
 |---|---|
 | tenant A | EEOC + own demographic survey both on one form - two separate sets of voluntary questions |
+
+## Board that sends its job page to the employer's own site (2026-10)
+
+`job-boards.greenhouse.io/<co>/jobs/<id>` 302s to the employer's careers page (seen: its own form, other
+field names - no `#first_name`). `recover` opens `embed/job_app?for=<co>&token=<id>&b=<site>`
+instead: `b=` stops the redirect, same form ids. Wait for network idle before the upload - too
+early, the page shows its own "Cannot read properties of undefined (reading 'uploadFile')".

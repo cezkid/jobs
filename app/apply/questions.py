@@ -350,7 +350,10 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
     return out
 
 
-def voluntary_answer(q: dict, config: dict) -> str | None:
+SAME_GENDER = {"male": ("man",), "man": ("male",), "female": ("woman",), "woman": ("female",)}
+
+
+def voluntary_answer(q: dict, config: dict) -> str | list[str] | None:
     """The user's saved self-identification (`self_identification` in search settings) as this
     question's option - only after they said yes to filling it on forms (`fill_on_forms: true`).
     Exactly one option must match, else None and the user is asked as before."""
@@ -362,11 +365,16 @@ def voluntary_answer(q: dict, config: dict) -> str | None:
         want = (lambda o: "not a protected veteran" in o) if saved["protected_veteran"] is False \
             else (lambda o: o.startswith("i identify as"))
     elif re.search(r"\bgender\b", title) and saved.get("gender"):
-        want = lambda o: o == str(saved["gender"]).casefold()
+        said = str(saved["gender"]).casefold()
+        same = {said, *SAME_GENDER.get(said, ())}  # "Male" saved, another list says "Man" (2026-10)
+        want = lambda o: o in same
     elif re.search(r"\brace\b|ethnic|hispanic", title) and saved.get("hispanic_latino") is True:
-        want = lambda o: o.startswith("hispanic or latino")
+        # "Hispanic or Latino" (EEOC), "Hispanic, Latinx, or Spanish Origin" (2026-10)
+        want = lambda o: o.startswith("hispanic")
     hits = [o for o in q["options"] if want and want(o.casefold().strip())]
-    return hits[0] if len(hits) == 1 else None
+    if len(hits) != 1:
+        return None
+    return [hits[0]] if q["kind"] == "multichoice" else hits[0]
 
 
 def asks_voluntary(answers: list[dict]) -> bool:
