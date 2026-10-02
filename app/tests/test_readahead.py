@@ -24,8 +24,13 @@ def client(status: int, body: dict | None = None) -> httpx.Client:
 
 def test_answer_words_map_to_kinds_and_keys():
     asked = readahead.as_questions(FORM)
-    assert [q["kind"] for q in asked] == ["text", "text", "choice", "yesno", "text", "longtext"]
-    assert asked[0]["key"] == "linkedin" and asked[0]["options"] == []
+    basics, own = asked[:5], asked[5:]
+    assert [q["kind"] for q in own] == ["text", "text", "choice", "yesno", "text", "longtext"]
+    assert own[0]["key"] == "linkedin" and own[0]["options"] == [] and own[0]["id"] == "q1"
+    # contact boxes + uploads come first, answered from the resume - the paste page never skips them
+    assert [(q["id"], q["kind"], q["key"], q["required"]) for q in basics] == [
+        ("b1", "text", "first_name", True), ("b2", "text", "last_name", True), ("b3", "email", "email", True),
+        ("b4", "file", "resume", True), ("b5", "file", "cover_letter", False)]
 
 
 def test_404_is_not_known_ahead_never_asks_nothing():
@@ -66,7 +71,7 @@ def test_unsupported_form_read_ahead_becomes_a_page_to_paste(tmp_path, monkeypat
     monkeypatch.setattr(form.cfg, "resume_path", lambda c, k: tmp_path / "r.yml")
     monkeypatch.setattr(form.schema, "load", lambda p: {"contact": {"name": "Jane Doe", "links": ["linkedin.com/in/jane"]}})
     monkeypatch.setattr(form, "job_dir", lambda config, slug: folder)
-    form.prepare("5", "https://job-boards.greenhouse.io/acme/jobs/5")
+    form.prepare("5", "https://jobs.lever.co/acme/5")
     saved = json.loads((folder / ".data" / questions.FILE).read_text())
     assert saved["system"] == form.PASTE
     with pytest.raises(SystemExit, match="paste"):
@@ -75,6 +80,8 @@ def test_unsupported_form_read_ahead_becomes_a_page_to_paste(tmp_path, monkeypat
     text = (folder / form.ANSWERS_FILE).read_text()
     assert "**LinkedIn Profile**" in text and "linkedin.com/in/jane" in text.casefold()
     assert "**What are your salary expectations?** (required)\n\n(yours to answer on the page)" in text
+    assert "**First Name** (required)\n\nJane" in text and "**Last Name** (required)\n\nDoe" in text
+    assert text.index("**Email**") < text.index("**LinkedIn Profile**")
 
 
 @pytest.mark.parametrize("page, closed", [

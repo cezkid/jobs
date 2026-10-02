@@ -48,10 +48,26 @@ def load(folder: Path) -> dict | None:
     return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
 
 
+def basic(title: str) -> tuple[str, str | None]:
+    """A contact box or upload from `basics`: its kind + key, so the resume answers it."""
+    t = title.casefold()
+    if "cover letter" in t or re.search(r"\b(resume|cv)\b", t):
+        return "file", questions.key_from_title(title, "file")
+    for word in ("email", "phone", "location"):
+        if word in t:
+            return word, word
+    return "text", questions.key_from_title(title, "text")
+
+
 def as_questions(form: dict) -> list[dict]:
-    """The captured questions in the shape every system's questions share (no options: the
-    capture has none - the user picks the matching one on the page)."""
+    """The captured boxes in the shape every system's questions share: contact boxes + uploads
+    first (`basics`, b1..: name, email, resume - all but a cover letter required, as the page
+    shows them), then the employer's questions (q1..). No options: the capture has none - the
+    user picks the matching one on the page."""
     out = []
+    for i, title in enumerate(form.get("basics") or [], 1):
+        kind, key = basic(title)
+        out.append(questions.question(f"b{i}", title, kind, key != "cover_letter", key=key))
     for i, q in enumerate(form.get("questions") or [], 1):
         kind = ANSWER_KIND.get(q.get("answer"), "text")
         out.append(questions.question(f"q{i}", q["text"], kind, bool(q.get("required")),

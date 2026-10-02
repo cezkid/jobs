@@ -6,7 +6,7 @@ from datetime import date
 import pytest
 
 from apply import form, questions, systems
-from apply.systems import ashby, ukg
+from apply.systems import ashby, greenhouse, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -33,7 +33,8 @@ def test_every_system_module_is_registered_and_keeps_the_contract(module):
 
 def test_link_picks_its_system_or_says_where_else():
     assert systems.for_url("https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a") is ashby
-    assert systems.for_url("https://boards.greenhouse.io/acme/jobs/1") is None
+    assert systems.for_url("https://boards.greenhouse.io/acme/jobs/1") is greenhouse
+    assert systems.for_url("https://jobs.lever.co/acme/1b2c") is None
     assert "Workday" in systems.elsewhere("https://acme.wd5.myworkdayjobs.com/en-US/careers/job/x")
 
 
@@ -631,3 +632,96 @@ def test_resume_goes_in_the_resume_box_only():
     assert ashby.fill(Page(), letter, None).startswith("ASK cover letter box - no letter made")
     other = {**letter, "title": "Portfolio", "key": None}
     assert ashby.fill(Page(), other, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")
+
+
+# --- Greenhouse ---
+
+def test_greenhouse_link_plain_eu_embed_or_tracking_tail():
+    base = "https://job-boards.greenhouse.io/acme/jobs/1234567"
+    for url in (base, base + "?utm_source=freehire.me", "https://boards.greenhouse.io/acme/jobs/1234567",
+                "https://boards.greenhouse.io/embed/job_app?for=acme&token=1234567",
+                "https://job-boards.greenhouse.io/embed/job_app?token=1234567&for=acme"):
+        assert greenhouse.matches(url) and greenhouse.application_url(url) == base
+    assert greenhouse.application_url("https://job-boards.eu.greenhouse.io/acme/jobs/7") == "https://job-boards.eu.greenhouse.io/acme/jobs/7"
+    assert not greenhouse.matches("https://www.example.com/careers?gh_jid=7654321")  # board unknown from an employer's own page
+
+
+# job board answer, anonymised from a live posting (2026-10-02)
+GH_JOB = {
+    "questions": [
+        {"label": "First Name", "required": True, "fields": [{"name": "first_name", "type": "input_text", "values": []}]},
+        {"label": "Email", "required": True, "fields": [{"name": "email", "type": "input_text", "values": []}]},
+        {"label": "Phone", "required": True, "fields": [{"name": "phone", "type": "input_text", "values": []}]},
+        {"label": "Resume/CV", "required": True, "fields": [{"name": "resume", "type": "input_file", "values": []},
+                                                              {"name": "resume_text", "type": "textarea", "values": []}]},
+        {"label": "LinkedIn Profile", "required": True, "fields": [{"name": "question_1", "type": "input_text", "values": []}]},
+        {"label": "Are you legally authorized to work in the United States for Acme?", "required": True,
+         "fields": [{"name": "question_2", "type": "multi_value_single_select", "values": [{"label": "Yes", "value": 1}, {"label": "No", "value": 0}]}]},
+        {"label": "Do you now, or will you in the future, require sponsorship?", "required": True,
+         "fields": [{"name": "question_3", "type": "multi_value_single_select",
+                     "values": [{"label": "No, I do not require sponsorship.", "value": 1}, {"label": "Yes, I require sponsorship.", "value": 2}]}]}],
+    "location_questions": [{"label": "Latitude", "required": True, "fields": [{"name": "latitude", "type": "input_hidden", "values": []}]},
+                           {"label": "Location", "required": True, "fields": [{"name": "location", "type": "input_text", "values": []}]}],
+    "demographic_questions": {"questions": [
+        {"id": 401, "label": "How would you describe your gender identity? (mark all that apply)", "required": False,
+         "type": "multi_value_multi_select", "answer_options": [{"id": 1, "label": "Man", "free_form": False},
+                                                                {"id": 2, "label": "I prefer to self-describe", "free_form": True}]}]},
+    "compliance": [{"type": "eeoc", "questions": [
+        {"label": "VeteranStatus", "required": False, "fields": [{"name": "veteran_status", "type": "multi_value_single_select",
+                                                                   "values": [{"label": "I am not a protected veteran", "value": "1"}]}]},
+        {"label": "Race", "required": False, "fields": [{"name": "race", "type": "multi_value_single_select",
+                                                          "values": [{"label": "Hispanic or Latino", "value": "4"}]}]}]}]}
+
+
+def test_greenhouse_form_becomes_shared_questions():
+    got = {x["id"]: x for x in greenhouse.from_board(GH_JOB)}
+    assert (got["first_name"]["key"], got["email"]["kind"], got["phone"]["kind"]) == ("first_name", "email", "phone")
+    assert (got["resume"]["kind"], got["resume"]["key"]) == ("file", "resume") and "resume_text" not in got
+    assert got["question_1"]["key"] == "linkedin"
+    assert got["question_2"]["kind"] == "yesno"  # a Yes / No list
+    assert got["question_3"]["kind"] == "choice" and got["question_3"]["options"][0].startswith("No, I do not")
+    # boxes the page shows that the board lists elsewhere or not at all
+    assert got[greenhouse.COUNTRY]["required"] and got[greenhouse.LOCATION]["kind"] == "location"
+    assert "latitude" not in got
+    assert got["401"]["kind"] == "multichoice" and got["401"]["options"] == ["Man"]  # self-describe is a free box
+    assert got["veteran_status"]["title"] == "Veteran Status" and not got["veteran_status"]["required"]
+    ids = list(got)
+    assert ids.index("hispanic_ethnicity") == ids.index("race") - 1  # Hispanic/Latino first: it decides if Race shows
+
+
+class GhPage:
+    """The page's own name fill lands a moment after a box's first focus."""
+    def __init__(self):
+        self.pending = None
+
+    def wait_for_timeout(self, ms):
+        if self.pending:
+            field, self.pending = self.pending, None
+            field.value = field.autofill
+
+
+class GhField:
+    def __init__(self, page, autofill=""):
+        self.page, self.value, self.autofill, self.focused = page, "", autofill, False
+
+    def focus(self):
+        if not self.focused and self.autofill:
+            self.page.pending = self
+        self.focused = True
+
+    def fill(self, v):
+        late = self.page.pending is self  # typed before the page's fill landed: they run together
+        self.page.pending = None
+        self.value = (self.autofill if late else "") + v
+
+    def blur(self):
+        pass
+
+    def input_value(self):
+        return self.value
+
+
+def test_greenhouse_text_waits_out_the_pages_own_name_fill():
+    field = GhField(GhPage(), autofill="Jane")
+    assert greenhouse.put_text(field, "Ada", "text") == "ok" and field.input_value() == "Ada"
+    assert greenhouse.put_text(GhField(GhPage()), "(555) 010-0100", "phone") == "ok"

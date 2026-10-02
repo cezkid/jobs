@@ -170,10 +170,11 @@ when asked, at setup, and before any step sending something new off computer.
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
-| Resume + answers you paste | that employer's site (Greenhouse, Lever, Workable ...) | That employer, once you click Submit |
+| Resume + answers you paste | that employer's site (Lever, Workable ...) | That employer, once you click Submit |
 | Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude or ChatGPT) | User's own AI account; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
+| Contact details, answers, resume you apply with | that employer's Greenhouse site | That employer, once you click Submit |
 | Work history, education, skills, links you apply with | that employer's UKG site | That employer, as each is added (only after you say yes) |
 | Contact details, answers, resume you apply with | that employer's UKG site | That employer, once you click Submit |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |

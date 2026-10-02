@@ -8,10 +8,11 @@ small plug-in.
 |---|---|---|---|
 | Workday | `<co>.wd<N>.myworkdayjobs.com` | `apply` script, run by the Claude Chrome extension (sign-in wall, multi-page) | `workday.md` |
 | Ashby | `jobs.ashbyhq.com/<co>/<id>` | `apply-form`, Job Finder's own Chrome | `ashby.md` |
+| Greenhouse | `job-boards.greenhouse.io/<co>/jobs/<id>` (also `boards.`, `.eu.`, `embed/job_app?for=<co>&token=<id>`) | `apply-form`, Job Finder's own Chrome | `greenhouse.md` |
 | UKG Pro Recruiting | `recruiting<N>.ultipro.com/<tenant>/JobBoard/<board>/OpportunityDetail?opportunityId=<id>` | `apply-form`, Job Finder's own Chrome; user signs in first, questions read off the signed-in form | `ukg.md` |
 
-Not yet: Greenhouse (`boards.greenhouse.io`, `job-boards.greenhouse.io`), Lever (`jobs.lever.co`),
-SmartRecruiters, iCIMS, Workable. Where the form's questions were read ahead (Greenhouse, Lever,
+Not yet: Lever (`jobs.lever.co`), SmartRecruiters, iCIMS, Workable; Greenhouse embedded on an
+employer's own page (`?gh_jid=` - board name unknown). Where the form's questions were read ahead (Lever,
 Workable, Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
 `apply-form paste` writes `Application answers.md` to paste from. Otherwise `prepare` says so
 plainly -> user gets tailored PDF + answers to paste.
