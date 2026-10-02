@@ -117,8 +117,9 @@
   /* hero figure: a posting, then the resume sheet it changed */
   figure { margin: 0; isolation: isolate; max-width: 420px; }
   .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .posting { margin: 0 0 18px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 8px; font-size: 17px; }
+  .posting { margin: 0 0 22px; font-size: 17px; }
   .posting p { margin: 0; }
+  figure mark { white-space: nowrap; }
   .posting .from { color: var(--text-2); font-size: 15px; margin-bottom: 2px; }
   .sheet {
     position: relative; padding: 26px 28px 24px; background: var(--paper); color: var(--ink);
@@ -240,7 +241,7 @@
       <figcaption class="vh">Example: a resume line reworded with the posting's words. You approve each change.</figcaption>
       <div class="posting">
         <p class="from">From the posting</p>
-        <p>"...lead our <mark>support team</mark> and bring down <mark>wait times</mark>..."</p>
+        <p>“…lead our <mark>support team</mark> and bring down <mark>wait times</mark>…”</p>
       </div>
       <div class="sheet">
         <p class="name">Your Name</p>
