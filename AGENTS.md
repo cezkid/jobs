@@ -261,7 +261,9 @@ Check fails -> fix JSON per violations, rerun. Program counts failed checks per 
 new task file); 3rd failure (= 2 failed retries) prints `STOP` + one plain line worded per AI
 (Copilot: its automatic model couldn't meet the rules, Copilot Pro lets them pick a stronger model;
 others: the AI couldn't after 3 tries) + the safe fallback (untailored resume, unchanged PDF ...) -
-pass both on word for word, stop. No other program writes resume content.
+pass both on word for word, stop. Tailoring: a failed check moves the tailored PDF out of the job
+folder (`.data/not ready - ...`), STOP says it's not ready + names the untailored PDF - never give
+the user a path to a tailored PDF that failed. No other program writes resume content.
 
 Tailored page rules (gates `pages` + `line-fill`, tailored copies only): 1 page, or 2 w/ the
 2nd 60%+ full. Word budget scales w/ the measured page; facts too thin for any window are

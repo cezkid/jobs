@@ -508,14 +508,37 @@ def posting_files(text_file: Path) -> tuple[Path, Path]:
     return text_file.with_name(f"{text_file.stem}-task.md"), text_file.with_suffix(".json")
 
 
-def untailored(config: dict) -> str:
-    """Stop line's safe fallback for a tailoring step: the untailored PDF, when made."""
+NOT_READY = "The resume tailored for this job didn't pass its checks - it's not ready, don't send it."
+
+
+def untailored(config: dict, tailoring: bool = False) -> str:
+    """Stop line's safe fallback for a tailoring step: the untailored PDF, when made. Tailoring
+    => also says the tailored one isn't ready (Copilot test: its answer gave the failed PDF)."""
     master_path = cfg.resume_path(config, "master")
     try:
         pdf = master_path.parent / render.file_name(schema.load(master_path))
     except (OSError, ValueError, KeyError):
-        return ""
-    return f"Meanwhile your untailored resume is ready to send: {pdf}" if pdf.exists() else ""
+        pdf = None
+    safe = f"Meanwhile your untailored resume is ready to send: {pdf}" if pdf and pdf.exists() else ""
+    return "\n  ".join(filter(None, [NOT_READY if tailoring else "", safe]))
+
+
+def not_ready_path(job_dir: Path, pdf: Path) -> Path:
+    """Where a tailored PDF failing its checks waits: hidden, never under the name sent."""
+    return job_dir / JOB_DATA / f"not ready - {pdf.name}"
+
+
+def hold_back(job_dir: Path, pdf: Path) -> None:
+    """Checks failed => the PDF just made leaves the job folder, so no one hands it over as done."""
+    try:
+        pdf.replace(not_ready_path(job_dir, pdf))
+    except FileNotFoundError:
+        return
+    except OSError:  # Windows: open in a viewer => can't move; say so, never leave it looking done
+        print(f"  {pdf.name} is open in another program and failed its checks - not ready, don't send it")
+        return
+    print(f"  tailored PDF not ready - kept out of the job folder until the check passes: "
+          f"{not_ready_path(job_dir, pdf)}")
 
 
 def posting(text_file: Path, url: str) -> None:
@@ -597,7 +620,7 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
     (job_dir / POSTING_FILE).write_text(report.posting_md(job), encoding="utf-8")
     request = build_request(master, job, cfg.resume_font(config), cfg.title_mirror_always(config))
     handoff.write_task(data / "task.md", data / "tailored.json", request["system"], request["schema"],
-                       request["prompt"], check_command(job["public_slug"]), untailored(config))
+                       request["prompt"], check_command(job["public_slug"]), untailored(config, tailoring=True))
     print(f"job {num}, job folder: {job_dir}")
     if reopened:
         print(f"was marked {reopened} - back in {job_dir.parent.name}")
@@ -635,8 +658,10 @@ def check(config: dict, slug: str) -> int:
     print(f"coverage {met}/{len(rows)} met, {len(required_gaps)} required gap(s)")
     print(f"{'FAILED - fix tailored.json, rerun check' if result['failed'] else 'passed'}: {job_dir}")
     if result["failed"]:
+        hold_back(job_dir, result["pdf"])
         handoff.failed(data / "tailored.json")
         return 1
+    not_ready_path(job_dir, result["pdf"]).unlink(missing_ok=True)
     handoff.passed(data / "tailored.json")
     import status  # status files job folders; it reads them through this module
     conn = store.connect(cfg.db_path(config))

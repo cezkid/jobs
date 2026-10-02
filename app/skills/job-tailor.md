@@ -32,8 +32,9 @@
    folder stays in its stage; a closed one reopens - prepare says "back in 1 To apply", tell
    them). Do task yourself (`AGENTS.md` #AI writing steps), then
    `uv run app/jobs.py tailor check <job number>`. FAIL lines -> fix `tailored.json`, rerun
-   check; never hand over PDF while check fails. Check prints STOP -> pass its lines on word for
-   word, stop.
+   check; never hand over PDF while check fails (a failed check moves it to `.data/not ready -
+   ...` - never name that one). Check prints STOP -> pass its lines on word for word (they name
+   the untailored PDF), stop.
    - `gate pages` -> 3+ pages, or a 2nd page under 60% full (1 page is fine). Cut or add
      bullets, never retype the layout. User wants 3 pages or a layout the gates fail -> push
      back (below).
