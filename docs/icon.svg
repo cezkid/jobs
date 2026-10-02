@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <style>
+    .edge { stroke: none; }
+    @media (prefers-color-scheme: dark) { .edge { stroke: #F2F2F2; stroke-width: 1; } }
+  </style>
+  <rect class="edge" x="0.5" y="0.5" width="31" height="31" rx="7" fill="#000"/>
+  <rect x="8" y="4" width="16" height="24" fill="#fff"/>
+  <rect x="10" y="13" width="12" height="6" fill="#FFE433"/>
+  <g stroke="#000" stroke-width="2.4" stroke-linecap="butt">
+    <path d="M11 9.5h10"/>
+    <path d="M11 16h10"/>
+    <path d="M11 22.5h7"/>
+  </g>
+</svg>
