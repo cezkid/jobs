@@ -23,6 +23,8 @@ from resume import render, schema, tailor
 # a system the program can't fill: answers drafted from the read-ahead, pasted by the user
 PASTE = "paste"
 ANSWERS_FILE = "Application answers.md"
+# how long a form gets to save typed answers before they are read back
+SETTLE_MS = 2500
 # what a closed posting says where its form would be
 CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|(?:position|job|role) (?:has been|is) "
                     r"(?:filled|closed)|(?:this )?job (?:post(?:ing)? )?(?:is )?closed|isn't accepting applications|"
@@ -87,6 +89,11 @@ def prepare(slug: str, url: str) -> None:
     print(f"{where} -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
     for a in answers:
         print(line(a))
+    selfid = config.get("self_identification") or {}
+    if questions.asks_voluntary(answers) and selfid and selfid.get("fill_on_forms") is None:
+        print("ask once: fill the user's saved voluntary answers (gender, race, veteran) on forms, named before "
+              "Submit? Yes -> self_identification.fill_on_forms: true in search settings, then prepare again; "
+              "No -> false (asked on each form as now)")
     if keeping is None:
         print("ask once: keep the user's own answers for the next form (named before Submit, on this computer)? "
               "Yes -> saved_answers: true in search settings, No -> false")
@@ -164,6 +171,7 @@ def fill(slug: str) -> None:
             except Exception as e:  # one stuck box never stops the rest
                 result = f"FAIL {type(e).__name__}: {str(e).splitlines()[0][:120]}"
             report.append((q["title"], result))
+        report = recheck(page, system, data["questions"], report, resume)
         known = {q["id"] for q in data["questions"]}
         extra = [i for i in system.ids_on_page(page) if i not in known]
     for title, result in report:
@@ -178,6 +186,26 @@ def fill(slug: str) -> None:
         print(f"  {len(extra)} question(s) on the page not in the answers file - user answers them on screen")
     remember(config, folder, data)
     print("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.")
+
+
+def recheck(page, system, qs: list[dict], report: list[tuple], resume: str | None) -> list[tuple]:
+    """Answers that showed then dropped before Submit (a user saw two flagged empty on Ashby,
+    2026-10): once the form has had time to save, read each back; one gone is filled again once,
+    still gone -> FAIL so the user fills it by hand. Systems without `holds` are left as filled."""
+    if not hasattr(system, "holds"):
+        return report
+    page.wait_for_timeout(SETTLE_MS)
+    by_title = {q["title"]: q for q in qs}
+    out = []
+    for title, result in report:
+        q = by_title[title]
+        if result == "ok" and q["kind"] != "file" and not system.holds(page, q):
+            result = system.fill(page, q, resume)
+            page.wait_for_timeout(SETTLE_MS)
+            if result == "ok" and not system.holds(page, q):
+                result = "FAIL answer dropped after filling - fill it by hand"
+        out.append((title, result))
+    return out
 
 
 def remember(config: dict, folder: Path, data: dict) -> None:

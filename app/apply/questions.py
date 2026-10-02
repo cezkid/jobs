@@ -86,7 +86,10 @@ TOPICS = (
     ("being 18 or older", r"\b18 (?:years|or older)|over the age of 18|at least 18"),
 )
 # asked only of the user, never drafted - not even from a setting that seems to fit
-NEVER_DRAFT = ("the pay you expect", "where you live", "voluntary questions about you")
+VOLUNTARY = "voluntary questions about you"
+NEVER_DRAFT = ("the pay you expect", "where you live", VOLUNTARY)
+# a voluntary question filled from the user's saved self-identification, after their yes to it
+VOLUNTARY_SAVED = "your saved voluntary answer"
 
 
 
@@ -324,7 +327,10 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
             out.append({**q, "answer": str(home[q["key"]]), "source": "search settings - name it to the user"})
             continue
         hit = answers.recall(saved or [], q)
-        if topic := never_draft(q["title"]):
+        if (topic := never_draft(q["title"])) == VOLUNTARY and (pick := voluntary_answer(q, config or {})):
+            out.append({**q, "answer": pick, "source": f"search settings - {VOLUNTARY_SAVED} - name it to the user"})
+            continue
+        if topic:
             offer = f" - offer saved answer {hit[1]['answer']!r} ({answers.named(hit[1])})" if hit else ""
             out.append({**q, "answer": None, "source": f"{ASK} - {YOURS}: {topic}{offer}"})
             continue
@@ -342,6 +348,29 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         source = names(contact)[1] if q["key"] in PLAIN_NAME else ASK
         out.append({**q, "answer": answer or None, "source": "resume" if answer else source})
     return out
+
+
+def voluntary_answer(q: dict, config: dict) -> str | None:
+    """The user's saved self-identification (`self_identification` in search settings) as this
+    question's option - only after they said yes to filling it on forms (`fill_on_forms: true`).
+    Exactly one option must match, else None and the user is asked as before."""
+    saved = config.get("self_identification") or {}
+    if saved.get("fill_on_forms") is not True or not q["options"]:
+        return None
+    title, want = q["title"].casefold(), None
+    if "veteran" in title and saved.get("protected_veteran") is not None:
+        want = (lambda o: "not a protected veteran" in o) if saved["protected_veteran"] is False \
+            else (lambda o: o.startswith("i identify as"))
+    elif re.search(r"\bgender\b", title) and saved.get("gender"):
+        want = lambda o: o == str(saved["gender"]).casefold()
+    elif re.search(r"\brace\b|ethnic|hispanic", title) and saved.get("hispanic_latino") is True:
+        want = lambda o: o.startswith("hispanic or latino")
+    hits = [o for o in q["options"] if want and want(o.casefold().strip())]
+    return hits[0] if len(hits) == 1 else None
+
+
+def asks_voluntary(answers: list[dict]) -> bool:
+    return any(never_draft(a["title"]) == VOLUNTARY for a in answers)
 
 
 def unvouched(answers: list[dict]) -> list[dict]:

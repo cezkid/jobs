@@ -118,7 +118,9 @@ FAILs `title-changed`, `employer-changed`, `dates-changed`. A posting's title go
 `title_mirror` (suffix only: "Software Engineer (Full Stack Engineer)"), never in place of
 theirs: whole words of the posting title only, never a level word their own title lacks (Staff
 Nurse never mirrored as Nurse Manager - check fails it). They confirm every mirror in "To
-confirm" (step 3). A self-added narrowing suffix ("Software Engineer (Frontend)") is the user's
+confirm" (step 3) - unless `resume.title_mirror: always` in settings (they said yes to all once,
+"always adjust the job title"): then it is listed under "Job titles", never asked. Back to asking
+-> set `ask`. A self-added narrowing suffix ("Software Engineer (Frontend)") is the user's
 to drop: no verification risk, but it labels them narrower than their bullets and stacks the
 mirror into two parentheticals. Ask whose wording it is before touching it.
 

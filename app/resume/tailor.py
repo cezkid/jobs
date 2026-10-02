@@ -86,8 +86,12 @@ def char_guides(font: str) -> tuple[int, tuple[int, int]]:
     return max(one), (min(filled), max(high))
 
 
+MIRROR_ALWAYS = ("The user's settings pre-approve mirrors: add one on every role whose work "
+                 "genuinely matches the posting's title; null only where it does not.")
+
+
 @functools.cache
-def system(font: str) -> str:
+def system(font: str, mirror_always: bool = False) -> str:
     one_line_chars, two_line_chars = char_guides(font)
     return f"""You tailor one candidate's resume to one job posting. Input JSON: `master` (candidate facts, stable ids), `job` (posting + indexed requirements), `budget`. You emit selection + rewrite JSON; code lays out the page and checks every rule below.
 
@@ -99,7 +103,7 @@ Entries
 - Bullets per entry, by relevance to this posting, recency breaking ties: 3-5 for a recent role ({MAX_BULLETS_PER_ENTRY} max), 2-3 for older. An old role that proves a required item keeps the bullets proving it; 0 bullets for the oldest only when it proves nothing required.
 - Every bullet either fits ONE line or FILLS two. Land between and it wraps to a stub carrying a few words, wasting a whole row. The check measures rendered width in the real font, so character counts are a guide only: about {one_line_chars} characters or fewer fits one line, {two_line_chars[0]}-{two_line_chars[1]} fills two. Write to the nearer edge, never into the gap. Never cut a number or a name to make a line fit; shorten the other words.
 - Mix the two: at least one bullet in {ONE_LINE_SHARE} fits a single line, so the page never reads templated.
-- `title_mirror`: null, or whole words of the posting's title copied exactly, on a role whose work genuinely matches it. Rendered as "Master Title (mirror)". Never abbreviate. Never a level the candidate's own title lacks ({", ".join(SENIORITY)}): a Staff Nurse is never mirrored as Nurse Manager. The user confirms every mirror.
+- `title_mirror`: null, or whole words of the posting's title copied exactly, on a role whose work genuinely matches it. Rendered as "Master Title (mirror)". Never abbreviate. Never a level the candidate's own title lacks ({", ".join(SENIORITY)}): a Staff Nurse is never mirrored as Nurse Manager. {MIRROR_ALWAYS if mirror_always else 'The user confirms every mirror.'}
 
 Wording
 - Start from the candidate's own claim text. Keep their words where they already fit; change only what this job makes relevant: what leads, emphasis, the posting's term for the same thing.
@@ -203,7 +207,7 @@ def page_words(model: dict) -> int:
     return sum(len(render.tokens(s)) for s in render.page_strings(model))
 
 
-def build_request(master: dict, job: dict, font: str = typeface.DEFAULT) -> dict:
+def build_request(master: dict, job: dict, font: str = typeface.DEFAULT, mirror_always: bool = False) -> dict:
     """Everything AI tailors from; pure function of master + JD + font => byte-identical per slug.
 
     Master goes without its contact block: rewriting lines never needs the name, email or phone,
@@ -224,7 +228,7 @@ def build_request(master: dict, job: dict, font: str = typeface.DEFAULT) -> dict
                    "generated_words": [[low - fixed, high - fixed] for low, high in windows]},
         "master": {k: v for k, v in master.items() if k != "contact"},
     }
-    return {"system": system(font), "schema": TAILORED_SCHEMA, "prompt": json.dumps(payload, indent=1, ensure_ascii=False)}
+    return {"system": system(font, mirror_always), "schema": TAILORED_SCHEMA, "prompt": json.dumps(payload, indent=1, ensure_ascii=False)}
 
 
 def bullet_shape(text: str, where: str, font: str = typeface.DEFAULT) -> list[str]:
@@ -580,7 +584,7 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
         conn.close()
     data = job_dir / JOB_DATA
     (job_dir / POSTING_FILE).write_text(report.posting_md(job), encoding="utf-8")
-    request = build_request(master, job, cfg.resume_font(config))
+    request = build_request(master, job, cfg.resume_font(config), cfg.title_mirror_always(config))
     handoff.write_task(data / "task.md", data / "tailored.json", request["system"], request["schema"],
                        request["prompt"], check_command(job["public_slug"]))
     print(f"job {num}, job folder: {job_dir}")
@@ -604,9 +608,11 @@ def check(config: dict, slug: str) -> int:
     rows = coverage_rows(job, tailored, master)
     today = date.today()
     gaps = schema.employment_gaps(master, today)
+    mirror_ok = cfg.title_mirror_always(config)
     (job_dir / CHECK_FILE).write_text(
-        report.report_md(job, tailored, result, rows, gaps, today, master, readahead.load(job_dir / JOB_DATA))
-        + "\n" + report.diff_md(master, tailored, result["model"]),
+        report.report_md(job, tailored, result, rows, gaps, today, master, readahead.load(job_dir / JOB_DATA),
+                         mirror_ok)
+        + "\n" + report.diff_md(master, tailored, result["model"], mirror_ok),
         encoding="utf-8")
 
     for name, ok, detail in result["gates"]:

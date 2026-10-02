@@ -31,6 +31,9 @@ health - `fair-screening.md`) are marked "ask the user" when prepared. An answer
 from the user, marked `source: "you said"`; `fill` and `paste` refuse any other - a guess at a
 salary is the user's number on the employer's file. Work permit + sponsorship come only from
 setup's answers, the US question asked the same way (`questions.work_permit`).
+Voluntary questions: one exception, the user's consent first - with `self_identification` saved,
+`prepare` asks once whether to fill it on forms (`fill_on_forms`); yes -> filled when exactly one
+option matches, named before Submit; no or unasked -> asked on each form as before.
 
 ## Saved answers (`app/apply/answers.py`)
 

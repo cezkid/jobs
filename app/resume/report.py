@@ -95,7 +95,8 @@ def posting_history(job: dict) -> str:
 
 
 def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: list[dict],
-              today: date | None = None, master: dict | None = None, form: dict | None = None) -> str:
+              today: date | None = None, master: dict | None = None, form: dict | None = None,
+              mirror_ok: bool = False) -> str:
     enrichment = job.get("enrichment") or {}
     facts = [
         ("Link", job["url"]), ("Posted on", job.get("source")), ("Level", enrichment.get("seniority")),
@@ -106,7 +107,9 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
 
     problems = len(result["failed"])
     # wording the resume never says in so many words: still the user's to confirm, so "Yes" names it
-    confirm = len(tailored.get("inferences") or []) + sum(1 for e in tailored.get("entries") or [] if e.get("title_mirror"))
+    # mirror_ok = settings pre-approve the posting's title in brackets, so it is not asked again
+    confirm = len(tailored.get("inferences") or []) + (0 if mirror_ok else sum(
+        1 for e in tailored.get("entries") or [] if e.get("title_mirror")))
     out += ["", *READY.split("\n")[:2],
             f"Not yet - {problems} to fix first." if problems
             else f'Yes, once you confirm the {confirm} line(s) under "To confirm" further down - all '
@@ -178,7 +181,7 @@ def because(reasons: dict[str, str], key: str) -> str:
     return f" - why: {reason}" if reason else ""
 
 
-def diff_md(master: dict, tailored: dict, model: dict) -> str:
+def diff_md(master: dict, tailored: dict, model: dict, mirror_ok: bool = False) -> str:
     restated = bullet_texts(tailored)
     reasons = reasons_by_id(tailored)
     chosen = {t["id"]: t for t in tailored["entries"]}
@@ -186,6 +189,11 @@ def diff_md(master: dict, tailored: dict, model: dict) -> str:
     out = ["# What changed from your resume", ""]
 
     mirrors = [t for t in tailored["entries"] if t["title_mirror"]]
+    if mirror_ok and mirrors:
+        out += ["## Job titles", "", "Your settings say yes to the posting's title in brackets - not asked again.", ""]
+        out += [f"- Shown as \"{headings[t['id']]}\"" for t in mirrors]
+        out.append("")
+        mirrors = []
     if tailored["inferences"] or mirrors:
         out += ["## To confirm - is each of these true?", "",
                 "Each one is wording your resume does not say in so many words.", ""]
