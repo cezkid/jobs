@@ -243,3 +243,15 @@ def test_blocklist_hides_by_type_and_clearance_never_untagged():
     assert rank.blocked(make_job("c", requires_clearance=True), block)
     assert not rank.blocked(make_job("u", employment_type=None), block)
     assert not rank.blocked(make_job("c", requires_clearance=True), CONFIG["blocklist"])
+
+
+def test_max_age_days_hides_older_first_seen_keeps_unknown():
+    config = cfg.merge(CONFIG, {"rank": {"max_age_days": 7}})
+    jobs = [
+        make_job("fresh", reality={"age_days": 7}),
+        make_job("old", reality={"age_days": 8}),
+        make_job("restamped", posted_at="2026-09-15T11:00:00Z", reality={"age_days": 40}),
+        make_job("unknown", posted_at=None),
+    ]
+    assert sorted(slugs(rank.rank(jobs, config, NOW))) == ["fresh", "unknown"]
+    assert len(rank.rank(jobs, CONFIG, NOW)) == 4
