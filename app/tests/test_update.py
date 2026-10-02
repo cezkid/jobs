@@ -1,5 +1,6 @@
 import io
 import zipfile
+from pathlib import Path
 
 import httpx
 
@@ -88,3 +89,15 @@ def test_folder_in_use_leaves_whole_old_copy(tmp_path, monkeypatch):
     for name in ("README.md", "app/jobs.py", "docs/index.html"):
         assert (tmp_path / name).read_text(encoding="utf-8") == "old"
     assert not (tmp_path / "brand-new.md").exists()
+
+
+def test_vscode_settings_survive_update(tmp_path, monkeypatch):
+    # gone from an open window => VS Code's own chat back over Claude/ChatGPT, or Copilot shut mid-chat
+    write(tmp_path / ".vscode" / "settings.json", "mine")
+    monkeypatch.setattr(update, "download", lambda: archive({"app/jobs.py": "new"}))
+    assert update.update(tmp_path) == "Up to date."
+    assert (tmp_path / ".vscode" / "settings.json").read_text(encoding="utf-8") == "mine"
+    monkeypatch.setattr(update, "download", lambda: archive({".vscode/extensions.json": "new", "app/jobs.py": "new"}))
+    assert update.update(tmp_path) == "Up to date."
+    assert (tmp_path / ".vscode" / "settings.json").read_text(encoding="utf-8") == "mine"
+    assert Path(".vscode") / "settings.json" in update.KEEP

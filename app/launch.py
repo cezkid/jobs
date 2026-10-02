@@ -17,7 +17,7 @@ CLAUDE_EXTENSION = "anthropic.claude-code"
 # VS Code ships no PDF viewer: clicking a resume shows "binary ... unsupported text encoding"
 # instead of the page. Installed once at launch, so copies installed before this fix get it too.
 PDF_EXTENSION = "tomoki1207.pdf"
-# marks a mistyped resume fact in red while the user types it (.vscode/settings.json #yaml.schemas);
+# marks a mistyped resume fact in red while the user types it (app/workspace.py #yaml.schemas);
 # without it the mistake surfaces later as a render error they cannot read
 YAML_EXTENSION = "redhat.vscode-yaml"
 VSCODE_EXTENSIONS = Path.home() / ".vscode" / "extensions"
@@ -185,6 +185,19 @@ def ensure_claude_trust(root: Path | None = None, state: Path = CLAUDE_STATE) ->
     except OSError:
         pass
 
+def chosen_ai() -> str | None:
+    import ai  # here, not on top: ai imports this module
+    return ai.current()
+
+
+def write_workspace(choice: str | None) -> None:
+    import workspace
+    try:
+        workspace.write(choice)
+    except OSError:
+        pass  # last launch's file still opens the window
+
+
 def code(args: list[str], quiet: bool = False) -> None:
     exe = shutil.which("code")
     if not exe:
@@ -233,11 +246,17 @@ def main() -> None:
     ensure_pdf_viewer()
     # before VS Code opens => a typo in the resume facts is underlined on the first edit
     ensure_yaml_checker()
-    if has_claude():
+    choice = chosen_ai()
+    # before VS Code opens => the window comes up with this user's chat (Copilot's built-in one
+    # shown, or hidden for Claude/ChatGPT), never reloading mid-chat
+    write_workspace(choice)
+    claude = has_claude()
+    if claude:
         ensure_claude_trust()
+    if claude or choice == "copilot":
         ensure_chat_sidebar()
     # trust off for this window only => no "trust the authors?" dialog. Chat comes up in the
-    # right-hand sidebar beside this page (.vscode/settings.json #secondarySideBar). No
+    # right-hand sidebar beside this page (app/workspace.py #secondarySideBar). No
     # vscode://anthropic.claude-code/open link: it always opens chat as a tab in the active
     # group, on top of START HERE, and every file the AI then opens lands on top of the chat
     # (extension 2.1.283, measured 2026-09-26)

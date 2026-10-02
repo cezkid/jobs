@@ -13,8 +13,10 @@ ZIP_URL = "https://github.com/cezkid/jobs/archive/refs/heads/main.zip"
 DOWNLOAD_TIMEOUT_S = 60
 # gitignored => never in zip; swap must never touch them either
 PRIVATE = {*cfg.PRIVATE_DIRS, ".data", ".venv"}
-# user's own file inside program folder (Claude's "don't ask again" answers) => carried into new copy
-KEEP = (Path(".claude") / "settings.local.json",)
+# user's own files inside program folder => carried into new copy: Claude's "don't ask again"
+# answers; this user's VS Code settings (app/workspace.py) - gone from an open window, VS Code's
+# own chat comes back over Claude/ChatGPT, or Copilot's shuts mid-chat
+KEEP = (Path(".claude") / "settings.local.json", Path(".vscode") / "settings.json")
 OFFLINE = "Could not check for updates; continuing."
 IN_USE = "Could not update now (a program file is open); continuing with this version."
 
@@ -33,6 +35,7 @@ def swap_in(archive: bytes, root: Path) -> None:
         zipfile.ZipFile(io.BytesIO(archive)).extractall(tmp)
         (src,) = Path(tmp).iterdir()
         for keep in KEEP:
+            # folder absent from the zip (.vscode is never shipped) => swap leaves it alone, file and all
             if (root / keep).is_file() and (src / keep.parent).is_dir():
                 shutil.copy2(root / keep, src / keep)
         trash = Path(tmp) / "old"
