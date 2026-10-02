@@ -1,6 +1,6 @@
 # Keep your chats out of AI training
 
-Your resume and what you tell the AI are read in your own AI chat (Claude or ChatGPT). On a
+Your resume and what you tell the AI are read in your own AI chat (Claude, ChatGPT or GitHub Copilot). On a
 personal plan, those chats can be used to train future AI models unless you switch that off.
 One switch, 30 seconds. Only you can change it; CEZ Job Finder can't do it for you.
 
@@ -20,10 +20,21 @@ Covers this chat in VS Code too.
 
 Covers this chat in VS Code too.
 
+## GitHub Copilot (Free or Pro)
+
+1. Open **[github.com/settings/copilot](https://github.com/settings/copilot)**. Log in if asked.
+   (Or click your profile picture on github.com, then **Copilot settings**.)
+2. Find **Privacy**.
+3. Set **Allow GitHub to use my data for AI model training** to **Disabled**.
+
+Covers this chat in VS Code too. Copilot Student isn't used for training - nothing to do. GitHub
+may share your Copilot chats with Microsoft, its parent company.
+
 ## Work or school account?
 
-Claude Team or Enterprise, ChatGPT Business, Enterprise or Edu: chats aren't used for training
-by default. Nothing to do. Same if you signed in with a developer API key.
+Claude Team or Enterprise, ChatGPT Business, Enterprise or Edu, Copilot Business or Enterprise:
+chats aren't used for training by default. Nothing to do. Same if you signed in to Claude or
+ChatGPT with a developer API key.
 
 ## What the switch does and doesn't do
 
@@ -32,7 +43,7 @@ by default. Nothing to do. Same if you signed in with a developer API key.
 - Chats stay in your history. Delete one there if you want it gone.
 - **Thumbs up, thumbs down or "send feedback" on a chat** lets them use that whole chat, even with
   the switch off. Skip those on chats with your resume.
-- Both companies still check chats for safety and abuse.
+- All three companies still check chats for safety and abuse.
 - Your name isn't hidden from the AI. Your jobs, schools and dates would identify you anyway.
 
 Menus move. Can't find the switch? Ask in the chat: "help me turn off AI training".
