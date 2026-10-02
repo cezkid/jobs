@@ -24,7 +24,9 @@ User not technical - `AGENTS.md` #User = not technical binds. Why each rule exis
   first choice. `prepare` says "ask once: keep the user's own answers" -> one clickable question,
   save `saved_answers` in search settings. "Forget my answer to ..." -> `answers list`, `answers forget N`. Ask each with clickable choices; disclosures
   always offer "I don't wish to answer". User asks to reuse a disclosure answer -> save it under
-  `self_identification` in search settings; saved there -> use it, name it before Submit.
+  `self_identification` in search settings. Filled on forms only after ONE clickable yes:
+  `prepare` prints "ask once: fill the user's saved voluntary answers" -> Yes / No, saved as
+  `self_identification.fill_on_forms`, then `prepare` again; named before Submit either way.
 - Work authorization, sponsorship, citizenship: `apply` prints their setup answers. Use one only
   when the form asks that same thing about the US (without restriction; sponsorship now or in the
   future; US citizen or permanent resident / green card), and name the choice you picked so they

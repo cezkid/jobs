@@ -18,8 +18,16 @@ autofill add-ons (Simplify, JobWizard) fill more but hold the resume on their se
 `jobPosting(organizationHostedJobsPageName, jobPostingId) { applicationForm { sections {
 fieldEntries { ... on FormFieldEntry { isRequired field } } } } }`. `field` = JSON blob: `path`,
 `title`, `type`, `selectableValues`. Types seen (tenant A): String, Email, Phone, Location, File,
-ValueSelect, LongText, Boolean. Voluntary disclosure (EEO) surveys not listed -> `fill` counts
-on-page questions missing from the file, leaves them to the user.
+ValueSelect, LongText, Boolean. Voluntary disclosure (EEO: gender, race, veteran) is
+`surveyForms`, same shape - asked for in the same query (measured 2026-10, tenant A: three
+ValueSelect, page labels = option labels exactly). Any other on-page question missing from the file
+-> `fill` counts it, leaves it to the user.
+
+## Read back
+
+A user saw Preferred First Name + a Yes/No flagged empty at Submit though both showed filled
+(2026-10); not reproduced - a clean form kept all 14 answers 12 s later. `fill` now waits 2.5 s, reads
+each answer back (`holds`), fills a dropped one once more, else FAILs it for the user.
 
 ## Widgets (tenant A)
 

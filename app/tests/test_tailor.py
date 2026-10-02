@@ -487,3 +487,14 @@ def test_tailoring_a_closed_job_again_brings_it_back_to_send(tmp_path, monkeypat
     assert len(list((tmp_path / "My Jobs" / "1 To apply").iterdir())) == 1
     assert not list((tmp_path / "My Jobs" / status.STAGES["not_sending"]).iterdir())
     conn.close()
+
+
+def test_title_mirror_always_setting_skips_confirming_titles(tailored, tmp_path):
+    """User said yes to every bracketed posting title once: listed, never asked per job."""
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [("pages", True, "1")] * 22,
+              "selection": [], "findings": []}
+    tailored["inferences"] = []
+    assert "Yes - all 22 page checks passed." in report.report_md(JOB, tailored, result, [], [], mirror_ok=True)
+    assert "Yes, once you confirm the 1 line(s)" in report.report_md(JOB, tailored, result, [], [])
+    assert tailor.MIRROR_ALWAYS in tailor.system(typeface.DEFAULT, True)
+    assert "The user confirms every mirror." in tailor.system(typeface.DEFAULT)

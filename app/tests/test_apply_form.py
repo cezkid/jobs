@@ -725,3 +725,46 @@ def test_greenhouse_text_waits_out_the_pages_own_name_fill():
     field = GhField(GhPage(), autofill="Jane")
     assert greenhouse.put_text(field, "Ada", "text") == "ok" and field.input_value() == "Ada"
     assert greenhouse.put_text(GhField(GhPage()), "(555) 010-0100", "phone") == "ok"
+
+
+def test_ashby_voluntary_survey_listed_beside_the_form():
+    """Gender, race, veteran come as surveyForms - left out, they sat blank on the page (2026-10)."""
+    field = lambda path, title, values: {"isRequired": False, "field": {
+        "path": path, "title": title, "type": "ValueSelect", "selectableValues": [{"label": v} for v in values]}}
+    job = {"applicationForm": {"sections": [{"fieldEntries": [field("q", "Years?", ["1", "2"])]}]},
+           "surveyForms": [{"sections": [{"fieldEntries": [
+               field("_systemfield_eeoc_gender", "Gender", ["Male", "Female", "Decline to self-identify"])]}]}]}
+    assert [q["id"] for q in ashby.from_form(job)] == ["q", "_systemfield_eeoc_gender"]
+
+
+VETERAN = ["I identify as one or more of the classifications of protected veteran listed above",
+           "I am not a protected veteran", "I decline to self-identify for protected veteran status"]
+RACE = ["Hispanic or Latino", "White (Not Hispanic or Latino)", "Decline to self-identify"]
+
+
+def test_saved_voluntary_answers_fill_only_after_the_users_yes():
+    selfid = {"gender": "Male", "hispanic_latino": True, "protected_veteran": False}
+    asked = [questions.question("g", "Gender", "choice", False, ["Male", "Female", "Decline to self-identify"]),
+             questions.question("r", "Race", "choice", False, RACE),
+             questions.question("v", "Veteran Status", "choice", False, VETERAN)]
+    for consent in (None, False):  # not asked yet, or said no: asked on the form as before
+        got = questions.draft(asked, {}, config={"self_identification": {**selfid, "fill_on_forms": consent}})
+        assert all(a["answer"] is None and questions.YOURS in a["source"] for a in got)
+    got = questions.draft(asked, {}, config={"self_identification": {**selfid, "fill_on_forms": True}})
+    assert [a["answer"] for a in got] == ["Male", "Hispanic or Latino", "I am not a protected veteran"]
+    assert all(questions.VOLUNTARY_SAVED in a["source"] for a in got) and not questions.unvouched(got)
+    # nothing saved for race beyond "not Hispanic": asked, never guessed
+    got = questions.draft(asked[1:2], {}, config={"self_identification": {"hispanic_latino": False, "fill_on_forms": True}})
+    assert got[0]["answer"] is None
+
+
+def test_answer_dropped_after_filling_is_filled_again_then_flagged():
+    class System:
+        def __init__(self, sticks): self.sticks, self.fills = sticks, 0
+        def holds(self, page, q): return self.fills >= self.sticks
+        def fill(self, page, q, resume): self.fills += 1; return "ok"
+    class Page:
+        def wait_for_timeout(self, ms): pass
+    qs = [{"title": "Preferred First Name", "kind": "text", "answer": "Jane"}]
+    assert form.recheck(Page(), System(1), qs, [("Preferred First Name", "ok")], None) == [("Preferred First Name", "ok")]
+    assert form.recheck(Page(), System(9), qs, [("Preferred First Name", "ok")], None)[0][1].startswith("FAIL answer dropped")

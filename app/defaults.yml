@@ -44,6 +44,10 @@ resume:
   master: My Resume/Resume details.yml
   input_pdf: My Resume/Original resume.pdf
   jobs_dir: My Jobs
+  # posting's title added in brackets after a role's own title ("Software Engineer (Frontend)").
+  # ask = user confirms each one; always = user said yes to all, added wherever the work matches.
+  # Either way never a level word their title lacks (Senior, Lead ...) - tailor check fails it.
+  title_mirror: ask
 
 # Setup answers to the work-permit questions US applications ask. Stay on this computer:
 # no job search sends them (only `passes` params go to freehire). null = not asked -> apply asks.

@@ -94,6 +94,11 @@ def resume_font(config: dict) -> str:
     return config["resume"]["font"]
 
 
+def title_mirror_always(config: dict) -> bool:
+    """User pre-approved the posting's title in brackets after their own: not asked per job."""
+    return config["resume"].get("title_mirror") == "always"
+
+
 def load_or_defaults() -> dict:
     """Merged settings when the user has them, the shipped defaults when they do not - for the
     commands that can run off an explicit path before setup (resume-render --master)."""

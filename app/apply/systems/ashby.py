@@ -13,7 +13,8 @@ NAME = "Ashby"
 GRAPHQL = "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiJobPosting"
 QUERY = """query ApiJobPosting($organizationHostedJobsPageName: String!, $jobPostingId: String!) {
   jobPosting(organizationHostedJobsPageName: $organizationHostedJobsPageName, jobPostingId: $jobPostingId) {
-    title applicationForm { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } } } }"""
+    title applicationForm { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } }
+    surveyForms { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } } } }"""
 POSTING_URL = re.compile(r"https?://jobs\.ashbyhq\.com/([^/?#]+)/([0-9a-f-]{36})", re.I)
 READY = "[data-field-path]"
 # Ashby type -> shared kind; a type missing here is asked as text and flagged by the contract test
@@ -42,7 +43,9 @@ def application_url(url: str) -> str:
 
 def from_form(job: dict) -> list[dict]:
     out = []
-    for section in job["applicationForm"]["sections"]:
+    # voluntary disclosure (gender, race, veteran) comes as surveyForms beside the application form
+    forms = [job["applicationForm"], *(job.get("surveyForms") or [])]
+    for section in (sec for form in forms for sec in form["sections"]):
         for entry in section["fieldEntries"]:
             f = entry.get("field")
             if not f or f.get("isDeactivated"):
@@ -143,6 +146,27 @@ def put_file(box, path: str) -> str:
     except Exception:
         return "ASK upload not confirmed on page - check the resume box"
     return "ok"
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read back after the form had time to save it."""
+    box = page.locator(f'[data-field-path="{q["id"]}"]').first
+    kind, value = q["kind"], q["answer"]
+    if kind == "yesno":
+        word = "Yes" if str(value).casefold() in ("yes", "true") else "No"
+        return box.get_by_role("button", name=word, exact=True).get_attribute("aria-pressed") == "true"
+    if kind in ("choice", "multichoice"):
+        for v in value if isinstance(value, list) else [value]:
+            label = box.locator("label", has_text=re.compile(rf"^\s*{re.escape(str(v))}\s*$"))
+            target = box.locator(f'input[id="{label.first.get_attribute("for")}"]') if label.count() else None
+            if target is not None and target.count() and not target.first.is_checked():
+                return False
+        return True
+    field = box.locator("textarea, input:not([type=file]):not([type=checkbox]):not([type=radio])").first
+    got = field.input_value()
+    if kind == "location":
+        return bool(got.strip())
+    return digits(got) == digits(str(value)) if kind == "phone" else got == str(value)
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:
