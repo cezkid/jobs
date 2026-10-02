@@ -105,11 +105,14 @@ def paste(slug: str) -> None:
     if bad := questions.unvouched(data["questions"]):
         sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
     out = ["# Application answers", "",
-           "Paste each into the form, in this order. Options weren't read ahead - pick the matching one on the page.",
+           "Paste each into the form, in this order. Options weren't read ahead - for a choice, pick the one "
+           "that means your answer (the page may word it longer, e.g. \"No, I do not require sponsorship...\").",
            "Check every answer on the page before you click Submit.", ""]
+    resume = resume_for(config, folder)
+    upload = f"(upload {Path(resume).name} from this job's folder)" if resume else "(upload your resume PDF here)"
     for a in data["questions"]:
         answer = a.get("answer")
-        shown = "(upload your resume PDF here)" if a["kind"] == "file" and answer is True else (
+        shown = upload if a["kind"] == "file" and answer is True else (
             "(yours to answer on the page)" if questions.blank(answer) else ", ".join(answer) if isinstance(answer, list) else str(answer))
         out += [f"**{a['title']}**{' (required)' if a['required'] else ''}", "", shown, ""]
     path = folder / ANSWERS_FILE

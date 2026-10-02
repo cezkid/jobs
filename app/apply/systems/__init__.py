@@ -12,9 +12,9 @@ Each module here implements the same few names (contract checked by tests/test_a
 
 Add one: app/docs/apply/apply-systems.md.
 """
-from apply.systems import ashby, ukg
+from apply.systems import ashby, greenhouse, ukg
 
-SYSTEMS = [ashby, ukg]
+SYSTEMS = [ashby, greenhouse, ukg]
 # filled another way: say so instead of "not supported"
 ELSEWHERE = {"myworkdayjobs.com": "Workday - use `apply` + the Chrome extension (job-apply skill, Steps)",
              "myworkday.com": "Workday - use `apply` + the Chrome extension (job-apply skill, Steps)"}
