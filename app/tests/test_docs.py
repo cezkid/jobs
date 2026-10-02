@@ -64,6 +64,22 @@ def test_privacy_statements_name_the_per_job_request():
     assert missing == []
 
 
+def test_agents_md_names_the_three_ais_and_their_fallbacks():
+    """The installer offers Claude, ChatGPT and Copilot (.data/ai): AGENTS.md says all three read it,
+    asks for the resume on My Resume (Copilot gets a chat-dropped PDF with no path), and carries the
+    numbered-reply fallback + the all-in-one-apps answer."""
+    text = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    read_by = " ".join(text[text.index("Read by"):].split("\n\n")[0].split())
+    for ai in ("Claude Code", "Codex (ChatGPT)", "GitHub Copilot"):
+        assert ai in read_by
+    assert "Cursor" not in read_by and "Gemini" not in read_by
+    for words in ("drag it onto My Resume in the file list", "reply with the number", "Nova",
+                  "can't run programs"):
+        assert words in " ".join(text.split())
+    setup = (cfg.ROOT / "app/skills/job-setup.md").read_text(encoding="utf-8")
+    assert "drag it onto My Resume in the file list" in setup and "drag into chat" not in setup
+
+
 # AGENTS.md #User = not technical: words a user never reads (exceptions: the user's own file name,
 # an AI account's "API key")
 JARGON = re.compile(r"\b(config|yml|json|slug|params|facet|pytest|repo|commit|branch|PR|API|schema)\b")

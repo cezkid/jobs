@@ -126,7 +126,7 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 
 ## 3. Resume
 
-- Ask for resume PDF (drag into chat), then
+- Ask for resume PDF (drag it onto My Resume in the file list; `AGENTS.md` #User), then
   `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing).
   Re-import: `finish` writes nothing yet when the new PDF lacks things in their resume details -
   it prints up to 3 groups (lines: their wording + added lines and skills; entries: jobs, schools,
