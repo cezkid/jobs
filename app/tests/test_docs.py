@@ -58,7 +58,8 @@ def test_privacy_statements_name_the_per_job_request():
     """Tailoring + "still open?" send a listed job's id to the job search: every place that says
     what leaves the computer must say so, not "search settings only"."""
     places = {"AGENTS.md": "listing id", "Guides/Who sees what.md": "Which job from your list",
-              "docs/privacy.html": "which job from your list", "app/skills/job-setup.md": "listing id"}
+              "docs/privacy.html": "which job from your list", "docs/index.html": "which job from your list",
+              "app/skills/job-setup.md": "listing id"}
     missing = [f for f, words in places.items() if words not in (cfg.ROOT / f).read_text(encoding="utf-8")]
     assert missing == []
 
