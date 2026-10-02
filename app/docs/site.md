@@ -1,0 +1,48 @@
+# Install site - jobs.enrriquez.com
+
+`docs/` = install page, GitHub Pages, custom domain (`docs/CNAME`). Guarded by
+`app/tests/test_site.py` (no network) + `test_install.py` (install line, steps).
+
+## What is where
+
+- Hand-written: `index.html`, `privacy.html`, `404.html`, `robots.txt`, `sitemap.xml`,
+  `manifest.webmanifest`, `icon.svg`; share card source `app/web/og.html`.
+- Generated, committed, never hand-edited: `fonts/` (Caladea WOFF2 + `OFL.txt`), `icon-*.png`,
+  `apple-touch-icon.png`, `favicon.ico` (PNG frames 16/32/48), `og.png`. Change the source, rerun
+  `uv run app/web/assets.py [--only fonts|icons|og]` - PEP 723 script w/ own deps (uv ignores the
+  project's), icons + og drawn in Google Chrome. Two runs = byte-identical files.
+
+## Look
+
+- Ink on paper, like the resume it makes: tokens in one `:root` block - paper #fff, ink #000,
+  ink-2 #3a3a3a, highlighter #ffe433 only on marks + Copy button; dark mode changes the desk,
+  the sample sheet stays white paper.
+- One family: Caladea (= resume typeface), Latin subset 400 + 700 (~18 KB each), name table kept
+  (licence); metric-matched fallbacks (Cambria, Georgia w/ size-adjust) so the swap moves nothing.
+  System mono for the command only.
+- One motion moment: highlighter sweep on the sample sheet + Copy click. Only under
+  `prefers-reduced-motion: no-preference`; marks visible w/o it.
+
+## Rules + why
+
+- No third-party requests (fonts, scripts, images, CSS `url()`): privacy page promises it; test enforces.
+- Shared CSS (`/* shared */` ... `/* /shared */`, fonts + tokens) identical on every page; test guards.
+- Install line static in HTML (Windows), JS swaps for Mac; FAQ carries the Mac line as text ->
+  no-JS readers + crawlers see a command.
+- Never look like a fake "paste this to verify" page: clipboard written only on Copy click, full
+  command always visible, no key combos, "Read the script first" link to the GitHub file (never
+  `/win` `/mac`: served as HTML), no command on the share image.
+- robots.txt Disallow `/mac/` `/win/` - not `/mac` (prefix: would also block a future `/macos.html`).
+- JSON-LD = WebSite only (site name in results). SoftwareApplication w/o ratings = invalid in
+  Search Console; FAQ rich results now limited to government + health sites.
+- `og:title` w/o brand suffix (`og:site_name` carries it). `og.png` 1200x630, < 300 KB (WhatsApp
+  drops larger); changed -> bump `og.png?v=N` on every page (LinkedIn caches a preview ~7 days).
+- 404.html: root paths only (served at any depth), noindex, no canonical.
+- No front matter in any file: GitHub Pages runs Jekyll, which would template it.
+
+## Measured
+
+- GitHub Pages types: `.ico` image/vnd.microsoft.icon, `.webmanifest` application/manifest+json,
+  `.woff2` font/woff2 - no headers file needed.
+- `/privacy` + `/index.html` also answer 200 -> every page carries a canonical == sitemap URL.
+- Font subset: regular 18.2 KB, bold 18.2 KB; og.png 81.5 KB.

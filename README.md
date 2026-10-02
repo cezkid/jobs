@@ -27,6 +27,8 @@ irm https://jobs.enrriquez.com/win | iex
 curl -fsSL https://jobs.enrriquez.com/mac | bash
 ```
 
+Read the script first: [Windows](app/install/install-windows.ps1) · [Mac](app/install/install-mac.sh) - the exact file the line runs.
+
 ## Everyday
 
 Double-click **CEZ Job Finder** on your Desktop, or click the morning notification. Opens VS
@@ -64,6 +66,8 @@ All code under `app/`; root = user folders, `Guides/`, `docs/` (install page, Gi
 - `app/docs/resume/bullets.md` / `typeface.md` / `page-format.md` - bullet rules, font + page gates
 - `app/skills/` - skill bodies; stubs in `.claude/skills/` + `.agents/skills/`
 - `.github/CONTRIBUTING.md` - bug fixes + PRs (AI: `report-defect` skill)
+- `docs/` - install site (GitHub Pages); generated files from `uv run app/web/assets.py`, rules in
+  [`app/docs/site.md`](app/docs/site.md)
 - Install scripts: `app/install/` - pasted line, not downloaded file -> avoids SmartScreen /
   Gatekeeper. Test w/o touching `~/jobs`: `JOBS_DIR=<dir> JOBS_NO_LAUNCH=1 JOBS_AI=1`
 - Linux server: 1 vCPU / 1GB / 10GB, uv at `/usr/local/bin/uv`, repo at `/opt/jobs` owned by
