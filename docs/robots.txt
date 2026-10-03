@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /mac/
+Disallow: /win/
+
+Sitemap: https://jobs.enrriquez.com/sitemap.xml
