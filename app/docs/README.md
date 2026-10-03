@@ -9,6 +9,8 @@
   in one line, w/ strength of its evidence.
 - [Unfair hiring - what's known, what helps](../../Guides/Unfair%20hiring%20-%20what's%20known,%20what%20helps.md) -
   name, age, breaks, records, AI screening: what helps, w/ strength of its evidence.
+- [Keep your chats out of AI training](../../Guides/Keep%20your%20chats%20out%20of%20AI%20training.md) -
+  the switch on each AI account, what it doesn't cover.
 
 **AI assistant + contributors** - measured facts + evidence behind the code. Read the area's doc
 before changing it: each records what was measured and rejected, so a retired rule stays retired.
@@ -43,6 +45,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/interview.md](apply/interview.md) | Interview practice + debrief: what each rule rests on, how a stated fact reaches the resume, declined |
 | Applying | [apply/follow-up.md](apply/follow-up.md) | When a quiet job is suggested for a follow-up (days per stage + basis), one nudge per silence, what the draft says and never says |
 | Site | [site.md](site.md) | Install site in `docs/`: generated files + `app/web/assets.py`, look, rules (no third-party requests, scam-safe install line, robots, JSON-LD, share image), measured hosting facts |
+| Site | [research.md](research.md) | Research articles: sourcing order, evidence labels (plain scale -> registry), citations, 3-step review + publication gate, style, search rules, laws, privacy, re-check + corrections |
 
 Assistant instructions: [AGENTS.md](../../AGENTS.md) + skills in [../skills/](../skills/).
 Contributing: [.github/CONTRIBUTING.md](../../.github/CONTRIBUTING.md).

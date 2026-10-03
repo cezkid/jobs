@@ -16,24 +16,37 @@
 <meta property="og:url" content="https://jobs.enrriquez.com/">
 <meta property="og:title" content="A free job-search app for Windows and Mac, with your own AI">
 <meta property="og:description" content="Free app for Windows and Mac. Finds new jobs every morning and makes your resume for any job you pick, with Claude, ChatGPT or GitHub Copilot. You press Submit.">
-<meta property="og:image" content="https://jobs.enrriquez.com/og.png">
+<meta property="og:image" content="https://jobs.enrriquez.com/og.png?v=2">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="The CEZ Job Finder app for Windows and Mac: a chat asks for a resume for job 12, beside the resume with the posting's words marked in yellow.">
+<meta property="og:image:alt" content="CEZ Job Finder - a free job-search app for your Windows or Mac computer. Beside it, the app on a morning: new jobs, each with one line on why it fits marked in yellow, job 12 circled, and one line of your resume for job 12 reworded and approved.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="The CEZ Job Finder app for Windows and Mac: a chat asks for a resume for job 12, beside the resume with the posting's words marked in yellow.">
+<meta name="twitter:image:alt" content="CEZ Job Finder - a free job-search app for your Windows or Mac computer. Beside it, the app on a morning: new jobs, each with one line on why it fits marked in yellow, job 12 circled, and one line of your resume for job 12 reworded and approved.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
+<!-- before first paint: no flash of the wrong OS, no layout shift. iPadOS reports a Mac UA => touch
+     points tell it apart; iPhone/iPad count as Mac (Mac window dots). html.seen = opening moment
+     already ran this session, or the page came in through a page-change crossfade -->
+<script>
+  (() => {
+    const h = document.documentElement.classList, n = navigator, ua = n.userAgent;
+    h.toggle("is-phone", /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && n.maxTouchPoints > 1));
+    h.toggle("is-mac", /Mac|iPhone|iPad|iPod|iOS/i.test(n.userAgentData?.platform || n.platform || ua));
+    try { sessionStorage.opened ? h.add("seen") : sessionStorage.opened = 1; } catch {}
+    addEventListener("pagereveal", (e) => e.viewTransition && h.add("seen"));
+  })();
+</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"CEZ Job Finder","alternateName":"Job Finder","url":"https://jobs.enrriquez.com/"}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
   /* Cambria = metric twin of Caladea; Georgia needs overrides (app/web/assets.py prints them) */
   @font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
   @font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
@@ -41,182 +54,498 @@
     size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
   @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
     size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Italic"), local("Cambria-Italic"); font-weight: 400; font-style: italic; }
+  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
+    size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
   :root {
-    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433;
+    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8;
     --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
     --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+    --gutter: clamp(16px, 2.5vw, 32px); --max: 1320px;
+    --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
+    --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
+    --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
   }
   @media (prefers-color-scheme: dark) {
     :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
   }
   *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; background: var(--desk); color: var(--text);
-    font: 20px/1.55 var(--serif); -webkit-text-size-adjust: 100%;
+    font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
   }
-  a { color: var(--text); text-decoration: underline; text-underline-offset: 0.15em; }
-  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+  h1, h2, h3 { text-wrap: balance; }
+  p, li { text-wrap: pretty; }
+  a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
+  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
+  /* selection in ink, never yellow: the highlighter means "marked by the app" */
+  ::selection { background: var(--text); color: var(--desk); }
+  /* forced colours drop the gradient: system mark colours keep the words marked */
+  @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
+  /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */
+  summary { list-style: none; position: relative; padding-right: 40px; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before, summary::after {
+    content: ""; position: absolute; right: 6px; top: 50%; width: 16px; margin-top: -1px; border-top: 2px solid currentColor;
+  }
+  summary::after { transform: rotate(90deg); }
+  details[open] > summary::after { transform: none; }
+  /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
+     .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
+  .grid {
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
+    padding: 0 max(var(--gutter), (100% - var(--max)) / 2);
+  }
+  .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
+  .skip {
+    position: absolute; z-index: 1; left: var(--gutter); top: 8px; padding: 6px 12px;
+    background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
+  }
+  .skip:focus { transform: none; }
+  /* full-bleed double rule: thick + thin, like a newspaper masthead */
+  .masthead { position: relative; border-bottom: 3px solid var(--text); }
+  .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .brand img { width: 28px; height: 28px; }
+  .links { display: flex; gap: 28px; white-space: nowrap; }
+  footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
+  footer .row { display: flex; flex-wrap: wrap; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
+  footer p { margin: 0 auto 0 0; }
+  /* phones: brand + 3 links don't fit 360px => Source code only in the footer */
+  @media (max-width: 600px) {
+    .top { gap: 12px; }
+    .links { gap: 14px; font-size: 1.0625rem; }
+    .links .code { display: none; }
+  }
+  /* under 360px (320px phones) the links may drop below the brand */
+  @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
+  /* print: ink on white in either scheme (body, not :root: the token table reads :root), no nav */
+  @media print {
+    body { --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule); font-size: 11pt; }
+    .skip, .links { display: none; }
+    mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h1, h2, h3, summary { break-after: avoid; }
+    figure, li, details, pre { break-inside: avoid; }
+    footer .row { padding-bottom: 0; }
+  }
+  /* page change: a plain crossfade (no page turn), the masthead holds still; reduced motion = instant */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+    .masthead { view-transition-name: masthead; }
+  }
   /* /shared */
 
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
-  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
-  .brand img { width: 28px; height: 28px; }
-  .links { display: flex; gap: 24px; white-space: nowrap; }
-  .brand { white-space: nowrap; }
-
-  .hero { display: grid; gap: 40px; padding: 24px 0 56px; }
-  @media (min-width: 1080px) {
-    .hero { grid-template-columns: minmax(0, 1fr) 520px; gap: 48px; align-items: start; }
+  /* hero: literal h1 + install steps beside the app window (story A: the morning list, finished state) */
+  .hero { padding-top: clamp(28px, 4.2vh, 56px); padding-bottom: 64px; row-gap: 40px; }
+  .intro { grid-column: 1 / -1; }
+  h1 {
+    font-size: var(--display); line-height: 1.02; font-weight: 700; letter-spacing: -0.012em;
+    margin: 0 0 0.32em; max-width: 13em;
   }
-  h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.1; font-weight: 700; margin: 0 0 14px; text-wrap: balance; }
-  .does { margin: 0 0 8px; font-size: 22px; line-height: 1.4; max-width: 30em; }
-  .lede { margin: 0 0 28px; color: var(--text-2); max-width: 34em; }
-  .install-heading { margin: 0 0 14px; }
+  .lede { margin: 0 0 1.4rem; font-size: var(--step-1); line-height: 1.4; max-width: 30em; }
+  .lede span { display: block; color: var(--text-2); font-size: var(--step-0); margin-top: 0.15rem; }
 
   .phone { display: none; }
-  body.is-phone .phone { display: block; }
-  body.is-phone .desktop { display: none; }
-  .phone p { margin: 0 0 14px; font-weight: 700; }
+  html.is-phone .phone { display: block; }
+  html.is-phone .desktop { display: none; }
+  .phone p { margin: 0 0 12px; font-weight: 700; line-height: 1.3; }
   .send {
     display: inline-block; padding: 12px 20px; border: 2px solid var(--text); border-radius: 8px;
     font-weight: 700; text-decoration: none;
   }
 
+  .install-heading { font-size: var(--step-0); line-height: 1.3; margin: 0 0 12px; }
   ol.steps { list-style: none; counter-reset: step; padding: 0; margin: 0; }
-  ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 0 14px; margin: 0 0 22px; }
+  ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 0 14px; margin: 0 0 14px; }
   ol.steps > li::before {
-    content: counter(step); width: 32px; height: 32px; margin-top: 2px; border-radius: 50%;
-    display: grid; place-items: center; background: var(--text); color: var(--desk); font-weight: 700; font-size: 18px; line-height: 1;
+    content: counter(step); width: 30px; height: 30px; margin-top: 1px; border-radius: 50%;
+    display: grid; place-items: center; background: var(--text); color: var(--desk); font-weight: 700; font-size: 1.0625rem; line-height: 1;
   }
   ol.steps > li > * { grid-column: 2; }
   ol.steps > li > :first-child { grid-row: 1; }
-  .step { margin: 0; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .app { width: 32px; height: 32px; flex: none; }
-  .sub { margin: 2px 0 0; color: var(--text-2); font-size: 17px; }
+  .step { margin: 0; font-weight: 700; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; line-height: 1.5; }
+  .app { width: 30px; height: 30px; flex: none; }
+  .sub { margin: 0; color: var(--text-2); font-size: 1.0625rem; font-weight: 400; }
   .command {
-    display: flex; align-items: center; gap: 12px; margin-top: 10px; padding: 10px 10px 10px 16px;
-    border: 2px solid var(--text); border-radius: 10px;
+    display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 8px 8px 8px 16px;
+    border: 2px solid var(--text); border-radius: 10px; max-width: 34rem;
   }
   .command code {
-    flex: 1; min-width: 0; font: 15px/1.5 var(--mono); overflow-wrap: anywhere; user-select: all;
+    flex: 1; min-width: 0; font: 0.9375rem/1.5 var(--mono); overflow-wrap: break-word; user-select: all;
     padding: 2px 4px; background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 0 100%;
   }
   .command.copied code { background-size: 100% 100%; color: var(--ink); }
   #copy {
     flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
-    font: 700 17px/1.2 var(--serif); color: var(--ink); background: var(--mark);
+    font: 700 1.0625rem/1.2 var(--serif); color: var(--ink); background: var(--mark);
     border: 2px solid var(--ink); border-radius: 8px; cursor: pointer;
   }
   #copy svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
-  .switch { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 4px 0 0 50px; font-size: 17px; color: var(--text-2); }
-  .switch button { font: inherit; color: var(--text); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 0.15em; cursor: pointer; }
+  .switch { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 0 0 0 46px; font-size: 1.0625rem; color: var(--text-2); }
+  .switch button { font: inherit; color: var(--text); background: none; border: 0; padding: 0; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; cursor: pointer; }
+  .need { display: none; margin: 26px 0 0 46px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 1.0625rem; line-height: 1.5; color: var(--text-2); }
   .mac-only { display: none; }
-  body.is-mac .mac-only { display: revert; }
-  body.is-mac .win-only { display: none; }
-  body.is-mac .step.mac-only { display: flex; }
+  html.is-mac .mac-only { display: revert; }
+  html.is-mac .win-only { display: none; }
+  html.is-mac .step.mac-only { display: flex; }
 
-  /* hero figure: the app window - chat on the left, the resume it changed on the right */
-  figure { margin: 0; isolation: isolate; max-width: 640px; }
   .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* the app window: one framed object, depth = offset second sheet */
+  figure { grid-column: 1 / -1; margin: 0; isolation: isolate; min-width: 0; }
   .window {
-    --rule: #c8c8c8; position: relative; margin-right: 6px; background: var(--paper); color: var(--ink);
-    border: 1px solid var(--ink); border-radius: 10px; font-size: 15px; line-height: 1.45;
+    position: relative; margin: 0 8px 8px 0; background: var(--paper); color: var(--ink);
+    border: 1px solid var(--ink); border-radius: 10px; font-size: 1rem; line-height: 1.45;
   }
   .window::before {
-    content: ""; position: absolute; inset: -1px; transform: translate(6px, 6px); z-index: -1;
+    content: ""; position: absolute; inset: -1px; transform: translate(8px, 8px); z-index: -1;
     background: var(--paper); border: 1px solid var(--ink); border-radius: 10px;
   }
   .titlebar { display: flex; align-items: center; height: 38px; border-bottom: 1px solid var(--ink); }
-  .title { flex: 1; display: flex; align-items: center; gap: 8px; padding-left: 14px; font-size: 15px; }
+  .title { flex: 1; display: flex; align-items: center; gap: 8px; padding-left: 14px; font-size: 0.9375rem; }
   .title img { width: 18px; height: 18px; }
   .dots.mac-only { display: none; }
-  body.is-mac .dots.mac-only { display: flex; }
+  html.is-mac .dots.mac-only { display: flex; }
   .dots { gap: 8px; padding-left: 14px; }
   .dots span { width: 12px; height: 12px; border: 1px solid var(--ink); border-radius: 50%; }
-  body.is-mac .title { justify-content: center; padding-left: 0; margin-right: 66px; }
+  html.is-mac .title { justify-content: center; padding-left: 0; margin-right: 66px; }
   .controls { display: flex; height: 100%; }
   .controls svg { width: 44px; height: 100%; fill: none; stroke: var(--ink); stroke-width: 1; }
-  .panes { display: grid; grid-template-columns: 186px minmax(0, 1fr); border-radius: 0 0 9px 9px; overflow: hidden; }
-  .chat { padding: 14px 14px 16px; border-right: 1px solid var(--ink); }
-  .chat p { margin: 0; }
-  .chat .you { width: fit-content; margin: 0 0 14px auto; padding: 6px 10px; border: 1px solid var(--ink); border-radius: 10px; text-wrap: balance; }
-  .posting { margin: 10px 0 0; padding-left: 10px; border-left: 2px solid var(--rule); }
-  .posting .from { color: var(--ink-2); font-size: 13px; }
-  figure mark { white-space: nowrap; }
-  .viewer { padding: 16px 16px 14px; background: #ececec; }
-  .sheet { padding: 16px 18px 14px; background: var(--paper); border: 1px solid var(--rule); font-size: 14px; line-height: 1.45; }
-  .sheet p { margin: 0; }
-  .sheet .name { font-size: 20px; font-weight: 700; line-height: 1.2; }
-  .sheet .contact { color: var(--ink-2); font-size: 13px; }
-  .sheet hr { border: 0; border-top: 1px solid var(--ink); margin: 10px 0; }
-  .sheet ul { margin: 6px 0 0; padding-left: 1.1em; }
-  .sheet li { margin: 0 0 4px; }
-  .approved { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-size: 15px; }
-  .approved svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-  @media (max-width: 640px) {
-    .panes { grid-template-columns: minmax(0, 1fr); }
-    .chat { border-right: 0; border-bottom: 1px solid var(--ink); }
-    .viewer { padding: 14px; }
+
+  /* proofreader correction (shared by both stories) */
+  .fix p { margin: 0; }
+  .old { color: var(--ink-2); }
+  /* strike drawn as a background line: survives a wrap (box-decoration-break), sweeps like a mark */
+  .old del {
+    text-decoration: none; -webkit-box-decoration-break: clone; box-decoration-break: clone;
+    background: linear-gradient(var(--ink), var(--ink)) no-repeat 0 58% / 100% 2px;
   }
+  .new ins { text-decoration: none; }
+  .new { position: relative; }
+  .caret { position: absolute; left: -15px; top: 0.35em; width: 9px; height: 9px; border-left: 2px solid var(--ink); border-top: 2px solid var(--ink); transform: rotate(45deg); }
+  .approved { display: flex; align-items: center; gap: 8px; }
+  .approved svg { width: 22px; height: 22px; flex: none; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .approved .ring { stroke-dasharray: 64; stroke-dashoffset: 0; }
+  .approved .tick { stroke-dasharray: 16; stroke-dashoffset: 0; }
+
+  /* story A: the morning list */
+  .today { padding: 14px 22px 18px 26px; }
+  .today p { margin: 0; }
+  .day { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 2px solid var(--ink); }
+  .day b { font-size: 1.375rem; line-height: 1.2; }
+  .day span { color: var(--ink-2); font-size: 0.9375rem; }
+  .slips { list-style: none; margin: 0; padding: 0; }
+  .slip { position: relative; padding: 9px 0 10px; border-bottom: 1px solid var(--rule); }
+  .job { font-size: 1.0625rem; line-height: 1.3; }
+  .meta { color: var(--ink-2); font-size: 0.9375rem; line-height: 1.35; }
+  .why { margin-top: 3px !important; font-size: 0.9375rem; line-height: 1.4; }
+  .circled { position: relative; display: inline-block; }
+  .slip .ring {
+    position: absolute; left: -16px; right: -18px; top: -7px; bottom: -4px; width: calc(100% + 34px); height: calc(100% + 11px); z-index: -1; overflow: visible;
+    fill: none; stroke: var(--mark); stroke-width: 7; stroke-linecap: round; vector-effect: non-scaling-stroke;
+    stroke-dasharray: 100; stroke-dashoffset: 0;
+  }
+  /* room under the ring: its box ends above the salary line's letters */
+  .picked .job { position: relative; margin-bottom: 6px !important; }
+  .today { isolation: isolate; }
+  .slips, .slip { isolation: auto; }
+  .fix { margin-top: 12px; padding-left: 18px; font-size: 0.9375rem; line-height: 1.45; }
+  .fix-head { font-weight: 700; margin-left: -18px !important; margin-bottom: 4px !important; }
+  .fix .new { margin-top: 2px; }
+  .fix .approved { margin-top: 8px; font-size: 0.9375rem; }
+  /* phones: the story stacks under the install steps, h1 set for 390px */
+  @media (max-width: 600px) {
+    .today { padding: 12px 16px 16px 20px; }
+    .switch { margin-left: 0; }
+    /* the web address never breaks: the box takes the whole row, Copy goes under the line */
+    ol.steps > li > .command { grid-column: 1 / -1; flex-wrap: wrap; padding-left: 12px; }
+    .command code { flex-basis: 100%; font-size: 0.875rem; }
+    .hero { padding-top: 22px; row-gap: 28px; }
+    h1 { font-size: clamp(2.25rem, 1rem + 6.4vw, 3rem); line-height: 1.04; }
+    .lede { font-size: var(--step-0); }
+  }
+
+  /* wide screens: the hero fills the first screen under the masthead (18px + one line + 16px + 3px
+     rule), so the next scene's heading + sheet start below the fold, never cut by it */
+  @media (min-width: 1080px) {
+    .hero { min-height: calc(100svh - 37px - 1.9375rem); }
+    .intro { grid-column: 1 / span 6; }
+    figure { grid-column: 7 / -1; align-self: start; margin-top: 6px; }
+  }
+  /* wide + tall: the h1 runs across both columns as display type (two or three balanced lines), steps
+     + window side by side under it; the font stays capped by the screen's height so Copy keeps its room */
+  @media (min-width: 1080px) and (min-height: 800px) {
+    .hero { row-gap: 0; align-content: start; grid-template-rows: auto auto 1fr; }
+    .intro { display: contents; }
+    h1 { grid-column: 1 / -1; max-width: none; font-size: min(clamp(2.5rem, 1rem + 4.6vw, 7rem), 8.6vh + 0.5rem); }
+    .lede, #install { grid-column: 1 / span 6; }
+    #install { align-self: start; }
+    /* what you need, under the steps: ends the left column level with the window */
+    .need { display: block; }
+    figure { grid-row: 2 / span 2; }
+  }
+
+  /* opening moment: the window's marks draw once per session (html.seen skips it), done by 2.8 s;
+     everything is on the page from first paint, only marks start empty. --t0 / --t1 = start / end
+     in seconds, --draw = keyframes + easing, --len = the stroke's dash length. Phones: the window
+     starts below the fold, so the same drawing follows the scroll instead (cover 5% -> 45%) */
+  .today mark { --draw: sweep var(--ease-mark); }
+  .slip:nth-child(1) .why mark { --t0: 0.25; --t1: 0.75; }
+  .slip:nth-child(2) .why mark { --t0: 0.5; --t1: 1; }
+  .slip:nth-child(3) .why mark { --t0: 0.75; --t1: 1.25; }
+  .slip .ring { --t0: 1.1; --t1: 1.7; --len: 100; --draw: draw cubic-bezier(0.5, 0, 0.3, 1); }
+  .old del { --t0: 1.75; --t1: 2.05; --draw: strike ease-out; }
+  .fix mark { --t0: 2; --t1: 2.4; }
+  .approved .ring { --t0: 2.3; --t1: 2.65; --len: 64; --draw: draw ease-out; }
+  .approved .tick { --t0: 2.6; --t1: 2.8; --len: 16; --draw: draw ease-out; }
 
   @media (prefers-reduced-motion: no-preference) {
     @keyframes sweep { from { background-size: 0 100%; } }
-    @keyframes arrive { from { opacity: 0; } }
-    figure mark { animation: sweep 0.55s cubic-bezier(0.3, 0.7, 0.4, 1) both; }
-    .posting mark:nth-of-type(1) { animation-delay: 0.3s; }
-    .posting mark:nth-of-type(2) { animation-delay: 0.6s; }
-    .sheet mark:nth-of-type(1) { animation-delay: 1.1s; }
-    .sheet mark:nth-of-type(2) { animation-delay: 1.4s; }
-    .approved { animation: arrive 0.5s ease-out 1.9s both; }
-    .command.copied code { animation: sweep 0.45s cubic-bezier(0.3, 0.7, 0.4, 1) both; }
+    @keyframes strike { from { background-size: 0 2px; } }
+    @keyframes draw { from { stroke-dashoffset: var(--len); } }
+    .command.copied code { animation: sweep 0.45s var(--ease-mark) both; }
+    html:not(.seen):not(.is-phone) .today :is(mark, del, .ring, .tick) {
+      animation: var(--draw) calc((var(--t1) - var(--t0)) * 1s) calc(var(--t0) * 1s) both;
+    }
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      html.is-phone .window { view-timeline: --window; }
+      html.is-phone:not(.seen) .today :is(mark, del, .ring, .tick) {
+        animation: var(--draw) auto both;
+        animation-timeline: --window;
+        animation-range: cover calc(5% + var(--t0) * 40% / 2.8) cover calc(5% + var(--t1) * 40% / 2.8);
+      }
+    }
   }
 
-  .more { padding: 8px 0 24px; }
-  .more section { max-width: 68ch; padding: 32px 0; border-top: 1px solid var(--line); }
-  h2 { font-size: 24px; line-height: 1.25; margin: 0 0 16px; }
-  h3 { font-size: 20px; line-height: 1.3; margin: 20px 0 2px; }
-  .more p { margin: 0; }
-  .more ul { margin: 0 0 14px; padding-left: 1.1em; }
-  .more li { margin: 0 0 6px; }
-  details { border-bottom: 1px solid var(--line); }
-  details:first-of-type { border-top: 1px solid var(--line); }
-  summary { cursor: pointer; padding: 12px 0; font-weight: 700; }
-  details > div { padding: 0 0 16px; }
-  details code { font: 16px/1.5 var(--mono); overflow-wrap: anywhere; }
+  /* scenes below the hero */
+  .scene { padding-top: clamp(56px, 9vh, 104px); padding-bottom: clamp(56px, 9vh, 104px); row-gap: 32px; border-top: 1px solid var(--line); }
+  .scene h2 { font-size: clamp(2rem, 1rem + 5.1vw, 6.5rem); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 0.45em; }
+  .scene p { margin: 0; }
+  .scene-text { grid-column: 1 / -1; max-width: 34rem; }
+  .scene-text > p { margin-bottom: 1rem; }
+  .rules { list-style: none; margin: 1.25rem 0 0; padding: 0; border-top: 1px solid var(--line); }
+  .rules li { padding: 10px 0; border-bottom: 1px solid var(--line); }
 
-  footer {
-    max-width: 1200px; margin: 0 auto; padding: 24px 32px 40px; font-size: 17px; color: var(--text-2);
-    display: flex; flex-wrap: wrap; gap: 8px 28px;
+  /* 1. signature: the resume, corrected - the one framed object of its viewport */
+  .proof { grid-column: 1 / -1; margin: 0; isolation: isolate; min-width: 0; }
+  .for-job { margin: 0 0 12px !important; color: var(--text-2); font-size: 1.0625rem; }
+  .sheet-lg {
+    position: relative; margin: 0 10px 10px 0; padding: clamp(20px, 3vw, 44px) clamp(18px, 3vw, 48px);
+    color: var(--ink); border: 1px solid transparent;
+    font-size: 1.0625rem; line-height: 1.5;
   }
-  footer p { margin: 0; margin-right: auto; }
+  /* both sheets drawn by pseudos: the lift's transform makes .sheet-lg a stacking context, and its own
+     paper would then sit under the second sheet; ::after (front) paints after ::before (behind) either way */
+  .sheet-lg::before, .sheet-lg::after {
+    content: ""; position: absolute; inset: -1px; z-index: -1;
+    background: var(--paper); border: 1px solid var(--ink);
+  }
+  .sheet-lg::before { transform: translate(10px, 10px); }
+  .sheet-lg .name { font-size: 2rem; font-weight: 700; line-height: 1.15; }
+  .sheet-lg .contact { color: var(--ink-2); font-size: 0.9375rem; }
+  .sheet-lg .sec { font-size: 1rem; letter-spacing: 0.04em; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--ink); }
+  .line { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 28px; padding: 5px 0; }
+  .line > :first-child { min-width: 0; }
+  .bul { position: relative; padding-left: 18px; }
+  .bul::before { content: ""; position: absolute; left: 3px; top: 0.66em; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+  .margin { color: var(--ink-2); font-size: 0.9375rem; line-height: 1.35; display: flex; align-items: flex-start; gap: 8px; }
+  .margin svg { width: 26px; height: 26px; flex: none; margin-top: -3px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .margin.ok { color: var(--ink); font-weight: 700; }
+  .margin .dash { width: 18px; flex: none; margin-top: 0.68em; border-top: 1px solid var(--ink-2); }
+  .sheet-lg .fix { padding-left: 18px; }
+  .sheet-lg .fix .new { margin-top: 2px; }
+  .sheet-lg .ring { stroke-dasharray: 64; stroke-dashoffset: 0; }
+  .sheet-lg .tick { stroke-dasharray: 16; stroke-dashoffset: 0; }
+  @media (min-width: 760px) {
+    .line { grid-template-columns: minmax(0, 1fr) 17rem; }
+    .line.solo { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 759px) {
+    .margin { padding-left: 18px; font-size: 0.875rem; }
+    .margin svg { width: 22px; height: 22px; margin-top: -2px; }
+    .sheet-lg .name { font-size: 1.625rem; }
+    /* the dash notes repeat the facts listed beside the sheet; the approved line keeps its check */
+    .sheet-lg .margin:not(.ok) { display: none; }
+  }
+  @media (min-width: 1080px) {
+    /* the heading runs above both columns: display size won't fit 4 columns; the lede sits beside
+       its last line so the heading row has no empty right band (qa EMPTY_RIGHT, 1920 too) */
+    .resume { row-gap: 0; grid-template-rows: auto 1fr; }
+    .resume .scene-text { display: contents; }
+    .resume h2 { grid-column: 1 / span 8; }
+    .resume .scene-text > p { grid-column: 9 / -1; grid-row: 1; align-self: end;
+      margin-bottom: calc(0.6 * clamp(2rem, 1rem + 5.1vw, 6.5rem)); }  /* last line on the h2 baseline */
+    .resume .rules { grid-column: 1 / span 4; align-self: start; }
+    .proof { grid-column: 5 / -1; grid-row: 2; }
+  }
 
+  /* scene motion: scroll-driven draw-ins, the single path - no support (Firefox) or reduced motion
+     shows the finished state; only circles, checks + the sheet's 12px lift move, text never waits */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes lift { from { transform: translateY(12px); } }
+      @keyframes under { from { transform: translate(0, 0); } }
+      .sheet-lg { animation: lift linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+      .sheet-lg::before { animation: under linear both; animation-timeline: view(); animation-range: entry 20% cover 40%; }
+      .margin.ok svg { view-timeline: --ok; }
+      .margin.ok .ring { --len: 64; animation: draw linear both; animation-timeline: --ok; animation-range: entry 100% cover 55%; }
+      .margin.ok .tick { --len: 16; animation: draw linear both; animation-timeline: --ok; animation-range: cover 50% cover 62%; }
+      .submit svg { --len: 100; animation: draw linear both; animation-timeline: view(); animation-range: entry 100% cover 50%; }
+    }
+  }
+
+  /* applications + help after: a compact typeset pair, no framed object; illustrated Submit = ink, never a control */
+  .half { grid-column: 1 / -1; min-width: 0; }
+  /* a paired subhead, half width: capped where "Applications filled." still fits one line */
+  .half h2 { font-size: clamp(1.75rem, 0.5rem + 3.9vw, 4rem); }
+  .defs { margin: 0; border-top: 2px solid var(--text); }
+  .defs > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 20px; padding: 12px 0 13px; border-bottom: 1px solid var(--line); }
+  .defs dt { font-weight: 700; }
+  .defs dd { margin: 0; }
+  .submit-line { display: flex; align-items: center; gap: 22px; margin-top: 22px !important; }
+  .submit {
+    position: relative; flex: none; display: inline-block; padding: 8px 20px; font-weight: 700; line-height: 1.2;
+    color: var(--desk); background: var(--text); border-radius: 6px; margin: 10px 14px;
+  }
+  .submit svg {
+    position: absolute; left: -16px; top: -13px; width: calc(100% + 32px); height: calc(100% + 26px); overflow: visible;
+    fill: none; stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; vector-effect: non-scaling-stroke;
+    stroke-dasharray: 100; stroke-dashoffset: 0;
+  }
+  @media (min-width: 600px) { .defs > div { grid-template-columns: 11rem minmax(0, 1fr); } }
+  @media (min-width: 1080px) {
+    .half:first-child { grid-column: 1 / span 6; }
+    .half + .half { grid-column: 7 / -1; }
+  }
+
+  /* who sees what: every recipient as text, item for item with privacy.html */
+  .who-head { grid-column: 1 / -1; max-width: 46rem; }
+  .who-head .big { font-size: clamp(1.375rem, 1.1rem + 0.8vw, 1.75rem); line-height: 1.35; }
+  .ledger { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--text); }
+  .ledger li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 32px; padding: 16px 0 17px; border-bottom: 1px solid var(--line); }
+  .ledger h3 { margin: 0; font-size: 1.375rem; line-height: 1.25; }
+  .ledger .when { color: var(--text-2); }
+  .ledger-head { display: none; }
+  .who-foot { grid-column: 1 / -1; max-width: 46rem; color: var(--text-2); }
+  /* wide: the heading + its one-line promise side by side, last lines on one baseline */
+  @media (min-width: 1080px) {
+    .who-head { display: contents; }
+    .who h2, .who-head .big { align-self: last baseline; }
+    .who h2 { grid-column: 1 / span 6; }
+    .who-head .big { grid-column: 7 / -1; }
+  }
+  @media (min-width: 900px) {
+    .ledger li, .ledger-head { grid-template-columns: 3fr 5fr 4fr; }
+    .ledger-head { grid-column: 1 / -1; display: grid; gap: 4px 32px; color: var(--text-2); font-size: 1rem; margin-bottom: -24px !important; }
+  }
+
+  h2 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 16px; }
+  h3 { font-size: 1.25rem; line-height: 1.3; margin: 20px 0 2px; }
+
+  /* research teaser: curated picks, not the newest */
+  .research-head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+  .research-head h2 { margin: 0; }
+  .picks { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--gutter); }
+  .picks li { padding: 16px 0 18px; border-top: 2px solid var(--text); }
+  .picks a { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+  .picks p { margin-top: 8px; color: var(--text-2); }
+  @media (min-width: 900px) { .picks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+  /* questions: two stacks (not CSS columns: a column break can split an open answer) */
+  .questions h2 { grid-column: 1 / -1; }
+  .stack { grid-column: 1 / -1; min-width: 0; }
+  .stack details { border-bottom: 1px solid var(--line); }
+  .stack details:first-child { border-top: 2px solid var(--text); }
+  .stack summary { padding: 14px 40px 14px 0; font-weight: 700; }
+  .stack details > div { padding: 0 40px 16px 0; }
+  .stack code { font: 0.9375rem/1.5 var(--mono); overflow-wrap: anywhere; }
+  /* wide: the heading heads the first stack (3 questions) and is three questions tall (1lh + margin =
+     3 closed summaries: 2 x 14px + one body line + 1px rule each), the second stack (6) starts level
+     with it => both stacks end on the same line, balanced by height */
+  @media (min-width: 900px) {
+    .questions { align-items: start; row-gap: 0; }
+    .questions h2 { grid-column: 1 / span 6; margin-bottom: calc(3 * (29px + 1.9375rem) - 1lh); }
+    .stack { grid-column: 1 / span 6; }
+    .stack + .stack { grid-column: 7 / -1; grid-row: 1 / span 2; }
+  }
+  /* one column on phones: the second stack carries on under the first's hairline */
+  @media (max-width: 899px) { .stack + .stack details:first-child { border-top: 0; } }
+
+  /* closing install beat (phone: send the link; no second command) + colophon */
+  .closing { border-top: 0; padding-top: clamp(24px, 4vh, 48px); }
+  .closing .scene-text { max-width: none; }
+  .closing h2 { font-size: clamp(2.25rem, 1rem + 5.4vw, 7rem); margin-bottom: 0.3em; }
+  .closing p { max-width: 34rem; }
+  .closing .go { display: inline-block; margin-top: 8px; font-size: var(--step-1); font-weight: 700; }
+  .closing .phone p { font-weight: 400; }
+  /* what happens after the paste: a ruled numbered list beside the closing line (wide), under it (narrow) */
+  .next { grid-column: 1 / -1; max-width: 34rem; border-top: 2px solid var(--text); }
+  .next h3 { margin: 0; padding: 12px 0 4px; font-size: var(--step-0); }
+  .next ol { list-style: none; counter-reset: next; margin: 0; padding: 0; }
+  .next li { counter-increment: next; position: relative; margin: 0; padding: 10px 0 11px 2rem; border-bottom: 1px solid var(--line); }
+  .next li::before { content: counter(next) "."; position: absolute; left: 0; font-weight: 700; font-variant-numeric: lining-nums tabular-nums; }
+  @media (min-width: 1080px) {
+    .closing .scene-text { grid-column: 1 / span 8; }
+    .next { grid-column: 9 / -1; align-self: center; max-width: none; }  /* end left a 228px band above it at 1920 */
+  }
+  .colophon { border-top: 1px solid var(--line); }
+  .colophon p { grid-column: 1 / -1; margin: 0; padding: 18px 0 28px; color: var(--text-2); font-size: 1.0625rem; }
+
+  /* phones: one column already stacks every scene => tighter rhythm keeps the page inside its cap */
   @media (max-width: 600px) {
-    .wrap, footer { padding-left: 16px; padding-right: 16px; }
-    .hero { padding-top: 8px; }
-    .switch { margin-left: 0; }
-    .top { gap: 12px; }
-    .links { gap: 14px; font-size: 17px; }
-    .sheet { padding: 16px; }
+    .hero { padding-bottom: 32px; }
+    .scene { padding-top: 30px; padding-bottom: 30px; row-gap: 20px; }
+    .scene h2 { font-size: clamp(2rem, 1.2rem + 2.2vw, 3.25rem); }
+    .half h2 { font-size: clamp(1.75rem, 1.1rem + 1.6vw, 2.5rem); }
+    .closing h2 { font-size: clamp(2.25rem, 1.3rem + 3vw, 4.25rem); }
+    .ledger li { padding: 12px 0 13px; }
+    .defs > div { padding: 9px 0 10px; }
+    .questions { row-gap: 0; }
+    .picks a { font-size: 1.3125rem; }
+    .picks li { padding: 12px 0 14px; }
+    .stack summary { padding-top: 10px; padding-bottom: 10px; }
+    .colophon p { padding: 14px 0 20px; }
+  }
+
+  /* print: the desktop install steps (the line itself), no buttons */
+  @media print {
+    html.is-phone .desktop, .desktop { display: block; }
+    .phone, #copy, .switch { display: none !important; }
+    .scene { padding-top: 28px; padding-bottom: 28px; row-gap: 20px; }
+    .defs > div { padding: 4px 0 5px; }
+    .submit-line { margin-top: 10px !important; }
+    /* a link to the install steps and a send button mean nothing on paper */
+    .closing { display: none; }
+    /* research picks are only links; the articles live on the site */
+    .scene.research { display: none; }
   }
 </style>
 </head>
 <body>
-<header class="wrap top">
-  <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
-  <nav class="links">
-    <a href="#install">Install</a>
-    <a href="https://github.com/cezkid/jobs">Source code</a>
-  </nav>
+<header class="masthead">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="wrap top">
+    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <nav class="links" aria-label="Site">
+      <a href="/research/">Research</a>
+      <a href="/#install">Install</a>
+      <a class="code" href="https://github.com/cezkid/jobs">Source code</a>
+    </nav>
+  </div>
 </header>
-<main class="wrap">
-  <div class="hero">
+<main id="main">
+  <!-- region: hero -->
+  <div class="grid hero">
     <div class="intro">
       <h1>A free job-search app for your Windows or Mac computer.</h1>
-      <p class="does">Finds new jobs every morning. Makes your resume for any job you pick. You press Submit.</p>
-      <p class="lede">Works with your Claude, ChatGPT or GitHub Copilot Pro plan.</p>
+      <p class="lede">Finds new jobs every morning. Makes your resume for any job you pick. You press Submit.<span>Works with your Claude, ChatGPT or GitHub Copilot Pro plan.</span></p>
 
       <div id="install">
       <div class="phone">
@@ -225,7 +554,7 @@
       </div>
 
       <div class="desktop">
-        <h2 class="install-heading">Install on <span class="win-only">Windows</span><span class="mac-only">Mac</span> (about 5 minutes)</h2>
+        <h2 class="install-heading">Install on <span class="win-only">Windows</span><span class="mac-only">Mac</span> in about 5 minutes</h2>
         <ol class="steps">
           <li>
             <p class="step win-only">
@@ -234,16 +563,14 @@
                 <path d="M11 13l9 7-11 8" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M19 28h9" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
               </svg>
-              Open Windows PowerShell</p>
+              Open Windows PowerShell <span class="sub">from the Start menu</span></p>
             <p class="step mac-only">
               <svg class="app" viewBox="0 0 40 40" role="img" aria-label="Terminal icon">
                 <rect x="2" y="3" width="36" height="34" rx="8" fill="#2b2b2b" stroke="#8a8a8a" stroke-width="1.5"/>
                 <path d="M9 13l6 5-6 5" fill="none" stroke="#f2f2f2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M18 24h8" stroke="#f2f2f2" stroke-width="2.6" stroke-linecap="round"/>
               </svg>
-              Open Terminal</p>
-            <p class="sub win-only">Start menu, type PowerShell</p>
-            <p class="sub mac-only">Spotlight, type Terminal</p>
+              Open Terminal <span class="sub">from Spotlight</span></p>
           </li>
           <li>
             <p class="step">Paste this and press Enter</p>
@@ -257,7 +584,6 @@
           </li>
           <li>
             <p class="step">Type 1 for Claude, 2 for ChatGPT or 3 for GitHub Copilot</p>
-            <p class="sub">VS Code opens in about 5 minutes. Sign in to your AI.</p>
           </li>
         </ol>
 
@@ -266,76 +592,162 @@
           <span>Stuck? Run it again - your files are kept.</span>
           <a id="script" href="https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1">Read the script first</a>
         </p>
+        <p class="need">You need Windows 10 or 11 or a Mac, and one AI plan: Claude Pro or Max, ChatGPT Plus or Pro, or GitHub Copilot Pro. No administrator password.</p>
       </div>
       </div>
     </div>
 
     <figure>
-      <figcaption class="vh">Example: the CEZ Job Finder app window. You ask the chat for a resume for job 12; it rewords a line with the posting's words, and you approve each change.</figcaption>
+      <figcaption class="vh">Example: the CEZ Job Finder app on a morning. Three new jobs, each with one line on why it fits. Job 12 is circled; in your resume for job 12 one line is reworded, and you approve it.</figcaption>
       <div class="window">
         <div class="titlebar" aria-hidden="true">
           <span class="dots mac-only"><span></span><span></span><span></span></span>
-          <span class="title"><img src="/icon.svg" alt="" width="18" height="18">CEZ Job Finder</span>
+          <span class="title"><img src="/icon.svg" alt="" width="18" height="18">Today - CEZ Job Finder</span>
           <span class="controls win-only">
             <svg viewBox="0 0 44 38"><path d="M17 19h10"/></svg>
             <svg viewBox="0 0 44 38"><rect x="17.5" y="14.5" width="9" height="9" rx="1"/></svg>
             <svg viewBox="0 0 44 38"><path d="M17.5 14.5l9 9M26.5 14.5l-9 9"/></svg>
           </span>
         </div>
-        <div class="panes">
-          <div class="chat">
-            <p class="you">Make my resume for job 12</p>
-            <p>Done. 2 lines now use the posting's words. Check them.</p>
-            <div class="posting">
-              <p class="from">From the posting</p>
-              <p>“…lead our <mark>support team</mark> and bring down <mark>wait times</mark>…”</p>
-            </div>
-          </div>
-          <div class="viewer">
-            <div class="sheet">
-              <p class="name">Your Name</p>
-              <p class="contact">City, State | you@example.com</p>
-              <hr>
-              <p><b>Customer Support Lead</b>, 2021 - now</p>
-              <ul>
-                <li>Led <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</li>
-                <li>Wrote the refund guide new hires train on.</li>
-              </ul>
-            </div>
-            <p class="approved"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
+        <div class="today">
+          <p class="day"><b>Today</b><span>3 new jobs this morning</span></p>
+          <ul class="slips">
+            <li class="slip">
+              <p class="job"><b>Job 11</b> - Customer Success Manager</p>
+              <p class="meta">$72,000 a year, Denver, CO</p>
+              <p class="why"><mark>Asks for renewals work; you kept 94% of your accounts.</mark></p>
+            </li>
+            <li class="slip picked">
+              <p class="job"><span class="circled"><b>Job 12</b> - Customer Support Lead<svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M24 9 C 80 0, 186 2, 194 26 C 200 48, 128 58, 64 56 C 16 54, 2 42, 6 28 C 10 13, 42 6, 92 5"/></svg></span></p>
+              <p class="meta">$68,000 to $75,000 a year, remote</p>
+              <p class="why"><mark>Wants a support team lead; you led a team of 6.</mark></p>
+            </li>
+            <li class="slip">
+              <p class="job"><b>Job 15</b> - IT Support Specialist</p>
+              <p class="meta">$58,000 a year, remote</p>
+              <p class="why"><mark>Help desk work, like your last two jobs.</mark></p>
+            </li>
+          </ul>
+          <div class="fix">
+            <p class="fix-head">Your resume for job 12</p>
+            <p class="old"><span class="vh">Old line: </span><del>Managed 6 agents and answered tickets faster.</del></p>
+            <p class="new"><span class="caret" aria-hidden="true"></span><span class="vh">New line: </span><ins>Led a <mark>support team</mark> of 6 through peak season; cut wait times 30%.</ins></p>
+            <p class="approved"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10"/><path class="tick" d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
           </div>
         </div>
       </div>
     </figure>
   </div>
+  <!-- /region: hero -->
 
-  <div class="more">
-    <section>
-      <h2>What it does</h2>
-      <h3>New jobs every morning</h3>
-      <p>From freehire.me, a free public list gathered from companies' own hiring pages and job boards. Any field. Each job says why it's on your list.</p>
-      <h3>A resume for any job you pick</h3>
-      <p>One page, set to fit. Nothing made up: employers, titles and dates stay as you gave them. You approve every changed line.</p>
-      <h3>Applications filled, you press Submit</h3>
-      <p>Greenhouse, Ashby and UKG forms, and Workday with Claude. Others get answers ready to paste.</p>
-      <h3>Help after you apply</h3>
-      <p>Interview practice, follow-up emails, and a Today page with what's waiting on you.</p>
-    </section>
-
-    <section>
-      <h2>What stays private</h2>
-      <ul>
-        <li>No account. Nothing uploaded to us.</li>
-        <li>Your resume, jobs and settings stay on your computer.</li>
-        <li>The job search gets your search words and which job from your list you work on - never your resume.</li>
-        <li>Your own AI plan reads your resume to help.</li>
-        <li>Setup shows how to keep your chats out of AI training.</li>
+  <!-- region: resume -->
+  <section class="grid scene resume" aria-labelledby="resume-h">
+    <div class="scene-text">
+      <h2 id="resume-h">Your resume, made for one job</h2>
+      <p>Pick a job. The chat rewrites your resume for it, in the posting's own words where your experience backs them.</p>
+      <ul class="rules">
+        <li>Employers, titles and dates stay as you gave them.</li>
+        <li>Nothing made up. A skill you don't have is told to you, not added.</li>
+        <li>You approve every changed line.</li>
+        <li>One page, set to fit.</li>
       </ul>
-      <p><a href="/privacy.html">Who sees what</a></p>
-    </section>
+    </div>
+    <figure class="proof">
+      <p class="for-job">Your resume for job 12 - Customer Support Lead, remote</p>
+      <figcaption class="vh">Example resume for job 12. The job title and dates are kept as you gave them. One line is reworded with the posting's words, and you approved it. Another line uses the posting's words. The rest is kept as you wrote it.</figcaption>
+      <div class="sheet-lg">
+        <p class="name">Your Name</p>
+        <p class="contact">City, State | you@example.com</p>
+        <h3 class="sec">EXPERIENCE</h3>
+        <div class="line">
+          <p><b>Customer Support Lead</b>, 2021 to now</p>
+          <p class="margin"><span class="dash" aria-hidden="true"></span>Title and dates as you gave them</p>
+        </div>
+        <div class="line">
+          <div class="fix">
+            <p class="old"><span class="vh">Old line: </span><del>Managed 6 agents and answered tickets faster.</del></p>
+            <p class="new"><span class="caret" aria-hidden="true"></span><span class="vh">New line: </span><ins>Led a <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</ins></p>
+          </div>
+          <p class="margin ok"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10"/><path class="tick" d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
+        </div>
+        <div class="line">
+          <p class="bul">Answered 40 tickets a day by <mark>email, chat and phone</mark>.</p>
+          <p class="margin"><span class="dash" aria-hidden="true"></span>The posting's words, true to your work</p>
+        </div>
+        <div class="line">
+          <p class="bul">Wrote the refund guide new hires train on.</p>
+          <p class="margin"><span class="dash" aria-hidden="true"></span>Kept as you wrote it</p>
+        </div>
+        <div class="line solo">
+          <p><b>Support Agent</b>, 2018 to 2021</p>
+        </div>
+        <div class="line solo">
+          <p class="bul">Trained 4 new agents on the help desk.</p>
+        </div>
+      </div>
+    </figure>
+  </section>
+  <!-- /region: resume -->
 
-    <section>
-      <h2>Questions</h2>
+  <!-- region: after -->
+  <section class="grid scene after" aria-label="Applying and after">
+    <div class="half">
+      <h2>Applications filled. You press Submit.</h2>
+      <dl class="defs">
+        <div><dt>Most hiring sites</dt><dd>Filled from your resume in a window the app opens: Greenhouse, Ashby, Lever, Workable, UKG, JazzHR, BambooHR, Paylocity, SmartRecruiters.</dd></div>
+        <div><dt>Paycom, ADP, Oracle, iCIMS</dt><dd>First box filled; next steps named.</dd></div>
+        <div><dt>Workday</dt><dd>Filled with Claude, in Chrome.</dd></div>
+        <div><dt>Any other form</dt><dd>Answers ready to paste.</dd></div>
+      </dl>
+      <p class="submit-line"><span class="submit" aria-hidden="true">Submit<svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="100" d="M30 8 C 90 0, 190 4, 195 28 C 199 50, 120 58, 60 55 C 18 53, 3 42, 6 28 C 9 14, 44 6, 100 6"/></svg></span><span>It stops before Save and Submit. You check the form and press it yourself.</span></p>
+    </div>
+    <div class="half">
+      <h2>Help after you apply</h2>
+      <dl class="defs">
+        <div><dt>Interview practice</dt><dd>One question at a time, from the posting and your resume, with short honest feedback. And a talk-through after the real one.</dd></div>
+        <div><dt>Follow-up emails</dt><dd>Written for you when a job goes quiet. You send it from your own email.</dd></div>
+        <div><dt>Today page</dt><dd>What's waiting on you and the newest jobs. Opens each time you start.</dd></div>
+      </dl>
+    </div>
+  </section>
+  <!-- /region: after -->
+
+  <!-- region: who -->
+  <section class="grid scene who" aria-labelledby="who-h">
+    <div class="who-head">
+      <h2 id="who-h">Who sees what</h2>
+      <p class="big">No account. Nothing sent to us. Your resume, jobs and settings stay on your computer.</p>
+    </div>
+    <p class="ledger-head" aria-hidden="true"><span>Who</span><span>What they get</span><span>When</span></p>
+    <ol class="ledger">
+      <li><h3>freehire.me</h3><p>Your search words, and which job from your list you make a resume for or ask about. Never your resume.</p><p class="when">To find jobs, get the whole posting, or see if it's still open.</p></li>
+      <li><h3>Your own AI account</h3><p>Your resume and what you tell it, in Claude, ChatGPT or GitHub Copilot.</p><p class="when">While you chat. Personal plans may train on chats unless you switch it off.</p></li>
+      <li><h3>An employer</h3><p>What you apply with.</p><p class="when">When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</p></li>
+      <li><h3>Your email provider</h3><p>The morning email, sent to yourself.</p><p class="when">Only if you turn on email alerts.</p></li>
+      <li><h3>The maintainer</h3><p>A fix to the program's code. Never your files.</p><p class="when">Only if you say yes.</p></li>
+    </ol>
+    <p class="who-foot">Nothing else from the app leaves your computer. VS Code, your AI's add-on and the installer follow their own companies' rules: <a href="/privacy.html">Privacy, in full</a>.</p>
+  </section>
+  <!-- /region: who -->
+
+  <!-- region: research -->
+  <section class="grid scene research" aria-labelledby="research-h">
+    <div class="research-head">
+      <h2 id="research-h">Research</h2>
+      <a href="/research/">All research</a>
+    </div>
+    <ul class="picks">
+      <li><a href="/research/what-makes-a-good-resume/">What makes a good resume?</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower ratings.</p></li>
+      <li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes?</a><p>No study shows it. The number traces to a 2012 sales claim.</p></li>
+      <li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a><p>In tests, yes - by name, gender, age and disability. The direction changes by model.</p></li>
+    </ul>
+  </section>
+  <!-- /region: research -->
+
+  <!-- region: questions -->
+  <section class="grid scene questions" aria-labelledby="questions-h">
+    <h2 id="questions-h">Questions</h2>
+    <div class="stack">
       <details>
         <summary>Is this a website?</summary>
         <div><p>No. It's an app you install on your Windows or Mac computer. Your resume and jobs stay there.</p></div>
@@ -348,6 +760,8 @@
         <summary>Use Nova, Poe or another all-in-one AI app?</summary>
         <div><p>Those apps can't run programs on your computer, so they can't run CEZ Job Finder. GitHub Copilot Pro ($10 a month) works like them - several AIs in one plan - and runs here. Pick Claude Sonnet as its AI.</p></div>
       </details>
+    </div>
+    <div class="stack">
       <details>
         <summary>Does it apply for me?</summary>
         <div><p>No. It fills the form; you check it and press Submit.</p></div>
@@ -375,13 +789,44 @@
         <summary>How do I remove it?</summary>
         <div><p>Ask the chat to turn off the daily check, then delete the CEZ Job Finder folder.</p></div>
       </details>
-    </section>
+    </div>
+  </section>
+  <!-- /region: questions -->
+
+  <!-- region: closing -->
+  <section class="grid scene closing" aria-labelledby="closing-h">
+    <div class="scene-text">
+      <h2 id="closing-h">Start with tomorrow morning's jobs.</h2>
+      <p class="desktop">Install takes about 5 minutes. One line to paste; your files stay on your computer.</p>
+      <a class="go desktop" href="#install">Go to the install steps</a>
+      <div class="phone">
+        <p>It installs on a Windows or Mac computer.</p>
+        <a class="send" href="mailto:?subject=CEZ%20Job%20Finder&body=https%3A%2F%2Fjobs.enrriquez.com%2F">Send this page to my computer</a>
+      </div>
+    </div>
+    <div class="next desktop">
+      <h3>After you paste the line</h3>
+      <ol>
+        <li>VS Code opens, with the chat beside it.</li>
+        <li>Type <b>set me up</b>. The chat asks what jobs you want and reads your resume, in about 10 minutes.</li>
+        <li>Your first jobs show up. From then on, new ones come each morning, on the Today page.</li>
+      </ol>
+    </div>
+  </section>
+  <!-- /region: closing -->
+
+  <!-- region: colophon -->
+  <div class="grid colophon">
+    <p>Set in Caladea. Loads under 100 KB and nothing from other sites.</p>
   </div>
+  <!-- /region: colophon -->
 </main>
 <footer>
-  <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
-  <a href="/privacy.html">Privacy</a>
-  <a href="https://github.com/cezkid/jobs">Source code on GitHub</a>
+  <div class="wrap row">
+    <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
+    <a href="/privacy.html">Privacy</a>
+    <a href="https://github.com/cezkid/jobs">Source code</a>
+  </div>
 </footer>
 <script>
   const SITE = "https://jobs.enrriquez.com/";  // docs/mac + docs/win = copies of app/install scripts
@@ -396,18 +841,15 @@
     win: "https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1",
     mac: "https://github.com/cezkid/jobs/blob/main/app/install/install-mac.sh",
   };
-  const ua = navigator.userAgent;
-  // iPadOS reports Mac UA => touch points tell it apart
-  const isPhone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-  // iPhone/iPad count as Mac => Apple visitors see Mac window dots (phones hide the install steps)
-  let os = /Mac|iPhone|iPad|iPod|iOS/i.test(navigator.userAgentData?.platform || navigator.platform || ua) ? "mac" : "win";
+  // head script set html.is-mac / html.is-phone before first paint
+  const html = document.documentElement.classList;
+  let os = html.contains("is-mac") ? "mac" : "win";
   const button = document.getElementById("copy");
   const label = document.getElementById("copy-label");
   const box = button.closest(".command");
 
   function render() {
-    document.body.classList.toggle("is-phone", isPhone);
-    document.body.classList.toggle("is-mac", os === "mac");
+    html.toggle("is-mac", os === "mac");
     document.getElementById("line").textContent = LINES[os];
     document.getElementById("script").href = SCRIPTS[os];
     box.classList.remove("copied");
@@ -443,8 +885,7 @@
     render();
   });
   // phones: share sheet when there is one; a cancel stays a cancel
-  const send = document.querySelector(".send");
-  if (navigator.share) {
+  if (navigator.share) document.querySelectorAll(".send").forEach((send) => {
     send.addEventListener("click", async (event) => {
       event.preventDefault();
       try {
@@ -453,7 +894,7 @@
         if (error.name !== "AbortError") location.href = send.href;
       }
     });
-  }
+  });
   render();
 </script>
 </body>

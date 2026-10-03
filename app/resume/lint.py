@@ -14,7 +14,7 @@ from resume import render, schema, typeface
 FAIL = "fail"
 WARN = "warn"
 
-# PubMed 2010-2024 excess style words (delves 25.2x, showcasing 9.2x, underscores 9.1x) + ten-marker set + flowery cluster.
+# Kobak et al., Sci. Adv. 2025: PubMed 2010-2024 excess style words (delves 25.2x, showcasing 9.2x, underscores 9.1x) + ten-marker set + flowery cluster.
 # "across" and "within" left 2026-09-24: they carry scope ("across 6 teams"), which is evidence (docs/resume/bullets.md)
 STYLE_WORD_LIST = (
     "delve", "delves", "delved", "delving", "showcasing", "underscores", "additionally", "comprehensive",

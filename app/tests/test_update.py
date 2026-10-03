@@ -1,10 +1,14 @@
 import io
+import subprocess
 import zipfile
 from pathlib import Path
 
 import httpx
+import pytest
 
 import update
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def archive(files: dict[str, str]) -> bytes:
@@ -101,3 +105,28 @@ def test_vscode_settings_survive_update(tmp_path, monkeypatch):
     assert update.update(tmp_path) == "Up to date."
     assert (tmp_path / ".vscode" / "settings.json").read_text(encoding="utf-8") == "mine"
     assert Path(".vscode") / "settings.json" in update.KEEP
+
+
+def test_empty_docs_entry_clears_stale_site_copy(tmp_path, monkeypatch):
+    # docs/** export-ignore leaves only an empty jobs-main/docs/ entry => stale site copy goes
+    write(tmp_path / "docs" / "index.html", "old site")
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as z:
+        z.writestr("jobs-main/app/jobs.py", "new")
+        z.writestr("jobs-main/docs/", "")
+    monkeypatch.setattr(update, "download", lambda: buf.getvalue())
+
+    assert update.update(tmp_path) == "Up to date."
+    assert (tmp_path / "docs").is_dir()
+    assert list((tmp_path / "docs").iterdir()) == []
+
+
+@pytest.mark.skipif(not (ROOT / ".git").exists(), reason="installed copy: no git")
+def test_download_leaves_site_out_keeps_program_docs():
+    out = subprocess.run(
+        ["git", "-C", str(ROOT), "archive", "--worktree-attributes", "--format=zip", "--prefix=jobs-main/", "HEAD"],
+        capture_output=True, check=True,
+    ).stdout
+    names = zipfile.ZipFile(io.BytesIO(out)).namelist()
+    assert [n for n in names if n.startswith("jobs-main/docs/")] == ["jobs-main/docs/"]
+    assert "jobs-main/app/docs/site.md" in names

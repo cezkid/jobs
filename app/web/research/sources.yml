@@ -1,0 +1,861 @@
+# Research sources registry - every work a research page cites. Field rules: app/docs/site.md#research-pages;
+# what to cite + how to label it: app/docs/research.md. Sorted by id.
+
+- id: al-ali-2026
+  type: article
+  authors: ["Al Ali, Adnan", "Helcl, Jindřich", "Libovický, Jindřich"]
+  year: 2026
+  title: "Different Time, Different Language: Revisiting the Bias Against Non-Native Speakers in GPT Detectors"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2602.05769
+  evidence: lab/LLM audit
+  sample: essays in Czech by non-native students (AKCES 3 corpus) and native peers, plus other text types; three kinds of AI detectors of 2025, one of them commercial; not English, not resumes
+  preprint: true
+  checked: 2026-10-03
+
+- id: an-2025
+  type: article
+  authors: ["An, Jiafu", "Huang, Difang", "Lin, Chen", "Tai, Mingzhu"]
+  year: 2025
+  title: "Measuring gender and racial biases in large language models: Intersectional evidence from automated resume evaluation"
+  venue: PNAS Nexus 4(3), pgaf089
+  doi: 10.1093/pnasnexus/pgaf089
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC11937954/
+  evidence: lab/LLM audit
+  sample: about 361,000 made-up resumes for 20 entry-level jobs, scored 0-100 by 5 AI models (GPT-3.5 Turbo, GPT-4o, Gemini 1.5 Flash, Claude 3.5 Sonnet, Llama 3-70b)
+  checked: 2026-10-03
+
+- id: anthropic-consumer-terms-2025
+  type: web
+  org: Anthropic
+  year: 2025
+  title: Updates to Consumer Terms and Privacy Policy
+  url: https://www.anthropic.com/news/updates-to-our-consumer-terms
+  evidence: vendor docs
+  sample: the maker's announcement of August 28, 2025; covers Claude Free, Pro and Max, including Claude Code on those plans
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: anthropic-retention
+  type: web
+  org: Anthropic
+  year: 2026
+  title: How long do you store my data?
+  url: https://privacy.claude.com/en/articles/10023548-how-long-do-you-store-my-data
+  evidence: vendor docs
+  sample: the maker's privacy help page for Claude Free, Pro and Max, updated July 1, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: anthropic-training-consumer
+  type: web
+  org: Anthropic
+  year: 2026
+  title: Is my data used for model training? (Claude Free, Pro and Max)
+  url: https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training
+  evidence: vendor docs
+  sample: the maker's privacy help page for Claude Free, Pro and Max, updated March 16, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: anthropic-training-setting
+  type: web
+  org: Anthropic
+  year: 2026
+  title: How do I change my model improvement privacy settings?
+  url: https://privacy.claude.com/en/articles/12109829-how-do-i-change-my-model-improvement-privacy-settings
+  evidence: vendor docs
+  sample: the maker's step-by-step help page for Claude Free, Pro and Max, updated August 3, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: anthropic-training-work
+  type: web
+  org: Anthropic
+  year: 2026
+  title: Is my data used for model training? (Claude for Work and the developer platform)
+  url: https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training
+  evidence: vendor docs
+  sample: the maker's privacy help page for its business products, updated August 18, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: ashby-2024
+  type: web
+  org: Ashby
+  year: 2024
+  title: AI-Assisted Application Review
+  url: https://www.ashbyhq.com/blog/product/ai-assisted-application-review
+  evidence: vendor docs
+  sample: the maker's own description of its feature, September 2024
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: bloomberg-2024
+  type: article
+  authors: ["Yin, Leon", "Alba, Davey", "Nicoletti, Leonardo"]
+  year: 2024
+  title: "OpenAI's GPT Is a Recruiter's Dream Tool. Tests Show There's Racial Bias"
+  venue: Bloomberg, March 7, 2024 (method + code on GitHub, BloombergGraphics/2024-openai-gpt-hiring-racial-discrimination)
+  url: https://prod.cm.bloomberg.com/graphics/2024-openai-gpt-hiring-racial-discrimination/
+  evidence: lab/LLM audit
+  sample: GPT-3.5 and GPT-4 asked 1,000 times per job to rank 8 equally qualified resumes with names from 8 race and gender groups, 4 jobs; news organisation's own test
+  checked: 2026-10-03
+
+- id: bommasani-2026
+  type: article
+  authors: ["Bommasani, Rishi", "Bana, Sarah H.", "Creel, Kathleen A.", "Jurafsky, Dan", "Liang, Percy"]
+  year: 2026
+  title: Algorithmic Monocultures in Hiring
+  venue: "FAccT '26, ACM Conference on Fairness, Accountability, and Transparency (open copy on arXiv)"
+  doi: 10.1145/3805689.3812400
+  url: https://arxiv.org/abs/2605.27371
+  evidence: observational
+  sample: 4.2 million real applications from 3.4 million applicants to 1,746 jobs at 156 employers, all scored by one vendor's game-based tests (pymetrics), not resumes
+  checked: 2026-10-03
+
+- id: bone-2026
+  type: article
+  authors: ["Bone, Matthew", "Stephany, Fabian", "del Rio-Chanona, Maria"]
+  year: 2026
+  title: "Monocultural Biases: Correlated biases in large language models lead to unequal systemic exclusion rates in hiring"
+  venue: COLM 2026, Conference on Language Modeling (open copy on arXiv)
+  url: https://arxiv.org/abs/2609.22169
+  evidence: lab/LLM audit
+  sample: 10 open AI models, each in a base and a trained version, choosing between pairs of made-up applicants; age shown by graduation year
+  checked: 2026-10-03
+
+- id: ca-crc-ads-2025
+  type: law
+  org: California Civil Rights Council
+  year: 2025
+  title: Employment Regulations Regarding Automated-Decision Systems (California Code of Regulations, title 2)
+  url: https://calcivilrights.ca.gov/2025/06/30/civil-rights-council-secures-approval-for-regulations-to-protect-against-employment-discrimination-related-to-artificial-intelligence/
+  evidence: law
+  sample: the Council's announcement and the adopted text (Attachment B, version of March 17, 2025); in force October 1, 2025
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: carlini-2021
+  type: article
+  authors: ["Carlini, Nicholas", "Tramer, Florian", "Wallace, Eric", "Jagielski, Matthew", "Herbert-Voss, Ariel", "Lee, Katherine", "Roberts, Adam", "Brown, Tom", "Song, Dawn", "Erlingsson, Ulfar", "Oprea, Alina", "Raffel, Colin"]
+  year: 2021
+  title: Extracting Training Data from Large Language Models
+  venue: 30th USENIX Security Symposium (open copy on arXiv)
+  url: https://arxiv.org/abs/2012.07805
+  evidence: lab/LLM audit
+  sample: researchers queried GPT-2, an older AI model trained on public web pages, and pulled out hundreds of exact passages from its training text; not chat data
+  checked: 2026-10-03
+
+- id: chen-xiao-2026
+  type: article
+  authors: ["Chen, Qiangju", "Xiao, Yang"]
+  year: 2026
+  title: "Beyond the Name: Demographic Leakage in De-Identified Résumés and Evaluation Artifacts in LLM Bias Audits"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2609.16501
+  evidence: lab/LLM audit
+  sample: 9 openly released AI models, 620 made-up resumes without names, with background clues (community, activities, interests) added at three strengths; 5 groups, Australian setting
+  preprint: true
+  checked: 2026-10-03
+
+- id: clearinghouse-mobley
+  type: web
+  org: Civil Rights Litigation Clearinghouse, University of Michigan
+  year: 2025
+  title: "Mobley v. Workday, Inc. 3:23-cv-00770 (N.D. Cal.)"
+  url: https://clearinghouse.net/case/44074/
+  evidence: court record
+  sample: case summary (updated December 2025) and list of court filings through June 2026; events only
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: co-sb26-189
+  type: law
+  org: Colorado General Assembly
+  year: 2026
+  title: "SB26-189: Automated Decision-Making Technology"
+  url: https://leg.colorado.gov/bills/sb26-189
+  evidence: law
+  sample: bill page and official summary; signed May 14, 2026, in force January 1, 2027
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: cowgill-2020
+  type: report
+  authors: ["Cowgill, Bo"]
+  year: 2020
+  title: "Bias and Productivity in Humans and Algorithms: Theory and Evidence from Résumé Screening"
+  venue: Working paper, Columbia University, March 2020 (open copy from an IZA conference)
+  url: https://web.archive.org/web/2024/https://conference.iza.org/conference_files/MacroEcon_2017/cowgill_b8981.pdf
+  evidence: field experiment
+  sample: applicants for one software engineer opening at one large company in one location; an algorithm trained on past hiring replaced human resume screeners for a random share of candidates
+  preprint: true
+  checked: 2026-10-03
+
+- id: cui-2025
+  type: article
+  authors: ["Cui, Jingyi", "Dias, Gabriel", "Ye, Justin"]
+  year: 2025
+  title: "Signaling in the Age of AI: Evidence from Cover Letters"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2509.25054
+  evidence: observational
+  sample: 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer
+  preprint: true
+  checked: 2026-10-03
+
+- id: dastin-2018
+  type: article
+  authors: ["Dastin, Jeffrey"]
+  year: 2018
+  title: Amazon scraps secret AI recruiting tool that showed bias against women
+  venue: Reuters, October 10, 2018 (archived copy)
+  url: https://web.archive.org/web/2019/https://www.reuters.com/article/us-amazon-com-jobs-automation-insight-idUSKCN1MK08G
+  evidence: news report
+  sample: news report based on five unnamed people familiar with the project; Amazon declined to comment
+  checked: 2026-10-03
+
+- id: dhert-2024
+  type: report
+  authors: ["D'hert, Louis", "Baert, Stijn", "Lippens, Louis"]
+  year: 2024
+  title: "Unemployment, Inactivity, and Hiring Chances: A Systematic Review and Meta-Analysis"
+  venue: IZA Discussion Paper 17141, July 2024
+  doi: 10.2139/ssrn.4898321
+  url: https://docs.iza.org/dp17141.pdf
+  evidence: meta-analysis
+  sample: field experiments with about 67,000 made-up applicants in 7 countries, combined
+  preprint: true
+  checked: 2026-10-03
+
+- id: eeoc-itutorgroup-2023
+  type: web
+  org: US Equal Employment Opportunity Commission
+  year: 2023
+  title: iTutorGroup to Pay $365,000 to Settle EEOC Discriminatory Hiring Suit
+  url: https://www.eeoc.gov/newsroom/itutorgroup-pay-365000-settle-eeoc-discriminatory-hiring-suit
+  evidence: court record
+  sample: agency press release on a settled lawsuit, September 2023; what the agency alleged and the settlement terms
+  checked: 2026-10-03
+
+- id: enhancv-2025
+  type: web
+  authors: ["Vasileva, Doroteya"]
+  year: 2025
+  title: "Does the ATS Reject Your Resume? 25 Recruiters Explain What Really Happens"
+  url: https://enhancv.com/blog/does-ats-reject-resumes/
+  evidence: vendor survey
+  sample: 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published
+  checked: 2026-10-03
+
+- id: eo-14281
+  type: law
+  org: Executive Office of the President
+  year: 2025
+  title: "Executive Order 14281: Restoring Equality of Opportunity and Meritocracy"
+  url: https://www.federalregister.gov/documents/2025/04/28/2025-07378/restoring-equality-of-opportunity-and-meritocracy
+  evidence: law
+  sample: executive order as published in the Federal Register, April 2025
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: eo-14365
+  type: law
+  org: Executive Office of the President
+  year: 2025
+  title: "Executive Order 14365: Ensuring a National Policy Framework for Artificial Intelligence"
+  url: https://www.govinfo.gov/content/pkg/FR-2025-12-16/html/2025-23092.htm
+  evidence: law
+  sample: executive order of December 11, 2025, as published in the Federal Register; sets up a federal task force to challenge state AI laws and names Colorado's law
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: eu-ai-act
+  type: law
+  org: European Union
+  year: 2024
+  title: "Regulation (EU) 2024/1689 (Artificial Intelligence Act), Annex III"
+  url: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689
+  evidence: law
+  sample: official text; Annex III point 4 lists AI used to filter job applications and evaluate candidates as high-risk
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: eu-omnibus-2026
+  type: law
+  org: European Commission
+  year: 2026
+  title: AI Omnibus enters into force
+  url: https://digital-strategy.ec.europa.eu/en/news/ai-omnibus-enters-force
+  evidence: law
+  sample: Commission notice, July 27, 2026; Annex III high-risk rules apply from December 2, 2027
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: fuller-2021
+  type: report
+  authors: ["Fuller, Joseph B.", "Raman, Manjari", "Sage-Gavin, Eva", "Hines, Kristen"]
+  year: 2021
+  title: "Hidden Workers: Untapped Talent"
+  venue: Harvard Business School and Accenture
+  url: https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf
+  evidence: survey
+  sample: 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured
+  checked: 2026-10-03
+
+- id: galdin-silbert-2025
+  type: article
+  authors: ["Galdin, Anaïs", "Silbert, Jesse"]
+  year: 2025
+  title: "Making Talk Cheap: Generative AI and Labor Market Signaling"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2511.08785
+  evidence: observational
+  sample: about 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data
+  preprint: true
+  checked: 2026-10-03
+
+- id: gao-2026
+  type: article
+  authors: ["Gao, Zhenyu", "Jiang, Wenxi", "Yan, Yutong"]
+  year: 2026
+  title: "Can LLMs Hire Fairly? Racial Bias in Resume Screening"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2606.28978
+  evidence: lab/LLM audit
+  sample: 14 AI models released 2023-2026, 24,024 resume pairs each that differ only by name, built from 6,007 real US job ads; yes/no to a phone screen
+  preprint: true
+  checked: 2026-10-03
+
+- id: github-copilot-2026
+  type: web
+  org: GitHub
+  year: 2026
+  title: Updates to GitHub Copilot interaction data usage policy
+  url: https://github.blog/news-insights/company-news/updates-to-github-copilot-interaction-data-usage-policy/
+  evidence: vendor docs
+  sample: the maker's announcement of March 25, 2026, for Copilot Free, Pro and Pro+, taking effect April 24, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: github-copilot-docs
+  type: web
+  org: GitHub
+  year: 2026
+  title: Managing GitHub Copilot policies as an individual subscriber
+  url: https://docs.github.com/en/copilot/how-tos/manage-your-account/manage-policies
+  evidence: vendor docs
+  sample: the maker's step-by-step help page for Copilot Free, Pro, Pro+ and Max
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: github-copilot-faq-2026
+  type: web
+  org: GitHub
+  year: 2026
+  title: "FAQ: Updates to GitHub Copilot interaction data usage policy"
+  url: https://github.com/orgs/community/discussions/188488
+  evidence: vendor docs
+  sample: GitHub's own question-and-answer post on its community forum, March 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: glazko-2024
+  type: article
+  authors: ["Glazko, Kate", "Mohammed, Yusuf", "Kosa, Ben", "Potluri, Venkatesh", "Mankoff, Jennifer"]
+  year: 2024
+  title: Identifying and Improving Disability Bias in GPT-Based Resume Screening
+  venue: "FAccT '24, ACM Conference on Fairness, Accountability, and Transparency"
+  doi: 10.1145/3630106.3658933
+  url: https://arxiv.org/abs/2402.01732
+  evidence: lab/LLM audit
+  sample: one AI model (GPT-4) ranking one resume against the same resume plus disability-related awards, 60 trials across 6 disabilities
+  checked: 2026-10-03
+
+- id: google-gemini-activity
+  type: web
+  org: Google
+  year: 2026
+  title: Manage & delete your Gemini Apps activity
+  url: https://support.google.com/gemini/answer/13278892?hl=en
+  evidence: vendor docs
+  sample: the maker's step-by-step help page for personal Google accounts
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: google-gemini-privacy
+  type: web
+  org: Google
+  year: 2026
+  title: Gemini Apps Privacy Hub
+  url: https://support.google.com/gemini/answer/13594961
+  evidence: vendor docs
+  sample: the maker's privacy help page for Gemini on personal Google accounts
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: greenhouse-rules
+  type: web
+  org: Greenhouse
+  year: 2026
+  title: Application Rules Overview
+  url: https://support.greenhouse.io/hc/en-us/articles/203105595-Application-Rules-Overview
+  evidence: vendor docs
+  sample: the maker's own help page, updated March 2026
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: greenhouse-search
+  type: web
+  org: Greenhouse
+  year: 2022
+  title: Search resumes for keywords
+  url: https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords
+  evidence: vendor docs
+  sample: the maker's own help page, updated June 2022
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: harvard-ocs-resume
+  type: web
+  org: Harvard College Office of Career Services
+  year: 2026
+  title: Harvard College Guide to Creating a Strong Resume
+  url: https://careerservices.fas.harvard.edu/resources/create-a-strong-resume/
+  evidence: convention
+  sample: a university career office's guide for students
+  checked: 2026-10-03
+
+- id: hireright-2025
+  type: web
+  org: HireRight
+  year: 2025
+  title: HireRight Releases 2025 Global Benchmark Report
+  url: https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report
+  evidence: vendor survey
+  sample: over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published
+  checked: 2026-10-03
+
+- id: il-hb3773
+  type: law
+  org: Illinois General Assembly
+  year: 2024
+  title: "HB 3773 (Public Act 103-0804): Human Rights Act, artificial intelligence"
+  url: https://www.ilga.gov/ftp/legislation/103/BillStatus/HTML/10300HB3773.html
+  evidence: law
+  sample: bill status page and synopsis; in force January 1, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: indeed-experience-2025
+  type: web
+  org: Indeed Editorial Team
+  year: 2025
+  title: Listing Professional Experience on Your Resume
+  url: https://haubcareers.uwyo.edu/resources/listing-professional-experience-on-your-resume-2/
+  evidence: convention
+  sample: a job site's advice article, updated December 2025, republished by the University of Wyoming's business career office
+  checked: 2026-10-03
+
+- id: insight-global-2025
+  type: report
+  org: Insight Global
+  year: 2025
+  title: AI in Hiring 2025 Survey Report
+  url: https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf
+  evidence: vendor survey
+  sample: 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17-22, 2024; a staffing firm's survey; question wording not published
+  checked: 2026-10-03
+
+- id: jakesch-2023
+  type: article
+  authors: ["Jakesch, Maurice", "Hancock, Jeffrey T.", "Naaman, Mor"]
+  year: 2023
+  title: Human heuristics for AI-generated language are flawed
+  venue: PNAS 120(11), e2208839120
+  doi: 10.1073/pnas.2208839120
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC10089155/
+  evidence: lab/LLM audit
+  sample: 4,600 people in six experiments judged 7,600 short self-descriptions (job, rental host and dating profiles), half written by older AI models (GPT-2, GPT-3)
+  checked: 2026-10-03
+
+- id: jobscan-2026
+  type: web
+  authors: ["Purcell, Kelsey"]
+  year: 2026
+  title: "2026 Applicant Tracking System (ATS) Usage Report: Key Shifts and Strategies for Job Seekers"
+  url: https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/
+  evidence: vendor survey
+  sample: career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026
+  checked: 2026-10-03
+
+- id: kobak-2025
+  type: article
+  authors: ["Kobak, Dmitry", "González-Márquez, Rita", "Horvát, Emőke-Ágnes", "Lause, Jan"]
+  year: 2025
+  title: Delving into LLM-assisted writing in biomedical publications through excess vocabulary
+  venue: Science Advances 11(27) (open copy on arXiv)
+  doi: 10.1126/sciadv.adt3813
+  url: https://arxiv.org/abs/2406.07016
+  evidence: observational
+  sample: word counts in over 15 million science paper summaries (PubMed), 2010-2024; not resumes
+  checked: 2026-10-03
+
+- id: kristal-2023
+  type: article
+  authors: ["Kristal, Ariella S.", "Nicks, Leanne", "Gloor, Jamie L.", "Hauser, Oliver P."]
+  year: 2023
+  title: Reducing discrimination against job seekers with and without employment gaps
+  venue: Nature Human Behaviour 7, 211-218 (open copy on PubMed Central)
+  doi: 10.1038/s41562-022-01485-6
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/
+  evidence: large field experiment
+  sample: 9,022 made-up applications to real UK job ads, plan registered in advance
+  checked: 2026-10-03
+
+- id: kroft-2013
+  type: article
+  authors: ["Kroft, Kory", "Lange, Fabian", "Notowidigdo, Matthew J."]
+  year: 2013
+  title: "Duration Dependence and Labor Market Conditions: Evidence from a Field Experiment"
+  venue: Quarterly Journal of Economics 128(3), 1123-1167 (open copy, NBER working paper 18387)
+  doi: 10.1093/qje/qjt015
+  url: https://www.nber.org/system/files/working_papers/w18387/w18387.pdf
+  evidence: large field experiment
+  sample: about 12,000 made-up resumes sent to job ads in 100 US cities
+  checked: 2026-10-03
+
+- id: ladders-2012
+  type: report
+  org: TheLadders
+  year: 2012
+  title: "Keeping an Eye on Recruiter Behavior"
+  url: https://web.archive.org/web/20131214121352/http://cdn.theladders.net/static/images/basicSite/pdfs/TheLadders-EyeTracking-StudyC2.pdf
+  evidence: vendor survey
+  sample: 30 professional recruiters watched with eye tracking over 10 weeks; run by a job site; not peer-reviewed
+  checked: 2026-10-03
+
+- id: ladders-2018
+  type: web
+  org: Ladders
+  year: 2018
+  title: Ladders updates popular recruiter eye-tracking study with new key insights on how job seekers can improve their resumes
+  url: https://onrec.com/news/news-archive/ladders-updates-popular-recruiter-eye-tracking-study-with-new-key-insights-how-job
+  evidence: vendor survey
+  sample: a job site's press release, November 2018, reposted by Onrec; number of recruiters not stated
+  checked: 2026-10-03
+
+- id: lawyer-monthly-2026
+  type: web
+  org: Lawyer Monthly
+  year: 2026
+  title: Workday AI Hiring Bias Case Seeks Class Status
+  url: https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/
+  evidence: news report
+  sample: news report of a filing, September 2026; used for the event only
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: levinson-2012-cio
+  type: article
+  authors: ["Levinson, Meredith"]
+  year: 2012
+  title: 5 insider secrets for beating applicant tracking systems
+  venue: CIO, March 2012 (open copy on Computerworld)
+  url: https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html
+  evidence: vendor survey
+  sample: repeats a claim by Preptel, a company selling resume help; no method given
+  checked: 2026-10-03
+
+- id: levinson-2012-preptel
+  type: article
+  authors: ["Levinson, Meredith"]
+  year: 2012
+  title: New job search service helps job seekers penetrate applicant tracking systems
+  venue: CIO, February 2012
+  url: https://www.cio.com/article/284417/careers-staffing-new-job-search-service-helps-job-seekers-penetrate-applicant-tracking-systems.html
+  evidence: vendor survey
+  sample: news story about Preptel's paid service
+  checked: 2026-10-03
+
+# Court order: allegations, not findings
+- id: mobley-2025-order
+  type: law
+  org: US District Court for the Northern District of California
+  year: 2025
+  title: "Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting Preliminary Collective Certification"
+  url: https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf
+  evidence: court record
+  sample: court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+# Court order: allegations, not findings
+- id: mobley-2026-order
+  type: law
+  org: US District Court for the Northern District of California
+  year: 2026
+  title: "Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting in Part and Denying in Part Motion to Dismiss"
+  url: https://clearinghouse-umich-production.s3.amazonaws.com/media/doc/171886.pdf
+  evidence: court record
+  sample: court order of June 22, 2026 (ECF 360); decides which claims go on, nothing on the facts
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: liang-2023
+  type: article
+  authors: ["Liang, Weixin", "Yuksekgonul, Mert", "Mao, Yining", "Wu, Eric", "Zou, James"]
+  year: 2023
+  title: GPT detectors are biased against non-native English writers
+  venue: Patterns 4(7), 100779 (open copy on arXiv)
+  doi: 10.1016/j.patter.2023.100779
+  url: https://arxiv.org/abs/2304.02819
+  evidence: lab/LLM audit
+  sample: 7 AI detectors run on 91 essays by non-native English writers (TOEFL) and 88 essays by US eighth graders, all written by people
+  checked: 2026-10-03
+
+- id: mit-capd-resumes
+  type: web
+  org: MIT Career Advising & Professional Development
+  year: 2026
+  title: Resumes
+  url: https://capd.mit.edu/resources/resumes/
+  evidence: convention
+  sample: a university career office's guide
+  checked: 2026-10-03
+
+- id: namingit-2021
+  type: article
+  authors: ["Namingit, Sheryll", "Blankenau, William", "Schwab, Benjamin"]
+  year: 2021
+  title: "Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate"
+  venue: Journal of Economic Behavior & Organization 2021 (paywalled; numbers from the authors' open 2018 conference abstract)
+  doi: 10.1016/j.jebo.2020.09.033
+  url: https://ashecon.confex.com/ashecon/2018/webprogram/Paper5280.html
+  evidence: field experiment
+  sample: 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs
+  checked: 2026-10-03
+
+- id: nasr-2023
+  type: article
+  authors: ["Nasr, Milad", "Rando, Javier", "Carlini, Nicholas", "Hayase, Jonathan", "Jagielski, Matthew", "Cooper, A. Feder", "Ippolito, Daphne", "Choquette-Choo, Christopher A.", "Tramèr, Florian", "Lee, Katherine"]
+  year: 2025
+  title: Scalable Extraction of Training Data from Aligned, Production Language Models
+  venue: ICLR 2025, International Conference on Learning Representations
+  url: https://proceedings.iclr.cc/paper_files/paper/2025/hash/cce0e917b050208170151f77b497fc71-Abstract-Conference.html
+  evidence: lab/LLM audit
+  sample: researchers pulled gigabytes of exact training text from open AI models and thousands of training examples from ChatGPT (GPT-3.5) with a new trick; training text came from the web, not users' chats
+  checked: 2026-10-03
+
+- id: nyc-ll144
+  type: law
+  org: NYC Department of Consumer and Worker Protection
+  year: 2023
+  title: Automated Employment Decision Tools (AEDT)
+  url: https://www.nyc.gov/site/dca/about/automated-employment-decision-tools.page
+  evidence: law
+  sample: the enforcing agency's page on Local Law 144 of 2021; enforced from July 5, 2023
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: nys-comptroller-2025
+  type: report
+  org: Office of the New York State Comptroller
+  year: 2025
+  title: "Enforcement of Local Law 144 - Automated Employment Decision Tools (2024-N-6)"
+  url: https://www.osc.ny.gov/state-agencies/audits/2025/12/02/enforcement-local-law-144-automated-employment-decision-tools
+  evidence: observational
+  sample: state audit of New York City's enforcement, July 2023 to June 2025, including a review of the same 32 companies the city checked
+  checked: 2026-10-03
+
+- id: openai-2023
+  type: web
+  org: OpenAI
+  year: 2023
+  title: New AI classifier for indicating AI-written text
+  url: https://web.archive.org/web/20230802023548/https://openai.com/blog/new-ai-classifier-for-indicating-ai-written-text/
+  evidence: vendor docs
+  sample: the maker's own page, January 31, 2023, with its note of July 20, 2023 (archived copy; the live page blocks automated checks)
+  checked: 2026-10-03
+
+- id: openai-data-controls
+  type: web
+  org: OpenAI
+  year: 2026
+  title: Data controls in ChatGPT
+  url: https://help.openai.com/en/articles/7730893-data-controls-faq
+  evidence: vendor docs
+  sample: the maker's help page for ChatGPT; the live page blocks automated readers, so it was read from the Internet Archive copy of September 25, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: openai-model-training
+  type: web
+  org: OpenAI
+  year: 2026
+  title: How your data is used to improve model performance
+  url: https://openai.com/policies/how-your-data-is-used-to-improve-model-performance/
+  evidence: vendor docs
+  sample: the maker's policy page, updated March 13, 2026; the live page blocks automated readers, so it was read from the Internet Archive copy of September 28, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: preptel-2012
+  type: web
+  org: Preptel
+  year: 2012
+  title: News
+  url: https://web.archive.org/web/20121227085958/http://www.preptel.com:80/news/
+  evidence: vendor survey
+  sample: the company's own news page, archived December 2012; no method given
+  checked: 2026-10-03
+
+- id: resume-genius-2026
+  type: web
+  authors: ["Chan, Eva"]
+  year: 2026
+  title: 2026 Hiring Insights Report
+  url: https://resumegenius.com/blog/job-hunting/hiring-insights-report
+  evidence: vendor survey
+  sample: 1,000 US hiring managers, online panel; survey dates not given
+  checked: 2026-10-03
+
+- id: resumego-2018
+  type: web
+  org: ResumeGo
+  year: 2018
+  title: "Settling the Debate: One or Two Page Resumes"
+  url: https://www.resumego.net/research/one-or-two-page-resumes/
+  evidence: vendor survey
+  sample: 482 recruiters, HR staff and managers in a hiring simulation with made-up resumes; run by a resume-writing company
+  checked: 2026-10-03
+
+- id: rozado-2026
+  type: article
+  authors: ["Rozado, David"]
+  year: 2026
+  title: "Gender and positional biases in LLM-based hiring decisions: evidence from comparative CV/résumé evaluations"
+  venue: PeerJ Computer Science (numbers read in the open arXiv copy)
+  doi: 10.7717/peerj-cs.3628
+  url: https://arxiv.org/abs/2505.17049
+  evidence: lab/LLM audit
+  sample: 22 AI models picking the better of two matched resumes for 70 jobs, names swapped; 30,800 decisions in the main test
+  checked: 2026-10-03
+
+- id: ruffle-2015
+  type: article
+  authors: ["Ruffle, Bradley J.", "Shtudiner, Ze'ev"]
+  year: 2015
+  title: Are Good-Looking People More Employable?
+  venue: Management Science 61(8), 1760-1776 (paywalled; read in the authors' open 2011 working-paper copy)
+  doi: 10.1287/mnsc.2014.1927
+  url: https://dev.gerillaoneletrajz.hu/wp-content/uploads/beauty-and-resume.pdf
+  evidence: large field experiment
+  sample: 5,312 made-up resumes sent in pairs to 2,656 real job ads in Israel, with and without a photo
+  checked: 2026-10-03
+
+- id: russell-2025
+  type: article
+  authors: ["Russell, Jenna", "Karpinska, Marzena", "Iyyer, Mohit"]
+  year: 2025
+  title: People who frequently use ChatGPT for writing tasks are accurate and robust detectors of AI-generated text
+  venue: Proceedings of ACL 2025 (Long Papers) (open copy on arXiv)
+  doi: 10.18653/v1/2025.acl-long.267
+  url: https://arxiv.org/abs/2501.15654
+  evidence: lab/LLM audit
+  sample: 9 paid readers (4 rarely using AI, 5 using it often for writing) labelled 300 news-style articles as human or AI; detectors tested on the same set; not resumes
+  checked: 2026-10-03
+
+- id: sterkens-2023
+  type: article
+  authors: ["Sterkens, Philippe", "Caers, Ralf", "De Couck, Marijke", "Van Driessche, Victor", "Geamanu, Michel", "Baert, Stijn"]
+  year: 2023
+  title: "Costly mistakes: Why and when spelling errors in resumes jeopardise interview chances"
+  venue: PLOS ONE 18(4), e0283280
+  doi: 10.1371/journal.pone.0283280
+  evidence: lab/LLM audit
+  sample: 445 recruiters in Flanders, Belgium, rating made-up graduate resumes (1,335 ratings); not real hiring
+  checked: 2026-10-03
+
+- id: tamkin-2023
+  type: article
+  authors: ["Tamkin, Alex", "Askell, Amanda", "Lovitt, Liane", "Durmus, Esin", "Joseph, Nicholas", "Kravec, Shauna", "Nguyen, Karina", "Kaplan, Jared", "Ganguli, Deep"]
+  year: 2023
+  title: Evaluating and Mitigating Discrimination in Language Model Decisions
+  venue: arXiv preprint (Anthropic)
+  url: https://arxiv.org/abs/2312.03689
+  evidence: lab/LLM audit
+  sample: one AI model (Claude 2.0), 70 made-up decision questions including job offers, with age, race and gender varied
+  preprint: true
+  checked: 2026-10-03
+
+- id: uscis-i9
+  type: law
+  org: US Citizenship and Immigration Services
+  year: 2026
+  title: "I-9, Employment Eligibility Verification"
+  url: https://www.uscis.gov/i-9
+  evidence: law
+  sample: agency page, last reviewed June 2026
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: wiles-2025
+  type: article
+  authors: ["Wiles, Emma", "Munyikwa, Zanele", "Horton, John J."]
+  year: 2025
+  title: Algorithmic Writing Assistance on Jobseekers' Resumes Increases Hires
+  venue: Management Science 71(12), 10144-10164 (a 2023 working-paper version is free on arXiv, 2301.08083)
+  doi: 10.1287/mnsc.2024.04528
+  evidence: large field experiment
+  sample: 480,948 new jobseekers on one online freelance platform, June-July 2021; half got spelling and grammar suggestions on their profile text (not generative AI)
+  checked: 2026-10-03
+
+- id: wilson-2025
+  type: article
+  authors: ["Wilson, Kyra", "Sim, Mattea", "Gueorguieva, Anna-Maria", "Caliskan, Aylin"]
+  year: 2025
+  title: "No Thoughts Just AI: Biased LLM Hiring Recommendations Alter Human Decision Making and Limit Human Autonomy"
+  venue: AAAI/ACM Conference on AI, Ethics, and Society (AIES 2025)
+  doi: 10.1609/aies.v8i3.36749
+  url: https://ojs.aaai.org/index.php/AIES/article/view/36749
+  evidence: lab/LLM audit
+  sample: 528 people screening resumes in 1,526 made-up cases, helped by a simulated AI with set race preferences
+  checked: 2026-10-03
+
+- id: wilson-caliskan-2024
+  type: article
+  authors: ["Wilson, Kyra", "Caliskan, Aylin"]
+  year: 2024
+  title: "Gender, Race, and Intersectional Bias in Resume Screening via Language Model Retrieval"
+  venue: AAAI/ACM Conference on AI, Ethics, and Society (AIES 2024); correction note in arXiv version 3, August 2026
+  doi: 10.1609/aies.v7i1.31748
+  url: https://arxiv.org/abs/2407.20371
+  evidence: lab/LLM audit
+  sample: 3 text-matching AI models, over 500 real resumes with 120 names added, 9 occupations, 27 tests per comparison
+  checked: 2026-10-03
+
+- id: wright-2024
+  type: article
+  authors: ["Wright, Lucas", "Muenster, Roxana Mika", "Vecchione, Briana", "Qu, Tianyao", "Cai, Pika", "Smith, Alan", "Metcalf, Jacob", "Matias, J. Nathan"]
+  year: 2024
+  title: "Null Compliance: NYC Local Law 144 and the challenges of algorithm accountability"
+  venue: "FAccT '24, ACM Conference on Fairness, Accountability, and Transparency"
+  doi: 10.1145/3630106.3658998
+  url: https://facctconference.org/static/papers24/facct24-113.pdf
+  evidence: observational
+  sample: 155 student investigators checked the websites of 391 employers for posted bias audits and notices
+  checked: 2026-10-03
+
+- id: xu-2025
+  type: article
+  authors: ["Xu, Jiannan", "Li, Gujie", "Jiang, Jane Yi"]
+  year: 2025
+  title: "AI Self-preferencing in Algorithmic Hiring: Empirical Evidence and Insights"
+  venue: "EAAMO '25, ACM Conference on Equity and Access in Algorithms, Mechanisms, and Optimization (updated open copy on arXiv, June 2026)"
+  doi: 10.1145/3757887.3767676
+  url: https://arxiv.org/abs/2509.00462
+  evidence: lab/LLM audit
+  sample: 2,245 real resumes; 9 AI models compared each person's own summary with AI-written versions; hiring simulated for 24 jobs
+  checked: 2026-10-03

@@ -7,8 +7,9 @@ user's facts, code checks, the user confirms each paragraph. Outputs in the job 
 ## When
 
 Offered only when the application has a cover letter box (read ahead - `app/docs/apply/answers.md`).
-No box or unknown -> not offered; written if the user asks. Demand: one form corpus counted a letter
-asked for on 209,297 of 402,117 captured forms (2026-09) - about half, tech-heavy.
+No box or unknown -> not offered; written if the user asks. Demand: freehire.me (the job search) counted a
+letter asked for on 209,297 of 402,117 open postings whose form it captured (2026-09, its
+repo github.com/strelov1/freehire, internal/candidate/coverletter/AGENTS.md) - about half, tech-heavy.
 
 | Rule | Basis | Strength |
 |---|---|---|
@@ -18,7 +19,7 @@ asked for on 209,297 of 402,117 captured forms (2026-09) - about half, tech-heav
 | Add what the resume doesn't show; never restate a line | career guides: a letter is not a resume summary | convention |
 | Every number, tool, name from the facts each paragraph cites; never a word the resume never shows | `bullets.md` Tier 1 - anything on paper gets asked about | policy (FAIL) |
 | At most 5 facts | more reads as the resume again | judgement |
-| No "passionate", "excited to apply", "To Whom It May Concern" | generic, unverifiable self-description (Insight Global 2025: generic content is what readers reject) | survey + convention |
+| No "passionate", "excited to apply", "To Whom It May Concern" | generic, unverifiable self-description (Insight Global 2025: generic content is what readers reject) | vendor survey + convention |
 
 Over 400 words fails; under 250 is said, never padded.
 

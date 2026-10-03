@@ -2,7 +2,7 @@
 
 Kept in My Settings/Saved answers.yml - visible, private, their words. Only an answer they gave
 (source "you said") is kept, only after they said yes to keeping them (settings
-`saved_answers: true`). A form corpus of 647,795 forms counted how-did-you-hear 61,762, an
+`saved_answers: true`). freehire.me's captured forms (647,795, measured 2026-09-09) counted how-did-you-hear 61,762, an
 18-or-older gate 30,337, salary 24,762, notice period 7,841 (2026-09) - most questions still
 recall nothing (69% of 12,352 labels in a 4,000-form sample), so most are still asked.
 

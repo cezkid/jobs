@@ -16,13 +16,13 @@
 <meta property="og:url" content="https://jobs.enrriquez.com/privacy.html">
 <meta property="og:title" content="What CEZ Job Finder keeps and sends">
 <meta property="og:description" content="What CEZ Job Finder keeps on your computer and what it sends, to whom.">
-<meta property="og:image" content="https://jobs.enrriquez.com/og.png">
+<meta property="og:image" content="https://jobs.enrriquez.com/og.png?v=2">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A resume line reworded with a job posting's words, the matching words marked with a yellow highlighter.">
+<meta property="og:image:alt" content="CEZ Job Finder - a free job-search app for your Windows or Mac computer. Beside it, the app on a morning: new jobs, each with one line on why it fits marked in yellow, job 12 circled, and one line of your resume for job 12 reworded and approved.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="A resume line reworded with a job posting's words, the matching words marked with a yellow highlighter.">
+<meta name="twitter:image:alt" content="CEZ Job Finder - a free job-search app for your Windows or Mac computer. Beside it, the app on a morning: new jobs, each with one line on why it fits marked in yellow, job 12 circled, and one line of your resume for job 12 reworded and approved.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -33,6 +33,7 @@
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
   /* Cambria = metric twin of Caladea; Georgia needs overrides (app/web/assets.py prints them) */
   @font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
   @font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
@@ -40,79 +41,170 @@
     size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
   @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
     size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Italic"), local("Cambria-Italic"); font-weight: 400; font-style: italic; }
+  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
+    size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
   :root {
-    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433;
+    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8;
     --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
     --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+    --gutter: clamp(16px, 2.5vw, 32px); --max: 1320px;
+    --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
+    --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
+    --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
   }
   @media (prefers-color-scheme: dark) {
     :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
   }
   *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; background: var(--desk); color: var(--text);
-    font: 20px/1.55 var(--serif); -webkit-text-size-adjust: 100%;
+    font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
   }
-  a { color: var(--text); text-decoration: underline; text-underline-offset: 0.15em; }
-  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+  h1, h2, h3 { text-wrap: balance; }
+  p, li { text-wrap: pretty; }
+  a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
+  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
+  /* selection in ink, never yellow: the highlighter means "marked by the app" */
+  ::selection { background: var(--text); color: var(--desk); }
+  /* forced colours drop the gradient: system mark colours keep the words marked */
+  @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
+  /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */
+  summary { list-style: none; position: relative; padding-right: 40px; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before, summary::after {
+    content: ""; position: absolute; right: 6px; top: 50%; width: 16px; margin-top: -1px; border-top: 2px solid currentColor;
+  }
+  summary::after { transform: rotate(90deg); }
+  details[open] > summary::after { transform: none; }
+  /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
+     .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
+  .grid {
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
+    padding: 0 max(var(--gutter), (100% - var(--max)) / 2);
+  }
+  .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
+  .skip {
+    position: absolute; z-index: 1; left: var(--gutter); top: 8px; padding: 6px 12px;
+    background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
+  }
+  .skip:focus { transform: none; }
+  /* full-bleed double rule: thick + thin, like a newspaper masthead */
+  .masthead { position: relative; border-bottom: 3px solid var(--text); }
+  .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .brand img { width: 28px; height: 28px; }
+  .links { display: flex; gap: 28px; white-space: nowrap; }
+  footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
+  footer .row { display: flex; flex-wrap: wrap; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
+  footer p { margin: 0 auto 0 0; }
+  /* phones: brand + 3 links don't fit 360px => Source code only in the footer */
+  @media (max-width: 600px) {
+    .top { gap: 12px; }
+    .links { gap: 14px; font-size: 1.0625rem; }
+    .links .code { display: none; }
+  }
+  /* under 360px (320px phones) the links may drop below the brand */
+  @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
+  /* print: ink on white in either scheme (body, not :root: the token table reads :root), no nav */
+  @media print {
+    body { --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule); font-size: 11pt; }
+    .skip, .links { display: none; }
+    mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h1, h2, h3, summary { break-after: avoid; }
+    figure, li, details, pre { break-inside: avoid; }
+    footer .row { padding-bottom: 0; }
+  }
+  /* page change: a plain crossfade (no page turn), the masthead holds still; reduced motion = instant */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+    .masthead { view-transition-name: masthead; }
+  }
   /* /shared */
 
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
-  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
-  .brand img { width: 28px; height: 28px; }
-  main { padding: 24px 0 48px; }
+  /* the generated pages' editorial set (app/web/pages.py PAGE_CSS), trimmed to what this page uses */
+  /* main.wrap: .wrap's own padding shorthand would otherwise win and zero the top + bottom */
+  main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
   .page { max-width: 68ch; }
-  h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.1; font-weight: 700; margin: 0 0 12px; text-wrap: balance; }
-  h2 { font-size: 24px; line-height: 1.25; margin: 36px 0 12px; }
-  .meta { margin: 0 0 8px; color: var(--text-2); font-size: 17px; }
-  p { margin: 0 0 14px; }
-  ul { margin: 0 0 14px; padding-left: 1.1em; }
+  h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; font-weight: 700; margin: 0 0 16px; }
+  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.15; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
+  p { margin: 0 0 16px; }
+  ul { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
-  footer {
-    max-width: 1200px; margin: 0 auto; padding: 24px 32px 40px; font-size: 17px; color: var(--text-2);
-    display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 24px;
-  }
+  li::marker { color: var(--text-2); }
+  /* Short version: a ruled note (thick rule over), like an article's Short answer */
+  .short { margin: 0 0 8px; padding: 10px 0 6px 1.3em; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .short li::marker { color: var(--text); }
+  /* who sees what: a ledger - one row per recipient, item for item with the home page */
+  .ledger { width: 100%; border-collapse: collapse; margin: 0 0 16px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.45; }
+  .ledger th, .ledger td { text-align: left; vertical-align: top; padding: 12px 16px 13px 0; border-bottom: 1px solid var(--line); }
+  .ledger th:last-child, .ledger td:last-child { padding-right: 0; }
+  .ledger thead th { padding: 6px 16px 6px 0; border-bottom: 2px solid var(--text); color: var(--text-2); font-weight: 400; }
+  .ledger tbody th { width: 30%; font-size: var(--step-0); line-height: 1.3; }
+  .ledger .when { color: var(--text-2); }
   @media (max-width: 600px) {
-    .wrap, footer { padding-left: 16px; padding-right: 16px; }
-    main { padding-top: 8px; }
+    main.wrap { padding-top: 22px; }
+    h2 { margin-top: 36px; }
+    .ledger th, .ledger td { padding-right: 10px; }
+    .ledger tbody th { width: 28%; font-size: var(--step--1); }
+  }
+  @media print {
+    main.wrap { padding-top: 0; padding-bottom: 0; }
+    .page { max-width: none; }
+    .ledger tr { break-inside: avoid; }
   }
 </style>
 </head>
 <body>
-<header class="wrap top">
-  <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
-  <a href="https://github.com/cezkid/jobs">Source code</a>
+<header class="masthead">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="wrap top">
+    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <nav class="links" aria-label="Site">
+      <a href="/research/">Research</a>
+      <a href="/#install">Install</a>
+      <a class="code" href="https://github.com/cezkid/jobs">Source code</a>
+    </nav>
+  </div>
 </header>
-<main class="wrap">
+<main id="main" class="wrap">
 <div class="page">
   <h1>Privacy</h1>
-  <p class="meta">Updated 2 October 2026</p>
+  <p class="meta">Updated 3 October 2026</p>
 
   <h2>Short version</h2>
-  <ul>
+  <ul class="short">
     <li>No account. No tracking. Nothing sent to us.</li>
     <li>Your resume, jobs and settings stay on your computer.</li>
   </ul>
 
-  <h2>What leaves your computer</h2>
-  <ul>
-    <li><strong>freehire.me</strong> - your search words, to find jobs; which job from your list you make a resume for or ask about, to get the whole posting or see if it's still open. Not your resume.</li>
-    <li><strong>Your AI (Claude, ChatGPT or GitHub Copilot)</strong> - your resume and what you tell it, on your own account.
-      Personal plans may train on chats unless you <a href="https://github.com/cezkid/jobs/blob/main/Guides/Keep%20your%20chats%20out%20of%20AI%20training.md">switch it off</a>.</li>
-    <li><strong>Employers</strong> - what you apply with, only when you click Save or Submit.</li>
-    <li><strong>Your email provider</strong> - only if you turn on email alerts; sent to yourself.</li>
-    <li><strong>The maintainer</strong> - only a program fix, only if you say yes. Never your files.</li>
-  </ul>
+  <h2 id="leaves">What leaves your computer</h2>
+  <table class="ledger" aria-labelledby="leaves">
+    <thead>
+      <tr><th scope="col">Who</th><th scope="col">What they get</th><th scope="col">When</th></tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">freehire.me</th><td>Your search words; which job from your list you make a resume for or ask about. Not your resume.</td><td class="when">To find jobs, get the whole posting, or see if it's still open.</td></tr>
+      <tr><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume and what you tell it, on your own account.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="https://github.com/cezkid/jobs/blob/main/Guides/Keep%20your%20chats%20out%20of%20AI%20training.md">switch it off</a>.</td></tr>
+      <tr><th scope="row">Employers</th><td>What you apply with.</td><td class="when">When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</td></tr>
+      <tr><th scope="row">Your email provider</th><td>The morning email, sent to yourself.</td><td class="when">Only if you turn on email alerts.</td></tr>
+      <tr><th scope="row">The maintainer</th><td>A fix to the program's code. Never your files.</td><td class="when">Only if you say yes.</td></tr>
+    </tbody>
+  </table>
+  <p>Nothing else from the app leaves your computer.</p>
 
   <h2>Other companies' rules apply</h2>
   <ul>
     <li><strong>Your AI's VS Code add-on</strong> follows that company's privacy policy.</li>
     <li><strong>VS Code</strong> (Microsoft) sends usage data by default. Turn off: Settings, search "telemetry".</li>
     <li><strong>Installing and updating</strong> downloads from GitHub, Microsoft and Astral. They see your IP address.</li>
-    <li><strong>This page</strong> is hosted by GitHub, which logs visits. We add no cookies, analytics or files from other sites.</li>
+    <li><strong>This site</strong> is hosted by GitHub, which logs visits. We add no cookies, analytics or files from other sites.</li>
   </ul>
 
   <h2>Delete everything</h2>
@@ -123,7 +215,11 @@
 </div>
 </main>
 <footer>
-  <a href="/">Back to install</a>
+  <div class="wrap row">
+    <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
+    <a href="/privacy.html">Privacy</a>
+    <a href="https://github.com/cezkid/jobs">Source code</a>
+  </div>
 </footer>
 </body>
 </html>

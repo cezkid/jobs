@@ -1,2 +1,7 @@
 *.bat text eol=crlf
 *.sh text eol=lf
+# site only (GitHub Pages serves main:/docs) => kept out of the main.zip every launch downloads.
+# Must stay anchored + /** (measured): bare "docs" also strips app/docs/; "/docs" drops the entry
+# so updaters (update.py, install-mac.sh, install-windows.ps1 replace only entries present) keep a
+# stale docs/ forever; "/docs/**" leaves an empty docs/ entry => next update swaps in empty folder.
+/docs/** export-ignore

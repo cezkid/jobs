@@ -16,6 +16,8 @@ dependencies = [
 [dependency-groups]
 dev = [
     "jsonschema>=4.25.1",
+    # app/web/pages.py (site build); already locked through rich, declared so it can't drop out
+    "markdown-it-py>=4.2",
     "pytest>=9.1.1",
 ]
 

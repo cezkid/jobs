@@ -96,3 +96,31 @@ def test_user_guides_carry_no_jargon():
         if hits:
             found[guide.name] = hits
     assert found == {}
+
+
+def _text(html: str) -> str:
+    return " ".join(re.sub(r"<[^>]+>", " ", html).split()).lower()
+
+
+# one phrase per recipient (and its condition) the home page's Who sees what and privacy.html share
+RECIPIENT_PHRASES = (
+    "freehire.me", "your search words", "which job from your list you make a resume for or ask about",
+    "your resume and what you tell it", "claude, chatgpt or github copilot",
+    "personal plans may train on chats unless you switch it off",
+    "what you apply with", "when you click save or submit",
+    "your email provider", "only if you turn on email alerts", "sent to yourself",
+    "the maintainer", "only if you say yes", "never your files",
+)
+
+
+def test_who_sees_what_matches_privacy_page_item_for_item():
+    """The home page's Who sees what scene lists every recipient privacy.html names, in the
+    same words, one ledger row per "What leaves your computer" table row."""
+    home = (cfg.ROOT / "docs/index.html").read_text(encoding="utf-8")
+    privacy = (cfg.ROOT / "docs/privacy.html").read_text(encoding="utf-8")
+    missing = {page: [w for w in RECIPIENT_PHRASES if w not in _text(html)]
+               for page, html in (("index", home), ("privacy", privacy))}
+    assert missing == {"index": [], "privacy": []}
+    ledger = re.search(r'<ol class="ledger">(.*?)</ol>', home, re.S).group(1)
+    leaves = re.search(r'What leaves your computer</h2>\s*<table class="ledger".*?<tbody>(.*?)</tbody>', privacy, re.S).group(1)
+    assert ledger.count("<li>") == leaves.count('<th scope="row">') == 5

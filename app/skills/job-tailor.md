@@ -107,11 +107,11 @@ User asks to... (`AGENTS.md` #Lead, explain, push back - say why in plain words,
   other -> push back per `AGENTS.md` (gap in months; offer zero bullets: title + dates stay, no
   lines). Still want it gone -> leave it out.
 - 3+ pages, or keep a line the gates fail -> push back: two pages is career-centre consensus,
-  first read is seconds long (one small study, 30 recruiters). Still want it -> untailored copy
+  first read is seconds long (one vendor's eye-tracking studies, 2012 + 2018). Still want it -> untailored copy
   (`resume-render`, page rules report-only there), told plainly it's "not checked". Never a
   tailored PDF while check fails.
 - Birth date, marital status, full street address -> push back: US career-centre convention
-  leaves them off (invites bias, some employers discard such resumes; city + state is enough) -
+  leaves them off (invites bias; city + state is enough) -
   convention, not a study. Their call. Photo -> can't: no picture slot, the page check fails any
   image - say so once.
 

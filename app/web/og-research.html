@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CEZ Job Finder Research share image</title>
+<!-- Source of docs/og-research.png (1200x630), the card of every /research/ + /about/ page:
+     uv run app/web/assets.py --only og. Tokens, masthead double rule and brand mark copied from
+     og.html; the sheet set like a generated article page (display title, ruled Sources, hairlines).
+     Bottom 90px kept clear (X lays its headline there; the render fails if anything lands there);
+     key content inside the central 1100x530. No numbers on the card: a statistic here would have
+     no source. -->
+<style>
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+  :root { --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    position: relative; background: var(--paper); color: var(--ink);
+    font: 24px/1.4 "Caladea", serif; font-kerning: normal;
+  }
+  p { margin: 0; }
+  mark { background: var(--mark); color: var(--ink); padding: 0 0.1em; }
+
+  /* masthead: brand + site, full-bleed thick + thin double rule (as og.html) */
+  .top {
+    position: absolute; left: 0; right: 0; top: 0; height: 104px; padding: 0 50px;
+    display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--ink);
+  }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-bottom: 1px solid var(--ink); }
+  .brand { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 700; }
+  .brand svg { width: 40px; height: 40px; }
+  .site { font-size: 24px; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+
+  .intro { position: absolute; left: 50px; top: 148px; width: 560px; }
+  h1 { margin: 0; font-size: 66px; line-height: 1.04; font-weight: 700; letter-spacing: -0.01em; }
+  .lede { margin: 26px 0 0; padding-top: 18px; border-top: 1px solid var(--ink); font-size: 26px; line-height: 1.35; color: var(--ink-2); }
+
+  /* one article page as a sheet of paper: a sourced sentence above its Sources list; depth = offset second sheet */
+  figure { position: absolute; right: 64px; top: 140px; width: 470px; margin: 0; isolation: isolate; }
+  .sheet { position: relative; padding: 26px 30px; background: var(--paper); border: 1px solid var(--ink); font-size: 20px; line-height: 1.45; }
+  .sheet::before {
+    content: ""; position: absolute; inset: -1px; transform: translate(10px, 10px); z-index: -1;
+    background: var(--paper); border: 1px solid var(--ink);
+  }
+  .bar { height: 9px; margin: 13px 0 0; background: var(--rule); border-radius: 2px; }
+  .bar.first { margin-top: 4px; }
+  .claim { margin: 11px 0 0; }
+  .cite { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  .sources { margin: 24px 0 0; }
+  .sources h2 { margin: 0; padding-bottom: 6px; border-bottom: 2px solid var(--ink); font-size: 20px; line-height: 1.2; }
+  .src { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--rule); }
+  .src .bar { margin: 0; }
+  .src svg { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 32 32" aria-hidden="true">
+      <rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="#000"/>
+      <rect x="8" y="4" width="16" height="24" fill="#fff"/>
+      <rect x="10" y="13" width="12" height="6" fill="#FFE433"/>
+      <g stroke="#000" stroke-width="2.4" stroke-linecap="butt">
+        <path d="M11 9.5h10"/>
+        <path d="M11 16h10"/>
+        <path d="M11 22.5h7"/>
+      </g>
+    </svg>
+    CEZ Job Finder Research
+  </div>
+  <div class="site">jobs.enrriquez.com/research</div>
+</header>
+
+<div class="intro">
+  <h1>AI and resumes: what the evidence says.</h1>
+  <p class="lede">Plain answers, every claim linked to its source.</p>
+</div>
+
+<figure>
+<div class="sheet">
+  <div class="bar first" style="width: 92%"></div>
+  <div class="bar" style="width: 78%"></div>
+  <p class="claim"><mark>Each claim names the study behind it</mark> <span class="cite">(Author 2024)</span>.</p>
+  <div class="bar" style="width: 86%"></div>
+  <div class="sources">
+    <h2>Sources</h2>
+    <p class="src"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg><span class="bar" style="width: 330px"></span></p>
+    <p class="src"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg><span class="bar" style="width: 260px"></span></p>
+    <p class="src"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg><span class="bar" style="width: 300px"></span></p>
+  </div>
+</div>
+</figure>
+</body>
+</html>

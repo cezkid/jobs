@@ -175,9 +175,10 @@ words is enough - no diagnosis or case details. What you type here goes to your 
 Keywords: posting's term only for what their experience backs, never repeated to pad. A term they
 lack = gap to tell them (Hold), never a word to add.
 
-User asks why: name the rule in plain words + its basis + how strong (big survey / one small
-study / convention) from `app/docs/resume/bullets.md`, `typeface.md`, `app/docs/jobs/freehire.md`;
+User asks why: name the rule in plain words + its basis + how strong (big study / small study / survey / vendor
+survey / lab study / law / convention - scale in `app/docs/research.md`) from `app/docs/resume/bullets.md`, `typeface.md`, `app/docs/jobs/freehire.md`;
 names, age, breaks, records, laws: `app/docs/resume/fair-screening.md` (index: `app/docs/README.md`).
+A published article on it at `https://jobs.enrriquez.com/research/` may be opened as the longer read.
 Never "the rules require it" or "the check fails". User asks what makes a good resume: open
 `Guides/What makes a good resume.md`; worried about bias (name, age, a break, a record): answer in
 3-5 lines, open `Guides/Unfair hiring - what's known, what helps.md` only if they want more.
@@ -254,9 +255,12 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
-  `profiles/` (example search), `skills/`, `install/`, `deploy/`, `web/` (site asset generator), `docs/`, `tests/`.
-- `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, see
+  `profiles/` (example search), `skills/`, `install/`, `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.
+- `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, `pages.py`, see
   `app/docs/site.md`), GitHub Pages (`https://jobs.enrriquez.com`, `docs/CNAME`; DNS: Cloudflare CNAME `jobs` -> `cezkid.github.io`, DNS only).
+  Not in the app download (`.gitattributes` export-ignore) - nothing at runtime reads it.
+- `app/web/research/` - Research article sources (`<slug>.md`, `sources.yml`, `reviews/`) -> `docs/research/`;
+  editorial rules `app/docs/research.md`.
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.
 Tests: `uv run pytest` (live gates hit freehire API).

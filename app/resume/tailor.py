@@ -211,7 +211,7 @@ def build_request(master: dict, job: dict, font: str = typeface.DEFAULT, mirror_
     """Everything AI tailors from; pure function of master + JD + font => byte-identical per slug.
 
     Master goes without its contact block: rewriting lines never needs the name, email or phone,
-    names shift model judgments (Rozado 2025), and less personal data in the chat is better
+    names shift model judgments (Rozado, PeerJ CS 2026), and less personal data in the chat is better
     privacy. Render and gates read master off disk, so the page keeps it. Resume import is the one
     task that sends the name: it reads the PDF's own text verbatim.
     """

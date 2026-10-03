@@ -65,13 +65,15 @@ Past 0.85in margin stops paying: every bullet already fits one line -> page boun
    `resume/render.py` gates `fonts`, `ligatures`, `round-trip` check every render; Caladea
    passes all sixteen.
 
-Caladea vs Tinos (the two that fit): Tinos = Times New Roman metrics, drawn 1932 for narrow
-newspaper columns, the default every resume guide says to avoid. Caladea = Cambria metrics,
-drawn 2004 for small-size legibility on screen + print - the job. Both open, both look like
+Caladea vs Tinos (the two that fit): Tinos = Times New Roman metrics; Times New Roman first ran in
+*The Times* in October 1932, made condensed for newspaper columns - the default resume guides tell
+you to move off. Caladea = Cambria metrics; Cambria drawn 2004 (Jelle Bosma, Microsoft) to read
+well small, on screen + print - the job. History: Wikipedia, "Times New Roman" + "Cambria
+(typeface)", opened 2026-10-03 (both metric matches stated there). Both open, both look like
 Office fonts -> familiar, nothing to download (embedded in PDF).
 
 Serif vs sans left out on purpose: reading-speed studies find no reliable difference at text
-sizes; x-height + fit move, measured above. PR #6 review asked for a serif; one that fits was
+sizes (Arditi & Cho, Vision Research 2005: serifs had no effect on reading speed); x-height + fit move, measured above. PR #6 review asked for a serif; one that fits was
 available.
 
 ## What a font change moves
