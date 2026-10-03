@@ -792,3 +792,56 @@ def test_answer_dropped_after_filling_is_filled_again_then_flagged():
     qs = [{"title": "Preferred First Name", "kind": "text", "answer": "Jane"}]
     assert form.recheck(Page(), System(1), qs, [("Preferred First Name", "ok")], None) == [("Preferred First Name", "ok")]
     assert form.recheck(Page(), System(9), qs, [("Preferred First Name", "ok")], None)[0][1].startswith("FAIL answer dropped")
+class FakeRadio:
+    """Ashby radio: a label click toggles it (a second click clears it) and the page shows the
+    change only after `lag` polls."""
+    def __init__(self, checked=False, lag=0):
+        self.state = self.shown = checked
+        self.lag, self.polls, self.clicks = lag, 0, 0
+        self.page = self
+
+    def click(self):
+        self.clicks += 1
+        self.state, self.polls = not self.state, self.lag
+
+    def is_checked(self):
+        if self.polls:
+            self.polls -= 1
+        else:
+            self.shown = self.state
+        return self.shown
+
+    def wait_for_timeout(self, ms):
+        pass
+
+    def get_attribute(self, name):
+        return "radio-0"
+
+
+class FakeList:
+    def __init__(self, item):
+        self.item = item
+        self.first = item
+
+    def count(self):
+        return 1
+
+
+class FakeChoiceBox:
+    def __init__(self, radio):
+        self.radio = radio
+
+    def locator(self, selector, has_text=None):
+        return FakeList(self.radio)
+
+
+def test_ashby_choice_already_picked_is_not_clicked_again():
+    radio = FakeRadio(checked=True)
+    assert ashby.put_choice(FakeChoiceBox(radio), "Frontend only") == "ok"
+    assert radio.clicks == 0 and radio.state
+
+
+def test_ashby_choice_marked_a_moment_after_the_click_is_ok():
+    radio = FakeRadio(lag=3)
+    assert ashby.put_choice(FakeChoiceBox(radio), "8+") == "ok"
+    assert radio.clicks == 1

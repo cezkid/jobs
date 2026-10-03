@@ -37,7 +37,7 @@ each answer back (`holds`), fills a dropped one once more, else FAILs it for the
 | String, Email, Phone, LongText | plain input / textarea | Playwright `fill` (React takes it) |
 | Location | `input[role=combobox]`; places appear as `[role=option]` after typing | type slowly, pick option starting w/ the city, none -> clear + ASK (never first option); shows as "City, State, Country" |
 | Boolean | two buttons Yes / No, chosen one `aria-pressed="true"`; hidden checkbox checked = Yes, unchecked for both No + unanswered | click button by name unless already chosen (whether a second click clears it is unmeasured - avoided); poll `aria-pressed` up to 3s - set a moment after click |
-| ValueSelect | radio group, option labels = `selectableValues` | click label w/ exact text; confirm its radio checked |
+| ValueSelect | radio group, option labels = `selectableValues`; clicking the chosen label again clears it (tenant B, 2026-09-29) | click label w/ exact text unless its radio already checked; poll checked up to 3s - first fill read it unchecked right after the click (tenant B) |
 | File (`_systemfield_resume`) | `input[type=file]` in Resume box; separate from "Autofill from resume" uploader | upload into Resume box only, first, so nothing re-fills over typed answers |
 
 ## Browser
