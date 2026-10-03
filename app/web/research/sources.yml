@@ -639,14 +639,13 @@
 
 - id: nasr-2023
   type: article
-  authors: ["Nasr, Milad", "Carlini, Nicholas", "Hayase, Jonathan", "Jagielski, Matthew", "Cooper, A. Feder", "Ippolito, Daphne", "Choquette-Choo, Christopher A.", "Wallace, Eric", "Tramèr, Florian", "Lee, Katherine"]
-  year: 2023
-  title: Scalable Extraction of Training Data from (Production) Language Models
-  venue: arXiv preprint
-  url: https://arxiv.org/abs/2311.17035
+  authors: ["Nasr, Milad", "Rando, Javier", "Carlini, Nicholas", "Hayase, Jonathan", "Jagielski, Matthew", "Cooper, A. Feder", "Ippolito, Daphne", "Choquette-Choo, Christopher A.", "Tramèr, Florian", "Lee, Katherine"]
+  year: 2025
+  title: Scalable Extraction of Training Data from Aligned, Production Language Models
+  venue: ICLR 2025, International Conference on Learning Representations
+  url: https://proceedings.iclr.cc/paper_files/paper/2025/hash/cce0e917b050208170151f77b497fc71-Abstract-Conference.html
   evidence: lab/LLM audit
-  sample: researchers queried open AI models and ChatGPT (GPT-3.5) and pulled out large amounts of exact training text, including from ChatGPT with a new trick; training text came from the web, not users' chats
-  preprint: true
+  sample: researchers pulled gigabytes of exact training text from open AI models and thousands of training examples from ChatGPT (GPT-3.5) with a new trick; training text came from the web, not users' chats
   checked: 2026-10-03
 
 - id: nyc-ll144
