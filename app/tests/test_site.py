@@ -350,9 +350,10 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
     ({"head": f"<script>{'x' * 601}</script>"}, {}, "<head> script"),
     ({"head": "<script>const LINES = 1;</script>"}, {}, "<head> script names LINES"),
     ({"css": "body.is-mac .x { display: none; }"}, {}, "body.is-*"),
+    ({"body": '<figure><p>Form</p><button>Submit</button></figure>'}, {}, "<figure> holds ['button']"),
 ], ids=["html-gzip", "inline-js", "elements", "first-load", "critical", "script-src", "will-change",
         "keyframes", "transition", "transition-all", "use-target", "header-id", "footer-style", "lines-twice",
-        "head-script-size", "head-script-lines", "body-class"])
+        "head-script-size", "head-script-lines", "body-class", "figure-control"])
 def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
     for rel, size in files.items():
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)

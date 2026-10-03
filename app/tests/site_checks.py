@@ -263,6 +263,10 @@ def budgets(docs: Path, name: str) -> list[str]:
             problems.append(f"{name}: <head> script {len(code.encode())} B > {HEAD_SCRIPT_MAX} (blocks first paint)")
         if "LINES" in code:
             problems.append(f"{name}: <head> script names LINES (install line + Copy live in the body script)")
+    for inner in re.findall(r"<figure\b(.*?)</figure>", raw, re.S):
+        bad = sorted(set(re.findall(r"<(a|button|input|select|textarea)\b", inner)))
+        if bad:
+            problems.append(f"{name}: <figure> holds {bad} (illustrations show controls, never hold one)")
     if re.search(r"body\.is-", css):
         problems.append(f"{name}: body.is-* selector (head script sets html.is-* before first paint)")
     if sum("LINES" in s for s in scripts) > 1:

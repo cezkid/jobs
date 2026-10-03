@@ -348,6 +348,29 @@
     .proof { grid-column: 5 / -1; }
   }
 
+  /* applications + help after: a compact typeset pair, no framed object; illustrated Submit = ink, never a control */
+  .half { grid-column: 1 / -1; min-width: 0; }
+  .half h2 { font-size: clamp(1.75rem, 1.1rem + 1.6vw, 2.5rem); }
+  .defs { margin: 0; border-top: 2px solid var(--text); }
+  .defs > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 20px; padding: 12px 0 13px; border-bottom: 1px solid var(--line); }
+  .defs dt { font-weight: 700; }
+  .defs dd { margin: 0; }
+  .submit-line { display: flex; align-items: center; gap: 22px; margin-top: 22px !important; }
+  .submit {
+    position: relative; flex: none; display: inline-block; padding: 8px 20px; font-weight: 700; line-height: 1.2;
+    color: var(--desk); background: var(--text); border-radius: 6px; margin: 10px 14px;
+  }
+  .submit svg {
+    position: absolute; left: -16px; top: -13px; width: calc(100% + 32px); height: calc(100% + 26px); overflow: visible;
+    fill: none; stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; vector-effect: non-scaling-stroke;
+    stroke-dasharray: 100; stroke-dashoffset: 0;
+  }
+  @media (min-width: 600px) { .defs > div { grid-template-columns: 11rem minmax(0, 1fr); } }
+  @media (min-width: 1080px) {
+    .half:first-child { grid-column: 1 / span 6; }
+    .half + .half { grid-column: 7 / -1; }
+  }
+
   /* who sees what: every recipient as text, item for item with privacy.html */
   .who-head { grid-column: 1 / -1; max-width: 46rem; }
   .who-head .big { font-size: clamp(1.375rem, 1.1rem + 0.8vw, 1.75rem); line-height: 1.35; }
@@ -380,6 +403,8 @@
     html.is-phone .desktop, .desktop { display: block; }
     .phone, #copy, .switch { display: none !important; }
     .scene { padding-top: 28px; padding-bottom: 28px; row-gap: 20px; }
+    .defs > div { padding: 4px 0 5px; }
+    .submit-line { margin-top: 10px !important; }
   }
 </style>
 </head>
@@ -543,21 +568,27 @@
   </section>
   <!-- /region: resume -->
 
-  <div class="more wrap">
-    <!-- region: what -->
-    <section>
-      <h2>What it does</h2>
-      <h3>New jobs every morning</h3>
-      <p>From freehire.me, a free public list gathered from companies' own hiring pages and job boards. Any field. Each job says why it's on your list.</p>
-      <h3>A resume for any job you pick</h3>
-      <p>One page, set to fit. Nothing made up: employers, titles and dates stay as you gave them. You approve every changed line.</p>
-      <h3>Applications filled, you press Submit</h3>
-      <p>Greenhouse, Ashby and UKG forms, and Workday with Claude. Others get answers ready to paste.</p>
-      <h3>Help after you apply</h3>
-      <p>Interview practice, follow-up emails, and a Today page with what's waiting on you.</p>
-    </section>
-    <!-- /region: what -->
-  </div>
+  <!-- region: after -->
+  <section class="grid scene after" aria-label="Applying and after">
+    <div class="half">
+      <h2>Applications filled. You press Submit.</h2>
+      <dl class="defs">
+        <div><dt>Greenhouse, Ashby, UKG</dt><dd>Filled in a browser window the app opens, from your resume.</dd></div>
+        <div><dt>Workday</dt><dd>Filled with Claude, in Chrome.</dd></div>
+        <div><dt>Any other form</dt><dd>Answers ready to paste.</dd></div>
+      </dl>
+      <p class="submit-line"><span class="submit" aria-hidden="true">Submit<svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="100" d="M30 8 C 90 0, 190 4, 195 28 C 199 50, 120 58, 60 55 C 18 53, 3 42, 6 28 C 9 14, 44 6, 100 6"/></svg></span><span>It stops before Save and Submit. You check the form and press it yourself.</span></p>
+    </div>
+    <div class="half">
+      <h2>Help after you apply</h2>
+      <dl class="defs">
+        <div><dt>Interview practice</dt><dd>One question at a time, from the posting and your resume, with short honest feedback. And a talk-through after the real one.</dd></div>
+        <div><dt>Follow-up emails</dt><dd>Written for you when a job goes quiet. You send it from your own email.</dd></div>
+        <div><dt>Today page</dt><dd>What's waiting on you and the newest jobs. Opens each time you start.</dd></div>
+      </dl>
+    </div>
+  </section>
+  <!-- /region: after -->
 
   <!-- region: who -->
   <section class="grid scene who" aria-labelledby="who-h">
