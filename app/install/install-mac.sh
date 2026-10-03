@@ -83,6 +83,8 @@ if ! have code; then
     mkdir -p "$HOME/Applications"
     unzip -q "$tmp/vscode.zip" -d "$HOME/Applications"
     VSCODE_APP="$HOME/Applications/Visual Studio Code.app"
+    # VS Code is ours => launcher may quiet its app-wide settings (never a developer's own)
+    mkdir -p "$DIR/.data" && : >"$DIR/.data/vscode-ours"
   fi
   mkdir -p "$BIN"
   ln -sf "$VSCODE_APP/Contents/Resources/app/bin/code" "$BIN/code"

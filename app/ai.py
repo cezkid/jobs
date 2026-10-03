@@ -18,7 +18,7 @@ def current(path: Path | None = None, extensions: Path | None = None) -> str | N
         if word in NAMES:
             return word
     for name, extension in EXTENSIONS.items():
-        if launch.has_extension(extension, extensions or launch.VSCODE_EXTENSIONS):
+        if launch.has_extension(extension, extensions):
             return name
     return None
 

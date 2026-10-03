@@ -86,13 +86,13 @@ def test_claude_rules_read_as_commands_once_each():
 def test_written_only_when_changed(tmp_path):
     # every write reloads the open window's settings
     path = tmp_path / ".vscode" / "settings.json"
-    assert workspace.write("claude", path) is True
+    assert workspace.write("claude", path, set_up=False) is True
     text = path.read_text(encoding="utf-8")
     assert text.startswith("//") and "app/workspace.py" in text.splitlines()[0]
     assert load(text) == workspace.settings("claude")
     stamp = path.stat().st_mtime_ns
-    assert workspace.write("claude", path) is False and path.stat().st_mtime_ns == stamp
-    assert workspace.write("copilot", path, HOME) is True
+    assert workspace.write("claude", path, set_up=False) is False and path.stat().st_mtime_ns == stamp
+    assert workspace.write("copilot", path, HOME, set_up=False) is True
     assert load(path.read_text(encoding="utf-8"))["chat.disableAIFeatures"] is False
 
 
@@ -104,3 +104,30 @@ def test_settings_file_generated_not_tracked():
     tracked = subprocess.run([*git, "ls-files", ".vscode"], capture_output=True, text=True).stdout
     assert tracked.strip() == ""
     assert subprocess.run([*git, "check-ignore", "-q", ".vscode/settings.json"]).returncode == 0
+
+
+def test_start_here_leaves_the_file_list_once_set_up(tmp_path, monkeypatch):
+    # "type set me up" stayed in the file list for good, weeks after setup
+    path, search = tmp_path / ".vscode" / "settings.json", tmp_path / "Search settings.yml"
+    monkeypatch.setenv("JOBS_CONFIG", str(search))
+    workspace.write("claude", path)
+    assert "START HERE.md" not in load(path.read_text(encoding="utf-8"))["files.exclude"]
+    search.write_text("{}\n", encoding="utf-8")
+    assert workspace.write("claude", path) is True
+    assert load(path.read_text(encoding="utf-8"))["files.exclude"]["START HERE.md"] is True
+
+
+def test_resume_and_settings_files_read_as_documents():
+    # line numbers, folding arrows, lightbulbs made Resume details.yml look like a code file
+    for ai in ("claude", "copilot"):
+        settings = workspace.settings(ai, HOME)
+        for lang in ("[yaml]", "[markdown]"):
+            block = settings[lang]
+            assert block["editor.lineNumbers"] == "off" and block["editor.folding"] is False
+            assert block["editor.glyphMargin"] is False and block["editor.wordWrap"] == "on"
+        assert settings["terminal.integrated.hideOnStartup"] == "always"
+        # schema's red underline + hover are the point of the YAML checker: never switched off
+        flat = {k: v for block in (settings, settings["[yaml]"], settings["[markdown]"]) for k, v in block.items()}
+        assert not any(k.startswith(("problems.", "editor.hover", "explorer.decorations", "workbench.editor.decorations"))
+                       or k.endswith(".decorations.enabled") for k in flat)
+        assert settings["yaml.validate"] is True

@@ -13,6 +13,7 @@ import cfg
 import status
 import store
 from resume import schema, tailor
+from text import inert_md
 
 FILE = "Follow-up email.md"
 SENT_STATES = ("applied", "heard_back", "interview")
@@ -87,7 +88,9 @@ def main() -> None:
     finally:
         conn.close()
     master = schema.load(cfg.resume_path(config, "master"))
-    subject, body = draft(job["title"], job["company"] or "your company", days, row["state"],
+    # employer's title + company inert in the .md (no link renders); printed to chat as is
+    shown = inert_md if folder else str
+    subject, body = draft(shown(job["title"]), shown(job["company"] or "your company"), days, row["state"],
                           strength(master, folder) if folder else None, args.name or master["contact"]["name"])
     text = f"Subject: {subject}\n\n{body}\n"
     if folder:

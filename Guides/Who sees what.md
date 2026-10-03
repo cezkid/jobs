@@ -11,6 +11,8 @@
 | What you apply with | That employer, when you click Submit - a few sites get some parts as they're filled, and on some your email (on some also your name and phone) goes when you click Continue or Next on their first box, before the form; the AI tells you first |
 | A follow-up email you send | The person you send it to, from your own email |
 
+**VS Code's own usage reports to Microsoft:** switched off when CEZ Job Finder installed VS Code for you.
+
 **AI training:** on a personal Claude, ChatGPT or GitHub Copilot plan, your chats may help train future AI
 unless you switch it off. How, and what it doesn't cover: **[Keep your chats out of AI training](Keep%20your%20chats%20out%20of%20AI%20training.md)**
 

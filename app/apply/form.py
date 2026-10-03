@@ -24,6 +24,7 @@ import cfg
 from apply import answers as saved_answers
 from apply import browser, questions, readahead, systems
 from resume import render, schema, tailor
+from text import inert_md
 
 # a system the program can't fill: answers drafted from the read-ahead, pasted by the user
 PASTE = "paste"
@@ -139,7 +140,8 @@ def paste(slug: str) -> None:
         answer = a.get("answer")
         shown = upload if a["kind"] == "file" and answer is True else (
             "(yours to answer on the page)" if questions.blank(answer) else ", ".join(answer) if isinstance(answer, list) else str(answer))
-        out += [f"**{a['title']}**{' (required)' if a['required'] else ''}", "", shown, ""]
+        # question = the employer's words, inert; answer = the user's, pasted as is
+        out += [f"**{inert_md(a['title'])}**{' (required)' if a['required'] else ''}", "", shown, ""]
     path = folder / ANSWERS_FILE
     path.write_text("\n".join(out), encoding="utf-8")
     print(f"written: {path}")

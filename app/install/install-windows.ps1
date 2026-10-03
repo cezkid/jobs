@@ -87,6 +87,9 @@ try {
         # -UseBasicParsing: Dec 2025 update (CVE-2025-54100) asks before IE-engine parsing, Enter = cancel
         Invoke-WebRequest -UseBasicParsing "https://update.code.visualstudio.com/latest/win32-$arch-user/stable" -OutFile $setup
         Start-Process $setup -ArgumentList '/VERYSILENT', '/NORESTART', '/MERGETASKS=!runcode' -Wait
+        # VS Code is ours => launcher may quiet its app-wide settings (never a developer's own)
+        New-Item -ItemType Directory -Force (Join-Path $Dir '.data') | Out-Null
+        Set-Content -Path (Join-Path $Dir '.data\vscode-ours') -Value '' -Encoding ascii
         Refresh-Path
     }
     if (-not (Have 'code')) { throw 'Could not install VS Code.' }

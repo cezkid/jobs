@@ -1,0 +1,27 @@
+{
+  // a developer's own VS Code: Job Finder must leave every byte of it alone
+  "editor.fontSize": 14,
+  "editor.tabSize": 2,
+  "editor.formatOnSave": true,
+  "editor.minimap.enabled": false,
+  "editor.rulers": [100],
+  "editor.fontFamily": "JetBrains Mono, Menlo, monospace",
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "files.exclude": {"**/.git": true, "**/__pycache__": true},
+  "workbench.colorTheme": "Default Dark Modern",
+  "workbench.startupEditor": "none",
+  /* terminal */
+  "terminal.integrated.fontSize": 13,
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "python.defaultInterpreterPath": "~/.venv/bin/python",
+  "[python]": {"editor.defaultFormatter": "charliermarsh.ruff"},
+  "http.proxy": "http://proxy.example.com:8080",
+  "search.exclude": {"**/node_modules": true},
+  "explorer.confirmDelete": false,
+  "security.workspace.trust.untrustedFiles": "open",
+  "redhat.telemetry.enabled": false,
+  "update.mode": "manual",
+}

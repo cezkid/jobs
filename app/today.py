@@ -8,6 +8,7 @@ import argparse
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote
 
 from dotenv import dotenv_values
 
@@ -17,6 +18,7 @@ import locks
 import rank
 import status
 import store
+from text import inert_md
 
 PAGE = cfg.ROOT / "Today.md"
 WAITING_MAX, FOLLOW_UP_MAX, NEW_MAX = 5, 5, 10
@@ -46,8 +48,48 @@ SAY = (
 )
 
 
-def say(words: str) -> str:
-    return f'Say: "{words}"'
+def chip(words: str) -> str:
+    """Words to say as a code span: pages.css draws them as bold quoted words (never yellow: yellow
+    means a button), the words stay on the page for other AIs + the chat brief."""
+    return f"`{words}`"
+
+
+def say(words: str, *more: str, tail: str = "") -> str:
+    """Say: `apply to job 12` - or `I sent job 12` if you already did."""
+    alts = f" - or {', '.join(map(chip, more))}" if more else ""
+    return f"Say: {chip(words)}{alts}{tail}"
+
+
+def posting(url: str | None) -> str:
+    """Link text, never a bare 100-char URL. URL copied as is (AGENTS.md: a rebuilt one 404s);
+    angle brackets keep a ')' in it from ending the link."""
+    if not url:
+        return ""
+    return f"[Open the posting](<{url.replace('<', '%3C').replace('>', '%3E')}>)"
+
+
+def resume_pdf(job_dir: Path | None) -> Path | None:
+    """Tailored resume in the job folder (`First_Last_Resume.pdf`); not made yet => None."""
+    if job_dir is None:
+        return None
+    return next(iter(sorted(job_dir.glob("*Resume.pdf"))), None)
+
+
+def resume_link(job_dir: Path | None, root: Path) -> str:
+    """Opens the PDF as a tab in the preview (measured: file link -> vscode.open; a folder link only
+    reveals it in the file list). Relative to the page, spaces %20 - preview reads no raw spaces."""
+    if not (pdf := resume_pdf(job_dir)):
+        return ""
+    try:
+        rel = pdf.relative_to(root).as_posix()
+    except ValueError:
+        return ""
+    return f"[Open its resume]({quote(rel)})"
+
+
+def job_folders(jobs_dir: Path) -> dict[str, Path]:
+    """Job key -> its folder, read once per page."""
+    return {status.folder_key(f): f["dir"] for f in status.folders(jobs_dir)}
 
 
 def name(row: dict) -> str:
@@ -60,7 +102,12 @@ def days_ago(since: str, now: str) -> str:
 
 
 def item(row: dict, *details: str) -> list[str]:
-    return [f"- **Job {row['num']}** - {name(row)}", *(f"  - {d}" for d in details if d)]
+    return [f"- **Job {row['num']}** - {inert_md(name(row))}", *(f"  - {d}" for d in details if d)]
+
+
+def links(row: dict, dirs: dict[str, Path] | None, root: Path) -> str:
+    """Posting + its resume on one line: both open from the page, no URL to read."""
+    return " · ".join(filter(None, (posting(row.get("url")), resume_link((dirs or {}).get(row.get("key")), root))))
 
 
 def progress(conn) -> str:
@@ -75,14 +122,14 @@ def progress(conn) -> str:
     return f"So far: {', '.join(parts)}." if parts else ""
 
 
-def waiting(conn, now: str) -> list[str]:
+def waiting(conn, now: str, dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT) -> list[str]:
     rows = status.waiting(conn, now)
     if not rows:
         return []
     out = ["## Waiting on you", ""]
     for r in status.numbered(conn, rows[:WAITING_MAX]):
-        out += item(r, f"Resume made {days_ago(r['state_at'], now)}", r["url"],
-                    say(f"apply to job {r['num']}") + f' - or "I sent job {r["num"]}" if you already did')
+        out += item(r, f"Resume made {days_ago(r['state_at'], now)}", links(r, dirs, root),
+                    say(f"apply to job {r['num']}", f"I sent job {r['num']}", tail=" if you already did"))
     if len(rows) > WAITING_MAX:
         out.append(f"- More in the chat. {say('what is waiting on me')}")
     return out + [""]
@@ -101,7 +148,7 @@ def follow_up_rows(conn, now: str, days: dict[str, int]) -> list[dict]:
     return out
 
 
-def follow_up(conn, now: str, days: dict[str, int]) -> list[str]:
+def follow_up(conn, now: str, days: dict[str, int], dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT) -> list[str]:
     rows = follow_up_rows(conn, now, days)
     if not rows:
         return []
@@ -109,17 +156,17 @@ def follow_up(conn, now: str, days: dict[str, int]) -> list[str]:
     for r in status.numbered(conn, rows[:FOLLOW_UP_MAX]):
         n = r["num"]
         if r["chased"]:
-            out += item(r, f"You followed up {days_ago(r['chased'], now)}, still no reply", r["url"],
-                        say(f"job {n} is closed") + f' - or "I heard back from job {n}"')
+            out += item(r, f"You followed up {days_ago(r['chased'], now)}, still no reply", links(r, dirs, root),
+                        say(f"job {n} is closed", f"I heard back from job {n}"))
         else:
-            out += item(r, f"{STAGE_WORDS[r['state']]} {days_ago(r['state_at'], now)}, no reply yet", r["url"],
-                        say(f"write a follow-up for job {n}") + f' - or "I heard back from job {n}", "job {n} is closed"')
+            out += item(r, f"{STAGE_WORDS[r['state']]} {days_ago(r['state_at'], now)}, no reply yet", links(r, dirs, root),
+                        say(f"write a follow-up for job {n}", f"I heard back from job {n}", f"job {n} is closed"))
     if len(rows) > FOLLOW_UP_MAX:
         out.append(f"- More in the chat. {say('what should I follow up on')}")
     return out + [""]
 
 
-def interviews(conn, now: str, days: dict[str, int]) -> list[str]:
+def interviews(conn, now: str, days: dict[str, int], dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT) -> list[str]:
     """Jobs at the interview stage, until a follow-up is due (they move to Follow up then)."""
     due = {r["key"] for r in follow_up_rows(conn, now, days)}
     rows = [r for r in status.in_progress(conn) if r["state"] == "interview" and r["key"] not in due]
@@ -127,8 +174,8 @@ def interviews(conn, now: str, days: dict[str, int]) -> list[str]:
         return []
     out = ["## Interviews", ""]
     for r in status.numbered(conn, rows[:FOLLOW_UP_MAX]):
-        out += item(r, f"Interview stage since {days_ago(r['state_at'], now)}", r["url"],
-                    say(f"practise my interview for job {r['num']}") + f' - or "I had the interview for job {r["num"]}"')
+        out += item(r, f"Interview stage since {days_ago(r['state_at'], now)}", links(r, dirs, root),
+                    say(f"practise my interview for job {r['num']}", f"I had the interview for job {r['num']}"))
     return out + [""]
 
 
@@ -156,7 +203,7 @@ def new_section(conn, config: dict, now: datetime) -> list[str]:
         return []
     out = ["## New since last check", ""]
     for j in store.numbered(conn, rows[:NEW_MAX]):
-        out += item(j, rank.reasons(j, config, now, rank.added(j, now)), j["url"], say(f"resume for job {j['num']}"))
+        out += item(j, rank.reasons(j, config, now, rank.added(j, now)), posting(j["url"]), say(f"resume for job {j['num']}"))
     if len(rows) > NEW_MAX:
         out.append(f"- {len(rows) - NEW_MAX} more - ask the chat. {say('show me more new jobs')}")
     return out + [""]
@@ -178,20 +225,23 @@ def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | Non
     return out
 
 
-def build(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) -> str:
-    """now = local time the page is for (shown in its heading); every section hides when empty."""
+def build(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], root: Path = cfg.ROOT) -> str:
+    """now = local time the page is for (shown in its heading); every section hides when empty.
+    root = folder the page sits in: its resume links are relative to it."""
     now_iso = now.astimezone(timezone.utc).strftime(store.ISO)
     status.backfill(conn, jobs_dir)
+    dirs = job_folders(jobs_dir)
     out = ["# Today", "", f"{now:%A, %B} {now.day}."]
     if line := progress(conn):
         out[-1] += f" {line}"
     out.append("")
-    body = (waiting(conn, now_iso) + interviews(conn, now_iso, config["follow_up"])
-            + follow_up(conn, now_iso, config["follow_up"]) + new_section(conn, config, now))
+    days = config["follow_up"]
+    body = (waiting(conn, now_iso, dirs, root) + interviews(conn, now_iso, days, dirs, root)
+            + follow_up(conn, now_iso, days, dirs, root) + new_section(conn, config, now))
     if todo:
         body += ["## Not finished", "", *(f"- {t}" for t in todo), ""]
     out += body or [f"Nothing new since the last check. {say('find new jobs')}", ""]
-    out += ["## What you can say", "", *(f'- "{s}"' for s in SAY), "",
+    out += ["## What you can say", "", *("- " + " / ".join(map(chip, s.split(" / "))) for s in SAY), "",
             "Guides:", "", *(f"- [{title}]({link})" for title, link in GUIDES), ""]
     return "\n".join(out)
 

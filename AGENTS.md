@@ -22,6 +22,8 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   never a `12.` list (chat renumbers it 1, 2, 3). Commands take it as is (`tailor prepare 12`).
   Link = the row's `https://` column, copied as is; never build one from the slug (404).
 - Each job carries its one-line why from the row's `[reasons]`, in plain words.
+- Window = stock VS Code dressed as one program (brand colors, page look, no code chrome); why
+  + what was rejected: `app/docs/app-window.md`.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.
 - Need file from user (resume PDF): ask them to drag it onto My Resume in the file list, then
@@ -230,9 +232,10 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 ## Layout
 
 - `START HERE.md` - first-run steps only ("type set me up"); launcher opens it until search
-  settings exist, then `Today.md`. Plain words only.
+  settings exist, then `Today.md`, and hides it from the file list. Plain words only.
 - `Today.md` - generated (`today`): waiting on you, follow up, new since last check, not
-  finished; each item ends w/ the words to say. Rebuilt at launch + after each morning check.
+  finished; each item ends w/ the words to say (highlighted, user types them) + "Open the
+  posting" / "Open its resume" links; employer text inert, no links from it. Rebuilt at launch + after each morning check.
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
   no resume text. Other AIs have no hook - they keep the page.
@@ -249,7 +252,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 - `My Jobs/<stage>/N - Company - Title/` - one per tailored job, under where it stands
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
-- `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `resume-index.yml`, AI task files for import,
+- `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,

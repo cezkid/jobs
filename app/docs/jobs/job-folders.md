@@ -16,11 +16,17 @@ My Jobs/
 
 Table: `status.STAGES`. Stage folders appear when a job first needs one; never removed after.
 
+Posting text is shown inert: no links, images or HTML from the employer (`text.inert_md`). Their
+title, company, asks, posting + form questions in these pages (+ Today page) are escaped, so a
+hidden image can't tell them when the user looked, a link can't run a VS Code command. Bare
+web addresses stay as plain text, not clickable. The posting's own link line is ours - kept.
+
 ## Name
 
-`Job <n> - <Company> - <Title>`; n = the job's number in the chat, Today page + email
-(`store.number`). 80 chars max, number never cut (Windows path budget: deep home dir + stage +
-`.data/<file>`). Unique per job => same job prepared in two chats shares one folder.
+`<n> - <Company> - <Title>`, e.g. `12 - Acme - Data Analyst` (`tailor.folder_name`); n = the
+job's number in the chat, Today page + email (`store.number`). 80 chars max, number never cut
+(Windows path budget: deep home dir + stage + `.data/<file>`). Unique per job => same job
+prepared in two chats shares one folder.
 
 ## Found by what's inside
 

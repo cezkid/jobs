@@ -2,7 +2,7 @@
 
 **Users**, plain words, in the file list:
 
-- [START HERE](../../START%20HERE.md) - first-run steps; Today page opens instead once set up.
+- [START HERE](../../START%20HERE.md) - first-run steps; Today page opens instead once set up, START HERE leaves the file list.
 - [What you can ask](../../Guides/What%20you%20can%20ask.md) - what to say, where jobs come from, how the resume is made.
 - [Who sees what](../../Guides/Who%20sees%20what.md) - what stays on the computer, what leaves and when.
 - [What makes a good resume](../../Guides/What%20makes%20a%20good%20resume.md) - every rule
@@ -45,8 +45,14 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/answers.md](apply/answers.md) | What an application asks, read ahead when a resume is made; answers drafted + pasted for systems w/o a filler; questions never drafted |
 | Applying | [apply/interview.md](apply/interview.md) | Interview practice + debrief: what each rule rests on, how a stated fact reaches the resume, declined |
 | Applying | [apply/follow-up.md](apply/follow-up.md) | When a quiet job is suggested for a follow-up (days per stage + basis), one nudge per silence, what the draft says and never says |
+| App window | [app-window.md](app-window.md) | VS Code window the Desktop icon opens: phase 1 look, pages, Today links + chips, quiet settings - what + why, measured, rejected |
 | Site | [site.md](site.md) | Install site in `docs/`: generated files + `app/web/assets.py`, look, rules (no third-party requests, scam-safe install line, robots, JSON-LD, share image), measured hosting facts |
 | Site | [research.md](research.md) | Research articles: sourcing order, evidence labels (plain scale -> registry), citations, 3-step review + publication gate, style, search rules, laws, privacy, re-check + corrections |
+
+Testing the window: tests can't reach the real VS Code, Claude settings or Desktop icon (guard in
+`app/tests/conftest.py`). Live look = `uv run python app/tests/demo.py` (placeholder jobs in this
+checkout) + `JOBS_VSCODE_DIR=<scratch dir> uv run app/jobs.py launch` - a separate VS Code w/ its own
+data + extensions there, Claude trust + Desktop icon too (`launch.vscode_paths()`). Quit it after.
 
 Assistant instructions: [AGENTS.md](../../AGENTS.md) + skills in [../skills/](../skills/).
 Contributing: [.github/CONTRIBUTING.md](../../.github/CONTRIBUTING.md).

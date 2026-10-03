@@ -1,6 +1,7 @@
 import json
 import re
-from pathlib import PurePosixPath, PureWindowsPath
+import shutil
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from urllib.parse import unquote
 
 import pytest
@@ -8,6 +9,8 @@ import pytest
 import cfg
 import launch
 import notify
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
@@ -279,6 +282,63 @@ def test_vscode_settings_keep_comments_and_trailing_commas():
     assert json.loads(launch.add_setting('{\n  "a": 1\n}\n', launch.TELEMETRY)) == {"a": 1, "redhat.telemetry.enabled": False}
 
 
+QUIET_LINES = ['"update.showReleaseNotes": false', '"workbench.enableExperiments": false',
+               '"telemetry.telemetryLevel": "off"', '"workbench.welcomePage.walkthroughs.openOnInstall": false']
+
+
+# VS Code it installed: Release Notes tab over Today after each update, usage reports to Microsoft
+def test_quiet_settings_added_when_installer_put_vscode_there(tmp_path, monkeypatch):
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    marker, settings = tmp_path / "vscode-ours", tmp_path / "User" / "settings.json"
+    marker.touch()
+    launch.ensure_quiet_vscode(settings, marker)
+    text = settings.read_text(encoding="utf-8")
+    assert all(line in text for line in QUIET_LINES) and "menuBarVisibility" not in text
+    launch.ensure_quiet_vscode(settings, marker)
+    assert settings.read_text(encoding="utf-8") == text
+
+
+# a developer's VS Code (owner's own) changed app-wide = their editor stops behaving as they set it
+def test_quiet_settings_never_touch_a_developers_vscode(tmp_path):
+    settings = tmp_path / "settings.json"
+    shutil.copy(FIXTURES / "vscode-dev-settings.jsonc", settings)
+    before = settings.read_bytes()
+    launch.ensure_quiet_vscode(settings, tmp_path / "no-marker")
+    assert settings.read_bytes() == before
+    assert len(launch.settings_keys(before.decode())) >= 20
+
+
+# installs from before the marker: still quiet when only Job Finder ever wrote the file
+@pytest.mark.parametrize("text", [None, "", "{}", '{\n  "redhat.telemetry.enabled": false\n}\n'])
+def test_quiet_settings_on_old_installs_only_job_finder_wrote(tmp_path, text):
+    settings = tmp_path / "settings.json"
+    if text is not None:
+        settings.write_text(text, encoding="utf-8")
+    launch.ensure_quiet_vscode(settings, tmp_path / "no-marker")
+    assert all(line in settings.read_text(encoding="utf-8") for line in QUIET_LINES)
+
+
+# a user's own choice overwritten = their setting flips back at every launch
+def test_quiet_settings_keep_the_users_value_and_comments(tmp_path):
+    marker, settings = tmp_path / "vscode-ours", tmp_path / "settings.json"
+    marker.touch()
+    settings.write_text('{\n  // keep me\n  "telemetry.telemetryLevel": "error",\n}\n', encoding="utf-8")
+    launch.ensure_quiet_vscode(settings, marker)
+    text = settings.read_text(encoding="utf-8")
+    assert "// keep me" in text and text.count("telemetry.telemetryLevel") == 1
+    assert '"telemetry.telemetryLevel": "error"' in text and '"update.showReleaseNotes": false' in text
+    assert launch.settings_keys(text) >= {"telemetry.telemetryLevel", "update.showReleaseNotes"}
+
+
+# full File/Edit/.../Help bar is Windows-only; the key on a Mac is noise in their settings
+@pytest.mark.parametrize("platform, menu", [("win32", True), ("darwin", False), ("linux", False)])
+def test_quiet_menu_bar_only_on_windows(tmp_path, monkeypatch, platform, menu):
+    monkeypatch.setattr(launch.sys, "platform", platform)
+    settings = tmp_path / "settings.json"
+    launch.ensure_quiet_vscode(settings, tmp_path / "no-marker")
+    assert ('"window.menuBarVisibility": "compact"' in settings.read_text(encoding="utf-8")) is menu
+
+
 def test_start_page_leads_with_the_first_step():
     # users read the whole page and still did not know what to do
     page = (cfg.ROOT / "START HERE.md").read_text(encoding="utf-8")
@@ -417,3 +477,67 @@ def test_windows_icon_refreshed_once_retried_after_failure(tmp_path):
     launch.ensure_windows_icon(done, run)
     assert done.exists() and len(runs) == 2
     assert runs[0] == launch.windows_shortcut_script()
+
+
+def test_scratch_vscode_keeps_every_path_and_call_off_the_owners(tmp_path, monkeypatch):
+    # live looks drove the owner's open VS Code and rewrote their Claude trust + Desktop icon
+    scratch = tmp_path / "scratch"
+    monkeypatch.setenv(launch.SCRATCH_ENV, str(scratch))
+    paths = launch.vscode_paths()
+    assert all(p.is_relative_to(scratch.resolve()) for p in paths)
+    assert launch.vscode_settings() == paths.settings
+    runs = []
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    launch.code(["--install-extension", launch.PDF_EXTENSION])
+    assert runs == [["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
+                     "--install-extension", launch.PDF_EXTENSION]]
+    launch.ensure_claude_trust(tmp_path / "jobs")
+    assert paths.claude_state.exists()
+    (paths.extensions / "anthropic.claude-code-2.0.0").mkdir(parents=True)
+    assert launch.has_claude()
+
+
+def test_without_scratch_paths_follow_the_home_folder(tmp_path, monkeypatch):
+    # paths fixed at import => a home folder changed later (tests, another user) still hit the old one
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    paths = launch.vscode_paths()
+    assert paths.claude_state == tmp_path / ".claude.json" and paths.extensions == tmp_path / ".vscode" / "extensions"
+    assert paths.settings == tmp_path / "Library" / "Application Support" / "Code" / "User" / "settings.json"
+    assert launch.scratch_args() == []
+
+
+def test_open_for_user_lands_in_the_scratch_vscode(tmp_path, monkeypatch):
+    # jobs.py open during a live look put the file in the owner's window
+    import jobs
+    page = tmp_path / "Job posting.md"
+    page.write_text("x", encoding="utf-8")
+    monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "scratch"))
+    runs = []
+    monkeypatch.setattr(jobs.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
+    jobs.open_for_user(str(page))
+    assert runs[0][1:3] == ["--user-data-dir", str(launch.vscode_paths().data)] and runs[0][-1] == str(page.resolve())
+
+
+def test_test_guard_stops_real_code_calls():
+    # one unguarded test drove the owner's running VS Code window
+    import conftest
+    assert conftest.reaches_real_vscode(["/usr/local/bin/code", "--version"])
+    assert conftest.reaches_real_vscode("code -r x")
+    assert conftest.reaches_real_vscode(["open", "vscode://anthropic.claude-code/open"])
+    assert not conftest.reaches_real_vscode(["code", "--user-data-dir", "/tmp/x", "--version"])
+    assert not conftest.reaches_real_vscode(["bash", "-c", "code --list-extensions"])
+
+
+def test_open_names_job_finders_folder_with_the_file(tmp_path, monkeypatch):
+    # code -r <file> alone landed in whichever VS Code window was used last
+    import jobs
+    page = tmp_path / "Job posting.md"
+    page.write_text("x", encoding="utf-8")
+    runs = []
+    monkeypatch.setattr(jobs.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
+    jobs.open_for_user(str(page))
+    assert runs[0][-2:] == [str(cfg.ROOT), str(page.resolve())] and "-r" not in runs[0]
