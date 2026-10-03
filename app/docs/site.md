@@ -164,6 +164,10 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 - Scenes: at most one framed object per viewport; marks visible by default; selection, hover +
   focus in ink (never yellow); an illustrated Submit = ink w/ an ink circle (never a 2nd yellow
   control); no clickable control inside an illustration.
+- Wide screens fill both halves with real content, never decoration: at 1440x900 no home row leaves
+  a band > 400 x 200 px empty right of its content, hero columns end within 24 px of each other,
+  articles carry an "On this page" column (their h2s, sticky, >= 1280 px only; `pages.py`). qa.py
+  checks the band + the article column.
 - `<symbol>` + `<use>` on the home page only; shared marks are CSS only (generated pages copy the
   shared block, not the home page's SVG).
 

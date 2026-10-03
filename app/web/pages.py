@@ -803,6 +803,21 @@ PAGE_CSS = """
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { font-style: italic; font-synthesis: none; }
+  /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
+  .toc { display: none; }
+  @media (min-width: 1280px) {
+    main.wrap:has(> .toc) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); }
+    main.wrap:has(> .toc) > .page { grid-column: 1; grid-row: 1; }
+    .toc {
+      display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
+      position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
+      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.4;
+    }
+    .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
+    .toc ol { list-style: none; margin: 0; padding: 0; }
+    .toc li { margin: 0; border-bottom: 1px solid var(--line); }
+    .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
@@ -819,7 +834,7 @@ PAGE_CSS = """
   }
   @media print {
     main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs { display: none; }
+    .crumbs, .toc { display: none !important; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
   }
@@ -947,6 +962,11 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
                  f'<meta property="article:modified_time" content="{src.modified}">']
     head += [parts["og"], parts["twitter"], parts["links"], jsonld(graph)]
     wrapper = "article" if kind == "article" else "div"
+    # articles: "On this page" = every h2 (Sources too), shown beside the column on wide screens only
+    heads = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body, re.S) if kind == "article" else []
+    toc = ['<nav class="toc" aria-label="On this page">', "<p>On this page</p>", "<ol>",
+           *(f'<li><a href="#{slug}">{re.sub(r"<[^>]+>", "", text)}</a></li>' for slug, text in heads),
+           "</ol>", "</nav>"] if len(heads) > 2 else []
     return "\n".join([
         "<!doctype html>",
         '<html lang="en">',
@@ -962,6 +982,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
         "<body>",
         parts["header"],
         '<main id="main" class="wrap">',
+        *toc,
         f'<{wrapper} class="page">',
         f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
         f"<h1>{escape(src.title)}</h1>",

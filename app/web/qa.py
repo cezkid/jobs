@@ -19,7 +19,9 @@ browser name + touch) at 320x640, 360x780, 375x812, 390x844 and as a desktop at 
   375x812 (2x the 2026-10-03 length); home also as a narrow desktop window at the 4 phone sizes
   (install line shown); at every size (COMPOSITION): rules on header, footer + main's rows span the
   window, no section h2 cut by the fold, Job 12's ring box above the salary line, install line
-  breaks only at spaces, <= 1 framed object in the first screen
+  breaks only at spaces, <= 1 framed object in the first screen; at 1440x900 (EMPTY_RIGHT) no row of
+  main leaves a band > 400px wide + > 200px tall empty right of its content, and an article page has a
+  visible element starting right of x 900 (its On this page column)
 
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
@@ -47,7 +49,8 @@ sideways scroll, no console errors, finished states (reduced: 0 animations + mar
 full: marks + strokes after a full scroll + after a reload at the bottom).
 --self-test: injects faults into home (Copy below the fold, a hidden mark, a console error, a
 wide element, section rules short of the window edge, the Job 12 ring over the salary line, the
-install line broken inside the web address (320px desktop window), a second framed object in the
+install line broken inside the web address (320px desktop window), the closing list hidden (an empty
+right half at 1440x900), a second framed object (a boxed note) in the
 first screen (1440x900), a scene circle stuck half drawn / undrawn in reduced motion, an opening that runs
 long / fades text in / moves 40px / animates the LCP element / replays on reload, a page change
 w/o crossfade, an opening played after one) and exits 1 unless each one fails its check and clean
@@ -323,6 +326,51 @@ COMPOSITION = """() => {
   return bad;
 }"""
 
+# empty right halves (BAND_AT): per row of main, 4px slices from its first content line to its last; a run
+# of slices whose rightmost content (text line boxes, svg/img/button, boxes with a border or background)
+# ends more than BAND_W px short of the row's content edge, taller than BAND_H px = a band left empty
+BAND_AT = (1440, 900)
+BAND_W, BAND_H = 400, 200
+EMPTY_RIGHT = """() => {
+  const out = [];
+  for (const row of document.querySelectorAll("main > *")) {
+    const box = row.getBoundingClientRect(); if (!box.height) continue;
+    const s = getComputedStyle(row), left = box.left + parseFloat(s.paddingLeft), right = box.right - parseFloat(s.paddingRight);
+    const rects = [];
+    for (const el of row.querySelectorAll("*")) {
+      const c = getComputedStyle(el);
+      if (c.visibility === "hidden" || parseFloat(c.opacity) === 0) continue;
+      if ([...el.childNodes].some(n => n.nodeType === 3 && n.data.trim())) {
+        const r = document.createRange(); r.selectNodeContents(el);
+        rects.push(...[...r.getClientRects()].filter(q => q.width > 2 && q.height > 2));
+      }
+      if (["svg", "img", "button"].includes(el.localName) || parseFloat(c.borderLeftWidth) > 0 ||
+          parseFloat(c.borderRightWidth) > 0 || c.backgroundColor !== "rgba(0, 0, 0, 0)") {
+        const q = el.getBoundingClientRect(); if (q.width > 2 && q.height > 2) rects.push(q);
+      }
+    }
+    if (!rects.length) continue;
+    const top = Math.min(...rects.map(q => q.top)), bottom = Math.max(...rects.map(q => q.bottom));
+    let run = 0, start = 0, narrow = Infinity, worst = null;
+    for (let y = top; y < bottom; y += 4) {
+      const hit = rects.filter(q => q.top < y + 4 && q.bottom > y);
+      const empty = right - (hit.length ? Math.max(...hit.map(q => q.right)) : left);
+      if (empty <= BAND_W) { run = 0; continue; }
+      if (!run) { start = y; narrow = Infinity; }
+      run += 4; narrow = Math.min(narrow, empty);
+      if (run > BAND_H && (!worst || run > worst[1])) worst = [Math.round(narrow), run, Math.round(start + scrollY)];
+    }
+    if (worst) out.push(`${row.localName}.${row.className.trim().split(/\\s+/).join(".")}: ${worst[0]}x${worst[1]}px ` +
+                        `left empty right of its content at y ${worst[2]} (cap BAND_WxBAND_H)`);
+  }
+  return out;
+}""".replace("BAND_W", str(BAND_W)).replace("BAND_H", str(BAND_H))
+# wide article: a visible element starts right of ARTICLE_X (the On this page column), not one 68ch column alone
+ARTICLE_X = 900
+RIGHTMOST = """() => Math.max(0, ...[...document.querySelectorAll("main *")].filter(el => {
+  const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && getComputedStyle(el).visibility !== "hidden";
+}).map(el => el.getBoundingClientRect().left))"""
+
 OPENING_MS = 2800          # opening moment ends by then
 OPENING_SHIFT = 12         # px a hero object may move during it
 OPENING_AT = [((1366, 641), False), ((390, 844), True)]
@@ -384,7 +432,8 @@ FAULTS = [
      "</style>", "layout"),
     ("install line broken inside the web address", "<style>.command code { overflow-wrap: anywhere "
      "!important; font-size: 0.9375rem !important; }</style>", "narrow"),
-    ("second framed object peeks into the first screen", "<style>.hero { min-height: 0 !important; }</style>",
+    ("closing list gone: right half empty", "<style>.next { display: none !important; }</style>", "wide"),
+    ("second framed object in the first screen", "<style>.need { border: 1px solid; min-height: 160px; }</style>",
      "wide"),
     ("opening runs 4 s", "<style>.today mark { animation-duration: 4s !important; }</style>", "opening"),
     ("opening fades text in", "<style>@keyframes qa-fade { from { opacity: 0; } } "
@@ -523,6 +572,14 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                 failed.append(f"{where}: header check found fewer than 2 parts (brand + links)")
             elif not one:
                 failed.append(f"{where}: header wraps to a second line")
+        if (width, height) == BAND_AT and not phone:
+            if name == "index.html":
+                failed += [f"{where}: {line}" for line in page.evaluate(EMPTY_RIGHT)]
+            elif page.evaluate("!!document.querySelector('main article')"):
+                x = page.evaluate(RIGHTMOST)
+                if x <= ARTICLE_X:
+                    failed.append(f"{where}: nothing right of x {ARTICLE_X}px (rightmost starts at {x:.0f}px) - "
+                                  f"the right half is empty")
         if name == "index.html":
             failed += [f"{where}: {line}" for line in page.evaluate(COMPOSITION)]
             if (width, height) in (FOLD, FOLD_REPORT):

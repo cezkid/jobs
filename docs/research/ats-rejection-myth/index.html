@@ -172,6 +172,21 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { font-style: italic; font-synthesis: none; }
+  /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
+  .toc { display: none; }
+  @media (min-width: 1280px) {
+    main.wrap:has(> .toc) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); }
+    main.wrap:has(> .toc) > .page { grid-column: 1; grid-row: 1; }
+    .toc {
+      display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
+      position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
+      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.4;
+    }
+    .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
+    .toc ol { list-style: none; margin: 0; padding: 0; }
+    .toc li { margin: 0; border-bottom: 1px solid var(--line); }
+    .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
@@ -188,7 +203,7 @@
   }
   @media print {
     main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs { display: none; }
+    .crumbs, .toc { display: none !important; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
   }
@@ -207,6 +222,22 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#where-does-the-75-number-come-from">Where does the 75% number come from?</a></li>
+<li><a href="#what-does-an-applicant-tracking-system-actually-do">What does an applicant tracking system actually do?</a></li>
+<li><a href="#what-gets-rejected-automatically">What gets rejected automatically?</a></li>
+<li><a href="#how-common-are-knockout-questions-our-measurement">How common are knockout questions? Our measurement</a></li>
+<li><a href="#do-formatting-errors-get-resumes-rejected">Do formatting errors get resumes rejected?</a></li>
+<li><a href="#do-employers-filters-screen-out-people-who-could-do-the-job">Do employers' filters screen out people who could do the job?</a></li>
+<li><a href="#is-ai-now-rejecting-resumes-on-its-own">Is AI now rejecting resumes on its own?</a></li>
+<li><a href="#what-we-dont-know">What we don't know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research</a></li><li aria-current="page">Do ATS reject 75% of resumes? Where the number came from</li></ol></nav>
 <h1>Do ATS reject 75% of resumes? Where the number came from</h1>

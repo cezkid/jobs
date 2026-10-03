@@ -188,6 +188,7 @@
   #copy svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
   .switch { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 0 0 0 46px; font-size: 1.0625rem; color: var(--text-2); }
   .switch button { font: inherit; color: var(--text); background: none; border: 0; padding: 0; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; cursor: pointer; }
+  .need { display: none; margin: 26px 0 0 46px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 1.0625rem; line-height: 1.5; color: var(--text-2); }
   .mac-only { display: none; }
   html.is-mac .mac-only { display: revert; }
   html.is-mac .win-only { display: none; }
@@ -284,6 +285,8 @@
     h1 { grid-column: 1 / -1; max-width: none; font-size: min(clamp(2.5rem, 1rem + 4.6vw, 7rem), 8.6vh + 0.5rem); }
     .lede, #install { grid-column: 1 / span 6; }
     #install { align-self: start; }
+    /* what you need, under the steps: ends the left column level with the window */
+    .need { display: block; }
     figure { grid-row: 2 / span 2; }
   }
 
@@ -427,6 +430,13 @@
   .ledger .when { color: var(--text-2); }
   .ledger-head { display: none; }
   .who-foot { grid-column: 1 / -1; max-width: 46rem; color: var(--text-2); }
+  /* wide: the heading + its one-line promise side by side, last lines on one baseline */
+  @media (min-width: 1080px) {
+    .who-head { display: contents; }
+    .who h2, .who-head .big { align-self: last baseline; }
+    .who h2 { grid-column: 1 / span 6; }
+    .who-head .big { grid-column: 7 / -1; }
+  }
   @media (min-width: 900px) {
     .ledger li, .ledger-head { grid-template-columns: 3fr 5fr 4fr; }
     .ledger-head { grid-column: 1 / -1; display: grid; gap: 4px 32px; color: var(--text-2); font-size: 1rem; margin-bottom: -24px !important; }
@@ -471,6 +481,16 @@
   .closing p { max-width: 34rem; }
   .closing .go { display: inline-block; margin-top: 8px; font-size: var(--step-1); font-weight: 700; }
   .closing .phone p { font-weight: 400; }
+  /* what happens after the paste: a ruled numbered list beside the closing line (wide), under it (narrow) */
+  .next { grid-column: 1 / -1; max-width: 34rem; border-top: 2px solid var(--text); }
+  .next h3 { margin: 0; padding: 12px 0 4px; font-size: var(--step-0); }
+  .next ol { list-style: none; counter-reset: next; margin: 0; padding: 0; }
+  .next li { counter-increment: next; position: relative; margin: 0; padding: 10px 0 11px 2rem; border-bottom: 1px solid var(--line); }
+  .next li::before { content: counter(next) "."; position: absolute; left: 0; font-weight: 700; font-variant-numeric: lining-nums tabular-nums; }
+  @media (min-width: 1080px) {
+    .closing .scene-text { grid-column: 1 / span 8; }
+    .next { grid-column: 9 / -1; align-self: end; max-width: none; }
+  }
   .colophon { border-top: 1px solid var(--line); }
   .colophon p { grid-column: 1 / -1; margin: 0; padding: 18px 0 28px; color: var(--text-2); font-size: 1.0625rem; }
 
@@ -566,6 +586,7 @@
           <span>Stuck? Run it again - your files are kept.</span>
           <a id="script" href="https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1">Read the script first</a>
         </p>
+        <p class="need">You need Windows 10 or 11 or a Mac, and one AI plan: Claude Pro or Max, ChatGPT Plus or Pro, or GitHub Copilot Pro. No administrator password.</p>
       </div>
       </div>
     </div>
@@ -775,6 +796,14 @@
         <p>It installs on a Windows or Mac computer.</p>
         <a class="send" href="mailto:?subject=CEZ%20Job%20Finder&body=https%3A%2F%2Fjobs.enrriquez.com%2F">Send this page to my computer</a>
       </div>
+    </div>
+    <div class="next desktop">
+      <h3>After you paste the line</h3>
+      <ol>
+        <li>VS Code opens, with the chat beside it.</li>
+        <li>Type <b>set me up</b>. The chat asks what jobs you want and reads your resume, in about 10 minutes.</li>
+        <li>Your first jobs show up. From then on, new ones come each morning, on the Today page.</li>
+      </ol>
     </div>
   </section>
   <!-- /region: closing -->
