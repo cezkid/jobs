@@ -7,7 +7,8 @@
 Serves docs/ on a local port (gzip, like GitHub Pages; 404.html for a missing path), opens every
 page (each docs/**/*.html but the mac/ + win/ install scripts) in Google Chrome as a phone (phone
 browser name + touch) at 320x640, 360x780, 375x812, 390x844 and as a desktop at 768x1024,
-1366x641, 1440x900, 1920x1080, and checks:
+1366x641, 1440x900, 1920x1080 + the jurors' Mac laptop windows 1440x780, 1512x860, 1728x1000 (a page
+that reacts to a Mac - html.is-mac, home - at every desktop size again with a Mac browser name), and checks:
 
 - page no wider than the screen (scrollWidth <= clientWidth; a phone's innerWidth grows to fit a
   too-wide page, so it never fails)
@@ -15,11 +16,15 @@ browser name + touch) at 320x640, 360x780, 375x812, 390x844 and as a desktop at 
   header parts found = fail, never a silent pass
 - 0 console errors + 0 uncaught errors, in every browser context opened below
 - home: Copy button ends within 1366x641 (gate; 1366x768 screen minus Chrome's bars), 1280x593
-  reported only; page <= 8 screens at 1366x641 (3.88 on 2026-10-03), <= 2x 3.84 screens at
-  375x812 (2x the 2026-10-03 length); home also as a narrow desktop window at the 4 phone sizes
+  reported only; page <= 8 screens at 1366x641, <= 9 at 375x812 (owner decision 4, plan-dxn;
+  7.12 + 7.90 at the polish base); home also as a narrow desktop window at the 4 phone sizes
   (install line shown); at every size (COMPOSITION): rules on header, footer + main's rows span the
   window, no section h2 cut by the fold, Job 12's ring box above the salary line, install line
-  breaks only at spaces, <= 1 framed object in the first screen; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
+  breaks only at spaces, <= 1 framed object in the first screen; FRAMES at 1366x641 + 1440x900: <= 1 framed
+  object (.window, .proof, .sheet-lg) wholly or >= 40% on screen at every half-screen scroll step;
+  MAC_LINE (report-only until plan-dxn.3): Mac browser name at 768, 1366x641, 1440x900, 1920x1080 -> the
+  install line is one line box; a check whose selector finds 0 elements fails (missing()), never a
+  silent pass; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
   main leaves a band > 400px wide + > 200px tall empty right of its content (hub, about, methods too: main as
   one row, a sticky column counted to its parent's bottom), and an article page has a visible element
   starting right of x 900 (its On this page column)
@@ -28,7 +33,8 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
 
 - reduced motion: document.getAnimations() empty, every mark finished (MARK_STATE), every dashed
   SVG stroke drawn (DRAWN: stroke-dashoffset 0)
-- full motion: no animation loops forever; once the timed ones end (the opening moment), text
+- full motion: PAINT_CONCURRENT <= 3 animations mid-way on background-size / clip-path /
+  stroke-dashoffset at every half-screen scroll step from load on; no animation loops forever; once the timed ones end (the opening moment), text
   opacity 1 at every half-screen scroll step; every mark finished once scrolled to mid-screen;
   every dashed stroke drawn after a full scroll; reloaded at the bottom, none above the screen undrawn
 - layout boxes (offset rects: transforms don't move them) equal between reduced and full motion
@@ -48,16 +54,21 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
 --engines: WebKit + Firefox (Playwright's own builds), every page at 390x844 + 1366x641: no
 sideways scroll, no console errors, finished states (reduced: 0 animations + marks + strokes;
 full: marks + strokes after a full scroll + after a reload at the bottom).
---self-test: injects faults into home (Copy below the fold, a hidden mark, a console error, a
+--self-test: injects each FAULTS entry into its page (+ browser name) and exits 1 unless it adds a
+failure line its clean page lacks (a new check's fault: a line of that check) and each clean page
+passes its gates. Faults: home (Copy below the fold, a hidden mark, a console error, a
 wide element, section rules short of the window edge, the Job 12 ring over the salary line, the
 install line broken inside the web address (320px desktop window), the closing list hidden (an empty
 right half at 1440x900), a second framed object (a boxed note) in the
 first screen (1440x900), a scene circle stuck half drawn / undrawn in reduced motion, an opening that runs
 long / fades text in / moves 40px / animates the LCP element / replays on reload, a page change
-w/o crossfade, an opening played after one) and exits 1 unless each one fails its check and clean
-home passes.
+w/o crossfade, an opening played after one, a check finding 0 elements, paint animations piled up,
+the Mac line on more lines, two framed objects at once), an article (a wide element, a console error).
+--capture DIR: every page at 1366x641, 1440x900, 1440x780 (Mac), 1920x1080, 390x844 phone, light +
+dark, reduced motion: full-page + per-screen shots and DIR/numbers.md (screens long, print pages, h1 +
+h2 px per desktop size) - before/after material.
 
---perf: home timed in Chrome, docs/ vs a frozen copy of the pre-redesign site (docs/ at
+--perf: home timed in Chrome, docs/ vs a frozen copy of the polish base (docs/ at
 BASELINE_SHA, unpacked once into .data/site-baseline/), new + baseline alternating, median of 3
 valid runs, gzip server, keeps the Mac awake (caffeinate -dimsu), never records video. Profiles:
 phone 412x915 dpr 2.625, CPU 4x, one raster thread, 150 ms RTT, 1.6 Mbps; desktop 1440x900
@@ -83,7 +94,8 @@ Screenshots go to .data/screens/ (private, gitignored). Exit 1 + one line per fa
 starting "report:" are measurements, never failures. Every browser action times out after
 ACTION_MS, a whole run after RUN_LIMIT_S (exit 2).
 
-Run from repo root: uv run app/web/qa.py [--engines | --self-test | --perf [--self-test] | --lighthouse]
+Run from repo root: uv run app/web/qa.py [--engines | --self-test | --perf [--self-test] | --lighthouse |
+--capture DIR]
 Own deps (inline above, pinned to the cached webkit-2359 / firefox-1543 builds - no download),
 so the project's deps stay untouched.
 """
@@ -111,16 +123,19 @@ PHONE_UA = ("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/
             "(KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1")
 DESKTOP_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36")
+MAC_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+          "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36")
 PHONES = [(320, 640), (360, 780), (375, 812), (390, 844)]
-DESKTOPS = [(768, 1024), (1366, 641), (1440, 900), (1920, 1080)]
+# jurors' Mac laptops (Chrome window on a 13-16" MacBook): 1440x780, 1512x860, 1728x1000
+JURORS = [(1440, 780), (1512, 860), (1728, 1000)]
+DESKTOPS = [(768, 1024), (1366, 641), (1440, 900), (1920, 1080)] + JURORS
 MOTION_SIZES = [((1366, 641), False), ((390, 844), True)]
 FOLD = (1366, 641)          # gate: 1366x768 screen minus Chrome's tab + address bars
 FOLD_REPORT = (1280, 593)   # report only: 1280x720 screen, same bars
-DESKTOP_CAP = 8             # home <= 8 screens at 1366x641 (3.88 on 2026-10-03, pre-redesign)
-PHONE_TODAY = 3.84          # home at 375x812 (phone UA), measured 2026-10-03 (pre-redesign)
-# 2x today's page, plus room for the employer line in Who sees what (some sites get your email
-# at their first Continue or Next) and the nine filled hiring systems - 2026-10-03, owner-approved ship
-PHONE_CAP = 2 * PHONE_TODAY + 0.3
+# page-length caps, owner decision 4 (plan-dxn, 2026-10-03); polish base e704f97 measured
+# 7.12 screens at 1366x641 and 7.90 at 375x812
+DESKTOP_CAP = 8             # home <= 8 screens at 1366x641
+PHONE_CAP = 9.0             # home <= 9 screens at 375x812 (phone UA)
 PRINT_CAP = 5               # home prints in <= 5 pages
 SEND_AT = (390, 844)        # phone: "Send this page to my computer" ends <= SEND_CAP px (no scroll
 SEND_CAP = 675              # for the one thing a phone visitor can do; 675 = 844 minus Safari's bars)
@@ -378,6 +393,58 @@ RIGHTMOST = """() => Math.max(0, ...[...document.querySelectorAll("main *")].fil
   const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && getComputedStyle(el).visibility !== "hidden";
 }).map(el => el.getBoundingClientRect().left))"""
 
+# MAC_LINE (A6, report-only until plan-dxn.3 makes it a gate): home under MAC_UA shows the Mac line
+# as ONE line box at these sizes; null = no #line
+MAC_LINE_AT = [(768, 1024), (1366, 641), (1440, 900), (1920, 1080)]
+LINE_BOXES = """() => { const l = document.getElementById("line"); if (!l) return null;
+  const r = document.createRange(); r.selectNodeContents(l);
+  return [l.textContent.trim(), new Set([...r.getClientRects()].filter(q => q.width > 0)
+    .map(q => Math.round(q.top))).size]; }"""
+
+# PAINT_CONCURRENT (gate, full motion): at every half-screen scroll step, animations mid-way (0 < progress
+# < 1) on a paint property (background-size, clip-path, stroke-dashoffset) - <= PAINT_CAP at once
+PAINT_CAP = 3
+PAINT_CONCURRENT = "async () => {" + HELPERS + """
+  const PAINT = ["backgroundSize", "clipPath", "strokeDashoffset"];
+  const paints = a => { try { return a.effect.getKeyframes().some(k => PAINT.some(p => p in k)); }
+                        catch { return false; } };
+  const midway = a => { if (a.playState !== "running" || !a.effect) return false;
+    const t = a.effect.getComputedTiming(); return t.progress !== null && t.progress > 0 && t.progress < 1; };
+  let worst = [0, 0, []];
+  const step = Math.max(1, Math.floor(innerHeight / 2));
+  for (let y = 0; y <= document.documentElement.scrollHeight - innerHeight + step; y += step) {
+    scrollTo(0, y);
+    await frames();
+    const now = document.getAnimations().filter(a => paints(a) && midway(a));
+    if (now.length > worst[0]) worst = [now.length, scrollY,
+      now.map(a => (a.animationName || "animation") + " on " + label(a.effect.target)).slice(0, 6)];
+  }
+  scrollTo(0, 0);
+  return worst;
+}"""
+
+# FRAMES (gate; passed at the polish base): framed objects (outermost .window, .proof,
+# .sheet-lg) wholly or >= 40% inside the screen at every half-screen step - <= 1 at once; null = none found
+FRAMES_AT = [(1366, 641), (1440, 900)]
+FRAMED = "async () => {" + HELPERS + """
+  const all = [...document.querySelectorAll(".window, .proof, .sheet-lg")];
+  const objs = all.filter(el => !all.some(o => o !== el && o.contains(el)));
+  if (!objs.length) return null;
+  const bad = [];
+  const step = Math.max(1, Math.floor(innerHeight / 2));
+  for (let y = 0; y <= document.documentElement.scrollHeight - innerHeight + step; y += step) {
+    scrollTo(0, y);
+    await frames();
+    const inside = objs.filter(el => { const r = el.getBoundingClientRect();
+      const seen = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0);
+      return r.height > 0 && (seen >= r.height - 0.5 || seen >= 0.4 * r.height); });
+    if (inside.length > 1) bad.push("y=" + scrollY + " " + inside.length + " framed objects: " +
+      inside.map(el => el.tagName.toLowerCase() + "." + el.className).join(", "));
+  }
+  scrollTo(0, 0);
+  return bad;
+}"""
+
 OPENING_MS = 2800          # opening moment ends by then
 OPENING_SHIFT = 12         # px a hero object may move during it
 OPENING_AT = [((1366, 641), False), ((390, 844), True)]
@@ -426,39 +493,55 @@ ARRIVED = """() => { const win = document.querySelector(".hero .window"), m = do
                                                          && win.contains(a.effect.target)).length : 0}; }"""
 
 
-# self-test faults: (what, html injected before </body>, check that must fail)
+# self-test faults: (page, what, html injected before </body>, check kind that must fail[, browser name])
+HOME = "index.html"
+ARTICLE = "research/what-makes-a-good-resume/index.html"
 FAULTS = [
-    ("Copy below the fold", "<style>#copy { margin-top: 900px; }</style>", "layout"),
-    ("phone Send button too low", "<style>.send { margin-top: 400px; }</style>", "phone"),
-    ("hidden mark", "<style>mark { opacity: 0; }</style>", "motion"),
-    ("console error", "<script>console.error('qa self-test fault')</script>", "layout"),
-    ("wide element", '<div style="width: 3000px; height: 1px"></div>', "layout"),
-    ("section rules stop at the column edge", "<style>.grid { max-width: 1320px; margin: 0 auto; }</style>",
+    (HOME, "Copy below the fold", "<style>#copy { margin-top: 900px; }</style>", "layout"),
+    (HOME, "phone Send button too low", "<style>.send { margin-top: 400px; }</style>", "phone"),
+    (HOME, "hidden mark", "<style>mark { opacity: 0; }</style>", "motion"),
+    (HOME, "console error", "<script>console.error('qa self-test fault')</script>", "layout"),
+    (HOME, "wide element", '<div style="width: 3000px; height: 1px"></div>', "layout"),
+    (HOME, "section rules stop at the column edge", "<style>.grid { max-width: 1320px; margin: 0 auto; }</style>",
      "layout"),
-    ("Job 12 ring over the salary line", "<style>.slip .ring { bottom: -20px; height: calc(100% + 27px); }"
+    (HOME, "Job 12 ring over the salary line", "<style>.slip .ring { bottom: -20px; height: calc(100% + 27px); }"
      "</style>", "layout"),
-    ("install line broken inside the web address", "<style>.command code { overflow-wrap: anywhere "
+    (HOME, "install line broken inside the web address", "<style>.command code { overflow-wrap: anywhere "
      "!important; font-size: 0.9375rem !important; }</style>", "narrow"),
-    ("closing list gone: right half empty", "<style>.next { display: none !important; }</style>", "wide"),
-    ("second framed object in the first screen", "<style>.need { border: 1px solid; min-height: 160px; }</style>",
+    (HOME, "closing list gone: right half empty", "<style>.next { display: none !important; }</style>", "wide"),
+    (HOME, "second framed object in the first screen", "<style>.need { border: 1px solid; min-height: 160px; }</style>",
      "wide"),
-    ("opening runs 4 s", "<style>.today mark { animation-duration: 4s !important; }</style>", "opening"),
-    ("opening fades text in", "<style>@keyframes qa-fade { from { opacity: 0; } } "
+    (HOME, "opening runs 4 s", "<style>.today mark { animation-duration: 4s !important; }</style>", "opening"),
+    (HOME, "opening fades text in", "<style>@keyframes qa-fade { from { opacity: 0; } } "
      "html:not(.seen) .job { animation: qa-fade 1s both; }</style>", "opening"),
-    ("opening moves the window 40px", "<style>@keyframes qa-lift { from { transform: translateY(40px); } } "
+    (HOME, "opening moves the window 40px", "<style>@keyframes qa-lift { from { transform: translateY(40px); } } "
      "html:not(.seen) .window { animation: qa-lift 1s both; }</style>", "opening"),
-    ("LCP element animated", "<style>@keyframes qa-nudge { from { transform: translateY(4px); } } "
+    (HOME, "LCP element animated", "<style>@keyframes qa-nudge { from { transform: translateY(4px); } } "
      "html:not(.seen) h1 { animation: qa-nudge 1s both; }</style>", "opening"),
-    ("scene circle stuck half drawn", "<style>@keyframes qa-stuck { to { stroke-dashoffset: 40; } } "
+    (HOME, "scene circle stuck half drawn", "<style>@keyframes qa-stuck { to { stroke-dashoffset: 40; } } "
      "@media (prefers-reduced-motion: no-preference) { .margin.ok .ring { animation: qa-stuck 1s linear both "
      "!important; animation-timeline: view() !important; } }</style>", "motion"),
-    ("scene circle undrawn in reduced motion", "<style>.submit svg { stroke-dashoffset: 60 !important; }</style>",
+    (HOME, "scene circle undrawn in reduced motion", "<style>.submit svg { stroke-dashoffset: 60 !important; }</style>",
      "motion"),
-    ("opening replays on reload", '<script>document.documentElement.classList.remove("seen")</script>', "opening"),
-    ("page change w/o crossfade", "<style>@view-transition { navigation: none; }</style>", "transition"),
-    ("opening plays after a page change", '<script>addEventListener("pagereveal", () => '
+    (HOME, "opening replays on reload", '<script>document.documentElement.classList.remove("seen")</script>', "opening"),
+    (HOME, "page change w/o crossfade", "<style>@view-transition { navigation: none; }</style>", "transition"),
+    (HOME, "opening plays after a page change", '<script>addEventListener("pagereveal", () => '
      'document.documentElement.classList.remove("seen"))</script>', "transition"),
+    (ARTICLE, "wide element on an article", '<div style="width: 3000px; height: 1px"></div>', "layout"),
+    (ARTICLE, "console error on an article", "<script>console.error('qa self-test fault')</script>", "layout"),
+    (HOME, "0 matches: Job 12 no longer picked (ring check would see nothing)",
+     "<script>document.querySelector('.picked').classList.remove('picked')</script>", "layout"),
+    (HOME, "PAINT_CONCURRENT: every paragraph sweeps its background at load", "<style>@keyframes qa-paint "
+     "{ from { background-size: 0 100%; } } @media (prefers-reduced-motion: no-preference) { main p "
+     "{ animation: qa-paint 30s linear both; } }</style>", "motion"),
+    (HOME, "MAC_LINE: Mac install line on more lines", "<style>.command { max-width: 16rem !important; }</style>",
+     "mac", MAC_UA),
+    (HOME, "FRAMES: the resume sheet pinned over the window", "<style>.proof { position: fixed !important; "
+     "top: 0; left: 0; width: 520px; }</style>", "frames"),
 ]
+# a fault whose what starts with one of these must be caught by that check's own line
+CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES",
+             "0 matches": "found 0 elements"}
 
 
 def pages() -> list[str]:
@@ -530,11 +613,12 @@ def watchdog(seconds: int) -> threading.Timer:
 
 @contextmanager
 def opened(browser, base: str, name: str, width: int, height: int, phone: bool, failed: list,
-           where: str, inject: str | None = None, goto: bool = True, **options):
-    """A fresh context + page; console errors + uncaught errors land in failed on close."""
+           where: str, inject: str | None = None, goto: bool = True, ua: str | None = None, **options):
+    """A fresh context + page; console errors + uncaught errors land in failed on close.
+    ua: browser name, default PHONE_UA / DESKTOP_UA (Windows)."""
     mobile = {"is_mobile": phone} if browser.browser_type.name != "firefox" else {}
     context = browser.new_context(viewport={"width": width, "height": height}, has_touch=phone,
-                                  user_agent=PHONE_UA if phone else DESKTOP_UA, **mobile, **options)
+                                  user_agent=ua or (PHONE_UA if phone else DESKTOP_UA), **mobile, **options)
     context.set_default_timeout(ACTION_MS)
     page = context.new_page()
     errors = []
@@ -555,6 +639,15 @@ def opened(browser, base: str, name: str, width: int, height: int, phone: bool, 
         failed += [f"{where}: console error: {e[:160]}" for e in errors]
 
 
+def missing(page, where: str, *selectors: str) -> list[str]:
+    """A check whose selector matches 0 elements fails - never a silent pass."""
+    return [f"{where}: check found 0 elements for {s!r}" for s in selectors
+            if not page.evaluate("s => document.querySelectorAll(s).length", s)]
+
+
+REPORT_ONLY = "report-only: "  # failure lines of a check not yet a gate: printed as reports, self-test counts them
+
+
 def label_for(browser, name: str, width: int, height: int, phone: bool, extra: str = "") -> str:
     engine = browser.browser_type.name
     kind = "phone" if phone else "desktop"
@@ -563,11 +656,13 @@ def label_for(browser, name: str, width: int, height: int, phone: bool, extra: s
 
 
 def check_layout(browser, base: str, name: str, width: int, height: int, phone: bool,
-                 inject: str | None = None, shots: bool = True) -> tuple[list[str], list[str]]:
-    """Fit, header, fold, page length, console errors. Returns (failures, reports)."""
-    where = label_for(browser, name, width, height, phone)
+                 inject: str | None = None, shots: bool = True, ua: str | None = None) -> tuple[list[str], list[str]]:
+    """Fit, header, fold, page length, console errors. Returns (failures, reports); failures starting
+    REPORT_ONLY come from checks not yet gating."""
+    mac = ua == MAC_UA
+    where = label_for(browser, name, width, height, phone, "Mac" if mac else "")
     failed, reports = [], []
-    with opened(browser, base, name, width, height, phone, failed, where, inject) as page:
+    with opened(browser, base, name, width, height, phone, failed, where, inject, ua=ua) as page:
         scroll, inner, tall = page.evaluate("[document.documentElement.scrollWidth, "
                                             "document.documentElement.clientWidth, "
                                             "document.documentElement.scrollHeight]")
@@ -589,33 +684,48 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                     failed.append(f"{where}: nothing right of x {ARTICLE_X}px (rightmost starts at {x:.0f}px) - "
                                   f"the right half is empty")
         if name == "index.html":
+            failed += missing(page, where, "#copy", "#line", "main section h2", ".picked svg.ring", ".picked .meta")
             failed += [f"{where}: {line}" for line in page.evaluate(COMPOSITION)]
-            if (width, height) in (FOLD, FOLD_REPORT):
+            if mac and not phone and (width, height) in MAC_LINE_AT:
+                got = page.evaluate(LINE_BOXES)
+                if not got or not got[0].startswith("curl ") or got[1] != 1:
+                    failed.append(f"{REPORT_ONLY}MAC_LINE {where}: Mac install line is "
+                                  f"{got[1] if got else 0} line boxes, not 1 ({got[0] if got else 'no #line'!r})")
+            if not phone and (width, height) in FRAMES_AT:
+                frames = page.evaluate(FRAMED)
+                if frames is None:
+                    failed.append(f"{where}: FRAMES found 0 framed objects (.window, .proof, .sheet-lg)")
+                else:
+                    failed += [f"{where}: FRAMES {line}" for line in frames[:3]]
+            if (width, height) in (FOLD, FOLD_REPORT) and page.evaluate("!!document.getElementById('copy')"):
                 bottom = page.evaluate("document.getElementById('copy').getBoundingClientRect().bottom")
                 if bottom > height and (width, height) == FOLD:
                     failed.append(f"{where}: Copy button ends at {bottom:.0f}px, below the {height}px screen")
                 if (width, height) == FOLD_REPORT:
                     reports.append(f"report: {where}: Copy button ends at {bottom:.0f}px of {height}px")
             screens = tall / height
+            if (width, height) == FOLD and not phone and not mac:
+                reports.append(f"report: {where}: page is {screens:.2f} screens (cap {DESKTOP_CAP})")
             if (width, height) == FOLD and screens > DESKTOP_CAP:
                 failed.append(f"{where}: page is {screens:.1f} screens long, cap {DESKTOP_CAP}")
-            if phone and (width, height) == SEND_AT:
+            if phone and (width, height) == SEND_AT and not (gone := missing(page, where, ".send")):
                 bottom = page.evaluate("document.querySelector('.send').getBoundingClientRect().bottom")
                 reports.append(f"report: {where}: 'Send this page to my computer' ends at {bottom:.0f}px "
                                f"(cap {SEND_CAP})")
                 if bottom > SEND_CAP:
                     failed.append(f"{where}: 'Send this page to my computer' ends at {bottom:.0f}px, "
                                   f"cap {SEND_CAP}")
+            elif phone and (width, height) == SEND_AT:
+                failed += gone
             if phone and (width, height) == (375, 812):
-                reports.append(f"report: {where}: page is {screens:.2f} screens (today {PHONE_TODAY}, "
-                               f"cap {PHONE_CAP:.1f})")
+                reports.append(f"report: {where}: page is {screens:.2f} screens (cap {PHONE_CAP:.1f})")
                 if screens > PHONE_CAP:
                     failed.append(f"{where}: page is {screens:.1f} screens long, cap {PHONE_CAP:.1f}")
         if shots:
             SCREENS.mkdir(parents=True, exist_ok=True)
             shot = name.removesuffix(".html").replace("/", "-")
             engine = browser.browser_type.name
-            page.screenshot(path=SCREENS / f"{shot}-{width}{'-phone' if phone else ''}"
+            page.screenshot(path=SCREENS / f"{shot}-{width}x{height}{'-phone' if phone else ''}{'-mac' if mac else ''}"
                                            f"{'' if engine == 'chromium' else '-' + engine}.png",
                             full_page=True)
     return failed, reports
@@ -638,6 +748,11 @@ def check_motion(browser, base: str, name: str, width: int, height: int, phone: 
     where = label_for(browser, name, width, height, phone, "full motion")
     with opened(browser, base, name, width, height, phone, failed, where, inject,
                 reduced_motion="no-preference") as page:
+        # from load on (the opening's timed ones count), before anything settles
+        count, y, which = page.evaluate(PAINT_CONCURRENT)
+        if count > PAINT_CAP:
+            failed.append(f"{where}: PAINT_CONCURRENT {count} paint animations at once at y={y} "
+                          f"(cap {PAINT_CAP}): {'; '.join(which)}")
         failed += [f"{where}: animation never ends: {a}" for a in page.evaluate(SETTLE)]
         moving = dict(page.evaluate(BOXES))
         if full:
@@ -770,8 +885,12 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
             sizes = [(s, True) for s in PHONES] + [(s, False) for s in DESKTOPS]
             if name == "index.html":
                 sizes += [(FOLD_REPORT, False)] + [(s, False) for s in PHONES]
-            for (w, h), phone in sizes:
-                f, r = check_layout(browser, base, name, w, h, phone)
+            # jurors browse on Macs: a page that reacts to one (html.is-mac: home's Mac install line) gets
+            # every desktop size again with a Mac browser name; the others render the same either way
+            mac = [(s, False, MAC_UA) for s in DESKTOPS] if "is-mac" in (DOCS / name).read_text() else []
+            sizes = [(s, phone, None) for s, phone in sizes] + mac
+            for (w, h), phone, ua in sizes:
+                f, r = check_layout(browser, base, name, w, h, phone, ua=ua)
                 failed += f
                 reports += r
             for (w, h), phone in MOTION_SIZES:
@@ -782,7 +901,8 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
         failed += f
         reports += r
         browser.close()
-    return failed, reports
+    reports += ["report: " + line for line in failed if line.startswith(REPORT_ONLY)]
+    return [line for line in failed if not line.startswith(REPORT_ONLY)], reports
 
 
 def run_engines(base: str) -> list[str]:
@@ -795,53 +915,58 @@ def run_engines(base: str) -> list[str]:
             for name in pages():
                 for (w, h), phone in MOTION_SIZES:
                     f, _ = check_layout(browser, base, name, w, h, phone)
-                    failed += [line for line in f if "header" not in line and "Copy button" not in line]
+                    failed += [line for line in f if "header" not in line and "Copy button" not in line
+                               and not line.startswith(REPORT_ONLY)]
                     failed += check_motion(browser, base, name, w, h, phone, full=False)
             browser.close()
     return failed
 
 
 def run_self_test(base: str) -> list[str]:
+    """Each FAULTS entry, injected into its page (+ browser name), must add a failure line its clean page
+    lacks; each clean page passes its gates (REPORT_ONLY lines aside: those checks fail today)."""
     from playwright.sync_api import sync_playwright
 
-    def home(browser, kind: str, inject: str | None) -> list[str]:
+    def check(browser, name: str, kind: str, inject: str | None, ua: str | None) -> list[str]:
         if kind == "layout":
-            return check_layout(browser, base, "index.html", *FOLD, False, inject, shots=False)[0]
+            return check_layout(browser, base, name, *FOLD, False, inject, shots=False, ua=ua)[0]
         if kind == "phone":
-            return check_layout(browser, base, "index.html", *SEND_AT, True, inject, shots=False)[0]
-        if kind in ("narrow", "wide"):
-            size = PHONES[0] if kind == "narrow" else (1440, 900)
-            return check_layout(browser, base, "index.html", *size, False, inject, shots=False)[0]
+            return check_layout(browser, base, name, *SEND_AT, True, inject, shots=False, ua=ua)[0]
+        if kind in ("narrow", "wide", "frames", "mac"):
+            size = {"narrow": PHONES[0], "mac": FOLD}.get(kind, (1440, 900))
+            return check_layout(browser, base, name, *size, False, inject, shots=False, ua=ua)[0]
         if kind == "opening":
             return check_opening(browser, base, inject)[0]
         if kind == "transition":
             return check_transition(browser, base, inject)
-        return check_motion(browser, base, "index.html", *FOLD, False, inject)
+        return check_motion(browser, base, name, *FOLD, False, inject)
 
-    failed = []
+    failed, clean = [], {}
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
-        for kind in ("layout", "phone", "narrow", "wide", "motion", "opening", "transition"):
-            clean = home(browser, kind, None)
-            if clean:
-                failed.append(f"self-test: clean home fails its {kind} checks: {clean[0]}")
-        for what, html, kind in FAULTS:
-            caught = home(browser, kind, html)
-            print(f"self-test: {what}: {'caught - ' + caught[0] if caught else 'NOT CAUGHT'}")
+        for name, what, html, kind, *ua in FAULTS:
+            ua = ua[0] if ua else None
+            if (name, kind, ua) not in clean:
+                got = clean[name, kind, ua] = check(browser, name, kind, None, ua)
+                gate = [line for line in got if not line.startswith(REPORT_ONLY)]
+                if gate:
+                    failed.append(f"self-test: clean {name} fails its {kind} checks: {gate[0]}")
+            caught = [line for line in check(browser, name, kind, html, ua) if line not in clean[name, kind, ua]]
+            needle = CAUGHT_BY.get(what.split(":")[0])
+            caught = [line for line in caught if not needle or needle in line]
+            print(f"self-test: {name}: {what}: {'caught - ' + caught[0] if caught else 'NOT CAUGHT'}")
             if not caught:
-                failed.append(f"self-test: injected fault not caught: {what}")
+                failed.append(f"self-test: injected fault not caught: {name}: {what}")
         browser.close()
     return failed
 
 
-# ---- --perf: home timed in Chrome, new docs/ vs the frozen pre-redesign copy ----------------------
+# ---- --perf: home timed in Chrome, new docs/ vs the frozen polish-base copy ----------------------
 
-BASELINE_SHA = "c7b9a106f7e23fee09a1f6d0bc15b457af00c060"  # site/redesign start (plan-6zp notes)
+BASELINE_SHA = "e704f973b2303671e1f30b4a6bae200e1e2f43b2"  # polish base (plan-dxn notes; was c7b9a106, site/redesign start)
 BASELINE = ROOT / ".data" / "site-baseline"
 ANDROID_UA = ("Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36")
-MAC_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-          "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36")
 NOGPU = ["--disable-gpu", "--disable-software-rasterizer"]
 # size, device pixel ratio, phone, CPU slowdown, Chrome switches, network (RTT ms, bits/s), UA;
 # clicks = Event Timing + Copy -> "Copied"; trace = raster trace over the scroll
@@ -1210,6 +1335,68 @@ def run_lighthouse(base: str) -> tuple[list[str], list[str]]:
     return failed, reports
 
 
+# ---- --capture DIR: before/after material (plan-dxn) -------------------------------------------------
+
+# name, size, phone, browser name (None = Windows / phone default)
+CAPTURE_SIZES = [("1366x641", (1366, 641), False, None), ("1440x900", (1440, 900), False, None),
+                 ("1440x780-mac", (1440, 780), False, MAC_UA), ("1920x1080", (1920, 1080), False, None),
+                 ("390x844-phone", (390, 844), True, None)]
+CAPTURE_SCREENS = 40        # per-screen shots per page + size, at most
+HEADINGS = """() => { const px = el => parseFloat(getComputedStyle(el).fontSize);
+  const h1 = document.querySelector("h1"), sizes = {};
+  for (const h of document.querySelectorAll("h2")) if (h.checkVisibility()) { const k = px(h); sizes[k] = (sizes[k] || 0) + 1; }
+  return {h1: h1 ? px(h1) : null, h2: Object.entries(sizes).sort((a, b) => b[0] - a[0])}; }"""
+
+
+def run_capture(base: str, out: Path) -> list[str]:
+    """Every page at CAPTURE_SIZES, light + dark (reduced motion = finished state): a full-page shot
+    and one shot per screen, plus numbers.md - length in screens, h1 + h2 px per desktop size, print pages."""
+    from playwright.sync_api import sync_playwright
+
+    failed, length, heads, printed = [], {}, {}, {}
+    (out / "screens").mkdir(parents=True, exist_ok=True)
+    with sync_playwright() as p:
+        browser = p.chromium.launch(channel="chrome")
+        for name in pages():
+            slug = name.removesuffix(".html").removesuffix("/index").replace("/", "-")
+            for size, (w, h), phone, ua in CAPTURE_SIZES:
+                for scheme in ("light", "dark"):
+                    where = f"capture {name} {size} {scheme}"
+                    with opened(browser, base, name, w, h, phone, failed, where, ua=ua, reduced_motion="reduce",
+                                color_scheme=scheme) as page:
+                        page.screenshot(path=out / f"{slug}-{size}-{scheme}.png", full_page=True)
+                        tall = page.evaluate("document.documentElement.scrollHeight")
+                        for i in range(min(CAPTURE_SCREENS, -(-tall // h))):
+                            page.evaluate(f"scrollTo(0, {i * h})")
+                            page.evaluate("new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
+                            page.screenshot(path=out / "screens" / f"{slug}-{size}-{scheme}-{i + 1:02d}.png")
+                        if scheme == "light":
+                            length[name, size] = tall / h
+                            if not phone:
+                                heads[name, size] = page.evaluate(HEADINGS)
+            with opened(browser, base, name, 1366, 641, False, failed, f"capture {name} print") as page:
+                page.emulate_media(media="print")
+                printed[name] = len(re.findall(rb"/Type\s*/Page\b", page.pdf(format="Letter", print_background=True)))
+        browser.close()
+    sizes = [size for size, *_ in CAPTURE_SIZES]
+    desk = [size for size, _, phone, _ in CAPTURE_SIZES if not phone]
+    head = lambda d: (f"{d['h1']:g}" if d["h1"] else "-") + " / " + (", ".join(
+        f"{float(px):g}" + (f" x{n}" if n > 1 else "") for px, n in d["h2"]) or "-")
+    sha = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--short", "HEAD"], capture_output=True,
+                         text=True).stdout.strip()
+    lines = [f"# Site numbers at {sha}", "", "Made by `uv run app/web/qa.py --capture DIR` (reduced motion, Chrome). "
+             "Shots: `<page>-<size>-<light|dark>.png` (full page) + `screens/` (one per screen).", "",
+             "## Page length (screens)", "", "| page | " + " | ".join(sizes) + " | print pages |",
+             "|---" * (len(sizes) + 2) + "|"]
+    lines += [f"| {name} | " + " | ".join(f"{length[name, s]:.2f}" for s in sizes) + f" | {printed[name]} |"
+              for name in pages()]
+    lines += ["", "## h1 / h2 computed px (h2: size xcount, largest first)", "",
+              "| page | " + " | ".join(desk) + " |", "|---" * (len(desk) + 1) + "|"]
+    lines += [f"| {name} | " + " | ".join(head(heads[name, s]) for s in desk) + " |" for name in pages()]
+    (out / "numbers.md").write_text("\n".join(lines) + "\n")
+    return failed
+
+
 def keep_awake():
     """caffeinate -dimsu for as long as this process lives (macOS); a sleeping screen skews timing."""
     if shutil.which("caffeinate"):
@@ -1217,11 +1404,23 @@ def keep_awake():
 
 def main() -> int:
     args = sys.argv[1:]
+    if args[:1] == ["--capture"] and len(args) == 2:
+        out = Path(args[1]).expanduser().resolve()
+        watchdog(PERF_LIMIT_S)
+        server, base = serve(DOCS)
+        try:
+            failed = run_capture(base, out)
+        finally:
+            server.shutdown()
+        for line in failed:
+            print(line)
+        print(f"{len(failed)} problem(s)" if failed else f"captured; numbers in {out / 'numbers.md'}")
+        return 1 if failed else 0
     modes = {(): "", ("--engines",): "--engines", ("--self-test",): "--self-test", ("--perf",): "--perf",
              ("--perf", "--self-test"): "--perf --self-test", ("--lighthouse",): "--lighthouse"}
     mode = modes.get(tuple(sorted(args, key=lambda a: a != "--perf")))
     if mode is None:
-        print("usage: uv run app/web/qa.py [--engines | --self-test | --perf [--self-test] | --lighthouse]")
+        print("usage: uv run app/web/qa.py [--engines | --self-test | --perf [--self-test] | --lighthouse | --capture DIR]")
         return 2
     timed = mode.startswith("--perf") or mode == "--lighthouse"
     if timed:

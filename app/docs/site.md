@@ -235,9 +235,12 @@ KB = 1000 bytes.
   Body script keeps Copy, the OS switch and share.
 - Browser checks (`uv run app/web/qa.py`): Copy above the fold at 1366x641 (gate) + 1280x593
   (report); phone "Send this page to my computer" ends <= 675px at 390x844 (844 minus Safari's
-  bars); phone 320-390, 768, 1366, 1440, 1920 widths; home <= 8 screens at 1366x641 (3.88 on
-  2026-10-03) and <= 8.0 at 375x812 (2x 3.84 + 0.3 for the full employer privacy line and the nine filled hiring
-  systems, 2026-10-03); reduced motion = 0 animations + marks
+  bars); phone 320-390, 768, 1366, 1440, 1920 widths + jurors' Mac windows 1440x780, 1512x860,
+  1728x1000 (home again w/ a Mac browser name at every desktop size); home <= 8 screens at 1366x641 and
+  <= 9 at 375x812 (owner, plan-dxn; 7.12 + 7.90 at the polish base e704f97); <= 1 framed object
+  (window, resume sheet) >= 40% on screen at every scroll step (1366x641, 1440x900); <= 3 paint
+  animations (background-size, clip-path, stroke-dashoffset) mid-way at once; Mac install line on one
+  line (report-only until plan-dxn.3); a check finding 0 elements fails; reduced motion = 0 animations + marks
   finished; no JS = all text + the Windows line; text opacity 1 at every scroll step once the
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint;
   print <= 5 pages w/ the install line; 0 console errors; every dashed SVG stroke at
@@ -247,14 +250,16 @@ KB = 1000 bytes.
   within 12px at first paint, LCP element outside every animated element (selector reported),
   a same-tab reload animates nothing; page change via the header links (1366x641):
   `pagereveal.viewTransition` set both ways in full motion, null in reduced, home arriving through
-  one skips its opening; `--engines` webkit + firefox; `--self-test` injects 14 faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
+  one skips its opening; `--engines` webkit + firefox; `--self-test` injects 25 faults into home + an
+  article (a new check's fault must be caught by that check), each must fail; `--capture DIR` = shots of
+  every page at 5 sizes light + dark + `numbers.md` (lengths, print pages, h1/h2 px) for before/after. Mark = `<mark>` or class `mark` (new kinds
   carry it, or the checks can't see them).
-- Perf (`qa.py --perf`, median of 3 vs a frozen copy of the pre-redesign site): phone LCP <= 1.5 s
+- Perf (`qa.py --perf`, median of 3 vs a frozen copy of the polish base): phone LCP <= 1.5 s
   + <= baseline + 0.3 s; desktop LCP <= 0.5 s; CLS <= 0.01; long frames during scroll <= baseline
   max + 50 ms and < 250 ms; click -> next paint <= 100 ms; Copy -> "Copied" <= 150 ms. Idle frame
   interval > 18 ms = invalid run (busy machine), not a failure. Profiles: phone, desktop (Win +
   Mac UA), no-GPU desktop w/ raster trace (frames > 33.4 ms <= 5%). Baseline = `docs/` at the
-  site/redesign start sha in `.data/site-baseline/`, made by `git archive SHA:docs` - plain
+  polish base sha (`BASELINE_SHA`, e704f97) in `.data/site-baseline/`, made by `git archive SHA:docs` - plain
   `git archive SHA docs` comes back empty (`/docs/** export-ignore`).
 - Lighthouse (`qa.py --lighthouse`, pinned version, gzip server, JSON in `.data/site-qa/`):
   Accessibility + Best Practices 100 every run; Performance median of 3 = 100 desktop, >= 99
