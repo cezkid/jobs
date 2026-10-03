@@ -4,6 +4,9 @@
 `app/tests/test_site.py` (no network; helpers in `site_checks.py`) + `test_install.py` (install
 line, steps). Site tests run in the developer checkout only: no `.git` (installed copy, may keep a
 stale `docs/`) -> skipped. Every `docs/**/*.html` but `mac/` + `win/` (install scripts) is a page.
+Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the site out of the
+`main.zip` every launch fetches; an empty `docs/` entry stays so updates clear a stale copy
+(anchored + `/**` measured, why in `.gitattributes`; `test_update.py` checks it).
 
 ## What is where
 

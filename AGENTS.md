@@ -243,6 +243,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   `profiles/` (example search), `skills/`, `install/`, `deploy/`, `web/` (site asset generator), `docs/`, `tests/`.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, see
   `app/docs/site.md`), GitHub Pages (`https://jobs.enrriquez.com`, `docs/CNAME`; DNS: Cloudflare CNAME `jobs` -> `cezkid.github.io`, DNS only).
+  Not in the app download (`.gitattributes` export-ignore) - nothing at runtime reads it.
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.
 Tests: `uv run pytest` (live gates hit freehire API).
