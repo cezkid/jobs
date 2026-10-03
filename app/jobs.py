@@ -57,7 +57,8 @@ def open_for_user(target: str) -> None:
     path = Path(target)
     code = shutil.which("code")
     if path.exists() and code and opens_as_tab(path):
-        subprocess.run([code, "-r", str(path.resolve())], check=False)
+        import launch
+        subprocess.run([code, *launch.scratch_args(), "-r", str(path.resolve())], check=False)
     else:
         webbrowser.open(path.resolve().as_uri() if path.exists() else target)
 

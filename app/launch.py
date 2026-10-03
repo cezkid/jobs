@@ -7,6 +7,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import NamedTuple
 from urllib.parse import unquote, urlparse
 from urllib.request import url2pathname
 
@@ -21,8 +22,6 @@ PDF_EXTENSION = "tomoki1207.pdf"
 # marks a mistyped resume fact in red while the user types it (app/workspace.py #yaml.schemas);
 # without it the mistake surfaces later as a render error they cannot read
 YAML_EXTENSION = "redhat.vscode-yaml"
-VSCODE_EXTENSIONS = Path.home() / ".vscode" / "extensions"
-CLAUDE_STATE = Path.home() / ".claude.json"
 START_PAGE = cfg.ROOT / "START HERE.md"
 # once set up, START HERE ("type set me up") is the wrong page: Today (waiting on you, new jobs)
 TODAY_PAGE = cfg.ROOT / "Today.md"
@@ -32,20 +31,65 @@ TODAY_PAGE = cfg.ROOT / "Today.md"
 START_PAGE_DELAY_S = 6
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
 MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
-OLD_MAC_ICON = Path.home() / "Desktop" / f"{cfg.NAME}.command"
-MAC_APP_ICON = Path.home() / "Desktop" / f"{cfg.NAME}.app"
 MAC_ICON = cfg.APP / "install" / "icon.icns"
 WINDOWS_ICON = cfg.APP / "install" / "icon.ico"
 WINDOWS_ICON_DONE = cfg.DATA / "desktop-icon-refreshed"
+# set => every VS Code call starts a separate VS Code w/ its data + extensions under this dir,
+# and Claude trust / Desktop icon land there too: tests + live looks never touch the owner's own
+SCRATCH_ENV = "JOBS_VSCODE_DIR"
 
-def has_claude(extensions: Path = VSCODE_EXTENSIONS) -> bool:
+
+class VSCodePaths(NamedTuple):
+    home: Path  # Desktop icon maker's $HOME
+    data: Path  # VS Code user data dir (User/ inside)
+    extensions: Path
+    settings: Path
+    workspace_storage: Path
+    global_storage: Path
+    claude_state: Path
+    desktop: Path
+
+
+def scratch_dir() -> Path | None:
+    value = os.environ.get(SCRATCH_ENV, "").strip()
+    return Path(value).resolve() if value else None
+
+
+def vscode_paths() -> VSCodePaths:
+    """Every machine-wide file the launcher reads or writes; read per call, never at import."""
+    scratch = scratch_dir()
+    if scratch:
+        home, data, extensions, claude_state = scratch, scratch / "data", scratch / "ext", scratch / "claude.json"
+    else:
+        home = Path.home()
+        if sys.platform == "win32":
+            data = Path(os.environ.get("APPDATA", home)) / "Code"
+        elif sys.platform == "darwin":
+            data = home / "Library" / "Application Support" / "Code"
+        else:
+            data = home / ".config" / "Code"
+        extensions, claude_state = home / ".vscode" / "extensions", home / ".claude.json"
+    user = data / "User"
+    return VSCodePaths(home, data, extensions, user / "settings.json", user / "workspaceStorage",
+                       user / "globalStorage", claude_state, home / "Desktop")
+
+
+def scratch_args() -> list[str]:
+    """Added to every code call: without them the call drives the VS Code already running."""
+    if not scratch_dir():
+        return []
+    paths = vscode_paths()
+    return ["--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions)]
+
+
+def has_claude(extensions: Path | None = None) -> bool:
     return has_extension(CLAUDE_EXTENSION, extensions)
 
 
-def has_pdf_viewer(extensions: Path = VSCODE_EXTENSIONS) -> bool:
+def has_pdf_viewer(extensions: Path | None = None) -> bool:
     # any extension already claiming .pdf counts => never replace the viewer the user chose,
     # and never a second one (two defaults => VS Code asks which editor, every single click)
-    for manifest in extensions.glob("*/package.json"):
+    for manifest in (extensions or vscode_paths().extensions).glob("*/package.json"):
         try:
             contributes = json.loads(manifest.read_text(encoding="utf-8")).get("contributes") or {}
         except (OSError, ValueError):
@@ -62,21 +106,17 @@ def ensure_pdf_viewer() -> None:
         code(["--install-extension", PDF_EXTENSION, "--force"], quiet=True)
 
 
-def has_extension(name: str, extensions: Path = VSCODE_EXTENSIONS) -> bool:
-    return any(extensions.glob(f"{name}-*"))
+def has_extension(name: str, extensions: Path | None = None) -> bool:
+    return any((extensions or vscode_paths().extensions).glob(f"{name}-*"))
 
 
 def vscode_settings() -> Path:
-    if sys.platform == "win32":
-        return Path(os.environ.get("APPDATA", Path.home())) / "Code" / "User" / "settings.json"
-    if sys.platform == "darwin":
-        return Path.home() / "Library" / "Application Support" / "Code" / "User" / "settings.json"
-    return Path.home() / ".config" / "Code" / "User" / "settings.json"
+    return vscode_paths().settings
 
 
 def workspace_state(root: Path, storage: Path | None = None) -> Path | None:
     """VS Code's remembered layout for this folder; None before its first window."""
-    storage = storage or vscode_settings().parent / "workspaceStorage"
+    storage = storage or vscode_paths().workspace_storage
     for marker in storage.glob("*/workspace.json"):
         try:
             uri = json.loads(marker.read_text(encoding="utf-8")).get("folder") or ""
@@ -148,15 +188,20 @@ def register_protocol() -> None:
         winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{WINDOWS_LAUNCHER}"')
 
 
-def ensure_mac_icon(old: Path = OLD_MAC_ICON, app: Path = MAC_APP_ICON) -> None:
+def ensure_mac_icon(old: Path | None = None, app: Path | None = None) -> None:
     # installs before 2026-09-26 got a .command icon: its Terminal window stays open after VS
     # Code is up. Swapped once for the app icon; this launch's window still shows, later ones don't.
     # App icons before 2026-10-03 show the generic script picture => brand icon swapped in once
     # (maker edits in place: the icon keeps its spot on the Desktop)
+    paths = vscode_paths()
+    old = old or paths.desktop / f"{cfg.NAME}.command"
+    app = app or paths.desktop / f"{cfg.NAME}.app"
     current = app / "Contents" / "Resources" / "applet.icns"
     stale = app.exists() and (not current.exists() or current.read_bytes() != MAC_ICON.read_bytes())
     if old.exists() or stale:
-        subprocess.run(["bash", str(MAC_ICON_MAKER), str(app)], check=False, capture_output=True)
+        # maker writes $HOME/Desktop => scratch run rebuilds a scratch icon, never the owner's
+        subprocess.run(["bash", str(MAC_ICON_MAKER), str(app)], check=False, capture_output=True,
+                       env={**os.environ, "HOME": str(paths.home)})
 
 
 def windows_shortcut_script(launcher: Path = WINDOWS_LAUNCHER, icon: Path = WINDOWS_ICON) -> str:
@@ -192,12 +237,13 @@ def claude_project_keys(folder: Path) -> list[str]:
     return [posix[0].lower() + posix[1:], posix[0].upper() + posix[1:]]
 
 
-def ensure_claude_trust(root: Path | None = None, state: Path = CLAUDE_STATE) -> None:
+def ensure_claude_trust(root: Path | None = None, state: Path | None = None) -> None:
     # this folder's .claude/settings.json lets the AI run Job Finder's own steps and write only
     # inside My Jobs / My Resume / My Settings / .data without asking. Claude ignores that list
     # until the folder is trusted (measured 2026-09-26: untrusted => every write blocked; trusted
     # => those folders written, a file beside them still blocked). Trust is kept per folder, so
     # nothing changes in the user's other projects - unlike auto mode, which is user-wide only.
+    state = state or vscode_paths().claude_state
     try:
         current = json.loads(state.read_text(encoding="utf-8")) if state.exists() else {}
     except (OSError, ValueError):
@@ -214,6 +260,7 @@ def ensure_claude_trust(root: Path | None = None, state: Path = CLAUDE_STATE) ->
     for key in untrusted:
         projects[key] = {**(projects.get(key) or {}), "hasTrustDialogAccepted": True}
     try:
+        state.parent.mkdir(parents=True, exist_ok=True)  # scratch dir may not exist yet
         state.write_text(json.dumps(current, indent=2) + "\n", encoding="utf-8")
     except OSError:
         pass
@@ -238,7 +285,7 @@ def code(args: list[str], quiet: bool = False) -> None:
     # VS Code started cold inherits console => launcher's terminal window stays up until VS Code
     # quits, and closing it can take VS Code down (measured 2026-09-28, Windows Terminal)
     own_hidden_console = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-    subprocess.run([exe, *args], check=False, capture_output=quiet, creationflags=own_hidden_console)
+    subprocess.run([exe, *scratch_args(), *args], check=False, capture_output=quiet, creationflags=own_hidden_console)
 
 
 def first_page(settings: Path | None = None, page: Path | None = None) -> Path:

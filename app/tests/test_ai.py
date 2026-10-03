@@ -44,7 +44,7 @@ def test_set_validates_and_saves_one_word(tmp_path):
 def test_command_prints_and_saves(tmp_path, monkeypatch, capsys):
     saved = tmp_path / ".data" / "ai"
     monkeypatch.setattr(ai, "CHOICE_FILE", saved)
-    monkeypatch.setattr(ai.launch, "VSCODE_EXTENSIONS", tmp_path / "ext")
+    monkeypatch.setenv(ai.launch.SCRATCH_ENV, str(tmp_path / "vscode"))
     monkeypatch.setattr("sys.argv", ["jobs.py", "ai"])
     jobs.main()
     assert "not chosen yet" in capsys.readouterr().out

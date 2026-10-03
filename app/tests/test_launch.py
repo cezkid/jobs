@@ -417,3 +417,55 @@ def test_windows_icon_refreshed_once_retried_after_failure(tmp_path):
     launch.ensure_windows_icon(done, run)
     assert done.exists() and len(runs) == 2
     assert runs[0] == launch.windows_shortcut_script()
+
+
+def test_scratch_vscode_keeps_every_path_and_call_off_the_owners(tmp_path, monkeypatch):
+    # live looks drove the owner's open VS Code and rewrote their Claude trust + Desktop icon
+    scratch = tmp_path / "scratch"
+    monkeypatch.setenv(launch.SCRATCH_ENV, str(scratch))
+    paths = launch.vscode_paths()
+    assert all(p.is_relative_to(scratch.resolve()) for p in paths)
+    assert launch.vscode_settings() == paths.settings
+    runs = []
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    launch.code(["--install-extension", launch.PDF_EXTENSION])
+    assert runs == [["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
+                     "--install-extension", launch.PDF_EXTENSION]]
+    launch.ensure_claude_trust(tmp_path / "jobs")
+    assert paths.claude_state.exists()
+    (paths.extensions / "anthropic.claude-code-2.0.0").mkdir(parents=True)
+    assert launch.has_claude()
+
+
+def test_without_scratch_paths_follow_the_home_folder(tmp_path, monkeypatch):
+    # paths fixed at import => a home folder changed later (tests, another user) still hit the old one
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    paths = launch.vscode_paths()
+    assert paths.claude_state == tmp_path / ".claude.json" and paths.extensions == tmp_path / ".vscode" / "extensions"
+    assert paths.settings == tmp_path / "Library" / "Application Support" / "Code" / "User" / "settings.json"
+    assert launch.scratch_args() == []
+
+
+def test_open_for_user_lands_in_the_scratch_vscode(tmp_path, monkeypatch):
+    # jobs.py open during a live look put the file in the owner's window
+    import jobs
+    page = tmp_path / "Job posting.md"
+    page.write_text("x", encoding="utf-8")
+    monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "scratch"))
+    runs = []
+    monkeypatch.setattr(jobs.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
+    jobs.open_for_user(str(page))
+    assert runs[0][1:3] == ["--user-data-dir", str(launch.vscode_paths().data)] and runs[0][-1] == str(page.resolve())
+
+
+def test_test_guard_stops_real_code_calls():
+    # one unguarded test drove the owner's running VS Code window
+    import conftest
+    assert conftest.reaches_real_vscode(["/usr/local/bin/code", "--version"])
+    assert conftest.reaches_real_vscode("code -r x")
+    assert conftest.reaches_real_vscode(["open", "vscode://anthropic.claude-code/open"])
+    assert not conftest.reaches_real_vscode(["code", "--user-data-dir", "/tmp/x", "--version"])
+    assert not conftest.reaches_real_vscode(["bash", "-c", "code --list-extensions"])
