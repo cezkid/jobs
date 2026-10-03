@@ -48,13 +48,13 @@ investigate references" text, required).
 |---|---|---|
 | every question | stable ids: `resumator-<field>-value`, employer ones `resumator-questionnaire-q<n>` (name `resumator-questionnaire[<n>]`) | find by id via `[id="..."]`; ids never changed between two loads (0 of 4) |
 | text / email / tel / date | plain `input.form-control` | `fill`, read back |
-| date (`resumator-datepicker`) | plain text box + jQuery UI datepicker | type `YYYY-MM-DD`, read back; no popup click needed (unmeasured: whether typing alone keeps the value) |
+| date (`resumator-datepicker`) | plain text box + jQuery UI datepicker | type `YYYY-MM-DD`, Escape shuts the popup, read back: typing alone keeps the value (`try`, tenant D, 2026-10-03) |
 | choice / yesno | native `select`; first option = no answer: `resumator_no_selection` ("-- No answer --", employer questions) or `0` ("No answer", system fields) | select by visible option text, exact; never the no-answer option. Options are often upper case (`YES` / `NO`, tenant B) - match case-insensitively, read back |
 | checkbox question | hidden `input.resumator-questionnaire-checkbox-answer` named `resumator-questionnaire[<n>]` + one `input.resumator-questionnaire-checkbox` per option, id `resumator-checkbox-<n>-<i>`, value = option text; group label = `label[for=resumator-questionnaire-q<n>]` | tick by value; on Submit JazzHR's script joins the ticked values into the hidden box (`YES-\|\|-`), so read back the ticks, not the hidden box. Yes/No as two checkboxes (tenant B, 2 questions): tick one only. A lone checkbox under a certify / authorize text = attestation: applicant's own act, never ticked |
-| Resume | `#resumator-resume-value` (file) sits in a hidden wrapper until the link "Attach resume" (`#resumator-choose-upload`) is clicked; "Paste resume" (`#resumator-choose-paste`) shows the textarea instead | set the file on the hidden input directly (no click needed for a file chooser); confirm by its value. Upload sends nothing until Submit (the page script has no upload request; real file sent with the form, max 5 MB per the page text) - measured by reading the script, unmeasured live |
+| Resume | `#resumator-resume-value` (file) sits in a hidden wrapper until the link "Attach resume" (`#resumator-choose-upload`) is clicked; "Paste resume" (`#resumator-choose-paste`) shows the textarea instead | click "Attach resume" first (a link that only shows the box, `href="#"`) so the user sees the file chosen, then set the file on the input; confirm by its value. Choosing the file sends nothing (`try`, 4 of 4: 0 writes); the file goes with the form on Submit, max 5 MB per the page text |
 | Address | Street box carries the label; City / State / Postal only placeholders | find by id, never by label |
 | EEO | two native selects, "Decline to answer" preselected | voluntary - left as the page has it |
-| Human Check | reCAPTCHA v2 checkbox (`div.g-recaptcha`, required: "Please verify." if empty) | applicant's own step |
+| Human Check | reCAPTCHA v2 checkbox (`div.g-recaptcha`, required: "Please verify." if empty); its script adds a `g-recaptcha-response` box inside the form | applicant's own step; that box is no question (`ids_on_page` leaves it out) |
 | Submit | `a#resumator-submit-resume` "Submit Application" - a link, not a button | never clicked |
 
 The page's own required check counts a select's no-answer option as answered (`$.trim(val) == ''`
@@ -63,15 +63,31 @@ must not trust a pre-set select as answered.
 
 ## What leaves the computer, when
 
-Measured on load only, every write blocked (2026-10-03): 0 writes on 3 tenants, 1 on tenant D (a
-reCAPTCHA content-security report to `csp.withgoogle.com`). Page also loads New Relic and Gainsight
-analytics scripts - their later sends unmeasured. Typing, upload and choices: unmeasured (filled by
-the build bead from `apply-form try`). Form data leaves once, on Submit (native form POST to the
-posting link).
+Measured 2026-10-03, every write blocked + logged: `apply-form measure` (load) on 4 tenants, then
+`apply-form try` (load, resume chosen, every box typed / picked / ticked) on the same 4.
+
+| Step | Writes | Tenants |
+|---|---|---|
+| page load | 0; 1 on tenant D (a reCAPTCHA content-security report to `csp.withgoogle.com`, nothing typed in it) | 4 |
+| resume file chosen | 0 | 4 |
+| typing, choices, ticks | 0 | 4 |
+| Submit | form data + resume, once (native form POST to the posting link) - never clicked, unmeasured live | - |
+
+Earliest point anything the applicant typed or chose leaves: Submit. Page also loads New Relic
+and Gainsight analytics scripts: 0 writes from them while filling (4 of 4); what they send after
+Submit is unmeasured.
 
 ## Closed posting
 
-Unmeasured (all 4 open; JSON-LD `validThrough` about 3 months after `datePosted`, 4 of 4).
+No closed one seen (all 4 open; JSON-LD `validThrough` about 3 months after `datePosted`, 4 of 4).
+Unknown posting id: 404 + the tenant's careers page, no form (1 tenant, 2026-10-03) - `questions`
+says "posting not found - it may have closed". A closed posting's own wording: unmeasured.
+
+## Try (2026-10-03)
+
+`apply-form try` on 4 postings, 4 tenants, synthetic answers: every box `ok` (A 18 of 18, B 17 of
+18, C 11 of 11, D 16 of 16), canary ok, 0 writes. Left on the page, each the applicant's own: the
+attestation checkbox (tenant B, "I certify / I authorize ..."), Human Check (all 4).
 
 ## Tenant notes
 

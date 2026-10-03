@@ -2,7 +2,7 @@
 
 Fill a job application for the user, stopping before every Save/Submit. Workday (`*.myworkdayjobs.com`
 or `wd<N>.myworkday...`) through the Claude Chrome extension - Steps below. Every other supported
-system (Ashby, Greenhouse, Lever, UKG, Workable today; list in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
+system (every one listed in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
 #Other systems below. A system w/o a filler whose questions were read ahead
 (Recruitee - `app/docs/apply/answers.md`): `apply-form prepare` drafts from them, then
 `apply-form paste <job>` writes `Application answers.md` to paste from - say options weren't read
