@@ -236,6 +236,16 @@ def test_home_h1_is_the_literal_answer_to_is_this_a_website():
     assert h1 == ["A free job-search app for your Windows or Mac computer."]
 
 
+def test_home_resume_scene_shows_the_correction_as_del_and_ins():
+    # signature scene: the old line is struck (<del>), the new one inserted (<ins>), and you approved it
+    raw = (DOCS / "index.html").read_text(encoding="utf-8")
+    scene = re.search(r'<section class="[^"]*\bresume\b[^"]*".*?</section>', raw, re.S)
+    assert scene, "resume scene section missing"
+    assert re.search(r"<del>.+?</del>", scene.group(0), re.S)
+    assert re.search(r"<ins>.+?</ins>", scene.group(0), re.S)
+    assert "You approved this line" in scene.group(0)
+
+
 def test_research_pages_carry_matching_structured_data():
     # Article / ProfilePage / BreadcrumbList on the generated pages (none until the first article ships):
     # dates == the byline, author == the About page's Person, breadcrumbs land, sitemap lastmod == dateModified

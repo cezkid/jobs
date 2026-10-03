@@ -298,6 +298,56 @@
     }
   }
 
+  /* scenes below the hero */
+  .scene { padding-top: clamp(56px, 9vh, 104px); padding-bottom: clamp(56px, 9vh, 104px); row-gap: 32px; border-top: 1px solid var(--line); }
+  .scene h2 { font-size: clamp(2rem, 1.2rem + 2.2vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 0.45em; }
+  .scene p { margin: 0; }
+  .scene-text { grid-column: 1 / -1; max-width: 34rem; }
+  .scene-text > p { margin-bottom: 1rem; }
+  .rules { list-style: none; margin: 1.25rem 0 0; padding: 0; border-top: 1px solid var(--line); }
+  .rules li { padding: 10px 0; border-bottom: 1px solid var(--line); }
+
+  /* 1. signature: the resume, corrected - the one framed object of its viewport */
+  .proof { grid-column: 1 / -1; margin: 0; isolation: isolate; min-width: 0; }
+  .for-job { margin: 0 0 12px !important; color: var(--text-2); font-size: 1.0625rem; }
+  .sheet-lg {
+    position: relative; margin: 0 10px 10px 0; padding: clamp(20px, 3vw, 44px) clamp(18px, 3vw, 48px);
+    background: var(--paper); color: var(--ink); border: 1px solid var(--ink);
+    font-size: 1.0625rem; line-height: 1.5;
+  }
+  .sheet-lg::before {
+    content: ""; position: absolute; inset: -1px; transform: translate(10px, 10px); z-index: -1;
+    background: var(--paper); border: 1px solid var(--ink);
+  }
+  .sheet-lg .name { font-size: 2rem; font-weight: 700; line-height: 1.15; }
+  .sheet-lg .contact { color: var(--ink-2); font-size: 0.9375rem; }
+  .sheet-lg .sec { font-size: 1rem; letter-spacing: 0.04em; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--ink); }
+  .line { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 28px; padding: 5px 0; }
+  .line > :first-child { min-width: 0; }
+  .bul { position: relative; padding-left: 18px; }
+  .bul::before { content: ""; position: absolute; left: 3px; top: 0.66em; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+  .margin { color: var(--ink-2); font-size: 0.9375rem; line-height: 1.35; display: flex; align-items: flex-start; gap: 8px; }
+  .margin svg { width: 26px; height: 26px; flex: none; margin-top: -3px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .margin.ok { color: var(--ink); font-weight: 700; }
+  .margin .dash { width: 18px; flex: none; margin-top: 0.68em; border-top: 1px solid var(--ink-2); }
+  .sheet-lg .fix { padding-left: 18px; }
+  .sheet-lg .fix .new { margin-top: 2px; }
+  .sheet-lg .ring { stroke-dasharray: 64; stroke-dashoffset: 0; }
+  .sheet-lg .tick { stroke-dasharray: 16; stroke-dashoffset: 0; }
+  @media (min-width: 760px) {
+    .line { grid-template-columns: minmax(0, 1fr) 12.5rem; }
+    .line.solo { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 759px) {
+    .margin { padding-left: 18px; font-size: 0.875rem; }
+    .margin svg { width: 22px; height: 22px; margin-top: -2px; }
+    .sheet-lg .name { font-size: 1.625rem; }
+  }
+  @media (min-width: 1080px) {
+    .resume .scene-text { grid-column: 1 / span 4; align-self: center; }
+    .proof { grid-column: 5 / -1; }
+  }
+
   .more { padding: 8px 0 24px; }
   .more section { max-width: 68ch; padding: 32px 0; border-top: 1px solid var(--line); }
   h2 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 16px; }
@@ -428,6 +478,55 @@
     </figure>
   </div>
   <!-- /region: hero -->
+
+  <!-- region: resume -->
+  <section class="grid scene resume" aria-labelledby="resume-h">
+    <div class="scene-text">
+      <h2 id="resume-h">Your resume, made for one job</h2>
+      <p>Pick a job. The chat rewrites your resume for it, in the posting's own words where your experience backs them.</p>
+      <ul class="rules">
+        <li>Employers, titles and dates stay as you gave them.</li>
+        <li>Nothing made up. A skill you don't have is told to you, not added.</li>
+        <li>You approve every changed line.</li>
+        <li>One page, set to fit.</li>
+      </ul>
+    </div>
+    <figure class="proof">
+      <p class="for-job">Your resume for job 12 - Customer Support Lead, remote</p>
+      <figcaption class="vh">Example resume for job 12. The job title and dates are kept as you gave them. One line is reworded with the posting's words, and you approved it. Another line uses the posting's words. The rest is kept as you wrote it.</figcaption>
+      <div class="sheet-lg">
+        <p class="name">Your Name</p>
+        <p class="contact">City, State | you@example.com</p>
+        <h3 class="sec">EXPERIENCE</h3>
+        <div class="line">
+          <p><b>Customer Support Lead</b>, 2021 to now</p>
+          <p class="margin"><span class="dash" aria-hidden="true"></span>Title and dates as you gave them</p>
+        </div>
+        <div class="line">
+          <div class="fix">
+            <p class="old"><span class="vh">Old line: </span><del>Managed 6 agents and answered tickets faster.</del></p>
+            <p class="new"><span class="caret" aria-hidden="true"></span><span class="vh">New line: </span><ins>Led a <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</ins></p>
+          </div>
+          <p class="margin ok"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10"/><path class="tick" d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
+        </div>
+        <div class="line">
+          <p class="bul">Answered 40 tickets a day by <mark>email, chat and phone</mark>.</p>
+          <p class="margin"><span class="dash" aria-hidden="true"></span>The posting's words, true to your work</p>
+        </div>
+        <div class="line">
+          <p class="bul">Wrote the refund guide new hires train on.</p>
+          <p class="margin"><span class="dash" aria-hidden="true"></span>Kept as you wrote it</p>
+        </div>
+        <div class="line solo">
+          <p><b>Support Agent</b>, 2018 to 2021</p>
+        </div>
+        <div class="line solo">
+          <p class="bul">Trained 4 new agents on the help desk.</p>
+        </div>
+      </div>
+    </figure>
+  </section>
+  <!-- /region: resume -->
 
   <div class="more wrap">
     <!-- region: what -->
