@@ -203,9 +203,14 @@ KB = 1000 bytes.
 - Perf (`qa.py --perf`, median of 3 vs a frozen copy of the pre-redesign site): phone LCP <= 1.5 s
   + <= baseline + 0.3 s; desktop LCP <= 0.5 s; CLS <= 0.01; long frames during scroll <= baseline
   max + 50 ms and < 250 ms; click -> next paint <= 100 ms; Copy -> "Copied" <= 150 ms. Idle frame
-  interval > 18 ms = invalid run (busy machine), not a failure.
-- Lighthouse (`qa.py --lighthouse`, pinned version, gzip server): Accessibility + Best Practices
-  100 every run; Performance median of 3 = 100 desktop, >= 99 phone.
+  interval > 18 ms = invalid run (busy machine), not a failure. Profiles: phone, desktop (Win +
+  Mac UA), no-GPU desktop w/ raster trace (frames > 33.4 ms <= 5%). Baseline = `docs/` at the
+  site/redesign start sha in `.data/site-baseline/`, made by `git archive SHA:docs` - plain
+  `git archive SHA docs` comes back empty (`/docs/** export-ignore`).
+- Lighthouse (`qa.py --lighthouse`, pinned version, gzip server, JSON in `.data/site-qa/`):
+  Accessibility + Best Practices 100 every run; Performance median of 3 = 100 desktop, >= 99
+  phone; every SEO audit passes but canonical (localhost) + is-crawlable on the noindex 404 -
+  so the 404 keeps a meta description.
 
 ## Judging
 

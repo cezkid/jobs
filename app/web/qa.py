@@ -34,6 +34,25 @@ sideways scroll, no console errors, finished states (reduced: 0 animations + mar
 --self-test: injects faults into home (Copy below the fold, a hidden mark, a console error, a
 wide element) and exits 1 unless each one fails its check and clean home passes.
 
+--perf: home timed in Chrome, docs/ vs a frozen copy of the pre-redesign site (docs/ at
+BASELINE_SHA, unpacked once into .data/site-baseline/), new + baseline alternating, median of 3
+valid runs, gzip server, keeps the Mac awake (caffeinate -dimsu), never records video. Profiles:
+phone 412x915 dpr 2.625, CPU 4x, one raster thread, 150 ms RTT, 1.6 Mbps; desktop 1440x900
+(Windows UA, + clicks); the same with a Mac UA; no-GPU desktop (--disable-gpu, CPU 4x) w/ a
+raster trace over the scroll. Each run: load, 4 s wait, wheel to the bottom, then (desktop) Copy,
+OS switch + a summary clicked at CPU 4x. Gates (perf_gates): phone LCP <= 1.5 s
++ <= baseline + 0.3 s; desktop LCP <= 0.5 s; CLS <= 0.01 every profile; Long Animation Frames
+split load / scroll at the first wheel: scroll max < 250 ms + <= baseline + 50, frames >= 50 ms
+<= baseline + 2; phone first 4 s max < 300 ms, blocking <= baseline + 100; click -> next paint
+(Event Timing) <= 100 ms; Copy -> "Copied" shown <= 150 ms (median of 5); no-GPU frames over
+33.4 ms <= 5%. Idle frames > 18 ms apart = busy machine: run invalid, re-run (never a failure);
+a run over budget runs once more before failing. --perf --self-test injects a 300 ms busy loop
+on scroll + a late layout shift (desktop, 1 run) and exits 1 unless each fails and clean passes.
+--lighthouse: npx lighthouse@12.8.2 (system Chrome) against the gzip server, home, research hub,
+one article, about, privacy, 404 as phone + desktop, 3 runs each, JSON in .data/site-qa/:
+Accessibility + Best Practices 100 every run; Performance median 100 desktop, >= 99 phone; every
+SEO audit passes but canonical (names the live host, not localhost) + is-crawlable on the 404.
+
 Mark = <mark>, or any element with class "mark" (SVG circle/check, ::before sweep): new mark
 kinds carry class "mark" so these checks see them.
 
@@ -41,15 +60,19 @@ Screenshots go to .data/screens/ (private, gitignored). Exit 1 + one line per fa
 starting "report:" are measurements, never failures. Every browser action times out after
 ACTION_MS, a whole run after RUN_LIMIT_S (exit 2).
 
-Run from repo root: uv run app/web/qa.py [--engines | --self-test]
+Run from repo root: uv run app/web/qa.py [--engines | --self-test | --perf [--self-test] | --lighthouse]
 Own deps (inline above, pinned to the cached webkit-2359 / firefox-1543 builds - no download),
 so the project's deps stay untouched.
 """
 
 import gzip
+import json
 import mimetypes
 import os
 import re
+import shutil
+import statistics
+import subprocess
 import sys
 import threading
 from contextlib import contextmanager
@@ -488,29 +511,432 @@ def run_self_test(base: str) -> list[str]:
     return failed
 
 
+# ---- --perf: home timed in Chrome, new docs/ vs the frozen pre-redesign copy ----------------------
+
+BASELINE_SHA = "c7b9a106f7e23fee09a1f6d0bc15b457af00c060"  # site/redesign start (plan-6zp notes)
+BASELINE = ROOT / ".data" / "site-baseline"
+ANDROID_UA = ("Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36")
+MAC_UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+          "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36")
+NOGPU = ["--disable-gpu", "--disable-software-rasterizer"]
+# size, device pixel ratio, phone, CPU slowdown, Chrome switches, network (RTT ms, bits/s), UA;
+# clicks = Event Timing + Copy -> "Copied"; trace = raster trace over the scroll
+PERF_PROFILES = {
+    "phone": dict(size=(412, 915), dpr=2.625, phone=True, cpu=4, args=["--num-raster-threads=1"],
+                  net=(150, 1.6e6), ua=ANDROID_UA),
+    "desktop": dict(size=(1440, 900), dpr=1, phone=False, cpu=1, args=[], net=None, ua=DESKTOP_UA,
+                    clicks=True),
+    "desktop mac": dict(size=(1440, 900), dpr=1, phone=False, cpu=1, args=[], net=None, ua=MAC_UA),
+    "no-GPU desktop": dict(size=(1440, 900), dpr=1, phone=False, cpu=4, args=NOGPU, net=None,
+                           ua=DESKTOP_UA, trace=True),
+}
+PERF_RUNS = 3
+PERF_LIMIT_S = 2400
+LOAD_WAIT_MS = 4000          # load + opening moment, then the scroll starts
+IDLE_MAX_MS = 18             # idle frame interval above this = busy machine, run invalid
+INVALID_TRIES = 3            # invalid runs re-run up to this many times each
+TRACE = ["devtools.timeline", "disabled-by-default-devtools.timeline", "cc"]
+
+# Web Vitals + Long Animation Frames + Event Timing, collected from the first byte
+PERF_JS = """
+window.__p = {cls: 0, lcp: 0, loaf: [], events: [], frames: null};
+let win = 0, first = 0, last = 0;
+new PerformanceObserver(l => { for (const e of l.getEntries()) {
+  if (e.hadRecentInput) continue;
+  if (win && e.startTime - last < 1000 && e.startTime - first < 5000) win += e.value;
+  else { win = e.value; first = e.startTime; }
+  last = e.startTime; __p.cls = Math.max(__p.cls, win);
+}}).observe({type: "layout-shift", buffered: true});
+new PerformanceObserver(l => { for (const e of l.getEntries()) __p.lcp = e.startTime; })
+  .observe({type: "largest-contentful-paint", buffered: true});
+new PerformanceObserver(l => { for (const e of l.getEntries())
+  __p.loaf.push([e.startTime, e.duration, e.blockingDuration]); })
+  .observe({type: "long-animation-frame", buffered: true});
+new PerformanceObserver(l => { for (const e of l.getEntries())
+  if (e.interactionId) __p.events.push([e.startTime, e.duration]); })
+  .observe({type: "event", buffered: true, durationThreshold: 16});
+"""
+
+# median rAF interval over 60 idle frames
+IDLE = """() => new Promise(done => { const f = []; let last;
+  const t = n => { if (last !== undefined) f.push(n - last); last = n;
+    f.length < 60 ? requestAnimationFrame(t) : done(f.sort((a, b) => a - b)[30]); };
+  requestAnimationFrame(t); })"""
+
+# rAF intervals from now on, into __p.frames
+FRAMES = """() => { __p.frames = []; let last = performance.now();
+  const t = n => { __p.frames.push(n - last); last = n; requestAnimationFrame(t); };
+  requestAnimationFrame(t); return last; }"""
+
+# arms one Copy click: resolves to ms from the click to the first frame painted after "Copied"
+COPIED = """() => { const b = document.getElementById("copy"), l = document.getElementById("copy-label");
+  l.textContent = "Copy";
+  window.__copied = new Promise(done => { let t0 = null;
+    b.addEventListener("click", e => { t0 = e.timeStamp; }, {once: true, capture: true});
+    const mo = new MutationObserver(() => { if (l.textContent !== "Copied") return; mo.disconnect();
+      requestAnimationFrame(() => setTimeout(() => done(performance.now() - t0))); });
+    mo.observe(l, {childList: true, characterData: true, subtree: true});
+    setTimeout(() => done(null), 3000); }); }"""
+
+# self-test faults for --perf: (what, html injected before </body>)
+PERF_FAULTS = [
+    ("300 ms busy loop on scroll", "<script>addEventListener('scroll', () => { if (window.__busy) return; "
+     "window.__busy = 1; const t = performance.now(); while (performance.now() - t < 300); })</script>"),
+    ("late layout shift", "<script>setTimeout(() => document.body.insertAdjacentHTML('afterbegin', "
+     "'<div style=\"height: 120px\"></div>'), 2500)</script>"),
+]
+
+
+def baseline_docs() -> Path:
+    """docs/ as it was at BASELINE_SHA, unpacked once into .data/site-baseline/ (SHA file records it)."""
+    stamp = BASELINE / "SHA"
+    if stamp.is_file() and stamp.read_text().strip() == BASELINE_SHA and (BASELINE / "docs" / "404.html").is_file():
+        return BASELINE / "docs"
+    if BASELINE.exists():
+        shutil.rmtree(BASELINE)
+    BASELINE.mkdir(parents=True)
+    # the docs tree itself: "archive SHA docs" drops docs/ (export-ignore in .gitattributes)
+    archive = subprocess.run(["git", "-C", str(ROOT), "archive", "--prefix=docs/", f"{BASELINE_SHA}:docs"],
+                             capture_output=True, check=True).stdout
+    subprocess.run(["tar", "-x", "-C", str(BASELINE)], input=archive, check=True)
+    stamp.write_text(BASELINE_SHA + "\n")
+    return BASELINE / "docs"
+
+
+def median(values: list) -> float | None:
+    values = [v for v in values if v is not None]
+    return statistics.median(values) if values else None
+
+
+def trace_totals(events: list) -> dict:
+    """Raster + paint ms and the compositor's frames (craft-table-kit tools/perf.py method)."""
+    spans = [e for e in events if e.get("ph") == "X"]
+    ms = lambda n: round(sum(e["dur"] for e in spans if e.get("name") == n) / 1000)
+    frames = [e["args"]["frame_reporter"] for e in events if e.get("name") == "PipelineReporter"
+              and e.get("ph") == "b" and "frame_reporter" in e.get("args", {})]
+    return dict(raster_ms=ms("RasterTask"), paint_ms=ms("Paint"),
+                checker=sum(any(r.get(k) for k in ("checkerboarded_needs_raster", "checkerboarded_needs_record",
+                                                   "has_missing_content")) for r in frames),
+                dropped=sum(r.get("state") == "STATE_DROPPED" for r in frames),
+                presented=sum(r.get("state", "").startswith("STATE_PRESENTED") for r in frames))
+
+
+def perf_run(browser, url: str, prof: dict, inject: str | None = None) -> dict | None:
+    """One load + scroll (+ clicks) of url; None = invalid (idle frames slower than IDLE_MAX_MS)."""
+    w, h = prof["size"]
+    context = browser.new_context(viewport={"width": w, "height": h}, device_scale_factor=prof["dpr"],
+                                  is_mobile=prof["phone"], has_touch=prof["phone"], user_agent=prof["ua"],
+                                  reduced_motion="no-preference")
+    context.set_default_timeout(ACTION_MS)
+    context.grant_permissions(["clipboard-read", "clipboard-write"], origin=url.rstrip("/"))
+    context.add_init_script(PERF_JS)
+    page = context.new_page()
+    errors = []
+    page.on("pageerror", lambda e: errors.append(str(e)))
+    if inject:
+        def fulfil(route):
+            response = route.fetch()
+            route.fulfill(response=response, body=response.text().replace("</body>", inject + "</body>", 1))
+        page.route(url, fulfil)
+    cdp = context.new_cdp_session(page)
+    if prof["net"]:
+        rtt, bits = prof["net"]
+        cdp.send("Network.enable")
+        cdp.send("Network.emulateNetworkConditions", dict(offline=False, latency=rtt, downloadThroughput=bits / 8,
+                                                          uploadThroughput=bits / 16))
+    cdp.send("Emulation.setCPUThrottlingRate", {"rate": prof["cpu"]})
+    try:
+        page.goto(url, wait_until="load")
+        page.wait_for_timeout(max(0, LOAD_WAIT_MS - page.evaluate("performance.now()")))
+        idle = page.evaluate(IDLE)
+        if idle > IDLE_MAX_MS:
+            print(f"perf: idle frames {idle:.1f} ms apart (> {IDLE_MAX_MS}) - busy machine, run invalid", flush=True)
+            return None
+        lcp = page.evaluate("__p.lcp")
+        tall = page.evaluate("document.documentElement.scrollHeight")
+        step = h / 4
+        steps = min(80, int((tall - h) / step) + 4)
+        page.mouse.move(w / 2, h / 2)
+        if prof.get("trace"):
+            browser.start_tracing(page=page, categories=TRACE)
+        scroll_at = page.evaluate(FRAMES)
+        for _ in range(steps):
+            page.mouse.wheel(0, step)
+            page.wait_for_timeout(120)
+        page.wait_for_timeout(1500)
+        trace = json.loads(browser.stop_tracing()) if prof.get("trace") else None
+        p = page.evaluate("__p")
+        frames = [f for f in p["frames"][2:] if f > 0]
+        load = [f for f in p["loaf"] if f[0] < min(scroll_at, LOAD_WAIT_MS)]
+        scroll = [f for f in p["loaf"] if f[0] >= scroll_at]
+        result = dict(idle=idle, lcp=lcp, cls=p["cls"],
+                      load_max=max((f[1] for f in load), default=0), load_blocking=sum(f[2] for f in load),
+                      scroll_max=max((f[1] for f in scroll), default=0),
+                      scroll_long=sum(f[1] >= 50 for f in scroll),
+                      over33=100 * sum(f > 33.4 for f in frames) / len(frames) if frames else 0)
+        if trace is not None:
+            result |= trace_totals(trace["traceEvents"] if isinstance(trace, dict) else trace)
+        if prof.get("clicks"):
+            page.evaluate("scrollTo(0, 0)")
+            cdp.send("Emulation.setCPUThrottlingRate", {"rate": 4})
+            page.wait_for_timeout(300)
+
+            def click(selector: str) -> float:
+                t = page.evaluate("performance.now()")
+                page.click(selector)
+                page.wait_for_timeout(600)
+                return page.evaluate("t => Math.max(0, ...__p.events.filter(e => e[0] >= t).map(e => e[1]))", t)
+
+            result["click Copy"] = click("#copy")
+            copied = []
+            for _ in range(5):
+                page.evaluate(COPIED)
+                page.click("#copy")
+                copied.append(page.evaluate("window.__copied"))
+                page.wait_for_timeout(300)
+            result["copied"] = None if None in copied else median(copied)
+            result["click OS switch"] = click("#switch-os")
+            result["click summary"] = click("summary")
+        result["errors"] = errors
+        return result
+    finally:
+        context.close()
+
+
+def perf_profile(p, name: str, prof: dict, bases: dict, runs: int, inject: str | None = None) -> dict:
+    """Medians per site ("new", "baseline") over runs valid runs, sites alternating new/baseline."""
+    browser = p.chromium.launch(channel="chrome", args=prof["args"])
+    got = {site: [] for site in bases}
+    try:
+        for i in range(runs):
+            for site in (["new", "baseline"] if i % 2 == 0 else ["baseline", "new"]):
+                if site not in bases:
+                    continue
+                for _ in range(INVALID_TRIES):
+                    r = perf_run(browser, bases[site], prof, inject if site == "new" else None)
+                    if r is not None:
+                        got[site].append(r)
+                        break
+    finally:
+        browser.close()
+    out = {}
+    for site, rs in got.items():
+        if not rs:
+            out[site] = None
+            continue
+        keys = [k for k in rs[0] if k != "errors"]
+        out[site] = {k: median([r.get(k) for r in rs]) for k in keys} | {
+            "runs": len(rs), "errors": sorted({e for r in rs for e in r["errors"]})}
+    return out
+
+
+def perf_gates(name: str, prof: dict, new: dict | None, base: dict | None) -> list[str]:
+    """Budgets table (app/docs/site.md, plan-6zp DESIGN) on the medians."""
+    where = f"perf {name}"
+    if new is None or base is None:
+        return [f"{where}: no valid run ({'new' if new is None else 'baseline'}) - machine too busy"]
+    failed = [f"{where}: page error: {e[:160]}" for e in new["errors"]]
+    if name == "phone":
+        if new["lcp"] > 1500 or new["lcp"] > base["lcp"] + 300:
+            failed.append(f"{where}: LCP {new['lcp']:.0f} ms (cap 1500 and baseline {base['lcp']:.0f} + 300)")
+        if new["load_max"] >= 300:
+            failed.append(f"{where}: long frame in the first 4 s {new['load_max']:.0f} ms (cap < 300)")
+        if new["load_blocking"] > base["load_blocking"] + 100:
+            failed.append(f"{where}: blocking in the first 4 s {new['load_blocking']:.0f} ms "
+                          f"(baseline {base['load_blocking']:.0f} + 100)")
+    if name == "desktop" and new["lcp"] > 500:
+        failed.append(f"{where}: LCP {new['lcp']:.0f} ms (cap 500)")
+    if new["cls"] > 0.01:
+        failed.append(f"{where}: CLS {new['cls']:.3f} over load + full scroll (cap 0.01)")
+    if new["scroll_max"] >= 250 or new["scroll_max"] > base["scroll_max"] + 50:
+        failed.append(f"{where}: longest frame while scrolling {new['scroll_max']:.0f} ms "
+                      f"(cap < 250 and baseline {base['scroll_max']:.0f} + 50)")
+    if new["scroll_long"] > base["scroll_long"] + 2:
+        failed.append(f"{where}: {new['scroll_long']:.0f} frames >= 50 ms while scrolling "
+                      f"(baseline {base['scroll_long']:.0f} + 2)")
+    if prof.get("trace") and new["over33"] > 5:
+        failed.append(f"{where}: {new['over33']:.1f}% of frames over 33.4 ms while scrolling (cap 5%)")
+    if prof.get("clicks"):
+        for k in ("click Copy", "click OS switch", "click summary"):
+            if new[k] > 100:
+                failed.append(f"{where}: {k} -> next paint {new[k]:.0f} ms (cap 100)")
+        if new["copied"] is None or new["copied"] > 150:
+            failed.append(f"{where}: Copy click -> \"Copied\" shown {new['copied']} ms (cap 150)")
+    return failed
+
+
+def perf_report(name: str, result: dict) -> list[str]:
+    def fmt(r: dict | None) -> str:
+        if r is None:
+            return "no valid run"
+        parts = [f"LCP {r['lcp']:.0f}", f"CLS {r['cls']:.3f}", f"load LoAF max {r['load_max']:.0f}",
+                 f"blocking {r['load_blocking']:.0f}", f"scroll LoAF max {r['scroll_max']:.0f}",
+                 f">=50ms {r['scroll_long']:.0f}", f"idle {r['idle']:.1f}"]
+        if "raster_ms" in r:
+            parts += [f">33.4ms {r['over33']:.1f}%", f"raster {r['raster_ms']:.0f}", f"paint {r['paint_ms']:.0f}",
+                      f"dropped {r['dropped']:.0f}", f"checker {r['checker']:.0f}"]
+        if "copied" in r:
+            ms = lambda v: "<16" if v < 16 else f"{v:.0f}"  # Event Timing reports from 16 ms
+            parts += [f"click->paint Copy {ms(r['click Copy'])}", f"OS switch {ms(r['click OS switch'])}",
+                      f"summary {ms(r['click summary'])}",
+                      f"Copied shown {'never' if r['copied'] is None else round(r['copied'])}"]
+        return ", ".join(parts) + f" ms (median of {r['runs']})"
+    return [f"report: perf {name} {site}: {fmt(result.get(site))}" for site in ("new", "baseline") if site in result]
+
+
+def run_perf(base: str, baseline: str) -> tuple[list[str], list[str]]:
+    from playwright.sync_api import sync_playwright
+
+    failed, reports = [], []
+    with sync_playwright() as p:
+        for name, prof in PERF_PROFILES.items():
+            result = perf_profile(p, name, prof, {"new": base, "baseline": baseline}, PERF_RUNS)
+            reports += perf_report(name, result)
+            failed += perf_gates(name, prof, result["new"], result["baseline"])
+    return failed, reports
+
+
+def run_perf_self_test(base: str, baseline: str) -> list[str]:
+    """Clean home passes the desktop gates, each PERF_FAULTS entry fails them (1 run each)."""
+    from playwright.sync_api import sync_playwright
+
+    failed = []
+    name, prof = "desktop", PERF_PROFILES["desktop"]
+    with sync_playwright() as p:
+        ref = perf_profile(p, name, prof, {"baseline": baseline}, 1)["baseline"]
+        clean = perf_gates(name, prof, perf_profile(p, name, prof, {"new": base}, 1)["new"], ref)
+        print(f"self-test: clean home: {'FAILS - ' + clean[0] if clean else 'passes'}")
+        if clean:
+            failed.append(f"self-test: clean home fails its perf checks: {clean[0]}")
+        for what, html in PERF_FAULTS:
+            caught = perf_gates(name, prof, perf_profile(p, name, prof, {"new": base}, 1, html)["new"], ref)
+            print(f"self-test: {what}: {'caught - ' + caught[0] if caught else 'NOT CAUGHT'}")
+            if not caught:
+                failed.append(f"self-test: injected fault not caught: {what}")
+    return failed
+
+
+# ---- --lighthouse: pinned Lighthouse against the gzip server ---------------------------------------
+
+LIGHTHOUSE = "lighthouse@12.8.2"
+LH_PAGES = [("home", ""), ("research", "research/"), ("article", "research/what-makes-a-good-resume/"),
+            ("about", "about/"), ("privacy", "privacy.html"), ("404", "404.html")]
+LH_RUNS = 3
+LH_PERF = {"mobile": 99, "desktop": 100}   # Performance, median of LH_RUNS
+LH_EVERY_RUN = ("accessibility", "best-practices")  # 100 on every run
+SEO_EXEMPT = {"canonical"}                  # canonical names https://jobs.enrriquez.com, not localhost
+SEO_EXEMPT_404 = {"is-crawlable"}           # 404 is noindex on purpose
+LH_OUT = ROOT / ".data" / "site-qa"
+CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+
+def lighthouse_once(url: str, preset: str, out: Path) -> dict | str:
+    """One Lighthouse run; the report, or a one-line error."""
+    out.unlink(missing_ok=True)
+    cmd = ["npx", "-y", LIGHTHOUSE, url, "--quiet", "--output=json", f"--output-path={out}",
+           "--chrome-flags=--headless=new",
+           "--only-categories=performance,accessibility,best-practices,seo"]
+    if preset == "desktop":
+        cmd.append("--preset=desktop")
+    env = os.environ | ({"CHROME_PATH": CHROME} if Path(CHROME).is_file() else {})
+    r = subprocess.run(cmd, capture_output=True, text=True, env=env, timeout=300)
+    if r.returncode or not out.is_file():
+        return "lighthouse failed: " + (r.stderr or r.stdout).strip()[-300:]
+    report = json.loads(out.read_text())
+    if report.get("runtimeError"):
+        return "lighthouse: " + report["runtimeError"].get("message", "")[:300]
+    return report
+
+
+def run_lighthouse(base: str) -> tuple[list[str], list[str]]:
+    failed, reports = [], []
+    LH_OUT.mkdir(parents=True, exist_ok=True)
+    for slug, path in LH_PAGES:
+        for preset in ("mobile", "desktop"):
+            where = f"lighthouse {slug} ({preset})"
+            perf = []
+            for i in range(LH_RUNS):
+                rep = lighthouse_once(base + path, preset, LH_OUT / f"lh-{slug}-{preset}-{i + 1}.json")
+                if isinstance(rep, str):
+                    failed.append(f"{where}: {rep}")
+                    continue
+                cats = rep["categories"]
+                score = lambda k: round((cats[k]["score"] or 0) * 100)
+                perf.append(score("performance"))
+                for k in LH_EVERY_RUN:
+                    if score(k) < 100:
+                        low = [a["id"] for a in cats[k]["auditRefs"] if a["weight"]
+                               and (rep["audits"][a["id"]]["score"] or 0) < 1]
+                        failed.append(f"{where} run {i + 1}: {k} {score(k)} ({', '.join(low[:6])})")
+                exempt = SEO_EXEMPT | (SEO_EXEMPT_404 if slug == "404" else set())
+                for a in cats["seo"]["auditRefs"]:
+                    audit = rep["audits"][a["id"]]
+                    if (audit["scoreDisplayMode"] in ("binary", "numeric") and audit["score"] is not None
+                            and audit["score"] < 1 and a["id"] not in exempt):
+                        failed.append(f"{where} run {i + 1}: SEO audit {a['id']} fails")
+                if i == 0:
+                    tbt = rep["audits"]["total-blocking-time"].get("displayValue", "?")
+                    reports.append(f"report: {where}: accessibility {score('accessibility')}, best practices "
+                                   f"{score('best-practices')}, SEO {score('seo')}, TBT {tbt}")
+            if perf:
+                mid = median(perf)
+                reports.append(f"report: {where}: performance median {mid:g} of {', '.join(map(str, perf))}")
+                if mid < LH_PERF[preset]:
+                    failed.append(f"{where}: performance median {mid:g} (need {LH_PERF[preset]})")
+    return failed, reports
+
+
+def keep_awake():
+    """caffeinate -dimsu for as long as this process lives (macOS); a sleeping screen skews timing."""
+    if shutil.which("caffeinate"):
+        subprocess.Popen(["caffeinate", "-dimsu", "-w", str(os.getpid())])
+
 def main() -> int:
-    mode = sys.argv[1] if len(sys.argv) > 1 else ""
-    if mode not in ("", "--engines", "--self-test"):
-        print("usage: uv run app/web/qa.py [--engines | --self-test]")
+    args = sys.argv[1:]
+    modes = {(): "", ("--engines",): "--engines", ("--self-test",): "--self-test", ("--perf",): "--perf",
+             ("--perf", "--self-test"): "--perf --self-test", ("--lighthouse",): "--lighthouse"}
+    mode = modes.get(tuple(sorted(args, key=lambda a: a != "--perf")))
+    if mode is None:
+        print("usage: uv run app/web/qa.py [--engines | --self-test | --perf [--self-test] | --lighthouse]")
         return 2
-    watchdog(RUN_LIMIT_S)
+    timed = mode.startswith("--perf") or mode == "--lighthouse"
+    if timed:
+        keep_awake()
+    watchdog(PERF_LIMIT_S if timed else RUN_LIMIT_S)
     server, base = serve(DOCS)
+    servers = [server]
     reports = []
     try:
-        if mode == "--engines":
+        if mode.startswith("--perf"):
+            old, baseline = serve(baseline_docs())
+            servers.append(old)
+            if mode == "--perf":
+                failed, reports = run_perf(base, baseline)
+                if failed:  # retry once before failing: one slow moment on the machine is not the page
+                    print(f"perf: {len(failed)} over budget ({failed[0]}) - running once more", flush=True)
+                    failed, reports = run_perf(base, baseline)
+            else:
+                failed = run_perf_self_test(base, baseline)
+        elif mode == "--lighthouse":
+            failed, reports = run_lighthouse(base)
+        elif mode == "--engines":
             failed = run_engines(base)
         elif mode == "--self-test":
             failed = run_self_test(base)
         else:
             failed, reports = run_chrome(base)
     finally:
-        server.shutdown()
+        for s in servers:
+            s.shutdown()
     for line in reports + failed:
         print(line)
-    done = {"": "all pages pass", "--engines": "WebKit + Firefox pass",
-            "--self-test": "every injected fault caught"}[mode]
+    done = {"": "all pages pass", "--engines": "WebKit + Firefox pass", "--self-test": "every injected fault caught",
+            "--perf": "perf within budget", "--perf --self-test": "every injected perf fault caught",
+            "--lighthouse": f"Lighthouse within budget; reports in {LH_OUT.relative_to(ROOT)}/"}[mode]
+    shots = mode in ("", "--engines")
     print(f"{len(failed)} problem(s)" if failed else done,
-          f"; screenshots in {SCREENS.relative_to(ROOT)}/" if mode != "--self-test" else "", sep="")
+          f"; screenshots in {SCREENS.relative_to(ROOT)}/" if shots else "", sep="")
     return 1 if failed else 0
 
 
