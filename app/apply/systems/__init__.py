@@ -9,6 +9,8 @@ Each module here implements the same few names (contract checked by tests/test_a
     READY                        CSS selector present once the form has loaded
     fill(page, q, resume_file)   type q["answer"] into the page -> "ok" | "ASK ..." | "FAIL ..."
     ids_on_page(page) -> list    question ids the page shows (finds ones the file lacks)
+    SOURCES                      freehire `source` slugs whose links land here (test_systems_live.py)
+    EXAMPLES                     a few anonymised link shapes (acme): each matches this system only
 
 Optional, for forms spread over pages (start box, then the form; "Step 1 of 5"):
 
@@ -19,13 +21,26 @@ Optional, for forms spread over pages (start box, then the form; "Step 1 of 5"):
                                  the answers file page by page (questions.merge)
     on_tab(url, tab_url) -> bool this application's tab; default below
 
+Optional, for the live test:
+
+    QUESTIONS_OVER_HTTP = True   questions(url) is a plain HTTP read (no browser): the live test runs it
+
+Every module in this package is a system - a new one is one new file, no list to edit (five
+systems were added side by side in 2026-10; a shared list was the file every branch touched).
 Add one: app/docs/apply/apply-systems.md.
 """
+import importlib
+import pkgutil
 from urllib.parse import urlsplit
 
-from apply.systems import ashby, greenhouse, ukg
 
-SYSTEMS = [ashby, greenhouse, ukg]
+def discover() -> list:
+    """Every module here, by name: the contract test checks each keeps the contract."""
+    return [importlib.import_module(f"{__name__}.{m.name}")
+            for m in sorted(pkgutil.iter_modules(__path__), key=lambda m: m.name)]
+
+
+SYSTEMS = discover()
 # filled another way: say so instead of "not supported"
 ELSEWHERE = {"myworkdayjobs.com": "Workday - use `apply` + the Chrome extension (job-apply skill, Steps)",
              "myworkday.com": "Workday - use `apply` + the Chrome extension (job-apply skill, Steps)"}

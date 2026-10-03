@@ -10,7 +10,8 @@ from apply.systems import ashby, greenhouse, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
-CONTRACT = {"NAME": str, "READY": str, "matches": 1, "application_url": 1, "questions": 1, "fill": 3, "ids_on_page": 1}
+CONTRACT = {"NAME": str, "READY": str, "SOURCES": tuple, "EXAMPLES": tuple,
+            "matches": 1, "application_url": 1, "questions": 1, "fill": 3, "ids_on_page": 1}
 
 
 def q(title, kind="text", key=None, required=True, options=(), id=None):
@@ -20,15 +21,29 @@ def q(title, kind="text", key=None, required=True, options=(), id=None):
 # --- every system: same contract, so adding one never touches the shared code ---
 
 @pytest.mark.parametrize("module", [m.name for m in pkgutil.iter_modules(systems.__path__)])
-def test_every_system_module_is_registered_and_keeps_the_contract(module):
+def test_every_system_module_is_found_and_keeps_the_contract(module):
     system = importlib.import_module(f"apply.systems.{module}")
-    assert system in systems.SYSTEMS, f"{module} not in systems.SYSTEMS"
+    assert system in systems.SYSTEMS, f"{module} not found by systems.discover()"
     for name, want in CONTRACT.items():
         got = getattr(system, name)
         if isinstance(want, type):
             assert isinstance(got, want), name
         else:
             assert len(inspect.signature(got).parameters) == want, name
+    assert system.SOURCES and system.EXAMPLES and all(isinstance(x, str) for x in system.SOURCES + system.EXAMPLES)
+
+
+def test_systems_found_in_name_order_no_hand_list():
+    names = [m.__name__.rsplit(".", 1)[-1] for m in systems.SYSTEMS]
+    assert names == sorted(m.name for m in pkgutil.iter_modules(systems.__path__))
+
+
+@pytest.mark.parametrize("system", systems.SYSTEMS, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
+def test_each_example_link_matches_exactly_one_system(system):
+    for link in system.EXAMPLES:
+        assert [s for s in systems.SYSTEMS if s.matches(link)] == [system], link
+        assert system.matches(system.application_url(link)), link
+        assert "acme" in link.casefold(), "example links stay anonymised"
 
 
 def test_link_picks_its_system_or_says_where_else():
@@ -797,6 +812,12 @@ def test_greenhouse_form_becomes_shared_questions():
     assert got["veteran_status"]["title"] == "Veteran Status" and not got["veteran_status"]["required"]
     ids = list(got)
     assert ids.index("hispanic_ethnicity") == ids.index("race") - 1  # Hispanic/Latino first: it decides if Race shows
+
+
+def test_greenhouse_board_without_a_survey():
+    # "demographic_questions": null on a live posting (2026-10-03) crashed the read
+    got = greenhouse.from_board(GH_JOB | {"demographic_questions": None, "compliance": None})
+    assert "first_name" in {x["id"] for x in got} and "401" not in {x["id"] for x in got}
 
 
 class GhPage:

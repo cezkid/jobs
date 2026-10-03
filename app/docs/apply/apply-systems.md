@@ -53,12 +53,20 @@ In order - each step's output feeds the next:
    form text), never `master["roles"]`. Form over several pages: the optional members below
    (`PER_PAGE`, `LATER`, `page`, `read`, `on_tab`). `fill` checks what took: read value /
    selected state back; `ok`, `ASK <why>` or `FAIL <why>`. Never click Submit, Next or Save.
-   Register in `SYSTEMS` - contract test fails until you do.
-4. **Test file**: saved (anonymised) form definition -> questions; link matching.
-5. **Try** - `apply-form try` (not built yet): synthetic values typed into the live form, same
-   block as measure.
-6. **Shared rows**: a row in the table above, and in the `AGENTS.md` privacy table if the system
-   sees something new.
+   Found automatically - a new file is a new system; the contract test fails until every member
+   is there, and each `EXAMPLES` link must match this system only.
+4. **Test file** `app/tests/test_apply_<name>.py`: saved (anonymised) form definition ->
+   questions; link matching. `test_systems_live.py` checks `SOURCES` against freehire's newest
+   US postings by itself.
+5. **Try** on 3 live postings - `uv run app/jobs.py apply-form try "<link>" [--next]`: same
+   throwaway Chrome, block + canary as measure; synthetic answers by kind through the system's
+   own `fill`; consent / terms / SMS / signature, password + captcha left as the applicant's own
+   step. Prints the per-question report, `this page: X of Y`, LATER count, every blocked request
+   w/ the question being filled when it fired. `--next` presses the one Next / Continue / Next
+   Step button (never "Save and Continue"; anything saying submit / send / save / finish /
+   complete / apply / sign refused); page unchanged -> "not measurable while blocked".
+6. **Shared rows**: a row in the table above, and the `AGENTS.md` privacy row for the system,
+   from try's blocked log (what leaves the computer, when).
 
 ### Measuring safely
 

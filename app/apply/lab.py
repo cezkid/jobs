@@ -175,6 +175,14 @@ def canary(page, block: Block | None) -> dict:
         listener.close()
 
 
+def canary_failed(test: dict) -> str | None:
+    """Why the block can't be trusted this run, else None."""
+    if test["received"] or set(test["blocked"]) != KINDS:
+        return (f"canary FAILED - reached the test listener: {', '.join(test['received']) or 'none'}; "
+                f"not seen blocked: {', '.join(sorted(KINDS - set(test['blocked']))) or 'none'}")
+    return None
+
+
 def check_page(page) -> None:
     """A service worker controlling the page can send on its own, past the page's route."""
     if page.evaluate("!!(navigator.serviceWorker && navigator.serviceWorker.controller)"):
@@ -318,9 +326,8 @@ def measure(url: str, clicks: list[str], headless: bool = False) -> Path:
         block = Block()
         block.install(page)
         test = canary(page, block)
-        if test["received"] or set(test["blocked"]) != KINDS:
-            sys.exit(f"canary FAILED - reached the test listener: {', '.join(test['received']) or 'none'}; "
-                     f"not seen blocked: {', '.join(sorted(KINDS - set(test['blocked']))) or 'none'}. Nothing measured")
+        if failed := canary_failed(test):
+            sys.exit(f"{failed}. Nothing measured")
         try:
             snaps = [load(page, url, clicks, block, n) for n in (1, 2)]
         except Refused as e:

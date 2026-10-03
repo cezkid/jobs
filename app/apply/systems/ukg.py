@@ -17,6 +17,12 @@ NAME = "UKG"
 POSTING_URL = re.compile(
     r"https?://(recruiting\d*\.ultipro\.com)/([^/?#]+)/JobBoard/([0-9a-f-]{36})/Opportunity(?:Detail|Apply)\?"
     r"(?:[^#]*&)?opportunityId=([0-9a-f-]{36})", re.I)
+# freehire `source` whose links land here (test_systems_live.py); link shapes, anonymised
+SOURCES = ("ukg",)
+EXAMPLES = ("https://recruiting.ultipro.com/ACM1000ACME/JobBoard/0f6e1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b/"
+            "OpportunityDetail?opportunityId=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+            "https://recruiting2.ultipro.com/ACM1000ACME/JobBoard/0f6e1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b/"
+            "OpportunityDetail?opportunityId=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d&postingId=x")
 READY = "[data-automation=first-name-textbox]"
 SIGN_IN = "input[type=password]"
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
