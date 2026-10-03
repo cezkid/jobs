@@ -127,7 +127,8 @@
   }
   /* /shared */
 
-  main { padding: clamp(24px, 4vh, 48px) 0 clamp(56px, 9vh, 104px); }
+  /* main.wrap: .wrap's own padding shorthand would otherwise win and zero the top + bottom */
+  main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
   /* editorial measure: one column of reading text, never wider than 68ch */
   .page { max-width: 68ch; }
   .crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
@@ -176,13 +177,13 @@
   .list .date { margin-top: 6px; }
   .date { color: var(--text-2); font-size: var(--step--1); }
   @media (max-width: 600px) {
-    main { padding-top: 22px; }
+    main.wrap { padding-top: 22px; }
     h2 { margin-top: 36px; }
     .sources li { padding-left: 2.2em; }
     .sources li::before { width: 1.7em; }
   }
   @media print {
-    main { padding: 0; }
+    main.wrap { padding-top: 0; padding-bottom: 0; }
     .crumbs { display: none; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
