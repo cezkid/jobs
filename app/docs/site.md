@@ -44,7 +44,7 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 - Links: `x.md#h` -> `/research/x/#h` (x published, heading exists); `https://jobs.enrriquez.com/p`
   -> `/p` (must exist); `#h` on the same page; other relative repo paths -> GitHub file URL (must be a file or folder git
   tracks, exact case: a macOS disk finds `SITE.md` for `site.md`, an ignored private file would name
-  itself on the page). Feed counts as a page. Anything else = error: other sites go through the sources list, not body links.
+  itself on the page); `https://github.com/cezkid/jobs/issues...` as is (corrections link). Feed counts as a page. Anything else = error: other sites go through the sources list, not body links.
 - Feed `/research/feed.xml` (Atom, ElementTree, built w/ the hub): entries = published articles,
   newest first, id + link = canonical, summary = description; feed `updated` = latest modified.
   Dates as `YYYY-MM-DDT00:00:00Z` (RFC 3339 date-time: a date alone is invalid). `rel=self`

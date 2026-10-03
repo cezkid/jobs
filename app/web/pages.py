@@ -63,6 +63,7 @@ FEED_TITLE = "CEZ Job Finder Research"
 CARD_ALT = ("CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim"
             " marked in yellow, linked to its list of sources.")
 REPO = "https://github.com/cezkid/jobs/blob/main/"
+ISSUES = "https://github.com/cezkid/jobs/issues"  # body links may go here: readers report corrections
 KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited"}
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # special sources (about, methods, index) + names later steps use (feed, reviews/, sources.yml)
@@ -717,6 +718,8 @@ def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site
         if not path.endswith("/") and file + "/index.html" in site_files:
             raise ValueError(f"{href}: folder link needs a / at the end")
         return path + (f"?{url.query}" if url.query else "") + (f"#{url.fragment}" if url.fragment else "")
+    if href == ISSUES or href.startswith((ISSUES + "/", ISSUES + "?")):
+        return href
     if url.scheme or url.netloc or href.startswith("/"):
         raise ValueError(f"{href}: link to research pages as x.md, to this site as {home}..., to other sites through sources")
     target = (src.path.parent / url.path).resolve()

@@ -113,7 +113,7 @@ Callbacks differ by 36% [@quillian-2017, p. 3]. Firms vary [@kline-2021; @eeoc-2
 
 ## What the claim says
 
-Read [privacy](https://jobs.enrriquez.com/privacy.html) and [the code](../../docs/site.md#look).
+Read [privacy](https://jobs.enrriquez.com/privacy.html) and [the code](../../docs/site.md#look). [Report a mistake](https://github.com/cezkid/jobs/issues/new?title=Research%20correction).
 
 | Study | Year |
 |---|---|
@@ -260,7 +260,8 @@ def test_article_head_body_and_links(tmp_path):
     assert set(ids) - {"sources"} == anchors(folder / "ats-myth.md") == {"what-the-claim-says", "what-the-claim-says-again"}
     hrefs = [a["href"] for a in head.all("a")]
     for href in ("/research/ai-bias/#what-was-measured", "/research/methods/", "/privacy.html",
-                 "https://github.com/cezkid/jobs/blob/main/app/docs/site.md#look", "#what-the-claim-says", "/about/"):
+                 "https://github.com/cezkid/jobs/blob/main/app/docs/site.md#look", "#what-the-claim-says", "/about/",
+                 "https://github.com/cezkid/jobs/issues/new?title=Research%20correction"):
         assert href in hrefs, href
     assert '<div class="table" role="region" aria-label="Table: What the claim says" tabindex="0">' in html
     assert ('By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-09-01">1 September 2026</time>.'
@@ -313,6 +314,9 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
      "ai-bias.md:7: next-one.md is not a published page"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "ats-myth.md#nope")}, "no heading #nope in ats-myth.md"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://example.com/")}, "to other sites through sources"),
+    # only the repo's issues page: its look-alikes are other sites
+    ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://github.com/cezkid/jobs/issues-x")}, "to other sites through sources"),
+    ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://github.com/cezkid/jobs/pulls")}, "to other sites through sources"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://jobs.enrriquez.com/nope.html")}, "is not a page on this site"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "../../docs/gone.md")}, "no such file in the repo"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "#nope")}, "no heading #nope on this page"),

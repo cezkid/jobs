@@ -83,7 +83,7 @@ AI never makes images of people for these pages. No quote, number or study is in
 
 A correction changes the text, updates the page date, and adds a dated line to a Changes list. The Changes list sits at the end of the article, above the Sources. A number is never changed silently. A corrected article gets a new AI review before it goes back up.
 
-To report a mistake, post a note titled "Research correction" on the app's GitHub page. Posting there needs a free GitHub account. The page to post on: github.com/cezkid/jobs/issues/new
+To report a mistake, post a note titled "Research correction" on the app's GitHub page. Posting there needs a free GitHub account. [Post a correction on GitHub](https://github.com/cezkid/jobs/issues/new?title=Research%20correction).
 
 No GitHub account? Use the contact page at www.enrriquez.com.
 
