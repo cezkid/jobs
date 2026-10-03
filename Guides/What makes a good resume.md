@@ -13,8 +13,9 @@ Rules clash? This order wins: **true > real results > fits the job > easy to rea
 ## 1. Every word true
 
 - **Employer, title, dates match the employer's records.** Over 3 in 4 employers found a mismatch
-  last year. Most common: undisclosed criminal convictions, then education and work history that
-  didn't match. *Vendor survey (HireRight 2025, a background-check company).*
+  last year. Most common: undisclosed criminal records, education and work history. Work history
+  checks turned up mismatches most often in every region (72% of firms in Asia-Pacific, 64% in
+  Europe, the Middle East and Africa). *Vendor survey (HireRight 2025, a background-check company).*
 - **Every number one you can explain.** Interviews ask about anything on the page. Nothing
   added you didn't give. *Convention.*
 - **No self-praise** ("world-class"). The fact behind it says more. *Convention.*

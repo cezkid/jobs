@@ -437,6 +437,16 @@
   sample: over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published
   checked: 2026-10-03
 
+- id: hireright-2025-sept
+  type: web
+  org: HireRight
+  year: 2025
+  title: "Identity Fraud and Candidate Discrepancies Remain Key Concerns for Employers, Finds HireRight's 2025 Global Benchmark Report"
+  url: https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers
+  evidence: vendor survey
+  sample: September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only
+  checked: 2026-10-03
+
 - id: il-hb3773
   type: law
   org: Illinois General Assembly

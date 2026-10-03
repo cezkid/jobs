@@ -32,7 +32,7 @@ For you, the rules with studies behind them deserve the most care: accuracy, typ
 
 ## Does your resume have to match your records?
 
-Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year. The most common were undisclosed criminal records and education or work history that did not match [@hireright-2025].
+Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of firms in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].
 
 HireRight sells background checks, and the people it asked work at firms that run checks. The survey's question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.
 

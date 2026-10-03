@@ -25,7 +25,7 @@ Can cost the offer, not just the interview. Claims a third party checks.
 
 | Rule | Basis | |
 |---|---|---|
-| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of employers found discrepancies in prior year, employment verification top category; rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a seniority word (Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor) |
+| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of employers found discrepancies in prior year; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of firms APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a seniority word (Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor) |
 | Overlap fine; **unlabelled** overlap isn't | National Resume Writers' Association: "concurrent roles are not frowned upon." Same employer -> stacked titles; different -> marker (part-time, freelance, contract), else reads as date mistake. | enforce: `role-dates-overlap`, incl. same-employer case |
 | Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US hiring managers): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
 | Year in a bullet inside the role's dates | No external source; internal consistency. Jobscan 2026 runs against it (dates on header, not bullets). | **report only** - see [Considered, not mechanised](#considered-not-mechanised) |
@@ -325,7 +325,7 @@ Common in resume tools, declined 2026-10-01 (re-propose only w/ new evidence):
 
 ## Sources
 
-HireRight 2025 Global Benchmark Report. Insight Global, *2025 AI in Hiring* (Atomik Research,
+HireRight 2025 Global Benchmark Report (June + Sept 15 2025 releases). Insight Global, *2025 AI in Hiring* (Atomik Research,
 n=1,005 US HR + talent-acquisition executives it calls hiring managers, fielded Oct 2024; a staffing firm's survey). Enhancv ATS auto-rejection study, 2025 (n=25), via IT Brief. The
 Ladders eye-tracking study, 2018 press release + HR Dive (sample not stated); its 2012 report (30 recruiters, 10 weeks). Jobscan ATS Usage Report 2026 + keyword
 guidance 2026. Greenhouse Boolean search docs. Career centres: Harvard FAS Mignone Center, MIT

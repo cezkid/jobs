@@ -89,7 +89,7 @@ before adding a claim; a figure listed there never reaches a user as fact.
 | Health: "a health matter, now resolved or well managed" | Never "recovered" as the only option (false for ongoing conditions); never name a condition. ADA: no disability-related questions before an offer. | law; large field experiment |
 | Layoff: one line under the last job when true | "Role cut in company-wide layoff" - Gibbons & Katz 1991: discretionary layoffs read worse than plant closings. No audit compares layoff vs firing. | observational |
 | Stop-gap job below skill: their call on the page, full history on forms | Pedulla 2016, men: below-skill job 4.7% ~ unemployed 4.2% vs full-time 10.4%. Farber 2016: interim lower-level job 9.8% -> 8.5%. | field experiment |
-| Dates on forms match employer records | HireRight 2025: over 3/4 of employers found discrepancies in 12 months, most common undisclosed criminal convictions, then education and employment discrepancies. Background checks compare the form. | vendor survey |
+| Dates on forms match employer records | HireRight 2025: over 3/4 of employers found discrepancies in 12 months; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of firms APAC, 64% EMEA; Sept 2025 release). Background checks compare the form. | vendor survey |
 | Years-worked format ("3 years"): not recommended, not a Hold | Kristal 2023 UK: +4.8 pts (+14.6%) vs unexplained gap. UK only, untested in US; US forms still ask month + year. | large field experiment, UK |
 
 ## Criminal-record questions
@@ -218,7 +218,7 @@ Fuller & Raman, *Hidden Workers*, HBS/Accenture 2021. D'hert, Baert & Lippens, I
 Kroft, Lange & Notowidigdo, QJE 2013. Namingit, Blankenau & Schwab, JEBO 2021. Kristal et al.,
 Nature Human Behaviour 2023 (w/ the Behavioural Insights Team). Weisshaar, ASR 2018 + Socius 2021. Pedulla, ASR
 2016. Farber, Silverman & von Wachter, AER P&P 2016. Baert & Vujić 2018. Bateson 2023. Gibbons &
-Katz 1991. HireRight 2025 benchmark. ResumeGo 2019.
+Katz 1991. HireRight 2025 benchmark (June + Sept 15 2025 releases). ResumeGo 2019.
 Agan & Starr, QJE 2018. Burton & Wasser 2025. Pager 2008 (EEOC testimony). Leasure & Andersen
 2016. NELP fair-chance guide. Wright et al., FAccT 2024. Epstein Becker Green, Seyfarth, Littler,
 HR Dive (law status).
