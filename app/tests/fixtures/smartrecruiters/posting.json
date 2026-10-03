@@ -1,0 +1,12 @@
+{
+ "id": "744000000000001",
+ "name": "Example Job",
+ "uuid": "00000000-0000-4000-a000-000000000001",
+ "company": {
+  "name": "Acme",
+  "identifier": "acme"
+ },
+ "postingUrl": "https://jobs.smartrecruiters.com/acme/744000000000001-example-job",
+ "applyUrl": "https://jobs.smartrecruiters.com/acme/744000000000001-example-job?oga=true",
+ "active": true
+}

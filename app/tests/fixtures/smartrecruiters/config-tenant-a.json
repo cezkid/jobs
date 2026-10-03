@@ -1,0 +1,94 @@
+{
+ "id": "00000000-0000-4000-8000-000000000001",
+ "fieldSets": {
+  "easyApply": {
+   "required": false,
+   "visible": true,
+   "easyApplyResumeParsing": {
+    "required": false,
+    "visible": true
+   },
+   "easyApplyIndeed": {
+    "required": false,
+    "visible": true
+   },
+   "easyApplyPitchYou": {
+    "required": false,
+    "visible": false
+   },
+   "easyApplySeek": {
+    "required": false,
+    "visible": true
+   },
+   "easyApplyLinkedIn": {
+    "required": false,
+    "visible": true
+   },
+   "easyApplyLineLogin": null
+  },
+  "firstAndLastName": {
+   "required": true,
+   "visible": true
+  },
+  "email": {
+   "required": true,
+   "visible": true
+  },
+  "placeOfResidence": {
+   "required": true,
+   "visible": true,
+   "configuration": {
+    "locationType": "CITY"
+   }
+  },
+  "phoneNumber": {
+   "required": true,
+   "visible": true
+  },
+  "experience": {
+   "required": false,
+   "visible": true
+  },
+  "education": {
+   "required": false,
+   "visible": true,
+   "institution": {
+    "required": true,
+    "visible": true
+   },
+   "educationDates": {
+    "required": false,
+    "visible": true
+   }
+  },
+  "socialProfiles": {
+   "required": false,
+   "visible": true,
+   "linkedIn": {
+    "required": false,
+    "visible": true
+   },
+   "website": {
+    "required": false,
+    "visible": true
+   },
+   "facebook": {
+    "required": false,
+    "visible": true
+   },
+   "x": {
+    "required": false,
+    "visible": true
+   }
+  },
+  "resume": {
+   "required": true,
+   "visible": true
+  },
+  "messageToHiringManager": {
+   "required": false,
+   "visible": true
+  }
+ },
+ "applicationExperienceSnapshotId": "00000000-0000-4000-9000-000000000001"
+}
