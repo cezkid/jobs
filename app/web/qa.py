@@ -39,9 +39,13 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
   every dashed stroke drawn after a full scroll; reloaded at the bottom, none above the screen undrawn
 - layout boxes (offset rects: transforms don't move them) equal between reduced and full motion
 - no JS (CSS still animates: judged once the timed animations end): all text shown
-  (opacity 1, visible) + home's Windows install line
-- forced colours: every mark still paints something its parent doesn't
+  (opacity 1, visible) + home's Windows install line; NOJS_SCRIPTING: no visible <button> (nothing
+  would run it; Chrome w/o JS matches @media (scripting: none)) + home links to its Mac answer (details#mac)
+- forced colours: every mark still paints something its parent doesn't; FORCED_DEL: every <del> keeps
+  a line-through or background image, every .bul dot paints (0 of either on home = fail)
 - home in print: <= 5 pages (PDF) and the install line shows
+- ZOOM_H1, home at 1366x641, 1440x900, 1920x1080: the h1 at 200% zoom (half the viewport, device scale
+  2) is >= its size at 100%, in device px (WCAG 1.4.4)
 - STATUS, home at 1366x641: after Copy the role=status text is "Copied to the clipboard" and Copy's
   accessible name holds its visible label; after the OS switch the status names the OS shown
 - home's opening moment, 1366x641 + 390x844 (full motion): at load only the hero window animates
@@ -66,7 +70,8 @@ first screen (1440x900), a scene circle stuck half drawn / undrawn in reduced mo
 long / fades text in / moves 40px / animates the LCP element / replays on reload, a page change
 w/o crossfade, an opening played after one, a check finding 0 elements, paint animations piled up,
 the Mac line on more lines, two framed objects at once, Copy + OS switch results unannounced / Copy named
-by a fixed label), an article (a wide element, a console error).
+by a fixed label, the strike / bullet dots gone in forced colours, Copy shown / the Mac answer link hidden w/o JS,
+the h1's vh cap back below 1080px), an article (a wide element, a console error).
 --capture DIR: every page at 1366x641, 1440x900, 1440x780 (Mac), 1920x1080, 390x844 phone, light +
 dark, reduced motion: full-page + per-screen shots and DIR/numbers.md (screens long, print pages, h1 +
 h2 px per desktop size) - before/after material.
@@ -299,6 +304,37 @@ FORCED = "() => {" + HELPERS + """
   return [...document.querySelectorAll(MARKS)].filter(el => shown(el) && !paints(el)).map(label);
 }"""
 
+# forced colours (B4): every <del> keeps a strike (line-through or a background image), every resume
+# bullet dot still paints (a border, or a background other than Canvas); counts for the 0-match rule
+FORCED_DEL = "() => {" + HELPERS + """
+  const probe = document.createElement("div"); probe.style.background = "Canvas"; document.body.append(probe);
+  const canvas = getComputedStyle(probe).backgroundColor; probe.remove();
+  const clear = c => /rgba\\(.*, 0\\)$/.test(c) || c === "transparent";
+  const dels = [...document.querySelectorAll("del")], buls = [...document.querySelectorAll(".bul")], bad = [];
+  for (const el of dels) {
+    const s = getComputedStyle(el);
+    if (!s.textDecorationLine.includes("line-through") && s.backgroundImage === "none") bad.push("strike gone: " + label(el));
+  }
+  for (const el of buls) {
+    const b = getComputedStyle(el, "::before");
+    const border = ["Top", "Right", "Bottom", "Left"].some(k => parseFloat(b["border" + k + "Width"]) > 0 &&
+                                                              b["border" + k + "Style"] !== "none");
+    if (!border && b.backgroundImage === "none" && (clear(b.backgroundColor) || b.backgroundColor === canvas))
+      bad.push("bullet dot gone: " + label(el));
+  }
+  return {dels: dels.length, buls: buls.length, bad};
+}"""
+
+# no JS (B6): visible buttons (none may show: nothing would run them); home's link to the Mac answer
+NOJS_SCRIPTING = """() => {
+  const shown = el => el.checkVisibility() && el.getBoundingClientRect().width > 0;
+  const buttons = [...document.querySelectorAll("button")].filter(shown)
+    .map(b => "button" + (b.id ? "#" + b.id : "") + " " + JSON.stringify(b.textContent.trim().replace(/\\s+/g, " ").slice(0, 30)));
+  const mac = document.getElementById("mac");
+  const answer = !!mac && mac.tagName === "DETAILS" && mac.textContent.includes("curl -fsSL");
+  return {buttons, answer, link: [...document.querySelectorAll('a[href="#mac"]')].some(shown)};
+}"""
+
 # home's composition (critique C1, C3, C4, C5, C10, plan-6zp.30), one line per fault:
 # - rules on header, footer + main's rows span the whole window (full-bleed hairlines)
 # - no section h2 cut by the fold (wholly inside the first screen or wholly below it)
@@ -429,6 +465,7 @@ PAINT_CONCURRENT = "async () => {" + HELPERS + """
 # FRAMES (gate; passed at the polish base): framed objects (outermost .window, .proof,
 # .sheet-lg) wholly or >= 40% inside the screen at every half-screen step - <= 1 at once; null = none found
 FRAMES_AT = [(1366, 641), (1440, 900)]
+ZOOM_AT = [(1366, 641), (1440, 900), (1920, 1080)]  # ZOOM_H1: 200% zoom = half the viewport at 2x
 FRAMED = "async () => {" + HELPERS + """
   const all = [...document.querySelectorAll(".window, .proof, .sheet-lg")];
   const objs = all.filter(el => !all.some(o => o !== el && o.contains(el)));
@@ -548,9 +585,19 @@ FAULTS = [
     (HOME, "STATUS: OS switch silent", "<script>document.getElementById('switch-os').addEventListener('click', "
      "() => setTimeout(() => { document.getElementById('install-status').textContent = 'Copied to the clipboard'; "
      "}))</script>", "status"),
+    (HOME, "FORCED_DEL: strike gone in forced colours", "<style>@media (forced-colors: active) { .old del "
+     "{ text-decoration-line: none !important; } }</style>", "motion"),
+    (HOME, "FORCED_DEL: bullet dots gone in forced colours", "<style>@media (forced-colors: active) { .bul::before "
+     "{ border: 0 !important; } }</style>", "motion"),
+    (HOME, "NOJS_SCRIPTING: Copy shown without JS", "<style>#copy { display: inline-flex !important; }</style>", "motion"),
+    (HOME, "NOJS_SCRIPTING: Mac answer link hidden without JS", "<style>.nojs-mac { display: none !important; }</style>",
+     "motion"),
+    (HOME, "ZOOM_H1: vh cap back below 1080px", "<style>@media (max-width: 1079px) { h1 { font-size: "
+     "min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem) !important; } }</style>", "zoom"),
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
+             "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "0 matches": "found 0 elements"}
 
 
@@ -794,17 +841,48 @@ def check_motion(browser, base: str, name: str, width: int, height: int, phone: 
         page.wait_for_timeout(min(5000, page.evaluate(REMAINING)) + 100)
         result = page.evaluate(NO_JS)
         failed += [f"{where}: text not fully shown: {t}" for t in result["bad"][:10]]
+        nojs = page.evaluate(NOJS_SCRIPTING)
+        failed += [f"NOJS_SCRIPTING {where}: {b} shown, but nothing runs it" for b in nojs["buttons"]]
         if name == "index.html":
             line = result["line"]
             if not line or line[0] != WIN_LINE or not line[1]:
                 failed.append(f"{where}: Windows install line missing or hidden ({line})")
+            if not nojs["answer"]:
+                failed.append(f"NOJS_SCRIPTING {where}: no details#mac holding the Mac install line")
+            elif not nojs["link"]:
+                failed.append(f"NOJS_SCRIPTING {where}: no visible link to the Mac answer (#mac)")
 
     if browser.browser_type.name == "chromium":
         where = label_for(browser, name, width, height, phone, "forced colours")
         with opened(browser, base, name, width, height, phone, failed, where, inject,
                     forced_colors="active") as page:
             failed += [f"{where}: mark paints nothing: {m}" for m in page.evaluate(FORCED)]
+            got = page.evaluate(FORCED_DEL)
+            failed += [f"FORCED_DEL {where}: {b}" for b in got["bad"]]
+            if name == "index.html" and not (got["dels"] and got["buls"]):
+                failed.append(f"FORCED_DEL {where}: check found 0 elements ({got['dels']} del, {got['buls']} .bul)")
     return failed
+
+
+def check_zoom(browser, base: str, inject: str | None = None) -> tuple[list[str], list[str]]:
+    """ZOOM_H1 (B8, WCAG 1.4.4): home's h1 at 200% browser zoom (half the viewport, 2 device px per CSS px)
+    renders at least as large as at 100%. (failures, reports)"""
+    failed, reports = [], []
+    size = "parseFloat(getComputedStyle(document.querySelector('h1')).fontSize)"
+    for w, h in ZOOM_AT:
+        where = f"ZOOM_H1 index.html at {w}x{h}"
+        with opened(browser, base, "index.html", w, h, False, failed, where, inject) as page:
+            if gone := missing(page, where, "h1"):
+                failed += gone
+                continue
+            full = page.evaluate(size)
+        with opened(browser, base, "index.html", w // 2, h // 2, False, failed, where + " at 200%", inject,
+                    device_scale_factor=2) as page:
+            zoomed = page.evaluate(size) * 2
+        reports.append(f"report: {where}: h1 {full:.1f}px, at 200% zoom {zoomed:.1f} device px (x{zoomed / full:.2f})")
+        if zoomed < full - 0.5:
+            failed.append(f"{where}: h1 at 200% zoom {zoomed:.1f} device px, smaller than {full:.1f}px at 100%")
+    return failed, reports
 
 
 def check_opening(browser, base: str, inject: str | None = None) -> tuple[list[str], list[str]]:
@@ -939,6 +1017,9 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
                 failed += check_motion(browser, base, name, w, h, phone)
         failed += check_print(browser, base)
         failed += check_status(browser, base)
+        f, r = check_zoom(browser, base)
+        failed += f
+        reports += r
         failed += check_transition(browser, base)
         f, r = check_opening(browser, base)
         failed += f
@@ -984,6 +1065,8 @@ def run_self_test(base: str) -> list[str]:
             return check_transition(browser, base, inject)
         if kind == "status":
             return check_status(browser, base, inject)
+        if kind == "zoom":
+            return check_zoom(browser, base, inject)[0]
         return check_motion(browser, base, name, *FOLD, False, inject)
 
     failed, clean = [], {}

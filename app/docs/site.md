@@ -152,7 +152,8 @@ questions, install). Real behaviour only: employers, titles, dates never change;
   near-white ring alone vanished on a white sheet in dark mode (1.12:1, measured); the desk band
   keeps it 3:1+ on desk and sheet. Spread-only shadow = a ring, not a depth shadow.
   `::selection` = `--text` on `--desk` (ink, inverted); the check fails it if it paints `--mark`
-  or drops under 4.5:1.
+  or drops under 4.5:1. Inside the white sheets (`.window`, `.proof`) it is `--ink` on `--paper`:
+  the desk's selection was #f2f2f2 on white in dark mode (1.12:1); checked >= 3:1 vs `--paper`.
 - Shared block also carries: `<details>` +/- drawn as two `border-top` bars (U+2212 is not in
   the subset; borders survive forced colours, backgrounds don't); forced colours = `<mark>` in
   `Mark`/`MarkText`; print = ink on white in either scheme (tokens reset on `body`, not `:root`,
@@ -164,7 +165,13 @@ questions, install). Real behaviour only: employers, titles, dates never change;
   preloaded, never in the first viewport. Features kept: kern liga lnum onum tnum case frac;
   Caladea's `case` only swaps combining accents, so U+0300-0328 stay in the subset or it drops.
   System mono for the command only.
-- Sizes in rem + vw (text zoom, WCAG 1.4.4); body measure <= 68ch; `text-wrap: balance` on
+- Home forced colours (B4): the correction's strike becomes a real `line-through` 2px, resume
+  bullet dots a border - gradients + backgrounds vanish there. No JS (B6): `@media (scripting:
+  none)` hides Copy + the OS switch (nothing would run them) and shows a link to the Mac answer
+  (`details#mac`); Chrome w/ JS off matches it (measured).
+- Sizes in rem + vw (text zoom, WCAG 1.4.4); no vh in the home h1 below 1080px wide: browser zoom
+  halves the viewport, and the vh cap made the h1 smaller at 200% (x0.95 at 1920x1080); >= 1080
+  it stays, guarding the Copy fold (B8); body measure <= 68ch; `text-wrap: balance` on
   headings, `pretty` on body.
 - Kept: literal h1 ("A free job-search app for your Windows or Mac computer." - answers "is this
   a website?"); OS-matched app window; no eyebrows, no middle-dot strings, no highlighted word in a
@@ -246,8 +253,10 @@ KB = 1000 bytes.
   (window, resume sheet) >= 40% on screen at every scroll step (1366x641, 1440x900); <= 3 paint
   animations (background-size, clip-path, stroke-dashoffset) mid-way at once; Mac install line on one
   line (768-1920 wide, a gate); a check finding 0 elements fails; reduced motion = 0 animations + marks
-  finished; no JS = all text + the Windows line; text opacity 1 at every scroll step once the
-  timed animations end; layout equal reduced vs full motion; forced colours = marks still paint;
+  finished; no JS = all text + the Windows line, no visible
+  button, a link to the Mac answer; h1 at 200% zoom >= 100% (1366x641, 1440x900, 1920x1080); text opacity 1 at every scroll step once the
+  timed animations end; layout equal reduced vs full motion; forced colours = marks still paint, every
+  `<del>` struck, every bullet dot painted;
   print <= 5 pages w/ the install line; 0 console errors; every dashed SVG stroke at
   `stroke-dashoffset` 0 in reduced motion, after a full scroll, and above the screen after a
   reload at the bottom; opening moment (1366x641 + 390x844):

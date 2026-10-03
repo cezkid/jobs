@@ -73,6 +73,8 @@
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
   /* selection in ink, never yellow: the highlighter means "marked by the app" */
   ::selection { background: var(--text); color: var(--desk); }
+  /* on the white sheets (app window, resume) the desk's selection vanishes in dark mode: ink on paper */
+  .window ::selection, .proof ::selection { background: var(--ink); color: var(--paper); }
   /* forced colours drop the gradient: system mark colours keep the words marked */
   @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
   /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */

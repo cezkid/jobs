@@ -341,15 +341,21 @@ def colour(value: str, scheme: dict[str, str]) -> list[str]:
     return re.findall(r"#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b", value)
 
 
+SHEETS = (".window", ".proof")  # white paper in both schemes (home's app window + resume sheet)
+
+
 def contrasts(raw: str) -> list[str]:
-    """Token pairs under the minimum, light + dark, incl. the focus ring on desk + white sheet and the ink selection; empty = fine."""
+    """Token pairs under the minimum, light + dark, incl. the focus ring on desk + white sheet, the ink selection
+    and the selection on the white sheets against --paper (3:1); empty = fine."""
     css = shared(raw)
     problems = []
     rings = [d for sel, d in re.findall(r"([^{}]*:focus-visible[^{}]*)\{([^}]*)\}", css)]
     if not rings:
         problems.append("shared CSS: no :focus-visible rule")
-    selections = [d for sel, d in re.findall(r"([^{}]*::selection[^{}]*)\{([^}]*)\}", css)]
-    if not selections:
+    selections_by = [(re.sub(r"/\*.*?\*/", "", sel, flags=re.S), d)
+                     for sel, d in re.findall(r"([^{}]*::selection[^{}]*)\{([^}]*)\}", css)]
+    selections = [d for sel, d in selections_by]
+    if not any(sel.strip() == "::selection" for sel, d in selections_by):
         problems.append("shared CSS: no ::selection rule")
     for mode, scheme in tokens(css).items():
         for pairs, least in (TEXT_PAIRS, TEXT_MIN), (NON_TEXT_PAIRS, NON_TEXT_MIN):
@@ -374,6 +380,17 @@ def contrasts(raw: str) -> list[str]:
                 problems.append(f"{mode}: ::selection paints the highlighter")
             elif fg and bg and contrast(fg[0], bg[0]) < TEXT_MIN:
                 problems.append(f"{mode}: ::selection {contrast(fg[0], bg[0]):.2f}:1 < {TEXT_MIN}:1")
+        # the app window + resume sheet stay white in dark mode: their selection must show on --paper
+        # (their own ::selection rule, else the page-wide one)
+        paper = colour(scheme.get("--paper", ""), scheme)
+        for sheet in SHEETS:
+            rules = [d for sel, d in selections_by if sheet in sel] or \
+                    [d for sel, d in selections_by if sel.strip() == "::selection"]
+            bg = [c for d in rules for c in colour(" ".join(re.findall(r"background(?:-color)?\s*:\s*([^;]+)", d)), scheme)]
+            ratio = contrast(bg[-1], paper[0]) if bg and paper else 0
+            if ratio < NON_TEXT_MIN:
+                problems.append(f"{mode}: selection on the paper sheet {sheet} {ratio:.2f}:1 against --paper "
+                                f"< {NON_TEXT_MIN}:1")
     return problems
 
 

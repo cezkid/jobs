@@ -371,6 +371,7 @@ PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>
   @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; }} }}
   :focus-visible {{ outline: 3px solid var(--text); box-shadow: 0 0 0 3px var(--desk); }}
   ::selection {{ background: var(--text); color: var(--desk); }}
+  .window ::selection, .proof ::selection {{ background: var(--ink); color: var(--paper); }}
   {css}
   /* /shared */
 </style></head><body><header><a href="/">x</a>{header}</header><main>{body}</main><footer>{footer}</footer>{scripts}</body></html>"""
@@ -439,8 +440,12 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
     ("::selection", "::marker", "no ::selection rule"),
     ("background: var(--text); color: var(--desk)", "background: var(--mark); color: var(--ink)", "paints the highlighter"),
     ("background: var(--text); color: var(--desk)", "background: var(--text); color: var(--text-2)", "dark: ::selection"),
+    (".window ::selection, .proof ::selection {", ".gone {",
+     "dark: selection on the paper sheet .window"),
+    ("background: var(--ink); color: var(--paper)", "background: #dddddd; color: var(--ink)",
+     "light: selection on the paper sheet .proof"),
 ], ids=["text-light", "text-dark", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
-        "selection-faint"])
+        "selection-faint", "selection-on-sheet-gone", "selection-on-sheet-faint"])
 def test_each_contrast_rule_trips_on_its_fixture(tmp_path, old, new, trips):
     template = PAGE.format(**dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), ""))
     old, new = old.replace("}}", "}"), new.replace("}}", "}")

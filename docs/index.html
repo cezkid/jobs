@@ -85,6 +85,8 @@
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
   /* selection in ink, never yellow: the highlighter means "marked by the app" */
   ::selection { background: var(--text); color: var(--desk); }
+  /* on the white sheets (app window, resume) the desk's selection vanishes in dark mode: ink on paper */
+  .window ::selection, .proof ::selection { background: var(--ink); color: var(--paper); }
   /* forced colours drop the gradient: system mark colours keep the words marked */
   @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
   /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */
@@ -145,7 +147,9 @@
   .hero { padding-top: clamp(28px, 4.2vh, 56px); padding-bottom: 64px; row-gap: 40px; }
   .intro { grid-column: 1 / -1; }
   h1 {
-    font-size: var(--display); line-height: 1.02; font-weight: 700; letter-spacing: -0.012em;
+    /* no vh term below 1080px: browser zoom shrinks the viewport's height, and a vh cap made the h1
+       smaller at 200% (WCAG 1.4.4, audit B8); the cap stays where it guards the Copy fold */
+    font-size: clamp(2.5rem, 1.5rem + 3vw, 6rem); line-height: 1.02; font-weight: 700; letter-spacing: -0.012em;
     margin: 0 0 0.32em; max-width: 13em;
   }
   .lede { margin: 0 0 1.4rem; font-size: var(--step-1); line-height: 1.4; max-width: 30em; }
@@ -189,6 +193,9 @@
   }
   #copy svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; }
   .switch { display: flex; flex-wrap: wrap; gap: 2px 18px; margin: 0 0 0 46px; font-size: 1.0625rem; color: var(--text-2); }
+  /* without JS, Copy + the OS switch can't work: hidden, the Mac answer linked instead (audit B6) */
+  .nojs-mac { display: none; }
+  @media (scripting: none) { #copy, #switch-os { display: none; } .nojs-mac { display: inline; } }
   .switch button { font: inherit; color: var(--text); background: none; border: 0; padding: 0; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; cursor: pointer; }
   .need { display: none; margin: 26px 0 0 46px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 1.0625rem; line-height: 1.5; color: var(--text-2); }
   .mac-only { display: none; }
@@ -276,6 +283,7 @@
      rule), so the next scene's heading + sheet start below the fold, never cut by it */
   @media (min-width: 1080px) {
     .hero { min-height: calc(100svh - 37px - 1.9375rem); }
+    h1 { font-size: var(--display); }
     .intro { grid-column: 1 / span 6; }
     figure { grid-column: 7 / -1; align-self: start; margin-top: 6px; }
   }
@@ -363,6 +371,12 @@
   .line > :first-child { min-width: 0; }
   .bul { position: relative; padding-left: 18px; }
   .bul::before { content: ""; position: absolute; left: 3px; top: 0.66em; width: 5px; height: 5px; border-radius: 50%; background: var(--ink); }
+  /* forced colours drop gradients + backgrounds (audit B4): the correction's strike becomes a real
+     line-through, bullet dots a border (borders take CanvasText) */
+  @media (forced-colors: active) {
+    .old del { text-decoration-line: line-through; text-decoration-thickness: 2px; }
+    .bul::before { border: 2.5px solid; }
+  }
   .margin { color: var(--ink-2); font-size: 0.9375rem; line-height: 1.35; display: flex; align-items: flex-start; gap: 8px; }
   .margin svg { width: 26px; height: 26px; flex: none; margin-top: -3px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .margin.ok { color: var(--ink); font-weight: 700; }
@@ -601,6 +615,7 @@
           <button type="button" id="switch-os"><span class="win-only">Mac steps</span>
             <span class="mac-only">Windows steps</span></button>
           <span>Stuck? Run it again – your files are kept.</span>
+          <a class="nojs-mac" href="#mac">On a Mac: see “How do I install on a Mac?” below</a>
           <a id="script" href="https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1">Read the script first</a>
         </p>
         <p class="vh" role="status" id="install-status"></p>
@@ -802,7 +817,7 @@
         <summary>What do I need?</summary>
         <div><p>Windows 10 or 11, or a Mac. About 5 minutes. No administrator password.</p></div>
       </details>
-      <details>
+      <details id="mac">
         <summary>How do I install on a Mac?</summary>
         <div><p>Open Terminal (Spotlight, type Terminal). Paste <code>curl -fsSL https://jobs.enrriquez.com/mac | bash</code> and press Enter.</p></div>
       </details>
