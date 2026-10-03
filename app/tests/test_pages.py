@@ -92,6 +92,7 @@ def test_dates_spelled_in_english_without_the_clock():
 
 import re  # noqa: E402
 import shutil  # noqa: E402
+import subprocess  # noqa: E402
 
 import pytest  # noqa: E402
 
@@ -226,6 +227,9 @@ def research_site(root, extra=None, reviews=None, registry=REGISTRY):
         (folder / "sources.yml").write_text(registry, encoding="utf-8")
     (root / "app" / "docs").mkdir()
     (root / "app" / "docs" / "site.md").write_text("# Site\n\n## Look\n")
+    # repo links must name a file git tracks
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "app/docs/site.md"], check=True)
     return folder
 
 
@@ -301,6 +305,7 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
             else:
                 assert href.scheme == "https", (name, a)
         assert not text.startswith("---") and "\r" not in text
+        assert head.duplicate_ids() == [], name
 
 
 @pytest.mark.parametrize("extra, problem", [
@@ -317,6 +322,9 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("2026-09-10", "2026-02-30")}, "date must be YYYY-MM-DD"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("status: published", "status: live")}, "status must be draft or published"),
     ({"ai-bias.md": SOURCES["ai-bias.md"] + "\n## What was measured\n"}, "heading id 'what-was-measured' used twice"),
+    # src-<id> = a Sources entry's id: a heading w/ it => two elements, one id
+    ({"ai-bias.md": SOURCES["ai-bias.md"] + "\n## Src quillian 2017\n"}, "heading id 'src-quillian-2017' - start the heading"),
+    ({"ai-bias.md": SOURCES["ai-bias.md"] + "\n## ???\n"}, "heading id '' - start the heading"),
     ({"AI_Bias.md": SOURCES["ai-bias.md"]}, "AI_Bias.md:1: file name must be lower-case"),
     ({"feed.md": SOURCES["ai-bias.md"]}, "feed is a reserved name"),
     ({"about.md": None}, "publish about.md with the first page"),
@@ -326,6 +334,37 @@ def test_source_problems_are_reported_with_file_and_line(tmp_path, extra, proble
     with pytest.raises(pages.SourceError) as e:
         pages.build(tmp_path)
     assert problem in str(e.value)
+
+
+def test_repo_links_name_tracked_files_in_exact_case(tmp_path):
+    # GitHub shows tracked files only, case-sensitive; a macOS disk finds SITE.md for site.md, and a
+    # link to an ignored private file would put its name on a public page
+    (tmp_path / ".data").mkdir()
+    (tmp_path / ".data" / "secret.txt").write_text("private")
+    for link in "../../docs/SITE.md", "../../../.data/secret.txt":
+        shutil.rmtree(tmp_path / "docs", ignore_errors=True)
+        shutil.rmtree(tmp_path / "app", ignore_errors=True)
+        research_site(tmp_path, {"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", link)})
+        with pytest.raises(pages.SourceError) as e:
+            pages.build(tmp_path)
+        assert f"{link}: no such file in the repo (tracked by git, exact case)" in str(e.value)
+
+
+def test_link_to_the_feed_lands(tmp_path):
+    research_site(tmp_path, {"methods.md": SOURCES["methods.md"] + "\n[Feed](https://jobs.enrriquez.com/research/feed.xml)\n"})
+    assert 'href="/research/feed.xml"' in pages.build(tmp_path)["research/methods/index.html"]
+
+
+def test_write_clears_a_wrong_case_orphan_before_writing(tmp_path):
+    # macOS disk: research/AI-Bias/ is research/ai-bias/ => deleting the orphan after writing took the new page
+    research_site(tmp_path)
+    stale = tmp_path / "docs" / "research" / "AI-Bias" / "index.html"
+    stale.parent.mkdir(parents=True)
+    stale.write_text("old")
+    pages.write(tmp_path)
+    found = files(tmp_path / "docs")
+    assert "research/ai-bias/index.html" in found and "research/AI-Bias/index.html" not in found
+    assert pages.problems(tmp_path) == []
 
 
 def test_no_sources_builds_no_pages(tmp_path):
@@ -346,6 +385,7 @@ def body(snippet):
     (body("# Top"), "ai-bias.md:11: # heading in the body"),
     (body("#### Deep"), "ai-bias.md:11: h4 after h2 - heading level skipped"),
     (body("## See [the myth](ats-myth.md)"), "ai-bias.md:11: link in a heading"),
+    (body("## Measured [@quillian-2017]"), "ai-bias.md:11: citation in a heading"),
     (body("## A <b>bold</b> idea"), "ai-bias.md:11: HTML or &...; entity in a heading"),
     (body("## Fish &amp; chips"), "ai-bias.md:11: HTML or &...; entity in a heading"),
     (body("## Closed ##"), "ai-bias.md:11: closing # in a heading"),
@@ -433,6 +473,13 @@ def test_citation_in_code_or_link_text_stays_text_and_same_labels_get_a_b(tmp_pa
     assert "<code>[@nope]</code>" in html and ">link [@nope]</a>" in html
     assert ('(<a href="#src-quillian-2017-b">Quillian et al. 2017b</a>; '
             '<a href="#src-quillian-2017">Quillian et al. 2017a</a>)') in html
+
+
+def test_escaped_bracket_keeps_a_citation_as_text(tmp_path):
+    research_site(tmp_path, body("Write \\[@quillian-2017] to cite. Cited here [@quillian-2017]."))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    assert "Write [@quillian-2017] to cite." in html
+    assert html.count('href="#src-quillian-2017"') == 1
 
 
 def test_review_files_and_registry_are_not_built(tmp_path):
@@ -847,6 +894,21 @@ def test_links_command_prints_file_line_and_exits_1_on_broken(tmp_path, capsys):
     assert "app/web/research/sources.yml:1: quillian-2017: BROKEN: doi 10.1073/pnas.1706255114 does not exist (doi.org)" in out
     assert "app/web/research/sources.yml:20: eeoc-2023: check by hand: https://www.eeoc.gov/ai answered 403 - open it in a browser" in out
     assert out[-1] == "4 sources: 1 broken, 1 to check by hand, 2 fine"
+
+
+def test_links_reads_the_repo_sources_from_any_folder_and_a_missing_file_fails(tmp_path, monkeypatch, capsys):
+    # default was read from the current folder => run elsewhere, "no sources to check", exit 0
+    seen = []
+    monkeypatch.setattr(pages, "links", lambda root, path=None: seen.append(path) or 0)
+    monkeypatch.chdir(tmp_path)
+    for argv, want in ((["--links"], None), (["--links", "mine.yml"], tmp_path.resolve() / "mine.yml")):
+        monkeypatch.setattr("sys.argv", ["pages.py", *argv])
+        with pytest.raises(SystemExit):
+            pages.main()
+        assert seen.pop() == want
+    monkeypatch.undo()
+    assert pages.links(tmp_path, tmp_path / "nope.yml") == 1
+    assert "nope.yml: no such file" in capsys.readouterr().out
 
 
 def test_links_registry_problems_stop_before_any_request(tmp_path, capsys):

@@ -42,8 +42,9 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   `test_docs.anchors()` rule, so `x.md#h` lands in VS Code, on GitHub and on the site. Table
   wrapped in a focusable, labelled scroll box (wide table scrolls, not the page).
 - Links: `x.md#h` -> `/research/x/#h` (x published, heading exists); `https://jobs.enrriquez.com/p`
-  -> `/p` (must exist); `#h` on the same page; other relative repo paths -> GitHub file URL (must
-  exist). Anything else = error: other sites go through the sources list, not body links.
+  -> `/p` (must exist); `#h` on the same page; other relative repo paths -> GitHub file URL (must be a file or folder git
+  tracks, exact case: a macOS disk finds `SITE.md` for `site.md`, an ignored private file would name
+  itself on the page). Feed counts as a page. Anything else = error: other sites go through the sources list, not body links.
 - Feed `/research/feed.xml` (Atom, ElementTree, built w/ the hub): entries = published articles,
   newest first, id + link = canonical, summary = description; feed `updated` = latest modified.
   Dates as `YYYY-MM-DDT00:00:00Z` (RFC 3339 date-time: a date alone is invalid). `rel=self`
@@ -60,9 +61,10 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   ProfilePage (mainEntity Person, `sameAs` GitHub) + BreadcrumbList on about. Breadcrumb items =
   canonicals that exist. `site_checks.structured_data()` checks it on fixture + real pages.
 - Citations: `[@id]`, `[@id, p. 12]`, `[@a; @b]` (markdown-it core rule after `text_join`: never in
-  code or link text) -> `(<a href="#src-id">Quillian et al. 2017</a>, p. 12)`. Label = surname
+  code or link text) -> `(<a href="#src-id">Quillian et al. 2017</a>, p. 12)`; `\[@id]` stays text. Label = surname
   (1 author), "A and B" (2), "A et al." (3+) or org, + year; two alike -> 2017a / 2017b by id.
-  Cited page ends w/ `<h2 id="sources">Sources</h2>` (a body heading `## Sources` = error):
+  Cited page ends w/ `<h2 id="sources">Sources</h2>` (a body heading `## Sources` = error; heading id `src-...` or empty = error,
+  one id per element):
   `<ol>` sorted by label, `<li id="src-id">` = authors (year), title, venue, DOI + url links,
   plain-words evidence (Guides scale, `EVIDENCE`) + sample, "Preprint, not peer-reviewed.",
   "Checked <date>".
@@ -80,7 +82,8 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 - Review gate: every built page (articles, methods, about) needs `reviews/<name>.md` (same
   folder), header `reviewed: YYYY-MM-DD` (on or after the page's modified), `verdict: publish`
   (else the page fails), optional `reviewer:`; body = the review. Never built into `docs/`.
-- Real sources: `uv run app/web/pages.py --links [file]` (network; never in tests - those fake it w/
+- Real sources: `uv run app/web/pages.py --links [file]` (no file = the repo's `sources.yml`, from any
+  folder; a file given that doesn't exist = exit 1) (network; never in tests - those fake it w/
   `httpx.MockTransport`). DOI -> doi.org handle API (404 = doesn't exist), then Crossref: title
   similarity < 0.9 or year off by > 1 = names another work (catches invented + mistyped citations).
   arXiv id (from an `arxiv.org/abs|pdf` url or a `10.48550/arXiv.` DOI) -> arXiv export API, same
@@ -92,7 +95,7 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   w/o a page.
 - Any problem -> `file:line: what`, nothing written, exit 1.
 - Lints, published sources only (drafts may hold notes): no `#` h1 in the body, no skipped
-  heading level, heading = plain text (no link, HTML, `&...;` entity, closing `#`); no raw HTML
+  heading level, heading = plain text (no link, citation, HTML, `&...;` entity, closing `#`); no raw HTML
   outside code (shown as text), no image, no `[owner:` / `TODO`, no `](<`; title <= 60,
   description <= 155, og_title <= 70 (cut off in results / previews); dates not in the future,
   modified not before published; no invisible character (`resume/lint.py` INVISIBLE), no app

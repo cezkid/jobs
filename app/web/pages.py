@@ -32,6 +32,7 @@ import importlib.util
 import json
 import re
 import shutil
+import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -261,6 +262,8 @@ class Source:
                 slug = slugify(self.tokens[i + 1].content)
                 if slug in self.ids:
                     errors.append(f"{self.rel}:{self.line(token)}: heading id {slug!r} used twice")
+                if not slug or slug.startswith("src-"):  # src-<id> = the Sources list's entries
+                    errors.append(f"{self.rel}:{self.line(token)}: heading id {slug!r} - start the heading with a word other than Src")
                 self.ids[slug] = self.line(token)
                 token.attrSet("id", slug)
 
@@ -351,6 +354,8 @@ def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
                 inline = src.tokens[i + 1]
                 if any(c.type in ("link_open", "image") for c in inline.children or []):
                     errors.append(f"{src.rel}:{src.line(token)}: link in a heading - put it in the text below")
+                if any(c.type == "cite" for c in inline.children or []):
+                    errors.append(f"{src.rel}:{src.line(token)}: citation in a heading - cite in the text below")
                 if RAW_HTML.search(raw) or ENTITY.search(raw):
                     errors.append(f"{src.rel}:{src.line(token)}: HTML or &...; entity in a heading - plain text only")
                 if token.markup.startswith("#") and re.search(r"\s#+\s*$", raw):
@@ -420,7 +425,26 @@ def _render_cite(self, tokens, idx, options, env):
     return "(" + "; ".join(links) + ")"
 
 
+ESCAPED = "\ue000"  # \[ in a source: kept out of the cite rule, turned back into [ after it
+
+
+def _hide_escaped(state):
+    for block in state.tokens:
+        for child in block.children or []:
+            if child.type == "text_special" and child.info == "escape" and child.content == "[":
+                child.content = ESCAPED
+
+
+def _show_escaped(state):
+    for block in state.tokens:
+        for child in block.children or []:
+            if child.type == "text" and ESCAPED in child.content:
+                child.content = child.content.replace(ESCAPED, "[")
+
+
+MD.core.ruler.before("text_join", "hide_escaped", _hide_escaped)
 MD.core.ruler.after("text_join", "cite", _cite)
+MD.core.ruler.after("cite", "show_escaped", _show_escaped)
 MD.add_render_rule("cite", _render_cite)
 
 
@@ -647,7 +671,15 @@ def reviews(root: Path, sources: list[Source], errors: list[str], warnings: list
                 errors.append(f"{rel}:{Source.line_of(text, 'reviewed')}: reviewed {day} is before the page's modified {src.modified} - review the change")
 
 
-def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site_files: set[str]) -> str:
+def tracked(root: Path) -> set[str]:
+    """Files git tracks, exact case: the only repo paths a link may name (GitHub shows those; a macOS
+    disk also finds SITE.md for site.md, and an ignored private file would put its name on the page)."""
+    out = subprocess.run(["git", "-C", str(root), "ls-files", "-z"], capture_output=True, check=False).stdout
+    return set(out.decode("utf-8").split("\0")) - {""}
+
+
+def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site_files: set[str],
+            repo_files: set[str]) -> str:
     """A link in a source -> its URL on the site. Raises ValueError w/ the reason when it can't land."""
     home = site(root)
     url = urlsplit(href)
@@ -678,13 +710,13 @@ def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site
         rel = target.relative_to(root.resolve()).as_posix()
     except ValueError:
         raise ValueError(f"{href} points outside the repo") from None
-    if not target.exists():
-        raise ValueError(f"{href}: no such file in the repo")
+    if rel not in repo_files and not any(f.startswith(rel + "/") for f in repo_files):
+        raise ValueError(f"{href}: no such file in the repo (tracked by git, exact case)")
     return REPO + quote(rel) + (f"#{url.fragment}" if url.fragment else "")
 
 
 def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: set[str], errors: list[str],
-              registry: Registry) -> str:
+              registry: Registry, repo_files: set[str]) -> str:
     label = src.title
     for i, token in enumerate(src.tokens):
         if token.type == "heading_open":
@@ -695,7 +727,7 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
             for child in token.children or []:
                 if child.type == "link_open":
                     try:
-                        child.attrSet("href", rewrite(child.attrGet("href"), src, by_name, root, site_files))
+                        child.attrSet("href", rewrite(child.attrGet("href"), src, by_name, root, site_files, repo_files))
                     except ValueError as e:
                         errors.append(f"{src.rel}:{src.line(token)}: {e}")
     html = MD.renderer.render(src.tokens, MD.options, {"labels": registry.labels})
@@ -936,9 +968,10 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
         parts = home_parts(root)
         if any(s.name != "about" for s in built) and not (by_name.get("about") and by_name["about"].built):
             errors.append(f"{SOURCES.as_posix()}/about.md:1: bylines link /about/ - publish about.md with the first page")
-        files = site_files | {s.out for s in built}
+        files = site_files | {s.out for s in built} | ({FEED} if hub else set())
+        repo_files = tracked(root)
         for src in built:
-            body = body_html(src, by_name, root, files, errors, registry)
+            body = body_html(src, by_name, root, files, errors, registry, repo_files)
             if src.name == "index":
                 body += listing(articles)
             out[src.out] = page(src, root, body, parts, hub)
@@ -952,9 +985,10 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
 def build(root: Path, warnings: list[str] | None = None) -> dict[str, str]:
     """Every generated file: docs-relative path -> text. Reads, never writes."""
     docs = root / "docs"
-    hand = {rel: (docs / rel).read_text(encoding="utf-8") for rel in listed(docs)
-            if rel.endswith(".html") and rel.split("/")[0] not in NOT_PAGES + OWNED}
-    out = research(root, set(listed(docs)) - {rel for rel in listed(docs) if rel.split("/")[0] in OWNED}, warnings)
+    found = [rel for rel in listed(docs) if rel.split("/")[0] not in OWNED]
+    hand = {rel: (docs / rel).read_text(encoding="utf-8") for rel in found
+            if rel.endswith(".html") and rel.split("/")[0] not in NOT_PAGES}
+    out = research(root, set(found), warnings)
     out["sitemap.xml"] = sitemap(root, {**hand, **{k: v for k, v in out.items() if k.endswith(".html")}})
     return dict(sorted(out.items()))
 
@@ -969,9 +1003,9 @@ def same(path: Path, text: str) -> bool:
     return path.read_bytes().decode("utf-8").replace("\r\n", "\n") == text
 
 
-def problems(root: Path) -> list[str]:
+def problems(root: Path, built: dict[str, str] | None = None) -> list[str]:
     """What --check reports: stale, missing, orphaned. Empty = docs/ matches the sources."""
-    docs, built, found = root / "docs", build(root), []
+    docs, built, found = root / "docs", build(root) if built is None else built, []
     for rel, text in built.items():
         path = docs / rel
         if not path.is_file():
@@ -982,16 +1016,10 @@ def problems(root: Path) -> list[str]:
     return found
 
 
-def write(root: Path) -> list[str]:
-    """Write stale + missing files (UTF-8, LF), delete orphans in the owned folders. Returns what changed."""
-    docs, built, changed = root / "docs", build(root), []
-    for rel, text in built.items():
-        path = docs / rel
-        if path.is_file() and same(path, text):
-            continue
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(text.encode("utf-8"))
-        changed.append(f"wrote: docs/{rel}")
+def write(root: Path, built: dict[str, str] | None = None) -> list[str]:
+    """Delete orphans in the owned folders, then write stale + missing files (UTF-8, LF). Returns what changed.
+    Orphans go first: on a macOS disk research/Foo/ is research/foo/, so a later delete would take the new file."""
+    docs, built, changed = root / "docs", build(root) if built is None else built, []
     for rel in orphans(root, built):
         (docs / rel).unlink()
         changed.append(f"deleted: docs/{rel}")
@@ -1002,6 +1030,13 @@ def write(root: Path) -> list[str]:
         for folder in sorted(folders, key=lambda p: len(p.parts), reverse=True):
             if folder.is_dir() and not listed(folder):
                 shutil.rmtree(folder)
+    for rel, text in built.items():
+        path = docs / rel
+        if path.is_file() and same(path, text):
+            continue
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(text.encode("utf-8"))
+        changed.append(f"wrote: docs/{rel}")
     return changed
 
 
@@ -1133,6 +1168,9 @@ def links(root: Path, path: Path | None = None, client=None) -> int:
     """--links: print one line per problem + a count; exit code 1 when anything is broken."""
     import httpx
     errors, warnings = [], []
+    if path is not None and not path.is_file():
+        print(f"{path}: no such file")
+        return 1
     registry = Registry(root, errors, warnings, path)
     if errors:
         print("\n".join(errors))
@@ -1161,25 +1199,25 @@ def links(root: Path, path: Path | None = None, client=None) -> int:
 def main():
     ap = argparse.ArgumentParser(description="Build the site's generated pages in docs/.")
     ap.add_argument("--check", action="store_true", help="list stale, missing or orphaned files; write nothing; exit 1 on any")
-    ap.add_argument("--links", nargs="?", const=REGISTRY, type=Path, metavar="SOURCES_YML",
+    ap.add_argument("--links", nargs="?", const="", metavar="SOURCES_YML",
                     help="check every source's DOI (doi.org + Crossref), arXiv id and url over the network;"
                          " exit 1 on a broken one (default app/web/research/sources.yml)")
     args = ap.parse_args()
-    if args.links:
-        sys.exit(links(ROOT, args.links if args.links.is_absolute() else Path.cwd() / args.links))
+    if args.links is not None:  # a path given is read from where you are; none = the repo's sources.yml
+        sys.exit(links(ROOT, Path(args.links).resolve() if args.links else None))
     warnings: list[str] = []
     try:
-        build(ROOT, warnings)
+        built = build(ROOT, warnings)
     except SourceError as e:
         print(e)
         sys.exit(1)
     for warning in warnings:
         print(f"warning: {warning}")
     if args.check:
-        found = problems(ROOT)
+        found = problems(ROOT, built)
         print("\n".join(found) if found else "docs/ up to date")
         sys.exit(1 if found else 0)
-    changed = write(ROOT)
+    changed = write(ROOT, built)
     print("\n".join(changed) if changed else "docs/ up to date")
 
 

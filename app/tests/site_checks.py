@@ -46,6 +46,11 @@ class Head(HTMLParser):
     def ids(self) -> set[str]:
         return {a["id"] for _, a in self.tags if a.get("id")}
 
+    def duplicate_ids(self) -> list[str]:
+        """Ids on more than one element: a #link to one lands on the first."""
+        found = [a["id"] for _, a in self.tags if a.get("id")]
+        return sorted({i for i in found if found.count(i) > 1})
+
 
 def png_size(path) -> tuple[int, int]:
     data = path.read_bytes()

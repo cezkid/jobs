@@ -131,6 +131,12 @@ def test_every_link_lands_on_a_file_and_a_heading_that_exist():
                 assert url.scheme in ("https", "mailto"), (name, href)
 
 
+def test_ids_are_unique_on_every_page():
+    # two elements w/ one id (a heading "Src x" next to the Sources entry src-x) => #links land on the first
+    for name in PAGES:
+        assert page(name).duplicate_ids() == [], name
+
+
 def test_titles_and_descriptions_are_unique():
     # two pages w/ one title => search shows both the same, or picks one and folds the other
     for key in "title", "description":
