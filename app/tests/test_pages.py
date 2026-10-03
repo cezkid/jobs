@@ -612,6 +612,16 @@ def test_cited_or_code_or_plain_numbers_pass(tmp_path, snippet):
     assert "research/ai-bias/index.html" in pages.build(tmp_path)
 
 
+def test_a_later_citation_in_the_paragraph_covers_the_statistics_before_it(tmp_path):
+    run = "Calls fell 36%. Then 5% more fell. Both came from one audit [@quillian-2017]."
+    research_site(tmp_path, body(run + " Two [@quillian-2017]. Other [@kline-2021]. Three [@quillian-2017]."))
+    assert "research/ai-bias/index.html" in pages.build(tmp_path)
+    research_site(tmp_path / "b", body("Calls fell 36%.\n\nThe next paragraph cites [@quillian-2017]."))
+    with pytest.raises(pages.SourceError, match="ai-bias.md:11: statistic '36%'") as e:
+        pages.build(tmp_path / "b")
+    assert "in 3 sentences in a row" not in str(e.value)
+
+
 def test_table_row_cites_from_any_cell_and_uncited_snippets_pass(tmp_path):
     table = "| Finding | Source |\n|---|---|\n| 36% fewer calls | [@quillian-2017] |"
     research_site(tmp_path, body(table))
@@ -630,6 +640,8 @@ def test_table_row_cites_from_any_cell_and_uncited_snippets_pass(tmp_path):
     (body("Gap [@Bad Id]."), "ai-bias.md:11: citation '[@Bad Id]'"),
     (body("Gap [@quillian-2017; nope]."), "citation '[@quillian-2017; nope]'"),
     (body("Gap [@quillian-2017].\n\n## Sources"), "ai-bias.md:13: heading id 'sources' is the citation list's"),
+    (body("One [@quillian-2017]. Two [@quillian-2017]. Three [@quillian-2017]."),
+     "ai-bias.md:11: [@quillian-2017] cited in 3 sentences in a row - cite it once, at the end of the run"),
     ({"ai-bias.md": BIAS.replace("status: published", "status: published\nuncited: our test")}, "uncited must be a list"),
 ])
 def test_citation_problems_are_reported_with_file_and_line(tmp_path, extra, problem):

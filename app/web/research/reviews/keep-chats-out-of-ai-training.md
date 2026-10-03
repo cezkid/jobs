@@ -196,3 +196,10 @@ Check: every cited id appears in this review - see bead plan-xsy.31 close reason
 
 Owner-visible note for plan-xsy.32: OpenAI's live pages block scripted reads; open both in a
 browser before publishing to confirm the Archive copies still match.
+
+## Re-review 2026-10-03: citations thinned (plan-xsy.48)
+
+Citation placement only - no wording, number or source changed. A run of sentences citing the
+same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
+sentence the moved citation now covers comes from that source.
+16 repeat citations dropped; no sentence that was uncited now falls under a citation.

@@ -27,7 +27,7 @@ uncited:
 
 ## Where does the 75% number come from?
 
-No study shows that applicant tracking systems reject 75% of resumes. The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems "kill 75% of candidates' chances" of an interview [@levinson-2012-cio]. The article credited that figure to Preptel, a company selling help to beat those systems [@levinson-2012-cio].
+No study shows that applicant tracking systems reject 75% of resumes. The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems "kill 75% of candidates' chances" of an interview. The article credited that figure to Preptel, a company selling help to beat those systems [@levinson-2012-cio].
 
 Preptel sold a resume service for $24.95 a month at the time [@levinson-2012-preptel]. Preptel's own news page had reposted the 75% line by December 2012 [@preptel-2012]. Neither page says how the number was measured. We searched for a study, sample or data set behind the figure and found none.
 
@@ -49,13 +49,13 @@ For you, the useful question is not "will a robot reject me?" The useful questio
 
 ## What gets rejected automatically?
 
-Where software rejects on its own, recruiters say it is mostly on yes/no answers (Vendor survey, 25 recruiters) [@enhancv-2025]. Recruiters call them knockout questions. 21 of the 25 recruiters in the Enhancv interviews said they rely on knockout questions [@enhancv-2025]. Nobody publishes a count of automatic rejections, so this is what recruiters said, not a measurement.
+Where software rejects on its own, recruiters say it is mostly on yes/no answers (Vendor survey, 25 recruiters). Recruiters call them knockout questions. 21 of the 25 recruiters in the Enhancv interviews said they rely on knockout questions [@enhancv-2025]. Nobody publishes a count of automatic rejections, so this is what recruiters said, not a measurement.
 
-Greenhouse, one hiring system, lets employers reject applicants automatically based on answers to custom questions [@greenhouse-rules]. Greenhouse's own example is a license or location requirement [@greenhouse-rules]. The auto-reject feature comes only with its higher-priced plans [@greenhouse-rules].
+Greenhouse, one hiring system, lets employers reject applicants automatically based on answers to custom questions. Greenhouse's own example is a license or location requirement. The auto-reject feature comes only with its higher-priced plans [@greenhouse-rules].
 
-Greenhouse's rules act on your answers, not on your resume text [@greenhouse-rules]. The same help page says the system can send a rejection email automatically [@greenhouse-rules].
+Greenhouse's rules act on your answers, not on your resume text. The same help page says the system can send a rejection email automatically [@greenhouse-rules].
 
-23 of the 25 recruiters said their system did not reject automatically for formatting, content or design [@enhancv-2025]. Two said their systems were set up to reject on resume content, such as a low match score [@enhancv-2025]. A third recruiter, using a system called Phenom, applies a score cutoff to reject low matches, by the same page's account [@enhancv-2025]. So two, possibly three, of the 25 described rejection based on resume content. The sample is small, and how the 25 were chosen is not stated.
+23 of the 25 recruiters said their system did not reject automatically for formatting, content or design. Two said their systems were set up to reject on resume content, such as a low match score. A third recruiter, using a system called Phenom, applies a score cutoff to reject low matches, by the same page's account [@enhancv-2025]. So two, possibly three, of the 25 described rejection based on resume content. The sample is small, and how the 25 were chosen is not stated.
 
 For you, the answers on the form matter more than the layout of the page.
 
@@ -98,7 +98,7 @@ For you, a plain one-column page that reads back cleanly is the safe choice. Fan
 
 Yes, by executives' own account. The Hidden Workers survey asked 2,275 executives in the US, UK and Germany in early 2020 [@fuller-2021]. Over 90% said they used their software to first filter or rank middle-skills and high-skills applicants [@fuller-2021, p. 20].
 
-Most of those executives said their system filters out qualified people at least sometimes. 88% said so for high-skills jobs and 94% for middle-skills jobs [@fuller-2021, p. 26]. "Always" or "often" was the answer of 62% and 63% [@fuller-2021, p. 26]. The question asked about candidates who could do the job but did not match exact criteria [@fuller-2021, p. 26].
+Most of those executives said their system filters out qualified people at least sometimes. 88% said so for high-skills jobs and 94% for middle-skills jobs. "Always" or "often" was the answer of 62% and 63%. The question asked about candidates who could do the job but did not match exact criteria [@fuller-2021, p. 26].
 
 The Hidden Workers numbers are what executives said, not a measurement of what the software did. The survey ran in early 2020, before today's AI screening tools were common [@fuller-2021].
 
@@ -106,17 +106,17 @@ For you, gaps between your experience and the exact wording of a posting can mat
 
 ## Is AI now rejecting resumes on its own?
 
-How often AI rejects applicants with no person involved is unknown. In a 2026 survey of 1,000 US hiring managers, 35% said they used AI to screen or rank applications [@resume-genius-2026]. 19% said they used AI to screen some out before a human looked [@resume-genius-2026]. 6% said AI can move applicants forward or reject them with limited human review [@resume-genius-2026]. 32% said AI recommends or ranks, but people make all final decisions [@resume-genius-2026].
+How often AI rejects applicants with no person involved is unknown. In a 2026 survey of 1,000 US hiring managers, 35% said they used AI to screen or rank applications. 19% said they used AI to screen some out before a human looked. 6% said AI can move applicants forward or reject them with limited human review. 32% said AI recommends or ranks, but people make all final decisions [@resume-genius-2026].
 
 The Resume Genius survey was run by a resume-builder company. The survey does not give its dates, and the answers are what managers said.
 
-Vendors describe their AI as an aid to a human reviewer. Ashby says its AI marks each applicant as meeting an employer's criteria or not, with reasons [@ashby-2024]. Ashby says it is then "up to the reviewer to advance or reject" [@ashby-2024].
+Vendors describe their AI as an aid to a human reviewer. Ashby says its AI marks each applicant as meeting an employer's criteria or not, with reasons. Ashby says it is then "up to the reviewer to advance or reject" [@ashby-2024].
 
 A US lawsuit alleges otherwise for one vendor. In Mobley v. Workday, the plaintiffs allege Workday's AI scored, sorted or screened applicants in a way that disadvantaged older people [@mobley-2025-order, p. 3]. The court described Workday's position as: its AI cannot reject anyone without the employer taking part [@mobley-2025-order, p. 10].
 
-In May 2025 a federal court in California let the age claim go forward as a collective action, at a preliminary stage [@mobley-2025-order]. Workday can still ask the court to undo that step later [@mobley-2025-order]. Workday told the court 1.1 billion applications were rejected using its software [@mobley-2025-order, p. 19]. The court said that estimate ignores the limits of who is in the case [@mobley-2025-order, p. 19].
+In May 2025 a federal court in California let the age claim go forward as a collective action, at a preliminary stage. Workday can still ask the court to undo that step later [@mobley-2025-order]. Workday told the court 1.1 billion applications were rejected using its software. The court said that estimate ignores the limits of who is in the case [@mobley-2025-order, p. 19].
 
-In July 2025 the court ruled that applicants screened with Workday's HiredScore AI features also belong in the case [@clearinghouse-mobley]. In June 2026 the court granted part of Workday's motion to dismiss the amended complaint and denied the rest [@clearinghouse-mobley]. As of October 2026, the plaintiffs are asking to widen the case to more groups of applicants [@lawyer-monthly-2026]. A hearing is set for March 2027, and Workday denies the claims [@lawyer-monthly-2026]. Nothing has been proven. Not legal advice.
+In July 2025 the court ruled that applicants screened with Workday's HiredScore AI features also belong in the case. In June 2026 the court granted part of Workday's motion to dismiss the amended complaint and denied the rest [@clearinghouse-mobley]. As of October 2026, the plaintiffs are asking to widen the case to more groups of applicants. A hearing is set for March 2027, and Workday denies the claims [@lawyer-monthly-2026]. Nothing has been proven. Not legal advice.
 
 For you, AI scores are in use, but most managers in that survey said a person still makes the call [@resume-genius-2026].
 

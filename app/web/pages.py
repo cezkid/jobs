@@ -634,11 +634,23 @@ def citations(sources: list[Source], registry: Registry, errors: list[str], warn
             continue
         if cites(src) and "sources" in src.ids:
             errors.append(f"{src.rel}:{src.ids['sources']}: heading id 'sources' is the citation list's - rename the heading")
+        paragraphs = {}
         for inline, text in units(src):
-            stat = STAT.search(text.replace("\x02", " "))
-            if stat and "\x01" not in text and not any(u in text for u in src.uncited):
-                errors.append(f"{src.rel}:{src.find(inline, stat.group(0))}: statistic {stat.group(0)!r} without a citation"
-                              " - add [@id], or list a snippet of the sentence under uncited: in the header")
+            paragraphs.setdefault(id(inline), (inline, []))[1].append(text)
+        for inline, texts in paragraphs.values():
+            refs = iter([ref for ref, _ in c.meta["refs"] or []] for c in inline.children or [] if c.type == "cite")
+            cited = [{ref for _ in range(text.count("\x01")) for ref in next(refs, [])} for text in texts]
+            for i, text in enumerate(texts):
+                # a citation later in the paragraph covers the statistics before it: cite a run once, at its end
+                stat = STAT.search(text.replace("\x02", " "))
+                if stat and not any("\x01" in t for t in texts[i:]) and not any(u in text for u in src.uncited):
+                    errors.append(f"{src.rel}:{src.find(inline, stat.group(0))}: statistic {stat.group(0)!r} without a citation"
+                                  " - add [@id] in or after its sentence, or list a snippet of the sentence under uncited:"
+                                  " in the header")
+                run = cited[i].intersection(*cited[i + 1:i + 3]) - (cited[i - 1] if i else set())
+                for ref in sorted(run) if i + 2 < len(texts) else []:
+                    errors.append(f"{src.rel}:{src.find(inline, '@' + ref)}: [@{ref}] cited in 3 sentences in a row"
+                                  " - cite it once, at the end of the run")
     for ref in sorted(set(registry.entries) - used):
         warnings.append(f"{registry.rel}:{registry.lines[ref]}: {ref} is not cited by any page")
 

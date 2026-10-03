@@ -72,7 +72,9 @@ prints in the Sources list.
   `recheck_by` (law); optional `sample`, `preprint`. Full field rules: [site.md](site.md#research-pages).
 - `checked` = date you opened it. `sample` = who + how many, plain ("83,000 applications, 108 US firms").
 - Cite in text: `[@quillian-2017]`, `[@quillian-2017, p. 12]`, `[@a; @b]`. Literal `[@` -> `\[@`.
-- Every statistic carries a citation in its sentence (build fails otherwise). Own numbers -> page
+- Every statistic carries a citation in its sentence, or the run's one citation later in the
+  paragraph (build fails otherwise); a run of sentences from one source cites it once, at its end
+  (3 in a row = build error), so every sentence before that cite must come from it. Own numbers -> page
   header `uncited:` snippets + "Our measurement" in the sentence.
 - `uv run app/web/pages.py --links` after adding entries: catches invented or mistyped DOIs + arXiv
   ids. Network; run by hand, never in tests. A "check by hand" line = open it yourself.

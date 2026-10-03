@@ -247,3 +247,11 @@ Plain words + SEO: no jargon from the AGENTS.md list; most sentences under 20 wo
 21); question-led H2s; 4 internal links; title 52, description 140 chars. Privacy: no owner data
 or real employer in examples; measurements cite numbers only. Quotes all <= 15 words and
 attributed. Tool box sits after the evidence and matches the code.
+
+## Re-review 2026-10-03: citations thinned (plan-xsy.48)
+
+Citation placement only - no wording, number or source changed. A run of sentences citing the
+same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
+sentence the moved citation now covers comes from that source.
+16 repeat citations dropped. Newly under a citation: "The same study tried listing years worked
+per job instead of dates, which hides the gap" (kristal-2023 design). Supported.

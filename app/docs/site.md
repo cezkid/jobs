@@ -74,11 +74,14 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   no `https://doi.org/`) and/or `url` (https only); `venue` for article + book, `url` +
   `recheck_by` for law; optional `sample`, `preprint` (true/false), `recheck_by`. Unknown key,
   key twice, id twice = error.
-- Statistic needs a citation in its sentence (published pages; headings skipped): `%`, percent,
-  points, "N in M" / "N out of M", `n=`, fraction words ("a third", "one fifth"). Split knows
-  "et al.", "p.", "e.g."; a citation right after the full stop counts for that sentence; a table
-  row is one unit (source may sit in another cell). Own numbers: header `uncited:` list of
-  snippets - a sentence containing one passes.
+- Statistic needs a citation in its sentence or later in its paragraph (published pages; headings
+  skipped): `%`, percent, points, "N in M" / "N out of M", `n=`, fraction words ("a third", "one
+  fifth"). Split knows "et al.", "p.", "e.g."; a citation right after the full stop counts for that
+  sentence; a table row is one unit (source may sit in another cell). Own numbers: header
+  `uncited:` list of snippets - a sentence containing one passes.
+- One citation per run: same source cited in 3 sentences in a row in one paragraph = error - cite
+  a run of sentences from one source once, at its end (repeating it after every sentence reads
+  heavy). A sentence inside the run must come from that source; our own words go after the cite.
 - Review gate: every built page (articles, methods, about) needs `reviews/<name>.md` (same
   folder), header `reviewed: YYYY-MM-DD` (on or after the page's modified), `verdict: publish`
   (else the page fails), optional `reviewer:`; body = the review. Never built into `docs/`.

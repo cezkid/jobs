@@ -26,7 +26,7 @@ A resume is personal data. It names you, your employers, your schools and your d
 
 On personal plans, the companies may use those chats to train future AI models. ChatGPT "improves by further training on the conversations people have with it," says OpenAI, unless you opt out [@openai-model-training]. GitHub started using Copilot Free, Pro and Pro+ interactions, chats and code, for training from April 24, 2026, unless you opt out [@github-copilot-2026]. Anthropic asked Claude Free, Pro and Max users to choose in 2025 [@anthropic-consumer-terms-2025]. If you clicked through that pop-up, check where your switch is now.
 
-Training data can come back out. In a 2021 test, researchers pulled hundreds of exact passages from an older AI model's training text [@carlini-2021]. Those passages included names, phone numbers and email addresses already public online [@carlini-2021]. A passage could leak even when it appeared in just one document [@carlini-2021]. A follow-up study pulled thousands of training passages from ChatGPT with a special trick [@nasr-2023].
+Training data can come back out. In a 2021 test, researchers pulled hundreds of exact passages from an older AI model's training text. Those passages included names, phone numbers and email addresses already public online. A passage could leak even when it appeared in just one document [@carlini-2021]. A follow-up study pulled thousands of training passages from ChatGPT with a special trick [@nasr-2023].
 
 Both studies used text from public web pages, not users' chats. No study we found shows a chat from one user coming out in another user's answers. The companies say they reduce personal details before training. OpenAI says it takes "steps to reduce the amount of personal information" in training data [@openai-model-training]. Anthropic says it filters or hides sensitive data [@anthropic-consumer-terms-2025]. It also separates feedback chats from your account before using them [@anthropic-training-consumer].
 
@@ -40,11 +40,11 @@ On ChatGPT Free, Go, Plus and Pro, the switch is called **Improve the model for 
 2. Select **Data controls** [@openai-data-controls].
 3. Select **Improve the model for everyone**, turn it off, and select **Done** [@openai-data-controls].
 
-On the phone app, open the sidebar, tap your profile icon, then **Data controls** [@openai-data-controls]. The choice follows your account across devices when you're signed in [@openai-data-controls]. The same switch covers Codex tasks on a personal plan; Codex's "Include environments" setting is separate [@openai-data-controls].
+On the phone app, open the sidebar, tap your profile icon, then **Data controls**. The choice follows your account across devices when you're signed in. The same switch covers Codex tasks on a personal plan; Codex's "Include environments" setting is separate [@openai-data-controls].
 
 OpenAI also offers a "do not train on my content" button in its privacy portal [@openai-model-training]. Either route is enough; you don't need both [@openai-data-controls].
 
-**Temporary Chat** is a one-off option. Those chats don't appear in your history and aren't used for training [@openai-data-controls]. OpenAI may keep them for up to 30 days for safety [@openai-data-controls].
+**Temporary Chat** is a one-off option. Those chats don't appear in your history and aren't used for training. OpenAI may keep them for up to 30 days for safety [@openai-data-controls].
 
 For you, turn the switch off once, then use Temporary Chat for anything you don't want in your history or in training.
 
@@ -58,7 +58,7 @@ On Claude Free, Pro and Max, the switch is called **Help Improve our AI models**
 
 The switch also covers Claude Code on those plans [@anthropic-training-setting]. Anthropic made this a choice on August 28, 2025, with a deadline of October 8, 2025 [@anthropic-consumer-terms-2025].
 
-With the switch on, a de-identified copy of your chats can stay up to 5 years in training data [@anthropic-retention]. For everyone, a deleted chat leaves Anthropic's main systems within 30 days [@anthropic-retention]. Chats flagged by safety checks are kept up to 2 years [@anthropic-retention]. **Incognito** chats are never used for training, whatever the switch says [@anthropic-training-consumer].
+With the switch on, a de-identified copy of your chats can stay up to 5 years in training data. For everyone, a deleted chat leaves Anthropic's main systems within 30 days. Chats flagged by safety checks are kept up to 2 years [@anthropic-retention]. **Incognito** chats are never used for training, whatever the switch says [@anthropic-training-consumer].
 
 For you, the switch keeps your chats out of that 5-year training store.
 
@@ -72,9 +72,9 @@ On Copilot Free, Pro, Pro+ and Max, the setting is **Allow GitHub to use my data
 2. Open the **Allow GitHub to use my data for AI model training** menu [@github-copilot-docs].
 3. Click **Disabled** [@github-copilot-docs].
 
-The setting covers Copilot Chat and suggestions in your code editor, including your code and file names [@github-copilot-2026]. If you opted out of data collection before, GitHub kept that choice [@github-copilot-2026].
+The setting covers Copilot Chat and suggestions in your code editor, including your code and file names. If you opted out of data collection before, GitHub kept that choice [@github-copilot-2026].
 
-Students on Copilot Student and teachers on free Copilot Pro are not affected [@github-copilot-faq-2026]. Neither are members of a paid company account [@github-copilot-faq-2026]. Business and Enterprise plans aren't used for training under GitHub's contracts, so the setting doesn't show there [@github-copilot-docs].
+Students on Copilot Student and teachers on free Copilot Pro are not affected. Neither are members of a paid company account [@github-copilot-faq-2026]. Business and Enterprise plans aren't used for training under GitHub's contracts, so the setting doesn't show there [@github-copilot-docs].
 
 GitHub may share this data with "companies in our corporate family including Microsoft" [@github-copilot-2026]. Other AI companies whose models run inside Copilot don't get it for their own training [@github-copilot-2026; @github-copilot-faq-2026]. Hired service firms may help GitHub with training, under contract [@github-copilot-faq-2026].
 
@@ -88,19 +88,19 @@ Gemini ties training to a setting called **Keep Activity** [@google-gemini-activ
 2. Click **Settings & help**, then **Activity** [@google-gemini-activity].
 3. Click **On**, then **Turn off** or **Turn off and delete activity** [@google-gemini-activity].
 
-Keep Activity is on by default for users 18 and over [@google-gemini-activity]. With it off, Google keeps new chats with your account for up to 72 hours [@google-gemini-privacy]. Those chats aren't used to train AI models unless you send feedback [@google-gemini-privacy].
+Keep Activity is on by default for users 18 and over [@google-gemini-activity]. With it off, Google keeps new chats with your account for up to 72 hours. Those chats aren't used to train AI models unless you send feedback [@google-gemini-privacy].
 
-With it off, only a few connected apps keep working [@google-gemini-activity]. Google still has people review some chats for safety, even with the setting off [@google-gemini-privacy]. Reviewed chats are kept for up to 3 years, apart from your account [@google-gemini-privacy]. Gemini also has a **Temporary chat**; those chats aren't used for training and are kept up to 72 hours [@google-gemini-privacy].
+With it off, only a few connected apps keep working [@google-gemini-activity]. Google still has people review some chats for safety, even with the setting off. Reviewed chats are kept for up to 3 years, apart from your account. Gemini also has a **Temporary chat**; those chats aren't used for training and are kept up to 72 hours [@google-gemini-privacy].
 
 For you, Gemini's switch costs you your saved chats. ChatGPT keeps your history with its switch off [@openai-data-controls].
 
 ## What doesn't the switch do?
 
-**Past training stays.** Anthropic says so outright; the others don't say. Anthropic says data "will still be included in model training that has already started" [@anthropic-training-setting]. Anthropic stops using older stored chats in future training runs [@anthropic-training-setting]. Claude chats from before the 2025 change were not used unless you reopened them [@anthropic-consumer-terms-2025].
+**Past training stays.** Anthropic says so outright; the others don't say. Anthropic says data "will still be included in model training that has already started". Anthropic stops using older stored chats in future training runs [@anthropic-training-setting]. Claude chats from before the 2025 change were not used unless you reopened them [@anthropic-consumer-terms-2025].
 
-**Your history stays.** Turning off ChatGPT's switch doesn't delete or hide saved chats [@openai-data-controls]. Delete a chat separately if you want it gone [@openai-data-controls].
+**Your history stays.** Turning off ChatGPT's switch doesn't delete or hide saved chats. Delete a chat separately if you want it gone [@openai-data-controls].
 
-**Feedback can send the whole chat.** On ChatGPT, a thumbs up or down means "the entire conversation" may be used to train models [@openai-data-controls]. That holds even after you opt out [@openai-data-controls]. Anthropic may train on feedback too; it separates feedback from your account and keeps it up to 5 years [@anthropic-training-consumer]. In Gemini, feedback also sends your last 24 hours of chats [@google-gemini-privacy]. People review it, and it is kept up to 3 years [@google-gemini-privacy].
+**Feedback can send the whole chat.** On ChatGPT, a thumbs up or down means "the entire conversation" may be used to train models. That holds even after you opt out [@openai-data-controls]. Anthropic may train on feedback too; it separates feedback from your account and keeps it up to 5 years [@anthropic-training-consumer]. In Gemini, feedback also sends your last 24 hours of chats. People review it, and it is kept up to 3 years [@google-gemini-privacy].
 
 **Safety review goes on.** Claude chats flagged by safety checks may still be used to improve those checks [@anthropic-training-setting]. OpenAI keeps even Temporary Chats up to 30 days for safety [@openai-data-controls]. Google has people review some Gemini chats even with its setting off [@google-gemini-privacy].
 

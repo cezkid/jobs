@@ -32,7 +32,7 @@ For you, the rules with studies behind them deserve the most care: accuracy, typ
 
 ## Does your resume have to match your records?
 
-Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year [@hireright-2025]. The most common were undisclosed criminal records and education or work history that did not match [@hireright-2025].
+Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year. The most common were undisclosed criminal records and education or work history that did not match [@hireright-2025].
 
 HireRight sells background checks, and the people it asked work at firms that run checks. The survey's question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.
 
@@ -58,7 +58,7 @@ For you, a skill the posting asks for and you lack is a gap to know about. Addin
 
 ## How far back should a resume go?
 
-One job-site guide tells senior candidates to list work "up to the last 10-15 years" [@indeed-experience-2025]. It also says to keep newest jobs first and give older jobs less detail [@indeed-experience-2025].
+One job-site guide tells senior candidates to list work "up to the last 10-15 years". It also says to keep newest jobs first and give older jobs less detail [@indeed-experience-2025].
 
 The rule is convention, with no study behind it. Older jobs can stay as short lines, so the page shows no false hole in the middle.
 
@@ -68,11 +68,11 @@ For you, keep jobs newest first, give recent, relevant work the most room, and s
 
 Long time out of work costs callbacks. For short spells, the two main studies disagree.
 
-A 2024 review combined field experiments with about 67,000 made-up applicants [@dhert-2024, p. 8]. The studies came from 7 countries [@dhert-2024, p. 4]. Compared with people in work, 1-6 months out of work showed no clear effect on positive replies [@dhert-2024, p. 15]. Being out of work 13-18 months cut positive replies by about 21% [@dhert-2024, p. 15]. Being out 19-36 months cut them by about 27% [@dhert-2024, p. 15]. The review is a discussion paper, not yet peer-reviewed.
+A 2024 review combined field experiments with about 67,000 made-up applicants [@dhert-2024, p. 8]. The studies came from 7 countries [@dhert-2024, p. 4]. Compared with people in work, 1-6 months out of work showed no clear effect on positive replies. Being out of work 13-18 months cut positive replies by about 21%. Being out 19-36 months cut them by about 27% [@dhert-2024, p. 15]. The review is a discussion paper, not yet peer-reviewed.
 
-A US field experiment found something different for short spells. It sent about 12,000 made-up resumes for sales and office jobs in 2011 [@kroft-2013]. Callbacks fell sharply over the first 8 months out of work, then stayed flat [@kroft-2013]. At 8 months, callbacks were about 45% lower than at 1 month [@kroft-2013]. That study compared people recently out of work with people out longer, not with people in work.
+A US field experiment found something different for short spells. It sent about 12,000 made-up resumes for sales and office jobs in 2011. Callbacks fell sharply over the first 8 months out of work, then stayed flat. At 8 months, callbacks were about 45% lower than at 1 month [@kroft-2013]. That study compared people recently out of work with people out longer, not with people in work.
 
-Most of these studies tested people out of work now, not a past break between jobs. The review found only 7 studies on a past break [@dhert-2024]. Time out of the job market for other reasons was tested less often, and cost more [@dhert-2024].
+Most of these studies tested people out of work now, not a past break between jobs. The review found only 7 studies on a past break. Time out of the job market for other reasons was tested less often, and cost more [@dhert-2024].
 
 Some screening software also filters gaps. In a 2020 survey, 48% of executives said their software filtered middle-skills applicants on gaps over 6 months [@fuller-2021, p. 22-23]. Only executives whose software ranks or filters applicants were asked. Those are their answers, not a measurement.
 
@@ -80,15 +80,15 @@ For you, longer time out of work is worth handling with care. Shorter spells may
 
 ## Does explaining a gap help?
 
-The studies disagree. In one US field experiment, a resume and cover letter saying the gap was an illness, now recovered, did a little better than no reason [@namingit-2021]. An early summary of that study reports replies of 25.6% with the reason and 23.3% without [@namingit-2021]. That summary does not say whether the difference could be chance.
+The studies disagree. In one US field experiment, a resume and cover letter saying the gap was an illness, now recovered, did a little better than no reason. An early summary of that study reports replies of 25.6% with the reason and 23.3% without [@namingit-2021]. That summary does not say whether the difference could be chance.
 
-A larger UK experiment found no gain from a childcare reason. Mothers' resumes with a 2.5-year gap explained as full-time childcare did no better than an unexplained gap [@kristal-2023]. The same study tried listing years worked per job instead of dates, which hides the gap. Listing years raised replies by about 8% over resumes with no gap at all [@kristal-2023].
+A larger UK experiment found no gain from a childcare reason. Mothers' resumes with a 2.5-year gap explained as full-time childcare did no better than an unexplained gap. The same study tried listing years worked per job instead of dates, which hides the gap. Listing years raised replies by about 8% over resumes with no gap at all [@kristal-2023].
 
 For you, a one-line reason is a cheap, honest step, but no study shows it reliably helps. Bias against gaps is the employer's, not a flaw in you. Application forms such as Workday's ask for start and end dates anyway.
 
 ## Do typos really matter?
 
-Probably, though no study has tested them in real hiring. Every typo study we found asked people to rate resumes [@sterkens-2023]. In a 2023 study, 445 recruiters in Belgium rated made-up graduate resumes [@sterkens-2023]. Two spelling errors lowered the rated chance of an interview by 7.3 points out of 100 [@sterkens-2023]. Five errors lowered it by 18.5 points [@sterkens-2023, p. 10].
+Probably, though no study has tested them in real hiring. Every typo study we found asked people to rate resumes. In a 2023 study, 445 recruiters in Belgium rated made-up graduate resumes. Two spelling errors lowered the rated chance of an interview by 7.3 points out of 100 [@sterkens-2023]. Five errors lowered it by 18.5 points [@sterkens-2023, p. 10].
 
 About half of that penalty came from recruiters judging the applicant as less careful, less able or worse with people [@sterkens-2023]. The study asked recruiters to rate resumes, not to hire, so it is a lab study. The resumes were in Dutch, for recent graduates, so US results may differ.
 
@@ -98,7 +98,7 @@ For you, a careful proofread, by you and someone else, is one of the cheapest fi
 
 One page is the student rule; two pages is common with more experience. MIT's career office says to stick to one page "unless you have extensive experience or an advanced degree" [@mit-capd-resumes]. That is convention.
 
-The test most often quoted for two pages is weak. ResumeGo, a resume-writing company, ran a hiring simulation with 482 recruiters and managers [@resumego-2018]. Two-page resumes were picked 5,375 times out of 7,712 [@resumego-2018]. The company says both versions showed similar experience, but the two-page ones held more detail. It is a seller's own test, not peer-reviewed, and not real hiring.
+The test most often quoted for two pages is weak. ResumeGo, a resume-writing company, ran a hiring simulation with 482 recruiters and managers. Two-page resumes were picked 5,375 times out of 7,712 [@resumego-2018]. The company says both versions showed similar experience, but the two-page ones held more detail. It is a seller's own test, not peer-reviewed, and not real hiring.
 
 Typeface changes page count more than people expect. Our measurement, September 2026: the same resume ran 2 pages in a font fitting 98 characters per line. A wider font fitting 91 characters per line ran 3 pages, with 19 lines with a few words alone. Nothing else changed.
 
@@ -106,9 +106,9 @@ For you, use the length your relevant experience fills, and pick a narrow, plain
 
 ## What should a resume leave off?
 
-US career guides say to leave off a photo and personal details. MIT's career office says not to include age, religion, health or marital status [@mit-capd-resumes]. MIT also says photos "are generally not preferred" on US resumes [@mit-capd-resumes].
+US career guides say to leave off a photo and personal details. MIT's career office says not to include age, religion, health or marital status. MIT also says photos "are generally not preferred" on US resumes [@mit-capd-resumes].
 
-A photo invites judgments about looks. In an Israeli field experiment, 5,312 resumes went to 2,656 real job ads, some with a photo [@ruffle-2015]. Attractive men got more replies with a photo [@ruffle-2015]. Women without a photo got the most replies of all women [@ruffle-2015]. Photos are optional in Israel, and US results may differ.
+A photo invites judgments about looks. In an Israeli field experiment, 5,312 resumes went to 2,656 real job ads, some with a photo. Attractive men got more replies with a photo. Women without a photo got the most replies of all women [@ruffle-2015]. Photos are optional in Israel, and US results may differ.
 
 A full street address adds little a US employer needs before an interview. Leaving it off is our rule; city and state are enough to show where you live.
 
@@ -116,7 +116,7 @@ For you, leave off the photo, birth date, marital status and street address.
 
 ## Does layout matter?
 
-A plain, one-column page is the safe choice. In a 2018 eye-tracking test by Ladders, a job site, resumes that held recruiters' attention longest had simple layouts and clear headings [@ladders-2018]. The worst had clutter, several columns and missing headings [@ladders-2018]. It is a vendor's test, and the press release does not say how many recruiters took part.
+A plain, one-column page is the safe choice. In a 2018 eye-tracking test by Ladders, a job site, resumes that held recruiters' attention longest had simple layouts and clear headings. The worst had clutter, several columns and missing headings [@ladders-2018]. It is a vendor's test, and the press release does not say how many recruiters took part.
 
 Our measurement, September 2026, shows how layout trips up software. A heading with letters spaced apart came back as "EXP E R I ENC E" from one PDF-to-web-page converter. Three other PDF text readers read it whole. Dates set at the right edge of a line were read after the job's bullet points by pdftotext, a common PDF text reader. A degree and school on one line filled Workday's school box wrongly and left its degree box empty.
 
