@@ -24,31 +24,68 @@ plainly -> user gets tailored PDF + answers to paste.
 | `questions.py` | shared question shape (`KINDS`, `KEYS`), answers from resume + setup, answers file | only if the system asks something no kind covers |
 | `browser.py` | Job Finder's Chrome (own profile in `.data/`, no automation flag), reused across applications | no |
 | `form.py` | the `apply-form prepare / fill` steps, report, never Submit | no |
+| `dom.py` | any form page read as plain HTML (frames, open shadow roots), stable hooks, generic fill | only if the page has a control it can't read |
+| `lab.py` | `apply-form measure` (developers): throwaway Chrome, every write blocked, canary first | no |
 | `systems/__init__.py` | picks the system from the link | one line: add to `SYSTEMS` |
 | `systems/<name>.py` | read the form's questions; type an answer into its widgets | new file |
 
 ## Add a system
 
-1. **Measure first.** Live posting. Where questions come from: public job-board API (Ashby,
-   Greenhouse, Lever have one), else read the page (UKG: its own page data, after sign-in). Find the steady hook on each question box -
-   never generated class names like `_active_1svni_57` (change each release).
-2. **Write `systems/<name>.py`** per contract in `systems/__init__.py`: `NAME`, `READY`,
-   `matches`, `application_url`, `questions`, `fill`, `ids_on_page`. Native types ->
-   `questions.KINDS`, native system fields -> `questions.KEYS`. Unknown types -> `text`, native
-   name kept in `native`. Employer's own boxes: `key_from_title` (links, names). Names: box
-   labelled legal / background check -> `contact.legal_*`; preferred -> page name; other /
-   maiden -> `other_names`; plain Name / First / Last -> NEEDED when page name != legal name
-   until `contact.form_name` says which. First/last never split from a 3+ word name or initial.
-   Work history: jobs from `questions.form_roles` (tailored page's jobs vs all, `contact.form_jobs`;
-   form asking complete history -> all; `asks_complete_history` reads the form text), never `master["roles"]`.
-   Form over several pages: the optional members below (`PER_PAGE`, `LATER`, `page`, `read`, `on_tab`).
-3. **`fill` checks what took.** Read value / selected state back after typing; return `ok`,
-   `ASK <why>` (nearest choice, or nothing matched) or `FAIL <why>`. Never click Submit, Next or
-   Save.
-4. **Register** in `SYSTEMS`. Contract test fails until you do.
-5. **Tests:** saved (anonymised) form definition -> questions; link matching.
-6. **`docs/<name>.md`:** widgets table + tenant notes, like `ashby.md`. Add a row to the table
-   above, and to the `AGENTS.md` privacy table if the system sees something new.
+In order - each step's output feeds the next:
+
+1. **Measure** - `uv run app/jobs.py apply-form measure "<link>" [--click "Apply" ...]` on a live
+   posting. Writes `.data/measure/<host>-<time>.json`: every control (`dom.snapshot`), ids that
+   changed between two loads (made per load - never a hook), JSON the page fetched (first 2 KB
+   each: where the form definition lives), every blocked write. Also: public job-board API?
+   (Ashby, Greenhouse, Lever have one.) Never generated class names like `_active_1svni_57`.
+2. **Facts doc** `docs/<name>.md`: widgets table + tenant notes, measured + dated, how many
+   postings / tenants, like `ashby.md`. Unmeasured = say so.
+3. **Module** `systems/<name>.py` per contract in `systems/__init__.py`: `NAME`, `READY`,
+   `matches`, `application_url`, `questions`, `fill`, `ids_on_page`. Plain HTML form ->
+   `dom.questions` + `dom.fill`, no copy. Native types -> `questions.KINDS`, native system
+   fields -> `questions.KEYS`. Unknown types -> `text`, native name kept in `native`.
+   Employer's own boxes: `key_from_title` (links, names). Names: box labelled legal /
+   background check -> `contact.legal_*`; preferred -> page name; other / maiden ->
+   `other_names`; plain Name / First / Last -> NEEDED when page name != legal name until
+   `contact.form_name` says which. First/last never split from a 3+ word name or initial.
+   Work history: jobs from `questions.form_roles` (tailored page's jobs vs all,
+   `contact.form_jobs`; form asking complete history -> all; `asks_complete_history` reads the
+   form text), never `master["roles"]`. Form over several pages: the optional members below
+   (`PER_PAGE`, `LATER`, `page`, `read`, `on_tab`). `fill` checks what took: read value /
+   selected state back; `ok`, `ASK <why>` or `FAIL <why>`. Never click Submit, Next or Save.
+   Register in `SYSTEMS` - contract test fails until you do.
+4. **Test file**: saved (anonymised) form definition -> questions; link matching.
+5. **Try** - `apply-form try` (not built yet): synthetic values typed into the live form, same
+   block as measure.
+6. **Shared rows**: a row in the table above, and in the `AGENTS.md` privacy table if the system
+   sees something new.
+
+### Measuring safely
+
+A live form must never get an applicant record, anything typed, or the user's window:
+
+- **Throwaway profile**: fresh Chrome per run in `.data/measure-browser/<run>`, deleted after;
+  never `.data/apply-browser`. Started like the user's (fixed port, no automation flag).
+  Never reads `My Resume/` or `My Settings/`.
+- **Block**: at browser-context level, before the page loads - every request not GET / HEAD /
+  OPTIONS aborted + logged w/ the step that set it off; every WebSocket stubbed, never
+  connected; service workers bypassed, and a page one controls is refused (it can send past the
+  block). GETs pass: a link can still carry text (measured 2026-10-03: image pixel w/ typed text
+  went through) - safe only because measure types nothing and try types only synthetic values.
+- **Canary first, every run**: local listener on two hosts; a page fires XHR POST, keepalive
+  fetch, sendBeacon, native form POST, worker fetch, cross-site frame POST, WebSocket send (main
+  page + frame). Any reaching the listener, or any not seen blocked -> run stops, nothing measured.
+  Measured 2026-10-03, Chrome attached over its debugging port + headless: all 9 blocked.
+- **No allow-lists, ever.** A page that won't render or advance while blocked = "not
+  measurable while blocked", recorded as a fact. Never loosen the block to get further.
+- **Clicks**: `--click` takes exact visible text; refused if it says submit / send / save /
+  finish / complete / sign. No account, password, captcha, terms / consent / SMS box, signature.
+- **Synthetic only**: "Test Applicant", `test@example.com`, 555-0100, a generated test PDF.
+- **Budget**: 10 page loads per employer site per bead (measure = 2 + the canary's local one);
+  bot checks can flag the address the user applies from. Saved JSON once captured.
+- **Anonymise**: measure appends employer names, the tenant part of the link and prefilled
+  values to `.data/measure/tenants.txt`; before committing, `grep -rniFf .data/measure/tenants.txt
+  app/ AGENTS.md Guides/` prints nothing. Docs say "tenant A / B", fixtures `acme`.
 
 ## Browser (every system)
 

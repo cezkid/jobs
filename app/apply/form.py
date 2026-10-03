@@ -10,6 +10,7 @@ the answers as a page to paste from.
 A form spread over pages: `fill` works on the user's own tab, fills what this page shows (the rest
 reported LATER), the user clicks Next / Continue, then `prepare` again (systems that read the page)
 and `fill` again.
+`measure <link>` (developers): a safe look at a live form - apply/lab.py.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
 import argparse
@@ -274,7 +275,14 @@ def main() -> None:
     f.add_argument("slug")
     t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
     t.add_argument("slug")
+    m = sub.add_parser("measure", help="(developers) safe look at a live form: throwaway Chrome, every write "
+                       "blocked, canary first -> .data/measure/")
+    m.add_argument("url")
+    m.add_argument("--click", action="append", default=[], help="exact visible text to click first (Apply ...)")
     args = ap.parse_args()
+    if args.step == "measure":
+        from apply import lab
+        return lab.measure(args.url, args.click)
     {"prepare": lambda: prepare(args.slug, args.url), "fill": lambda: fill(args.slug),
      "paste": lambda: paste(args.slug)}[args.step]()
 
