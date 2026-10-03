@@ -1,0 +1,272 @@
+[
+ {
+  "name": "Personal information",
+  "fields": [
+   {
+    "id": "firstname",
+    "required": true,
+    "label": "First name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "lastname",
+    "required": true,
+    "label": "Last name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "email",
+    "required": true,
+    "label": "Email",
+    "type": "email",
+    "maxLength": 255
+   },
+   {
+    "id": "phone",
+    "required": true,
+    "label": "Phone",
+    "type": "phone",
+    "helper": "The hiring team may use this number to contact you about this job.",
+    "maxLength": 255
+   },
+   {
+    "id": "address",
+    "required": false,
+    "label": "Address",
+    "helper": "Include your city, region, and country, so that employers can easily manage your application.",
+    "type": "text",
+    "value": "Example City, United States of America",
+    "prefilledByLocation": true
+   },
+   {
+    "id": "avatar",
+    "required": false,
+    "label": "Photo",
+    "type": "file",
+    "supportedFileTypes": [
+     ".jpg",
+     ".jpeg",
+     ".gif",
+     ".png"
+    ],
+    "supportedMimeTypes": [
+     "image/jpeg",
+     "image/gif",
+     "image/png"
+    ],
+    "maxFileSize": 12000000
+   }
+  ]
+ },
+ {
+  "name": "Profile",
+  "fields": [
+   {
+    "id": "education",
+    "required": false,
+    "label": "Education",
+    "type": "group",
+    "fields": [
+     {
+      "id": "school",
+      "required": true,
+      "label": "School",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "field_of_study",
+      "required": false,
+      "label": "Field of study",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "degree",
+      "required": false,
+      "label": "Degree",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "start_date",
+      "required": false,
+      "label": "Start date",
+      "type": "date"
+     },
+     {
+      "id": "end_date",
+      "required": false,
+      "label": "End date",
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "id": "experience",
+    "required": false,
+    "label": "Experience",
+    "type": "group",
+    "fields": [
+     {
+      "id": "title",
+      "required": true,
+      "label": "Title",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "company",
+      "required": false,
+      "label": "Company",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "industry",
+      "required": false,
+      "label": "Industry",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "summary",
+      "required": false,
+      "label": "Summary",
+      "type": "paragraph"
+     },
+     {
+      "id": "start_date",
+      "required": false,
+      "label": "Start date",
+      "type": "date"
+     },
+     {
+      "id": "end_date",
+      "required": false,
+      "label": "End date",
+      "type": "date"
+     },
+     {
+      "id": "current",
+      "required": false,
+      "label": "I currently work here",
+      "type": "boolean"
+     }
+    ]
+   },
+   {
+    "id": "summary",
+    "required": false,
+    "label": "Summary",
+    "type": "paragraph"
+   },
+   {
+    "id": "resume",
+    "required": true,
+    "label": "Resume",
+    "type": "file",
+    "supportedFileTypes": [
+     ".pdf",
+     ".doc",
+     ".docx",
+     ".odt",
+     ".rtf"
+    ],
+    "supportedMimeTypes": [
+     "application/pdf",
+     "application/msword",
+     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+     "application/vnd.oasis.opendocument.text",
+     "application/rtf"
+    ],
+    "maxFileSize": 12000000
+   }
+  ]
+ },
+ {
+  "name": "Details",
+  "fields": [
+   {
+    "id": "cover_letter",
+    "required": false,
+    "label": "Cover letter",
+    "type": "paragraph",
+    "maxLength": 200000
+   },
+   {
+    "id": "CA_11864",
+    "required": true,
+    "label": "Do you have the legal right to work in the United States?",
+    "type": "boolean"
+   },
+   {
+    "id": "CA_11865",
+    "required": false,
+    "label": "If employed will you provide documentation establishing that you may legally work in the United States?",
+    "type": "boolean"
+   },
+   {
+    "id": "CA_15792",
+    "required": true,
+    "label": "Have you ever been employed with Acme before?",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "CA_15793",
+    "required": true,
+    "label": "Do any of your friends or relatives work for Acme? If yes, Who?",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "CA_11866",
+    "required": true,
+    "label": "Are you over 18 years of age?",
+    "type": "boolean"
+   },
+   {
+    "id": "CA_11867",
+    "required": true,
+    "label": "Are you willing to work:",
+    "type": "multiple",
+    "options": [
+     {
+      "name": "152176",
+      "value": "Weekends"
+     },
+     {
+      "name": "152177",
+      "value": "Evenings "
+     },
+     {
+      "name": "152178",
+      "value": "Holiday"
+     }
+    ],
+    "singleOption": false
+   },
+   {
+    "id": "CA_11868",
+    "required": true,
+    "label": "Have you ever been convicted of a crime (include felonies and misdemeanors, pleas of guilty or no contest; exclude only if the conviction has been expunged or sealed)? Disclosure of a criminal conviction does not automatically disqualify you from consideration for employment.",
+    "type": "boolean"
+   },
+   {
+    "id": "CA_11869",
+    "required": true,
+    "label": "If you answered “yes,” please identify each crime separately, including the date and nature of the charge, date of conviction/plea, the sentence imposed, and current status. If you answered \"no\" enter N/A.",
+    "type": "paragraph"
+   },
+   {
+    "id": "QA_12170790",
+    "required": true,
+    "label": "Acme Company is an equal opportunity employer. Company employees and applicants are protected from discrimination based on race, color, religion, sex, national origin, age, disability, genetic information, military service or any other characteristic or status protected by applicable law.  These protections apply to all employment decisions, including, but not limited to, recruitment, hiring, promotions, performance management, and disciplinary issues. The Company provides reasonable accommodation(s) for employees or applicants with disabilities; for pregnancy, childbirth, or related medical conditions; and for religious beliefs and practices. \nPlease enter today’s date to verify your acknowledgment of Acme’s Equal Employment Opportunity (EEO) statement.",
+    "type": "date"
+   }
+  ]
+ }
+]

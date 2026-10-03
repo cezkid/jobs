@@ -1,0 +1,400 @@
+[
+ {
+  "name": "Personal information",
+  "fields": [
+   {
+    "id": "firstname",
+    "required": true,
+    "label": "First name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "lastname",
+    "required": true,
+    "label": "Last name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "email",
+    "required": true,
+    "label": "Email",
+    "type": "email",
+    "maxLength": 255
+   },
+   {
+    "id": "headline",
+    "required": false,
+    "label": "Headline",
+    "type": "text",
+    "maxLength": 255
+   },
+   {
+    "id": "phone",
+    "required": true,
+    "label": "Phone",
+    "type": "phone",
+    "helper": "The hiring team may use this number to contact you about this job.",
+    "maxLength": 255
+   },
+   {
+    "id": "address",
+    "required": true,
+    "label": "Address",
+    "helper": "Include your city, region, and country, so that employers can easily manage your application.",
+    "type": "text",
+    "value": "Example City, United States of America",
+    "prefilledByLocation": true
+   }
+  ]
+ },
+ {
+  "name": "Profile",
+  "fields": [
+   {
+    "id": "education",
+    "required": false,
+    "label": "Education",
+    "type": "group",
+    "fields": [
+     {
+      "id": "school",
+      "required": true,
+      "label": "School",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "field_of_study",
+      "required": false,
+      "label": "Field of study",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "degree",
+      "required": false,
+      "label": "Degree",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "start_date",
+      "required": false,
+      "label": "Start date",
+      "type": "date"
+     },
+     {
+      "id": "end_date",
+      "required": false,
+      "label": "End date",
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "id": "experience",
+    "required": false,
+    "label": "Experience",
+    "type": "group",
+    "fields": [
+     {
+      "id": "title",
+      "required": true,
+      "label": "Title",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "company",
+      "required": false,
+      "label": "Company",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "industry",
+      "required": false,
+      "label": "Industry",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "summary",
+      "required": false,
+      "label": "Summary",
+      "type": "paragraph"
+     },
+     {
+      "id": "start_date",
+      "required": false,
+      "label": "Start date",
+      "type": "date"
+     },
+     {
+      "id": "end_date",
+      "required": false,
+      "label": "End date",
+      "type": "date"
+     },
+     {
+      "id": "current",
+      "required": false,
+      "label": "I currently work here",
+      "type": "boolean"
+     }
+    ]
+   },
+   {
+    "id": "summary",
+    "required": false,
+    "label": "Summary",
+    "type": "paragraph"
+   },
+   {
+    "id": "resume",
+    "required": true,
+    "label": "Resume",
+    "type": "file",
+    "supportedFileTypes": [
+     ".pdf",
+     ".doc",
+     ".docx",
+     ".odt",
+     ".rtf"
+    ],
+    "supportedMimeTypes": [
+     "application/pdf",
+     "application/msword",
+     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+     "application/vnd.oasis.opendocument.text",
+     "application/rtf"
+    ],
+    "maxFileSize": 12000000
+   }
+  ]
+ },
+ {
+  "name": "Details",
+  "fields": [
+   {
+    "id": "cover_letter",
+    "required": false,
+    "label": "Cover letter",
+    "type": "paragraph",
+    "maxLength": 200000
+   },
+   {
+    "id": "QA_9530803",
+    "required": true,
+    "label": "Are you available to work weekdays, weekends and holidays?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530804",
+    "required": true,
+    "label": "Are you available to attend 5 days of computer training?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530805",
+    "required": true,
+    "label": "Fluent in English?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530806",
+    "required": true,
+    "label": "Are you legally authorized to work in the United States of America (USA) without sponsorship?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530807",
+    "required": true,
+    "label": "Are you willing to undergo the required airport background check?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530809",
+    "required": true,
+    "label": "What gender do you identify as?",
+    "type": "multiple",
+    "options": [
+     {
+      "name": "5094526",
+      "value": "Female"
+     },
+     {
+      "name": "5094527",
+      "value": "Male"
+     },
+     {
+      "name": "5094528",
+      "value": "Non-binary"
+     },
+     {
+      "name": "5094529",
+      "value": "Other"
+     },
+     {
+      "name": "5094530",
+      "value": "Prefer not to answer"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "QA_9530811",
+    "required": true,
+    "label": "Are you a protected veteran?",
+    "type": "multiple",
+    "options": [
+     {
+      "name": "5094540",
+      "value": "Yes, I am a protected veteran"
+     },
+     {
+      "name": "5094541",
+      "value": "No, I am not a protected veteran"
+     },
+     {
+      "name": "5094542",
+      "value": "Prefer not to answer"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "QA_9831316",
+    "required": true,
+    "label": "Which languages are you capable of speaking fluently or at an advanced level? (Check all that apply)",
+    "type": "multiple",
+    "options": [
+     {
+      "name": "5249623",
+      "value": "English"
+     },
+     {
+      "name": "5249624",
+      "value": "Korean"
+     },
+     {
+      "name": "5249625",
+      "value": "Tagalog"
+     },
+     {
+      "name": "5249626",
+      "value": "Mandarin"
+     },
+     {
+      "name": "5249627",
+      "value": "Cantonese"
+     },
+     {
+      "name": "5249628",
+      "value": "Thai"
+     },
+     {
+      "name": "5249629",
+      "value": "Hindi or Gujarati"
+     },
+     {
+      "name": "5249630",
+      "value": "Japanese"
+     },
+     {
+      "name": "5249631",
+      "value": "French"
+     },
+     {
+      "name": "5249632",
+      "value": "German"
+     },
+     {
+      "name": "5249633",
+      "value": "Spanish"
+     },
+     {
+      "name": "5249634",
+      "value": "Arabic"
+     },
+     {
+      "name": "5249635",
+      "value": "Other"
+     }
+    ],
+    "singleOption": false
+   },
+   {
+    "id": "QA_9831317",
+    "required": true,
+    "label": "If you selected “Other,” please specify which language(s) you speak fluently or at an advanced level:",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "QA_9530815",
+    "required": true,
+    "label": "Do you have reliable transportation to and from the job site?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530816",
+    "required": true,
+    "label": "Have you previously been employed by Acme?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530817",
+    "required": true,
+    "label": "I authorize Acme Corporation to obtain information about me from previous employers and schools.",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530818",
+    "required": true,
+    "label": "I authorize my previous employers and schools that I have attended to disclose to Acme Corporation such information about me as Acme may request.",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530819",
+    "required": true,
+    "label": "By checking \"Yes\", I acknowledge that I have read and understood all questions asked on this application and that my answers are true and correct.",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_9530820",
+    "required": true,
+    "label": "When would you be available for a phone screening? (It'll be only 15 minutes of your time!)",
+    "type": "multiple",
+    "options": [
+     {
+      "name": "5094557",
+      "value": "Morning (8:00–11:00 AM)"
+     },
+     {
+      "name": "5094558",
+      "value": "Afternoon (12:00–3:00 PM)"
+     },
+     {
+      "name": "5094559",
+      "value": "Evening (4:00–6:00 PM)"
+     },
+     {
+      "name": "5094560",
+      "value": "Night (6:00–9:00 PM)"
+     }
+    ],
+    "singleOption": false
+   },
+   {
+    "id": "QA_11529563",
+    "required": true,
+    "label": "Were you referred to us by an Acme Employee? If yes please provide their name.",
+    "type": "text",
+    "maxLength": 127
+   }
+  ]
+ }
+]

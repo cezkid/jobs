@@ -10,7 +10,7 @@ the answers as a page to paste from.
 A form spread over pages: `fill` works on the user's own tab, fills what this page shows (the rest
 reported LATER), the user clicks Next / Continue, then `prepare` again (systems that read the page)
 and `fill` again.
-`measure <link>` (developers): a safe look at a live form - apply/lab.py; `try <link> [--next]`: a
+`measure <link>` (developers): a safe look at a live form - apply/lab.py; `try <link> [--next] [--no-upload]`: a
 system's filler on it with synthetic answers - apply/trial.py.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
@@ -33,7 +33,9 @@ SETTLE_MS = 2500
 # what a closed posting says where its form would be
 CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|(?:position|job|role) (?:has been|is) "
                     r"(?:filled|closed)|(?:this )?job (?:post(?:ing)? )?(?:is )?closed|isn't accepting applications|"
-                    r"not accepting applications|posting (?:has )?expired", re.I)
+                    r"not accepting applications|posting (?:has )?expired|"
+                    # Lever, 404 at the form link (2026-10-03)
+                    r"posting you['’]re looking for might have closed", re.I)
 
 
 def job_dir(config: dict, slug: str) -> Path:
@@ -306,13 +308,15 @@ def main() -> None:
                        "canary as measure, never Submit")
     tr.add_argument("url")
     tr.add_argument("--next", action="store_true", help="then press the one Next / Continue button (block on)")
+    tr.add_argument("--no-upload", action="store_true", help="leave file boxes: a page whose upload is blocked "
+                    "can break the rest of the form (Workable)")
     args = ap.parse_args()
     if args.step == "measure":
         from apply import lab
         return lab.measure(args.url, args.click)
     if args.step == "try":
         from apply import trial
-        return trial.trial(args.url, args.next)
+        return trial.trial(args.url, args.next, upload=not args.no_upload)
     {"prepare": lambda: prepare(args.slug, args.url), "fill": lambda: fill(args.slug),
      "paste": lambda: paste(args.slug)}[args.step]()
 

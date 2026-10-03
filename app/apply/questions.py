@@ -80,7 +80,7 @@ LATER = "LATER"
 # Not "informed consent" (clinical work), "signed off", a certification held.
 SIGNING_PATTERN = (r"terms (?:and|&) conditions|terms of (?:use|service)|privacy (?:policy|notice|statement)|"
                    r"(?<!informed )\bconsent|\bopt[- ]?in\b|\bi (?:hereby )?(?:agree|certify|attest|acknowledge|"
-                   r"authori[sz]e|understand)\b|\bcertify\b|\battest\b|\backnowledg(?:e|ement)\b|"
+                   r"authori[sz]e|understand)\b|\bcertify\b|\battest\b|\backnowledg(?:e|e?ment)\b|"
                    r"\b(?:sms|text messag\w*|texts|automated (?:calls|messages))\b.{0,40}\b(?:receive|agree|consent)|"
                    r"\breceive (?:\w+ ){0,3}(?:sms|texts|text messages|automated calls)\b|"
                    r"\b(?:may|can) we (?:text|sms) you\b|(?<!digital )\bsignature\b|\be-?sign|"

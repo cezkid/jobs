@@ -71,7 +71,7 @@ def test_unsupported_form_read_ahead_becomes_a_page_to_paste(tmp_path, monkeypat
     monkeypatch.setattr(form.cfg, "resume_path", lambda c, k: tmp_path / "r.yml")
     monkeypatch.setattr(form.schema, "load", lambda p: {"contact": {"name": "Jane Doe", "links": ["linkedin.com/in/jane"]}})
     monkeypatch.setattr(form, "job_dir", lambda config, slug: folder)
-    form.prepare("5", "https://jobs.lever.co/acme/5")
+    form.prepare("5", "https://acme.recruitee.com/o/analyst")
     saved = json.loads((folder / ".data" / questions.FILE).read_text())
     assert saved["system"] == form.PASTE
     with pytest.raises(SystemExit, match="paste"):

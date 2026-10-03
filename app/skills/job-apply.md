@@ -2,9 +2,9 @@
 
 Fill a job application for the user, stopping before every Save/Submit. Workday (`*.myworkdayjobs.com`
 or `wd<N>.myworkday...`) through the Claude Chrome extension - Steps below. Every other supported
-system (Ashby, Greenhouse, UKG today; list in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
-#Other systems below. A system w/o a filler whose questions were read ahead (Lever,
-Workable, Recruitee - `app/docs/apply/answers.md`): `apply-form prepare` drafts from them, then
+system (Ashby, Greenhouse, Lever, UKG, Workable today; list in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
+#Other systems below. A system w/o a filler whose questions were read ahead
+(Recruitee - `app/docs/apply/answers.md`): `apply-form prepare` drafts from them, then
 `apply-form paste <job>` writes `Application answers.md` to paste from - say options weren't read
 ahead. None read ahead: `prepare` says so - offer the tailored PDF + answers by hand, and mention it
 can be taught (`apply-systems.md` #Add a system).
@@ -119,6 +119,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    keep it there (never on the resume). Answers from search settings: name them to the user.
    Cover letter box: upload `First_Last_Cover_Letter.pdf` (`fill` puts it in that box only, after
    their yes) or paste from `Cover letter.md`; none made -> offer `job-tailor` step 6.
+   Workable: the resume reaches the employer's site as soon as it is put in the box, before
+   Submit - say so when asking for the yes. Its Address box comes filled by the page from their
+   internet address - tell them to check it.
    UKG: form shows only after sign-in - `prepare` stops on the sign-in page in Job Finder's
    Chrome; user signs in or creates the account there, then rerun `prepare`. Its
    `resume-sections` question (add work history, education, skills, links from the resume): UKG
