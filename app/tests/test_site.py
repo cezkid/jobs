@@ -5,6 +5,7 @@ another site, and a share card fails silently (preview just shows no picture). T
 files on disk: no network, stdlib + pymupdf. Assets come from app/web/assets.py + app/web/og.html.
 """
 
+import importlib.util
 import json
 import re
 import struct
@@ -225,3 +226,11 @@ def test_install_line_shows_without_javascript_and_matches_the_script():
 def test_web_font_ships_with_its_licence():
     # OFL lets the font be served only w/ its licence alongside
     assert (DOCS / "fonts" / "OFL.txt").read_bytes() == (cfg.APP / "resume" / "fonts" / "Caladea" / "OFL.txt").read_bytes()
+
+
+def test_generated_files_are_fresh():
+    # sitemap.xml (+ research/, about/) come from app/web/pages.py; hand-edited or stale => rerun it
+    spec = importlib.util.spec_from_file_location("pages", cfg.APP / "web" / "pages.py")
+    pages = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(pages)
+    assert pages.problems(cfg.ROOT) == [], "run: uv run app/web/pages.py"

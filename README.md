@@ -67,7 +67,7 @@ All code under `app/`; root = user folders, `Guides/`, `docs/` (install page, Gi
 - `app/docs/resume/bullets.md` / `typeface.md` / `page-format.md` - bullet rules, font + page gates
 - `app/skills/` - skill bodies; stubs in `.claude/skills/` + `.agents/skills/`
 - `.github/CONTRIBUTING.md` - bug fixes + PRs (AI: `report-defect` skill)
-- `docs/` - install site (GitHub Pages); generated files from `uv run app/web/assets.py`, rules in
+- `docs/` - install site (GitHub Pages); generated files from `uv run app/web/assets.py` + `pages.py`, rules in
   [`app/docs/site.md`](app/docs/site.md); left out of the app download (`.gitattributes`)
 - Install scripts: `app/install/` - pasted line, not downloaded file -> avoids SmartScreen /
   Gatekeeper. Test w/o touching `~/jobs`: `JOBS_DIR=<dir> JOBS_NO_LAUNCH=1 JOBS_AI=claude`
