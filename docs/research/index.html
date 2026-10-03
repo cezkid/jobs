@@ -86,6 +86,21 @@
   }
   summary::after { transform: rotate(90deg); }
   details[open] > summary::after { transform: none; }
+  /* hover in ink, never yellow (audit A5): underline 1 -> 2px, instant; (hover: hover) = no hover left
+     stuck after a tap. The current Research link (3px) goes to 4px so it still answers the pointer */
+  @media (hover: hover) {
+    a:hover, summary:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; }
+    :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
+  }
+  /* research picks (home) + hub list: hovering an item thickens its top rule left to right (a ::before
+     scaleX: transform only, eased in full motion, instant in reduced) */
+  :is(.picks, .list) > li { position: relative; }
+  :is(.picks, .list) > li::before {
+    content: ""; position: absolute; left: 0; right: 0; top: -2px; border-top: 4px solid var(--text);
+    transform: scaleX(0); transform-origin: 0 0;
+  }
+  @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
+  @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {

@@ -51,6 +51,8 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
 - home in print: <= 5 pages (PDF) and the install line shows
 - ZOOM_H1, home at 1366x641, 1440x900, 1920x1080: the h1 at 200% zoom (half the viewport, device scale
   2) is >= its size at 100%, in device px (WCAG 1.4.4)
+- HOVER, home + hub + one article at 1366x641 (reduced motion): the mouse on each visible a, button +
+  summary changes >= 1 visual style of it and newly paints nothing #FFE433; a pick / hub item's top rule grows
 - STATUS, home at 1366x641: after Copy the role=status text is "Copied to the clipboard" and Copy's
   accessible name holds its visible label; after the OS switch the status names the OS shown
 - home's opening moment, 1366x641 + 390x844 (full motion): at load only the hero window animates
@@ -77,7 +79,8 @@ w/o crossfade, an opening played after one, a check finding 0 elements, paint an
 the Mac line on more lines, two framed objects at once, Copy + OS switch results unannounced / Copy named
 by a fixed label, the strike / bullet dots gone in forced colours, Copy shown / the Mac answer link hidden w/o JS,
 the h1's vh cap back below 1080px, footer links back to text height on touch), an article (a wide element, a
-console error, the Research link plain), the 404 (a blank band under its footer).
+console error, the Research link plain, links unchanged on hover), the hub (an item's top rule stuck), the
+404 (a blank band under its footer); home also gets a hover rule painting the highlighter.
 --capture DIR: every page at 1366x641, 1440x900, 1440x780 (Mac), 1920x1080, 390x844 phone, light +
 dark, reduced motion: full-page + per-screen shots and DIR/numbers.md (screens long, print pages, h1 +
 h2 px per desktop size) - before/after material.
@@ -469,8 +472,28 @@ FOOTER_BOTTOM_AT = (1440, 900)
 FOOTER_BOTTOM = """() => { const f = document.querySelector("footer"); if (!f) return null;
   return [f.getBoundingClientRect().bottom + scrollY,
           Math.max(innerHeight, document.documentElement.scrollHeight)]; }"""
+# HOVER (A5): home, hub + one article at 1366x641, reduced motion (hover changes land at once): the mouse on
+# each visible a / button / summary changes >= 1 visual style of it (an underline thickness on a box with no
+# underline doesn't count) and newly paints nothing #FFE433 (hover is ink, never the highlighter); a research
+# pick / hub item's ::before top rule grows. Elements above the page (the skip link) are keyboard-only: skipped
+HOVER_PAGES = ["index.html", "research/index.html", "research/what-makes-a-good-resume/index.html"]
+HOVER_SELECTOR = "a, button, summary"
+HOVER_MARK = "rgb(255, 228, 51)"
+# [i] -> null (hidden / above the page) or {what, x, y (client point on its first line box), style, rule}
+HOVER_STATE = """i => { const el = document.querySelectorAll("a, button, summary")[i];
+  if (!el.checkVisibility({visibilityProperty: true}) || el.getBoundingClientRect().bottom + scrollY <= 0) return null;
+  const cs = getComputedStyle(el), style = {};
+  for (const p of ["textDecorationLine", "textDecorationThickness", "textDecorationColor", "textUnderlineOffset",
+                   "borderTopWidth", "borderTopColor", "borderBottomWidth", "borderBottomColor", "outlineStyle",
+                   "outlineWidth", "outlineColor", "color", "backgroundColor", "backgroundImage", "backgroundSize",
+                   "transform", "opacity", "boxShadow"]) style[p] = cs[p];
+  const li = el.closest(".picks > li, .list > li");
+  const q = el.getClientRects()[0];
+  return {what: el.tagName.toLowerCase() + " " + JSON.stringify(el.textContent.trim().slice(0, 40)),
+          x: q.left + q.width / 2, y: q.top + q.height / 2, style,
+          rule: li && li.firstElementChild === el ? getComputedStyle(li, "::before").transform : null}; }"""
 PAINT_CAP = 3
-PAINT_CONCURRENT = "async () => {" + HELPERS + """
+PAINT_CONCURRENT ="async () => {" + HELPERS + """
   const PAINT = ["backgroundSize", "clipPath", "strokeDashoffset"];
   const paints = a => { try { return a.effect.getKeyframes().some(k => PAINT.some(p => p in k)); }
                         catch { return false; } };
@@ -627,11 +650,17 @@ FAULTS = [
      "</style>", "wide"),
     (HOME, "ZOOM_H1: vh cap back below 1080px", "<style>@media (max-width: 1079px) { h1 { font-size: "
      "min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem) !important; } }</style>", "zoom"),
+    (HOME, "HOVER: a hover rule paints the highlighter", "<style>a:hover { background: var(--mark) "
+     "!important; }</style>", "hover"),
+    (ARTICLE, "HOVER: links look the same on hover", "<style>a:hover { text-decoration-thickness: 1px !important; }"
+     "</style>", "hover"),
+    ("research/index.html", "HOVER: hub item's top rule stays put", "<style>.list > li:hover::before "
+     "{ transform: scaleX(0) !important; }</style>", "hover"),
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
-             "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "FOOTER_BOTTOM": "FOOTER_BOTTOM",
+             "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
              "0 matches": "found 0 elements"}
 
 
@@ -1052,6 +1081,40 @@ def check_status(browser, base: str, inject: str | None = None) -> list[str]:
     return failed
 
 
+def check_hover(browser, base: str, inject: str | None = None, names: list[str] | None = None) -> list[str]:
+    """HOVER (A5): the mouse on each visible link, button + summary changes how it looks, in ink only."""
+    failed = []
+    for name in names or HOVER_PAGES:
+        where = f"HOVER {name} at {FOLD[0]}x{FOLD[1]}"
+        with opened(browser, base, name, *FOLD, False, failed, where, inject, reduced_motion="reduce") as page:
+            count, seen = page.evaluate("s => document.querySelectorAll(s).length", HOVER_SELECTOR), 0
+            for i in range(count):
+                page.evaluate("i => document.querySelectorAll('a, button, summary')[i]"
+                              ".scrollIntoView({block: 'center'})", i)
+                before = page.evaluate(HOVER_STATE, i)
+                if before is None:
+                    continue
+                seen += 1
+                away = (1, 1) if abs(before["x"] - 1) + abs(before["y"] - 1) > 40 else (FOLD[0] - 2, FOLD[1] - 2)
+                page.mouse.move(*away)
+                before = page.evaluate(HOVER_STATE, i)
+                page.mouse.move(before["x"], before["y"])
+                after = page.evaluate(HOVER_STATE, i)
+                page.mouse.move(*away)
+                b, a = before["style"], after["style"]
+                plain = b["textDecorationLine"] == a["textDecorationLine"] == "none"
+                changed = [p for p in b if b[p] != a[p] and not (plain and p.startswith("text"))]
+                if not changed:
+                    failed.append(f"{where}: {before['what']} looks the same on hover")
+                failed += [f"{where}: {before['what']} paints the highlighter on hover ({p}: {a[p]})"
+                           for p in a if HOVER_MARK in a[p] and a[p] != b[p]]
+                if before["rule"] is not None and before["rule"] == after["rule"]:
+                    failed.append(f"{where}: {before['what']}'s top rule doesn't grow on hover ({after['rule']})")
+            if not seen:
+                failed.append(f"{where}: check found 0 elements for {HOVER_SELECTOR!r}")
+    return failed
+
+
 def run_chrome(base: str) -> tuple[list[str], list[str]]:
     from playwright.sync_api import sync_playwright
 
@@ -1074,6 +1137,7 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
                 failed += check_motion(browser, base, name, w, h, phone)
         failed += check_print(browser, base)
         failed += check_status(browser, base)
+        failed += check_hover(browser, base)
         f, r = check_zoom(browser, base)
         failed += f
         reports += r
@@ -1122,6 +1186,8 @@ def run_self_test(base: str) -> list[str]:
             return check_transition(browser, base, inject)
         if kind == "status":
             return check_status(browser, base, inject)
+        if kind == "hover":
+            return check_hover(browser, base, inject, [name])
         if kind == "zoom":
             return check_zoom(browser, base, inject)[0]
         return check_motion(browser, base, name, *FOLD, False, inject)

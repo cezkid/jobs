@@ -158,6 +158,13 @@ questions, install). Real behaviour only: employers, titles, dates never change;
   the subset; borders survive forced colours, backgrounds don't); forced colours = `<mark>` in
   `Mark`/`MarkText`; print = ink on white in either scheme (tokens reset on `body`, not `:root`,
   so the token table stays one source), no skip link or nav, marks printed (`print-color-adjust`).
+- Hover + press (audit A5; before it the site had 0 `:hover` rules - jurors hover every control):
+  ink only, inside `@media (hover: hover)` so a tap leaves nothing stuck. Links + summaries underline
+  2px (instant), the current Research link 3 -> 4px; Copy a 3px ink border (padding gives the 1px
+  back: nothing moves), `:active` 1px into the paper; picks + hub items thicken their top rule left
+  to right (`::before` `scaleX`, the only eased one, full motion only). No rotating +/- (details
+  motion was cut). qa HOVER: every visible link/button/summary on home, hub + an article changes
+  on hover and newly paints no `--mark`.
   Home print adds the desktop install steps, no buttons: 3 Letter pages (cap 5).
 - One family: Caladea (= resume typeface), Latin subset 400 + 700 preloaded (~19 KB each), name
   table kept (licence); metric-matched fallbacks (Cambria, Georgia w/ size-adjust; Georgia Italic
