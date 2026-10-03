@@ -15,6 +15,8 @@ from datetime import date, timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from playwright.sync_api import TimeoutError as PlaywrightTimeout
+
 from apply import dom, form, lab, questions, systems
 
 # a person's answers, made up: never the user's. Keys first (a name box is text by kind)
@@ -33,6 +35,7 @@ DATE_FORMATS = (("mm/dd/yyyy", "%m/%d/%Y"), ("dd/mm/yyyy", "%d/%m/%Y"), ("yyyy-m
 # the only buttons --next presses; anything that could send, save or sign is the applicant's
 NEXT = {"next", "continue", "next step"}
 REFUSE_NEXT = re.compile(r"submit|send|save|finish|complete|apply|sign", re.I)
+NEXT_NAME = re.compile(r"^\s*(?:next|continue|next\s+step)\s*$", re.I)
 APPLICANT = "the applicant's own step"
 
 
@@ -162,8 +165,9 @@ def covering(button) -> str:
 def press_next(page, block: lab.Block) -> None:
     """The one visible Next / Continue / Next Step button, pressed once with the block on. Page
     unchanged -> it needed a server write (blocked): said, never worked around."""
-    found = [b for b in page.get_by_role("button").filter(visible=True).all()
-             if next_ok(b.inner_text() or b.get_attribute("value") or "")]
+    # by accessible name: a web component's label is slotted text, its inner <button> reads ""
+    # (SmartRecruiters' Spark buttons, 2026-10-03)
+    found = page.get_by_role("button", name=NEXT_NAME).filter(visible=True).all()
     if len(found) != 1:
         print(f"--next: {len(found)} visible Next / Continue buttons - pressed none")
         return
@@ -171,7 +175,14 @@ def press_next(page, block: lab.Block) -> None:
     block.step = "--next"
     try:
         found[0].click(timeout=15000)
-    except Exception as e:  # a dialog / cookie banner over it (Paylocity's upload dialog + OneTrust, 2026-10-03)
+    except PlaywrightTimeout:  # a layer over the form's foot took the pointer (SmartRecruiters, 2026-10-03)
+        try:
+            found[0].focus()
+            found[0].press("Enter")
+        except Exception as e:  # a dialog / cookie banner over it (Paylocity's upload dialog + OneTrust, 2026-10-03)
+            print(f"--next: Next not reachable while blocked: {covering(found[0]) or type(e).__name__}")
+            return
+    except Exception as e:
         print(f"--next: Next not reachable while blocked: {covering(found[0]) or type(e).__name__}")
         return
     lab.idle(page)
