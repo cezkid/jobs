@@ -17,6 +17,12 @@ NAME = "UKG"
 POSTING_URL = re.compile(
     r"https?://(recruiting\d*\.ultipro\.com)/([^/?#]+)/JobBoard/([0-9a-f-]{36})/Opportunity(?:Detail|Apply)\?"
     r"(?:[^#]*&)?opportunityId=([0-9a-f-]{36})", re.I)
+# freehire `source` whose links land here (test_systems_live.py); link shapes, anonymised
+SOURCES = ("ukg",)
+EXAMPLES = ("https://recruiting.ultipro.com/ACM1000ACME/JobBoard/0f6e1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b/"
+            "OpportunityDetail?opportunityId=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d",
+            "https://recruiting2.ultipro.com/ACM1000ACME/JobBoard/0f6e1a2b-3c4d-4e5f-8a9b-0c1d2e3f4a5b/"
+            "OpportunityDetail?opportunityId=1a2b3c4d-5e6f-4a7b-8c9d-0e1f2a3b4c5d&postingId=x")
 READY = "[data-automation=first-name-textbox]"
 SIGN_IN = "input[type=password]"
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -107,8 +113,14 @@ def from_snapshot(snap: dict) -> list[dict]:
 
 def questions(url: str) -> list[dict]:
     with browser.page_at(application_url(url)) as page:
-        page.locator(f"{READY}, {SIGN_IN}").first.wait_for(timeout=30000)
-        snap = page.evaluate(SNAPSHOT)
+        return read(page)
+
+
+def read(page) -> list[dict]:
+    """The form off the tab the user signed in on (prepare reuses it, no second tab): one page,
+    so its questions carry no page and replace the answers file's whole list."""
+    page.locator(f"{READY}, {SIGN_IN}").first.wait_for(timeout=30000)
+    snap = page.evaluate(SNAPSHOT)
     if snap["signin"]:
         raise SystemExit("UKG shows the form only after sign-in: Job Finder's Chrome is open on the sign-in page - "
                          "the user signs in or creates an account there (never typed for them), then run prepare again")

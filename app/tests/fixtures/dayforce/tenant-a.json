@@ -1,0 +1,33 @@
+{
+ "measured": "2026-10-03",
+ "opened": "/en-US/acme/candidateportal/jobs/1/apply/manualApplication?applicationSource=Manual",
+ "clicks": [],
+ "page_after": "/en-US/acme/candidateportal/jobs/1/apply?flowSelection=true",
+ "outline": {
+  "headings": [
+   "Already Have an Account?",
+   "Cookie Preferences"
+  ],
+  "buttons": [
+   "Sign In",
+   "Accept",
+   "Reject",
+   "Cookie Settings"
+  ],
+  "links": null
+ },
+ "controls": [],
+ "json_gets": [
+  "https://app.launchdarkly.com/sdk/evalx/62a0a637cc384b1581554ac5/users/<tenant-key>",
+  "https://app.launchdarkly.com/sdk/goals/62a0a637cc384b1581554ac5",
+  "https://jobs.dayforcehcm.com/api/auth/session",
+  "https://jobs.dayforcehcm.com/api/geo/acme/sitecontext/acme/candidateportal/en-US",
+  "https://jobs.dayforcehcm.com/api/geo/acme/sitecontext/acme/candidateportal/en-US?jobPostingId=1",
+  "https://maps.googleapis.com/maps/api/mapsjs/gen_204"
+ ],
+ "blocked": [
+  "POST https://eastus2-0.in.applicationinsights.azure.com//v2/track",
+  "POST https://events.launchdarkly.com/events/diagnostic/62a0a637cc384b1581554ac5",
+  "POST https://jobs.dayforcehcm.com/cdn-cgi/challenge-platform/h/b/jsd/oneshot/<token>"
+ ]
+}

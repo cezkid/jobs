@@ -1,0 +1,114 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Apply - Acme</title></head>
+<body>
+<h2>Your details</h2>
+<form>
+  <label for="first">First name</label>
+  <input id="first" autocomplete="given-name" required>
+
+  <label>Last name <input id=":r1:" name="last_name"></label>
+
+  <span id="email-label">Email address *</span>
+  <input id="email" type="email" aria-labelledby="email-label">
+
+  <label for="spl-form-element_12">Phone</label>
+  <input id="spl-form-element_12" name="phone" type="tel" required>
+
+  <label for="mui-123">Website</label>
+  <input id="mui-123" type="url" data-qa="website">
+
+  <label for="city">City</label>
+  <input id="city" autocomplete="address-level2" value="Springfield">
+
+  <label for="years">Years of experience</label>
+  <input id="years" type="number">
+
+  <label for="start">Earliest start date</label>
+  <input id="start" type="date">
+
+  <label for="note">Anything else (required)</label>
+  <textarea id="note"></textarea>
+
+  <div id="summary" contenteditable="true" aria-label="Short summary"></div>
+
+  <input id="honeypot" name="website2" style="display:none" aria-label="Leave empty">
+
+  <h2>About the role</h2>
+  <label for="country">Country</label>
+  <select id="country"><option value="">Select...</option><option>Canada</option><option>United States</option></select>
+
+  <label for="relocate">Are you willing to relocate?</label>
+  <select id="relocate"><option value="">--</option><option>Yes</option><option>No</option></select>
+
+  <fieldset><legend>Preferred shift</legend>
+    <label><input type="radio" name="shift" value="d"> Day</label>
+    <label><input type="radio" name="shift" value="n"> Night</label>
+  </fieldset>
+
+  <fieldset><legend>Languages</legend>
+    <label><input type="checkbox" name="lang" value="en"> English</label>
+    <label><input type="checkbox" name="lang" value="es"> Spanish</label>
+    <label><input type="checkbox" name="lang" value="fr"> French</label>
+  </fieldset>
+
+  <label><input type="checkbox" id="adult"> I am at least 18 years old</label>
+
+  <div id="mode-label">Work mode</div>
+  <div id="mode" role="radiogroup" aria-labelledby="mode-label">
+    <div role="radio" aria-checked="false" tabindex="0">Remote</div>
+    <div role="radio" aria-checked="false" tabindex="0">Hybrid</div>
+  </div>
+
+  <div role="radiogroup" aria-label="Willing to travel">
+    <label><input type="radio" name="travel" value="yes"> Yes</label>
+    <label><input type="radio" name="travel" value="no"> No</label>
+  </div>
+
+  <div role="radiogroup" aria-label="How did you hear about us?">
+    <label><input type="radio" name="info.heard" value="1"> Job board</label>
+    <label><input type="radio" name="info.heard" value="2"> Referral</label>
+  </div>
+
+  <label for="location">Location</label>
+  <input id="location" role="combobox" aria-controls="loc-list" autocomplete="off">
+  <ul id="loc-list" role="listbox"></ul>
+
+  <label for="react-select-5-input">Department</label>
+  <input id="react-select-5-input" role="combobox">
+
+  <label for="resume">Resume</label>
+  <input id="resume" type="file">
+
+  <label for="pw">Create a password</label>
+  <input id="pw" name="password" type="password">
+
+  <acme-field id="open-host"></acme-field>
+  <div id="closed-host"></div>
+
+  <iframe id="same" src="/frame.html"></iframe>
+  <iframe id="check" src="https://newassets.hcaptcha.com/captcha.html"></iframe>
+</form>
+<script>
+  for (const r of document.querySelectorAll('#mode [role=radio]'))
+    r.addEventListener('click', () => {
+      for (const o of document.querySelectorAll('#mode [role=radio]')) o.setAttribute('aria-checked', String(o === r));
+    });
+  const loc = document.getElementById('location'), list = document.getElementById('loc-list');
+  const places = ['Springfield, Illinois, United States', 'Springfield, Missouri, United States', 'Salem, Oregon, United States'];
+  loc.addEventListener('input', () => {
+    list.innerHTML = '';
+    for (const p of places.filter(p => loc.value && p.toLowerCase().startsWith(loc.value.toLowerCase()))) {
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      li.textContent = p;
+      li.addEventListener('click', () => { loc.value = p; list.innerHTML = ''; });
+      list.appendChild(li);
+    }
+  });
+  customElements.define('acme-field', class extends HTMLElement {
+    constructor() { super();
+      this.attachShadow({mode: 'open'}).innerHTML = '<label for="pref">Preferred name</label><input id="pref">'; }
+  });
+  document.getElementById('closed-host').attachShadow({mode: 'closed'}).innerHTML = '<label>Secret <input id="secret"></label>';
+</script>
+</body></html>

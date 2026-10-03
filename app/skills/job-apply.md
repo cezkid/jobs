@@ -2,9 +2,9 @@
 
 Fill a job application for the user, stopping before every Save/Submit. Workday (`*.myworkdayjobs.com`
 or `wd<N>.myworkday...`) through the Claude Chrome extension - Steps below. Every other supported
-system (Ashby, Greenhouse, UKG today; list in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
-#Other systems below. A system w/o a filler whose questions were read ahead (Lever,
-Workable, Recruitee - `app/docs/apply/answers.md`): `apply-form prepare` drafts from them, then
+system (every one listed in `app/docs/apply/apply-systems.md`) through Job Finder's own Chrome window -
+#Other systems below. A system w/o a filler whose questions were read ahead
+(Recruitee - `app/docs/apply/answers.md`): `apply-form prepare` drafts from them, then
 `apply-form paste <job>` writes `Application answers.md` to paste from - say options weren't read
 ahead. None read ahead: `prepare` says so - offer the tailored PDF + answers by hand, and mention it
 can be taught (`apply-systems.md` #Add a system).
@@ -20,7 +20,8 @@ form over, fix the program after.
 - User signs in / creates the account themselves. Never type a password.
 - Never click **Save and Continue**, **Submit**, or anything irreversible. Fill, then tell them
   to check the page and click it. They say "click it for me" -> still ask once per click.
-- Upload the resume PDF only after they say yes (name the file).
+- Upload the resume PDF only after they say yes (name the file). BambooHR sends the file to the employer the moment it is chosen,
+  before Submit - say so in that same question.
 - Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
   race, veteran, disability), how-did-you-hear - except their own saved answers
   (`app/docs/apply/answers.md` #Saved answers): how you heard, 18 or older, notice period and the
@@ -119,14 +120,29 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    keep it there (never on the resume). Answers from search settings: name them to the user.
    Cover letter box: upload `First_Last_Cover_Letter.pdf` (`fill` puts it in that box only, after
    their yes) or paste from `Cover letter.md`; none made -> offer `job-tailor` step 6.
+   Workable: the resume reaches the employer's site as soon as it is put in the box, before
+   Submit - say so when asking for the yes. Its Address box comes filled by the page from their
+   internet address - tell them to check it.
    UKG: form shows only after sign-in - `prepare` stops on the sign-in page in Job Finder's
    Chrome; user signs in or creates the account there, then rerun `prepare`. Its
    `resume-sections` question (add work history, education, skills, links from the resume): UKG
    saves each to their account on the site as it is added, before Submit - say so, then ask.
+   Paylocity: email goes to the site as its box is left (its own email check), resume as the
+   file is picked - both before Submit; say so before `fill`. Start date: they pick it in the
+   page's calendar (typed keys don't take).
 4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
    quirk in that system's doc.
+   Form over several pages (`this page: X of Y required answered` + "question(s) on other
+   pages"): tell the user to check this page and click Next / Continue themselves - never us.
+   Once they say they're on the next page: `prepare` again if `fill` printed it (that system
+   reads page by page; answers already given are kept), then `fill` again - it works on their
+   own tab, where they are. Repeat to the last page.
+   Some sites ask for your email or name first, then show the form: say "you type / agree / do
+   the check and click Continue yourself; I fill the boxes I know". A consent, terms or
+   signature question: clickable choices, the user's own words - they tick or sign it on the
+   page. Which sites work this way: `app/docs/apply/apply-systems.md`.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
    any banner (application limits), and that nothing is sent until they click **Submit**.
 6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).

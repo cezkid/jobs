@@ -1,0 +1,1271 @@
+{
+ "_measured": "2026-10-03, apply-form measure, window.pageData of /Recruiting/Jobs/Apply/<id>; anonymised: employer -> Acme, ids + text naming the employer removed",
+ "jobId": 1000002,
+ "requireResume": true,
+ "requiredReferencesCount": null,
+ "hasScreener": true,
+ "shouldIncludeEeoSection": false,
+ "shouldIncludeEeoQuestions": false,
+ "shouldIncludeOfccpQuestions": false,
+ "displayAcknowledgement": false,
+ "displayEVerify": false,
+ "smsEnabled": true,
+ "willSendAssessment": false,
+ "isUnlisted": false,
+ "leadApplyEnabled": true,
+ "steps": [],
+ "customJobApplication": {
+  "referencesRequired": true,
+  "referencesRequiredCount": 3,
+  "desiredSalaryInputType": 2,
+  "requireResume": true,
+  "hasAcknowledgementText": true,
+  "sections": [
+   {
+    "jobApplicationSectionId": 1,
+    "name": "info",
+    "headingText": "Information",
+    "displayOrder": 1,
+    "isIncluded": true,
+    "isOneRequired": false,
+    "fields": [
+     {
+      "jobApplicationFieldId": 1,
+      "name": "name",
+      "displayName": "Name",
+      "displayOrder": 10,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 2,
+      "name": "emailAddress",
+      "displayName": "Email address",
+      "displayOrder": 20,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 3,
+      "name": "cellPhone",
+      "displayName": "Mobile Number",
+      "displayOrder": 30,
+      "group": "cellPhone",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 4,
+      "name": "homePhone",
+      "displayName": "Home phone number",
+      "displayOrder": 40,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 62,
+      "name": "smsOptedIn",
+      "displayName": "We may use SMS during the hiring process. Do you give us permission to text you?",
+      "displayOrder": 45,
+      "group": "cellPhone",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 5,
+      "name": "appliedBefore",
+      "displayName": "Have you applied for a job with us before?",
+      "displayOrder": 50,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 6,
+      "name": "country",
+      "displayName": "Country (accept residents outside of US)",
+      "displayOrder": 60,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 7,
+      "name": "address",
+      "displayName": "Address",
+      "displayOrder": 70,
+      "group": "address",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 8,
+      "name": "address2",
+      "displayName": "Address line 2",
+      "displayOrder": 80,
+      "group": "address",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 9,
+      "name": "city",
+      "displayName": "City",
+      "displayOrder": 90,
+      "group": "address",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 10,
+      "name": "state",
+      "displayName": "State",
+      "displayOrder": 100,
+      "group": "address",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 11,
+      "name": "postalCode",
+      "displayName": "Zip code",
+      "displayOrder": 110,
+      "group": "address",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 12,
+      "name": "dateAvailable",
+      "displayName": "Date available to work?",
+      "displayOrder": 120,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 13,
+      "name": "dateOfBirth",
+      "displayName": "Date of birth",
+      "displayOrder": 130,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 14,
+      "name": "linkedInUrl",
+      "displayName": "LinkedIn profile URL",
+      "displayOrder": 140,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 15,
+      "name": "desiredSalary",
+      "displayName": "Desired salary",
+      "displayOrder": 150,
+      "group": "desiredSalary",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 17,
+      "name": "howDidYouHear",
+      "displayName": "How did you hear about us?",
+      "displayOrder": 160,
+      "group": "howDidYouHear",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": [
+       {
+        "value": "Company Website",
+        "label": null
+       },
+       {
+        "value": "LinkedIn",
+        "label": null
+       },
+       {
+        "value": "Indeed",
+        "label": null
+       },
+       {
+        "value": "Idealist",
+        "label": null
+       },
+       {
+        "value": "Zip Recruiter",
+        "label": null
+       },
+       {
+        "value": "Other Online Job Board",
+        "label": null
+       },
+       {
+        "value": "Friend or Family Member",
+        "label": null
+       },
+       {
+        "value": "Current Employee",
+        "label": null
+       },
+       {
+        "value": "Other",
+        "label": null
+       }
+      ]
+     },
+     {
+      "jobApplicationFieldId": 16,
+      "name": "referredBy",
+      "displayName": "Referred by",
+      "displayOrder": 170,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 18,
+      "name": "skills",
+      "displayName": "Skills",
+      "displayOrder": 180,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 19,
+      "name": "workedHereBefore",
+      "displayName": "Have you worked with us before? (If yes, what position, dates)",
+      "displayOrder": 190,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 20,
+      "name": "uploadCoverLetter",
+      "displayName": "Upload cover letter",
+      "displayOrder": 200,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 21,
+      "name": "uploadAdditionalFiles",
+      "displayName": "Upload additional files",
+      "displayOrder": 210,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     }
+    ]
+   },
+   {
+    "jobApplicationSectionId": 2,
+    "name": "workHistory",
+    "headingText": "Work History",
+    "displayOrder": 2,
+    "isIncluded": true,
+    "isOneRequired": false,
+    "fields": [
+     {
+      "jobApplicationFieldId": 22,
+      "name": "companyName",
+      "displayName": "Company name",
+      "displayOrder": 10,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 23,
+      "name": "position",
+      "displayName": "Position",
+      "displayOrder": 20,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 24,
+      "name": "companyWebsite",
+      "displayName": "Company website",
+      "displayOrder": 30,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 25,
+      "name": "companyPhone",
+      "displayName": "Company phone number",
+      "displayOrder": 40,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 26,
+      "name": "responsibilities",
+      "displayName": "Responsibilities",
+      "displayOrder": 50,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 27,
+      "name": "companyLocation",
+      "displayName": "Company location",
+      "displayOrder": 60,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 28,
+      "name": "startEndDate",
+      "displayName": "Start & end date",
+      "displayOrder": 70,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 29,
+      "name": "reasonForLeaving",
+      "displayName": "Reason for leaving? (if not currently working there)",
+      "displayOrder": 80,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 30,
+      "name": "startEndSalary",
+      "displayName": "Starting & ending salaries",
+      "displayOrder": 90,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 31,
+      "name": "currentlyWorkingHere",
+      "displayName": "Currently working here?",
+      "displayOrder": 100,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 32,
+      "name": "mayWeContact",
+      "displayName": "May we contact for references?",
+      "displayOrder": 110,
+      "group": "mayWeContact",
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 33,
+      "name": "contactSupervisorName",
+      "displayName": "Supervisor: Name",
+      "displayOrder": 120,
+      "group": "mayWeContact",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 34,
+      "name": "contactSupervisorPosition",
+      "displayName": "Position",
+      "displayOrder": 130,
+      "group": "mayWeContact",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 35,
+      "name": "contactSupervisorPhone",
+      "displayName": "Phone number",
+      "displayOrder": 140,
+      "group": "mayWeContact",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 36,
+      "name": "contactSupervisorEmail",
+      "displayName": "Email address",
+      "displayOrder": 150,
+      "group": "mayWeContact",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     }
+    ]
+   },
+   {
+    "jobApplicationSectionId": 3,
+    "name": "educationHistory",
+    "headingText": "Education History",
+    "displayOrder": 3,
+    "isIncluded": true,
+    "isOneRequired": false,
+    "fields": [
+     {
+      "jobApplicationFieldId": 37,
+      "name": "certsOrAwards",
+      "displayName": "Certificates or Awards earned",
+      "displayOrder": 10,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 38,
+      "name": "schoolName",
+      "displayName": "School name",
+      "displayOrder": 20,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 39,
+      "name": "areaOfStudy",
+      "displayName": "Area of study",
+      "displayOrder": 30,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 40,
+      "name": "didYouGraduate",
+      "displayName": "Did you graduate?",
+      "displayOrder": 40,
+      "group": "didYouGraduate",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 41,
+      "name": "degreeObtained",
+      "displayName": "Degree obtained",
+      "displayOrder": 50,
+      "group": "didYouGraduate",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 42,
+      "name": "graduationDate",
+      "displayName": "Graduation date",
+      "displayOrder": 60,
+      "group": "didYouGraduate",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 43,
+      "name": "schoolType",
+      "displayName": "School type",
+      "displayOrder": 70,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 44,
+      "name": "gpa",
+      "displayName": "GPA",
+      "displayOrder": 80,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 45,
+      "name": "schoolLocation",
+      "displayName": "School location (city, state)",
+      "displayOrder": 90,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     }
+    ]
+   },
+   {
+    "jobApplicationSectionId": 4,
+    "name": "references",
+    "headingText": "References",
+    "displayOrder": 4,
+    "isIncluded": true,
+    "isOneRequired": false,
+    "fields": [
+     {
+      "jobApplicationFieldId": 46,
+      "name": "referenceName",
+      "displayName": "Reference name",
+      "displayOrder": 10,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 47,
+      "name": "referenceEmail",
+      "displayName": "Email address",
+      "displayOrder": 20,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 48,
+      "name": "referencePhoneNumber",
+      "displayName": "Phone number",
+      "displayOrder": 30,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 49,
+      "name": "referencePersonalOrWork",
+      "displayName": "Personal or work reference?",
+      "displayOrder": 40,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 50,
+      "name": "referenceYearsKnown",
+      "displayName": "Years known",
+      "displayOrder": 50,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 51,
+      "name": "referenceAddress",
+      "displayName": "Address",
+      "displayOrder": 60,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     }
+    ]
+   },
+   {
+    "jobApplicationSectionId": 5,
+    "name": "acknowledgements",
+    "headingText": "EEO, OFCCP, E-Verify, Acknowledgement",
+    "displayOrder": 5,
+    "isIncluded": true,
+    "isOneRequired": false,
+    "fields": [
+     {
+      "jobApplicationFieldId": 52,
+      "name": "eVerify",
+      "displayName": "Display E-Verify message",
+      "displayOrder": 10,
+      "group": null,
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 53,
+      "name": "eeoGenderEthnicity",
+      "displayName": "EEO - Gender & Ethnicity",
+      "displayOrder": 20,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 54,
+      "name": "eeoDisability",
+      "displayName": "OFCCP - Disability (FORM CC-305)",
+      "displayOrder": 30,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 55,
+      "name": "ofccp",
+      "displayName": "OFCCP - Veteran Status",
+      "displayOrder": 40,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": true,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 56,
+      "name": "priorConviction",
+      "displayName": "Prior felony, misdemeanor convictions?",
+      "displayOrder": 50,
+      "group": "priorConviction",
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 57,
+      "name": "authorizedToWork",
+      "displayName": "Are you authorized to work in the United States?",
+      "displayOrder": 60,
+      "group": null,
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 60,
+      "name": "priorFelony",
+      "displayName": "Prior felony",
+      "displayOrder": 60,
+      "group": "priorConviction",
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 58,
+      "name": "acknowledgement",
+      "displayName": "Acknowledgement",
+      "displayOrder": 70,
+      "group": "acknowledgement",
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 61,
+      "name": "priorMisdemeanor",
+      "displayName": "Prior misdemeanor",
+      "displayOrder": 70,
+      "group": "priorConviction",
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 59,
+      "name": "acknowledgementText",
+      "displayName": "Text",
+      "displayOrder": 80,
+      "group": "acknowledgement",
+      "type": null,
+      "isIncluded": false,
+      "isRequired": false,
+      "values": []
+     }
+    ]
+   },
+   {
+    "jobApplicationSectionId": 0,
+    "name": "expandedIdentityQuestions",
+    "headingText": "Sensitive Data - Optional Identity Questions",
+    "displayOrder": 6,
+    "isIncluded": true,
+    "isOneRequired": false,
+    "fields": [
+     {
+      "jobApplicationFieldId": 0,
+      "name": "dni",
+      "displayName": "Additional Gender, Ethnicity, and Self-Identification Questions",
+      "displayOrder": 0,
+      "group": "DnI",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": []
+     },
+     {
+      "jobApplicationFieldId": 0,
+      "name": "genderIdentity",
+      "displayName": "Gender Identity",
+      "displayOrder": 0,
+      "group": "DnI",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": [
+       {
+        "value": "1001",
+        "label": "Agender"
+       },
+       {
+        "value": "1002",
+        "label": "Androgyne"
+       },
+       {
+        "value": "1003",
+        "label": "Bigender"
+       },
+       {
+        "value": "1004",
+        "label": "Binary"
+       },
+       {
+        "value": "1005",
+        "label": "Boy"
+       },
+       {
+        "value": "1006",
+        "label": "Cisgender"
+       },
+       {
+        "value": "1007",
+        "label": "Demiboy"
+       },
+       {
+        "value": "1008",
+        "label": "Demigender"
+       },
+       {
+        "value": "1009",
+        "label": "Demigirl"
+       },
+       {
+        "value": "1010",
+        "label": "Enby"
+       },
+       {
+        "value": "1011",
+        "label": "Gender Non-Binary"
+       },
+       {
+        "value": "1012",
+        "label": "Gender Non-Conforming"
+       },
+       {
+        "value": "1013",
+        "label": "Genderfluid"
+       },
+       {
+        "value": "1014",
+        "label": "Genderflux"
+       },
+       {
+        "value": "1015",
+        "label": "Genderless"
+       },
+       {
+        "value": "1016",
+        "label": "Genderqueer"
+       },
+       {
+        "value": "1017",
+        "label": "Girl"
+       },
+       {
+        "value": "1018",
+        "label": "Intergender"
+       },
+       {
+        "value": "1019",
+        "label": "Intersex"
+       },
+       {
+        "value": "1020",
+        "label": "Man"
+       },
+       {
+        "value": "1021",
+        "label": "Neutral"
+       },
+       {
+        "value": "1022",
+        "label": "Neutrois"
+       },
+       {
+        "value": "1023",
+        "label": "Non-Binary"
+       },
+       {
+        "value": "1025",
+        "label": "Non-Gender"
+       },
+       {
+        "value": "1024",
+        "label": "None"
+       },
+       {
+        "value": "1026",
+        "label": "Pangender"
+       },
+       {
+        "value": "1027",
+        "label": "Polygender"
+       },
+       {
+        "value": "1028",
+        "label": "Queer"
+       },
+       {
+        "value": "1029",
+        "label": "Questioning or Unknown"
+       },
+       {
+        "value": "1030",
+        "label": "Third Gender"
+       },
+       {
+        "value": "1031",
+        "label": "Trans"
+       },
+       {
+        "value": "1032",
+        "label": "Transfeminine"
+       },
+       {
+        "value": "1033",
+        "label": "Transgender"
+       },
+       {
+        "value": "1034",
+        "label": "Transmasculine"
+       },
+       {
+        "value": "1035",
+        "label": "Tri-Gender"
+       },
+       {
+        "value": "1036",
+        "label": "Two-Spirit"
+       },
+       {
+        "value": "1037",
+        "label": "Woman"
+       },
+       {
+        "value": "1",
+        "label": "Prefer not to say"
+       }
+      ]
+     },
+     {
+      "jobApplicationFieldId": 0,
+      "name": "personalPronoun",
+      "displayName": "Personal Pronoun",
+      "displayOrder": 0,
+      "group": "DnI",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": [
+       {
+        "value": "1001",
+        "label": "He/Him/His"
+       },
+       {
+        "value": "1002",
+        "label": "She/Her/Hers"
+       },
+       {
+        "value": "1003",
+        "label": "They/Them/Theirs"
+       },
+       {
+        "value": "1004",
+        "label": "He/They"
+       },
+       {
+        "value": "1005",
+        "label": "She/They"
+       },
+       {
+        "value": "1",
+        "label": "Prefer not to say"
+       }
+      ]
+     },
+     {
+      "jobApplicationFieldId": 0,
+      "name": "ethnicity",
+      "displayName": "Ethnicity",
+      "displayOrder": 0,
+      "group": "DnI",
+      "type": null,
+      "isIncluded": true,
+      "isRequired": false,
+      "values": [
+       {
+        "value": "1001",
+        "label": "African American"
+       },
+       {
+        "value": "I",
+        "label": "American Indian or Alaska Native"
+       },
+       {
+        "value": "A",
+        "label": "Asian"
+       },
+       {
+        "value": "1002",
+        "label": "Asian Indian"
+       },
+       {
+        "value": "B",
+        "label": "Black"
+       },
+       {
+        "value": "1003",
+        "label": "Blackfeet Tribe"
+       },
+       {
+        "value": "1004",
+        "label": "Cambodian"
+       },
+       {
+        "value": "1005",
+        "label": "Chamorro"
+       },
+       {
+        "value": "1006",
+        "label": "Chinese"
+       },
+       {
+        "value": "1007",
+        "label": "Colombian"
+       },
+       {
+        "value": "1008",
+        "label": "Cuban"
+       },
+       {
+        "value": "1009",
+        "label": "Dominican"
+       },
+       {
+        "value": "1010",
+        "label": "Ecuadorian"
+       },
+       {
+        "value": "1011",
+        "label": "Egyptian"
+       },
+       {
+        "value": "1012",
+        "label": "English"
+       },
+       {
+        "value": "1013",
+        "label": "Eskimo Community"
+       },
+       {
+        "value": "1014",
+        "label": "Ethiopian"
+       },
+       {
+        "value": "1015",
+        "label": "Fijian"
+       },
+       {
+        "value": "1016",
+        "label": "Filipino"
+       },
+       {
+        "value": "1017",
+        "label": "German"
+       },
+       {
+        "value": "1018",
+        "label": "Guatemalan"
+       },
+       {
+        "value": "1019",
+        "label": "Haitian"
+       },
+       {
+        "value": "H",
+        "label": "Hispanic"
+       },
+       {
+        "value": "1020",
+        "label": "Hmong"
+       },
+       {
+        "value": "1021",
+        "label": "Irish"
+       },
+       {
+        "value": "1022",
+        "label": "Italian"
+       },
+       {
+        "value": "1023",
+        "label": "Jamaican"
+       },
+       {
+        "value": "1024",
+        "label": "Japanese"
+       },
+       {
+        "value": "1025",
+        "label": "Korean"
+       },
+       {
+        "value": "1026",
+        "label": "Lebanese"
+       },
+       {
+        "value": "1027",
+        "label": "Marshallese"
+       },
+       {
+        "value": "1028",
+        "label": "Mayan Aztec"
+       },
+       {
+        "value": "1029",
+        "label": "Mexican"
+       },
+       {
+        "value": "1030",
+        "label": "Native Hawaiian"
+       },
+       {
+        "value": "N",
+        "label": "Native Hawaiian or Pacific Islander"
+       },
+       {
+        "value": "1031",
+        "label": "Native Village of Barrow Inupiat Traditional Government"
+       },
+       {
+        "value": "1032",
+        "label": "Navajo Nation"
+       },
+       {
+        "value": "1033",
+        "label": "Nigerian"
+       },
+       {
+        "value": "1034",
+        "label": "Nome"
+       },
+       {
+        "value": "1035",
+        "label": "Pakistani"
+       },
+       {
+        "value": "1036",
+        "label": "Puerto Rican"
+       },
+       {
+        "value": "1037",
+        "label": "Salvadoran"
+       },
+       {
+        "value": "1038",
+        "label": "Samoan"
+       },
+       {
+        "value": "1039",
+        "label": "Somali"
+       },
+       {
+        "value": "1040",
+        "label": "Spaniard"
+       },
+       {
+        "value": "1041",
+        "label": "Tongan"
+       },
+       {
+        "value": "1042",
+        "label": "Vietnamese"
+       },
+       {
+        "value": "W",
+        "label": "White"
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "screener": {
+  "questions": [
+   {
+    "title": "Are you licensed to practice law in the state of California?",
+    "isRequired": true,
+    "questionType": "multi",
+    "allowsMultipleResponses": false,
+    "order": 0,
+    "isAutoReject": false,
+    "isGraded": false,
+    "answers": [
+     {
+      "title": "Yes"
+     },
+     {
+      "title": "No"
+     }
+    ]
+   },
+   {
+    "title": "If you answered yes, what year were you admitted to the State Bar of California?",
+    "isRequired": false,
+    "questionType": "text",
+    "allowsMultipleResponses": false,
+    "order": 1,
+    "isAutoReject": false,
+    "isGraded": false,
+    "isParagraph": "false"
+   },
+   {
+    "title": "How many relevant years of experience do you have for this position?",
+    "isRequired": true,
+    "questionType": "text",
+    "allowsMultipleResponses": false,
+    "order": 2,
+    "isAutoReject": false,
+    "isGraded": false,
+    "isParagraph": "false"
+   },
+   {
+    "title": "Are you bilingual, and if so, what's your second language(s)?",
+    "isRequired": true,
+    "questionType": "text",
+    "allowsMultipleResponses": false,
+    "order": 3,
+    "isAutoReject": false,
+    "isGraded": false,
+    "isParagraph": "false"
+   }
+  ]
+ }
+}

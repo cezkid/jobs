@@ -16,6 +16,12 @@ QUERY = """query ApiJobPosting($organizationHostedJobsPageName: String!, $jobPos
     title applicationForm { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } }
     surveyForms { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } } } }"""
 POSTING_URL = re.compile(r"https?://jobs\.ashbyhq\.com/([^/?#]+)/([0-9a-f-]{36})", re.I)
+# freehire `source` whose links land here (test_systems_live.py); link shapes, anonymised
+SOURCES = ("ashby",)
+EXAMPLES = ("https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a",
+            "https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/application?utm_source=x")
+# questions() is a plain HTTP read, no browser: the live test runs it
+QUESTIONS_OVER_HTTP = True
 READY = "[data-field-path]"
 # Ashby type -> shared kind; a type missing here is asked as text and flagged by the contract test
 KIND = {"String": "text", "LongText": "longtext", "Email": "email", "Phone": "phone", "Number": "number",

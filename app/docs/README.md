@@ -29,6 +29,17 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/ashby.md](apply/ashby.md) | Ashby forms, filled in Job Finder's own Chrome |
 | Applying | [apply/greenhouse.md](apply/greenhouse.md) | Greenhouse forms, filled in Job Finder's own Chrome |
 | Applying | [apply/ukg.md](apply/ukg.md) | UKG Pro Recruiting forms: sign-in first, resume sections saved as added |
+| Applying | [apply/lever.md](apply/lever.md) | Lever forms, filled in Job Finder's own Chrome; resume goes out as soon as chosen (Lever reads it to fill the form) |
+| Applying | [apply/workable.md](apply/workable.md) | Workable forms, filled in Job Finder's own Chrome; resume goes out as soon as chosen |
+| Applying | [apply/smartrecruiters.md](apply/smartrecruiters.md) | SmartRecruiters forms - being measured (plan-6oq), nothing filled yet |
+| Applying | [apply/jazzhr.md](apply/jazzhr.md) | JazzHR forms (`<co>.applytojob.com`): form read off the posting page, widgets, what leaves when |
+| Applying | [apply/bamboohr.md](apply/bamboohr.md) | BambooHR forms (`<co>.bamboohr.com/careers/<id>`): form definition over HTTP, widgets, what leaves when (resume on choosing it) |
+| Applying | [apply/paylocity.md](apply/paylocity.md) | Paylocity forms - being measured (plan-6oq), nothing filled yet |
+| Applying | [apply/dayforce.md](apply/dayforce.md) | Dayforce forms - being measured (plan-6oq), nothing filled yet |
+| Applying | [apply/paycom.md](apply/paycom.md) | Paycom forms - being measured (plan-6oq), nothing filled yet |
+| Applying | [apply/adp.md](apply/adp.md) | ADP Workforce Now forms - being measured (plan-6oq), nothing filled yet |
+| Applying | [apply/oracle.md](apply/oracle.md) | Oracle Recruiting Cloud forms - start box measured + filled, pages after it unmeasured |
+| Applying | [apply/icims.md](apply/icims.md) | iCIMS forms - start box measured + filled, pages after it unmeasured |
 | Applying | [apply/sent.md](apply/sent.md) | Was it sent? Sent page + applied list per system, browser-history check, what it can't see |
 | Applying | [apply/answers.md](apply/answers.md) | What an application asks, read ahead when a resume is made; answers drafted + pasted for systems w/o a filler; questions never drafted |
 | Applying | [apply/interview.md](apply/interview.md) | Interview practice + debrief: what each rule rests on, how a stated fact reaches the resume, declined |

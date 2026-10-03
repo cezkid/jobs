@@ -13,7 +13,8 @@ Recall, by what's at stake if it's wrong for this job:
   job, start date, any written answer - each depends on this job;
 - never kept or recalled: work permit + sponsorship (setup's answers, the US question asked the same
   way - a saved Yes would travel to another country's form), sensitive kinds, voluntary questions
-  about them, where they live, current pay.
+  about them, where they live, current pay, agreeing / consenting / signing (an "I agree" kept
+  would tick the next form's box - the applicant's own act).
 """
 import argparse
 import re
@@ -60,8 +61,8 @@ def key(q: dict) -> str | None:
     """What a saved answer is filed under: its topic, else the question folded; None = never kept."""
     title = q["title"]
     if (q.get("kind") == "file" or q.get("key") or NEVER.search(title.casefold())
-            or questions.sensitive(q, {}) or questions.never_draft(title) == "where you live"
-            or questions.never_draft(title) == "voluntary questions about you" or topic(title) == "current pay"):
+            or questions.sensitive(q, {}) or topic(title) == "current pay"
+            or questions.never_draft(title) in (questions.SIGNING, "where you live", questions.VOLUNTARY)):
         return None
     if len([n for n, p in TOPICS if re.search(p, title, re.I)]) > 1:
         return None  # two topics in one question: asked, never guessed

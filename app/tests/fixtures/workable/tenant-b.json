@@ -1,0 +1,100 @@
+[
+ {
+  "name": "Personal information",
+  "fields": [
+   {
+    "id": "firstname",
+    "required": true,
+    "label": "First name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "lastname",
+    "required": true,
+    "label": "Last name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "email",
+    "required": true,
+    "label": "Email",
+    "type": "email",
+    "maxLength": 255
+   },
+   {
+    "id": "phone",
+    "required": true,
+    "label": "Phone",
+    "type": "phone",
+    "helper": "The hiring team may use this number to contact you about this job.",
+    "maxLength": 255
+   },
+   {
+    "id": "address",
+    "required": true,
+    "label": "Address",
+    "helper": "Include your city, region, and country, so that employers can easily manage your application.",
+    "type": "text",
+    "value": "Example City, United States of America",
+    "prefilledByLocation": true
+   }
+  ]
+ },
+ {
+  "name": "Profile",
+  "fields": [
+   {
+    "id": "resume",
+    "required": true,
+    "label": "Resume",
+    "type": "file",
+    "supportedFileTypes": [
+     ".pdf",
+     ".doc",
+     ".docx",
+     ".odt",
+     ".rtf"
+    ],
+    "supportedMimeTypes": [
+     "application/pdf",
+     "application/msword",
+     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+     "application/vnd.oasis.opendocument.text",
+     "application/rtf"
+    ],
+    "maxFileSize": 12000000
+   }
+  ]
+ },
+ {
+  "name": "Details",
+  "fields": [
+   {
+    "id": "QA_12441156",
+    "required": true,
+    "label": "What are your salary expectations?",
+    "type": "paragraph"
+   },
+   {
+    "id": "QA_12441157",
+    "required": true,
+    "label": "How soon can you start?",
+    "type": "paragraph"
+   },
+   {
+    "id": "QA_12441158",
+    "required": true,
+    "label": "What percentage of travel are you open to?",
+    "type": "paragraph"
+   },
+   {
+    "id": "QA_12566959",
+    "required": true,
+    "label": "Do you have experience selling complex professional services and consulting engagements?",
+    "type": "paragraph"
+   }
+  ]
+ }
+]
