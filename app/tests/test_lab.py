@@ -107,6 +107,8 @@ def test_tenants_smartrecruiters_oneclick_link_and_generic_names():
     assert lab.tenants("https://jobs.smartrecruiters.com/AcmeTest/1234-analyst", [], {"controls": []}) == ["AcmeTest"]
     # ADP: every employer shares host + path, the employer is only the cid (2026-10-03)
     assert lab.tenants("https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=x", [], {"controls": []}) == []
+    # Oracle: the path's first part is Oracle's own app on every employer (2026-10-03); the pod names the employer
+    assert lab.tenants("https://acme.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/1", [], {"controls": []}) == ["acme"]
 
 
 def test_measure_never_uses_the_application_window():

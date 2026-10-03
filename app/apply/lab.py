@@ -65,7 +65,7 @@ TEXT_KEEP = 4096
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
            "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday",
-           "ultipro", "candidateportal", "mascsr", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
+           "ultipro", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
            "en-us", "en_us", "en", "us", "com", "net", "org", "io", "co"}
 
 

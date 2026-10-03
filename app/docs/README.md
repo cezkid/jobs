@@ -36,7 +36,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/dayforce.md](apply/dayforce.md) | Dayforce forms - being measured (plan-6oq), nothing filled yet |
 | Applying | [apply/paycom.md](apply/paycom.md) | Paycom forms - being measured (plan-6oq), nothing filled yet |
 | Applying | [apply/adp.md](apply/adp.md) | ADP Workforce Now forms - being measured (plan-6oq), nothing filled yet |
-| Applying | [apply/oracle.md](apply/oracle.md) | Oracle Recruiting Cloud forms - being measured (plan-6oq), nothing filled yet |
+| Applying | [apply/oracle.md](apply/oracle.md) | Oracle Recruiting Cloud forms - start box measured + filled, pages after it unmeasured |
 | Applying | [apply/icims.md](apply/icims.md) | iCIMS forms - being measured (plan-6oq), nothing filled yet |
 | Applying | [apply/sent.md](apply/sent.md) | Was it sent? Sent page + applied list per system, browser-history check, what it can't see |
 | Applying | [apply/answers.md](apply/answers.md) | What an application asks, read ahead when a resume is made; answers drafted + pasted for systems w/o a filler; questions never drafted |
