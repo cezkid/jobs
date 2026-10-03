@@ -75,6 +75,14 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 - Review gate: every built page (articles, methods, about) needs `reviews/<name>.md` (same
   folder), header `reviewed: YYYY-MM-DD` (on or after the page's modified), `verdict: publish`
   (else the page fails), optional `reviewer:`; body = the review. Never built into `docs/`.
+- Real sources: `uv run app/web/pages.py --links [file]` (network; never in tests - those fake it w/
+  `httpx.MockTransport`). DOI -> doi.org handle API (404 = doesn't exist), then Crossref: title
+  similarity < 0.9 or year off by > 1 = names another work (catches invented + mistyped citations).
+  arXiv id (from an `arxiv.org/abs|pdf` url or a `10.48550/arXiv.` DOI) -> arXiv export API, same
+  title + year test, 3 s between calls (its terms); its page isn't fetched. Other urls: 404/410
+  broken; 401/403/429/5xx, no answer, DOI not in Crossref (DataCite) = check by hand. One
+  `file:line: id: level: what` per check + a count; exit 1 on any broken. Measured: arXiv answers
+  429 "Rate exceeded." for a while after a burst.
 - Warnings, never fail: registry entry no page cites (drafts count), `recheck_by` passed, review
   w/o a page.
 - Any problem -> `file:line: what`, nothing written, exit 1.

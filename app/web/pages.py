@@ -19,18 +19,22 @@ the page's end, entries from app/web/research/sources.yml. A published page also
 adversarial review in app/web/research/reviews/<name>.md (verdict: publish, reviewed on or after
 modified); reviews are never built into docs/.
 
-Run from repo root: uv run app/web/pages.py [--check]
-Writes by default; --check lists problems, writes nothing, exits 1 on any.
+Run from repo root: uv run app/web/pages.py [--check | --links [sources.yml]]
+Writes by default; --check lists problems, writes nothing, exits 1 on any; --links checks every
+source is real over the network (DOI, arXiv id, url), exits 1 on a broken one.
 Project env (no inline deps): markdown-it-py comes locked through rich.
 """
 
 import argparse
 import datetime
+import difflib
 import importlib.util
 import json
 import re
 import shutil
 import sys
+import time
+import xml.etree.ElementTree as ET
 from html import escape, unescape
 from html.parser import HTMLParser
 from pathlib import Path
@@ -421,12 +425,12 @@ MD.add_render_rule("cite", _render_cite)
 class Registry:
     """app/web/research/sources.yml: every source an article may cite, checked field by field."""
 
-    def __init__(self, root: Path, errors: list[str], warnings: list[str]):
+    def __init__(self, root: Path, errors: list[str], warnings: list[str], path: Path | None = None):
         self.entries: dict[str, dict] = {}
         self.labels: dict[str, str] = {}
         self.lines: dict[str, int] = {}
-        self.rel = REGISTRY.as_posix()
-        path = root / REGISTRY
+        path = root / REGISTRY if path is None else path
+        self.rel = path.resolve().relative_to(root.resolve()).as_posix() if path.resolve().is_relative_to(root.resolve()) else str(path)
         if not path.is_file():
             return
         text = path.read_bytes().decode("utf-8").replace("\r\n", "\n")
@@ -952,10 +956,168 @@ def write(root: Path) -> list[str]:
     return changed
 
 
+# --- --links: is every source real? (network; never run from the tests) ---
+
+ARXIV_ID = r"(\d{4}\.\d{4,5}|[a-z][a-z-]*(?:\.[A-Z]{2})?/\d{7})(?:v\d+)?"
+ARXIV_URL = re.compile(rf"^https://(?:export\.)?arxiv\.org/(?:abs|pdf)/{ARXIV_ID}(?:\.pdf)?/?$")
+ARXIV_DOI = re.compile(rf"^10\.48550/arxiv\.{ARXIV_ID}$", re.I)
+ATOM = "{http://www.w3.org/2005/Atom}"
+SIMILAR = 0.9  # title match: below this the DOI / arXiv id names another work (invented or mistyped)
+ARXIV_PAUSE = 3.0  # arXiv API terms: one request every 3 seconds
+USER_AGENT = "CEZ-Job-Finder-source-check/1 (+https://jobs.enrriquez.com/)"
+
+
+def similarity(a: str, b: str) -> float:
+    """Titles compared as plain lower-case words: Crossref adds <i> tags, &amp;, odd spacing + case."""
+    def norm(text):
+        return " ".join(re.sub(r"[^\w\s]", " ", unescape(re.sub(r"<[^>]+>", "", text)).casefold()).split())
+    return difflib.SequenceMatcher(None, norm(a), norm(b)).ratio()
+
+
+def arxiv_id(entry: dict) -> str | None:
+    for pattern, value in ((ARXIV_DOI, entry.get("doi") or ""), (ARXIV_URL, entry.get("url") or "")):
+        match = pattern.match(value)
+        if match:
+            return match.group(1)
+    return None
+
+
+def _get(client, url: str):
+    """(response, None), or (None, why) when nothing came back."""
+    try:
+        return client.get(url, follow_redirects=True), None
+    except Exception as e:  # httpx.HTTPError, bad URL, TLS: all mean "no answer", never a crash mid-list
+        return None, f"no answer ({type(e).__name__})"
+
+
+def _match(entry: dict, title: str, years: list[int], where: str) -> tuple[str, str]:
+    """Title + year against what the record says: ok, or broken when it's another work."""
+    score = similarity(entry["title"], title)
+    if score < SIMILAR:
+        return "broken", f"{where} names another work ({score:.2f} title match): {title!r}"
+    if years and min(abs(y - entry["year"]) for y in years) > 1:
+        return "broken", f"{where} says {sorted(years)[0]}, entry says {entry['year']}"
+    return "ok", f"{where}: title + year match"
+
+
+def check_doi(client, entry: dict) -> list[tuple[str, str]]:
+    """doi.org handle API (does the DOI exist?) then Crossref (is it this title, this year?)."""
+    doi = quote(entry["doi"], safe="/:;()._-")
+    response, why = _get(client, f"https://doi.org/api/handles/{doi}")
+    if response is None:
+        return [("check", f"doi {entry['doi']}: doi.org {why}")]
+    if response.status_code == 404:
+        return [("broken", f"doi {entry['doi']} does not exist (doi.org)")]
+    if response.status_code != 200:
+        return [("check", f"doi {entry['doi']}: doi.org answered {response.status_code}")]
+    if arxiv_id(entry):
+        return [("ok", f"doi {entry['doi']} exists (arXiv DOI: title checked through arXiv)")]
+    response, why = _get(client, f"https://api.crossref.org/works/{doi}")
+    if response is None or response.status_code != 200:
+        status = why or (f"has no record (registered elsewhere, e.g. DataCite) - compare the title by hand"
+                         if response.status_code == 404 else f"answered {response.status_code}")
+        return [("check", f"doi {entry['doi']} exists; Crossref {status}")]
+    try:
+        work = response.json()["message"]
+        titles = [t for t in work.get("title") or [] if t]
+        titles += [f"{t}: {s}" for t in titles[:1] for s in work.get("subtitle") or [] if s]
+        years = [parts[0][0] for key in ("issued", "published", "published-print", "published-online")
+                 if (parts := (work.get(key) or {}).get("date-parts")) and parts[0] and parts[0][0]]
+    except (ValueError, KeyError, TypeError, IndexError):
+        return [("check", f"doi {entry['doi']}: Crossref record unreadable")]
+    if not titles:
+        return [("check", f"doi {entry['doi']}: Crossref record has no title")]
+    return [_match(entry, max(titles, key=lambda t: similarity(entry["title"], t)), years, f"doi {entry['doi']} (Crossref)")]
+
+
+def check_arxiv(client, entry: dict, ref: str) -> list[tuple[str, str]]:
+    """arXiv export API: an id that answers no paper, or another paper, is broken."""
+    response, why = _get(client, f"https://export.arxiv.org/api/query?id_list={ref}")
+    if response is None or response.status_code != 200:
+        return [("check", f"arXiv {ref}: " + (why or f"API answered {response.status_code}"))]
+    try:
+        feed = ET.fromstring(response.content)
+    except ET.ParseError:
+        return [("check", f"arXiv {ref}: API answer unreadable")]
+    found = feed.find(f"{ATOM}entry")
+    title = " ".join((found.findtext(f"{ATOM}title") or "").split()) if found is not None else ""
+    if found is None or not title or title == "Error" or "/api/errors" in (found.findtext(f"{ATOM}id") or ""):
+        return [("broken", f"arXiv {ref} does not exist")]
+    year = (found.findtext(f"{ATOM}published") or "")[:4]
+    return [_match(entry, title, [int(year)] if year.isdigit() else [], f"arXiv {ref}")]
+
+
+def check_url(client, url: str) -> list[tuple[str, str]]:
+    """404/410 = broken; 401/403/429/5xx = check by hand (bot walls, rate limits, outages)."""
+    response, why = _get(client, url)
+    if response is None:
+        return [("check", f"{url}: {why}")]
+    code = response.status_code
+    if code in (404, 410):
+        return [("broken", f"{url} answered {code}")]
+    if code >= 400:
+        return [("check", f"{url} answered {code} - open it in a browser")]
+    return [("ok", f"{url} answered {code}")]
+
+
+def check_links(registry: Registry, client, pause=time.sleep) -> list[tuple[str, int, str, str]]:
+    """Every registry entry's DOI, arXiv id and url, in file order: (ref, line, level, what) with
+    level ok | check | broken."""
+    results, last_arxiv = [], None
+    for ref, entry in registry.entries.items():
+        found = []
+        if entry.get("doi"):
+            found += check_doi(client, entry)
+        paper = arxiv_id(entry)
+        if paper:
+            if last_arxiv is not None:
+                pause(ARXIV_PAUSE)
+            last_arxiv = paper
+            found += check_arxiv(client, entry, paper)
+        if entry.get("url") and not ARXIV_URL.match(entry["url"]):  # an arXiv page is checked through its API
+            found += check_url(client, entry["url"])
+        results += [(ref, registry.lines[ref], level, what) for level, what in found]
+    return results
+
+
+def links(root: Path, path: Path | None = None, client=None) -> int:
+    """--links: print one line per problem + a count; exit code 1 when anything is broken."""
+    import httpx
+    errors, warnings = [], []
+    registry = Registry(root, errors, warnings, path)
+    if errors:
+        print("\n".join(errors))
+        return 1
+    if not registry.entries:
+        print(f"{registry.rel}: no sources to check")
+        return 0
+    own = client is None
+    client = client or httpx.Client(timeout=20, headers={"User-Agent": USER_AGENT})
+    try:
+        results = check_links(registry, client)
+    finally:
+        if own:
+            client.close()
+    word = {"broken": "BROKEN", "check": "check by hand", "ok": "ok"}
+    for ref, line, level, what in results:
+        print(f"{registry.rel}:{line}: {ref}: {word[level]}: {what}")
+    worst = {}
+    for ref, _, level, _ in results:  # an entry counts once, at its worst
+        worst[ref] = min(worst.get(ref, "ok"), level, key=list(word).index)
+    count = {level: sum(1 for ref in registry.entries if worst.get(ref, "ok") == level) for level in word}
+    print(f"{len(registry.entries)} sources: {count['broken']} broken, {count['check']} to check by hand, {count['ok']} fine")
+    return 1 if count["broken"] else 0
+
+
 def main():
     ap = argparse.ArgumentParser(description="Build the site's generated pages in docs/.")
     ap.add_argument("--check", action="store_true", help="list stale, missing or orphaned files; write nothing; exit 1 on any")
+    ap.add_argument("--links", nargs="?", const=REGISTRY, type=Path, metavar="SOURCES_YML",
+                    help="check every source's DOI (doi.org + Crossref), arXiv id and url over the network;"
+                         " exit 1 on a broken one (default app/web/research/sources.yml)")
     args = ap.parse_args()
+    if args.links:
+        sys.exit(links(ROOT, args.links if args.links.is_absolute() else Path.cwd() / args.links))
     warnings: list[str] = []
     try:
         build(ROOT, warnings)

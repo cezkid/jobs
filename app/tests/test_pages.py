@@ -682,3 +682,139 @@ def test_json_ld_is_compact_utf8_and_cannot_end_its_script_block():
     block = pages.jsonld([{"name": "Café </script><b>"}])
     assert block == ('<script type="application/ld+json">{"@context":"https://schema.org",'
                      '"@graph":[{"name":"Café \\u003c/script>\\u003cb>"}]}</script>')
+
+
+# --- --links: every source real? Network faked w/ httpx.MockTransport ---
+
+import httpx  # noqa: E402
+
+TITLE = "Meta-analysis of field experiments shows no change in racial discrimination in hiring over time"
+ARXIV = """<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><entry><id>http://arxiv.org/abs/2311.09735v3</id>
+<published>2023-11-16T10:00:00Z</published><title>GEO: Generative Engine
+  Optimization</title></entry></feed>"""
+ARXIV_ERROR = """<feed xmlns="http://www.w3.org/2005/Atom"><entry><id>http://arxiv.org/api/errors#incorrect_id_format_for_x</id>
+<title>Error</title></entry></feed>"""
+LINKS_REGISTRY = REGISTRY + """- id: geo-2024
+  type: article
+  authors: ["Aggarwal, Pranjal", "Murahari, Vishvak"]
+  year: 2024
+  title: "GEO: generative engine optimization"
+  venue: KDD
+  url: https://arxiv.org/abs/2311.09735
+  evidence: lab/LLM audit
+  checked: 2026-09-29
+"""
+
+
+def links_client(routes):
+    """routes: URL -> (status, body) | Exception; anything not listed answers 200."""
+    seen = []
+
+    def handler(request):
+        url = str(request.url)
+        seen.append(url)
+        answer = routes.get(url, (200, ""))
+        if isinstance(answer, Exception):
+            raise answer
+        status, body = answer
+        if isinstance(body, dict):
+            return httpx.Response(status, json=body)
+        return httpx.Response(status, text=body)
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    client.seen = seen
+    return client
+
+
+def crossref(title=TITLE, year=2017):
+    return (200, {"message": {"title": [f"<i>{title}</i>"], "issued": {"date-parts": [[year, 9, 12]]}}})
+
+
+HANDLE = "https://doi.org/api/handles/10.1073/pnas.1706255114"
+CROSSREF = "https://api.crossref.org/works/10.1073/pnas.1706255114"
+ARXIV_API = "https://export.arxiv.org/api/query?id_list=2311.09735"
+
+
+def run_links(tmp_path, routes, registry=LINKS_REGISTRY):
+    folder = research_site(tmp_path, registry=registry)
+    pauses = []
+    with links_client(routes) as client:
+        errors, warnings = [], []
+        reg = pages.Registry(tmp_path, errors, warnings)
+        results = pages.check_links(reg, client, pause=pauses.append)
+        seen = client.seen
+    return [(ref, level, what) for ref, _, level, what in results], seen, pauses, folder
+
+
+def test_links_real_sources_pass_and_arxiv_page_is_checked_through_its_api(tmp_path):
+    routes = {HANDLE: (200, {"responseCode": 1}), CROSSREF: crossref(), ARXIV_API: (200, ARXIV)}
+    results, seen, _, _ = run_links(tmp_path, routes)
+    assert {level for _, level, _ in results} == {"ok"}
+    assert [ref for ref, _, _ in results] == ["quillian-2017", "kline-2021", "eeoc-2023", "geo-2024"]
+    assert "https://arxiv.org/abs/2311.09735" not in seen  # the page itself isn't fetched
+
+
+@pytest.mark.parametrize("routes, problem", [
+    ({HANDLE: (404, {"responseCode": 100})}, "doi 10.1073/pnas.1706255114 does not exist"),
+    ({CROSSREF: crossref(title="Deep learning for protein folding")}, "names another work"),
+    ({CROSSREF: crossref(year=2012)}, "(Crossref) says 2012, entry says 2017"),
+    ({ARXIV_API: (200, ARXIV_ERROR)}, "arXiv 2311.09735 does not exist"),
+    ({ARXIV_API: (200, '<feed xmlns="http://www.w3.org/2005/Atom"></feed>')}, "arXiv 2311.09735 does not exist"),
+    ({ARXIV_API: (200, ARXIV.replace("GEO: Generative Engine\n  Optimization", "Attention is all you need"))},
+     "arXiv 2311.09735 names another work"),
+    ({"https://www.nber.org/papers/w29053": (404, "")}, "https://www.nber.org/papers/w29053 answered 404"),
+    ({"https://www.eeoc.gov/ai": (410, "")}, "https://www.eeoc.gov/ai answered 410"),
+])
+def test_links_invented_or_dead_sources_are_broken(tmp_path, routes, problem):
+    base = {HANDLE: (200, {"responseCode": 1}), CROSSREF: crossref(), ARXIV_API: (200, ARXIV)}
+    results, _, _, _ = run_links(tmp_path, {**base, **routes})
+    broken = [what for _, level, what in results if level == "broken"]
+    assert len(broken) == 1 and problem in broken[0]
+
+
+@pytest.mark.parametrize("routes, problem", [
+    ({"https://www.nber.org/papers/w29053": (403, "")}, "answered 403 - open it in a browser"),
+    ({"https://www.nber.org/papers/w29053": (401, "")}, "answered 401"),
+    ({"https://www.eeoc.gov/ai": (429, "")}, "answered 429"),
+    ({"https://www.eeoc.gov/ai": (503, "")}, "answered 503"),
+    ({"https://www.eeoc.gov/ai": httpx.ConnectTimeout("slow")}, "no answer (ConnectTimeout)"),
+    ({CROSSREF: (404, "")}, "Crossref has no record (registered elsewhere, e.g. DataCite)"),
+    ({HANDLE: (500, "")}, "doi.org answered 500"),
+    ({ARXIV_API: (429, "Rate exceeded.")}, "arXiv 2311.09735: API answered 429"),
+])
+def test_links_unclear_answers_are_left_to_check_by_hand(tmp_path, routes, problem):
+    base = {HANDLE: (200, {"responseCode": 1}), CROSSREF: crossref(), ARXIV_API: (200, ARXIV)}
+    results, _, _, _ = run_links(tmp_path, {**base, **routes})
+    assert [level for _, level, what in results if problem in what] == ["check"]
+    assert "broken" not in {level for _, level, _ in results}
+
+
+def test_links_arxiv_doi_skips_crossref_and_arxiv_calls_are_spaced(tmp_path):
+    second = LINKS_REGISTRY.replace("id: geo-2024", "id: geo-doi").replace(
+        "url: https://arxiv.org/abs/2311.09735", "doi: 10.48550/arXiv.2311.09735")
+    registry = LINKS_REGISTRY + second[len(REGISTRY):]
+    routes = {HANDLE: (200, {"responseCode": 1}), CROSSREF: crossref(), ARXIV_API: (200, ARXIV)}
+    results, seen, pauses, _ = run_links(tmp_path, routes, registry)
+    assert {level for _, level, _ in results} == {"ok"}
+    assert not any("crossref.org/works/10.48550" in url for url in seen)
+    assert seen.count(ARXIV_API) == 2 and pauses == [pages.ARXIV_PAUSE]
+
+
+def test_links_command_prints_file_line_and_exits_1_on_broken(tmp_path, capsys):
+    research_site(tmp_path, registry=LINKS_REGISTRY)
+    routes = {HANDLE: (404, {"responseCode": 100}), ARXIV_API: (200, ARXIV),
+              "https://www.eeoc.gov/ai": (403, "")}
+    with links_client(routes) as client:
+        assert pages.links(tmp_path, client=client) == 1
+    out = capsys.readouterr().out.splitlines()
+    assert "app/web/research/sources.yml:1: quillian-2017: BROKEN: doi 10.1073/pnas.1706255114 does not exist (doi.org)" in out
+    assert "app/web/research/sources.yml:20: eeoc-2023: check by hand: https://www.eeoc.gov/ai answered 403 - open it in a browser" in out
+    assert out[-1] == "4 sources: 1 broken, 1 to check by hand, 2 fine"
+
+
+def test_links_registry_problems_stop_before_any_request(tmp_path, capsys):
+    research_site(tmp_path, registry="- id: x\n  type: blog\n")
+    with links_client({}) as client:
+        assert pages.links(tmp_path, client=client) == 1
+        assert client.seen == []
+    assert "sources.yml:2: x: type must be one of" in capsys.readouterr().out
