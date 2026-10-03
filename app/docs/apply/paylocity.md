@@ -7,6 +7,8 @@ postings, 2026-10-03). Posting `recruiting.paylocity.com/Recruiting/Jobs/Details
 
 Measured 2026-10-03 with `apply-form measure` on 7 postings from 7 employers (tenants A-G), first
 page only. Saved definitions: `app/tests/fixtures/paylocity/` (`tenant-<a..g>.json` + `options.json`).
+Filler tried 2026-10-03 with `apply-form try` on 3 more employers (tenants H-J), step 1, every
+write blocked: results under Widgets + What leaves.
 
 ## Form definition
 
@@ -52,11 +54,14 @@ employer's preferred reply.
 | contact + info text | `input[id="info.<name>"]` (`info.firstName`, `info.email`, `info.cellPhone`, `info.linkedIn`, `info.referredBy`), `data-automation-id="info<Name>"`, `data-for="<label>"` | find by id via `[id="..."]` (dot in the id). Label = sibling `<label>` w/o `for` in the same `.form-group`, "(required)" in an `<em>` - not found by a reader looking for `label[for]` (12-18 boxes per page read nameless). `data-for` holds the label text |
 | required | `.form-group.form-required` + "(required)" in the label | not `required` / `aria-required` on the box |
 | address | `public-site-address-<part>` (`country`, `address-1`, `address-2`, `city`, `county`, `us-state`, `zip`); job address `public-candidate-work-history-address-<n>-<part>` | `address-1` is a combobox (address lookup, `publicAddressComponentConfig`); state + country are text inputs that open a list |
-| yes/no + SMS | `div[role=combobox]` `[id="info.smsOptedIn"]`, `info.haveYouWorkedWithUsBefore`, `info.haveYouAppliedWithUsBefore` | options listed only when opened (left shut while measuring) - unmeasured |
+| yes/no, SMS, pay type | react-widgets `div[role=combobox]` `[id="info.smsOptedIn"]`, `info.haveYouWorkedWithUsBefore`, `info.haveYouAppliedWithUsBefore`, `info.desiredSalaryType`; list = `aria-owns` `<id>__listbox`, `[role=option]` (11 per page, tenant H) | open, click the option, read the box's text back: ok on H-J. A layer took the click on 2 boxes of tenant J (30 s timeout): then clicked on the box itself (`e.click()`) - ok |
 | How did you hear | native radios `name="info.howDidYouHearAboutUs"` inside `role=radiogroup` (no `[role=radio]`) | one choice question; the group's text holds the options too - title = the field's `displayName` |
-| skills | `react-tagsinput` input `info.skills`, "Type a skill and press enter" | unmeasured |
-| work history | `workHistory.<field>.<n>` (`companyName`, `position`, `responsibilities` textarea, `reasonForLeaving`, `currentlyWorkingHere` checkbox); dates `txt-workHistory-startDate-<n>` "MM/YYYY" + picker button | jobs from `questions.form_roles`; dates typed MM/YYYY |
-| resume / cover letter | hidden `input[type=file]` `btn-resume`, `btn-coverLetter` (`.doc,.docx,.pdf`), buttons "Select Resume to Upload" / "Select Cover Letter" | upload via the file input, only after the user's yes |
+| skills | `react-tagsinput` input `info.skills`, "Type a skill and press enter" | each item typed + Enter, tags read back: ok on H, J |
+| country / state | `public-site-address-country` / `-us-state`: text input under a "Select a state" layer; the chosen value shows over the input (`input_value` stays '') | the layer takes a click (30 s timeout, H): focus, type, pick the option, read the `.form-group` text back - ok on I, J. Definition options are UPPER ("UNITED STATES"), page shows "United States": compared case-blind |
+| start date | `info.dateAvailableToStart`, masked "MM/DD/YYYY" input + calendar button (flyout dialog) | typed keys don't take: whole fill, key by key with slashes, digits only - all read back '' (3 of 3, H-J). ASK: the user picks it in the calendar. Escape after, so the flyout never covers the boxes below |
+| work history | `workHistory.<field>.<n>` (`companyName`, `position`, `companyUrl`, `companyPhone`, `responsibilities` textarea, `reasonForLeaving`, `currentlyWorkingHere` checkbox, `mayWeContactSupervisor` combo); dates `txt-workHistory-startDate-<n>` "MM/YYYY" + picker button; boxes appear after "Add Work History" (tenant H) | jobs from `questions.form_roles`; dates typed MM/YYYY. Reason for leaving, supervisor, employer phone: the user's. Live add unmeasured (`try` answers No) |
+| education | `educationHistory.name.<n>`, `areaOfStudy`, `gpa`, `city`, `state`, `country`; `type` + `didYouGraduate` combos; after "Add Education" (tenant H) | school + area of study from the resume; type, graduated, dates: the user's |
+| resume / cover letter | hidden `input[type=file]` `btn-resume`, `btn-coverLetter` (`.doc,.docx,.pdf`), buttons "Select Resume to Upload" / "Select Cover Letter" | upload via the file input, only after the user's yes. Choosing the file POSTs it at once (below): under `try` blocked, so ASK "not confirmed" there (3 of 3) |
 | "Fill out application with my resume" | checkbox `useAttachedResumeToFillOutApplication`, ticked on load (7 of 7) | resume parse would overwrite typed answers: upload first, then fill. What it sends: unmeasured |
 | ids made per load | none: 0 changed between two loads on 7 of 7 | ids are stable hooks |
 | cookie banner | OneTrust: "Cookies Settings", "Accept All Cookies" | never "Accept All"; decline route unmeasured |
@@ -66,9 +71,11 @@ employer's preferred reply.
 Wizard, "Step 1 of N" on the page: N = 2, 4, 4, 5 on the 4 tenants it was recorded for; Next
 button "Next Step" (never "Submit"). Page 1 = info, then "Add Work History" / "Add Education"
 buttons on the same page. References, screener, EEO + acknowledgements, identity questions: on
-later steps - which step each lands on, and what the last step's button says, unmeasured (needs
-`apply-form try --next`, build bead). Page has no step headings (`h1`-`h4`): page of a question
-comes from its section in the definition.
+later steps - which step each lands on, and what the last step's button says, unmeasured. Not
+measurable while blocked: `try --next` on tenant J - "Next Step" (`btn-submit`,
+`data-automation-id=btnNext`) sat under an "Upload Resume" dialog (resume required, its upload
+blocked) and the cookie banner. Page has no step headings (`h1`-`h4`): page of a question comes
+from its section in the definition; boxes not on the user's step -> LATER.
 
 ## What leaves the computer, when
 
@@ -77,12 +84,19 @@ Measured on load only (nothing typed), 2026-10-03:
 - Opening the form: GETs only (page, scripts, cookie banner, address config).
 - Datadog browser monitoring (`browser-intake-datadoghq.com/api/v2/rum`, POST) on 2 of 7 tenants
   at load - page-use telemetry, blocked; nothing typed yet.
-- While typing, on upload, with `leadApplyEnabled` (true on 5 of 7) and at Next: unmeasured -
-  `apply-form try` (build bead) records it here.
+- Email: `POST /Recruiting/Jobs/GetEnhancedEmailValidation` as the email box is left (3 of 3,
+  H-J) - the address goes to Paylocity before Submit. Earliest point anything typed leaves.
+- Resume / cover letter: `POST /Recruiting/Jobs/FileUpload` as the file is picked (3 of 3) - the
+  file leaves before Submit; with "Fill out application with my resume" ticked the page may then
+  fill boxes from it (unmeasured: blocked).
+- Name, phone, address, pay, skills, choices: nothing sent while typed (3 of 3).
+- At Next Step and Submit: unmeasured (Next not reachable while blocked, above).
 
 ## Closed posting
 
-Not seen (7 of 7 open). Unmeasured.
+Apply link of a missing / closed job: 302 to `/Recruiting/Jobs/JobNotFound`, page says "We're
+sorry, that job does not exist or is not currently active" (2026-10-03, a made-up id) -
+`questions` says closed; `form.CLOSED` matches the wording.
 
 ## Tenant notes
 
@@ -95,3 +109,6 @@ Not seen (7 of 7 open). Unmeasured.
 | tenant E | references included, no screener, resume required; Step 1 of 2 |
 | tenant F | no work history or education section; screener 9, graded, incl. background + drug screening yes/no; Step 1 of 4 |
 | tenant G | screener 3 graded, one auto-reject, answers marked correct in page data; references; Step 1 of 5 |
+| tenant H | no screener; Step 1 of 4, 60 controls; `try`: 39 questions, all step-1 boxes ok but start date + uploads |
+| tenant I | references 3 required; `try`: 35 questions, ok but start date, upload, references (other people's details) |
+| tenant J | 47 questions, 23 on later steps; resume required; `try`: ok but start date + upload; Next blocked by resume dialog |

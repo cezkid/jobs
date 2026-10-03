@@ -127,6 +127,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Chrome; user signs in or creates the account there, then rerun `prepare`. Its
    `resume-sections` question (add work history, education, skills, links from the resume): UKG
    saves each to their account on the site as it is added, before Submit - say so, then ask.
+   Paylocity: email goes to the site as its box is left (its own email check), resume as the
+   file is picked - both before Submit; say so before `fill`. Start date: they pick it in the
+   page's calendar (typed keys don't take).
 4. `uv run app/jobs.py apply-form fill <job number>` -> opens the form in Job Finder's Chrome,
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
