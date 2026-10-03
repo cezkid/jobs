@@ -403,18 +403,53 @@
     .ledger-head { grid-column: 1 / -1; display: grid; gap: 4px 32px; color: var(--text-2); font-size: 1rem; margin-bottom: -24px !important; }
   }
 
-  .more { padding: 8px 0 24px; }
-  .more section { max-width: 68ch; padding: 32px 0; border-top: 1px solid var(--line); }
   h2 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 16px; }
   h3 { font-size: 1.25rem; line-height: 1.3; margin: 20px 0 2px; }
-  .more p { margin: 0; }
-  .more ul { margin: 0 0 14px; padding-left: 1.1em; }
-  .more li { margin: 0 0 6px; }
-  details { border-bottom: 1px solid var(--line); }
-  details:first-of-type { border-top: 1px solid var(--line); }
-  summary { padding: 12px 40px 12px 0; font-weight: 700; }
-  details > div { padding: 0 0 16px; }
-  details code { font: 1rem/1.5 var(--mono); overflow-wrap: anywhere; }
+
+  /* research teaser: curated picks, not the newest */
+  .research-head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
+  .research-head h2 { margin: 0; }
+  .picks { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--gutter); }
+  .picks li { padding: 16px 0 18px; border-top: 2px solid var(--text); }
+  .picks a { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+  .picks p { margin-top: 8px; color: var(--text-2); }
+  @media (min-width: 900px) { .picks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+  /* questions: two stacks (not CSS columns: a column break can split an open answer) */
+  .questions h2 { grid-column: 1 / -1; }
+  .stack { grid-column: 1 / -1; min-width: 0; }
+  .stack details { border-bottom: 1px solid var(--line); }
+  .stack details:first-child { border-top: 2px solid var(--text); }
+  .stack summary { padding: 14px 40px 14px 0; font-weight: 700; }
+  .stack details > div { padding: 0 40px 16px 0; }
+  .stack code { font: 0.9375rem/1.5 var(--mono); overflow-wrap: anywhere; }
+  @media (min-width: 900px) {
+    .stack { grid-column: span 6; }
+    .questions { align-items: start; }
+  }
+  /* one column on phones: the second stack carries on under the first's hairline */
+  @media (max-width: 899px) { .stack + .stack details:first-child { border-top: 0; } }
+
+  /* closing install beat (phone: send the link; no second command) + colophon */
+  .closing { border-top: 0; padding-top: clamp(24px, 4vh, 48px); }
+  .closing .scene-text { max-width: 44rem; }
+  .closing h2 { font-size: clamp(2.25rem, 1.3rem + 3vw, 4.25rem); margin-bottom: 0.3em; }
+  .closing .go { display: inline-block; margin-top: 8px; font-size: var(--step-1); font-weight: 700; }
+  .closing .phone p { font-weight: 400; }
+  .colophon { grid-column: 1 / -1; margin: 0; padding: 18px 0 28px; border-top: 1px solid var(--line); color: var(--text-2); font-size: 1.0625rem; }
+
+  /* phones: one column already stacks every scene => tighter rhythm keeps the page inside its cap */
+  @media (max-width: 600px) {
+    .hero { padding-bottom: 32px; }
+    .scene { padding-top: 30px; padding-bottom: 30px; row-gap: 20px; }
+    .ledger li { padding: 12px 0 13px; }
+    .defs > div { padding: 9px 0 10px; }
+    .questions { row-gap: 0; }
+    .picks a { font-size: 1.3125rem; }
+    .picks li { padding: 12px 0 14px; }
+    .stack summary { padding-top: 10px; padding-bottom: 10px; }
+    .colophon { padding: 14px 0 20px; }
+  }
 
   /* print: the desktop install steps (the line itself), no buttons */
   @media print {
@@ -423,6 +458,8 @@
     .scene { padding-top: 28px; padding-bottom: 28px; row-gap: 20px; }
     .defs > div { padding: 4px 0 5px; }
     .submit-line { margin-top: 10px !important; }
+    /* a link to the install steps and a send button mean nothing on paper */
+    .closing { display: none; }
   }
 </style>
 </head>
@@ -626,11 +663,24 @@
   </section>
   <!-- /region: who -->
 
-  <div class="more wrap">
+  <!-- region: research -->
+  <section class="grid scene research" aria-labelledby="research-h">
+    <div class="research-head">
+      <h2 id="research-h">Research</h2>
+      <a href="/research/">All research</a>
+    </div>
+    <ul class="picks">
+      <li><a href="/research/what-makes-a-good-resume/">What makes a good resume?</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower ratings.</p></li>
+      <li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes?</a><p>No study shows it. The number traces to a 2012 sales claim.</p></li>
+      <li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a><p>In tests, yes - by name, gender, age and disability. The direction changes by model.</p></li>
+    </ul>
+  </section>
+  <!-- /region: research -->
 
-    <!-- region: questions -->
-    <section>
-      <h2>Questions</h2>
+  <!-- region: questions -->
+  <section class="grid scene questions" aria-labelledby="questions-h">
+    <h2 id="questions-h">Questions</h2>
+    <div class="stack">
       <details>
         <summary>Is this a website?</summary>
         <div><p>No. It's an app you install on your Windows or Mac computer. Your resume and jobs stay there.</p></div>
@@ -651,6 +701,8 @@
         <summary>Will it make things up on my resume?</summary>
         <div><p>No. Employers, titles and dates stay as you gave them. You approve every reworded line.</p></div>
       </details>
+    </div>
+    <div class="stack">
       <details>
         <summary>What do I need?</summary>
         <div><p>Windows 10 or 11, or a Mac. About 5 minutes. No administrator password.</p></div>
@@ -670,9 +722,29 @@
         <summary>How do I remove it?</summary>
         <div><p>Ask the chat to turn off the daily check, then delete the CEZ Job Finder folder.</p></div>
       </details>
-    </section>
-    <!-- /region: questions -->
+    </div>
+  </section>
+  <!-- /region: questions -->
+
+  <!-- region: closing -->
+  <section class="grid scene closing" aria-labelledby="closing-h">
+    <div class="scene-text">
+      <h2 id="closing-h">Start with tomorrow morning's jobs.</h2>
+      <p class="desktop">Install takes about 5 minutes. One line to paste; your files stay on your computer.</p>
+      <a class="go desktop" href="#install">Go to the install steps</a>
+      <div class="phone">
+        <p>It installs on a Windows or Mac computer.</p>
+        <a class="send" href="mailto:?subject=CEZ%20Job%20Finder&body=https%3A%2F%2Fjobs.enrriquez.com%2F">Send this page to my computer</a>
+      </div>
+    </div>
+  </section>
+  <!-- /region: closing -->
+
+  <!-- region: colophon -->
+  <div class="grid">
+    <p class="colophon">Set in Caladea. Loads under 100 KB and nothing from other sites.</p>
   </div>
+  <!-- /region: colophon -->
 </main>
 <footer>
   <div class="wrap row">
@@ -738,8 +810,7 @@
     render();
   });
   // phones: share sheet when there is one; a cancel stays a cancel
-  const send = document.querySelector(".send");
-  if (navigator.share) {
+  if (navigator.share) document.querySelectorAll(".send").forEach((send) => {
     send.addEventListener("click", async (event) => {
       event.preventDefault();
       try {
@@ -748,7 +819,7 @@
         if (error.name !== "AbortError") location.href = send.href;
       }
     });
-  }
+  });
   render();
 </script>
 </body>
