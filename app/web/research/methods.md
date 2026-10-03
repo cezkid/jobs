@@ -3,20 +3,22 @@ title: How we research
 description: How these articles find sources, grade evidence, use AI, get checked and get corrected - and what we gain from the answers.
 published: 2026-10-03
 modified: 2026-10-03
-status: draft
+status: published
 og_title: How the Research articles are made and checked
 ---
 ## Who writes these articles?
 
-Every article is by [Cesar Enrriquez-Zuniga](about.md). He makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one.
+Every article is by [Cesar Enrriquez-Zuniga](about.md). Cesar makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan.
 
-He is not a recruiter or a lawyer. The articles summarize published studies and say how strong each one is.
+Cesar is not a recruiter or a lawyer. The articles summarize published studies and say how strong each one is.
+
+On these pages, "we" means Cesar and the AI tools Cesar uses.
 
 ## Why publish them?
 
 CEZ Job Finder follows these findings when it writes a resume. Publishing them lets anyone check the reasons behind the app.
 
-Much advice about resumes and AI repeats claims nobody can trace. Each article here links every claim to a source you can open.
+Much advice about resumes and AI repeats claims nobody can trace. Here, every claim carries a label for how strong it is. Every claim from a study links to that study.
 
 ## Which sources come first?
 
@@ -54,38 +56,41 @@ Some studies have not yet been checked by other researchers. The Sources list ma
 
 Every source cited was opened and read, including its methods and tables, not just its summary. A source we could not open is not cited. A number we only found secondhand is not cited either.
 
-Every source is listed in one shared list with the date it was opened. Each article ends with its Sources list: authors, year, title, label, and links.
+Every source is listed in one shared list with the date it was last opened and checked. Each article ends with its Sources list: authors, year, title, label, and links.
 
-A program checks every DOI, the permanent ID a journal gives a paper. It asks the official DOI registry whether the paper exists, then compares the title and year. The same check runs for papers on arXiv, a public library of research papers. An invented or mistyped reference fails this check. A link the program cannot test is opened by hand.
+Before an article goes up, a program checks every DOI, the permanent ID a journal gives a paper. It asks the official DOI registry whether the paper exists, then compares the title and year. The same check runs for papers on arXiv, a public library of research papers. A source with neither ID, such as a book or a report, is opened by hand.
 
-Every number in an article must name its source in the same sentence. The program that builds the site refuses a page where one does not.
+Every number in an article must name its source in the same sentence. A program flags percentages and "N in M" numbers that lack a source. The review checks every other number by hand.
 
 ## How is AI used?
 
 AI does much of the work, and we say exactly where:
 
 1. **Draft.** AI tools search for sources, read them, and write the first draft.
-2. **Fresh review.** A second AI session, started fresh with none of the drafting notes, reads every source first. It then tries to break every claim in the draft. It writes a table of each claim, what the source actually says, and a verdict. An article it does not pass goes back for changes.
-3. **Approval.** Cesar reads each article and approves it before it goes up.
+2. **Fresh review.** A second AI session, with none of the drafting conversation, reads every source first. It then tries to break every claim in the draft. It writes a table of each claim, what the source actually says, and a verdict.
+3. **Revision.** AI revises the draft to answer every point the review raised, and records how each was answered.
+4. **Approval.** Cesar reads each article and approves it before it goes up.
+
+The reviewing AI is the same kind of AI as the drafting one. Cesar's reading is the check that does not come from an AI.
 
 AI never makes images of people for these pages. No quote, number or study is invented: the checks above exist to catch that. Text inside a source that tries to give an AI instructions is treated as text, never followed.
 
 ## How are mistakes corrected?
 
-A correction changes the text, updates the page date, and adds a dated line to a Changes list at the end. A number is never changed silently. A corrected article is reviewed again before it goes back up.
+A correction changes the text, updates the page date, and adds a dated line to a Changes list. The Changes list sits at the end of the article, above the Sources. A number is never changed silently. A corrected article gets a new AI review before it goes back up.
 
-To report a mistake, open an issue titled "Research correction" on the app's public code page: https://github.com/cezkid/jobs/issues/new?title=Research%20correction
+To report a mistake, post a note titled "Research correction" on the app's GitHub page. Posting there needs a free GitHub account. The page to post on: github.com/cezkid/jobs/issues/new
 
 ## How often are articles updated?
 
-Laws and app settings change fast, so we re-check them every 3 to 6 months. Studies are re-checked once a year, for a newer study, a retraction, or a preprint now published. Each Sources entry shows the date it was last checked.
+Laws and app settings change fast, so we re-check them every 3 to 6 months. Each law carries a re-check date, and the site build warns when that date passes. Studies are re-checked once a year, for a newer study, a retraction, or a preprint now published. Each Sources entry shows the date it was last checked.
 
 ## What do we gain from the answers?
 
-We make CEZ Job Finder, a free app. These pages carry no ads, no affiliate links and no sponsors.
+We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors.
 
-Each article's last box says how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.
+Each article has a separate box, after the evidence, on how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.
 
-## What these articles are not
+## Is this legal advice?
 
 These articles are not legal advice or career counselling. A page that describes a law says so and gives the date it was checked. For your own situation, ask a lawyer or a career adviser.

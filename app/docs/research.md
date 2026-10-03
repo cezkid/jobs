@@ -49,7 +49,7 @@ prints in the Sources list.
 | Lab study | `lab/LLM audit` | raters or AI models, not real hiring |
 | Law (as of date) | `law` | statute / regulation, date it was checked |
 | Convention | `convention` | career guides agree, no study |
-| Our measurement | none - own numbers go in the page's `uncited:` list | we ran it; method on the methods page |
+| Our measurement | none - own numbers go in the page's `uncited:` list | we ran it; the article says how |
 
 - *Preprint* tag on anything not yet peer-reviewed (`preprint: true`; Sources list says so). Say
   it in the sentence too when the claim leans on it.

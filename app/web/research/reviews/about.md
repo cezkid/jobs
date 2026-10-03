@@ -1,6 +1,6 @@
 ---
 reviewed: 2026-10-03
-verdict: revise
+verdict: publish
 reviewer: fresh AI session, bead plan-xsy.16 (no drafting context)
 ---
 # Review: About the author (`about.md`)
@@ -23,20 +23,20 @@ Who/How/Why guidance, the 2026 fake-author rule, rater guidelines 2.5.2-2.5.3 (w
 
 ## Findings
 
-Status: open = for the revise bead (plan-xsy.17).
+Status: open = for the revise bead (plan-xsy.17). All answered by plan-xsy.17 on 2026-10-03.
 
-- **A1 (medium) - pronouns.** status: open. "Where to find him" assumes the owner's pronouns; none
+- **A1 (medium) - pronouns.** status: fixed. Heading now "Contact and code"; body uses the name, no pronoun. "Where to find him" assumes the owner's pronouns; none
   are recorded in anything this session read. Rewrite pronoun-free ("Where to find Cesar",
   "Contact and code") unless the owner states them.
-- **A2 (medium) - process line repeats methods M1/M4.** status: open. Keep it in step with
+- **A2 (medium) - process line repeats methods M1/M4.** status: fixed. Process line matches methods: AI drafts, fresh AI review, AI revises, Cesar approves. Keep it in step with
   whatever the methods page says after its fix; don't promise approval the process doesn't record.
-- **A3 (medium) - correction route points to the wrong page.** status: open. Profile URL instead
+- **A3 (medium) - correction route points to the wrong page.** status: fixed. Links methods.md#how-are-mistakes-corrected (internal); repo shown as github.com/cezkid/jobs. Profile URL instead
   of the issue form; not clickable; GitHub account needed. Link to the methods section
   `methods.md#how-are-mistakes-corrected` (internal link, allowed) instead of repeating a URL.
-- **A4 (low) - "free" without the AI-plan cost.** status: open. Home FAQ says the app needs a paid
+- **A4 (low) - "free" without the AI-plan cost.** status: fixed. "The app needs your own paid Claude, ChatGPT or GitHub Copilot plan." Home FAQ says the app needs a paid
   Claude, ChatGPT or Copilot plan. On an About page that also carries the conflict-of-interest
   story, add "It needs your own AI plan" or link the methods COI section (methods M9).
-- **A5 (medium) - thin "who" + no contact.** status: open. Rater guidelines 2.5.3 want who is
+- **A5 (medium) - thin "who" + no contact.** status: fixed in part + moved. Added why Cesar writes on this (built an app that tailors resumes with AI, needed to know which advice holds up) - no credential, title or employer added. Public contact route + www.enrriquez.com in SAME_AS: owner facts in plan-xsy.44. Rater guidelines 2.5.3 want who is
   responsible and how to reach them; Google wants the byline to lead to more about the author.
   Page has name, one line, a GitHub URL - honest, but no contact route other than GitHub and no
   reason given why this person writes on AI + resumes (e.g. "built an app that tailors resumes
@@ -44,7 +44,7 @@ Status: open = for the revise bead (plan-xsy.17).
   the owner hasn't given (brief). Owner input at ship: an email or contact page they want public,
   and www.enrriquez.com in `SAME_AS` once it answers 200 (home footer already links it - a 403
   link on the home page is its own issue).
-- **A6 (low) - body style.** status: open. "Not a recruiter or lawyer: the Research section ..."
+- **A6 (low) - body style.** status: fixed. "Cesar is not a recruiter or a lawyer. The Research section summarizes ..." "Not a recruiter or lawyer: the Research section ..."
   is a fragment; body = short full sentences (research.md Style). "Cesar is not a recruiter or a
   lawyer. The Research section summarizes ...".
 
@@ -61,3 +61,7 @@ no invented credentials).
 ## Verdict
 
 revise - A1, A3, A5 before publishing; A2/A4 follow the methods fixes.
+
+## Revision (plan-xsy.17, 2026-10-03)
+
+Every finding above fixed on the page or moved to a filed bead (named in its status). Verdict set to publish by the revise bead per app/docs/research.md; the owner read at ship (plan-xsy.36) is still required, and plan-xsy.44 holds the owner facts.

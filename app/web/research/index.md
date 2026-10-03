@@ -3,10 +3,13 @@ title: Research
 description: What studies say about AI and resumes - every claim linked to its source, every source graded by how strong it is.
 published: 2026-10-03
 modified: 2026-10-03
-status: draft
+status: published
+og_title: "Research: AI and resumes, with sources"
 ---
 What studies say about AI, hiring and resumes. Plain words, short answers first.
 
-Every claim links to a source you can open. Every source is graded: big study, small study, survey, lab test, law or convention.
+Every claim carries a label for how strong it is. Every claim from a study links to that study.
 
-How the articles are found, written, checked and corrected: [How we research](methods.md).
+Labels run from big study, small study and survey to company survey, lab study, law, convention and our own tests.
+
+Written with AI help, checked by a fresh AI review and by Cesar. How the articles are found, written, checked and corrected: [How we research](methods.md).

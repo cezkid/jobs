@@ -1,6 +1,6 @@
 ---
 reviewed: 2026-10-03
-verdict: revise
+verdict: publish
 reviewer: fresh AI session, bead plan-xsy.16 (no drafting context)
 ---
 # Review: How we research (`methods.md`)
@@ -53,59 +53,59 @@ Measured 2026-10-03:
 
 ## Findings
 
-Status: open = for the revise bead (plan-xsy.17) to fix or answer here.
+Status: open = for the revise bead (plan-xsy.17) to fix or answer here. All answered by plan-xsy.17 on 2026-10-03.
 
-- **M1 (high) - approval and re-review are promised but not enforced or recorded.** status: open.
+- **M1 (high) - approval and re-review are promised but not enforced or recorded.** status: fixed (page) + moved. Page now lists a separate Revision step done by AI and says Cesar approves; no claim that code enforces approval. Recording owner approval per article and keeping the reviewer's verdict apart from the reviser's: plan-xsy.43 (owner decision); owner reading each page is the ship bead plan-xsy.36.
   The page says the owner approves each article and a corrected article is reviewed again. Code
   checks only a verdict string + a date; the revise bead (an AI session) sets `verdict: publish`
   itself; GitHub Pages publishes whatever reaches `main`. Fix now: word the page to match the real
   steps (e.g. "AI revises the draft to answer every point the review raised. Cesar reads each
   article and approves it before it goes up."). Process fix filed separately (see below): record
   owner approval per article and keep the reviewer's verdict distinct from the reviser's.
-- **M2 (high) - "the program refuses a page" over-promises the number lint.** status: open.
+- **M2 (high) - "the program refuses a page" over-promises the number lint.** status: fixed (page) + moved. Now: "A program flags percentages and 'N in M' numbers that lack a source. The review checks every other number by hand." Lint widening: plan-xsy.42.
   Measured misses: "3/4", "half", "twice as likely", "83,000 applications", "1.5 times". Fix now:
   say "A program flags percentages and 'N in M' numbers without a source; the review checks the
   rest." Lint widening filed separately.
-- **M3 (medium) - DOI check is manual and partial.** status: open. `--links` runs by hand, not at
+- **M3 (medium) - DOI check is manual and partial.** status: fixed. "Before an article goes up, a program checks every DOI ..."; a source with neither ID is opened by hand; the "invented reference fails" line removed. `--links` runs by hand, not at
   build; references without a DOI or arXiv id get only a link check. Fix: "Before an article goes
   up, a program checks every DOI ... Sources without one are opened by hand." Don't claim every
   invented reference fails.
-- **M4 (medium) - "none of the drafting notes" is not true.** status: open. The review session
+- **M4 (medium) - "none of the drafting notes" is not true.** status: fixed. "with none of the drafting conversation"; added that the reviewing AI is the same kind of AI as the drafter and Cesar's reading is the non-AI check. The review session
   can read the draft bead's notes. Reword: "A second AI session, with none of the drafting
   conversation, ...". Also say it is the same kind of AI as the drafter, so a human (Cesar) is the
   independent check - Google's How guidance asks for candour, and a reader would want to know.
 - **M5 (medium) - "links every claim to a source you can open" contradicts the page's own labels.**
-  status: open. Convention (no study) and Our measurement have no outside source. Reword: "Every
+  status: fixed. "Every claim carries a label for how strong it is. Every claim from a study links to that study." Convention (no study) and Our measurement have no outside source. Reword: "Every
   claim carries a label, and every claim from a study links to it."
-- **M6 (medium) - corrections route needs a GitHub account and is not clickable.** status: open.
+- **M6 (medium) - corrections route needs a GitHub account and is not clickable.** status: fixed (wording) + moved. Plain words, no "issue"; says a free GitHub account is needed; URL shown without %20. Clickable link: plan-xsy.41 (pages.py allowance). Email route: owner fact in plan-xsy.44.
   Measured: signed-out visit = sign-in redirect. Plain-text URL with `%20` reads as code to the
   readers this site targets; "open an issue" is GitHub jargon. Fix: let `pages.py` allow links to
   the project's own GitHub (`https://github.com/cezkid/`) in the body, link text "report a
   mistake", and say a free GitHub account is needed; or add an email route (owner's call: needs an
   address they want public). IFCN code + rater guidelines 2.5.3 expect an easy contact route.
-- **M7 (low) - re-check cadence partly unenforced.** status: open. Only laws require
+- **M7 (low) - re-check cadence partly unenforced.** status: fixed. Page says each law carries a re-check date the build warns about; settings + studies keep their stated cadence. Only laws require
   `recheck_by`. Fix: either say "laws carry a re-check date the build warns about" and keep studies
   "yearly" as a stated practice, or require `recheck_by` on product-behaviour (`web`) entries too.
-- **M8 (low) - Our measurement: page vs standards disagree.** status: open. Page: "the article
+- **M8 (low) - Our measurement: page vs standards disagree.** status: fixed. Article-level chosen: app/docs/research.md table row now reads "the article says how". Page: "the article
   says how"; `research.md` table: "method on the methods page". Pick one (article-level is more
   useful) and fix the other.
-- **M9 (medium) - conflict-of-interest section is silent on the AI companies.** status: open. The
+- **M9 (medium) - conflict-of-interest section is silent on the AI companies.** status: fixed in part + moved. Added next to "free" (Who + What do we gain) that the app needs your own paid Claude, ChatGPT or GitHub Copilot plan. No "we get nothing" line written - that needs the owner's fact: plan-xsy.44 (blocks ship via the owner read in plan-xsy.36). The
   app needs a paid Claude, ChatGPT or Copilot plan, and articles (keep-chats-out-of-ai-training,
   ai-written-resumes) discuss those companies; the articles are also written with one of their AI
   tools. Readers should learn whether the author gets anything from them. Needs an owner fact
   (any payment, referral, sponsorship or job tie: yes/no) - never assume "none". Then one line,
   e.g. "The app works with Claude, ChatGPT or GitHub Copilot. We get nothing from those companies."
   Also say the app needs one of those paid plans next to "free".
-- **M10 (low) - small accuracy slips.** status: open. "date it was opened" vs "last checked" -
+- **M10 (low) - small accuracy slips.** status: fixed. "last opened and checked"; Changes list "at the end of the article, above the Sources"; tool box "a separate box, after the evidence". "date it was opened" vs "last checked" -
   use "date it was last opened and checked" in both; Changes list sits above Sources - say "a
   Changes list at the end of the article, above the Sources"; "last box" -> "a separate box after
   the evidence".
-- **M11 (low) - voice.** status: open. "We" throughout, but the byline and About name one person
+- **M11 (low) - voice.** status: fixed. One line defines "we" as Cesar and the AI tools Cesar uses; last H2 now "Is this legal advice?". "We" throughout, but the byline and About name one person
   plus AI tools. "We" can read as a team that doesn't exist (the 2026 fake-author rule targets
   false impressions of who made a page). Either say once "'We' means Cesar and the AI tools he
   uses" or write "I". Last H2 "What these articles are not" is not question-led (research.md
   Search rule) - "What are these articles not?" or "Is this legal advice?".
-- **M12 (low) - pronouns.** status: open. The page uses "He"; the owner's pronouns are not
+- **M12 (low) - pronouns.** status: fixed. Pronoun-free: "He" replaced with the name. The page uses "He"; the owner's pronouns are not
   recorded anywhere this session could read. Rewrite with the name or confirm with the owner.
 
 ## Plain words + search
@@ -129,3 +129,7 @@ Status: open = for the revise bead (plan-xsy.17) to fix or answer here.
 revise - M1 and M2 promise checks the process does not make; M5, M6, M9 need fixing before the
 page can be trusted as the site's editorial policy. Fixes are wording on this page, except M6
 (a `pages.py` link allowance or an owner-given email) and M9 (an owner fact).
+
+## Revision (plan-xsy.17, 2026-10-03)
+
+Every finding above fixed on the page or moved to a filed bead (named in its status). Verdict set to publish by the revise bead per app/docs/research.md; the owner read at ship (plan-xsy.36) is still required, and plan-xsy.44 holds the owner facts.

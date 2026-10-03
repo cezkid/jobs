@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How we research</title>
+<meta name="description" content="How these articles find sources, grade evidence, use AI, get checked and get corrected - and what we gain from the answers.">
+<link rel="canonical" href="https://jobs.enrriquez.com/research/methods/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="CEZ Job Finder">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://jobs.enrriquez.com/research/methods/">
+<meta property="og:title" content="How the Research articles are made and checked">
+<meta property="og:description" content="How these articles find sources, grade evidence, use AI, get checked and get corrected - and what we gain from the answers.">
+<meta property="article:published_time" content="2026-10-03">
+<meta property="article:modified_time" content="2026-10-03">
+<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"How we research","item":"https://jobs.enrriquez.com/research/methods/"}]}]}</script>
+<style>
+  /* shared */
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+  /* Cambria = metric twin of Caladea; Georgia needs overrides (app/web/assets.py prints them) */
+  @font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
+  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
+  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia"); font-weight: 400;
+    size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
+    size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+  :root {
+    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433;
+    --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
+    --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--desk); color: var(--text);
+    font: 20px/1.55 var(--serif); -webkit-text-size-adjust: 100%;
+  }
+  a { color: var(--text); text-decoration: underline; text-underline-offset: 0.15em; }
+  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+  mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
+  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  .brand img { width: 28px; height: 28px; }
+  .links { display: flex; gap: 24px; white-space: nowrap; }
+  footer {
+    max-width: 1200px; margin: 0 auto; padding: 24px 32px 40px; font-size: 17px; color: var(--text-2);
+    display: flex; flex-wrap: wrap; gap: 8px 28px;
+  }
+  footer p { margin: 0; margin-right: auto; }
+  /* phones: brand + 3 links need 399px, a 360px screen has 328 => Source code only in the footer */
+  @media (max-width: 600px) {
+    .wrap, footer { padding-left: 16px; padding-right: 16px; }
+    .top { gap: 12px; }
+    .links { gap: 14px; font-size: 17px; }
+    .links .code { display: none; }
+  }
+  /* under 360px (320px phones) the links may drop below the brand */
+  @media (max-width: 359px) { .top { flex-wrap: wrap; } }
+  /* /shared */
+
+  main { padding: 24px 0 72px; }
+  .page { max-width: 68ch; }
+  .crumbs ol { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-wrap: wrap; font-size: 17px; color: var(--text-2); }
+  .crumbs li { margin: 0; }
+  .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
+  h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.1; font-weight: 700; margin: 0 0 12px; text-wrap: balance; }
+  h2 { font-size: 24px; line-height: 1.25; margin: 36px 0 12px; }
+  h3 { font-size: 20px; line-height: 1.3; margin: 28px 0 10px; }
+  .meta { margin: 0 0 24px; color: var(--text-2); font-size: 17px; }
+  p { margin: 0 0 14px; }
+  ul, ol { margin: 0 0 14px; padding-left: 1.3em; }
+  li { margin: 0 0 8px; }
+  blockquote { margin: 0 0 14px; padding-left: 16px; border-left: 3px solid var(--line); color: var(--text-2); }
+  code { font-family: var(--mono); font-size: 0.85em; }
+  pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
+  .table { overflow-x: auto; margin: 0 0 14px; }
+  table { border-collapse: collapse; font-size: 17px; }
+  .sources li { font-size: 17px; overflow-wrap: anywhere; }
+  .list { list-style: none; padding: 0; }
+  .list li { margin: 0 0 24px; }
+  .list a { font-size: 22px; font-weight: 700; line-height: 1.25; }
+  .list p { margin: 4px 0 0; }
+  .date { color: var(--text-2); font-size: 17px; }
+  th, td { text-align: left; vertical-align: top; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  @media (max-width: 600px) {
+    main { padding-top: 8px; }
+  }
+</style>
+</head>
+<body>
+<header class="wrap top">
+  <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+  <nav class="links">
+    <a href="/#install">Install</a>
+    <a class="code" href="https://github.com/cezkid/jobs">Source code</a>
+  </nav>
+</header>
+<main class="wrap">
+<article class="page">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li>Research</li><li aria-current="page">How we research</li></ol></nav>
+<h1>How we research</h1>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a> · Published <time datetime="2026-10-03">3 October 2026</time></p>
+<h2 id="who-writes-these-articles">Who writes these articles?</h2>
+<p>Every article is by <a href="/about/">Cesar Enrriquez-Zuniga</a>. Cesar makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan.</p>
+<p>Cesar is not a recruiter or a lawyer. The articles summarize published studies and say how strong each one is.</p>
+<p>On these pages, &quot;we&quot; means Cesar and the AI tools Cesar uses.</p>
+<h2 id="why-publish-them">Why publish them?</h2>
+<p>CEZ Job Finder follows these findings when it writes a resume. Publishing them lets anyone check the reasons behind the app.</p>
+<p>Much advice about resumes and AI repeats claims nobody can trace. Here, every claim carries a label for how strong it is. Every claim from a study links to that study.</p>
+<h2 id="which-sources-come-first">Which sources come first?</h2>
+<p>We cite the strongest source that exists, never a weaker one that repeats it. Strongest first:</p>
+<ol>
+<li>A study checked by other researchers before it was published. Many studies combined beat one study. Real job applications beat a lab.</li>
+<li>A large survey that publishes who was asked, when, and the exact questions.</li>
+<li>A lab test, where raters or AI models judge resumes outside real hiring. Studies not yet checked by other researchers sit here too, marked as such.</li>
+<li>A report or survey by a company that sells the service. Its method is usually thin.</li>
+<li>Convention: what career guides agree on without a study. We say so plainly and never dress it up as evidence.</li>
+</ol>
+<p>A law is cited from the law or the government page itself, never from a law firm's summary. How an app behaves comes from the maker's own help page, with the date we read it. News is used for events, such as a law passed. A number in the news is followed back to its study.</p>
+<h2 id="what-do-the-evidence-labels-mean">What do the evidence labels mean?</h2>
+<p>Every claim carries one plain label. The label describes how the study was done, not how sure we feel.</p>
+<div class="table" role="region" aria-label="Table: What do the evidence labels mean?" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>In the text</th>
+<th>In the Sources list</th>
+<th>What it means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Big study</td>
+<td>Big study (many studies combined)</td>
+<td>Many studies pooled into one answer</td>
+</tr>
+<tr>
+<td>Big study</td>
+<td>Big study (thousands of real applications)</td>
+<td>Researchers sent thousands of real applications to real employers</td>
+</tr>
+<tr>
+<td>Small study</td>
+<td>Small study (real applications)</td>
+<td>Real applications, a few hundred per group</td>
+</tr>
+<tr>
+<td>Survey</td>
+<td>Survey</td>
+<td>People were asked, and the method is published</td>
+</tr>
+<tr>
+<td>Vendor survey</td>
+<td>Survey by a company that sells the service</td>
+<td>Asked by a company with something to sell</td>
+</tr>
+<tr>
+<td>Lab study</td>
+<td>Lab test (not real hiring)</td>
+<td>Raters or AI models judged resumes, not real employers</td>
+</tr>
+<tr>
+<td>Law</td>
+<td>Law</td>
+<td>The law's own text, with the date we checked it</td>
+</tr>
+<tr>
+<td>Convention</td>
+<td>Convention (no study)</td>
+<td>Career guides agree, but no study tested it</td>
+</tr>
+<tr>
+<td>Our measurement</td>
+<td>-</td>
+<td>We ran the test ourselves; the article says how</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A claim is never stated more strongly than its label. A lab study shows what AI models did in a test, not what employers do. A survey shows what people say, not what they do. A link between two things stays a link, never a cause.</p>
+<p>Some studies have not yet been checked by other researchers. The Sources list marks them &quot;Preprint, not peer-reviewed&quot;, and the sentence says so when a claim leans on one.</p>
+<h2 id="how-is-each-claim-checked">How is each claim checked?</h2>
+<p>Every source cited was opened and read, including its methods and tables, not just its summary. A source we could not open is not cited. A number we only found secondhand is not cited either.</p>
+<p>Every source is listed in one shared list with the date it was last opened and checked. Each article ends with its Sources list: authors, year, title, label, and links.</p>
+<p>Before an article goes up, a program checks every DOI, the permanent ID a journal gives a paper. It asks the official DOI registry whether the paper exists, then compares the title and year. The same check runs for papers on arXiv, a public library of research papers. A source with neither ID, such as a book or a report, is opened by hand.</p>
+<p>Every number in an article must name its source in the same sentence. A program flags percentages and &quot;N in M&quot; numbers that lack a source. The review checks every other number by hand.</p>
+<h2 id="how-is-ai-used">How is AI used?</h2>
+<p>AI does much of the work, and we say exactly where:</p>
+<ol>
+<li><strong>Draft.</strong> AI tools search for sources, read them, and write the first draft.</li>
+<li><strong>Fresh review.</strong> A second AI session, with none of the drafting conversation, reads every source first. It then tries to break every claim in the draft. It writes a table of each claim, what the source actually says, and a verdict.</li>
+<li><strong>Revision.</strong> AI revises the draft to answer every point the review raised, and records how each was answered.</li>
+<li><strong>Approval.</strong> Cesar reads each article and approves it before it goes up.</li>
+</ol>
+<p>The reviewing AI is the same kind of AI as the drafting one. Cesar's reading is the check that does not come from an AI.</p>
+<p>AI never makes images of people for these pages. No quote, number or study is invented: the checks above exist to catch that. Text inside a source that tries to give an AI instructions is treated as text, never followed.</p>
+<h2 id="how-are-mistakes-corrected">How are mistakes corrected?</h2>
+<p>A correction changes the text, updates the page date, and adds a dated line to a Changes list. The Changes list sits at the end of the article, above the Sources. A number is never changed silently. A corrected article gets a new AI review before it goes back up.</p>
+<p>To report a mistake, post a note titled &quot;Research correction&quot; on the app's GitHub page. Posting there needs a free GitHub account. The page to post on: github.com/cezkid/jobs/issues/new</p>
+<h2 id="how-often-are-articles-updated">How often are articles updated?</h2>
+<p>Laws and app settings change fast, so we re-check them every 3 to 6 months. Each law carries a re-check date, and the site build warns when that date passes. Studies are re-checked once a year, for a newer study, a retraction, or a preprint now published. Each Sources entry shows the date it was last checked.</p>
+<h2 id="what-do-we-gain-from-the-answers">What do we gain from the answers?</h2>
+<p>We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors.</p>
+<p>Each article has a separate box, after the evidence, on how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.</p>
+<h2 id="is-this-legal-advice">Is this legal advice?</h2>
+<p>These articles are not legal advice or career counselling. A page that describes a law says so and gives the date it was checked. For your own situation, ask a lawyer or a career adviser.</p>
+</article>
+</main>
+<footer>
+  <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
+  <a href="/privacy.html">Privacy</a>
+  <a href="https://github.com/cezkid/jobs">Source code</a>
+</footer>
+</body>
+</html>
