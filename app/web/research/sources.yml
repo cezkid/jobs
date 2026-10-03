@@ -1,0 +1,138 @@
+# Research sources registry - every work a research page cites. Field rules: app/docs/site.md#research-pages;
+# what to cite + how to label it: app/docs/research.md. Sorted by id.
+#
+# Label pending plan-xsy.39: the scale has no label yet for a product help page, a news story or a court
+# record. Until it does: product help pages + vendor claims = vendor survey, court record + news of a
+# lawsuit = law (with recheck_by). Each such entry says so in a comment.
+
+# Ashby product page - label pending plan-xsy.39 (vendor docs)
+- id: ashby-2024
+  type: web
+  org: Ashby
+  year: 2024
+  title: AI-Assisted Application Review
+  url: https://www.ashbyhq.com/blog/product/ai-assisted-application-review
+  evidence: vendor survey
+  sample: the maker's own description of its feature, September 2024
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: enhancv-2025
+  type: web
+  authors: ["Vasileva, Doroteya"]
+  year: 2025
+  title: "Does the ATS Reject Your Resume? 25 Recruiters Explain What Really Happens"
+  url: https://enhancv.com/blog/does-ats-reject-resumes/
+  evidence: vendor survey
+  sample: 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published
+  checked: 2026-10-03
+
+- id: fuller-2021
+  type: report
+  authors: ["Fuller, Joseph B.", "Raman, Manjari", "Sage-Gavin, Eva", "Hines, Kristen"]
+  year: 2021
+  title: "Hidden Workers: Untapped Talent"
+  venue: Harvard Business School and Accenture
+  url: https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf
+  evidence: survey
+  sample: 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured
+  checked: 2026-10-03
+
+# Greenhouse help pages - label pending plan-xsy.39 (vendor docs)
+- id: greenhouse-rules
+  type: web
+  org: Greenhouse
+  year: 2026
+  title: Application Rules Overview
+  url: https://support.greenhouse.io/hc/en-us/articles/203105595-Application-Rules-Overview
+  evidence: vendor survey
+  sample: the maker's own help page, updated March 2026
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: greenhouse-search
+  type: web
+  org: Greenhouse
+  year: 2022
+  title: Search resumes for keywords
+  url: https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords
+  evidence: vendor survey
+  sample: the maker's own help page, updated June 2022
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: jobscan-2026
+  type: web
+  authors: ["Purcell, Kelsey"]
+  year: 2026
+  title: "2026 Applicant Tracking System (ATS) Usage Report: Key Shifts and Strategies for Job Seekers"
+  url: https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/
+  evidence: vendor survey
+  sample: career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026
+  checked: 2026-10-03
+
+# News report of a court filing - label pending plan-xsy.39 (news = event only)
+- id: lawyer-monthly-2026
+  type: web
+  org: Lawyer Monthly
+  year: 2026
+  title: Workday AI Hiring Bias Case Seeks Class Status
+  url: https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/
+  evidence: law
+  sample: news report of a filing, September 2026; used for the event only
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: levinson-2012-cio
+  type: article
+  authors: ["Levinson, Meredith"]
+  year: 2012
+  title: 5 insider secrets for beating applicant tracking systems
+  venue: CIO, March 2012 (open copy on Computerworld)
+  url: https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html
+  evidence: vendor survey
+  sample: repeats a claim by Preptel, a company selling resume help; no method given
+  checked: 2026-10-03
+
+- id: levinson-2012-preptel
+  type: article
+  authors: ["Levinson, Meredith"]
+  year: 2012
+  title: New job search service helps job seekers penetrate applicant tracking systems
+  venue: CIO, February 2012
+  url: https://www.cio.com/article/284417/careers-staffing-new-job-search-service-helps-job-seekers-penetrate-applicant-tracking-systems.html
+  evidence: vendor survey
+  sample: news story about Preptel's paid service
+  checked: 2026-10-03
+
+# Court order - label pending plan-xsy.39 (court record); allegations, not findings
+- id: mobley-2025-order
+  type: law
+  org: US District Court for the Northern District of California
+  year: 2025
+  title: "Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting Preliminary Collective Certification"
+  url: https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf
+  evidence: law
+  sample: court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: preptel-2012
+  type: web
+  org: Preptel
+  year: 2012
+  title: News
+  url: https://web.archive.org/web/20121227085958/http://www.preptel.com:80/news/
+  evidence: vendor survey
+  sample: the company's own news page, archived December 2012; no method given
+  checked: 2026-10-03
+
+- id: resume-genius-2026
+  type: web
+  authors: ["Chan, Eva"]
+  year: 2026
+  title: 2026 Hiring Insights Report
+  url: https://resumegenius.com/blog/job-hunting/hiring-insights-report
+  evidence: vendor survey
+  sample: 1,000 US hiring managers, online panel; survey dates not given
+  checked: 2026-10-03
