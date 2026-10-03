@@ -107,14 +107,32 @@
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
   .brand img { width: 28px; height: 28px; }
   .links { display: flex; gap: 28px; white-space: nowrap; }
+  /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
+  :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
   footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
-  footer .row { display: flex; flex-wrap: wrap; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
+  footer .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
   footer p { margin: 0 auto 0 0; }
-  /* phones: brand + 3 links don't fit 360px => Source code only in the footer */
+  /* the links wrap as one group: under the credit, never one link alone on a row */
+  footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+  /* a short page (404) keeps its footer at the window's bottom: main grows, no blank band under it;
+     width 100%: .wrap's auto margins would shrink main to its content in a flex column */
+  @media screen {
+    body { display: flex; flex-direction: column; min-height: 100svh; }
+    main { flex: 1 0 auto; width: 100%; }
+  }
+  /* phones: brand + 3 links don't fit 360px => Source code only in the footer; footer = credit, then
+     its 6 links as 2 even rows of 3 */
   @media (max-width: 600px) {
     .top { gap: 12px; }
     .links { gap: 14px; font-size: 1.0625rem; }
     .links .code { display: none; }
+    footer nav { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px 28px; }
+  }
+  /* touch: link hit boxes >= 44px tall (Apple HIG 44pt) - padding grows the box, an equal negative
+     margin keeps layout + look unchanged (an inline link's padding never moves its line). 1.1em ~ an
+     inline link's own box (Caladea ascent + descent); a flex-item link's (1lh) is taller => also >= 44 */
+  @media (pointer: coarse) {
+    .brand, :is(nav, footer) a, .tap { padding-block: calc((45px - 1.1em) / 2); margin-block: calc((1.1em - 45px) / 2); }
   }
   /* under 360px (320px phones) the links may drop below the brand */
   @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
@@ -345,8 +363,14 @@
 <footer>
   <div class="wrap row">
     <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
-    <a href="/privacy.html">Privacy</a>
-    <a href="https://github.com/cezkid/jobs">Source code</a>
+    <nav aria-label="Footer">
+      <a href="/">Home</a>
+      <a href="/research/">Research</a>
+      <a href="/#install">Install</a>
+      <a href="/about/">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="https://github.com/cezkid/jobs">Source code</a>
+    </nav>
   </div>
 </footer>
 </body>

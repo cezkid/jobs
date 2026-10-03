@@ -256,7 +256,8 @@ KB = 1000 bytes.
   finished; no JS = all text + the Windows line, no visible
   button, a link to the Mac answer; h1 at 200% zoom >= 100% (1366x641, 1440x900, 1920x1080); text opacity 1 at every scroll step once the
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint, every
-  `<del>` struck, every bullet dot painted;
+  `<del>` struck, every bullet dot painted; phone 390x844 every non-inline link + button >= 44px tall;
+  Research link thicker on /research/** only (1366x641); footer at the window/page bottom (1440x900);
   print <= 5 pages w/ the install line; 0 console errors; every dashed SVG stroke at
   `stroke-dashoffset` 0 in reduced motion, after a full scroll, and above the screen after a
   reload at the bottom; opening moment (1366x641 + 390x844):
@@ -306,11 +307,21 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   `--gutter`, max `--max`, for composed pages (home); `.wrap` = the same outer box w/o columns
   (generated pages, privacy, 404), so every edge lines up with the header.
 - Header (`<header class="masthead">`: skip link to `<main id="main">`, brand, Research
-  `/research/`, Install `/#install`, Source code) + bare `<footer>` (Made by, Privacy, Source code)
+  `/research/`, Install `/#install`, Source code) + bare `<footer>` (Made by -> www.enrriquez.com,
+  then `<nav aria-label="Footer">` Home, Research, Install, About, Privacy, Source code - owner,
+  plan-dxn: no dead end at the bottom of a 20-screen article, About one click from home)
   byte-identical on every page; test guards. Every page's `<main>` carries `id="main"`. Under the
   header a full-bleed double rule (3px + 1px, 4px apart) - the newspaper masthead.
+- Current page: on /research/** the header's Research link has a 3px underline (ink), keyed off the
+  page's canonical (`:root:has(link[rel=canonical][href*="/research/"])`) so header bytes stay one copy.
 - Phone header: brand + 4 links don't fit a 360/375/390px screen (328/343/358 usable) => header
   Source code hidden <= 600px (footer keeps it); <= 359px the links may wrap below the brand.
+  Phone footer: the credit, then its 6 links as 2 even rows of 3 (no link alone on a row).
+- Touch (`pointer: coarse`): links in nav + footer, the brand and `.tap` links get hit boxes >= 44px
+  tall (Apple HIG 44pt; WCAG 2.5.8's 24px is the floor) via padding + an equal negative margin, so
+  layout + look don't change. Links inside running text are exempt.
+- Short pages: body is a flex column, min-height 100svh, main grows => the footer sits at the window's
+  bottom (404), never a blank band under it. Screen only (print keeps block flow).
 - `docs/index.html` marks each part with `<!-- region: name -->` ... `<!-- /region: name -->` so a
   change finds its part by grep.
 - Layout checked in a real browser: `uv run app/web/qa.py` (PEP 723, Chrome; playwright pinned

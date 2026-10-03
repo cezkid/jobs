@@ -188,6 +188,29 @@ def test_header_and_footer_are_the_same_on_every_page():
         assert len({f[0] for f in found.values()}) == 1, (tag, sorted(found))
 
 
+def test_footer_links_home_research_install_about_and_the_author():
+    # the bottom of a 20-screen article is a dead end w/o them; Made by keeps the author's site (owner, plan-dxn)
+    for name in PAGES:
+        footer = Head(re.search(r"<footer\b.*?</footer>", (DOCS / name).read_text(encoding="utf-8"), re.S).group(0))
+        hrefs = {a.get("href") for a in footer.all("a")}
+        assert {"/", "/research/", "/#install", "/about/", "https://www.enrriquez.com"} <= hrefs, (name, hrefs)
+
+
+def test_about_is_one_click_from_home():
+    # Google: a byline should lead to more about the author; a page deep in the link graph reads as minor
+    graph = {name: {target(a["href"]) for a in page(name).all("a")
+                    if a.get("href", "").startswith("/") and not a["href"].startswith("//")} for name in INDEXED}
+    depth, todo = {"index.html": 0}, ["index.html"]
+    while todo:
+        name = todo.pop(0)
+        for nxt in graph.get(name, ()):
+            if nxt in INDEXED and nxt not in depth:
+                depth[nxt] = depth[name] + 1
+                todo.append(nxt)
+    assert depth.get("about/index.html") == 1, depth
+    assert all(depth.get(name, 99) <= 2 for name in INDEXED), {n: depth.get(n) for n in INDEXED}
+
+
 def ico_frames(path) -> list[tuple[int, int]]:
     data = path.read_bytes()
     reserved, kind, count = struct.unpack("<HHH", data[:6])

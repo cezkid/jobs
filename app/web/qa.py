@@ -29,6 +29,11 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   one row, a sticky column counted to its parent's bottom), and an article page has a visible element
   starting right of x 900 (its On this page column)
 
+HIT_BOXES, every page at 390x844 (phone, touch): every visible link + button but links inside running text
+and the skip link is >= 44px tall; NAV_CURRENT, every page at 1366x641: the header's Research link is
+underlined thicker than Install on /research/** and the same elsewhere; FOOTER_BOTTOM, every page at
+1440x900: the footer ends within 2px of the window's bottom or the page end (404: no blank band under it).
+
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
 - reduced motion: document.getAnimations() empty, every mark finished (MARK_STATE), every dashed
@@ -71,7 +76,8 @@ long / fades text in / moves 40px / animates the LCP element / replays on reload
 w/o crossfade, an opening played after one, a check finding 0 elements, paint animations piled up,
 the Mac line on more lines, two framed objects at once, Copy + OS switch results unannounced / Copy named
 by a fixed label, the strike / bullet dots gone in forced colours, Copy shown / the Mac answer link hidden w/o JS,
-the h1's vh cap back below 1080px), an article (a wide element, a console error).
+the h1's vh cap back below 1080px, footer links back to text height on touch), an article (a wide element, a
+console error, the Research link plain), the 404 (a blank band under its footer).
 --capture DIR: every page at 1366x641, 1440x900, 1440x780 (Mac), 1920x1080, 390x844 phone, light +
 dark, reduced motion: full-page + per-screen shots and DIR/numbers.md (screens long, print pages, h1 +
 h2 px per desktop size) - before/after material.
@@ -442,6 +448,27 @@ LINE_BOXES = """() => { const l = document.getElementById("line"); if (!l) retur
 
 # PAINT_CONCURRENT (gate, full motion): at every half-screen scroll step, animations mid-way (0 < progress
 # < 1) on a paint property (background-size, clip-path, stroke-dashoffset) - <= PAINT_CAP at once
+# HIT_BOXES (B9): phone at 390x844 (touch => pointer: coarse), every visible link + button but links inside
+# running text (WCAG 2.5.8 exempts those) and the skip link (shown on keyboard focus only): >= 44px tall
+HIT_MIN = 44
+HIT_BOXES = """() => { const out = [];
+  for (const el of document.querySelectorAll("a, button")) {
+    const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+    if (!r.width || !r.height || cs.visibility !== "visible" || el.classList.contains("skip")) continue;
+    const inText = !el.closest("header, footer, nav") && el.tagName === "A"
+      && [...el.parentElement.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
+    if (!inText) out.push([el.tagName.toLowerCase() + " " + JSON.stringify(el.textContent.trim().slice(0, 40)), r.height]);
+  }
+  return out; }"""
+# NAV_CURRENT (B12): the header's Research link is thicker-underlined on /research/** only (vs Install)
+NAV_CURRENT = """() => { const t = s => { const a = document.querySelector(s);
+    return a ? parseFloat(getComputedStyle(a).textDecorationThickness) || 0 : null; };
+  return [t('.links a[href="/research/"]'), t('.links a[href="/#install"]')]; }"""
+# FOOTER_BOTTOM (C2/short pages): at 1440x900 the footer ends within 2px of the window's bottom or the page end
+FOOTER_BOTTOM_AT = (1440, 900)
+FOOTER_BOTTOM = """() => { const f = document.querySelector("footer"); if (!f) return null;
+  return [f.getBoundingClientRect().bottom + scrollY,
+          Math.max(innerHeight, document.documentElement.scrollHeight)]; }"""
 PAINT_CAP = 3
 PAINT_CONCURRENT = "async () => {" + HELPERS + """
   const PAINT = ["backgroundSize", "clipPath", "strokeDashoffset"];
@@ -592,12 +619,19 @@ FAULTS = [
     (HOME, "NOJS_SCRIPTING: Copy shown without JS", "<style>#copy { display: inline-flex !important; }</style>", "motion"),
     (HOME, "NOJS_SCRIPTING: Mac answer link hidden without JS", "<style>.nojs-mac { display: none !important; }</style>",
      "motion"),
+    (HOME, "HIT_BOXES: footer links back to their text height on touch", "<style>@media (pointer: coarse) "
+     "{ footer a { padding-block: 0 !important; margin-block: 0 !important; } }</style>", "phone"),
+    (ARTICLE, "NAV_CURRENT: Research link plain on an article", "<style>.links a { text-decoration-thickness: 1px "
+     "!important; }</style>", "layout"),
+    ("404.html", "FOOTER_BOTTOM: blank band under the 404's footer", "<style>body { min-height: 0 !important; }"
+     "</style>", "wide"),
     (HOME, "ZOOM_H1: vh cap back below 1080px", "<style>@media (max-width: 1079px) { h1 { font-size: "
      "min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem) !important; } }</style>", "zoom"),
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
+             "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "FOOTER_BOTTOM": "FOOTER_BOTTOM",
              "0 matches": "found 0 elements"}
 
 
@@ -731,6 +765,29 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                 failed.append(f"{where}: header check found fewer than 2 parts (brand + links)")
             elif not one:
                 failed.append(f"{where}: header wraps to a second line")
+        if phone and (width, height) == SEND_AT:
+            boxes = page.evaluate(HIT_BOXES)
+            if not boxes:
+                failed.append(f"HIT_BOXES {where}: check found 0 links or buttons")
+            failed += [f"HIT_BOXES {where}: {what} hit box {h:.1f}px tall, under {HIT_MIN}px"
+                       for what, h in boxes if h < HIT_MIN]
+        if (width, height) == FOLD and not phone and not mac:
+            research, other = page.evaluate(NAV_CURRENT)
+            if research is None or other is None:
+                failed.append(f"NAV_CURRENT {where}: check found 0 header Research / Install links")
+            elif name.startswith("research/") and research <= other:
+                failed.append(f"NAV_CURRENT {where}: Research link underline {research}px, not thicker than "
+                              f"Install's {other}px on a research page")
+            elif not name.startswith("research/") and research != other:
+                failed.append(f"NAV_CURRENT {where}: Research link marked current ({research}px vs {other}px) "
+                              f"off the research pages")
+        if (width, height) == FOOTER_BOTTOM_AT and not phone:
+            got = page.evaluate(FOOTER_BOTTOM)
+            if got is None:
+                failed.append(f"FOOTER_BOTTOM {where}: check found 0 footers")
+            elif got[0] < got[1] - 2:
+                failed.append(f"FOOTER_BOTTOM {where}: footer ends at {got[0]:.0f}px, page/window at "
+                              f"{got[1]:.0f}px - a blank band under it")
         if (width, height) in BAND_AT and not phone:
             if name == "index.html" or name in WIDE_PAGES:
                 rows = "main > *" if name == "index.html" else "main"
