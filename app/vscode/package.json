@@ -1,0 +1,21 @@
+{
+  "name": "window",
+  "publisher": "cez-job-finder",
+  "displayName": "CEZ Job Finder window",
+  "description": "Job Finder's own window: start page and app look. Local only, never on the Marketplace.",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.100.0"
+  },
+  "main": "./extension.js",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true
+    },
+    "virtualWorkspaces": false
+  }
+}
