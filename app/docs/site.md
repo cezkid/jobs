@@ -192,6 +192,11 @@ KB = 1000 bytes.
 - Every `<use href="#x">` target on the page: a missing symbol draws nothing, silently.
 - Header + footer hold no `<title>`, `<style>` or `id`: copied to every page (an id twice, a 2nd title).
 - At most one inline script names `LINES`: tests read the install line from the one that does.
+- `<head>` script <= 600 B, no `LINES`: sets `html.is-mac`, `html.is-phone`, `html.seen` before
+  first paint (no flash of the wrong OS, no layout shift; classes set at the end of `<body>` came
+  after it). `html.seen` = opening moment already ran this session (sessionStorage) or the page
+  came in through a view transition (`pagereveal`). CSS selects `html.is-*`, never `body.is-*`.
+  Body script keeps Copy, the OS switch and share.
 - Browser checks (`uv run app/web/qa.py`): Copy above the fold at 1366x641 (gate) + 1280x593
   (report); phone 320-390, 768, 1366, 1440, 1920 widths; home <= 8 screens at 1366x641 (3.88 on
   2026-10-03) and <= 7.7 at 375x812 (2x 3.84, 2026-10-03); reduced motion = 0 animations + marks

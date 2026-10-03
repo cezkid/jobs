@@ -29,6 +29,18 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
+<!-- before first paint: no flash of the wrong OS, no layout shift. iPadOS reports a Mac UA => touch
+     points tell it apart; iPhone/iPad count as Mac (Mac window dots). html.seen = opening moment
+     already ran this session, or the page came in through a page-change crossfade -->
+<script>
+  (() => {
+    const h = document.documentElement.classList, n = navigator, ua = n.userAgent;
+    h.toggle("is-phone", /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && n.maxTouchPoints > 1));
+    h.toggle("is-mac", /Mac|iPhone|iPad|iPod|iOS/i.test(n.userAgentData?.platform || n.platform || ua));
+    try { sessionStorage.opened ? h.add("seen") : sessionStorage.opened = 1; } catch {}
+    addEventListener("pagereveal", (e) => e.viewTransition && h.add("seen"));
+  })();
+</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"CEZ Job Finder","alternateName":"Job Finder","url":"https://jobs.enrriquez.com/"}</script>
 <style>
   /* shared */
@@ -90,8 +102,8 @@
   .install-heading { margin: 0 0 14px; }
 
   .phone { display: none; }
-  body.is-phone .phone { display: block; }
-  body.is-phone .desktop { display: none; }
+  html.is-phone .phone { display: block; }
+  html.is-phone .desktop { display: none; }
   .phone p { margin: 0 0 14px; font-weight: 700; }
   .send {
     display: inline-block; padding: 12px 20px; border: 2px solid var(--text); border-radius: 8px;
@@ -127,9 +139,9 @@
   .switch { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 4px 0 0 50px; font-size: 17px; color: var(--text-2); }
   .switch button { font: inherit; color: var(--text); background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 0.15em; cursor: pointer; }
   .mac-only { display: none; }
-  body.is-mac .mac-only { display: revert; }
-  body.is-mac .win-only { display: none; }
-  body.is-mac .step.mac-only { display: flex; }
+  html.is-mac .mac-only { display: revert; }
+  html.is-mac .win-only { display: none; }
+  html.is-mac .step.mac-only { display: flex; }
 
   /* hero figure: the app window - chat on the left, the resume it changed on the right */
   figure { margin: 0; isolation: isolate; max-width: 640px; }
@@ -146,10 +158,10 @@
   .title { flex: 1; display: flex; align-items: center; gap: 8px; padding-left: 14px; font-size: 15px; }
   .title img { width: 18px; height: 18px; }
   .dots.mac-only { display: none; }
-  body.is-mac .dots.mac-only { display: flex; }
+  html.is-mac .dots.mac-only { display: flex; }
   .dots { gap: 8px; padding-left: 14px; }
   .dots span { width: 12px; height: 12px; border: 1px solid var(--ink); border-radius: 50%; }
-  body.is-mac .title { justify-content: center; padding-left: 0; margin-right: 66px; }
+  html.is-mac .title { justify-content: center; padding-left: 0; margin-right: 66px; }
   .controls { display: flex; height: 100%; }
   .controls svg { width: 44px; height: 100%; fill: none; stroke: var(--ink); stroke-width: 1; }
   .panes { display: grid; grid-template-columns: 186px minmax(0, 1fr); border-radius: 0 0 9px 9px; overflow: hidden; }
@@ -402,18 +414,15 @@
     win: "https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1",
     mac: "https://github.com/cezkid/jobs/blob/main/app/install/install-mac.sh",
   };
-  const ua = navigator.userAgent;
-  // iPadOS reports Mac UA => touch points tell it apart
-  const isPhone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-  // iPhone/iPad count as Mac => Apple visitors see Mac window dots (phones hide the install steps)
-  let os = /Mac|iPhone|iPad|iPod|iOS/i.test(navigator.userAgentData?.platform || navigator.platform || ua) ? "mac" : "win";
+  // head script set html.is-mac / html.is-phone before first paint
+  const html = document.documentElement.classList;
+  let os = html.contains("is-mac") ? "mac" : "win";
   const button = document.getElementById("copy");
   const label = document.getElementById("copy-label");
   const box = button.closest(".command");
 
   function render() {
-    document.body.classList.toggle("is-phone", isPhone);
-    document.body.classList.toggle("is-mac", os === "mac");
+    html.toggle("is-mac", os === "mac");
     document.getElementById("line").textContent = LINES[os];
     document.getElementById("script").href = SCRIPTS[os];
     box.classList.remove("copied");

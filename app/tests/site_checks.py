@@ -166,6 +166,7 @@ INLINE_JS_MAX = 5 * KB        # raw bytes of every inline script but JSON-LD (2.
 BODY_ELEMENTS_MAX = 800       # 162 at start
 FIRST_LOAD_MAX = 100 * KB     # gzip HTML + every @font-face woff2 + icon.svg (colophon promises "under 100 KB")
 CRITICAL_MAX = 5              # HTML + preloads + stylesheets + icon.svg
+HEAD_SCRIPT_MAX = 600         # <head> script: html classes before first paint, nothing else
 # paint-free or cheap properties only; anything else animates layout or repaints big areas
 ANIMATABLE = {"transform", "opacity", "clip-path", "stroke-dashoffset", "background-size"}
 TEXT_MIN, NON_TEXT_MIN = 4.5, 3.0  # WCAG 1.4.3 text, 1.4.11 controls + focus ring
@@ -184,6 +185,12 @@ def styles(head: Head) -> str:
 def inline_scripts(head: Head) -> list[str]:
     """Text of every inline script that runs (JSON-LD left out)."""
     return head.text.get("script", []) + head.text.get("module", []) + head.text.get("text/javascript", [])
+
+
+def head_scripts(raw: str) -> list[str]:
+    """Inline scripts inside <head> (JSON-LD left out): they run before first paint."""
+    head = raw.split("</head>", 1)[0]
+    return re.findall(r"<script(?![^>]*ld\+json)[^>]*>(.*?)</script>", head, re.S)
 
 
 def blocks(css: str, at: str) -> list[str]:
@@ -251,6 +258,13 @@ def budgets(docs: Path, name: str) -> list[str]:
         bad = sorted(set(re.findall(r"<(title|style)\b", inner)) | ({"id"} if re.search(r"\sid\s*=", inner) else set()))
         if bad:
             problems.append(f"{name}: <{tag}> holds {bad} (copied to every page: one id twice, a second title)")
+    for code in head_scripts(raw):
+        if len(code.encode()) > HEAD_SCRIPT_MAX:
+            problems.append(f"{name}: <head> script {len(code.encode())} B > {HEAD_SCRIPT_MAX} (blocks first paint)")
+        if "LINES" in code:
+            problems.append(f"{name}: <head> script names LINES (install line + Copy live in the body script)")
+    if re.search(r"body\.is-", css):
+        problems.append(f"{name}: body.is-* selector (head script sets html.is-* before first paint)")
     if sum("LINES" in s for s in scripts) > 1:
         problems.append(f"{name}: more than one script names LINES (tests read the install line from the one that does)")
     return problems

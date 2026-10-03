@@ -23,8 +23,8 @@ if not (cfg.ROOT / ".git").exists():
 
 import pymupdf  # noqa: E402
 
-from site_checks import (Head, budgets, contrasts, files, loaded_urls, own_url, png_size, shared,  # noqa: E402
-                         structured_data, target, token_table, tokens)
+from site_checks import (HEAD_SCRIPT_MAX, Head, budgets, contrasts, files, head_scripts, loaded_urls, own_url,  # noqa: E402
+                         png_size, shared, structured_data, target, token_table, tokens)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -248,6 +248,17 @@ def test_install_line_shows_without_javascript_and_matches_the_script():
     assert "Read the script first" in (DOCS / "index.html").read_text(encoding="utf-8")
 
 
+def test_head_script_sets_html_classes_before_first_paint():
+    # OS + phone classes on <html> before first paint (no flash of the wrong OS, no layout shift);
+    # html.seen = opening moment once per session, skipped after a page-change crossfade
+    [code] = head_scripts((DOCS / "index.html").read_text(encoding="utf-8"))
+    assert len(code.encode()) <= HEAD_SCRIPT_MAX and "LINES" not in code
+    for part in ('"is-phone"', '"is-mac"', '"seen"', "sessionStorage", "pagereveal", "viewTransition"):
+        assert part in code, part
+    body = next(s for s in page("index.html").text["script"] if "LINES" in s)
+    assert "body.classList" not in body
+
+
 def test_web_font_ships_with_its_licence():
     # OFL lets the font be served only w/ its licence alongside
     assert (DOCS / "fonts" / "OFL.txt").read_bytes() == (cfg.APP / "resume" / "fonts" / "Caladea" / "OFL.txt").read_bytes()
@@ -319,8 +330,12 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
     ({"header": '<a id="brand" href="/">x</a>'}, {}, "<header> holds ['id']"),
     ({"footer": "<style>p{}</style>"}, {}, "<footer> holds ['style']"),
     ({"scripts": "<script>const LINES = 1;</script><script>// LINES</script>"}, {}, "names LINES"),
+    ({"head": f"<script>{'x' * 601}</script>"}, {}, "<head> script"),
+    ({"head": "<script>const LINES = 1;</script>"}, {}, "<head> script names LINES"),
+    ({"css": "body.is-mac .x { display: none; }"}, {}, "body.is-*"),
 ], ids=["html-gzip", "inline-js", "elements", "first-load", "critical", "script-src", "will-change",
-        "keyframes", "transition", "transition-all", "use-target", "header-id", "footer-style", "lines-twice"])
+        "keyframes", "transition", "transition-all", "use-target", "header-id", "footer-style", "lines-twice",
+        "head-script-size", "head-script-lines", "body-class"])
 def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
     for rel, size in files.items():
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
