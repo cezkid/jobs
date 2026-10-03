@@ -105,6 +105,8 @@ def test_tenants_smartrecruiters_oneclick_link_and_generic_names():
     got = lab.tenants(url, ["SmartRecruiters", "Acme Test Co"], {"controls": []})
     assert got == ["Acme Test Co", "AcmeTest", uuid]
     assert lab.tenants("https://jobs.smartrecruiters.com/AcmeTest/1234-analyst", [], {"controls": []}) == ["AcmeTest"]
+    # ADP: every employer shares host + path, the employer is only the cid (2026-10-03)
+    assert lab.tenants("https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=x", [], {"controls": []}) == []
 
 
 def test_measure_never_uses_the_application_window():
