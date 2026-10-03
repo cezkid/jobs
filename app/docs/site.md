@@ -216,12 +216,13 @@ KB = 1000 bytes.
   came in through a view transition (`pagereveal`). CSS selects `html.is-*`, never `body.is-*`.
   Body script keeps Copy, the OS switch and share.
 - Browser checks (`uv run app/web/qa.py`): Copy above the fold at 1366x641 (gate) + 1280x593
-  (report); phone 320-390, 768, 1366, 1440, 1920 widths; home <= 8 screens at 1366x641 (3.88 on
+  (report); phone "Send this page to my computer" ends <= 675px at 390x844 (844 minus Safari's
+  bars); phone 320-390, 768, 1366, 1440, 1920 widths; home <= 8 screens at 1366x641 (3.88 on
   2026-10-03) and <= 7.7 at 375x812 (2x 3.84, 2026-10-03); reduced motion = 0 animations + marks
   finished; no JS = all text + the Windows line; text opacity 1 at every scroll step once the
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint;
   print <= 5 pages w/ the install line; 0 console errors; `--engines` webkit + firefox;
-  `--self-test` injects 4 faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
+  `--self-test` injects 5 faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
   carry it, or the checks can't see them).
 - Perf (`qa.py --perf`, median of 3 vs a frozen copy of the pre-redesign site): phone LCP <= 1.5 s
   + <= baseline + 0.3 s; desktop LCP <= 0.5 s; CLS <= 0.01; long frames during scroll <= baseline

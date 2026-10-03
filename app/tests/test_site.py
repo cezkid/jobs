@@ -230,6 +230,12 @@ def test_home_page_describes_the_site_not_an_app_or_faq():
     assert "SoftwareApplication" not in raw and "FAQPage" not in raw
 
 
+def test_home_h1_is_the_literal_answer_to_is_this_a_website():
+    # owner's fix for "is this a website?": the h1 says what it is, in plain words, unchanged
+    h1 = re.findall(r"<h1[^>]*>(.*?)</h1>", (DOCS / "index.html").read_text(encoding="utf-8"), re.S)
+    assert h1 == ["A free job-search app for your Windows or Mac computer."]
+
+
 def test_research_pages_carry_matching_structured_data():
     # Article / ProfilePage / BreadcrumbList on the generated pages (none until the first article ships):
     # dates == the byline, author == the About page's Person, breadcrumbs land, sitemap lastmod == dateModified

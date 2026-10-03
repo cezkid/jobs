@@ -97,6 +97,8 @@ DESKTOP_CAP = 8             # home <= 8 screens at 1366x641 (3.88 on 2026-10-03,
 PHONE_TODAY = 3.84          # home at 375x812 (phone UA), measured 2026-10-03 (pre-redesign)
 PHONE_CAP = 2 * PHONE_TODAY
 PRINT_CAP = 5               # home prints in <= 5 pages
+SEND_AT = (390, 844)        # phone: "Send this page to my computer" ends <= SEND_CAP px (no scroll
+SEND_CAP = 675              # for the one thing a phone visitor can do; 675 = 844 minus Safari's bars)
 WIN_LINE = "irm https://jobs.enrriquez.com/win | iex"
 ACTION_MS = 20_000
 RUN_LIMIT_S = 900
@@ -235,6 +237,7 @@ FORCED = "() => {" + HELPERS + """
 # self-test faults: (what, html injected before </body>, check that must fail)
 FAULTS = [
     ("Copy below the fold", "<style>#copy { margin-top: 900px; }</style>", "layout"),
+    ("phone Send button too low", "<style>.send { margin-top: 400px; }</style>", "phone"),
     ("hidden mark", "<style>mark { opacity: 0; }</style>", "motion"),
     ("console error", "<script>console.error('qa self-test fault')</script>", "layout"),
     ("wide element", '<div style="width: 3000px; height: 1px"></div>', "layout"),
@@ -369,6 +372,13 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
             screens = tall / height
             if (width, height) == FOLD and screens > DESKTOP_CAP:
                 failed.append(f"{where}: page is {screens:.1f} screens long, cap {DESKTOP_CAP}")
+            if phone and (width, height) == SEND_AT:
+                bottom = page.evaluate("document.querySelector('.send').getBoundingClientRect().bottom")
+                reports.append(f"report: {where}: 'Send this page to my computer' ends at {bottom:.0f}px "
+                               f"(cap {SEND_CAP})")
+                if bottom > SEND_CAP:
+                    failed.append(f"{where}: 'Send this page to my computer' ends at {bottom:.0f}px, "
+                                  f"cap {SEND_CAP}")
             if (width, height) == (375, 812):
                 reports.append(f"report: {where}: page is {screens:.2f} screens (today {PHONE_TODAY}, "
                                f"cap {PHONE_CAP:.1f})")
@@ -493,12 +503,14 @@ def run_self_test(base: str) -> list[str]:
     def home(browser, kind: str, inject: str | None) -> list[str]:
         if kind == "layout":
             return check_layout(browser, base, "index.html", *FOLD, False, inject, shots=False)[0]
+        if kind == "phone":
+            return check_layout(browser, base, "index.html", *SEND_AT, True, inject, shots=False)[0]
         return check_motion(browser, base, "index.html", *FOLD, False, inject)
 
     failed = []
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
-        for kind in ("layout", "motion"):
+        for kind in ("layout", "phone", "motion"):
             clean = home(browser, kind, None)
             if clean:
                 failed.append(f"self-test: clean home fails its {kind} checks: {clean[0]}")
