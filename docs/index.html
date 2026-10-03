@@ -264,9 +264,38 @@
     figure { grid-column: 7 / -1; align-self: start; margin-top: 6px; }
   }
 
+  /* opening moment: the window's marks draw once per session (html.seen skips it), done by 2.8 s;
+     everything is on the page from first paint, only marks start empty. --t0 / --t1 = start / end
+     in seconds, --draw = keyframes + easing, --len = the stroke's dash length. Phones: the window
+     starts below the fold, so the same drawing follows the scroll instead (cover 5% -> 45%) */
+  .today mark { --draw: sweep var(--ease-mark); }
+  .slip:nth-child(1) .why mark { --t0: 0.25; --t1: 0.75; }
+  .slip:nth-child(2) .why mark { --t0: 0.5; --t1: 1; }
+  .slip:nth-child(3) .why mark { --t0: 0.75; --t1: 1.25; }
+  .slip .ring { --t0: 1.1; --t1: 1.7; --len: 100; --draw: draw cubic-bezier(0.5, 0, 0.3, 1); }
+  .old del { --t0: 1.75; --t1: 2.05; --draw: strike ease-out; }
+  .fix mark { --t0: 2; --t1: 2.4; }
+  .approved .ring { --t0: 2.3; --t1: 2.65; --len: 64; --draw: draw ease-out; }
+  .approved .tick { --t0: 2.6; --t1: 2.8; --len: 16; --draw: draw ease-out; }
+
   @media (prefers-reduced-motion: no-preference) {
     @keyframes sweep { from { background-size: 0 100%; } }
+    @keyframes strike { from { background-size: 0 2px; } }
+    @keyframes draw { from { stroke-dashoffset: var(--len); } }
     .command.copied code { animation: sweep 0.45s var(--ease-mark) both; }
+    html:not(.seen):not(.is-phone) .today :is(mark, del, .ring, .tick) {
+      animation: var(--draw) calc((var(--t1) - var(--t0)) * 1s) calc(var(--t0) * 1s) both;
+    }
+  }
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      html.is-phone .window { view-timeline: --window; }
+      html.is-phone:not(.seen) .today :is(mark, del, .ring, .tick) {
+        animation: var(--draw) auto both;
+        animation-timeline: --window;
+        animation-range: cover calc(5% + var(--t0) * 40% / 2.8) cover calc(5% + var(--t1) * 40% / 2.8);
+      }
+    }
   }
 
   .more { padding: 8px 0 24px; }

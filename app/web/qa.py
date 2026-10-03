@@ -28,11 +28,16 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
   (opacity 1, visible) + home's Windows install line
 - forced colours: every mark still paints something its parent doesn't
 - home in print: <= 5 pages (PDF) and the install line shows
+- home's opening moment, 1366x641 + 390x844 (full motion): at load only the hero window animates,
+  every timed animation ends <= 2800 ms; at first paint (each animation at 0) hero text opacity 1
+  and no hero box more than 12px from its finished place; the LCP element is outside every
+  animated element (its selector reported); a reload in the same tab (html.seen) animates nothing
 
 --engines: WebKit + Firefox (Playwright's own builds), every page at 390x844 + 1366x641: no
 sideways scroll, no console errors, finished states (reduced: 0 animations + marks; full: marks).
 --self-test: injects faults into home (Copy below the fold, a hidden mark, a console error, a
-wide element) and exits 1 unless each one fails its check and clean home passes.
+wide element, an opening that runs long / fades text in / moves 40px / animates the LCP element /
+replays on reload) and exits 1 unless each one fails its check and clean home passes.
 
 --perf: home timed in Chrome, docs/ vs a frozen copy of the pre-redesign site (docs/ at
 BASELINE_SHA, unpacked once into .data/site-baseline/), new + baseline alternating, median of 3
@@ -234,6 +239,45 @@ FORCED = "() => {" + HELPERS + """
   return [...document.querySelectorAll(MARKS)].filter(el => shown(el) && !paints(el)).map(label);
 }"""
 
+OPENING_MS = 2800          # opening moment ends by then
+OPENING_SHIFT = 12         # px a hero object may move during it
+OPENING_AT = [((1366, 641), False), ((390, 844), True)]
+
+# load: animations as [target selector, timed?, end ms, inside the hero window?] + the LCP element
+OPENING = "async () => {" + HELPERS + """
+  const path = el => { const out = []; for (let e = el; e && e !== document.documentElement; e = e.parentElement)
+    out.unshift(e.tagName.toLowerCase() + (e.id ? "#" + e.id : "") +
+      (typeof e.className === "string" && e.className.trim() ? "." + e.className.trim().split(/\\s+/).join(".") : ""));
+    return out.join(" > "); };
+  const lcp = await new Promise(done => { new PerformanceObserver(l => { const e = l.getEntries().at(-1);
+    done(e && e.element); }).observe({type: "largest-contentful-paint", buffered: true});
+    setTimeout(() => done(null), 3000); });
+  const all = document.getAnimations(), win = document.querySelector(".hero .window");
+  const targets = all.map(a => a.effect.target);
+  return {
+    animations: all.map(a => [path(a.effect.target), a.timeline === document.timeline,
+                              Math.round(a.effect.getComputedTiming().endTime), !!win && win.contains(a.effect.target)]),
+    lcp: lcp ? path(lcp) : null,
+    lcpAnimated: !!lcp && targets.some(t => t.contains(lcp) || lcp.contains(t)),
+  };
+}"""
+
+# first paint vs finished: hero text below opacity 1 at time 0, hero boxes moved > OPENING_SHIFT px
+FIRST_PAINT = "() => {" + HELPERS + """
+  const timed = document.getAnimations().filter(a => a.timeline === document.timeline);
+  const hero = [...document.querySelectorAll(".hero *")].filter(el => shown(el));
+  timed.forEach(a => { a.pause(); a.currentTime = 0; });
+  const at0 = hero.map(el => el.getBoundingClientRect());
+  const faded = texts().filter(el => el.closest(".hero") && opacity(el) < 0.99)
+    .map(el => label(el) + " opacity " + opacity(el).toFixed(2));
+  timed.forEach(a => a.finish());
+  const moved = hero.map((el, i) => { const r = el.getBoundingClientRect(), o = at0[i];
+    return [el, Math.max(Math.abs(r.left - o.left), Math.abs(r.top - o.top))]; })
+    .filter(([, d]) => d > SHIFT).map(([el, d]) => label(el) + " " + Math.round(d) + "px");
+  return {faded, moved};
+}""".replace("SHIFT", str(OPENING_SHIFT))
+
+
 # self-test faults: (what, html injected before </body>, check that must fail)
 FAULTS = [
     ("Copy below the fold", "<style>#copy { margin-top: 900px; }</style>", "layout"),
@@ -241,6 +285,14 @@ FAULTS = [
     ("hidden mark", "<style>mark { opacity: 0; }</style>", "motion"),
     ("console error", "<script>console.error('qa self-test fault')</script>", "layout"),
     ("wide element", '<div style="width: 3000px; height: 1px"></div>', "layout"),
+    ("opening runs 4 s", "<style>.today mark { animation-duration: 4s !important; }</style>", "opening"),
+    ("opening fades text in", "<style>@keyframes qa-fade { from { opacity: 0; } } "
+     "html:not(.seen) .job { animation: qa-fade 1s both; }</style>", "opening"),
+    ("opening moves the window 40px", "<style>@keyframes qa-lift { from { transform: translateY(40px); } } "
+     "html:not(.seen) .window { animation: qa-lift 1s both; }</style>", "opening"),
+    ("LCP element animated", "<style>@keyframes qa-nudge { from { transform: translateY(4px); } } "
+     "html:not(.seen) h1 { animation: qa-nudge 1s both; }</style>", "opening"),
+    ("opening replays on reload", '<script>document.documentElement.classList.remove("seen")</script>', "opening"),
 ]
 
 
@@ -443,6 +495,38 @@ def check_motion(browser, base: str, name: str, width: int, height: int, phone: 
     return failed
 
 
+def check_opening(browser, base: str, inject: str | None = None) -> tuple[list[str], list[str]]:
+    """Home's opening moment (full motion): hero window only, <= OPENING_MS, opaque + in place from
+    first paint, LCP element outside it, nothing on a reload in the same tab. (failures, reports)"""
+    failed, reports = [], []
+    for (w, h), phone in OPENING_AT:
+        where = label_for(browser, "index.html", w, h, phone, "opening")
+        with opened(browser, base, "index.html", w, h, phone, failed, where, inject,
+                    reduced_motion="no-preference") as page:
+            result = page.evaluate(OPENING)
+            reports.append(f"report: {where}: LCP element {result['lcp']}")
+            if not result["lcp"]:
+                failed.append(f"{where}: no LCP element reported")
+            elif result["lcpAnimated"]:
+                failed.append(f"{where}: LCP element {result['lcp']} is inside or around an animated element")
+            anims = result["animations"]
+            if not phone and not any(timed for _, timed, _, _ in anims):
+                failed.append(f"{where}: no opening animation ran (the motion this check guards)")
+            for target, timed, end, in_window in anims:
+                if not in_window:
+                    failed.append(f"{where}: animation at load outside the hero window: {target}")
+                elif timed and end > OPENING_MS:
+                    failed.append(f"{where}: opening animation ends at {end} ms (cap {OPENING_MS}): {target}")
+            paint = page.evaluate(FIRST_PAINT)
+            failed += [f"{where}: hero text not opaque at first paint: {t}" for t in paint["faded"][:5]]
+            failed += [f"{where}: hero object moves over {OPENING_SHIFT}px: {t}" for t in paint["moved"][:5]]
+            page.reload()
+            page.evaluate("document.fonts.ready")
+            again = page.evaluate(OPENING)["animations"]
+            failed += [f"{where}: reload in the same tab animates {target}" for target, *_ in again]
+    return failed, reports
+
+
 def check_print(browser, base: str, inject: str | None = None) -> list[str]:
     """Home as printed: <= PRINT_CAP pages (Chrome PDF), install line shown."""
     failed = []
@@ -477,6 +561,9 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
             for (w, h), phone in MOTION_SIZES:
                 failed += check_motion(browser, base, name, w, h, phone)
         failed += check_print(browser, base)
+        f, r = check_opening(browser, base)
+        failed += f
+        reports += r
         browser.close()
     return failed, reports
 
@@ -505,12 +592,14 @@ def run_self_test(base: str) -> list[str]:
             return check_layout(browser, base, "index.html", *FOLD, False, inject, shots=False)[0]
         if kind == "phone":
             return check_layout(browser, base, "index.html", *SEND_AT, True, inject, shots=False)[0]
+        if kind == "opening":
+            return check_opening(browser, base, inject)[0]
         return check_motion(browser, base, "index.html", *FOLD, False, inject)
 
     failed = []
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
-        for kind in ("layout", "phone", "motion"):
+        for kind in ("layout", "phone", "motion", "opening"):
             clean = home(browser, kind, None)
             if clean:
                 failed.append(f"self-test: clean home fails its {kind} checks: {clean[0]}")

@@ -174,6 +174,8 @@ Native CSS only - no animation library, no 3D, no WebGL. Text never waits for mo
 - Opening moment (the one unprompted motion): hero window only, CSS `@keyframes`, <= 2.8 s, once
   per session, skipped after a view transition; never loops; LCP element outside it; hero
   objects opaque from first paint (may shift <= 12px; only marks draw).
+  Home: the window's marks, strike, ring + check, timings in `--t0` / `--t1` (s); phones run
+  the same drawing on the window's view timeline (cover 5% -> 45%: it starts below the fold).
 - Scenes: scroll-driven (`animation-timeline: view()`) as the single path, inside `@supports` +
   `prefers-reduced-motion: no-preference`. No scroll timelines (Firefox) => finished state. Only
   circles, checks + small object shifts animate; text opacity 1 at every scroll position; start +
@@ -221,8 +223,11 @@ KB = 1000 bytes.
   2026-10-03) and <= 7.7 at 375x812 (2x 3.84, 2026-10-03); reduced motion = 0 animations + marks
   finished; no JS = all text + the Windows line; text opacity 1 at every scroll step once the
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint;
-  print <= 5 pages w/ the install line; 0 console errors; `--engines` webkit + firefox;
-  `--self-test` injects 5 faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
+  print <= 5 pages w/ the install line; 0 console errors; opening moment (1366x641 + 390x844):
+  only the hero window animates at load, timed ones end <= 2800 ms, hero text opaque + boxes
+  within 12px at first paint, LCP element outside every animated element (selector reported),
+  a same-tab reload animates nothing; `--engines` webkit + firefox; `--self-test` injects 10
+  faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
   carry it, or the checks can't see them).
 - Perf (`qa.py --perf`, median of 3 vs a frozen copy of the pre-redesign site): phone LCP <= 1.5 s
   + <= baseline + 0.3 s; desktop LCP <= 0.5 s; CLS <= 0.01; long frames during scroll <= baseline
