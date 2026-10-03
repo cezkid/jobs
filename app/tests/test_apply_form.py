@@ -10,7 +10,8 @@ from apply.systems import ashby, greenhouse, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
-CONTRACT = {"NAME": str, "READY": str, "matches": 1, "application_url": 1, "questions": 1, "fill": 3, "ids_on_page": 1}
+CONTRACT = {"NAME": str, "READY": str, "SOURCES": tuple, "EXAMPLES": tuple,
+            "matches": 1, "application_url": 1, "questions": 1, "fill": 3, "ids_on_page": 1}
 
 
 def q(title, kind="text", key=None, required=True, options=(), id=None):
@@ -20,15 +21,29 @@ def q(title, kind="text", key=None, required=True, options=(), id=None):
 # --- every system: same contract, so adding one never touches the shared code ---
 
 @pytest.mark.parametrize("module", [m.name for m in pkgutil.iter_modules(systems.__path__)])
-def test_every_system_module_is_registered_and_keeps_the_contract(module):
+def test_every_system_module_is_found_and_keeps_the_contract(module):
     system = importlib.import_module(f"apply.systems.{module}")
-    assert system in systems.SYSTEMS, f"{module} not in systems.SYSTEMS"
+    assert system in systems.SYSTEMS, f"{module} not found by systems.discover()"
     for name, want in CONTRACT.items():
         got = getattr(system, name)
         if isinstance(want, type):
             assert isinstance(got, want), name
         else:
             assert len(inspect.signature(got).parameters) == want, name
+    assert system.SOURCES and system.EXAMPLES and all(isinstance(x, str) for x in system.SOURCES + system.EXAMPLES)
+
+
+def test_systems_found_in_name_order_no_hand_list():
+    names = [m.__name__.rsplit(".", 1)[-1] for m in systems.SYSTEMS]
+    assert names == sorted(m.name for m in pkgutil.iter_modules(systems.__path__))
+
+
+@pytest.mark.parametrize("system", systems.SYSTEMS, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
+def test_each_example_link_matches_exactly_one_system(system):
+    for link in system.EXAMPLES:
+        assert [s for s in systems.SYSTEMS if s.matches(link)] == [system], link
+        assert system.matches(system.application_url(link)), link
+        assert "acme" in link.casefold(), "example links stay anonymised"
 
 
 def test_link_picks_its_system_or_says_where_else():
@@ -121,7 +136,7 @@ def test_accents_case_spacing_and_a_left_out_middle_name_are_no_mismatch(page):
 
 
 def test_earlier_answers_survive_a_second_prepare():
-    old = [{"id": "Why us?", "answer": "Their words.", "source": "user"}]
+    old = [{"id": "Why us?", "title": "Why us?", "answer": "Their words.", "source": "user"}]
     assert questions.draft([q("Why us?", "longtext")], CONTACT, old)[0]["answer"] == "Their words."
 
 
@@ -195,15 +210,110 @@ def test_sensitive_question_stays_blank_even_when_a_saved_answer_fits():
              "crime?", "yesno")
     assert questions.draft([both], CONTACT, config=config)[0]["answer"] is None
     # a program-filled answer from before the tag is dropped; the user's own answer survives
-    auto = [{"id": both["id"], "answer": "Yes", "source": "search settings - name it to the user"}]
+    auto = [{"id": both["id"], "title": both["title"], "answer": "Yes", "source": "search settings - name it to the user"}]
     assert questions.draft([both], CONTACT, auto, config)[0]["answer"] is None
-    theirs = [{"id": both["id"], "answer": "No", "source": "user"}]
+    theirs = [{"id": both["id"], "title": both["title"], "answer": "No", "source": "user"}]
     assert questions.draft([both], CONTACT, theirs, config)[0]["answer"] == "No"
     # other names saved in resume details are theirs to give: no tag, answer filled
     other = q("Other names used", key="other_names")
     assert questions.draft([other], LEGAL)[0]["answer"] == "Jane Roe"
-    assert questions.draft([other], CONTACT, [{"id": other["id"], "answer": "Jane Roe", "source": "resume"}])[0][
+    assert questions.draft([other], CONTACT, [{"id": other["id"], "title": other["title"], "answer": "Jane Roe", "source": "resume"}])[0][
         "answer"] is None
+
+
+CONSENT = ["I agree to the Terms and Conditions", "I have read the Privacy Notice", "Privacy policy consent",
+           "SMS consent", "I consent to receive text messages about my application",
+           "Would you like to receive SMS updates about your application?", "May we text you?",
+           "Electronic Signature", "Signature (type your full name)", "E-sign: type your legal name",
+           "Type your full name to sign", "I certify that the information above is true and complete",
+           "I acknowledge that I have read the above statement", "Opt in to automated calls",
+           "Terms of Use"]
+CONSENT_NEAR_MISSES = ["Do you hold a Series 7 license?", "Describe a project you signed off",
+                       "Privacy engineering experience?", "Experience obtaining informed consent in clinical trials?",
+                       "Do you hold a professional certification?", "Experience with digital signature algorithms",
+                       "Are you authorized to work in the United States?", "Why us?"]
+
+
+@pytest.mark.parametrize("title", CONSENT)
+def test_consent_terms_and_signature_left_for_the_user_on_the_page(title):
+    kind = "yesno" if title.endswith("?") or title.startswith(("I ", "SMS", "Opt", "Privacy")) else "text"
+    (a,) = questions.draft([q(title, kind, key=questions.key_from_title(title, kind))], CONTACT)
+    assert questions.never_draft(title) == "agreeing, consenting or signing"
+    assert a["answer"] is None and a["source"] == f"{questions.ASK} - {questions.SIGN_ON_PAGE}: {questions.SIGNING}"
+    assert "(yours to do on the page: agreeing, consenting or signing)" in form.line(a)
+
+
+@pytest.mark.parametrize("title", CONSENT_NEAR_MISSES)
+def test_consent_near_misses_not_tagged(title):
+    assert questions.never_draft(title) != questions.SIGNING
+
+
+def test_signature_box_never_answered_from_the_resume():
+    for title in ("Signature (type your full name)", "Electronic signature - legal name", "Full name (signature)"):
+        assert questions.key_from_title(title, "text") is None, title
+        (a,) = questions.draft([q(title, key=questions.key_from_title(title, "text"))], CONTACT)
+        assert a["answer"] is None, title
+    # a system's own name field id on a signing box: still not the resume's name
+    (a,) = questions.draft([q("Signature (type your full name)", key="name")], CONTACT)
+    assert a["answer"] is None
+
+
+def test_consent_answer_never_kept_never_typed_and_not_counted_missing():
+    terms = q("I agree to the Terms and Conditions", "yesno")
+    # even the user's own "you said" from an earlier prepare is dropped: they tick it on the page
+    old = [{**terms, "answer": "Yes", "source": questions.USER_SAID}]
+    (a,) = questions.draft([terms], CONTACT, old)
+    assert a["answer"] is None and a["source"].startswith(questions.ASK)
+    assert questions.missing([a]) == []
+    assert questions.on_page([{**a, "answer": "Yes", "source": questions.USER_SAID}])
+    with pytest.raises(SystemExit, match="ticks or signs these on the page"):
+        form.refuse([{**a, "answer": True, "source": questions.USER_SAID}])
+
+
+def test_old_answer_kept_only_for_the_same_id_and_title():
+    old = [{"id": "rc_select_4", "title": "Please tell us: why us?", "answer": "Their words.", "source": questions.USER_SAID}]
+    # same question, polite wording and case folded away: kept
+    assert questions.draft([q("Why us?", "longtext", id="rc_select_4")], CONTACT, old)[0]["answer"] == "Their words."
+    # a generated id naming another question on the next load: drafted fresh
+    (a,) = questions.draft([q("Anything else we should know?", "longtext", id="rc_select_4")], CONTACT, old)
+    assert a["answer"] is None and a["source"] == questions.ASK
+    # an id that held a "you said" answer now on a consent box: blank, the user's on the page
+    (a,) = questions.draft([q("SMS consent", "yesno", id="rc_select_4")], CONTACT, old)
+    assert a["answer"] is None and a["source"].startswith(questions.ASK)
+
+
+def test_fill_report_by_id_when_two_questions_share_a_title(tmp_path, monkeypatch, capsys):
+    import contextlib
+
+    from resume import tailor
+    folder = tmp_path / "7 - Acme - Analyst"
+    phones = [{**q("Phone", "phone", id="p1"), "answer": "555-0100"}, {**q("Phone", "phone", id="p2"), "answer": "555-0100"}]
+    questions.save(folder / tailor.JOB_DATA / questions.FILE,
+                   {"system": "Fake", "url": "https://jobs.example/1", "questions": phones})
+    monkeypatch.setattr(form.cfg, "load", lambda: {})
+    monkeypatch.setattr(form, "job_dir", lambda config, slug: folder)
+    monkeypatch.setattr(form, "resume_for", lambda config, folder: None)
+
+    class Fake:
+        NAME, READY = "Fake", "form"
+
+        def fill(page, q, resume_file):
+            return "ok" if q["id"] == "p1" else "FAIL box not found"
+
+        def ids_on_page(page):
+            return ["p1", "p2"]
+
+    class Page:
+        first = property(lambda self: self)
+        locator = lambda self, selector: self
+        wait_for = lambda self, timeout: None
+        inner_text = lambda self, timeout: ""
+    monkeypatch.setattr(form, "system_for", lambda url: Fake)
+    monkeypatch.setattr(form.browser, "page_at", lambda url, match=None: contextlib.nullcontext(Page()))
+    form.fill("7")
+    out = capsys.readouterr().out
+    assert "  [ok] Phone\n  [FAIL box not found] Phone\n" in out
+    assert "required answered 1 of 2 - still to do on the page: Phone" in out
 
 
 def test_prepare_line_names_the_sensitive_kind():
@@ -237,7 +347,7 @@ def test_work_break_question_answered_from_the_users_saved_words():
     # a re-prepare refreshes the program's answer from the latest saved words; the user's own edit stays
     later = [{**BREAKS[0], "explain": "Reworded."}]
     assert questions.draft([newest], CONTACT, [a], breaks=later)[0]["answer"] == "Reworded."
-    theirs = [{"id": newest["id"], "answer": "Their words.", "source": "user"}]
+    theirs = [{"id": newest["id"], "title": newest["title"], "answer": "Their words.", "source": "user"}]
     assert questions.draft([newest], CONTACT, theirs, breaks=later)[0]["answer"] == "Their words."
 
 
@@ -483,7 +593,7 @@ def test_fill_uploads_the_pdf_from_where_its_folder_is_now(tmp_path, monkeypatch
         def wait_for(self, timeout):
             pass
     monkeypatch.setattr(form, "system_for", lambda url: Fake)
-    monkeypatch.setattr(form.browser, "page_at", lambda url: contextlib.nullcontext(Page()))
+    monkeypatch.setattr(form.browser, "page_at", lambda url, match=None: contextlib.nullcontext(Page()))
     form.fill("7")
     assert uploaded == [str(pdf)]
     pdf.unlink()
@@ -704,6 +814,12 @@ def test_greenhouse_form_becomes_shared_questions():
     assert ids.index("hispanic_ethnicity") == ids.index("race") - 1  # Hispanic/Latino first: it decides if Race shows
 
 
+def test_greenhouse_board_without_a_survey():
+    # "demographic_questions": null on a live posting (2026-10-03) crashed the read
+    got = greenhouse.from_board(GH_JOB | {"demographic_questions": None, "compliance": None})
+    assert "first_name" in {x["id"] for x in got} and "401" not in {x["id"] for x in got}
+
+
 class GhPage:
     """The page's own name fill lands a moment after a box's first focus."""
     def __init__(self):
@@ -789,9 +905,9 @@ def test_answer_dropped_after_filling_is_filled_again_then_flagged():
         def fill(self, page, q, resume): self.fills += 1; return "ok"
     class Page:
         def wait_for_timeout(self, ms): pass
-    qs = [{"title": "Preferred First Name", "kind": "text", "answer": "Jane"}]
-    assert form.recheck(Page(), System(1), qs, [("Preferred First Name", "ok")], None) == [("Preferred First Name", "ok")]
-    assert form.recheck(Page(), System(9), qs, [("Preferred First Name", "ok")], None)[0][1].startswith("FAIL answer dropped")
+    qs = [{"id": "q1", "title": "Preferred First Name", "kind": "text", "answer": "Jane"}]
+    assert form.recheck(Page(), System(1), qs, [("q1", "ok")], None) == [("q1", "ok")]
+    assert form.recheck(Page(), System(9), qs, [("q1", "ok")], None)[0][1].startswith("FAIL answer dropped")
 class FakeRadio:
     """Ashby radio: a label click toggles it (a second click clears it) and the page shows the
     change only after `lag` polls."""

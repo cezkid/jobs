@@ -14,6 +14,14 @@ NAME = "Greenhouse"
 # job-boards / boards, EU host too; the embed link carries the board + job as ?for=...&token=...
 POSTING_URL = re.compile(r"https?://(?:job-)?boards(\.eu)?\.greenhouse\.io/(?!embed/)([\w-]+)/jobs/(\d+)", re.I)
 EMBED_URL = re.compile(r"https?://(?:job-)?boards(\.eu)?\.greenhouse\.io/embed/job_app\?(?=.*\bfor=([\w-]+))(?=.*\btoken=(\d+))", re.I)
+# freehire `source` whose links land here (test_systems_live.py); link shapes, anonymised
+SOURCES = ("greenhouse",)
+EXAMPLES = ("https://job-boards.greenhouse.io/acme/jobs/4001234005",
+            "https://boards.greenhouse.io/acme/jobs/4001234005?gh_src=x",
+            "https://job-boards.eu.greenhouse.io/acme/jobs/4001234005",
+            "https://job-boards.greenhouse.io/embed/job_app?for=acme&token=4001234005")
+# questions() is a plain HTTP read, no browser: the live test runs it
+QUESTIONS_OVER_HTTP = True
 READY = "#first_name"
 # Greenhouse type -> shared kind; a type missing here is asked as text
 KIND = {"input_text": "text", "textarea": "longtext", "input_file": "file",
@@ -80,7 +88,7 @@ def from_board(job: dict) -> list[dict]:
             out.append(question(COUNTRY, "Country (of your phone number)", "choice", True, native="country"))
     if any(f["name"] == "location" for q in job.get("location_questions") or [] for f in q["fields"]):
         out.append(question(LOCATION, "Location (City)", "location", True, key="location", native="location"))
-    for q in job.get("demographic_questions", {}).get("questions") or []:
+    for q in (job.get("demographic_questions") or {}).get("questions") or []:
         kind = "multichoice" if q["type"] == "multi_value_multi_select" else "choice"
         out.append(question(str(q["id"]), q["label"], kind, bool(q.get("required")),
                             [o["label"] for o in q["answer_options"] if not o.get("free_form")], native="demographic"))

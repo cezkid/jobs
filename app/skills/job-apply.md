@@ -127,6 +127,15 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
    quirk in that system's doc.
+   Form over several pages (`this page: X of Y required answered` + "question(s) on other
+   pages"): tell the user to check this page and click Next / Continue themselves - never us.
+   Once they say they're on the next page: `prepare` again if `fill` printed it (that system
+   reads page by page; answers already given are kept), then `fill` again - it works on their
+   own tab, where they are. Repeat to the last page.
+   Some sites ask for your email or name first, then show the form: say "you type / agree / do
+   the check and click Continue yourself; I fill the boxes I know". A consent, terms or
+   signature question: clickable choices, the user's own words - they tick or sign it on the
+   page. Which sites work this way: `app/docs/apply/apply-systems.md`.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
    any banner (application limits), and that nothing is sent until they click **Submit**.
 6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).

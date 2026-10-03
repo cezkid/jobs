@@ -69,10 +69,28 @@ SAVED = "saved answer"
 AUTO = ("resume", "search settings", SAVED)
 NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
 FILE = "application.json"
+# a multi-page system's fill result for a box on another page of the form: not a failure, filled
+# once the user clicks Next / Continue and fill runs again (single-page systems: "FAIL ... not on page")
+LATER = "LATER"
+
+
+# terms, privacy, texts, e-signatures: accepting or signing is the applicant's own act, ticked or
+# typed by them on the page - never drafted, kept or filled (2026-10-03: a start-page SMS consent
+# Yes/No, a terms box + e-signature in one system's apply flow, consent checkboxes on another).
+# Not "informed consent" (clinical work), "signed off", a certification held.
+SIGNING_PATTERN = (r"terms (?:and|&) conditions|terms of (?:use|service)|privacy (?:policy|notice|statement)|"
+                   r"(?<!informed )\bconsent|\bopt[- ]?in\b|\bi (?:hereby )?(?:agree|certify|attest|acknowledge|"
+                   r"authori[sz]e|understand)\b|\bcertify\b|\battest\b|\backnowledg(?:e|ement)\b|"
+                   r"\b(?:sms|text messag\w*|texts|automated (?:calls|messages))\b.{0,40}\b(?:receive|agree|consent)|"
+                   r"\breceive (?:\w+ ){0,3}(?:sms|texts|text messages|automated calls)\b|"
+                   r"\b(?:may|can) we (?:text|sms) you\b|(?<!digital )\bsignature\b|\be-?sign|"
+                   r"\bsign (?:here|below|electronically)\b|\btype (?:your )?(?:full |legal )?name to sign\b")
+SIGN_ON_PAGE = "yours to do on the page"
 
 
 # what a question is about, in the user's words - the never-drafted ones first
 TOPICS = (
+    ("agreeing, consenting or signing", SIGNING_PATTERN),
     ("the pay you expect", r"salary|compensation|pay (?:expectation|range|requirement)|desired (?:pay|rate)"),
     ("permission to work", r"authori[sz]ed to work|right to work|work authori[sz]ation|legally (?:able|eligible|permitted)"),
     ("visa sponsorship", r"sponsor|\bvisa\b"),
@@ -87,7 +105,8 @@ TOPICS = (
 )
 # asked only of the user, never drafted - not even from a setting that seems to fit
 VOLUNTARY = "voluntary questions about you"
-NEVER_DRAFT = ("the pay you expect", "where you live", VOLUNTARY)
+NEVER_DRAFT = ("agreeing, consenting or signing", "the pay you expect", "where you live", VOLUNTARY)
+SIGNING = "agreeing, consenting or signing"
 # a voluntary question filled from the user's saved self-identification, after their yes to it
 VOLUNTARY_SAVED = "your saved voluntary answer"
 
@@ -101,12 +120,16 @@ def never_draft(text: str) -> str | None:
     return next((t for t in topics(text) if t in NEVER_DRAFT), None)
 
 
-def question(id: str, title: str, kind: str, required: bool, options=(), key=None, native=None) -> dict:
-    """One form question in the shared shape. `native` = the system's own type name, for its filler."""
+def question(id: str, title: str, kind: str, required: bool, options=(), key=None, native=None,
+             page: str | None = None) -> dict:
+    """One form question in the shared shape. `native` = the system's own type name, for its filler.
+    `page` = which page of a multi-page form shows it: a section name the form's definition gives, or
+    what identifies the page a system read it off (its step heading)."""
     assert kind in KINDS, kind
     assert key in KEYS, key
-    return {"id": id, "title": title, "kind": kind, "key": key, "native": native,
-            "required": required, "options": list(options)}
+    out = {"id": id, "title": title, "kind": kind, "key": key, "native": native,
+           "required": required, "options": list(options)}
+    return out | {"page": page} if page else out
 
 
 def name_key(title: str) -> str | None:
@@ -114,7 +137,8 @@ def name_key(title: str) -> str | None:
     name; preferred -> the name on the page; other / previous / maiden -> other names used."""
     t = title.casefold()
     words = re.findall(r"[a-z]+", t)
-    if not ({"name", "names", "surname"} & set(words)) or OTHER_PERSON.search(t):
+    # "Signature (type your full name)": their act on the page, never the name box
+    if not ({"name", "names", "surname"} & set(words)) or OTHER_PERSON.search(t) or re.search(SIGNING_PATTERN, t):
         return None
     if {"other", "previous", "former", "prior", "maiden", "alias", "aliases"} & set(words):
         return "other_names"
@@ -303,18 +327,28 @@ def blank(answer) -> bool:
     return answer in (None, "", [])
 
 
+def signs(text: str) -> bool:
+    return never_draft(text) == SIGNING
+
+
 def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
           breaks: list[dict] | None = None, saved: list[dict] | None = None) -> list[dict]:
     """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept -
-    on a sensitive question only the user's own, never one the program filled. The one sensitive
-    kind the program fills: a work break, from words the user saved for it (`breaks`)."""
+    same id and same question only; on a sensitive question only the user's own, never one the
+    program filled. The one sensitive kind the program fills: a work break, from words the user
+    saved for it (`breaks`). Agreeing, consenting, signing: always left for the user on the page."""
     from apply import answers  # it reads this module's lists: imported at call time
-    kept = {a["id"]: a for a in old or [] if not blank(a.get("answer"))}
+    # generated page ids (rc_select_4, :r3:) can name another question on the next load: id + title
+    kept = {(a["id"], answers.fold(a.get("title") or "")): a for a in old or [] if not blank(a.get("answer"))}
     out = []
     for q in qs:
+        if signs(q["title"]):
+            out.append({**q, "answer": None, "source": f"{ASK} - {SIGN_ON_PAGE}: {SIGNING}"})
+            continue
         tag = sensitive(q, contact)
-        if q["id"] in kept and not (tag and kept[q["id"]].get("source", "").startswith(AUTO)):
-            out.append({**q, "answer": kept[q["id"]]["answer"], "source": kept[q["id"]].get("source", "")})
+        was = kept.get((q["id"], answers.fold(q["title"])))
+        if was and not (tag and was.get("source", "").startswith(AUTO)):
+            out.append({**q, "answer": was["answer"], "source": was.get("source", "")})
             continue
         if tag == "work break" and (saved := break_answer(q, breaks or [])):
             out.append({**q, "answer": saved, "source": f"resume - sensitive: {tag} - {READ_FIRST}"})
@@ -388,8 +422,32 @@ def unvouched(answers: list[dict]) -> list[dict]:
             and (f" - {YOURS}: " in a["source"] or " - sensitive: " in a["source"])]
 
 
+def on_page(answers: list[dict]) -> list[dict]:
+    """Agreeing, consenting or signing questions carrying an answer: never typed or ticked by the
+    program, whoever wrote it - the user does it on the page."""
+    return [a for a in answers if not blank(a.get("answer")) and signs(a["title"])]
+
+
+def merge(old: list[dict], read: list[dict]) -> list[dict]:
+    """Questions read off the page the user is on, merged into the answers file of the same form:
+    other pages' entries kept as they are, this page's replaced in place, a page not seen before
+    appended. Questions without a page (a whole form read at once) replace everything."""
+    pages, ids = {q.get("page") for q in read}, {q["id"] for q in read}
+    if None in pages:
+        return read
+    out, placed = [], False
+    for a in old:
+        if a.get("page") in pages or a["id"] in ids:
+            out += [] if placed else read
+            placed = True
+        else:
+            out.append(a)
+    return out if placed else out + read
+
+
 def missing(answers: list[dict]) -> list[dict]:
-    return [a for a in answers if a["required"] and blank(a.get("answer"))]
+    """Required and blank - not counting the ones the user ticks or signs on the page."""
+    return [a for a in answers if a["required"] and blank(a.get("answer")) and not signs(a["title"])]
 
 
 def load(path: Path) -> dict | None:

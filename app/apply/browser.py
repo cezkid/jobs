@@ -96,20 +96,25 @@ def free_port() -> int:
         return s.getsockname()[1]
 
 
-def open_tab(url: str) -> int:
+def open_tab(url: str) -> tuple[int, str]:
     """Chrome itself opens the tab (command line, or its own new-tab call): a tab Playwright opens
     reads `navigator.webdriver = true`, which an employer's spam check can flag (measured 2026-09).
     Job Finder's Chrome already open -> new tab in it: a second Chrome on the same profile only
-    hands the link to the first and never opens its port."""
+    hands the link to the first and never opens its port. -> (port, the new tab's target id)."""
     # two chats applying at once => one starts Chrome, the other waits and opens a tab in it
     with locks.held(PROFILE.parent / "apply-browser.lock", "the application window is still opening - try again in a minute"):
         return _open_tab(url)
 
 
-def _open_tab(url: str) -> int:
+def new_tab(port: int, url: str) -> str:
+    got = httpx.put(f"http://127.0.0.1:{port}/json/new?{quote(url, safe='')}", timeout=10)
+    got.raise_for_status()
+    return got.json()["id"]
+
+
+def _open_tab(url: str) -> tuple[int, str]:
     if port := live_port():
-        httpx.put(f"http://127.0.0.1:{port}/json/new?{quote(url, safe='')}", timeout=10).raise_for_status()
-        return port
+        return port, new_tab(port, url)
     PROFILE.mkdir(parents=True, exist_ok=True)
     port = free_port()
     PORT_FILE.write_text(str(port))
@@ -119,25 +124,74 @@ def _open_tab(url: str) -> int:
     # our own port, not live_port(): its process scan would run every half second while Chrome starts
     for _ in range(60):
         if answers(port):
-            return port
+            return port, first_tab(port, url)
         time.sleep(0.5)
-    # link handed to a Chrome already open that the port file lost track of
+    # link handed to a Chrome already open that the port file lost track of: no id for its tab
     if found := live_port():
-        return found
+        return found, new_tab(found, url)
     sys.exit("Chrome did not start")
 
 
+def first_tab(port: int, url: str) -> str:
+    """The tab a Chrome we just started opened on `url`: its only tab. Restored tabs beside it ->
+    a new tab of our own, never a guess among them."""
+    tabs = [t for t in httpx.get(f"http://127.0.0.1:{port}/json/list", timeout=10).json() if t.get("type") == "page"]
+    return tabs[0]["id"] if len(tabs) == 1 else new_tab(port, url)
+
+
+def target_id(page) -> str:
+    session = page.context.new_cdp_session(page)
+    try:
+        return session.send("Target.getTargetInfo")["targetInfo"]["targetId"]
+    finally:
+        session.detach()
+
+
+def visible(page) -> bool:
+    try:
+        return page.evaluate("document.visibilityState") == "visible"
+    except Exception:  # a tab mid-navigation can't answer: not the one in front
+        return False
+
+
+def pick(pages: list, match) -> object | None:
+    """The user's own tab on this application: the one in front, else the newest. A tab on another
+    employer's form never matches (match checks host + posting)."""
+    mine = [pg for pg in pages if match(pg.url)]
+    return next((pg for pg in reversed(mine) if visible(pg)), mine[-1] if mine else None)
+
+
+def opened(pages_of, target: str):
+    """The tab Chrome just opened, by its target id - never "the newest tab": after a redirect that
+    was any tab, possibly another employer's form. A tab can take a moment to reach Playwright."""
+    for _ in range(20):
+        if page := next((pg for pg in pages_of() if target_id(pg) == target), None):
+            return page
+        time.sleep(0.25)
+    sys.exit("the new tab in Job Finder's Chrome didn't answer - try again")
+
+
 @contextlib.contextmanager
-def page_at(url: str):
-    """A tab on `url` in the Job Finder Chrome. On exit we only disconnect: the tab stays open."""
+def page_at(url: str, match=None):
+    """A tab on `url` in the Job Finder Chrome. `match(tab_url)` given and a tab matches -> that tab,
+    the user's place in a multi-page form kept; else a new tab. On exit we only disconnect: the
+    tab stays open."""
     from playwright.sync_api import sync_playwright
 
-    port = open_tab(url)
     with sync_playwright() as p:
-        browser = p.chromium.connect_over_cdp(f"http://127.0.0.1:{port}")
-        pages = browser.contexts[0].pages
-        # newest tab on this link = the one just opened (an earlier try may still be open)
-        page = ([pg for pg in pages if pg.url.split("?")[0] == url.split("?")[0]] or pages)[-1]
+        connected = {}
+
+        def pages(port):
+            if port not in connected:
+                connected[port] = p.chromium.connect_over_cdp(f"http://127.0.0.1:{port}")
+            return connected[port].contexts[0].pages
+
+        page = None
+        if match and (port := live_port()):
+            page = pick(pages(port), match)
+        if page is None:
+            port, target = open_tab(url)
+            page = opened(lambda: pages(port), target)
         page.wait_for_load_state()
         page.bring_to_front()
         yield page
