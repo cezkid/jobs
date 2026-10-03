@@ -9,17 +9,23 @@ their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGE
 job searches send only their search settings to freehire.me (a resume made for a listed job, or
 "still open?", sends that job's listing id - nothing about them); resume is read here in this AI
 chat; nothing goes to CEZ Job Finder's maintainer without asking first.
+On Copilot (`.data/ai`): in the same opening, one line - pick Claude Sonnet in the model list
+under the chat box, the automatic model can't make tailored resumes (`AGENTS.md` #User = not
+technical). Copilot's free tier can't either: say Copilot Pro ($10 a month) if they're on it.
 
 Then, BEFORE any interview question (their answers - work permit, pay - are typed into this
-chat too), AI training, one question. Personal Claude (Free/Pro/Max) and ChatGPT (Free/Go/Plus/
-Pro) plans may train on chats unless the user switches it off; work plans (Claude Team/Enterprise,
-ChatGPT Business/Enterprise/Edu) and developer (API key) sign-ins don't by default. Only the user
+chat too), AI training, one question. Personal Claude (Free/Pro/Max), ChatGPT (Free/Go/Plus/
+Pro) and GitHub Copilot (Free/Pro) plans may train on chats unless the user switches it off; work
+plans (Claude Team/Enterprise, ChatGPT Business/Enterprise/Edu, Copilot Business/Enterprise),
+Copilot Student and developer (API key) sign-ins don't by default. Copilot chats may be shared
+with Microsoft. Only the user
 can change it - no setting here reaches their account. Ask: "What you tell me and your resume are
 read in this chat. Want your chats kept out of AI training? One switch, 30 seconds." Options: Yes,
 show me / Already off, or a work account / Leave it on. Yes -> open
 `Guides/Keep your chats out of AI training.md`, then the settings page for THEIR AI (Claude:
 `https://claude.ai/settings/data-privacy-controls`; ChatGPT: `https://chatgpt.com`, then
-Settings, Data controls), walk them through the one switch, ask "Done?" before going on. Can't check it's
+Settings, Data controls; GitHub Copilot: `https://github.com/settings/copilot`, then Privacy,
+"Allow GitHub to use my data for AI model training" -> Disabled), walk them through the one switch, ask "Done?" before going on. Can't check it's
 off - take their word. One ask, never nudge either way. Never ask them to rate or thumbs a chat:
 feedback lets the AI company train on that whole chat even w/ the switch off. Codex's separate
 "Include environments" setting covers cloud code copies only (private folders never in them) -
@@ -126,7 +132,7 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 
 ## 3. Resume
 
-- Ask for resume PDF (drag into chat), then
+- Ask for resume PDF (drag it onto My Resume in the file list; `AGENTS.md` #User), then
   `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing).
   Re-import: `finish` writes nothing yet when the new PDF lacks things in their resume details -
   it prints up to 3 groups (lines: their wording + added lines and skills; entries: jobs, schools,

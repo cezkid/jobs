@@ -3,7 +3,8 @@
 ## Do this now
 
 1. Find the chat box on the right. (Using ChatGPT? Click its icon on the left first.)
-2. Asked to log in? Log in, then come back here.
+2. Asked to log in? Log in, then come back here. (GitHub Copilot: click **Sign in** in the chat
+   box, then pick **Claude Sonnet** in the model list under it.)
 3. Type **set me up** and press Enter.
 
 The AI asks a few questions, then shows your first jobs. You never type commands or edit files.

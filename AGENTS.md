@@ -3,7 +3,8 @@
 Polls freehire's keyless job API for user's search, stores rows in SQLite, ranks them, notifies
 daily of new rows (desktop; email optional), tailors user's resume to one posting. Any occupation.
 API facts + measured pitfalls: `app/docs/jobs/freehire.md` - read before changing filter or
-ingest code. Read by Claude Code (via `CLAUDE.md`), Codex / ChatGPT, Copilot, Cursor, Gemini.
+ingest code. Read by Claude Code (via `CLAUDE.md`), OpenAI Codex (ChatGPT) and GitHub Copilot in
+VS Code - the three AIs the installer offers (`.data/ai`).
 
 ## User = not technical
 
@@ -23,7 +24,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Each job carries its one-line why from the row's `[reasons]`, in plain words.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.
-- Need file from user (resume PDF): ask them to drag it into chat box; its path arrives w/ it.
+- Need file from user (resume PDF): ask them to drag it onto My Resume in the file list, then
+  use the PDF just added there (not the made `First_Last_Resume.pdf`). Copilot gets a PDF dropped in chat as data, no path. A path that
+  arrives w/ a chat drop still works.
 - Something fails: one plain sentence on what went wrong + what you're doing about it. Never
   show tracebacks or raw command output.
 - Ask w/ clickable choices, not prose questions: 2-4 options, each carrying the real count or
@@ -32,7 +35,17 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   `multiSelect` only when answers aren't exclusive, its question ending "tick all that fit, then
   Submit". Free text only where no option set fits (resume file, company names, app password).
   Measure first so options carry live numbers - "Software engineering - about 56,000 US jobs"
-  tells them more than the label.
+  tells them more than the label. Clickable tool: Claude's question tool, Copilot's
+  askQuestions. AI w/o one: same options as a short numbered list, "reply with the number".
+- On Copilot: the AI matters. Free tier on its automatic model failed 3 of 3 tailored resumes
+  (measured; Pro untested). Recommend once, at setup or after a STOP: pick a strong model such as
+  Claude Sonnet in the model list under the chat box (Copilot Pro).
+- User mentions Nova, Perplexity, Monica, Poe or another all-in-one AI app: say plainly those
+  apps can't run programs on their computer, so they can't run CEZ Job Finder. The three that
+  can: Claude, ChatGPT, GitHub Copilot Pro ($10 a month, several AIs in one plan; its free tier can't
+  make tailored resumes - never offer it).
+  Switch: `uv run app/jobs.py ai <claude|chatgpt|copilot>`, then they close + reopen CEZ Job
+  Finder.
 
 ## Speed - user's time first
 
@@ -61,8 +74,9 @@ unseen - a tab badge is the only sign one waits.
 
 - Never offer or open extra chats yourself. A new chat opens as a tab over their resume or
   START HERE / Today, and files you open then land on top of it (Claude extension 2.1.283, measured).
-- User asks how anyway: hover the icons at the top of the chat - "New session" starts one,
-  "Session history" lists past chats. Say it works; both chats share their files safely.
+- User asks how anyway: icons at the top of the chat. Claude: hover - "New session" starts one,
+  "Session history" lists past chats. Copilot: "+" starts a new chat, the clock icon lists past
+  chats. Say it works; both chats share their files safely.
 - Job numbers are stored, not per chat: "job 12" names the same job in any chat. Company + title
   or its link work too (`tailor prepare "<link>"`, `status show --company C --title T`).
 - Shared files are safe to run side by side: each pasted posting + each job folder is its own,
@@ -181,7 +195,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
 | Resume + answers you paste | that employer's site (Lever, Workable ...) | That employer, once you click Submit |
-| Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude or ChatGPT) | User's own AI account; personal plans may train on it unless switched off |
+| Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User's own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Contact details, answers, resume you apply with | that employer's Greenhouse site | That employer, once you click Submit |
@@ -220,11 +234,11 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 - `My Jobs/<stage>/N - Company - Title/` - one per tailored job, under where it stands
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
-- `.data/` - `jobs.db`, `daily.log`, `email.env`, `resume-index.yml`, AI task files for import,
+- `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
-- `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `update.py`
+- `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
-  `rank.py`, `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
+  `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
   `profiles/` (example search), `skills/`, `install/`, `deploy/`, `web/` (site asset generator), `docs/`, `tests/`.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, see
@@ -247,7 +261,13 @@ next import rewrites them.
 Resume import, pasted posting, tailoring, cover letter (`letter`) and `resume-gaps` (asks the user for the numbers +
 leadership their lines leave out; only their answers go in): command writes task file (rules,
 input, answer format), you write answer JSON at the path it names, run the check it prints.
-Check fails -> fix JSON per violations, rerun; after 2 failed retries tell user plainly, stop. No other program writes resume content.
+Check fails -> fix JSON per violations, rerun. Program counts failed checks per task (reset by a
+new task file); 3rd failure (= 2 failed retries) prints `STOP` + one plain line worded per AI
+(Copilot: its automatic model couldn't meet the rules, Copilot Pro lets them pick a stronger model;
+others: the AI couldn't after 3 tries) + the safe fallback (untailored resume, unchanged PDF ...) -
+pass both on word for word, stop. Tailoring: a failed check moves the tailored PDF out of the job
+folder (`.data/not ready - ...`), STOP says it's not ready + names the untailored PDF - never give
+the user a path to a tailored PDF that failed. No other program writes resume content.
 
 Tailored page rules (gates `pages` + `line-fill`, tailored copies only): 1 page, or 2 w/ the
 2nd 60%+ full. Word budget scales w/ the measured page; facts too thin for any window are

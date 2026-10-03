@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CEZ Job Finder – free AI job search and resume tailoring</title>
-<meta name="description" content="Finds new jobs every morning and makes your resume for any job you pick, using your paid Claude or ChatGPT plan. Free, private, for Windows and Mac.">
+<title>CEZ Job Finder – free AI job search app for Windows and Mac</title>
+<meta name="description" content="Free app for your Windows or Mac computer. Finds new jobs every morning and makes your resume for any job you pick, with Claude, ChatGPT or GitHub Copilot.">
 <link rel="canonical" href="https://jobs.enrriquez.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="color-scheme" content="light dark">
@@ -14,15 +14,15 @@
 <meta property="og:site_name" content="CEZ Job Finder">
 <meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://jobs.enrriquez.com/">
-<meta property="og:title" content="Find jobs and tailor your resume with your own AI">
-<meta property="og:description" content="Free helper on your own computer. Finds new jobs every morning and makes your resume for any job you pick. You approve every changed line and press Submit.">
+<meta property="og:title" content="A free job-search app for Windows and Mac, with your own AI">
+<meta property="og:description" content="Free app for Windows and Mac. Finds new jobs every morning and makes your resume for any job you pick, with Claude, ChatGPT or GitHub Copilot. You press Submit.">
 <meta property="og:image" content="https://jobs.enrriquez.com/og.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A resume line reworded with a job posting's words, the matching words marked with a yellow highlighter.">
+<meta property="og:image:alt" content="The CEZ Job Finder app for Windows and Mac: a chat asks for a resume for job 12, beside the resume with the posting's words marked in yellow.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="A resume line reworded with a job posting's words, the matching words marked with a yellow highlighter.">
+<meta name="twitter:image:alt" content="The CEZ Job Finder app for Windows and Mac: a chat asks for a resume for job 12, beside the resume with the posting's words marked in yellow.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -64,13 +64,17 @@
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
   .brand img { width: 28px; height: 28px; }
+  .links { display: flex; gap: 24px; white-space: nowrap; }
+  .brand { white-space: nowrap; }
 
   .hero { display: grid; gap: 40px; padding: 24px 0 56px; }
-  @media (min-width: 1000px) {
-    .hero { grid-template-columns: minmax(0, 1fr) minmax(360px, 420px); gap: 72px; align-items: start; }
+  @media (min-width: 1080px) {
+    .hero { grid-template-columns: minmax(0, 1fr) 520px; gap: 48px; align-items: start; }
   }
-  h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.1; font-weight: 700; margin: 0 0 18px; text-wrap: balance; }
-  .lede { margin: 0 0 32px; color: var(--text-2); max-width: 34em; }
+  h1 { font-size: clamp(30px, 4vw, 46px); line-height: 1.1; font-weight: 700; margin: 0 0 14px; text-wrap: balance; }
+  .does { margin: 0 0 8px; font-size: 22px; line-height: 1.4; max-width: 30em; }
+  .lede { margin: 0 0 28px; color: var(--text-2); max-width: 34em; }
+  .install-heading { margin: 0 0 14px; }
 
   .phone { display: none; }
   body.is-phone .phone { display: block; }
@@ -114,29 +118,49 @@
   body.is-mac .win-only { display: none; }
   body.is-mac .step.mac-only { display: flex; }
 
-  /* hero figure: a posting, then the resume sheet it changed */
-  figure { margin: 0; isolation: isolate; max-width: 420px; }
+  /* hero figure: the app window - chat on the left, the resume it changed on the right */
+  figure { margin: 0; isolation: isolate; max-width: 640px; }
   .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .posting { margin: 0 0 22px; font-size: 17px; }
-  .posting p { margin: 0; }
-  figure mark { white-space: nowrap; }
-  .posting .from { color: var(--text-2); font-size: 15px; margin-bottom: 2px; }
-  .sheet {
-    position: relative; padding: 26px 28px 24px; background: var(--paper); color: var(--ink);
-    border: 1px solid var(--ink); font-size: 16px; line-height: 1.45; margin-right: 6px;
+  .window {
+    --rule: #c8c8c8; position: relative; margin-right: 6px; background: var(--paper); color: var(--ink);
+    border: 1px solid var(--ink); border-radius: 10px; font-size: 15px; line-height: 1.45;
   }
-  .sheet::before {
+  .window::before {
     content: ""; position: absolute; inset: -1px; transform: translate(6px, 6px); z-index: -1;
-    background: var(--paper); border: 1px solid var(--ink);
+    background: var(--paper); border: 1px solid var(--ink); border-radius: 10px;
   }
+  .titlebar { display: flex; align-items: center; height: 38px; border-bottom: 1px solid var(--ink); }
+  .title { flex: 1; display: flex; align-items: center; gap: 8px; padding-left: 14px; font-size: 15px; }
+  .title img { width: 18px; height: 18px; }
+  .dots.mac-only { display: none; }
+  body.is-mac .dots.mac-only { display: flex; }
+  .dots { gap: 8px; padding-left: 14px; }
+  .dots span { width: 12px; height: 12px; border: 1px solid var(--ink); border-radius: 50%; }
+  body.is-mac .title { justify-content: center; padding-left: 0; margin-right: 66px; }
+  .controls { display: flex; height: 100%; }
+  .controls svg { width: 44px; height: 100%; fill: none; stroke: var(--ink); stroke-width: 1; }
+  .panes { display: grid; grid-template-columns: 186px minmax(0, 1fr); border-radius: 0 0 9px 9px; overflow: hidden; }
+  .chat { padding: 14px 14px 16px; border-right: 1px solid var(--ink); }
+  .chat p { margin: 0; }
+  .chat .you { width: fit-content; margin: 0 0 14px auto; padding: 6px 10px; border: 1px solid var(--ink); border-radius: 10px; text-wrap: balance; }
+  .posting { margin: 10px 0 0; padding-left: 10px; border-left: 2px solid var(--rule); }
+  .posting .from { color: var(--ink-2); font-size: 13px; }
+  figure mark { white-space: nowrap; }
+  .viewer { padding: 16px 16px 14px; background: #ececec; }
+  .sheet { padding: 16px 18px 14px; background: var(--paper); border: 1px solid var(--rule); font-size: 14px; line-height: 1.45; }
   .sheet p { margin: 0; }
-  .sheet .name { font-size: 24px; font-weight: 700; line-height: 1.2; }
-  .sheet .contact { color: var(--ink-2); font-size: 14px; }
-  .sheet hr { border: 0; border-top: 1px solid var(--ink); margin: 12px 0; }
+  .sheet .name { font-size: 20px; font-weight: 700; line-height: 1.2; }
+  .sheet .contact { color: var(--ink-2); font-size: 13px; }
+  .sheet hr { border: 0; border-top: 1px solid var(--ink); margin: 10px 0; }
   .sheet ul { margin: 6px 0 0; padding-left: 1.1em; }
   .sheet li { margin: 0 0 4px; }
-  .approved { display: flex; align-items: center; gap: 8px; margin: 18px 0 0; font-size: 17px; }
-  .approved svg { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  .approved { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; font-size: 15px; }
+  .approved svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+  @media (max-width: 640px) {
+    .panes { grid-template-columns: minmax(0, 1fr); }
+    .chat { border-right: 0; border-bottom: 1px solid var(--ink); }
+    .viewer { padding: 14px; }
+  }
 
   @media (prefers-reduced-motion: no-preference) {
     @keyframes sweep { from { background-size: 0 100%; } }
@@ -173,27 +197,35 @@
     .wrap, footer { padding-left: 16px; padding-right: 16px; }
     .hero { padding-top: 8px; }
     .switch { margin-left: 0; }
-    .sheet { padding: 20px; }
+    .top { gap: 12px; }
+    .links { gap: 14px; font-size: 17px; }
+    .sheet { padding: 16px; }
   }
 </style>
 </head>
 <body>
 <header class="wrap top">
   <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
-  <a href="https://github.com/cezkid/jobs">Source code</a>
+  <nav class="links">
+    <a href="#install">Install</a>
+    <a href="https://github.com/cezkid/jobs">Source code</a>
+  </nav>
 </header>
 <main class="wrap">
   <div class="hero">
     <div class="intro">
-      <h1>Finds new jobs every morning. Makes your resume for any job you pick. You press Submit.</h1>
-      <p class="lede">Free. Runs on your own computer with your paid Claude or ChatGPT plan.</p>
+      <h1>A free job-search app for your Windows or Mac computer.</h1>
+      <p class="does">Finds new jobs every morning. Makes your resume for any job you pick. You press Submit.</p>
+      <p class="lede">Works with your Claude, ChatGPT or GitHub Copilot Pro plan.</p>
 
+      <div id="install">
       <div class="phone">
         <p>Install on your Windows or Mac computer.</p>
         <a class="send" href="mailto:?subject=CEZ%20Job%20Finder&body=https%3A%2F%2Fjobs.enrriquez.com%2F">Send this page to my computer</a>
       </div>
 
       <div class="desktop">
+        <h2 class="install-heading">Install on <span class="win-only">Windows</span><span class="mac-only">Mac</span> (about 5 minutes)</h2>
         <ol class="steps">
           <li>
             <p class="step win-only">
@@ -224,8 +256,8 @@
             </div>
           </li>
           <li>
-            <p class="step">Type 1 for Claude or 2 for ChatGPT</p>
-            <p class="sub">VS Code opens in about 5 minutes. Click Sign in.</p>
+            <p class="step">Type 1 for Claude, 2 for ChatGPT or 3 for GitHub Copilot</p>
+            <p class="sub">VS Code opens in about 5 minutes. Sign in to your AI.</p>
           </li>
         </ol>
 
@@ -235,25 +267,45 @@
           <a id="script" href="https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1">Read the script first</a>
         </p>
       </div>
+      </div>
     </div>
 
     <figure>
-      <figcaption class="vh">Example: a resume line reworded with the posting's words. You approve each change.</figcaption>
-      <div class="posting">
-        <p class="from">From the posting</p>
-        <p>“…lead our <mark>support team</mark> and bring down <mark>wait times</mark>…”</p>
+      <figcaption class="vh">Example: the CEZ Job Finder app window. You ask the chat for a resume for job 12; it rewords a line with the posting's words, and you approve each change.</figcaption>
+      <div class="window">
+        <div class="titlebar" aria-hidden="true">
+          <span class="dots mac-only"><span></span><span></span><span></span></span>
+          <span class="title"><img src="/icon.svg" alt="" width="18" height="18">CEZ Job Finder</span>
+          <span class="controls win-only">
+            <svg viewBox="0 0 44 38"><path d="M17 19h10"/></svg>
+            <svg viewBox="0 0 44 38"><rect x="17.5" y="14.5" width="9" height="9" rx="1"/></svg>
+            <svg viewBox="0 0 44 38"><path d="M17.5 14.5l9 9M26.5 14.5l-9 9"/></svg>
+          </span>
+        </div>
+        <div class="panes">
+          <div class="chat">
+            <p class="you">Make my resume for job 12</p>
+            <p>Done. 2 lines now use the posting's words. Check them.</p>
+            <div class="posting">
+              <p class="from">From the posting</p>
+              <p>“…lead our <mark>support team</mark> and bring down <mark>wait times</mark>…”</p>
+            </div>
+          </div>
+          <div class="viewer">
+            <div class="sheet">
+              <p class="name">Your Name</p>
+              <p class="contact">City, State | you@example.com</p>
+              <hr>
+              <p><b>Customer Support Lead</b>, 2021 - now</p>
+              <ul>
+                <li>Led <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</li>
+                <li>Wrote the refund guide new hires train on.</li>
+              </ul>
+            </div>
+            <p class="approved"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
+          </div>
+        </div>
       </div>
-      <div class="sheet">
-        <p class="name">Your Name</p>
-        <p class="contact">City, State | you@example.com</p>
-        <hr>
-        <p><b>Customer Support Lead</b>, 2021 - now</p>
-        <ul>
-          <li>Led <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</li>
-          <li>Wrote the refund guide new hires train on.</li>
-        </ul>
-      </div>
-      <p class="approved"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
     </figure>
   </div>
 
@@ -285,8 +337,16 @@
     <section>
       <h2>Questions</h2>
       <details>
+        <summary>Is this a website?</summary>
+        <div><p>No. It's an app you install on your Windows or Mac computer. Your resume and jobs stay there.</p></div>
+      </details>
+      <details>
         <summary>Is it free?</summary>
-        <div><p>Yes. It needs your own paid AI plan: Claude Pro or Max, or ChatGPT Plus or Pro.</p></div>
+        <div><p>The app is free. You need one AI plan: Claude Pro or Max, ChatGPT Plus or Pro, or GitHub Copilot Pro ($10 a month). Copilot's free plan can't make tailored resumes.</p></div>
+      </details>
+      <details>
+        <summary>Use Nova, Poe or another all-in-one AI app?</summary>
+        <div><p>Those apps can't run programs on your computer, so they can't run CEZ Job Finder. GitHub Copilot Pro ($10 a month) works like them - several AIs in one plan - and runs here. Pick Claude Sonnet as its AI.</p></div>
       </details>
       <details>
         <summary>Does it apply for me?</summary>
@@ -339,7 +399,8 @@
   const ua = navigator.userAgent;
   // iPadOS reports Mac UA => touch points tell it apart
   const isPhone = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-  let os = /Mac/i.test(navigator.userAgentData?.platform || navigator.platform || ua) ? "mac" : "win";
+  // iPhone/iPad count as Mac => Apple visitors see Mac window dots (phones hide the install steps)
+  let os = /Mac|iPhone|iPad|iPod|iOS/i.test(navigator.userAgentData?.platform || navigator.platform || ua) ? "mac" : "win";
   const button = document.getElementById("copy");
   const label = document.getElementById("copy-label");
   const box = button.closest(".command");

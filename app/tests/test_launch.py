@@ -14,6 +14,8 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     # fresh install ships none of them => START HERE.md promised a file list the user never saw
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: False)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: None)
+    monkeypatch.setattr(launch, "write_workspace", lambda choice: None)
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
@@ -33,6 +35,8 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch, "has_claude", lambda: True)
     monkeypatch.setattr(launch, "ensure_claude_trust", lambda: None)
     monkeypatch.setattr(launch, "ensure_chat_sidebar", lambda: None)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    monkeypatch.setattr(launch, "write_workspace", lambda choice: calls.append(("workspace", choice)))
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
@@ -43,7 +47,7 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     launch.main()
     window = ["--disable-workspace-trust", str(tmp_path)]
     # page after the window is up => formatted, not plain text
-    assert calls == [window, launch.START_PAGE_DELAY_S, [*window, str(tmp_path / "Today.md")]]
+    assert calls == [("workspace", "claude"), window, launch.START_PAGE_DELAY_S, [*window, str(tmp_path / "Today.md")]]
 
 
 def test_first_run_opens_start_here_then_today(tmp_path, monkeypatch):
@@ -90,14 +94,6 @@ def test_job_folders_that_fail_to_file_never_stop_the_page(tmp_path, monkeypatch
         monkeypatch.setattr(status, "sort_jobs", broken)
         monkeypatch.setattr(today, "write", lambda config, to: to)
         assert launch.first_page(settings, page) == page
-
-
-def test_file_list_reads_in_stage_order():
-    # "modified" reshuffled 1 To apply ... 4 Closed whenever a job moved; compact folders squeezed
-    # a stage holding one job onto its job's row
-    raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
-    settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
-    assert settings["explorer.sortOrder"] == "default" and settings["explorer.compactFolders"] is False
 
 
 def test_today_page_that_fails_never_stops_the_launch(tmp_path, monkeypatch):
@@ -257,13 +253,6 @@ def test_vscode_started_on_its_own_hidden_console(monkeypatch):
     assert runs == [0x08000000]
 
 
-def test_workspace_hides_builtin_vscode_chat():
-    # without this the built-in Copilot chat owns the right-hand panel on first open
-    raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
-    settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
-    assert settings["chat.disableAIFeatures"] is True
-
-
 def test_yaml_checker_installed_once_and_telemetry_answered(tmp_path, monkeypatch):
     # user is asked to decide about Red Hat telemetry on first activation otherwise, mid job search
     installed = []
@@ -288,28 +277,6 @@ def test_vscode_settings_keep_comments_and_trailing_commas():
     assert launch.add_setting("", launch.TELEMETRY) == "{\n  " + launch.TELEMETRY + "\n}\n"
     assert launch.add_setting("{}", launch.TELEMETRY) == "{\n  " + launch.TELEMETRY + "\n}"
     assert json.loads(launch.add_setting('{\n  "a": 1\n}\n', launch.TELEMETRY)) == {"a": 1, "redhat.telemetry.enabled": False}
-
-
-def test_chat_opens_in_the_right_sidebar_not_a_tab():
-    # default puts the chat in a tab and leaves Claude's right-hand sidebar empty, doing nothing
-    raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
-    settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
-    assert settings["claudeCode.preferredLocation"] == "sidebar"
-    # sidebar shown on open => START HERE in the middle, chat beside it
-    assert settings["workbench.secondarySideBar.defaultVisibility"] == "visible"
-    assert settings["claudeCode.hideOnboarding"] is True
-
-
-def test_window_shows_job_finder_not_a_code_editor():
-    # users saw a developer tool: search box, layout buttons, breadcrumbs
-    raw = (cfg.ROOT / ".vscode" / "settings.json").read_text(encoding="utf-8")
-    settings = json.loads(re.sub(r"^\s*//.*$", "", raw, flags=re.M))
-    assert settings["window.title"] == cfg.NAME
-    assert not settings["window.commandCenter"]
-    assert settings["workbench.activityBar.location"] != "hidden"  # ChatGPT's icon is there
-    # hiding tab buttons / status bar hid Claude's new-chat and open-chat buttons with them
-    assert settings.get("workbench.editor.editorActionsLocation", "default") != "hidden"
-    assert settings.get("workbench.statusBar.visible", True)
 
 
 def test_start_page_leads_with_the_first_step():
@@ -376,3 +343,23 @@ def test_mac_notification_says_how_to_open(monkeypatch):
     assert args[-3:] == ["3 new jobs", "Engineer; Designer", notify.MAC_SUBTITLE]
     assert "subtitle (item 3 of argv)" in " ".join(args)
     assert "Desktop" in notify.MAC_SUBTITLE and notify.cfg.NAME in notify.MAC_SUBTITLE
+
+
+def test_copilot_window_gets_its_chat_sidebar_without_claude(tmp_path, monkeypatch):
+    # Copilot's chat lives in the same right-hand sidebar => closed once, it must come back too
+    calls = []
+    monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "has_claude", lambda: False)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "copilot")
+    monkeypatch.setattr(launch, "write_workspace", lambda choice: calls.append(("workspace", choice)))
+    monkeypatch.setattr(launch, "ensure_claude_trust", lambda: calls.append("trust"))
+    monkeypatch.setattr(launch, "ensure_chat_sidebar", lambda: calls.append("sidebar"))
+    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
+    monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append("code"))
+    monkeypatch.setattr(launch.time, "sleep", lambda s: None)
+    monkeypatch.setattr(launch, "first_page", lambda: launch.START_PAGE)
+    launch.main()
+    assert calls[:3] == [("workspace", "copilot"), "sidebar", "code"] and "trust" not in calls

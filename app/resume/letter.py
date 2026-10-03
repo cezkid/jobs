@@ -215,7 +215,9 @@ def prepare(config: dict, job: str) -> None:
                            json.loads((data / "tailored.json").read_text(encoding="utf-8")),
                            (data / WHY_FILE).read_text(encoding="utf-8").strip())
     handoff.write_task(data / TASK_FILE, data / ANSWER_FILE, SYSTEM, ANSWER_SCHEMA, payload_text,
-                       f'uv run app/jobs.py letter check {job}')
+                       f'uv run app/jobs.py letter check {job}',
+                       f"Your resume for this job is ready to send without a letter: {folder / render.file_name(master)}",
+                       "the rules for the cover letter")
 
 
 def run_check(config: dict, job: str) -> int:
@@ -230,6 +232,7 @@ def run_check(config: dict, job: str) -> int:
         print(f"  {severity:4}  {rule:18} {WHY.get(rule) or lint.WHY.get(rule, '')} {detail}")
     if any(s == FAIL for s, _, _ in found):
         print(f"fix {data / ANSWER_FILE}, rerun: uv run app/jobs.py letter check {job}")
+        handoff.failed(data / ANSWER_FILE)
         return 1
     paragraphs = [p["text"].strip() for p in answer["paragraphs"]]
     (folder / MD_FILE).write_text(paste_text(master, paragraphs), encoding="utf-8")
@@ -244,7 +247,11 @@ def run_check(config: dict, job: str) -> int:
         for s in p["sources"]:
             print(f"  paragraph {i} rests on: {facts.get(s, s)}")
     print(f"written: {folder / MD_FILE} (paste) + {pdf} (upload) - confirm each paragraph w/ the user")
-    return 1 if failed else 0
+    if failed:
+        handoff.failed(data / ANSWER_FILE)
+        return 1
+    handoff.passed(data / ANSWER_FILE)
+    return 0
 
 
 def main() -> None:

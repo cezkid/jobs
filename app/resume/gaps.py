@@ -118,7 +118,8 @@ def prepare(path: Path, job_dir: Path | None = None) -> list[dict]:
     saved.parent.mkdir(parents=True, exist_ok=True)
     saved.write_text(payload, encoding="utf-8")
     then = "uv run app/jobs.py resume-gaps finish" + (f' --job "{job_dir.name}"' if job_dir else "")
-    handoff.write_task(task, answer, SYSTEM, ANSWER_SCHEMA, payload, then)
+    handoff.write_task(task, answer, SYSTEM, ANSWER_SCHEMA, payload, then,
+                       "Your resume details stay as they were - nothing changed.", "the rules for your answers")
     if job_dir:
         print(f"{len(asked)} job(s) a stated fact could go under")
         return asked
@@ -225,7 +226,9 @@ def finish(path: Path, job_dir: Path | None = None) -> int:
     if found := problems(asked, answers, schema.load(path)):
         print("\n".join(f"  FAIL  {p}" for p in found))
         print("fix gaps.json, rerun finish")
+        handoff.failed(answer)
         return 1
+    handoff.passed(answer)
     changed, added, backup = merge(path, asked, answers)
     skipped = len(asked) - changed - added
     print(f"{changed} line(s) now carry your number, {added} new line(s) added, {skipped} left as they were")

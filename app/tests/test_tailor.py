@@ -344,6 +344,40 @@ def test_prepare_then_check_fills_job_folder(tmp_path, monkeypatch, master, tail
     assert list(job_dir.glob("*_Resume.pdf"))
 
 
+def test_third_failed_check_holds_back_pdf_and_names_untailored(tmp_path, monkeypatch, tailored, capsys):
+    """Copilot test 2026-10-02: after STOP its answer gave the tailored PDF that had just failed."""
+    import ai
+    monkeypatch.setattr(ai, "current", lambda: "copilot")
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    config = cfg.defaults()
+    master_path = cfg.resume_path(config, "master")
+    master_path.parent.mkdir(parents=True)
+    master_path.write_text(EXAMPLE.read_text(encoding="utf-8"), encoding="utf-8")
+    safe = master_path.parent / render.file_name(schema.load(master_path))
+    safe.write_bytes(b"%PDF untailored")
+    posting = tmp_path / "posting.txt"
+    posting.write_text(JOB["text"], encoding="utf-8")
+    tailor.write_json(tailor.posting_files(posting)[1], {k: JOB[k] for k in ("title", "company", "requirements")})
+    tailor.prepare(config, None, posting, JOB["url"])
+    job_dir = tmp_path / "My Jobs" / "1 To apply" / "1 - Acme - Senior Vue Engineer, Search"
+    tailor.write_json(job_dir / tailor.JOB_DATA / "tailored.json", tailored)
+    real = tailor.evaluate
+    monkeypatch.setattr(tailor, "evaluate", lambda *a, **k: real(*a, **k) | {"failed": ["gate pages: 3"]})
+    capsys.readouterr()
+
+    for _ in range(3):
+        assert tailor.check(config, "job 1") == 1
+        assert not list(job_dir.glob("*_Resume.pdf"))  # never under the name that gets sent
+    out = capsys.readouterr().out
+    assert "STOP" in out and tailor.NOT_READY in out and f"untailored resume is ready to send: {safe}" in out
+    held = list((job_dir / tailor.JOB_DATA).glob("not ready - *_Resume.pdf"))
+    assert held and str(held[0]) in out
+
+    monkeypatch.setattr(tailor, "evaluate", real)  # passing check: PDF back under its name, hold gone
+    assert tailor.check(config, "job 1") == 0
+    assert list(job_dir.glob("*_Resume.pdf")) and not held[0].exists()
+
+
 def test_two_pasted_postings_never_share_task_or_answer(tmp_path):
     a, b = tmp_path / "acme analyst.txt", tmp_path / "globex analyst.txt"
     assert set(tailor.posting_files(a)).isdisjoint(tailor.posting_files(b))

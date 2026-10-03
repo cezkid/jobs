@@ -47,3 +47,58 @@ def test_read_answer_rejects_missing_bad_json_and_schema_mismatch(tmp_path):
         handoff.read_answer(answer, SCHEMA)
     answer.write_text(json.dumps(GOOD))
     assert handoff.read_answer(answer, SCHEMA) == GOOD
+
+
+def test_failed_checks_counted_per_task_reset_by_new_task(tmp_path, capsys):
+    task, answer = tmp_path / "task.md", tmp_path / "answer.json"
+    other = tmp_path / "other.json"
+    handoff.write_task(task, answer, "RULES", SCHEMA, "INPUT", "x", "FALLBACK")
+    handoff.write_task(tmp_path / "other.md", other, "RULES", SCHEMA, "INPUT", "x")
+    assert handoff.failed(answer) == "" and handoff.failed(answer) == ""
+    assert handoff.read_fails(answer)["fails"] == 2
+    assert handoff.read_fails(other)["fails"] == 0  # its own count
+    handoff.write_task(task, answer, "RULES", SCHEMA, "INPUT", "x", "FALLBACK")
+    assert handoff.read_fails(answer)["fails"] == 0
+    handoff.failed(answer)
+    handoff.passed(answer)
+    assert handoff.read_fails(answer)["fails"] == 0
+
+
+@pytest.mark.parametrize("ai_name, said", [
+    ("copilot", "Copilot's automatic model couldn't meet the page rules. With Copilot Pro you can pick a "
+                "stronger model in the chat box, then ask again."),
+    ("claude", "The AI couldn't meet the page rules after 3 tries."),
+    ("chatgpt", "The AI couldn't meet the page rules after 3 tries."),
+    (None, "The AI couldn't meet the page rules after 3 tries."),
+])
+def test_third_failure_prints_ai_worded_stop_and_fallback(tmp_path, capsys, monkeypatch, ai_name, said):
+    import ai
+    monkeypatch.setattr(ai, "current", lambda: ai_name)
+    answer = tmp_path / "answer.json"
+    handoff.write_task(tmp_path / "task.md", answer, "RULES", SCHEMA, "INPUT", "x", "Your resume: r.pdf")
+    capsys.readouterr()
+    handoff.failed(answer)
+    handoff.failed(answer)
+    assert capsys.readouterr().out == ""  # nothing before the 3rd
+    handoff.failed(answer)
+    out = capsys.readouterr().out
+    assert "STOP" in out and said in out and "Your resume: r.pdf" in out
+
+
+def test_bad_answer_counts_and_third_carries_stop(tmp_path, monkeypatch):
+    import ai
+    monkeypatch.setattr(ai, "current", lambda: "copilot")
+    answer = tmp_path / "answer.json"
+    handoff.write_task(tmp_path / "task.md", answer, "RULES", SCHEMA, "INPUT", "x", "FALLBACK",
+                       "the rules for reading your resume")
+    with pytest.raises(SystemExit, match="AI step not done"):  # not written yet: no failed check
+        handoff.read_answer(answer, SCHEMA)
+    for _ in range(2):
+        answer.write_text("{not json")
+        with pytest.raises(SystemExit) as e:
+            handoff.read_answer(answer, SCHEMA)
+        assert "STOP" not in str(e.value)
+    answer.write_text(json.dumps({**GOOD, "n": "3"}))
+    with pytest.raises(SystemExit) as e:
+        handoff.read_answer(answer, SCHEMA)
+    assert "couldn't meet the rules for reading your resume" in str(e.value) and "FALLBACK" in str(e.value)

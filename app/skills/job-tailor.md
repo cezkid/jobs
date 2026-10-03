@@ -32,7 +32,9 @@
    folder stays in its stage; a closed one reopens - prepare says "back in 1 To apply", tell
    them). Do task yourself (`AGENTS.md` #AI writing steps), then
    `uv run app/jobs.py tailor check <job number>`. FAIL lines -> fix `tailored.json`, rerun
-   check; never hand over PDF while check fails.
+   check; never hand over PDF while check fails (a failed check moves it to `.data/not ready -
+   ...` - never name that one). Check prints STOP -> pass its lines on word for word (they name
+   the untailored PDF), stop.
    - `gate pages` -> 3+ pages, or a 2nd page under 60% full (1 page is fine). Cut or add
      bullets, never retype the layout. User wants 3 pages or a layout the gates fail -> push
      back (below).
@@ -78,7 +80,7 @@
    resume only. Yes -> free text: "In one sentence, in your own words: why this job or this company?
    It goes in exactly as you write it." Save it word for word to `.data/letter-why.txt` in the job
    folder; `uv run app/jobs.py letter prepare 12`, do the task, `uv run app/jobs.py letter check 12`
-   (FAIL -> fix `letter.json`, rerun; 2 failed retries -> tell them, stop). Then per paragraph, ONE
+   (FAIL -> fix `letter.json`, rerun; check prints STOP -> pass its lines on, stop). Then per paragraph, ONE
    question: "The letter says '...'. It rests on your line '...'. True as written?" Yes / Change it.
    Why each rule: `app/docs/resume/cover-letter.md`.
 7. Open PDF for them; say it's in My Jobs, in the To apply folder, under its job number - private

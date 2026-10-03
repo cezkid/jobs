@@ -57,7 +57,7 @@ same reason - never a path saved earlier.
 
 Same pipeline job-search trackers use (to apply, applied, interviewing, closed) - convention, not
 a measured rule. Numbered so every file list shows the stages in order: VS Code (sorted by name,
-`.vscode/settings.json`), Finder, Explorer, a browser's upload box. Job number in the name = the
+`app/workspace.py`), Finder, Explorer, a browser's upload box. Job number in the name = the
 number the user already says.
 
 Rejected:

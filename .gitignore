@@ -9,3 +9,6 @@ __pycache__/
 
 # generated Today page: your jobs + progress
 Today.md
+
+# generated per user at launch (app/workspace.py)
+.vscode/settings.json
