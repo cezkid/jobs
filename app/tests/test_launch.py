@@ -23,6 +23,7 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
+    monkeypatch.setattr(launch, "ensure_profile", lambda: True)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: None)
     monkeypatch.setattr(launch.time, "sleep", lambda s: None)
     monkeypatch.setattr(launch, "first_page", lambda: launch.START_PAGE)
@@ -44,6 +45,7 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
+    monkeypatch.setattr(launch, "ensure_profile", lambda: True)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
     monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(s))
     monkeypatch.setattr(launch, "first_page", lambda: tmp_path / "Today.md")
@@ -434,6 +436,7 @@ def test_copilot_window_gets_its_chat_sidebar_without_claude(tmp_path, monkeypat
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
+    monkeypatch.setattr(launch, "ensure_profile", lambda: True)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append("code"))
     monkeypatch.setattr(launch.time, "sleep", lambda s: None)
     monkeypatch.setattr(launch, "first_page", lambda: launch.START_PAGE)
@@ -541,3 +544,115 @@ def test_open_names_job_finders_folder_with_the_file(tmp_path, monkeypatch):
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
     jobs.open_for_user(str(page))
     assert runs[0][-2:] == [str(cfg.ROOT), str(page.resolve())] and "-r" not in runs[0]
+
+
+def profile_paths(tmp_path, monkeypatch):
+    monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "scratch"))
+    return launch.vscode_paths()
+
+
+def write_storage(paths, data):
+    target = launch.storage_file(paths)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_cold_start_creates_profile_and_opens_folder_in_it(tmp_path, monkeypatch):
+    # without the profile the window ran the user's own extensions + settings, not Job Finder's
+    paths, root = profile_paths(tmp_path, monkeypatch), tmp_path / "Your Name" / "jobs"
+    assert launch.ensure_profile(root, paths)
+    storage = json.loads(launch.storage_file(paths).read_text(encoding="utf-8"))
+    assert storage["userDataProfiles"] == [{"location": "cez-job-finder", "name": cfg.NAME, "icon": "briefcase"}]
+    assert storage["profileAssociations"]["workspaces"] == {launch.folder_uri(str(root)): "cez-job-finder"}
+    settings = paths.data / "User" / "profiles" / "cez-job-finder" / "settings.json"
+    assert json.loads(settings.read_text(encoding="utf-8"))["workbench.welcomePage.walkthroughs.openOnInstall"] is False
+    before = launch.storage_file(paths).stat().st_mtime_ns
+    assert launch.ensure_profile(root, paths)  # next launch: nothing to change, nothing written
+    assert launch.storage_file(paths).stat().st_mtime_ns == before
+    assert launch.profile_location(paths) == "cez-job-finder"
+
+
+def test_running_vscode_leaves_its_state_alone(tmp_path, monkeypatch):
+    # VS Code running holds storage.json in memory => a write now is lost or fights it
+    paths = profile_paths(tmp_path, monkeypatch)
+    write_storage(paths, {"theme": "dark"})
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    before = launch.storage_file(paths).read_bytes()
+    assert not launch.ensure_profile(tmp_path / "jobs", paths)
+    assert launch.storage_file(paths).read_bytes() == before
+    assert not (paths.data / "User" / "profiles").exists()
+    (paths.data / "code.lock").write_text("999999999", encoding="utf-8")  # crashed: stale lock
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+
+
+def test_users_other_profiles_and_folders_kept(tmp_path, monkeypatch):
+    # dropping the user's own profiles or folder links would lose their setup in VS Code
+    paths, root = profile_paths(tmp_path, monkeypatch), tmp_path / "jobs"
+    theirs = {"location": "-5a1b2c", "name": "Work", "icon": "code"}
+    other = launch.folder_uri(str(tmp_path / "work"))
+    write_storage(paths, {"userDataProfiles": [theirs],
+                          "profileAssociations": {"workspaces": {other: "-5a1b2c"}, "emptyWindows": {}},
+                          "windowsState": {"lastActiveWindow": {"folder": other}}})
+    assert launch.ensure_profile(root, paths)
+    storage = json.loads(launch.storage_file(paths).read_text(encoding="utf-8"))
+    assert storage["userDataProfiles"][0] == theirs and len(storage["userDataProfiles"]) == 2
+    assert storage["profileAssociations"] == {"workspaces": {other: "-5a1b2c", launch.folder_uri(str(root)): "cez-job-finder"},
+                                              "emptyWindows": {}}
+    assert storage["windowsState"] == {"lastActiveWindow": {"folder": other}}
+
+
+def test_unreadable_vscode_state_never_overwritten(tmp_path, monkeypatch):
+    # rewriting a file we could not read would wipe every window + profile VS Code remembers
+    paths = profile_paths(tmp_path, monkeypatch)
+    launch.storage_file(paths).parent.mkdir(parents=True)
+    launch.storage_file(paths).write_text("{half", encoding="utf-8")
+    assert not launch.ensure_profile(tmp_path / "jobs", paths)
+    assert launch.storage_file(paths).read_text(encoding="utf-8") == "{half"
+
+
+def test_folder_key_matches_vscode_on_windows_and_mac():
+    # key spelled differently from VS Code's => folder opens in the default profile
+    assert launch.folder_uri("C:\\Home\\Your Name\\jobs", windows=True) == "file:///c%3A/Home/Your%20Name/jobs"
+    assert launch.folder_uri("D:/Jobs \u00d1", windows=True) == "file:///d%3A/Jobs%20%C3%91"
+    assert launch.folder_uri("/Users/Your Name/CEZ Job Finder", windows=False) == "file:///Users/Your%20Name/CEZ%20Job%20Finder"
+    assert launch.same_folder("file:///C:/Home/Your%20Name/jobs", "C:\\Home\\Your Name\\jobs", windows=True)
+
+
+def test_old_spelling_of_folder_key_replaced_not_doubled(tmp_path, monkeypatch):
+    # two keys for one folder => VS Code picks either profile
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(launch.sys, "platform", "win32")
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: False)
+    write_storage(paths, {"profileAssociations": {"workspaces": {"file:///C:/Home/jobs": "__default__profile__"}}})
+    assert launch.ensure_profile(Path("C:\\Home\\jobs"), paths)
+    storage = json.loads(launch.storage_file(paths).read_text(encoding="utf-8"))
+    assert storage["profileAssociations"]["workspaces"] == {"file:///c%3A/Home/jobs": "cez-job-finder"}
+
+
+def listed(ext_dir, *ids):
+    entries = []
+    for ident in ids:
+        (ext_dir / f"{ident}-1.0.0").mkdir(parents=True, exist_ok=True)
+        entries.append({"identifier": {"id": ident}, "version": "1.0.0", "relativeLocation": f"{ident}-1.0.0",
+                        "location": {"$mid": 1, "path": str(ext_dir / f"{ident}-1.0.0"), "scheme": "file"}})
+    return entries
+
+
+def test_extension_in_another_profile_does_not_count(tmp_path, monkeypatch):
+    # shared extensions folder holds every profile's => a PDF viewer from another profile read as
+    # present, never installed into Job Finder's, and resumes showed as binary
+    paths = profile_paths(tmp_path, monkeypatch)
+    viewer = paths.extensions / "tomoki1207.pdf-1.0.0"
+    viewer.mkdir(parents=True)
+    (viewer / "package.json").write_text(json.dumps({"contributes": {"customEditors": [
+        {"selector": [{"filenamePattern": "*.pdf"}]}]}}), encoding="utf-8")
+    (paths.extensions / "extensions.json").write_text(json.dumps(
+        listed(paths.extensions, "tomoki1207.pdf", "anthropic.claude-code")), encoding="utf-8")
+    assert launch.has_pdf_viewer() and launch.has_claude()  # default profile: its own list
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    assert not launch.has_pdf_viewer() and not launch.has_claude()  # new profile: nothing in it yet
+    own = paths.data / "User" / "profiles" / "cez-job-finder" / "extensions.json"
+    own.write_text(json.dumps(listed(paths.extensions, "anthropic.claude-code")), encoding="utf-8")
+    assert launch.has_claude() and not launch.has_pdf_viewer()
+    import ai
+    assert ai.current(tmp_path / "no-choice") == "claude"

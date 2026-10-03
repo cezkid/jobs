@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path
 from typing import NamedTuple
-from urllib.parse import unquote, urlparse
+from urllib.parse import quote, unquote, urlparse
 from urllib.request import url2pathname
 
 import autorun
@@ -89,10 +89,11 @@ def has_claude(extensions: Path | None = None) -> bool:
 def has_pdf_viewer(extensions: Path | None = None) -> bool:
     # any extension already claiming .pdf counts => never replace the viewer the user chose,
     # and never a second one (two defaults => VS Code asks which editor, every single click)
-    for manifest in (extensions or vscode_paths().extensions).glob("*/package.json"):
+    for folder in installed(extensions).values():
         try:
-            contributes = json.loads(manifest.read_text(encoding="utf-8")).get("contributes") or {}
-        except (OSError, ValueError):
+            manifest = json.loads((folder / "package.json").read_text(encoding="utf-8"))
+            contributes = manifest.get("contributes") or {}
+        except (OSError, ValueError, AttributeError):
             continue
         for editor in contributes.get("customEditors") or []:
             for selector in editor.get("selector") or []:
@@ -107,7 +108,192 @@ def ensure_pdf_viewer() -> None:
 
 
 def has_extension(name: str, extensions: Path | None = None) -> bool:
-    return any((extensions or vscode_paths().extensions).glob(f"{name}-*"))
+    return name.lower() in installed(extensions)
+
+
+EXTENSION_FOLDER = re.compile(r"^(.+?)-\d")
+
+
+def installed(extensions: Path | None = None, listing: Path | None = None) -> dict[str, Path]:
+    """id (lower case) -> folder of each extension Job Finder's window runs.
+
+    Shared extensions dir holds every profile's => a viewer from another profile read as present
+    and resumes showed as binary. So the window's own list: Job Finder's profile once it exists,
+    else the dir's `extensions.json` (default profile); folder names only w/o either list.
+    """
+    if extensions is None:
+        paths = vscode_paths()
+        extensions, location = paths.extensions, profile_location(paths)
+        if location and listing is None:
+            listing = paths.data / "User" / "profiles" / location / "extensions.json"
+            if not listing.exists():
+                return {}  # profile made, nothing installed into it yet
+    listing = listing or extensions / "extensions.json"
+    try:
+        entries = json.loads(listing.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        found = {}
+        for folder in extensions.glob("*-*"):
+            match = EXTENSION_FOLDER.match(folder.name)
+            if match and folder.is_dir():
+                found[match.group(1).lower()] = folder
+        return found
+    except (OSError, ValueError):
+        return {}
+    found = {}
+    for entry in entries if isinstance(entries, list) else []:
+        try:
+            relative = entry.get("relativeLocation")  # older lists: absolute path only
+            folder = extensions / relative if relative else Path(entry["location"]["path"])
+            found[entry["identifier"]["id"].lower()] = folder
+        except (KeyError, TypeError, AttributeError):
+            continue
+    return found
+
+
+# Job Finder's own VS Code profile: its extensions, settings + chat model, apart from the user's
+# other work. Created on a cold start only: a running VS Code holds that list in memory
+# (app/docs/app-window.md "Measured")
+PROFILE_LOCATION = "cez-job-finder"
+PROFILE_ICON = "briefcase"
+# app-wide or machine keys a workspace can't set; the default profile's copy doesn't reach this one
+PROFILE_SETTINGS = {
+    "workbench.welcomePage.walkthroughs.openOnInstall": "false",
+    "redhat.telemetry.enabled": "false",
+}
+
+
+def storage_file(paths: VSCodePaths | None = None) -> Path:
+    return (paths or vscode_paths()).global_storage / "storage.json"
+
+
+def read_storage(paths: VSCodePaths | None = None) -> dict | None:
+    """VS Code's own state file (plain JSON); {} before its first start, None if unreadable."""
+    try:
+        data = json.loads(storage_file(paths).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return {}
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def profile_location(paths: VSCodePaths | None = None) -> str | None:
+    for profile in (read_storage(paths) or {}).get("userDataProfiles") or []:
+        if isinstance(profile, dict) and profile.get("name") == cfg.NAME and profile.get("location"):
+            return str(profile["location"])
+    return None
+
+
+def folder_uri(folder: str, windows: bool | None = None) -> str:
+    """Folder as VS Code's URI.file writes it: storage.json keys on it.
+
+    Mac file:///Users/Your%20Name/jobs; Windows file:///c%3A/Users/... (drive lower-cased,
+    `:` escaped; vscode-uri 3.2.0, app/docs/app-window/measure/1-windows-key.txt).
+    """
+    windows = sys.platform == "win32" if windows is None else windows
+    path = str(folder)
+    if windows:
+        path = path.replace("\\", "/")
+        if re.match(r"^[A-Za-z]:", path):
+            path = "/" + path[0].lower() + path[1:]
+    return "file://" + quote(path, safe="/")
+
+
+def same_folder(uri: str, folder: str, windows: bool | None = None) -> bool:
+    # VS Code parses keys => file:///C:/x and file:///c%3A/x name one folder; one key per folder
+    windows = sys.platform == "win32" if windows is None else windows
+    norm = (lambda p: p.lower()) if windows else (lambda p: p)
+    return norm(unquote(uri)) == norm(unquote(folder_uri(folder, windows)))
+
+
+def process_alive(pid: int) -> bool:
+    if sys.platform == "win32":
+        import ctypes  # os.kill(pid, 0) on Windows ends the process
+        handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)  # QUERY_LIMITED_INFORMATION
+        if not handle:
+            return False
+        code_ = ctypes.c_ulong()
+        ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(code_))
+        ctypes.windll.kernel32.CloseHandle(handle)
+        return code_.value == 259  # STILL_ACTIVE
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True  # someone else's process: alive
+    return True
+
+
+def vscode_running(paths: VSCodePaths | None = None) -> bool:
+    """VS Code holds this data dir: code.lock names its main process."""
+    lock = (paths or vscode_paths()).data / "code.lock"
+    try:
+        text = lock.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return False
+    except OSError:
+        return True  # can't tell => as if running: change nothing
+    try:
+        return process_alive(int(text.split()[0]))
+    except (ValueError, IndexError):
+        return True
+
+
+def ensure_profile(root: Path | None = None, paths: VSCodePaths | None = None) -> bool:
+    """Job Finder's profile + this folder opening in it. Cold start only; True once in place.
+
+    Running VS Code => nothing now, next cold start does it. Every other profile, association
+    and key in storage.json kept.
+    """
+    paths, root = paths or vscode_paths(), root or cfg.ROOT
+    if vscode_running(paths):
+        return False
+    storage = read_storage(paths)
+    if storage is None:
+        return False  # unreadable: never overwrite VS Code's own state
+    profiles = storage.get("userDataProfiles")
+    profiles = profiles if isinstance(profiles, list) else []
+    location = profile_location(paths)
+    if not location:
+        taken = {str(p.get("location")) for p in profiles if isinstance(p, dict)}
+        location, n = PROFILE_LOCATION, 2
+        while location in taken:
+            location, n = f"{PROFILE_LOCATION}-{n}", n + 1
+        profiles = [*profiles, {"location": location, "name": cfg.NAME, "icon": PROFILE_ICON}]
+    associations = storage.get("profileAssociations")
+    associations = dict(associations) if isinstance(associations, dict) else {}
+    workspaces = associations.get("workspaces")
+    workspaces = workspaces if isinstance(workspaces, dict) else {}
+    key = folder_uri(str(root))
+    workspaces = {k: v for k, v in workspaces.items() if k == key or not same_folder(k, str(root))}
+    workspaces[key] = location
+    associations["workspaces"] = workspaces
+    updated = {**storage, "userDataProfiles": profiles, "profileAssociations": associations}
+    folder = paths.data / "User" / "profiles" / location
+    try:
+        folder.mkdir(parents=True, exist_ok=True)
+        if updated != storage:
+            target = storage_file(paths)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temp = target.with_name(target.name + ".jobfinder")
+            temp.write_text(json.dumps(updated, indent=4), encoding="utf-8")
+            os.replace(temp, target)
+        ensure_profile_settings(folder / "settings.json")
+    except OSError:
+        return False
+    return True
+
+
+def ensure_profile_settings(settings: Path) -> None:
+    text = settings.read_text(encoding="utf-8") if settings.exists() else ""
+    merged = text
+    for key, value in PROFILE_SETTINGS.items():
+        if f'"{key}"' not in merged:
+            merged = add_setting(merged, f'"{key}": {value}')
+    if merged != text:
+        settings.write_text(merged, encoding="utf-8")
 
 
 def vscode_settings() -> Path:
@@ -385,6 +571,9 @@ def main() -> None:
         ensure_mac_icon()
     # before VS Code opens => file list shows the private folders even on a brand-new install
     cfg.ensure_private_dirs()
+    # before any install + before VS Code opens => this folder's window comes up in Job Finder's
+    # profile; VS Code already running => next cold start
+    ensure_profile()
     # before VS Code opens => the first click on a resume already shows the page
     ensure_pdf_viewer()
     # before VS Code opens => no Release Notes tab over Today, no usage reports (ours only)
