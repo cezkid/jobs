@@ -1,11 +1,11 @@
 ---
 reviewed: 2026-10-03
-verdict: revise
+verdict: publish
 reviewer: fresh AI session, bead plan-xsy.28 (no drafting context; sources opened before the draft was read)
 ---
 # Review: What makes a good resume? The evidence, rule by rule (`what-makes-a-good-resume.md`)
 
-Verdict **revise**: 2 high, 8 medium, 15 low findings. Numbers are mostly copied right - every
+Verdict **publish** after revision (plan-xsy.29): 2 high, 8 medium, 15 low findings, each fixed or rebutted below; first-pass verdict was revise. Numbers are mostly copied right - every
 figure checked matched its source, page cites included. The problems are framing. The gap section
 says Kroft 2013 shows "the same shape" as the meta-analysis when it shows the opposite for short
 gaps, and the "under 6 months is a weak worry" advice rests on that. Typos are sold as the
@@ -153,70 +153,95 @@ resumego-2018, ruffle-2015, sterkens-2023).
 
 ## Findings
 
-Status: open unless marked.
+Status after revision (plan-xsy.29): each finding marked fixed or rebutted, with what changed.
 
-- **F1 (high, open)** Kroft is not "the same shape". Kroft: callbacks fall about 45% over the
+- **F1 (high, fixed)** Kroft is not "the same shape". Kroft: callbacks fall about 45% over the
   first 8 months (vs the newly unemployed); D'hert: 1-6 months no cost vs the employed. Fix:
   say the studies differ and why (different comparison group; Kroft US sales/admin 2011, tight
   markets). Soften line 72 "under about 6 months are a weak worry" and the short-answer gap line;
   add the disagreement to "What we don't know".
-- **F2 (medium, open)** D'hert and Kroft measure *current* unemployment, not a past break
+  -> gap section opens "for short spells, the two main studies disagree"; Kroft paragraph says it found something different, gives the ~45% at 8 vs 1 month and its comparison group; "weak worry" line + short-answer bullet softened; disagreement added to What we don't know
+- **F2 (medium, fixed)** D'hert and Kroft measure *current* unemployment, not a past break
   between jobs. Article says "gap" / "break" throughout. Fix: one sentence naming what was
   tested; D'hert has only 7 studies on former unemployment, 4 on inactivity (penalty heavier).
-- **F3 (medium, open)** Typos oversold. Every typo study (Sterkens Table 1) asks raters, none
+  -> one paragraph says most studies tested people out of work now, only 7 on a past break, inactivity tested less and cost more; What we don't know line added; body says "time out of work" where the studies did
+- **F3 (medium, fixed)** Typos oversold. Every typo study (Sterkens Table 1) asks raters, none
   real employers. "Among the best-tested" + description "Strongest" + short answer "lower
   chance" read as hiring evidence. Fix: "best-studied in rating tests"; short answer "rated
   chance, 7 points out of 100".
-- **F4 (high, open)** Description says gaps and typos "cost interviews". Gaps cost callbacks;
+  -> section opens "Probably, though no study has tested them in real hiring. Every typo study we found asked people to rate resumes"; short answer says "rated interview chance 7 points lower out of 100"; description says typos "lower recruiter ratings"; What we don't know line added
+- **F4 (high, fixed)** Description says gaps and typos "cost interviews". Gaps cost callbacks;
   typos lowered ratings. Search snippets quote the description alone. Fix wording, e.g. "long
   gaps cost callbacks, typos lower recruiter ratings".
-- **F5 (medium, open)** Line 52 cites Levinson as showing the claim does not hold up; Levinson is
+  -> description now "Long gaps cost callbacks; typos lower recruiter ratings"
+- **F5 (medium, fixed)** Line 52 cites Levinson as showing the claim does not hold up; Levinson is
   where the claim appears. Fix: cite it as the origin, keep the link to the ATS article for the
   rebuttal.
-- **F6 (medium, open)** Line 94 says ResumeGo doesn't say whether two-page resumes held more
+  -> Levinson cited as where the claim traces to (a 2012 trade article repeating a sales pitch); rebuttal left to the ATS article link
+- **F6 (medium, fixed)** Line 94 says ResumeGo doesn't say whether two-page resumes held more
   experience; the page says each pair was designed to show similar experience. Fix: real limits -
   vendor, simulation, two-page versions carry more detail, not peer-reviewed. Consider a registry
   label other than "vendor survey" for vendor tests (ResumeGo, Ladders 2012/2018) - research.md has
   no row for a vendor experiment; Lab study + vendor note fits the design better.
-- **F7 (medium, open)** Line 125 "two-column ... read worse by software and invite bias, as
+  -> sentence now says the company states both versions showed similar experience, the two-page ones held more detail, seller's own test, not peer-reviewed, not real hiring. Registry label kept as `vendor survey`: research.md has no vendor-experiment row, and its "company selling the service" caution is the one that matters; text calls it a test, never a study
+- **F7 (medium, fixed)** Line 125 "two-column ... read worse by software and invite bias, as
   above": no two-column measurement is shown above, and bias applies to photos. Fix: cite the
   right-edge dates measurement + Ladders 2018 (vendor) for columns; bias for photos only.
-- **F8 (medium, open)** Short answer bullet 4 cites MIT for "1-2 pages, last 10-15 years, no
+  -> split into two bullets - two-column cites our right-edge dates measurement + Ladders 2018 as a vendor test; photo bullet cites Ruffle for bias
+- **F8 (medium, fixed)** Short answer bullet 4 cites MIT for "1-2 pages, last 10-15 years, no
   photo ... no study". MIT says one page; 10-15 years is Indeed; photos have a field experiment
   (Ruffle). Fix: split the bullet or cite each.
-- **F9 (medium, open)** "No study found" claims (results vs duties, keywords, 0-100 scores) have
+  -> short-answer bullet split - results + one page cite MIT; 10-15 years cites Indeed; photo cites Ruffle (Big study)
+- **F9 (medium, fixed)** "No study found" claims (results vs duties, keywords, 0-100 scores) have
   no search record. research.md: list what was searched in the page's `uncited:` list. Fix: add
   the searches (this review's: field experiments on achievements vs duties, keyword match vs
   callbacks, resume-score validation; none found).
-- **F10 (medium, open)** Namingit numbers come from a 2018 conference abstract, not the 2021 paper.
+  -> body says "we searched ... and found none" for results vs duties, posting words, 0-100 scores; the searches are listed in the page's `uncited:` list
+- **F10 (medium, fixed)** Namingit numbers come from a 2018 conference abstract, not the 2021 paper.
   Say so in the sentence ("an early summary"). Also: the illness signal included a cancer
   support-group line on the resume.
-- **F11 (low, open)** Kristal tested one reason (full-time motherhood) for mothers. Say "a
+  -> sentence says "an early summary of that study reports"; illness signal described as on the resume and cover letter; registry venue already names the 2018 abstract
+- **F11 (low, fixed)** Kristal tested one reason (full-time motherhood) for mothers. Say "a
   childcare reason" rather than "a reason".
-- **F12 (low, open)** Fuller 48% is for middle-skills candidates; add the words.
-- **F13 (low, open)** Ladders 2018 "top-performing" = where recruiters looked longest, not rated
+  -> "no gain from a childcare reason"; "Mothers' resumes"; years format noted as hiding the gap
+- **F12 (low, fixed)** Fuller 48% is for middle-skills candidates; add the words.
+  -> "filtered middle-skills applicants"; sentence split, now under 20 words each
+- **F13 (low, fixed)** Ladders 2018 "top-performing" = where recruiters looked longest, not rated
   best; name it a vendor test in the sentence.
-- **F14 (low, open)** 6-second bullet: add the 2018 update (7.4 s) and that a resume-writing firm,
+  -> "resumes that held recruiters' attention longest"; "It is a vendor's test"
+- **F14 (low, fixed)** 6-second bullet: add the 2018 update (7.4 s) and that a resume-writing firm,
   ResumeGo, timed 2-4 minutes in a simulation - the number depends on the task.
-- **F15 (low, open)** Line 126 "Some PDF readers split the word": our own note says three
+  -> 6-second bullet adds the 2018 update (7.4 s) and ResumeGo's 2-4 minutes, "the number depends on the task"
+- **F15 (low, fixed)** Line 126 "Some PDF readers split the word": our own note says three
   extractors read it whole; one PDF-to-HTML conversion split it. Say that.
-- **F16 (low, open)** Line 122 "pushes people to make up numbers": causal, no source. Reword as
+  -> "one PDF-to-web-page converter"; "Three other PDF text readers read it whole"; myths bullet matches
+- **F16 (low, fixed)** Line 122 "pushes people to make up numbers": causal, no source. Reword as
   our reason ("invites made-up numbers").
-- **F17 (low, open)** Street address rule uncited; cite a guide that says it or call it our rule.
-- **F18 (low, open)** "Career guides suggest" 10-15 years rests on one guide for senior
+  -> "Our view: the advice invites made-up numbers"; MIT's "add numbers where you can" now cited next to our view
+- **F17 (low, fixed)** Street address rule uncited; cite a guide that says it or call it our rule.
+  -> "Leaving it off is our rule"
+- **F18 (low, fixed)** "Career guides suggest" 10-15 years rests on one guide for senior
   candidates; and "most relevant first" may read as breaking reverse-chronological order.
-- **F19 (low, open)** Ruffle: photos optional in Israel, not "common".
-- **F20 (low, open)** D'hert "7 countries" is on p. 4; p. 8 has the 67,000.
-- **F21 (low, open)** HireRight respondents are firms that buy screening; "employers check"
+  -> "One job-site guide tells senior candidates"; newest-first order + less detail for older jobs cited to Indeed; "most relevant first" removed
+- **F19 (low, fixed)** Ruffle: photos optional in Israel, not "common".
+  -> "Photos are optional in Israel"
+- **F20 (low, fixed)** D'hert "7 countries" is on p. 4; p. 8 has the 67,000.
+  -> 67,000 cites p. 8; 7 countries cites p. 4
+- **F21 (low, fixed)** HireRight respondents are firms that buy screening; "employers check"
   generalizes. Add "firms that run checks" or similar.
-- **F22 (low, open)** Our-measurement sentences should say when + with what (research.md: "the
+  -> short answer "Firms that check find mismatches"; body "Many employers check" and "the people it asked work at firms that run checks"
+- **F22 (low, fixed)** Our-measurement sentences should say when + with what (research.md: "the
   article says how"): fonts September 2026, pdftotext for the dates, Workday September 2026.
-- **F23 (low, open)** Link `keep-chats-out-of-ai-training` once that article exists (bead lists
+  -> "Our measurement, September 2026" on both; pdftotext named for the dates; PDF-to-web-page converter + three readers named for the heading; Workday measured September 2026 (bullets.md)
+- **F23 (low, rebutted)** Link `keep-chats-out-of-ai-training` once that article exists (bead lists
   it); not yet in `app/web/research/`.
-- **F24 (low, open)** "Keep gaps short where you can" reads as on the applicant; gaps are often
+  -> keep-chats-out-of-ai-training does not exist yet (plan-xsy.30); a link to it would break the build. Note left on plan-xsy.30 to link back here once it publishes
+- **F24 (low, fixed)** "Keep gaps short where you can" reads as on the applicant; gaps are often
   not a choice. Reword to what helps once a gap exists.
-- **F25 (low, open)** Sterkens: Flemish raters, Dutch-language graduate resumes; one line on
+  -> What helps now "After a long gap, a short, honest reason costs little. The bias grows with time out of work, and it is the employer's"
+- **F25 (low, fixed)** Sterkens: Flemish raters, Dutch-language graduate resumes; one line on
   how far that carries to US hiring.
+  -> "The resumes were in Dutch, for recent graduates, so US results may differ"
 
 Plain words + SEO: no jargon from the AGENTS.md list; most sentences under 20 words (line 70 is
 21); question-led H2s; 4 internal links; title 52, description 140 chars. Privacy: no owner data
