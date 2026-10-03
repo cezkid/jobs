@@ -273,7 +273,8 @@ def chosen_ai() -> str | None:
 def write_workspace(choice: str | None) -> None:
     import workspace
     try:
-        workspace.write(choice)
+        # search settings saved => START HERE leaves the file list (it only says "type set me up")
+        workspace.write(choice, set_up=cfg.config_path().exists())
     except OSError:
         pass  # last launch's file still opens the window
 

@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 def page(conn, jobs_dir, todo=()) -> str:
-    return today.build(conn, CONFIG, jobs_dir, NOW, list(todo))
+    return today.build(conn, CONFIG, jobs_dir, NOW, list(todo), root=jobs_dir)
 
 
 def job(slug, **over):
@@ -40,8 +40,8 @@ Tuesday, September 29. So far: 1 sent.
 
 - **Job 1** - Data Analyst, Globex
   - Resume made 5 days ago
-  - https://jobs.lever.co/globex/1
-  - Say: "apply to job 1" - or "I sent job 1" if you already did
+  - [Open the posting](<https://jobs.lever.co/globex/1>) · [Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)
+  - Say: `apply to job 1` - or `I sent job 1` if you already did
 
 ## Follow up
 
@@ -49,31 +49,31 @@ No reply for a while. A short note asking where things stand is common practice 
 
 - **Job 2** - Senior Vue Engineer old, Acme
   - Applied 29 days ago, no reply yet
-  - https://boards.greenhouse.io/acme/jobs/old
-  - Say: "write a follow-up for job 2" - or "I heard back from job 2", "job 2 is closed"
+  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/old>)
+  - Say: `write a follow-up for job 2` - or `I heard back from job 2`, `job 2 is closed`
 
 ## New since last check
 
 - **Job 3** - Senior Vue Engineer paid, Acme
   - remote · $150k-190k (meets your pay) · added to your list today
-  - https://boards.greenhouse.io/acme/jobs/paid
-  - Say: "resume for job 3"
+  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/paid>)
+  - Say: `resume for job 3`
 - **Job 4** - Senior Vue Engineer plain, Acme
   - remote · pay not listed · added to your list today
-  - https://boards.greenhouse.io/acme/jobs/plain
-  - Say: "resume for job 4"
+  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/plain>)
+  - Say: `resume for job 4`
 
 ## Not finished
 
-- The morning job check is off. Say: "turn on the morning job check"
+- The morning job check is off. Say: `turn on the morning job check`
 
 ## What you can say
 
-- "find new jobs"
-- "resume for job 12"
-- "I sent job 12 / I heard back from job 12"
-- "is job 12 still open?"
-- "change what I'm looking for"
+- `find new jobs`
+- `resume for job 12`
+- `I sent job 12` / `I heard back from job 12`
+- `is job 12 still open?`
+- `change what I'm looking for`
 
 Guides:
 
@@ -85,7 +85,8 @@ Guides:
 
 
 def test_page_in_plain_words(conn, tmp_path):
-    make_folder(tmp_path, "Globex - Data Analyst", "https://jobs.lever.co/globex/1", "Globex", "Data Analyst", None)
+    folder = make_folder(tmp_path, "Globex - Data Analyst", "https://jobs.lever.co/globex/1", "Globex", "Data Analyst", None)
+    (folder / "Your_Name_Resume.pdf").write_bytes(b"%PDF")
     status.backfill(conn, tmp_path)
     conn.execute("UPDATE applications SET state_at = '2026-09-24T12:00:00Z'")
     conn.commit()
@@ -93,13 +94,13 @@ def test_page_in_plain_words(conn, tmp_path):
     applied(conn, "old", "2026-08-31T12:00:00Z")
     store.upsert(conn, [job("plain"), job("paid", salary_min=150000, salary_max=190000,
                                            salary_currency="USD", salary_period="year")], CHECK)
-    assert page(conn, tmp_path, ["The morning job check is off. Say: \"turn on the morning job check\""]) == SNAPSHOT
+    assert page(conn, tmp_path, ["The morning job check is off. Say: `turn on the morning job check`"]) == SNAPSHOT
 
 
 def test_every_section_hides_when_empty(conn, tmp_path):
     text = page(conn, tmp_path)
     assert "##" not in text.split("## What you can say")[0]
-    assert 'Nothing new since the last check. Say: "find new jobs"' in text
+    assert "Nothing new since the last check. Say: `find new jobs`" in text
     assert "So far" not in text
 
 
@@ -145,8 +146,8 @@ def test_new_capped_with_rest_in_the_chat(conn, tmp_path, monkeypatch):
     monkeypatch.setattr(today, "NEW_MAX", 2)
     store.upsert(conn, [job(f"j{i}") for i in range(5)], CHECK)
     text = page(conn, tmp_path)
-    assert text.count('Say: "resume for job') == 2
-    assert '- 3 more - ask the chat. Say: "show me more new jobs"' in text
+    assert text.count("Say: `resume for job") == 2
+    assert "- 3 more - ask the chat. Say: `show me more new jobs`" in text
 
 
 def test_same_number_as_the_chat_list(conn, tmp_path):
@@ -161,7 +162,7 @@ def test_waiting_never_counts_what_is_left(conn, tmp_path, monkeypatch):
         make_folder(tmp_path, f"Globex - Role {i}", f"https://jobs.lever.co/globex/{i}", "Globex", f"Role {i}", None)
     text = page(conn, tmp_path)
     assert text.count("Resume made") == 1
-    assert '- More in the chat. Say: "what is waiting on me"' in text
+    assert "- More in the chat. Say: `what is waiting on me`" in text
     assert not any(ch.isdigit() for ch in text.split("More in the chat")[1].splitlines()[0])
 
 
@@ -206,7 +207,7 @@ def test_not_finished_only_when_true(tmp_path, monkeypatch):
     # email is optional: never set up = nothing to finish; started, no password = half done
     (tmp_path / "email.env").write_text("SMTP_USER=a@b.c\n", encoding="utf-8")
     assert today.unfinished(config, tmp_path, morning_check_on=True) == [
-        'Email alerts are half set up. Say: "finish setting up email"']
+        "Email alerts are half set up. Say: `finish setting up email`"]
     (tmp_path / "email.env").write_text("SMTP_USER=a@b.c\nSMTP_PASSWORD=x\n", encoding="utf-8")
     assert today.unfinished(config, tmp_path, morning_check_on=True) == []
 
@@ -263,7 +264,7 @@ def test_chat_brief_matches_the_page(conn, tmp_path):
     applied(conn, "old", "2026-08-31T12:00:00Z")
     store.upsert(conn, [job("plain"), job("paid", salary_min=150000, salary_max=190000,
                                            salary_currency="USD", salary_period="year")], CHECK)
-    todo = ["The morning job check is off. Say: \"turn on the morning job check\""]
+    todo = ["The morning job check is off. Say: `turn on the morning job check`"]
     assert today.brief(conn, CONFIG, tmp_path, NOW, todo) == BRIEF
     # same numbers as the page, whichever is built first
     assert "**Job 3** - Senior Vue Engineer paid" in page(conn, tmp_path, todo)
@@ -326,7 +327,7 @@ def test_follow_up_quiet_one_stretch_after_logged_then_suggests_closing(conn, tm
     rows = today.follow_up_rows(conn, "2026-10-12T12:00:00Z", CONFIG["follow_up"])
     assert rows[0]["chased"] == "2026-09-20T12:00:00Z"
     text = "\n".join(today.follow_up(conn, "2026-10-12T12:00:00Z", CONFIG["follow_up"]))
-    assert "You followed up 22 days ago, still no reply" in text and 'Say: "job 1 is closed"' in text
+    assert "You followed up 22 days ago, still no reply" in text and "Say: `job 1 is closed`" in text
     assert status.get(conn, key)["state"] == "applied"  # a follow-up is never a status
 
 
@@ -334,7 +335,31 @@ def test_interview_section_until_a_follow_up_is_due(conn, tmp_path):
     store.upsert(conn, [job("talk")], CHECK)
     status.set_state(conn, status.resolve(conn, Path("/nowhere"), "talk"), "interview", "2026-09-25T12:00:00Z")
     text = page(conn, tmp_path)
-    assert 'Say: "practise my interview for job 1" - or "I had the interview for job 1"' in text.split("## Interviews")[1]
+    assert "Say: `practise my interview for job 1` - or `I had the interview for job 1`" in text.split("## Interviews")[1]
     status.set_state(conn, status.resolve(conn, Path("/nowhere"), "talk"), "interview", "2026-09-10T12:00:00Z")
     text = page(conn, tmp_path)
     assert "## Interviews" not in text and "Interview 19 days ago, no reply yet" in text.split("## Follow up")[1]
+
+
+def test_every_job_has_link_text_and_a_say_chip(conn, tmp_path):
+    # bare 100-char posting URLs + quoted words the user retyped read as a code file, not a page
+    folder = make_folder(tmp_path, "Globex - Data Analyst", "https://jobs.lever.co/globex/1?utm_source=x", "Globex",
+                         "Data Analyst", None)
+    (folder / "Your_Name_Resume.pdf").write_bytes(b"%PDF")
+    status.backfill(conn, tmp_path)
+    store.upsert(conn, [job("old")], "2026-08-01T12:00:00Z")
+    applied(conn, "old", "2026-08-31T12:00:00Z")
+    store.upsert(conn, [job("a(b)"), job("talk")], CHECK)
+    status.set_state(conn, status.resolve(conn, Path("/nowhere"), "talk"), "interview", "2026-09-25T12:00:00Z")
+    text = page(conn, tmp_path)
+    assert not re.search(r"^\s*- https?://", text, re.M)
+    jobs = re.split(r"^- \*\*Job \d+\*\*", text, flags=re.M)[1:]
+    assert len(jobs) == 4
+    for block in jobs:
+        block = block.split("\n\n")[0]
+        assert "[Open the posting](<https://" in block and re.search(r"Say: `[^`]+`", block)
+    # url exact, never rebuilt; a ')' in it can't end the link
+    assert "(<https://jobs.lever.co/globex/1?utm_source=x>)" in text
+    assert "(<https://boards.greenhouse.io/acme/jobs/a(b)>)" in text
+    assert "[Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)" in text
+    assert not re.search(r'Say: "', text) and "- `find new jobs`" in text

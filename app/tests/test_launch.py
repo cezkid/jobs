@@ -469,3 +469,15 @@ def test_test_guard_stops_real_code_calls():
     assert conftest.reaches_real_vscode(["open", "vscode://anthropic.claude-code/open"])
     assert not conftest.reaches_real_vscode(["code", "--user-data-dir", "/tmp/x", "--version"])
     assert not conftest.reaches_real_vscode(["bash", "-c", "code --list-extensions"])
+
+
+def test_open_names_job_finders_folder_with_the_file(tmp_path, monkeypatch):
+    # code -r <file> alone landed in whichever VS Code window was used last
+    import jobs
+    page = tmp_path / "Job posting.md"
+    page.write_text("x", encoding="utf-8")
+    runs = []
+    monkeypatch.setattr(jobs.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
+    jobs.open_for_user(str(page))
+    assert runs[0][-2:] == [str(cfg.ROOT), str(page.resolve())] and "-r" not in runs[0]
