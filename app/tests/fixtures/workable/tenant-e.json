@@ -1,0 +1,428 @@
+[
+ {
+  "name": "Personal information",
+  "fields": [
+   {
+    "id": "firstname",
+    "required": true,
+    "label": "First name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "lastname",
+    "required": true,
+    "label": "Last name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "email",
+    "required": true,
+    "label": "Email",
+    "type": "email",
+    "maxLength": 255
+   },
+   {
+    "id": "phone",
+    "required": true,
+    "label": "Phone",
+    "type": "phone",
+    "helper": "The hiring team may use this number to contact you about this job.",
+    "maxLength": 255
+   },
+   {
+    "id": "address",
+    "required": true,
+    "label": "Address",
+    "helper": "Include your city, region, and country, so that employers can easily manage your application.",
+    "type": "text",
+    "value": "Example City, United States of America",
+    "prefilledByLocation": true
+   }
+  ]
+ },
+ {
+  "name": "Profile",
+  "fields": [
+   {
+    "id": "summary",
+    "required": false,
+    "label": "Summary",
+    "type": "paragraph"
+   },
+   {
+    "id": "resume",
+    "required": false,
+    "label": "Resume",
+    "type": "file",
+    "supportedFileTypes": [
+     ".pdf",
+     ".doc",
+     ".docx",
+     ".odt",
+     ".rtf"
+    ],
+    "supportedMimeTypes": [
+     "application/pdf",
+     "application/msword",
+     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+     "application/vnd.oasis.opendocument.text",
+     "application/rtf"
+    ],
+    "maxFileSize": 12000000
+   },
+   {
+    "id": "CA_26358",
+    "required": true,
+    "label": "How did you hear about us?",
+    "type": "dropdown",
+    "options": [
+     {
+      "name": "251778",
+      "value": "Agency/Recruiter (Please specify)"
+     },
+     {
+      "name": "249012",
+      "value": "Career Fair"
+     },
+     {
+      "name": "249013",
+      "value": "Careers Website"
+     },
+     {
+      "name": "251779",
+      "value": "Employee Referral (Please specify)"
+     },
+     {
+      "name": "249014",
+      "value": "Employment Ad"
+     },
+     {
+      "name": "249015",
+      "value": "I am a current Acme Employee"
+     },
+     {
+      "name": "251780",
+      "value": "Indeed"
+     },
+     {
+      "name": "249016",
+      "value": "Internet Ad"
+     },
+     {
+      "name": "251781",
+      "value": "Linked In"
+     },
+     {
+      "name": "251782",
+      "value": "Other (Please specify)"
+     },
+     {
+      "name": "249017",
+      "value": "State Job Agency"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "CA_26359",
+    "required": false,
+    "label": "Please specify Employee Name, Recruiter/Agency or Other",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "experience",
+    "required": false,
+    "label": "Experience",
+    "type": "group",
+    "fields": [
+     {
+      "id": "title",
+      "required": true,
+      "label": "Title",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "company",
+      "required": false,
+      "label": "Company",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "industry",
+      "required": false,
+      "label": "Industry",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "summary",
+      "required": false,
+      "label": "Summary",
+      "type": "paragraph"
+     },
+     {
+      "id": "start_date",
+      "required": false,
+      "label": "Start date",
+      "type": "date"
+     },
+     {
+      "id": "end_date",
+      "required": false,
+      "label": "End date",
+      "type": "date"
+     },
+     {
+      "id": "current",
+      "required": false,
+      "label": "I currently work here",
+      "type": "boolean"
+     }
+    ]
+   },
+   {
+    "id": "CA_27172",
+    "required": true,
+    "label": "Did you provide completed information for all previous employers, during at least the last 84 months and at least the last 3 employers, whichever is longer, including self-employment, military service, summer, and part-time jobs. Please list the specific duties that are most applicable to the position for which you are applying. Please explain any gap in employment that exceeds 1 months, for example \"attending school.\" Please do not indicate \"See Resume.\"",
+    "type": "boolean"
+   },
+   {
+    "id": "CA_26380",
+    "required": true,
+    "label": "Reason for leaving or job search?",
+    "type": "paragraph"
+   },
+   {
+    "id": "CA_28962",
+    "required": true,
+    "label": "What is your required annual compensation?",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "education",
+    "required": false,
+    "label": "Education",
+    "type": "group",
+    "fields": [
+     {
+      "id": "school",
+      "required": true,
+      "label": "School",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "field_of_study",
+      "required": false,
+      "label": "Field of study",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "degree",
+      "required": false,
+      "label": "Degree",
+      "type": "text",
+      "maxLength": 255
+     },
+     {
+      "id": "start_date",
+      "required": false,
+      "label": "Start date",
+      "type": "date"
+     },
+     {
+      "id": "end_date",
+      "required": false,
+      "label": "End date",
+      "type": "date"
+     }
+    ]
+   },
+   {
+    "id": "CA_27590",
+    "required": true,
+    "label": "What is your highest level of degree achieved?",
+    "type": "dropdown",
+    "options": [
+     {
+      "name": "258809",
+      "value": "High School/GED"
+     },
+     {
+      "name": "258810",
+      "value": "Trade/Technical School"
+     },
+     {
+      "name": "258811",
+      "value": "Associate"
+     },
+     {
+      "name": "258812",
+      "value": "Bachelors"
+     },
+     {
+      "name": "258813",
+      "value": "Masters"
+     },
+     {
+      "name": "258814",
+      "value": "Doctorate"
+     }
+    ],
+    "singleOption": true
+   }
+  ]
+ },
+ {
+  "name": "Details",
+  "fields": [
+   {
+    "id": "cover_letter",
+    "required": false,
+    "label": "Cover letter",
+    "type": "paragraph",
+    "maxLength": 200000
+   },
+   {
+    "id": "CA_26351",
+    "required": true,
+    "label": "Are you at least 18 years old?",
+    "type": "dropdown",
+    "options": [
+     {
+      "name": "249004",
+      "value": "Yes"
+     },
+     {
+      "name": "249005",
+      "value": "No"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "CA_26352",
+    "required": true,
+    "label": "Are you legally eligible to work in the United States?",
+    "type": "dropdown",
+    "options": [
+     {
+      "name": "249006",
+      "value": "Yes"
+     },
+     {
+      "name": "249007",
+      "value": "No"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "CA_36734",
+    "required": true,
+    "label": "Will you now, or in the future, require sponsorship to legally work in the U.S.?",
+    "type": "dropdown",
+    "options": [
+     {
+      "name": "356150",
+      "value": "Yes"
+     },
+     {
+      "name": "356151",
+      "value": "No"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "CA_26353",
+    "required": true,
+    "label": "Do you have any relatives currently working for Acme Corporation?  If yes, provide their names in the second field below.",
+    "type": "dropdown",
+    "options": [
+     {
+      "name": "249008",
+      "value": "Yes"
+     },
+     {
+      "name": "249009",
+      "value": "No"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "CA_26354",
+    "required": false,
+    "label": "Relative Details",
+    "type": "paragraph"
+   },
+   {
+    "id": "CA_27400",
+    "required": true,
+    "label": "Were you ever employed by Acme (including previous company names) or an affiliated business?  If yes, provide previous employment details of Business Name, Location and Dates in the second field below.",
+    "type": "dropdown",
+    "options": [
+     {
+      "name": "257226",
+      "value": "Yes"
+     },
+     {
+      "name": "257227",
+      "value": "No"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "CA_26357",
+    "required": false,
+    "label": "Previous Employment Details",
+    "type": "paragraph"
+   },
+   {
+    "id": "CA_27591",
+    "required": true,
+    "label": "Are you currently subject to a non-compete, non-solicitation, confidentiality, anti-piracy, or other employment agreement and/ or restriction with any employer?",
+    "type": "dropdown",
+    "options": [
+     {
+      "name": "258815",
+      "value": "Yes"
+     },
+     {
+      "name": "258816",
+      "value": "No"
+     }
+    ],
+    "singleOption": true
+   },
+   {
+    "id": "CA_26363",
+    "required": false,
+    "label": "If yes, please explain your work restrictions",
+    "type": "paragraph"
+   },
+   {
+    "id": "CA_26355",
+    "required": false,
+    "label": "State any additional information you feel may be helpful to us in considering your application. This could include any specialized training or courses you have completed that will aid in evaluating your qualifications for the position you are seeking.",
+    "type": "paragraph"
+   },
+   {
+    "id": "CA_27976",
+    "required": true,
+    "label": "I understand that Acme Corporation Americas, hereinafter referred to as “the Company,” requires certain information about me to evaluate my qualifications for employment and to conduct its business if I become an employee. Therefore, I authorize the Company to investigate my past employment, educational credentials, or any other information I provide as to the application process to the extent allowed by law. I agree to cooperate in such investigations and, to the extent allowed by law, release those parties supplying such information to the Company as well as the Company and its employees from all liability or responsibility with respect to the information supplied. I agree that the Company may use the information it obtains concerning me in the conduct of its business, including disclosure outside the Company where such information is needed for business purposes. I understand, however, that except as allowed or required to be disclosed by applicable law, the Company intends to protect the confidentiality of personal information it obtains concerning me to the extent practicable. I agree that I will not disclose or use while interviewing with or employed with the Company any confidential or proprietary information of others, including any former employer. I understand that an offer of employment made by the Company will be conditioned upon your providing the documentation required by law as evidence of your personal identity and your authorization to work in the United States. Any offer of employment is also conditioned upon the successful completion of a background investigation, a post-offer physical evaluation, if applicable, and a drug screen. I understand that any employment with the Company is at-will and would not be for any fixed period of time and that, if employed, I may resign at any time, for any reason, or the Company may terminate my employment at any time for any reason in the absence of a specific written agreement to the contrary if signed by a duly authorized officer of the Company. I understand that any false or incomplete answers or statements made by me on this application, any supplement thereto, or in connection with the above-mentioned investigations may be grounds for refusal of employment or, if employed, may result in immediate discharge. I understand that this application will only be considered for the position for which I am seeking employment.  By signing your digital signature below, you agree that you have reviewed this statement and understand and agree to its contents.",
+    "type": "text",
+    "maxLength": 127
+   }
+  ]
+ }
+]

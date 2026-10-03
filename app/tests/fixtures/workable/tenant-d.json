@@ -1,0 +1,109 @@
+[
+ {
+  "name": "Personal information",
+  "fields": [
+   {
+    "id": "firstname",
+    "required": true,
+    "label": "First name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "lastname",
+    "required": true,
+    "label": "Last name",
+    "type": "text",
+    "maxLength": 127
+   },
+   {
+    "id": "email",
+    "required": true,
+    "label": "Email",
+    "type": "email",
+    "maxLength": 255
+   },
+   {
+    "id": "phone",
+    "required": true,
+    "label": "Phone",
+    "type": "phone",
+    "helper": "The hiring team may use this number to contact you about this job.",
+    "maxLength": 255
+   },
+   {
+    "id": "address",
+    "required": true,
+    "label": "Address",
+    "helper": "Include your city, region, and country, so that employers can easily manage your application.",
+    "type": "text",
+    "value": "Example City, United States of America",
+    "prefilledByLocation": true
+   }
+  ]
+ },
+ {
+  "name": "Profile",
+  "fields": [
+   {
+    "id": "resume",
+    "required": true,
+    "label": "Resume",
+    "type": "file",
+    "supportedFileTypes": [
+     ".pdf",
+     ".doc",
+     ".docx",
+     ".odt",
+     ".rtf"
+    ],
+    "supportedMimeTypes": [
+     "application/pdf",
+     "application/msword",
+     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+     "application/vnd.oasis.opendocument.text",
+     "application/rtf"
+    ],
+    "maxFileSize": 12000000
+   }
+  ]
+ },
+ {
+  "name": "Details",
+  "fields": [
+   {
+    "id": "cover_letter",
+    "required": false,
+    "label": "Cover letter",
+    "type": "paragraph",
+    "maxLength": 200000
+   },
+   {
+    "id": "QA_12550681",
+    "required": true,
+    "label": "Do you now, or will you in the future, require sponsorship, or transfer of sponsorship, for employment visa status to work legally for our Company in the United States?",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_12550682",
+    "required": true,
+    "label": "This position is not remote. Are you available to work full-time on-site? ",
+    "type": "boolean"
+   },
+   {
+    "id": "QA_12550683",
+    "required": true,
+    "label": "What are your salary expectations for the role you're applying to? ",
+    "type": "number",
+    "max": 9999999999999
+   },
+   {
+    "id": "QA_12550684",
+    "required": true,
+    "label": "If you were referred by an active Acme employee, please provide their name:",
+    "type": "text",
+    "maxLength": 127
+   }
+  ]
+ }
+]
