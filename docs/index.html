@@ -65,6 +65,7 @@
     --gutter: clamp(16px, 2.5vw, 32px); --max: 1320px;
     --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
     --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
+    --track-display: -0.024em; --lead-display: 0.98;
     --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
   }
   @media (prefers-color-scheme: dark) {
@@ -331,6 +332,10 @@
   .scene { padding-top: clamp(56px, 9vh, 104px); padding-bottom: clamp(56px, 9vh, 104px); row-gap: 32px; border-top: 1px solid var(--line); }
   .scene h2 { font-size: clamp(2rem, 1rem + 5.1vw, 6.5rem); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 0.45em; }
   .scene p { margin: 0; }
+  /* display lines (64px+ from 941px wide): text-size tracking + leading read loose at 90-112px */
+  @media (min-width: 941px) {
+    h1, .scene h2:not(.half h2) { letter-spacing: var(--track-display); line-height: var(--lead-display); }
+  }
   .scene-text { grid-column: 1 / -1; max-width: 34rem; }
   .scene-text > p { margin-bottom: 1rem; }
   .rules { list-style: none; margin: 1.25rem 0 0; padding: 0; border-top: 1px solid var(--line); }
@@ -384,7 +389,7 @@
     .resume .scene-text { display: contents; }
     .resume h2 { grid-column: 1 / span 8; }
     .resume .scene-text > p { grid-column: 9 / -1; grid-row: 1; align-self: end;
-      margin-bottom: calc(0.6 * clamp(2rem, 1rem + 5.1vw, 6.5rem)); }  /* last line on the h2 baseline */
+      margin-bottom: calc(0.565 * clamp(2rem, 1rem + 5.1vw, 6.5rem)); }  /* last line on the h2 baseline */
     .resume .rules { grid-column: 1 / span 4; align-self: start; }
     .proof { grid-column: 5 / -1; grid-row: 2; }
   }
@@ -592,7 +597,7 @@
 
         <p class="switch">
           <button type="button" id="switch-os"><span class="win-only">Mac steps</span><span class="mac-only">Windows steps</span></button>
-          <span>Stuck? Run it again - your files are kept.</span>
+          <span>Stuck? Run it again – your files are kept.</span>
           <a id="script" href="https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1">Read the script first</a>
         </p>
         <p class="need">You need Windows 10 or 11 or a Mac, and one AI plan: Claude Pro or Max, ChatGPT Plus or Pro, or GitHub Copilot Pro. No administrator password.</p>
@@ -647,10 +652,10 @@
   <section class="grid scene resume" aria-labelledby="resume-h">
     <div class="scene-text">
       <h2 id="resume-h">Your resume, made for one job</h2>
-      <p>Pick a job. The chat rewrites your resume for it, in the posting's own words where your experience backs them.</p>
+      <p>Pick a job. The chat rewrites your resume for it, in the posting’s own words where your experience backs them.</p>
       <ul class="rules">
         <li>Employers, titles and dates stay as you gave them.</li>
-        <li>Nothing made up. A skill you don't have is told to you, not added.</li>
+        <li>Nothing made up. A skill you don’t have is told to you, not added.</li>
         <li>You approve every changed line.</li>
         <li>One page, set to fit.</li>
       </ul>
@@ -709,7 +714,7 @@
       <dl class="defs">
         <div><dt>Interview practice</dt><dd>One question at a time, from the posting and your resume, with short honest feedback. And a talk-through after the real one.</dd></div>
         <div><dt>Follow-up emails</dt><dd>Written for you when a job goes quiet. You send it from your own email.</dd></div>
-        <div><dt>Today page</dt><dd>What's waiting on you and the newest jobs. Opens each time you start.</dd></div>
+        <div><dt>Today page</dt><dd>What’s waiting on you and the newest jobs. Opens each time you start.</dd></div>
       </dl>
     </div>
   </section>
@@ -723,13 +728,13 @@
     </div>
     <p class="ledger-head" aria-hidden="true"><span>Who</span><span>What they get</span><span>When</span></p>
     <ol class="ledger">
-      <li><h3>freehire.me</h3><p>Your search words, and which job from your list you make a resume for or ask about. Never your resume.</p><p class="when">To find jobs, get the whole posting, or see if it's still open.</p></li>
+      <li><h3>freehire.me</h3><p>Your search words, and which job from your list you make a resume for or ask about. Never your resume.</p><p class="when">To find jobs, get the whole posting, or see if it’s still open.</p></li>
       <li><h3>Your own AI account</h3><p>Your resume and what you tell it, in Claude, ChatGPT or GitHub Copilot.</p><p class="when">While you chat. Personal plans may train on chats unless you switch it off.</p></li>
       <li><h3>An employer</h3><p>What you apply with.</p><p class="when">When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</p></li>
       <li><h3>Your email provider</h3><p>The morning email, sent to yourself.</p><p class="when">Only if you turn on email alerts.</p></li>
-      <li><h3>The maintainer</h3><p>A fix to the program's code. Never your files.</p><p class="when">Only if you say yes.</p></li>
+      <li><h3>The maintainer</h3><p>A fix to the program’s code. Never your files.</p><p class="when">Only if you say yes.</p></li>
     </ol>
-    <p class="who-foot">Nothing else from the app leaves your computer. VS Code, your AI's add-on and the installer follow their own companies' rules: <a href="/privacy.html">Privacy, in full</a>.</p>
+    <p class="who-foot">Nothing else from the app leaves your computer. VS Code, your AI’s add-on and the installer follow their own companies’ rules: <a href="/privacy.html">Privacy, in full</a>.</p>
   </section>
   <!-- /region: who -->
 
@@ -742,7 +747,7 @@
     <ul class="picks">
       <li><a href="/research/what-makes-a-good-resume/">What makes a good resume?</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower ratings.</p></li>
       <li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes?</a><p>No study shows it. The number traces to a 2012 sales claim.</p></li>
-      <li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a><p>In tests, yes - by name, gender, age and disability. The direction changes by model.</p></li>
+      <li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a><p>In tests, yes – by name, gender, age and disability. The direction changes by model.</p></li>
     </ul>
   </section>
   <!-- /region: research -->
@@ -753,15 +758,15 @@
     <div class="stack">
       <details>
         <summary>Is this a website?</summary>
-        <div><p>No. It's an app you install on your Windows or Mac computer. Your resume and jobs stay there.</p></div>
+        <div><p>No. It’s an app you install on your Windows or Mac computer. Your resume and jobs stay there.</p></div>
       </details>
       <details>
         <summary>Is it free?</summary>
-        <div><p>The app is free. You need one AI plan: Claude Pro or Max, ChatGPT Plus or Pro, or GitHub Copilot Pro ($10 a month). Copilot's free plan can't make tailored resumes.</p></div>
+        <div><p>The app is free. You need one AI plan: Claude Pro or Max, ChatGPT Plus or Pro, or GitHub Copilot Pro ($10 a month). Copilot’s free plan can’t make tailored resumes.</p></div>
       </details>
       <details>
         <summary>Use Nova, Poe or another all-in-one AI app?</summary>
-        <div><p>Those apps can't run programs on your computer, so they can't run CEZ Job Finder. GitHub Copilot Pro ($10 a month) works like them - several AIs in one plan - and runs here. Pick Claude Sonnet as its AI.</p></div>
+        <div><p>Those apps can’t run programs on your computer, so they can’t run CEZ Job Finder. GitHub Copilot Pro ($10 a month) works like them – several AIs in one plan – and runs here. Pick Claude Sonnet as its AI.</p></div>
       </details>
     </div>
     <div class="stack">
@@ -783,7 +788,7 @@
       </details>
       <details>
         <summary>Is it safe to paste a line?</summary>
-        <div><p>The line downloads this site's install script and runs it for you only. Read it first:
+        <div><p>The line downloads this site’s install script and runs it for you only. Read it first:
           <a href="https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1">Windows</a>,
           <a href="https://github.com/cezkid/jobs/blob/main/app/install/install-mac.sh">Mac</a>.
           All the code is public on GitHub.</p></div>
@@ -799,7 +804,7 @@
   <!-- region: closing -->
   <section class="grid scene closing" aria-labelledby="closing-h">
     <div class="scene-text">
-      <h2 id="closing-h">Start with tomorrow morning's jobs.</h2>
+      <h2 id="closing-h">Start with tomorrow morning’s jobs.</h2>
       <p class="desktop">Install takes about 5 minutes. One line to paste; your files stay on your computer.</p>
       <a class="go desktop" href="#install">Go to the install steps</a>
       <div class="phone">

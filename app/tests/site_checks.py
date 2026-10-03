@@ -377,3 +377,38 @@ def token_table(markdown: str) -> dict[str, dict[str, str]]:
         light[name] = lv
         dark[name] = lv if dv == "same" else dv.strip("`")
     return {"light": light, "dark": dark}
+
+
+class Prose(HTMLParser):
+    """Visible text a reader sees as prose: outside code/pre/script/style, attributes and the
+    illustrations (.window = the app, .proof = the resume sheet) that mirror what the app prints."""
+
+    SKIP_TAGS = {"code", "pre", "script", "style", "kbd", "samp"}
+    SKIP_CLASSES = {"window", "proof"}
+    VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+
+    def __init__(self, text: str):
+        super().__init__(convert_charrefs=True)
+        self.stack, self.chunks = [], []
+        self.feed(text)
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.VOID:
+            return
+        classes = set((dict(attrs).get("class") or "").split())
+        self.stack.append(tag in self.SKIP_TAGS or bool(classes & self.SKIP_CLASSES))
+
+    def handle_endtag(self, tag):
+        if tag not in self.VOID and self.stack:
+            self.stack.pop()
+
+    def handle_data(self, data):
+        if not any(self.stack):
+            self.chunks.append(data)
+
+
+def typewriter(raw: str) -> tuple[int, list[str]]:
+    """(chars of prose scanned, each straight quote or ' - ' dash found w/ its context)."""
+    text = " ".join(" ".join(Prose(raw).chunks).split())
+    found = [text[max(0, m.start() - 30):m.end() + 30] for m in re.finditer(r"['\"]| - ", text)]
+    return len(text), found

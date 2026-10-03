@@ -24,7 +24,8 @@ if not (cfg.ROOT / ".git").exists():
 import pymupdf  # noqa: E402
 
 from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, files, head_scripts,  # noqa: E402
-                         loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens)
+                         loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
+                         typewriter)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -246,6 +247,30 @@ def test_home_h1_is_the_literal_answer_to_is_this_a_website():
     # owner's fix for "is this a website?": the h1 says what it is, in plain words, unchanged
     h1 = re.findall(r"<h1[^>]*>(.*?)</h1>", (DOCS / "index.html").read_text(encoding="utf-8"), re.S)
     assert h1 == ["A free job-search app for your Windows or Mac computer."]
+
+
+HAND_WRITTEN = ("index.html", "privacy.html", "404.html")
+
+
+def test_hand_written_pages_use_typographic_quotes_and_dashes():
+    # a straight ' at 90-112px reads as typewriter text (A12); the app window + resume sheet keep
+    # ' - ' because they mirror what the app prints (app/today.py)
+    scanned, found = 0, []
+    for name in HAND_WRITTEN:
+        chars, hits = typewriter((DOCS / name).read_text(encoding="utf-8"))
+        scanned += chars
+        found += [f"{name}: {hit!r}" for hit in hits]
+    assert scanned >= 2000, f"only {scanned} chars of prose scanned - the parser lost the pages"
+    assert not found, found
+    assert "Start with tomorrow morning’s jobs." in (DOCS / "index.html").read_text(encoding="utf-8")
+
+
+def test_typographic_check_trips_on_a_straight_quote_and_a_hyphen_dash():
+    clean = "<main><p>It’s here – kept.</p><code>it's - code</code><div class=\"window\">Job 11 - x</div></main>"
+    assert typewriter(clean)[1] == []
+    assert typewriter(clean.replace("It’s", "It's"))[1]
+    assert typewriter(clean.replace(" – ", " - "))[1]
+    assert typewriter('<p title="it\'s">ok</p>')[1] == []
 
 
 def test_home_resume_scene_shows_the_correction_as_del_and_ins():
