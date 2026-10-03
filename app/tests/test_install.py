@@ -188,3 +188,16 @@ def test_windows_shortcut_has_brand_icon_and_starts_minimized():
     assert re.search(r"^\s*\$link\.WindowStyle = 7$", script, re.M)
     assert "Code.exe" not in script
     assert (INSTALL / "icon.ico").exists()
+
+
+# marker written on a VS Code already there = launcher quiets a developer's own editor app-wide
+@pytest.mark.parametrize("name, start, end", [
+    ("install-mac.sh", 'if [ ! -d "$VSCODE_APP" ]; then', "\n  fi\n"),
+    ("install-windows.ps1", "if (-not (Have 'code')) {", "\n    }\n"),
+])
+def test_vscode_ours_marker_only_where_installer_downloads_vscode(name, start, end):
+    body = script(name)
+    assert body.count("vscode-ours") == 1
+    branch = body[body.index(start):]
+    branch = branch[:branch.index(end)]
+    assert "update.code.visualstudio.com" in branch and "vscode-ours" in branch

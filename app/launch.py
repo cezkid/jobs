@@ -177,6 +177,67 @@ def ensure_yaml_checker(settings: Path | None = None) -> None:
         code(["--install-extension", YAML_EXTENSION, "--force"], quiet=True)
 
 
+# app-wide in VS Code: only the default profile's user settings change them, never a workspace.
+# Release Notes tab over Today after VS Code updates itself, experiments flipping the UI, Microsoft
+# usage reports on a program sold as private, walkthrough tabs when an extension installs, and
+# Windows' full File/Edit/.../Help menu bar. Set only on a VS Code Job Finder owns - a
+# developer's settings stay byte for byte
+QUIET = {
+    "update.showReleaseNotes": "false",
+    "workbench.enableExperiments": "false",
+    "telemetry.telemetryLevel": '"off"',
+    "workbench.welcomePage.walkthroughs.openOnInstall": "false",
+}
+QUIET_WINDOWS = {"window.menuBarVisibility": '"compact"'}
+# installers write it only in the branch that downloads VS Code itself
+VSCODE_OURS = cfg.DATA / "vscode-ours"
+JSONC_TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*.*?\*/', re.S)
+
+
+def settings_keys(text: str) -> set[str] | None:
+    """Top-level keys of VS Code's settings file (comments + trailing commas allowed); None if unreadable."""
+    plain = JSONC_TOKEN.sub(lambda m: m.group(0) if m.group(0).startswith('"') else "", text)
+    plain = re.sub(r",(\s*[}\]])", r"\1", plain).strip()
+    if not plain:
+        return set()
+    try:
+        data = json.loads(plain)
+    except ValueError:
+        return None
+    return set(data) if isinstance(data, dict) else None
+
+
+def quiet_keys() -> dict[str, str]:
+    return {**QUIET, **(QUIET_WINDOWS if sys.platform == "win32" else {})}
+
+
+def vscode_is_ours(text: str, marker: Path | None = None) -> bool:
+    # installs from before the marker: a settings file holding nothing but what Job Finder writes
+    # is one nobody else set up. Anything more (or a comment's worth of hand edits) = theirs
+    if (marker or VSCODE_OURS).exists():
+        return True
+    keys = settings_keys(text)
+    own = {"redhat.telemetry.enabled", *QUIET, *QUIET_WINDOWS}
+    return keys is not None and keys <= own and "//" not in text and "/*" not in text
+
+
+def ensure_quiet_vscode(settings: Path | None = None, marker: Path | None = None) -> None:
+    settings = settings or vscode_settings()
+    try:
+        text = settings.read_text(encoding="utf-8") if settings.exists() else ""
+        if not vscode_is_ours(text, marker):
+            return
+        merged = text
+        for key, value in quiet_keys().items():
+            if f'"{key}"' not in merged:
+                merged = add_setting(merged, f'"{key}": {value}')
+        if merged != text:
+            settings.parent.mkdir(parents=True, exist_ok=True)
+            settings.write_text(merged, encoding="utf-8")
+    except OSError:
+        pass
+
+
 def register_protocol() -> None:
     # toast click -> jobfinder: URL -> Desktop launcher; per-user key, no admin
     import winreg
@@ -326,6 +387,8 @@ def main() -> None:
     cfg.ensure_private_dirs()
     # before VS Code opens => the first click on a resume already shows the page
     ensure_pdf_viewer()
+    # before VS Code opens => no Release Notes tab over Today, no usage reports (ours only)
+    ensure_quiet_vscode()
     # before VS Code opens => a typo in the resume facts is underlined on the first edit
     ensure_yaml_checker()
     choice = chosen_ai()

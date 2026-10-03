@@ -1,6 +1,7 @@
 import json
 import re
-from pathlib import PurePosixPath, PureWindowsPath
+import shutil
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from urllib.parse import unquote
 
 import pytest
@@ -8,6 +9,8 @@ import pytest
 import cfg
 import launch
 import notify
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 
 def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
@@ -277,6 +280,63 @@ def test_vscode_settings_keep_comments_and_trailing_commas():
     assert launch.add_setting("", launch.TELEMETRY) == "{\n  " + launch.TELEMETRY + "\n}\n"
     assert launch.add_setting("{}", launch.TELEMETRY) == "{\n  " + launch.TELEMETRY + "\n}"
     assert json.loads(launch.add_setting('{\n  "a": 1\n}\n', launch.TELEMETRY)) == {"a": 1, "redhat.telemetry.enabled": False}
+
+
+QUIET_LINES = ['"update.showReleaseNotes": false', '"workbench.enableExperiments": false',
+               '"telemetry.telemetryLevel": "off"', '"workbench.welcomePage.walkthroughs.openOnInstall": false']
+
+
+# VS Code it installed: Release Notes tab over Today after each update, usage reports to Microsoft
+def test_quiet_settings_added_when_installer_put_vscode_there(tmp_path, monkeypatch):
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    marker, settings = tmp_path / "vscode-ours", tmp_path / "User" / "settings.json"
+    marker.touch()
+    launch.ensure_quiet_vscode(settings, marker)
+    text = settings.read_text(encoding="utf-8")
+    assert all(line in text for line in QUIET_LINES) and "menuBarVisibility" not in text
+    launch.ensure_quiet_vscode(settings, marker)
+    assert settings.read_text(encoding="utf-8") == text
+
+
+# a developer's VS Code (owner's own) changed app-wide = their editor stops behaving as they set it
+def test_quiet_settings_never_touch_a_developers_vscode(tmp_path):
+    settings = tmp_path / "settings.json"
+    shutil.copy(FIXTURES / "vscode-dev-settings.jsonc", settings)
+    before = settings.read_bytes()
+    launch.ensure_quiet_vscode(settings, tmp_path / "no-marker")
+    assert settings.read_bytes() == before
+    assert len(launch.settings_keys(before.decode())) >= 20
+
+
+# installs from before the marker: still quiet when only Job Finder ever wrote the file
+@pytest.mark.parametrize("text", [None, "", "{}", '{\n  "redhat.telemetry.enabled": false\n}\n'])
+def test_quiet_settings_on_old_installs_only_job_finder_wrote(tmp_path, text):
+    settings = tmp_path / "settings.json"
+    if text is not None:
+        settings.write_text(text, encoding="utf-8")
+    launch.ensure_quiet_vscode(settings, tmp_path / "no-marker")
+    assert all(line in settings.read_text(encoding="utf-8") for line in QUIET_LINES)
+
+
+# a user's own choice overwritten = their setting flips back at every launch
+def test_quiet_settings_keep_the_users_value_and_comments(tmp_path):
+    marker, settings = tmp_path / "vscode-ours", tmp_path / "settings.json"
+    marker.touch()
+    settings.write_text('{\n  // keep me\n  "telemetry.telemetryLevel": "error",\n}\n', encoding="utf-8")
+    launch.ensure_quiet_vscode(settings, marker)
+    text = settings.read_text(encoding="utf-8")
+    assert "// keep me" in text and text.count("telemetry.telemetryLevel") == 1
+    assert '"telemetry.telemetryLevel": "error"' in text and '"update.showReleaseNotes": false' in text
+    assert launch.settings_keys(text) >= {"telemetry.telemetryLevel", "update.showReleaseNotes"}
+
+
+# full File/Edit/.../Help bar is Windows-only; the key on a Mac is noise in their settings
+@pytest.mark.parametrize("platform, menu", [("win32", True), ("darwin", False), ("linux", False)])
+def test_quiet_menu_bar_only_on_windows(tmp_path, monkeypatch, platform, menu):
+    monkeypatch.setattr(launch.sys, "platform", platform)
+    settings = tmp_path / "settings.json"
+    launch.ensure_quiet_vscode(settings, tmp_path / "no-marker")
+    assert ('"window.menuBarVisibility": "compact"' in settings.read_text(encoding="utf-8")) is menu
 
 
 def test_start_page_leads_with_the_first_step():
