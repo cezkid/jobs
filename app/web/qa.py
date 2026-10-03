@@ -20,8 +20,9 @@ browser name + touch) at 320x640, 360x780, 375x812, 390x844 and as a desktop at 
   (install line shown); at every size (COMPOSITION): rules on header, footer + main's rows span the
   window, no section h2 cut by the fold, Job 12's ring box above the salary line, install line
   breaks only at spaces, <= 1 framed object in the first screen; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
-  main leaves a band > 400px wide + > 200px tall empty right of its content, and an article page has a
-  visible element starting right of x 900 (its On this page column)
+  main leaves a band > 400px wide + > 200px tall empty right of its content (hub, about, methods too: main as
+  one row, a sticky column counted to its parent's bottom), and an article page has a visible element
+  starting right of x 900 (its On this page column)
 
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
@@ -333,9 +334,12 @@ COMPOSITION = """() => {
 # ends more than BAND_W px short of the row's content edge, taller than BAND_H px = a band left empty
 BAND_AT = [(1440, 900), (1920, 1080)]  # 1920 too: bigger display type wraps to more lines
 BAND_W, BAND_H = 400, 200
-EMPTY_RIGHT = """() => {
+# hub, about, methods: main itself is the one row (their columns are main's children); a sticky element
+# (methods' On this page) stays beside the text, so it counts down to its parent's bottom
+WIDE_PAGES = {"research/index.html", "about/index.html", "research/methods/index.html"}
+EMPTY_RIGHT = """(rows) => {
   const out = [];
-  for (const row of document.querySelectorAll("main > *")) {
+  for (const row of document.querySelectorAll(rows)) {
     const box = row.getBoundingClientRect(); if (!box.height) continue;
     const s = getComputedStyle(row), left = box.left + parseFloat(s.paddingLeft), right = box.right - parseFloat(s.paddingRight);
     const rects = [];
@@ -347,8 +351,9 @@ EMPTY_RIGHT = """() => {
         rects.push(...[...r.getClientRects()].filter(q => q.width > 2 && q.height > 2));
       }
       if (["svg", "img", "button"].includes(el.localName) || parseFloat(c.borderLeftWidth) > 0 ||
-          parseFloat(c.borderRightWidth) > 0 || c.backgroundColor !== "rgba(0, 0, 0, 0)") {
-        const q = el.getBoundingClientRect(); if (q.width > 2 && q.height > 2) rects.push(q);
+          parseFloat(c.borderRightWidth) > 0 || c.backgroundColor !== "rgba(0, 0, 0, 0)" || c.position === "sticky") {
+        const q = el.getBoundingClientRect(); if (!(q.width > 2 && q.height > 2)) continue;
+        rects.push(c.position === "sticky" ? {top: q.top, right: q.right, bottom: el.parentElement.getBoundingClientRect().bottom} : q);
       }
     }
     if (!rects.length) continue;
@@ -575,9 +580,10 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
             elif not one:
                 failed.append(f"{where}: header wraps to a second line")
         if (width, height) in BAND_AT and not phone:
-            if name == "index.html":
-                failed += [f"{where}: {line}" for line in page.evaluate(EMPTY_RIGHT)]
-            elif page.evaluate("!!document.querySelector('main article')"):
+            if name == "index.html" or name in WIDE_PAGES:
+                rows = "main > *" if name == "index.html" else "main"
+                failed += [f"{where}: {line}" for line in page.evaluate(EMPTY_RIGHT, rows)]
+            if page.evaluate("!!document.querySelector('main article')"):
                 x = page.evaluate(RIGHTMOST)
                 if x <= ARTICLE_X:
                     failed.append(f"{where}: nothing right of x {ARTICLE_X}px (rightmost starts at {x:.0f}px) - "

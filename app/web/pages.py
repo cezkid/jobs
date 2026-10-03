@@ -810,10 +810,24 @@ PAGE_CSS = """
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { font-style: italic; font-synthesis: none; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
-  .toc { display: none; }
+  .toc, .labels { display: none; }
+  .labels dl { margin: 0 0 12px; }
+  .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
+  .labels dd { margin: 0 0 8px; color: var(--text-2); }
+  .labels p { margin: 0; }
   @media (min-width: 1280px) {
-    main.wrap:has(> .toc) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); }
-    main.wrap:has(> .toc) > .page { grid-column: 1; grid-row: 1; }
+    main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
+    main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
+    /* hub + about: the second column holds real content (evidence labels; About's later sections) */
+    main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
+    .side > h2:first-child { margin-top: 0; }
+    /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
+    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.4; }
+    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
+    .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
+    .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
+    main.wrap > .list { grid-column: 1; grid-row: 2; }
     .toc {
       display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
@@ -875,6 +889,38 @@ def listing(articles: list[Source]) -> str:
     return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
 
 
+def evidence_labels(methods: Source | None) -> str:
+    """Hub's second column (wide screens only): each evidence label + what it means, read from the methods
+    page's label table (header "In the text" ... "What it means"); a label listed twice joins its meanings."""
+    if methods is None or not methods.built:
+        return ""
+    heading, rows, table, cells = "", [], False, []
+    for i, token in enumerate(methods.tokens):
+        if token.type == "heading_open" and token.tag == "h2":
+            heading = methods.tokens[i + 1].content
+        elif token.type == "table_open":
+            table, rows = True, []
+        elif token.type == "table_close":
+            if rows and rows[0][0] == "In the text" and rows[0][-1] == "What it means":
+                break
+            table, rows = False, []
+        elif table and token.type == "tr_open":
+            cells = []
+        elif table and token.type == "inline":
+            cells.append(token.content)
+        elif table and token.type == "tr_close":
+            rows.append(cells)
+    else:
+        return ""
+    meaning: dict[str, str] = {}
+    for cells in rows[1:]:
+        label, what = cells[0], cells[-1]
+        meaning[label] = meaning[label] + ", or " + what[:1].lower() + what[1:] if label in meaning else what
+    items = "\n".join(f"<dt>{escape(k)}</dt><dd>{escape(v)}</dd>" for k, v in meaning.items())
+    return (f'<div class="side labels">\n<p>Evidence labels</p>\n<dl>\n{items}\n</dl>\n'
+            f'<p>How each label is chosen: <a href="{methods.url}#{slugify(heading)}">How we research</a>.</p>\n</div>\n')
+
+
 def stamp(day: str) -> str:
     """2026-10-02 -> 2026-10-02T00:00:00Z: Atom needs an RFC 3339 date-time (a date alone is invalid)."""
     return day + "T00:00:00Z"
@@ -913,7 +959,9 @@ def feed(root: Path, index: Source, articles: list[Source]) -> str:
     return '<?xml version="1.0" encoding="utf-8"?>\n' + ET.tostring(top, encoding="unicode") + "\n"
 
 
-def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -> str:
+def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, side: str = "",
+         after: str = "") -> str:
+    """side: a second column on wide screens (stacks after the page below 1280px); after: full width below both."""
     home = site(root)
     url = home + src.url.lstrip("/")
     person = {"@type": "Person", "@id": home + "about/#person", "name": AUTHOR, "url": home + "about/"}
@@ -995,6 +1043,8 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
         *([f'<p class="meta">{meta}</p>'] if meta else []),
         body.rstrip("\n"),
         f"</{wrapper}>",
+        *([side.rstrip("\n")] if side else []),
+        *([after.rstrip("\n")] if after else []),
         "</main>",
         parts["footer"],
         "</body>",
@@ -1037,9 +1087,13 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
         repo_files = tracked(root)
         for src in built:
             body = body_html(src, by_name, root, files, errors, registry, repo_files)
+            side = after = ""
             if src.name == "index":
-                body += listing(articles)
-            out[src.out] = page(src, root, body, parts, hub)
+                side, after = evidence_labels(by_name.get("methods")), listing(articles)
+            elif src.name == "about" and "<h2" in body:
+                cut = body.index("<h2")
+                body, side = body[:cut], '<div class="side">\n' + body[cut:] + "</div>\n"
+            out[src.out] = page(src, root, body, parts, hub, side, after)
         if hub:
             out[FEED] = feed(root, by_name["index"], articles)
     if errors:

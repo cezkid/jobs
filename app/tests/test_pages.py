@@ -681,6 +681,29 @@ def test_hub_lists_articles_newest_first_by_title_and_breadcrumbs_link_it(tmp_pa
     assert '<li><a href="/">Home</a></li><li aria-current="page">Research</li>' in hub
 
 
+def test_wide_screen_second_column_hub_labels_from_methods_and_about_sections(tmp_path):
+    table = ("\n## What the labels mean\n\n| In the text | In the Sources list | What it means |\n|---|---|---|\n"
+             "| Big study | Big study (pooled) | Many studies pooled |\n| Big study | Big study (field) | Real applications sent |\n"
+             "| Law | Law | The law's own text |\n")
+    research_site(tmp_path, {"methods.md": SOURCES["methods.md"] + table,
+                             "about.md": SOURCES["about.md"].replace("## Work", "Intro line.\n\n## Work\n\nWork line.")})
+    built = pages.build(tmp_path)
+    hub, about = built["research/index.html"], built["about/index.html"]
+    side = hub.split('<div class="side labels">')[1].split("</div>")[0]
+    assert "<dt>Big study</dt><dd>Many studies pooled, or real applications sent</dd>" in side
+    assert "<dt>Law</dt><dd>The law&#x27;s own text</dd>" in side
+    assert '<a href="/research/methods/#what-the-labels-mean">How we research</a>' in side
+    # labels column, then the list, both after the page column (narrow screens: labels hidden, list follows the intro)
+    assert hub.index('class="page"') < hub.index('class="side labels"') < hub.index('<ul class="list">') < hub.index("</main>")
+    # about: text before the first h2 stays in the page column, the h2 sections go to the second column
+    page, rest = about.split('<div class="side">')
+    assert "Intro line." in page and '<h2 id="work">Work</h2>' not in page
+    assert rest.index('<h2 id="work">Work</h2>') < rest.index("Work line.") < rest.index("</main>")
+    # no labels table on methods: no labels column
+    research_site(tmp_path / "b")
+    assert "labels" not in pages.build(tmp_path / "b")["research/index.html"].split("<body>")[1]
+
+
 def test_no_article_no_hub_and_an_article_needs_the_hub_intro(tmp_path):
     research_site(tmp_path, {"ats-myth.md": None, "ai-bias.md": None})
     built = pages.build(tmp_path)

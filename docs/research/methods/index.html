@@ -172,10 +172,24 @@
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { font-style: italic; font-synthesis: none; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
-  .toc { display: none; }
+  .toc, .labels { display: none; }
+  .labels dl { margin: 0 0 12px; }
+  .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
+  .labels dd { margin: 0 0 8px; color: var(--text-2); }
+  .labels p { margin: 0; }
   @media (min-width: 1280px) {
-    main.wrap:has(> .toc) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); }
-    main.wrap:has(> .toc) > .page { grid-column: 1; grid-row: 1; }
+    main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
+    main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
+    /* hub + about: the second column holds real content (evidence labels; About's later sections) */
+    main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
+    .side > h2:first-child { margin-top: 0; }
+    /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
+    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.4; }
+    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
+    .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
+    .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
+    main.wrap > .list { grid-column: 1; grid-row: 2; }
     .toc {
       display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
