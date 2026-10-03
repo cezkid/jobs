@@ -162,7 +162,9 @@ def press_next(page, block: lab.Block) -> None:
         print(f"  {APPLICANT}: {step}")
 
 
-def trial(url: str, go_next: bool = False, headless: bool = False) -> None:
+def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool = True) -> None:
+    """`upload=False`: file boxes left - an upload goes out on choosing the file on some systems, and
+    blocked it can take the form down with it (Workable, 2026-10-03): the rest is then tried without it."""
     system = systems.for_url(url)
     if system is None:
         sys.exit("no system matches this link - try runs a system's own filler; add the system first")
@@ -204,7 +206,7 @@ def trial(url: str, go_next: bool = False, headless: bool = False) -> None:
         resume, letter = files(Path(tmp))
         left = []
         for q in qs:
-            q["answer"], why = synthetic(q)
+            q["answer"], why = synthetic(q) if upload or q["kind"] != "file" else (None, "upload left (--no-upload)")
             if why:
                 left.append(f"  left: {q['title']} - {why}")
         shown = set(system.ids_on_page(page)) if per_page else set()

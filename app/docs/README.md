@@ -28,7 +28,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/greenhouse.md](apply/greenhouse.md) | Greenhouse forms, filled in Job Finder's own Chrome |
 | Applying | [apply/ukg.md](apply/ukg.md) | UKG Pro Recruiting forms: sign-in first, resume sections saved as added |
 | Applying | [apply/lever.md](apply/lever.md) | Lever forms - being measured (plan-6oq), nothing filled yet |
-| Applying | [apply/workable.md](apply/workable.md) | Workable forms - being measured (plan-6oq), nothing filled yet |
+| Applying | [apply/workable.md](apply/workable.md) | Workable forms, filled in Job Finder's own Chrome; resume goes out as soon as chosen |
 | Applying | [apply/smartrecruiters.md](apply/smartrecruiters.md) | SmartRecruiters forms - being measured (plan-6oq), nothing filled yet |
 | Applying | [apply/jazzhr.md](apply/jazzhr.md) | JazzHR forms - being measured (plan-6oq), nothing filled yet |
 | Applying | [apply/bamboohr.md](apply/bamboohr.md) | BambooHR forms - being measured (plan-6oq), nothing filled yet |

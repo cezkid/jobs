@@ -56,19 +56,21 @@ the following page" - a page after Submit: unmeasured. Consent / attestation lin
 |---|---|---|
 | standard text boxes | `input#<id>` w/ `name` = the definition id (`firstname`, `lastname`, `email`, `headline`, `address`); phone `input#input_phone[name=phone]` type tel; `textarea#summary`, `textarea#cover_letter` | find by `name` = id (stable both loads, 4 of 4) |
 | address helpers | `input#city`, `#postcode`, `#country`, no label, never required, empty on load (4 of 4) | left alone - what fills them (Address's place search?): unmeasured |
-| Resume | `input[type=file]` id `input_files_input_<random>` - changes every load (4 of 4), no `name` | find the file input in Profile, never by id. What choosing it sends: unmeasured (try) |
-| boolean | radio pair labelled YES / NO, `name` = `QA_<n>`, id random per load, inside a `fieldset` (radiogroup) | radio by `name` + option text, case-insensitive |
-| `multiple` single | radios `name` = `QA_<n>`, option text after an icon whose fallback text "SVGs not supported by this browser." is read into the label (headless) | match on option text with that fallback text stripped |
+| Resume | `input[type=file]` id `input_files_input_<random>` - changes every load (4 of 4), no `name` | the file input whose nearest words say resume / CV (not photo), never by id. Choosing it uploads at once - see below |
+| boolean | radio pair labelled YES / NO, `name` = `QA_<n>`, id random per load, inside a `fieldset` (radiogroup); each option a `[role=radio]` w/ `aria-checked` | the input only mirrors the pick: ticked by script it doesn't stay, its label isn't clickable (try, 2026-10-03). Pick the `[role=radio]` by its text, case-insensitive; a plain click times out (covered), so a click where it sits, then Space on it focused - ticked = `aria-checked` true (try: 3 of 3 postings, 11 radio questions) |
+| `multiple` single | same radios; the `[role=radio]` holds no text - the option's words sit beside it, after an icon whose fallback text "SVGs not supported by this browser." is read in (headless) | option text = the widest box around it holding no other option, fallback text stripped (1 tenant) |
 | `multiple` multi | checkboxes, `name` = the option's `name` from the definition (e.g. `5249623`), no id | tick each by the option `name` the definition gives for the answer |
 | `text` / `paragraph` | `input[name=QA_<n>]` / `textarea[name=QA_<n>]`, id = name | `fill` |
 | `number` | `input type=text name=QA_<n>`, no id; label read with a leading `*` (tenant D) | `fill` digits; strip `*` from the read label |
-| `dropdown`, `date`, education / experience entries, `avatar` | on no measured page (dropdowns: tenants E + one more, definitions only); groups need an "add" click, not done | unmeasured |
+| `dropdown` | `div[data-ui=<id>][data-input-type=select]` wrapping `input#input_<id>_input` role=combobox, `aria-haspopup=listbox`; a box named `<id>` beside it takes no typed value (try, tenant E, 8 of 8) | open the combobox: a click times out (covered), Down on it focused opens it; click the `[role=option]` whose text is the answer; read back off the wrapper (8 of 8 ok) |
+| `date` | one tenant (F): the EEO acknowledgment - left to the applicant (signing) | never filled |
+| education / experience entries, `avatar` | groups need an "add" click, not done; photo never | unmeasured |
 
 No captcha frame at load (0 of 4). Submit button: unmeasured (controls only). Never clicked.
 
 ## Pages
 
-One page, 4 of 4: every box on `/apply/`, no Next. Tenant C's "following page" for EEO: unmeasured.
+One page, 7 of 7 (4 measured + 3 tried): every box on `/apply/`, no Next. Tenant C's "following page" for EEO: unmeasured.
 
 ## What leaves the computer, when
 
@@ -77,7 +79,21 @@ On load, before anything is typed (blocked log, 2 loads x 4 tenants, 2026-10-03)
 renders in full with it blocked. The address prefill is the server's own guess from the request
 (in the GET answer of `/form`), nothing typed.
 
-While filling: unmeasured - filled by the build bead from `apply-form try`'s blocked log.
+While filling (`apply-form try`, 3 postings, 3 employers, 2026-10-03): typing, radios, ticks and
+dropdowns send nothing (0 blocked while filling, every box). Choosing the resume file sends it at
+once: POST to `workable-application-form.s3.us-east-1.amazonaws.com/` (2 per choose) + an error
+report to `api.rollbar.com` once blocked - the resume reaches Workable's storage before Submit.
+With that upload blocked the form breaks (every later box "not on page", 1 posting), so try runs
+`--no-upload` here and the resume box is left: on the user's own run it goes out on their yes.
+Contact details + answers: only on Submit (never clicked - unmeasured past it).
+
+## Try (`apply-form try --no-upload`, 2026-10-03)
+
+| Posting | Boxes | Result |
+|---|---|---|
+| tenant F | 17: text, phone, address, paragraphs, 4 boolean radios, 1 set of 3 ticks | all ok; resume left (upload), EEO date left (acknowledgment = signing) |
+| tenant E | 25: 8 dropdowns (2 lists, 6 Yes / No), boolean, paragraphs, text | all ok; resume left; authorization line left (signing) |
+| tenant G | 21: headline, numbers as text, 5 boolean, single `multiple`, checkbox `multiple` | all ok; resume left; "Do you certify ..." left (signing) |
 
 ## Closed posting
 
@@ -94,3 +110,4 @@ each, unknown shortcode, 2026-10-03). A posting closed by its employer: unmeasur
 | tenant D | page + definition: no education / experience; 2 boolean (sponsorship, on-site), salary `number`, referrer text |
 | tenant E | definition only: 17 `CA_` questions - 8 dropdowns (how heard, degree, 18+, work permit, sponsorship, relatives, past employer, non-compete), 5 paragraphs (follow-ups after "If yes", reason for leaving), 3 text, 1 boolean (attestation) |
 | tenant F | definition only: 9 questions (8 `CA_`); photo box; `multiple` checkboxes (weekends / evenings / holiday); criminal-history boolean + its explanation; EEO acknowledgment as a `date` |
+| tenant G | try only: salary + notice as text, second citizenship, gender as checkboxes, adjustments as single `multiple` ("Yes - please add details below" / No), 5 boolean |
