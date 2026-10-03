@@ -1,0 +1,37 @@
+# 2: timings, VS Code 1.140.0, 2026-10-03T22:11:16Z
+## cold profile create (storage.json write + folder) secs=0.2
+## install anthropic.claude-code into Second (already in shared dir)
+Installing extensions...
+Installing extension 'anthropic.claude-code'...
+Extension 'anthropic.claude-code' v2.1.288 was successfully installed.
+secs=3.0
+## install tomoki1207.pdf into Second (already in shared dir)
+Installing extensions...
+Installing extension 'tomoki1207.pdf'...
+Extension 'tomoki1207.pdf' v1.2.2 was successfully installed.
+secs=2.0
+## same again (already in this profile)
+Installing extensions...
+Extension 'anthropic.claude-code' v2.1.288 is already installed. Use '--force' option to update to latest version or provide '@<version>' to install a specific version, for example: 'anthropic.claude-code@1.2.3'.
+secs=0.6
+anthropic.claude-code-2.1.288-darwin-x64
+cez-job-finder.window-0.0.1
+cez-job-finder.window-0.0.2
+extensions.json
+redhat.vscode-yaml-1.24.0
+tomoki1207.pdf-1.2.2
+## one call, 3 extensions + vsix, into Third (all already in shared dir)
+Installing extensions...
+Extension 'c.vsix' was successfully installed.
+Installing extension 'redhat.vscode-yaml'...
+Installing extension 'anthropic.claude-code'...
+Installing extension 'tomoki1207.pdf'...
+Extension 'redhat.vscode-yaml' v1.24.0 was successfully installed.
+Extension 'tomoki1207.pdf' v1.2.2 was successfully installed.
+Extension 'anthropic.claude-code' v2.1.288 was successfully installed.
+secs=3.0
+anthropic.claude-code
+cez-job-finder.window
+redhat.vscode-yaml
+tomoki1207.pdf
+ls: data/code.lock: No such file or directory

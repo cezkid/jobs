@@ -1,0 +1,99 @@
+[
+    {
+        "identifier": {
+            "id": "tomoki1207.pdf",
+            "uuid": "6db08635-0c6a-45ba-9a4b-8c3e192c63c2"
+        },
+        "version": "1.2.2",
+        "location": {
+            "$mid": 1,
+            "path": "<scratch>/ext/tomoki1207.pdf-1.2.2",
+            "scheme": "file"
+        },
+        "relativeLocation": "tomoki1207.pdf-1.2.2",
+        "metadata": {
+            "installedTimestamp": 1791065310534,
+            "source": "gallery",
+            "id": "6db08635-0c6a-45ba-9a4b-8c3e192c63c2",
+            "publisherId": "36dae390-559e-4374-bca8-a49ec1616c36",
+            "publisherDisplayName": "tomoki1207",
+            "targetPlatform": "undefined",
+            "updated": false,
+            "private": false,
+            "isPreReleaseVersion": false,
+            "hasPreReleaseVersion": false
+        }
+    },
+    {
+        "identifier": {
+            "id": "redhat.vscode-yaml",
+            "uuid": "2061917f-f76a-458a-8da9-f162de22b97e"
+        },
+        "version": "1.24.0",
+        "location": {
+            "$mid": 1,
+            "path": "<scratch>/ext/redhat.vscode-yaml-1.24.0",
+            "scheme": "file"
+        },
+        "relativeLocation": "redhat.vscode-yaml-1.24.0",
+        "metadata": {
+            "installedTimestamp": 1791065313894,
+            "source": "gallery",
+            "id": "2061917f-f76a-458a-8da9-f162de22b97e",
+            "publisherId": "eed56242-9699-4317-8bc7-e9f4b9bdd3ff",
+            "publisherDisplayName": "Red Hat",
+            "targetPlatform": "undefined",
+            "updated": false,
+            "private": false,
+            "isPreReleaseVersion": false,
+            "hasPreReleaseVersion": false
+        }
+    },
+    {
+        "identifier": {
+            "id": "anthropic.claude-code",
+            "uuid": "3c13ae49-babe-45fe-8c48-5e45077a62bf"
+        },
+        "version": "2.1.288",
+        "location": {
+            "$mid": 1,
+            "path": "<scratch>/ext/anthropic.claude-code-2.1.288-darwin-x64",
+            "scheme": "file"
+        },
+        "relativeLocation": "anthropic.claude-code-2.1.288-darwin-x64",
+        "metadata": {
+            "installedTimestamp": 1791065316921,
+            "source": "gallery",
+            "id": "3c13ae49-babe-45fe-8c48-5e45077a62bf",
+            "publisherId": "89769da0-cc4b-40b0-8216-93ffb5a96b56",
+            "publisherDisplayName": "Anthropic",
+            "targetPlatform": "darwin-x64",
+            "updated": false,
+            "private": false,
+            "isPreReleaseVersion": false,
+            "hasPreReleaseVersion": false
+        }
+    },
+    {
+        "identifier": {
+            "id": "cez-job-finder.window"
+        },
+        "version": "0.0.2",
+        "location": {
+            "$mid": 1,
+            "fsPath": "<scratch>/ext/cez-job-finder.window-0.0.2",
+            "external": "file://<scratch>/ext/cez-job-finder.window-0.0.2",
+            "path": "<scratch>/ext/cez-job-finder.window-0.0.2",
+            "scheme": "file"
+        },
+        "relativeLocation": "cez-job-finder.window-0.0.2",
+        "metadata": {
+            "isApplicationScoped": false,
+            "isMachineScoped": false,
+            "isBuiltin": false,
+            "installedTimestamp": 1791065354526,
+            "pinned": true,
+            "source": "vsix"
+        }
+    }
+]
