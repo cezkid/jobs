@@ -199,6 +199,8 @@ when asked, at setup, and before any step sending something new off computer.
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Contact details, answers, resume you apply with | that employer's Greenhouse site | That employer, once you click Submit |
+| Resume you apply with | that employer's Lever site | That employer, as soon as you choose the file (Lever reads it to fill the form) |
+| Contact details, answers you apply with | that employer's Lever site | That employer, once you click Submit |
 | Work history, education, skills, links you apply with | that employer's UKG site | That employer, as each is added (only after you say yes) |
 | Contact details, answers, resume you apply with | that employer's UKG site | That employer, once you click Submit |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |

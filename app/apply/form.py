@@ -33,7 +33,9 @@ SETTLE_MS = 2500
 # what a closed posting says where its form would be
 CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|(?:position|job|role) (?:has been|is) "
                     r"(?:filled|closed)|(?:this )?job (?:post(?:ing)? )?(?:is )?closed|isn't accepting applications|"
-                    r"not accepting applications|posting (?:has )?expired", re.I)
+                    r"not accepting applications|posting (?:has )?expired|"
+                    # Lever, 404 at the form link (2026-10-03)
+                    r"posting you['’]re looking for might have closed", re.I)
 
 
 def job_dir(config: dict, slug: str) -> Path:

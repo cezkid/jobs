@@ -17,7 +17,7 @@ questions, 16% 5-14, 1% 15+ (one source, tech-heavy).
 
 ## Drafted, then pasted (systems the program can't fill)
 
-`apply-form prepare <job> <link>` on a system with no filler (Lever, Workable,
+`apply-form prepare <job> <link>` on a system with no filler (Workable,
 Recruitee) uses the read-ahead questions: contact boxes from the resume, the US work-permit
 questions from setup, the rest blank for the AI to fill with the user. `apply-form paste <job>`
 writes `Application answers.md` in the job folder - each question in order, its answer under it -

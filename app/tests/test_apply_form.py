@@ -49,7 +49,7 @@ def test_each_example_link_matches_exactly_one_system(system):
 def test_link_picks_its_system_or_says_where_else():
     assert systems.for_url("https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a") is ashby
     assert systems.for_url("https://boards.greenhouse.io/acme/jobs/1") is greenhouse
-    assert systems.for_url("https://jobs.lever.co/acme/1b2c") is None
+    assert systems.for_url("https://acme.recruitee.com/o/analyst") is None
     assert "Workday" in systems.elsewhere("https://acme.wd5.myworkdayjobs.com/en-US/careers/job/x")
 
 
