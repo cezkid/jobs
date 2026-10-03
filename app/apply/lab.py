@@ -60,12 +60,16 @@ OUTLINE = """() => { const vis = e => e.checkVisibility ? e.checkVisibility({che
 AROUND = """() => [...document.querySelectorAll('input:not([type=hidden]), select, textarea')]
   .filter(e => !e.labels?.length && !e.getAttribute('aria-label') && !e.getAttribute('aria-labelledby'))
   .map(e => ({id: e.id, name: e.name || '', around: (e.parentElement?.parentElement || e).outerHTML.slice(0, 800)}))"""
+TEXT_KEEP = 4096
 # host labels + path parts every tenant shares: not a tenant name, would hit the anonymity grep
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
            "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday",
-           "ultipro", "candidateportal", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
+           "ultipro", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
            "en-us", "en_us", "en", "us", "com", "net", "org", "io", "co"}
+# page chrome, not a name: iCIMS start box titles "Login", its submit input's value is "Next" (2026-10-03)
+# - in tenants.txt they hit every "next" in the code
+CHROME = {"login", "log in", "sign in", "loading...", "loading", "next", "continue", "submit", "apply", "search"}
 
 
 class Refused(Exception):
@@ -278,12 +282,23 @@ def load(page, url: str, clicks: list[str], block: Block, n: int) -> tuple[dict,
             idle(page)
             check_page(page)
         block.step = f"load {n}: read"
-        snap = dom.snapshot(page)
+        snap = dom.snapshot(page) | seen_text(page)
         snap["page_data"], snap["unlabelled"] = page.evaluate(PAGE_DATA), page.evaluate(AROUND)
         snap["outline"] = page.evaluate(OUTLINE)
         return snap, [response(r) for r in got if r.request.method == "GET"]
     finally:
         page.remove_listener("response", listen)
+
+
+def seen_text(page) -> dict:
+    """What the page shows, beside its controls: zero boxes read can be a wall, a box drawn without
+    form controls, or a click that opened nothing - only the words tell which (Paycom, 2026-10-03)."""
+    try:
+        return page.evaluate("""() => ({text: (document.body.innerText || '').replace(/\\s+/g, ' ').slice(0, %d),
+          buttons: [...document.querySelectorAll('button, [role=button], a[href]')].filter(e => e.getClientRects().length)
+            .map(e => (e.innerText || e.getAttribute('aria-label') || '').replace(/\\s+/g, ' ').trim()).filter(Boolean).slice(0, 80)})""" % TEXT_KEEP)
+    except Exception:  # navigating away mid-read
+        return {"text": "", "buttons": []}
 
 
 def idle(page) -> None:
@@ -339,8 +354,9 @@ def tenants(url: str, names: list[str], snap: dict) -> list[str]:
     # hit every doc + code line about that system
     out = [n for n in names if n.casefold() not in GENERIC] + [p for p in parts if len(p) >= 4 and p.casefold() not in GENERIC and not re.fullmatch(r"[\d-]+|wd\d+", p)]
     out += [str(c["value"]).strip() for c in snap["controls"]
-            if c["control"] in ("input", "textarea", "editable") and len(str(c["value"]).strip()) >= 4]
-    return list(dict.fromkeys(out))
+            if c["control"] in ("input", "textarea", "editable") and c.get("type") not in ("submit", "button", "reset")
+            and len(str(c["value"]).strip()) >= 4]
+    return list(dict.fromkeys(s for s in out if s.casefold() not in CHROME))
 
 
 def record_tenants(path: Path, lines: list[str]) -> int:

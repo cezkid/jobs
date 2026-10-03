@@ -1,0 +1,14 @@
+<!doctype html>
+<!-- the start box's frame, rebuilt from what measure read on 3 tenants (2026-10-03, writes blocked):
+     ids, names, types, labels; the privacy tick shows on 1 of 3; an invisible hCaptcha on 3 of 3 -->
+<html><body>
+<form>
+  <h2>Enter Your Information</h2>
+  <label for="email">Primary Email Address</label>
+  <input id="email" name="css_loginName" type="email" autocomplete="email">
+  <input type="checkbox" id="accept_gdpr" name="accept_gdpr" required>
+  <label for="accept_gdpr">Yes, I agree to Acme Candidate Data Privacy Policy</label>
+  <div class="h-captcha" data-size="invisible"></div><textarea name="h-captcha-response" hidden></textarea>
+  <input type="submit" id="enterEmailSubmitButton" value="Next">
+</form>
+</body></html>

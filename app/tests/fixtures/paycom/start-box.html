@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- Paycom's "Getting You Started" box, rebuilt from its labels as seen 2026-10-03 (one tenant, by
+     hand) - not a saved page: the box doesn't open while writes are blocked (docs/apply/paycom.md). -->
+<html><body>
+<h1>Test Job</h1>
+<div role="dialog" aria-label="Getting You Started">
+  <h2>Getting You Started</h2>
+  <label for="legalFirstName">Legal First Name*</label><input id="legalFirstName" required>
+  <label for="legalLastName">Legal Last Name*</label><input id="legalLastName" required>
+  <label for="emailAddress">Email*</label><input id="emailAddress" required>
+  <label for="confirmEmailAddress">Confirm Email*</label><input id="confirmEmailAddress" required>
+  <label for="primaryPhoneIsoCode">Country</label><select id="primaryPhoneIsoCode"><option value="US">United States +1</option></select>
+  <label for="primaryPhoneNumber">Primary Phone*</label><input id="primaryPhoneNumber" required>
+  <fieldset><legend>Do you consent to receiving text communications from this employer (SMS)?*</legend>
+    <label><input type="radio" name="primaryPhoneOptIn" value="yes" required>Yes</label>
+    <label><input type="radio" name="primaryPhoneOptIn" value="no">No</label></fieldset>
+  <div class="h-captcha"></div>
+  <button>Continue To Application</button>
+  <a href="#signin">Sign In</a> <a href="#create">Create Account</a>
+</div>
+</body></html>

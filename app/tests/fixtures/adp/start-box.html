@@ -1,0 +1,26 @@
+<!doctype html>
+<!-- ADP Workforce Now's "Tell us about yourself" box, rebuilt from what measure read on one tenant
+     (2026-10-03, writes blocked): labels, ids, input types, the phone's prefilled +1. -->
+<html><body>
+<h1>Test Job</h1>
+<div role="dialog" aria-label="Tell us about yourself">
+  <h2>Tell us about yourself.</h2>
+  <p>Please be advised that the mobile number or email associated with this verification process is intended to be unique to you.</p>
+  <label for="guestFirstName">First Name</label><input id="guestFirstName" type="text" required>
+  <label for="guestLastName">Last Name</label><input id="guestLastName" type="text" required>
+  <label for="guestEmail">Email</label><input id="guestEmail" name="Email" type="text" required>
+  <button type="button" aria-label="Phone number country">US</button>
+  <select aria-label="Country" hidden><option>United States</option></select>
+  <label for="login_view_phone">Mobile Number</label><input id="login_view_phone" name="phone" type="tel" autocomplete="tel" value="+1">
+  <button type="button">Continue</button>
+  <p>or Alternatively, you can sign in through your social media accounts.</p>
+  <button type="button">Sign in with LinkedIn</button><button type="button">Sign in with Google</button>
+  <button type="button">Sign in with Facebook</button>
+</div>
+<div id="onetrust-consent-sdk" hidden>
+  <div role="checkbox" aria-checked="false" aria-label="Analytics">Analytics</div>
+  <input id="vendor-search-handler" aria-label="Cookie list search">
+  <label for="chkbox-id">checkbox label</label><input type="checkbox" id="chkbox-id">
+  <label for="select-all-hosts-groups-handler">checkbox label</label><input type="checkbox" id="select-all-hosts-groups-handler">
+</div>
+</body></html>

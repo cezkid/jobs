@@ -8,7 +8,7 @@
 | What you're searching for (not your resume) | freehire.me, to find jobs |
 | Which job from your list you make a resume for or ask about (not your resume) | freehire.me, to get the whole posting, what its application asks, or if it's still open |
 | Your resume + jobs you ask about, what you say in interview practice, and the jobs on your Today page when a Claude chat opens | Your own AI chat account (Claude, ChatGPT or GitHub Copilot - Copilot's may be shared with Microsoft) |
-| What you apply with | That employer, when you click Submit - a few sites get some parts as they're filled; the AI tells you first |
+| What you apply with | That employer, when you click Submit - a few sites get some parts as they're filled, and on some your email (on some also your name and phone) goes when you click Continue or Next on their first box, before the form; the AI tells you first |
 | A follow-up email you send | The person you send it to, from your own email |
 
 **AI training:** on a personal Claude, ChatGPT or GitHub Copilot plan, your chats may help train future AI

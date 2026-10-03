@@ -211,6 +211,10 @@ when asked, at setup, and before any step sending something new off computer.
 | Email, resume, contact details, answers you apply with | that employer's Paylocity site | That employer: email as you leave its box, resume as you pick the file (both measured), the rest by Submit |
 | Resume file you apply with | that employer's SmartRecruiters site | That employer, as soon as it is chosen (only after you say yes) |
 | Contact details, answers you apply with | that employer's SmartRecruiters site | That employer, once you click Submit |
+| Name, email, phone you start with | that employer's Paycom site | That employer, when you click Continue on its start box - before the form |
+| Name, email, phone you start with | that employer's ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |
+| Email you start with | that employer's Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |
+| Email you start with | that employer's iCIMS site | That employer, when you click Next on its start box - before the form |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 

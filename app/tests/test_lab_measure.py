@@ -48,6 +48,8 @@ def test_measure_end_to_end_offline(tmp_path, monkeypatch):
     assert data["canary"]["received"] == [] and set(data["canary"]["blocked"]) == lab.KINDS
     assert {c["label"] for c in data["snapshot"]["controls"]} >= {"First Name *", "Notes"}
     assert [c["label"] for c in data["changed_ids"]] == ["Notes"]
+    # the words + buttons shown: zero boxes read is then a wall, a box without controls, or a dead click
+    assert "Apply" in data["snapshot"]["buttons"] and "First Name" in data["snapshot"]["text"]
     assert [b["method"] for b in data["blocked"]] == ["POST", "POST"]  # /w/track, once per load
     assert any(r["url"].endswith("/api/form.json") and '"fields"' in r["first"] for r in data["json"])
     assert data["page_data"] == {"pageData": {"sections": [{"name": "Info"}]}}

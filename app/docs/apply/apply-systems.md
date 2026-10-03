@@ -16,8 +16,12 @@ small plug-in.
 | BambooHR | `<co>.bamboohr.com/careers/<id>` | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP); the resume is sent when chosen | `bamboohr.md` |
 | Paylocity | `recruiting.paylocity.com/Recruiting/Jobs/Details/<id>` (form `/Apply/<id>`) | `apply-form`, Job Finder's own Chrome; questions read from the form definition in the apply page; steps "Step 1 of N", filled on the user's tab | `paylocity.md` |
 | SmartRecruiters | `jobs.smartrecruiters.com/<Company>/<postingId>-<slug>` (also the form app `oneclick-ui/company/<Company>/publication/<uuid>`) | `apply-form`, Job Finder's own Chrome; page 1 (contact + resume) filled, screening after Next on the user's tab | `smartrecruiters.md` |
+| Paycom | `paycomonline.net/v4/ats/web.php/portal/<key>/jobs/<id>` (older `jobs/ViewJobDetails?job=<id>&clientkey=<key>`) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `paycom.md` |
+| ADP Workforce Now | `workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=<uuid>&jobId=<id>` (any order, `ccId` / `lang` too) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `adp.md` |
+| Oracle Recruiting Cloud | `<pod>.fa.<dc>.oraclecloud.com/hcmUI/CandidateExperience/<lang>/sites/<site>/job/<id>` (any host with that path) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `oracle.md` |
+| iCIMS | `careers-<co>.icims.com/jobs/<id>/<slug>/job` (any `*.icims.com` host) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `icims.md` |
 
-Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS; Greenhouse embedded on an
+Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS on an employer's own domain; Greenhouse embedded on an
 employer's own page (`?gh_jid=` - board name unknown). Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
 `apply-form paste` writes `Application answers.md` to paste from. Otherwise `prepare` says so
@@ -100,8 +104,9 @@ A live form must never get an applicant record, anything typed, or the user's wi
 - **Budget**: 10 page loads per employer site per bead (measure = 2 + the canary's local one);
   bot checks can flag the address the user applies from. Saved JSON once captured.
 - **Anonymise**: measure appends employer names, the tenant part of the link and prefilled
-  values to `.data/measure/tenants.txt`; before committing, `grep -rniFf .data/measure/tenants.txt
-  app/ AGENTS.md Guides/` prints nothing. Docs say "tenant A / B", fixtures `acme`.
+  values to `.data/measure/tenants.txt`; before committing, `grep -rniwFf .data/measure/tenants.txt
+  app/ AGENTS.md Guides/` prints nothing (`-w`: whole words, so a short name inside a common word -
+  one inside "Kubernetes" - is no hit). Docs say "tenant A / B", fixtures `acme`.
 
 ## Browser (every system)
 
