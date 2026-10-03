@@ -137,8 +137,8 @@ every request into one tier:
   title, dates, degree or certification except to correct a real mistake; inflate seniority;
   shade a work-authorization or sponsorship answer (checked on Form I-9 once hired).
   Why, plainly: employers check these w/ past employers (HireRight 2025: over 3/4 of employers
-  found discrepancies, employment history the top one), and anything on the page gets asked
-  about in interview. Offer the honest route: tell them it's missing, never fill it.
+  found discrepancies; most common: undisclosed criminal convictions, then education +
+  employment), and anything on the page gets asked about in interview. Offer the honest route: tell them it's missing, never fill it.
   - Also Hold: dates shifted to hide a break; invented job, course or freelance to fill one; false
     birth date or grad year; non-legal name in a box labelled legal; renamed organisation; false
     answer to what a criminal-history question legally covers.
