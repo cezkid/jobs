@@ -150,6 +150,19 @@
   sample: news report based on five unnamed people familiar with the project; Amazon declined to comment
   checked: 2026-10-03
 
+- id: dhert-2024
+  type: report
+  authors: ["D'hert, Louis", "Baert, Stijn", "Lippens, Louis"]
+  year: 2024
+  title: "Unemployment, Inactivity, and Hiring Chances: A Systematic Review and Meta-Analysis"
+  venue: IZA Discussion Paper 17141, July 2024
+  doi: 10.2139/ssrn.4898321
+  url: https://docs.iza.org/dp17141.pdf
+  evidence: meta-analysis
+  sample: field experiments with about 67,000 made-up applicants in 7 countries, combined
+  preprint: true
+  checked: 2026-10-03
+
 - id: eeoc-itutorgroup-2023
   type: web
   org: US Equal Employment Opportunity Commission
@@ -283,6 +296,26 @@
   checked: 2026-10-03
   recheck_by: 2027-04-03
 
+- id: harvard-ocs-resume
+  type: web
+  org: Harvard College Office of Career Services
+  year: 2026
+  title: Harvard College Guide to Creating a Strong Resume
+  url: https://careerservices.fas.harvard.edu/resources/create-a-strong-resume/
+  evidence: convention
+  sample: a university career office's guide for students
+  checked: 2026-10-03
+
+- id: hireright-2025
+  type: web
+  org: HireRight
+  year: 2025
+  title: HireRight Releases 2025 Global Benchmark Report
+  url: https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report
+  evidence: vendor survey
+  sample: over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published
+  checked: 2026-10-03
+
 - id: il-hb3773
   type: law
   org: Illinois General Assembly
@@ -293,6 +326,16 @@
   sample: bill status page and synopsis; in force January 1, 2026
   checked: 2026-10-03
   recheck_by: 2027-01-03
+
+- id: indeed-experience-2025
+  type: web
+  org: Indeed Editorial Team
+  year: 2025
+  title: Listing Professional Experience on Your Resume
+  url: https://haubcareers.uwyo.edu/resources/listing-professional-experience-on-your-resume-2/
+  evidence: convention
+  sample: a job site's advice article, updated December 2025, republished by the University of Wyoming's business career office
+  checked: 2026-10-03
 
 - id: insight-global-2025
   type: report
@@ -336,6 +379,50 @@
   url: https://arxiv.org/abs/2406.07016
   evidence: observational
   sample: word counts in over 15 million science paper summaries (PubMed), 2010-2024; not resumes
+  checked: 2026-10-03
+
+- id: kristal-2023
+  type: article
+  authors: ["Kristal, Ariella S.", "Nicks, Leanne", "Gloor, Jamie L.", "Hauser, Oliver P."]
+  year: 2023
+  title: Reducing discrimination against job seekers with and without employment gaps
+  venue: Nature Human Behaviour 7, 211-218 (open copy on PubMed Central)
+  doi: 10.1038/s41562-022-01485-6
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/
+  evidence: large field experiment
+  sample: 9,022 made-up applications to real UK job ads, plan registered in advance
+  checked: 2026-10-03
+
+- id: kroft-2013
+  type: article
+  authors: ["Kroft, Kory", "Lange, Fabian", "Notowidigdo, Matthew J."]
+  year: 2013
+  title: "Duration Dependence and Labor Market Conditions: Evidence from a Field Experiment"
+  venue: Quarterly Journal of Economics 128(3), 1123-1167 (open copy, NBER working paper 18387)
+  doi: 10.1093/qje/qjt015
+  url: https://www.nber.org/system/files/working_papers/w18387/w18387.pdf
+  evidence: large field experiment
+  sample: about 12,000 made-up resumes sent to job ads in 100 US cities
+  checked: 2026-10-03
+
+- id: ladders-2012
+  type: report
+  org: TheLadders
+  year: 2012
+  title: "Keeping an Eye on Recruiter Behavior"
+  url: https://web.archive.org/web/20131214121352/http://cdn.theladders.net/static/images/basicSite/pdfs/TheLadders-EyeTracking-StudyC2.pdf
+  evidence: vendor survey
+  sample: 30 professional recruiters watched with eye tracking over 10 weeks; run by a job site; not peer-reviewed
+  checked: 2026-10-03
+
+- id: ladders-2018
+  type: web
+  org: Ladders
+  year: 2018
+  title: Ladders updates popular recruiter eye-tracking study with new key insights on how job seekers can improve their resumes
+  url: https://onrec.com/news/news-archive/ladders-updates-popular-recruiter-eye-tracking-study-with-new-key-insights-how-job
+  evidence: vendor survey
+  sample: a job site's press release, November 2018, reposted by Onrec; number of recruiters not stated
   checked: 2026-10-03
 
 - id: lawyer-monthly-2026
@@ -407,6 +494,28 @@
   sample: 7 AI detectors run on 91 essays by non-native English writers (TOEFL) and 88 essays by US eighth graders, all written by people
   checked: 2026-10-03
 
+- id: mit-capd-resumes
+  type: web
+  org: MIT Career Advising & Professional Development
+  year: 2026
+  title: Resumes
+  url: https://capd.mit.edu/resources/resumes/
+  evidence: convention
+  sample: a university career office's guide
+  checked: 2026-10-03
+
+- id: namingit-2021
+  type: article
+  authors: ["Namingit, Sheryll", "Blankenau, William", "Schwab, Benjamin"]
+  year: 2021
+  title: "Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate"
+  venue: Journal of Economic Behavior & Organization 2021 (paywalled; numbers from the authors' open 2018 conference abstract)
+  doi: 10.1016/j.jebo.2020.09.033
+  url: https://ashecon.confex.com/ashecon/2018/webprogram/Paper5280.html
+  evidence: field experiment
+  sample: 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs
+  checked: 2026-10-03
+
 - id: nyc-ll144
   type: law
   org: NYC Department of Consumer and Worker Protection
@@ -458,6 +567,16 @@
   sample: 1,000 US hiring managers, online panel; survey dates not given
   checked: 2026-10-03
 
+- id: resumego-2018
+  type: web
+  org: ResumeGo
+  year: 2018
+  title: "Settling the Debate: One or Two Page Resumes"
+  url: https://www.resumego.net/research/one-or-two-page-resumes/
+  evidence: vendor survey
+  sample: 482 recruiters, HR staff and managers in a hiring simulation with made-up resumes; run by a resume-writing company
+  checked: 2026-10-03
+
 - id: rozado-2026
   type: article
   authors: ["Rozado, David"]
@@ -470,6 +589,18 @@
   sample: 22 AI models picking the better of two matched resumes for 70 jobs, names swapped; 30,800 decisions in the main test
   checked: 2026-10-03
 
+- id: ruffle-2015
+  type: article
+  authors: ["Ruffle, Bradley J.", "Shtudiner, Ze'ev"]
+  year: 2015
+  title: Are Good-Looking People More Employable?
+  venue: Management Science 61(8), 1760-1776 (paywalled; read in the authors' open 2011 working-paper copy)
+  doi: 10.1287/mnsc.2014.1927
+  url: https://dev.gerillaoneletrajz.hu/wp-content/uploads/beauty-and-resume.pdf
+  evidence: large field experiment
+  sample: 5,312 made-up resumes sent in pairs to 2,656 real job ads in Israel, with and without a photo
+  checked: 2026-10-03
+
 - id: russell-2025
   type: article
   authors: ["Russell, Jenna", "Karpinska, Marzena", "Iyyer, Mohit"]
@@ -480,6 +611,17 @@
   url: https://arxiv.org/abs/2501.15654
   evidence: lab/LLM audit
   sample: 9 paid readers (4 rarely using AI, 5 using it often for writing) labelled 300 news-style articles as human or AI; detectors tested on the same set; not resumes
+  checked: 2026-10-03
+
+- id: sterkens-2023
+  type: article
+  authors: ["Sterkens, Philippe", "Caers, Ralf", "De Couck, Marijke", "Van Driessche, Victor", "Geamanu, Michel", "Baert, Stijn"]
+  year: 2023
+  title: "Costly mistakes: Why and when spelling errors in resumes jeopardise interview chances"
+  venue: PLOS ONE 18(4), e0283280
+  doi: 10.1371/journal.pone.0283280
+  evidence: lab/LLM audit
+  sample: 445 recruiters in Flanders, Belgium, rating made-up graduate resumes (1,335 ratings); not real hiring
   checked: 2026-10-03
 
 - id: tamkin-2023
