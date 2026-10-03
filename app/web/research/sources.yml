@@ -1,6 +1,18 @@
 # Research sources registry - every work a research page cites. Field rules: app/docs/site.md#research-pages;
 # what to cite + how to label it: app/docs/research.md. Sorted by id.
 
+- id: an-2025
+  type: article
+  authors: ["An, Jiafu", "Huang, Difang", "Lin, Chen", "Tai, Mingzhu"]
+  year: 2025
+  title: "Measuring gender and racial biases in large language models: Intersectional evidence from automated resume evaluation"
+  venue: PNAS Nexus 4(3), pgaf089
+  doi: 10.1093/pnasnexus/pgaf089
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC11937954/
+  evidence: lab/LLM audit
+  sample: about 361,000 made-up resumes for 20 entry-level jobs, scored 0-100 by 5 AI models (GPT-3.5 Turbo, GPT-4o, Gemini 1.5 Flash, Claude 3.5 Sonnet, Llama 3-70b)
+  checked: 2026-10-03
+
 - id: ashby-2024
   type: web
   org: Ashby
@@ -11,6 +23,41 @@
   sample: the maker's own description of its feature, September 2024
   checked: 2026-10-03
   recheck_by: 2027-04-03
+
+- id: bommasani-2026
+  type: article
+  authors: ["Bommasani, Rishi", "Bana, Sarah H.", "Creel, Kathleen A.", "Jurafsky, Dan", "Liang, Percy"]
+  year: 2026
+  title: Algorithmic Monocultures in Hiring
+  venue: "FAccT '26, ACM Conference on Fairness, Accountability, and Transparency (open copy on arXiv)"
+  doi: 10.1145/3805689.3812400
+  url: https://arxiv.org/abs/2605.27371
+  evidence: observational
+  sample: 4.2 million real applications from 3.4 million applicants to 1,746 jobs at 156 employers, all scored by one vendor's game-based tests (pymetrics), not resumes
+  checked: 2026-10-03
+
+- id: bone-2026
+  type: article
+  authors: ["Bone, Matthew", "Stephany, Fabian", "del Rio-Chanona, Maria"]
+  year: 2026
+  title: "Monocultural Biases: Correlated biases in large language models lead to unequal systemic exclusion rates in hiring"
+  venue: COLM 2026, Conference on Language Modeling (open copy on arXiv)
+  url: https://arxiv.org/abs/2609.22169
+  evidence: lab/LLM audit
+  sample: 10 open AI models, each in a base and a trained version, choosing between pairs of made-up applicants; age shown by graduation year
+  checked: 2026-10-03
+
+- id: chen-xiao-2026
+  type: article
+  authors: ["Chen, Qiangju", "Xiao, Yang"]
+  year: 2026
+  title: "Beyond the Name: Demographic Leakage in De-Identified Résumés and Evaluation Artifacts in LLM Bias Audits"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2609.16501
+  evidence: lab/LLM audit
+  sample: 9 open AI models, 620 made-up resumes with names and other fields removed
+  preprint: true
+  checked: 2026-10-03
 
 - id: clearinghouse-mobley
   type: web
@@ -23,6 +70,38 @@
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
+- id: co-sb26-189
+  type: law
+  org: Colorado General Assembly
+  year: 2026
+  title: "SB26-189: Automated Decision-Making Technology"
+  url: https://leg.colorado.gov/bills/sb26-189
+  evidence: law
+  sample: bill page and official summary; signed May 14, 2026, in force January 1, 2027
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: dastin-2018
+  type: article
+  authors: ["Dastin, Jeffrey"]
+  year: 2018
+  title: Amazon scraps secret AI recruiting tool that showed bias against women
+  venue: Reuters, October 10, 2018 (archived copy)
+  url: https://web.archive.org/web/2019/https://www.reuters.com/article/us-amazon-com-jobs-automation-insight-idUSKCN1MK08G
+  evidence: news report
+  sample: news report based on five unnamed people familiar with the project; Amazon declined to comment
+  checked: 2026-10-03
+
+- id: eeoc-itutorgroup-2023
+  type: web
+  org: US Equal Employment Opportunity Commission
+  year: 2023
+  title: iTutorGroup to Pay $365,000 to Settle EEOC Discriminatory Hiring Suit
+  url: https://www.eeoc.gov/newsroom/itutorgroup-pay-365000-settle-eeoc-discriminatory-hiring-suit
+  evidence: court record
+  sample: agency press release on a settled lawsuit, September 2023; what the agency alleged and the settlement terms
+  checked: 2026-10-03
+
 - id: enhancv-2025
   type: web
   authors: ["Vasileva, Doroteya"]
@@ -33,6 +112,39 @@
   sample: 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published
   checked: 2026-10-03
 
+- id: eo-14281
+  type: law
+  org: Executive Office of the President
+  year: 2025
+  title: "Executive Order 14281: Restoring Equality of Opportunity and Meritocracy"
+  url: https://www.federalregister.gov/documents/2025/04/28/2025-07378/restoring-equality-of-opportunity-and-meritocracy
+  evidence: law
+  sample: executive order as published in the Federal Register, April 2025
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: eu-ai-act
+  type: law
+  org: European Union
+  year: 2024
+  title: "Regulation (EU) 2024/1689 (Artificial Intelligence Act), Annex III"
+  url: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689
+  evidence: law
+  sample: official text; Annex III point 4 lists AI used to filter job applications and evaluate candidates as high-risk
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: eu-omnibus-2026
+  type: law
+  org: European Commission
+  year: 2026
+  title: AI Omnibus enters into force
+  url: https://digital-strategy.ec.europa.eu/en/news/ai-omnibus-enters-force
+  evidence: law
+  sample: Commission notice, July 27, 2026; Annex III high-risk rules apply from December 2, 2027
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
 - id: fuller-2021
   type: report
   authors: ["Fuller, Joseph B.", "Raman, Manjari", "Sage-Gavin, Eva", "Hines, Kristen"]
@@ -42,6 +154,30 @@
   url: https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf
   evidence: survey
   sample: 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured
+  checked: 2026-10-03
+
+- id: gao-2026
+  type: article
+  authors: ["Gao, Zhenyu", "Jiang, Wenxi", "Yan, Yutong"]
+  year: 2026
+  title: "Can LLMs Hire Fairly? Racial Bias in Resume Screening"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2606.28978
+  evidence: lab/LLM audit
+  sample: 14 AI models released 2023-2026, 24,024 resume pairs each that differ only by name, built from 6,007 real US job ads; yes/no to a phone screen
+  preprint: true
+  checked: 2026-10-03
+
+- id: glazko-2024
+  type: article
+  authors: ["Glazko, Kate", "Mohammed, Yusuf", "Kosa, Ben", "Potluri, Venkatesh", "Mankoff, Jennifer"]
+  year: 2024
+  title: Identifying and Improving Disability Bias in GPT-Based Resume Screening
+  venue: "FAccT '24, ACM Conference on Fairness, Accountability, and Transparency"
+  doi: 10.1145/3630106.3658933
+  url: https://arxiv.org/abs/2402.01732
+  evidence: lab/LLM audit
+  sample: one AI model (GPT-4) ranking one resume against the same resume plus disability-related awards, 60 trials across 6 disabilities
   checked: 2026-10-03
 
 - id: greenhouse-rules
@@ -65,6 +201,17 @@
   sample: the maker's own help page, updated June 2022
   checked: 2026-10-03
   recheck_by: 2027-04-03
+
+- id: il-hb3773
+  type: law
+  org: Illinois General Assembly
+  year: 2024
+  title: "HB 3773 (Public Act 103-0804): Human Rights Act, artificial intelligence"
+  url: https://www.ilga.gov/ftp/legislation/103/BillStatus/HTML/10300HB3773.html
+  evidence: law
+  sample: bill status page and synopsis; in force January 1, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
 
 - id: jobscan-2026
   type: web
@@ -121,6 +268,27 @@
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
+- id: nyc-ll144
+  type: law
+  org: NYC Department of Consumer and Worker Protection
+  year: 2023
+  title: Automated Employment Decision Tools (AEDT)
+  url: https://www.nyc.gov/site/dca/about/automated-employment-decision-tools.page
+  evidence: law
+  sample: the enforcing agency's page on Local Law 144 of 2021; enforced from July 5, 2023
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: nys-comptroller-2025
+  type: report
+  org: Office of the New York State Comptroller
+  year: 2025
+  title: "Enforcement of Local Law 144 - Automated Employment Decision Tools (2024-N-6)"
+  url: https://www.osc.ny.gov/state-agencies/audits/2025/12/02/enforcement-local-law-144-automated-employment-decision-tools
+  evidence: observational
+  sample: state audit of New York City's enforcement, July 2023 to June 2025, including a review of the same 32 companies the city checked
+  checked: 2026-10-03
+
 - id: preptel-2012
   type: web
   org: Preptel
@@ -141,6 +309,30 @@
   sample: 1,000 US hiring managers, online panel; survey dates not given
   checked: 2026-10-03
 
+- id: rozado-2026
+  type: article
+  authors: ["Rozado, David"]
+  year: 2026
+  title: "Gender and positional biases in LLM-based hiring decisions: evidence from comparative CV/résumé evaluations"
+  venue: PeerJ Computer Science (numbers read in the open arXiv copy)
+  doi: 10.7717/peerj-cs.3628
+  url: https://arxiv.org/abs/2505.17049
+  evidence: lab/LLM audit
+  sample: 22 AI models picking the better of two matched resumes for 70 jobs, names swapped; 30,800 decisions in the main test
+  checked: 2026-10-03
+
+- id: tamkin-2023
+  type: article
+  authors: ["Tamkin, Alex", "Askell, Amanda", "Lovitt, Liane", "Durmus, Esin", "Joseph, Nicholas", "Kravec, Shauna", "Nguyen, Karina", "Kaplan, Jared", "Ganguli, Deep"]
+  year: 2023
+  title: Evaluating and Mitigating Discrimination in Language Model Decisions
+  venue: arXiv preprint (Anthropic)
+  url: https://arxiv.org/abs/2312.03689
+  evidence: lab/LLM audit
+  sample: one AI model (Claude 2.0), 70 made-up decision questions including job offers, with age, race and gender varied
+  preprint: true
+  checked: 2026-10-03
+
 - id: uscis-i9
   type: law
   org: US Citizenship and Immigration Services
@@ -151,3 +343,39 @@
   sample: agency page, last reviewed June 2026
   checked: 2026-10-03
   recheck_by: 2027-04-03
+
+- id: wilson-2025
+  type: article
+  authors: ["Wilson, Kyra", "Sim, Mattea", "Gueorguieva, Anna-Maria", "Caliskan, Aylin"]
+  year: 2025
+  title: "No Thoughts Just AI: Biased LLM Hiring Recommendations Alter Human Decision Making and Limit Human Autonomy"
+  venue: AAAI/ACM Conference on AI, Ethics, and Society (AIES 2025)
+  doi: 10.1609/aies.v8i3.36749
+  url: https://ojs.aaai.org/index.php/AIES/article/view/36749
+  evidence: lab/LLM audit
+  sample: 528 people screening resumes in 1,526 made-up cases, helped by a simulated AI with set race preferences
+  checked: 2026-10-03
+
+- id: wilson-caliskan-2024
+  type: article
+  authors: ["Wilson, Kyra", "Caliskan, Aylin"]
+  year: 2024
+  title: "Gender, Race, and Intersectional Bias in Resume Screening via Language Model Retrieval"
+  venue: AAAI/ACM Conference on AI, Ethics, and Society (AIES 2024); correction note in arXiv version 3, August 2026
+  doi: 10.1609/aies.v7i1.31748
+  url: https://arxiv.org/abs/2407.20371
+  evidence: lab/LLM audit
+  sample: 3 text-matching AI models, over 500 real resumes with 120 names added, 9 occupations, 27 tests per comparison
+  checked: 2026-10-03
+
+- id: wright-2024
+  type: article
+  authors: ["Wright, Lucas", "Muenster, Roxana Mika", "Vecchione, Briana", "Qu, Tianyao", "Cai, Pika", "Smith, Alan", "Metcalf, Jacob", "Matias, J. Nathan"]
+  year: 2024
+  title: "Null Compliance: NYC Local Law 144 and the challenges of algorithm accountability"
+  venue: "FAccT '24, ACM Conference on Fairness, Accountability, and Transparency"
+  doi: 10.1145/3630106.3658998
+  url: https://facctconference.org/static/papers24/facct24-113.pdf
+  evidence: observational
+  sample: 155 student investigators checked the websites of 391 employers for posted bias audits and notices
+  checked: 2026-10-03
