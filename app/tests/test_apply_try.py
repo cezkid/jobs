@@ -118,7 +118,7 @@ def test_next_covered_says_what_covers_it(monkeypatch, capsys):
         def evaluate(self, js):
             return 'div#onetrust-banner-sdk role=dialog "We use cookies"'
 
-    page = SimpleNamespace(get_by_role=lambda role: SimpleNamespace(
+    page = SimpleNamespace(get_by_role=lambda role, name=None: SimpleNamespace(
         filter=lambda visible: SimpleNamespace(all=lambda: [Button()])))
     monkeypatch.setattr(dom, "snapshot", lambda page: {"url": "x", "controls": []})
     trial.press_next(page, lab.Block())
