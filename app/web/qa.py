@@ -20,24 +20,28 @@ browser name + touch) at 320x640, 360x780, 375x812, 390x844 and as a desktop at 
 
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
-- reduced motion: document.getAnimations() empty, every mark finished (MARK_STATE)
+- reduced motion: document.getAnimations() empty, every mark finished (MARK_STATE), every dashed
+  SVG stroke drawn (DRAWN: stroke-dashoffset 0)
 - full motion: no animation loops forever; once the timed ones end (the opening moment), text
-  opacity 1 at every half-screen scroll step; every mark finished once scrolled to mid-screen
+  opacity 1 at every half-screen scroll step; every mark finished once scrolled to mid-screen;
+  every dashed stroke drawn after a full scroll; reloaded at the bottom, none above the screen undrawn
 - layout boxes (offset rects: transforms don't move them) equal between reduced and full motion
 - no JS (CSS still animates: judged once the timed animations end): all text shown
   (opacity 1, visible) + home's Windows install line
 - forced colours: every mark still paints something its parent doesn't
 - home in print: <= 5 pages (PDF) and the install line shows
-- home's opening moment, 1366x641 + 390x844 (full motion): at load only the hero window animates,
+- home's opening moment, 1366x641 + 390x844 (full motion): at load only the hero window animates
+  (outside it only scroll-driven scene animations may exist),
   every timed animation ends <= 2800 ms; at first paint (each animation at 0) hero text opacity 1
   and no hero box more than 12px from its finished place; the LCP element is outside every
   animated element (its selector reported); a reload in the same tab (html.seen) animates nothing
 
 --engines: WebKit + Firefox (Playwright's own builds), every page at 390x844 + 1366x641: no
-sideways scroll, no console errors, finished states (reduced: 0 animations + marks; full: marks).
+sideways scroll, no console errors, finished states (reduced: 0 animations + marks + strokes;
+full: marks + strokes after a full scroll + after a reload at the bottom).
 --self-test: injects faults into home (Copy below the fold, a hidden mark, a console error, a
-wide element, an opening that runs long / fades text in / moves 40px / animates the LCP element /
-replays on reload) and exits 1 unless each one fails its check and clean home passes.
+wide element, a scene circle stuck half drawn / undrawn in reduced motion, an opening that runs
+long / fades text in / moves 40px / animates the LCP element / replays on reload) and exits 1 unless each one fails its check and clean home passes.
 
 --perf: home timed in Chrome, docs/ vs a frozen copy of the pre-redesign site (docs/ at
 BASELINE_SHA, unpacked once into .data/site-baseline/), new + baseline alternating, median of 3
@@ -172,6 +176,28 @@ MARKS_SCROLLED = "async () => {" + HELPERS + """
   return bad;
 }"""
 
+# every drawn stroke (SVG circle / path with a dash) not at stroke-dashoffset 0, as "label: why";
+# above=true keeps only those wholly above the screen
+DRAWN = "(above) => {" + HELPERS + """
+  return [...document.querySelectorAll("svg :is(circle, path)")]
+    .filter(sh => shown(sh) && getComputedStyle(sh).strokeDasharray !== "none")
+    .filter(sh => !above || sh.getBoundingClientRect().bottom < 0)
+    .map(sh => [sh, parseFloat(getComputedStyle(sh).strokeDashoffset)]).filter(([, off]) => off > 0.5)
+    .map(([sh, off]) => label(sh) + " in " + label(sh.closest("svg").parentElement) + ": stroke-dashoffset " + off);
+}"""
+
+# full motion: scroll to the bottom in half-screen steps, let timed animations end
+SCROLL_DOWN = "async () => {" + HELPERS + """
+  const step = Math.max(1, Math.floor(innerHeight / 2));
+  for (let y = 0; y <= document.documentElement.scrollHeight - innerHeight + step; y += step) {
+    scrollTo(0, y);
+    await frames();
+  }
+  await Promise.race([Promise.all(document.getAnimations().filter(a => a.timeline === document.timeline)
+    .map(a => a.finished.catch(() => {}))), new Promise(r => setTimeout(r, 5000))]);
+  await frames();
+}"""
+
 # animations that never end + wait (<= 5 s) for the timed ones to finish
 SETTLE = "async () => {" + HELPERS + """
   const timed = document.getAnimations().filter(a => a.timeline === document.timeline);
@@ -292,6 +318,11 @@ FAULTS = [
      "html:not(.seen) .window { animation: qa-lift 1s both; }</style>", "opening"),
     ("LCP element animated", "<style>@keyframes qa-nudge { from { transform: translateY(4px); } } "
      "html:not(.seen) h1 { animation: qa-nudge 1s both; }</style>", "opening"),
+    ("scene circle stuck half drawn", "<style>@keyframes qa-stuck { to { stroke-dashoffset: 40; } } "
+     "@media (prefers-reduced-motion: no-preference) { .margin.ok .ring { animation: qa-stuck 1s linear both "
+     "!important; animation-timeline: view() !important; } }</style>", "motion"),
+    ("scene circle undrawn in reduced motion", "<style>.submit svg { stroke-dashoffset: 60 !important; }</style>",
+     "motion"),
     ("opening replays on reload", '<script>document.documentElement.classList.remove("seen")</script>', "opening"),
 ]
 
@@ -457,6 +488,7 @@ def check_motion(browser, base: str, name: str, width: int, height: int, phone: 
                                 " + ' on ' + (a.effect && a.effect.target ? a.effect.target.tagName : '?'))")
         failed += [f"{where}: animation runs: {a}" for a in running]
         failed += [f"{where}: mark not finished: {m}" for m in page.evaluate(MARK_STATE)]
+        failed += [f"{where}: not drawn: {m}" for m in page.evaluate(DRAWN, False)]
         reduced = dict(page.evaluate(BOXES))
 
     where = label_for(browser, name, width, height, phone, "full motion")
@@ -467,6 +499,17 @@ def check_motion(browser, base: str, name: str, width: int, height: int, phone: 
         if full:
             failed += [f"{where}: text not fully shown at {t}" for t in page.evaluate(TEXT_OPACITY)[:10]]
         failed += [f"{where}: mark not finished at mid-screen: {m}" for m in page.evaluate(MARKS_SCROLLED)]
+        # scroll-driven draw-ins: all drawn after a full scroll; a reload at the bottom leaves none
+        # above the screen unfinished
+        page.evaluate(SCROLL_DOWN)
+        failed += [f"{where}: not drawn after a full scroll: {m}" for m in page.evaluate(DRAWN, False)]
+        page.reload()
+        page.wait_for_load_state("load")
+        if page.evaluate("scrollY") < 1:  # no scroll restoration: put it at the bottom by hand
+            page.evaluate("scrollTo(0, document.documentElement.scrollHeight)")
+        page.evaluate("new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))")
+        failed += [f"{where}: reloaded at the bottom, not drawn above the screen: {m}"
+                   for m in page.evaluate(DRAWN, True)]
     diff = [k for k in reduced.keys() | moving.keys() if reduced.get(k) != moving.get(k)]
     if diff:
         first = sorted(diff, key=lambda k: int(k.split()[0]))[:5]
@@ -512,8 +555,9 @@ def check_opening(browser, base: str, inject: str | None = None) -> tuple[list[s
             anims = result["animations"]
             if not phone and not any(timed for _, timed, _, _ in anims):
                 failed.append(f"{where}: no opening animation ran (the motion this check guards)")
+            # outside the window only scroll-driven scenes may exist: they move when scrolled, not at load
             for target, timed, end, in_window in anims:
-                if not in_window:
+                if not in_window and timed:
                     failed.append(f"{where}: animation at load outside the hero window: {target}")
                 elif timed and end > OPENING_MS:
                     failed.append(f"{where}: opening animation ends at {end} ms (cap {OPENING_MS}): {target}")
@@ -523,7 +567,8 @@ def check_opening(browser, base: str, inject: str | None = None) -> tuple[list[s
             page.reload()
             page.evaluate("document.fonts.ready")
             again = page.evaluate(OPENING)["animations"]
-            failed += [f"{where}: reload in the same tab animates {target}" for target, *_ in again]
+            failed += [f"{where}: reload in the same tab animates {target}"
+                       for target, timed, _, in_window in again if timed or in_window]
     return failed, reports
 
 

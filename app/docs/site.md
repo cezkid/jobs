@@ -179,7 +179,11 @@ Native CSS only - no animation library, no 3D, no WebGL. Text never waits for mo
 - Scenes: scroll-driven (`animation-timeline: view()`) as the single path, inside `@supports` +
   `prefers-reduced-motion: no-preference`. No scroll timelines (Firefox) => finished state. Only
   circles, checks + small object shifts animate; text opacity 1 at every scroll position; start +
-  end layout boxes identical.
+  end layout boxes identical. Home: the resume sheet lifts 12px + its second sheet slides out,
+  the "You approved this line" circle + tick and the Submit circle draw in. A drawn shape inside
+  an SVG takes its parent `<svg>`'s named `view-timeline` (a subject with a real CSS box). A
+  transformed sheet is a stacking context: its paper + border live on `::after`, the second sheet
+  on `::before`, so the back sheet never paints over the front one.
 - Copy click: sweep on the command line + "Copied". Page change: cross-document View Transition
   crossfade, header keeps its `view-transition-name`, no-preference only.
 - Animated properties only `transform`, `opacity`, `clip-path`, `stroke-dashoffset` (SVG circle /
@@ -223,10 +227,12 @@ KB = 1000 bytes.
   2026-10-03) and <= 7.7 at 375x812 (2x 3.84, 2026-10-03); reduced motion = 0 animations + marks
   finished; no JS = all text + the Windows line; text opacity 1 at every scroll step once the
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint;
-  print <= 5 pages w/ the install line; 0 console errors; opening moment (1366x641 + 390x844):
-  only the hero window animates at load, timed ones end <= 2800 ms, hero text opaque + boxes
+  print <= 5 pages w/ the install line; 0 console errors; every dashed SVG stroke at
+  `stroke-dashoffset` 0 in reduced motion, after a full scroll, and above the screen after a
+  reload at the bottom; opening moment (1366x641 + 390x844):
+  only the hero window animates at load (outside it only scroll-driven scenes), timed ones end <= 2800 ms, hero text opaque + boxes
   within 12px at first paint, LCP element outside every animated element (selector reported),
-  a same-tab reload animates nothing; `--engines` webkit + firefox; `--self-test` injects 10
+  a same-tab reload animates nothing; `--engines` webkit + firefox; `--self-test` injects 12
   faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
   carry it, or the checks can't see them).
 - Perf (`qa.py --perf`, median of 3 vs a frozen copy of the pre-redesign site): phone LCP <= 1.5 s

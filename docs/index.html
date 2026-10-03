@@ -312,13 +312,16 @@
   .for-job { margin: 0 0 12px !important; color: var(--text-2); font-size: 1.0625rem; }
   .sheet-lg {
     position: relative; margin: 0 10px 10px 0; padding: clamp(20px, 3vw, 44px) clamp(18px, 3vw, 48px);
-    background: var(--paper); color: var(--ink); border: 1px solid var(--ink);
+    color: var(--ink); border: 1px solid transparent;
     font-size: 1.0625rem; line-height: 1.5;
   }
-  .sheet-lg::before {
-    content: ""; position: absolute; inset: -1px; transform: translate(10px, 10px); z-index: -1;
+  /* both sheets drawn by pseudos: the lift's transform makes .sheet-lg a stacking context, and its own
+     paper would then sit under the second sheet; ::after (front) paints after ::before (behind) either way */
+  .sheet-lg::before, .sheet-lg::after {
+    content: ""; position: absolute; inset: -1px; z-index: -1;
     background: var(--paper); border: 1px solid var(--ink);
   }
+  .sheet-lg::before { transform: translate(10px, 10px); }
   .sheet-lg .name { font-size: 2rem; font-weight: 700; line-height: 1.15; }
   .sheet-lg .contact { color: var(--ink-2); font-size: 0.9375rem; }
   .sheet-lg .sec { font-size: 1rem; letter-spacing: 0.04em; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--ink); }
@@ -346,6 +349,21 @@
   @media (min-width: 1080px) {
     .resume .scene-text { grid-column: 1 / span 4; align-self: center; }
     .proof { grid-column: 5 / -1; }
+  }
+
+  /* scene motion: scroll-driven draw-ins, the single path - no support (Firefox) or reduced motion
+     shows the finished state; only circles, checks + the sheet's 12px lift move, text never waits */
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      @keyframes lift { from { transform: translateY(12px); } }
+      @keyframes under { from { transform: translate(0, 0); } }
+      .sheet-lg { animation: lift linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
+      .sheet-lg::before { animation: under linear both; animation-timeline: view(); animation-range: entry 20% cover 40%; }
+      .margin.ok svg { view-timeline: --ok; }
+      .margin.ok .ring { --len: 64; animation: draw linear both; animation-timeline: --ok; animation-range: entry 100% cover 55%; }
+      .margin.ok .tick { --len: 16; animation: draw linear both; animation-timeline: --ok; animation-range: cover 50% cover 62%; }
+      .submit svg { --len: 100; animation: draw linear both; animation-timeline: view(); animation-range: entry 100% cover 50%; }
+    }
   }
 
   /* applications + help after: a compact typeset pair, no framed object; illustrated Submit = ink, never a control */
