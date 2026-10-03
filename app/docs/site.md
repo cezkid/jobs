@@ -185,7 +185,9 @@ Native CSS only - no animation library, no 3D, no WebGL. Text never waits for mo
   transformed sheet is a stacking context: its paper + border live on `::after`, the second sheet
   on `::before`, so the back sheet never paints over the front one.
 - Copy click: sweep on the command line + "Copied". Page change: cross-document View Transition
-  crossfade, header keeps its `view-transition-name`, no-preference only.
+  crossfade, header keeps its `view-transition-name`, no-preference only: both live in the shared
+  block inside `@media (prefers-reduced-motion: no-preference)` (test fails either outside it), so
+  every page opts in and reduced motion changes page instantly.
 - Animated properties only `transform`, `opacity`, `clip-path`, `stroke-dashoffset` (SVG circle /
   check), `background-size` (wrapping marks + Copy line): compositor-cheap or small paints; any
   other property relayouts or repaints big areas every frame (test fails `@keyframes` +
@@ -232,8 +234,9 @@ KB = 1000 bytes.
   reload at the bottom; opening moment (1366x641 + 390x844):
   only the hero window animates at load (outside it only scroll-driven scenes), timed ones end <= 2800 ms, hero text opaque + boxes
   within 12px at first paint, LCP element outside every animated element (selector reported),
-  a same-tab reload animates nothing; `--engines` webkit + firefox; `--self-test` injects 12
-  faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
+  a same-tab reload animates nothing; page change via the header links (1366x641):
+  `pagereveal.viewTransition` set both ways in full motion, null in reduced, home arriving through
+  one skips its opening; `--engines` webkit + firefox; `--self-test` injects 14 faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
   carry it, or the checks can't see them).
 - Perf (`qa.py --perf`, median of 3 vs a frozen copy of the pre-redesign site): phone LCP <= 1.5 s
   + <= baseline + 0.3 s; desktop LCP <= 0.5 s; CLS <= 0.01; long frames during scroll <= baseline

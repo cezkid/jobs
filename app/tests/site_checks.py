@@ -215,6 +215,24 @@ def animated(css: str) -> set[str]:
     return {p for p in props if not re.fullmatch(r"\d[\w.]*|none|initial|inherit|unset", p)}
 
 
+NO_PREFERENCE = r"@media\s*\(\s*prefers-reduced-motion\s*:\s*no-preference\s*\)\s*\{"
+
+
+def outside_no_preference(css: str) -> str:
+    """css w/ every `@media (prefers-reduced-motion: no-preference) { ... }` body cut out."""
+    out, last = [], 0
+    for m in re.finditer(NO_PREFERENCE, css):
+        if m.start() < last:
+            continue
+        depth, i = 1, m.end()
+        while depth and i < len(css):
+            depth += {"{": 1, "}": -1}.get(css[i], 0)
+            i += 1
+        out.append(css[last:m.start()])
+        last = i
+    return "".join(out) + css[last:]
+
+
 def budgets(docs: Path, name: str) -> list[str]:
     """Static budgets + markup/CSS rules for one page under docs/ (no network, no browser)."""
     import gzip
@@ -246,6 +264,8 @@ def budgets(docs: Path, name: str) -> list[str]:
     problems += [f"{name}: <script src={a['src']}> (inline only)" for a in head.all("script") if "src" in a]
     if re.search(r"will-change", css, re.I):
         problems.append(f"{name}: will-change (layers every frame; motion stays on cheap properties)")
+    if re.search(r"@view-transition\b|view-transition-name", outside_no_preference(css)):
+        problems.append(f"{name}: view transition outside @media (prefers-reduced-motion: no-preference)")
     problems += [f"{name}: animates {p} (allowed: {sorted(ANIMATABLE)})" for p in sorted(animated(css) - ANIMATABLE)]
     ids = head.ids()
     for t, a in head.tags:

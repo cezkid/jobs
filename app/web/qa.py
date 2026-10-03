@@ -35,13 +35,18 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
   every timed animation ends <= 2800 ms; at first paint (each animation at 0) hero text opacity 1
   and no hero box more than 12px from its finished place; the LCP element is outside every
   animated element (its selector reported); a reload in the same tab (html.seen) animates nothing
+- page change, 1366x641: /research/ -> home -> /research/ through the header links, full motion:
+  pagereveal.viewTransition set both ways, masthead named, home skips its opening (html.seen);
+  reduced motion: home -> /research/ with viewTransition null
 
 --engines: WebKit + Firefox (Playwright's own builds), every page at 390x844 + 1366x641: no
 sideways scroll, no console errors, finished states (reduced: 0 animations + marks + strokes;
 full: marks + strokes after a full scroll + after a reload at the bottom).
 --self-test: injects faults into home (Copy below the fold, a hidden mark, a console error, a
 wide element, a scene circle stuck half drawn / undrawn in reduced motion, an opening that runs
-long / fades text in / moves 40px / animates the LCP element / replays on reload) and exits 1 unless each one fails its check and clean home passes.
+long / fades text in / moves 40px / animates the LCP element / replays on reload, a page change
+w/o crossfade, an opening played after one) and exits 1 unless each one fails its check and clean
+home passes.
 
 --perf: home timed in Chrome, docs/ vs a frozen copy of the pre-redesign site (docs/ at
 BASELINE_SHA, unpacked once into .data/site-baseline/), new + baseline alternating, median of 3
@@ -304,6 +309,15 @@ FIRST_PAINT = "() => {" + HELPERS + """
 }""".replace("SHIFT", str(OPENING_SHIFT))
 
 
+# page change: pagereveal recorded from the first script on (true = the page came in through a transition)
+REVEAL = 'addEventListener("pagereveal", e => { window.__vt = !!e.viewTransition; });'
+ARRIVED = """() => { const win = document.querySelector(".hero .window"), m = document.querySelector(".masthead");
+  return {vt: window.__vt, seen: document.documentElement.classList.contains("seen"),
+          masthead: m ? getComputedStyle(m).viewTransitionName : null,
+          opening: win ? document.getAnimations().filter(a => a.timeline === document.timeline
+                                                         && win.contains(a.effect.target)).length : 0}; }"""
+
+
 # self-test faults: (what, html injected before </body>, check that must fail)
 FAULTS = [
     ("Copy below the fold", "<style>#copy { margin-top: 900px; }</style>", "layout"),
@@ -324,6 +338,9 @@ FAULTS = [
     ("scene circle undrawn in reduced motion", "<style>.submit svg { stroke-dashoffset: 60 !important; }</style>",
      "motion"),
     ("opening replays on reload", '<script>document.documentElement.classList.remove("seen")</script>', "opening"),
+    ("page change w/o crossfade", "<style>@view-transition { navigation: none; }</style>", "transition"),
+    ("opening plays after a page change", '<script>addEventListener("pagereveal", () => '
+     'document.documentElement.classList.remove("seen"))</script>', "transition"),
 ]
 
 
@@ -410,7 +427,7 @@ def opened(browser, base: str, name: str, width: int, height: int, phone: bool, 
         def fulfil(route):
             response = route.fetch()
             route.fulfill(response=response, body=response.text().replace("</body>", inject + "</body>", 1))
-        page.route(base + name, fulfil)
+        page.route(lambda url: url in (base + name, base + name.removesuffix("index.html")), fulfil)
     try:
         if goto:
             page.goto(base + name)
@@ -572,6 +589,33 @@ def check_opening(browser, base: str, inject: str | None = None) -> tuple[list[s
     return failed, reports
 
 
+def check_transition(browser, base: str, inject: str | None = None) -> list[str]:
+    """Page change, 1366x641: full motion crossfades both ways (pagereveal.viewTransition set) and
+    home arriving through one skips its opening (html.seen, nothing animating in the window);
+    reduced motion changes page with no transition (viewTransition null)."""
+    failed = []
+    for motion, start, hops in (("no-preference", "research/", (("a.brand", ""), ('a[href="/research/"]', "research/"))),
+                                ("reduce", "", (('a[href="/research/"]', "research/"),))):
+        where = f"page change ({motion})"
+        with opened(browser, base, "index.html", 1366, 641, False, failed, where, inject, goto=False,
+                    reduced_motion=motion) as page:
+            page.add_init_script(REVEAL)
+            page.goto(base + start)
+            for link, to in hops:
+                page.click(f"header {link}")
+                page.wait_for_url(base + to)
+                page.wait_for_function("window.__vt !== undefined")
+                got = page.evaluate(ARRIVED)
+                if (motion == "reduce") == got["vt"]:
+                    failed.append(f"{where}: /{to} arrived with viewTransition {'set' if got['vt'] else 'null'}")
+                if got["masthead"] != ("masthead" if motion != "reduce" else "none"):
+                    failed.append(f"{where}: /{to} masthead view-transition-name {got['masthead']!r}")
+                if not to and motion != "reduce" and not (got["seen"] and not got["opening"]):
+                    failed.append(f"{where}: home arrived through a crossfade plays its opening "
+                                  f"(html.seen {got['seen']}, {got['opening']} window animations)")
+    return failed
+
+
 def check_print(browser, base: str, inject: str | None = None) -> list[str]:
     """Home as printed: <= PRINT_CAP pages (Chrome PDF), install line shown."""
     failed = []
@@ -606,6 +650,7 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
             for (w, h), phone in MOTION_SIZES:
                 failed += check_motion(browser, base, name, w, h, phone)
         failed += check_print(browser, base)
+        failed += check_transition(browser, base)
         f, r = check_opening(browser, base)
         failed += f
         reports += r
@@ -639,12 +684,14 @@ def run_self_test(base: str) -> list[str]:
             return check_layout(browser, base, "index.html", *SEND_AT, True, inject, shots=False)[0]
         if kind == "opening":
             return check_opening(browser, base, inject)[0]
+        if kind == "transition":
+            return check_transition(browser, base, inject)
         return check_motion(browser, base, "index.html", *FOLD, False, inject)
 
     failed = []
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
-        for kind in ("layout", "phone", "motion", "opening"):
+        for kind in ("layout", "phone", "motion", "opening", "transition"):
             clean = home(browser, kind, None)
             if clean:
                 failed.append(f"self-test: clean home fails its {kind} checks: {clean[0]}")

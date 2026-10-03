@@ -123,6 +123,11 @@
     figure, li, details, pre { break-inside: avoid; }
     footer .row { padding-bottom: 0; }
   }
+  /* page change: a plain crossfade (no page turn), the masthead holds still; reduced motion = instant */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+    .masthead { view-transition-name: masthead; }
+  }
   /* /shared */
 
   main { padding: clamp(24px, 4vh, 48px) 0 clamp(56px, 9vh, 104px); }
