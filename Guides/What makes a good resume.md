@@ -12,7 +12,7 @@ Rules clash? This order wins: **true > real results > fits the job > easy to rea
 
 ## 1. Every word true
 
-- **Employer, title, dates match the employer's records.** 3 in 4 employers found a mismatch
+- **Employer, title, dates match the employer's records.** Over 3 in 4 employers found a mismatch
   last year, work history most. *Vendor survey (HireRight 2025, a background-check company).*
 - **Every number one you can explain.** Interviews ask about anything on the page. Nothing
   added you didn't give. *Convention.*

@@ -20,7 +20,7 @@ uncited:
 ---
 **Short answer**
 
-- "75% rejected by ATS": a 2012 sales claim; we found no method or data behind it (Vendor survey) [@levinson-2012-cio].
+- "75% rejected by ATS": a 2012 sales claim; we found no method or data behind it (News report) [@levinson-2012-cio].
 - Hiring software stores, searches, filters and ranks; recruiters say a person usually decides (Vendor survey) [@enhancv-2025].
 - Where software rejects alone, recruiters name yes/no questions: work permit, location, license (Vendor survey, 25 recruiters) [@enhancv-2025].
 - About a third of hiring managers in one 2026 vendor survey use AI to screen or rank (Vendor survey) [@resume-genius-2026]. How often it rejects alone: unknown.
@@ -136,7 +136,7 @@ For you, AI scores are in use, but most managers in that survey said a person st
 - Fill every question yourself; autofill can leave them blank (our Ashby test did).
 - Apply widely. Executives say rigid filters drop qualified people [@fuller-2021, p. 26], so one rejection may say more about the filter than about you.
 
-How we grade evidence: [How we research](methods.md). More articles: [Research](index.md).
+How we grade evidence: [How we research](methods.md). More articles: [Research](index.md). Whether AI screeners treat people fairly: [Is AI resume screening biased?](ai-resume-screening-bias.md). Which resume rules have evidence: [What makes a good resume?](what-makes-a-good-resume.md).
 
 ## How CEZ Job Finder uses this
 

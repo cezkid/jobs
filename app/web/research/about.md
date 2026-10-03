@@ -1,5 +1,5 @@
 ---
-title: About the author
+title: About Cesar Enrriquez-Zuniga
 description: Cesar Enrriquez-Zuniga makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one, and writes these Research articles.
 published: 2026-10-03
 modified: 2026-10-03

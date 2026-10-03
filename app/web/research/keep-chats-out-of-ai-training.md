@@ -139,7 +139,7 @@ For you, a work login trains less, but your employer sets its rules and may see 
 - Delete chats you don't need. On Claude, deleted chats leave Anthropic's main systems within 30 days, unless flagged for safety or held for legal reasons [@anthropic-retention].
 - Leave out what the AI doesn't need. Your street address, birth date and ID numbers rarely help a resume; that is common advice, not a study finding.
 
-What belongs on a resume at all: [What makes a good resume?](what-makes-a-good-resume.md). How we check sources: [How we research](methods.md). We searched the companies' help pages, news and research archives in October 2026 for outside tests of these switches.
+What belongs on a resume at all: [What makes a good resume?](what-makes-a-good-resume.md). Using AI to write it: [Can employers tell if AI wrote your resume?](ai-written-resumes.md). How we check sources: [How we research](methods.md). We searched the companies' help pages, news and research archives in October 2026 for outside tests of these switches.
 
 ## How CEZ Job Finder uses this
 
