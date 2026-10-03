@@ -193,10 +193,13 @@ KB = 1000 bytes.
 - Header + footer hold no `<title>`, `<style>` or `id`: copied to every page (an id twice, a 2nd title).
 - At most one inline script names `LINES`: tests read the install line from the one that does.
 - Browser checks (`uv run app/web/qa.py`): Copy above the fold at 1366x641 (gate) + 1280x593
-  (report); phone 320-390, 768, 1366, 1440, 1920 widths; page length <= 8 screens at 1366x641;
-  reduced motion = 0 animations + marks finished; no JS = all text + the Windows line; text
-  opacity 1 at every scroll step; layout equal reduced vs full motion; forced colours; print; 0
-  console errors; webkit + firefox.
+  (report); phone 320-390, 768, 1366, 1440, 1920 widths; home <= 8 screens at 1366x641 (3.88 on
+  2026-10-03) and <= 7.7 at 375x812 (2x 3.84, 2026-10-03); reduced motion = 0 animations + marks
+  finished; no JS = all text + the Windows line; text opacity 1 at every scroll step once the
+  timed animations end; layout equal reduced vs full motion; forced colours = marks still paint;
+  print <= 5 pages w/ the install line; 0 console errors; `--engines` webkit + firefox;
+  `--self-test` injects 4 faults, each must fail. Mark = `<mark>` or class `mark` (new kinds
+  carry it, or the checks can't see them).
 - Perf (`qa.py --perf`, median of 3 vs a frozen copy of the pre-redesign site): phone LCP <= 1.5 s
   + <= baseline + 0.3 s; desktop LCP <= 0.5 s; CLS <= 0.01; long frames during scroll <= baseline
   max + 50 ms and < 250 ms; click -> next paint <= 100 ms; Copy -> "Copied" <= 150 ms. Idle frame
@@ -230,10 +233,13 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   by, Privacy, Source code) byte-identical on every page; test guards.
 - Phone header: brand + 3 links need 399px, a 360/375/390px screen has 328/343/358 => header
   Source code hidden <= 600px (footer keeps it); <= 359px the links may wrap below the brand.
-- Layout checked in a real browser: `uv run app/web/qa.py` (PEP 723, Chrome) serves `docs/`,
-  opens every page as a phone at 320/360/375/390px + desktop at 768/1366px; fails on sideways
-  scroll, a two-line header from 360px, or Copy below the fold at 1366x768. Screenshots in
-  `.data/screens/`. Width = `clientWidth`: a phone's `innerWidth` grows to fit a too-wide page.
+- Layout checked in a real browser: `uv run app/web/qa.py` (PEP 723, Chrome; playwright pinned
+  to the cached WebKit + Firefox builds) serves `docs/` gzipped, opens every page as a phone at
+  320/360/375/390px + desktop at 768/1366x641/1440/1920px; fails on sideways scroll, a two-line
+  header from 360px, or Copy below the fold at 1366x641. Screenshots in `.data/screens/`.
+  Width = `clientWidth`: a phone's `innerWidth` grows to fit a too-wide page.
+- No-JS pages still run CSS animations but never fire timers or frames: qa.py sleeps out the
+  timed ones from Python (an awaited promise there hangs forever).
 - Install line static in HTML (Windows), JS swaps for Mac; FAQ carries the Mac line as text ->
   no-JS readers + crawlers see a command.
 - Never look like a fake "paste this to verify" page: clipboard written only on Copy click, full
