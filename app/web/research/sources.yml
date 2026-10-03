@@ -1,6 +1,18 @@
 # Research sources registry - every work a research page cites. Field rules: app/docs/site.md#research-pages;
 # what to cite + how to label it: app/docs/research.md. Sorted by id.
 
+- id: al-ali-2026
+  type: article
+  authors: ["Al Ali, Adnan", "Helcl, Jindřich", "Libovický, Jindřich"]
+  year: 2026
+  title: "Different Time, Different Language: Revisiting the Bias Against Non-Native Speakers in GPT Detectors"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2602.05769
+  evidence: lab/LLM audit
+  sample: essays in Czech by non-native students (AKCES 3 corpus) and native peers, plus other text types; three kinds of AI detectors of 2025, one of them commercial; not English, not resumes
+  preprint: true
+  checked: 2026-10-03
+
 - id: an-2025
   type: article
   authors: ["An, Jiafu", "Huang, Difang", "Lin, Chen", "Tai, Mingzhu"]
