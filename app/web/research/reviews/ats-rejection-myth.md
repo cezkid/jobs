@@ -1,11 +1,11 @@
 ---
 reviewed: 2026-10-03
-verdict: revise
-reviewer: fresh AI session, bead plan-xsy.19 (no drafting context; sources opened before the draft was read)
+verdict: publish
+reviewer: fresh AI session, bead plan-xsy.19 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.20
 ---
 # Review: Do ATS reject 75% of resumes? (`ats-rejection-myth.md`)
 
-Verdict **revise**: 3 high, 15 medium, 12 low findings, all open. The origin trail is right and
+Verdict **publish** (after revision, 2026-10-03; first verdict was revise): 3 high, 15 medium, 12 low findings, all fixed - see Revision below. The origin trail is right and
 well sourced. The problems are the headline answer (stated firmer than 25 vendor interviews
 allow), one sentence that puts words in the court's mouth, and our own measurement, which
 leaves out a much larger published count that points the other way.
@@ -132,14 +132,14 @@ marketing 5, education 2, healthcare 1, finance 1, design 0. Unreadable 697: Wor
 
 ## Findings
 
-All open.
+All fixed in plan-xsy.20; how each was fixed is under Revision.
 
-- **F1 (high, open) - court note misattributed.** Line 105: "The court noted that figure counts
+- **F1 (high, status: fixed) - court note misattributed.** Line 105: "The court noted that figure counts
   rejections recorded in Workday, not AI rejections." The order (p.19) says only that Workday's
   estimate "ignores the qualifiers in the definition of the collective that will limit its scope".
   Fix: "The court said that estimate ignores the limits of who is in the case." Our own reading
   (rejections recorded in Workday, by employers or otherwise) may follow as ours, labelled.
-- **F2 (high, open) - our measurement ignores a larger count that points the other way.** freehire
+- **F2 (high, status: fixed) - our measurement ignores a larger count that points the other way.** freehire
   published (2026-08) that of ~100k captured forms, 67% ask nothing beyond resume + contact details
   (`app/docs/apply/answers.md:15`). Our sample has 20 of 143 (14%) with no questions. The draft's
   "Most forms asked at least one knockout-type question" reads as typical of forms; it may only be
@@ -147,90 +147,90 @@ All open.
   (our "questions" include address/LinkedIn boxes; field mix; 60 postings per field at one random
   offset). Also state the field skew in numbers: sales + customer success + HR + backend = 92 of
   143 forms; healthcare 1, finance 1, design 0. Or cite freehire's page as a source if public.
-- **F3 (high, open) - headline answer firmer than the evidence.** Description, Short answer line 3
+- **F3 (high, status: fixed) - headline answer firmer than the evidence.** Description, Short answer line 3
   and line 48 say yes/no questions are "the most common" / "mostly" / "do the rejecting". Evidence:
   25 vendor-run interviews + one help page saying the feature exists. "What we don't know" itself
   says nobody counts auto-rejections. Fix: "Where software rejects on its own, it is mostly on
   yes/no answers, in recruiter interviews (Vendor survey, 25 recruiters)." Same in description.
-- **F4 (medium, open) - Short answer lines 2-3 carry labels but no citations.** Add
+- **F4 (medium, status: fixed) - Short answer lines 2-3 carry labels but no citations.** Add
   [@enhancv-2025] / [@greenhouse-rules] / [@resume-genius-2026] markers, or drop the label.
-- **F5 (medium, open) - "no method ever published", "no study ... since".** Universal negatives.
+- **F5 (medium, status: fixed) - "no method ever published", "no study ... since".** Universal negatives.
   Fix: "We found no method, study or data behind it" (and say where we looked).
-- **F6 (medium, open) - "Many retellings now say 'rejected'" is uncited, and "never claimed" is too
+- **F6 (medium, status: fixed) - "Many retellings now say 'rejected'" is uncited, and "never claimed" is too
   strong.** The 2012 article says ATS "screen incoming resumes" and kill chances "as soon as they
   submit". Fix: cite one retelling (Enhancv quotes the "ATS rejects most resumes" claim), and say
   the 2012 line was about chances of an interview, not a count of rejections.
-- **F7 (medium, open) - third content auto-rejecter left out.** Enhancv's own page names a Phenom
+- **F7 (medium, status: fixed) - third content auto-rejecter left out.** Enhancv's own page names a Phenom
   recruiter who "applies a score threshold for auto-rejecting low-matches", besides Bullhorn and
   BambooHR. Fix: "Two, possibly three, of 25 ..." and note Enhancv's page counts them differently.
-- **F8 (medium, open) - 84% vs 100% is not a contradiction.** "Knockouts used when present: 100%"
+- **F8 (medium, status: fixed) - 84% vs 100% is not a contradiction.** "Knockouts used when present: 100%"
   is among recruiters whose system has knockouts; "84% rely on them" is of all 25. Fix: drop
   "two different figures"; say 84% (21 of 25) rely on knockout questions.
-- **F9 (low, open) - 68% is recruiters' guess at where applicants heard the myth.** Say "17 of 25
+- **F9 (low, status: fixed) - 68% is recruiters' guess at where applicants heard the myth.** Say "17 of 25
   recruiters guessed ..." and call it interviews, not a survey.
-- **F10 (medium, open) - "Storing and searching are not rejecting ... Nobody read it."** Filtering
+- **F10 (medium, status: fixed) - "Storing and searching are not rejecting ... Nobody read it."** Filtering
   and ranking (the draft's own third and fourth jobs; >90% of employers in Hidden Workers) can drop
   a resume without a person. Fix: "A resume no recruiter searched up was not rejected by a rule;
   a filter or ranking can still keep it from being read."
-- **F11 (medium, open) - our counts describe "questions" loosely.** The "median of six questions
+- **F11 (medium, status: fixed) - our counts describe "questions" loosely.** The "median of six questions
   beyond name and contact details" counts Address, City, LinkedIn and Website boxes (median ~4
   without). About 10 of the 54 "where you live" forms only ask an address or city, not a yes/no
   screen. Fix: reword ("a median of six extra boxes, including address and profile links"), and
   either recount location as yes/no only or label the line "asks where you live (some only an
   address box)". The 106 headline barely moves (~105).
-- **F12 (medium, open) - AI section omits the numbers that answer it.** Same survey: 6% say AI can
+- **F12 (medium, status: fixed) - AI section omits the numbers that answer it.** Same survey: 6% say AI can
   advance or reject "with limited human review"; 32% say humans make all final decisions. "AI
   scoring is spreading" (line 99, Short answer) has no trend data. Fix: add both numbers; replace
   "spreading" with "In 2026, about a third of hiring managers in one vendor survey said ...". Add
   that field dates aren't given and answers are self-report.
-- **F13 (medium, open) - formatting section misses evidence already in a cited source.** CIO 2012
+- **F13 (medium, status: fixed) - formatting section misses evidence already in a cited source.** CIO 2012
   reports Bersin's one-resume Taleo test: misreading cut its relevance score to 43%. That is
   ranking harm from parsing (one resume, 2011, old Taleo), the very "quieter way" the section
   describes. And "No published study shows ..." is a universal negative (see F5). Fix: add Bersin,
   labelled as a one-resume test; "We found no study showing ...".
-- **F14 (medium, open) - "EXP E R I ENC E" needs its limit.** page-format.md:13 says that came from a
+- **F14 (medium, status: fixed) - "EXP E R I ENC E" needs its limit.** page-format.md:13 says that came from a
   PDF-to-HTML conversion; three common PDF readers read it whole. We don't know any ATS reads that
   way. Fix: say so; soften "can't match a recruiter's search" to "would not match if a system read
   it that way".
-- **F15 (medium, open) - "admitted the filters cost them good people".** The question asked whether
+- **F15 (medium, status: fixed) - "admitted the filters cost them good people".** The question asked whether
   their hiring system filters out people who could do the job. Fix: "said their system filters out
   qualified people at least sometimes"; add "always or often: 62% / 63%".
-- **F16 (medium, open) - "strongest published sign" + age.** Uncompared superlative; survey ran
+- **F16 (medium, status: fixed) - "strongest published sign" + age.** Uncompared superlative; survey ran
   Jan-Feb 2020, before AI screening tools were common. Fix: drop "strongest"; add "The survey
   predates today's AI screening tools."
-- **F17 (medium, open) - Mobley status needs "preliminary" + re-check date + later rulings.** May
+- **F17 (medium, status: fixed) - Mobley status needs "preliminary" + re-check date + later rulings.** May
   2025 was preliminary certification (Workday can seek de-certification). Since then: HiredScore
   AI features ruled in (July 2025, Clearinghouse + Lawyer Monthly), notice plan approved (Dec 2025,
   Clearinghouse). A search summary claims 2026 events (discovery order, partial dismissal,
   interlocutory appeal) - unverified; check the docket before publishing. Add "as of <date>,
   re-check by 2027-01-03".
-- **F18 (medium, open) - "checked once you are hired" uncited.** Work permit: Form I-9 (law) - cite a
+- **F18 (medium, status: fixed) - "checked once you are hired" uncited.** Work permit: Form I-9 (law) - cite a
   primary source (USCIS I-9 page) or fair-screening.md. Sponsorship: say a false "no" surfaces when
   a visa is needed, or drop it.
-- **F19 (low, open) - "autofill often leaves them blank".** One test of one Ashby tenant. Fix: "can
+- **F19 (low, status: fixed) - "autofill often leaves them blank".** One test of one Ashby tenant. Fix: "can
   leave them blank (our Ashby test did)".
-- **F20 (medium, open) - tool box overstates the app.** `readahead.summary` reads questions only for
+- **F20 (medium, status: fixed) - tool box overstates the app.** `readahead.summary` reads questions only for
   listed jobs on Greenhouse, Lever, Ashby, Workable, Recruitee, and lists topics, not "the yes/no
   ones". Fix: "Reads a form's questions ahead when it can (5 systems) and lists what they ask about."
-- **L1 (low, open)** Line 26 "traces back to a single 2012 magazine article": "earliest copy we
+- **L1 (low, status: fixed)** Line 26 "traces back to a single 2012 magazine article": "earliest copy we
   found is a 2012 magazine article quoting a resume-help company".
-- **L2 (low, open)** "Almost every big employer has one": "almost every Fortune 500 company".
-- **L3 (low, open)** Greenhouse: auto-reject is Plus and Pro tiers only; "widely used" uncited -
+- **L2 (low, status: fixed)** "Almost every big employer has one": "almost every Fortune 500 company".
+- **L3 (low, status: fixed)** Greenhouse: auto-reject is Plus and Pro tiers only; "widely used" uncited -
   drop or cite.
-- **L4 (low, open)** Add [@greenhouse-rules] to line 50's second sentence; link page-format.md for
+- **L4 (low, status: fixed)** Add [@greenhouse-rules] to line 50's second sentence; link page-format.md for
   the Workday test (line 81).
-- **L5 (low, open)** "The rest used systems whose forms we can't read, such as Workday": many of the
+- **L5 (low, status: fixed)** "The rest used systems whose forms we can't read, such as Workday": many of the
   697 are job-board copies (Adzuna, USAJobs ...), not form systems. Say "Workday, Oracle, iCIMS or
   job boards".
-- **L6 (low, open)** Mobley p.10: "Workday argued its AI cannot reject anyone without the employer
+- **L6 (low, status: fixed)** Mobley p.10: "Workday argued its AI cannot reject anyone without the employer
   taking part" (the court's words: "appears to take the position").
-- **L7 (low, open)** "None publish their method", "No large study has tested it": "we found none".
-- **L8 (low, open)** "one rejection says little about you": "one rejection may say more about the
+- **L7 (low, status: fixed)** "None publish their method", "No large study has tested it": "we found none".
+- **L8 (low, status: fixed)** "one rejection says little about you": "one rejection may say more about the
   filter than about you".
-- **L9 (low, open) - style.** "median" is a stats term (research.md Style: explain or avoid - "the
+- **L9 (low, status: fixed) - style.** "median" is a stats term (research.md Style: explain or avoid - "the
   middle form asked six"). Sentences leaning on "This"/"It" across sentences (lines 42, 83, 93) -
   research.md asks to name the subject.
-- **L10 (low, open) - publish blocker, known.** Links to `what-makes-a-good-resume.md` and
+- **L10 (low, status: fixed) - publish blocker, known.** Links to `what-makes-a-good-resume.md` and
   `ai-resume-screening-bias.md` point at unwritten articles; publish fails until they exist or the
   links drop.
 
@@ -243,3 +243,56 @@ All open.
 - Quotes: longest is 7 words. All attributed.
 - Privacy: no owner data; employers in our tests unnamed ("tenant A"). Clean.
 - Tool box sits after the evidence, separate: fine apart from F20.
+
+## Revision (plan-xsy.20, 2026-10-03)
+
+New sources, opened 2026-10-03, no text addressing an AI: `uscis-i9` (USCIS I-9 page, last reviewed
+2026-06-03: employers "must properly complete Form I-9 for every individual they hire"), and
+`clearinghouse-mobley` (case summary updated 2025-12-17 + filing list: HiredScore ruling 2025-07,
+notice plan 2025-12-02, Third Amended Complaint 2026-03-27, order granting in part + denying in part
+the motion to dismiss 2026-06-22; case ongoing). Docket on CourtListener/Justia answered 403/401;
+the "discovery order" and "interlocutory appeal" from the search summary stay unconfirmed and are not
+in the article. Enhancv page re-read for F6/F7/F8: quotes "75% of resumes are rejected by Applicant
+Tracking Systems"; Phenom line confirmed; 84% "rely on them" vs "used when present: 100%" confirmed.
+
+Our measurement recounted (`~/.cache/plan-xsy-18/ko/refine.py raw.json`): contact, address and
+profile boxes dropped -> middle form 4 questions (quartiles 2 and 8), 26 of 143 ask nothing beyond
+them; location hits that are only an address/zip/"where located" box: 11 of 54 -> 43 location
+screens; any knockout-type question 105 of 143.
+
+- F1: "The court said that estimate ignores the limits of who is in the case."
+- F2: field skew in numbers added (92 of 143 from four fields; healthcare + finance one each, design
+  none); 26 of 143 with no extra questions stated; the freehire count is disclosed as a larger
+  count reporting far fewer extra questions, without its numbers - its page could not be re-found
+  (`app/docs/apply/answers.md:15-17`), and research.md bars citing an unopened source. freehire's
+  public measurements (github.com/strelov1/freehire, 01 + 03, 2026-09-09) count fields and exact
+  labels, not forms with knockout questions, so they cannot stand in for it. "Most forms" dropped;
+  "many forms" / "some" in the reader line.
+- F3: description, Short answer and section lead now "where software rejects on its own, recruiters
+  say ... (Vendor survey, 25 recruiters)"; added "Nobody publishes a count of automatic rejections".
+- F4: Short answer lines carry [@levinson-2012-cio], [@enhancv-2025], [@resume-genius-2026].
+- F5: "We searched for a study, sample or data set behind the figure and found none."
+- F6: retelling cited (Enhancv quotes it); "about the chances of getting an interview, not a count".
+- F7: Phenom recruiter added; "two, possibly three, of the 25".
+- F8: "two different figures" dropped; "21 of the 25 ... rely on knockout questions".
+- F9: "17 of the 25 recruiters guessed", called interviews.
+- F10: filtering/ranking paragraph replaces "Nobody read it", with Hidden Workers p. 20.
+- F11: four questions beyond contact/address/profile boxes; location line recounted to 43 and says
+  plain address boxes are not counted; headline 105.
+- F12: 6% and 32% added; "spreading" dropped; survey dates not given + self-report said.
+- F13: Bersin/Taleo one-resume test added, labelled one resume in one system; "We found no study".
+- F14: "PDF-to-web conversion", three PDF readers read it whole, "if one did, ... would not match".
+- F15: "said their system filters out qualified people at least sometimes"; 62% / 63% always or often.
+- F16: "strongest" dropped; "before today's AI screening tools were common".
+- F17: "at a preliminary stage", can be undone later, HiredScore July 2025, June 2026 partial
+  dismissal, as of October 2026; `recheck_by` 2027-01-03 on both case sources.
+- F18: Form I-9 cited (law); sponsorship: "A false 'no' ... shows up when a visa is needed."
+- F19: "autofill can leave them blank (our Ashby test did)".
+- F20: "Reads a form's questions ahead when it can (5 systems) and lists what they ask about."
+- L1-L8: wording as proposed (earliest copy we found; Fortune 500; Greenhouse higher-priced plans,
+  "widely used" dropped; citation + page-format link added; Workday, Oracle, iCIMS or job boards;
+  "The court described Workday's position"; "we found none/no vendor"; "may say more about the filter").
+- L9: "median" -> "the middle form"; "This"/"It" sentences name their subject.
+- L10: links to the two unwritten articles dropped; links to methods + the Research hub instead.
+- SEO: quotable answer added as the first body sentence ("No study shows that applicant tracking
+  systems reject 75% of resumes.").

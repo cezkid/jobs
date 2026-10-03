@@ -61,7 +61,8 @@ More: [readability](../app/docs/resume/bullets.md#tier-4---clarity) ·
 - **"A number on every line."** Pushes made-up numbers. We ask for the real one.
 - **"Add these keywords."** Only for what you have.
 - **"75% of resumes rejected by software."** Traces to a defunct vendor, no method. In one
-  small vendor survey, 23 of 25 recruiters said their systems don't reject on their own.
+  small vendor survey, 23 of 25 recruiters said their systems don't reject for formatting,
+  content or design. Where software rejects alone, it's mostly yes/no questions.
 
 More: [rejected advice](../app/docs/resume/bullets.md#what-did-not-survive) ·
 [format advice declined](../app/docs/resume/page-format.md#advice-declined)

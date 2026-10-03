@@ -12,6 +12,17 @@
   checked: 2026-10-03
   recheck_by: 2027-04-03
 
+- id: clearinghouse-mobley
+  type: web
+  org: Civil Rights Litigation Clearinghouse, University of Michigan
+  year: 2025
+  title: "Mobley v. Workday, Inc. 3:23-cv-00770 (N.D. Cal.)"
+  url: https://clearinghouse.net/case/44074/
+  evidence: court record
+  sample: case summary (updated December 2025) and list of court filings through June 2026; events only
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
 - id: enhancv-2025
   type: web
   authors: ["Vasileva, Doroteya"]
@@ -129,3 +140,14 @@
   evidence: vendor survey
   sample: 1,000 US hiring managers, online panel; survey dates not given
   checked: 2026-10-03
+
+- id: uscis-i9
+  type: law
+  org: US Citizenship and Immigration Services
+  year: 2026
+  title: "I-9, Employment Eligibility Verification"
+  url: https://www.uscis.gov/i-9
+  evidence: law
+  sample: agency page, last reviewed June 2026
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
