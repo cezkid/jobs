@@ -1,11 +1,11 @@
 ---
 reviewed: 2026-10-03
-verdict: revise
-reviewer: fresh AI session, bead plan-xsy.22 (no drafting context; sources opened before the draft was read)
+verdict: publish
+reviewer: fresh AI session, bead plan-xsy.22 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.23
 ---
 # Review: Is AI resume screening biased? (`ai-resume-screening-bias.md`)
 
-Verdict **revise**: 3 high, 7 medium, 10 low findings. The study numbers are mostly copied
+Verdict **publish** (after revision, 2026-10-03; first verdict was revise): 3 high, 7 medium, 10 low findings, all fixed - see Revision below. The study numbers are mostly copied
 right, and the Wilson & Caliskan correction is handled well. The problems: the "removing your
 name" section misstates what the Chen & Xiao preprint tested, the Mobley + law sections are a
 step behind October 2026, and three must-cover items are missing (Bloomberg 2024, California's
@@ -170,63 +170,132 @@ favor resumes written by the same model) - lead for ai-written-resumes.
 
 ## Findings
 
-All open.
+All fixed in plan-xsy.23 (see Revision).
 
-- **F1 (high, open)** Line 48-52: Chen & Xiao did not take real-looking resumes and strip names. They
+- **F1 (high, status: fixed)** Line 48-52: Chen & Xiao did not take real-looking resumes and strip names. They
   built name-free resumes and added ethnic cues (community, activities, interests) at three
   strengths, one of them explicit. The 75.7% average includes the explicit tier (100%). Fix: "When
   a resume mentioned community or activities linked to a background, models often guessed it:
   every time when the clue was plain, 9-69% when faint." Add: Australian setting, five groups.
   Soften the "for you" line to match.
-- **F2 (high, open)** Line 48: "a school, a language or a club" - the study held languages
+- **F2 (high, status: fixed)** Line 48: "a school, a language or a club" - the study held languages
   identical on purpose, and schools are not a cue. Fix: "community groups, activities and interests".
-- **F3 (high, open)** Line 104: "no study compares them directly" - a bold absence claim. Lead,
+- **F3 (high, status: fixed)** Line 104: "no study compares them directly" - a bold absence claim. Lead,
   NOT opened in this review: Cowgill's working paper "Bias and Productivity in Humans and
   Algorithms" is widely described as a resume-screening field study comparing an algorithm with
   human screeners at one firm. Open it; if it holds, register it, and either cite it in a "Is AI worse than people?" paragraph or reword to "few
   studies, one employer". Also check Bloomberg 2024 (see F5b) and the An et al. comparison to
   field experiments (Gao compares to Kline et al.).
-- **F4 (medium, open)** Line 84: Mobley is behind. June 22, 2026 order: Title VII race, ADA and ADEA
+- **F4 (medium, status: fixed)** Line 84: Mobley is behind. June 22, 2026 order: Title VII race, ADA and ADEA
   disparate-impact claims proceed; May 2025 age collective certified preliminarily; September
   2026 bid for four subclasses, hearing March 9, 2027. Open the June order; say all three
   grounds; pin the quote to pp. 1-2.
-- **F5 (medium, open)** Laws: (a) California's Civil Rights Council rules on automated-decision
+- **F5 (medium, status: fixed)** Laws: (a) California's Civil Rights Council rules on automated-decision
   systems in hiring, in force October 1, 2025 - missing; open the official text. (b) Colorado:
   enforcement waits on Attorney General rules, and EO 14365 (December 2025) directs a federal
   task force to challenge state AI laws; xAI sued over Colorado's earlier law in April 2026 -
   say "as of October 2026, may change". (c) "US federal laws unchanged" needs a citation (the
   statute or EEOC page) or rewording. (d) Bloomberg 2024 (must-cover list) is absent: add as
   news test of GPT-3.5 with its published method, noting what was disputed.
-- **F6 (medium, open)** Bommasani: short answer conflates adverse impact (some groups) with
+- **F6 (medium, status: fixed)** Bommasani: short answer conflates adverse impact (some groups) with
   systemic rejection (some people); line 68 "because employers used the same tool" is causal on
   real records and contradicts line 70; data are 2018-2022, before chat AI - say so.
-- **F7 (medium, open)** Absence claims (lines 16, 100, 109) need "no study found" wording and a
+- **F7 (medium, status: fixed)** Absence claims (lines 16, 100, 109) need "no study found" wording and a
   searched list in `uncited:` per research.md; the current `uncited:` snippet lists nothing searched.
   Line 100 also skips vendor surveys that ask employers (self-report) - say they exist.
-- **F8 (medium, open)** Line 72: from a lab test with a simulated AI, write "may not remove the
+- **F8 (medium, status: fixed)** Line 72: from a lab test with a simulated AI, write "may not remove the
   bias", not "does not". Line 74 "different routes spreads that risk" = our reading; say so.
-- **F9 (low, open)** Line 42: ties ">= 94%" is "for most models".
-- **F10 (low, open)** Short answer line 13 cites only name/gender studies for age + disability;
+- **F9 (low, status: fixed)** Line 42: ties ">= 94%" is "for most models".
+- **F10 (low, status: fixed)** Short answer line 13 cites only name/gender studies for age + disability;
   add bone-2026 + glazko-2024 or drop those words.
-- **F11 (low, open)** Line 20 "Yes, in lab tests" - add that some tests show no gap.
-- **F12 (low, open)** Line 24: say the 51.9/11.1 figures come from swapping the paper's numbers as
+- **F11 (low, status: fixed)** Line 20 "Yes, in lab tests" - add that some tests show no gap.
+- **F12 (low, status: fixed)** Line 24: say the 51.9/11.1 figures come from swapping the paper's numbers as
   the authors' note directs (the v3 body still prints the old ones).
-- **F13 (medium, open)** Line 24 "Many articles still repeat the old gender result" - uncited
+- **F13 (medium, status: fixed)** Line 24 "Many articles still repeat the old gender result" - uncited
   claim; cite one example as news or cut.
-- **F14 (low, open)** Line 26: most of An's models scored Black men lower, not GPT-3.5 alone; the
+- **F14 (low, status: fixed)** Line 26: most of An's models scored Black men lower, not GPT-3.5 alone; the
   authors call the gaps economically significant - say both.
-- **F15 (low, open)** Lines 38, 40: "points" -> "percentage points of call-backs" (An uses points of 100).
-- **F16 (low, open)** Line 56 "open AI models" reads as OpenAI - "openly released AI models".
-- **F17 (low, open)** Glazko: 10 trials per disability, early-2024 GPT-4 web UI - "a small test".
+- **F15 (low, status: fixed)** Lines 38, 40: "points" -> "percentage points of call-backs" (An uses points of 100).
+- **F16 (low, status: fixed)** Line 56 "open AI models" reads as OpenAI - "openly released AI models".
+- **F17 (low, status: fixed)** Glazko: 10 trials per disability, early-2024 GPT-4 web UI - "a small test".
   Tamkin: gaps far smaller when inferred from names.
-- **F18 (low, open)** Line 78 says two cases, three follow. Line 80: add Amazon's statement that
+- **F18 (low, status: fixed)** Line 78 says two cases, three follow. Line 80: add Amazon's statement that
   recruiters never used it to evaluate candidates.
-- **F19 (medium, open)** Line 96 "you can ask whether AI is used" - the laws require employers to
+- **F19 (medium, status: fixed)** Line 96 "you can ask whether AI is used" - the laws require employers to
   give notice; NYC lets applicants request an alternative process or accommodation. Reword to
   what each law actually gives.
-- **F20 (low, open)** Line 119 "Lists every match" - check against job-find / Today behaviour.
+- **F20 (low, status: fixed)** Line 119 "Lists every match" - check against job-find / Today behaviour.
 
 Plain words: telegraphic short answer fine; body sentences short. Jargon to fix: "percentage
 points" unexplained once, "base and a trained version", "disparate impact" (explained - keep).
 No quote over 15 words; no owner data; tool box separate and after the evidence. Internal links:
 ats-rejection-myth, methods, index (>= 2). Add ai-written-resumes once it exists.
+
+## Revision (plan-xsy.23, 2026-10-03)
+
+New sources, opened 2026-10-03, no text addressing an AI:
+- `cowgill-2020`: working paper, March 2020 (Wayback copy of the IZA PDF; the live IZA link answered
+  503). Field experiment, one firm, one software engineer opening, one location; algorithm (LASSO +
+  SVM on four years of past resumes; names and demographics not in the model) randomly overrides human
+  screeners. Marginal machine picks +14% to pass interview + get an offer vs candidates both select;
+  more non-traditional hires "This includes women, racial minorities" (p. 3). Applicant count not
+  found in the text read; registry `sample` says one opening at one company.
+- `mobley-2026-order`: ECF 360, 2026-06-22, Judge Lin (Clearinghouse copy of the RECAP PDF). p. 1:
+  race, age, disability alleged; p. 1-2: Title VII race, ADA, ADEA disparate-impact claims proceeding
+  since earlier rulings; p. 11: Rowe's new race claim (Title VII or FEHA) dismissed, Hughes ADA claim
+  stands, FEHA claims otherwise stand, own-hiring employer claim dismissed; no further leave to amend.
+  The review's "Title VII race, ADA and ADEA claims proceed" came from a blog; the order says the
+  same of the earlier posture (p. 1-2).
+- `ca-crc-ads-2025`: Council release 2025-06-30 (approved 2025-06-27, in force 2025-10-01) and the
+  adopted text (Attachment B, 2025-03-17): ADS use can violate FEHA; records incl. ADS data kept four
+  years; evidence or lack of anti-bias testing relevant to a claim or defense.
+- `bloomberg-2024`: Bloomberg graphics page (Bloomberg's own prod.cm host; www answers a bot wall) +
+  GitHub README. 2024-03-07; GPT-3.5/GPT-4 0613; 8 resumes x 1,000 rankings x 4 jobs; 800 names, 8
+  groups; Black women top for software engineer 11% (GPT-3.5); OpenAI: may not reflect customer use.
+  The disputed part = OpenAI's response; the review's 7.6% figure was not seen on the page and is not used.
+- `eo-14365`: govinfo HTML of FR 2025-23092 (federalregister.gov redirects to a bot check). Signed
+  2025-12-11; Sec. 3 AI Litigation Task Force "to challenge State AI laws"; Sec. 1 names Colorado's law.
+- `chen-xiao-2026` registry sample corrected (cues added at three strengths, 5 groups, Australia).
+
+Searched for F7 (web search incl. arXiv + news, 2026-10-03): studies of a resume
+change that protects against biased screening - none found; anonymisation studies (Chen & Xiao,
+arXiv 2112.08910) show leakage, not protection. Hidden-text prompt-injection studies exist (arXiv
+2605.28999, 2512.20164: injected text can raise a resume's rank) - not a protection against bias and
+Hold-tier dishonest; the claim is worded "protects you from a biased screener" so it stays true.
+Lead for ai-written-resumes. Cross-employer measures of unattended AI screening: none found.
+
+- F1: rewritten - name-free resumes with background clues added, plain clue = every time, faint
+  clue = 9-69%; five groups, Australian setting; reader line now "if other lines point to it".
+- F2: "community groups, activities and interests"; school + language dropped.
+- F3: Cowgill paragraph added under real applicants (field experiment, one firm, older algorithm,
+  working paper); "What we don't know" says we found one field test, not none.
+- F4: Mobley: race, age, disability (p. 1); May 2025 age collective; June 2026 order (p. 11); Sept
+  2026 class bid + March 2027 hearing; Workday denies; nothing proven.
+- F5: (a) California bullet added; (b) Colorado: AG enforces + writes rules; EO 14365 task force names
+  Colorado; "some may change" in the lead; xAI suit left out (news only, SB24-205 replaced); (c)
+  "federal laws unchanged" cut, replaced by private suits still using disparate impact (Mobley p. 2);
+  (d) Bloomberg 2024 paragraph added with method, numbers and OpenAI's response.
+- F6: Short answer now group finding only ("some jobs' tests passed fewer Black applicants");
+  four-fifths benchmark named + explained; systemic rejection set apart as an individual finding,
+  causal "because" replaced by the two facts (same vendor, reused results); dates 2018-2022 added.
+- F7: "No study found ..." / "We found no study showing ..." on lines 16 + What helps; vendor
+  surveys mentioned as self-report; searched line added; `uncited:` snippets added.
+- F8: "may not remove the bias" + lab caveat; "our reading" + "may spread".
+- F9: "most models".
+- F10: bone-2026 + glazko-2024 added to the Short answer line.
+- F11: "in many lab tests, though some tests find no gap"; "often pick".
+- F12: "The authors' note says the gender numbers should be swapped. Swapped as the note directs ...".
+- F13: "Many articles still repeat" cut.
+- F14: "most of the models scored them lower"; GPT-3.5 named as the example; economically significant.
+- F15: "percentage point higher call-back rate".
+- F16: "openly released AI models" (Bone, Chen & Xiao); base/trained explained in plain words.
+- F17: Glazko "small", stronger resume should win, 10 trials, early-2024 GPT-4, custom GPT described;
+  Tamkin name-inferred gaps much smaller.
+- F18: "Three cases"; Amazon's statement added.
+- F19: reader line says what each law gives: notice (NYC, IL), explanation (CO 2027), NYC
+  alternative process or accommodation.
+- F20: tool line now "Checks for new jobs from your search every day" (daily check; `find` shows a
+  ranked top 15, not every match).
+- Claim table rows 3-110: low "Supported; ..." notes applied where they named a wording (row 14
+  "tests", row 25 GPT-3.5, row 54 base version + who "older" is, row 57, row 66 standard).
+

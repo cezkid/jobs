@@ -24,6 +24,17 @@
   checked: 2026-10-03
   recheck_by: 2027-04-03
 
+- id: bloomberg-2024
+  type: article
+  authors: ["Yin, Leon", "Alba, Davey", "Nicoletti, Leonardo"]
+  year: 2024
+  title: "OpenAI's GPT Is a Recruiter's Dream Tool. Tests Show There's Racial Bias"
+  venue: Bloomberg, March 7, 2024 (method + code on GitHub, BloombergGraphics/2024-openai-gpt-hiring-racial-discrimination)
+  url: https://prod.cm.bloomberg.com/graphics/2024-openai-gpt-hiring-racial-discrimination/
+  evidence: lab/LLM audit
+  sample: GPT-3.5 and GPT-4 asked 1,000 times per job to rank 8 equally qualified resumes with names from 8 race and gender groups, 4 jobs; news organisation's own test
+  checked: 2026-10-03
+
 - id: bommasani-2026
   type: article
   authors: ["Bommasani, Rishi", "Bana, Sarah H.", "Creel, Kathleen A.", "Jurafsky, Dan", "Liang, Percy"]
@@ -47,6 +58,17 @@
   sample: 10 open AI models, each in a base and a trained version, choosing between pairs of made-up applicants; age shown by graduation year
   checked: 2026-10-03
 
+- id: ca-crc-ads-2025
+  type: law
+  org: California Civil Rights Council
+  year: 2025
+  title: Employment Regulations Regarding Automated-Decision Systems (California Code of Regulations, title 2)
+  url: https://calcivilrights.ca.gov/2025/06/30/civil-rights-council-secures-approval-for-regulations-to-protect-against-employment-discrimination-related-to-artificial-intelligence/
+  evidence: law
+  sample: the Council's announcement and the adopted text (Attachment B, version of March 17, 2025); in force October 1, 2025
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
 - id: chen-xiao-2026
   type: article
   authors: ["Chen, Qiangju", "Xiao, Yang"]
@@ -55,7 +77,7 @@
   venue: arXiv preprint
   url: https://arxiv.org/abs/2609.16501
   evidence: lab/LLM audit
-  sample: 9 open AI models, 620 made-up resumes with names and other fields removed
+  sample: 9 openly released AI models, 620 made-up resumes without names, with background clues (community, activities, interests) added at three strengths; 5 groups, Australian setting
   preprint: true
   checked: 2026-10-03
 
@@ -80,6 +102,18 @@
   sample: bill page and official summary; signed May 14, 2026, in force January 1, 2027
   checked: 2026-10-03
   recheck_by: 2027-01-03
+
+- id: cowgill-2020
+  type: report
+  authors: ["Cowgill, Bo"]
+  year: 2020
+  title: "Bias and Productivity in Humans and Algorithms: Theory and Evidence from Résumé Screening"
+  venue: Working paper, Columbia University, March 2020 (open copy from an IZA conference)
+  url: https://web.archive.org/web/2024/https://conference.iza.org/conference_files/MacroEcon_2017/cowgill_b8981.pdf
+  evidence: field experiment
+  sample: applicants for one software engineer opening at one large company in one location; an algorithm trained on past hiring replaced human resume screeners for a random share of candidates
+  preprint: true
+  checked: 2026-10-03
 
 - id: dastin-2018
   type: article
@@ -120,6 +154,17 @@
   url: https://www.federalregister.gov/documents/2025/04/28/2025-07378/restoring-equality-of-opportunity-and-meritocracy
   evidence: law
   sample: executive order as published in the Federal Register, April 2025
+  checked: 2026-10-03
+  recheck_by: 2027-04-03
+
+- id: eo-14365
+  type: law
+  org: Executive Office of the President
+  year: 2025
+  title: "Executive Order 14365: Ensuring a National Policy Framework for Artificial Intelligence"
+  url: https://www.govinfo.gov/content/pkg/FR-2025-12-16/html/2025-23092.htm
+  evidence: law
+  sample: executive order of December 11, 2025, as published in the Federal Register; sets up a federal task force to challenge state AI laws and names Colorado's law
   checked: 2026-10-03
   recheck_by: 2027-04-03
 
@@ -265,6 +310,18 @@
   url: https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf
   evidence: court record
   sample: court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+# Court order: allegations, not findings
+- id: mobley-2026-order
+  type: law
+  org: US District Court for the Northern District of California
+  year: 2026
+  title: "Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting in Part and Denying in Part Motion to Dismiss"
+  url: https://clearinghouse-umich-production.s3.amazonaws.com/media/doc/171886.pdf
+  evidence: court record
+  sample: court order of June 22, 2026 (ECF 360); decides which claims go on, nothing on the facts
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
