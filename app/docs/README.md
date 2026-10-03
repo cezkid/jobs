@@ -9,6 +9,8 @@
   in one line, w/ strength of its evidence.
 - [Unfair hiring - what's known, what helps](../../Guides/Unfair%20hiring%20-%20what's%20known,%20what%20helps.md) -
   name, age, breaks, records, AI screening: what helps, w/ strength of its evidence.
+- [Keep your chats out of AI training](../../Guides/Keep%20your%20chats%20out%20of%20AI%20training.md) -
+  the switch on each AI account, what it doesn't cover.
 
 **AI assistant + contributors** - measured facts + evidence behind the code. Read the area's doc
 before changing it: each records what was measured and rejected, so a retired rule stays retired.

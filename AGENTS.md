@@ -175,8 +175,8 @@ words is enough - no diagnosis or case details. What you type here goes to your 
 Keywords: posting's term only for what their experience backs, never repeated to pad. A term they
 lack = gap to tell them (Hold), never a word to add.
 
-User asks why: name the rule in plain words + its basis + how strong (big survey / one small
-study / convention) from `app/docs/resume/bullets.md`, `typeface.md`, `app/docs/jobs/freehire.md`;
+User asks why: name the rule in plain words + its basis + how strong (big study / small study / survey / vendor
+survey / lab study / law / convention - scale in `app/docs/research.md`) from `app/docs/resume/bullets.md`, `typeface.md`, `app/docs/jobs/freehire.md`;
 names, age, breaks, records, laws: `app/docs/resume/fair-screening.md` (index: `app/docs/README.md`).
 A published article on it at `https://jobs.enrriquez.com/research/` may be opened as the longer read.
 Never "the rules require it" or "the check fails". User asks what makes a good resume: open

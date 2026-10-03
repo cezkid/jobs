@@ -4,7 +4,8 @@
 records. Here is what studies show, and what actually helps.
 
 How strong each point is: **big study** (thousands of real applications) · **small study** ·
-**survey** · **convention** (career guides agree, no study) · **law** (as of September 2026 -
+**survey** · **vendor survey** (by a company that sells the service) · **lab study** (not real
+hiring) · **convention** (career guides agree, no study) · **law** (as of September 2026 -
 general information, not legal advice).
 
 Every choice here is yours. Tell the chat once - your resume and forms follow it.
@@ -12,8 +13,8 @@ Every choice here is yours. Tell the chat once - your resume and forms follow it
 ## Apply widely - what helps most
 
 - **A few employers cause most of the harm.** Across 108 large US companies, one fifth of them
-  accounted for nearly half of the interview calls lost to race bias. More applications reach
-  more fair employers. *Big study (Kline, Rose and Walters 2021).*
+  accounted for nearly half of the replies Black applicants lost to race bias. More applications
+  reach more fair employers. *Big study (Kline, Rose and Walters 2022).*
 - **Your own resume is fine for quick applications.** Make a tailored one for the jobs you want
   most.
 - **Bias also shows at interview and offer,** where resume changes can't reach. *Big study.*
@@ -23,8 +24,9 @@ Every choice here is yours. Tell the chat once - your resume and forms follow it
 
 - **Name bias is real and hasn't shrunk since 1989.** Across 28 US studies, the same resume got
   about a third more calls under some names than under others. *Big study (Quillian 2017).*
-- **Initials ("L. Jones"): your call - both are honest.** One US study saw a small lift, too
-  small to be sure. No study has tested initials alone. *Small study.*
+- **Initials ("L. Jones"): your call - both are honest.** Two small studies of an English
+  first name disagree: one in Canada saw no gain, one in the US a small lift, too small to be
+  sure. No study has tested initials alone. *Small study.*
 - **Initials hide your first name on the page.** Not your last name, your email address, or any
   form box asking for your legal name.
 - **Languages you speak: list each one with its level.** It helped people educated abroad in one
@@ -45,7 +47,7 @@ that isn't asking for your legal name.
   graduation year still showed. So the program offers one bundle: graduation and certificate years, jobs that ended 15+ years ago, and
   long counts like "25 years of experience". Recommended once your degree is 20+ years old.
   *Big study; the 20-year line is judgement.*
-- **It has a small cost.** Some hiring managers like to see the year. *Survey.*
+- **It has a small cost.** Some hiring managers like to see the year. *Vendor survey.*
 - **Never a false date.** Leaving one off is fine. A required form box: answer truthfully. An
   optional one: blank is fine.
 - **Some states limit when employers may ask** your age, birth date or graduation dates:
@@ -55,12 +57,13 @@ that isn't asking for your legal name.
 
 ## Work breaks
 
-- **Length matters.** Across 7 countries, interview calls dropped by a fifth to over a quarter
+- **Length matters.** Across 7 countries, replies from employers dropped by a fifth to over a quarter
   after a year away; US studies saw drops sooner. *Big study.*
 - **Some hiring software filters breaks over 6 months** - about half the executives whose
   software sorts applicants said so. *Survey (2020).*
 - **Over 6 months: a one-line reason can help.** In one US study it won back about half the lost
-  calls. In one UK trial a childcare line made no difference. Your call. *One study each.*
+  replies from employers. In one big UK study a childcare line made no difference. Your call.
+  *Small study (US); big study (UK).*
 - **Lines to use, if you add one:** "Family care" · "A health matter, now resolved or well managed" - never
   name a condition · "Full-time study" · "Role cut in a company-wide layoff", under your last job,
   when it's true.
@@ -93,7 +96,8 @@ No case details needed in the chat - what you type goes to your AI account.
 - **It can be biased, in either direction.** Studies disagree on which way, and it changes with
   each version. Leaving your name off doesn't hide your background from it. No resume trick has
   been shown to beat it. What works: an accurate, relevant, readable resume - and applying widely.
-  *Lab studies.*
+  *Lab studies, several not yet checked by other scientists (peer review), plus one study of a
+  real hiring tool's records, also not yet peer-reviewed.*
 - **Your rights:** Colorado requires notice and an explanation of AI rejections from January 2027.
   Illinois bans AI that discriminates (since January 2026). New York City requires yearly bias
   audits, but few employers have posted theirs. *Law.*

@@ -12,8 +12,9 @@ Measured 2026-10-01: covers Greenhouse, Lever, Ashby, Workable, Recruitee - on o
 712 of 1,275 open jobs. Shape: `{provider, basics, questions: [{text, required, answer?}]}`, no
 options, no ids. A 404 = no form captured: "Not known ahead", never "asks nothing". Lever marks
 nothing required - said so. Captured once; the live form may have changed - the summary says so.
-The job search's own count, ~100k forms: 67% ask nothing beyond a resume + contact details, 16% 1-4
-questions, 16% 5-14, 1% 15+ (one source, tech-heavy).
+The job search's own count (freehire.me, published 2026-08), ~100k forms: 67% ask nothing beyond a resume + contact details, 16% 1-4
+questions, 16% 5-14, 1% 15+ (one source, tech-heavy; its page not re-found 2026-10-03 - its repo's
+measurements folder holds the 647,795-form count below, not this one).
 
 ## Drafted, then pasted (systems the program can't fill)
 
@@ -47,7 +48,8 @@ one per topic or question, newest wins. The next form:
 | Offered first, never filled | pay expected (beside the posting's pay), moving for the job, start date, written answers | each depends on this job |
 | Never kept | work permit + sponsorship, current pay, sensitive kinds, voluntary questions about them, where they live, two topics in one question | setup answers the US permit questions; the rest are the user's every time |
 
-Basis: one form corpus, 647,795 forms (2026-09) - how you heard 61,762, 18+ 30,337, salary 24,762,
+Basis: freehire.me's captured forms, 647,795 (Greenhouse, Lever, Ashby, Recruitee, Workable;
+measured 2026-09-09, github.com/strelov1/freehire, docs/superpowers/plans/measurements/ 01 + 03) - how you heard 61,762, 18+ 30,337, salary 24,762,
 notice 7,841; 69% of 12,352 labels in a 4,000-form sample recall nothing. Saves typing on the
 common few; most questions are still asked.
 

@@ -48,7 +48,7 @@ What earns the line its space.
 | Scope vs change numbers differ; all-one-kind role worth noticing | Emory "Scale" vs "Results" questions; MIT scale ("over 100,000 data points", "size of your department, event, budget") vs % change. Both quantify. | **report only** - enforcing demands a scope number; Tier 1 wins |
 | No hedged opener - **unless the hedge is the truth** | Arizona cuts "helped to", "worked on", "responsible for". Dissent: UConn *recommends* "assisted", "collaborated" - objection is the opening, not the word. Own "assisted with" -> "performed" = ownership claim (next row), Tier 1. | **report**: `hedge` WARNs, quiet when another fact uses it. Prompt keeps sourced hedge, bans upgrades (assisted -> performed, coordinated -> led, member -> lead) |
 | Ownership matches actual role | Screening red flag: "led" work merely joined, "managed" w/ no reports, team result as personal. Surfaces at reference checks. | **report only** - measured 100% false positives (below). `tailor.py`: never upgrade the candidate's part |
-| No two bullets on one template | Insight Global 2025: "identical sentence structure across all bullet points" a primary AI tell, w/ "vague power verbs without proof". Rejection tracks generic content, not AI use - ~80% of recruiters wouldn't reject merely for AI help. | partial: `same-verb-opening` compares first words. **No shipped check measures syntax.** `uniform-bullet-length` = word-count spread, unmeasured |
+| No two bullets on one template | Insight Global 2025: "identical sentence structure across all bullet points" a primary AI tell, w/ "vague power verbs without proof". Rejection tracks generic content, not AI use: only 54% of these hiring managers say they'd care if an applicant used AI. | partial: `same-verb-opening` compares first words. **No shipped check measures syntax.** `uniform-bullet-length` = word-count spread, unmeasured |
 
 ## Tier 3 - Relevance
 
@@ -71,8 +71,8 @@ Surviving one pass at scanning speed.
 |---|---|---|
 | One idea, one sentence - **unless the page disagrees** | UConn: "one sentence, typically 1-2 lines"; MIT: "bite-sized chunks ... 1-2 lines"; Emory: at least one full line, two max. **`line-fill` + `pages` are FAIL gates; this is style:** splitting a filled line at its semicolon measured 87% -> 65% row + 21% stub (floor 40%). Page wins. | in `tailor.py`; **never enforce a sentence count** |
 | Required certifications under the summary | Knock-out (Tier 3) must be found on first pass, not page two's foot. | enforce: `tailor.page_model` moves Certifications up when a requirement names a held one (full name or bracketed short form) |
-| Assume ~7 s first pass | One small study: The Ladders 2018 - **30 recruiters**, eye-tracked 10 weeks, 7.4 s, up from 6 s (2012). Not peer-reviewed, one vendor, no replication, source unreachable. Every "6-second scan" traces here. Buys headings, titles, each role's first bullet. | n/a |
-| Acronym expanded at least once | Lever search misses acronyms. Gloss once per page. Employer-internal jargon -> replaced, not glossed. **Vs Tier 3: does the reader's field write it that way** - specialist term keeps spelling, internal shorthand doesn't. | in `tailor.py` (only place posting is known) |
+| Assume ~7 s first pass | One vendor's studies: The Ladders 2018 press release - 7.4 s, up from 6 s in its 2012 study; 2018 sample not stated. The 2012 report: **30 recruiters**, eye-tracked over 10 weeks. Both opened 2026-10-03. Not peer-reviewed, one vendor, no replication. Every "6-second scan" traces here. Buys headings, titles, each role's first bullet. | n/a |
+| Acronym expanded at least once | Lever search misses acronyms (Jobscan's Lever guide, 2026; Lever's own help pages don't say). Gloss once per page. Employer-internal jargon -> replaced, not glossed. **Vs Tier 3: does the reader's field write it that way** - specialist term keeps spelling, internal shorthand doesn't. | in `tailor.py` (only place posting is known) |
 | Every number names what it counts | Modelled in every Emory + MIT example ("over 100,000 data points", "4 team members"), never stated. Baseline strengthens a % ("18 minutes to 7") - **report missing, never demand:** often a former employer's figure. | **report** |
 | Uniform bullet punctuation | No source; consistency. Real master ends claims w/ period, `master.example.yml` none -> mixed page. | `tailor.py`: follow master |
 
@@ -82,7 +82,7 @@ Surviving one pass at scanning speed.
 
 Outside bullet wording; outranks it.
 
-**Layout beats wording for machine readability.** Ladders: multi-column, clutter, missing headers
+**Layout beats wording for machine readability.** Ladders 2018 (vendor eye-tracking): multi-column, clutter, missing headers
 and job titles sank resumes - same as ATS guides flag (tables, text boxes, graphics,
 header/footer). Jobscan parser pass rates: 88% Workday, 91% Greenhouse, 93% Lever. `render.py` ->
 single-column, heading-led; render gates check tables, images, header/footer text.
@@ -113,7 +113,7 @@ and speaking" pairs level w/ one or neither. Vendor docs + convention, unmeasure
   gap, 25.6% explained, 23.3% unexplained: explaining recovered ~55% of the penalty. Reason was an
   illness + full recovery, in the cover letter. *One US field study.* Kristal 2023 (UK, n=9,022,
   2.5-yr gap): childcare line no effect vs silence - but that trial found no clear gap penalty
-  either. *One UK trial.*
+  either. *One UK field experiment (large).*
 - So: 6-12 months, a one-line reason is worth adding. 12+, a line plus recent work, study or
   volunteering really done. Search still running = no penalty talk, never numbers at the user.
 - Vendor surveys (LiveCareer, MyPerfectResume 2025) dropped: no method, contradicted on length.
@@ -327,11 +327,15 @@ Common in resume tools, declined 2026-10-01 (re-propose only w/ new evidence):
 ## Sources
 
 HireRight 2025 Global Benchmark Report. Insight Global, *2025 AI in Hiring* (Atomik Research,
-n=1,005, fielded Oct 2024). Enhancv ATS auto-rejection study, 2025 (n=25), via IT Brief. The
-Ladders eye-tracking study, 2018 (n=30), via HR Dive. Jobscan ATS Usage Report 2026 + keyword
+n=1,005 US HR + talent-acquisition executives it calls hiring managers, fielded Oct 2024; a staffing firm's survey). Enhancv ATS auto-rejection study, 2025 (n=25), via IT Brief. The
+Ladders eye-tracking study, 2018 press release + HR Dive (sample not stated); its 2012 report (30 recruiters, 10 weeks). Jobscan ATS Usage Report 2026 + keyword
 guidance 2026. Greenhouse Boolean search docs. Career centres: Harvard FAS Mignone Center, MIT
 CAPD, Emory CPD, UC Berkeley, University of Arizona, UConn. National Resume Writers' Association.
 Indeed Career Guide; Indeed Hiring Lab 2025. HBS/Accenture, *Hidden Workers: Untapped Talent*,
 2021, Fig 7 (cited by `schema.py`). D'hert, Baert, Lippens, IZA DP 17141, 2024 (gap meta-analysis).
-Kroft, Lange, Notowidigdo, QJE 2013. Namingit, Blandin, Schwab, "Sick and Tell", 2021. Kristal
-et al., Behavioural Insights Team CV trial, 2023. Textkernel.
+Kroft, Lange, Notowidigdo, QJE 2013. Namingit, Blankenau & Schwab, "Sick and tell", JEBO 2021. Kristal,
+Nicks, Gloor & Hauser, Nature Human Behaviour 2023 (trial run w/ the Behavioural Insights Team). Textkernel.
+Jobscan, Lever ATS guide 2026 (acronyms not matched). Sources cited only in code: Kobak et al., Science
+Advances 2025 (excess style words in PubMed abstracts 2010-2024, `lint.py`); AARP age-proof resume
+tips + Indeed (graduation year, `lint.py`); Chicago Manual of Style 7.89 + AP Stylebook (compound
+hyphens, `lint.py`); Kickresume (57-word summary cap, `render.py` - source not found 2026-10-03, unverified).

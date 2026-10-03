@@ -11,7 +11,10 @@ informs both ways, then carries the user's choice through resume + every form.
 Strength labels, strongest first: **meta-analysis** · **large field experiment** (thousands of
 real applications) · **field experiment** · **survey** · **vendor survey** (seller of a service,
 method thin) · **lab/LLM audit** (raters or AI models, not real hiring) · **law** · **convention**
-(career-centre consensus, no study).
+(career-centre consensus, no study). Same scale as [research.md](../research.md#evidence-labels).
+Three tags sit outside it and say so: **observational** (real records, no experiment - linked,
+not proven cause) · **vendor docs** (a product's own documentation) · **absence of evidence**
+(nothing tested found). Survey experiments + lab experiments with people count as lab/LLM audit.
 
 Not here: [What did not survive](#advice-we-dont-follow), [Unverified](#unverified) - read both
 before adding a claim; a figure listed there never reaches a user as fact.
@@ -23,7 +26,7 @@ before adding a claim; a figure listed there never reaches a user as fact.
 | Rule | Basis | Strength |
 |---|---|---|
 | Name bias is real + not shrinking | Quillian 2017 (28 US studies, 55,842 applications, incl. in-person audits): white applicants +36% callbacks vs Black (CI 25-47%), +24% vs Latino; no change vs Black since 1989. Lippens 2023 (mostly European studies): Arab -46%, East/South-East Asian -43% (wide prediction interval), Black -36%. Bertrand & Mullainathan 2004 (Boston, Chicago): 9.65% vs 6.45%. | meta-analysis |
-| Apply widely - the best-supported action | Kline/Rose/Walters 2021 (83k applications, 108 Fortune 500 firms): Black names 2.1 pts fewer contacts on a 24% base; worst fifth of firms = nearly half of lost Black contacts. Federal contractor + centralised HR *correlated* with smaller gaps, not proven causes. | large field experiment |
+| Apply widely - the best-supported action | Kline/Rose/Walters, QJE 2022 (83k applications, 108 of the largest US employers): Black names 2.1 pts fewer contacts on a 24% base; worst fifth of firms = nearly half of lost Black contacts. Federal contractor + centralised HR *correlated* with smaller gaps, not proven causes. | large field experiment |
 | Bias grows after the callback | Quillian/Lee/Oliver 2020: majority applicants 53% more callbacks, 145% more job offers. Name tweaks at the first screen can't reach the interview. | meta-analysis |
 | Pro-diversity statements don't predict fairer screening | Kang 2016: postings w/ them discriminated just as much. | field experiment |
 | Initials: **their call, never recommended** | Direct evidence thin and mixed: 2 small tests of an English first name + ethnic surname disagree (Canada 2008 no significant gain; US 2015 borderline gain). No test of bare initials. Detail: Oreopoulos 2011 "Allen Wang" 12.5% - below English 16.0%, not significantly above Chinese 11.3%. Kang 2016 "Lei -> Luke Zhang" (surname kept) 11.5% -> 18.0%, p<.10, 200 applications per cell. Black "Lamar J. -> L. James Smith" 10.0% -> 13.0%, not significant at that size - a test too small to tell, not a null. | 2 field experiments, small cells |
@@ -51,10 +54,10 @@ before adding a claim; a figure listed there never reaches a user as fact.
 | Rule | Basis | Strength |
 |---|---|---|
 | Direction varies by model - say so, promise nothing | Gao 2026 *preprint* (14 models): 2023 model +2.12 pts pro-white; 2024+ models null or pro-Black up to 3.01; same for gender. An 2025 (~361k resumes, 5 models): Black men scored lower, women higher. Wilson & Caliskan 2024 (embedding search): white names favoured in 85.1% of tests. | lab/LLM audit |
-| Order effects as big as names | Rozado 2025 (22 models): first-listed candidate won 63.5%; names -> "Candidate A/B" + swapped order gave parity. | lab/LLM audit |
+| Order effects as big as names | Rozado 2026 (PeerJ CS; preprint 2025; 22 models): first-listed candidate won 63.5%; names -> "Candidate A/B" + swapped order gave parity. | lab/LLM audit |
 | Real vendor data leans against Black + Asian applicants | Bommasani 2026 *preprint* (3M applicants, one vendor): 25.87% of Black + 14.74% of Asian applicants' applications went to positions w/ adverse impact against their group; 4% of people applying to 10 jobs were recommended for rejection by all 10. | large observational, preprint |
 | Removing the name doesn't hide ethnicity from AI | Chen & Xiao 2026 *preprint* (9 models, 620 resumes): ethnicity recovered from redacted prose 76% on average, 100% when cues strong. | lab/LLM audit, preprint |
-| Humans copy AI bias | Wilson 2025 (528 people): followed a biased AI's race preference up to 90% of the time. | lab experiment |
+| Humans copy AI bias | Wilson 2025 (528 people): followed a biased AI's race preference up to 90% of the time. | lab/LLM audit |
 | No candidate trick has evidence | Nothing tested shows an applicant-side wording beats a screener. Program advice stays: accurate, relevant, readable. | absence of evidence |
 
 ## Age cues
@@ -78,10 +81,10 @@ before adding a claim; a figure listed there never reaches a user as fact.
 |---|---|---|
 | Length matters | D'hert/Baert/Lippens 2024 (~67k applicants, 7 countries pooled): 1-6 months +8% (n.s.), 7-12 n.s., 13-18 -21.4% (CI -34 to -6), 19-36 -27.0%. Pooled; US studies show it earlier: Kroft 2013 (12,054 resumes) callbacks ~7% at 1 month -> ~4% by ~8 months, then flat. | meta-analysis; large field experiment |
 | Some screening software filters gaps | Hidden Workers 2021 Fig 7: 48% of executives whose software ranks or filters said it filtered middle-skill candidates on gaps over 6 months. 2,275 execs, US/UK/DE pooled, self-report, Jan-Feb 2020. Not "half of all employers". | survey |
-| 6+ months: a one-line reason is worth adding | Namingit 2021 (US, 3,771 applications, mostly 7-12 month gaps): no gap 27.4%, explained 25.6%, unexplained 23.3% - about half the penalty recovered (~55%). Reason = illness + full recovery, in the cover letter. Kristal 2023 / BIT (UK, 9,022 applications, 2.5-yr gap): childcare line vs silence 0.1 pt - but that trial found no clear gap penalty either (35.0% vs 32.9%, p=.146). | one US field study; one UK trial |
+| 6+ months: a one-line reason is worth adding | Namingit 2021 (US, 3,771 applications, mostly 7-12 month gaps): no gap 27.4%, explained 25.6%, unexplained 23.3% - about half the penalty recovered (~55%). Reason = illness + full recovery, in the cover letter. Kristal 2023 (Nature Human Behaviour, trial run with the Behavioural Insights Team; UK, 9,022 applications, 2.5-yr gap): childcare line vs silence 0.1 pt - but that trial found no clear gap penalty either (35.0% vs 32.9%, p=.146). | field experiment (US); large field experiment (UK) |
 | 12+ months: line + recent work, study or volunteering really done | Length evidence above. Baert & Vujić 2018 (Belgium): volunteering +7.3 pts. Never suggest paying for courses: no US study behind it. | meta-analysis; field experiment |
 | Search still running: no penalty talk | Current search isn't a break to explain; never show month-penalty numbers at the user. | convention (policy) |
-| Caregiver penalty hits fathers too; positive info doesn't fix it | Weisshaar 2018 (1.5-yr gap): mothers employed 15.3% / laid off 9.7% / stay-at-home 4.9%; fathers 14.6 / 8.8 / 5.4. Weisshaar 2021: performance info erased the unemployed penalty, not the caregiver one. So the reason line is their call: "small help for health and layoffs, no difference for childcare in one trial". | large field experiment; survey experiment |
+| Caregiver penalty hits fathers too; positive info doesn't fix it | Weisshaar 2018 (1.5-yr gap): mothers employed 15.3% / laid off 9.7% / stay-at-home 4.9%; fathers 14.6 / 8.8 / 5.4. Weisshaar 2021: performance info erased the unemployed penalty, not the caregiver one. So the reason line is their call: "small help for health and layoffs, no difference for childcare in one trial". | large field experiment; lab/LLM audit (survey experiment) |
 | Health: "a health matter, now resolved or well managed" | Never "recovered" as the only option (false for ongoing conditions); never name a condition. ADA: no disability-related questions before an offer. | law; large field experiment |
 | Layoff: one line under the last job when true | "Role cut in company-wide layoff" - Gibbons & Katz 1991: discretionary layoffs read worse than plant closings. No audit compares layoff vs firing. | observational |
 | Stop-gap job below skill: their call on the page, full history on forms | Pedulla 2016, men: below-skill job 4.7% ~ unemployed 4.2% vs full-time 10.4%. Farber 2016: interim lower-level job 9.8% -> 8.5%. | field experiment |
@@ -97,7 +100,7 @@ before adding a claim; a figure listed there never reaches a user as fact.
 | Answer what the question legally covers - no more | Many states let sealed, expunged or juvenile records go unmentioned (e.g. CA Lab. Code 432.7) - varies by state; check the state's rules or free legal aid. A lawful "No" is not a Hold; a false answer is. | law |
 | Never auto-answer; read the exact wording back | Wording decides scope (conviction vs arrest, time window). The user picks; the program never does. | convention (policy) |
 | Page needn't name it | Break line optional; real work, training or education done in custody listed under its real name. "Personal leave" to cover incarceration -> push back once: dates show on a check. | convention; vendor docs |
-| Certificates of relief help | Leasure & Andersen 2016 (319 applications, Columbus OH): no record ~30%, felony ~10%, felony + certificate ~26%. Pager 2008: record cut callbacks 28% -> 15%; talking w/ the employer helped. | small field experiments |
+| Certificates of relief help | Leasure & Andersen 2016 (319 applications, Columbus OH): no record ~30%, felony ~10%, felony + certificate ~26%. Pager 2008: record cut callbacks 28% -> 15%; talking w/ the employer helped. | field experiment (small) |
 | Sensitive details stay short | Before break or record help, one line: "A few words is enough - no diagnosis or case details. What you type here goes to your AI account." | convention (policy) |
 
 ## Laws
@@ -208,10 +211,10 @@ AIES 2024. Wilson et al., AIES 2025. Glazko et al., FAccT 2024. Tamkin et al. 20
 Neumark, Burn & Button, JPE 2019 (NBER w21669). Neumark, JHR 2024. Lahey, JHR 2008. Farber,
 Silverman & von Wachter, RSF 2017. Farber, Herbst, Silverman & von Wachter, JOLE 2019. Carlsson
 & Eriksson, Labour Econ. 2019. Derous & Decoster 2017. Van Borm, Burn & Baert 2021. ResumeBuilder
-survey 2024.
+survey 2024. National Student Clearinghouse (degree verification, ~97% of US college enrollment).
 Fuller & Raman, *Hidden Workers*, HBS/Accenture 2021. D'hert, Baert & Lippens, IZA DP 17141.
 Kroft, Lange & Notowidigdo, QJE 2013. Namingit, Blankenau & Schwab, JEBO 2021. Kristal et al.,
-Nature Human Behaviour 2023 + BIT report 2021. Weisshaar, ASR 2018 + Socius 2021. Pedulla, ASR
+Nature Human Behaviour 2023 (w/ the Behavioural Insights Team). Weisshaar, ASR 2018 + Socius 2021. Pedulla, ASR
 2016. Farber, Silverman & von Wachter, AER P&P 2016. Baert & Vujić 2018. Bateson 2023. Gibbons &
 Katz 1991. HireRight 2025 benchmark. ResumeGo 2019.
 Agan & Starr, QJE 2018. Burton & Wasser 2025. Pager 2008 (EEOC testimony). Leasure & Andersen

@@ -58,7 +58,7 @@ Four lint rules sit beside the page gates - same scorers check them. Plain-words
 | Letterspaced headings or name | normal spacing | `split-words`: +0.08em read back "EXP E R I ENC E" |
 | Grey dates or contact line, coloured headings | black throughout | `text-color` |
 | Dates pushed right on the heading line | dates on the line under it | pdftotext read a right column after the bullets (`resume.typ:36`) |
-| Two-column, sidebar or photo templates | one column, no images | `single-column` + `no-images` gates; multi-column sank resumes (Ladders) |
+| Two-column, sidebar or photo templates | one column, no images | `single-column` + `no-images` gates; multi-column did poorly in one vendor's eye-tracking study (Ladders 2018) |
 | Education on one line: "BSc, Field \| School" | school on its own line, degree spelled out under | Workday read 2026-09: school "Field \| School", Degree empty |
 | A "Stack:" line under each job | tools in the lines that used them | a row per job, repeating tools (keywords never repeated to pad) |
 | Certification "Name - Issuer (Year)" w/ a long dash | Name \| Issuer \| Year | `em-dash` |
