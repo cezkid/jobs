@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+<desc>CEZ Job Finder icon, hand-tuned 16 px rung of icon.svg: whole pixels, flat ink tile 12 at 2 (Mac margin), upright page, no fold, one highlighter band crossing the page's right edge, no lines.</desc>
+<rect id="tile" x="2" y="2" width="12" height="12" rx="3" fill="#1c1c1e"/>
+<g shape-rendering="crispEdges">
+<rect x="5" y="4" width="6" height="8" fill="#ffffff"/>
+<rect x="6" y="7" width="7" height="2" fill="#ffe433"/>
+</g></svg>
