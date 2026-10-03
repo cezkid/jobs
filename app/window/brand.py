@@ -1,8 +1,8 @@
 """Job Finder's look in the VS Code window: the install site's highlighter-on-paper (docs/index.html).
 
 One set of tokens => window colors (workspace.py), page stylesheet (pages.css) and contrast test all
-read the same values. Highlighter only marks things (active item, badge, chip), never body text,
-and always carries ink: white on #ffe433 is 1.3:1.
+read the same values. Yellow background only where a click does something (buttons, Today's "Open
+the posting"; owner 2026-10-03), never body text, and always carries ink: white on #ffe433 is 1.3:1.
 """
 
 PAPER = "#ffffff"
@@ -10,6 +10,8 @@ INK = "#000000"
 INK_2 = "#3a3a3a"
 RULE = "#c8c8c8"
 MARK = "#ffe433"
+# pressed / hover on a yellow button: one step deeper, ink text still
+MARK_2 = "#f2cf00"
 # dark desk = site's dark mode
 DESK = "#1c1c1e"
 TEXT_DARK = "#f2f2f2"
@@ -19,7 +21,7 @@ LINE = "#48484a"
 WASH = "#f3f3f1"
 DESK_2 = "#2c2c2e"
 
-TOKENS = {"paper": PAPER, "ink": INK, "ink-2": INK_2, "rule": RULE, "mark": MARK, "desk": DESK,
+TOKENS = {"paper": PAPER, "ink": INK, "ink-2": INK_2, "rule": RULE, "mark": MARK, "mark-2": MARK_2, "desk": DESK,
           "text-dark": TEXT_DARK, "text-dark-2": TEXT_DARK_2, "line": LINE, "wash": WASH, "desk-2": DESK_2}
 
 
@@ -43,10 +45,10 @@ def chrome(bg: str, fg: str, fg_2: str, line: str, tint: str, button_bg: str, bu
         "activityBarTop.foreground": fg,
         "activityBarTop.inactiveForeground": fg_2,
         "activityBarTop.activeBorder": ring,
-        "activityBarBadge.background": MARK,
-        "activityBarBadge.foreground": INK,
-        "badge.background": MARK,
-        "badge.foreground": INK,
+        "activityBarBadge.background": button_bg,
+        "activityBarBadge.foreground": button_fg,
+        "badge.background": button_bg,
+        "badge.foreground": button_fg,
         "sideBar.background": bg,
         "sideBar.foreground": fg,
         "sideBar.border": line,
@@ -80,14 +82,15 @@ def chrome(bg: str, fg: str, fg_2: str, line: str, tint: str, button_bg: str, bu
         "panelTitle.activeForeground": fg,
         "panelTitle.inactiveForeground": fg_2,
         "panelTitle.activeBorder": ring,
-        "button.background": button_bg,
-        "button.foreground": button_fg,
-        "button.hoverBackground": fg_2,
+        # yellow background only where a click does something (owner rule 2026-10-03)
+        "button.background": MARK,
+        "button.foreground": INK,
+        "button.hoverBackground": MARK_2,
         "button.secondaryBackground": tint,
         "button.secondaryForeground": fg,
-        "list.activeSelectionBackground": MARK,
-        "list.activeSelectionForeground": INK,
-        "list.activeSelectionIconForeground": INK,
+        "list.activeSelectionBackground": tint,
+        "list.activeSelectionForeground": fg,
+        "list.activeSelectionIconForeground": fg,
         "list.inactiveSelectionBackground": tint,
         "list.inactiveSelectionForeground": fg,
         "list.hoverBackground": tint,
@@ -112,16 +115,14 @@ def chrome(bg: str, fg: str, fg_2: str, line: str, tint: str, button_bg: str, bu
 # focus ring + active-tab line: ink on paper (yellow on white is invisible), highlighter on the dark desk
 LIGHT = {
     **chrome(PAPER, INK, INK_2, RULE, WASH, button_bg=INK, button_fg=PAPER, ring=INK),
-    # selected words in a resume file: highlighter under ink
-    "editor.selectionBackground": MARK,
+    # selected words in a resume file: quiet grey under ink (yellow means a button)
+    "editor.selectionBackground": RULE,
     "editor.selectionForeground": INK,
 }
 DARK = {
     **chrome(DESK, TEXT_DARK, TEXT_DARK_2, LINE, DESK_2, button_bg=TEXT_DARK, button_fg=INK, ring=MARK),
     # dark editor text is near-white => highlighter would carry white text; a quiet grey instead
     "editor.selectionBackground": LINE,
-    # light grey button (ink text) => hover one step darker, not the light theme's ink-2
-    "button.hoverBackground": TEXT_DARK_2,
 }
 
 THEMES = {"Light Modern": LIGHT, "Dark Modern": DARK}

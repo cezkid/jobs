@@ -14,11 +14,11 @@
 /* light = paper; dark follows the computer's setting (site's dark desk) */
 body.vscode-light {
   --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8; --card: #ffffff;
-  --mark: #ffe433; --mark-text: #000000;
+  --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000;
 }
 body.vscode-dark {
   --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; --card: #2c2c2e;
-  --mark: #ffe433; --mark-text: #000000;
+  --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000;
 }
 /* high contrast: VS Code's own colors win, only type + layout change */
 body.vscode-high-contrast {
@@ -85,17 +85,31 @@ body.vscode-body {
 .markdown-body ol { padding-left: 1.4em; }
 .markdown-body ol > li { margin: 0 0 8px; }
 
-/* words to say = highlighter chips, ink on yellow (never white) */
+/* words to say = plain quoted words, never yellow: yellow means a button (owner 2026-10-03) */
 .markdown-body code {
   font-family: "Caladea", Georgia, serif;
   font-size: 1em;
+  font-weight: 700;
+  background: none;
+  color: var(--text);
+  padding: 0;
+}
+.markdown-body code::before { content: "\201C"; }
+.markdown-body code::after { content: "\201D"; }
+
+/* a link inside a job card (Open the posting) does something => a real-looking button */
+.markdown-body > ul > li > ul > li > a,
+.markdown-body > ul > li > ul > li > a:hover {
+  display: inline-block;
   background: var(--mark);
   color: var(--mark-text);
-  padding: 1px 6px;
-  border-radius: 3px;
-  box-decoration-break: clone;
-  -webkit-box-decoration-break: clone;
+  text-decoration: none;
+  font-weight: 700;
+  padding: 3px 12px;
+  border-radius: 6px;
+  margin: 2px 0;
 }
+.markdown-body > ul > li > ul > li > a:hover { background: var(--mark-2); }
 .markdown-body pre {
   background: var(--card);
   border: 1px solid var(--line);
@@ -110,7 +124,7 @@ body.vscode-body {
   color: inherit;
   padding: 0;
 }
-body.vscode-high-contrast .markdown-body code { outline: 1px solid var(--line); }
+body.vscode-high-contrast .markdown-body > ul > li > ul > li > a { outline: 1px solid var(--line); }
 
 .markdown-body blockquote {
   margin: 0 0 14px;

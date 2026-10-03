@@ -49,8 +49,8 @@ SAY = (
 
 
 def chip(words: str) -> str:
-    """Words to say as a code span: pages.css draws it as a chip, the words stay on the page for
-    other AIs + the chat brief."""
+    """Words to say as a code span: pages.css draws them as bold quoted words (never yellow: yellow
+    means a button), the words stay on the page for other AIs + the chat brief."""
     return f"`{words}`"
 
 

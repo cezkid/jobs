@@ -8,8 +8,10 @@ the owner's own.
 
 - Look (`app/window/brand.py`, one token set): `workbench.colorCustomizations` per theme
   (`[Light Modern]`, `[Dark Modern]`) + `window.autoDetectColorScheme` => light by default, dark
-  follows the computer; user's own theme elsewhere untouched. Highlighter only on marks (selected
-  row, badge, say chip), always under ink. Contrast >= 4.5:1 per pair, tested.
+  follows the computer; user's own theme elsewhere untouched. Yellow background = something a click
+  does (buttons, Today's "Open the posting"), always under ink; owner 2026-10-03: yellow words that
+  don't click read as broken buttons. Selected rows, badges, text selection = quiet grey. Contrast
+  >= 4.5:1 per pair, tested.
 - Pages: `markdown.styles: ["app/window/pages.css"]` - relative path joined to the first workspace
   folder (1.140 bundle read). Content sits in `.markdown-body`; body carries `vscode-light` /
   `vscode-dark` / `vscode-high-contrast`. Caladea via relative `url()` from `app/resume/fonts`
@@ -26,8 +28,9 @@ Still stock VS Code, on the user's own install + subscriptions; only settings + 
 - Pages: `app/window/pages.css` (`markdown.styles`) - Caladea, 68ch measure, list items as cards.
   Reads as one program's pages, not a code editor's Markdown preview. No remote loads.
 - Today: "Open the posting" + "Open its resume" link text, never a bare 100-char URL;
-  words to say as highlighter chips (code spans) - user reads + types them, nothing clicks into
-  the chat. "What you can say" list at the end, same chips.
+  "Open the posting" drawn as a yellow button (it opens the posting); words to say as plain bold
+  quoted words (code spans) - user reads + types them; real buttons + a dashboard Today = phase 2
+  (owner 2026-10-03). "What you can say" list at the end, same words.
 - START HERE leaves the file list once search settings exist (`files.exclude`, written at
   launch => gone from next launch, plan-ejf.1.18 for right after setup). First-run steps only.
 - Documents, not code: `[yaml]` + `[markdown]` w/o line numbers, folding, guides, lightbulbs,
