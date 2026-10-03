@@ -276,6 +276,16 @@
     .intro { grid-column: 1 / span 6; }
     figure { grid-column: 7 / -1; align-self: start; margin-top: 6px; }
   }
+  /* wide + tall: the h1 runs across both columns as display type (two or three balanced lines), steps
+     + window side by side under it; the font stays capped by the screen's height so Copy keeps its room */
+  @media (min-width: 1080px) and (min-height: 800px) {
+    .hero { row-gap: 0; align-content: start; grid-template-rows: auto auto 1fr; }
+    .intro { display: contents; }
+    h1 { grid-column: 1 / -1; max-width: none; font-size: min(clamp(2.5rem, 1rem + 4.6vw, 7rem), 8.6vh + 0.5rem); }
+    .lede, #install { grid-column: 1 / span 6; }
+    #install { align-self: start; }
+    figure { grid-row: 2 / span 2; }
+  }
 
   /* opening moment: the window's marks draw once per session (html.seen skips it), done by 2.8 s;
      everything is on the page from first paint, only marks start empty. --t0 / --t1 = start / end
@@ -313,7 +323,7 @@
 
   /* scenes below the hero */
   .scene { padding-top: clamp(56px, 9vh, 104px); padding-bottom: clamp(56px, 9vh, 104px); row-gap: 32px; border-top: 1px solid var(--line); }
-  .scene h2 { font-size: clamp(2rem, 1.2rem + 2.2vw, 3.25rem); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 0.45em; }
+  .scene h2 { font-size: clamp(2rem, 1rem + 5.1vw, 6.5rem); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 0.45em; }
   .scene p { margin: 0; }
   .scene-text { grid-column: 1 / -1; max-width: 34rem; }
   .scene-text > p { margin-bottom: 1rem; }
@@ -360,8 +370,13 @@
     .sheet-lg .name { font-size: 1.625rem; }
   }
   @media (min-width: 1080px) {
-    .resume .scene-text { grid-column: 1 / span 4; }
-    .proof { grid-column: 5 / -1; }
+    /* the heading runs above both columns: display size won't fit 4 columns */
+    .resume { row-gap: 0; grid-template-rows: auto auto 1fr; }
+    .resume .scene-text { display: contents; }
+    .resume h2 { grid-column: 1 / -1; }
+    .resume .scene-text > p, .resume .rules { grid-column: 1 / span 4; }
+    .resume .rules { align-self: start; }
+    .proof { grid-column: 5 / -1; grid-row: 2 / span 2; }
   }
 
   /* scene motion: scroll-driven draw-ins, the single path - no support (Firefox) or reduced motion
@@ -381,7 +396,8 @@
 
   /* applications + help after: a compact typeset pair, no framed object; illustrated Submit = ink, never a control */
   .half { grid-column: 1 / -1; min-width: 0; }
-  .half h2 { font-size: clamp(1.75rem, 1.1rem + 1.6vw, 2.5rem); }
+  /* a paired subhead, half width: capped where "Applications filled." still fits one line */
+  .half h2 { font-size: clamp(1.75rem, 0.5rem + 3.9vw, 4rem); }
   .defs { margin: 0; border-top: 2px solid var(--text); }
   .defs > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 20px; padding: 12px 0 13px; border-bottom: 1px solid var(--line); }
   .defs dt { font-weight: 700; }
@@ -436,12 +452,12 @@
   .stack summary { padding: 14px 40px 14px 0; font-weight: 700; }
   .stack details > div { padding: 0 40px 16px 0; }
   .stack code { font: 0.9375rem/1.5 var(--mono); overflow-wrap: anywhere; }
-  /* wide: the heading heads the first stack (4 questions) and is one question tall (1lh + margin = a
-     closed summary: 2 x 14px + one body line + 1px rule), the second stack (5) starts level with it
-     => both stacks end on the same line, balanced by height */
+  /* wide: the heading heads the first stack (3 questions) and is three questions tall (1lh + margin =
+     3 closed summaries: 2 x 14px + one body line + 1px rule each), the second stack (6) starts level
+     with it => both stacks end on the same line, balanced by height */
   @media (min-width: 900px) {
     .questions { align-items: start; row-gap: 0; }
-    .questions h2 { grid-column: 1 / span 6; margin-bottom: calc(29px + 1.9375rem - 1lh); }
+    .questions h2 { grid-column: 1 / span 6; margin-bottom: calc(3 * (29px + 1.9375rem) - 1lh); }
     .stack { grid-column: 1 / span 6; }
     .stack + .stack { grid-column: 7 / -1; grid-row: 1 / span 2; }
   }
@@ -450,8 +466,9 @@
 
   /* closing install beat (phone: send the link; no second command) + colophon */
   .closing { border-top: 0; padding-top: clamp(24px, 4vh, 48px); }
-  .closing .scene-text { max-width: 44rem; }
-  .closing h2 { font-size: clamp(2.25rem, 1.3rem + 3vw, 4.25rem); margin-bottom: 0.3em; }
+  .closing .scene-text { max-width: none; }
+  .closing h2 { font-size: clamp(2.25rem, 1rem + 5.4vw, 7rem); margin-bottom: 0.3em; }
+  .closing p { max-width: 34rem; }
   .closing .go { display: inline-block; margin-top: 8px; font-size: var(--step-1); font-weight: 700; }
   .closing .phone p { font-weight: 400; }
   .colophon { border-top: 1px solid var(--line); }
@@ -461,6 +478,9 @@
   @media (max-width: 600px) {
     .hero { padding-bottom: 32px; }
     .scene { padding-top: 30px; padding-bottom: 30px; row-gap: 20px; }
+    .scene h2 { font-size: clamp(2rem, 1.2rem + 2.2vw, 3.25rem); }
+    .half h2 { font-size: clamp(1.75rem, 1.1rem + 1.6vw, 2.5rem); }
+    .closing h2 { font-size: clamp(2.25rem, 1.3rem + 3vw, 4.25rem); }
     .ledger li { padding: 12px 0 13px; }
     .defs > div { padding: 9px 0 10px; }
     .questions { row-gap: 0; }
@@ -712,12 +732,12 @@
         <summary>Use Nova, Poe or another all-in-one AI app?</summary>
         <div><p>Those apps can't run programs on your computer, so they can't run CEZ Job Finder. GitHub Copilot Pro ($10 a month) works like them - several AIs in one plan - and runs here. Pick Claude Sonnet as its AI.</p></div>
       </details>
+    </div>
+    <div class="stack">
       <details>
         <summary>Does it apply for me?</summary>
         <div><p>No. It fills the form; you check it and press Submit.</p></div>
       </details>
-    </div>
-    <div class="stack">
       <details>
         <summary>Will it make things up on my resume?</summary>
         <div><p>No. Employers, titles and dates stay as you gave them. You approve every reworded line.</p></div>
