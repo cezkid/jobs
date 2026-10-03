@@ -8,69 +8,33 @@ files on disk: no network, stdlib + pymupdf. Assets come from app/web/assets.py 
 import json
 import re
 import struct
-from html.parser import HTMLParser
+import subprocess
+from urllib.parse import urlsplit
 
-import pymupdf
+import pytest
 
 import cfg
 
+# installed copies have no .git, and may keep a stale docs/ from an older download => nothing to test
+if not (cfg.ROOT / ".git").exists():
+    pytest.skip("installed copy: the site is tested in the developer checkout", allow_module_level=True)
+
+import pymupdf  # noqa: E402
+
+from site_checks import Head, files, loaded_urls, own_url, png_size, target  # noqa: E402
+
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
-PAGES = ("index.html", "privacy.html", "404.html")
-INDEXED = {"index.html": SITE, "privacy.html": SITE + "privacy.html"}
-
-
-class Head(HTMLParser):
-    """Every tag's attributes in order, plus the text of <title>, <style>, <script> and #line."""
-
-    def __init__(self, text: str):
-        super().__init__()
-        self.tags, self.text, self._open = [], {}, None
-        self.feed(text)
-
-    def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
-        self.tags.append((tag, attrs))
-        if tag in ("title", "style", "script") or attrs.get("id") == "line":
-            self._open = attrs.get("type", tag) if tag == "script" else attrs.get("id", tag)
-            self.text.setdefault(self._open, [])
-            self.text[self._open].append("")
-
-    def handle_endtag(self, tag):
-        self._open = None
-
-    def handle_data(self, data):
-        if self._open:
-            self.text[self._open][-1] += data
-
-    def all(self, tag, **match):
-        return [a for t, a in self.tags if t == tag and all(a.get(k) == v for k, v in match.items())]
-
-    def meta(self, key: str) -> str | None:
-        found = self.all("meta", property=key) or self.all("meta", name=key)
-        return found[0]["content"] if found else None
-
-    def links(self, rel: str) -> list[dict]:
-        return self.all("link", rel=rel)
+FILES = files(DOCS)
+# docs/mac/ + docs/win/ hold install scripts named index.html, not pages
+PAGES = sorted(f for f in FILES if f.endswith(".html") and f.split("/")[0] not in ("mac", "win"))
 
 
 def page(name: str) -> Head:
     return Head((DOCS / name).read_text(encoding="utf-8"))
 
 
-def png_size(path) -> tuple[int, int]:
-    data = path.read_bytes()
-    assert data[:8] == b"\x89PNG\r\n\x1a\n" and data[12:16] == b"IHDR", path
-    return struct.unpack(">II", data[16:24])
-
-
-def loaded_urls(head: Head) -> list[str]:
-    """What a browser fetches on load: every src, every <link> but canonical, every CSS url()."""
-    urls = [a["src"] for _, a in head.tags if "src" in a]
-    urls += [a["href"] for a in head.all("link") if a.get("rel") != "canonical"]
-    for css in head.text.get("style", []):
-        urls += re.findall(r"""url\(\s*["']?([^"')]+)""", css)
-    return urls
+INDEXED = {name: own_url(name, SITE) for name in PAGES if page(name).links("canonical")}
 
 
 def test_each_page_carries_the_same_icons_and_font_preloads():
@@ -101,29 +65,78 @@ def test_indexed_pages_share_one_url_and_fit_search_and_share_limits():
         assert not re.search(r" [-|] CEZ Job Finder$", head.meta("og:title")), name
         assert head.meta("twitter:card") == "summary_large_image", name
         # image size stated == real size, else some apps crop or skip the picture on first share
-        image = DOCS / head.meta("og:image").removeprefix(SITE)
-        assert head.meta("og:image").startswith(SITE) and image.is_file(), name
+        # read as a URL: ?v=N (bumped so LinkedIn refetches a changed card) isn't part of the file name
+        assert head.meta("og:image").startswith(SITE), name
+        image = target(urlsplit(head.meta("og:image")).path)
+        assert image in FILES, (name, image)
+        image = DOCS / image
         size = (int(head.meta("og:image:width")), int(head.meta("og:image:height")))
         assert png_size(image) == size == (1200, 630), name
         assert image.stat().st_size < 300_000, name  # WhatsApp skips share images over ~300 KB
 
 
-def test_404_page_stays_out_of_search_and_loads_from_the_root():
-    head = page("404.html")
-    assert head.links("canonical") == []
-    assert "noindex" in head.meta("robots")
-    # Pages serves 404.html at any missing path (/a/b/c) => relative URLs break there
-    assert all(u.startswith("/") for u in loaded_urls(head)), loaded_urls(head)
+def test_each_indexed_page_is_its_own_canonical_and_the_rest_stay_out_of_search():
+    # canonical pointing elsewhere => search drops this page for that one
+    assert INDEXED["index.html"] == SITE and "404.html" not in INDEXED
+    for name, url in INDEXED.items():
+        assert [a["href"] for a in page(name).links("canonical")] == [url], name
+    # no canonical + indexable => /x and /x/index.html both answer 200 and compete
+    for name in set(PAGES) - set(INDEXED):
+        assert "noindex" in (page(name).meta("robots") or ""), name
 
 
-def test_no_page_loads_a_file_from_another_site():
-    # privacy page promises "no files from other sites": every fetch stays on this site
+def test_no_page_loads_a_file_from_another_site_or_a_missing_one():
+    # privacy page promises "no files from other sites": every fetch stays on this site.
+    # Root-relative only: 404.html is served at any missing path (/a/b/c) => relative URLs break there.
+    # Exact case: macOS disks match /Fonts/x for fonts/x, Pages answers 404
     for name in PAGES:
         for url in loaded_urls(page(name)):
-            if url.startswith(("data:", "#")):
+            if url.startswith("data:"):
                 continue
-            assert not re.match(r"[a-z]+:|//", url), (name, url)
-            assert (DOCS / url.lstrip("/")).is_file(), (name, url)
+            assert url.startswith("/") and not url.startswith("//"), (name, url)
+            assert target(url) in FILES, (name, url)
+
+
+def test_every_link_lands_on_a_file_and_a_heading_that_exist():
+    ids = {name: page(name).ids() for name in PAGES}
+    for name in PAGES:
+        for a in page(name).all("a"):
+            href = a.get("href")
+            if href is None:
+                continue
+            url = urlsplit(href)
+            if href.startswith("#"):
+                assert url.fragment in ids[name], (name, href)
+            elif href.startswith("/") and not href.startswith("//"):
+                file = target(url.path)
+                assert file in FILES, (name, href)
+                # /research => Pages redirects to /research/ (an extra hop, and a second URL for one page)
+                assert url.path.endswith("/") or target(url.path + "/") not in FILES, (name, href, "folder link w/o /")
+                if url.fragment:
+                    assert file in ids and url.fragment in ids[file], (name, href)
+            else:
+                # relative links break on 404.html (served at any depth); http: drops to an insecure hop
+                assert url.scheme in ("https", "mailto"), (name, href)
+
+
+def test_titles_and_descriptions_are_unique():
+    # two pages w/ one title => search shows both the same, or picks one and folds the other
+    for key in "title", "description":
+        seen = [(page(n).text["title"][0] if key == "title" else page(n).meta(key)) for n in PAGES]
+        seen = [s for s in seen if s]
+        assert len(seen) == len(set(seen)), key
+
+
+def test_nothing_in_docs_trips_jekyll():
+    # Pages runs Jekyll on docs/: .md becomes HTML, front matter (---) gets templated, and
+    # _x / .x / #x / x~ files are dropped from the site
+    tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", "docs"], capture_output=True, text=True,
+                             check=True).stdout.splitlines()
+    assert tracked
+    for path in tracked:
+        assert not path.endswith(".md"), path
+        assert not any(seg.startswith(("_", ".", "#")) or seg.endswith("~") for seg in path.split("/")[1:]), path
+        assert not (cfg.ROOT / path).read_bytes().startswith(b"---"), path
 
 
 def test_shared_css_is_the_same_on_every_page():
@@ -168,7 +181,8 @@ def test_icons_have_their_stated_sizes_and_home_screen_ones_are_opaque():
 
 def test_sitemap_and_robots_point_search_at_the_indexed_pages_only():
     sitemap = (DOCS / "sitemap.xml").read_text(encoding="utf-8")
-    assert re.findall(r"<loc>(.+?)</loc>", sitemap) == list(INDEXED.values())
+    locs = re.findall(r"<loc>(.+?)</loc>", sitemap)
+    assert len(locs) == len(set(locs)) and set(locs) == set(INDEXED.values())
     robots = (DOCS / "robots.txt").read_text(encoding="utf-8").splitlines()
     assert f"Sitemap: {SITE}sitemap.xml" in robots
     # /mac/ + /win/ are install scripts served as HTML => keep them out of search results

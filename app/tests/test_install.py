@@ -10,6 +10,8 @@ import cfg
 PAGE = cfg.ROOT / "docs" / "index.html"
 README = cfg.ROOT / "README.md"
 INSTALL = cfg.APP / "install"
+# installed copies have no .git and may keep a stale docs/ => page checks run in the developer checkout only
+needs_site = pytest.mark.skipif(not (cfg.ROOT / ".git").exists(), reason="installed copy: no site to check")
 
 
 def page_line(os: str) -> str:
@@ -25,18 +27,23 @@ def page_steps() -> str:
     return body[body.index('<div class="desktop">'):body.index("<footer>")]
 
 
+@needs_site
 def test_windows_line_survives_being_pasted_into_powershell():
     # "$env:JOBS_AI=..." pasted into PowerShell => outer shell expands $env before the child runs
     for line in page_line("win"), readme_line("irm "):
         assert "$" not in line, line
 
 
-def test_windows_line_runs_in_the_window_and_script_lets_uv_installer_run():
+@needs_site
+def test_windows_line_runs_in_the_window():
     # "powershell -ExecutionPolicy Bypass -c 'irm | iex'" => child got an empty download on a real PC
     # ("iex: Cannot bind argument to parameter 'Command' because it is an empty string") while the
     # same irm typed in the window got the whole file => run in the window, no second powershell
     for line in page_line("win"), readme_line("irm "):
         assert re.fullmatch(r"irm https://\S+ \| iex", line), line
+
+
+def test_windows_script_lets_uv_installer_run():
     # Windows default policy Restricted => uv's installer stops: "requires an execution policy in
     # [Unrestricted, RemoteSigned, Bypass]"; script sets Bypass for this window only
     script = (INSTALL / "install-windows.ps1").read_text(encoding="utf-8")
@@ -44,16 +51,21 @@ def test_windows_line_runs_in_the_window_and_script_lets_uv_installer_run():
     assert "CurrentUser" not in script  # never changes the user's setting for good
 
 
-def test_one_line_per_computer_and_installer_asks_the_ai():
+@needs_site
+def test_one_line_per_computer():
     # AI picked on the page => hidden, per-choice line; one visible line + a question in the window
     for line in page_line("win"), page_line("mac"), readme_line("irm "), readme_line("curl "):
         assert "JOBS_AI" not in line and not re.search(r"\s[123]\s*\"?$", line), line
     assert "data-ai" not in PAGE.read_text(encoding="utf-8")
+
+
+def test_installer_asks_the_ai():
     for name in "install-windows.ps1", "install-mac.sh":
         script = (INSTALL / name).read_text(encoding="utf-8")
         assert "Which AI do you use?" in script and "--list-extensions" in script, name
 
 
+@needs_site
 def test_short_lines_fetch_exact_copies_of_the_install_scripts():
     # Pages serves docs/ only, no server redirects => docs/<os>/index.html = byte copy of the script
     # (index.html => served as text, so irm hands iex a string); edit app/install, then cp here
@@ -65,6 +77,7 @@ def test_short_lines_fetch_exact_copies_of_the_install_scripts():
     assert (docs / "CNAME").read_text().strip() + "/" in PAGE.read_text(encoding="utf-8")
 
 
+@needs_site
 def test_steps_open_the_window_by_clicking_not_key_combos():
     # security software blocks download-and-run lines typed into Win+R (ClickFix pattern);
     # key combos are also where non-technical users get lost

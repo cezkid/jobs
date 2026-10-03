@@ -1,7 +1,9 @@
 # Install site - jobs.enrriquez.com
 
 `docs/` = install page, GitHub Pages, custom domain (`docs/CNAME`). Guarded by
-`app/tests/test_site.py` (no network) + `test_install.py` (install line, steps).
+`app/tests/test_site.py` (no network; helpers in `site_checks.py`) + `test_install.py` (install
+line, steps). Site tests run in the developer checkout only: no `.git` (installed copy, may keep a
+stale `docs/`) -> skipped. Every `docs/**/*.html` but `mac/` + `win/` (install scripts) is a page.
 
 ## What is where
 
@@ -26,6 +28,13 @@
 ## Rules + why
 
 - No third-party requests (fonts, scripts, images, CSS `url()`): privacy page promises it; test enforces.
+- Loaded URLs root-relative (`/fonts/x.woff2`, or `data:`): 404.html is served at any depth.
+  Links: `/...`, `#id`, `https:` or `mailto:` only; folder links end in `/` (`/research/`, else
+  Pages redirects); every `#id` must exist on its target page.
+- Paths exact-case: macOS disks match `/Fonts/x` to `fonts/x`, Pages answers 404. Tests compare
+  against names listed from disk, never `is_file()`.
+- Each indexed page's canonical = its own URL (folder `index.html` -> the folder); page w/o
+  canonical -> `noindex`. Sitemap = exactly the indexed URLs, once each. Titles + descriptions unique.
 - Shared CSS (`/* shared */` ... `/* /shared */`, fonts + tokens) identical on every page; test guards.
 - Install line static in HTML (Windows), JS swaps for Mac; FAQ carries the Mac line as text ->
   no-JS readers + crawlers see a command.
@@ -36,9 +45,10 @@
 - JSON-LD = WebSite only (site name in results). SoftwareApplication w/o ratings = invalid in
   Search Console; FAQ rich results now limited to government + health sites.
 - `og:title` w/o brand suffix (`og:site_name` carries it). `og.png` 1200x630, < 300 KB (WhatsApp
-  drops larger); changed -> bump `og.png?v=N` on every page (LinkedIn caches a preview ~7 days).
+  drops larger); changed -> bump `og.png?v=N` on every page (tests read og:image as a URL, query ignored) (LinkedIn caches a preview ~7 days).
 - 404.html: root paths only (served at any depth), noindex, no canonical.
-- No front matter in any file: GitHub Pages runs Jekyll, which would template it.
+- No front matter in any file, no `.md`, no path segment starting `_` `.` `#` or ending `~`:
+  GitHub Pages runs Jekyll, which would template or drop them (test checks tracked `docs/` files).
 
 ## Measured
 
