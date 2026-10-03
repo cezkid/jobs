@@ -22,7 +22,7 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   window, no section h2 cut by the fold, Job 12's ring box above the salary line, install line
   breaks only at spaces, <= 1 framed object in the first screen; FRAMES at 1366x641 + 1440x900: <= 1 framed
   object (.window, .proof, .sheet-lg) wholly or >= 40% on screen at every half-screen scroll step;
-  MAC_LINE (report-only until plan-dxn.3): Mac browser name at 768, 1366x641, 1440x900, 1920x1080 -> the
+  MAC_LINE: Mac browser name at 768, 1366x641, 1440x900, 1920x1080 -> the
   install line is one line box; a check whose selector finds 0 elements fails (missing()), never a
   silent pass; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
   main leaves a band > 400px wide + > 200px tall empty right of its content (hub, about, methods too: main as
@@ -393,7 +393,7 @@ RIGHTMOST = """() => Math.max(0, ...[...document.querySelectorAll("main *")].fil
   const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && getComputedStyle(el).visibility !== "hidden";
 }).map(el => el.getBoundingClientRect().left))"""
 
-# MAC_LINE (A6, report-only until plan-dxn.3 makes it a gate): home under MAC_UA shows the Mac line
+# MAC_LINE (A6, a gate since plan-dxn.3): home under MAC_UA shows the Mac line
 # as ONE line box at these sizes; null = no #line
 MAC_LINE_AT = [(768, 1024), (1366, 641), (1440, 900), (1920, 1080)]
 LINE_BOXES = """() => { const l = document.getElementById("line"); if (!l) return null;
@@ -689,7 +689,7 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
             if mac and not phone and (width, height) in MAC_LINE_AT:
                 got = page.evaluate(LINE_BOXES)
                 if not got or not got[0].startswith("curl ") or got[1] != 1:
-                    failed.append(f"{REPORT_ONLY}MAC_LINE {where}: Mac install line is "
+                    failed.append(f"MAC_LINE {where}: Mac install line is "
                                   f"{got[1] if got else 0} line boxes, not 1 ({got[0] if got else 'no #line'!r})")
             if not phone and (width, height) in FRAMES_AT:
                 frames = page.evaluate(FRAMED)

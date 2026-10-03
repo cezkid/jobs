@@ -240,7 +240,7 @@ KB = 1000 bytes.
   <= 9 at 375x812 (owner, plan-dxn; 7.12 + 7.90 at the polish base e704f97); <= 1 framed object
   (window, resume sheet) >= 40% on screen at every scroll step (1366x641, 1440x900); <= 3 paint
   animations (background-size, clip-path, stroke-dashoffset) mid-way at once; Mac install line on one
-  line (report-only until plan-dxn.3); a check finding 0 elements fails; reduced motion = 0 animations + marks
+  line (768-1920 wide, a gate); a check finding 0 elements fails; reduced motion = 0 animations + marks
   finished; no JS = all text + the Windows line; text opacity 1 at every scroll step once the
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint;
   print <= 5 pages w/ the install line; 0 console errors; every dashed SVG stroke at

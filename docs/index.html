@@ -172,11 +172,12 @@
   .app { width: 30px; height: 30px; flex: none; }
   .sub { margin: 0; color: var(--text-2); font-size: 1.0625rem; font-weight: 400; }
   .command {
-    display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 8px 8px 8px 16px;
-    border: 2px solid var(--text); border-radius: 10px; max-width: 34rem;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 8px; padding: 8px 8px 8px 16px;
+    border: 2px solid var(--text); border-radius: 10px; max-width: 40rem;
   }
+  /* the line keeps its full width: no room beside it -> Copy goes under it, the line never breaks */
   .command code {
-    flex: 1; min-width: 0; font: 0.9375rem/1.5 var(--mono); overflow-wrap: break-word; user-select: all;
+    flex: 1 0 auto; min-width: 0; max-width: 100%; font: 0.9375rem/1.5 var(--mono); overflow-wrap: break-word; user-select: all;
     padding: 2px 4px; background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 0 100%;
   }
   .command.copied code { background-size: 100% 100%; color: var(--ink); }
@@ -277,6 +278,8 @@
     .intro { grid-column: 1 / span 6; }
     figure { grid-column: 7 / -1; align-self: start; margin-top: 6px; }
   }
+  /* the half-width column's narrowest band: the Mac line steps down to the phone size to stay one line */
+  @media (min-width: 1080px) and (max-width: 1139px) { .command code { font-size: 0.875rem; } }
   /* wide + tall: the h1 runs across both columns as display type (two or three balanced lines), steps
      + window side by side under it; the font stays capped by the screen's height so Copy keeps its room */
   @media (min-width: 1080px) and (min-height: 800px) {
