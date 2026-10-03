@@ -38,7 +38,15 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   against names listed from disk, never `is_file()`.
 - Each indexed page's canonical = its own URL (folder `index.html` -> the folder); page w/o
   canonical -> `noindex`. Sitemap = exactly the indexed URLs, once each. Titles + descriptions unique.
-- Shared CSS (`/* shared */` ... `/* /shared */`, fonts + tokens) identical on every page; test guards.
+- Shared CSS (`/* shared */` ... `/* /shared */`: fonts, tokens, header, footer, `.wrap`) identical
+  on every page; test guards. Header (brand, Install `/#install`, Source code) + bare `<footer>` (Made
+  by, Privacy, Source code) byte-identical on every page; test guards.
+- Phone header: brand + 3 links need 399px, a 360/375/390px screen has 328/343/358 => header
+  Source code hidden <= 600px (footer keeps it); <= 359px the links may wrap below the brand.
+- Layout checked in a real browser: `uv run app/web/qa.py` (PEP 723, Chrome) serves `docs/`,
+  opens every page as a phone at 320/360/375/390px + desktop at 768/1366px; fails on sideways
+  scroll, a two-line header from 360px, or Copy below the fold at 1366x768. Screenshots in
+  `.data/screens/`. Width = `clientWidth`: a phone's `innerWidth` grows to fit a too-wide page.
 - Install line static in HTML (Windows), JS swaps for Mac; FAQ carries the Mac line as text ->
   no-JS readers + crawlers see a command.
 - Never look like a fake "paste this to verify" page: clipboard written only on Copy click, full

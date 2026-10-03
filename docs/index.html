@@ -58,14 +58,26 @@
   a { color: var(--text); text-decoration: underline; text-underline-offset: 0.15em; }
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
-  /* /shared */
-
   .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
-  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
   .brand img { width: 28px; height: 28px; }
   .links { display: flex; gap: 24px; white-space: nowrap; }
-  .brand { white-space: nowrap; }
+  footer {
+    max-width: 1200px; margin: 0 auto; padding: 24px 32px 40px; font-size: 17px; color: var(--text-2);
+    display: flex; flex-wrap: wrap; gap: 8px 28px;
+  }
+  footer p { margin: 0; margin-right: auto; }
+  /* phones: brand + 3 links need 399px, a 360px screen has 328 => Source code only in the footer */
+  @media (max-width: 600px) {
+    .wrap, footer { padding-left: 16px; padding-right: 16px; }
+    .top { gap: 12px; }
+    .links { gap: 14px; font-size: 17px; }
+    .links .code { display: none; }
+  }
+  /* under 360px (320px phones) the links may drop below the brand */
+  @media (max-width: 359px) { .top { flex-wrap: wrap; } }
+  /* /shared */
 
   .hero { display: grid; gap: 40px; padding: 24px 0 56px; }
   @media (min-width: 1080px) {
@@ -187,18 +199,9 @@
   details > div { padding: 0 0 16px; }
   details code { font: 16px/1.5 var(--mono); overflow-wrap: anywhere; }
 
-  footer {
-    max-width: 1200px; margin: 0 auto; padding: 24px 32px 40px; font-size: 17px; color: var(--text-2);
-    display: flex; flex-wrap: wrap; gap: 8px 28px;
-  }
-  footer p { margin: 0; margin-right: auto; }
-
   @media (max-width: 600px) {
-    .wrap, footer { padding-left: 16px; padding-right: 16px; }
     .hero { padding-top: 8px; }
     .switch { margin-left: 0; }
-    .top { gap: 12px; }
-    .links { gap: 14px; font-size: 17px; }
     .sheet { padding: 16px; }
   }
 </style>
@@ -207,8 +210,8 @@
 <header class="wrap top">
   <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
   <nav class="links">
-    <a href="#install">Install</a>
-    <a href="https://github.com/cezkid/jobs">Source code</a>
+    <a href="/#install">Install</a>
+    <a class="code" href="https://github.com/cezkid/jobs">Source code</a>
   </nav>
 </header>
 <main class="wrap">
@@ -381,7 +384,7 @@
 <footer>
   <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
   <a href="/privacy.html">Privacy</a>
-  <a href="https://github.com/cezkid/jobs">Source code on GitHub</a>
+  <a href="https://github.com/cezkid/jobs">Source code</a>
 </footer>
 <script>
   const SITE = "https://jobs.enrriquez.com/";  // docs/mac + docs/win = copies of app/install scripts

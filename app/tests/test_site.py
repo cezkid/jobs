@@ -146,6 +146,15 @@ def test_shared_css_is_the_same_on_every_page():
     assert len(set(blocks.values())) == 1, sorted(blocks)
 
 
+def test_header_and_footer_are_the_same_on_every_page():
+    # hand-copied per page => a link added to one page goes missing on the others
+    # (phone fit of the header is checked in a real browser: uv run app/web/qa.py)
+    for tag in "header", "footer":
+        found = {name: re.findall(rf"<{tag}\b.*?</{tag}>", (DOCS / name).read_text(encoding="utf-8"), re.S) for name in PAGES}
+        assert all(len(f) == 1 for f in found.values()), (tag, found)
+        assert len({f[0] for f in found.values()}) == 1, (tag, sorted(found))
+
+
 def ico_frames(path) -> list[tuple[int, int]]:
     data = path.read_bytes()
     reserved, kind, count = struct.unpack("<HHH", data[:6])
