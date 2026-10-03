@@ -30,6 +30,17 @@ def test_work_permit_sensitive_and_demographics_never_kept():
         assert answers.key(q(title)) is None, title
 
 
+def test_consent_and_signature_never_kept():
+    for title in ("I agree to the Terms and Conditions", "SMS consent", "Electronic Signature",
+                  "I certify that the information above is true"):
+        assert answers.key(q(title, "yesno")) is None, title
+    assert answers.keep([q("I agree to the Terms and Conditions", "yesno", answer="Yes", source=questions.USER_SAID)],
+                        "Job 5", "Acme", "2026-10-03") == 0
+    assert answers.recall([{"key": "i agree to the terms and conditions", "question": "I agree to the Terms and "
+                            "Conditions", "answer": "Yes", "job": "Job 5", "on": "2026-10-03"}],
+                          q("I agree to the Terms and Conditions", "yesno")) is None
+
+
 def test_only_the_users_own_words_are_kept_and_named_when_recalled():
     asked = [q("How did you hear about this job?", answer="Company website", source=questions.USER_SAID),
              q("Why us?", "longtext", answer="Drafted by the AI", source="ask the user")]

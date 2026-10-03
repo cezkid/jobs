@@ -64,7 +64,8 @@ def line(a: dict) -> str:
     or, a work break answered from the user's saved words, shows them those words before Submit."""
     state = "ok" if not questions.blank(a["answer"]) else ("NEEDED" if a["required"] else "optional")
     opts = f" options={a['options']}" if a["options"] else ""
-    tag = f" ({a['source'].split(' - ', 1)[1]})" if " - sensitive: " in a["source"] else ""
+    tag = f" ({a['source'].split(' - ', 1)[1]})" if " - sensitive: " in a["source"] or \
+        f" - {questions.SIGN_ON_PAGE}: " in a["source"] else ""
     return f"  [{state}] {a['kind']}: {a['title']}{opts}{tag}"
 
 
@@ -99,7 +100,8 @@ def prepare(slug: str, url: str) -> None:
               "Yes -> saved_answers: true in search settings, No -> false")
     print("Write answers into the file (file kind: answer = true only after the user said yes to uploading; a "
           f"question marked '{questions.YOURS}' or 'sensitive': the user's own answer, its source set to "
-          f"'{questions.USER_SAID}'), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}")
+          f"'{questions.USER_SAID}'; one marked '{questions.SIGN_ON_PAGE}': left blank, the user ticks or signs it "
+          "there), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}")
 
 
 def paste(slug: str) -> None:
@@ -109,8 +111,7 @@ def paste(slug: str) -> None:
     data = questions.load(folder / tailor.JOB_DATA / questions.FILE)
     if data is None:
         sys.exit(f"no answers yet; run: uv run app/jobs.py apply-form prepare {slug} <link>")
-    if bad := questions.unvouched(data["questions"]):
-        sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
+    refuse(data["questions"])
     out = ["# Application answers", "",
            "Paste each into the form, in this order. Options weren't read ahead - for a choice, pick the one "
            "that means your answer (the page may word it longer, e.g. \"No, I do not require sponsorship...\").",
@@ -126,6 +127,15 @@ def paste(slug: str) -> None:
     path.write_text("\n".join(out), encoding="utf-8")
     print(f"written: {path}")
     remember(config, folder, data)
+
+
+def refuse(qs: list[dict]) -> None:
+    """Answers nothing may type: the AI's on the user's own questions, any on agreeing or signing."""
+    if bad := questions.on_page(qs):
+        sys.exit("the user ticks or signs these on the page themselves - clear the answer: "
+                 + "; ".join(a["title"] for a in bad))
+    if bad := questions.unvouched(qs):
+        sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
 
 
 def page_text(page) -> str:
@@ -144,8 +154,7 @@ def fill(slug: str) -> None:
         sys.exit(f"no answers yet; run: uv run app/jobs.py apply-form prepare {slug} <link>")
     if data.get("system") == PASTE:
         sys.exit(f"this form can't be filled here - write the answers to paste: uv run app/jobs.py apply-form paste {slug}")
-    if bad := questions.unvouched(data["questions"]):
-        sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
+    refuse(data["questions"])
     if gaps := questions.missing(data["questions"]):
         sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     system = system_for(data["url"])
@@ -172,15 +181,17 @@ def fill(slug: str) -> None:
                 result = system.fill(page, q, letter if q.get("key") == "cover_letter" else resume)
             except Exception as e:  # one stuck box never stops the rest
                 result = f"FAIL {type(e).__name__}: {str(e).splitlines()[0][:120]}"
-            report.append((q["title"], result))
+            report.append((q["id"], result))
         report = recheck(page, system, data["questions"], report, resume)
         known = {q["id"] for q in data["questions"]}
         extra = [i for i in system.ids_on_page(page) if i not in known]
-    for title, result in report:
-        print(f"  [{result}] {title}")
+    # by id: one title can name two questions ("Phone" on two pages)
+    title = {q["id"]: q["title"] for q in data["questions"]}
+    for id, result in report:
+        print(f"  [{result}] {title[id]}")
     required = [q for q in data["questions"] if q["required"]]
-    done = {title for title, result in report if result == "ok"}
-    left = [q["title"] for q in required if q["title"] not in done]
+    done = {id for id, result in report if result == "ok"}
+    left = [q["title"] for q in required if q["id"] not in done]
     if required:
         print(f"required answered {len(required) - len(left)} of {len(required)}"
               + (f" - still to do on the page: {'; '.join(left)}" if left else ""))
@@ -197,16 +208,16 @@ def recheck(page, system, qs: list[dict], report: list[tuple], resume: str | Non
     if not hasattr(system, "holds"):
         return report
     page.wait_for_timeout(SETTLE_MS)
-    by_title = {q["title"]: q for q in qs}
+    by_id = {q["id"]: q for q in qs}
     out = []
-    for title, result in report:
-        q = by_title[title]
+    for id, result in report:
+        q = by_id[id]
         if result == "ok" and q["kind"] != "file" and not system.holds(page, q):
             result = system.fill(page, q, resume)
             page.wait_for_timeout(SETTLE_MS)
             if result == "ok" and not system.holds(page, q):
                 result = "FAIL answer dropped after filling - fill it by hand"
-        out.append((title, result))
+        out.append((id, result))
     return out
 
 
