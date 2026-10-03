@@ -1,5 +1,4 @@
 import importlib
-import shutil
 import subprocess
 import sys
 import webbrowser
@@ -37,6 +36,7 @@ COMMANDS = {
     "update": ("update", "get latest Job Finder program; never touches My folders"),
     "launch": ("launch", "open VS Code on Today (START HERE before setup), chat in right sidebar (Desktop launcher)"),
     "open": (None, "open file or link for user: VS Code tab (PDF too), link in browser"),
+    "window-setup": (None, "installer step: Job Finder's VS Code profile + its extensions, plain progress lines"),
     "tui": ("tui", "terminal job browser (developers)"),
 }
 
@@ -54,15 +54,14 @@ def opens_as_tab(path: Path) -> bool:
 
 
 def open_for_user(target: str) -> None:
+    import cfg
+    import launch
     path = Path(target)
-    code = shutil.which("code")
-    if path.exists() and code and opens_as_tab(path):
-        import cfg
-        import launch
-        # folder too, as launch.py does => lands in Job Finder's window, never the last-used one
-        # (-r alone put it in whichever VS Code window was active)
-        subprocess.run([code, *launch.scratch_args(), "--disable-workspace-trust", str(cfg.ROOT), str(path.resolve())],
-                       check=False)
+    # folder too, as launch.py does => lands in Job Finder's window, never the last-used one
+    # (-r alone put it in whichever VS Code window was active)
+    command = launch.code_command(["--disable-workspace-trust", str(cfg.ROOT), str(path.resolve())])
+    if path.exists() and command and opens_as_tab(path):
+        subprocess.run(command, check=False)
     else:
         webbrowser.open(path.resolve().as_uri() if path.exists() else target)
 
@@ -91,6 +90,9 @@ def main() -> None:
         check_settings()
     elif name == "open":
         open_for_user(" ".join(args))
+    elif name == "window-setup":
+        import launch
+        launch.window_setup()
     else:
         run_module(COMMANDS[name][0], args)
 

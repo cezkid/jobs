@@ -102,11 +102,6 @@ def has_pdf_viewer(extensions: Path | None = None) -> bool:
     return False
 
 
-def ensure_pdf_viewer() -> None:
-    if not has_pdf_viewer():
-        code(["--install-extension", PDF_EXTENSION, "--force"], quiet=True)
-
-
 def has_extension(name: str, extensions: Path | None = None) -> bool:
     return name.lower() in installed(extensions)
 
@@ -359,8 +354,6 @@ def ensure_yaml_checker(settings: Path | None = None) -> None:
             settings.write_text(add_setting(text, TELEMETRY), encoding="utf-8")
     except OSError:
         pass
-    if not has_extension(YAML_EXTENSION):
-        code(["--install-extension", YAML_EXTENSION, "--force"], quiet=True)
 
 
 # app-wide in VS Code: only the default profile's user settings change them, never a workspace.
@@ -526,14 +519,89 @@ def write_workspace(choice: str | None) -> None:
         pass  # last launch's file still opens the window
 
 
-def code(args: list[str], quiet: bool = False) -> None:
+def code_command(args: list[str]) -> list[str] | None:
+    """The one place a code call is built (launcher, `jobs.py open`, `window-setup`); None w/o VS Code.
+
+    Job Finder's profile made => `--profile` on every call: installs land in its list, not the
+    default profile's, and a file opens in its window. Not made yet => no flag (an unknown name
+    fails: "Profile ... not found.", exit 1).
+    """
     exe = shutil.which("code")
     if not exe:
+        return None
+    profile = ["--profile", cfg.NAME] if profile_location() else []
+    return [exe, *scratch_args(), *profile, *args]
+
+
+def code(args: list[str], quiet: bool = False) -> int:
+    command = code_command(args)
+    if not command:
         sys.exit(f"VS Code not found; run the {cfg.NAME} installer again")
     # VS Code started cold inherits console => launcher's terminal window stays up until VS Code
     # quits, and closing it can take VS Code down (measured 2026-09-28, Windows Terminal)
     own_hidden_console = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-    subprocess.run([exe, *scratch_args(), *args], check=False, capture_output=quiet, creationflags=own_hidden_console)
+    return subprocess.run(command, check=False, capture_output=quiet, creationflags=own_hidden_console).returncode
+
+
+# AI chat panel per choice; Copilot's chat is built into VS Code => nothing to add
+AI_EXTENSIONS = {"claude": CLAUDE_EXTENSION, "chatgpt": "openai.chatgpt"}
+AI_PANEL_NAMES = {"claude": "the Claude chat panel", "chatgpt": "the ChatGPT chat panel"}
+
+
+def installed_version(name: str) -> str | None:
+    folder = installed().get(name.lower())
+    try:
+        return str(json.loads((folder / "package.json").read_text(encoding="utf-8"))["version"])
+    except (TypeError, OSError, ValueError, KeyError):
+        return None
+
+
+def missing_extensions(choice: str | None) -> list[tuple[str, str]]:
+    """(install arg, plain name) of each one Job Finder's window lacks; read off its list, no code call."""
+    import vscode_ext
+    missing = []
+    if choice in AI_EXTENSIONS and not has_extension(AI_EXTENSIONS[choice]):
+        missing.append((AI_EXTENSIONS[choice], AI_PANEL_NAMES[choice]))
+    if not has_pdf_viewer():
+        missing.append((PDF_EXTENSION, "the PDF viewer"))
+    if not has_extension(YAML_EXTENSION):
+        missing.append((YAML_EXTENSION, "the resume typo checker"))
+    try:
+        # other version listed (older or newer) => this release's copy; VS Code refuses an older
+        # one w/o --force yet exits 0 (app/docs/app-window.md #4)
+        if installed_version(vscode_ext.extension_id()) != vscode_ext.manifest()["version"]:
+            missing.append((str(vscode_ext.build()), f"{cfg.NAME}'s window"))
+    except (OSError, ValueError, KeyError):
+        pass  # can't build it => the window still opens, just w/o it
+    return missing
+
+
+def ensure_extensions(choice: str | None, quiet: bool = True) -> bool:
+    """Everything missing in ONE code call: 3 gallery + vsix = 3.0 s vs ~3 s each (measured)."""
+    missing = missing_extensions(choice)
+    if not missing:
+        return True
+    if not quiet:
+        print("Adding " + ", ".join(name for _, name in missing) + "...")
+    args = [a for ext, _ in missing for a in ("--install-extension", ext)]
+    return code([*args, "--force"], quiet=True) == 0
+
+
+def window_setup() -> None:
+    """Installer step: profile (cold start only) + every extension, w/ plain progress lines.
+
+    VS Code running => no profile yet: installs land in the default profile as before, the
+    launcher makes the profile at its next cold start. Fails (exit 1) => installer falls back to
+    its plain AI install.
+    """
+    cfg.ensure_private_dirs()
+    if ensure_profile():
+        print(f"{cfg.NAME} has its own space in VS Code, apart from anything else you use it for.")
+    else:
+        print(f"VS Code is open, so {cfg.NAME} gets its own space the next time it starts.")
+    if not ensure_extensions(chosen_ai(), quiet=False):
+        sys.exit("Could not add everything to VS Code.")
+    print("VS Code is ready.")
 
 
 def first_page(settings: Path | None = None, page: Path | None = None) -> Path:
@@ -574,13 +642,14 @@ def main() -> None:
     # before any install + before VS Code opens => this folder's window comes up in Job Finder's
     # profile; VS Code already running => next cold start
     ensure_profile()
-    # before VS Code opens => the first click on a resume already shows the page
-    ensure_pdf_viewer()
+    choice = chosen_ai()
+    # before VS Code opens, into its profile once made => the window comes up with the chat panel,
+    # the first click on a resume shows the page, a typo in the resume facts is underlined
+    ensure_extensions(choice)
     # before VS Code opens => no Release Notes tab over Today, no usage reports (ours only)
     ensure_quiet_vscode()
-    # before VS Code opens => a typo in the resume facts is underlined on the first edit
+    # before VS Code opens => Red Hat's telemetry popup never asks mid job search
     ensure_yaml_checker()
-    choice = chosen_ai()
     # before VS Code opens => the window comes up with this user's chat (Copilot's built-in one
     # shown, or hidden for Claude/ChatGPT), never reloading mid-chat
     write_workspace(choice)

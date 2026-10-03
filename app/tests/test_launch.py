@@ -11,6 +11,7 @@ import launch
 import notify
 
 FIXTURES = Path(__file__).parent / "fixtures"
+DONE = type("Done", (), {"returncode": 0})  # subprocess.run result of a code call that worked
 
 
 def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
@@ -19,7 +20,7 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch, "has_claude", lambda: False)
     monkeypatch.setattr(launch, "chosen_ai", lambda: None)
     monkeypatch.setattr(launch, "write_workspace", lambda choice: None)
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
@@ -41,7 +42,7 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch, "ensure_chat_sidebar", lambda: None)
     monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
     monkeypatch.setattr(launch, "write_workspace", lambda choice: calls.append(("workspace", choice)))
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
@@ -172,18 +173,6 @@ def test_pdf_viewer_detected_whoever_provides_it(tmp_path):
     assert launch.has_pdf_viewer(tmp_path)
 
 
-def test_pdf_viewer_installed_once_and_never_over_the_users_own(tmp_path, monkeypatch):
-    installed = []
-    monkeypatch.setattr(launch, "code", lambda args, quiet=False: installed.append(args))
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: False)
-    launch.ensure_pdf_viewer()
-    assert installed == [["--install-extension", launch.PDF_EXTENSION, "--force"]]
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
-    monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
-    launch.ensure_pdf_viewer()
-    assert len(installed) == 1
-
-
 def test_claude_trusts_this_folder_only(tmp_path):
     # untrusted folder => its permission list ignored, user asked before every step
     state = tmp_path / ".claude.json"
@@ -234,7 +223,7 @@ def test_pdf_opens_as_tab_with_viewer_system_viewer_without(tmp_path, monkeypatc
     pdf.write_bytes(b"%PDF")
     page.write_text("x", encoding="utf-8")
     viewer, tabs = [], []
-    monkeypatch.setattr(jobs.shutil, "which", lambda name: "code")
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "code")
     monkeypatch.setattr(jobs.webbrowser, "open", viewer.append)
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: tabs.append(args[-1]))
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
@@ -253,24 +242,18 @@ def test_vscode_started_on_its_own_hidden_console(monkeypatch):
     monkeypatch.setattr(launch.shutil, "which", lambda name: "code")
     monkeypatch.setattr(launch.sys, "platform", "win32")
     monkeypatch.setattr(launch.subprocess, "CREATE_NO_WINDOW", 0x08000000, raising=False)
-    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(kw["creationflags"]))
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(kw["creationflags"]) or DONE)
     launch.code(["folder"])
     assert runs == [0x08000000]
 
 
-def test_yaml_checker_installed_once_and_telemetry_answered(tmp_path, monkeypatch):
+def test_yaml_telemetry_answered_once(tmp_path, monkeypatch):
     # user is asked to decide about Red Hat telemetry on first activation otherwise, mid job search
-    installed = []
-    monkeypatch.setattr(launch, "code", lambda args, quiet=False: installed.append(args))
-    monkeypatch.setattr(launch, "has_extension", lambda name: False)
     settings = tmp_path / "User" / "settings.json"
     launch.ensure_yaml_checker(settings)
     assert launch.TELEMETRY in settings.read_text(encoding="utf-8")
-    assert installed == [["--install-extension", launch.YAML_EXTENSION, "--force"]]
-    monkeypatch.setattr(launch, "has_extension", lambda name: True)
     launch.ensure_yaml_checker(settings)
     assert settings.read_text(encoding="utf-8").count("redhat.telemetry.enabled") == 1
-    assert len(installed) == 1
 
 
 def test_vscode_settings_keep_comments_and_trailing_commas():
@@ -350,7 +333,7 @@ def test_start_page_leads_with_the_first_step():
 def test_old_mac_icon_swapped_for_app_once(tmp_path, monkeypatch):
     # .command icon leaves a Terminal window open after every launch
     runs = []
-    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or DONE)
     old, app = tmp_path / "CEZ Job Finder.command", tmp_path / "CEZ Job Finder.app"
     launch.ensure_mac_icon(old, app)
     assert runs == []  # no old icon => nothing made, a deleted icon stays deleted
@@ -362,7 +345,7 @@ def test_old_mac_icon_swapped_for_app_once(tmp_path, monkeypatch):
 def test_mac_app_icon_gets_brand_picture_once(tmp_path, monkeypatch):
     # app icons made before the brand icon kept the generic script picture on the Desktop
     runs = []
-    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or DONE)
     app = tmp_path / "CEZ Job Finder.app"
     icns = app / "Contents" / "Resources" / "applet.icns"
     icns.parent.mkdir(parents=True)
@@ -432,7 +415,7 @@ def test_copilot_window_gets_its_chat_sidebar_without_claude(tmp_path, monkeypat
     monkeypatch.setattr(launch, "write_workspace", lambda choice: calls.append(("workspace", choice)))
     monkeypatch.setattr(launch, "ensure_claude_trust", lambda: calls.append("trust"))
     monkeypatch.setattr(launch, "ensure_chat_sidebar", lambda: calls.append("sidebar"))
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
@@ -491,7 +474,7 @@ def test_scratch_vscode_keeps_every_path_and_call_off_the_owners(tmp_path, monke
     assert launch.vscode_settings() == paths.settings
     runs = []
     monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
-    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or DONE)
     launch.code(["--install-extension", launch.PDF_EXTENSION])
     assert runs == [["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
                      "--install-extension", launch.PDF_EXTENSION]]
@@ -518,7 +501,7 @@ def test_open_for_user_lands_in_the_scratch_vscode(tmp_path, monkeypatch):
     page.write_text("x", encoding="utf-8")
     monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "scratch"))
     runs = []
-    monkeypatch.setattr(jobs.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
     jobs.open_for_user(str(page))
     assert runs[0][1:3] == ["--user-data-dir", str(launch.vscode_paths().data)] and runs[0][-1] == str(page.resolve())
@@ -540,7 +523,7 @@ def test_open_names_job_finders_folder_with_the_file(tmp_path, monkeypatch):
     page = tmp_path / "Job posting.md"
     page.write_text("x", encoding="utf-8")
     runs = []
-    monkeypatch.setattr(jobs.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
     jobs.open_for_user(str(page))
     assert runs[0][-2:] == [str(cfg.ROOT), str(page.resolve())] and "-r" not in runs[0]
@@ -656,3 +639,119 @@ def test_extension_in_another_profile_does_not_count(tmp_path, monkeypatch):
     assert launch.has_claude() and not launch.has_pdf_viewer()
     import ai
     assert ai.current(tmp_path / "no-choice") == "claude"
+
+
+def profile_extension(paths, ident, version="1.0.0", manifest=None):
+    """List `ident` in Job Finder's profile w/ its package.json, as VS Code leaves it."""
+    folder = paths.extensions / f"{ident}-{version}"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "package.json").write_text(json.dumps({"version": version, **(manifest or {})}), encoding="utf-8")
+    own = paths.data / "User" / "profiles" / "cez-job-finder" / "extensions.json"
+    entries = json.loads(own.read_text(encoding="utf-8")) if own.exists() else []
+    entries = [e for e in entries if e["identifier"]["id"] != ident]
+    entries.append({"identifier": {"id": ident}, "version": version, "relativeLocation": folder.name})
+    own.write_text(json.dumps(entries), encoding="utf-8")
+
+
+PDF_MANIFEST = {"contributes": {"customEditors": [{"selector": [{"filenamePattern": "*.pdf"}]}]}}
+
+
+@pytest.mark.parametrize("choice, ai_ext", [("claude", "anthropic.claude-code"), ("chatgpt", "openai.chatgpt"),
+                                            ("copilot", None)])
+def test_one_install_call_for_only_what_the_profile_lacks(tmp_path, monkeypatch, choice, ai_ext):
+    # one call per extension = ~3 s each at every launch (one batched call: 3.0 s for all four);
+    # one already listed reinstalled = slower launch for nothing; Copilot's chat is built in
+    import vscode_ext
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(vscode_ext, "OUT", tmp_path / "vsix")
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    calls = []
+    monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args) or 0)
+    assert launch.ensure_extensions(choice)
+    ours, version = vscode_ext.extension_id(), vscode_ext.manifest()["version"]
+    vsix = str(tmp_path / "vsix" / f"{ours}-{version}.vsix")
+    wanted = [*([ai_ext] if ai_ext else []), launch.PDF_EXTENSION, launch.YAML_EXTENSION, vsix]
+    assert calls == [[*(a for ext in wanted for a in ("--install-extension", ext)), "--force"]]
+    assert Path(vsix).exists()
+    if ai_ext:
+        profile_extension(paths, ai_ext)
+    profile_extension(paths, launch.PDF_EXTENSION, manifest=PDF_MANIFEST)
+    profile_extension(paths, launch.YAML_EXTENSION)
+    profile_extension(paths, ours, version)
+    calls.clear()
+    assert launch.ensure_extensions(choice) and calls == []  # all listed => no code call at all
+    profile_extension(paths, ours, "0.0.1")  # last release's copy => this one, nothing else
+    assert launch.ensure_extensions(choice) and calls == [["--install-extension", vsix, "--force"]]
+
+
+def test_users_own_pdf_viewer_in_the_profile_kept(tmp_path, monkeypatch):
+    # two viewers claiming .pdf => VS Code asks which editor on every single click
+    paths = profile_paths(tmp_path, monkeypatch)
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    profile_extension(paths, "someone.elses-pdf-viewer", manifest=PDF_MANIFEST)
+    assert launch.PDF_EXTENSION not in [ext for ext, _ in launch.missing_extensions(None)]
+
+
+def test_every_code_call_lands_in_job_finders_profile_once_made(tmp_path, monkeypatch):
+    # w/o --profile, installs went to the default profile (reinstalled at every launch, never
+    # seen by the window) and an opened file could land in a default-profile window
+    import jobs
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
+    scratch = ["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions)]
+    assert launch.code_command(["x"]) == [*scratch, "x"]  # not made yet: an unknown name fails the call
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    assert launch.code_command(["x"]) == [*scratch, "--profile", "CEZ Job Finder", "x"]
+    runs = []
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or type("R", (), {"returncode": 0}))
+    launch.code(["--install-extension", launch.YAML_EXTENSION])
+    page = tmp_path / "Job posting.md"
+    page.write_text("x", encoding="utf-8")
+    jobs.open_for_user(str(page))
+    assert [r[5:7] for r in runs] == [["--profile", "CEZ Job Finder"]] * 2
+
+
+def test_code_calls_built_in_one_place():
+    # a call site building its own command skipped --profile => installed into or opened in the
+    # default profile; every call site named here so a new one is a deliberate choice
+    import ast
+    sites = {}
+    for name in "jobs.py", "ai.py", "launch.py":
+        tree = ast.parse((cfg.APP / name).read_text(encoding="utf-8"))
+        for func in (n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)):
+            for call in (c for c in ast.walk(func) if isinstance(c, ast.Call)):
+                callee = ast.unparse(call.func)
+                if callee in ("code", "launch.code", "code_command", "launch.code_command"):
+                    sites.setdefault(name, set()).add(func.name)
+                if callee == "shutil.which" and ast.unparse(call.args[0]) in ("'code'", '"code"'):
+                    sites.setdefault(name, set()).add(f"which:{func.name}")
+    assert sites == {"jobs.py": {"open_for_user"},
+                     "launch.py": {"which:code_command", "code", "ensure_extensions", "main"}}
+
+
+def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_path, monkeypatch, capsys):
+    # installer terminal is the only place an install failure shows (launcher output goes nowhere)
+    import vscode_ext
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(vscode_ext, "OUT", tmp_path / "vsix")
+    monkeypatch.setattr(launch.cfg, "ensure_private_dirs", lambda: None)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: True)
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
+    runs = []
+    result = type("R", (), {"returncode": 0})
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or result)
+    launch.window_setup()  # VS Code open => default profile, as installers did before
+    out = capsys.readouterr().out
+    assert "next time it starts" in out and "the Claude chat panel" in out and "VS Code is ready." in out
+    assert "--profile" not in runs[0] and "anthropic.claude-code" in runs[0]
+    for jargon in "profile", "extension", "vsix", "yaml":
+        assert jargon not in out.lower(), jargon
+    result.returncode = 1
+    with pytest.raises(SystemExit):  # installer then installs the AI panel the old way
+        launch.window_setup()
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: False)
+    result.returncode = 0
+    runs.clear()
+    launch.window_setup()
+    assert "own space" in capsys.readouterr().out and runs[0][5:7] == ["--profile", "CEZ Job Finder"]

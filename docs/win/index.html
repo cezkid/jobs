@@ -36,7 +36,9 @@ function Pick-Ai {
     $saved = Join-Path $Dir '.data\ai'
     if (-not $word -and (Test-Path $saved)) { $word = Ai-Word (Get-Content $saved -Raw) }
     if (-not $word -and (Have 'code')) {  # re-run to repair => keep the AI already set up, no question
-        $have = @(cmd /c 'code --list-extensions 2>nul' | ForEach-Object { "$_".ToLower() })
+        # default profile + Job Finder's own (absent before its first setup: "not found", exit 1)
+        $have = @(cmd /c 'code --list-extensions 2>nul & code --list-extensions --profile "CEZ Job Finder" 2>nul' |
+            ForEach-Object { "$_".ToLower() })
         if ($have -contains 'anthropic.claude-code') { $word = 'claude' }
         elseif ($have -contains 'openai.chatgpt') { $word = 'chatgpt' }
     }
@@ -94,13 +96,7 @@ try {
     }
     if (-not (Have 'code')) { throw 'Could not install VS Code.' }
 
-    Step 3 'adding the AI panel to VS Code...'
-    if ($AiExtension) {
-        cmd /c "code --install-extension $AiExtension --force >nul 2>&1"
-        Check 'add the AI panel to VS Code'
-    }
-
-    Step 4 "downloading CEZ Job Finder to $Dir..."
+    Step 3 "downloading CEZ Job Finder to $Dir..."
     # staging under $Dir => Move-Item stays on one drive; My folders + .data never in zip
     $staging = Join-Path $Dir '.data\install'
     if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }
@@ -116,11 +112,25 @@ try {
     # private, kept by updates; launcher + `jobs.py ai` read it
     Set-Content -Path (Join-Path $Dir '.data\ai') -Value $Ai -Encoding ascii
 
-    Step 5 'getting CEZ Job Finder ready...'
+    Step 4 'getting CEZ Job Finder ready...'
     Push-Location $Dir
     uv sync --quiet
     Pop-Location
     Check 'get CEZ Job Finder ready'
+
+    Step 5 'adding the AI panel to VS Code...'
+    # Job Finder's own VS Code profile + AI panel, PDF viewer, typo checker, its window (plain lines);
+    # VS Code open => default profile. Fails => AI panel the plain way, as before the profile
+    Push-Location $Dir
+    uv run app/jobs.py window-setup
+    $setupFailed = $LASTEXITCODE
+    Pop-Location
+    if ($setupFailed) {
+        if ($AiExtension) {
+            cmd /c "code --install-extension $AiExtension --force >nul 2>&1"
+            Check 'add the AI panel to VS Code'
+        }
+    }
 
     $start = Join-Path $Dir 'app\install\start-windows.bat'
     $link = (New-Object -ComObject WScript.Shell).CreateShortcut(
