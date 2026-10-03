@@ -1,0 +1,1520 @@
+{
+ "genderOptions": [
+  {
+   "text": "",
+   "value": "0"
+  },
+  {
+   "text": "Male",
+   "value": "2"
+  },
+  {
+   "text": "Female",
+   "value": "3"
+  },
+  {
+   "text": "I choose not to self-identify",
+   "value": "1"
+  }
+ ],
+ "raceOptions": [
+  {
+   "text": "",
+   "value": "0"
+  },
+  {
+   "text": "Hispanic / Latino",
+   "value": "2"
+  },
+  {
+   "text": "Asian (Not Hispanic or Latino)",
+   "value": "3"
+  },
+  {
+   "text": "American Indian or Alaskan Native (Not Hispanic or Latino)",
+   "value": "4"
+  },
+  {
+   "text": "Black or African American (Not Hispanic or Latino)",
+   "value": "5"
+  },
+  {
+   "text": "Native Hawaiian / Other Pacific Islander (Not Hispanic or Latino)",
+   "value": "6"
+  },
+  {
+   "text": "White (Not Hispanic or Latino)",
+   "value": "7"
+  },
+  {
+   "text": "Two or More Races",
+   "value": "9"
+  },
+  {
+   "text": "I choose not to self-identify",
+   "value": "1"
+  }
+ ],
+ "disabilityOptions": [
+  {
+   "text": "",
+   "value": "0"
+  },
+  {
+   "text": "Yes, I have a disability, or have had one in the past",
+   "value": "2"
+  },
+  {
+   "text": "No, I do not have a disability and have not had one in the past",
+   "value": "3"
+  },
+  {
+   "text": "I do not want to answer",
+   "value": "1"
+  }
+ ],
+ "militaryServiceOptions": [
+  {
+   "text": "",
+   "value": "0"
+  },
+  {
+   "text": "I do not wish to answer",
+   "value": "1"
+  },
+  {
+   "text": "I am not a protected veteran",
+   "value": "2"
+  },
+  {
+   "text": "I identify as one or more of the classifications of protected veteran as defined by VEVRAA",
+   "value": "5"
+  }
+ ],
+ "degreeOptions": [
+  {
+   "text": "N/A",
+   "value": "1"
+  },
+  {
+   "text": "High School",
+   "value": "2"
+  },
+  {
+   "text": "Trade Certification",
+   "value": "3"
+  },
+  {
+   "text": "Associate",
+   "value": "4"
+  },
+  {
+   "text": "Bachelor",
+   "value": "5"
+  },
+  {
+   "text": "Master",
+   "value": "6"
+  },
+  {
+   "text": "Doctoral",
+   "value": "7"
+  },
+  {
+   "text": "Other",
+   "value": "8"
+  }
+ ],
+ "desiredSalaryTypeOptions": [
+  {
+   "text": "",
+   "value": "0"
+  },
+  {
+   "text": "Hourly",
+   "value": "1"
+  },
+  {
+   "text": "Yearly",
+   "value": "2"
+  }
+ ],
+ "referenceTypeOptions": [
+  {
+   "text": "",
+   "value": "0"
+  },
+  {
+   "text": "Personal",
+   "value": "1"
+  },
+  {
+   "text": "Professional",
+   "value": "2"
+  }
+ ],
+ "graduationOptions": [
+  {
+   "text": "",
+   "value": "0"
+  },
+  {
+   "text": "Yes",
+   "value": "1"
+  },
+  {
+   "text": "No",
+   "value": "2"
+  }
+ ],
+ "schoolTypeOptions": [
+  {
+   "text": "",
+   "value": "0"
+  },
+  {
+   "text": "Unspecified",
+   "value": "1"
+  },
+  {
+   "text": "High School",
+   "value": "2"
+  },
+  {
+   "text": "Community College",
+   "value": "3"
+  },
+  {
+   "text": "Vocational College",
+   "value": "4"
+  },
+  {
+   "text": "College / University",
+   "value": "5"
+  },
+  {
+   "text": "Graduate School",
+   "value": "6"
+  },
+  {
+   "text": "Specialized",
+   "value": "7"
+  },
+  {
+   "text": "Other",
+   "value": "8"
+  }
+ ],
+ "statesOptions": [
+  {
+   "text": "Alabama",
+   "value": "AL"
+  },
+  {
+   "text": "Alaska",
+   "value": "AK"
+  },
+  {
+   "text": "American Samoa",
+   "value": "AS"
+  },
+  {
+   "text": "Arizona",
+   "value": "AZ"
+  },
+  {
+   "text": "Arkansas",
+   "value": "AR"
+  },
+  {
+   "text": "California",
+   "value": "CA"
+  },
+  {
+   "text": "Colorado",
+   "value": "CO"
+  },
+  {
+   "text": "Connecticut",
+   "value": "CT"
+  },
+  {
+   "text": "Delaware",
+   "value": "DE"
+  },
+  {
+   "text": "District of Columbia",
+   "value": "DC"
+  },
+  {
+   "text": "Florida",
+   "value": "FL"
+  },
+  {
+   "text": "Georgia",
+   "value": "GA"
+  },
+  {
+   "text": "Guam",
+   "value": "GU"
+  },
+  {
+   "text": "Hawaii",
+   "value": "HI"
+  },
+  {
+   "text": "Idaho",
+   "value": "ID"
+  },
+  {
+   "text": "Illinois",
+   "value": "IL"
+  },
+  {
+   "text": "Indiana",
+   "value": "IN"
+  },
+  {
+   "text": "Iowa",
+   "value": "IA"
+  },
+  {
+   "text": "Kansas",
+   "value": "KS"
+  },
+  {
+   "text": "Kentucky",
+   "value": "KY"
+  },
+  {
+   "text": "Louisiana",
+   "value": "LA"
+  },
+  {
+   "text": "Maine",
+   "value": "ME"
+  },
+  {
+   "text": "Maryland",
+   "value": "MD"
+  },
+  {
+   "text": "Massachusetts",
+   "value": "MA"
+  },
+  {
+   "text": "Michigan",
+   "value": "MI"
+  },
+  {
+   "text": "Minnesota",
+   "value": "MN"
+  },
+  {
+   "text": "Mississippi",
+   "value": "MS"
+  },
+  {
+   "text": "Missouri",
+   "value": "MO"
+  },
+  {
+   "text": "Montana",
+   "value": "MT"
+  },
+  {
+   "text": "Nebraska",
+   "value": "NE"
+  },
+  {
+   "text": "Nevada",
+   "value": "NV"
+  },
+  {
+   "text": "New Hampshire",
+   "value": "NH"
+  },
+  {
+   "text": "New Jersey",
+   "value": "NJ"
+  },
+  {
+   "text": "New Mexico",
+   "value": "NM"
+  },
+  {
+   "text": "New York",
+   "value": "NY"
+  },
+  {
+   "text": "North Carolina",
+   "value": "NC"
+  },
+  {
+   "text": "North Dakota",
+   "value": "ND"
+  },
+  {
+   "text": "Northern Mariana Islands",
+   "value": "MP"
+  },
+  {
+   "text": "Ohio",
+   "value": "OH"
+  },
+  {
+   "text": "Oklahoma",
+   "value": "OK"
+  },
+  {
+   "text": "Oregon",
+   "value": "OR"
+  },
+  {
+   "text": "Pennsylvania",
+   "value": "PA"
+  },
+  {
+   "text": "Puerto Rico",
+   "value": "PR"
+  },
+  {
+   "text": "Rhode Island",
+   "value": "RI"
+  },
+  {
+   "text": "South Carolina",
+   "value": "SC"
+  },
+  {
+   "text": "South Dakota",
+   "value": "SD"
+  },
+  {
+   "text": "Tennessee",
+   "value": "TN"
+  },
+  {
+   "text": "Texas",
+   "value": "TX"
+  },
+  {
+   "text": "US Minor Outlying Islands",
+   "value": "UM"
+  },
+  {
+   "text": "US Virgin Islands",
+   "value": "VI"
+  },
+  {
+   "text": "Utah",
+   "value": "UT"
+  },
+  {
+   "text": "Vermont",
+   "value": "VT"
+  },
+  {
+   "text": "Virginia",
+   "value": "VA"
+  },
+  {
+   "text": "Washington",
+   "value": "WA"
+  },
+  {
+   "text": "West Virginia",
+   "value": "WV"
+  },
+  {
+   "text": "Wisconsin",
+   "value": "WI"
+  },
+  {
+   "text": "Wyoming",
+   "value": "WY"
+  },
+  {
+   "text": "Alberta",
+   "value": "AB"
+  },
+  {
+   "text": "British Columbia",
+   "value": "BC"
+  },
+  {
+   "text": "Manitoba",
+   "value": "MB"
+  },
+  {
+   "text": "New Brunswick",
+   "value": "NB"
+  },
+  {
+   "text": "Newfoundland and Labrador",
+   "value": "NL"
+  },
+  {
+   "text": "Northwest Territories",
+   "value": "NT"
+  },
+  {
+   "text": "Nova Scotia",
+   "value": "NS"
+  },
+  {
+   "text": "Nunavut",
+   "value": "NU"
+  },
+  {
+   "text": "Ontario",
+   "value": "ON"
+  },
+  {
+   "text": "Prince Edward Island",
+   "value": "PE"
+  },
+  {
+   "text": "Quebec",
+   "value": "QC"
+  },
+  {
+   "text": "Saskatchewan",
+   "value": "SK"
+  },
+  {
+   "text": "Yukon",
+   "value": "YT"
+  }
+ ],
+ "countriesOptions": [
+  {
+   "text": "UNITED STATES",
+   "value": "USA"
+  },
+  {
+   "text": "CANADA",
+   "value": "CAN"
+  },
+  {
+   "text": "AFGHANISTAN",
+   "value": "AFG"
+  },
+  {
+   "text": "ALBANIA",
+   "value": "ALB"
+  },
+  {
+   "text": "ALGERIA",
+   "value": "DZA"
+  },
+  {
+   "text": "AMERICAN SAMOA",
+   "value": "ASM"
+  },
+  {
+   "text": "ANDORRA",
+   "value": "AND"
+  },
+  {
+   "text": "ANGOLA",
+   "value": "AGO"
+  },
+  {
+   "text": "ANGUILLA",
+   "value": "AIA"
+  },
+  {
+   "text": "ANTARCTICA",
+   "value": "ATA"
+  },
+  {
+   "text": "ANTIGUA AND BARBUDA",
+   "value": "ATG"
+  },
+  {
+   "text": "ARGENTINA",
+   "value": "ARG"
+  },
+  {
+   "text": "ARMENIA",
+   "value": "ARM"
+  },
+  {
+   "text": "ARUBA",
+   "value": "ABW"
+  },
+  {
+   "text": "AUSTRALIA",
+   "value": "AUS"
+  },
+  {
+   "text": "AUSTRIA",
+   "value": "AUT"
+  },
+  {
+   "text": "AZERBAIJAN",
+   "value": "AZE"
+  },
+  {
+   "text": "BAHAMAS",
+   "value": "BHS"
+  },
+  {
+   "text": "BAHRAIN",
+   "value": "BHR"
+  },
+  {
+   "text": "BANGLADESH",
+   "value": "BGD"
+  },
+  {
+   "text": "BARBADOS",
+   "value": "BRB"
+  },
+  {
+   "text": "BELARUS",
+   "value": "BLR"
+  },
+  {
+   "text": "BELGIUM",
+   "value": "BEL"
+  },
+  {
+   "text": "BELIZE",
+   "value": "BLZ"
+  },
+  {
+   "text": "BENIN",
+   "value": "BEN"
+  },
+  {
+   "text": "BERMUDA",
+   "value": "BMU"
+  },
+  {
+   "text": "BHUTAN",
+   "value": "BTN"
+  },
+  {
+   "text": "BOLIVIA",
+   "value": "BOL"
+  },
+  {
+   "text": "BOSNIA AND HERZEGOWINA",
+   "value": "BIH"
+  },
+  {
+   "text": "BOTSWANA",
+   "value": "BWA"
+  },
+  {
+   "text": "BOUVET ISLAND",
+   "value": "BVT"
+  },
+  {
+   "text": "BRAZIL",
+   "value": "BRA"
+  },
+  {
+   "text": "BRITISH INDIAN OCEAN TERRITORY",
+   "value": "IOT"
+  },
+  {
+   "text": "BRUNEI DARUSSALAM",
+   "value": "BRN"
+  },
+  {
+   "text": "BULGARIA",
+   "value": "BGR"
+  },
+  {
+   "text": "BURKINA FASO",
+   "value": "BFA"
+  },
+  {
+   "text": "BURUNDI",
+   "value": "BDI"
+  },
+  {
+   "text": "CAMBODIA",
+   "value": "KHM"
+  },
+  {
+   "text": "CAMEROON",
+   "value": "CMR"
+  },
+  {
+   "text": "CAPE VERDE",
+   "value": "CPV"
+  },
+  {
+   "text": "CAYMAN ISLANDS",
+   "value": "CYM"
+  },
+  {
+   "text": "CENTRAL AFRICAN REPUBLIC",
+   "value": "CAF"
+  },
+  {
+   "text": "CHAD",
+   "value": "TCD"
+  },
+  {
+   "text": "CHILE",
+   "value": "CHL"
+  },
+  {
+   "text": "CHINA",
+   "value": "CHN"
+  },
+  {
+   "text": "CHRISTMAS ISLAND",
+   "value": "CXR"
+  },
+  {
+   "text": "COCOS (KEELING) ISLANDS",
+   "value": "CCK"
+  },
+  {
+   "text": "COLOMBIA",
+   "value": "COL"
+  },
+  {
+   "text": "COMOROS",
+   "value": "COM"
+  },
+  {
+   "text": "CONGO",
+   "value": "COG"
+  },
+  {
+   "text": "CONGO, DEMOCRATIC REPUBLIC OF",
+   "value": "COD"
+  },
+  {
+   "text": "COOK ISLANDS",
+   "value": "COK"
+  },
+  {
+   "text": "COSTA RICA",
+   "value": "CRI"
+  },
+  {
+   "text": "COTE D'IVOIRE",
+   "value": "CIV"
+  },
+  {
+   "text": "CROATIA",
+   "value": "HRV"
+  },
+  {
+   "text": "CUBA",
+   "value": "CUB"
+  },
+  {
+   "text": "CYPRUS",
+   "value": "CYP"
+  },
+  {
+   "text": "CZECH REPUBLIC",
+   "value": "CZE"
+  },
+  {
+   "text": "DENMARK",
+   "value": "DNK"
+  },
+  {
+   "text": "DJIBOUTI",
+   "value": "DJI"
+  },
+  {
+   "text": "DOMINICA",
+   "value": "DMA"
+  },
+  {
+   "text": "DOMINICAN REPUBLIC",
+   "value": "DOM"
+  },
+  {
+   "text": "EAST TIMOR",
+   "value": "TMP"
+  },
+  {
+   "text": "ECUADOR",
+   "value": "ECU"
+  },
+  {
+   "text": "EGYPT",
+   "value": "EGY"
+  },
+  {
+   "text": "EL SALVADOR",
+   "value": "SLV"
+  },
+  {
+   "text": "EQUATORIAL GUINEA",
+   "value": "GNQ"
+  },
+  {
+   "text": "ESTONIA",
+   "value": "EST"
+  },
+  {
+   "text": "ETHIOPIA",
+   "value": "ETH"
+  },
+  {
+   "text": "FALKLAND ISLANDS (MALVINAS)",
+   "value": "FLK"
+  },
+  {
+   "text": "FAROE ISLANDS",
+   "value": "FRO"
+  },
+  {
+   "text": "FIJI",
+   "value": "FJI"
+  },
+  {
+   "text": "FINLAND",
+   "value": "FIN"
+  },
+  {
+   "text": "FRANCE",
+   "value": "FRA"
+  },
+  {
+   "text": "FRENCH GUIANA",
+   "value": "GUF"
+  },
+  {
+   "text": "FRENCH POLYNESIA",
+   "value": "PYF"
+  },
+  {
+   "text": "FRENCH SOUTHERN TERRITORIES",
+   "value": "ATF"
+  },
+  {
+   "text": "GABON",
+   "value": "GAB"
+  },
+  {
+   "text": "GAMBIA",
+   "value": "GMB"
+  },
+  {
+   "text": "GEORGIA",
+   "value": "GEO"
+  },
+  {
+   "text": "GERMANY",
+   "value": "DEU"
+  },
+  {
+   "text": "GHANA",
+   "value": "GHA"
+  },
+  {
+   "text": "GIBRALTAR",
+   "value": "GIB"
+  },
+  {
+   "text": "GREECE",
+   "value": "GRC"
+  },
+  {
+   "text": "GREENLAND",
+   "value": "GRL"
+  },
+  {
+   "text": "GRENADA",
+   "value": "GRD"
+  },
+  {
+   "text": "GUADELOUPE",
+   "value": "GLP"
+  },
+  {
+   "text": "GUAM",
+   "value": "GUM"
+  },
+  {
+   "text": "GUATEMALA",
+   "value": "GTM"
+  },
+  {
+   "text": "GUINEA",
+   "value": "GIN"
+  },
+  {
+   "text": "GUINEA-BISSAU",
+   "value": "GNB"
+  },
+  {
+   "text": "GUYANA",
+   "value": "GUY"
+  },
+  {
+   "text": "HAITI",
+   "value": "HTI"
+  },
+  {
+   "text": "HEARD ISLAND AND MCDONALD ISL.",
+   "value": "HMD"
+  },
+  {
+   "text": "HOLY SEE (VATICAN CITY STATE)",
+   "value": "VAT"
+  },
+  {
+   "text": "HONDURAS",
+   "value": "HND"
+  },
+  {
+   "text": "HONG KONG",
+   "value": "HKG"
+  },
+  {
+   "text": "HUNGARY",
+   "value": "HUN"
+  },
+  {
+   "text": "ICELAND",
+   "value": "ISL"
+  },
+  {
+   "text": "INDIA",
+   "value": "IND"
+  },
+  {
+   "text": "INDONESIA",
+   "value": "IDN"
+  },
+  {
+   "text": "IRAN, ISLAMIC REPUBLIC OF",
+   "value": "IRN"
+  },
+  {
+   "text": "IRAQ",
+   "value": "IRQ"
+  },
+  {
+   "text": "IRELAND",
+   "value": "IRL"
+  },
+  {
+   "text": "ISRAEL",
+   "value": "ISR"
+  },
+  {
+   "text": "ITALY",
+   "value": "ITA"
+  },
+  {
+   "text": "JAMAICA",
+   "value": "JAM"
+  },
+  {
+   "text": "JAPAN",
+   "value": "JPN"
+  },
+  {
+   "text": "JORDAN",
+   "value": "JOR"
+  },
+  {
+   "text": "KAZAKSTAN",
+   "value": "KAZ"
+  },
+  {
+   "text": "KENYA",
+   "value": "KEN"
+  },
+  {
+   "text": "KIRIBATI",
+   "value": "KIR"
+  },
+  {
+   "text": "KOREA, DEM. PEOPLE'S REPUBLIC",
+   "value": "PRK"
+  },
+  {
+   "text": "KOREA, REPUBLIC OF",
+   "value": "KOR"
+  },
+  {
+   "text": "KUWAIT",
+   "value": "KWT"
+  },
+  {
+   "text": "KYRGYZSTAN",
+   "value": "KGZ"
+  },
+  {
+   "text": "LAO PEOPLE'S DEM. REPUBLIC",
+   "value": "LAO"
+  },
+  {
+   "text": "LATVIA",
+   "value": "LVA"
+  },
+  {
+   "text": "LEBANON",
+   "value": "LBN"
+  },
+  {
+   "text": "LESOTHO",
+   "value": "LSO"
+  },
+  {
+   "text": "LIBERIA",
+   "value": "LBR"
+  },
+  {
+   "text": "LIBYAN ARAB JAMAHIRIYA",
+   "value": "LBY"
+  },
+  {
+   "text": "LIECHTENSTEIN",
+   "value": "LIE"
+  },
+  {
+   "text": "LITHUANIA",
+   "value": "LTU"
+  },
+  {
+   "text": "LUXEMBOURG",
+   "value": "LUX"
+  },
+  {
+   "text": "MACAU",
+   "value": "MAC"
+  },
+  {
+   "text": "MACEDONIA, FORMERLY YUGOSLAVIA",
+   "value": "MKD"
+  },
+  {
+   "text": "MADAGASCAR",
+   "value": "MDG"
+  },
+  {
+   "text": "MALAWI",
+   "value": "MWI"
+  },
+  {
+   "text": "MALAYSIA",
+   "value": "MYS"
+  },
+  {
+   "text": "MALDIVES",
+   "value": "MDV"
+  },
+  {
+   "text": "MALI",
+   "value": "MLI"
+  },
+  {
+   "text": "MALTA",
+   "value": "MLT"
+  },
+  {
+   "text": "MARSHALL ISLANDS",
+   "value": "MHL"
+  },
+  {
+   "text": "MARTINIQUE",
+   "value": "MTQ"
+  },
+  {
+   "text": "MAURITANIA",
+   "value": "MRT"
+  },
+  {
+   "text": "MAURITIUS",
+   "value": "MUS"
+  },
+  {
+   "text": "MAYOTTE",
+   "value": "MYT"
+  },
+  {
+   "text": "MEXICO",
+   "value": "MEX"
+  },
+  {
+   "text": "MICRONESIA, FEDERATED STATES",
+   "value": "FSM"
+  },
+  {
+   "text": "MOLDOVA, REPUBLIC OF",
+   "value": "MDA"
+  },
+  {
+   "text": "MONACO",
+   "value": "MCO"
+  },
+  {
+   "text": "MONGOLIA",
+   "value": "MNG"
+  },
+  {
+   "text": "MONTSERRAT",
+   "value": "MSR"
+  },
+  {
+   "text": "MOROCCO",
+   "value": "MAR"
+  },
+  {
+   "text": "MOZAMBIQUE",
+   "value": "MOZ"
+  },
+  {
+   "text": "MYANMAR",
+   "value": "MMR"
+  },
+  {
+   "text": "NAMIBIA",
+   "value": "NAM"
+  },
+  {
+   "text": "NAURU",
+   "value": "NRU"
+  },
+  {
+   "text": "NEPAL",
+   "value": "NPL"
+  },
+  {
+   "text": "NETHERLANDS",
+   "value": "NLD"
+  },
+  {
+   "text": "NETHERLANDS ANTILLES",
+   "value": "ANT"
+  },
+  {
+   "text": "NEW CALEDONIA",
+   "value": "NCL"
+  },
+  {
+   "text": "NEW ZEALAND",
+   "value": "NZL"
+  },
+  {
+   "text": "NICARAGUA",
+   "value": "NIC"
+  },
+  {
+   "text": "NIGER",
+   "value": "NER"
+  },
+  {
+   "text": "NIGERIA",
+   "value": "NGA"
+  },
+  {
+   "text": "NIUE",
+   "value": "NIU"
+  },
+  {
+   "text": "NORFOLK ISLAND",
+   "value": "NFK"
+  },
+  {
+   "text": "NORTHERN MARIANA ISLANDS",
+   "value": "MNP"
+  },
+  {
+   "text": "NORWAY",
+   "value": "NOR"
+  },
+  {
+   "text": "OMAN",
+   "value": "OMN"
+  },
+  {
+   "text": "PAKISTAN",
+   "value": "PAK"
+  },
+  {
+   "text": "PALAU",
+   "value": "PLW"
+  },
+  {
+   "text": "PANAMA",
+   "value": "PAN"
+  },
+  {
+   "text": "PAPUA NEW GUINEA",
+   "value": "PNG"
+  },
+  {
+   "text": "PARAGUAY",
+   "value": "PRY"
+  },
+  {
+   "text": "PERU",
+   "value": "PER"
+  },
+  {
+   "text": "PHILIPPINES",
+   "value": "PHL"
+  },
+  {
+   "text": "PITCAIRN",
+   "value": "PCN"
+  },
+  {
+   "text": "POLAND",
+   "value": "POL"
+  },
+  {
+   "text": "PORTUGAL",
+   "value": "PRT"
+  },
+  {
+   "text": "PUERTO RICO",
+   "value": "PRI"
+  },
+  {
+   "text": "QATAR",
+   "value": "QAT"
+  },
+  {
+   "text": "REUNION",
+   "value": "REU"
+  },
+  {
+   "text": "ROMANIA",
+   "value": "ROU"
+  },
+  {
+   "text": "RUSSIAN FEDERATION",
+   "value": "RUS"
+  },
+  {
+   "text": "RWANDA",
+   "value": "RWA"
+  },
+  {
+   "text": "SAINT HELENA",
+   "value": "SHN"
+  },
+  {
+   "text": "SAINT KITTS AND NEVIS",
+   "value": "KNA"
+  },
+  {
+   "text": "SAINT LUCIA",
+   "value": "LCA"
+  },
+  {
+   "text": "SAINT PIERRE AND MIQUELON",
+   "value": "SPM"
+  },
+  {
+   "text": "SAINT VINCENT & THE GRENADINES",
+   "value": "VCT"
+  },
+  {
+   "text": "SAMOA",
+   "value": "WSM"
+  },
+  {
+   "text": "SAN MARINO",
+   "value": "SMR"
+  },
+  {
+   "text": "SAO TOME AND PRINCIPE",
+   "value": "STP"
+  },
+  {
+   "text": "SAUDI ARABIA",
+   "value": "SAU"
+  },
+  {
+   "text": "SENEGAL",
+   "value": "SEN"
+  },
+  {
+   "text": "SERBIA",
+   "value": "SER"
+  },
+  {
+   "text": "SEYCHELLES",
+   "value": "SYC"
+  },
+  {
+   "text": "SIERRA LEONE",
+   "value": "SLE"
+  },
+  {
+   "text": "SINGAPORE",
+   "value": "SGP"
+  },
+  {
+   "text": "SLOVAKIA",
+   "value": "SVK"
+  },
+  {
+   "text": "SLOVENIA",
+   "value": "SVN"
+  },
+  {
+   "text": "SOLOMON ISLANDS",
+   "value": "SLB"
+  },
+  {
+   "text": "SOMALIA",
+   "value": "SOM"
+  },
+  {
+   "text": "SOUTH AFRICA",
+   "value": "ZAF"
+  },
+  {
+   "text": "SOUTH GEORGIA/S. SANDWICH ISL.",
+   "value": "SGS"
+  },
+  {
+   "text": "SPAIN",
+   "value": "ESP"
+  },
+  {
+   "text": "SRI LANKA",
+   "value": "LKA"
+  },
+  {
+   "text": "SUDAN",
+   "value": "SDN"
+  },
+  {
+   "text": "SURINAME",
+   "value": "SUR"
+  },
+  {
+   "text": "SVALBARD AND JAN MAYEN",
+   "value": "SJM"
+  },
+  {
+   "text": "SWAZILAND",
+   "value": "SWZ"
+  },
+  {
+   "text": "SWEDEN",
+   "value": "SWE"
+  },
+  {
+   "text": "SWITZERLAND",
+   "value": "CHE"
+  },
+  {
+   "text": "SYRIAN ARAB REPUBLIC",
+   "value": "SYR"
+  },
+  {
+   "text": "TAIWAN",
+   "value": "TWN"
+  },
+  {
+   "text": "TAJIKISTAN",
+   "value": "TJK"
+  },
+  {
+   "text": "TANZANIA, UNITED REPUBLIC OF",
+   "value": "TZA"
+  },
+  {
+   "text": "THAILAND",
+   "value": "THA"
+  },
+  {
+   "text": "TOGO",
+   "value": "TGO"
+  },
+  {
+   "text": "TOKELAU",
+   "value": "TKL"
+  },
+  {
+   "text": "TONGA",
+   "value": "TON"
+  },
+  {
+   "text": "TRINIDAD AND TOBAGO",
+   "value": "TTO"
+  },
+  {
+   "text": "TUNISIA",
+   "value": "TUN"
+  },
+  {
+   "text": "TURKEY",
+   "value": "TUR"
+  },
+  {
+   "text": "TURKMENISTAN",
+   "value": "TKM"
+  },
+  {
+   "text": "TURKS AND CAICOS ISLANDS",
+   "value": "TCA"
+  },
+  {
+   "text": "TUVALU",
+   "value": "TUV"
+  },
+  {
+   "text": "U.S. MINOR OUTLYING ISLANDS",
+   "value": "UMI"
+  },
+  {
+   "text": "UGANDA",
+   "value": "UGA"
+  },
+  {
+   "text": "UKRAINE",
+   "value": "UKR"
+  },
+  {
+   "text": "UNITED ARAB EMIRATES",
+   "value": "ARE"
+  },
+  {
+   "text": "UNITED KINGDOM",
+   "value": "GBR"
+  },
+  {
+   "text": "URUGUAY",
+   "value": "URY"
+  },
+  {
+   "text": "UZBEKISTAN",
+   "value": "UZB"
+  },
+  {
+   "text": "VANUATU",
+   "value": "VUT"
+  },
+  {
+   "text": "VENEZUELA",
+   "value": "VEN"
+  },
+  {
+   "text": "VIET NAM",
+   "value": "VNM"
+  },
+  {
+   "text": "VIRGIN ISLANDS, BRITISH",
+   "value": "VGB"
+  },
+  {
+   "text": "VIRGIN ISLANDS, U.S.",
+   "value": "VIR"
+  },
+  {
+   "text": "WALLIS AND FUTUNA",
+   "value": "WLF"
+  },
+  {
+   "text": "WESTERN SAHARA",
+   "value": "ESH"
+  },
+  {
+   "text": "YEMEN",
+   "value": "YEM"
+  },
+  {
+   "text": "YUGOSLAVIA",
+   "value": "YUG"
+  },
+  {
+   "text": "ZAMBIA",
+   "value": "ZMB"
+  },
+  {
+   "text": "ZIMBABWE",
+   "value": "ZWE"
+  }
+ ],
+ "newItemTemplates": {
+  "workHistoryTemplate": {
+   "workHistoryId": 0,
+   "jobApplicationId": 0,
+   "companyName": null,
+   "companyPhone": "",
+   "companyUrl": null,
+   "address": null,
+   "address2": null,
+   "city": null,
+   "state": null,
+   "zip": null,
+   "country": "USA",
+   "position": null,
+   "responsibilities": null,
+   "startingSalary": null,
+   "endingSalary": null,
+   "supervisorName": null,
+   "supervisorPosition": null,
+   "supervisorEmail": null,
+   "supervisorPhone": "",
+   "mayWeContactSupervisor": null,
+   "startDate": null,
+   "endDate": null,
+   "currentlyWorkingHere": null,
+   "reasonForLeaving": null,
+   "smartyAddressId": null
+  },
+  "educationTemplate": {
+   "educationId": 0,
+   "jobApplicationId": 0,
+   "schoolId": null,
+   "didYouGraduate": null,
+   "areaOfStudy": null,
+   "gpa": null,
+   "school": {
+    "schoolId": 0,
+    "name": null,
+    "city": null,
+    "state": null,
+    "country": "USA",
+    "type": null
+   },
+   "graduationDate": null,
+   "degreeId": null,
+   "degree": {
+    "degreeId": 0,
+    "name": null,
+    "designation": null
+   }
+  },
+  "referenceTemplate": {
+   "referenceId": 0,
+   "jobApplicationId": 0,
+   "name": null,
+   "email": null,
+   "phone": "",
+   "referenceType": null,
+   "yearsKnown": null,
+   "country": "USA",
+   "address": null,
+   "city": null,
+   "state": null,
+   "zip": null,
+   "smartyAddressId": null
+  },
+  "schoolTemplate": {
+   "schoolId": 0,
+   "name": null,
+   "city": null,
+   "state": null,
+   "country": "USA",
+   "type": null
+  }
+ },
+ "_measured": "2026-10-03, same on every tenant measured (7) - option lists + new-item templates from window.pageData"
+}

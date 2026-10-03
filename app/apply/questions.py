@@ -84,7 +84,7 @@ SIGNING_PATTERN = (r"terms (?:and|&) conditions|terms of (?:use|service)|privacy
                    r"authori[sz]e|understand)\b|\bcertify\b|\battest\b|\baffirm\b|\backnowledg(?:e|e?ment)\b|"
                    r"\b(?:sms|text messag\w*|texts|automated (?:calls|messages))\b.{0,40}\b(?:receive|agree|consent)|"
                    r"\breceive (?:\w+ ){0,3}(?:sms|texts|text messages|automated calls)\b|"
-                   r"\b(?:may|can) we (?:text|sms) you\b|(?<!digital )\bsignature\b|\be-?sign|"
+                   r"\b(?:may|can) we (?:text|sms) you\b|\bpermission to (?:text|sms|message) you\b|(?<!digital )\bsignature\b|\be-?sign|"
                    r"\bsign (?:here|below|electronically)\b|\btype (?:your )?(?:full |legal )?name to sign\b")
 SIGN_ON_PAGE = "yours to do on the page"
 

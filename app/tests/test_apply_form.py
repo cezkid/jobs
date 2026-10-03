@@ -227,7 +227,7 @@ CONSENT = ["I agree to the Terms and Conditions", "I have read the Privacy Notic
            "Electronic Signature", "Signature (type your full name)", "E-sign: type your legal name",
            "Type your full name to sign", "I certify that the information above is true and complete",
            "I acknowledge that I have read the above statement", "Opt in to automated calls",
-           "Terms of Use"]
+           "Terms of Use", "Do you give us permission to text you?"]
 CONSENT_NEAR_MISSES = ["Do you hold a Series 7 license?", "Describe a project you signed off",
                        "Privacy engineering experience?", "Experience obtaining informed consent in clinical trials?",
                        "Do you hold a professional certification?", "Experience with digital signature algorithms",

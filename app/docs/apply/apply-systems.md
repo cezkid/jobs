@@ -14,8 +14,9 @@ small plug-in.
 | UKG Pro Recruiting | `recruiting<N>.ultipro.com/<tenant>/JobBoard/<board>/OpportunityDetail?opportunityId=<id>` | `apply-form`, Job Finder's own Chrome; user signs in first, questions read off the signed-in form | `ukg.md` |
 | JazzHR | `<co>.applytojob.com/apply/<id>/<slug>` | `apply-form`, Job Finder's own Chrome; questions read off the posting page (plain HTTP) | `jazzhr.md` |
 | BambooHR | `<co>.bamboohr.com/careers/<id>` | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP); the resume is sent when chosen | `bamboohr.md` |
+| Paylocity | `recruiting.paylocity.com/Recruiting/Jobs/Details/<id>` (form `/Apply/<id>`) | `apply-form`, Job Finder's own Chrome; questions read from the form definition in the apply page; steps "Step 1 of N", filled on the user's tab | `paylocity.md` |
 
-Not yet: SmartRecruiters, iCIMS; Greenhouse embedded on an
+Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), SmartRecruiters, iCIMS; Greenhouse embedded on an
 employer's own page (`?gh_jid=` - board name unknown). Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
 `apply-form paste` writes `Application answers.md` to paste from. Otherwise `prepare` says so
@@ -40,7 +41,9 @@ In order - each step's output feeds the next:
 1. **Measure** - `uv run app/jobs.py apply-form measure "<link>" [--click "Apply" ...]` on a live
    posting. Writes `.data/measure/<host>-<time>.json`: every control (`dom.snapshot`), ids that
    changed between two loads (made per load - never a hook), JSON the page fetched (first 2 KB
-   each: where the form definition lives), every blocked write. Also: public job-board API?
+   each: where the form definition lives), `window.<name> = {...}` globals from inline scripts
+   (`page_data`: a form defined in the page itself), "Step N of M" + headings + buttons (`outline`),
+   markup around boxes no reader names (`unlabelled`), every blocked write. Also: public job-board API?
    (Ashby, Greenhouse, Lever have one.) Never generated class names like `_active_1svni_57`.
 2. **Facts doc** `docs/<name>.md`: widgets table + tenant notes, measured + dated, how many
    postings / tenants, like `ashby.md`. Unmeasured = say so.

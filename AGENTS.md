@@ -208,6 +208,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Contact details, answers, resume you apply with | that employer's JazzHR site | That employer, once you click Submit |
 | Resume (and cover letter) you apply with | that employer's BambooHR site | That employer, as soon as the file is chosen - before Submit |
 | Contact details, answers you apply with | that employer's BambooHR site | That employer, once you click Submit |
+| Email, resume, contact details, answers you apply with | that employer's Paylocity site | That employer: email as you leave its box, resume as you pick the file (both measured), the rest by Submit |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 

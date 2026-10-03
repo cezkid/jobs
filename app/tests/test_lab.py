@@ -95,6 +95,8 @@ def test_tenants_keep_tenant_part_of_link_only():
     got = lab.tenants("https://job-boards.greenhouse.io/acmetest/jobs/123", ["Acme Test Co"], snap)
     assert got == ["Acme Test Co", "acmetest", "Acme Recruiter"]
     assert lab.tenants("https://acmetest.wd5.myworkdayjobs.com/en-US/Careers/job/1", [], {"controls": []}) == ["acmetest"]
+    assert lab.tenants("https://jobs.dayforcehcm.com/en-US/acmetest/candidateportal/jobs/1/apply", [],
+                       {"controls": []}) == ["acmetest"]
 
 
 def test_measure_never_uses_the_application_window():

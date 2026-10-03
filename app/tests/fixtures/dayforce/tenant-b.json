@@ -1,0 +1,40 @@
+{
+ "measured": "2026-10-03",
+ "opened": "/en-US/acme/board/jobs/1/apply?flowSelection=true",
+ "clicks": [
+  "Apply without an Account"
+ ],
+ "page_after": "/en-US/acme/board/jobs/1/apply?flowSelection=true",
+ "outline": {
+  "headings": [
+   "Already Have an Account?",
+   "Cookie Preferences"
+  ],
+  "buttons": [
+   "Apply without an Account",
+   "Sign In",
+   "Accept",
+   "Reject",
+   "Cookie Settings"
+  ],
+  "links": [
+   "Create one now.",
+   "Cookie Statement"
+  ]
+ },
+ "controls": [],
+ "json_gets": [
+  "https://app.launchdarkly.com/sdk/evalx/62a0a637cc384b1581554ac5/users/<tenant-key>",
+  "https://app.launchdarkly.com/sdk/goals/62a0a637cc384b1581554ac5",
+  "https://jobs.dayforcehcm.com/_next/data/<build>/en-US/acme/board/jobs/1/apply/manualApplication.json?applicationSource=Manual",
+  "https://jobs.dayforcehcm.com/api/auth/session",
+  "https://jobs.dayforcehcm.com/api/geo/acme/sitecontext/acme/board/en-US",
+  "https://jobs.dayforcehcm.com/api/geo/acme/sitecontext/acme/board/en-US?jobPostingId=1",
+  "https://maps.googleapis.com/maps/api/mapsjs/gen_204"
+ ],
+ "blocked": [
+  "POST https://eastus2-0.in.applicationinsights.azure.com//v2/track",
+  "POST https://events.launchdarkly.com/events/diagnostic/62a0a637cc384b1581554ac5",
+  "POST https://jobs.dayforcehcm.com/cdn-cgi/challenge-platform/h/b/jsd/oneshot/<token>"
+ ]
+}

@@ -20,7 +20,10 @@ FORM = """<!doctype html><title>Job Application for Tester at Acme Test Co</titl
 document.querySelector('[name=notes]').id = 'box-' + Math.random().toString(36).slice(2);
 fetch('/api/form.json').then(r => r.json());
 fetch('/w/track', {method: 'POST', body: 'load'}).catch(() => {});
-</script>"""
+window.pageData = {"sections": [{"name": "Info"}]};
+</script>
+<div><span>Middle name</span><input id=middle></div>
+<h2>Step 1 of 3 - Contact</h2><button>Next</button><a href="/help">Get help</a>"""
 
 def test_measure_end_to_end_offline(tmp_path, monkeypatch):
     pytest.importorskip("playwright.sync_api")
@@ -47,6 +50,11 @@ def test_measure_end_to_end_offline(tmp_path, monkeypatch):
     assert [c["label"] for c in data["changed_ids"]] == ["Notes"]
     assert [b["method"] for b in data["blocked"]] == ["POST", "POST"]  # /w/track, once per load
     assert any(r["url"].endswith("/api/form.json") and '"fields"' in r["first"] for r in data["json"])
+    assert data["page_data"] == {"pageData": {"sections": [{"name": "Info"}]}}
+    assert [(u["id"], "Middle name" in u["around"]) for u in data["unlabelled"]] == [("middle", True)]
+    assert data["outline"]["steps"] == ["Step 1 of 3"] and "Step 1 of 3 - Contact" in data["outline"]["headings"]
+    assert "Next" in data["outline"]["buttons"] and data["outline"]["links"] == ["Get help"]
+    assert "Step 1 of 3" in data["outline"]["text"]
     lines = (tmp_path / "measure" / "tenants.txt").read_text().splitlines()
     assert {"Acme Test Co", "Prefilled Acme Recruiter"} <= set(lines)
     assert not (tmp_path / "measure-browser").exists() or not any((tmp_path / "measure-browser").iterdir())

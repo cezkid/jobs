@@ -140,6 +140,25 @@ def controls(snap: dict) -> str:
             f"required {sum(c['required'] for c in seen)}")
 
 
+# what sits on the button's centre: the dialog / banner it belongs to, by tag, id, role and its first line
+COVERING = """b => { b.scrollIntoView({block: 'center'}); const r = b.getBoundingClientRect();
+  const e = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2);
+  if (!e || b === e || b.contains(e)) return '';
+  const box = e.closest('dialog,[role=dialog],[role=alertdialog],[aria-modal=true],[id*=onetrust],[class*=modal],[class*=cookie]') || e;
+  const head = box.getAttribute('aria-label') || (box.querySelector('h1,h2,h3,h4,[role=heading]') || box).innerText || '';
+  const line = head.trim().split('\\n')[0].slice(0, 60);
+  return box.tagName.toLowerCase() + (box.id ? '#' + box.id : '') + (box.getAttribute('role') ? ' role=' + box.getAttribute('role') : '')
+    + (line ? ` "${line}"` : ''); }"""
+
+
+def covering(button) -> str:
+    """Names what covers the button, '' when nothing does or the page won't say."""
+    try:
+        return f"covered by {said}" if (said := button.evaluate(COVERING)) else ""
+    except Exception:
+        return ""
+
+
 def press_next(page, block: lab.Block) -> None:
     """The one visible Next / Continue / Next Step button, pressed once with the block on. Page
     unchanged -> it needed a server write (blocked): said, never worked around."""
@@ -150,7 +169,11 @@ def press_next(page, block: lab.Block) -> None:
         return
     before = dom.snapshot(page)
     block.step = "--next"
-    found[0].click(timeout=15000)
+    try:
+        found[0].click(timeout=15000)
+    except Exception as e:  # a dialog / cookie banner over it (Paylocity's upload dialog + OneTrust, 2026-10-03)
+        print(f"--next: Next not reachable while blocked: {covering(found[0]) or type(e).__name__}")
+        return
     lab.idle(page)
     after = dom.snapshot(page)
     if after["url"] == before["url"] and [c["hook"] for c in shown(after)] == [c["hook"] for c in shown(before)]:

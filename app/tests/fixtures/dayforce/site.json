@@ -1,0 +1,75 @@
+{
+ "measured": "2026-10-03",
+ "note": "first 2048 B of each response only (what measure keeps); keys past it unmeasured",
+ "sitecontext_tenant_b": {
+  "jobBoardId": 6,
+  "showGoogleMaps": true,
+  "candidateConversionType": 1,
+  "candidateConversionTracking": null,
+  "accessibilityStatementType": 1,
+  "privacyPolicy": null,
+  "enableSavedJobs": false,
+  "enableDraftApplications": false,
+  "enablePrivacyPolicy": false,
+  "enableApplyWithPhoneNumber": false,
+  "enableApplyWithoutAccount": true,
+  "enableViewPreviousApplications": false,
+  "isoCultureCodes": [
+   "en-US",
+   "fr-CA",
+   "es-MX"
+  ],
+  "enableLoginWithFacebook": false,
+  "hasActiveSMSProvider": false,
+  "enableApplyWithSeek": false,
+  "enableSeek": false
+ },
+ "sitecontext_tenant_d": {
+  "candidateConversionType": 3,
+  "candidateConversionTracking": {
+   "startTags": [
+    "https://click.example/<pixel>.png?jsid={CandidateID}&jid={JobRequisitionID}&aid={JobPostingApplicationID}"
+   ],
+   "finishTags": [
+    "https://click.example/<pixel>?jsid={CandidateID}&jid={JobRequisitionID}&aid={JobPostingApplicationID}"
+   ]
+  },
+  "privacyPolicy": {
+   "name": "<employer> Privacy Policy Consent",
+   "content": "By submitting your job application, you consent to <employer> collecting and using your information ..."
+  }
+ },
+ "jobposting_keys_tenant_d": [
+  "jobPostingId",
+  "jobReqId",
+  "jobTitle",
+  "postingStartTimestampUTC",
+  "postingExpiryTimestampUTC",
+  "isEvergreen",
+  "isInternal",
+  "relocationEligible",
+  "reapplyPeriodDays",
+  "createdTimestampUTC",
+  "lastModifiedTimestampUTC",
+  "isoCurrencyRegion"
+ ],
+ "launchdarkly_flags_anonymous": {
+  "anonymous-application-emails-enabled": false,
+  "anonymous-applications-enabled": true,
+  "anonymous-file-preview-download-enabled": false,
+  "apply-with-phone-number-enabled": false,
+  "apply-with-seek-v2-enabled": true,
+  "authentication-enabled": true,
+  "automatic-opt-in-to-ice": true,
+  "blob-caching-enabled": false,
+  "block-user-creation": false,
+  "camelot-kafka-enabled": true,
+  "can-delete-user-check-enabled": false,
+  "candidate-migration-validation-enabled": false,
+  "captcha-enabled": true,
+  "chip-kafka-enabled": true,
+  "database-auth-enabled": true,
+  "dayforce-identity-delete-account-enabled": true,
+  "delete-application-enabled": true
+ }
+}
