@@ -281,6 +281,151 @@ def ensure_profile(root: Path | None = None, paths: VSCodePaths | None = None) -
     return True
 
 
+# what the user set in their default profile that a new profile starts without: Copilot's model
+# pick (Auto instead of the one they chose, app/docs/app-window.md #6), zoom + text size (a
+# smaller window than they set). Copied once, cold start, marker here; never overwrites the profile's
+PROFILE_MIGRATED = cfg.DATA / "profile-migrated"
+MODEL_KEYS = "chat.currentLanguageModel.%"
+CARRIED_SETTINGS = ("window.zoomLevel", "editor.fontSize")
+ITEM_TABLE = "CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)"
+
+
+def migrate_profile(paths: VSCodePaths | None = None, marker: Path | None = None) -> None:
+    """Once, after `ensure_profile` (cold): default profile's model pick, zoom + text size into Job
+    Finder's. Nothing to copy or a copy fails => no error, marker still written: the setup skill's
+    pick-Claude-Sonnet line covers a lost model pick (Copilot)."""
+    paths, marker = paths or vscode_paths(), marker or PROFILE_MIGRATED
+    location = profile_location(paths)
+    if not location or marker.exists() or vscode_running(paths):
+        return
+    profile = paths.data / "User" / "profiles" / location
+    copied = copy_model_pick(paths.global_storage / "state.vscdb", profile / "globalStorage" / "state.vscdb")
+    copy_settings(paths.settings, profile / "settings.json")
+    try:
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text(f"model: {'copied' if copied else 'not copied'}\n", encoding="utf-8")
+    except OSError:
+        pass
+
+
+def copy_model_pick(source: Path, target: Path) -> bool:
+    """Chat model keys from VS Code's own state db (read-only) into the profile's; True if any copied."""
+    if not source.exists():
+        return False
+    try:
+        db = sqlite3.connect(f"{source.as_uri()}?mode=ro", uri=True, timeout=2)
+        try:
+            rows = db.execute("SELECT key, value FROM ItemTable WHERE key LIKE ?", (MODEL_KEYS,)).fetchall()
+        finally:
+            db.close()
+        if not rows:
+            return False
+        target.parent.mkdir(parents=True, exist_ok=True)
+        db = sqlite3.connect(target, timeout=2)
+        try:
+            with db:
+                db.execute(ITEM_TABLE)
+                # OR IGNORE: a pick already made in the profile wins
+                db.executemany("INSERT OR IGNORE INTO ItemTable (key, value) VALUES (?, ?)", rows)
+        finally:
+            db.close()
+    except (sqlite3.Error, OSError):
+        return False
+    return True
+
+
+def copy_settings(source: Path, target: Path) -> None:
+    try:
+        values = settings_values(source.read_text(encoding="utf-8")) if source.exists() else None
+        text = target.read_text(encoding="utf-8") if target.exists() else ""
+    except OSError:
+        return
+    merged = text
+    for key in CARRIED_SETTINGS:
+        if values and key in values and f'"{key}"' not in merged:
+            merged = add_setting(merged, f'"{key}": {json.dumps(values[key])}')
+    if merged != text:
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(merged, encoding="utf-8")
+        except OSError:
+            pass
+
+
+# Settings Sync sends every extension in a profile, ours too (pinned + version) => another computer
+# signed in to the same account asks the Marketplace for an id that isn't there, or later someone
+# else's under that id (app/docs/app-window.md #5). Sync skips machine-scoped ones + ignored ids
+SYNC_IGNORED = "settingsSync.ignoredExtensions"
+
+
+def keep_out_of_sync(paths: VSCodePaths | None = None) -> None:
+    """After installs, cold start only: ours marked machine-scoped in the profile's list (each
+    install rewrites the entry); sync on => its id in `ignoredExtensions` too (app-wide key, default
+    profile's settings only; that one id added, the rest of the file byte for byte)."""
+    paths = paths or vscode_paths()
+    location = profile_location(paths)
+    if not location or vscode_running(paths):
+        return
+    import vscode_ext
+    try:
+        ours = vscode_ext.extension_id().lower()
+    except (OSError, ValueError, KeyError):
+        return
+    mark_machine_scoped(paths.data / "User" / "profiles" / location / "extensions.json", ours)
+    if sync_on(paths):
+        try:
+            text = paths.settings.read_text(encoding="utf-8") if paths.settings.exists() else ""
+            merged = add_to_list_setting(text, SYNC_IGNORED, ours)
+            if merged != text:
+                paths.settings.parent.mkdir(parents=True, exist_ok=True)
+                paths.settings.write_text(merged, encoding="utf-8")
+        except OSError:
+            pass
+
+
+def mark_machine_scoped(listing: Path, ident: str) -> None:
+    try:
+        entries = json.loads(listing.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    if not isinstance(entries, list):
+        return
+    changed = False
+    for entry in entries:
+        try:
+            if entry["identifier"]["id"].lower() != ident:
+                continue
+            metadata = entry.get("metadata") if isinstance(entry.get("metadata"), dict) else {}
+        except (KeyError, TypeError, AttributeError):
+            continue
+        if metadata.get("isMachineScoped") is not True:
+            entry["metadata"] = {**metadata, "isMachineScoped": True}
+            changed = True
+    if changed:
+        try:
+            temp = listing.with_name(listing.name + ".jobfinder")
+            temp.write_text(json.dumps(entries), encoding="utf-8")
+            os.replace(temp, listing)
+        except OSError:
+            pass
+
+
+def sync_on(paths: VSCodePaths) -> bool:
+    # VS Code keeps "sync.enable" app-wide in the default state db (1.140 bundle: storage scope -1)
+    state = paths.global_storage / "state.vscdb"
+    if not state.exists():
+        return False
+    try:
+        db = sqlite3.connect(f"{state.as_uri()}?mode=ro", uri=True, timeout=2)
+        try:
+            row = db.execute("SELECT value FROM ItemTable WHERE key = 'sync.enable'").fetchone()
+        finally:
+            db.close()
+    except sqlite3.Error:
+        return False
+    return bool(row) and str(row[0]).strip() == "true"
+
+
 def ensure_profile_settings(settings: Path) -> None:
     text = settings.read_text(encoding="utf-8") if settings.exists() else ""
     merged = text
@@ -373,17 +518,42 @@ VSCODE_OURS = cfg.DATA / "vscode-ours"
 JSONC_TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*.*?\*/', re.S)
 
 
-def settings_keys(text: str) -> set[str] | None:
-    """Top-level keys of VS Code's settings file (comments + trailing commas allowed); None if unreadable."""
+def settings_values(text: str) -> dict | None:
+    """VS Code's settings file read (comments + trailing commas allowed); None if unreadable."""
     plain = JSONC_TOKEN.sub(lambda m: m.group(0) if m.group(0).startswith('"') else "", text)
     plain = re.sub(r",(\s*[}\]])", r"\1", plain).strip()
     if not plain:
-        return set()
+        return {}
     try:
         data = json.loads(plain)
     except ValueError:
         return None
-    return set(data) if isinstance(data, dict) else None
+    return data if isinstance(data, dict) else None
+
+
+def settings_keys(text: str) -> set[str] | None:
+    values = settings_values(text)
+    return None if values is None else set(values)
+
+
+def add_to_list_setting(text: str, key: str, item: str) -> str:
+    """`item` into list setting `key`, rest of the file byte for byte (see `add_setting`).
+
+    Key missing => added; already listed (any case) or not a list => unchanged.
+    """
+    # comments blanked, same length => offsets in `bare` are offsets in `text`
+    bare = JSONC_TOKEN.sub(lambda m: m.group(0) if m.group(0).startswith('"') else " " * len(m.group(0)), text)
+    if f'"{key}"' not in bare:
+        return add_setting(text, f'"{key}": [{json.dumps(item)}]')
+    found = re.search(rf'"{re.escape(key)}"\s*:\s*\[', bare)
+    end = bare.find("]", found.end()) if found else -1
+    if end < 0:
+        return text
+    inside = bare[found.end():end]
+    if json.dumps(item).lower() in inside.lower():
+        return text
+    separator = ", " if inside.strip() else ""
+    return text[:found.end()] + json.dumps(item) + separator + text[found.end():]
 
 
 def quiet_keys() -> dict[str, str]:
@@ -596,11 +766,13 @@ def window_setup() -> None:
     """
     cfg.ensure_private_dirs()
     if ensure_profile():
+        migrate_profile()
         print(f"{cfg.NAME} has its own space in VS Code, apart from anything else you use it for.")
     else:
         print(f"VS Code is open, so {cfg.NAME} gets its own space the next time it starts.")
     if not ensure_extensions(chosen_ai(), quiet=False):
         sys.exit("Could not add everything to VS Code.")
+    keep_out_of_sync()
     print("VS Code is ready.")
 
 
@@ -641,11 +813,15 @@ def main() -> None:
     cfg.ensure_private_dirs()
     # before any install + before VS Code opens => this folder's window comes up in Job Finder's
     # profile; VS Code already running => next cold start
-    ensure_profile()
+    if ensure_profile():
+        # their model pick, zoom + text size come along, once
+        migrate_profile()
     choice = chosen_ai()
     # before VS Code opens, into its profile once made => the window comes up with the chat panel,
     # the first click on a resume shows the page, a typo in the resume facts is underlined
     ensure_extensions(choice)
+    # our window extension never synced to another computer (the Marketplace has no such id)
+    keep_out_of_sync()
     # before VS Code opens => no Release Notes tab over Today, no usage reports (ours only)
     ensure_quiet_vscode()
     # before VS Code opens => Red Hat's telemetry popup never asks mid job search

@@ -751,7 +751,130 @@ def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_pat
     with pytest.raises(SystemExit):  # installer then installs the AI panel the old way
         launch.window_setup()
     monkeypatch.setattr(launch, "vscode_running", lambda paths=None: False)
+    monkeypatch.setattr(launch, "PROFILE_MIGRATED", tmp_path / "profile-migrated")
     result.returncode = 0
     runs.clear()
     launch.window_setup()
     assert "own space" in capsys.readouterr().out and runs[0][5:7] == ["--profile", "CEZ Job Finder"]
+
+
+def state_db(path, rows):
+    """VS Code's state.vscdb, same table as VS Code makes it."""
+    import sqlite3
+    path.parent.mkdir(parents=True, exist_ok=True)
+    db = sqlite3.connect(path)
+    with db:
+        db.execute(launch.ITEM_TABLE)
+        db.executemany("INSERT INTO ItemTable (key, value) VALUES (?, ?)", rows)
+    db.close()
+
+
+def state_rows(path):
+    import sqlite3
+    db = sqlite3.connect(path)
+    try:
+        return dict(db.execute("SELECT key, value FROM ItemTable").fetchall())
+    finally:
+        db.close()
+
+
+MODEL = "chat.currentLanguageModel.panel"
+
+
+def test_model_pick_zoom_and_text_size_follow_into_the_profile_once(tmp_path, monkeypatch):
+    # new profile starts on Copilot's automatic model (fails tailored resumes) and at default zoom
+    paths, marker = profile_paths(tmp_path, monkeypatch), tmp_path / "data" / "profile-migrated"
+    state_db(paths.global_storage / "state.vscdb", [(MODEL, "copilot/claude-sonnet"), (f"{MODEL}.isDefault", "false"),
+                                                     ("sync.enable", "true"), ("other.key", "x")])
+    paths.settings.write_text('{\n  // mine\n  "window.zoomLevel": 1.5,\n  "editor.fontSize": 16,\n  "editor.tabSize": 8,\n}\n',
+                              encoding="utf-8")
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    launch.migrate_profile(paths, marker)
+    profile = paths.data / "User" / "profiles" / "cez-job-finder"
+    assert state_rows(profile / "globalStorage" / "state.vscdb") == {MODEL: "copilot/claude-sonnet", f"{MODEL}.isDefault": "false"}
+    settings = launch.settings_values((profile / "settings.json").read_text(encoding="utf-8"))
+    assert settings["window.zoomLevel"] == 1.5 and settings["editor.fontSize"] == 16 and "editor.tabSize" not in settings
+    assert marker.read_text(encoding="utf-8") == "model: copied\n"
+    # run once: a pick changed later in the default profile never overwrites the profile's
+    state_db(paths.global_storage / "state.vscdb", [(MODEL, "copilot/gpt-auto")])
+    launch.migrate_profile(paths, marker)
+    assert state_rows(profile / "globalStorage" / "state.vscdb")[MODEL] == "copilot/claude-sonnet"
+
+
+def test_pick_already_made_in_the_profile_kept(tmp_path, monkeypatch):
+    # the user's choice inside Job Finder overwritten by an older one from their other work
+    paths = profile_paths(tmp_path, monkeypatch)
+    state_db(paths.global_storage / "state.vscdb", [(MODEL, "copilot/gpt-auto")])
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    own = paths.data / "User" / "profiles" / "cez-job-finder" / "globalStorage" / "state.vscdb"
+    state_db(own, [(MODEL, "copilot/claude-sonnet")])
+    settings = paths.data / "User" / "profiles" / "cez-job-finder" / "settings.json"
+    settings.write_text('{"editor.fontSize": 20}', encoding="utf-8")
+    paths.settings.write_text('{"editor.fontSize": 12}', encoding="utf-8")
+    launch.migrate_profile(paths, tmp_path / "marker")
+    assert state_rows(own)[MODEL] == "copilot/claude-sonnet"
+    assert launch.settings_values(settings.read_text(encoding="utf-8")) == {"editor.fontSize": 20}
+
+
+def test_nothing_to_copy_or_unreadable_state_is_no_error(tmp_path, monkeypatch):
+    # a launch that stops on a broken VS Code state file never opens the window at all
+    paths, marker = profile_paths(tmp_path, monkeypatch), tmp_path / "marker"
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    launch.migrate_profile(paths, marker)  # fresh VS Code: no state db, no settings
+    assert marker.read_text(encoding="utf-8") == "model: not copied\n"
+    marker.unlink()
+    paths.global_storage.joinpath("state.vscdb").write_bytes(b"not a database")
+    launch.migrate_profile(paths, marker)
+    assert marker.read_text(encoding="utf-8") == "model: not copied\n"
+    assert not (paths.data / "User" / "profiles" / "cez-job-finder" / "globalStorage").exists()
+
+
+def test_running_vscode_profile_state_untouched(tmp_path, monkeypatch):
+    # VS Code running holds the state db open => our write lost or the user's pick clobbered
+    paths, marker = profile_paths(tmp_path, monkeypatch), tmp_path / "marker"
+    state_db(paths.global_storage / "state.vscdb", [(MODEL, "copilot/claude-sonnet"), ("sync.enable", "true")])
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    launch.migrate_profile(paths, marker)
+    launch.keep_out_of_sync(paths)
+    assert not marker.exists() and not (paths.data / "User" / "profiles" / "cez-job-finder" / "globalStorage").exists()
+    assert not paths.settings.exists()
+
+
+def test_window_extension_kept_out_of_settings_sync(tmp_path, monkeypatch):
+    # synced, another computer asks the Marketplace for an id that isn't there (or someone else's)
+    import vscode_ext
+    paths = profile_paths(tmp_path, monkeypatch)
+    ours = vscode_ext.extension_id()
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    profile_extension(paths, launch.PDF_EXTENSION)
+    profile_extension(paths, ours)
+    listing = paths.data / "User" / "profiles" / "cez-job-finder" / "extensions.json"
+    entries = json.loads(listing.read_text(encoding="utf-8"))
+    entries[-1]["metadata"] = {"source": "vsix", "pinned": True, "isMachineScoped": False}
+    listing.write_text(json.dumps(entries), encoding="utf-8")
+    paths.settings.write_text('{"editor.tabSize": 8}', encoding="utf-8")
+    launch.keep_out_of_sync(paths)  # sync off: their settings file untouched
+    entries = {e["identifier"]["id"]: e for e in json.loads(listing.read_text(encoding="utf-8"))}
+    assert entries[ours]["metadata"] == {"source": "vsix", "pinned": True, "isMachineScoped": True}
+    assert "metadata" not in entries[launch.PDF_EXTENSION]
+    assert paths.settings.read_text(encoding="utf-8") == '{"editor.tabSize": 8}'
+    state_db(paths.global_storage / "state.vscdb", [("sync.enable", "true")])
+    launch.keep_out_of_sync(paths)
+    launch.keep_out_of_sync(paths)  # once only
+    assert launch.settings_values(paths.settings.read_text(encoding="utf-8")) == {
+        "editor.tabSize": 8, launch.SYNC_IGNORED: [ours]}
+
+
+def test_sync_ignore_list_edited_in_place():
+    # rewriting the settings file as JSON drops every comment the user wrote in it
+    text = '{\n  // keep\n  "settingsSync.ignoredExtensions": [\n    "a.b", // theirs\n  ],\n}\n'
+    out = launch.add_to_list_setting(text, launch.SYNC_IGNORED, "cez-job-finder.window")
+    assert out == text.replace('[\n', '["cez-job-finder.window", \n', 1)
+    assert launch.settings_values(out)[launch.SYNC_IGNORED] == ["cez-job-finder.window", "a.b"]
+    assert launch.add_to_list_setting(out, launch.SYNC_IGNORED, "CEZ-Job-Finder.window") == out
+    empty = '{"settingsSync.ignoredExtensions": []}'
+    assert launch.add_to_list_setting(empty, launch.SYNC_IGNORED, "x.y") == '{"settingsSync.ignoredExtensions": ["x.y"]}'
+    commented = '{\n  // "settingsSync.ignoredExtensions": ["old"]\n}'
+    assert launch.settings_values(launch.add_to_list_setting(commented, launch.SYNC_IGNORED, "x.y")) == {
+        launch.SYNC_IGNORED: ["x.y"]}
