@@ -206,6 +206,8 @@ when asked, at setup, and before any step sending something new off computer.
 | Work history, education, skills, links you apply with | that employer's UKG site | That employer, as each is added (only after you say yes) |
 | Contact details, answers, resume you apply with | that employer's UKG site | That employer, once you click Submit |
 | Contact details, answers, resume you apply with | that employer's JazzHR site | That employer, once you click Submit |
+| Resume (and cover letter) you apply with | that employer's BambooHR site | That employer, as soon as the file is chosen - before Submit |
+| Contact details, answers you apply with | that employer's BambooHR site | That employer, once you click Submit |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 
