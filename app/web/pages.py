@@ -20,6 +20,7 @@ Project env (no inline deps): markdown-it-py comes locked through rich.
 
 import argparse
 import datetime
+import importlib.util
 import re
 import shutil
 import sys
@@ -43,6 +44,20 @@ KEYS = {"title", "description", "published", "modified", "status", "og_title", "
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # special sources (about, methods, index) + names later steps use (feed, reviews/, sources.yml)
 RESERVED = {"about", "methods", "index", "feed", "reviews", "sources"}
+# share card + site font are a subset (assets.UNICODES); a character outside it falls back to another font
+_spec = importlib.util.spec_from_file_location("assets", Path(__file__).with_name("assets.py"))
+assets = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(assets)
+FONT_CHARS = frozenset(map(chr, assets.UNICODES))
+LIMITS = {"title": 60, "description": 155, "og_title": 70}  # cut off past this in results / share previews
+# same as app/resume/lint.py INVISIBLE: looks like a space or nothing, breaks search + copy
+INVISIBLE = re.compile("[\u00a0\u202f\u200b\u200c\u200d\u2060\ufeff]")
+# same as test_docs.py JARGON + JARGON_OK (a test keeps them equal): the site's readers are the app's users
+JARGON = re.compile(r"\b(config|yml|json|slug|params|facet|pytest|repo|commit|branch|PR|API|schema)\b")
+JARGON_OK = ("Resume details.yml", "API key")
+RAW_HTML = re.compile(r"<!--|</?[A-Za-z][A-Za-z0-9-]*(\s[^<>]*)?/?>")
+ENTITY = re.compile(r"&(#\d+|#[xX][0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]*);")
+NOTES = re.compile(r"\[owner:|\bTODO\b")
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
           "October", "November", "December"]
 
@@ -140,6 +155,7 @@ class Source:
         self.path, self.name = path, path.stem
         self.rel = path.relative_to(root).as_posix()
         text = path.read_bytes().decode("utf-8").replace("\r\n", "\n")
+        self.text = text
         head, body, self.offset = {}, text, 0
         match = re.match(r"---\n(.*?\n)---\n", text, re.S)
         if not match:
@@ -166,6 +182,7 @@ class Source:
         self.title, self.description = str(head.get("title", "")), str(head.get("description", ""))
         self.og_title = str(head.get("og_title") or self.title)
         self.uncited = head.get("uncited") or []
+        self.head = head
         self.published = self.modified = None
         if self.status == "published":
             if "published" not in head:
@@ -196,6 +213,16 @@ class Source:
     def line(self, token) -> int:
         return self.offset + (token.map[0] + 1 if token.map else 1)
 
+    def line_text(self, token) -> str:
+        return self.text.split("\n")[self.line(token) - 1]
+
+    def find(self, token, needle: str) -> int:
+        """Line of the first occurrence of needle inside token's block; its first line if none."""
+        start = self.line(token)
+        end = self.offset + token.map[1] if token.map else start
+        lines = self.text.split("\n")
+        return next((n for n in range(start, end + 1) if needle in lines[n - 1]), start)
+
     @property
     def built(self) -> bool:
         return self.status == "published" and self.name != "index"
@@ -208,6 +235,78 @@ class Source:
     @property
     def url(self) -> str:
         return "/" + self.out.removesuffix("index.html")
+
+
+def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
+    """Article rules for published sources: one "file:line: problem" each. Drafts may still hold notes."""
+    today = datetime.date.today().isoformat()
+    seen: dict[tuple[str, str], str] = {}
+    for src in sources:
+        if src.status != "published":
+            continue
+        lines = src.text.split("\n")
+        for n, line in enumerate(lines, 1):
+            at = f"{src.rel}:{n}"
+            if NOTES.search(line):
+                errors.append(f"{at}: [owner: note or TODO left in a published page")
+            if "](<" in line:
+                errors.append(f"{at}: link in <...> - write the destination plainly")
+            if INVISIBLE.search(line):
+                errors.append(f"{at}: invisible character U+{ord(INVISIBLE.search(line).group(0)):04X} - use a plain space")
+            odd = sorted({c for c in line if c not in FONT_CHARS and not INVISIBLE.match(c)})
+            if odd:
+                warnings.append(f"{at}: {' '.join(f'U+{ord(c):04X}' for c in odd)} not in the site font (assets.UNICODES)")
+        for key, limit in LIMITS.items():
+            value = str(src.head.get(key) or "")
+            if len(value) > limit:
+                errors.append(f"{src.rel}:{src.line_of(src.text, key)}: {key} is {len(value)} characters, max {limit}")
+        for key in "title", "description":
+            value = " ".join(str(src.head.get(key, "")).split()).lower()
+            if (key, value) in seen:
+                errors.append(f"{src.rel}:{src.line_of(src.text, key)}: same {key} as {seen[key, value]}")
+            seen.setdefault((key, value), src.rel)
+        for key in "published", "modified":
+            if str(src.head.get(key, "")) > today:
+                errors.append(f"{src.rel}:{src.line_of(src.text, key)}: {key} {src.head[key]} is in the future")
+        if src.published and src.modified and src.modified < src.published:
+            errors.append(f"{src.rel}:{src.line_of(src.text, 'modified')}: modified {src.modified} is before published {src.published}")
+        words = " ".join(str(src.head.get(k, "")) for k in ("title", "description", "og_title"))
+        for ok in JARGON_OK:
+            words = words.replace(ok, "")
+        if JARGON.search(words):
+            errors.append(f"{src.rel}:2: header uses {JARGON.search(words).group(0)!r} - say it in plain words")
+        level = 1
+        for i, token in enumerate(src.tokens):
+            if token.type == "heading_open":
+                depth = int(token.tag[1])
+                raw = src.line_text(token)
+                if depth == 1:
+                    errors.append(f"{src.rel}:{src.line(token)}: # heading in the body - the title is the page's only h1, start at ##")
+                elif depth > level + 1:
+                    errors.append(f"{src.rel}:{src.line(token)}: h{depth} after h{level} - heading level skipped")
+                level = depth
+                inline = src.tokens[i + 1]
+                if any(c.type in ("link_open", "image") for c in inline.children or []):
+                    errors.append(f"{src.rel}:{src.line(token)}: link in a heading - put it in the text below")
+                if RAW_HTML.search(raw) or ENTITY.search(raw):
+                    errors.append(f"{src.rel}:{src.line(token)}: HTML or &...; entity in a heading - plain text only")
+                if token.markup.startswith("#") and re.search(r"\s#+\s*$", raw):
+                    errors.append(f"{src.rel}:{src.line(token)}: closing # in a heading - drop it")
+            if token.type != "inline":
+                continue
+            for child in token.children or []:
+                if child.type == "image":
+                    errors.append(f"{src.rel}:{src.find(token, '![')}: image - pages carry no images")
+                elif child.type == "text":
+                    tag = RAW_HTML.search(child.content)
+                    if tag:
+                        errors.append(f"{src.rel}:{src.find(token, tag.group(0))}: raw HTML {tag.group(0)!r} shows as text - put it in `code` or drop it")
+                    text = child.content
+                    for ok in JARGON_OK:
+                        text = text.replace(ok, "")
+                    word = JARGON.search(text)
+                    if word:
+                        errors.append(f"{src.rel}:{src.find(token, word.group(0))}: {word.group(0)!r} is jargon - say it in plain words")
 
 
 MD = MarkdownIt("js-default")  # raw HTML escaped, tables on, no typographer
@@ -383,13 +482,15 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str]) -> str:
     ])
 
 
-def research(root: Path, site_files: set[str]) -> dict[str, str]:
-    """Every published research source as docs-relative path -> HTML. Raises SourceError on any problem."""
+def research(root: Path, site_files: set[str], warnings: list[str] | None = None) -> dict[str, str]:
+    """Every published research source as docs-relative path -> HTML. Raises SourceError on any problem;
+    warnings (page still built) go to the list given."""
     folder = root / SOURCES
     errors: list[str] = []
     sources = [Source(p, root, errors) for p in sorted(folder.glob("*.md"))] if folder.is_dir() else []
     if errors:  # header problems first: a page can't be drawn w/o its title + dates
         raise SourceError("\n".join(errors))
+    lint(sources, errors, [] if warnings is None else warnings)
     by_name = {s.name: s for s in sources}
     built = [s for s in sources if s.built]
     out: dict[str, str] = {}
@@ -405,12 +506,12 @@ def research(root: Path, site_files: set[str]) -> dict[str, str]:
     return out
 
 
-def build(root: Path) -> dict[str, str]:
+def build(root: Path, warnings: list[str] | None = None) -> dict[str, str]:
     """Every generated file: docs-relative path -> text. Reads, never writes."""
     docs = root / "docs"
     hand = {rel: (docs / rel).read_text(encoding="utf-8") for rel in listed(docs)
             if rel.endswith(".html") and rel.split("/")[0] not in NOT_PAGES + OWNED}
-    out = research(root, set(listed(docs)) - {rel for rel in listed(docs) if rel.split("/")[0] in OWNED})
+    out = research(root, set(listed(docs)) - {rel for rel in listed(docs) if rel.split("/")[0] in OWNED}, warnings)
     out["sitemap.xml"] = sitemap(root, {**hand, **{k: v for k, v in out.items() if k.endswith(".html")}})
     return dict(sorted(out.items()))
 
@@ -465,11 +566,14 @@ def main():
     ap = argparse.ArgumentParser(description="Build the site's generated pages in docs/.")
     ap.add_argument("--check", action="store_true", help="list stale, missing or orphaned files; write nothing; exit 1 on any")
     args = ap.parse_args()
+    warnings: list[str] = []
     try:
-        build(ROOT)
+        build(ROOT, warnings)
     except SourceError as e:
         print(e)
         sys.exit(1)
+    for warning in warnings:
+        print(f"warning: {warning}")
     if args.check:
         found = problems(ROOT)
         print("\n".join(found) if found else "docs/ up to date")

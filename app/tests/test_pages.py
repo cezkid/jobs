@@ -272,3 +272,64 @@ def test_source_problems_are_reported_with_file_and_line(tmp_path, extra, proble
 def test_no_sources_builds_no_pages(tmp_path):
     make_site(tmp_path)
     assert list(pages.build(tmp_path)) == ["sitemap.xml"]
+
+
+# --- article lints: one bad snippet per rule, in ai-bias.md (line 11 = "Text.") ---
+
+BIAS = SOURCES["ai-bias.md"]
+
+
+def body(snippet):
+    return {"ai-bias.md": BIAS.replace("Text.", snippet)}
+
+
+@pytest.mark.parametrize("extra, problem", [
+    (body("# Top"), "ai-bias.md:11: # heading in the body"),
+    (body("#### Deep"), "ai-bias.md:11: h4 after h2 - heading level skipped"),
+    (body("## See [the myth](ats-myth.md)"), "ai-bias.md:11: link in a heading"),
+    (body("## A <b>bold</b> idea"), "ai-bias.md:11: HTML or &...; entity in a heading"),
+    (body("## Fish &amp; chips"), "ai-bias.md:11: HTML or &...; entity in a heading"),
+    (body("## Closed ##"), "ai-bias.md:11: closing # in a heading"),
+    (body("First line.\nThen <div>raw</div> here."), "ai-bias.md:12: raw HTML '<div>' shows as text"),
+    (body("![chart](chart.png)"), "ai-bias.md:11: image - pages carry no images"),
+    (body("[owner: check this number]"), "ai-bias.md:11: [owner: note or TODO"),
+    (body("TODO cite"), "ai-bias.md:11: [owner: note or TODO"),
+    ({"ai-bias.md": BIAS.replace("AI screening and bias", "A" * 61)}, "ai-bias.md:2: title is 61 characters, max 60"),
+    ({"ai-bias.md": BIAS.replace("What tests of AI resume screeners found.", "d" * 156)},
+     "ai-bias.md:3: description is 156 characters, max 155"),
+    ({"ai-bias.md": BIAS.replace("status: published", f"status: published\nog_title: {'o' * 71}")},
+     "ai-bias.md:6: og_title is 71 characters, max 70"),
+    ({"ai-bias.md": BIAS.replace("2026-09-10", "2999-01-01")}, "ai-bias.md:4: published 2999-01-01 is in the future"),
+    ({"ai-bias.md": BIAS.replace("status: published", "modified: 2026-09-01\nstatus: published")},
+     "ai-bias.md:5: modified 2026-09-01 is before published 2026-09-10"),
+    ({"ai-bias.md": BIAS.replace("(ats-myth.md)", "(<ats-myth.md>)")}, "ai-bias.md:7: link in <...>"),
+    (body("Text​."), "ai-bias.md:11: invisible character U+200B"),
+    (body("Open the repo."), "ai-bias.md:11: 'repo' is jargon"),
+    ({"ai-bias.md": BIAS.replace("AI screening and bias", "The API story")}, "ai-bias.md:2: header uses 'API'"),
+    ({"methods.md": SOURCES["methods.md"].replace("How we research", "AI screening and bias")},
+     "methods.md:2: same title as app/web/research/ai-bias.md"),
+    ({"methods.md": SOURCES["methods.md"].replace("How these articles are researched, reviewed and corrected.",
+                                                  "What tests of AI resume screeners found.")},
+     "methods.md:3: same description as app/web/research/ai-bias.md"),
+])
+def test_article_lints_report_file_and_line(tmp_path, extra, problem):
+    research_site(tmp_path, extra)
+    with pytest.raises(pages.SourceError) as e:
+        pages.build(tmp_path)
+    assert problem in str(e.value)
+
+
+def test_lints_pass_code_and_drafts_and_warn_on_characters_outside_the_font(tmp_path):
+    extra = {**body("`<div>` and `repo` in code, Resume details.yml, an API key, → arrow."),
+             "next-one.md": SOURCES["next-one.md"] + "\nTODO [owner: finish] <b>x</b>\n"}
+    research_site(tmp_path, extra)
+    warnings = []
+    assert "research/ai-bias/index.html" in pages.build(tmp_path, warnings)
+    assert warnings == ["app/web/research/ai-bias.md:11: U+2192 not in the site font (assets.UNICODES)"]
+
+
+def test_lint_patterns_match_their_originals():
+    import test_docs
+    from resume import lint as resume_lint
+    assert pages.JARGON.pattern == test_docs.JARGON.pattern and pages.JARGON_OK == test_docs.JARGON_OK
+    assert pages.INVISIBLE.pattern == resume_lint.INVISIBLE.pattern

@@ -42,6 +42,14 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   time; shared CSS, header, footer, icon + font links, `og:image` copied from `index.html`.
   Breadcrumb, h1, "By ... · Published · Updated" (Updated only when it differs).
 - Any problem -> `file:line: what`, nothing written, exit 1.
+- Lints, published sources only (drafts may hold notes): no `#` h1 in the body, no skipped
+  heading level, heading = plain text (no link, HTML, `&...;` entity, closing `#`); no raw HTML
+  outside code (shown as text), no image, no `[owner:` / `TODO`, no `](<`; title <= 60,
+  description <= 155, og_title <= 70 (cut off in results / previews); dates not in the future,
+  modified not before published; no invisible character (`resume/lint.py` INVISIBLE), no app
+  jargon (`test_docs.py` JARGON - a test keeps both copies equal); titles + descriptions unique.
+  Warning only (page still built): a character outside `assets.UNICODES` (site + share-card font
+  subset: it falls back to another font).
 
 ## Look
 
