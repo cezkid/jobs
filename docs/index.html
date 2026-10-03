@@ -371,6 +371,8 @@
     .margin { padding-left: 18px; font-size: 0.875rem; }
     .margin svg { width: 22px; height: 22px; margin-top: -2px; }
     .sheet-lg .name { font-size: 1.625rem; }
+    /* the dash notes repeat the facts listed beside the sheet; the approved line keeps its check */
+    .sheet-lg .margin:not(.ok) { display: none; }
   }
   @media (min-width: 1080px) {
     /* the heading runs above both columns: display size won't fit 4 columns; the lede sits beside
@@ -521,6 +523,8 @@
     .submit-line { margin-top: 10px !important; }
     /* a link to the install steps and a send button mean nothing on paper */
     .closing { display: none; }
+    /* research picks are only links; the articles live on the site */
+    .scene.research { display: none; }
   }
 </style>
 </head>
@@ -690,7 +694,8 @@
     <div class="half">
       <h2>Applications filled. You press Submit.</h2>
       <dl class="defs">
-        <div><dt>Greenhouse, Ashby, UKG</dt><dd>Filled in a browser window the app opens, from your resume.</dd></div>
+        <div><dt>Most hiring sites</dt><dd>Filled from your resume in a window the app opens: Greenhouse, Ashby, Lever, Workable, UKG, JazzHR, BambooHR, Paylocity, SmartRecruiters.</dd></div>
+        <div><dt>Paycom, ADP, Oracle, iCIMS</dt><dd>First box filled; next steps named.</dd></div>
         <div><dt>Workday</dt><dd>Filled with Claude, in Chrome.</dd></div>
         <div><dt>Any other form</dt><dd>Answers ready to paste.</dd></div>
       </dl>
@@ -717,7 +722,7 @@
     <ol class="ledger">
       <li><h3>freehire.me</h3><p>Your search words, and which job from your list you make a resume for or ask about. Never your resume.</p><p class="when">To find jobs, get the whole posting, or see if it's still open.</p></li>
       <li><h3>Your own AI account</h3><p>Your resume and what you tell it, in Claude, ChatGPT or GitHub Copilot.</p><p class="when">While you chat. Personal plans may train on chats unless you switch it off.</p></li>
-      <li><h3>An employer</h3><p>What you apply with.</p><p class="when">Only when you click Save or Submit.</p></li>
+      <li><h3>An employer</h3><p>What you apply with.</p><p class="when">When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</p></li>
       <li><h3>Your email provider</h3><p>The morning email, sent to yourself.</p><p class="when">Only if you turn on email alerts.</p></li>
       <li><h3>The maintainer</h3><p>A fix to the program's code. Never your files.</p><p class="when">Only if you say yes.</p></li>
     </ol>

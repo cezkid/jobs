@@ -230,7 +230,8 @@ KB = 1000 bytes.
 - Browser checks (`uv run app/web/qa.py`): Copy above the fold at 1366x641 (gate) + 1280x593
   (report); phone "Send this page to my computer" ends <= 675px at 390x844 (844 minus Safari's
   bars); phone 320-390, 768, 1366, 1440, 1920 widths; home <= 8 screens at 1366x641 (3.88 on
-  2026-10-03) and <= 7.7 at 375x812 (2x 3.84, 2026-10-03); reduced motion = 0 animations + marks
+  2026-10-03) and <= 8.0 at 375x812 (2x 3.84 + 0.3 for the full employer privacy line and the nine filled hiring
+  systems, 2026-10-03); reduced motion = 0 animations + marks
   finished; no JS = all text + the Windows line; text opacity 1 at every scroll step once the
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint;
   print <= 5 pages w/ the install line; 0 console errors; every dashed SVG stroke at

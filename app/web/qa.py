@@ -117,7 +117,9 @@ FOLD = (1366, 641)          # gate: 1366x768 screen minus Chrome's tab + address
 FOLD_REPORT = (1280, 593)   # report only: 1280x720 screen, same bars
 DESKTOP_CAP = 8             # home <= 8 screens at 1366x641 (3.88 on 2026-10-03, pre-redesign)
 PHONE_TODAY = 3.84          # home at 375x812 (phone UA), measured 2026-10-03 (pre-redesign)
-PHONE_CAP = 2 * PHONE_TODAY
+# 2x today's page, plus room for the employer line in Who sees what (some sites get your email
+# at their first Continue or Next) and the nine filled hiring systems - 2026-10-03, owner-approved ship
+PHONE_CAP = 2 * PHONE_TODAY + 0.3
 PRINT_CAP = 5               # home prints in <= 5 pages
 SEND_AT = (390, 844)        # phone: "Send this page to my computer" ends <= SEND_CAP px (no scroll
 SEND_CAP = 675              # for the one thing a phone visitor can do; 675 = 844 minus Safari's bars)
