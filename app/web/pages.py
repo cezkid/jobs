@@ -927,7 +927,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
         "</head>",
         "<body>",
         parts["header"],
-        '<main class="wrap">',
+        '<main id="main" class="wrap">',
         f'<{wrapper} class="page">',
         f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
         f"<h1>{escape(src.title)}</h1>",

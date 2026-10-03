@@ -47,42 +47,59 @@
   @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
     size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
   :root {
-    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433;
+    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8;
     --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
     --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+    --gutter: clamp(16px, 2.5vw, 32px); --max: 1320px;
+    --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
+    --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
+    --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
   }
   @media (prefers-color-scheme: dark) {
     :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
   }
   *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; background: var(--desk); color: var(--text);
-    font: 20px/1.55 var(--serif); -webkit-text-size-adjust: 100%;
+    font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
   }
-  a { color: var(--text); text-decoration: underline; text-underline-offset: 0.15em; }
+  h1, h2, h3 { text-wrap: balance; }
+  p, li { text-wrap: pretty; }
+  a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
-  .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
-  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
+  /* 12 columns for composed pages; .wrap = the same outer box w/o columns (generated pages) */
+  .grid {
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
+    max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter);
+  }
+  .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
+  .skip {
+    position: absolute; z-index: 1; left: var(--gutter); top: 8px; padding: 6px 12px;
+    background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
+  }
+  .skip:focus { transform: none; }
+  /* full-bleed double rule: thick + thin, like a newspaper masthead */
+  .masthead { position: relative; border-bottom: 3px solid var(--text); }
+  .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
   .brand img { width: 28px; height: 28px; }
-  .links { display: flex; gap: 24px; white-space: nowrap; }
-  footer {
-    max-width: 1200px; margin: 0 auto; padding: 24px 32px 40px; font-size: 17px; color: var(--text-2);
-    display: flex; flex-wrap: wrap; gap: 8px 28px;
-  }
-  footer p { margin: 0; margin-right: auto; }
-  /* phones: brand + 3 links need 399px, a 360px screen has 328 => Source code only in the footer */
+  .links { display: flex; gap: 28px; white-space: nowrap; }
+  footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
+  footer .row { display: flex; flex-wrap: wrap; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
+  footer p { margin: 0 auto 0 0; }
+  /* phones: brand + 3 links don't fit 360px => Source code only in the footer */
   @media (max-width: 600px) {
-    .wrap, footer { padding-left: 16px; padding-right: 16px; }
     .top { gap: 12px; }
-    .links { gap: 14px; font-size: 17px; }
+    .links { gap: 14px; font-size: 1.0625rem; }
     .links .code { display: none; }
   }
   /* under 360px (320px phones) the links may drop below the brand */
-  @media (max-width: 359px) { .top { flex-wrap: wrap; } }
+  @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
   /* /shared */
 
   main { padding: 24px 0 72px; }
@@ -115,14 +132,18 @@
 </style>
 </head>
 <body>
-<header class="wrap top">
-  <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
-  <nav class="links">
-    <a href="/#install">Install</a>
-    <a class="code" href="https://github.com/cezkid/jobs">Source code</a>
-  </nav>
+<header class="masthead">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="wrap top">
+    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <nav class="links" aria-label="Site">
+      <a href="/research/">Research</a>
+      <a href="/#install">Install</a>
+      <a class="code" href="https://github.com/cezkid/jobs">Source code</a>
+    </nav>
+  </div>
 </header>
-<main class="wrap">
+<main id="main" class="wrap">
 <div class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">Research</li></ol></nav>
 <h1>Research</h1>
@@ -140,9 +161,11 @@
 </div>
 </main>
 <footer>
-  <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
-  <a href="/privacy.html">Privacy</a>
-  <a href="https://github.com/cezkid/jobs">Source code</a>
+  <div class="wrap row">
+    <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
+    <a href="/privacy.html">Privacy</a>
+    <a href="https://github.com/cezkid/jobs">Source code</a>
+  </div>
 </footer>
 </body>
 </html>

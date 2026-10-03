@@ -121,6 +121,7 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--paper` | `#ffffff` | same | sheets, the app window |
 | `--ink` | `#000000` | same | text + rules on paper, text on marks |
 | `--ink-2` | `#3a3a3a` | same | secondary text on paper |
+| `--rule` | `#c8c8c8` | same | hairlines on paper (sheets, the app window) |
 | `--mark` | `#ffe433` | same | highlighter: marks + Copy only |
 | `--desk` | `#ffffff` | `#1c1c1e` | page background |
 | `--text` | `#000000` | `#f2f2f2` | text, links, control borders, focus ring on the desk |
@@ -128,6 +129,14 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--line` | `#c8c8c8` | `#48484a` | hairlines between sections (decorative) |
 | `--serif` | `"Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif` | same | all text |
 | `--mono` | `ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace` | same | the install command only |
+| `--gutter` | `clamp(16px, 2.5vw, 32px)` | same | grid column gap + page side padding |
+| `--max` | `1320px` | same | widest content box (`.grid`, `.wrap`) |
+| `--step--1` | `0.9375rem` | same | small print (15px at default zoom) |
+| `--step-0` | `1.25rem` | same | body text (20px) |
+| `--step-1` | `1.375rem` | same | lede, large body |
+| `--step-2` | `1.75rem` | same | small headings |
+| `--display` | `min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem)` | same | home h1: as large as the 1366x641 fold allows |
+| `--ease-mark` | `cubic-bezier(0.3, 0.7, 0.4, 1)` | same | highlighter sweeps |
 
 - Contrast tested statically per scheme (`site_checks.contrasts`): text pairs 4.5:1, control
   borders + focus ring 3:1 (WCAG 1.4.3, 1.4.11). Hairlines + the yellow itself carry no meaning
@@ -240,11 +249,18 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   against names listed from disk, never `is_file()`.
 - Each indexed page's canonical = its own URL (folder `index.html` -> the folder); page w/o
   canonical -> `noindex`. Sitemap = exactly the indexed URLs, once each. Titles + descriptions unique.
-- Shared CSS (`/* shared */` ... `/* /shared */`: fonts, tokens, header, footer, `.wrap`) identical
-  on every page; test guards. Header (brand, Install `/#install`, Source code) + bare `<footer>` (Made
-  by, Privacy, Source code) byte-identical on every page; test guards.
-- Phone header: brand + 3 links need 399px, a 360/375/390px screen has 328/343/358 => header
+- Shared CSS (`/* shared */` ... `/* /shared */`: fonts, tokens, base type, `.grid`, `.wrap`, skip
+  link, header, footer) identical on every page; test guards. `.grid` = 12 columns, gap
+  `--gutter`, max `--max`, for composed pages (home); `.wrap` = the same outer box w/o columns
+  (generated pages, privacy, 404), so every edge lines up with the header.
+- Header (`<header class="masthead">`: skip link to `<main id="main">`, brand, Research
+  `/research/`, Install `/#install`, Source code) + bare `<footer>` (Made by, Privacy, Source code)
+  byte-identical on every page; test guards. Every page's `<main>` carries `id="main"`. Under the
+  header a full-bleed double rule (3px + 1px, 4px apart) - the newspaper masthead.
+- Phone header: brand + 4 links don't fit a 360/375/390px screen (328/343/358 usable) => header
   Source code hidden <= 600px (footer keeps it); <= 359px the links may wrap below the brand.
+- `docs/index.html` marks each part with `<!-- region: name -->` ... `<!-- /region: name -->` so a
+  change finds its part by grep.
 - Layout checked in a real browser: `uv run app/web/qa.py` (PEP 723, Chrome; playwright pinned
   to the cached WebKit + Firefox builds) serves `docs/` gzipped, opens every page as a phone at
   320/360/375/390px + desktop at 768/1366x641/1440/1920px; fails on sideways scroll, a two-line
