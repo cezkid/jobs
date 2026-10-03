@@ -18,6 +18,7 @@ import locks
 import rank
 import status
 import store
+from text import inert_md
 
 PAGE = cfg.ROOT / "Today.md"
 WAITING_MAX, FOLLOW_UP_MAX, NEW_MAX = 5, 5, 10
@@ -101,7 +102,7 @@ def days_ago(since: str, now: str) -> str:
 
 
 def item(row: dict, *details: str) -> list[str]:
-    return [f"- **Job {row['num']}** - {name(row)}", *(f"  - {d}" for d in details if d)]
+    return [f"- **Job {row['num']}** - {inert_md(name(row))}", *(f"  - {d}" for d in details if d)]
 
 
 def links(row: dict, dirs: dict[str, Path] | None, root: Path) -> str:

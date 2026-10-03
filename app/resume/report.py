@@ -3,6 +3,7 @@ from datetime import date
 import rank
 from apply import readahead
 from resume import knockout, lint, schema
+from text import inert_md
 
 PRIORITY_ORDER = ("required", "preferred")
 
@@ -28,11 +29,12 @@ def salary_label(job: dict) -> str | None:
 
 
 def posting_md(job: dict) -> str:
-    out = [f"# {job['title']}", "", f"**{job['company']}**", ""]
+    # employer's words shown inert: no link, image or HTML of theirs renders (app/docs/jobs/job-folders.md)
+    out = [f"# {inert_md(job['title'])}", "", f"**{inert_md(job['company'])}**", ""]
     out += [f"- {k}: {v}" for k, v in (("Link", job["url"]), ("Pay", salary_label(job))) if v]
     out += ["", "## What they ask for", ""]
-    out += [f"- ({r['priority']}) {r['text']}" for r in job["requirements"]]
-    out += ["", "## Full posting", "", job["text"]]
+    out += [f"- ({r['priority']}) {inert_md(r['text'])}" for r in job["requirements"]]
+    out += ["", "## Full posting", "", inert_md(job["text"])]
     return "\n".join(out) + "\n"
 
 
@@ -99,10 +101,10 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
               mirror_ok: bool = False) -> str:
     enrichment = job.get("enrichment") or {}
     facts = [
-        ("Link", job["url"]), ("Posted on", job.get("source")), ("Level", enrichment.get("seniority")),
+        ("Link", job["url"]), ("Posted on", inert_md(job.get("source"))), ("Level", inert_md(enrichment.get("seniority"))),
         ("Pay", salary_label(job)), ("Posting history", posting_history(job)), ("Your resume file", result["pdf"].name),
     ]
-    out = [f"# {job['title']} - {job['company']}", ""]
+    out = [f"# {inert_md(job['title'])} - {inert_md(job['company'])}", ""]
     out += [f"- {k}: {v}" for k, v in facts if v]
 
     problems = len(result["failed"])
@@ -139,26 +141,26 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
         shown = (r.get("shown") or [r["note"]])[0]  # one line proves it; the rest repeat the page
         said = f"Yes - {r['strength']}" if r["status"] == "met" and r.get("strength") else (
             "Yes" if r["status"] == "met" else "Not shown")
-        out.append(f"| {must} | {said} | {cell(r['text'])} | {cell(shown)} |")
+        out.append(f"| {must} | {said} | {cell(inert_md(r['text']))} | {cell(inert_md(shown))} |")
 
     gap_rows = [r for r in asked if r["status"] == "gap"]
     if gap_rows:
         out += ["", "## Asked for, not shown", "", "Have one? Say so - added only if true.", ""]
-        out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {r['text']} - {r['note']}"
+        out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {inert_md(r['text'])} - {inert_md(r['note'])}"
                 for r in gap_rows]
     if short := knockout.shortfalls(master or {}, job, today or date.today()):
         out += ["", "## Minimum asks your resume doesn't show", "", "Your call - quoted so you can decide.", ""]
-        out += [f"- {line}" for line in short]
+        out += [f"- {inert_md(line)}" for line in short]
     skills_only = [r for r in asked if r["priority"] == "required" and r.get("strength") == "Skills list only"]
     if skills_only:
         out += ["", "## In your Skills list only", "",
                 "A must-have no line shows you doing. Used it at a job? Say where - your own sentence goes in.", ""]
-        out += [f"- {r['text']}" for r in skills_only]
+        out += [f"- {inert_md(r['text'])}" for r in skills_only]
     traits = [r for r in ordered if r.get("trait")]
     if traits:
         out += ["", "## Soft skills they ask for", "",
                 "Shown in interview and in how your lines read - not a line to add.", ""]
-        out += [f"- {r['text']}" for r in traits]
+        out += [f"- {inert_md(r['text'])}" for r in traits]
     if gaps:
         today = today or date.today()
         out += ["", f"## Breaks over {schema.MAX_GAP_MONTHS} months", ""]
