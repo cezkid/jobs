@@ -26,10 +26,11 @@ Project env (no inline deps): markdown-it-py comes locked through rich.
 import argparse
 import datetime
 import importlib.util
+import json
 import re
 import shutil
 import sys
-from html import escape
+from html import escape, unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import quote, urlsplit
@@ -47,6 +48,7 @@ SOURCES = Path("app") / "web" / "research"
 REGISTRY = SOURCES / "sources.yml"
 REVIEWS = SOURCES / "reviews"
 AUTHOR = "Cesar Enrriquez-Zuniga"
+SAME_AS = ["https://github.com/cezkid"]  # the author's other profiles (ProfilePage sameAs)
 REPO = "https://github.com/cezkid/jobs/blob/main/"
 KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited"}
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -106,11 +108,11 @@ def long_date(iso: str) -> str:
 
 
 class Head(HTMLParser):
-    """A page's canonical URL and whether it asks to stay out of search."""
+    """A page's canonical URL, whether it asks to stay out of search, and its article:modified_time."""
 
     def __init__(self, text: str):
         super().__init__()
-        self.canonical, self.noindex = None, False
+        self.canonical, self.noindex, self.modified = None, False, None
         self.feed(text)
 
     def handle_starttag(self, tag, attrs):
@@ -119,6 +121,8 @@ class Head(HTMLParser):
             self.canonical = attrs.get("href")
         if tag == "meta" and attrs.get("name") == "robots" and "noindex" in (attrs.get("content") or ""):
             self.noindex = True
+        if tag == "meta" and attrs.get("property") == "article:modified_time":
+            self.modified = attrs.get("content")
 
 
 def site(root: Path) -> str:
@@ -132,14 +136,16 @@ def listed(docs: Path) -> list[str]:
 
 
 def sitemap(root: Path, pages: dict[str, str]) -> str:
-    """Canonical URL of every indexed page, home first then sorted; once each."""
+    """Canonical URL of every indexed page, home first then sorted; once each. <lastmod> = the page's
+    article:modified_time (dated pages only: Google uses lastmod only while it's always accurate)."""
     home = site(root)
-    urls = set()
+    urls: dict[str, str | None] = {}
     for text in pages.values():
         head = Head(text)
         if head.canonical and not head.noindex:
-            urls.add(head.canonical)
-    lines = [f"  <url><loc>{url}</loc></url>" for url in sorted(urls, key=lambda u: (u != home, u))]
+            urls[head.canonical] = head.modified
+    lines = [f"  <url><loc>{url}</loc>" + (f"<lastmod>{urls[url]}</lastmod>" if urls[url] else "") + "</url>"
+             for url in sorted(urls, key=lambda u: (u != home, u))]
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
             + "".join(line + "\n" for line in lines) + "</urlset>\n")
@@ -223,6 +229,7 @@ class Source:
             errors.append(f"{self.rel}:{self.line_of(text, 'uncited')}: uncited must be a list of text snippets")
             self.uncited = []
         self.head = head
+        self.hub = False  # index.md: set once an article is published (the hub lists them)
         self.published = self.modified = None
         if self.status == "published":
             if "published" not in head:
@@ -265,12 +272,16 @@ class Source:
 
     @property
     def built(self) -> bool:
-        return self.status == "published" and self.name != "index"
+        return self.status == "published" and (self.name != "index" or self.hub)
+
+    @property
+    def article(self) -> bool:
+        return self.name not in ("about", "methods", "index")
 
     @property
     def out(self) -> str:
         """docs-relative output file."""
-        return "about/index.html" if self.name == "about" else f"research/{self.name}/index.html"
+        return {"about": "about/index.html", "index": "research/index.html"}.get(self.name, f"research/{self.name}/index.html")
 
     @property
     def url(self) -> str:
@@ -596,7 +607,7 @@ def reviews(root: Path, sources: list[Source], errors: list[str], warnings: list
         if name.endswith(".md") and name[:-3] not in names:
             warnings.append(f"{REVIEWS.as_posix()}/{name}:1: review of a page that doesn't exist")
     for src in sources:
-        if not src.built:
+        if not src.built or src.name == "index":  # hub intro: a few lines over the list, not a claim page
             continue
         rel = f"{REVIEWS.as_posix()}/{src.name}.md"
         if f"{src.name}.md" not in found:
@@ -717,6 +728,11 @@ PAGE_CSS = """
   .table { overflow-x: auto; margin: 0 0 14px; }
   table { border-collapse: collapse; font-size: 17px; }
   .sources li { font-size: 17px; overflow-wrap: anywhere; }
+  .list { list-style: none; padding: 0; }
+  .list li { margin: 0 0 24px; }
+  .list a { font-size: 22px; font-weight: 700; line-height: 1.25; }
+  .list p { margin: 4px 0 0; }
+  .date { color: var(--text-2); font-size: 17px; }
   th, td { text-align: left; vertical-align: top; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
   @media (max-width: 600px) {
     main { padding-top: 8px; }
@@ -724,22 +740,62 @@ PAGE_CSS = """
 """
 
 
-def page(src: Source, root: Path, body: str, parts: dict[str, str]) -> str:
+def jsonld(graph: list[dict]) -> str:
+    """One <script> block: stable bytes (no spaces, UTF-8 as is); < escaped so a title can't end the block."""
+    data = json.dumps({"@context": "https://schema.org", "@graph": graph}, ensure_ascii=False, separators=(",", ":"))
+    return '<script type="application/ld+json">' + data.replace("<", "\\u003c") + "</script>"
+
+
+def dates(src: Source) -> str:
+    """Published <time>, + Updated <time> only when it differs."""
+    out = [f'Published <time datetime="{src.published}">{long_date(src.published)}</time>']
+    if src.modified != src.published:
+        out.append(f'Updated <time datetime="{src.modified}">{long_date(src.modified)}</time>')
+    return " · ".join(out)
+
+
+def listing(articles: list[Source]) -> str:
+    """Hub list: newest first (published, then name), link text = title."""
+    items = []
+    for src in sorted(sorted(articles, key=lambda s: s.name), key=lambda s: s.published, reverse=True):
+        items.append(f'<li><a href="{src.url}">{escape(src.title)}</a>'
+                     f'<p>{escape(src.description)}</p><p class="date">{dates(src)}</p></li>')
+    return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
+
+
+def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -> str:
     home = site(root)
     url = home + src.url.lstrip("/")
-    article = src.name != "about"
-    crumbs = ['<li><a href="/">Home</a></li>']
-    if article:
-        # Research links to the hub once it exists (plan-xsy.8)
-        crumbs.append("<li>Research</li>")
-    crumbs.append(f'<li aria-current="page">{escape(src.title)}</li>')
-    dates = [f'Published <time datetime="{src.published}">{long_date(src.published)}</time>']
-    if src.modified != src.published:
-        dates.append(f'Updated <time datetime="{src.modified}">{long_date(src.modified)}</time>')
-    if article:
-        meta = " · ".join([f'By <a href="/about/">{AUTHOR}</a>', *dates])
-    else:
+    person = {"@type": "Person", "@id": home + "about/#person", "name": AUTHOR, "url": home + "about/"}
+    # breadcrumb: (name, path); Research is a link once the hub exists, plain text (and not in JSON-LD) before
+    crumbs = [("Home", "/")]
+    if src.name not in ("about", "index"):
+        crumbs.append(("Research", "/research/" if hub else None))
+    crumbs.append((src.title, src.url))
+    visible = [f'<li aria-current="page">{escape(name)}</li>' if i == len(crumbs) - 1
+               else f'<li><a href="{path}">{escape(name)}</a></li>' if path else f"<li>{escape(name)}</li>"
+               for i, (name, path) in enumerate(crumbs)]
+    linked = [(name, path) for name, path in crumbs if path]
+    graph = [{"@type": "BreadcrumbList", "itemListElement": [
+        {"@type": "ListItem", "position": n, "name": name, "item": home + path.lstrip("/")}
+        for n, (name, path) in enumerate(linked, 1)]}]
+    image = unescape(re.search(r'<meta property="og:image" content="([^"]*)"', parts["og"]).group(1))
+    if src.article:
+        # dates == the visible <time> values; publisher left out (not in Google's Article table)
+        graph.insert(0, {"@type": "Article", "@id": url + "#article", "headline": src.title,
+                         "description": src.description, "url": url, "mainEntityOfPage": url,
+                         "datePublished": src.published, "dateModified": src.modified, "author": person,
+                         "image": image, "inLanguage": "en"})
+    elif src.name == "about":
+        graph.insert(0, {"@type": "ProfilePage", "@id": url, "url": url, "name": src.title,
+                         "dateModified": src.modified, "mainEntity": {**person, "sameAs": SAME_AS}})
+    if src.name == "index":
+        meta = ""
+    elif src.name == "about":
         meta = f'Updated <time datetime="{src.modified}">{long_date(src.modified)}</time>'
+    else:
+        meta = " · ".join([f'By <a href="/about/">{AUTHOR}</a>', dates(src)])
+    kind = {"about": "profile", "index": "website"}.get(src.name, "article")
     head = [
         f"<title>{escape(src.title)}</title>",
         f'<meta name="description" content="{escape(src.description)}">',
@@ -748,17 +804,18 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str]) -> str:
         '<meta name="color-scheme" content="light dark">',
         '<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">',
         '<meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">',
-        f'<meta property="og:type" content="{"article" if article else "profile"}">',
+        f'<meta property="og:type" content="{kind}">',
         '<meta property="og:site_name" content="CEZ Job Finder">',
         '<meta property="og:locale" content="en_US">',
         f'<meta property="og:url" content="{url}">',
         f'<meta property="og:title" content="{escape(src.og_title)}">',
         f'<meta property="og:description" content="{escape(src.description)}">',
     ]
-    if article:
+    if kind == "article":
         head += [f'<meta property="article:published_time" content="{src.published}">',
                  f'<meta property="article:modified_time" content="{src.modified}">']
-    head += [parts["og"], parts["twitter"], parts["links"]]
+    head += [parts["og"], parts["twitter"], parts["links"], jsonld(graph)]
+    wrapper = "article" if kind == "article" else "div"
     return "\n".join([
         "<!doctype html>",
         '<html lang="en">',
@@ -774,12 +831,12 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str]) -> str:
         "<body>",
         parts["header"],
         '<main class="wrap">',
-        f'<{"article" if article else "div"} class="page">',
-        f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(crumbs)}</ol></nav>',
+        f'<{wrapper} class="page">',
+        f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
         f"<h1>{escape(src.title)}</h1>",
-        f'<p class="meta">{meta}</p>',
+        *([f'<p class="meta">{meta}</p>'] if meta else []),
         body.rstrip("\n"),
-        f'</{"article" if article else "div"}>',
+        f"</{wrapper}>",
         "</main>",
         parts["footer"],
         "</body>",
@@ -804,6 +861,14 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
     if errors:  # an unknown [@id] can't be drawn
         raise SourceError("\n".join(errors))
     by_name = {s.name: s for s in sources}
+    articles = [s for s in sources if s.article and s.built]
+    if articles:
+        index = by_name.get("index")
+        if index is None or index.status != "published":
+            errors.append(f"{SOURCES.as_posix()}/index.md:1: the hub /research/ lists the articles - publish index.md with the first one")
+        else:
+            index.hub = True
+    hub = "index" in by_name and by_name["index"].hub
     built = [s for s in sources if s.built]
     out: dict[str, str] = {}
     if built:
@@ -812,7 +877,10 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
             errors.append(f"{SOURCES.as_posix()}/about.md:1: bylines link /about/ - publish about.md with the first page")
         files = site_files | {s.out for s in built}
         for src in built:
-            out[src.out] = page(src, root, body_html(src, by_name, root, files, errors, registry), parts)
+            body = body_html(src, by_name, root, files, errors, registry)
+            if src.name == "index":
+                body += listing(articles)
+            out[src.out] = page(src, root, body, parts, hub)
     if errors:
         raise SourceError("\n".join(errors))
     return out

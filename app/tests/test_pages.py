@@ -94,7 +94,7 @@ import shutil  # noqa: E402
 
 import pytest  # noqa: E402
 
-from site_checks import Head, files, loaded_urls, own_url, target  # noqa: E402
+from site_checks import Head, files, loaded_urls, own_url, structured_data, target  # noqa: E402
 from test_docs import anchors  # noqa: E402
 
 SOURCES = {
@@ -147,6 +147,14 @@ published: 2026-09-01
 status: published
 ---
 ## Sources first
+""",
+    "index.md": """---
+title: Research
+description: Evidence on AI and resumes, every claim sourced.
+published: 2026-09-01
+status: published
+---
+How these are made: [methods](methods.md).
 """,
     "about.md": """---
 title: About the author
@@ -224,7 +232,8 @@ def test_published_sources_become_pages_and_drafts_do_not(tmp_path):
     research_site(tmp_path)
     built = pages.build(tmp_path)
     assert [k for k in built if k != "sitemap.xml"] == [
-        "about/index.html", "research/ai-bias/index.html", "research/ats-myth/index.html", "research/methods/index.html"]
+        "about/index.html", "research/ai-bias/index.html", "research/ats-myth/index.html", "research/index.html",
+        "research/methods/index.html"]
     assert "next-one" not in built["sitemap.xml"]
     assert "https://jobs.enrriquez.com/research/ats-myth/" in built["sitemap.xml"]
     assert pages.write(tmp_path) and pages.problems(tmp_path) == [] and pages.write(tmp_path) == []
@@ -263,7 +272,7 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
     found = files(docs)
     home = Head((docs / "index.html").read_text(encoding="utf-8"))
     raw = {n: (docs / n).read_text(encoding="utf-8") for n in found if n.endswith(".html") and n.split("/")[0] in ("research", "about")}
-    assert len(raw) == 4
+    assert len(raw) == 5
     shared = re.search(r"/\* shared \*/.*?/\* /shared \*/", (docs / "index.html").read_text(encoding="utf-8"), re.S).group(0)
     for name, text in raw.items():
         head = Head(text)
@@ -595,3 +604,79 @@ def test_review_same_day_as_modified_passes_and_orphan_review_warns(tmp_path):
     assert "app/web/research/reviews/gone.md:1: review of a page that doesn't exist" in warnings
     # drafts need no review
     assert not (folder / "reviews" / "next-one.md").exists()
+
+
+
+# --- hub, JSON-LD, sitemap lastmod ---
+
+def test_hub_lists_articles_newest_first_by_title_and_breadcrumbs_link_it(tmp_path):
+    research_site(tmp_path)
+    built = pages.build(tmp_path)
+    hub = built["research/index.html"]
+    listed = re.findall(r'<li><a href="([^"]+)">([^<]+)</a>', hub.split('<ul class="list">')[1])
+    assert listed == [("/research/ai-bias/", "AI screening and bias"), ("/research/ats-myth/", "Do resume robots reject you?")]
+    assert '<a href="/research/methods/">methods</a>' in hub and 'class="meta"' not in hub
+    assert Head(hub).meta("og:type") == "website"
+    assert ('<li><a href="/">Home</a></li><li><a href="/research/">Research</a></li>'
+            '<li aria-current="page">Do resume robots reject you?</li>') in built["research/ats-myth/index.html"]
+    assert '<li><a href="/">Home</a></li><li aria-current="page">Research</li>' in hub
+
+
+def test_no_article_no_hub_and_an_article_needs_the_hub_intro(tmp_path):
+    research_site(tmp_path, {"ats-myth.md": None, "ai-bias.md": None})
+    built = pages.build(tmp_path)
+    assert "research/index.html" not in built and "research/methods/index.html" in built
+    # Research crumb stays text w/o a hub, and out of the JSON-LD (it must point at a page)
+    assert "<li>Research</li>" in built["research/methods/index.html"]
+    assert '"name":"Research"' not in built["research/methods/index.html"]
+    research_site(tmp_path / "b", {"index.md": None})
+    with pytest.raises(pages.SourceError, match="index.md:1: the hub /research/ lists the articles"):
+        pages.build(tmp_path / "b")
+
+
+def test_structured_data_and_sitemap_lastmod(tmp_path):
+    research_site(tmp_path)
+    pages.write(tmp_path)
+    docs = tmp_path / "docs"
+    assert structured_data(docs, "https://jobs.enrriquez.com/") == []
+    sitemap = (docs / "sitemap.xml").read_text(encoding="utf-8")
+    assert "<url><loc>https://jobs.enrriquez.com/research/ats-myth/</loc><lastmod>2026-09-20</lastmod></url>" in sitemap
+    assert "<url><loc>https://jobs.enrriquez.com/research/ai-bias/</loc><lastmod>2026-09-10</lastmod></url>" in sitemap
+    # undated pages: no lastmod (Google drops lastmod for a site once it's seen wrong)
+    for url in "https://jobs.enrriquez.com/", "https://jobs.enrriquez.com/research/", "https://jobs.enrriquez.com/about/":
+        assert f"<url><loc>{url}</loc></url>" in sitemap
+    about = (docs / "about" / "index.html").read_text(encoding="utf-8")
+    assert '"sameAs":["https://github.com/cezkid"]' in about and '"@type":"ProfilePage"' in about
+
+
+@pytest.mark.parametrize("old, new, problem", [
+    ('"dateModified":"2026-09-20"', '"dateModified":"2026-09-21"', "Article dates"),
+    ('"author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person"',
+     '"author":{"@type":"Person","@id":"https://jobs.enrriquez.com/me"', "author @id"),
+    ('"item":"https://jobs.enrriquez.com/research/"', '"item":"https://jobs.enrriquez.com/nope/"', "is not a page"),
+    ('"image":"https://jobs.enrriquez.com/og.png', '"image":"https://jobs.enrriquez.com/x.png', "image != og:image"),
+    ("</script>", "</script>\n<script type=\"application/ld+json\">{}</script>", "2 JSON-LD blocks"),
+])
+def test_structured_data_check_catches_breaks(tmp_path, old, new, problem):
+    research_site(tmp_path)
+    pages.write(tmp_path)
+    path = tmp_path / "docs" / "research" / "ats-myth" / "index.html"
+    text = path.read_text(encoding="utf-8")
+    head, rest = text.split("</head>", 1)
+    assert old in head
+    path.write_text(head.replace(old, new, 1) + "</head>" + rest, encoding="utf-8")
+    assert any(problem in p for p in structured_data(tmp_path / "docs", "https://jobs.enrriquez.com/"))
+
+
+def test_sitemap_lastmod_must_match(tmp_path):
+    research_site(tmp_path)
+    pages.write(tmp_path)
+    path = tmp_path / "docs" / "sitemap.xml"
+    path.write_text(path.read_text(encoding="utf-8").replace("2026-09-20", "2026-09-19"), encoding="utf-8")
+    assert any("sitemap lastmod" in p for p in structured_data(tmp_path / "docs", "https://jobs.enrriquez.com/"))
+
+
+def test_json_ld_is_compact_utf8_and_cannot_end_its_script_block():
+    block = pages.jsonld([{"name": "Café </script><b>"}])
+    assert block == ('<script type="application/ld+json">{"@context":"https://schema.org",'
+                     '"@graph":[{"name":"Café \\u003c/script>\\u003cb>"}]}</script>')

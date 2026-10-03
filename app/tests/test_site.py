@@ -22,7 +22,7 @@ if not (cfg.ROOT / ".git").exists():
 
 import pymupdf  # noqa: E402
 
-from site_checks import Head, files, loaded_urls, own_url, png_size, target  # noqa: E402
+from site_checks import Head, files, loaded_urls, own_url, png_size, structured_data, target  # noqa: E402
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -209,6 +209,12 @@ def test_home_page_describes_the_site_not_an_app_or_faq():
     assert blocks[0]["url"] == SITE and blocks[0]["name"] == head.meta("og:site_name")
     raw = (DOCS / "index.html").read_text(encoding="utf-8")
     assert "SoftwareApplication" not in raw and "FAQPage" not in raw
+
+
+def test_research_pages_carry_matching_structured_data():
+    # Article / ProfilePage / BreadcrumbList on the generated pages (none until the first article ships):
+    # dates == the byline, author == the About page's Person, breadcrumbs land, sitemap lastmod == dateModified
+    assert structured_data(DOCS, SITE) == []
 
 
 def test_install_line_shows_without_javascript_and_matches_the_script():

@@ -82,3 +82,72 @@ def target(url: str) -> str:
     """The docs/ file a root-relative URL fetches: query + fragment dropped, / or trailing / -> index.html."""
     path = unquote(urlsplit(url).path).lstrip("/")
     return path + "index.html" if path == "" or path.endswith("/") else path
+
+
+def structured_data(docs: Path, site: str) -> list[str]:
+    """JSON-LD problems on the generated pages (research/, about/) + the home page; empty = fine.
+
+    One block per page. Article (+ BreadcrumbList) on articles, BreadcrumbList on the hub + methods,
+    ProfilePage (+ BreadcrumbList) on about/. Article dates == the byline's <time> values, author
+    @id == the ProfilePage Person's, image == og:image, sitemap <lastmod> == dateModified; every
+    breadcrumb points at a canonical that exists. Home keeps exactly one WebSite block.
+    """
+    import json
+
+    found = files(docs)
+    pages = {n: (docs / n).read_text(encoding="utf-8") for n in sorted(found)
+             if n.endswith(".html") and n.split("/")[0] in ("research", "about")}
+    canonicals = {own_url(n, site) for n in found if n.endswith(".html")
+                  and Head((docs / n).read_text(encoding="utf-8")).links("canonical")}
+    sitemap = (docs / "sitemap.xml").read_text(encoding="utf-8") if "sitemap.xml" in found else ""
+    lastmod = dict(re.findall(r"<loc>([^<]+)</loc><lastmod>([^<]+)</lastmod>", sitemap))
+    problems = []
+    home = Head((docs / "index.html").read_text(encoding="utf-8")).text.get("application/ld+json", [])
+    if [json.loads(b).get("@type") for b in home] != ["WebSite"]:
+        problems.append("index.html: needs exactly one WebSite block")
+    person, authors = None, []
+    for name, text in pages.items():
+        head, url = Head(text), own_url(name, site)
+        blocks = head.text.get("application/ld+json", [])
+        if len(blocks) != 1:
+            problems.append(f"{name}: {len(blocks)} JSON-LD blocks, want 1")
+            continue
+        if "<" in blocks[0]:
+            problems.append(f"{name}: unescaped < in JSON-LD")
+        data = json.loads(blocks[0])
+        graph = {node["@type"]: node for node in data.get("@graph", [])}
+        want = ({"ProfilePage", "BreadcrumbList"} if name == "about/index.html"
+                else {"BreadcrumbList"} if name in ("research/index.html", "research/methods/index.html")
+                else {"Article", "BreadcrumbList"})
+        if data.get("@context") != "https://schema.org" or set(graph) != want or len(graph) != len(data["@graph"]):
+            problems.append(f"{name}: JSON-LD types {sorted(graph)}, want {sorted(want)}")
+            continue
+        items = graph["BreadcrumbList"]["itemListElement"]
+        if [i["position"] for i in items] != list(range(1, len(items) + 1)) or items[-1]["item"] != url:
+            problems.append(f"{name}: breadcrumb positions or last item wrong")
+        problems += [f"{name}: breadcrumb {i['item']} is not a page" for i in items if i["item"] not in canonicals]
+        if "ProfilePage" in graph:
+            person = graph["ProfilePage"]["mainEntity"]
+            if not (person.get("@type") == "Person" and person.get("name") and person.get("url") and person.get("sameAs")):
+                problems.append(f"{name}: ProfilePage mainEntity needs Person name, url, sameAs")
+        if "Article" in graph:
+            article = graph["Article"]
+            missing = {"headline", "datePublished", "dateModified", "author", "image"} - set(article)
+            if missing:
+                problems.append(f"{name}: Article lacks {sorted(missing)}")
+                continue
+            byline = re.search(r'<p class="meta">(.*?)</p>', text, re.S)
+            times = set(re.findall(r'<time datetime="([^"]+)">', byline.group(1) if byline else ""))
+            if not article["datePublished"] <= article["dateModified"] or times != {article["datePublished"], article["dateModified"]}:
+                problems.append(f"{name}: Article dates {article['datePublished']}/{article['dateModified']} != byline {sorted(times)}")
+            if article["image"] != head.meta("og:image"):
+                problems.append(f"{name}: Article image != og:image")
+            if article["headline"] != head.text["title"][0]:
+                problems.append(f"{name}: headline != title")
+            if lastmod.get(url) != article["dateModified"]:
+                problems.append(f"{name}: sitemap lastmod {lastmod.get(url)} != dateModified {article['dateModified']}")
+            authors.append((name, article["author"].get("@id")))
+    for name, ref in authors:
+        if person is None or ref != person.get("@id"):
+            problems.append(f"{name}: author @id {ref} != the About page's Person")
+    return problems
