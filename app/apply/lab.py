@@ -44,14 +44,18 @@ PAGE_DATA = """() => { const out = {};
     for (const m of s.textContent.matchAll(/window\\.([A-Za-z_$][\\w$]*)\\s*=\\s*[{[]/g))
       try { const j = JSON.stringify(window[m[1]]); if (j && j.length <= %d) out[m[1]] = JSON.parse(j); } catch (e) {}
   return out; }""" % DATA_KEEP
-# where a multi-page form says it is and how it moves on: "Step 1 of 5", headings, button words
+# where a multi-page form says it is and how it moves on: "Step 1 of 5", headings, button words,
+# links + the page's opening text (Dayforce's "apply without an account" choice is neither a
+# button nor a heading, 2026-10-03)
 OUTLINE = """() => { const vis = e => e.checkVisibility ? e.checkVisibility({checkVisibilityCSS: true}) : !!e.getClientRects().length;
   const text = e => (e.innerText || e.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 120);
   const step = (document.body.innerText.match(/\\bstep \\d+ of \\d+\\b/gi) || []);
   return {steps: [...new Set(step)],
     headings: [...document.querySelectorAll('h1, h2, h3, h4, legend, [role=heading]')].filter(vis).map(text).filter(Boolean),
     buttons: [...document.querySelectorAll('button, [role=button], input[type=submit], input[type=button], a.button, a.btn')]
-      .filter(vis).map(e => text(e) || e.value || e.getAttribute('aria-label') || '').filter(Boolean)}; }"""
+      .filter(vis).map(e => text(e) || e.value || e.getAttribute('aria-label') || '').filter(Boolean),
+    links: [...new Set([...document.querySelectorAll('a[href]')].filter(vis).map(text).filter(Boolean))].slice(0, 60),
+    text: (document.body.innerText || '').slice(0, 3000)}; }"""
 # boxes with no name a reader finds: the markup around each, to see where the page puts its words
 AROUND = """() => [...document.querySelectorAll('input:not([type=hidden]), select, textarea')]
   .filter(e => !e.labels?.length && !e.getAttribute('aria-label') && !e.getAttribute('aria-labelledby'))
@@ -60,7 +64,7 @@ AROUND = """() => [...document.querySelectorAll('input:not([type=hidden]), selec
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
            "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday",
-           "ultipro", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
+           "ultipro", "candidateportal", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
            "en-us", "en_us", "en", "us", "com", "net", "org", "io", "co"}
 
 
@@ -323,7 +327,9 @@ def tenants(url: str, names: list[str], snap: dict) -> list[str]:
     every tenant shares (job-boards, greenhouse, com) left out - they'd hit every grep."""
     u = urlsplit(url)
     parts = [p for p in (u.hostname or "").split(".") if not p.isdigit()]
-    parts += [p for p in u.path.split("/")[:2] if p]
+    path = [p for p in u.path.split("/") if p]
+    # Dayforce puts the language first: /en-US/<tenant>/<board>/jobs/<id> (2026-10-03)
+    parts += path[1:3] if path and re.fullmatch(r"[a-z]{2}-[A-Za-z]{2}", path[0]) else path[:2]
     # og:site_name is the platform's own name on some systems ("BambooHR", 2026-10-03): it would
     # hit every doc + code line about that system
     out = [n for n in names if n.casefold() not in GENERIC] + [p for p in parts if len(p) >= 4 and p.casefold() not in GENERIC and not re.fullmatch(r"[\d-]+|wd\d+", p)]
@@ -385,6 +391,8 @@ def summary(data: dict, out: Path, added: int) -> None:
     print(f"ids changed between loads: {len(data['changed_ids'])}")
     o = data["outline"]
     print(f"outline: {', '.join(o['steps']) or 'no step count'}; {len(o['headings'])} heading(s); buttons: {', '.join(o['buttons'][:8])}")
+    if o.get("links"):
+        print(f"links: {', '.join(o['links'][:12])}")
     if data["page_data"]:
         print(f"page data: {', '.join(f'window.{k} {len(json.dumps(v))} B' for k, v in data['page_data'].items())}")
     if data["unlabelled"]:

@@ -23,7 +23,7 @@ fetch('/w/track', {method: 'POST', body: 'load'}).catch(() => {});
 window.pageData = {"sections": [{"name": "Info"}]};
 </script>
 <div><span>Middle name</span><input id=middle></div>
-<h2>Step 1 of 3 - Contact</h2><button>Next</button>"""
+<h2>Step 1 of 3 - Contact</h2><button>Next</button><a href="/help">Get help</a>"""
 
 def test_measure_end_to_end_offline(tmp_path, monkeypatch):
     pytest.importorskip("playwright.sync_api")
@@ -53,7 +53,8 @@ def test_measure_end_to_end_offline(tmp_path, monkeypatch):
     assert data["page_data"] == {"pageData": {"sections": [{"name": "Info"}]}}
     assert [(u["id"], "Middle name" in u["around"]) for u in data["unlabelled"]] == [("middle", True)]
     assert data["outline"]["steps"] == ["Step 1 of 3"] and "Step 1 of 3 - Contact" in data["outline"]["headings"]
-    assert "Next" in data["outline"]["buttons"]
+    assert "Next" in data["outline"]["buttons"] and data["outline"]["links"] == ["Get help"]
+    assert "Step 1 of 3" in data["outline"]["text"]
     lines = (tmp_path / "measure" / "tenants.txt").read_text().splitlines()
     assert {"Acme Test Co", "Prefilled Acme Recruiter"} <= set(lines)
     assert not (tmp_path / "measure-browser").exists() or not any((tmp_path / "measure-browser").iterdir())
