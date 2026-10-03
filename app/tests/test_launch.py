@@ -289,11 +289,27 @@ def test_old_mac_icon_swapped_for_app_once(tmp_path, monkeypatch):
     # .command icon leaves a Terminal window open after every launch
     runs = []
     monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
-    launch.ensure_mac_icon(tmp_path / "CEZ Job Finder.command")
+    old, app = tmp_path / "CEZ Job Finder.command", tmp_path / "CEZ Job Finder.app"
+    launch.ensure_mac_icon(old, app)
     assert runs == []  # no old icon => nothing made, a deleted icon stays deleted
-    (tmp_path / "CEZ Job Finder.command").write_text("")
-    launch.ensure_mac_icon(tmp_path / "CEZ Job Finder.command")
-    assert runs == [["bash", str(launch.MAC_ICON_MAKER)]]
+    old.write_text("")
+    launch.ensure_mac_icon(old, app)
+    assert runs == [["bash", str(launch.MAC_ICON_MAKER), str(app)]]
+
+
+def test_mac_app_icon_gets_brand_picture_once(tmp_path, monkeypatch):
+    # app icons made before the brand icon kept the generic script picture on the Desktop
+    runs = []
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    app = tmp_path / "CEZ Job Finder.app"
+    icns = app / "Contents" / "Resources" / "applet.icns"
+    icns.parent.mkdir(parents=True)
+    icns.write_bytes(b"generic script icon")
+    launch.ensure_mac_icon(tmp_path / "none.command", app)
+    assert runs == [["bash", str(launch.MAC_ICON_MAKER), str(app)]]
+    icns.write_bytes(launch.MAC_ICON.read_bytes())
+    launch.ensure_mac_icon(tmp_path / "none.command", app)
+    assert len(runs) == 1  # brand icon in place => left alone, no re-sign every launch
 
 
 def test_mac_icon_is_an_app_not_a_terminal_script():

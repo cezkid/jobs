@@ -32,6 +32,8 @@ START_PAGE_DELAY_S = 6
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
 MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
 OLD_MAC_ICON = Path.home() / "Desktop" / f"{cfg.NAME}.command"
+MAC_APP_ICON = Path.home() / "Desktop" / f"{cfg.NAME}.app"
+MAC_ICON = cfg.APP / "install" / "icon.icns"
 
 def has_claude(extensions: Path = VSCODE_EXTENSIONS) -> bool:
     return has_extension(CLAUDE_EXTENSION, extensions)
@@ -143,11 +145,15 @@ def register_protocol() -> None:
         winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{WINDOWS_LAUNCHER}"')
 
 
-def ensure_mac_icon(old: Path = OLD_MAC_ICON) -> None:
+def ensure_mac_icon(old: Path = OLD_MAC_ICON, app: Path = MAC_APP_ICON) -> None:
     # installs before 2026-09-26 got a .command icon: its Terminal window stays open after VS
-    # Code is up. Swapped once for the app icon; this launch's window still shows, later ones don't
-    if old.exists():
-        subprocess.run(["bash", str(MAC_ICON_MAKER)], check=False, capture_output=True)
+    # Code is up. Swapped once for the app icon; this launch's window still shows, later ones don't.
+    # App icons before 2026-10-03 show the generic script picture => brand icon swapped in once
+    # (maker edits in place: the icon keeps its spot on the Desktop)
+    current = app / "Contents" / "Resources" / "applet.icns"
+    stale = app.exists() and (not current.exists() or current.read_bytes() != MAC_ICON.read_bytes())
+    if old.exists() or stale:
+        subprocess.run(["bash", str(MAC_ICON_MAKER), str(app)], check=False, capture_output=True)
 
 
 def claude_project_keys(folder: Path) -> list[str]:
