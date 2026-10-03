@@ -6,6 +6,8 @@ company that sells the service) · **lab study** (not real hiring) · **conventi
 centres + recruiters agree on, no study) · **our measurement**. Some rules rest on hiring software's
 own help pages - said so.
 
+Full version, with every source: https://jobs.enrriquez.com/research/what-makes-a-good-resume/
+
 Rules clash? This order wins: **true > real results > fits the job > easy to read.**
 
 ## 1. Every word true

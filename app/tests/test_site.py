@@ -133,6 +133,18 @@ def test_every_link_lands_on_a_file_and_a_heading_that_exist():
                 assert url.scheme in ("https", "mailto"), (name, href)
 
 
+def test_guides_link_only_to_site_pages_that_exist():
+    # in-app Guides point at their web versions: a slug rename would leave the user a 404
+    linked = 0
+    for guide in sorted((cfg.ROOT / "Guides").glob("*.md")):
+        for url in re.findall(re.escape(SITE) + r"[^\s)>\]]*", guide.read_text(encoding="utf-8")):
+            path = urlsplit(url).path
+            assert target(path) in FILES, (guide.name, url)
+            assert path.endswith("/") or target(path + "/") not in FILES, (guide.name, url, "folder link w/o /")
+            linked += 1
+    assert linked >= 2
+
+
 def test_ids_are_unique_on_every_page():
     # two elements w/ one id (a heading "Src x" next to the Sources entry src-x) => #links land on the first
     for name in PAGES:
