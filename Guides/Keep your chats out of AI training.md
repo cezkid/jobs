@@ -20,7 +20,7 @@ Covers this chat in VS Code too.
 
 Covers this chat in VS Code too.
 
-## GitHub Copilot (Free or Pro)
+## GitHub Copilot
 
 1. Open **[github.com/settings/copilot](https://github.com/settings/copilot)**. Log in if asked.
    (Or click your profile picture on github.com, then **Copilot settings**.)

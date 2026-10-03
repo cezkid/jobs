@@ -45,7 +45,7 @@ pick_ai() {
     echo "Open the Terminal app, paste the install line there and press Enter." >&2
     return 1
   fi
-  printf '\n\033[36mWhich AI do you use?\033[0m\n  1 = Claude (Pro or Max)\n  2 = ChatGPT (Plus or Pro)\n  3 = GitHub Copilot ($10 a month; small free tier)\n' >/dev/tty
+  printf '\n\033[36mWhich AI do you use?\033[0m\n  1 = Claude (Pro or Max)\n  2 = ChatGPT (Plus or Pro)\n  3 = GitHub Copilot Pro ($10 a month)\n' >/dev/tty
   local answer
   while true; do
     printf 'Type 1, 2 or 3, then press Enter: ' >/dev/tty
@@ -68,7 +68,7 @@ case "$ai" in
   chatgpt) ai_extension=openai.chatgpt
     sign_in="Click the ChatGPT icon at the top left, then Sign in, then press Enter." ;;
   copilot) ai_extension=
-    sign_in="Click Sign in on the chat panel on the right, then press Enter. No GitHub account? Make one with your Google or Apple account." ;;
+    sign_in="Click Sign in on the chat panel on the right, then pick Claude Sonnet in the model list under the chat box, then press Enter. No GitHub account? Make one with your Google or Apple account." ;;
 esac
 
 step 1 "installing uv (runs CEZ Job Finder)..."

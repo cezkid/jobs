@@ -9,6 +9,9 @@ their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGE
 job searches send only their search settings to freehire.me (a resume made for a listed job, or
 "still open?", sends that job's listing id - nothing about them); resume is read here in this AI
 chat; nothing goes to CEZ Job Finder's maintainer without asking first.
+On Copilot (`.data/ai`): in the same opening, one line - pick Claude Sonnet in the model list
+under the chat box, the automatic model can't make tailored resumes (`AGENTS.md` #User = not
+technical). Copilot's free tier can't either: say Copilot Pro ($10 a month) if they're on it.
 
 Then, BEFORE any interview question (their answers - work permit, pay - are typed into this
 chat too), AI training, one question. Personal Claude (Free/Pro/Max), ChatGPT (Free/Go/Plus/

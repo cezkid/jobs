@@ -37,9 +37,13 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   Measure first so options carry live numbers - "Software engineering - about 56,000 US jobs"
   tells them more than the label. Clickable tool: Claude's question tool, Copilot's
   askQuestions. AI w/o one: same options as a short numbered list, "reply with the number".
+- On Copilot: the AI matters. Free tier on its automatic model failed 3 of 3 tailored resumes
+  (measured; Pro untested). Recommend once, at setup or after a STOP: pick a strong model such as
+  Claude Sonnet in the model list under the chat box (Copilot Pro).
 - User mentions Nova, Perplexity, Monica, Poe or another all-in-one AI app: say plainly those
   apps can't run programs on their computer, so they can't run CEZ Job Finder. The three that
-  can: Claude, ChatGPT, GitHub Copilot ($10 a month, several AIs in one plan, small free tier).
+  can: Claude, ChatGPT, GitHub Copilot Pro ($10 a month, several AIs in one plan; its free tier can't
+  make tailored resumes - never offer it).
   Switch: `uv run app/jobs.py ai <claude|chatgpt|copilot>`, then they close + reopen CEZ Job
   Finder.
 

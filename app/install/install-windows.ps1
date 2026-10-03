@@ -47,7 +47,7 @@ function Pick-Ai {
     Write-Host "`nWhich AI do you use?" -ForegroundColor Cyan
     Write-Host '  1 = Claude (Pro or Max)'
     Write-Host '  2 = ChatGPT (Plus or Pro)'
-    Write-Host '  3 = GitHub Copilot ($10 a month; small free tier)'
+    Write-Host '  3 = GitHub Copilot Pro ($10 a month)'
     while ($true) {
         $word = Ai-Word (Read-Host 'Type 1, 2 or 3, then press Enter')
         if ($word) { return $word }
@@ -62,7 +62,7 @@ try {
     $AiExtension, $SignIn = switch ($Ai) {
         'claude' { 'anthropic.claude-code', 'Click Sign in on the chat panel on the right, then press Enter.' }
         'chatgpt' { 'openai.chatgpt', 'Click the ChatGPT icon at the top left, then Sign in, then press Enter.' }
-        'copilot' { '', 'Click Sign in on the chat panel on the right, then press Enter. No GitHub account? Make one with your Google or Apple account.' }
+        'copilot' { '', 'Click Sign in on the chat panel on the right, then pick Claude Sonnet in the model list under the chat box, then press Enter. No GitHub account? Make one with your Google or Apple account.' }
     }
 
     # uv's installer refuses Windows' default policy (Restricted) => this window only, nothing saved

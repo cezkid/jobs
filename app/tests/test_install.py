@@ -137,7 +137,7 @@ def test_mac_nothing_known_and_no_window_to_ask_stops_never_silent_claude(tmp_pa
 @pytest.mark.parametrize("name", ["install-mac.sh", "install-windows.ps1"])
 def test_installer_three_way_choice_copilot_installs_nothing_choice_saved(name):
     body = script(name)
-    for line in ("1 = Claude (Pro or Max)", "2 = ChatGPT (Plus or Pro)", "3 = GitHub Copilot ($10 a month; small free tier)",
+    for line in ("1 = Claude (Pro or Max)", "2 = ChatGPT (Plus or Pro)", "3 = GitHub Copilot Pro ($10 a month)",
                  "Type 1, 2 or 3"):
         assert line in body, line
     for number, word in ("1", "claude"), ("2", "chatgpt"), ("3", "copilot"):
