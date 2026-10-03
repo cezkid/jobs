@@ -123,32 +123,64 @@
   }
   /* /shared */
 
-  main { padding: 24px 0 72px; }
+  main { padding: clamp(24px, 4vh, 48px) 0 clamp(56px, 9vh, 104px); }
+  /* editorial measure: one column of reading text, never wider than 68ch */
   .page { max-width: 68ch; }
-  .crumbs ol { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-wrap: wrap; font-size: 17px; color: var(--text-2); }
+  .crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
   .crumbs li { margin: 0; }
   .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
-  h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.1; font-weight: 700; margin: 0 0 12px; text-wrap: balance; }
-  h2 { font-size: 24px; line-height: 1.25; margin: 36px 0 12px; }
-  h3 { font-size: 20px; line-height: 1.3; margin: 28px 0 10px; }
-  .meta { margin: 0 0 24px; color: var(--text-2); font-size: 17px; }
-  p { margin: 0 0 14px; }
-  ul, ol { margin: 0 0 14px; padding-left: 1.3em; }
+  h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; font-weight: 700; margin: 0 0 16px; }
+  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.15; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
+  h2, h3 { scroll-margin-top: 16px; }
+  .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
+  p { margin: 0 0 16px; }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
-  blockquote { margin: 0 0 14px; padding-left: 16px; border-left: 3px solid var(--line); color: var(--text-2); }
+  li::marker { color: var(--text-2); }
+  /* real italics: the Caladea Italic face, never a slanted roman */
+  i, em, cite { font-style: italic; font-synthesis: none; }
+  strong, b { font-weight: 700; }
+  blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  .table { overflow-x: auto; margin: 0 0 14px; }
-  table { border-collapse: collapse; font-size: 17px; }
-  .sources li { font-size: 17px; overflow-wrap: anywhere; }
-  .list { list-style: none; padding: 0; }
-  .list li { margin: 0 0 24px; }
-  .list a { font-size: 22px; font-weight: 700; line-height: 1.25; }
-  .list p { margin: 4px 0 0; }
-  .date { color: var(--text-2); font-size: 17px; }
-  th, td { text-align: left; vertical-align: top; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
+  /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
+  .meta + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .meta + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  .meta + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  /* tables: lining, tabular figures so columns of numbers line up */
+  .table { overflow-x: auto; margin: 24px 0; }
+  table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
+  thead th { border-bottom: 2px solid var(--text); }
+  th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+  /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
+  .table td:first-child { font-weight: 700; }
+  /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
+  #sources { margin-top: 64px; border-top: 3px solid var(--text); }
+  .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
+  .sources li { position: relative; margin: 0; padding: 10px 0 10px 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: 16px; }
+  .sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
+  .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
+  .sources a { text-decoration-color: var(--text-2); }
+  /* hub: each article a clipping under a thick rule, like the home page's research picks */
+  .list { list-style: none; margin: 32px 0 0; padding: 0; }
+  .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
+  .list li:last-child { border-bottom: 1px solid var(--line); }
+  .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
+  .list p { margin: 8px 0 0; color: var(--text-2); }
+  .list .date { margin-top: 6px; }
+  .date { color: var(--text-2); font-size: var(--step--1); }
   @media (max-width: 600px) {
-    main { padding-top: 8px; }
+    main { padding-top: 22px; }
+    h2 { margin-top: 36px; }
+    .sources li { padding-left: 2.2em; }
+    .sources li::before { width: 1.7em; }
+  }
+  @media print {
+    main { padding: 0; }
+    .crumbs { display: none; }
+    .page { max-width: none; }
+    .sources li { break-inside: avoid; }
   }
 </style>
 </head>
