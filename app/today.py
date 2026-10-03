@@ -311,10 +311,23 @@ def write(config: dict, page: Path = PAGE, now: datetime | None = None) -> Path:
     return page
 
 
+def refresh(config: dict, page: Path = PAGE) -> Path:
+    """The one rebuild the launcher + the window extension both call: job folders filed under their
+    stage (one moved by hand, one a file kept from moving last time), then the page. Filing never
+    stops the page: what can't move now waits for the next one."""
+    try:
+        status.sort_jobs(config)
+    except (Exception, SystemExit):
+        pass
+    return write(config, page)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Write Today.md: waiting on you, follow up, new jobs, not finished")
     ap.add_argument("--print", action="store_true", help="print the page instead of writing it")
     ap.add_argument("--brief", action="store_true", help="print a few lines for a new chat (Claude session-start hook)")
+    ap.add_argument("--refresh", action="store_true", help="file job folders under their stage, then write the page"
+                    " (launcher + window do this at start)")
     args = ap.parse_args()
     if args.brief:
         print_brief()
@@ -324,7 +337,8 @@ def main() -> None:
         conn = store.connect(cfg.db_path(config))
         print(build(conn, config, cfg.resume_path(config, "jobs_dir"), datetime.now().astimezone(), unfinished(config)))
         return
-    print(f"written: {os.path.relpath(write(config), cfg.ROOT)}")
+    page = refresh(config) if args.refresh else write(config)
+    print(f"written: {os.path.relpath(page, cfg.ROOT)}")
 
 
 if __name__ == "__main__":

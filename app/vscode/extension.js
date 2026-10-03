@@ -2,8 +2,11 @@
 // Never reads files from app/ at runtime: Windows locks them during an update. All it needs is
 // inside the vsix (app/vscode_ext.py builds it).
 const vscode = require("vscode");
+const childProcess = require("child_process");
 const fs = require("fs");
 const os = require("os");
+const path = require("path");
+const start = require("./start");
 
 // probe: set only by a scratch window measurement (app/docs/app-window.md "Measured"). Writes
 // what the window holds to this path, then quits the window. Never set on a user's computer.
@@ -26,6 +29,8 @@ const PROBE_SETTINGS = [
 
 function activate(context) {
   const out = process.env[PROBE_ENV];
+  // probe told which pages to open => measures that alone, not the start page
+  const opened = out && process.env[PROBE_OPEN_ENV] ? Promise.resolve() : openStartPage().catch(() => {});
   if (!out) return;
   const editor = process.env[PROBE_EDITOR_ENV];
   if (editor) {
@@ -35,10 +40,67 @@ function activate(context) {
       },
     }));
   }
-  probe(context, out);
+  opened.then(() => probe(context, out));
 }
 
 function deactivate() {}
+
+function mtime(file) {
+  try { return fs.statSync(file).mtimeMs; } catch { return null; }
+}
+
+// START HERE before setup, Today after, opened formatted as the window starts (no 6 s wait in the
+// launcher). Launcher's marker names it; opened w/o the launcher => our own pick + a background
+// rebuild when Today is stale. Never blocks the window, never fails it.
+async function openStartPage() {
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  if (!folder || folder.uri.scheme !== "file") return;
+  const root = folder.uri.fsPath;
+  const at = (rel) => path.join(root, rel);
+  if (!start.isJobFinder((rel) => fs.existsSync(at(rel)))) return;
+  let marker = null;
+  try {
+    marker = fs.readFileSync(at(start.MARKER), "utf8");
+    fs.unlinkSync(at(start.MARKER));
+  } catch {}
+  const settingsExist = fs.existsSync(at(start.SETTINGS));
+  const todayMtime = mtime(at(start.TODAY));
+  const page = start.choosePage({ marker, settingsExist, todayExists: todayMtime != null });
+  if (start.needsRefresh({ marker, settingsExist, todayMtime, stampMtime: mtime(at(start.STAMP)), now: Date.now() })) {
+    refreshToday(root);  // not awaited: the page shows now, its preview redraws once rewritten
+  }
+  await showPage(vscode.Uri.file(at(page)), page === start.TODAY);
+}
+
+function tabSeen(tab) {
+  const input = tab.input;
+  if (input instanceof vscode.TabInputText) return { kind: "text", fsPath: input.uri.fsPath, label: tab.label, tab };
+  if (input instanceof vscode.TabInputCustom) return { kind: "custom", fsPath: input.uri.fsPath, viewType: input.viewType, label: tab.label, tab };
+  if (input instanceof vscode.TabInputWebview) return { kind: "webview", label: tab.label, tab };
+  return { kind: "other", label: tab.label, tab };
+}
+
+async function showPage(uri, today) {
+  const tabs = vscode.window.tabGroups.all.flatMap((group) => group.tabs.map(tabSeen));
+  const { formatted, text } = start.pageTabs(tabs, uri.fsPath, process.platform);
+  if (formatted && formatted.kind === "custom") await vscode.commands.executeCommand("vscode.openWith", uri, formatted.viewType);
+  else if (formatted) await vscode.commands.executeCommand("markdown.showPreview", uri);
+  // Today: its default editor (the dashboard once it exists); START HERE: always the formatted page
+  else if (today) await vscode.commands.executeCommand("vscode.open", uri, { preview: false });
+  else await vscode.commands.executeCommand("vscode.openWith", uri, start.PREVIEW_EDITOR, { preview: false });
+  // a plain-text copy from an older launch would come back on every start; the page is generated
+  const stale = text.map((t) => t.tab).filter((tab) => !tab.isDirty);
+  if (stale.length) await vscode.window.tabGroups.close(stale, true);
+}
+
+function refreshToday(root) {
+  const uv = start.uvCandidates({
+    platform: process.platform, home: os.homedir(), userProfile: process.env.USERPROFILE, envPath: process.env.PATH,
+  }).find((file) => fs.existsSync(file));
+  if (!uv) return;  // last page stays: still better than none
+  childProcess.execFile(uv, ["run", "app/jobs.py", "today", "--refresh"],
+    { cwd: root, windowsHide: true, timeout: 120000 }, () => {});
+}
 
 function redact(text) {
   const home = os.homedir();

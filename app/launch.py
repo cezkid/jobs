@@ -25,10 +25,12 @@ YAML_EXTENSION = "redhat.vscode-yaml"
 START_PAGE = cfg.ROOT / "START HERE.md"
 # once set up, START HERE ("type set me up") is the wrong page: Today (waiting on you, new jobs)
 TODAY_PAGE = cfg.ROOT / "Today.md"
-# file named in the same call as the folder opens before VS Code knows its formatted view =>
-# plain text, and the tab stays text on every later launch. Opened 6 s after the window it
-# comes up formatted (fresh window each way, measured 2026-09-26: 0 s text, 6 s formatted)
-START_PAGE_DELAY_S = 6
+# page for the window extension (app/vscode/start.js) to open formatted as it starts, then delete.
+# Named in the same call as the folder on a cold start, it opens as plain text and stays text on
+# every later launch (measured 2026-09-26); the extension opens it formatted at once (probe b)
+START_MARKER = "start-page"
+# when the launcher last ran: the extension opened from the Dock rebuilds a Today older than this
+LAUNCH_STAMP = "launched"
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
 MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
 MAC_ICON = cfg.APP / "install" / "icon.icns"
@@ -785,22 +787,26 @@ def first_page(settings: Path | None = None, page: Path | None = None) -> Path:
         return START_PAGE
     try:
         import today  # here, not on top: a broken page module must not stop VS Code opening
-        config = cfg.load(settings)
-        file_jobs(config)
-        return today.write(config, page)
+        # same entry as the window extension's (`today --refresh`): job folders filed, then the page
+        return today.refresh(cfg.load(settings), page)
     except (Exception, SystemExit):
         return page if page.exists() else START_PAGE
 
 
-def file_jobs(config: dict) -> None:
-    """Every job folder under the stage its status names (one moved by hand, one a file kept from
-    moving last time) before the page is built. Never stops the launch: what can't move now
-    waits for the next one."""
+def mark_start_page(page: Path | None, data: Path | None = None) -> None:
+    """Launch stamp always; `page` => marker naming it for the extension, None => no marker left.
+    Read per call (cfg.ROOT), never cfg.DATA: tests point ROOT at a throwaway folder."""
+    data = data or cfg.ROOT / ".data"
     try:
-        import status
-        status.sort_jobs(config)
-    except (Exception, SystemExit):
-        pass
+        data.mkdir(parents=True, exist_ok=True)
+        (data / LAUNCH_STAMP).write_text(time.strftime("%Y-%m-%dT%H:%M:%S%z") + "\n", encoding="utf-8")
+        marker = data / START_MARKER
+        if page:
+            marker.write_text(page.name + "\n", encoding="utf-8")  # both pages sit in the folder root
+        else:
+            marker.unlink(missing_ok=True)
+    except OSError:
+        pass  # no marker => the extension still opens a page, just its own pick
 
 
 def main() -> None:
@@ -840,10 +846,19 @@ def main() -> None:
     # group, on top of START HERE, and every file the AI then opens lands on top of the chat
     # (extension 2.1.283, measured 2026-09-26)
     window = ["--disable-workspace-trust", str(cfg.ROOT)]
+    cold = not vscode_running()
+    # before the window => the page is fresh when the extension opens it
+    page = first_page()
+    if cold:
+        # ONE call, folder only: the window extension opens the page formatted as it starts
+        mark_start_page(page)
+        code(window)
+        return
+    mark_start_page(None)
     code(window)
-    page = first_page()  # while the window comes up
-    time.sleep(START_PAGE_DELAY_S)
-    code([*window, str(page)])  # folder again => lands in this window, not the last used
+    # window already up => the page lands formatted at once, no wait; double-click on the Desktop
+    # icon brings it forward. Folder again => lands in this window, not the last used
+    code([*window, str(page)])
 
 
 if __name__ == "__main__":

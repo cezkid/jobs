@@ -29,12 +29,11 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch.time, "sleep", lambda s: None)
     monkeypatch.setattr(launch, "first_page", lambda: launch.START_PAGE)
     launch.main()
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["My Jobs", "My Resume", "My Settings"]
+    assert sorted(p.name for p in tmp_path.iterdir() if not p.name.startswith(".")) == ["My Jobs", "My Resume", "My Settings"]
     launch.main()  # second launch leaves what is already there alone
 
 
-def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch):
-    # the extension's open link always makes a tab in the active group => START HERE hidden
+def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
     calls = []
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: True)
@@ -47,13 +46,52 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "ensure_profile", lambda: True)
+    monkeypatch.setattr(launch, "vscode_running", lambda: running)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
-    monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(s))
+    monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(("sleep", s)))
     monkeypatch.setattr(launch, "first_page", lambda: tmp_path / "Today.md")
     launch.main()
+    return calls
+
+
+def test_cold_launch_opens_folder_once_and_leaves_the_page_to_the_window(tmp_path, monkeypatch):
+    # page named w/ the folder on a cold start opened as plain text; the old fix waited 6 s first.
+    # No vscode://...claude link either: it opens chat as a tab over START HERE
+    calls = launch_calls(tmp_path, monkeypatch, running=False)
     window = ["--disable-workspace-trust", str(tmp_path)]
-    # page after the window is up => formatted, not plain text
-    assert calls == [("workspace", "claude"), window, launch.START_PAGE_DELAY_S, [*window, str(tmp_path / "Today.md")]]
+    assert calls == [("workspace", "claude"), window]
+    assert (tmp_path / ".data" / launch.START_MARKER).read_text(encoding="utf-8") == "Today.md\n"
+    assert (tmp_path / ".data" / launch.LAUNCH_STAMP).exists()
+
+
+def test_launch_with_window_open_brings_the_page_forward_at_once(tmp_path, monkeypatch):
+    # double-click on the Desktop icon w/ the window open must still show Today, w/o a 6 s wait;
+    # a marker left over would open the page again at the next cold start
+    (tmp_path / ".data").mkdir()
+    (tmp_path / ".data" / launch.START_MARKER).write_text("START HERE.md\n")
+    calls = launch_calls(tmp_path, monkeypatch, running=True)
+    window = ["--disable-workspace-trust", str(tmp_path)]
+    assert calls == [("workspace", "claude"), window, [*window, str(tmp_path / "Today.md")]]
+    assert not (tmp_path / ".data" / launch.START_MARKER).exists()
+    assert (tmp_path / ".data" / launch.LAUNCH_STAMP).exists()
+
+
+def test_launcher_has_no_fixed_wait_for_the_page():
+    # the 6 s pause before the page came back => every launch slow again
+    assert "sleep" not in Path(launch.__file__).read_text(encoding="utf-8")
+    assert not hasattr(launch, "START_PAGE_DELAY_S")
+
+
+def test_launcher_and_window_rebuild_today_through_one_entry(tmp_path, monkeypatch):
+    # two different rebuilds => job folders filed by one, not the other, or both on today.lock
+    settings, page = tmp_path / "Search settings.yml", tmp_path / "Today.md"
+    settings.write_text("")
+    monkeypatch.setattr(launch.cfg, "load", lambda path: {})
+    import today
+    monkeypatch.setattr(today, "refresh", lambda config, to: (to.write_text("# Today\n"), to)[1])
+    assert launch.first_page(settings, page) == page
+    js = (cfg.APP / "vscode" / "extension.js").read_text(encoding="utf-8")
+    assert '["run", "app/jobs.py", "today", "--refresh"]' in js
 
 
 def test_first_run_opens_start_here_then_today(tmp_path, monkeypatch):

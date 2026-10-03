@@ -1,8 +1,12 @@
 import json
 import re
+import shutil
 import subprocess
 import zipfile
+from pathlib import Path
 from xml.etree import ElementTree
+
+import pytest
 
 import vscode_ext
 
@@ -43,7 +47,7 @@ def test_vsix_holds_a_manifest_vscode_accepts(tmp_path):
     assert path.name == f"cez-job-finder.window-{pkg['version']}.vsix"
     with zipfile.ZipFile(path) as z:
         assert sorted(z.namelist()) == ["[Content_Types].xml", "extension.vsixmanifest",
-                                        "extension/extension.js", "extension/package.json"]
+                                        "extension/extension.js", "extension/package.json", "extension/start.js"]
         identity = ElementTree.fromstring(z.read("extension.vsixmanifest")).find("v:Metadata/v:Identity", NS)
         ElementTree.fromstring(z.read("[Content_Types].xml"))
         packed = json.loads(z.read("extension/package.json"))
@@ -55,14 +59,31 @@ def test_vsix_holds_a_manifest_vscode_accepts(tmp_path):
 
 def test_extension_never_reads_files_from_the_program_folder():
     # Windows locks app/ files an extension holds open => the program update fails half way
-    source = (vscode_ext.SOURCE / "extension.js").read_text(encoding="utf-8")
-    assert not re.search(r"require\(\s*['\"]\.", source), "no local requires: one file ships"
-    assert "__dirname" not in source and "extensionPath" not in source and "extensionUri" not in source
-    assert not re.search(r"readFile", source)
+    for name in vscode_ext.SHIPPED:
+        if not name.endswith(".js"):
+            continue
+        source = (vscode_ext.SOURCE / name).read_text(encoding="utf-8")
+        local = re.findall(r"require\(\s*['\"](\.[^'\"]*)", source)
+        assert all(f"{Path(r).name}.js" in vscode_ext.SHIPPED for r in local), f"{name}: local require not shipped"
+        assert "__dirname" not in source and "extensionPath" not in source and "extensionUri" not in source
+        # the one file read: the launcher's start-page marker under .data/, never app/
+        assert re.findall(r"readFile\w*\(([^,)]+)", source) == (["at(start.MARKER"] if name == "extension.js" else [])
+    assert 'MARKER = path.join(".data", ' in (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
 
 
 def test_extension_probe_runs_only_when_a_measurement_asks():
     # probe quits the window => on a user's computer it would close Job Finder at every start
     source = (vscode_ext.SOURCE / "extension.js").read_text(encoding="utf-8")
     body = source.split("function activate(context) {", 1)[1].split("\n}\n", 1)[0]
-    assert body.lstrip().startswith("const out = process.env[PROBE_ENV];\n  if (!out) return;")
+    assert body.lstrip().startswith("const out = process.env[PROBE_ENV];")
+    assert body.index("if (!out) return;") < body.index("probe(context, out)")
+    assert body.count("probe(") == 1
+
+
+@pytest.mark.skipif(not shutil.which("node"), reason="node not installed")
+def test_extension_logic_node_tests_pass():
+    # start page logic broken => window opens on the wrong page, or Today rebuilt twice at once
+    run = subprocess.run(["node", "--test", *map(str, sorted((vscode_ext.SOURCE / "test").glob("*.test.js")))],
+                         capture_output=True, text=True, timeout=120)
+    assert run.returncode == 0, run.stdout + run.stderr
+    print(next(line for line in run.stdout.splitlines() if line.startswith("ℹ pass")))
