@@ -104,3 +104,23 @@ def test_try_end_to_end_offline(tmp_path, monkeypatch, capsys, no_settings):
     assert "POST 127.0.0.1/w/save while filling 'Email'" in out
     assert "--next: new page" in out and "textarea 1" in out
     assert not (tmp_path / "measure-browser").exists() or not any((tmp_path / "measure-browser").iterdir())
+
+
+def test_next_covered_says_what_covers_it(monkeypatch, capsys):
+    # Paylocity, 2026-10-03: an upload dialog + cookie banner over Next Step - the click timed out
+    class Button:
+        def inner_text(self):
+            return "Next Step"
+
+        def click(self, timeout):
+            raise TimeoutError("Locator.click: Timeout 15000ms exceeded")
+
+        def evaluate(self, js):
+            return 'div#onetrust-banner-sdk role=dialog "We use cookies"'
+
+    page = SimpleNamespace(get_by_role=lambda role: SimpleNamespace(
+        filter=lambda visible: SimpleNamespace(all=lambda: [Button()])))
+    monkeypatch.setattr(dom, "snapshot", lambda page: {"url": "x", "controls": []})
+    trial.press_next(page, lab.Block())
+    out = capsys.readouterr().out
+    assert out == '--next: Next not reachable while blocked: covered by div#onetrust-banner-sdk role=dialog "We use cookies"\n'
