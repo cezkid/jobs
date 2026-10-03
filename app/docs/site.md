@@ -44,6 +44,11 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 - Links: `x.md#h` -> `/research/x/#h` (x published, heading exists); `https://jobs.enrriquez.com/p`
   -> `/p` (must exist); `#h` on the same page; other relative repo paths -> GitHub file URL (must
   exist). Anything else = error: other sites go through the sources list, not body links.
+- Feed `/research/feed.xml` (Atom, ElementTree, built w/ the hub): entries = published articles,
+  newest first, id + link = canonical, summary = description; feed `updated` = latest modified.
+  Dates as `YYYY-MM-DDT00:00:00Z` (RFC 3339 date-time: a date alone is invalid). `rel=self`
+  absolute; hub + articles carry `<link rel="alternate" type="application/atom+xml"
+  href="/research/feed.xml">` (root-relative: tests check every loaded `<link>` is a file).
 - Page: `<title>` = title alone, canonical = `og:url`, `og:type` article + published/modified
   time; shared CSS, header, footer, icon + font links, `og:image` copied from `index.html`.
   Breadcrumb, h1, "By ... · Published · Updated" (Updated only when it differs). Share card =

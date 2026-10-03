@@ -2,8 +2,8 @@
 
 Sources: app/web/research/<slug>.md - a YAML header between --- lines (KEYS only), then Markdown.
 <slug>.md -> /research/<slug>/, methods.md -> /research/methods/, about.md -> /about/, index.md =
-hub intro. status: draft => not built. Shared CSS, header, footer, icon + font links and og:image
-size are copied from docs/index.html, so every page stays the same as the home page; the share
+hub intro; research/feed.xml (Atom) once an article is published. status: draft => not built.
+Shared CSS, header, footer, icon + font links and og:image size are copied from docs/index.html, so every page stays the same as the home page; the share
 card itself is CARD (docs/og-research.png).
 
 Hand-written pages (index.html, privacy.html, 404.html) stay as they are; this script reads them
@@ -57,6 +57,8 @@ SAME_AS = ["https://github.com/cezkid"]  # the author's other profiles (ProfileP
 # every generated page's share card: docs/og-research.png from app/web/og-research.html
 # (uv run app/web/assets.py --only og); changed => bump ?v=N here. Per-article cards: later.
 CARD = "og-research.png"
+FEED = "research/feed.xml"  # Atom: published articles, linked (autodiscovery) from the hub + every article
+FEED_TITLE = "CEZ Job Finder Research"
 CARD_ALT = ("CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim"
             " marked in yellow, linked to its list of sources.")
 REPO = "https://github.com/cezkid/jobs/blob/main/"
@@ -768,13 +770,56 @@ def dates(src: Source) -> str:
     return " · ".join(out)
 
 
+def newest(articles: list[Source]) -> list[Source]:
+    """Newest published first, then by name."""
+    return sorted(sorted(articles, key=lambda s: s.name), key=lambda s: s.published, reverse=True)
+
+
 def listing(articles: list[Source]) -> str:
-    """Hub list: newest first (published, then name), link text = title."""
+    """Hub list: newest first, link text = title."""
     items = []
-    for src in sorted(sorted(articles, key=lambda s: s.name), key=lambda s: s.published, reverse=True):
+    for src in newest(articles):
         items.append(f'<li><a href="{src.url}">{escape(src.title)}</a>'
                      f'<p>{escape(src.description)}</p><p class="date">{dates(src)}</p></li>')
     return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
+
+
+def stamp(day: str) -> str:
+    """2026-10-02 -> 2026-10-02T00:00:00Z: Atom needs an RFC 3339 date-time (a date alone is invalid)."""
+    return day + "T00:00:00Z"
+
+
+def feed(root: Path, index: Source, articles: list[Source]) -> str:
+    """Atom feed of the published articles, newest first; updated = latest modified. Stable bytes."""
+    home = site(root)
+    url = home + FEED
+
+    def add(parent, tag: str, text: str | None = None, **attrs) -> ET.Element:
+        el = ET.SubElement(parent, tag, attrs)
+        el.text = text
+        return el
+
+    top = ET.Element("feed", {"xmlns": "http://www.w3.org/2005/Atom", "xml:lang": "en"})
+    add(top, "title", FEED_TITLE)
+    add(top, "subtitle", index.description)
+    add(top, "link", rel="self", type="application/atom+xml", href=url)
+    add(top, "link", rel="alternate", type="text/html", href=home + index.url.lstrip("/"))
+    add(top, "id", url)
+    add(top, "updated", stamp(max(s.modified for s in articles)))
+    author = add(top, "author")
+    add(author, "name", AUTHOR)
+    add(author, "uri", home + "about/")
+    for src in newest(articles):
+        link = home + src.url.lstrip("/")
+        entry = add(top, "entry")
+        add(entry, "title", src.title)
+        add(entry, "link", rel="alternate", type="text/html", href=link)
+        add(entry, "id", link)
+        add(entry, "published", stamp(src.published))
+        add(entry, "updated", stamp(src.modified))
+        add(entry, "summary", src.description)
+    ET.indent(top)
+    return '<?xml version="1.0" encoding="utf-8"?>\n' + ET.tostring(top, encoding="unicode") + "\n"
 
 
 def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -> str:
@@ -814,6 +859,8 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
         f"<title>{escape(src.title)}</title>",
         f'<meta name="description" content="{escape(src.description)}">',
         f'<link rel="canonical" href="{url}">',
+        *([f'<link rel="alternate" type="application/atom+xml" title="{escape(FEED_TITLE)}" href="/{FEED}">']
+          if hub and (src.article or src.name == "index") else []),
         '<meta name="robots" content="index, follow, max-image-preview:large">',
         '<meta name="color-scheme" content="light dark">',
         '<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">',
@@ -895,6 +942,8 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
             if src.name == "index":
                 body += listing(articles)
             out[src.out] = page(src, root, body, parts, hub)
+        if hub:
+            out[FEED] = feed(root, by_name["index"], articles)
     if errors:
         raise SourceError("\n".join(errors))
     return out

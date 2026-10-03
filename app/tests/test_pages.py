@@ -4,6 +4,7 @@ Runs on a throwaway site in tmp_path - never app/web/research or the real docs/.
 """
 
 import importlib.util
+import xml.etree.ElementTree as ET
 from urllib.parse import urlsplit
 
 import cfg
@@ -232,8 +233,8 @@ def test_published_sources_become_pages_and_drafts_do_not(tmp_path):
     research_site(tmp_path)
     built = pages.build(tmp_path)
     assert [k for k in built if k != "sitemap.xml"] == [
-        "about/index.html", "research/ai-bias/index.html", "research/ats-myth/index.html", "research/index.html",
-        "research/methods/index.html"]
+        "about/index.html", "research/ai-bias/index.html", "research/ats-myth/index.html", "research/feed.xml",
+        "research/index.html", "research/methods/index.html"]
     assert "next-one" not in built["sitemap.xml"]
     assert "https://jobs.enrriquez.com/research/ats-myth/" in built["sitemap.xml"]
     assert pages.write(tmp_path) and pages.problems(tmp_path) == [] and pages.write(tmp_path) == []
@@ -650,6 +651,42 @@ def test_structured_data_and_sitemap_lastmod(tmp_path):
     about = (docs / "about" / "index.html").read_text(encoding="utf-8")
     assert '"sameAs":["https://github.com/cezkid"]' in about and '"@type":"ProfilePage"' in about
 
+
+
+def test_atom_feed_lists_published_articles_and_pages_link_it(tmp_path):
+    research_site(tmp_path)
+    pages.write(tmp_path)
+    docs, home = tmp_path / "docs", "https://jobs.enrriquez.com/"
+    atom = "{http://www.w3.org/2005/Atom}"
+    feed = ET.parse(docs / "research" / "feed.xml").getroot()
+    stamp = re.compile(r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})$")  # RFC 3339 date-time
+    assert feed.tag == f"{atom}feed"
+    for tag in "title", "id", "updated":
+        assert (feed.findtext(f"{atom}{tag}") or "").strip(), tag
+    assert stamp.match(feed.findtext(f"{atom}updated")) and feed.findtext(f"{atom}updated") == "2026-09-20T00:00:00Z"
+    assert feed.findtext(f"{atom}author/{atom}name") == pages.AUTHOR
+    links = {a.get("rel"): a.get("href") for a in feed.findall(f"{atom}link")}
+    assert links == {"self": home + "research/feed.xml", "alternate": home + "research/"}
+    entries = feed.findall(f"{atom}entry")
+    # entries == published articles (draft, about, methods, hub left out), newest first
+    assert [e.findtext(f"{atom}id") for e in entries] == [home + "research/ai-bias/", home + "research/ats-myth/"]
+    for e in entries:
+        for tag in "title", "id", "updated", "published", "summary":
+            assert (e.findtext(f"{atom}{tag}") or "").strip(), tag
+        assert stamp.match(e.findtext(f"{atom}updated")) and stamp.match(e.findtext(f"{atom}published"))
+        assert e.find(f"{atom}link").get("href") == e.findtext(f"{atom}id")
+        assert (docs / target(urlsplit(e.findtext(f"{atom}id")).path)).is_file()
+    assert entries[1].findtext(f"{atom}published") == "2026-09-01T00:00:00Z"
+    assert entries[1].findtext(f"{atom}title") == "Do resume robots reject you?"
+    # autodiscovery: root-relative, on the hub + articles only
+    for name in "research/index.html", "research/ats-myth/index.html", "research/ai-bias/index.html":
+        alt = Head((docs / name).read_text(encoding="utf-8")).links("alternate")
+        assert [(a["type"], a["href"]) for a in alt] == [("application/atom+xml", "/research/feed.xml")], name
+    for name in "research/methods/index.html", "about/index.html":
+        assert Head((docs / name).read_text(encoding="utf-8")).links("alternate") == [], name
+    # no article => no hub, no feed
+    research_site(tmp_path / "b", {"ats-myth.md": None, "ai-bias.md": None})
+    assert "research/feed.xml" not in pages.build(tmp_path / "b")
 
 @pytest.mark.parametrize("old, new, problem", [
     ('"dateModified":"2026-09-20"', '"dateModified":"2026-09-21"', "Article dates"),
