@@ -41,6 +41,29 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 - Page: `<title>` = title alone, canonical = `og:url`, `og:type` article + published/modified
   time; shared CSS, header, footer, icon + font links, `og:image` copied from `index.html`.
   Breadcrumb, h1, "By ... · Published · Updated" (Updated only when it differs).
+- Citations: `[@id]`, `[@id, p. 12]`, `[@a; @b]` (markdown-it core rule after `text_join`: never in
+  code or link text) -> `(<a href="#src-id">Quillian et al. 2017</a>, p. 12)`. Label = surname
+  (1 author), "A and B" (2), "A et al." (3+) or org, + year; two alike -> 2017a / 2017b by id.
+  Cited page ends w/ `<h2 id="sources">Sources</h2>` (a body heading `## Sources` = error):
+  `<ol>` sorted by label, `<li id="src-id">` = authors (year), title, venue, DOI + url links,
+  plain-words evidence (Guides scale, `EVIDENCE`) + sample, "Preprint, not peer-reviewed.",
+  "Checked <date>".
+- `app/web/research/sources.yml` = list of entries: `id` (a-z0-9 joined by -), `type` (article |
+  book | report | law | web), `authors` (list of `Surname, Given`) or `org`, `year`, `title`,
+  `evidence` (strength labels, `app/docs/resume/fair-screening.md`), `checked`, `doi` (`10.x/y`,
+  no `https://doi.org/`) and/or `url` (https only); `venue` for article + book, `url` +
+  `recheck_by` for law; optional `sample`, `preprint` (true/false), `recheck_by`. Unknown key,
+  key twice, id twice = error.
+- Statistic needs a citation in its sentence (published pages; headings skipped): `%`, percent,
+  points, "N in M" / "N out of M", `n=`, fraction words ("a third", "one fifth"). Split knows
+  "et al.", "p.", "e.g."; a citation right after the full stop counts for that sentence; a table
+  row is one unit (source may sit in another cell). Own numbers: header `uncited:` list of
+  snippets - a sentence containing one passes.
+- Review gate: every built page (articles, methods, about) needs `reviews/<name>.md` (same
+  folder), header `reviewed: YYYY-MM-DD` (on or after the page's modified), `verdict: publish`
+  (else the page fails), optional `reviewer:`; body = the review. Never built into `docs/`.
+- Warnings, never fail: registry entry no page cites (drafts count), `recheck_by` passed, review
+  w/o a page.
 - Any problem -> `file:line: what`, nothing written, exit 1.
 - Lints, published sources only (drafts may hold notes): no `#` h1 in the body, no skipped
   heading level, heading = plain text (no link, HTML, `&...;` entity, closing `#`); no raw HTML

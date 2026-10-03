@@ -13,6 +13,11 @@ stale, missing, or left over in docs/research/ or docs/about/ (orphan) - rerun t
 Output is deterministic: no clock, sorted order, UTF-8, LF. Dates read from sources, spelled with
 MONTHS (strftime %B follows the computer's language, %-d breaks on Windows).
 
+Citations: [@id], [@id, p. 12], [@a; @b] in a source -> (Author year, p. 12) linking a Sources list at
+the page's end, entries from app/web/research/sources.yml. A published page also needs an
+adversarial review in app/web/research/reviews/<name>.md (verdict: publish, reviewed on or after
+modified); reviews are never built into docs/.
+
 Run from repo root: uv run app/web/pages.py [--check]
 Writes by default; --check lists problems, writes nothing, exits 1 on any.
 Project env (no inline deps): markdown-it-py comes locked through rich.
@@ -31,6 +36,7 @@ from urllib.parse import quote, urlsplit
 
 import yaml
 from markdown_it import MarkdownIt
+from markdown_it.token import Token
 
 ROOT = Path(__file__).resolve().parents[2]
 # folders this script owns: files in them it didn't build are orphans and get deleted
@@ -38,6 +44,8 @@ OWNED = ("research", "about")
 # docs/mac/ + docs/win/ hold install scripts named index.html, not pages
 NOT_PAGES = ("mac", "win")
 SOURCES = Path("app") / "web" / "research"
+REGISTRY = SOURCES / "sources.yml"
+REVIEWS = SOURCES / "reviews"
 AUTHOR = "Cesar Enrriquez-Zuniga"
 REPO = "https://github.com/cezkid/jobs/blob/main/"
 KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited"}
@@ -58,6 +66,35 @@ JARGON_OK = ("Resume details.yml", "API key")
 RAW_HTML = re.compile(r"<!--|</?[A-Za-z][A-Za-z0-9-]*(\s[^<>]*)?/?>")
 ENTITY = re.compile(r"&(#\d+|#[xX][0-9a-fA-F]+|[A-Za-z][A-Za-z0-9]*);")
 NOTES = re.compile(r"\[owner:|\bTODO\b")
+# sources.yml: evidence label (app/docs/resume/fair-screening.md strength labels) -> plain words (Guides scale)
+EVIDENCE = {
+    "meta-analysis": "Big study (many studies combined)",
+    "large field experiment": "Big study (thousands of real applications)",
+    "field experiment": "Small study (real applications)",
+    "survey": "Survey",
+    "vendor survey": "Survey by a company that sells the service",
+    "lab/LLM audit": "Lab test (not real hiring)",
+    "law": "Law",
+    "convention": "Convention (no study)",
+}
+ENTRY_KEYS = {"id", "type", "authors", "org", "year", "title", "venue", "doi", "url", "evidence", "sample",
+              "preprint", "checked", "recheck_by"}
+# per type, on top of id, type, authors|org, year, title, evidence, checked, doi|url
+TYPE_NEEDS = {"article": ("venue",), "book": ("venue",), "report": (), "law": ("url", "recheck_by"), "web": ("url",)}
+CITE_ID = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+DOI = re.compile(r"^10\.\d{4,9}/\S+$")
+CITE = re.compile(r"\[@[^\[\]]*\]")
+CITE_PART = re.compile(r"\s*@([a-z0-9]+(?:-[a-z0-9]+)*)\s*(?:,\s*([^;]*\S))?\s*")
+REVIEW_KEYS = {"reviewed", "verdict", "reviewer"}
+_NUM = r"(?:\d[\d,]*|one|two|three|four|five|six|seven|eight|nine|ten)"
+# a sentence carrying one of these needs a citation (or one of the page's uncited: strings)
+STAT = re.compile(
+    r"\b\d[\d,.]*\s*%|\bper\s?cent\b|\bpercentage points?\b|\b\d[\d,.]*\s+(?:points?|pts?)\b"
+    rf"|\b{_NUM}\s+(?:in|out of)\s+(?:{_NUM}|a hundred|a thousand)\b|\bn\s*=\s*\d"
+    r"|\b(?:a|one|two|three|four|five|six|seven|eight|nine)[\s-](?:half|halves|thirds?|quarters?|fourths?|fifths?"
+    r"|sixths?|sevenths?|eighths?|ninths?|tenths?)\b", re.I)
+# a full stop after these doesn't end a sentence
+ABBREV = re.compile(r"\b(et al|pp?|e\.g|i\.e|vs|cf|vol|eds?|approx)\.", re.I)
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
           "October", "November", "December"]
 
@@ -182,6 +219,9 @@ class Source:
         self.title, self.description = str(head.get("title", "")), str(head.get("description", ""))
         self.og_title = str(head.get("og_title") or self.title)
         self.uncited = head.get("uncited") or []
+        if not isinstance(self.uncited, list) or not all(isinstance(u, str) and u.strip() for u in self.uncited):
+            errors.append(f"{self.rel}:{self.line_of(text, 'uncited')}: uncited must be a list of text snippets")
+            self.uncited = []
         self.head = head
         self.published = self.modified = None
         if self.status == "published":
@@ -326,6 +366,264 @@ MD.add_render_rule("table_open", _table_open)
 MD.add_render_rule("table_close", _table_close)
 
 
+def _cite(state):
+    """[@id], [@id, p. 12], [@a; @b] in text -> one "cite" token, meta refs = [(id, locator)] (None if
+    malformed). Runs after text_join: code is its own token, so citations in code stay text; none in link text."""
+    for block in state.tokens:
+        if block.type != "inline" or not block.children:
+            continue
+        out, depth = [], 0
+        for child in block.children:
+            depth += {"link_open": 1, "link_close": -1}.get(child.type, 0)
+            if child.type != "text" or depth or "[@" not in child.content:
+                out.append(child)
+                continue
+            pos = 0
+            for match in CITE.finditer(child.content):
+                if match.start() > pos:
+                    out.append(Token("text", "", 0, content=child.content[pos:match.start()]))
+                parts = [CITE_PART.fullmatch(p) for p in match.group(0)[1:-1].split(";")]
+                refs = [(m.group(1), m.group(2)) for m in parts] if all(parts) else None
+                out.append(Token("cite", "", 0, content=match.group(0), meta={"refs": refs}))
+                pos = match.end()
+            if pos < len(child.content):
+                out.append(Token("text", "", 0, content=child.content[pos:]))
+        block.children = out
+
+
+def _render_cite(self, tokens, idx, options, env):
+    links = [f'<a href="#src-{ref}">{escape(env["labels"][ref])}</a>' + (f", {escape(loc)}" if loc else "")
+             for ref, loc in tokens[idx].meta["refs"]]
+    return "(" + "; ".join(links) + ")"
+
+
+MD.core.ruler.after("text_join", "cite", _cite)
+MD.add_render_rule("cite", _render_cite)
+
+
+class Registry:
+    """app/web/research/sources.yml: every source an article may cite, checked field by field."""
+
+    def __init__(self, root: Path, errors: list[str], warnings: list[str]):
+        self.entries: dict[str, dict] = {}
+        self.labels: dict[str, str] = {}
+        self.lines: dict[str, int] = {}
+        self.rel = REGISTRY.as_posix()
+        path = root / REGISTRY
+        if not path.is_file():
+            return
+        text = path.read_bytes().decode("utf-8").replace("\r\n", "\n")
+        try:
+            data = yaml.load(text, Loader=Loader)
+            nodes = yaml.compose(text, Loader=Loader)
+        except yaml.YAMLError as e:
+            mark = getattr(e, "problem_mark", None)
+            errors.append(f"{self.rel}:{mark.line + 1 if mark else 1}: {getattr(e, 'problem', None) or e}")
+            return
+        if data is None:
+            return
+        if not isinstance(data, list):
+            errors.append(f"{self.rel}:1: must be a list of entries, each starting with - id:")
+            return
+        today = datetime.date.today().isoformat()
+        for entry, node in zip(data, nodes.value):
+            line = node.start_mark.line + 1
+            if not isinstance(entry, dict):
+                errors.append(f"{self.rel}:{line}: entry must be key: value lines")
+                continue
+            at = {k.value: k.start_mark.line + 1 for k, _ in node.value}
+            ref = entry.get("id")
+            if not isinstance(ref, str) or not CITE_ID.match(ref):
+                errors.append(f"{self.rel}:{at.get('id', line)}: id must be lower-case words joined by - (a-z, 0-9)")
+                continue
+            where = lambda key: f"{self.rel}:{at.get(key, line)}: {ref}"  # noqa: E731
+            if ref in self.entries:
+                errors.append(f"{where('id')}: id used twice (first at line {self.lines[ref]})")
+                continue
+            before = len(errors)
+            for key in sorted(set(entry) - ENTRY_KEYS, key=str):
+                errors.append(f"{where(key)}: unknown key {key!r} (allowed: {', '.join(sorted(ENTRY_KEYS))})")
+            kind = entry.get("type")
+            if kind not in TYPE_NEEDS:
+                errors.append(f"{where('type')}: type must be one of {', '.join(TYPE_NEEDS)}")
+            for key in ("title", "evidence", "checked", *TYPE_NEEDS.get(kind, ())):
+                if entry.get(key) in (None, ""):
+                    errors.append(f"{where('id')}: needs {key}" + (f" (type {kind})" if key in TYPE_NEEDS.get(kind, ()) else ""))
+            for key in "title", "venue", "org", "sample":
+                if key in entry and not (isinstance(entry[key], str) and entry[key].strip()):
+                    errors.append(f"{where(key)}: {key} must be text")
+            authors = entry.get("authors")
+            if authors is not None and not (isinstance(authors, list) and authors and all(
+                    isinstance(a, str) and re.fullmatch(r"[^,]*\S\s*,\s*\S.*", a) for a in authors)):
+                errors.append(f"{where('authors')}: authors must be a list of 'Surname, Given' names")
+            if not authors and not entry.get("org"):
+                errors.append(f"{where('id')}: needs authors or org")
+            year = entry.get("year")
+            if not (type(year) is int and 1000 <= year <= 9999):
+                errors.append(f"{where('year')}: year must be a 4-digit number")
+            if "evidence" in entry and entry["evidence"] not in EVIDENCE:
+                errors.append(f"{where('evidence')}: evidence must be one of {', '.join(EVIDENCE)}")
+            if not entry.get("doi") and not entry.get("url"):
+                errors.append(f"{where('id')}: needs doi or url")
+            if "doi" in entry and not (isinstance(entry["doi"], str) and DOI.match(entry["doi"])):
+                errors.append(f"{where('doi')}: doi must look like 10.1234/abc (no https://doi.org/ in front)")
+            if "url" in entry and not (isinstance(entry["url"], str) and entry["url"].startswith("https://")
+                                       and urlsplit(entry["url"]).netloc and not re.search(r"\s", entry["url"])):
+                errors.append(f"{where('url')}: url must start with https:// (no http)")
+            if "preprint" in entry and not isinstance(entry["preprint"], bool):
+                errors.append(f"{where('preprint')}: preprint must be true or false")
+            for key in "checked", "recheck_by":
+                if entry.get(key) not in (None, "") and iso(entry[key], where(key), errors):
+                    if key == "checked" and str(entry[key]) > today:
+                        errors.append(f"{where(key)}: checked {entry[key]} is in the future")
+                    if key == "recheck_by" and str(entry[key]) < today:
+                        warnings.append(f"{where(key)}: recheck_by {entry[key]} has passed - check it again")
+            self.lines[ref] = line
+            if len(errors) == before:
+                self.entries[ref] = entry
+        self._label()
+
+    def _label(self) -> None:
+        """Author-year label: Smith 2017, Smith and Jones 2017, Smith et al. 2017, Org 2017; a/b when two match."""
+        plain = {}
+        for ref, entry in self.entries.items():
+            names = [a.split(",")[0].strip() for a in entry.get("authors") or []]
+            who = (names[0] if len(names) == 1 else f"{names[0]} and {names[1]}" if len(names) == 2
+                   else f"{names[0]} et al." if names else entry["org"].strip())
+            plain[ref] = f"{who} {entry['year']}"
+        for ref in sorted(plain):
+            twins = sorted(r for r in plain if plain[r] == plain[ref])
+            self.labels[ref] = plain[ref] + ("abcdefghijklmnopqrstuvwxyz"[twins.index(ref)] if len(twins) > 1 else "")
+
+    def item(self, ref: str) -> str:
+        """One <li> of a page's Sources list."""
+        entry = self.entries[ref]
+        authors = entry.get("authors") or []
+        who = (", ".join(authors[:-1]) + " and " + authors[-1]) if len(authors) > 1 else authors[0] if authors else entry["org"]
+        parts = [f"{escape(who.strip())} ({entry['year']}).", escape(stop(entry["title"].strip()))]
+        if entry.get("venue"):
+            parts.append(f"<i>{escape(stop(entry['venue'].strip()))}</i>")
+        if entry.get("doi"):
+            doi = "https://doi.org/" + quote(entry["doi"], safe="/:;()._-")
+            parts.append(f'<a href="{escape(doi)}">{escape(doi)}</a>')
+        if entry.get("url"):
+            parts.append(f'<a href="{escape(entry["url"])}">{escape(entry["url"])}</a>')
+        evidence = EVIDENCE[entry["evidence"]] + (f", {entry['sample'].strip()}" if entry.get("sample") else "")
+        parts.append(escape(stop(evidence)))
+        if entry.get("preprint"):
+            parts.append("Preprint, not peer-reviewed.")
+        parts.append(f'Checked <time datetime="{entry["checked"]}">{long_date(str(entry["checked"]))}</time>.')
+        return f'<li id="src-{ref}">' + " ".join(parts) + "</li>"
+
+
+def stop(text: str) -> str:
+    """Text ending in a full stop (or the ?/! it already has)."""
+    return text if text[-1:] in ".?!" else text + "."
+
+
+def cites(src: Source) -> list[tuple[Token, Token]]:
+    """(inline token, cite token) for every citation in a source, in page order."""
+    return [(t, c) for t in src.tokens if t.type == "inline" for c in t.children or [] if c.type == "cite"]
+
+
+def units(src: Source):
+    """Text a citation must cover: (inline token, text) per sentence; a table row is one unit (its source
+    may sit in another cell). Citations -> \\x01, code -> \\x02. Headings skipped: the text below cites."""
+    def flat(inline):
+        return "".join({"text": c.content, "cite": "\x01", "code_inline": "\x02", "softbreak": " ",
+                        "hardbreak": " "}.get(c.type, "") for c in inline.children or [])
+
+    row = None
+    for i, token in enumerate(src.tokens):
+        if token.type == "tr_open":
+            row = []
+        elif token.type == "tr_close":
+            if row:
+                yield row[0], " | ".join(flat(t) for t in row)
+            row = None
+        elif token.type == "inline" and row is not None and src.tokens[i - 1].type in ("th_open", "td_open"):
+            row.append(token)
+        elif token.type == "inline" and src.tokens[i - 1].type != "heading_open":
+            text = ABBREV.sub(lambda m: m.group(0)[:-1] + "\x03", flat(token))
+            sentences = []
+            for piece in re.split(r"(?<=[.!?])\s+", text):
+                # "... 36%. [@q] Next" - citations opening a piece belong to the sentence before it
+                lead = re.match(r"[\x01\s]*", piece).end() if sentences else 0
+                if lead:
+                    sentences[-1] += " " + piece[:lead]
+                if re.search(r"[^\W_]", piece[lead:]) or not sentences:
+                    sentences.append(piece[lead:])
+            for sentence in sentences:
+                yield token, sentence.replace("\x03", ".")
+
+
+def citations(sources: list[Source], registry: Registry, errors: list[str], warnings: list[str]) -> None:
+    """Every [@id] known; every statistic cited; registry entries nobody cites = warning."""
+    used = set()
+    for src in sources:
+        for inline, cite in cites(src):
+            refs = cite.meta["refs"]
+            used.update(ref for ref, _ in refs or [])
+            if src.status != "published":
+                continue
+            if refs is None:
+                errors.append(f"{src.rel}:{src.find(inline, cite.content)}: citation {cite.content!r} - write [@id], [@id, p. 12] or [@a; @b]")
+                continue
+            for ref, _ in refs:
+                if ref not in registry.entries:
+                    errors.append(f"{src.rel}:{src.find(inline, '@' + ref)}: [@{ref}] is not in {registry.rel}"
+                                  + (" (entry has problems above)" if ref in registry.lines else ""))
+        if src.status != "published":
+            continue
+        if cites(src) and "sources" in src.ids:
+            errors.append(f"{src.rel}:{src.ids['sources']}: heading id 'sources' is the citation list's - rename the heading")
+        for inline, text in units(src):
+            stat = STAT.search(text.replace("\x02", " "))
+            if stat and "\x01" not in text and not any(u in text for u in src.uncited):
+                errors.append(f"{src.rel}:{src.find(inline, stat.group(0))}: statistic {stat.group(0)!r} without a citation"
+                              " - add [@id], or list a snippet of the sentence under uncited: in the header")
+    for ref in sorted(set(registry.entries) - used):
+        warnings.append(f"{registry.rel}:{registry.lines[ref]}: {ref} is not cited by any page")
+
+
+def reviews(root: Path, sources: list[Source], errors: list[str], warnings: list[str]) -> None:
+    """Review gate: a built page needs reviews/<name>.md, verdict publish, reviewed on or after modified."""
+    folder = root / REVIEWS
+    # names listed from disk: a macOS disk would find Ai-Bias.md for ai-bias.md
+    found = {p.name: p for p in folder.iterdir() if p.is_file()} if folder.is_dir() else {}
+    names = {s.name for s in sources}
+    for name in sorted(found):
+        if name.endswith(".md") and name[:-3] not in names:
+            warnings.append(f"{REVIEWS.as_posix()}/{name}:1: review of a page that doesn't exist")
+    for src in sources:
+        if not src.built:
+            continue
+        rel = f"{REVIEWS.as_posix()}/{src.name}.md"
+        if f"{src.name}.md" not in found:
+            errors.append(f"{src.rel}:1: published page needs an adversarial review in {rel} (verdict: publish)")
+            continue
+        text = found[f"{src.name}.md"].read_bytes().decode("utf-8").replace("\r\n", "\n")
+        match = re.match(r"---\n(.*?\n)---\n", text, re.S)
+        try:
+            head = yaml.load(match.group(1), Loader=Loader) if match else None
+        except yaml.YAMLError as e:
+            errors.append(f"{rel}:1: header: {getattr(e, 'problem', None) or e}")
+            continue
+        if not isinstance(head, dict):
+            errors.append(f"{rel}:1: needs a YAML header between --- lines with reviewed: and verdict:")
+            continue
+        for key in sorted(set(head) - REVIEW_KEYS, key=str):
+            errors.append(f"{rel}:{Source.line_of(text, key)}: unknown header key {key!r} (allowed: {', '.join(sorted(REVIEW_KEYS))})")
+        if head.get("verdict") != "publish":
+            errors.append(f"{rel}:{Source.line_of(text, 'verdict')}: verdict is {head.get('verdict')!r} - the page publishes only on verdict: publish")
+        if "reviewed" not in head:
+            errors.append(f"{rel}:2: needs reviewed: YYYY-MM-DD")
+        else:
+            day = iso(head["reviewed"], f"{rel}:{Source.line_of(text, 'reviewed')}", errors)
+            if day and src.modified and day < src.modified:
+                errors.append(f"{rel}:{Source.line_of(text, 'reviewed')}: reviewed {day} is before the page's modified {src.modified} - review the change")
+
+
 def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site_files: set[str]) -> str:
     """A link in a source -> its URL on the site. Raises ValueError w/ the reason when it can't land."""
     home = site(root)
@@ -362,7 +660,8 @@ def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site
     return REPO + quote(rel) + (f"#{url.fragment}" if url.fragment else "")
 
 
-def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: set[str], errors: list[str]) -> str:
+def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: set[str], errors: list[str],
+              registry: Registry) -> str:
     label = src.title
     for i, token in enumerate(src.tokens):
         if token.type == "heading_open":
@@ -376,7 +675,13 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
                         child.attrSet("href", rewrite(child.attrGet("href"), src, by_name, root, site_files))
                     except ValueError as e:
                         errors.append(f"{src.rel}:{src.line(token)}: {e}")
-    return MD.renderer.render(src.tokens, MD.options, {})
+    html = MD.renderer.render(src.tokens, MD.options, {"labels": registry.labels})
+    cited = {ref for _, cite in cites(src) for ref, _ in cite.meta["refs"] or []} & set(registry.entries)
+    if cited:
+        # alphabetical by label, so a reader scanning for "Quillian et al. 2017" finds it
+        items = [registry.item(ref) for ref in sorted(cited, key=lambda r: (registry.labels[r].casefold(), r))]
+        html += '<h2 id="sources">Sources</h2>\n<ol class="sources">\n' + "\n".join(items) + "\n</ol>\n"
+    return html
 
 
 def home_parts(root: Path) -> dict[str, str]:
@@ -411,6 +716,7 @@ PAGE_CSS = """
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
   .table { overflow-x: auto; margin: 0 0 14px; }
   table { border-collapse: collapse; font-size: 17px; }
+  .sources li { font-size: 17px; overflow-wrap: anywhere; }
   th, td { text-align: left; vertical-align: top; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); }
   @media (max-width: 600px) {
     main { padding-top: 8px; }
@@ -487,10 +793,16 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
     warnings (page still built) go to the list given."""
     folder = root / SOURCES
     errors: list[str] = []
+    warnings = [] if warnings is None else warnings
     sources = [Source(p, root, errors) for p in sorted(folder.glob("*.md"))] if folder.is_dir() else []
-    if errors:  # header problems first: a page can't be drawn w/o its title + dates
+    registry = Registry(root, errors, warnings)
+    if errors:  # header + registry problems first: a page can't be drawn w/o its title, dates, sources
         raise SourceError("\n".join(errors))
-    lint(sources, errors, [] if warnings is None else warnings)
+    lint(sources, errors, warnings)
+    citations(sources, registry, errors, warnings)
+    reviews(root, sources, errors, warnings)
+    if errors:  # an unknown [@id] can't be drawn
+        raise SourceError("\n".join(errors))
     by_name = {s.name: s for s in sources}
     built = [s for s in sources if s.built]
     out: dict[str, str] = {}
@@ -500,7 +812,7 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
             errors.append(f"{SOURCES.as_posix()}/about.md:1: bylines link /about/ - publish about.md with the first page")
         files = site_files | {s.out for s in built}
         for src in built:
-            out[src.out] = page(src, root, body_html(src, by_name, root, files, errors), parts)
+            out[src.out] = page(src, root, body_html(src, by_name, root, files, errors, registry), parts)
     if errors:
         raise SourceError("\n".join(errors))
     return out

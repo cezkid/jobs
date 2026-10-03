@@ -107,6 +107,7 @@ status: published
 og_title: Do resume robots reject most resumes?
 ---
 Short intro, see [the other one](ai-bias.md#what-was-measured) and [methods](methods.md).
+Callbacks differ by 36% [@quillian-2017, p. 3]. Firms vary [@kline-2021; @eeoc-2023].
 
 ## What the claim says
 
@@ -158,16 +159,62 @@ status: published
 }
 
 
-def research_site(root, extra=None):
-    """Real docs/ (minus what pages.py builds) + sources in app/web/research + one repo doc to link."""
+REGISTRY = """\
+- id: quillian-2017
+  type: article
+  authors: [Quillian, Lincoln, "Pager, Devah", "Hexel, Ole", "Midtboen, Arnfinn H."]
+  year: 2017
+  title: Meta-analysis of field experiments shows no change in racial discrimination in hiring over time
+  venue: Proceedings of the National Academy of Sciences
+  doi: 10.1073/pnas.1706255114
+  evidence: meta-analysis
+  sample: 28 US studies, 55,842 applications
+  checked: 2026-09-29
+- id: kline-2021
+  type: report
+  authors: ["Kline, Patrick", "Rose, Evan K.", "Walters, Christopher R."]
+  year: 2021
+  title: Systemic discrimination among large U.S. employers
+  url: https://www.nber.org/papers/w29053
+  evidence: large field experiment
+  preprint: true
+  checked: 2026-09-29
+- id: eeoc-2023
+  type: law
+  org: US Equal Employment Opportunity Commission
+  year: 2023
+  title: Select issues in AI hiring
+  url: https://www.eeoc.gov/ai
+  evidence: law
+  checked: 2026-09-29
+  recheck_by: 2999-01-01
+"""
+REGISTRY = REGISTRY.replace("authors: [Quillian, Lincoln,", 'authors: ["Quillian, Lincoln",')
+
+
+def research_site(root, extra=None, reviews=None, registry=REGISTRY):
+    """Real docs/ (minus what pages.py builds) + sources in app/web/research + one repo doc to link.
+    Every published source gets a publish review unless reviews names it (None = no review file)."""
     shutil.copytree(cfg.ROOT / "docs", root / "docs",
                     ignore=lambda d, names: [n for n in names if n.startswith(".") or
                                              (d == str(cfg.ROOT / "docs") and n in ("research", "about", "sitemap.xml"))])
     folder = root / "app" / "web" / "research"
     folder.mkdir(parents=True)
+    (folder / "reviews").mkdir()
     for name, text in {**SOURCES, **(extra or {})}.items():
         if text is not None:
             (folder / name).write_text(text, encoding="utf-8")
+            if "status: published" in text:
+                review = "---\nreviewed: 2026-09-30\nverdict: publish\n---\nClaims checked.\n"
+                (folder / "reviews" / name).write_text(review, encoding="utf-8")
+    for name, text in (reviews or {}).items():
+        path = folder / "reviews" / name
+        if text is None:
+            path.unlink()
+        else:
+            path.write_text(text, encoding="utf-8")
+    if registry is not None:
+        (folder / "sources.yml").write_text(registry, encoding="utf-8")
     (root / "app" / "docs").mkdir()
     (root / "app" / "docs" / "site.md").write_text("# Site\n\n## Look\n")
     return folder
@@ -195,7 +242,7 @@ def test_article_head_body_and_links(tmp_path):
     assert urlsplit(head.meta("og:image")).path == "/og.png"
     # heading ids follow the same rule as links between the Markdown files
     ids = [a["id"] for t, a in head.tags if t in ("h2", "h3") and "id" in a]
-    assert set(ids) == anchors(folder / "ats-myth.md") == {"what-the-claim-says", "what-the-claim-says-again"}
+    assert set(ids) - {"sources"} == anchors(folder / "ats-myth.md") == {"what-the-claim-says", "what-the-claim-says-again"}
     hrefs = [a["href"] for a in head.all("a")]
     for href in ("/research/ai-bias/#what-was-measured", "/research/methods/", "/privacy.html",
                  "https://github.com/cezkid/jobs/blob/main/app/docs/site.md#look", "#what-the-claim-says", "/about/"):
@@ -333,3 +380,218 @@ def test_lint_patterns_match_their_originals():
     from resume import lint as resume_lint
     assert pages.JARGON.pattern == test_docs.JARGON.pattern and pages.JARGON_OK == test_docs.JARGON_OK
     assert pages.INVISIBLE.pattern == resume_lint.INVISIBLE.pattern
+
+
+
+# --- citations, sources.yml, review gate ---
+
+def test_citations_render_author_year_links_and_an_alphabetical_sources_list(tmp_path):
+    research_site(tmp_path)
+    html = pages.build(tmp_path)["research/ats-myth/index.html"]
+    assert 'Callbacks differ by 36% (<a href="#src-quillian-2017">Quillian et al. 2017</a>, p. 3).' in html
+    assert ('Firms vary (<a href="#src-kline-2021">Kline et al. 2021</a>; '
+            '<a href="#src-eeoc-2023">US Equal Employment Opportunity Commission 2023</a>).') in html
+    sources = html.split('<h2 id="sources">Sources</h2>\n<ol class="sources">\n')[1].split("</ol>")[0]
+    assert re.findall(r'<li id="src-([^"]+)"', sources) == ["kline-2021", "quillian-2017", "eeoc-2023"]
+    assert ('<li id="src-quillian-2017">Quillian, Lincoln, Pager, Devah, Hexel, Ole and Midtboen, Arnfinn H. (2017). '
+            "Meta-analysis of field experiments shows no change in racial discrimination in hiring over time. "
+            "<i>Proceedings of the National Academy of Sciences.</i> "
+            '<a href="https://doi.org/10.1073/pnas.1706255114">https://doi.org/10.1073/pnas.1706255114</a> '
+            "Big study (many studies combined), 28 US studies, 55,842 applications. "
+            'Checked <time datetime="2026-09-29">29 September 2026</time>.</li>') in sources
+    assert "Preprint, not peer-reviewed." in sources.split('id="src-kline-2021"')[1].split("</li>")[0]
+    assert '<a href="https://www.nber.org/papers/w29053">' in sources
+    # a page that cites nothing gets no list
+    assert 'id="sources"' not in pages.build(tmp_path)["research/ai-bias/index.html"]
+
+
+def test_citation_in_code_or_link_text_stays_text_and_same_labels_get_a_b(tmp_path):
+    twin = REGISTRY + """- id: quillian-2017-b
+  type: web
+  authors: ["Quillian, Lincoln", "Pager, Devah", "Hexel, Ole"]
+  year: 2017
+  title: Data
+  url: https://example.org/data
+  evidence: meta-analysis
+  checked: 2026-09-29
+"""
+    research_site(tmp_path, body("Code `[@nope]` and [link [@nope]](ats-myth.md) and [@quillian-2017-b; @quillian-2017]."),
+                  registry=twin)
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    assert "<code>[@nope]</code>" in html and ">link [@nope]</a>" in html
+    assert ('(<a href="#src-quillian-2017-b">Quillian et al. 2017b</a>; '
+            '<a href="#src-quillian-2017">Quillian et al. 2017a</a>)') in html
+
+
+def test_review_files_and_registry_are_not_built(tmp_path):
+    research_site(tmp_path)
+    assert not [k for k in pages.build(tmp_path) if "review" in k or "sources" in k]
+
+
+def test_unused_entry_and_past_recheck_warn_but_build(tmp_path):
+    research_site(tmp_path, registry=REGISTRY.replace("2999-01-01", "2020-01-01") + """- id: spare
+  type: web
+  org: Someone
+  year: 2020
+  title: Unused
+  url: https://example.org/
+  evidence: survey
+  checked: 2026-09-29
+""")
+    warnings = []
+    assert "research/ats-myth/index.html" in pages.build(tmp_path, warnings)
+    assert "app/web/research/sources.yml:28: eeoc-2023: recheck_by 2020-01-01 has passed - check it again" in warnings
+    assert "app/web/research/sources.yml:29: spare is not cited by any page" in warnings
+
+
+def test_entry_cited_only_by_a_draft_is_not_unused_and_drafts_skip_citation_checks(tmp_path):
+    draft = SOURCES["next-one.md"] + "\nCited [@spare] and [@missing], 40% uncited.\n"
+    research_site(tmp_path, {"next-one.md": draft}, registry=REGISTRY + """- id: spare
+  type: web
+  org: Someone
+  year: 2020
+  title: Unused
+  url: https://example.org/
+  evidence: survey
+  checked: 2026-09-29
+""")
+    warnings = []
+    pages.build(tmp_path, warnings)
+    assert not [w for w in warnings if "not cited" in w]
+
+
+ENTRY = """- id: x
+  type: article
+  authors: ["Smith, Ann"]
+  year: 2020
+  title: T
+  venue: V
+  doi: 10.1000/abc
+  evidence: survey
+  checked: 2026-09-29
+"""
+
+
+@pytest.mark.parametrize("registry, problem", [
+    (ENTRY.replace("  venue: V\n", ""), "sources.yml:1: x: needs venue (type article)"),
+    (ENTRY.replace("  title: T\n", ""), "sources.yml:1: x: needs title"),
+    (ENTRY.replace("  checked: 2026-09-29\n", ""), "sources.yml:1: x: needs checked"),
+    (ENTRY.replace('  authors: ["Smith, Ann"]\n', ""), "sources.yml:1: x: needs authors or org"),
+    (ENTRY.replace('"Smith, Ann"', '"Ann Smith"'), "sources.yml:3: x: authors must be a list of 'Surname, Given'"),
+    (ENTRY.replace("  doi: 10.1000/abc\n", ""), "sources.yml:1: x: needs doi or url"),
+    (ENTRY.replace("10.1000/abc", "https://doi.org/10.1000/abc"), "sources.yml:7: x: doi must look like 10.1234/abc"),
+    (ENTRY.replace("10.1000/abc", "10.12/abc"), "sources.yml:7: x: doi must look like"),
+    (ENTRY + "  url: http://example.org/\n", "sources.yml:10: x: url must start with https://"),
+    (ENTRY.replace("evidence: survey", "evidence: strong"), "sources.yml:8: x: evidence must be one of"),
+    (ENTRY.replace("type: article", "type: blog"), "sources.yml:2: x: type must be one of"),
+    (ENTRY.replace("year: 2020", "year: twenty"), "sources.yml:4: x: year must be a 4-digit number"),
+    (ENTRY.replace("2026-09-29", "2026-02-30"), "sources.yml:9: x: date must be YYYY-MM-DD"),
+    (ENTRY.replace("2026-09-29", "2999-01-01"), "sources.yml:9: x: checked 2999-01-01 is in the future"),
+    (ENTRY + "  preprint: maybe\n", "sources.yml:10: x: preprint must be true or false"),
+    (ENTRY + "  pages: 12\n", "sources.yml:10: x: unknown key 'pages'"),
+    (ENTRY + "  doi: 10.1000/b\n", "duplicate key 'doi'"),
+    (ENTRY + ENTRY, "sources.yml:10: x: id used twice (first at line 1)"),
+    (ENTRY.replace("id: x", "id: Smith_2020"), "sources.yml:1: id must be lower-case words"),
+    ("id: x\n", "sources.yml:1: must be a list of entries"),
+    ("""- id: law-x
+  type: law
+  org: State
+  year: 2023
+  title: A law
+  url: https://example.org/law
+  evidence: law
+  checked: 2026-09-29
+""", "sources.yml:1: law-x: needs recheck_by (type law)"),
+])
+def test_registry_problems_are_reported_with_line(tmp_path, registry, problem):
+    research_site(tmp_path, registry=registry)
+    with pytest.raises(pages.SourceError) as e:
+        pages.build(tmp_path)
+    assert problem in str(e.value)
+
+
+@pytest.mark.parametrize("snippet", [
+    "Callbacks fell 36% for some names.",
+    "About 12 percent heard back.",
+    "The gap was 2.1 points on a 24% base.",
+    "A gap of 3 percentage points.",
+    "One in five employers said so.",
+    "Only 4 out of 10 applicants got a call.",
+    "The sample was small (n = 200).",
+    "About a third of firms did.",
+    "Two-thirds of recruiters agreed.",
+    "One fifth of firms did most of it.",
+    "Smith et al. found it. Then 40% did. [@quillian-2017, p. 3] Next sentence has 5% too.",
+])
+def test_statistic_without_citation_is_an_error(tmp_path, snippet):
+    research_site(tmp_path, body(snippet))
+    with pytest.raises(pages.SourceError) as e:
+        pages.build(tmp_path)
+    assert "ai-bias.md:11: statistic" in str(e.value) and "without a citation" in str(e.value)
+
+
+@pytest.mark.parametrize("snippet", [
+    "Callbacks fell 36% for some names [@quillian-2017].",
+    "Callbacks fell 36% for some names. [@quillian-2017]",
+    "Smith et al. found a 36% gap [@quillian-2017, p. 12]. Then nothing.",
+    "Then 40% did. [@quillian-2017, p. 3] Next one, see p. 4, has no number. E.g. this.",
+    "As Quillian et al. (p. 4) put it, 36% fewer calls [@quillian-2017].",
+    "Run `grep 50%` to see it.",
+    "In 2021 three firms did.",
+])
+def test_cited_or_code_or_plain_numbers_pass(tmp_path, snippet):
+    research_site(tmp_path, body(snippet))
+    assert "research/ai-bias/index.html" in pages.build(tmp_path)
+
+
+def test_table_row_cites_from_any_cell_and_uncited_snippets_pass(tmp_path):
+    table = "| Finding | Source |\n|---|---|\n| 36% fewer calls | [@quillian-2017] |"
+    research_site(tmp_path, body(table))
+    assert "research/ai-bias/index.html" in pages.build(tmp_path)
+    research_site(tmp_path / "b", body("| Finding | Source |\n|---|---|\n| 36% fewer calls | none |"))
+    with pytest.raises(pages.SourceError, match="ai-bias.md:13: statistic '36%'"):
+        pages.build(tmp_path / "b")
+    own = {"ai-bias.md": BIAS.replace("status: published", "status: published\nuncited:\n  - our own test")
+           .replace("Text.", "In our own test 3 in 10 parsers failed.")}
+    research_site(tmp_path / "c", own)
+    assert "research/ai-bias/index.html" in pages.build(tmp_path / "c")
+
+
+@pytest.mark.parametrize("extra, problem", [
+    (body("Gap [@nobody]."), "ai-bias.md:11: [@nobody] is not in app/web/research/sources.yml"),
+    (body("Gap [@Bad Id]."), "ai-bias.md:11: citation '[@Bad Id]'"),
+    (body("Gap [@quillian-2017; nope]."), "citation '[@quillian-2017; nope]'"),
+    (body("Gap [@quillian-2017].\n\n## Sources"), "ai-bias.md:13: heading id 'sources' is the citation list's"),
+    ({"ai-bias.md": BIAS.replace("status: published", "status: published\nuncited: our test")}, "uncited must be a list"),
+])
+def test_citation_problems_are_reported_with_file_and_line(tmp_path, extra, problem):
+    research_site(tmp_path, extra)
+    with pytest.raises(pages.SourceError) as e:
+        pages.build(tmp_path)
+    assert problem in str(e.value)
+
+
+@pytest.mark.parametrize("review, problem", [
+    (None, "ai-bias.md:1: published page needs an adversarial review in app/web/research/reviews/ai-bias.md"),
+    ("---\nreviewed: 2026-09-30\nverdict: revise\n---\n", "reviews/ai-bias.md:3: verdict is 'revise'"),
+    ("---\nreviewed: 2026-09-01\nverdict: publish\n---\n", "reviews/ai-bias.md:2: reviewed 2026-09-01 is before the page's modified 2026-09-10"),
+    ("---\nverdict: publish\n---\n", "reviews/ai-bias.md:2: needs reviewed:"),
+    ("---\nreviewed: 2026-09-31\nverdict: publish\n---\n", "reviews/ai-bias.md:2: date must be YYYY-MM-DD"),
+    ("---\nreviewed: 2026-09-30\nverdict: publish\nscore: 9\n---\n", "reviews/ai-bias.md:4: unknown header key 'score'"),
+    ("No header.\n", "reviews/ai-bias.md:1: needs a YAML header"),
+])
+def test_review_gate(tmp_path, review, problem):
+    research_site(tmp_path, reviews={"ai-bias.md": review})
+    with pytest.raises(pages.SourceError) as e:
+        pages.build(tmp_path)
+    assert problem in str(e.value)
+
+
+def test_review_same_day_as_modified_passes_and_orphan_review_warns(tmp_path):
+    folder = research_site(tmp_path, reviews={"ai-bias.md": "---\nreviewed: 2026-09-10\nverdict: publish\nreviewer: fresh AI session\n---\n",
+                                              "gone.md": "---\nreviewed: 2026-09-10\nverdict: publish\n---\n"})
+    warnings = []
+    assert "research/ai-bias/index.html" in pages.build(tmp_path, warnings)
+    assert "app/web/research/reviews/gone.md:1: review of a page that doesn't exist" in warnings
+    # drafts need no review
+    assert not (folder / "reviews" / "next-one.md").exists()
