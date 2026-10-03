@@ -131,3 +131,20 @@ def test_resume_and_settings_files_read_as_documents():
         assert not any(k.startswith(("problems.", "editor.hover", "explorer.decorations", "workbench.editor.decorations"))
                        or k.endswith(".decorations.enabled") for k in flat)
         assert settings["yaml.validate"] is True
+
+
+def test_setup_saving_search_settings_hides_start_here_in_the_open_window(tmp_path, monkeypatch, capsys):
+    # START HERE stayed listed until the next launch after setup saved search settings
+    import jobs
+    import launch
+    search = tmp_path / "My Settings" / "Search settings.yml"
+    search.parent.mkdir()
+    search.write_text((cfg.PROFILES / "example.yml").read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setenv("JOBS_CONFIG", str(search))
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    jobs.check_settings()
+    written = load((tmp_path / ".vscode" / "settings.json").read_text(encoding="utf-8"))
+    assert written["files.exclude"]["START HERE.md"] is True
+    assert written == workspace.settings("claude", set_up=True)  # the launcher's own file: no other key moves
+    assert capsys.readouterr().out.startswith("ok: ")

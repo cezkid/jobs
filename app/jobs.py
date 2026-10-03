@@ -67,6 +67,16 @@ def open_for_user(target: str) -> None:
         webbrowser.open(path.resolve().as_uri() if path.exists() else target)
 
 
+def check_settings() -> None:
+    import cfg
+    import launch
+    cfg.load()
+    # setup runs this right after saving search settings => START HERE ("type set me up") leaves
+    # the open window's file list now, not at next launch; no-op when nothing changed
+    launch.write_workspace(launch.chosen_ai())
+    print(f"ok: {cfg.config_path()}")
+
+
 def main() -> None:
     if len(sys.argv) < 2 or sys.argv[1] not in COMMANDS:
         width = max(map(len, COMMANDS))
@@ -78,9 +88,7 @@ def main() -> None:
         run_module("ingest.freehire", [])
         run_module("rank", args)
     elif name == "check-settings":
-        import cfg
-        cfg.load()
-        print(f"ok: {cfg.config_path()}")
+        check_settings()
     elif name == "open":
         open_for_user(" ".join(args))
     else:
