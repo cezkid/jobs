@@ -379,3 +379,41 @@ def test_copilot_window_gets_its_chat_sidebar_without_claude(tmp_path, monkeypat
     monkeypatch.setattr(launch, "first_page", lambda: launch.START_PAGE)
     launch.main()
     assert calls[:3] == [("workspace", "copilot"), "sidebar", "code"] and "trust" not in calls
+
+
+def test_windows_shortcut_refresh_only_touches_this_installs_shortcut():
+    # re-pointing a shortcut to another copy (or making a new one) would leave two icons / wrong app
+    script = launch.windows_shortcut_script(launch.WINDOWS_LAUNCHER, launch.WINDOWS_ICON)
+    guard = f"if ($l.TargetPath -ne '{launch.WINDOWS_LAUNCHER}') {{ exit 0 }}"
+    assert "if (-not (Test-Path -LiteralPath $p)) { exit 0 }" in script
+    assert guard in script
+    assert script.index("Test-Path") < script.index(guard) < script.index("IconLocation") < script.index("$l.Save()")
+    assert f"$l.IconLocation = '{launch.WINDOWS_ICON},0'" in script
+    assert "$l.WindowStyle = 7" in script
+    assert f"'{cfg.NAME}.lnk'" in script
+    assert "TargetPath =" not in script and "CreateShortcut($p)" in script
+
+
+def test_windows_shortcut_path_with_apostrophe_stays_quoted():
+    # user folder "O'Brien" => unescaped quote breaks the script, icon never refreshed
+    script = launch.windows_shortcut_script(PureWindowsPath(r"C:\Users\O'Brien\jobs\start.bat"),
+                                            PureWindowsPath(r"C:\Users\O'Brien\jobs\icon.ico"))
+    assert r"'C:\Users\O''Brien\jobs\start.bat'" in script
+    assert r"'C:\Users\O''Brien\jobs\icon.ico,0'" in script
+
+
+def test_windows_icon_refreshed_once_retried_after_failure(tmp_path):
+    # powershell every launch slows each start; a failed run must not be marked done
+    runs = []
+    result = type("R", (), {"returncode": 1})
+    def run(script):
+        runs.append(script)
+        return result
+    done = tmp_path / ".data" / "desktop-icon-refreshed"
+    launch.ensure_windows_icon(done, run)
+    assert not done.exists() and len(runs) == 1
+    result.returncode = 0
+    launch.ensure_windows_icon(done, run)
+    launch.ensure_windows_icon(done, run)
+    assert done.exists() and len(runs) == 2
+    assert runs[0] == launch.windows_shortcut_script()

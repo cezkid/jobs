@@ -124,8 +124,9 @@ try {
         (Join-Path ([Environment]::GetFolderPath('Desktop')) 'CEZ Job Finder.lnk'))
     $link.TargetPath = $start
     $link.WorkingDirectory = $Dir
-    $codeExe = Join-Path (Split-Path (Split-Path (Get-Command code).Source)) 'Code.exe'
-    if (Test-Path $codeExe) { $link.IconLocation = "$codeExe,0" }
+    $link.IconLocation = (Join-Path $Dir 'app\install\icon.ico') + ',0'
+    # 7 = minimized: the console stays in the taskbar during update + launch, never over the screen
+    $link.WindowStyle = 7
     $link.Save()
 
     Write-Host "`nDone. Next time, open 'CEZ Job Finder' on your Desktop." -ForegroundColor Green

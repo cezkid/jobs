@@ -16,3 +16,12 @@ What the user double-clicks to open Job Finder. Brand mark = `docs/icon.svg`.
   can't be changed by us. Only the Desktop icon carries the brand.
 - Mac margin: body 824 of 1024 px (macOS 11+ grid) => same size as other Desktop apps. Windows
   icon edge to edge.
+- Windows: installer's Desktop shortcut -> `start-windows.bat` (kept: Smart App Control work hooks
+  it; uvw/pythonw fail silently when SAC blocks Python), `IconLocation` = `app\install\icon.ico`,
+  `WindowStyle` 7 = console minimized to the taskbar during update + launch, never over the screen.
+- Launch (`ensure_windows_icon`): shortcuts made before 2026-10-03 (VS Code's icon, console in
+  front) re-pointed once by hidden powershell, only when the shortcut's target is this install's
+  `start-windows.bat`; missing shortcut never recreated. Done => `.data/desktop-icon-refreshed`;
+  failed run retried next launch.
+- Taskbar + running window show VS Code's icon (its AppUserModelID `Microsoft.VisualStudioCode`):
+  only the Desktop shortcut carries the brand, as on Mac.
