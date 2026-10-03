@@ -22,6 +22,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Resume | [resume/cover-letter.md](resume/cover-letter.md) | Cover letter: when it's offered, the user's own sentence, what the check holds a draft to, basis graded |
 | Resume | [resume/typeface.md](resume/typeface.md) | Why Caladea, how widths are measured, adding a font + its cost |
 | Resume | [resume/fair-screening.md](resume/fair-screening.md) | Name, age, work-break, record + AI-screening bias: evidence graded by strength, laws as of 2026-09, what the program carries, advice we don't follow, unverified list |
+| Install | [desktop-icon.md](desktop-icon.md) | Desktop icon: brand files + how they're made, Mac applet edits, why the Dock still shows VS Code |
 | Jobs | [jobs/freehire.md](jobs/freehire.md) | Job API: filters, facets, measured pitfalls - read before touching search or ingest |
 | Jobs | [jobs/job-folders.md](jobs/job-folders.md) | My Jobs layout: stage folders by status, `N - Company - Title` names, when folders move, rename-only rules |
 | Applying | [apply/apply-systems.md](apply/apply-systems.md) | How application filling works, systems supported, adding one |

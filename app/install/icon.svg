@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024"><defs>
+<desc>CEZ Job Finder icon, route B "Page on ink". Apple 1024 grid: tile 824 at 100, r 185. Page tilted -6 deg about 512,520, fold 80 u, highlighter mark runs off the page's right edge.</desc>
+<filter id="bsh" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#000" flood-opacity="0.22"/></filter>
+<filter id="bsoft" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="14" stdDeviation="16" flood-color="#000" flood-opacity="0.30"/></filter>
+<linearGradient id="bpaper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#ece8de"/></linearGradient>
+<linearGradient id="bhl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff06a"/><stop offset="0.55" stop-color="#ffe433"/><stop offset="1" stop-color="#f7cf00"/></linearGradient>
+<radialGradient id="bink" cx="0.5" cy="0.18" r="0.95"><stop offset="0" stop-color="#3a3a40"/><stop offset="1" stop-color="#0c0c0e"/></radialGradient>
+<clipPath id="bclip"><rect x="100" y="100" width="824" height="824" rx="185"/></clipPath>
+
+</defs><g filter="url(#bsh)"><rect x="100" y="100" width="824" height="824" rx="185" fill="url(#bink)"/></g>
+<rect x="100.75" y="100.75" width="822.5" height="822.5" rx="184.5" fill="none" stroke="rgba(255,255,255,0.10)" stroke-width="1.5"/>
+<g clip-path="url(#bclip)">
+<g transform="rotate(-6 512 520)">
+<g filter="url(#bsoft)"><path d="M322 236 H632 L712 316 V800 H322 Z" fill="url(#bpaper)"/></g>
+<path d="M632 236 V316 H712 Z" fill="#d9d4c7"/>
+<line x1="382" y1="372" x2="600" y2="372" stroke="#2a2a2c" stroke-width="26" stroke-linecap="round"/>
+<rect x="356" y="468" width="420" height="96" rx="6" fill="url(#bhl)"/>
+<line x1="382" y1="516" x2="652" y2="516" stroke="#2a2a2c" stroke-width="26" stroke-linecap="round" style="mix-blend-mode:multiply"/>
+<line x1="382" y1="660" x2="560" y2="660" stroke="#2a2a2c" stroke-width="26" stroke-linecap="round"/>
+</g></g></svg>

@@ -179,3 +179,12 @@ def test_unknown_answer_asks_again_and_no_window_stops():
     assert "while ($true)" in pick and "if ($word) { return $word }" in pick
     assert "throw 'Could not ask which AI you use." in pick
     assert "Set-Content -Path (Join-Path $Dir '.data\\ai') -Value $Ai" in body
+
+
+def test_windows_shortcut_has_brand_icon_and_starts_minimized():
+    # VS Code's icon on the Desktop read as "VS Code", not Job Finder; console covered the screen
+    script = (INSTALL / "install-windows.ps1").read_text(encoding="utf-8")
+    assert "$link.IconLocation = (Join-Path $Dir 'app\\install\\icon.ico') + ',0'" in script
+    assert re.search(r"^\s*\$link\.WindowStyle = 7$", script, re.M)
+    assert "Code.exe" not in script
+    assert (INSTALL / "icon.ico").exists()

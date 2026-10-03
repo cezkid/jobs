@@ -10,6 +10,7 @@ from pathlib import Path
 from urllib.parse import unquote, urlparse
 from urllib.request import url2pathname
 
+import autorun
 import cfg
 import notify
 
@@ -32,6 +33,10 @@ START_PAGE_DELAY_S = 6
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
 MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
 OLD_MAC_ICON = Path.home() / "Desktop" / f"{cfg.NAME}.command"
+MAC_APP_ICON = Path.home() / "Desktop" / f"{cfg.NAME}.app"
+MAC_ICON = cfg.APP / "install" / "icon.icns"
+WINDOWS_ICON = cfg.APP / "install" / "icon.ico"
+WINDOWS_ICON_DONE = cfg.DATA / "desktop-icon-refreshed"
 
 def has_claude(extensions: Path = VSCODE_EXTENSIONS) -> bool:
     return has_extension(CLAUDE_EXTENSION, extensions)
@@ -143,11 +148,39 @@ def register_protocol() -> None:
         winreg.SetValueEx(k, "", 0, winreg.REG_SZ, f'"{WINDOWS_LAUNCHER}"')
 
 
-def ensure_mac_icon(old: Path = OLD_MAC_ICON) -> None:
+def ensure_mac_icon(old: Path = OLD_MAC_ICON, app: Path = MAC_APP_ICON) -> None:
     # installs before 2026-09-26 got a .command icon: its Terminal window stays open after VS
-    # Code is up. Swapped once for the app icon; this launch's window still shows, later ones don't
-    if old.exists():
-        subprocess.run(["bash", str(MAC_ICON_MAKER)], check=False, capture_output=True)
+    # Code is up. Swapped once for the app icon; this launch's window still shows, later ones don't.
+    # App icons before 2026-10-03 show the generic script picture => brand icon swapped in once
+    # (maker edits in place: the icon keeps its spot on the Desktop)
+    current = app / "Contents" / "Resources" / "applet.icns"
+    stale = app.exists() and (not current.exists() or current.read_bytes() != MAC_ICON.read_bytes())
+    if old.exists() or stale:
+        subprocess.run(["bash", str(MAC_ICON_MAKER), str(app)], check=False, capture_output=True)
+
+
+def windows_shortcut_script(launcher: Path = WINDOWS_LAUNCHER, icon: Path = WINDOWS_ICON) -> str:
+    launcher, icon = (str(v).replace("'", "''") for v in (launcher, icon))
+    # missing shortcut stays missing; one aimed elsewhere (another copy) is not ours
+    return f"""$ErrorActionPreference = 'Stop'
+$p = Join-Path ([Environment]::GetFolderPath('Desktop')) '{cfg.NAME}.lnk'
+if (-not (Test-Path -LiteralPath $p)) {{ exit 0 }}
+$l = (New-Object -ComObject WScript.Shell).CreateShortcut($p)
+if ($l.TargetPath -ne '{launcher}') {{ exit 0 }}
+$l.IconLocation = '{icon},0'
+$l.WindowStyle = 7
+$l.Save()
+"""
+
+
+def ensure_windows_icon(done: Path = WINDOWS_ICON_DONE, run=autorun.powershell) -> None:
+    # installs before 2026-10-03 got VS Code's icon + a console window over the screen during
+    # launch. Shortcut re-pointed once (brand icon, minimized); hidden powershell, never a 2nd icon
+    if done.exists():
+        return
+    if run(windows_shortcut_script()).returncode == 0:
+        done.parent.mkdir(parents=True, exist_ok=True)
+        done.write_text("")
 
 
 def claude_project_keys(folder: Path) -> list[str]:
@@ -238,6 +271,7 @@ def file_jobs(config: dict) -> None:
 def main() -> None:
     if sys.platform == "win32":
         register_protocol()
+        ensure_windows_icon()
     if sys.platform == "darwin":
         ensure_mac_icon()
     # before VS Code opens => file list shows the private folders even on a brand-new install
