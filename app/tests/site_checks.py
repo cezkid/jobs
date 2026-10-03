@@ -311,12 +311,15 @@ def colour(value: str, scheme: dict[str, str]) -> list[str]:
 
 
 def contrasts(raw: str) -> list[str]:
-    """Token pairs under the minimum, light + dark, incl. the focus ring on desk + white sheet; empty = fine."""
+    """Token pairs under the minimum, light + dark, incl. the focus ring on desk + white sheet and the ink selection; empty = fine."""
     css = shared(raw)
     problems = []
     rings = [d for sel, d in re.findall(r"([^{}]*:focus-visible[^{}]*)\{([^}]*)\}", css)]
     if not rings:
         problems.append("shared CSS: no :focus-visible rule")
+    selections = [d for sel, d in re.findall(r"([^{}]*::selection[^{}]*)\{([^}]*)\}", css)]
+    if not selections:
+        problems.append("shared CSS: no ::selection rule")
     for mode, scheme in tokens(css).items():
         for pairs, least in (TEXT_PAIRS, TEXT_MIN), (NON_TEXT_PAIRS, NON_TEXT_MIN):
             for fg, bg in pairs:
@@ -332,6 +335,14 @@ def contrasts(raw: str) -> list[str]:
             best = max((contrast(c, colour(scheme[bg], scheme)[0]) for c in ring), default=0)
             if best < NON_TEXT_MIN:
                 problems.append(f"{mode}: focus ring on {bg} {best:.2f}:1 < {NON_TEXT_MIN}:1")
+        # selection in ink, never the highlighter: yellow means "marked by the app"
+        for d in selections:
+            fg = colour(" ".join(re.findall(r"(?<![-\w])color\s*:\s*([^;]+)", d)), scheme)
+            bg = colour(" ".join(re.findall(r"background(?:-color)?\s*:\s*([^;]+)", d)), scheme)
+            if colour(scheme.get("--mark", ""), scheme)[0].lower() in {c.lower() for c in fg + bg}:
+                problems.append(f"{mode}: ::selection paints the highlighter")
+            elif fg and bg and contrast(fg[0], bg[0]) < TEXT_MIN:
+                problems.append(f"{mode}: ::selection {contrast(fg[0], bg[0]):.2f}:1 < {TEXT_MIN}:1")
     return problems
 
 

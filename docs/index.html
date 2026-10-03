@@ -82,6 +82,18 @@
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
+  /* selection in ink, never yellow: the highlighter means "marked by the app" */
+  ::selection { background: var(--text); color: var(--desk); }
+  /* forced colours drop the gradient: system mark colours keep the words marked */
+  @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
+  /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */
+  summary { list-style: none; position: relative; padding-right: 40px; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before, summary::after {
+    content: ""; position: absolute; right: 6px; top: 50%; width: 16px; margin-top: -1px; border-top: 2px solid currentColor;
+  }
+  summary::after { transform: rotate(90deg); }
+  details[open] > summary::after { transform: none; }
   /* 12 columns for composed pages; .wrap = the same outer box w/o columns (generated pages) */
   .grid {
     display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
@@ -111,6 +123,15 @@
   }
   /* under 360px (320px phones) the links may drop below the brand */
   @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
+  /* print: ink on white in either scheme (body, not :root: the token table reads :root), no nav */
+  @media print {
+    body { --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule); font-size: 11pt; }
+    .skip, .links { display: none; }
+    mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h1, h2, h3, summary { break-after: avoid; }
+    figure, li, details, pre { break-inside: avoid; }
+    footer .row { padding-bottom: 0; }
+  }
   /* /shared */
 
   .hero { display: grid; gap: 40px; padding: 24px 0 56px; }
@@ -192,8 +213,6 @@
   .posting { margin: 10px 0 0; padding-left: 10px; border-left: 2px solid var(--rule); }
   .posting .from { color: var(--ink-2); font-size: 0.8125rem; }
   figure mark { white-space: nowrap; }
-  /* forced colours drop the gradient: system mark colours keep the words marked */
-  @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
   .viewer { padding: 16px 16px 14px; background: #ececec; }
   .sheet { padding: 16px 18px 14px; background: var(--paper); border: 1px solid var(--rule); font-size: 0.875rem; line-height: 1.45; }
   .sheet p { margin: 0; }
@@ -231,9 +250,15 @@
   .more li { margin: 0 0 6px; }
   details { border-bottom: 1px solid var(--line); }
   details:first-of-type { border-top: 1px solid var(--line); }
-  summary { cursor: pointer; padding: 12px 0; font-weight: 700; }
+  summary { padding: 12px 40px 12px 0; font-weight: 700; }
   details > div { padding: 0 0 16px; }
   details code { font: 1rem/1.5 var(--mono); overflow-wrap: anywhere; }
+
+  /* print: the desktop install steps (the line itself), no buttons */
+  @media print {
+    html.is-phone .desktop, .desktop { display: block; }
+    .phone, #copy, .switch { display: none !important; }
+  }
 
   @media (max-width: 600px) {
     .hero { padding-top: 8px; }

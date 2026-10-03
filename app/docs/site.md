@@ -143,6 +143,13 @@ questions, install). Real behaviour only: employers, titles, dates never change;
   => not tested. Focus ring two-tone (outline `--text` + spread-only `box-shadow` `--desk`): a
   near-white ring alone vanished on a white sheet in dark mode (1.12:1, measured); the desk band
   keeps it 3:1+ on desk and sheet. Spread-only shadow = a ring, not a depth shadow.
+  `::selection` = `--text` on `--desk` (ink, inverted); the check fails it if it paints `--mark`
+  or drops under 4.5:1.
+- Shared block also carries: `<details>` +/- drawn as two `border-top` bars (U+2212 is not in
+  the subset; borders survive forced colours, backgrounds don't); forced colours = `<mark>` in
+  `Mark`/`MarkText`; print = ink on white in either scheme (tokens reset on `body`, not `:root`,
+  so the token table stays one source), no skip link or nav, marks printed (`print-color-adjust`).
+  Home print adds the desktop install steps, no buttons: 3 Letter pages (cap 5).
 - One family: Caladea (= resume typeface), Latin subset 400 + 700 preloaded (~19 KB each), name
   table kept (licence); metric-matched fallbacks (Cambria, Georgia w/ size-adjust; Georgia Italic
   for the italic) so the swap moves nothing. Italic 400 (13.7 KB, unhinted: 20.7 hinted) never
