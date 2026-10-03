@@ -58,7 +58,8 @@
     font: 20px/1.55 var(--serif); -webkit-text-size-adjust: 100%;
   }
   a { color: var(--text); text-decoration: underline; text-underline-offset: 0.15em; }
-  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+  /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
+  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
   .wrap { max-width: 1200px; margin: 0 auto; padding: 0 32px; }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }

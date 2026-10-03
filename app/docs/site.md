@@ -105,14 +105,115 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 
 ## Look
 
-- Ink on paper, like the resume it makes: tokens in one `:root` block - paper #fff, ink #000,
-  ink-2 #3a3a3a, highlighter #ffe433 only on marks + Copy button; dark mode changes the desk,
-  the sample sheet stays white paper.
-- One family: Caladea (= resume typeface), Latin subset 400 + 700 (~18 KB each), name table kept
-  (licence); metric-matched fallbacks (Cambria, Georgia w/ size-adjust) so the swap moves nothing.
-  System mono for the command only.
-- One motion moment: highlighter sweep on the sample sheet + Copy click. Only under
-  `prefers-reduced-motion: no-preference`; marks visible w/o it.
+Concept: "A morning with Job Finder" - the paper objects the app really makes, told as one
+morning (hero app window, the resume corrected, applications filled, who sees what, research,
+questions, install). Real behaviour only: employers, titles, dates never change; you approve every line.
+
+- Ink on paper, like the resume it makes. Highlighter yellow only on marks + the Copy button (the
+  one filled yellow control). No shadows: depth = an offset second sheet. Dark mode changes the
+  desk; sheets stay white paper, marks keep black text.
+- Tokens: one `:root` block in the shared CSS (+ one dark-scheme override); this table = that
+  block (`test_site_md_tokens_table_is_the_shared_root`). Desk tokens (`--desk`, `--text*`,
+  `--line`) follow the scheme; paper tokens never do.
+
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--paper` | `#ffffff` | same | sheets, the app window |
+| `--ink` | `#000000` | same | text + rules on paper, text on marks |
+| `--ink-2` | `#3a3a3a` | same | secondary text on paper |
+| `--mark` | `#ffe433` | same | highlighter: marks + Copy only |
+| `--desk` | `#ffffff` | `#1c1c1e` | page background |
+| `--text` | `#000000` | `#f2f2f2` | text, links, control borders, focus ring on the desk |
+| `--text-2` | `#3a3a3a` | `#bdbdbd` | secondary text on the desk |
+| `--line` | `#c8c8c8` | `#48484a` | hairlines between sections (decorative) |
+| `--serif` | `"Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif` | same | all text |
+| `--mono` | `ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace` | same | the install command only |
+
+- Contrast tested statically per scheme (`site_checks.contrasts`): text pairs 4.5:1, control
+  borders + focus ring 3:1 (WCAG 1.4.3, 1.4.11). Hairlines + the yellow itself carry no meaning
+  => not tested. Focus ring two-tone (outline `--text` + spread-only `box-shadow` `--desk`): a
+  near-white ring alone vanished on a white sheet in dark mode (1.12:1, measured); the desk band
+  keeps it 3:1+ on desk and sheet. Spread-only shadow = a ring, not a depth shadow.
+- One family: Caladea (= resume typeface), Latin subset 400 + 700 preloaded (~18 KB each), name
+  table kept (licence); metric-matched fallbacks (Cambria, Georgia w/ size-adjust) so the swap
+  moves nothing. Italic 400 never preloaded, never in the first viewport. System mono for the
+  command only.
+- Sizes in rem + vw (text zoom, WCAG 1.4.4); body measure <= 68ch; `text-wrap: balance` on
+  headings, `pretty` on body.
+- Kept: literal h1 ("A free job-search app for your Windows or Mac computer." - answers "is this
+  a website?"); OS-matched app window; no eyebrows, no middle-dot strings, no highlighted word in a
+  headline; placeholders generic ("Your Name", no real company or person).
+- Scenes: at most one framed object per viewport; marks visible by default; selection, hover +
+  focus in ink (never yellow); an illustrated Submit = ink w/ an ink circle (never a 2nd yellow
+  control); no clickable control inside an illustration.
+- `<symbol>` + `<use>` on the home page only; shared marks are CSS only (generated pages copy the
+  shared block, not the home page's SVG).
+
+## Motion
+
+Native CSS only - no animation library, no 3D, no WebGL. Text never waits for motion.
+
+- Opening moment (the one unprompted motion): hero window only, CSS `@keyframes`, <= 2.8 s, once
+  per session, skipped after a view transition; never loops; LCP element outside it; hero
+  objects opaque from first paint (may shift <= 12px; only marks draw).
+- Scenes: scroll-driven (`animation-timeline: view()`) as the single path, inside `@supports` +
+  `prefers-reduced-motion: no-preference`. No scroll timelines (Firefox) => finished state. Only
+  circles, checks + small object shifts animate; text opacity 1 at every scroll position; start +
+  end layout boxes identical.
+- Copy click: sweep on the command line + "Copied". Page change: cross-document View Transition
+  crossfade, header keeps its `view-transition-name`, no-preference only.
+- Animated properties only `transform`, `opacity`, `clip-path`, `stroke-dashoffset` (SVG circle /
+  check), `background-size` (wrapping marks + Copy line): compositor-cheap or small paints; any
+  other property relayouts or repaints big areas every frame (test fails `@keyframes` +
+  `transition` outside the list, `transition: all` too). <= 3 paint animations at once.
+- No `will-change` (test): a layer per element for the page's life costs memory on phones; the
+  browser promotes during an animation anyway. `overflow: clip`, never `hidden` (hidden makes a
+  scroll container, breaking `view()` timelines + sticky).
+- Reduced motion: `animation: none; transition: none !important` (never `.01ms`: still fires
+  events + a frame of motion). Marks finished, nothing hidden.
+- Never: preloader, "scroll to begin", content shown only after an animation, scroll-jacking,
+  smooth-scroll libraries, custom cursor, looping or autoplay motion, motion before LCP.
+
+## Budgets
+
+Speed is a design material: Lighthouse 100 kept. Static budgets = tests (`site_checks.budgets`,
+every page, each rule w/ a fixture that trips it, `test_each_budget_rule_trips_on_its_fixture`);
+KB = 1000 bytes.
+
+| Budget | Max | At redesign start | Why |
+|---|---|---|---|
+| HTML, gzip | 25 KB | 7.5 KB | phone LCP on a slow line is mostly HTML + fonts |
+| Inline JS (raw, JSON-LD aside) | 5 KB | 2.9 KB | main thread free for the first tap |
+| Elements in `<body>` | 800 | 162 | style + layout cost per frame of scroll motion |
+| First load: gzip HTML + every `@font-face` woff2 + `icon.svg` | 100 KB | ~45 KB | colophon promises "under 100 KB" |
+| Critical requests: HTML + preloads + stylesheets + icon | 5 | 4 | each one a round trip before first paint |
+
+- No `<script src>`: an extra request + a parser block; all JS inline.
+- Every `<use href="#x">` target on the page: a missing symbol draws nothing, silently.
+- Header + footer hold no `<title>`, `<style>` or `id`: copied to every page (an id twice, a 2nd title).
+- At most one inline script names `LINES`: tests read the install line from the one that does.
+- Browser checks (`uv run app/web/qa.py`): Copy above the fold at 1366x641 (gate) + 1280x593
+  (report); phone 320-390, 768, 1366, 1440, 1920 widths; page length <= 8 screens at 1366x641;
+  reduced motion = 0 animations + marks finished; no JS = all text + the Windows line; text
+  opacity 1 at every scroll step; layout equal reduced vs full motion; forced colours; print; 0
+  console errors; webkit + firefox.
+- Perf (`qa.py --perf`, median of 3 vs a frozen copy of the pre-redesign site): phone LCP <= 1.5 s
+  + <= baseline + 0.3 s; desktop LCP <= 0.5 s; CLS <= 0.01; long frames during scroll <= baseline
+  max + 50 ms and < 250 ms; click -> next paint <= 100 ms; Copy -> "Copied" <= 150 ms. Idle frame
+  interval > 18 ms = invalid run (busy machine), not a failure.
+- Lighthouse (`qa.py --lighthouse`, pinned version, gzip server): Accessibility + Best Practices
+  100 every run; Performance median of 3 = 100 desktop, >= 99 phone.
+
+## Judging
+
+Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 2026-10-03).
+
+- No model scores its own work: a model rates what it made high, whatever it is.
+- Mechanical checks first (tests, qa.py); then pairwise yes/no comparisons that name something
+  checkable - new vs the frozen pre-redesign site, new vs reference winners without WebGL
+  (mosbyfiles.com, seasoned.koto.studio, stateofaidesign.com, adaline.ai, exat.hottype.co).
+- Owner = outside judge: two reviews, one batch of fixes, one confirming look, then stop -
+  endless polish rounds drift.
 
 ## Rules + why
 

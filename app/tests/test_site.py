@@ -7,6 +7,7 @@ files on disk: no network, stdlib + pymupdf. Assets come from app/web/assets.py 
 
 import importlib.util
 import json
+import random
 import re
 import struct
 import subprocess
@@ -22,7 +23,8 @@ if not (cfg.ROOT / ".git").exists():
 
 import pymupdf  # noqa: E402
 
-from site_checks import Head, files, loaded_urls, own_url, png_size, structured_data, target  # noqa: E402
+from site_checks import (Head, budgets, contrasts, files, loaded_urls, own_url, png_size, shared,  # noqa: E402
+                         structured_data, target, token_table, tokens)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -257,3 +259,95 @@ def test_generated_files_are_fresh():
     pages = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(pages)
     assert pages.problems(cfg.ROOT) == [], "run: uv run app/web/pages.py"
+
+
+def test_every_page_fits_the_budgets():
+    # speed is the brief (Lighthouse 100): size, requests + motion caps checked w/o a browser (site.md#budgets)
+    assert [p for name in PAGES for p in budgets(DOCS, name)] == []
+
+
+def test_shared_colours_meet_contrast_in_both_schemes():
+    # text 4.5:1, controls + focus ring 3:1 (WCAG 1.4.3, 1.4.11); ring also on a white sheet in dark mode
+    assert contrasts((DOCS / "index.html").read_text(encoding="utf-8")) == []
+
+
+def test_site_md_tokens_table_is_the_shared_root():
+    # site.md lists every token: one edited w/o the other => the doc lies about the colours
+    css = shared((DOCS / "index.html").read_text(encoding="utf-8"))
+    doc = (cfg.APP / "docs" / "site.md").read_text(encoding="utf-8")
+    assert token_table(doc) == tokens(css)
+
+
+PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>
+  /* shared */
+  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; }}
+  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; }} }}
+  :focus-visible {{ outline: 3px solid var(--text); box-shadow: 0 0 0 3px var(--desk); }}
+  {css}
+  /* /shared */
+</style></head><body><header><a href="/">x</a>{header}</header><main>{body}</main><footer>{footer}</footer>{scripts}</body></html>"""
+
+
+def fixture(tmp_path, **parts) -> str:
+    """A one-page docs/ in tmp_path: PAGE w/ the given parts filled in; returns the page name."""
+    fields = dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), "") | parts
+    (tmp_path / "index.html").write_text(PAGE.format(**fields), encoding="utf-8")
+    return "index.html"
+
+
+def test_budget_fixture_passes_clean(tmp_path):
+    assert budgets(tmp_path, fixture(tmp_path)) == []
+    assert contrasts((tmp_path / "index.html").read_text(encoding="utf-8")) == []
+
+
+NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entropy: gzip stays over 25 KB
+
+
+@pytest.mark.parametrize("parts, files, trips", [
+    ({"body": f"<p>{NOISE}</p>"}, {}, "gzip >"),
+    ({"scripts": f"<script>{'x' * 5001}</script>"}, {}, "inline JS"),
+    ({"body": "<i></i>" * 801}, {}, "elements in <body>"),
+    ({"css": '@font-face { font-family: "X"; src: url("/fonts/big.woff2") format("woff2"); }'},
+     {"fonts/big.woff2": 101_000}, "first load"),
+    ({"head": '<link rel="preload" href="/a.woff2" as="font" crossorigin>' * 5}, {}, "critical requests"),
+    ({"scripts": '<script src="/app.js"></script>'}, {}, "<script src="),
+    ({"css": ".x { will-change: transform; }"}, {}, "will-change"),
+    ({"css": "@keyframes grow { from { width: 0; } to { width: 10px; } }"}, {}, "animates width"),
+    ({"css": ".x { transition: opacity .2s, height .2s; }"}, {}, "animates height"),
+    ({"css": ".x { transition: all .2s; }"}, {}, "animates all"),
+    ({"body": '<svg><use href="#gone"></use></svg>'}, {}, "has no target"),
+    ({"header": '<a id="brand" href="/">x</a>'}, {}, "<header> holds ['id']"),
+    ({"footer": "<style>p{}</style>"}, {}, "<footer> holds ['style']"),
+    ({"scripts": "<script>const LINES = 1;</script><script>// LINES</script>"}, {}, "names LINES"),
+], ids=["html-gzip", "inline-js", "elements", "first-load", "critical", "script-src", "will-change",
+        "keyframes", "transition", "transition-all", "use-target", "header-id", "footer-style", "lines-twice"])
+def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
+    for rel, size in files.items():
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / rel).write_bytes(b"\0" * size)
+    found = budgets(tmp_path, fixture(tmp_path, **parts))
+    assert any(trips in p for p in found), found
+
+
+@pytest.mark.parametrize("old, new, trips", [
+    ("--text-2: #3a3a3a; }}", "--text-2: #999999; }}", "light: --text-2 on --desk"),
+    ("--text-2: #bdbdbd;", "--text-2: #555555;", "dark: --text-2 on --desk"),
+    ("--mark: #ffe433;", "--mark: #333333;", "--ink on --mark"),
+    (" box-shadow: 0 0 0 3px var(--desk);", "", "dark: focus ring on --paper"),
+    (":focus-visible", ":focus", "no :focus-visible rule"),
+], ids=["text-light", "text-dark", "mark", "ring-on-sheet-dark", "no-ring"])
+def test_each_contrast_rule_trips_on_its_fixture(tmp_path, old, new, trips):
+    template = PAGE.format(**dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), ""))
+    old, new = old.replace("}}", "}"), new.replace("}}", "}")
+    assert old in template
+    found = contrasts(template.replace(old, new, 1))
+    assert any(trips in p for p in found), found
+
+
+def test_token_table_check_trips_on_a_stale_row():
+    css = shared(PAGE.format(**dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), "")))
+    rows = "".join(f"| `{k}` | `{v}` | {'same' if tokens(css)['dark'][k] == v else '`' + tokens(css)['dark'][k] + '`'} | x |\n"
+                   for k, v in tokens(css)["light"].items())
+    table = "| Token | Light | Dark | Use |\n|---|---|---|---|\n" + rows
+    assert token_table(table) == tokens(css)
+    assert token_table(table.replace("`#3a3a3a` | `#bdbdbd`", "`#3a3a3a` | same", 1)) != tokens(css)
