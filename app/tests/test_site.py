@@ -76,6 +76,17 @@ def test_indexed_pages_share_one_url_and_fit_search_and_share_limits():
         assert image.stat().st_size < 300_000, name  # WhatsApp skips share images over ~300 KB
 
 
+def test_share_cards_fit_every_app_and_each_has_its_source():
+    # og.png (home) + og-research.png (research pages, before any is published); assets.py renders
+    # each from app/web/<name>.html
+    cards = sorted(n for n in FILES if re.fullmatch(r"og(-[a-z]+)?\.png", n))
+    assert cards == ["og-research.png", "og.png"]
+    for name in cards:
+        assert png_size(DOCS / name) == (1200, 630), name
+        assert (DOCS / name).stat().st_size < 300_000, name  # WhatsApp skips share images over ~300 KB
+        assert (cfg.ROOT / "app" / "web" / name.replace(".png", ".html")).is_file(), name
+
+
 def test_each_indexed_page_is_its_own_canonical_and_the_rest_stay_out_of_search():
     # canonical pointing elsewhere => search drops this page for that one
     assert INDEXED["index.html"] == SITE and "404.html" not in INDEXED

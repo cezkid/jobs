@@ -3,7 +3,8 @@
 Sources: app/web/research/<slug>.md - a YAML header between --- lines (KEYS only), then Markdown.
 <slug>.md -> /research/<slug>/, methods.md -> /research/methods/, about.md -> /about/, index.md =
 hub intro. status: draft => not built. Shared CSS, header, footer, icon + font links and og:image
-are copied from docs/index.html, so every page stays the same as the home page.
+size are copied from docs/index.html, so every page stays the same as the home page; the share
+card itself is CARD (docs/og-research.png).
 
 Hand-written pages (index.html, privacy.html, 404.html) stay as they are; this script reads them
 for the sitemap. Everything it writes is generated and committed - never hand-edit those files;
@@ -49,6 +50,11 @@ REGISTRY = SOURCES / "sources.yml"
 REVIEWS = SOURCES / "reviews"
 AUTHOR = "Cesar Enrriquez-Zuniga"
 SAME_AS = ["https://github.com/cezkid"]  # the author's other profiles (ProfilePage sameAs)
+# every generated page's share card: docs/og-research.png from app/web/og-research.html
+# (uv run app/web/assets.py --only og); changed => bump ?v=N here. Per-article cards: later.
+CARD = "og-research.png"
+CARD_ALT = ("CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim"
+            " marked in yellow, linked to its list of sources.")
 REPO = "https://github.com/cezkid/jobs/blob/main/"
 KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited"}
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
@@ -696,16 +702,20 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
 
 
 def home_parts(root: Path) -> dict[str, str]:
-    """What every generated page copies from docs/index.html: shared CSS, header, footer, head links, og:image."""
+    """What every generated page copies from docs/index.html: shared CSS, header, footer, head links,
+    og:image size + type lines (image + alt swapped for CARD)."""
     text = (root / "docs" / "index.html").read_text(encoding="utf-8")
     links = re.findall(r'^<link rel="(?:icon|apple-touch-icon|manifest|preload)".*$', text, re.M)
+    alt = escape(CARD_ALT)
+    og = re.sub(r'^(<meta property="og:image" content=")[^"]*', rf"\g<1>{site(root)}{CARD}", text, flags=re.M)
+    og = re.sub(r'^(<meta (?:property="og|name="twitter):image:alt" content=")[^"]*', rf"\g<1>{alt}", og, flags=re.M)
     return {
         "css": re.search(r"  /\* shared \*/.*?/\* /shared \*/", text, re.S).group(0),
         "header": re.search(r"<header\b.*?</header>", text, re.S).group(0),
         "footer": re.search(r"<footer\b.*?</footer>", text, re.S).group(0),
         "links": "\n".join(links),
-        "og": "\n".join(re.findall(r'^<meta property="og:image.*$', text, re.M)),
-        "twitter": "\n".join(re.findall(r'^<meta name="twitter:.*$', text, re.M)),
+        "og": "\n".join(re.findall(r'^<meta property="og:image.*$', og, re.M)),
+        "twitter": "\n".join(re.findall(r'^<meta name="twitter:.*$', og, re.M)),
     }
 
 

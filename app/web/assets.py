@@ -6,12 +6,13 @@
 
 Makes: docs/fonts/caladea-{regular,bold}.woff2 + OFL.txt (Latin subset of the resume font),
 docs/icon-192.png, icon-512.png, apple-touch-icon.png, icon-maskable-512.png and favicon.ico
-(all rendered from docs/icon.svg), and the share image docs/og.png (from app/web/og.html).
+(all rendered from docs/icon.svg), and the share images docs/og.png (from app/web/og.html) and
+docs/og-research.png (from app/web/og-research.html).
 
 Everything it writes in docs/ is generated and committed - never hand-edit those files; change
-this script, docs/icon.svg or app/web/og.html and rerun. docs/icon.svg itself is hand-drawn.
+this script, docs/icon.svg or app/web/og*.html and rerun. docs/icon.svg itself is hand-drawn.
 
-Share image changed => bump og.png?v=N in every page's og:image (LinkedIn caches a preview ~7
+Share image changed => bump its ?v=N in every page's og:image (LinkedIn caches a preview ~7
 days, keyed by URL).
 
 Run from repo root: uv run app/web/assets.py [--only fonts|icons|og]
@@ -28,8 +29,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 CALADEA = ROOT / "app" / "resume" / "fonts" / "Caladea"
-OG_HTML = ROOT / "app" / "web" / "og.html"
-OG_PNG = DOCS / "og.png"
+WEB = ROOT / "app" / "web"
+CARDS = [(WEB / "og.html", DOCS / "og.png"), (WEB / "og-research.html", DOCS / "og-research.png")]
 GEORGIA = Path("/System/Library/Fonts/Supplemental/Georgia.ttf")
 
 UNICODES = [
@@ -150,8 +151,24 @@ def icons(qa=None):
             (qa / f"icon-{s}.png").write_bytes(png)
 
 
-def og():
-    """docs/og.png (1200x630) from app/web/og.html, fonts inlined: Chrome blocks file:// fonts."""
+# Fails the render when anything leaves the 1200x630 card or lands in its bottom 90px (X lays
+# its headline there), or when a box w/ overflow hidden clips its content: either would cut text off silently.
+OVERFLOW_JS = """() => {
+  const bad = [];
+  for (const el of document.body.querySelectorAll("*")) {
+    const r = el.getBoundingClientRect();
+    if (!r.width && !r.height) continue;
+    const cls = el.getAttribute("class"), name = el.tagName.toLowerCase() + (cls ? "." + cls : "");
+    if (r.left < 0 || r.top < 0 || r.right > 1200 || r.bottom > 630 - 90) bad.push(`${name} at ${[r.left, r.top, r.right, r.bottom].map(Math.round)}`);
+    else if (getComputedStyle(el).overflow !== "visible" && (el.scrollWidth > el.clientWidth + 1 || el.scrollHeight > el.clientHeight + 1)) bad.push(`${name} clips its content`);
+  }
+  return bad;
+}"""
+
+
+def render_card(template, out):
+    """One share card: template (HTML, fonts inlined - Chrome blocks file:// fonts) -> out PNG,
+    1200x630 exactly, clipped; fails on unloaded fonts or overflow (OVERFLOW_JS)."""
     import re
     from playwright.sync_api import sync_playwright
 
@@ -159,27 +176,38 @@ def og():
         b64 = base64.b64encode((DOCS / "fonts" / m[1]).read_bytes()).decode()
         return f'url("data:font/woff2;base64,{b64}")'
 
-    html, n = re.subn(r'url\("/fonts/([\w.-]+\.woff2)"\)', inline, OG_HTML.read_text())
+    name = template.name
+    html, n = re.subn(r'url\("/fonts/([\w.-]+\.woff2)"\)', inline, template.read_text(encoding="utf-8"))
     if not n:
-        raise SystemExit("og: no /fonts/*.woff2 url() in og.html to inline")
+        raise SystemExit(f"og: no /fonts/*.woff2 url() in {name} to inline")
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
-        page = browser.new_page(
-            viewport={"width": 1200, "height": 630}, device_scale_factor=1, color_scheme="light"
-        )
-        page.set_content(html)
-        page.evaluate("document.fonts.ready")
-        faces = page.evaluate(
-            "[...document.fonts].map(f => `${f.family} ${f.weight}: ${f.status}`)"
-        )
-        bad = [f for f in faces if not f.endswith(": loaded")]
-        if not faces or bad:
+        try:
+            page = browser.new_page(
+                viewport={"width": 1200, "height": 630}, device_scale_factor=1, color_scheme="light"
+            )
+            page.set_content(html)
+            page.evaluate("document.fonts.ready")
+            faces = page.evaluate(
+                "[...document.fonts].map(f => `${f.family} ${f.weight}: ${f.status}`)"
+            )
+            bad = [f for f in faces if not f.endswith(": loaded")]
+            if not faces or bad:
+                raise SystemExit(f"og: {name}: font faces not loaded: {bad or 'none declared'}")
+            overflow = page.evaluate(OVERFLOW_JS)
+            if overflow:
+                raise SystemExit(f"og: {name}: outside the card or its bottom 90px: " + "; ".join(overflow))
+            png = page.screenshot(clip={"x": 0, "y": 0, "width": 1200, "height": 630})
+        finally:
             browser.close()
-            raise SystemExit(f"og: font faces not loaded: {bad or 'none declared'}")
-        png = page.screenshot(full_page=True)
-        browser.close()
-    OG_PNG.write_bytes(png)
-    print(f"docs/og.png: {len(png) / 1024:.1f} KB ({', '.join(faces)})")
+    out.write_bytes(png)
+    print(f"docs/{out.name}: {len(png) / 1024:.1f} KB ({', '.join(faces)})")
+
+
+def og():
+    """docs/og.png (home) + docs/og-research.png (research + about pages), 1200x630 each."""
+    for template, out in CARDS:
+        render_card(template, out)
 
 
 def main():

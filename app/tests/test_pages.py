@@ -248,7 +248,8 @@ def test_article_head_body_and_links(tmp_path):
     assert [a["href"] for a in head.links("canonical")] == [url] and head.meta("og:url") == url
     assert head.meta("og:type") == "article" and head.meta("og:title") == "Do resume robots reject most resumes?"
     assert head.meta("article:published_time") == "2026-09-01" and head.meta("article:modified_time") == "2026-09-20"
-    assert urlsplit(head.meta("og:image")).path == "/og.png"
+    assert urlsplit(head.meta("og:image")).path == "/og-research.png" == "/" + pages.CARD
+    assert head.meta("og:image:alt") == pages.CARD_ALT and head.meta("og:image:width") == "1200"
     # heading ids follow the same rule as links between the Markdown files
     ids = [a["id"] for t, a in head.tags if t in ("h2", "h3") and "id" in a]
     assert set(ids) - {"sources"} == anchors(folder / "ats-myth.md") == {"what-the-claim-says", "what-the-claim-says-again"}
@@ -280,7 +281,8 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
         assert len(head.text["title"][0]) <= 60 and len(head.meta("description")) <= 160, name
         for rel in "icon", "apple-touch-icon", "manifest", "preload":
             assert head.links(rel) == home.links(rel), (name, rel)
-        assert head.meta("og:image") == home.meta("og:image") and head.meta("twitter:card") == "summary_large_image"
+        assert head.meta("og:image") == "https://jobs.enrriquez.com/og-research.png" and head.meta("twitter:card") == "summary_large_image"
+        assert head.meta("og:image:alt") == head.meta("twitter:image:alt") == pages.CARD_ALT, name
         assert shared in text, name
         for tag in "header", "footer":
             assert re.findall(rf"<{tag}\b.*?</{tag}>", text, re.S) == re.findall(
@@ -654,7 +656,7 @@ def test_structured_data_and_sitemap_lastmod(tmp_path):
     ('"author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person"',
      '"author":{"@type":"Person","@id":"https://jobs.enrriquez.com/me"', "author @id"),
     ('"item":"https://jobs.enrriquez.com/research/"', '"item":"https://jobs.enrriquez.com/nope/"', "is not a page"),
-    ('"image":"https://jobs.enrriquez.com/og.png', '"image":"https://jobs.enrriquez.com/x.png', "image != og:image"),
+    ('"image":"https://jobs.enrriquez.com/og-research.png', '"image":"https://jobs.enrriquez.com/x.png', "image != og:image"),
     ("</script>", "</script>\n<script type=\"application/ld+json\">{}</script>", "2 JSON-LD blocks"),
 ])
 def test_structured_data_check_catches_breaks(tmp_path, old, new, problem):
