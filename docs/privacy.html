@@ -121,16 +121,37 @@
   }
   /* /shared */
 
-  main { padding: 24px 0 72px; }
+  /* the generated pages' editorial set (app/web/pages.py PAGE_CSS), trimmed to what this page uses */
+  /* main.wrap: .wrap's own padding shorthand would otherwise win and zero the top + bottom */
+  main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
   .page { max-width: 68ch; }
-  h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.1; font-weight: 700; margin: 0 0 12px; text-wrap: balance; }
-  h2 { font-size: 24px; line-height: 1.25; margin: 36px 0 12px; }
-  .meta { margin: 0 0 8px; color: var(--text-2); font-size: 17px; }
-  p { margin: 0 0 14px; }
-  ul { margin: 0 0 14px; padding-left: 1.1em; }
+  h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; font-weight: 700; margin: 0 0 16px; }
+  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.15; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
+  p { margin: 0 0 16px; }
+  ul { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
+  li::marker { color: var(--text-2); }
+  /* Short version: a ruled note (thick rule over), like an article's Short answer */
+  .short { margin: 0 0 8px; padding: 10px 0 6px 1.3em; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .short li::marker { color: var(--text); }
+  /* who sees what: a ledger - one row per recipient, item for item with the home page */
+  .ledger { width: 100%; border-collapse: collapse; margin: 0 0 16px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.45; }
+  .ledger th, .ledger td { text-align: left; vertical-align: top; padding: 12px 16px 13px 0; border-bottom: 1px solid var(--line); }
+  .ledger th:last-child, .ledger td:last-child { padding-right: 0; }
+  .ledger thead th { padding: 6px 16px 6px 0; border-bottom: 2px solid var(--text); color: var(--text-2); font-weight: 400; }
+  .ledger tbody th { width: 30%; font-size: var(--step-0); line-height: 1.3; }
+  .ledger .when { color: var(--text-2); }
   @media (max-width: 600px) {
-    main { padding-top: 8px; }
+    main.wrap { padding-top: 22px; }
+    h2 { margin-top: 36px; }
+    .ledger th, .ledger td { padding-right: 10px; }
+    .ledger tbody th { width: 28%; font-size: var(--step--1); }
+  }
+  @media print {
+    main.wrap { padding-top: 0; padding-bottom: 0; }
+    .page { max-width: none; }
+    .ledger tr { break-inside: avoid; }
   }
 </style>
 </head>
@@ -149,30 +170,35 @@
 <main id="main" class="wrap">
 <div class="page">
   <h1>Privacy</h1>
-  <p class="meta">Updated 2 October 2026</p>
+  <p class="meta">Updated 3 October 2026</p>
 
   <h2>Short version</h2>
-  <ul>
+  <ul class="short">
     <li>No account. No tracking. Nothing sent to us.</li>
     <li>Your resume, jobs and settings stay on your computer.</li>
   </ul>
 
-  <h2>What leaves your computer</h2>
-  <ul>
-    <li><strong>freehire.me</strong> - your search words, to find jobs; which job from your list you make a resume for or ask about, to get the whole posting or see if it's still open. Not your resume.</li>
-    <li><strong>Your AI (Claude, ChatGPT or GitHub Copilot)</strong> - your resume and what you tell it, on your own account.
-      Personal plans may train on chats unless you <a href="https://github.com/cezkid/jobs/blob/main/Guides/Keep%20your%20chats%20out%20of%20AI%20training.md">switch it off</a>.</li>
-    <li><strong>Employers</strong> - what you apply with, only when you click Save or Submit.</li>
-    <li><strong>Your email provider</strong> - only if you turn on email alerts; sent to yourself.</li>
-    <li><strong>The maintainer</strong> - only a program fix, only if you say yes. Never your files.</li>
-  </ul>
+  <h2 id="leaves">What leaves your computer</h2>
+  <table class="ledger" aria-labelledby="leaves">
+    <thead>
+      <tr><th scope="col">Who</th><th scope="col">What they get</th><th scope="col">When</th></tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">freehire.me</th><td>Your search words; which job from your list you make a resume for or ask about. Not your resume.</td><td class="when">To find jobs, get the whole posting, or see if it's still open.</td></tr>
+      <tr><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume and what you tell it, on your own account.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="https://github.com/cezkid/jobs/blob/main/Guides/Keep%20your%20chats%20out%20of%20AI%20training.md">switch it off</a>.</td></tr>
+      <tr><th scope="row">Employers</th><td>What you apply with.</td><td class="when">Only when you click Save or Submit.</td></tr>
+      <tr><th scope="row">Your email provider</th><td>The morning email, sent to yourself.</td><td class="when">Only if you turn on email alerts.</td></tr>
+      <tr><th scope="row">The maintainer</th><td>A fix to the program's code. Never your files.</td><td class="when">Only if you say yes.</td></tr>
+    </tbody>
+  </table>
+  <p>Nothing else from the app leaves your computer.</p>
 
   <h2>Other companies' rules apply</h2>
   <ul>
     <li><strong>Your AI's VS Code add-on</strong> follows that company's privacy policy.</li>
     <li><strong>VS Code</strong> (Microsoft) sends usage data by default. Turn off: Settings, search "telemetry".</li>
     <li><strong>Installing and updating</strong> downloads from GitHub, Microsoft and Astral. They see your IP address.</li>
-    <li><strong>This page</strong> is hosted by GitHub, which logs visits. We add no cookies, analytics or files from other sites.</li>
+    <li><strong>This site</strong> is hosted by GitHub, which logs visits. We add no cookies, analytics or files from other sites.</li>
   </ul>
 
   <h2>Delete everything</h2>

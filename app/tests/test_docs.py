@@ -115,12 +115,12 @@ RECIPIENT_PHRASES = (
 
 def test_who_sees_what_matches_privacy_page_item_for_item():
     """The home page's Who sees what scene lists every recipient privacy.html names, in the
-    same words, one ledger row per "What leaves your computer" item."""
+    same words, one ledger row per "What leaves your computer" table row."""
     home = (cfg.ROOT / "docs/index.html").read_text(encoding="utf-8")
     privacy = (cfg.ROOT / "docs/privacy.html").read_text(encoding="utf-8")
     missing = {page: [w for w in RECIPIENT_PHRASES if w not in _text(html)]
                for page, html in (("index", home), ("privacy", privacy))}
     assert missing == {"index": [], "privacy": []}
     ledger = re.search(r'<ol class="ledger">(.*?)</ol>', home, re.S).group(1)
-    leaves = re.search(r"What leaves your computer</h2>\s*<ul>(.*?)</ul>", privacy, re.S).group(1)
-    assert ledger.count("<li>") == leaves.count("<li>") == 5
+    leaves = re.search(r'What leaves your computer</h2>\s*<table class="ledger".*?<tbody>(.*?)</tbody>', privacy, re.S).group(1)
+    assert ledger.count("<li>") == leaves.count('<th scope="row">') == 5

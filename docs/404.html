@@ -107,17 +107,31 @@
   }
   /* /shared */
 
-  main { padding: 24px 0 72px; }
-  .page { max-width: 68ch; }
-  h1 { font-size: clamp(30px, 5vw, 52px); line-height: 1.1; font-weight: 700; margin: 0 0 12px; text-wrap: balance; }
-  h2 { font-size: 24px; line-height: 1.25; margin: 36px 0 12px; }
-  .meta { margin: 0 0 8px; color: var(--text-2); font-size: 17px; }
-  p { margin: 0 0 14px; }
-  ul { margin: 0 0 14px; padding-left: 1.1em; }
-  li { margin: 0 0 8px; }
-  @media (max-width: 600px) {
-    main { padding-top: 8px; }
+  /* main.wrap: .wrap's own padding shorthand would otherwise win and zero the top + bottom */
+  main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
+  /* the note beside a cut sheet: the page that was here has been cut away */
+  .lost { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px var(--gutter); align-items: center; max-width: 60rem; }
+  h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; font-weight: 700; margin: 0 0 16px; }
+  p { margin: 0 0 16px; max-width: 34rem; }
+  .go { font-size: var(--step-1); font-weight: 700; }
+  .cut { width: clamp(150px, 30vw, 230px); }
+  .cut svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .cut .sheet { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+  .cut .line { stroke: var(--rule); stroke-width: 6; stroke-linecap: round; }
+  .cut .head { stroke: var(--ink); }
+  .cut .dash { fill: none; stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 6 5; }
+  @media (min-width: 720px) {
+    .lost { grid-template-columns: minmax(0, 1fr) auto; }
   }
+  @media (max-width: 600px) {
+    main.wrap { padding-top: 22px; }
+    .lost .cut { order: -1; width: 130px; }
+  }
+  @media (forced-colors: active) {
+    .cut .sheet { fill: Canvas; stroke: CanvasText; }
+    .cut .line, .cut .head, .cut .dash { stroke: CanvasText; }
+  }
+  @media print { .cut { display: none; } }
 </style>
 </head>
 <body>
@@ -133,10 +147,25 @@
   </div>
 </header>
 <main id="main" class="wrap">
-<div class="page">
-  <h1>This page isn't here</h1>
-  <p>The link may be old or mistyped. Everything you need to install CEZ Job Finder is on one page.</p>
-  <p><a href="/">Go to the install page</a></p>
+<div class="lost">
+  <div>
+    <h1>This page isn't here</h1>
+    <p>The link may be old or mistyped. Everything you need to install CEZ Job Finder is on one page.</p>
+    <p><a class="go" href="/">Go to the install page</a></p>
+  </div>
+  <div class="cut" aria-hidden="true">
+    <svg viewBox="0 0 200 250" width="200" height="250" focusable="false">
+      <rect class="sheet" x="22" y="12" width="150" height="196"/>
+      <path class="sheet" d="M8 2H158V112H8Z"/>
+      <path class="line head" d="M26 26H96"/>
+      <path class="line" d="M26 48H138M26 64H130M26 80H138M26 96H104"/>
+      <path class="dash" d="M2 120H166"/>
+      <g transform="rotate(7 90 180)">
+        <path class="sheet" d="M14 136H164V230H14Z"/>
+        <path class="line" d="M32 154H144M32 170H126M32 186H144M32 202H98"/>
+      </g>
+    </svg>
+  </div>
 </div>
 </main>
 <footer>
