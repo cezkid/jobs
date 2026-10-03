@@ -109,6 +109,9 @@ def test_tenants_smartrecruiters_oneclick_link_and_generic_names():
     assert lab.tenants("https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=x", [], {"controls": []}) == []
     # Oracle: the path's first part is Oracle's own app on every employer (2026-10-03); the pod names the employer
     assert lab.tenants("https://acme.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX/job/1", [], {"controls": []}) == ["acme"]
+    # iCIMS: a "Login" title + a "Next" submit input are page chrome - they'd hit every "next" in the code
+    snap = {"controls": [{"control": "input", "type": "submit", "value": "Next"}]}
+    assert lab.tenants("https://careers-acme.icims.com/jobs/1/x/login", ["Login", "Loading..."], snap) == ["careers-acme"]
 
 
 def test_measure_never_uses_the_application_window():

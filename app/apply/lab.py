@@ -67,6 +67,9 @@ GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board"
            "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday",
            "ultipro", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
            "en-us", "en_us", "en", "us", "com", "net", "org", "io", "co"}
+# page chrome, not a name: iCIMS start box titles "Login", its submit input's value is "Next" (2026-10-03)
+# - in tenants.txt they hit every "next" in the code
+CHROME = {"login", "log in", "sign in", "loading...", "loading", "next", "continue", "submit", "apply", "search"}
 
 
 class Refused(Exception):
@@ -351,8 +354,9 @@ def tenants(url: str, names: list[str], snap: dict) -> list[str]:
     # hit every doc + code line about that system
     out = [n for n in names if n.casefold() not in GENERIC] + [p for p in parts if len(p) >= 4 and p.casefold() not in GENERIC and not re.fullmatch(r"[\d-]+|wd\d+", p)]
     out += [str(c["value"]).strip() for c in snap["controls"]
-            if c["control"] in ("input", "textarea", "editable") and len(str(c["value"]).strip()) >= 4]
-    return list(dict.fromkeys(out))
+            if c["control"] in ("input", "textarea", "editable") and c.get("type") not in ("submit", "button", "reset")
+            and len(str(c["value"]).strip()) >= 4]
+    return list(dict.fromkeys(s for s in out if s.casefold() not in CHROME))
 
 
 def record_tenants(path: Path, lines: list[str]) -> int:

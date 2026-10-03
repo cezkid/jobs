@@ -104,8 +104,9 @@ A live form must never get an applicant record, anything typed, or the user's wi
 - **Budget**: 10 page loads per employer site per bead (measure = 2 + the canary's local one);
   bot checks can flag the address the user applies from. Saved JSON once captured.
 - **Anonymise**: measure appends employer names, the tenant part of the link and prefilled
-  values to `.data/measure/tenants.txt`; before committing, `grep -rniFf .data/measure/tenants.txt
-  app/ AGENTS.md Guides/` prints nothing. Docs say "tenant A / B", fixtures `acme`.
+  values to `.data/measure/tenants.txt`; before committing, `grep -rniwFf .data/measure/tenants.txt
+  app/ AGENTS.md Guides/` prints nothing (`-w`: whole words, so a short name inside a common word -
+  one inside "Kubernetes" - is no hit). Docs say "tenant A / B", fixtures `acme`.
 
 ## Browser (every system)
 

@@ -7,7 +7,7 @@ BASE = "https://api.test/v1"
 
 
 def row(title: str, **enrichment) -> dict:
-    return {"title": f" {title} ", "company": "Providence", "work_mode": None, "enrichment": enrichment}
+    return {"title": f" {title} ", "company": "Acme Health", "work_mode": None, "enrichment": enrichment}
 
 
 def test_probe_counts_nulls_and_joins_list_params():
@@ -24,7 +24,7 @@ def test_probe_counts_nulls_and_joins_list_params():
     assert got["total"] == 685
     assert got["tallies"]["seniority"] == {None: 1, "senior": 1}
     assert got["tallies"]["work_mode"] == {None: 2}
-    assert got["titles"][0] == "RN - ICU | Providence"
+    assert got["titles"][0] == "RN - ICU | Acme Health"
 
 
 def test_city_values_from_geo_endpoint():
