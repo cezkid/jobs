@@ -85,6 +85,8 @@ def test_radio_and_checkbox_groups_one_question_each(snap):
     assert (qs["Languages"]["kind"], qs["Languages"]["options"]) == ("multichoice", ["English", "Spanish", "French"])
     assert qs["I am at least 18 years old"]["kind"] == "yesno"
     assert (qs["Work mode"]["kind"], qs["Work mode"]["options"]) == ("choice", ["Remote", "Hybrid"])
+    # role=radiogroup around native radios (Paylocity): one question, named by the group
+    assert (qs["How did you hear about us?"]["kind"], qs["How did you hear about us?"]["options"]) == ("choice", ["Job board", "Referral"])
 
 
 def test_radiogroup_of_native_radios_read_as_radios(snap):

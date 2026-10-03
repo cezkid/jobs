@@ -36,6 +36,26 @@ READS = ("GET", "HEAD", "OPTIONS")
 REFUSE_CLICK = re.compile(r"\b(?:submit|send|save|finish|complete|sign)", re.I)
 IDLE_MS = 20000
 JSON_KEEP = 2048
+DATA_KEEP = 500_000
+# a form defined in the page itself, not fetched: `window.pageData = {...}` in an inline script
+# (Paylocity, 2026-10-03) - each such global kept whole, JSON only
+PAGE_DATA = """() => { const out = {};
+  for (const s of document.querySelectorAll('script:not([src])'))
+    for (const m of s.textContent.matchAll(/window\\.([A-Za-z_$][\\w$]*)\\s*=\\s*[{[]/g))
+      try { const j = JSON.stringify(window[m[1]]); if (j && j.length <= %d) out[m[1]] = JSON.parse(j); } catch (e) {}
+  return out; }""" % DATA_KEEP
+# where a multi-page form says it is and how it moves on: "Step 1 of 5", headings, button words
+OUTLINE = """() => { const vis = e => e.checkVisibility ? e.checkVisibility({checkVisibilityCSS: true}) : !!e.getClientRects().length;
+  const text = e => (e.innerText || e.textContent || '').replace(/\\s+/g, ' ').trim().slice(0, 120);
+  const step = (document.body.innerText.match(/\\bstep \\d+ of \\d+\\b/gi) || []);
+  return {steps: [...new Set(step)],
+    headings: [...document.querySelectorAll('h1, h2, h3, h4, legend, [role=heading]')].filter(vis).map(text).filter(Boolean),
+    buttons: [...document.querySelectorAll('button, [role=button], input[type=submit], input[type=button], a.button, a.btn')]
+      .filter(vis).map(e => text(e) || e.value || e.getAttribute('aria-label') || '').filter(Boolean)}; }"""
+# boxes with no name a reader finds: the markup around each, to see where the page puts its words
+AROUND = """() => [...document.querySelectorAll('input:not([type=hidden]), select, textarea')]
+  .filter(e => !e.labels?.length && !e.getAttribute('aria-label') && !e.getAttribute('aria-labelledby'))
+  .map(e => ({id: e.id, name: e.name || '', around: (e.parentElement?.parentElement || e).outerHTML.slice(0, 800)}))"""
 # host labels + path parts every tenant shares: not a tenant name, would hit the anonymity grep
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
@@ -238,7 +258,7 @@ def throwaway(headless: bool = False):
 
 
 def load(page, url: str, clicks: list[str], block: Block, n: int) -> tuple[dict, list]:
-    """One fresh load + the clicks -> (snapshot, JSON responses seen)."""
+    """One fresh load + the clicks -> (snapshot + page_data + unlabelled, JSON responses seen)."""
     got = []
     listen = lambda r: got.append(r) if "json" in (r.headers.get("content-type") or "") else None
     page.on("response", listen)
@@ -255,6 +275,8 @@ def load(page, url: str, clicks: list[str], block: Block, n: int) -> tuple[dict,
             check_page(page)
         block.step = f"load {n}: read"
         snap = dom.snapshot(page)
+        snap["page_data"], snap["unlabelled"] = page.evaluate(PAGE_DATA), page.evaluate(AROUND)
+        snap["outline"] = page.evaluate(OUTLINE)
         return snap, [response(r) for r in got if r.request.method == "GET"]
     finally:
         page.remove_listener("response", listen)
@@ -340,8 +362,10 @@ def measure(url: str, clicks: list[str], headless: bool = False) -> Path:
     host = urlsplit(url).hostname or "page"
     out = OUT / f"{host}-{datetime.now():%Y%m%d-%H%M%S}.json"
     out.parent.mkdir(parents=True, exist_ok=True)
+    page_data, unlabelled, outline = snap.pop("page_data"), snap.pop("unlabelled"), snap.pop("outline")
     data = {"url": url, "clicks": clicks, "canary": test, "snapshot": snap, "changed_ids": changed(snap, snaps[1][0]),
-            "json": jsons, "blocked": [b for b in block.log if b["after"] != "canary"], "loads": 2}
+            "json": jsons, "page_data": page_data, "unlabelled": unlabelled, "outline": outline,
+            "blocked": [b for b in block.log if b["after"] != "canary"], "loads": 2}
     out.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
     added = record_tenants(OUT / "tenants.txt", tenants(url, names, snap))
     summary(data, out, added)
@@ -359,6 +383,12 @@ def summary(data: dict, out: Path, added: int) -> None:
         if snap[what]:
             print(f"{what.replace('_', ' ')}: {len(snap[what])}")
     print(f"ids changed between loads: {len(data['changed_ids'])}")
+    o = data["outline"]
+    print(f"outline: {', '.join(o['steps']) or 'no step count'}; {len(o['headings'])} heading(s); buttons: {', '.join(o['buttons'][:8])}")
+    if data["page_data"]:
+        print(f"page data: {', '.join(f'window.{k} {len(json.dumps(v))} B' for k, v in data['page_data'].items())}")
+    if data["unlabelled"]:
+        print(f"boxes with no name found: {len(data['unlabelled'])} (markup around each in 'unlabelled')")
     print(f"JSON responses: {len(data['json'])}")
     for r in sorted(data["json"], key=lambda r: -r["bytes"])[:5]:
         u = urlsplit(r["url"])

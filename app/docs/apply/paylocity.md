@@ -1,11 +1,97 @@
 # Paylocity application forms - measured facts
 
-Being measured (plan-6oq) - nothing here is filled yet.
+Paylocity = payroll + hiring system for many small and mid US employers (2.4% of freehire's US
+postings, 2026-10-03). Posting `recruiting.paylocity.com/Recruiting/Jobs/Details/<id>`, form at
+`/Recruiting/Jobs/Apply/<id>` - one host for every employer, no account, no sign-in. Shared steps
+(`apply-form`) in `apply-systems.md`. Tenant named by letter, never employer; add yours as a new line.
+
+Measured 2026-10-03 with `apply-form measure` on 7 postings from 7 employers (tenants A-G), first
+page only. Saved definitions: `app/tests/fixtures/paylocity/` (`tenant-<a..g>.json` + `options.json`).
 
 ## Form definition
 
-## Widgets
+Whole form in the apply page's own HTML: inline script `window.pageData = {...}` (80-105 KB, 7 of
+7). No JSON fetched for it - opening the form sends the same as opening the posting. Only JSON
+the page fetched: cookie banner text (OneTrust) + `publicAddressComponentConfig` (398 B, address box).
+
+| Part | Holds | Filler rule |
+|---|---|---|
+| `customJobApplication.sections[]` | 6 sections, same 6 everywhere: `info`, `workHistory`, `educationHistory`, `references`, `acknowledgements`, `expandedIdentityQuestions`; `isIncluded`, `isOneRequired`, `displayOrder` | page of each question = its section name; a section with `isIncluded` false not asked |
+| `sections[].fields[]` | `name` (fixed: `emailAddress`, `cellPhone`, `desiredSalary` ...), `displayName`, `isIncluded`, `isRequired`, `group`, `values[]` (choice options: `value`, `label`) | one question per included field; `type` null on every field (7 of 7) - kind comes from the field name, not the definition |
+| `screener.questions[]` | employer's own questions: `title`, `isRequired`, `questionType` (`multi` / `text`), `allowsMultipleResponses`, `answers[].title`; `hasScreener` | `multi` -> choice (Yes/No only -> yesno), multi-answer -> multichoice; `text` -> text |
+| `...Options` | `genderOptions`, `raceOptions`, `disabilityOptions`, `militaryServiceOptions`, `degreeOptions`, `desiredSalaryTypeOptions`, `referenceTypeOptions`, `graduationOptions`, `schoolTypeOptions`, `statesOptions` (70), `countriesOptions` (238) | option text for those boxes; identical on 7 of 7 |
+| `newItemTemplates` | blank `workHistory`, `education`, `reference`, `school` records | the boxes one "Add" makes |
+| flags | `requireResume`, `requiredReferencesCount`, `shouldIncludeEeoSection` / `...EeoQuestions` / `...OfccpQuestions`, `displayAcknowledgement`, `displayEVerify`, `smsEnabled`, `brandingModel.leadApplyEnabled`, `desiredSalaryInputType` (1 or 2) | read, never changed |
+
+Seen across 7 tenants (R required, I included, - left out; A-G):
+
+| Field | A B C D E F G | Note |
+|---|---|---|
+| `name`, `emailAddress` | R everywhere | |
+| `smsOptedIn` ("Do you give us permission to text you?") | R R R R R R R | consent - the applicant's own answer, never filled |
+| `cellPhone` | I R I R R I R | |
+| `howDidYouHear` | I R - R I I I | options are the employer's own list |
+| `desiredSalary` | - R - - - R R | |
+| `appliedBefore` / `workedHereBefore` | - - - R - I I / - I - R - I R | |
+| `workHistory` `companyName`, `educationHistory` `schoolName` | R R R R R - R | F has neither section; `workHistory` `isOneRequired` on D: one job entry open on load |
+| `references` `referenceName` / phone | - R - - R - R / - R - - - - R | other people's details: always asked, never invented |
+| `eeoGenderEthnicity` / `eeoDisability` (CC-305) / `ofccp` (veteran) | I R I R - R I / I R - R - - - / I R - R - - I | voluntary self-ID; options from `...Options` |
+| `authorizedToWork` | I I - R - - R | the setup answer, only for this same US question |
+| `priorConviction` / `priorFelony` / `priorMisdemeanor`, `dateOfBirth` | left out on 7 of 7 | unmeasured when included |
+| `expandedIdentityQuestions` (gender identity, pronoun, sexual orientation, ethnicity) | I on 7 of 7, never R | voluntary - left for the applicant |
+
+Screener on 5 of 7. Types seen: `multi` (Yes/No, Yes/No/N/A) and `text` - no multi-answer seen.
+Graded screeners (2 of 5) carry `answers[].isCorrect` in the public page data, and one question
+`isAutoReject`: the filler never reads either - answers are the applicant's truth, not the
+employer's preferred reply.
+
+## Widgets (tenants A-G, 2026-10-03)
+
+| Box | On the page | Filler rule |
+|---|---|---|
+| contact + info text | `input[id="info.<name>"]` (`info.firstName`, `info.email`, `info.cellPhone`, `info.linkedIn`, `info.referredBy`), `data-automation-id="info<Name>"`, `data-for="<label>"` | find by id via `[id="..."]` (dot in the id). Label = sibling `<label>` w/o `for` in the same `.form-group`, "(required)" in an `<em>` - not found by a reader looking for `label[for]` (12-18 boxes per page read nameless). `data-for` holds the label text |
+| required | `.form-group.form-required` + "(required)" in the label | not `required` / `aria-required` on the box |
+| address | `public-site-address-<part>` (`country`, `address-1`, `address-2`, `city`, `county`, `us-state`, `zip`); job address `public-candidate-work-history-address-<n>-<part>` | `address-1` is a combobox (address lookup, `publicAddressComponentConfig`); state + country are text inputs that open a list |
+| yes/no + SMS | `div[role=combobox]` `[id="info.smsOptedIn"]`, `info.haveYouWorkedWithUsBefore`, `info.haveYouAppliedWithUsBefore` | options listed only when opened (left shut while measuring) - unmeasured |
+| How did you hear | native radios `name="info.howDidYouHearAboutUs"` inside `role=radiogroup` (no `[role=radio]`) | one choice question; the group's text holds the options too - title = the field's `displayName` |
+| skills | `react-tagsinput` input `info.skills`, "Type a skill and press enter" | unmeasured |
+| work history | `workHistory.<field>.<n>` (`companyName`, `position`, `responsibilities` textarea, `reasonForLeaving`, `currentlyWorkingHere` checkbox); dates `txt-workHistory-startDate-<n>` "MM/YYYY" + picker button | jobs from `questions.form_roles`; dates typed MM/YYYY |
+| resume / cover letter | hidden `input[type=file]` `btn-resume`, `btn-coverLetter` (`.doc,.docx,.pdf`), buttons "Select Resume to Upload" / "Select Cover Letter" | upload via the file input, only after the user's yes |
+| "Fill out application with my resume" | checkbox `useAttachedResumeToFillOutApplication`, ticked on load (7 of 7) | resume parse would overwrite typed answers: upload first, then fill. What it sends: unmeasured |
+| ids made per load | none: 0 changed between two loads on 7 of 7 | ids are stable hooks |
+| cookie banner | OneTrust: "Cookies Settings", "Accept All Cookies" | never "Accept All"; decline route unmeasured |
+
+## Pages
+
+Wizard, "Step 1 of N" on the page: N = 2, 4, 4, 5 on the 4 tenants it was recorded for; Next
+button "Next Step" (never "Submit"). Page 1 = info, then "Add Work History" / "Add Education"
+buttons on the same page. References, screener, EEO + acknowledgements, identity questions: on
+later steps - which step each lands on, and what the last step's button says, unmeasured (needs
+`apply-form try --next`, build bead). Page has no step headings (`h1`-`h4`): page of a question
+comes from its section in the definition.
 
 ## What leaves the computer, when
 
+Measured on load only (nothing typed), 2026-10-03:
+
+- Opening the form: GETs only (page, scripts, cookie banner, address config).
+- Datadog browser monitoring (`browser-intake-datadoghq.com/api/v2/rum`, POST) on 2 of 7 tenants
+  at load - page-use telemetry, blocked; nothing typed yet.
+- While typing, on upload, with `leadApplyEnabled` (true on 5 of 7) and at Next: unmeasured -
+  `apply-form try` (build bead) records it here.
+
+## Closed posting
+
+Not seen (7 of 7 open). Unmeasured.
+
 ## Tenant notes
+
+| Tenant | Measured 2026-10-03 |
+|---|---|
+| tenant A | no screener, no references; 5 required fields |
+| tenant B | screener 4 (Yes/No + text), references included, salary required, SMS enabled, resume required |
+| tenant C | screener 2 (text only); Datadog telemetry at load |
+| tenant D | work history `isOneRequired`: one job entry open on load; 16 required fields; Step 1 of 4 |
+| tenant E | references included, no screener, resume required; Step 1 of 2 |
+| tenant F | no work history or education section; screener 9, graded, incl. background + drug screening yes/no; Step 1 of 4 |
+| tenant G | screener 3 graded, one auto-reject, answers marked correct in page data; references; Step 1 of 5 |
