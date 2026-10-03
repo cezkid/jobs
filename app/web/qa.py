@@ -19,7 +19,7 @@ browser name + touch) at 320x640, 360x780, 375x812, 390x844 and as a desktop at 
   375x812 (2x the 2026-10-03 length); home also as a narrow desktop window at the 4 phone sizes
   (install line shown); at every size (COMPOSITION): rules on header, footer + main's rows span the
   window, no section h2 cut by the fold, Job 12's ring box above the salary line, install line
-  breaks only at spaces, <= 1 framed object in the first screen; at 1440x900 (EMPTY_RIGHT) no row of
+  breaks only at spaces, <= 1 framed object in the first screen; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
   main leaves a band > 400px wide + > 200px tall empty right of its content, and an article page has a
   visible element starting right of x 900 (its On this page column)
 
@@ -329,7 +329,7 @@ COMPOSITION = """() => {
 # empty right halves (BAND_AT): per row of main, 4px slices from its first content line to its last; a run
 # of slices whose rightmost content (text line boxes, svg/img/button, boxes with a border or background)
 # ends more than BAND_W px short of the row's content edge, taller than BAND_H px = a band left empty
-BAND_AT = (1440, 900)
+BAND_AT = [(1440, 900), (1920, 1080)]  # 1920 too: bigger display type wraps to more lines
 BAND_W, BAND_H = 400, 200
 EMPTY_RIGHT = """() => {
   const out = [];
@@ -572,7 +572,7 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                 failed.append(f"{where}: header check found fewer than 2 parts (brand + links)")
             elif not one:
                 failed.append(f"{where}: header wraps to a second line")
-        if (width, height) == BAND_AT and not phone:
+        if (width, height) in BAND_AT and not phone:
             if name == "index.html":
                 failed += [f"{where}: {line}" for line in page.evaluate(EMPTY_RIGHT)]
             elif page.evaluate("!!document.querySelector('main article')"):
