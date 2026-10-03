@@ -16,6 +16,7 @@ small plug-in.
 | BambooHR | `<co>.bamboohr.com/careers/<id>` | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP); the resume is sent when chosen | `bamboohr.md` |
 | Paylocity | `recruiting.paylocity.com/Recruiting/Jobs/Details/<id>` (form `/Apply/<id>`) | `apply-form`, Job Finder's own Chrome; questions read from the form definition in the apply page; steps "Step 1 of N", filled on the user's tab | `paylocity.md` |
 | SmartRecruiters | `jobs.smartrecruiters.com/<Company>/<postingId>-<slug>` (also the form app `oneclick-ui/company/<Company>/publication/<uuid>`) | `apply-form`, Job Finder's own Chrome; page 1 (contact + resume) filled, screening after Next on the user's tab | `smartrecruiters.md` |
+| Paycom | `paycomonline.net/v4/ats/web.php/portal/<key>/jobs/<id>` (older `jobs/ViewJobDetails?job=<id>&clientkey=<key>`) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `paycom.md` |
 
 Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS; Greenhouse embedded on an
 employer's own page (`?gh_jid=` - board name unknown). Where the form's questions were read ahead

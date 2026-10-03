@@ -60,6 +60,7 @@ OUTLINE = """() => { const vis = e => e.checkVisibility ? e.checkVisibility({che
 AROUND = """() => [...document.querySelectorAll('input:not([type=hidden]), select, textarea')]
   .filter(e => !e.labels?.length && !e.getAttribute('aria-label') && !e.getAttribute('aria-labelledby'))
   .map(e => ({id: e.id, name: e.name || '', around: (e.parentElement?.parentElement || e).outerHTML.slice(0, 800)}))"""
+TEXT_KEEP = 4096
 # host labels + path parts every tenant shares: not a tenant name, would hit the anonymity grep
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
@@ -278,12 +279,23 @@ def load(page, url: str, clicks: list[str], block: Block, n: int) -> tuple[dict,
             idle(page)
             check_page(page)
         block.step = f"load {n}: read"
-        snap = dom.snapshot(page)
+        snap = dom.snapshot(page) | seen_text(page)
         snap["page_data"], snap["unlabelled"] = page.evaluate(PAGE_DATA), page.evaluate(AROUND)
         snap["outline"] = page.evaluate(OUTLINE)
         return snap, [response(r) for r in got if r.request.method == "GET"]
     finally:
         page.remove_listener("response", listen)
+
+
+def seen_text(page) -> dict:
+    """What the page shows, beside its controls: zero boxes read can be a wall, a box drawn without
+    form controls, or a click that opened nothing - only the words tell which (Paycom, 2026-10-03)."""
+    try:
+        return page.evaluate("""() => ({text: (document.body.innerText || '').replace(/\\s+/g, ' ').slice(0, %d),
+          buttons: [...document.querySelectorAll('button, [role=button], a[href]')].filter(e => e.getClientRects().length)
+            .map(e => (e.innerText || e.getAttribute('aria-label') || '').replace(/\\s+/g, ' ').trim()).filter(Boolean).slice(0, 80)})""" % TEXT_KEEP)
+    except Exception:  # navigating away mid-read
+        return {"text": "", "buttons": []}
 
 
 def idle(page) -> None:
