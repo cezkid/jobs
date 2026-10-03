@@ -107,8 +107,14 @@ def from_snapshot(snap: dict) -> list[dict]:
 
 def questions(url: str) -> list[dict]:
     with browser.page_at(application_url(url)) as page:
-        page.locator(f"{READY}, {SIGN_IN}").first.wait_for(timeout=30000)
-        snap = page.evaluate(SNAPSHOT)
+        return read(page)
+
+
+def read(page) -> list[dict]:
+    """The form off the tab the user signed in on (prepare reuses it, no second tab): one page,
+    so its questions carry no page and replace the answers file's whole list."""
+    page.locator(f"{READY}, {SIGN_IN}").first.wait_for(timeout=30000)
+    snap = page.evaluate(SNAPSHOT)
     if snap["signin"]:
         raise SystemExit("UKG shows the form only after sign-in: Job Finder's Chrome is open on the sign-in page - "
                          "the user signs in or creates an account there (never typed for them), then run prepare again")

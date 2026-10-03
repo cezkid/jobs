@@ -69,6 +69,9 @@ SAVED = "saved answer"
 AUTO = ("resume", "search settings", SAVED)
 NAME_PART = {"first": ("first", "given", "forename"), "middle": ("middle",), "last": ("last", "family", "surname")}
 FILE = "application.json"
+# a multi-page system's fill result for a box on another page of the form: not a failure, filled
+# once the user clicks Next / Continue and fill runs again (single-page systems: "FAIL ... not on page")
+LATER = "LATER"
 
 
 # terms, privacy, texts, e-signatures: accepting or signing is the applicant's own act, ticked or
@@ -117,12 +120,16 @@ def never_draft(text: str) -> str | None:
     return next((t for t in topics(text) if t in NEVER_DRAFT), None)
 
 
-def question(id: str, title: str, kind: str, required: bool, options=(), key=None, native=None) -> dict:
-    """One form question in the shared shape. `native` = the system's own type name, for its filler."""
+def question(id: str, title: str, kind: str, required: bool, options=(), key=None, native=None,
+             page: str | None = None) -> dict:
+    """One form question in the shared shape. `native` = the system's own type name, for its filler.
+    `page` = which page of a multi-page form shows it: a section name the form's definition gives, or
+    what identifies the page a system read it off (its step heading)."""
     assert kind in KINDS, kind
     assert key in KEYS, key
-    return {"id": id, "title": title, "kind": kind, "key": key, "native": native,
-            "required": required, "options": list(options)}
+    out = {"id": id, "title": title, "kind": kind, "key": key, "native": native,
+           "required": required, "options": list(options)}
+    return out | {"page": page} if page else out
 
 
 def name_key(title: str) -> str | None:
@@ -419,6 +426,23 @@ def on_page(answers: list[dict]) -> list[dict]:
     """Agreeing, consenting or signing questions carrying an answer: never typed or ticked by the
     program, whoever wrote it - the user does it on the page."""
     return [a for a in answers if not blank(a.get("answer")) and signs(a["title"])]
+
+
+def merge(old: list[dict], read: list[dict]) -> list[dict]:
+    """Questions read off the page the user is on, merged into the answers file of the same form:
+    other pages' entries kept as they are, this page's replaced in place, a page not seen before
+    appended. Questions without a page (a whole form read at once) replace everything."""
+    pages, ids = {q.get("page") for q in read}, {q["id"] for q in read}
+    if None in pages:
+        return read
+    out, placed = [], False
+    for a in old:
+        if a.get("page") in pages or a["id"] in ids:
+            out += [] if placed else read
+            placed = True
+        else:
+            out.append(a)
+    return out if placed else out + read
 
 
 def missing(answers: list[dict]) -> list[dict]:

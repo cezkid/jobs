@@ -7,6 +7,9 @@ the US work-permit questions from setup, every other question blank for the AI t
 go - the window stays open for the user to check and click Submit. A system it can't fill whose
 questions were read ahead (apply/readahead.py): `prepare` drafts from those, `paste <job>` writes
 the answers as a page to paste from.
+A form spread over pages: `fill` works on the user's own tab, fills what this page shows (the rest
+reported LATER), the user clicks Next / Continue, then `prepare` again (systems that read the page)
+and `fill` again.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
 import argparse
@@ -80,11 +83,19 @@ def prepare(slug: str, url: str) -> None:
     out = folder / tailor.JOB_DATA / questions.FILE
     old = questions.load(out)
     name, app_url = (system.NAME, system.application_url(url)) if system else (PASTE, url)
-    asked = system.questions(url) if system else readahead.as_questions(form)
     same_form = old and old.get("url") == app_url
+    before = old["questions"] if same_form else []
+    reads = hasattr(system, "read")
+    if reads:  # a form read page by page, off the tab the user is on
+        with browser.page_at(app_url, match=systems.tab_match(system, url)) as page:
+            asked = system.read(page)
+    else:
+        asked = system.questions(url) if system else readahead.as_questions(form)
     keeping = config.get("saved_answers")
-    answers = questions.draft(asked, master["contact"], old["questions"] if same_form else None, config,
+    answers = questions.draft(asked, master["contact"], before, config,
                               master.get("career_break"), saved_answers.load() if keeping else [])
+    if reads:
+        answers = questions.merge(before, answers)
     questions.save(out, {"system": name, "url": app_url, "questions": answers})
     where = f"{name} form" if system else f"{(form.get('provider') or 'this').title()} form, read ahead (no options captured)"
     print(f"{where} -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
@@ -155,9 +166,10 @@ def fill(slug: str) -> None:
     if data.get("system") == PASTE:
         sys.exit(f"this form can't be filled here - write the answers to paste: uv run app/jobs.py apply-form paste {slug}")
     refuse(data["questions"])
-    if gaps := questions.missing(data["questions"]):
-        sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     system = system_for(data["url"])
+    per_page = getattr(system, "PER_PAGE", False)
+    if not per_page and (gaps := questions.missing(data["questions"])):
+        sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     resume = resume_for(config, folder)
     letter = next((str(p) for p in folder.glob("*_Cover_Letter.pdf")), None)
     if resume is None and any(q["kind"] == "file" and q.get("answer") is True for q in data["questions"]):
@@ -165,7 +177,9 @@ def fill(slug: str) -> None:
         print(f"no resume uploaded: {'several resume PDFs in ' + folder.name + ' - ' + ', '.join(pdfs) if pdfs else 'no tailored resume PDF in ' + folder.name} "
               "- the user uploads one by hand, or make the resume again")
     report = []
-    with browser.page_at(data["url"]) as page:
+    # a multi-page form: the user's own tab, where they are - a fresh tab is page 1 again
+    match = systems.tab_match(system, data["url"]) if per_page else None
+    with browser.page_at(data["url"], match=match) as page:
         # a closed posting never shows its form: say so instead of timing out on it
         if said := CLOSED.search(page_text(page)):
             sys.exit(f"the posting says it's closed (\"{said.group()}\") - nothing filled; ask the user, "
@@ -173,6 +187,11 @@ def fill(slug: str) -> None:
         if hasattr(system, "recover"):  # optional: the link landed somewhere without the form
             system.recover(page, data["url"])
         page.locator(system.READY).first.wait_for(timeout=30000)
+        shown = set(system.ids_on_page(page)) if per_page else set()
+        if per_page:  # blank on this page blocks it; blank on another page waits for that page
+            gaps = [a for a in questions.missing(data["questions"]) if a["id"] in shown]
+            if gaps:
+                sys.exit("required questions on this page still blank: " + "; ".join(a["title"] for a in gaps))
         # resume first: an upload must never re-trigger anything over typed answers
         for q in sorted(data["questions"], key=lambda q: q["kind"] != "file"):
             if questions.blank(q.get("answer")):
@@ -185,16 +204,32 @@ def fill(slug: str) -> None:
         report = recheck(page, system, data["questions"], report, resume)
         known = {q["id"] for q in data["questions"]}
         extra = [i for i in system.ids_on_page(page) if i not in known]
+    later = {id for id, result in report if result.startswith(questions.LATER)}
     # by id: one title can name two questions ("Phone" on two pages)
     title = {q["id"]: q["title"] for q in data["questions"]}
     for id, result in report:
-        print(f"  [{result}] {title[id]}")
-    required = [q for q in data["questions"] if q["required"]]
+        if id not in later:
+            print(f"  [{result}] {title[id]}")
     done = {id for id, result in report if result == "ok"}
-    left = [q["title"] for q in required if q["id"] not in done]
-    if required:
-        print(f"required answered {len(required) - len(left)} of {len(required)}"
+    if per_page:
+        here = {id for id, _ in report if id not in later} | shown
+        required = [q for q in data["questions"] if q["required"] and q["id"] in here]
+        left = [q["title"] for q in required if q["id"] not in done]
+        print(f"this page: {len(required) - len(left)} of {len(required)} required answered"
               + (f" - still to do on the page: {'; '.join(left)}" if left else ""))
+        other = [q for q in data["questions"] if q["id"] not in here]
+        if other:
+            blank = [q["title"] for q in questions.missing(other)]
+            print(f"{len(other)} question(s) on other pages - the user checks this page and clicks Next / Continue "
+                  "themselves (never us), then: " + (f"uv run app/jobs.py apply-form prepare {slug} \"{data['url']}\", then " if hasattr(system, "read") else "")
+                  + f"uv run app/jobs.py apply-form fill {slug}"
+                  + (f"; still blank there: {'; '.join(blank)}" if blank else ""))
+    else:
+        required = [q for q in data["questions"] if q["required"]]
+        left = [q["title"] for q in required if q["id"] not in done]
+        if required:
+            print(f"required answered {len(required) - len(left)} of {len(required)}"
+                  + (f" - still to do on the page: {'; '.join(left)}" if left else ""))
     if extra:
         print(f"  {len(extra)} question(s) on the page not in the answers file - user answers them on screen")
     remember(config, folder, data)

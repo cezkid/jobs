@@ -294,7 +294,7 @@ def test_fill_report_by_id_when_two_questions_share_a_title(tmp_path, monkeypatc
         wait_for = lambda self, timeout: None
         inner_text = lambda self, timeout: ""
     monkeypatch.setattr(form, "system_for", lambda url: Fake)
-    monkeypatch.setattr(form.browser, "page_at", lambda url: contextlib.nullcontext(Page()))
+    monkeypatch.setattr(form.browser, "page_at", lambda url, match=None: contextlib.nullcontext(Page()))
     form.fill("7")
     out = capsys.readouterr().out
     assert "  [ok] Phone\n  [FAIL box not found] Phone\n" in out
@@ -578,7 +578,7 @@ def test_fill_uploads_the_pdf_from_where_its_folder_is_now(tmp_path, monkeypatch
         def wait_for(self, timeout):
             pass
     monkeypatch.setattr(form, "system_for", lambda url: Fake)
-    monkeypatch.setattr(form.browser, "page_at", lambda url: contextlib.nullcontext(Page()))
+    monkeypatch.setattr(form.browser, "page_at", lambda url, match=None: contextlib.nullcontext(Page()))
     form.fill("7")
     assert uploaded == [str(pdf)]
     pdf.unlink()

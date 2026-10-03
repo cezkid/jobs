@@ -41,6 +41,7 @@ plainly -> user gets tailored PDF + answers to paste.
    until `contact.form_name` says which. First/last never split from a 3+ word name or initial.
    Work history: jobs from `questions.form_roles` (tailored page's jobs vs all, `contact.form_jobs`;
    form asking complete history -> all; `asks_complete_history` reads the form text), never `master["roles"]`.
+   Form over several pages: the optional members below (`PER_PAGE`, `LATER`, `page`, `read`, `on_tab`).
 3. **`fill` checks what took.** Read value / selected state back after typing; return `ok`,
    `ASK <why>` (nearest choice, or nothing matched) or `FAIL <why>`. Never click Submit, Next or
    Save.
@@ -63,11 +64,35 @@ an employer's spam check sees at Submit):
 | tab opened by Playwright (`new_page`) | `true` |
 | Playwright `launch()` (adds `--enable-automation`) | `true` + banner |
 
-Second application reuses the open window: new tab via `/json/new`. Another Chrome on the same
+Second application reuses the open window: new tab via `/json/new`, picked by the target id it
+returns - never "newest tab" (after a redirect that was any tab, possibly another employer's form).
+Chrome just started -> its only tab; restored tabs beside it -> a new tab of our own.
+`page_at(url, match=...)`: a tab matching (the system's `on_tab`, default same host + posting id
+from `parse_url`, last part) -> attach to it (the one in front, else newest), no new tab. Another Chrome on the same
 profile would just hand the link to the first, no port to attach to.
 
 No Chrome on Windows -> Edge (ships w/ Windows 10/11), same flags + profile. Measured 2026-09-28,
 Edge via `page_at`: `webdriver` `false`; window outlives command (PowerShell + Bash tool both).
+
+## Forms over several pages
+
+Start box then form (email or name first), "Step 1 of 5", profile then screening after Next.
+Optional members (`systems/__init__.py`):
+
+| Member | Does |
+|---|---|
+| `PER_PAGE = True` | `fill` attaches to the user's own tab - a fresh tab is page 1 again, their place lost |
+| `fill` -> `LATER ...` (`questions.LATER`) | box on another page: not a failure, not printed; single-page systems keep `FAIL question not on page` |
+| `page=` on `question()` | section / step the box is on: from the form definition, or what identifies the page read (its heading) |
+| `read(page)` | questions off the page the user is on; `prepare` attaches to their tab + merges (`questions.merge`): other pages kept as they are, this page's replaced, a new page appended. No `page` on what's read (UKG, one page) -> whole list replaced |
+| `on_tab(url, tab_url)` | this application's tab, when the default (host + posting id) doesn't fit |
+
+`fill` on a `PER_PAGE` system: required blank on this page blocks it; blank on another page is
+listed, not blocking. Prints `this page: X of Y required answered` + `N question(s) on other
+pages`. The user checks the page and clicks Next / Continue themselves - never us - then
+`prepare` again (systems with `read`), then `fill` again. No "filled" flag kept: it lies after
+Back or a re-render, so each run fills what the page shows. `recheck` reads back only boxes
+that were `ok` in this run.
 
 ## Shared rules (every system)
 
