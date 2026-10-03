@@ -25,6 +25,61 @@
   sample: about 361,000 made-up resumes for 20 entry-level jobs, scored 0-100 by 5 AI models (GPT-3.5 Turbo, GPT-4o, Gemini 1.5 Flash, Claude 3.5 Sonnet, Llama 3-70b)
   checked: 2026-10-03
 
+- id: anthropic-consumer-terms-2025
+  type: web
+  org: Anthropic
+  year: 2025
+  title: Updates to Consumer Terms and Privacy Policy
+  url: https://www.anthropic.com/news/updates-to-our-consumer-terms
+  evidence: vendor docs
+  sample: the maker's announcement of August 28, 2025; covers Claude Free, Pro and Max, including Claude Code on those plans
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: anthropic-retention
+  type: web
+  org: Anthropic
+  year: 2026
+  title: How long do you store my data?
+  url: https://privacy.claude.com/en/articles/10023548-how-long-do-you-store-my-data
+  evidence: vendor docs
+  sample: the maker's privacy help page for Claude Free, Pro and Max, updated July 1, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: anthropic-training-consumer
+  type: web
+  org: Anthropic
+  year: 2026
+  title: Is my data used for model training? (Claude Free, Pro and Max)
+  url: https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training
+  evidence: vendor docs
+  sample: the maker's privacy help page for Claude Free, Pro and Max, updated March 16, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: anthropic-training-setting
+  type: web
+  org: Anthropic
+  year: 2026
+  title: How do I change my model improvement privacy settings?
+  url: https://privacy.claude.com/en/articles/12109829-how-do-i-change-my-model-improvement-privacy-settings
+  evidence: vendor docs
+  sample: the maker's step-by-step help page for Claude Free, Pro and Max, updated August 3, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: anthropic-training-work
+  type: web
+  org: Anthropic
+  year: 2026
+  title: Is my data used for model training? (Claude for Work and the developer platform)
+  url: https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training
+  evidence: vendor docs
+  sample: the maker's privacy help page for its business products, updated August 18, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
 - id: ashby-2024
   type: web
   org: Ashby
@@ -80,6 +135,17 @@
   sample: the Council's announcement and the adopted text (Attachment B, version of March 17, 2025); in force October 1, 2025
   checked: 2026-10-03
   recheck_by: 2027-01-03
+
+- id: carlini-2021
+  type: article
+  authors: ["Carlini, Nicholas", "Tramer, Florian", "Wallace, Eric", "Jagielski, Matthew", "Herbert-Voss, Ariel", "Lee, Katherine", "Roberts, Adam", "Brown, Tom", "Song, Dawn", "Erlingsson, Ulfar", "Oprea, Alina", "Raffel, Colin"]
+  year: 2021
+  title: Extracting Training Data from Large Language Models
+  venue: 30th USENIX Security Symposium (open copy on arXiv)
+  url: https://arxiv.org/abs/2012.07805
+  evidence: lab/LLM audit
+  sample: researchers queried GPT-2, an older AI model trained on public web pages, and pulled out hundreds of exact passages from its training text; not chat data
+  checked: 2026-10-03
 
 - id: chen-xiao-2026
   type: article
@@ -262,6 +328,39 @@
   preprint: true
   checked: 2026-10-03
 
+- id: github-copilot-2026
+  type: web
+  org: GitHub
+  year: 2026
+  title: Updates to GitHub Copilot interaction data usage policy
+  url: https://github.blog/news-insights/company-news/updates-to-github-copilot-interaction-data-usage-policy/
+  evidence: vendor docs
+  sample: the maker's announcement of March 25, 2026, for Copilot Free, Pro and Pro+, taking effect April 24, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: github-copilot-docs
+  type: web
+  org: GitHub
+  year: 2026
+  title: Managing GitHub Copilot policies as an individual subscriber
+  url: https://docs.github.com/en/copilot/how-tos/manage-your-account/manage-policies
+  evidence: vendor docs
+  sample: the maker's step-by-step help page for Copilot Free, Pro, Pro+ and Max
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: github-copilot-faq-2026
+  type: web
+  org: GitHub
+  year: 2026
+  title: "FAQ: Updates to GitHub Copilot interaction data usage policy"
+  url: https://github.com/orgs/community/discussions/188488
+  evidence: vendor docs
+  sample: GitHub's own question-and-answer post on its community forum, March 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
 - id: glazko-2024
   type: article
   authors: ["Glazko, Kate", "Mohammed, Yusuf", "Kosa, Ben", "Potluri, Venkatesh", "Mankoff, Jennifer"]
@@ -273,6 +372,28 @@
   evidence: lab/LLM audit
   sample: one AI model (GPT-4) ranking one resume against the same resume plus disability-related awards, 60 trials across 6 disabilities
   checked: 2026-10-03
+
+- id: google-gemini-activity
+  type: web
+  org: Google
+  year: 2026
+  title: Manage & delete your Gemini Apps activity
+  url: https://support.google.com/gemini/answer/13278892?hl=en
+  evidence: vendor docs
+  sample: the maker's step-by-step help page for personal Google accounts
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: google-gemini-privacy
+  type: web
+  org: Google
+  year: 2026
+  title: Gemini Apps Privacy Hub
+  url: https://support.google.com/gemini/answer/13594961
+  evidence: vendor docs
+  sample: the maker's privacy help page for Gemini on personal Google accounts
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
 
 - id: greenhouse-rules
   type: web
@@ -516,6 +637,18 @@
   sample: 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs
   checked: 2026-10-03
 
+- id: nasr-2023
+  type: article
+  authors: ["Nasr, Milad", "Carlini, Nicholas", "Hayase, Jonathan", "Jagielski, Matthew", "Cooper, A. Feder", "Ippolito, Daphne", "Choquette-Choo, Christopher A.", "Wallace, Eric", "Tramèr, Florian", "Lee, Katherine"]
+  year: 2023
+  title: Scalable Extraction of Training Data from (Production) Language Models
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2311.17035
+  evidence: lab/LLM audit
+  sample: researchers queried open AI models and ChatGPT (GPT-3.5) and pulled out large amounts of exact training text, including from ChatGPT with a new trick; training text came from the web, not users' chats
+  preprint: true
+  checked: 2026-10-03
+
 - id: nyc-ll144
   type: law
   org: NYC Department of Consumer and Worker Protection
@@ -546,6 +679,28 @@
   evidence: vendor docs
   sample: the maker's own page, January 31, 2023, with its note of July 20, 2023 (archived copy; the live page blocks automated checks)
   checked: 2026-10-03
+
+- id: openai-data-controls
+  type: web
+  org: OpenAI
+  year: 2026
+  title: Data controls in ChatGPT
+  url: https://help.openai.com/en/articles/7730893-data-controls-faq
+  evidence: vendor docs
+  sample: the maker's help page for ChatGPT; the live page blocks automated readers, so it was read from the Internet Archive copy of September 25, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
+
+- id: openai-model-training
+  type: web
+  org: OpenAI
+  year: 2026
+  title: How your data is used to improve model performance
+  url: https://openai.com/policies/how-your-data-is-used-to-improve-model-performance/
+  evidence: vendor docs
+  sample: the maker's policy page, updated March 13, 2026; the live page blocks automated readers, so it was read from the Internet Archive copy of September 28, 2026
+  checked: 2026-10-03
+  recheck_by: 2027-01-03
 
 - id: preptel-2012
   type: web
