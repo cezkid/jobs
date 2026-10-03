@@ -47,6 +47,10 @@ prints in the Sources list.
 | Survey | `survey` | people asked, published method |
 | Vendor survey | `vendor survey` | asked by a company selling the service |
 | Lab study | `lab/LLM audit` | raters or AI models, not real hiring |
+| Real records | `observational` | real records, no experiment - "linked with", never "causes" |
+| Maker's docs | `vendor docs` | a product's own help page or description: how it is built to work, not how employers use it |
+| Court record | `court record` | filing or order: what was alleged or decided, never proven facts unless a ruling on the facts |
+| News report | `news report` | an event (law passed, case filed); a number in it goes back to its study |
 | Law (as of date) | `law` | statute / regulation, date it was checked |
 | Convention | `convention` | career guides agree, no study |
 | Our measurement | none - own numbers go in the page's `uncited:` list | we ran it; the article says how |
@@ -57,6 +61,9 @@ prints in the Sources list.
 - Never stronger in the text than its label: a Lab study shows what models do in a test, not what
   employers do; a Survey shows what people say.
 - Correlation stays correlation ("linked with", never "causes").
+- Absence of evidence is no source: say "no study found" in the text, list what was searched in
+  the page's `uncited:` list. Big + observational (Bommasani 2026, 3M applicants) stays Real
+  records - `sample` carries the size.
 
 ## Registry + citations
 

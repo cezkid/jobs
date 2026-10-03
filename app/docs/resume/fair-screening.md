@@ -12,9 +12,10 @@ Strength labels, strongest first: **meta-analysis** · **large field experiment*
 real applications) · **field experiment** · **survey** · **vendor survey** (seller of a service,
 method thin) · **lab/LLM audit** (raters or AI models, not real hiring) · **law** · **convention**
 (career-centre consensus, no study). Same scale as [research.md](../research.md#evidence-labels).
-Three tags sit outside it and say so: **observational** (real records, no experiment - linked,
-not proven cause) · **vendor docs** (a product's own documentation) · **absence of evidence**
-(nothing tested found). Survey experiments + lab experiments with people count as lab/LLM audit.
+Also registry labels, off the strength order: **observational** (real records, no experiment -
+linked, not proven cause) · **vendor docs** (a product's own documentation) · **court record** ·
+**news report** (event only). One tag that is no label: **absence of evidence** (nothing tested
+found). Survey experiments + lab experiments with people count as lab/LLM audit.
 
 Not here: [What did not survive](#advice-we-dont-follow), [Unverified](#unverified) - read both
 before adding a claim; a figure listed there never reaches a user as fact.

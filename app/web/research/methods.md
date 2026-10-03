@@ -45,6 +45,10 @@ Every claim carries one plain label. The label describes how the study was done,
 | Vendor survey | Survey by a company that sells the service | Asked by a company with something to sell |
 | Lab study | Lab test (not real hiring) | Raters or AI models judged resumes, not real employers |
 | Law | Law | The law's own text, with the date we checked it |
+| Real records | Real records, no experiment (a link, not proof of cause) | Real hiring records studied after the fact; shows a link, not a cause |
+| Maker's docs | The maker's own description of its product | How a product is built to work, from its maker, with the date we read it |
+| Court record | Court record (what was claimed or ordered, not proven facts) | A court filing or order; claims in a lawsuit are not proof |
+| News report | News report (used for the event only) | A news story, used only for an event such as a case filed |
 | Convention | Convention (no study) | Career guides agree, but no study tested it |
 | Our measurement | - | We ran the test ourselves; the article says how |
 

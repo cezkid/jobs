@@ -89,6 +89,10 @@ EVIDENCE = {
     "survey": "Survey",
     "vendor survey": "Survey by a company that sells the service",
     "lab/LLM audit": "Lab test (not real hiring)",
+    "observational": "Real records, no experiment (a link, not proof of cause)",
+    "vendor docs": "The maker's own description of its product",
+    "court record": "Court record (what was claimed or ordered, not proven facts)",
+    "news report": "News report (used for the event only)",
     "law": "Law",
     "convention": "Convention (no study)",
 }

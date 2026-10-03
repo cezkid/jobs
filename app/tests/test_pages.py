@@ -917,3 +917,11 @@ def test_links_registry_problems_stop_before_any_request(tmp_path, capsys):
         assert pages.links(tmp_path, client=client) == 1
         assert client.seen == []
     assert "sources.yml:2: x: type must be one of" in capsys.readouterr().out
+
+
+def test_every_evidence_label_is_in_the_research_guide_and_the_methods_page():
+    guide = (cfg.APP / "docs" / "research.md").read_text(encoding="utf-8")
+    methods = (cfg.APP / "web" / "research" / "methods.md").read_text(encoding="utf-8")
+    for label, words in pages.EVIDENCE.items():
+        assert f"| `{label}` |" in guide, label
+        assert f"| {words} |" in methods, words
