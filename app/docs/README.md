@@ -30,8 +30,8 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/lever.md](apply/lever.md) | Lever forms, filled in Job Finder's own Chrome; resume goes out as soon as chosen (Lever reads it to fill the form) |
 | Applying | [apply/workable.md](apply/workable.md) | Workable forms, filled in Job Finder's own Chrome; resume goes out as soon as chosen |
 | Applying | [apply/smartrecruiters.md](apply/smartrecruiters.md) | SmartRecruiters forms - being measured (plan-6oq), nothing filled yet |
-| Applying | [apply/jazzhr.md](apply/jazzhr.md) | JazzHR forms - being measured (plan-6oq), nothing filled yet |
-| Applying | [apply/bamboohr.md](apply/bamboohr.md) | BambooHR forms - being measured (plan-6oq), nothing filled yet |
+| Applying | [apply/jazzhr.md](apply/jazzhr.md) | JazzHR forms (`<co>.applytojob.com`): form read off the posting page, widgets, what leaves when |
+| Applying | [apply/bamboohr.md](apply/bamboohr.md) | BambooHR forms (`<co>.bamboohr.com/careers/<id>`): form definition over HTTP, widgets, what leaves when (resume on choosing it) |
 | Applying | [apply/paylocity.md](apply/paylocity.md) | Paylocity forms - being measured (plan-6oq), nothing filled yet |
 | Applying | [apply/dayforce.md](apply/dayforce.md) | Dayforce forms - being measured (plan-6oq), nothing filled yet |
 | Applying | [apply/paycom.md](apply/paycom.md) | Paycom forms - being measured (plan-6oq), nothing filled yet |

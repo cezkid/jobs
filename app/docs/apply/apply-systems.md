@@ -12,6 +12,8 @@ small plug-in.
 | Lever | `jobs.lever.co/<co>/<id>` (also `jobs.eu.`, `/apply`, `?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions read off the public `/apply` page | `lever.md` |
 | Workable | `apply.workable.com/j/<code>` (also `/<account>/j/<code>/`, `/apply/`, `?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions from Workable's public form definition | `workable.md` |
 | UKG Pro Recruiting | `recruiting<N>.ultipro.com/<tenant>/JobBoard/<board>/OpportunityDetail?opportunityId=<id>` | `apply-form`, Job Finder's own Chrome; user signs in first, questions read off the signed-in form | `ukg.md` |
+| JazzHR | `<co>.applytojob.com/apply/<id>/<slug>` | `apply-form`, Job Finder's own Chrome; questions read off the posting page (plain HTTP) | `jazzhr.md` |
+| BambooHR | `<co>.bamboohr.com/careers/<id>` | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP); the resume is sent when chosen | `bamboohr.md` |
 
 Not yet: SmartRecruiters, iCIMS; Greenhouse embedded on an
 employer's own page (`?gh_jid=` - board name unknown). Where the form's questions were read ahead

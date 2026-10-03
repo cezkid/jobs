@@ -87,6 +87,12 @@ def test_radio_and_checkbox_groups_one_question_each(snap):
     assert (qs["Work mode"]["kind"], qs["Work mode"]["options"]) == ("choice", ["Remote", "Hybrid"])
 
 
+def test_radiogroup_of_native_radios_read_as_radios(snap):
+    # BambooHR wraps native radios in role=radiogroup: once crashed the whole read (2026-10-03)
+    travel = [q for q in dom.questions(snap) if q["id"] == '[name="travel"]']
+    assert [q["kind"] for q in travel] == ["yesno"]
+
+
 def test_select_placeholder_dropped_and_yes_no(snap):
     qs = {q["title"]: q for q in dom.questions(snap)}
     assert qs["Country"]["options"] == ["Canada", "United States"]

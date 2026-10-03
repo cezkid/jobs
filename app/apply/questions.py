@@ -76,11 +76,12 @@ LATER = "LATER"
 
 # terms, privacy, texts, e-signatures: accepting or signing is the applicant's own act, ticked or
 # typed by them on the page - never drafted, kept or filled (2026-10-03: a start-page SMS consent
-# Yes/No, a terms box + e-signature in one system's apply flow, consent checkboxes on another).
+# Yes/No, a terms box + e-signature in one system's apply flow, consent checkboxes on another, a
+# yes/no "Do you affirm that the information you've provided ... is true and complete?").
 # Not "informed consent" (clinical work), "signed off", a certification held.
 SIGNING_PATTERN = (r"terms (?:and|&) conditions|terms of (?:use|service)|privacy (?:policy|notice|statement)|"
                    r"(?<!informed )\bconsent|\bopt[- ]?in\b|\bi (?:hereby )?(?:agree|certify|attest|acknowledge|"
-                   r"authori[sz]e|understand)\b|\bcertify\b|\battest\b|\backnowledg(?:e|e?ment)\b|"
+                   r"authori[sz]e|understand)\b|\bcertify\b|\battest\b|\baffirm\b|\backnowledg(?:e|e?ment)\b|"
                    r"\b(?:sms|text messag\w*|texts|automated (?:calls|messages))\b.{0,40}\b(?:receive|agree|consent)|"
                    r"\breceive (?:\w+ ){0,3}(?:sms|texts|text messages|automated calls)\b|"
                    r"\b(?:may|can) we (?:text|sms) you\b|(?<!digital )\bsignature\b|\be-?sign|"

@@ -1,0 +1,312 @@
+{
+ "result": {
+  "jobOpening": {
+   "jobOpeningShareUrl": "https://acme.bamboohr.com/careers/5",
+   "jobOpeningName": "Test Role",
+   "jobOpeningStatus": "Open"
+  },
+  "formFields": {
+   "firstName": {
+    "isRequired": true,
+    "value": "",
+    "label": "First Name"
+   },
+   "lastName": {
+    "isRequired": true,
+    "value": "",
+    "label": "Last Name"
+   },
+   "email": {
+    "isRequired": true,
+    "value": "",
+    "label": "Email"
+   },
+   "phone": {
+    "isRequired": true,
+    "value": "",
+    "label": "Phone"
+   },
+   "linkedinUrl": {
+    "isRequired": false,
+    "value": "",
+    "label": "LinkedIn URL"
+   },
+   "dateAvailable": {
+    "isRequired": true,
+    "value": "",
+    "label": "Date Available"
+   },
+   "desiredPay": {
+    "isRequired": true,
+    "value": "",
+    "label": "Desired Pay"
+   },
+   "websiteUrl": {
+    "isRequired": false,
+    "value": "",
+    "label": "Website, Blog or Portfolio"
+   },
+   "educationLevelId": {
+    "isRequired": false,
+    "value": "",
+    "label": "Highest Education Obtained",
+    "options": [
+     {
+      "id": "1",
+      "text": "GED or Equivalent"
+     },
+     {
+      "id": "2",
+      "text": "High School"
+     },
+     {
+      "id": "3",
+      "text": "Some College"
+     },
+     {
+      "id": "4",
+      "text": "College - Associates"
+     },
+     {
+      "id": "5",
+      "text": "College - Bachelor of Arts"
+     },
+     {
+      "id": "6",
+      "text": "College - Bachelor of Fine Arts"
+     },
+     {
+      "id": "7",
+      "text": "College - Bachelor of Science"
+     },
+     {
+      "id": "8",
+      "text": "College - Master of Arts"
+     },
+     {
+      "id": "9",
+      "text": "College - Master of Fine Arts"
+     },
+     {
+      "id": "10",
+      "text": "College - Master of Science"
+     },
+     {
+      "id": "11",
+      "text": "College - Master of Business Administration"
+     },
+     {
+      "id": "12",
+      "text": "College - Doctorate"
+     },
+     {
+      "id": "13",
+      "text": "Medical Doctor"
+     },
+     {
+      "id": "14",
+      "text": "Other"
+     }
+    ]
+   },
+   "resumeFileId": {
+    "isRequired": true,
+    "value": "",
+    "label": "Resume"
+   },
+   "customQuestions": [
+    {
+     "id": "421",
+     "isRequired": true,
+     "question": "How did you hear about this position at Acme (Employee Referral, LinkedIn, BioSpace, Indeed, Recruiting Agency, etc.)",
+     "type": "short",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "422",
+     "isRequired": true,
+     "question": "If you were referred by an Acme employee, what is the employee's name?",
+     "type": "short",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "423",
+     "isRequired": true,
+     "question": "If you were referred by a recruiting agency, what is the name of the recruiting agency?",
+     "type": "short",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "424",
+     "isRequired": false,
+     "question": "Do you affirm that the information you've provided, including the accompanying resume are true and complete?",
+     "type": "yes_no",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "425",
+     "isRequired": true,
+     "question": "Upon employment, can you submit verification of your legal right to work in the United States?",
+     "type": "yes_no",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "426",
+     "isRequired": true,
+     "question": "Will you now or in the future require visa sponsorship to work in the United States?",
+     "type": "yes_no",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "427",
+     "isRequired": true,
+     "question": "Do you live in the Acme City area or do you have the ability to commute to our Acme City office, as needed?",
+     "type": "yes_no",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "428",
+     "isRequired": true,
+     "question": "•\tWhich best describes your experience in small molecule drug substance development in the pharmaceutical or biotech industry?",
+     "type": "multi",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": [
+      {
+       "id": 1,
+       "option": "PhD with 3+ years"
+      },
+      {
+       "id": 2,
+       "option": "MS with 6+ years"
+      },
+      {
+       "id": 3,
+       "option": "BS with 8+ years"
+      },
+      {
+       "id": 4,
+       "option": "Other / less than the above"
+      }
+     ]
+    },
+    {
+     "id": "429",
+     "isRequired": true,
+     "question": "Do you have hands-on lab experience in process chemistry (route design, optimization, scale-up) for small molecule APIs? ",
+     "type": "yes_no",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "430",
+     "isRequired": true,
+     "question": "Have you worked directly with CMOs and/or CROs on drug substance development or manufacturing? ",
+     "type": "yes_no",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "431",
+     "isRequired": true,
+     "question": "Have you technically reviewed or approved GMP batch records, deviations, or investigations? ",
+     "type": "yes_no",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "432",
+     "isRequired": true,
+     "question": "Have you contributed to the drug substance (CMC / Module 3.2.S) sections of regulatory submissions such as an IND, IMPD, or NDA? ",
+     "type": "yes_no",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "433",
+     "isRequired": true,
+     "question": "Describe a small molecule process you scaled from lab to pilot or commercial scale. What was your specific role, what scale did you reach, and what was the biggest technical challenge?",
+     "type": "long",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "434",
+     "isRequired": true,
+     "question": "Describe your experience with fate and purge studies and mutagenic impurity assessment (e.g., ICH M7). What was your role in the control strategy?",
+     "type": "long",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "435",
+     "isRequired": true,
+     "question": "Which drug substance manufacturing equipment have you worked with directly (e.g., jacketed reactors, filter dryers, hydrogenators, mills)? Describe a case where equipment limitations affected a scale-up or tech transfer.",
+     "type": "long",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "436",
+     "isRequired": true,
+     "question": "Tell us about a time a CMO batch failed, deviated, or fell behind schedule. What was your role in the investigation and resolution?",
+     "type": "long",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    },
+    {
+     "id": "437",
+     "isRequired": true,
+     "question": "How does your approach to route design and control strategy differ for an early-phase program compared with a late-stage or registration-enabling program?",
+     "type": "long",
+     "value": "",
+     "isValueOther": false,
+     "hasOther": "no",
+     "options": []
+    }
+   ],
+   "genderId": [],
+   "ethnicityId": [],
+   "veteranStatusId": [],
+   "disabilityId": []
+  }
+ }
+}
