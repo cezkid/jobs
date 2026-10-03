@@ -115,6 +115,18 @@
   preprint: true
   checked: 2026-10-03
 
+- id: cui-2025
+  type: article
+  authors: ["Cui, Jingyi", "Dias, Gabriel", "Ye, Justin"]
+  year: 2025
+  title: "Signaling in the Age of AI: Evidence from Cover Letters"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2509.25054
+  evidence: observational
+  sample: 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer
+  preprint: true
+  checked: 2026-10-03
+
 - id: dastin-2018
   type: article
   authors: ["Dastin, Jeffrey"]
@@ -201,6 +213,18 @@
   sample: 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured
   checked: 2026-10-03
 
+- id: galdin-silbert-2025
+  type: article
+  authors: ["Galdin, Anaïs", "Silbert, Jesse"]
+  year: 2025
+  title: "Making Talk Cheap: Generative AI and Labor Market Signaling"
+  venue: arXiv preprint
+  url: https://arxiv.org/abs/2511.08785
+  evidence: observational
+  sample: about 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data
+  preprint: true
+  checked: 2026-10-03
+
 - id: gao-2026
   type: article
   authors: ["Gao, Zhenyu", "Jiang, Wenxi", "Yan, Yutong"]
@@ -258,6 +282,28 @@
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
+- id: insight-global-2025
+  type: report
+  org: Insight Global
+  year: 2025
+  title: AI in Hiring 2025 Survey Report
+  url: https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf
+  evidence: vendor survey
+  sample: 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17-22, 2024; a staffing firm's survey; question wording not published
+  checked: 2026-10-03
+
+- id: jakesch-2023
+  type: article
+  authors: ["Jakesch, Maurice", "Hancock, Jeffrey T.", "Naaman, Mor"]
+  year: 2023
+  title: Human heuristics for AI-generated language are flawed
+  venue: PNAS 120(11), e2208839120
+  doi: 10.1073/pnas.2208839120
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC10089155/
+  evidence: lab/LLM audit
+  sample: 4,600 people in six experiments judged 7,600 short self-descriptions (job, rental host and dating profiles), half written by older AI models (GPT-2, GPT-3)
+  checked: 2026-10-03
+
 - id: jobscan-2026
   type: web
   authors: ["Purcell, Kelsey"]
@@ -266,6 +312,18 @@
   url: https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/
   evidence: vendor survey
   sample: career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026
+  checked: 2026-10-03
+
+- id: kobak-2025
+  type: article
+  authors: ["Kobak, Dmitry", "González-Márquez, Rita", "Horvát, Emőke-Ágnes", "Lause, Jan"]
+  year: 2025
+  title: Delving into LLM-assisted writing in biomedical publications through excess vocabulary
+  venue: Science Advances 11(27) (open copy on arXiv)
+  doi: 10.1126/sciadv.adt3813
+  url: https://arxiv.org/abs/2406.07016
+  evidence: observational
+  sample: word counts in over 15 million science paper summaries (PubMed), 2010-2024; not resumes
   checked: 2026-10-03
 
 - id: lawyer-monthly-2026
@@ -325,6 +383,18 @@
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
+- id: liang-2023
+  type: article
+  authors: ["Liang, Weixin", "Yuksekgonul, Mert", "Mao, Yining", "Wu, Eric", "Zou, James"]
+  year: 2023
+  title: GPT detectors are biased against non-native English writers
+  venue: Patterns 4(7), 100779 (open copy on arXiv)
+  doi: 10.1016/j.patter.2023.100779
+  url: https://arxiv.org/abs/2304.02819
+  evidence: lab/LLM audit
+  sample: 7 AI detectors run on 91 essays by non-native English writers (TOEFL) and 88 essays by US eighth graders, all written by people
+  checked: 2026-10-03
+
 - id: nyc-ll144
   type: law
   org: NYC Department of Consumer and Worker Protection
@@ -344,6 +414,16 @@
   url: https://www.osc.ny.gov/state-agencies/audits/2025/12/02/enforcement-local-law-144-automated-employment-decision-tools
   evidence: observational
   sample: state audit of New York City's enforcement, July 2023 to June 2025, including a review of the same 32 companies the city checked
+  checked: 2026-10-03
+
+- id: openai-2023
+  type: web
+  org: OpenAI
+  year: 2023
+  title: New AI classifier for indicating AI-written text
+  url: https://web.archive.org/web/20230802023548/https://openai.com/blog/new-ai-classifier-for-indicating-ai-written-text/
+  evidence: vendor docs
+  sample: the maker's own page, January 31, 2023, with its note of July 20, 2023 (archived copy; the live page blocks automated checks)
   checked: 2026-10-03
 
 - id: preptel-2012
@@ -378,6 +458,18 @@
   sample: 22 AI models picking the better of two matched resumes for 70 jobs, names swapped; 30,800 decisions in the main test
   checked: 2026-10-03
 
+- id: russell-2025
+  type: article
+  authors: ["Russell, Jenna", "Karpinska, Marzena", "Iyyer, Mohit"]
+  year: 2025
+  title: People who frequently use ChatGPT for writing tasks are accurate and robust detectors of AI-generated text
+  venue: Proceedings of ACL 2025 (Long Papers) (open copy on arXiv)
+  doi: 10.18653/v1/2025.acl-long.267
+  url: https://arxiv.org/abs/2501.15654
+  evidence: lab/LLM audit
+  sample: 9 paid readers (4 rarely using AI, 5 using it often for writing) labelled 300 news-style articles as human or AI; detectors tested on the same set; not resumes
+  checked: 2026-10-03
+
 - id: tamkin-2023
   type: article
   authors: ["Tamkin, Alex", "Askell, Amanda", "Lovitt, Liane", "Durmus, Esin", "Joseph, Nicholas", "Kravec, Shauna", "Nguyen, Karina", "Kaplan, Jared", "Ganguli, Deep"]
@@ -400,6 +492,17 @@
   sample: agency page, last reviewed June 2026
   checked: 2026-10-03
   recheck_by: 2027-04-03
+
+- id: wiles-2025
+  type: article
+  authors: ["Wiles, Emma", "Munyikwa, Zanele", "Horton, John J."]
+  year: 2025
+  title: Algorithmic Writing Assistance on Jobseekers' Resumes Increases Hires
+  venue: Management Science 71(12), 10144-10164 (a 2023 working-paper version is free on arXiv, 2301.08083)
+  doi: 10.1287/mnsc.2024.04528
+  evidence: large field experiment
+  sample: 480,948 new jobseekers on one online freelance platform, June-July 2021; half got spelling and grammar suggestions on their profile text (not generative AI)
+  checked: 2026-10-03
 
 - id: wilson-2025
   type: article
@@ -435,4 +538,16 @@
   url: https://facctconference.org/static/papers24/facct24-113.pdf
   evidence: observational
   sample: 155 student investigators checked the websites of 391 employers for posted bias audits and notices
+  checked: 2026-10-03
+
+- id: xu-2025
+  type: article
+  authors: ["Xu, Jiannan", "Li, Gujie", "Jiang, Jane Yi"]
+  year: 2025
+  title: "AI Self-preferencing in Algorithmic Hiring: Empirical Evidence and Insights"
+  venue: "EAAMO '25, ACM Conference on Equity and Access in Algorithms, Mechanisms, and Optimization (updated open copy on arXiv, June 2026)"
+  doi: 10.1145/3757887.3767676
+  url: https://arxiv.org/abs/2509.00462
+  evidence: lab/LLM audit
+  sample: 2,245 real resumes; 9 AI models compared each person's own summary with AI-written versions; hiring simulated for 24 jobs
   checked: 2026-10-03
