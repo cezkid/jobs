@@ -302,7 +302,9 @@ def tenants(url: str, names: list[str], snap: dict) -> list[str]:
     u = urlsplit(url)
     parts = [p for p in (u.hostname or "").split(".") if not p.isdigit()]
     parts += [p for p in u.path.split("/")[:2] if p]
-    out = names + [p for p in parts if len(p) >= 4 and p.casefold() not in GENERIC and not re.fullmatch(r"[\d-]+|wd\d+", p)]
+    # og:site_name is the platform's own name on some systems ("BambooHR", 2026-10-03): it would
+    # hit every doc + code line about that system
+    out = [n for n in names if n.casefold() not in GENERIC] + [p for p in parts if len(p) >= 4 and p.casefold() not in GENERIC and not re.fullmatch(r"[\d-]+|wd\d+", p)]
     out += [str(c["value"]).strip() for c in snap["controls"]
             if c["control"] in ("input", "textarea", "editable") and len(str(c["value"]).strip()) >= 4]
     return list(dict.fromkeys(out))

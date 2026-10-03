@@ -101,3 +101,8 @@ def test_measure_never_uses_the_application_window():
     src = (Path(lab.__file__)).read_text()
     assert "apply-browser" not in src.replace("never `.data/apply-browser`", "")
     assert "browser.PROFILE" not in src and "page_at" not in src and "open_tab" not in src
+
+
+def test_tenants_leave_out_platform_site_name():
+    assert lab.tenants("https://acmetest.bamboohr.com/careers/1", ["BambooHR", "Acme Test Co"], {"controls": []}) \
+        == ["Acme Test Co", "acmetest"]

@@ -65,7 +65,10 @@ const controls = () => { const out = [], seen = new Set();
       const tag = e.tagName.toLowerCase(), role = e.getAttribute('role');
       if (tag === 'input' && e.type === 'hidden') continue;
       if (e.isContentEditable && e.parentElement && e.parentElement.isContentEditable) continue;
+      // a radiogroup of native radios (no [role=radio] inside) is read as those radios: an empty
+      // rolegroup crashed the whole read (BambooHR, 2026-10-03)
       if (role === 'radiogroup') { const ms = [...e.querySelectorAll('[role=radio]')];
+        if (!ms.length) continue;
         ms.forEach(m => seen.add(m)); out.push({kind: 'rolegroup', box: e, members: ms}); continue; }
       if (tag === 'input' && (e.type === 'radio' || e.type === 'checkbox')) {
         const box = e.closest('fieldset, [role=group]');
@@ -193,7 +196,7 @@ def snapshot(page) -> dict:
         try:
             got = frame.evaluate(SNAPSHOT % lib())
         except Exception as e:  # frame navigating away mid-read
-            out["not_readable"].append({"url": frame.url, "why": f"frame could not be read ({type(e).__name__})"})
+            out["not_readable"].append({"url": frame.url, "why": f"frame could not be read ({type(e).__name__}: {str(e)[:300]})"})
             continue
         out["controls"] += [c | {"frame": frame.url} for c in got["controls"]]
         out["captcha"] += [{"url": frame.url, "marker": m} for m in got["captcha"]]
