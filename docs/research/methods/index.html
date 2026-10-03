@@ -84,10 +84,11 @@
   }
   summary::after { transform: rotate(90deg); }
   details[open] > summary::after { transform: none; }
-  /* 12 columns for composed pages; .wrap = the same outer box w/o columns (generated pages) */
+  /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
+     .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
     display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
-    max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter);
+    padding: 0 max(var(--gutter), (100% - var(--max)) / 2);
   }
   .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
   .skip {

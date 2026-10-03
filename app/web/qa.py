@@ -16,7 +16,10 @@ browser name + touch) at 320x640, 360x780, 375x812, 390x844 and as a desktop at 
 - 0 console errors + 0 uncaught errors, in every browser context opened below
 - home: Copy button ends within 1366x641 (gate; 1366x768 screen minus Chrome's bars), 1280x593
   reported only; page <= 8 screens at 1366x641 (3.88 on 2026-10-03), <= 2x 3.84 screens at
-  375x812 (2x the 2026-10-03 length)
+  375x812 (2x the 2026-10-03 length); home also as a narrow desktop window at the 4 phone sizes
+  (install line shown); at every size (COMPOSITION): rules on header, footer + main's rows span the
+  window, no section h2 cut by the fold, Job 12's ring box above the salary line, install line
+  breaks only at spaces, <= 1 framed object in the first screen
 
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
@@ -43,7 +46,9 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
 sideways scroll, no console errors, finished states (reduced: 0 animations + marks + strokes;
 full: marks + strokes after a full scroll + after a reload at the bottom).
 --self-test: injects faults into home (Copy below the fold, a hidden mark, a console error, a
-wide element, a scene circle stuck half drawn / undrawn in reduced motion, an opening that runs
+wide element, section rules short of the window edge, the Job 12 ring over the salary line, the
+install line broken inside the web address (320px desktop window), a second framed object in the
+first screen (1440x900), a scene circle stuck half drawn / undrawn in reduced motion, an opening that runs
 long / fades text in / moves 40px / animates the LCP element / replays on reload, a page change
 w/o crossfade, an opening played after one) and exits 1 unless each one fails its check and clean
 home passes.
@@ -270,6 +275,54 @@ FORCED = "() => {" + HELPERS + """
   return [...document.querySelectorAll(MARKS)].filter(el => shown(el) && !paints(el)).map(label);
 }"""
 
+# home's composition (critique C1, C3, C4, C5, C10, plan-6zp.30), one line per fault:
+# - rules on header, footer + main's rows span the whole window (full-bleed hairlines)
+# - no section h2 cut by the fold (wholly inside the first screen or wholly below it)
+# - the Job 12 ring's box ends above the salary line's letters
+# - the install line breaks only at spaces (never inside the web address)
+# - at most one framed object (bordered box > 250x150, layout box: transforms ignored) in the first screen
+COMPOSITION = """() => {
+  const W = document.documentElement.clientWidth, H = innerHeight, bad = [];
+  const ruled = s => ["Top", "Bottom"].some(k => parseFloat(s["border" + k + "Width"]) > 0 &&
+    s["border" + k + "Style"] !== "none" && s["border" + k + "Color"] !== "rgba(0, 0, 0, 0)");
+  for (const el of document.querySelectorAll("header, footer, main > *")) {
+    const r = el.getBoundingClientRect();
+    if (r.width && ruled(getComputedStyle(el)) && (r.left > 0.5 || r.right < W - 0.5))
+      bad.push(`rule on ${el.tagName.toLowerCase()}.${el.className} spans ${Math.round(r.left)}-${Math.round(r.right)}, window 0-${W}`);
+  }
+  for (const h of document.querySelectorAll("main section h2")) {
+    const r = h.getBoundingClientRect(), top = r.top + scrollY, bottom = r.bottom + scrollY;
+    if (top < H && bottom > H) bad.push(`h2 "${h.textContent.trim().slice(0, 30)}" cut by the fold (${Math.round(top)}-${Math.round(bottom)}px, screen ${H}px)`);
+  }
+  const ring = document.querySelector(".picked svg.ring"), meta = document.querySelector(".picked .meta");
+  if (ring && meta && ring.getBoundingClientRect().width) {
+    const range = document.createRange(); range.selectNodeContents(meta);
+    const over = ring.getBoundingClientRect().bottom - range.getClientRects()[0].top;
+    if (over > 0.5) bad.push(`Job 12 ring runs ${over.toFixed(1)}px into the salary line`);
+  }
+  const line = document.getElementById("line"), text = line && line.firstChild;
+  if (text && line.getClientRects().length) {
+    let last = null;
+    for (let i = 0; i < text.length; i++) {
+      const range = document.createRange(); range.setStart(text, i); range.setEnd(text, i + 1);
+      const c = range.getClientRects()[0]; if (!c) continue;
+      if (last !== null && c.top > last + 2 && text.data[i - 1] !== " " && text.data[i] !== " ")
+        bad.push(`install line breaks inside a word: "${text.data.slice(Math.max(0, i - 8), i)}|${text.data.slice(i, i + 8)}"`);
+      last = c.top;
+    }
+  }
+  const layoutTop = el => { let y = 0; for (let e = el; e; e = e.offsetParent) y += e.offsetTop; return y; };
+  const framed = [...document.querySelectorAll("main *")].filter(el => {
+    if (!(el instanceof HTMLElement) || !el.offsetWidth) return false;
+    const s = getComputedStyle(el);
+    return ["Top", "Right", "Bottom", "Left"].every(k => parseFloat(s["border" + k + "Width"]) >= 1) &&
+      el.offsetWidth > 250 && el.offsetHeight > 150;
+  }).filter(el => layoutTop(el) < H && layoutTop(el) + el.offsetHeight > 0);
+  if (framed.length > 1) bad.push(`${framed.length} framed objects in the first screen: ` +
+    framed.map(el => el.tagName.toLowerCase() + "." + el.className + " at " + layoutTop(el) + "px").join(", "));
+  return bad;
+}"""
+
 OPENING_MS = 2800          # opening moment ends by then
 OPENING_SHIFT = 12         # px a hero object may move during it
 OPENING_AT = [((1366, 641), False), ((390, 844), True)]
@@ -325,6 +378,14 @@ FAULTS = [
     ("hidden mark", "<style>mark { opacity: 0; }</style>", "motion"),
     ("console error", "<script>console.error('qa self-test fault')</script>", "layout"),
     ("wide element", '<div style="width: 3000px; height: 1px"></div>', "layout"),
+    ("section rules stop at the column edge", "<style>.grid { max-width: 1320px; margin: 0 auto; }</style>",
+     "layout"),
+    ("Job 12 ring over the salary line", "<style>.slip .ring { bottom: -20px; height: calc(100% + 27px); }"
+     "</style>", "layout"),
+    ("install line broken inside the web address", "<style>.command code { overflow-wrap: anywhere "
+     "!important; font-size: 0.9375rem !important; }</style>", "narrow"),
+    ("second framed object peeks into the first screen", "<style>.hero { min-height: 0 !important; }</style>",
+     "wide"),
     ("opening runs 4 s", "<style>.today mark { animation-duration: 4s !important; }</style>", "opening"),
     ("opening fades text in", "<style>@keyframes qa-fade { from { opacity: 0; } } "
      "html:not(.seen) .job { animation: qa-fade 1s both; }</style>", "opening"),
@@ -463,6 +524,7 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
             elif not one:
                 failed.append(f"{where}: header wraps to a second line")
         if name == "index.html":
+            failed += [f"{where}: {line}" for line in page.evaluate(COMPOSITION)]
             if (width, height) in (FOLD, FOLD_REPORT):
                 bottom = page.evaluate("document.getElementById('copy').getBoundingClientRect().bottom")
                 if bottom > height and (width, height) == FOLD:
@@ -479,7 +541,7 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                 if bottom > SEND_CAP:
                     failed.append(f"{where}: 'Send this page to my computer' ends at {bottom:.0f}px, "
                                   f"cap {SEND_CAP}")
-            if (width, height) == (375, 812):
+            if phone and (width, height) == (375, 812):
                 reports.append(f"report: {where}: page is {screens:.2f} screens (today {PHONE_TODAY}, "
                                f"cap {PHONE_CAP:.1f})")
                 if screens > PHONE_CAP:
@@ -642,7 +704,7 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
         for name in pages():
             sizes = [(s, True) for s in PHONES] + [(s, False) for s in DESKTOPS]
             if name == "index.html":
-                sizes.append((FOLD_REPORT, False))
+                sizes += [(FOLD_REPORT, False)] + [(s, False) for s in PHONES]
             for (w, h), phone in sizes:
                 f, r = check_layout(browser, base, name, w, h, phone)
                 failed += f
@@ -682,6 +744,9 @@ def run_self_test(base: str) -> list[str]:
             return check_layout(browser, base, "index.html", *FOLD, False, inject, shots=False)[0]
         if kind == "phone":
             return check_layout(browser, base, "index.html", *SEND_AT, True, inject, shots=False)[0]
+        if kind in ("narrow", "wide"):
+            size = PHONES[0] if kind == "narrow" else (1440, 900)
+            return check_layout(browser, base, "index.html", *size, False, inject, shots=False)[0]
         if kind == "opening":
             return check_opening(browser, base, inject)[0]
         if kind == "transition":
@@ -691,7 +756,7 @@ def run_self_test(base: str) -> list[str]:
     failed = []
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
-        for kind in ("layout", "phone", "motion", "opening", "transition"):
+        for kind in ("layout", "phone", "narrow", "wide", "motion", "opening", "transition"):
             clean = home(browser, kind, None)
             if clean:
                 failed.append(f"self-test: clean home fails its {kind} checks: {clean[0]}")

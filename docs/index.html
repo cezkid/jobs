@@ -94,10 +94,11 @@
   }
   summary::after { transform: rotate(90deg); }
   details[open] > summary::after { transform: none; }
-  /* 12 columns for composed pages; .wrap = the same outer box w/o columns (generated pages) */
+  /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
+     .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
     display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
-    max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter);
+    padding: 0 max(var(--gutter), (100% - var(--max)) / 2);
   }
   .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
   .skip {
@@ -175,7 +176,7 @@
     border: 2px solid var(--text); border-radius: 10px; max-width: 34rem;
   }
   .command code {
-    flex: 1; min-width: 0; font: 0.9375rem/1.5 var(--mono); overflow-wrap: anywhere; user-select: all;
+    flex: 1; min-width: 0; font: 0.9375rem/1.5 var(--mono); overflow-wrap: break-word; user-select: all;
     padding: 2px 4px; background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 0 100%;
   }
   .command.copied code { background-size: 100% 100%; color: var(--ink); }
@@ -244,11 +245,12 @@
   .why { margin-top: 3px !important; font-size: 0.9375rem; line-height: 1.4; }
   .circled { position: relative; display: inline-block; }
   .slip .ring {
-    position: absolute; left: -16px; right: -18px; top: -7px; bottom: -8px; width: calc(100% + 34px); height: calc(100% + 15px); z-index: -1; overflow: visible;
+    position: absolute; left: -16px; right: -18px; top: -7px; bottom: -4px; width: calc(100% + 34px); height: calc(100% + 11px); z-index: -1; overflow: visible;
     fill: none; stroke: var(--mark); stroke-width: 7; stroke-linecap: round; vector-effect: non-scaling-stroke;
     stroke-dasharray: 100; stroke-dashoffset: 0;
   }
-  .picked .job { position: relative; }
+  /* room under the ring: its box ends above the salary line's letters */
+  .picked .job { position: relative; margin-bottom: 6px !important; }
   .today { isolation: isolate; }
   .slips, .slip { isolation: auto; }
   .fix { margin-top: 12px; padding-left: 18px; font-size: 0.9375rem; line-height: 1.45; }
@@ -259,12 +261,18 @@
   @media (max-width: 600px) {
     .today { padding: 12px 16px 16px 20px; }
     .switch { margin-left: 0; }
+    /* the web address never breaks: the box takes the whole row, Copy goes under the line */
+    ol.steps > li > .command { grid-column: 1 / -1; flex-wrap: wrap; padding-left: 12px; }
+    .command code { flex-basis: 100%; font-size: 0.875rem; }
     .hero { padding-top: 22px; row-gap: 28px; }
     h1 { font-size: clamp(2.25rem, 1rem + 6.4vw, 3rem); line-height: 1.04; }
     .lede { font-size: var(--step-0); }
   }
 
+  /* wide screens: the hero fills the first screen under the masthead (18px + one line + 16px + 3px
+     rule), so the next scene's heading + sheet start below the fold, never cut by it */
   @media (min-width: 1080px) {
+    .hero { min-height: calc(100svh - 37px - 1.9375rem); }
     .intro { grid-column: 1 / span 6; }
     figure { grid-column: 7 / -1; align-self: start; margin-top: 6px; }
   }
@@ -343,7 +351,7 @@
   .sheet-lg .ring { stroke-dasharray: 64; stroke-dashoffset: 0; }
   .sheet-lg .tick { stroke-dasharray: 16; stroke-dashoffset: 0; }
   @media (min-width: 760px) {
-    .line { grid-template-columns: minmax(0, 1fr) 12.5rem; }
+    .line { grid-template-columns: minmax(0, 1fr) 17rem; }
     .line.solo { grid-template-columns: minmax(0, 1fr); }
   }
   @media (max-width: 759px) {
@@ -352,7 +360,7 @@
     .sheet-lg .name { font-size: 1.625rem; }
   }
   @media (min-width: 1080px) {
-    .resume .scene-text { grid-column: 1 / span 4; align-self: center; }
+    .resume .scene-text { grid-column: 1 / span 4; }
     .proof { grid-column: 5 / -1; }
   }
 
@@ -428,9 +436,14 @@
   .stack summary { padding: 14px 40px 14px 0; font-weight: 700; }
   .stack details > div { padding: 0 40px 16px 0; }
   .stack code { font: 0.9375rem/1.5 var(--mono); overflow-wrap: anywhere; }
+  /* wide: the heading heads the first stack (4 questions) and is one question tall (1lh + margin = a
+     closed summary: 2 x 14px + one body line + 1px rule), the second stack (5) starts level with it
+     => both stacks end on the same line, balanced by height */
   @media (min-width: 900px) {
-    .stack { grid-column: span 6; }
-    .questions { align-items: start; }
+    .questions { align-items: start; row-gap: 0; }
+    .questions h2 { grid-column: 1 / span 6; margin-bottom: calc(29px + 1.9375rem - 1lh); }
+    .stack { grid-column: 1 / span 6; }
+    .stack + .stack { grid-column: 7 / -1; grid-row: 1 / span 2; }
   }
   /* one column on phones: the second stack carries on under the first's hairline */
   @media (max-width: 899px) { .stack + .stack details:first-child { border-top: 0; } }
@@ -441,7 +454,8 @@
   .closing h2 { font-size: clamp(2.25rem, 1.3rem + 3vw, 4.25rem); margin-bottom: 0.3em; }
   .closing .go { display: inline-block; margin-top: 8px; font-size: var(--step-1); font-weight: 700; }
   .closing .phone p { font-weight: 400; }
-  .colophon { grid-column: 1 / -1; margin: 0; padding: 18px 0 28px; border-top: 1px solid var(--line); color: var(--text-2); font-size: 1.0625rem; }
+  .colophon { border-top: 1px solid var(--line); }
+  .colophon p { grid-column: 1 / -1; margin: 0; padding: 18px 0 28px; color: var(--text-2); font-size: 1.0625rem; }
 
   /* phones: one column already stacks every scene => tighter rhythm keeps the page inside its cap */
   @media (max-width: 600px) {
@@ -453,7 +467,7 @@
     .picks a { font-size: 1.3125rem; }
     .picks li { padding: 12px 0 14px; }
     .stack summary { padding-top: 10px; padding-bottom: 10px; }
-    .colophon { padding: 14px 0 20px; }
+    .colophon p { padding: 14px 0 20px; }
   }
 
   /* print: the desktop install steps (the line itself), no buttons */
@@ -702,12 +716,12 @@
         <summary>Does it apply for me?</summary>
         <div><p>No. It fills the form; you check it and press Submit.</p></div>
       </details>
+    </div>
+    <div class="stack">
       <details>
         <summary>Will it make things up on my resume?</summary>
         <div><p>No. Employers, titles and dates stay as you gave them. You approve every reworded line.</p></div>
       </details>
-    </div>
-    <div class="stack">
       <details>
         <summary>What do I need?</summary>
         <div><p>Windows 10 or 11, or a Mac. About 5 minutes. No administrator password.</p></div>
@@ -746,8 +760,8 @@
   <!-- /region: closing -->
 
   <!-- region: colophon -->
-  <div class="grid">
-    <p class="colophon">Set in Caladea. Loads under 100 KB and nothing from other sites.</p>
+  <div class="grid colophon">
+    <p>Set in Caladea. Loads under 100 KB and nothing from other sites.</p>
   </div>
   <!-- /region: colophon -->
 </main>
