@@ -263,8 +263,8 @@ def test_article_head_body_and_links(tmp_path):
                  "https://github.com/cezkid/jobs/blob/main/app/docs/site.md#look", "#what-the-claim-says", "/about/"):
         assert href in hrefs, href
     assert '<div class="table" role="region" aria-label="Table: What the claim says" tabindex="0">' in html
-    assert ('By <a href="/about/">Cesar Enrriquez-Zuniga</a> · Published <time datetime="2026-09-01">1 September 2026</time>'
-            ' · Updated <time datetime="2026-09-20">20 September 2026</time>') in html
+    assert ('By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-09-01">1 September 2026</time>.'
+            ' Updated <time datetime="2026-09-20">20 September 2026</time>.') in html
     assert '<nav class="crumbs" aria-label="Breadcrumb">' in html
     # no update => one date
     assert "Updated" not in pages.build(tmp_path)["research/ai-bias/index.html"].split('class="meta"')[1].split("</p>")[0]
@@ -449,7 +449,7 @@ def test_citations_render_author_year_links_and_an_alphabetical_sources_list(tmp
             "Meta-analysis of field experiments shows no change in racial discrimination in hiring over time. "
             "<i>Proceedings of the National Academy of Sciences.</i> "
             '<a href="https://doi.org/10.1073/pnas.1706255114">https://doi.org/10.1073/pnas.1706255114</a> '
-            "Big study (many studies combined), 28 US studies, 55,842 applications. "
+            '<span class="evidence">Big study (many studies combined), 28 US studies, 55,842 applications.</span> '
             'Checked <time datetime="2026-09-29">29 September 2026</time>.</li>') in sources
     assert "Preprint, not peer-reviewed." in sources.split('id="src-kline-2021"')[1].split("</li>")[0]
     assert '<a href="https://www.nber.org/papers/w29053">' in sources

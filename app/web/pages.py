@@ -560,7 +560,7 @@ class Registry:
         if entry.get("url"):
             parts.append(f'<a href="{escape(entry["url"])}">{escape(entry["url"])}</a>')
         evidence = EVIDENCE[entry["evidence"]] + (f", {entry['sample'].strip()}" if entry.get("sample") else "")
-        parts.append(escape(stop(evidence)))
+        parts.append(f'<span class="evidence">{escape(stop(evidence))}</span>')
         if entry.get("preprint"):
             parts.append("Preprint, not peer-reviewed.")
         parts.append(f'Checked <time datetime="{entry["checked"]}">{long_date(str(entry["checked"]))}</time>.')
@@ -801,6 +801,7 @@ PAGE_CSS = """
   .sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
+  .sources .evidence { font-style: italic; font-synthesis: none; }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
@@ -831,11 +832,11 @@ def jsonld(graph: list[dict]) -> str:
 
 
 def dates(src: Source) -> str:
-    """Published <time>, + Updated <time> only when it differs."""
+    """Published <time>, + Updated <time> only when it differs; sentences, no middle-dot separators."""
     out = [f'Published <time datetime="{src.published}">{long_date(src.published)}</time>']
     if src.modified != src.published:
         out.append(f'Updated <time datetime="{src.modified}">{long_date(src.modified)}</time>')
-    return " · ".join(out)
+    return ". ".join(out) + "."
 
 
 def newest(articles: list[Source]) -> list[Source]:
@@ -921,7 +922,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
     elif src.name == "about":
         meta = f'Updated <time datetime="{src.modified}">{long_date(src.modified)}</time>'
     else:
-        meta = " · ".join([f'By <a href="/about/">{AUTHOR}</a>', dates(src)])
+        meta = f'By <a href="/about/">{AUTHOR}</a>. {dates(src)}'
     kind = {"about": "profile", "index": "website"}.get(src.name, "article")
     head = [
         f"<title>{escape(src.title)}</title>",
