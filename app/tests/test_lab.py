@@ -99,6 +99,14 @@ def test_tenants_keep_tenant_part_of_link_only():
                        {"controls": []}) == ["acmetest"]
 
 
+def test_tenants_smartrecruiters_oneclick_link_and_generic_names():
+    uuid = "0a1b2c3d-4e5f-6789-abcd-ef0123456789"
+    url = f"https://jobs.smartrecruiters.com/oneclick-ui/company/AcmeTest/publication/{uuid}"
+    got = lab.tenants(url, ["SmartRecruiters", "Acme Test Co"], {"controls": []})
+    assert got == ["Acme Test Co", "AcmeTest", uuid]
+    assert lab.tenants("https://jobs.smartrecruiters.com/AcmeTest/1234-analyst", [], {"controls": []}) == ["AcmeTest"]
+
+
 def test_measure_never_uses_the_application_window():
     src = (Path(lab.__file__)).read_text()
     assert "apply-browser" not in src.replace("never `.data/apply-browser`", "")
