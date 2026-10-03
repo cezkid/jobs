@@ -348,6 +348,20 @@
     .proof { grid-column: 5 / -1; }
   }
 
+  /* who sees what: every recipient as text, item for item with privacy.html */
+  .who-head { grid-column: 1 / -1; max-width: 46rem; }
+  .who-head .big { font-size: clamp(1.375rem, 1.1rem + 0.8vw, 1.75rem); line-height: 1.35; }
+  .ledger { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--text); }
+  .ledger li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 32px; padding: 16px 0 17px; border-bottom: 1px solid var(--line); }
+  .ledger h3 { margin: 0; font-size: 1.375rem; line-height: 1.25; }
+  .ledger .when { color: var(--text-2); }
+  .ledger-head { display: none; }
+  .who-foot { grid-column: 1 / -1; max-width: 46rem; color: var(--text-2); }
+  @media (min-width: 900px) {
+    .ledger li, .ledger-head { grid-template-columns: 3fr 5fr 4fr; }
+    .ledger-head { grid-column: 1 / -1; display: grid; gap: 4px 32px; color: var(--text-2); font-size: 1rem; margin-bottom: -24px !important; }
+  }
+
   .more { padding: 8px 0 24px; }
   .more section { max-width: 68ch; padding: 32px 0; border-top: 1px solid var(--line); }
   h2 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 16px; }
@@ -365,6 +379,7 @@
   @media print {
     html.is-phone .desktop, .desktop { display: block; }
     .phone, #copy, .switch { display: none !important; }
+    .scene { padding-top: 28px; padding-bottom: 28px; row-gap: 20px; }
   }
 </style>
 </head>
@@ -542,20 +557,27 @@
       <p>Interview practice, follow-up emails, and a Today page with what's waiting on you.</p>
     </section>
     <!-- /region: what -->
+  </div>
 
-    <!-- region: private -->
-    <section>
-      <h2>What stays private</h2>
-      <ul>
-        <li>No account. Nothing uploaded to us.</li>
-        <li>Your resume, jobs and settings stay on your computer.</li>
-        <li>The job search gets your search words and which job from your list you work on - never your resume.</li>
-        <li>Your own AI plan reads your resume to help.</li>
-        <li>Setup shows how to keep your chats out of AI training.</li>
-      </ul>
-      <p><a href="/privacy.html">Who sees what</a></p>
-    </section>
-    <!-- /region: private -->
+  <!-- region: who -->
+  <section class="grid scene who" aria-labelledby="who-h">
+    <div class="who-head">
+      <h2 id="who-h">Who sees what</h2>
+      <p class="big">No account. Nothing sent to us. Your resume, jobs and settings stay on your computer.</p>
+    </div>
+    <p class="ledger-head" aria-hidden="true"><span>Who</span><span>What they get</span><span>When</span></p>
+    <ol class="ledger">
+      <li><h3>freehire.me</h3><p>Your search words, and which job from your list you make a resume for or ask about. Never your resume.</p><p class="when">To find jobs, get the whole posting, or see if it's still open.</p></li>
+      <li><h3>Your own AI account</h3><p>Your resume and what you tell it, in Claude, ChatGPT or GitHub Copilot.</p><p class="when">While you chat. Personal plans may train on chats unless you switch it off.</p></li>
+      <li><h3>An employer</h3><p>What you apply with.</p><p class="when">Only when you click Save or Submit.</p></li>
+      <li><h3>Your email provider</h3><p>The morning email, sent to yourself.</p><p class="when">Only if you turn on email alerts.</p></li>
+      <li><h3>The maintainer</h3><p>A fix to the program's code. Never your files.</p><p class="when">Only if you say yes.</p></li>
+    </ol>
+    <p class="who-foot">Nothing else from the app leaves your computer. VS Code, your AI's add-on and the installer follow their own companies' rules: <a href="/privacy.html">Privacy, in full</a>.</p>
+  </section>
+  <!-- /region: who -->
+
+  <div class="more wrap">
 
     <!-- region: questions -->
     <section>
