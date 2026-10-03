@@ -111,7 +111,13 @@ STAT = re.compile(
     r"\b\d[\d,.]*\s*%|\bper\s?cent\b|\bpercentage points?\b|\b\d[\d,.]*\s+(?:points?|pts?)\b"
     rf"|\b{_NUM}\s+(?:in|out of)\s+(?:{_NUM}|a hundred|a thousand)\b|\bn\s*=\s*\d"
     r"|\b(?:a|one|two|three|four|five|six|seven|eight|nine)[\s-](?:half|halves|thirds?|quarters?|fourths?|fifths?"
-    r"|sixths?|sevenths?|eighths?|ninths?|tenths?)\b", re.I)
+    r"|sixths?|sevenths?|eighths?|ninths?|tenths?)\b"
+    # 3/4 (not a date: one digit over 2-10, no slash either side), "half of", "twice as likely"
+    r"|(?<![\d/.])[1-9]/(?:10|[2-9])(?![\d/])|(?<!first )(?<!second )(?<!last )\bhalf (?:of|the|as|their)\b"
+    r"|\b(?:twice|thrice|double|triple|quadruple)\s+(?:as|the)\b"
+    rf"|\b(?:\d[\d.]*|{_NUM}|half)\s+times\s+(?:as|more|less|fewer|higher|lower|greater|larger|smaller|the|over)\b"
+    # counts: 83,000 / 12000 (5+ digits, so never a year) / 2 million
+    r"|\b\d{1,3}(?:,\d{3})+\b|\b\d{5,}\b|\b\d[\d.]*\s*(?:thousand|million|billion)\b", re.I)
 # a full stop after these doesn't end a sentence
 ABBREV = re.compile(r"\b(et al|pp?|e\.g|i\.e|vs|cf|vol|eds?|approx)\.", re.I)
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",

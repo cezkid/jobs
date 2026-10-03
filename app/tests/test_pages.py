@@ -581,6 +581,13 @@ def test_registry_problems_are_reported_with_line(tmp_path, registry, problem):
     "Two-thirds of recruiters agreed.",
     "One fifth of firms did most of it.",
     "Smith et al. found it. Then 40% did. [@quillian-2017, p. 3] Next sentence has 5% too.",
+    "Over 3/4 of employers found one.",
+    "About half of recruiters agreed.",
+    "They were twice as likely to be called.",
+    "Callbacks were 1.5 times higher.",
+    "The firm screened 83,000 applications.",
+    "It got 12000 replies.",
+    "Some 2 million people applied.",
 ])
 def test_statistic_without_citation_is_an_error(tmp_path, snippet):
     research_site(tmp_path, body(snippet))
@@ -597,6 +604,8 @@ def test_statistic_without_citation_is_an_error(tmp_path, snippet):
     "As Quillian et al. (p. 4) put it, 36% fewer calls [@quillian-2017].",
     "Run `grep 50%` to see it.",
     "In 2021 three firms did.",
+    "On 2026-10-03 and 10/3/2026, open 24/7, in the first half of 2024, three times a week.",
+    "## Twice as likely, 3/4 of them, 83,000 calls\n\nThe text below cites [@quillian-2017].",
 ])
 def test_cited_or_code_or_plain_numbers_pass(tmp_path, snippet):
     research_site(tmp_path, body(snippet))
