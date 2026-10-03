@@ -329,7 +329,7 @@ def tenants(url: str, names: list[str], snap: dict) -> list[str]:
     parts = [p for p in (u.hostname or "").split(".") if not p.isdigit()]
     path = [p for p in u.path.split("/") if p]
     # Dayforce puts the language first: /en-US/<tenant>/<board>/jobs/<id> (2026-10-03)
-    parts += path[1:3] if path and re.fullmatch(r"[a-z]{2}-[A-Za-z]{2}", path[0]) else path[:2]
+    parts += path[1:3] if path and re.fullmatch(r"[a-z]{2}-[A-Za-z]{2}", path[0]) else path[:1]
     # og:site_name is the platform's own name on some systems ("BambooHR", 2026-10-03): it would
     # hit every doc + code line about that system
     out = [n for n in names if n.casefold() not in GENERIC] + [p for p in parts if len(p) >= 4 and p.casefold() not in GENERIC and not re.fullmatch(r"[\d-]+|wd\d+", p)]

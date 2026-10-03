@@ -1,5 +1,9 @@
 # Dayforce application forms - measured facts
 
+**Not filled yet.** The form shows only after Cloudflare's bot check sends a request, which every
+measuring run blocks (below) - no form box seen. Measured on the owner's first real Dayforce
+application instead (plan-6oq.4.7); `prepare` says "not supported yet" until then.
+
 Dayforce = payroll + hiring system (2.6% of freehire's US postings, 7 on the owner's list,
 2026-10-03). Posting `jobs.dayforcehcm.com/<lang>/<tenant>/<board>/jobs/<id>` - one host for every
 employer, Next.js app; tenant + board in the link (board = a word like `candidateportal` or a
