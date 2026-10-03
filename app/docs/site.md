@@ -134,10 +134,12 @@ questions, install). Real behaviour only: employers, titles, dates never change;
   => not tested. Focus ring two-tone (outline `--text` + spread-only `box-shadow` `--desk`): a
   near-white ring alone vanished on a white sheet in dark mode (1.12:1, measured); the desk band
   keeps it 3:1+ on desk and sheet. Spread-only shadow = a ring, not a depth shadow.
-- One family: Caladea (= resume typeface), Latin subset 400 + 700 preloaded (~18 KB each), name
-  table kept (licence); metric-matched fallbacks (Cambria, Georgia w/ size-adjust) so the swap
-  moves nothing. Italic 400 never preloaded, never in the first viewport. System mono for the
-  command only.
+- One family: Caladea (= resume typeface), Latin subset 400 + 700 preloaded (~19 KB each), name
+  table kept (licence); metric-matched fallbacks (Cambria, Georgia w/ size-adjust; Georgia Italic
+  for the italic) so the swap moves nothing. Italic 400 (13.7 KB, unhinted: 20.7 hinted) never
+  preloaded, never in the first viewport. Features kept: kern liga lnum onum tnum case frac;
+  Caladea's `case` only swaps combining accents, so U+0300-0328 stay in the subset or it drops.
+  System mono for the command only.
 - Sizes in rem + vw (text zoom, WCAG 1.4.4); body measure <= 68ch; `text-wrap: balance` on
   headings, `pretty` on body.
 - Kept: literal h1 ("A free job-search app for your Windows or Mac computer." - answers "is this

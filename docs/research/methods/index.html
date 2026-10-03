@@ -36,6 +36,7 @@
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
   /* Cambria = metric twin of Caladea; Georgia needs overrides (app/web/assets.py prints them) */
   @font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
   @font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
@@ -43,6 +44,9 @@
     size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
   @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
     size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Italic"), local("Cambria-Italic"); font-weight: 400; font-style: italic; }
+  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
+    size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
   :root {
     --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433;
     --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
