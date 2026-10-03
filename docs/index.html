@@ -249,7 +249,7 @@
   .circled { position: relative; display: inline-block; }
   .slip .ring {
     position: absolute; left: -16px; right: -18px; top: -7px; bottom: -4px; width: calc(100% + 34px); height: calc(100% + 11px); z-index: -1; overflow: visible;
-    fill: none; stroke: var(--mark); stroke-width: 7; stroke-linecap: round; vector-effect: non-scaling-stroke;
+    fill: none; stroke: var(--mark); stroke-width: 7; stroke-linecap: round;
     stroke-dasharray: 100; stroke-dashoffset: 0;
   }
   /* room under the ring: its box ends above the salary line's letters */
@@ -358,7 +358,7 @@
   .sheet-lg::before { transform: translate(10px, 10px); }
   .sheet-lg .name { font-size: 2rem; font-weight: 700; line-height: 1.15; }
   .sheet-lg .contact { color: var(--ink-2); font-size: 0.9375rem; }
-  .sheet-lg .sec { font-size: 1rem; letter-spacing: 0.04em; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--ink); }
+  .sheet-lg .sec { font-size: 1rem; font-weight: 700; line-height: 1.3; letter-spacing: 0.04em; margin: 18px 0 6px; padding-bottom: 4px; border-bottom: 1px solid var(--ink); }
   .line { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 28px; padding: 5px 0; }
   .line > :first-child { min-width: 0; }
   .bul { position: relative; padding-left: 18px; }
@@ -424,7 +424,7 @@
   }
   .submit svg {
     position: absolute; left: -16px; top: -13px; width: calc(100% + 32px); height: calc(100% + 26px); overflow: visible;
-    fill: none; stroke: var(--text); stroke-width: 2.2; stroke-linecap: round; vector-effect: non-scaling-stroke;
+    fill: none; stroke: var(--text); stroke-width: 2.2; stroke-linecap: round;
     stroke-dasharray: 100; stroke-dashoffset: 0;
   }
   @media (min-width: 600px) { .defs > div { grid-template-columns: 11rem minmax(0, 1fr); } }
@@ -553,7 +553,8 @@
   <div class="grid hero">
     <div class="intro">
       <h1>A free job-search app for your Windows or Mac computer.</h1>
-      <p class="lede">Finds new jobs every morning. Makes your resume for any job you pick. You press Submit.<span>Works with your Claude, ChatGPT or GitHub Copilot Pro plan.</span></p>
+      <p class="lede">Finds new jobs every morning. Makes your resume for any job you pick. You press Submit.
+        <span>Works with your Claude, ChatGPT or GitHub Copilot Pro plan.</span></p>
 
       <div id="install">
       <div class="phone">
@@ -562,18 +563,19 @@
       </div>
 
       <div class="desktop">
-        <h2 class="install-heading">Install on <span class="win-only">Windows</span><span class="mac-only">Mac</span> in about 5 minutes</h2>
+        <h2 class="install-heading">Install on <span class="win-only">Windows</span>
+          <span class="mac-only">Mac</span> in about 5 minutes</h2>
         <ol class="steps">
           <li>
             <p class="step win-only">
-              <svg class="app" viewBox="0 0 40 40" role="img" aria-label="PowerShell icon">
+              <svg class="app" viewBox="0 0 40 40" aria-hidden="true">
                 <path d="M9 6h29l-7 28H2z" fill="#2c6fbd"/>
                 <path d="M11 13l9 7-11 8" fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M19 28h9" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/>
               </svg>
               Open Windows PowerShell <span class="sub">from the Start menu</span></p>
             <p class="step mac-only">
-              <svg class="app" viewBox="0 0 40 40" role="img" aria-label="Terminal icon">
+              <svg class="app" viewBox="0 0 40 40" aria-hidden="true">
                 <rect x="2" y="3" width="36" height="34" rx="8" fill="#2b2b2b" stroke="#8a8a8a" stroke-width="1.5"/>
                 <path d="M9 13l6 5-6 5" fill="none" stroke="#f2f2f2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M18 24h8" stroke="#f2f2f2" stroke-width="2.6" stroke-linecap="round"/>
@@ -584,7 +586,7 @@
             <p class="step">Paste this and press Enter</p>
             <div class="command">
               <code id="line">irm https://jobs.enrriquez.com/win | iex</code>
-              <button type="button" id="copy" aria-label="Copy the line">
+              <button type="button" id="copy">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h8"/></svg>
                 <span id="copy-label">Copy</span>
               </button>
@@ -596,10 +598,12 @@
         </ol>
 
         <p class="switch">
-          <button type="button" id="switch-os"><span class="win-only">Mac steps</span><span class="mac-only">Windows steps</span></button>
+          <button type="button" id="switch-os"><span class="win-only">Mac steps</span>
+            <span class="mac-only">Windows steps</span></button>
           <span>Stuck? Run it again – your files are kept.</span>
           <a id="script" href="https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1">Read the script first</a>
         </p>
+        <p class="vh" role="status" id="install-status"></p>
         <p class="need">You need Windows 10 or 11 or a Mac, and one AI plan: Claude Pro or Max, ChatGPT Plus or Pro, or GitHub Copilot Pro. No administrator password.</p>
       </div>
       </div>
@@ -618,7 +622,8 @@
           </span>
         </div>
         <div class="today">
-          <p class="day"><b>Today</b><span>3 new jobs this morning</span></p>
+          <p class="day"><b>Today</b>
+            <span>3 new jobs this morning</span></p>
           <ul class="slips">
             <li class="slip">
               <p class="job"><b>Job 11</b> - Customer Success Manager</p>
@@ -661,12 +666,14 @@
       </ul>
     </div>
     <figure class="proof">
-      <p class="for-job">Your resume for job 12 - Customer Support Lead, remote</p>
-      <figcaption class="vh">Example resume for job 12. The job title and dates are kept as you gave them. One line is reworded with the posting's words, and you approved it. Another line uses the posting's words. The rest is kept as you wrote it.</figcaption>
+      <figcaption>
+        <p class="for-job">Your resume for job 12 - Customer Support Lead, remote</p>
+        <p class="vh">Example resume for job 12. The job title and dates are kept as you gave them. One line is reworded with the posting's words, and you approved it. Another line uses the posting's words. The rest is kept as you wrote it.</p>
+      </figcaption>
       <div class="sheet-lg">
         <p class="name">Your Name</p>
         <p class="contact">City, State | you@example.com</p>
-        <h3 class="sec">EXPERIENCE</h3>
+        <p class="sec">EXPERIENCE</p>
         <div class="line">
           <p><b>Customer Support Lead</b>, 2021 to now</p>
           <p class="margin"><span class="dash" aria-hidden="true"></span>Title and dates as you gave them</p>
@@ -707,7 +714,8 @@
         <div><dt>Workday</dt><dd>Filled with Claude, in Chrome.</dd></div>
         <div><dt>Any other form</dt><dd>Answers ready to paste.</dd></div>
       </dl>
-      <p class="submit-line"><span class="submit" aria-hidden="true">Submit<svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="100" d="M30 8 C 90 0, 190 4, 195 28 C 199 50, 120 58, 60 55 C 18 53, 3 42, 6 28 C 9 14, 44 6, 100 6"/></svg></span><span>It stops before Save and Submit. You check the form and press it yourself.</span></p>
+      <p class="submit-line"><span class="submit" aria-hidden="true">Submit<svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="100" d="M30 8 C 90 0, 190 4, 195 28 C 199 50, 120 58, 60 55 C 18 53, 3 42, 6 28 C 9 14, 44 6, 100 6"/></svg></span>
+        <span>It stops before Save and Submit. You check the form and press it yourself.</span></p>
     </div>
     <div class="half">
       <h2>Help after you apply</h2>
@@ -726,13 +734,25 @@
       <h2 id="who-h">Who sees what</h2>
       <p class="big">No account. Nothing sent to us. Your resume, jobs and settings stay on your computer.</p>
     </div>
-    <p class="ledger-head" aria-hidden="true"><span>Who</span><span>What they get</span><span>When</span></p>
+    <p class="ledger-head" aria-hidden="true"><span>Who</span>
+      <span>What they get</span>
+      <span>When</span></p>
     <ol class="ledger">
-      <li><h3>freehire.me</h3><p>Your search words, and which job from your list you make a resume for or ask about. Never your resume.</p><p class="when">To find jobs, get the whole posting, or see if it’s still open.</p></li>
-      <li><h3>Your own AI account</h3><p>Your resume and what you tell it, in Claude, ChatGPT or GitHub Copilot.</p><p class="when">While you chat. Personal plans may train on chats unless you switch it off.</p></li>
-      <li><h3>An employer</h3><p>What you apply with.</p><p class="when">When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</p></li>
-      <li><h3>Your email provider</h3><p>The morning email, sent to yourself.</p><p class="when">Only if you turn on email alerts.</p></li>
-      <li><h3>The maintainer</h3><p>A fix to the program’s code. Never your files.</p><p class="when">Only if you say yes.</p></li>
+      <li><h3>freehire.me</h3>
+        <p><span class="vh">What they get: </span>Your search words, and which job from your list you make a resume for or ask about. Never your resume.</p>
+        <p class="when"><span class="vh">When: </span>To find jobs, get the whole posting, or see if it’s still open.</p></li>
+      <li><h3>Your own AI account</h3>
+        <p><span class="vh">What they get: </span>Your resume and what you tell it, in Claude, ChatGPT or GitHub Copilot.</p>
+        <p class="when"><span class="vh">When: </span>While you chat. Personal plans may train on chats unless you switch it off.</p></li>
+      <li><h3>An employer</h3>
+        <p><span class="vh">What they get: </span>What you apply with.</p>
+        <p class="when"><span class="vh">When: </span>When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</p></li>
+      <li><h3>Your email provider</h3>
+        <p><span class="vh">What they get: </span>The morning email, sent to yourself.</p>
+        <p class="when"><span class="vh">When: </span>Only if you turn on email alerts.</p></li>
+      <li><h3>The maintainer</h3>
+        <p><span class="vh">What they get: </span>A fix to the program’s code. Never your files.</p>
+        <p class="when"><span class="vh">When: </span>Only if you say yes.</p></li>
     </ol>
     <p class="who-foot">Nothing else from the app leaves your computer. VS Code, your AI’s add-on and the installer follow their own companies’ rules: <a href="/privacy.html">Privacy, in full</a>.</p>
   </section>
@@ -855,6 +875,8 @@
   const button = document.getElementById("copy");
   const label = document.getElementById("copy-label");
   const box = button.closest(".command");
+  // screen readers hear each result (role=status); never written at load
+  const status = document.getElementById("install-status");
 
   function render() {
     html.toggle("is-mac", os === "mac");
@@ -887,10 +909,12 @@
     box.classList.toggle("copied", ok);
     // copy blocked => line is selectable by hand (one click selects all of it)
     label.textContent = ok ? "Copied" : "Select the line and copy it";
+    status.textContent = ok ? "Copied to the clipboard" : "Copy blocked - select the line and copy it";
   });
   document.getElementById("switch-os").addEventListener("click", () => {
     os = os === "mac" ? "win" : "mac";
     render();
+    status.textContent = os === "mac" ? "Showing Mac steps" : "Showing Windows steps";
   });
   // phones: share sheet when there is one; a cancel stays a cancel
   if (navigator.share) document.querySelectorAll(".send").forEach((send) => {

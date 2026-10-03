@@ -42,6 +42,8 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
   (opacity 1, visible) + home's Windows install line
 - forced colours: every mark still paints something its parent doesn't
 - home in print: <= 5 pages (PDF) and the install line shows
+- STATUS, home at 1366x641: after Copy the role=status text is "Copied to the clipboard" and Copy's
+  accessible name holds its visible label; after the OS switch the status names the OS shown
 - home's opening moment, 1366x641 + 390x844 (full motion): at load only the hero window animates
   (outside it only scroll-driven scene animations may exist),
   every timed animation ends <= 2800 ms; at first paint (each animation at 0) hero text opacity 1
@@ -63,7 +65,8 @@ right half at 1440x900), a second framed object (a boxed note) in the
 first screen (1440x900), a scene circle stuck half drawn / undrawn in reduced motion, an opening that runs
 long / fades text in / moves 40px / animates the LCP element / replays on reload, a page change
 w/o crossfade, an opening played after one, a check finding 0 elements, paint animations piled up,
-the Mac line on more lines, two framed objects at once), an article (a wide element, a console error).
+the Mac line on more lines, two framed objects at once, Copy + OS switch results unannounced / Copy named
+by a fixed label), an article (a wide element, a console error).
 --capture DIR: every page at 1366x641, 1440x900, 1440x780 (Mac), 1920x1080, 390x844 phone, light +
 dark, reduced motion: full-page + per-screen shots and DIR/numbers.md (screens long, print pages, h1 +
 h2 px per desktop size) - before/after material.
@@ -538,9 +541,16 @@ FAULTS = [
      "mac", MAC_UA),
     (HOME, "FRAMES: the resume sheet pinned over the window", "<style>.proof { position: fixed !important; "
      "top: 0; left: 0; width: 520px; }</style>", "frames"),
+    (HOME, "STATUS: Copy result never announced", "<script>document.getElementById('install-status')"
+     ".removeAttribute('role')</script>", "status"),
+    (HOME, "STATUS: Copy named by a fixed label", "<script>document.getElementById('copy')"
+     ".setAttribute('aria-label', 'Copy the line')</script>", "status"),
+    (HOME, "STATUS: OS switch silent", "<script>document.getElementById('switch-os').addEventListener('click', "
+     "() => setTimeout(() => { document.getElementById('install-status').textContent = 'Copied to the clipboard'; "
+     "}))</script>", "status"),
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
-CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES",
+CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
              "0 matches": "found 0 elements"}
 
 
@@ -875,6 +885,38 @@ def check_print(browser, base: str, inject: str | None = None) -> list[str]:
     return failed
 
 
+STATUS_TEXT = "() => [...document.querySelectorAll('[role=status]')].map(e => e.textContent.trim()).join(' | ')"
+
+
+def check_status(browser, base: str, inject: str | None = None) -> list[str]:
+    """Copy + OS switch results reach screen readers (B5): one role=status, written on click only."""
+    failed = []
+    where = "index.html at 1366x641"
+    with opened(browser, base, "index.html", 1366, 641, False, failed, where, inject,
+                permissions=["clipboard-read", "clipboard-write"]) as page:
+        gone = missing(page, where, "[role=status]", "#copy", "#copy-label", "#switch-os")
+        if gone:
+            return failed + [f"STATUS {line}" for line in gone]
+        if (got := page.evaluate(STATUS_TEXT)):
+            failed.append(f"STATUS {where}: status says {got!r} at load (announced before any click)")
+        page.click("#copy")
+        page.wait_for_timeout(300)
+        visible = page.inner_text("#copy-label").strip()
+        name = re.match(r'- button "([^"]*)"', page.locator("#copy").aria_snapshot())
+        if not name or visible.lower() not in name[1].lower():
+            failed.append(f"STATUS {where}: Copy's accessible name {name[1] if name else None!r} lacks its "
+                          f"visible label {visible!r}")
+        if (got := page.evaluate(STATUS_TEXT)) != "Copied to the clipboard":
+            failed.append(f"STATUS {where}: after Copy the status says {got!r}, not 'Copied to the clipboard'")
+        for _ in range(2):
+            page.click("#switch-os")
+            page.wait_for_timeout(100)
+            shown = "Mac" if page.evaluate("document.documentElement.classList.contains('is-mac')") else "Windows"
+            if (got := page.evaluate(STATUS_TEXT)) != f"Showing {shown} steps":
+                failed.append(f"STATUS {where}: after the OS switch ({shown} shown) the status says {got!r}")
+    return failed
+
+
 def run_chrome(base: str) -> tuple[list[str], list[str]]:
     from playwright.sync_api import sync_playwright
 
@@ -896,6 +938,7 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
             for (w, h), phone in MOTION_SIZES:
                 failed += check_motion(browser, base, name, w, h, phone)
         failed += check_print(browser, base)
+        failed += check_status(browser, base)
         failed += check_transition(browser, base)
         f, r = check_opening(browser, base)
         failed += f
@@ -939,6 +982,8 @@ def run_self_test(base: str) -> list[str]:
             return check_opening(browser, base, inject)[0]
         if kind == "transition":
             return check_transition(browser, base, inject)
+        if kind == "status":
+            return check_status(browser, base, inject)
         return check_motion(browser, base, name, *FOLD, False, inject)
 
     failed, clean = [], {}

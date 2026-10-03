@@ -287,6 +287,13 @@ def budgets(docs: Path, name: str) -> list[str]:
         bad = sorted(set(re.findall(r"<(a|button|input|select|textarea)\b", inner)))
         if bad:
             problems.append(f"{name}: <figure> holds {bad} (illustrations show controls, never hold one)")
+        if "<figcaption" in inner and not (inner.split(">", 1)[1].lstrip().startswith("<figcaption")
+                                           or inner.rstrip().endswith("</figcaption>")):
+            problems.append(f"{name}: <figcaption> not the first or last child of its <figure> (W3C error)")
+        if re.search(r"<h[1-6]\b", inner):
+            problems.append(f"{name}: heading inside <figure> (an illustration's text joins the page outline)")
+    if re.search(r"vector-effect", css):
+        problems.append(f"{name}: vector-effect in CSS (unknown to the W3C CSS checker; an SVG attribute instead)")
     if re.search(r"body\.is-", css):
         problems.append(f"{name}: body.is-* selector (head script sets html.is-* before first paint)")
     if sum("LINES" in s for s in scripts) > 1:
@@ -412,3 +419,16 @@ def typewriter(raw: str) -> tuple[int, list[str]]:
     text = " ".join(" ".join(Prose(raw).chunks).split())
     found = [text[max(0, m.start() - 30):m.end() + 30] for m in re.finditer(r"['\"]| - ", text)]
     return len(text), found
+
+
+# C4: raw-HTML readers (AI crawlers) skip CSS: text in two adjacent inline elements, or a sentence and the
+# inline element after it, reads as one word ("Install on WindowsMac") unless whitespace sits between
+INLINE = r"(?:span|b|strong|em|mark|a|code|del|ins|time)"
+RUN_TOGETHER = re.compile(rf"[A-Za-z0-9]</{INLINE}>(?:<[^>]+>)*<{INLINE}\b[^>]*>[A-Za-z0-9]"
+                          rf"|[A-Za-z0-9][.!?]<{INLINE}\b[^>]*>[A-Za-z0-9]")
+
+
+def run_together(raw: str) -> list[str]:
+    """Each place two words would touch in the page's raw text (style + script removed)."""
+    text = re.sub(r"<(style|script)\b.*?</\1>", "", raw, flags=re.S)
+    return [text[max(0, m.start() - 30):m.end() + 30] for m in RUN_TOGETHER.finditer(text)]

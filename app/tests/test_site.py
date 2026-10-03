@@ -25,7 +25,7 @@ import pymupdf  # noqa: E402
 
 from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, files, head_scripts,  # noqa: E402
                          loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
-                         typewriter)
+                         run_together, typewriter)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -273,6 +273,20 @@ def test_typographic_check_trips_on_a_straight_quote_and_a_hyphen_dash():
     assert typewriter('<p title="it\'s">ok</p>')[1] == []
 
 
+def test_no_words_run_together_in_page_text():
+    # raw HTML w/o CSS (AI crawlers): "Install on WindowsMac" is one made-up word (C4, D10)
+    found = [f"{name}: {hit!r}" for name in HAND_WRITTEN for hit in run_together((DOCS / name).read_text(encoding="utf-8"))]
+    assert not found, found
+
+
+def test_run_together_check_trips_on_touching_inline_text():
+    assert run_together('<h2>On <span>Windows</span>\n<span>Mac</span></h2><p>Done.\n<span>Next</span></p>') == []
+    assert run_together('<h2>On <span>Windows</span><span>Mac</span></h2>')
+    assert run_together('<p><b>Today</b><span>3 new</span></p>')
+    assert run_together('<p>You press Submit.<span>Works with</span></p>')
+    assert run_together('<style>b</b><b>x</style><script>"a</b><b>b"</script>') == []
+
+
 def test_home_resume_scene_shows_the_correction_as_del_and_ins():
     # signature scene: the old line is struck (<del>), the new one inserted (<ins>), and you approved it
     raw = (DOCS / "index.html").read_text(encoding="utf-8")
@@ -397,12 +411,16 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
     ({"head": "<script>const LINES = 1;</script>"}, {}, "<head> script names LINES"),
     ({"css": "body.is-mac .x { display: none; }"}, {}, "body.is-*"),
     ({"body": '<figure><p>Form</p><button>Submit</button></figure>'}, {}, "<figure> holds ['button']"),
+    ({"body": "<figure><p>Job 12</p><figcaption>x</figcaption><div>sheet</div></figure>"}, {}, "<figcaption> not the first"),
+    ({"body": "<figure><figcaption>x</figcaption><h3>EXPERIENCE</h3></figure>"}, {}, "heading inside <figure>"),
+    ({"css": ".ring { vector-effect: non-scaling-stroke; }"}, {}, "vector-effect in CSS"),
     ({"css": "@view-transition { navigation: auto; }"}, {}, "view transition outside"),
     ({"css": "@media (prefers-reduced-motion: no-preference) { .x { opacity: 1; } }"
              " header { view-transition-name: top; }"}, {}, "view transition outside"),
 ], ids=["html-gzip", "inline-js", "elements", "first-load", "critical", "script-src", "will-change",
         "keyframes", "transition", "transition-all", "use-target", "header-id", "footer-style", "lines-twice",
-        "head-script-size", "head-script-lines", "body-class", "figure-control", "view-transition",
+        "head-script-size", "head-script-lines", "body-class", "figure-control", "figcaption-middle",
+        "figure-heading", "vector-effect-css", "view-transition",
         "view-transition-name"])
 def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
     for rel, size in files.items():
