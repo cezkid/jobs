@@ -22,6 +22,8 @@ const PROBE_SETTLE_ENV = "JOBS_VSCODE_PROBE_SETTLE_MS";
 // probe only: view type of a custom editor a scratch build contributes (customEditors), to see
 // which Today.md files it takes over
 const PROBE_EDITOR_ENV = "JOBS_VSCODE_PROBE_EDITOR";
+// probe only: words a Today say button carries; run through the button's own path after settle
+const PROBE_SAY_ENV = "JOBS_VSCODE_PROBE_SAY";
 const PROBE_COMMANDS = [/^claude-vscode\./, /^chatgpt\./, /^workbench\.action\.chat\./, /outline/i, /timeline/i, /^vscode\.moveViews$/, /^markdown\.showPreview/];
 const PROBE_SETTINGS = [
   "workbench.colorTheme", "window.autoDetectColorScheme", "workbench.startupEditor",
@@ -122,7 +124,7 @@ function showToday(document, panel) {
       if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
       if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
     }
-    panel.webview.html = m ? today.render(m, { mode: today.sayMode(currentAi(root)), nonce }) : today.fallback({ nonce });
+    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), nonce }) : today.fallback({ nonce });
   };
   draw();
   const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), start.TODAY));
@@ -171,18 +173,47 @@ async function act(root, at, page, m, msg, panel) {
   }
   if (action.type === "say") {
     if (!today.templateFor(action.words, today.templates(say))) return;
-    const ai = currentAi(root);
-    if (today.sayMode(ai) === "fill") {
-      try {
-        // fills the box, never sends: isPartialQuery
-        await vscode.commands.executeCommand("workbench.action.chat.open", { query: action.words, isPartialQuery: true });
-        return tell(panel, today.filledLine());
-      } catch {}
-    }
-    await vscode.env.clipboard.writeText(action.words);
-    if (today.CHAT_OPEN[ai]) await Promise.resolve(vscode.commands.executeCommand(today.CHAT_OPEN[ai])).catch(() => {});
-    tell(panel, today.copiedLine(process.platform));
+    return sayWords(root, action.words, (text) => tell(panel, text));
   }
+}
+
+// installed Claude's version + where it opens chats: decides "new" vs "copy" (today.sayMode)
+function claudeSeen() {
+  const ext = vscode.extensions.getExtension(today.CLAUDE_ID);
+  return {
+    version: ext ? ext.packageJSON.version : null,
+    location: vscode.workspace.getConfiguration("claudeCode").get("preferredLocation"),
+  };
+}
+
+function sayModeNow(root) {
+  return today.sayMode(currentAi(root), claudeSeen());
+}
+
+// words into the chat, never sent; returns the mode that ran (probe reads it)
+async function sayWords(root, words, status) {
+  const ai = currentAi(root);
+  const mode = sayModeNow(root);
+  if (mode === "fill") {
+    try {
+      // fills the box, never sends: isPartialQuery
+      await vscode.commands.executeCommand("workbench.action.chat.open", { query: words, isPartialQuery: true });
+      status(today.filledLine());
+      return mode;
+    } catch {}
+  }
+  if (mode === "new") {
+    try {
+      await vscode.commands.executeCommand(today.CLAUDE_NEW_CHAT, ...today.claudeNewChatArgs(words));
+      status(today.newChatLine());
+      vscode.window.setStatusBarMessage(today.newChatLine(), 8000);
+      return mode;
+    } catch {}
+  }
+  await vscode.env.clipboard.writeText(words);
+  if (today.CHAT_OPEN[ai]) await Promise.resolve(vscode.commands.executeCommand(today.CHAT_OPEN[ai])).catch(() => {});
+  status(today.copiedLine(process.platform));
+  return "copy";
 }
 
 function refreshToday(root) {
@@ -256,6 +287,16 @@ async function probe(context, out) {
     if (seen) settings[key] = { value: vscode.workspace.getConfiguration().get(key), user: seen.globalValue, workspace: seen.workspaceValue };
   }
   report.settings = settings;
+  const words = process.env[PROBE_SAY_ENV];
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  if (words && folder) {
+    const root = folder.uri.fsPath;
+    report.say = { words, ai: currentAi(root), claude: claudeSeen(), status: [] };
+    report.say.tabsBefore = readWindow();
+    report.say.mode = await sayWords(root, words, (text) => report.say.status.push(text));
+    await new Promise((done) => setTimeout(done, 4000));
+    report.say.tabsAfter = readWindow();
+  }
   fs.writeFileSync(out, redact(JSON.stringify(report, null, 1)) + "\n");
   await vscode.commands.executeCommand("workbench.action.quit");
 }

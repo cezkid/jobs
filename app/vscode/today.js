@@ -9,10 +9,15 @@ const DATA = path.join(".data", "today.json");
 const VERSION = 1;
 // files a button may open: the user's own folders + our guides, nothing above the Job Finder folder
 const OPENABLE = ["My Jobs/", "My Resume/", "Guides/"];
-// Copilot's chat box takes words w/o sending (workbench.action.chat.open isPartialQuery); Claude +
-// ChatGPT have no way into the chat shown (app-window.md d, e) => copy + open their chat
+// Copilot's chat box takes words w/o sending (workbench.action.chat.open isPartialQuery). Claude:
+// a fresh sidebar chat w/ the words typed in, not sent (owner 2026-10-03; app-window.md d, j) -
+// only on the Claude versions measured + sidebar set, else copy. ChatGPT: no fill (e) => copy.
 const FILL = new Set(["copilot"]);
 const CHAT_OPEN = { claude: "claude-vscode.sidebar.open", chatgpt: "chatgpt.openSidebar" };
+const CLAUDE_ID = "anthropic.claude-code";
+// tested range: from 2.1.288 up to (not incl.) the next minor
+const CLAUDE_TESTED = { from: [2, 1, 288], below: [2, 2, 0] };
+const CLAUDE_NEW_CHAT = "claude-vscode.editor.open";
 
 function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -104,20 +109,52 @@ function model(raw, sayJson) {
   return m;
 }
 
-function sayMode(ai) {
-  return FILL.has(ai) ? "fill" : "copy";
+function versionParts(text) {
+  const m = /^(\d+)\.(\d+)\.(\d+)/.exec(String(text || ""));
+  return m ? m.slice(1).map(Number) : null;
 }
 
-// what a say button's own text reads: fill => the label ("Make my resume"); copy => honest about
-// what it does ("Copy: resume for job 12")
+function before(a, b) {
+  for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] < b[i];
+  return false;
+}
+
+function claudeTested(version) {
+  const v = versionParts(version);
+  return Boolean(v) && !before(v, CLAUDE_TESTED.from) && before(v, CLAUDE_TESTED.below);
+}
+
+// fill = Copilot's box; new = fresh Claude sidebar chat; copy = everything else.
+// claude = { version, location } of the installed Claude extension + claudeCode.preferredLocation:
+// "panel" would put the new chat in an editor tab over Today => copy instead
+function sayMode(ai, claude = {}) {
+  if (FILL.has(ai)) return "fill";
+  if (ai === "claude" && claudeTested(claude.version) && claude.location === "sidebar") return "new";
+  return "copy";
+}
+
+// args for claude-vscode.editor.open: no session + words => fresh chat, words typed in, not
+// sent; honor-preferred-location => sidebar, never a tab (bundle read: app-window.md d, j)
+function claudeNewChatArgs(words) {
+  return [undefined, words, undefined, undefined, false, { programmatic: "honor-preferred-location" }];
+}
+
+// what a say button's own text reads: fill/new => the label ("Make my resume"); copy => honest
+// about what it does ("Copy: resume for job 12")
 function sayText(button, mode) {
-  return mode === "fill" ? button.label : `Copy: ${button.words}`;
+  return mode === "copy" ? `Copy: ${button.words}` : button.label;
+}
+
+function sayTitle(button, mode) {
+  if (mode === "fill") return `Puts "${button.words}" in the chat box`;
+  if (mode === "new") return "Opens a new chat with these words typed in - press Enter to start";
+  return "";
 }
 
 function howLine(mode) {
-  return mode === "fill"
-    ? "Buttons put the words in the chat box. Nothing is sent until you press Enter."
-    : "Buttons copy the words. Paste them in the chat box and press Enter.";
+  if (mode === "fill") return "Buttons put the words in the chat box. Nothing is sent until you press Enter.";
+  if (mode === "new") return "Buttons open a new chat with the words typed in. Nothing is sent until you press Enter.";
+  return "Buttons copy the words. Paste them in the chat box and press Enter.";
 }
 
 function copiedLine(platform) {
@@ -127,6 +164,10 @@ function copiedLine(platform) {
 
 function filledLine() {
   return "The words are in the chat box - press Enter to send them.";
+}
+
+function newChatLine() {
+  return "New chat ready - press Enter";
 }
 
 // colors = app/window/brand.py tokens (test checks every hex); yellow only on buttons
@@ -198,7 +239,7 @@ function render(m, { mode, nonce }) {
   const h = escapeHtml;
   const btn = (text, action, go = false, title = "") =>
     `<button type="button" data-a="${action}"${go ? ' class="go"' : ""}${title ? ` title="${h(title)}"` : ""}>${h(text)}</button>`;
-  const say = (b, go) => btn(sayText(b, mode), b.action, go, mode === "fill" ? `Puts "${b.words}" in the chat box` : "");
+  const say = (b, go) => btn(sayText(b, mode), b.action, go, sayTitle(b, mode));
   const card = (c) => {
     const buttons = [
       ...c.say.map((b, i) => say(b, i === 0)),
@@ -249,7 +290,8 @@ function fallback({ nonce }) {
 }
 
 module.exports = {
-  VIEW_TYPE, DATA, VERSION, OPENABLE, CHAT_OPEN,
-  escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, sayMode, sayText, howLine, copiedLine, filledLine,
+  VIEW_TYPE, DATA, VERSION, OPENABLE, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
+  escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
+  howLine, copiedLine, filledLine, newChatLine,
   csp, render, fallback,
 };

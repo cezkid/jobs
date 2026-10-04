@@ -90,7 +90,7 @@ test("missing, old or broken data => no dashboard model", () => {
 });
 
 // "Make my resume" that only copied would leave the user waiting for something that never happens
-test("button text honest per AI: Copilot fills, Claude + ChatGPT copy", () => {
+test("button text honest per AI: Copilot fills, ChatGPT + untested Claude copy", () => {
   assert.equal(today.sayMode("copilot"), "fill");
   for (const ai of ["claude", "chatgpt", null, "nova"]) assert.equal(today.sayMode(ai), "copy");
   const m = today.model(RAW, say);
@@ -100,6 +100,39 @@ test("button text honest per AI: Copilot fills, Claude + ChatGPT copy", () => {
   assert.equal(today.copiedLine("darwin"), "Copied - click the chat box, paste (Cmd+V), press Enter.");
   assert.equal(today.copiedLine("win32"), "Copied - click the chat box, paste (Ctrl+V), press Enter.");
   assert.deepEqual(today.CHAT_OPEN, { claude: "claude-vscode.sidebar.open", chatgpt: "chatgpt.openSidebar" });
+});
+
+const TESTED = { version: "2.1.288", location: "sidebar" };
+
+// owner 2026-10-03: no copy-paste for Claude => one click, fresh sidebar chat, words typed in
+test("Claude on a tested version: new sidebar chat w/ the words, not sent", () => {
+  assert.equal(today.sayMode("claude", TESTED), "new");
+  assert.equal(today.sayMode("claude", { version: "2.1.299", location: "sidebar" }), "new");
+  assert.equal(today.sayMode("chatgpt", TESTED), "copy");
+  assert.equal(today.sayMode("copilot", TESTED), "fill");
+  const args = today.claudeNewChatArgs("apply to job 12");
+  // no session id => fresh chat; prompt = the words; honor-preferred-location => sidebar, not a tab
+  assert.equal(args[0], undefined);
+  assert.equal(args[1], "apply to job 12");
+  assert.equal(args[4], false);
+  assert.deepEqual(args[5], { programmatic: "honor-preferred-location" });
+  assert.equal(today.CLAUDE_NEW_CHAT, "claude-vscode.editor.open");
+  const m = today.model(RAW, say);
+  const page = html(m, "new");
+  assert.match(page, /class="go" title="Opens a new chat with these words typed in - press Enter to start">Apply</);
+  assert.match(page, /open a new chat with the words typed in\. Nothing is sent until you press Enter/);
+  assert.doesNotMatch(page, /Copy:/);
+  assert.equal(today.newChatLine(), "New chat ready - press Enter");
+});
+
+// an untested Claude could open the chat in a tab over Today, or drop the words => keep copy + open
+test("Claude off the tested range, not installed or set to open in a tab => copy fallback", () => {
+  for (const version of ["2.1.287", "2.2.0", "3.0.1", "2.0.999", null, undefined, "", "garbage"]) {
+    assert.equal(today.sayMode("claude", { version, location: "sidebar" }), "copy", String(version));
+  }
+  assert.equal(today.sayMode("claude", { version: "2.1.288", location: "panel" }), "copy");
+  assert.equal(today.sayMode("claude", { version: "2.1.288" }), "copy");
+  assert.equal(today.claudeTested("2.1.288-beta.1"), true);
 });
 
 // counts of what the user hasn't done read as nagging; a zero tile reads as failure

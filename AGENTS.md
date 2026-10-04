@@ -26,7 +26,7 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   its own profile "CEZ Job Finder" w/ Job Finder's extension (`app/vscode/`); why + what was
   rejected: `app/docs/app-window.md`.
 - Today page buttons put their words in the chat, never send them: Copilot fills its chat box;
-  Claude + ChatGPT copy + open the chat, user pastes + presses Enter. Same chat - never a new one.
+  Claude: one fresh sidebar chat w/ them typed in; ChatGPT: copy + open, user pastes + presses Enter.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.
 - Need file from user (resume PDF): ask them to drag it onto My Resume in the file list, then
@@ -80,6 +80,7 @@ unseen - a tab badge is the only sign one waits.
 
 - Never offer or open extra chats yourself. A new chat opens as a tab over their resume or
   START HERE / Today, and files you open then land on top of it (Claude extension 2.1.283, measured).
+- Only exception: a Today button for Claude opens one fresh sidebar chat (owner 2026-10-03), never a tab.
 - User asks how anyway: icons at the top of the chat. Claude: hover - "New session" starts one,
   "Session history" lists past chats. Copilot: "+" starts a new chat, the clock icon lists past
   chats. Say it works; both chats share their files safely.
