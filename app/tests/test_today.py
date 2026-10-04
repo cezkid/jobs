@@ -45,7 +45,7 @@ Tuesday, September 29. So far: 1 sent.
 
 ## Follow up
 
-No reply for a while. A short note asking where things stand is common practice - about 3 weeks after applying, about 2 weeks once you've talked with them - if you have someone to write to. Many employers never write back.
+No reply for a while. Many employers never write back. [When to follow up](Guides/Following%20up.md)
 
 - **Job 2** - Senior Vue Engineer old, Acme
   - Applied 29 days ago, no reply yet
@@ -55,11 +55,11 @@ No reply for a while. A short note asking where things stand is common practice 
 ## New since last check
 
 - **Job 3** - Senior Vue Engineer paid, Acme
-  - remote · $150k-190k (meets your pay) · added to your list today
+  - Why: remote · $150k-190k (meets your pay) · added to your list today
   - [Open the posting](<https://boards.greenhouse.io/acme/jobs/paid>)
   - Say: `resume for job 3`
 - **Job 4** - Senior Vue Engineer plain, Acme
-  - remote · pay not listed · added to your list today
+  - Why: remote · pay not listed · added to your list today
   - [Open the posting](<https://boards.greenhouse.io/acme/jobs/plain>)
   - Say: `resume for job 4`
 
@@ -100,6 +100,25 @@ def test_dashboard_data_is_the_page(tmp_path):
     # "Resume made 8 days ago" reads as overdue: no age on what waits, dashboard as page
     assert card["detail"] == "Ready to send"
     assert json.loads(json.dumps(m)) == m
+
+
+# "Make my resume" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
+def test_new_jobs_carry_their_why_as_data(tmp_path):
+    m = dashboard_model(tmp_path)
+    new = next(s for s in m["sections"] if s["id"] == "new")
+    assert [c["why"] for c in new["cards"]] == ["remote · $150k-190k (meets your pay) · added to your list today",
+                                                "remote · pay not listed · added to your list today"]
+    assert all(c["detail"] == "" and c["url"] for c in new["cards"])
+    follow = next(s for s in m["sections"] if s["id"] == "follow_up")
+    assert follow["guide"] == {"title": "When to follow up", "path": "Guides/Following up.md"}
+    assert (ROOT / follow["guide"]["path"]).exists()
+
+
+# "1 Interviews" reads as a typo on the first figure a user sees
+def test_figures_say_one_interview_not_one_interviews():
+    labels = lambda **c: [t["label"] for t in today.tiles({"sent": 3, "interview": 0, "offer": 0, **c}, 0)]
+    assert labels(interview=1, offer=1) == ["Sent so far", "Interview", "Offer"]
+    assert labels(interview=2, offer=3) == ["Sent so far", "Interviews", "Offers"]
 
 
 def test_write_puts_dashboard_data_beside_the_page(conn, tmp_path, monkeypatch):

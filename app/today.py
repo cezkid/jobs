@@ -34,9 +34,9 @@ BRIEF_MAX = 3
 # where it stands -> how the follow-up item opens; the days come from settings `follow_up`
 # (app/docs/apply/follow-up.md: convention + thin measurements, said so on the page)
 STAGE_WORDS = {"applied": "Applied", "heard_back": "Heard back", "interview": "Interview"}
-FOLLOW_UP_NOTE = ("No reply for a while. A short note asking where things stand is common practice - about 3 weeks"
-                  " after applying, about 2 weeks once you've talked with them - if you have someone to write to."
-                  " Many employers never write back.")
+# one line; when + why in the guide (critique 2026-10-04: a 3-line note at ~110 chars a line)
+FOLLOW_UP_NOTE = "No reply for a while. Many employers never write back."
+FOLLOW_UP_GUIDE = {"title": "When to follow up", "path": "Guides/Following up.md"}
 # applied or further along: counted as progress on the page
 SENT = ("applied", "heard_back", "interview", "no", "offer")
 # START HERE is first-run steps only; everything else it said lives in these (launch.py)
@@ -120,29 +120,36 @@ def days_ago(since: str, now: str) -> str:
     return "today" if days < 1 else "1 day ago" if days == 1 else f"{days} days ago"
 
 
+def guide_link(g: dict) -> str:
+    return f"[{g['title']}]({quote(g['path'])})"
+
+
 def item(row: dict, *details: str) -> list[str]:
     return [f"- **Job {row['num']}** - {inert_md(name(row))}", *(f"  - {d}" for d in details if d)]
 
 
 def card(row: dict, detail: str, says: list[str], dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT,
-         tail: str = "") -> dict:
-    """One job, as both the page and the dashboard show it: says[0] = the main thing to do."""
+         tail: str = "", why: str | None = None) -> dict:
+    """One job, as both the page and the dashboard show it: says[0] = the main thing to do.
+    why = the row's `[reasons]` (new jobs: AGENTS.md, each job carries its one-line why)."""
     job_dir = (dirs or {}).get(row.get("key"))
     return {"num": row["num"], "title": row.get("title") or "", "company": row.get("company") or "",
             "detail": detail, "url": row.get("url") or None, "resume": rel(resume_pdf(job_dir), root),
-            "folder": rel(job_dir, root), "say": says, "tail": tail}
+            "folder": rel(job_dir, root), "say": says, "tail": tail, "why": why}
 
 
 def card_md(c: dict) -> list[str]:
     """Posting + its resume on one line: both open from the page, no URL to read."""
     links = " · ".join(filter(None, (posting(c["url"]), resume_link(c["resume"]))))
-    return item(c, c["detail"], links, say(*c["say"], tail=c["tail"]))
+    why = f"Why: {c['why']}" if c.get("why") else ""
+    return item(c, c["detail"], why, links, say(*c["say"], tail=c["tail"]))
 
 
 def section_md(sec: dict | None) -> list[str]:
     if not sec:
         return []
-    out = [f"## {sec['title']}", ""] + ([sec["note"], ""] if sec.get("note") else [])
+    note = " ".join(filter(None, (sec.get("note"), guide_link(sec["guide"]) if sec.get("guide") else "")))
+    out = [f"## {sec['title']}", ""] + ([note, ""] if note else [])
     for c in sec["cards"]:
         out += card_md(c)
     if more := sec.get("more"):
@@ -171,7 +178,8 @@ def tiles(counts: dict[str, int], new: int) -> list[dict]:
     """Dashboard's top row: progress + what's new only, never a count of what's left to do.
     section = the section it tells about (dashboard orders tiles like its sections)."""
     shown = (("New since last check", new, "new"), ("Sent so far", counts["sent"], None),
-             ("Interviews", counts["interview"], "interviews"), ("Offers", counts["offer"], None))
+             ("Interview" if counts["interview"] == 1 else "Interviews", counts["interview"], "interviews"),
+             ("Offer" if counts["offer"] == 1 else "Offers", counts["offer"], None))
     return [{"label": label, "value": n, "section": sec} for label, n, sec in shown if n]
 
 
@@ -219,7 +227,8 @@ def follow_up_section(conn, now: str, days: dict[str, int], dirs: dict[str, Path
             cards.append(card(r, f"{STAGE_WORDS[r['state']]} {days_ago(r['state_at'], now)}, no reply yet",
                               [words("follow_up", n), words("heard_back", n), words("closed", n)], dirs, root))
     more = {"text": "More in the chat.", "say": words("more_follow_up")} if len(rows) > FOLLOW_UP_MAX else None
-    return {"id": "follow_up", "title": "Follow up", "note": FOLLOW_UP_NOTE, "cards": cards, "more": more}
+    return {"id": "follow_up", "title": "Follow up", "note": FOLLOW_UP_NOTE, "guide": FOLLOW_UP_GUIDE, "cards": cards,
+            "more": more}
 
 
 def follow_up(conn, now: str, days: dict[str, int], dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT) -> list[str]:
@@ -262,7 +271,8 @@ def new_section(conn, config: dict, now: datetime, rows: list[dict] | None = Non
     rows = new_jobs(conn, config, now) if rows is None else rows
     if not rows:
         return None
-    cards = [card(j, rank.reasons(j, config, now, rank.added(j, now)), [words("resume", j["num"])])
+    # facts to decide on before "Make my resume": the why + the posting (critique 2026-10-04)
+    cards = [card(j, "", [words("resume", j["num"])], why=rank.reasons(j, config, now, rank.added(j, now)))
              for j in store.numbered(conn, rows[:NEW_MAX])]
     more = ({"text": f"{len(rows) - NEW_MAX} more - ask the chat.", "say": words("more_new")}
             if len(rows) > NEW_MAX else None)

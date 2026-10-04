@@ -63,7 +63,8 @@ test("paper look: no card fill, jobs split by rules, one frame for Next up", () 
   const backgrounds = [...css.matchAll(/([^{}]+)\{[^}]*background: (?!transparent|none|var\(--(desk|mark|mark-2|tint|text)\))/g)].map((x) => x[1].trim());
   assert.deepEqual(backgrounds, []);
   assert.match(css, /\.card \+ \.card \{ border-top: 1px solid var\(--line\)/);
-  assert.match(css, /\.next \.card \{ border: 1px solid var\(--line\)/);
+  // Next up's frame in ink-2, stronger than the grey rules between jobs (re-critique P1)
+  assert.match(css, /\.next \.card \{ border: 1px solid var\(--edge\)/);
   assert.match(css, /\.num, \.figures b, \.rows h3 b \{ font-variant-numeric: lining-nums tabular-nums/);
 });
 
@@ -196,7 +197,7 @@ test("yellow only on buttons", () => {
   for (const rule of rules) assert.match(rule.trim(), /^button\.go(:hover|:active)? \{/);
   // and the yellow class only ever on a button
   const page = html(today.model(FULL, say), "new");
-  assert.ok((page.match(/class="go"/g) || []).length > 3);
+  assert.ok((page.match(/class="go"/g) || []).length >= 2);
   assert.doesNotMatch(page.replace(/<button [^>]*class="go"/g, ""), /class="go"/);
 });
 
@@ -236,15 +237,18 @@ test("Next up: interview, else oldest ready resume, else no resume yet, else top
   assert.deepEqual(m.tiles.map((t) => t.label), ["Interviews", "New since last check", "Sent so far"]);
 });
 
-// 18 yellow buttons for 16 cards: nothing leads (critique P1) => one yellow per card
-test("one yellow per card; status changes outline, closing quietest; posting + folder are links", () => {
+// 11 yellow buttons, 5 stacked under New: yellow didn't lead (re-critique P1) => yellow only on
+// Next up's main button + each Waiting on you job's; new jobs + follow-ups are options, outlined
+test("yellow only on Next up + Waiting on you; status changes outline, closing quietest; posting + folder are links", () => {
   const page = html(today.model(FULL, say), "new");
-  const cards = page.match(/<article class="card"[^>]*>[\s\S]*?<\/article>|<ul class="rows">[\s\S]*?<\/ul>/g);
-  for (const c of page.match(/<article class="card"[^>]*>[\s\S]*?<\/article>/g)) assert.equal((c.match(/class="go"/g) || []).length, 1, c);
-  for (const r of page.match(/<ul class="rows">([\s\S]*?)<\/ul>/)[1].split("</li>").filter((x) => x.trim())) {
-    assert.equal((r.match(/class="go"/g) || []).length, 1, r);
-  }
-  assert.ok(cards.length >= 3);
+  const part = (id) => page.split(`aria-labelledby="${id}"`)[1].split("</section>")[0];
+  const yellow = (x) => (x.match(/class="go"/g) || []).length;
+  assert.equal(yellow(part("s-next")), 1);
+  for (const c of part("s-waiting").match(/<article class="card"[^>]*>[\s\S]*?<\/article>/g)) assert.equal(yellow(c), 1, c);
+  for (const id of ["s-follow_up", "s-new", "s-setup", "s-later", "s-say"]) assert.equal(yellow(part(id)), 0, id);
+  const waiting = FULL.sections.find((s) => s.id === "waiting").cards.length;
+  // Next up's interview + one per waiting job, nothing else
+  assert.equal(yellow(page), 1 + waiting);
   assert.match(page, /<button type="button" data-a="\d+" data-k="13:heard_back" data-busy="[^"]*" title="[^"]*" aria-label="I heard back, Job 13">I heard back</);
   assert.match(page, /class="quiet"[^>]*>It&#39;s closed</);
   assert.match(page, /<span class="meta"><button[^>]*class="link"[^>]*>Posting<\/button> · <button[^>]*class="link"[^>]*>Folder</);
@@ -257,12 +261,38 @@ test("new jobs: one-line rows, 5 shown, the rest in the chat", () => {
   const rows = page.split('aria-labelledby="s-new"')[1].split("</section>")[0];
   assert.equal((rows.match(/<li><div class="what">/g) || []).length, 5);
   assert.match(rows, /<h3 id="j-100"><b>Job 100<\/b> - Role 100, Example Co<\/h3> <span class="detail">- remote<\/span>/);
-  assert.doesNotMatch(rows, />Posting</);
+  // a decision needs its facts: every new row has its posting (re-critique P2)
+  assert.equal((rows.match(/class="link" aria-label="Open the posting for Job 1\d\d">Posting</g) || []).length, 5);
   assert.match(rows, /7 more new jobs\.<\/span><button[^>]*>Show more new jobs</);
   // fewer than 5 + nothing beyond => no "more" line
   const few = { ...drop(FULL, "interviews", "waiting", "follow_up"), todo: [], tiles: [] };
   few.sections = few.sections.map((s) => ({ ...s, cards: s.cards.slice(0, 3), more: null }));
   assert.doesNotMatch(html(today.model(few, say), "new"), /more new job/);
+});
+
+// "Make my resume" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
+test("new jobs carry their why; follow-up note one line + its guide; figures under the date; job number bold body size", () => {
+  const raw = structuredClone(FULL);
+  const fresh = raw.sections.find((s) => s.id === "new");
+  fresh.cards = fresh.cards.map((c) => ({ ...c, detail: "", why: "remote · $150k-190k (meets your pay) · added to your list today" }));
+  Object.assign(raw.sections.find((s) => s.id === "follow_up"), { note: "No reply for a while. Many employers never write back.",
+    guide: { title: "When to follow up", path: "Guides/Following up.md" } });
+  const m = today.model(raw, say);
+  const page = html(m, "new");
+  const rows = page.split('aria-labelledby="s-new"')[1].split("</section>")[0];
+  assert.match(rows, /<b>Job 100<\/b> - Role 100, Example Co<\/h3> <span class="detail">- remote · \$150k-190k \(meets your pay\)<\/span>/);
+  const note = page.split('aria-labelledby="s-follow_up"')[1].split("</p>")[0];
+  assert.match(note, /<p class="note">[^<]+ <button[^>]*class="link" aria-label="Open the guide When to follow up">When to follow up<\/button>$/);
+  assert.equal(m.actions[m.sections.find((s) => s.id === "follow_up").guide.open.action].path, "Guides/Following up.md");
+  // a guide outside Guides/ never becomes a button
+  raw.sections.find((s) => s.id === "follow_up").guide.path = "../app/x.md";
+  assert.equal(today.model(raw, say).sections.find((s) => s.id === "follow_up").guide, null);
+  // figures sit in the header under the date, not between Next up + the jobs
+  const top = page.split('<div class="top">')[1].split('<p class="how"')[0];
+  assert.match(top, /<p class="sub">[^<]*<\/p><ul class="figures" aria-label="So far">/);
+  const css = page.match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
+  assert.match(css, /\.num \{ display: block; font-size: 1rem; font-weight: 700; color: var\(--text\); \}/);
+  assert.match(css, /\.note \{[^}]*max-width: 65ch/);
 });
 
 // a missing resume at the bottom of the page: every "Make my resume" above it fails first
@@ -271,7 +301,8 @@ test("setup that blocks sits above the jobs; the rest stays last, quiet", () => 
   const page = html(today.model(raw, say), "new");
   const setup = page.indexOf("Finish setting up</h2>");
   assert.ok(setup > 0 && setup < page.indexOf('id="s-waiting"'));
-  assert.match(page.split("Finish setting up</h2>")[1].split("</section>")[0], /class="go"[^>]*>Add my resume[\s\S]*class="go"[^>]*>Turn it on/);
+  // outlined: yellow leads only from Next up + Waiting on you
+  assert.match(page.split("Finish setting up</h2>")[1].split("</section>")[0], /<button[^>]*>Add my resume[\s\S]*<button[^>]*>Turn it on/);
   const later = page.split("Not finished</h2>")[1].split("</section>")[0];
   assert.match(later, /numbers\.<\/span><button[^>]*>Add my numbers</);
   assert.doesNotMatch(later, /class="go"/);
@@ -573,10 +604,13 @@ test("look switch: Match my computer · Light · Dark, current one pressed, ink 
   // missing or garbage look file = Match my computer
   for (const text of [undefined, "", "purple", " DARK\n"]) assert.equal(today.lookOf(text), text === " DARK\n" ? "dark" : "auto");
   assert.match(today.render(m, { mode: "copy", nonce: "x", look: "purple" }), /data-look="auto" aria-pressed="true"/);
-  // selected = ink fill w/ paper text; never the yellow mark
-  const css = /\.look button\[aria-pressed="true"\] \{([^}]*)\}/.exec(today.render(m, { mode: "copy", nonce: "x" }))[1];
-  assert.match(css, /background: var\(--text\); color: var\(--desk\)/);
-  assert.ok(!css.includes("--mark"));
+  // selected = ink underline, no fill: a solid block was the heaviest mark at the top (re-critique P3)
+  const page = today.render(m, { mode: "copy", nonce: "x" });
+  const css = /\.look button\[aria-pressed="true"\] \{([^}]*)\}/.exec(page)[1];
+  assert.match(css, /color: var\(--text\); font-weight: 700; text-decoration: underline/);
+  assert.ok(!css.includes("background") && !css.includes("--mark"));
+  // 32 px tall: a 25 px segment is a small target
+  assert.match(page, /\.look button \{[^}]*min-height: 32px/);
   assert.deepEqual(today.LOOKS.map((l) => today.lookDone(l.word)), ["Look matches your computer", "Light look on", "Dark look on"]);
 });
 

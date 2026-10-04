@@ -26,7 +26,9 @@ const BLOCKERS = new Set(["import", "morning"]);
 // sections past this many jobs draw as one-line rows; new jobs always do, 5 shown, rest in the chat
 const ROWS_AFTER = 4;
 const NEW_SHOWN = 5;
-// status changes: outline, never yellow; closing a job quietest of all
+// yellow leads: Next up's main button + each Waiting on you job's - tasks. Every other button
+// outlined: options (new jobs), status changes; closing quietest of all (re-critique 2026-10-04 P1)
+const LEADS = new Set(["waiting"]);
 const QUIET = new Set(["closed"]);
 // Caladea, shipped in the vsix (OFL, media/fonts/OFL.txt): the webview may load only from there.
 // Italic left out: the page sets none
@@ -114,12 +116,16 @@ function model(raw, sayJson) {
     if (!num) return null;
     const url = cleanUrl(c.url);
     return {
-      num, title: str(c.title), company: str(c.company), detail: str(c.detail),
+      num, title: str(c.title), company: str(c.company), detail: str(c.detail), why: str(c.why),
       say: (Array.isArray(c.say) ? c.say : []).map(sayButton).filter(Boolean),
       posting: url ? { action: act({ type: "posting", url }) } : null,
       resume: open(c.resume, "file"),
       folder: open(c.folder, "folder"),
     };
+  };
+  const guideLink = (g) => {
+    const o = open(g.path, "page");
+    return o ? { title: str(g.title, 80), open: o } : null;
   };
   const line = (x) => (x && typeof x === "object" ? { text: str(x.text), say: x.say ? sayButton(x.say) : null } : null);
   const m = {
@@ -130,6 +136,7 @@ function model(raw, sayJson) {
       .map((t) => ({ label: str(t.label, 60), value: t.value, section: str(t.section, 30) })),
     sections: raw.sections.filter((s) => s && Array.isArray(s.cards)).map((s) => ({
       id: str(s.id, 30), title: str(s.title, 80), note: str(s.note, 600),
+      guide: s.guide && typeof s.guide === "object" ? guideLink(s.guide) : null,
       cards: s.cards.map(card).filter(Boolean), more: line(s.more),
     })),
     todo: (Array.isArray(raw.todo) ? raw.todo : []).map(line).filter(Boolean),
@@ -137,9 +144,7 @@ function model(raw, sayJson) {
     // words w/o a job number => a button; "job 12" ones stay example text (job 12 may not exist)
     asks: [],
     examples: [],
-    guides: (Array.isArray(raw.guides) ? raw.guides : [])
-      .map((g) => (g ? { title: str(g.title, 80), open: open(g.path, "page") } : null))
-      .filter((g) => g && g.open),
+    guides: (Array.isArray(raw.guides) ? raw.guides : []).map((g) => (g ? guideLink(g) : null)).filter(Boolean),
   };
   for (const ex of Array.isArray(raw.examples) ? raw.examples : []) {
     const said = (Array.isArray(ex) ? ex : []).filter((w) => templateFor(w, tpls)).map((w) => str(w, 100));
@@ -148,7 +153,8 @@ function model(raw, sayJson) {
   }
   // new jobs past NEW_SHOWN: the rest in the chat, even when the data's own list fit
   const fresh = m.sections.find((x) => x.id === "new");
-  if (fresh) for (const c of fresh.cards) c.detail = c.detail.replace(ADDED_TODAY, "").replace(/^ · /, "");
+  const unsaid = (t) => t.replace(ADDED_TODAY, "").replace(/^ · /, "");
+  if (fresh) for (const c of fresh.cards) { c.detail = unsaid(c.detail); c.why = unsaid(c.why); }
   const moreNew = tpls.find((t) => t.id === "more_new");
   if (fresh && fresh.cards.length > NEW_SHOWN && !fresh.more && moreNew) fresh.more = { text: "", say: sayButton(moreNew.words) };
   for (const t of m.todo) t.blocks = Boolean(t.say && BLOCKERS.has(t.say.id));
@@ -321,26 +327,26 @@ h1, h2, h3 { text-wrap: balance; }
 .sub { color: var(--text-2); margin: 0 0 2px; }
 .top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
 .look { display: inline-flex; border: 1px solid var(--edge); border-radius: 6px; overflow: hidden; margin-top: 6px; }
-.look button { border: 0; border-radius: 0; font-weight: 400; padding: 3px 10px; color: var(--text-2); }
+.look button { border: 0; border-radius: 0; font-weight: 400; min-height: 32px; padding: 5px 12px; color: var(--text-2); }
 .look button + button { border-left: 1px solid var(--edge); }
-.look button[aria-pressed="true"] { background: var(--text); color: var(--desk); font-weight: 700; }
-.look button[aria-pressed="true"]:hover { background: var(--text); box-shadow: none; }
-.how { color: var(--text-2); font-size: 0.92rem; margin: 0 0 20px; }
+.look button[aria-pressed="true"] { color: var(--text); font-weight: 700; text-decoration: underline;
+  text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.how { color: var(--text-2); font-size: 0.92rem; margin: 10px 0 20px; }
 section { margin: 32px 0 0; }
 section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1px solid var(--text); }
-.note { color: var(--text-2); font-size: 0.92rem; margin: 10px 0 0; max-width: 42rem; }
-.figures { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 24px 0 0; padding: 0; list-style: none; }
-.figures li { display: flex; align-items: baseline; gap: 8px; }
-.figures b { font-size: 1.6rem; line-height: 1.1; }
+.note { color: var(--text-2); font-size: 0.92rem; margin: 10px 0 0; max-width: 65ch; }
+.figures { display: flex; flex-wrap: wrap; gap: 2px 20px; margin: 6px 0 0; padding: 0; list-style: none; }
+.figures li { display: flex; align-items: baseline; gap: 6px; }
+.figures b { font-size: 1.15rem; line-height: 1.2; }
 .figures span { color: var(--text-2); font-size: 0.92rem; }
 .num, .figures b, .rows h3 b { font-variant-numeric: lining-nums tabular-nums; }
 .cards { display: grid; grid-template-columns: 1fr; }
 .card { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 14px 0; }
 .card + .card { border-top: 1px solid var(--line); }
-.next .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px 18px; margin-top: 12px; }
+.next .card { border: 1px solid var(--edge); border-radius: 8px; padding: 14px 18px; margin-top: 12px; }
 .next .card h3 { font-size: 1.3rem; }
 .card h3 { font-size: 1.05rem; line-height: 1.3; margin: 0; overflow-wrap: anywhere; }
-.num { display: block; font-size: 0.85rem; color: var(--text-2); }
+.num { display: block; font-size: 1rem; font-weight: 700; color: var(--text); }
 .card p { margin: 0; overflow-wrap: anywhere; }
 .detail { color: var(--text-2); font-size: 0.92rem; }
 .acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; padding-top: 8px; }
@@ -351,6 +357,8 @@ section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1p
   padding: 10px 0; }
 .rows li + li { border-top: 1px solid var(--line); }
 .rows .what { min-width: 0; flex: 1 1 18rem; overflow-wrap: anywhere; }
+.rows .meta { margin-left: 4px; }
+.rows .detail { display: inline-block; }
 .rows .acts { padding-top: 0; }
 .rows h3 { display: inline; font: inherit; margin: 0; }
 .rows h3 b { font-weight: 700; }
@@ -524,13 +532,13 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
     + `${about ? ` aria-describedby="${h(about)}"` : ""}>${h(text)}</button>`;
   // accessible name carries the job: 10 "Make my resume" buttons read the same to a screen reader
   const named = (text, num) => (num && !text.toLowerCase().includes(`job ${num}`) ? `${text}, Job ${num}` : "");
-  // one yellow per card: its first say; status changes outline, closing quieter still
+  // yellow = a task (lead): its first say; status changes outline, closing quieter still
   const say = (b, go, { num = null, name = "", about = "" } = {}) => {
     const text = sayText(b, mode);
     return btn(text, b.action, { cls: go ? "go" : QUIET.has(b.id) ? "quiet" : "", title: sayTitle(b, mode), busy: busyLabel(ai),
       name: name || named(text, num), key: `${num || ""}:${b.id}`, about });
   };
-  const acts = (c) => c.say.map((b, i) => say(b, i === 0, { num: c.num })).join("");
+  const acts = (c, lead) => c.say.map((b, i) => say(b, lead && i === 0, { num: c.num })).join("");
   // posting, resume, folder: places to look, not things to do => ink links on one line
   const meta = (c) => {
     const link = (x, text, what) => x && btn(text, x.action, { cls: "link", name: `Open the ${what} for Job ${c.num}` });
@@ -538,13 +546,16 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
       .filter(Boolean);
     return links.length ? `<span class="meta">${links.join(" · ")}</span>` : "";
   };
-  const card = (c) => `<article class="card" aria-labelledby="j-${c.num}"><h3 id="j-${c.num}"><span class="num">Job ${c.num}</span> `
-    + `${h(c.title)}</h3>` + (c.company ? `<p>${h(c.company)}</p>` : "") + (c.detail ? `<p class="detail">${h(c.detail)}</p>` : "")
-    + `<div class="acts">${acts(c)}${meta(c)}</div></article>`;
-  // one line a job: number, title, company, detail + its buttons
-  const row = (c, links) => `<li><div class="what"><h3 id="j-${c.num}"><b>Job ${c.num}</b> - ${h(c.title)}`
-    + `${c.company ? `, ${h(c.company)}` : ""}</h3>${c.detail ? ` <span class="detail">- ${h(c.detail)}</span>` : ""}</div>`
-    + `<span class="acts">${acts(c)}${links ? meta(c) : ""}</span></li>`;
+  // detail = where it stands; why = the row's reasons (new jobs)
+  const facts = (c) => [c.detail, c.why].filter(Boolean).join(" · ");
+  // job number = its id in the chat: bold, body size, same on cards + rows
+  const card = (c, lead) => `<article class="card" aria-labelledby="j-${c.num}"><h3 id="j-${c.num}"><span class="num">Job ${c.num}</span> `
+    + `${h(c.title)}</h3>` + (c.company ? `<p>${h(c.company)}</p>` : "") + (facts(c) ? `<p class="detail">${h(facts(c))}</p>` : "")
+    + `<div class="acts">${acts(c, lead)}${meta(c)}</div></article>`;
+  // one line a job where it fits: number, title, company, detail/why + its buttons + links
+  const row = (c, lead) => `<li><div class="what"><h3 id="j-${c.num}"><b>Job ${c.num}</b> - ${h(c.title)}`
+    + `${c.company ? `, ${h(c.company)}` : ""}</h3>${facts(c) ? ` <span class="detail">- ${h(facts(c))}</span>` : ""}</div>`
+    + `<span class="acts">${acts(c, lead)}${meta(c)}</span></li>`;
   // a line w/ one button: the button's description = the line's own words ("Turn it on" - what?)
   let lines = 0;
   const line = (x, go, name = "") => {
@@ -552,6 +563,7 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
     return `<li><span id="${id}">${h(x.text)}</span>${x.say ? say(x.say, go, { name, about: x.text ? id : "" }) : ""}</li>`;
   };
   const tile = (id) => m.tiles.find((t) => t.section === id);
+  const guideBtn = (g, name) => btn(g.title, g.open.action, { cls: "link", name });
   const heading = (id, title) => `<h2 id="${id}" tabindex="-1">${h(title)}</h2>`;
   const jumps = [];
   const section = (s) => {
@@ -566,43 +578,46 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
     // "Show the rest" under two sections => named by its section
     const moreName = more && more.say ? `${sayText(more.say, mode)}: ${s.title}` : "";
     jumps.push([`s-${s.id}`, s.title]);
+    const lead = LEADS.has(s.id);
+    const note = [s.note ? h(s.note) : "", s.guide ? guideBtn(s.guide, `Open the guide ${s.guide.title}`) : ""].filter(Boolean).join(" ");
     return `<section aria-labelledby="s-${h(s.id)}">${heading(`s-${h(s.id)}`, s.title)}`
-      + (s.note ? `<p class="note">${h(s.note)}</p>` : "")
-      + (rows ? `<ul class="rows">${shown.map((c) => row(c, s.id !== "new")).join("")}</ul>`
-        : `<div class="cards">${shown.map(card).join("")}</div>`)
+      + (note ? `<p class="note">${note}</p>` : "")
+      + (rows ? `<ul class="rows">${shown.map((c) => row(c, lead)).join("")}</ul>`
+        : `<div class="cards">${shown.map((c) => card(c, lead)).join("")}</div>`)
       + (more ? `<ul class="list more">${line(more, false, moreName)}</ul>` : "") + "</section>";
   };
   if (m.next) jumps.push(["s-next", "Next up"]);
   const next = m.next
     ? `<section class="next" aria-labelledby="s-next">${heading("s-next", "Next up")}`
-      + (m.next.card ? `<div class="cards">${card(m.next.card)}</div>`
+      + (m.next.card ? `<div class="cards">${card(m.next.card, true)}</div>`
         : `<ul class="list">${line(m.next.todo, true)}</ul>`) + "</section>"
     : "";
   const tiles = m.tiles.length
-    ? `<ul class="figures" aria-label="In numbers">${m.tiles.map((t) => `<li><b>${t.value}</b><span>${h(t.label)}</span></li>`).join("")}</ul>` : "";
+    ? `<ul class="figures" aria-label="So far">${m.tiles.map((t) => `<li><b>${t.value}</b><span>${h(t.label)}</span></li>`).join("")}</ul>` : "";
   const blocking = m.todo.filter((t) => t.blocks);
   const later = m.todo.filter((t) => !t.blocks);
   if (blocking.length) jumps.push(["s-setup", "Finish setting up"]);
   const setup = blocking.length
-    ? `<section aria-labelledby="s-setup">${heading("s-setup", "Finish setting up")}<ul class="list">${blocking.map((t) => line(t, true)).join("")}</ul></section>` : "";
+    ? `<section aria-labelledby="s-setup">${heading("s-setup", "Finish setting up")}<ul class="list">${blocking.map((t) => line(t, false)).join("")}</ul></section>` : "";
   const sections = m.sections.map(section).join("");
   if (later.length) jumps.push(["s-later", "Not finished"]);
   const todo = later.length
     ? `<section class="later" aria-labelledby="s-later">${heading("s-later", "Not finished")}<ul class="list">${later.map((t) => line(t, false)).join("")}</ul></section>` : "";
+  // nothing else on the page => its one button leads
   const empty = m.empty ? `<section aria-label="Nothing new"><ul class="list">${line(m.empty, true)}</ul></section>` : "";
   jumps.push(["s-say", "What you can say"]);
   const asks = m.asks.length ? `<div class="acts">${m.asks.map((b) => say(b, false)).join("")}</div>` : "";
   const examples = m.examples.length
     ? `<p class="says">For example: ${m.examples.map((ex) => ex.map((w) => `<q>${h(w)}</q>`).join(" or ")).join(" · ")}</p>` : "";
   const guides = m.guides.length
-    ? `<h3>Guides</h3><ul class="guides">${m.guides.map((g) => `<li>${btn(g.title, g.open.action, { cls: "link", name: `Open the guide ${g.title}` })}</li>`).join("")}</ul>` : "";
+    ? `<h3>Guides</h3><ul class="guides">${m.guides.map((g) => `<li>${guideBtn(g, `Open the guide ${g.title}`)}</li>`).join("")}</ul>` : "";
   // keyboard: skip past the header to any section (shown once focused; Tab order = reading order)
   const skip = `<nav class="skip" aria-label="Jump to">${jumps.map(([id, title], i) =>
     `<button type="button" class="link" data-jump="${h(id)}">${i ? "" : "Skip to "}${h(title)}</button>`).join("")}</nav>`;
   return `${head(nonce, fonts)}
-<body>${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p></div>${lookSwitch(lookOf(look))}</div>
+<body>${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${tiles}</div>${lookSwitch(lookOf(look))}</div>
 <p class="how" id="how">${h(howLine(mode))}</p>
-${next}${tiles}${setup}${sections}${todo}${empty}
+${next}${setup}${sections}${todo}${empty}
 <section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}</section>
 <p id="status" role="status" aria-live="polite"></p></main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
