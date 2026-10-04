@@ -91,6 +91,18 @@
   checked: 2026-10-03
   recheck_by: 2027-04-03
 
+- id: baert-vujic-2018
+  type: article
+  authors: ["Baert, Stijn", "Vujić, Sunčica"]
+  year: 2018
+  title: "Does it pay to care? Volunteering and employment opportunities"
+  venue: Journal of Population Economics 31(3), 819-836 (open copy, IZA Discussion Paper 9649)
+  doi: 10.1007/s00148-017-0682-8
+  url: https://docs.iza.org/dp9649.pdf
+  evidence: field experiment
+  sample: 576 made-up applications sent in pairs to 288 job openings in Flanders, Belgium, December 2014-April 2015; tests volunteering on a resume, not during a gap
+  checked: 2026-10-04
+
 - id: bast-2017
   type: article
   authors: ["Bast, Hannah", "Korzen, Claudius"]
@@ -101,6 +113,18 @@
   url: https://ad-publications.informatik.uni-freiburg.de/benchmark.pdf
   evidence: lab/LLM audit
   sample: 14 PDF text readers tested on 12,098 scientific articles from arXiv; peer-reviewed conference paper; not resumes
+  checked: 2026-10-04
+
+- id: bateson-2023
+  type: article
+  authors: ["Bateson, Regina"]
+  year: 2023
+  title: "Perceptions of pandemic resume gaps: Survey experimental evidence from the United States"
+  venue: PLOS ONE 18(3), e0281449 (open copy on PubMed Central)
+  doi: 10.1371/journal.pone.0281449
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC10019729/
+  evidence: lab/LLM audit
+  sample: 974 US adults choosing between made-up hotel and restaurant job applicants, July 2021; not hiring staff
   checked: 2026-10-04
 
 - id: bloomberg-2024
@@ -285,7 +309,7 @@
 
 - id: dhert-2024
   type: report
-  authors: ["D'hert, Louis", "Baert, Stijn", "Lippens, Louis"]
+  authors: ["D'hert, Liam", "Baert, Stijn", "Lippens, Louis"]
   year: 2024
   title: "Unemployment, Inactivity, and Hiring Chances: A Systematic Review and Meta-Analysis"
   venue: IZA Discussion Paper 17141, July 2024
@@ -294,7 +318,19 @@
   evidence: meta-analysis
   sample: field experiments with about 67,000 made-up applicants in 7 countries, combined
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
+
+- id: dhert-2026
+  type: article
+  authors: ["D'hert, Liam", "Baert, Stijn", "Lippens, Louis"]
+  year: 2026
+  title: "Unemployment, inactivity, and hiring chances: A systematic review and meta-analysis"
+  venue: Socio-Economic Review 24(3), 1355-1393 (open copy, Ghent University library)
+  doi: 10.1093/ser/mwag023
+  url: https://biblio.ugent.be/publication/01KRK8YTYRYHA7486FX045Y7Z8/file/01M0A5AWFGQ1RCZS17ER8A70C8.pdf
+  evidence: meta-analysis
+  sample: 28 studies reviewed; 16 field experiments with almost 67,000 made-up applicants in 7 countries combined
+  checked: 2026-10-04
 
 - id: doj-xai-2026
   type: web
@@ -370,6 +406,18 @@
   checked: 2026-10-04
   recheck_by: 2027-04-03
 
+- id: eriksson-rooth-2014
+  type: article
+  authors: ["Eriksson, Stefan", "Rooth, Dan-Olof"]
+  year: 2014
+  title: "Do Employers Use Unemployment as a Sorting Criterion When Hiring? Evidence from a Field Experiment"
+  venue: American Economic Review 104(3), 1014-1039 (open copy, IZA Discussion Paper 6235)
+  doi: 10.1257/aer.104.3.1014
+  url: https://docs.iza.org/dp6235.pdf
+  evidence: large field experiment
+  sample: 8,466 made-up applications to 3,786 employers in Sweden, 13 kinds of job
+  checked: 2026-10-04
+
 - id: eu-ai-act
   type: law
   org: European Union
@@ -403,6 +451,30 @@
   checked: 2026-10-04
   recheck_by: 2027-04-03
 
+- id: farber-2016
+  type: article
+  authors: ["Farber, Henry S.", "Silverman, Dan", "von Wachter, Till"]
+  year: 2016
+  title: "Determinants of Callbacks to Job Applications: An Audit Study"
+  venue: American Economic Review 106(5), 314-318 (open copy, NBER working paper 21689)
+  doi: 10.1257/aer.p20161010
+  url: https://www.nber.org/system/files/working_papers/w21689/w21689.pdf
+  evidence: large field experiment
+  sample: about 12,000 made-up applications from college-educated women to office support jobs in 8 US cities, 2012-2014
+  checked: 2026-10-04
+
+- id: farber-2019
+  type: article
+  authors: ["Farber, Henry S.", "Herbst, Chris M.", "Silverman, Dan", "von Wachter, Till"]
+  year: 2019
+  title: "Whom Do Employers Want? The Role of Recent Employment and Unemployment Status and Age"
+  venue: Journal of Labor Economics 37(2), 323-349 (open copy, NBER working paper 24605)
+  doi: 10.1086/700184
+  url: https://www.nber.org/system/files/working_papers/w24605/w24605.pdf
+  evidence: large field experiment
+  sample: 8,488 made-up applications to 2,122 US job postings
+  checked: 2026-10-04
+
 - id: freehire-letter-count
   type: web
   org: freehire
@@ -422,7 +494,7 @@
   url: https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf
   evidence: survey
   sample: 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: galdin-silbert-2025
   type: article
@@ -447,6 +519,18 @@
   sample: 14 AI models released 2023-2026, 24,024 resume pairs each that differ only by name, built from 6,007 real US job ads; yes/no to a phone screen
   preprint: true
   checked: 2026-10-03
+
+- id: gibbons-katz-1991
+  type: article
+  authors: ["Gibbons, Robert", "Katz, Lawrence F."]
+  year: 1991
+  title: Layoffs and Lemons
+  venue: Journal of Labor Economics 9(4), 351-380 (open copy, NBER working paper 2968)
+  doi: 10.1086/298273
+  url: https://www.nber.org/system/files/working_papers/w2968/w2968.pdf
+  evidence: observational
+  sample: US government survey of workers who lost jobs, January 1984 and 1986; men aged 20-61 who lost full-time jobs
+  checked: 2026-10-04
 
 - id: github-copilot-2026
   type: web
@@ -566,7 +650,7 @@
   url: https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report
   evidence: vendor survey
   sample: over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: hireright-2025-sept
   type: web
@@ -576,7 +660,7 @@
   url: https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers
   evidence: vendor survey
   sample: September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: il-hb3773
   type: law
@@ -674,7 +758,7 @@
   url: https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/
   evidence: large field experiment
   sample: 9,022 made-up applications to real UK job ads, plan registered in advance
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: kroft-2013
   type: article
@@ -686,7 +770,7 @@
   url: https://www.nber.org/system/files/working_papers/w18387/w18387.pdf
   evidence: large field experiment
   sample: about 12,000 made-up resumes sent to job ads in 100 US cities
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: ladders-2012
   type: report
@@ -827,7 +911,7 @@
   url: https://ashecon.confex.com/ashecon/2018/webprogram/Paper5280.html
   evidence: field experiment
   sample: 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: nasr-2023
   type: article
@@ -914,6 +998,18 @@
   sample: the maker's policy page, updated March 13, 2026; the live page blocks automated readers, so it was read from the Internet Archive copy of September 28, 2026
   checked: 2026-10-03
   recheck_by: 2027-01-03
+
+- id: pedulla-2016
+  type: article
+  authors: ["Pedulla, David S."]
+  year: 2016
+  title: "Penalized or Protected? Gender and the Consequences of Nonstandard and Mismatched Employment Histories"
+  venue: American Sociological Review 81(2), 262-289 (open copy on PubMed Central)
+  doi: 10.1177/0003122416630982
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC4864988/
+  evidence: field experiment
+  sample: 2,420 made-up applications to 1,210 job openings in five US cities, November 2012-June 2013
+  checked: 2026-10-04
 
 - id: preptel-2012
   type: web
@@ -1065,6 +1161,30 @@
   sample: agency page, last reviewed June 2026
   checked: 2026-10-03
   recheck_by: 2027-04-03
+
+- id: weisshaar-2018
+  type: article
+  authors: ["Weisshaar, Katherine"]
+  year: 2018
+  title: "From Opt Out to Blocked Out: The Challenges for Labor Market Re-entry after Family-Related Employment Lapses"
+  venue: American Sociological Review 83(1), 34-60 (read in an Internet Archive copy of the journal page)
+  doi: 10.1177/0003122417752355
+  url: https://web.archive.org/web/20210803042055/https://journals.sagepub.com/doi/full/10.1177/0003122417752355
+  evidence: large field experiment
+  sample: 3,407 made-up applications from parents to professional and managerial jobs in 50 US metro areas, August 2015-January 2016; archive snapshot of August 2021
+  checked: 2026-10-04
+
+- id: weisshaar-2021
+  type: article
+  authors: ["Weisshaar, Katherine"]
+  year: 2021
+  title: "Employment Lapses and Subsequent Hiring Disadvantages: An Experimental Approach Examining Types of Discrimination and Mechanisms"
+  venue: Socius 7 (open copy, University of North Carolina library)
+  doi: 10.1177/23780231211019861
+  url: https://doi.org/10.17615/bj2t-yr59
+  evidence: lab/LLM audit
+  sample: 2,000 US adults choosing between made-up job applicants, March and June 2015; not hiring staff
+  checked: 2026-10-04
 
 - id: wiles-2025
   type: article
