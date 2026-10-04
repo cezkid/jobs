@@ -4,6 +4,7 @@ description: "Our count of yes/no screening questions on 143 US job application 
 published: 2026-10-04
 status: published
 data: knockout-questions-2026-10.csv
+license: CC BY 4.0
 uncited:
   - "840 US job postings"
   - "143 application forms"
