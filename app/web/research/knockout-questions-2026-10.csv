@@ -1,0 +1,144 @@
+form,employer,job_field,form_system,questions_beyond_basics,work_permit,sponsorship,location_screen,years_experience,license_certificate,security_clearance,any_knockout,age_18,degree,background_or_drug
+1,A,Healthcare,Greenhouse,0,0,0,0,0,0,0,0,0,0,0
+2,B,Finance,Workable,5,1,1,0,0,0,0,1,0,0,0
+3,C,Sales,Greenhouse,3,1,1,0,0,0,0,1,0,0,0
+4,C,Sales,Greenhouse,3,1,1,0,0,0,0,1,0,0,0
+5,C,Sales,Greenhouse,3,1,1,0,0,0,0,1,0,0,0
+6,C,Sales,Greenhouse,3,1,1,0,0,0,0,1,0,0,0
+7,C,Sales,Greenhouse,3,1,1,0,0,0,0,1,0,0,0
+8,D,Sales,Greenhouse,8,0,1,1,0,0,0,1,0,0,0
+9,C,Sales,Greenhouse,3,1,1,0,0,0,0,1,0,0,0
+10,E,Sales,Greenhouse,6,1,1,0,0,0,0,1,0,0,1
+11,F,Sales,Greenhouse,5,1,1,0,0,0,0,1,0,0,0
+12,G,Sales,Workable,3,0,0,0,0,0,0,0,0,0,0
+13,H,Sales,Ashby,4,1,1,0,0,0,0,1,0,0,0
+14,I,Sales,Greenhouse,11,1,1,1,0,0,0,1,0,0,0
+15,J,Sales,Greenhouse,7,1,1,0,1,0,0,1,0,0,0
+16,K,Sales,Greenhouse,9,1,0,0,0,1,0,1,0,0,0
+17,L,Sales,Greenhouse,10,1,1,1,0,0,0,1,0,0,0
+18,M,Sales,Greenhouse,0,0,0,0,0,0,0,0,0,0,0
+19,M,Sales,Greenhouse,0,0,0,0,0,0,0,0,0,0,0
+20,N,Sales,Greenhouse,4,0,1,1,0,0,0,1,0,0,0
+21,O,Sales,Greenhouse,4,1,1,0,0,0,0,1,0,0,0
+22,O,Sales,Greenhouse,4,1,1,0,0,0,0,1,0,0,0
+23,O,Sales,Greenhouse,5,1,1,0,0,0,0,1,0,0,0
+24,O,Sales,Greenhouse,4,1,1,0,0,0,0,1,0,0,0
+25,I,Sales,Greenhouse,13,1,1,1,1,0,0,1,0,0,0
+26,P,Sales,Greenhouse,6,1,1,1,0,0,0,1,0,0,0
+27,P,Sales,Greenhouse,8,1,1,1,0,1,0,1,0,0,0
+28,Q,Sales,Greenhouse,6,1,1,0,0,0,0,1,0,0,0
+29,R,Sales,Greenhouse,11,1,1,1,0,0,0,1,0,0,0
+30,R,Sales,Greenhouse,11,1,1,1,0,0,0,1,0,0,0
+31,S,Sales,Greenhouse,18,1,1,0,1,0,0,1,0,0,1
+32,S,Sales,Greenhouse,15,1,1,0,0,0,0,1,0,0,1
+33,S,Sales,Greenhouse,16,1,1,0,0,0,0,1,0,0,1
+34,S,Sales,Greenhouse,15,1,1,0,0,0,0,1,0,0,1
+35,S,Sales,Greenhouse,14,1,1,0,0,0,0,1,0,0,1
+36,T,Hospitality,Lever,4,0,0,0,0,0,0,0,1,0,0
+37,U,Hospitality,Greenhouse,4,0,0,0,0,1,0,1,0,0,0
+38,V,Hospitality,Greenhouse,6,1,0,0,0,0,0,1,1,0,0
+39,V,Hospitality,Greenhouse,6,1,0,0,0,0,0,1,1,0,0
+40,V,Hospitality,Greenhouse,6,1,0,0,0,0,0,1,1,0,0
+41,W,Education,Workable,8,1,0,0,0,0,0,1,1,0,0
+42,W,Education,Workable,7,1,0,0,0,0,0,1,1,0,0
+43,X,HR,Greenhouse,6,0,1,0,0,0,0,1,0,0,0
+44,Y,HR,Greenhouse,3,1,1,1,0,0,0,1,0,0,0
+45,Z,HR,Greenhouse,5,0,1,1,0,0,0,1,0,0,0
+46,AA,HR,Ashby,6,1,0,1,0,0,1,1,0,0,0
+47,AB,HR,Greenhouse,6,1,1,0,0,0,0,1,1,0,0
+48,AC,HR,Greenhouse,2,0,0,1,0,0,0,1,0,0,0
+49,AD,HR,Lever,0,0,0,0,0,0,0,0,0,0,0
+50,AE,HR,Greenhouse,6,0,1,0,0,0,0,1,0,0,0
+51,AF,HR,Ashby,8,1,1,1,0,0,0,1,0,0,0
+52,AG,HR,Greenhouse,5,0,1,0,1,0,0,1,0,0,0
+53,AH,HR,Greenhouse,3,0,0,0,0,0,0,0,0,0,0
+54,AI,HR,Greenhouse,5,1,1,0,1,0,0,1,0,0,0
+55,AJ,HR,Greenhouse,5,1,1,0,1,0,0,1,0,0,0
+56,AK,HR,Recruitee,2,0,0,0,0,0,0,0,0,0,0
+57,AL,HR,Greenhouse,3,1,1,1,0,0,0,1,0,0,0
+58,AM,HR,Ashby,6,1,1,1,1,0,0,1,0,0,0
+59,AN,HR,Greenhouse,9,1,1,0,0,0,0,1,0,1,1
+60,AO,Administration,Lever,29,1,0,1,1,1,0,1,1,1,0
+61,AP,Administration,Greenhouse,5,0,1,0,0,0,0,1,0,0,0
+62,AQ,Administration,Greenhouse,8,1,1,0,0,0,0,1,0,0,0
+63,AR,Administration,Greenhouse,8,1,1,0,0,0,0,1,0,0,0
+64,AS,Administration,Greenhouse,1,0,0,0,0,0,0,0,0,0,0
+65,AT,Customer success,Ashby,3,0,1,0,0,0,0,1,0,0,0
+66,AU,Customer success,Ashby,1,0,0,0,0,0,0,0,0,0,0
+67,AV,Customer success,Greenhouse,3,1,1,0,0,0,0,1,0,0,0
+68,AW,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+69,AX,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+70,AX,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+71,AX,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+72,AY,Customer success,Greenhouse,5,1,0,1,0,0,0,1,0,0,0
+73,AX,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+74,AZ,Customer success,Greenhouse,2,0,1,0,0,0,0,1,0,0,0
+75,BA,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+76,BA,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+77,BB,Customer success,Greenhouse,9,0,1,1,0,0,0,1,0,0,0
+78,BC,Customer success,Greenhouse,12,1,1,0,0,0,0,1,0,0,0
+79,BD,Customer success,Ashby,5,0,0,1,0,0,0,1,0,0,0
+80,BE,Customer success,Ashby,4,0,1,0,0,0,0,1,0,0,0
+81,BF,Customer success,Greenhouse,0,0,0,0,0,0,0,0,0,0,0
+82,BG,Customer success,Workable,8,1,1,0,1,0,0,1,0,0,0
+83,BH,Customer success,Workable,3,1,1,0,0,0,0,1,0,0,0
+84,BI,Customer success,Workable,20,1,1,1,1,0,0,1,0,0,1
+85,BJ,Customer success,Workable,7,1,1,1,0,0,0,1,0,0,0
+86,BK,Customer success,Ashby,3,0,0,0,0,0,0,0,0,0,0
+87,AX,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+88,AX,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+89,AX,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+90,AX,Customer success,Lever,0,0,0,0,0,0,0,0,0,0,0
+91,BL,Data analytics,Greenhouse,8,1,1,0,0,0,0,1,1,0,0
+92,BM,Data analytics,Greenhouse,3,0,1,1,0,0,0,1,0,0,0
+93,BN,Data analytics,Ashby,3,0,0,1,0,0,0,1,0,0,0
+94,BO,Data analytics,Greenhouse,8,1,1,1,1,0,0,1,0,0,0
+95,BP,Data analytics,Greenhouse,10,0,1,0,0,0,1,1,0,0,0
+96,BQ,Data analytics,Greenhouse,14,1,1,0,0,0,0,1,1,0,0
+97,BR,Data analytics,Greenhouse,10,0,1,0,0,0,0,1,0,0,0
+98,BS,Data analytics,Greenhouse,9,1,1,1,0,0,0,1,0,0,0
+99,BT,Data analytics,Greenhouse,1,0,0,0,1,0,0,1,0,0,0
+100,BU,Data analytics,Ashby,1,0,0,0,0,0,0,0,0,0,0
+101,BV,Data analytics,Greenhouse,8,0,1,0,0,0,0,1,1,0,0
+102,BA,Backend software,Lever,0,0,0,0,0,0,0,0,0,0,0
+103,AI,Backend software,Greenhouse,4,1,1,1,1,0,0,1,0,0,0
+104,AJ,Backend software,Greenhouse,4,1,1,1,1,0,0,1,0,0,0
+105,BW,Backend software,Ashby,0,0,0,0,0,0,0,0,0,0,0
+106,BX,Backend software,Greenhouse,7,0,1,1,0,0,0,1,0,0,0
+107,BY,Backend software,Greenhouse,4,0,1,0,0,0,0,1,0,0,0
+108,BY,Backend software,Greenhouse,4,0,1,0,0,0,0,1,0,0,0
+109,BY,Backend software,Greenhouse,4,0,1,0,0,0,0,1,0,0,0
+110,BY,Backend software,Greenhouse,4,0,1,0,0,0,0,1,0,0,0
+111,BZ,Backend software,Greenhouse,8,1,1,1,0,0,0,1,0,0,0
+112,CA,Backend software,Greenhouse,3,1,1,0,0,0,0,1,0,0,0
+113,CB,Backend software,Greenhouse,0,0,0,0,0,0,0,0,0,0,0
+114,CC,Backend software,Greenhouse,8,0,1,1,1,0,0,1,0,1,0
+115,CD,Backend software,Greenhouse,5,1,1,1,0,0,0,1,0,0,0
+116,CE,Backend software,Greenhouse,8,0,0,0,1,0,0,1,0,0,0
+117,CF,Backend software,Ashby,3,1,1,0,0,0,0,1,0,0,0
+118,CG,Law,Workable,3,0,0,1,0,1,0,1,0,0,0
+119,CG,Law,Workable,3,0,0,1,0,1,0,1,0,0,0
+120,CH,Law,Greenhouse,9,1,1,1,0,0,0,1,0,0,0
+121,CI,Law,Greenhouse,17,1,1,1,0,0,0,1,0,0,0
+122,CJ,Law,Greenhouse,11,0,1,0,1,1,0,1,0,0,0
+123,CK,Law,Greenhouse,8,1,1,1,0,0,0,1,1,0,0
+124,CL,Law,Greenhouse,3,0,0,0,0,0,0,0,0,0,0
+125,CM,Law,Greenhouse,4,0,1,1,0,0,0,1,0,0,0
+126,CN,Law,Ashby,2,0,1,1,0,0,0,1,0,0,0
+127,R,Marketing,Greenhouse,11,1,1,1,0,0,0,1,0,0,0
+128,CO,Marketing,Lever,2,0,0,0,0,0,0,0,0,0,0
+129,CP,Marketing,Greenhouse,11,0,1,0,0,0,1,1,0,0,0
+130,CQ,Marketing,Workable,14,0,0,0,1,0,0,1,0,0,0
+131,CR,Marketing,Workable,5,1,1,1,1,0,0,1,0,0,0
+132,CS,DevOps,Greenhouse,6,0,1,1,0,0,1,1,0,0,0
+133,CT,DevOps,Greenhouse,7,1,1,0,0,0,0,1,0,0,0
+134,CU,DevOps,Greenhouse,4,0,1,1,1,0,0,1,0,0,0
+135,CV,DevOps,Greenhouse,4,0,1,1,1,0,0,1,0,0,0
+136,CW,DevOps,Greenhouse,20,0,0,0,0,0,0,0,0,1,0
+137,CS,DevOps,Greenhouse,6,0,1,1,0,0,1,1,0,0,0
+138,CX,DevOps,Greenhouse,4,0,0,0,0,0,1,1,0,0,0
+139,CY,DevOps,Ashby,1,0,0,0,0,0,0,0,0,0,0
+140,BA,DevOps,Lever,0,0,0,0,0,0,0,0,0,0,0
+141,BA,DevOps,Lever,0,0,0,0,0,0,0,0,0,0,0
+142,BA,DevOps,Lever,0,0,0,0,0,0,0,0,0,0,0
+143,CZ,DevOps,Greenhouse,2,1,1,0,0,0,0,1,0,0,0

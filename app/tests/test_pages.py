@@ -833,6 +833,60 @@ def test_hub_lastmod_is_the_newest_of_index_and_articles(tmp_path):
     assert "<loc>https://jobs.enrriquez.com/research/</loc><lastmod>2026-10-02</lastmod>" in pages.build(tmp_path)["sitemap.xml"]
 
 
+DATA = {"counts.md": """---
+title: Counts of form questions
+description: One row per form we read, how we counted, and the limits of the count.
+published: 2026-09-15
+status: published
+data: counts.csv
+---
+Our count, see [the myth](ats-myth.md).
+""", "counts.csv": "form,field,asks\n1,Sales,1\n2,Law,0\n3,Sales,1\n"}
+
+
+def test_data_page_ships_its_file_with_a_dataset_and_stays_off_the_hub_and_feed(tmp_path):
+    research_site(tmp_path, DATA)
+    built = pages.build(tmp_path)
+    assert built["research/counts/counts.csv"] == DATA["counts.csv"]
+    html = built["research/counts/index.html"]
+    assert ('<p class="download"><a href="/research/counts/counts.csv" download>Download the data</a>'
+            " (CSV, 3 rows, 1 KB).</p>") in html and "License" not in html
+    data = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', html).group(1))
+    dataset = data["@graph"][0]
+    assert dataset["@type"] == "Dataset" and dataset["name"] == "Counts of form questions"
+    assert dataset["variableMeasured"] == ["form", "field", "asks"] and "license" not in dataset
+    assert dataset["distribution"] == [{"@type": "DataDownload", "encodingFormat": "text/csv",
+                                        "contentUrl": "https://jobs.enrriquez.com/research/counts/counts.csv"}]
+    assert '"@type":"Article"' not in html and "/research/counts/" not in built["research/index.html"] + built["research/feed.xml"]
+    assert "https://jobs.enrriquez.com/research/counts/</loc><lastmod>2026-09-15<" in built["sitemap.xml"]
+    pages.write(tmp_path)
+    assert structured_data(tmp_path / "docs", "https://jobs.enrriquez.com/") == [] and pages.problems(tmp_path) == []
+    (tmp_path / "docs" / "research" / "counts" / "counts.csv").unlink()
+    assert structured_data(tmp_path / "docs", "https://jobs.enrriquez.com/") == [
+        "research/counts/index.html: Dataset download ['https://jobs.enrriquez.com/research/counts/counts.csv'] is not a file on this site"]
+
+
+def test_data_page_license_is_named_on_the_page_and_in_the_dataset(tmp_path):
+    research_site(tmp_path, {**DATA, "counts.md": DATA["counts.md"].replace("data: counts.csv", "data: counts.csv\nlicense: CC BY 4.0")})
+    html = pages.build(tmp_path)["research/counts/index.html"]
+    assert ' License: <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p>' in html
+    assert '"license":"https://creativecommons.org/licenses/by/4.0/"' in html
+
+
+@pytest.mark.parametrize("extra, problem", [
+    ({"counts.md": DATA["counts.md"].replace("data: counts.csv", "data: other.csv")}, "counts.md:6: data must be counts.csv"),
+    ({"counts.md": DATA["counts.md"]}, "counts.md:6: counts.csv not found next to the page"),
+    ({**DATA, "counts.csv": "form,field\n1,Sales,1\n"}, "needs a header row, every row as wide as it"),
+    ({**DATA, "counts.md": DATA["counts.md"].replace("data: counts.csv", "data: counts.csv\nlicense: MIT")}, "counts.md:7: license goes on a data page"),
+    ({"ai-bias.md": SOURCES["ai-bias.md"].replace("status: published", "status: published\nlicense: CC BY 4.0")}, "license goes on a data page"),
+])
+def test_data_page_problems_are_reported_with_file_and_line(tmp_path, extra, problem):
+    research_site(tmp_path, extra)
+    with pytest.raises(pages.SourceError) as e:
+        pages.build(tmp_path)
+    assert problem in str(e.value)
+
+
 def test_every_article_links_how_ai_is_used_under_the_byline_and_never_says_approved(tmp_path):
     # owner decision 5: a label + one link, never a claim of approval; not on the hub, about or methods
     research_site(tmp_path)

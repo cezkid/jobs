@@ -52,8 +52,15 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
 
 - Source `app/web/research/<slug>.md`: YAML header between `---` lines, then Markdown. Keys only
   `title`, `description`, `published`, `modified`, `status` (draft | published), `og_title`,
-  `uncited`; a key twice = error (plain YAML keeps the last). Dates `YYYY-MM-DD`, kept as text.
+  `uncited`, `data` + `license` (data page, below); a key twice = error (plain YAML keeps the last). Dates `YYYY-MM-DD`, kept as text.
   Slug `^[a-z0-9]+(-[a-z0-9]+)*$`; `feed`, `reviews`, `sources` reserved. Draft = not built.
+- Data page: header `data: <slug>.csv` (file next to the source: UTF-8, header row, every row as wide, last
+  line break) -> the file at `/research/<slug>/<slug>.csv`, a "Download the data (CSV, N rows, K KB)" line
+  first, Dataset JSON-LD (name, creator = the byline Person, dates, `variableMeasured` = header row,
+  DataDownload; Dataset Search only) in place of Article. Not an article: off the hub + feed, keeps byline,
+  AI note, Keep reading, sitemap lastmod. `license:` = a `LICENSES` name (owner picks) -> shown on the line +
+  Dataset `license`; on any other page = error. First one: knockout-questions-2026-10 (counting code
+  `app/web/knockout_count.py`; raw sample never published - it holds posting titles + links).
 - `<slug>.md` -> `/research/<slug>/`, `methods.md` -> `/research/methods/`, `about.md` ->
   `/about/` (must be published w/ the first page: every byline links it), `index.md` = hub intro.
 - Hub `/research/` = `index.md` (published, no review: intro over the list) + every article, newest

@@ -308,3 +308,30 @@ sentence the moved citation now covers comes from that source.
 ## Re-review 2026-10-04: voice pass (plan-xsy.53)
 
 Voice only. Section endings reopened ("In short," / "In practice," / no opener); "searched up" -> "searched for"; Phenom sentence now "The same page reports that a third recruiter ... [@enhancv-2025]" - same attribution as before, matches source table (Enhancv page: one Phenom recruiter "applies a score threshold for auto-rejecting low-matches"); the job search named freehire.me in the limits paragraph and "freehire.me's maker" for the earlier ~100k-form count - matches this file's note (freehire's own published count) and app/docs/jobs/freehire.md (base freehire.me); home-page line; `modified` 2026-10-04. Checked: each changed line keeps its meaning, scope, hedging and evidence label; section endings still say what the finding means for the reader; no new "this"/"it" across sentences; no app jargon; closing line "CEZ Job Finder is a free job-search app for Windows and Mac" matches docs/index.html title + og:title; link is our own home page. No finding.
+
+## 2026-10-04 - data page link (plan-xsy.57)
+
+Added sentence (end of "These counts have limits." paragraph): "The data, one row per form, and
+how we counted: [the knockout-question data](knockout-questions-2026-10.md)." Accurate: the data
+page holds one row per readable form and the counting method, and its counts match this section
+(105, 96, 43, 21, 11, 26, 92, middle form 4). Link target exists. The sentence is fine; header
+unchanged.
+
+Carried over from the data page review (`reviews/knockout-questions-2026-10.md`), affecting this
+article's numbers, not the new sentence: F1 (questions freehire lists under `basics` on some
+Workable forms are not counted; recount gives about 109 / 99 / 45 / 22 instead of 105 / 96 / 43 /
+26) and F2 ("The job search we used, freehire.me, leans toward tech and office jobs" - every field
+gave 60 postings; the lean comes from which forms are readable). When F1 is fixed, this section
+takes the new counts with a `## Changes` line and a fresh review date.
+
+### Re-review 2026-10-04 (plan-xsy.57)
+
+Corrected numbers checked against a fresh rerun of `knockout.py table` and a recount of the CSV:
+109 of 143 (any of the six), 99 (permit or sponsorship), 45 (location), 21 (years), 13 (license,
+certificate or clearance), 22 (nothing beyond basics), 92 (four fields), middle form 4 - all
+right. "Most of the rest" is accurate (Workday, Oracle, iCIMS plus job boards are about 445 of the
+697 unreadable postings). The lean sentence now says the readable forms lean toward tech and
+office jobs - accurate. `## Changes` line is right: plain words, dated October 2026, says what
+was missed and the 105 -> 109 change, and the conclusion (does not confirm the 75% claim) does
+stand. `modified: 2026-10-04` bumped, `uncited` snippets match the new text. Header stays
+`verdict: publish`.

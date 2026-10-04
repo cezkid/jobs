@@ -8,14 +8,15 @@ og_title: "Do hiring systems reject 75% of resumes? Where the claim came from"
 uncited:
   - "No study shows that applicant tracking systems reject 75%"
   - "143 application forms"
-  - "105 of the 143 forms"
-  - "96 of 143"
-  - "43 of 143"
+  - "109 of the 143 forms"
+  - "99 of 143"
+  - "45 of 143"
   - "21 of 143"
-  - "11 of 143"
-  - "26 of the 143 forms"
+  - "13 of 143"
+  - "22 of the 143 forms"
   - "four questions"
   - "92 of the 143 forms"
+  - "from 105 to 109 of 143"
   - "one form each"
 ---
 **Short answer**
@@ -63,20 +64,20 @@ For you, the answers on the form matter more than the layout of the page.
 
 We wanted to know how often real application forms ask these questions. In October 2026 we drew a sample of US job postings from the last 14 days. The sample covered 14 job fields, from healthcare and sales to law and education.
 
-Our measurement: 840 postings yielded 143 application forms we could read. The rest sat on Workday, Oracle or iCIMS forms we can't read, or on job boards that copy postings. In our sample, the middle form asked four questions beyond name, contact details, address and profile links. 26 of the 143 forms asked nothing beyond those.
+Our measurement: 840 postings yielded 143 application forms we could read. Most of the rest sat on Workday, Oracle or iCIMS forms we can't read, or on job boards that copy postings. In our sample, the middle form asked four questions beyond name, contact details, address and profile links. 22 of the 143 forms asked nothing beyond those.
 
-Our measurement found 105 of the 143 forms asked about work permit, visa sponsorship, where you work, years of experience, a license or a security clearance.
+Our measurement found 109 of the 143 forms asked about work permit, visa sponsorship, where you work, years of experience, a license or a security clearance.
 
-- Work permit or visa sponsorship: 96 of 143 forms.
-- On-site work, moving or living nearby: 43 of 143 forms. Plain address boxes are not counted here.
+- Work permit or visa sponsorship: 99 of 143 forms.
+- On-site work, moving or living nearby: 45 of 143 forms. Plain address boxes are not counted here.
 - Years of experience: 21 of 143 forms.
-- License, certificate or security clearance: 11 of 143 forms.
+- License, certificate or security clearance: 13 of 143 forms.
 
-These counts have limits. The job search we used, freehire.me, leans toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically.
+These counts have limits. The forms we could read lean toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically. The data, one row per form, and how we counted: [the knockout-question data](knockout-questions-2026-10.md).
 
 An earlier count of many more forms, published by freehire.me's maker, reported far fewer forms with extra questions. We could not re-find that page to check it, so we don't cite its numbers. Our sample is small, and its share may not hold for all forms.
 
-Our share of 105 of the 143 forms does not confirm the old 75% claim [@levinson-2012-cio]. A question on a form is not a rejection, and the two numbers measure different things.
+Our share of 109 of the 143 forms does not confirm the old 75% claim [@levinson-2012-cio]. A question on a form is not a rejection, and the two numbers measure different things.
 
 Expect a work-permit or sponsorship question on many forms, and an on-site or location question on some.
 
@@ -146,3 +147,7 @@ How we grade evidence: [How we research](methods.md). More articles: [Research](
 - Uses a posting's words only where your own experience backs them.
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - recounted our measurement. Some forms list the employer's questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.
