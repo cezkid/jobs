@@ -232,3 +232,10 @@ Also found (not cited in the draft; leads, open before citing):
 - Title 44 chars, description 145 chars - within limits, but description content fails (F2).
 - What we don't know: present, useful; add detector-use survey status after F7.
 - Tool box separate, after evidence, short - but see L6.
+
+## Re-review 2026-10-03: citations thinned (plan-xsy.48)
+
+Citation placement only - no wording, number or source changed. A run of sentences citing the
+same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
+sentence the moved citation now covers comes from that source.
+63 repeat citations dropped; no sentence that was uncited now falls under a citation.

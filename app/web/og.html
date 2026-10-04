@@ -6,7 +6,8 @@
 <!-- Source of docs/og.png (1200x630): uv run app/web/assets.py --only og. Tokens, masthead double
      rule and the hero app window (story A, the morning list) copied from docs/index.html. Bottom
      90px kept clear (X lays its headline there); key content inside the central 1100x530. Never
-     put the install line on the card. -->
+     put the install line on the card.
+     Mark = the app's own icon files (src="/app/install/..."), inlined at render - never a copy. -->
 <style>
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; }
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; }
@@ -27,7 +28,7 @@
   }
   .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-bottom: 1px solid var(--ink); }
   .brand { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 700; }
-  .brand svg { width: 40px; height: 40px; }
+  .brand img { width: 50px; height: 50px; margin: -5px; } /* app icon's tile = 40px, as before */
   .site { font-size: 24px; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
 
   h1 {
@@ -44,48 +45,32 @@
   }
   .titlebar { display: flex; align-items: center; height: 34px; border-bottom: 1px solid var(--ink); }
   .title { flex: 1; display: flex; align-items: center; gap: 8px; padding-left: 14px; font-size: 15px; }
-  .title svg { width: 17px; height: 17px; }
+  .title img { width: 21px; height: 21px; margin: -2px; } /* 32 px rung's tile = 17px */
   .controls { display: flex; height: 100%; }
   .controls svg { width: 42px; height: 100%; fill: none; stroke: var(--ink); stroke-width: 1; }
-  .today { padding: 10px 22px 14px 24px; isolation: isolate; }
+  .today { padding: 12px 26px 14px 30px; isolation: isolate; }
   .day { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-bottom: 5px; border-bottom: 2px solid var(--ink); }
-  .day b { font-size: 21px; line-height: 1.2; }
-  .day span { color: var(--ink-2); font-size: 14px; }
+  .day b { font-size: 26px; line-height: 1.2; }
+  .day span { color: var(--ink-2); font-size: 17px; }
   .slips { list-style: none; margin: 0; padding: 0; }
-  .slip { padding: 6px 0 7px; border-bottom: 1px solid var(--rule); }
-  .job { font-size: 16px; line-height: 1.3; }
-  .meta { color: var(--ink-2); font-size: 14px; line-height: 1.3; }
-  .why { margin-top: 2px; font-size: 14px; line-height: 1.35; }
+  .slip { padding: 8px 0 10px; border-bottom: 1px solid var(--rule); }
+  .job { font-size: 20px; line-height: 1.3; }
+  .meta { color: var(--ink-2); font-size: 17px; line-height: 1.3; }
+  .why { margin-top: 3px; font-size: 18px; line-height: 1.35; }
   .circled { position: relative; display: inline-block; }
+  /* the home window's hand-drawn ring: a broad pass + a thin one, a tail past the start */
   .ring {
-    position: absolute; left: -14px; top: -6px; width: calc(100% + 30px); height: calc(100% + 13px); z-index: -1; overflow: visible;
-    fill: none; stroke: var(--mark); stroke-width: 6; stroke-linecap: round; vector-effect: non-scaling-stroke;
+    position: absolute; left: -20px; top: -13px; width: calc(100% + 50px); height: calc(100% + 22px); z-index: -1; overflow: visible;
+    fill: none; stroke: var(--mark); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round;
   }
-  /* proofreader correction: old line struck, caret, new line, drawn check */
-  .fix { margin-top: 8px; padding-left: 18px; font-size: 14px; line-height: 1.4; }
-  .fix-head { font-weight: 700; margin: 0 0 2px -18px; }
-  .old { color: var(--ink-2); }
-  .old del { text-decoration: none; background: linear-gradient(var(--ink), var(--ink)) no-repeat 0 58% / 100% 2px; }
-  .new { position: relative; }
-  .new ins { text-decoration: none; }
-  .caret { position: absolute; left: -15px; top: 0.4em; width: 8px; height: 8px; border-left: 2px solid var(--ink); border-top: 2px solid var(--ink); transform: rotate(45deg); }
-  .approved { display: flex; align-items: center; gap: 8px; margin-top: 5px; }
-  .approved svg { width: 20px; height: 20px; flex: none; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .ring .pass { stroke-width: 4; }
+  .slip.picked .job { margin-bottom: 9px; }
 </style>
 </head>
 <body>
 <header class="top">
   <div class="brand">
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="#000"/>
-      <rect x="8" y="4" width="16" height="24" fill="#fff"/>
-      <rect x="10" y="13" width="12" height="6" fill="#FFE433"/>
-      <g stroke="#000" stroke-width="2.4" stroke-linecap="butt">
-        <path d="M11 9.5h10"/>
-        <path d="M11 16h10"/>
-        <path d="M11 22.5h7"/>
-      </g>
-    </svg>
+    <img src="/app/install/icon.svg" alt="">
     CEZ Job Finder
   </div>
   <div class="site">jobs.enrriquez.com</div>
@@ -96,16 +81,7 @@
 <figure>
   <div class="window">
     <div class="titlebar">
-      <span class="title"><svg viewBox="0 0 32 32" aria-hidden="true">
-<rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="#000"/>
-<rect x="8" y="4" width="16" height="24" fill="#fff"/>
-<rect x="10" y="13" width="12" height="6" fill="#FFE433"/>
-<g stroke="#000" stroke-width="2.4" stroke-linecap="butt">
-<path d="M11 9.5h10"/>
-<path d="M11 16h10"/>
-<path d="M11 22.5h7"/>
-</g>
-</svg>Today - CEZ Job Finder</span>
+      <span class="title"><img src="/app/install/icon-32.svg" alt="">Today - CEZ Job Finder</span>
       <span class="controls">
         <svg viewBox="0 0 42 34"><path d="M16 17h10"/></svg>
         <svg viewBox="0 0 42 34"><rect x="16.5" y="12.5" width="9" height="9" rx="1"/></svg>
@@ -120,18 +96,17 @@
           <p class="meta">$72,000 a year, Denver, CO</p>
           <p class="why"><mark>Asks for renewals work; you kept 94% of your accounts.</mark></p>
         </li>
-        <li class="slip">
-          <p class="job"><span class="circled"><b>Job 12</b> - Customer Support Lead<svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M24 9 C 80 0, 186 2, 194 26 C 200 48, 128 58, 64 56 C 16 54, 2 42, 6 28 C 10 13, 42 6, 92 5"/></svg></span></p>
+        <li class="slip picked">
+          <p class="job"><span class="circled"><b>Job 12</b> - Customer Support Lead<svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M40 6 C 100 1, 170 1, 191 6 C 199 9, 200 46, 192 54 C 170 59, 60 59, 14 56 C 2 54, 0 20, 6 10 C 16 2, 52 -1, 100 1"/><path class="pass" pathLength="100" d="M56 3 C 120 2, 186 3, 194 12 C 199 24, 198 44, 188 55 C 160 58, 50 57, 12 53 C 3 48, 2 24, 9 13 C 15 7, 34 5, 60 6"/></svg></span></p>
           <p class="meta">$68,000 to $75,000 a year, remote</p>
           <p class="why"><mark>Wants a support team lead; you led a team of 6.</mark></p>
         </li>
+        <li class="slip">
+          <p class="job"><b>Job 15</b> - IT Support Specialist</p>
+          <p class="meta">$58,000 a year, remote</p>
+          <p class="why"><mark>Help desk work, like your last two jobs.</mark></p>
+        </li>
       </ul>
-      <div class="fix">
-        <p class="fix-head">Your resume for job 12</p>
-        <p class="old"><del>Managed 6 agents and answered tickets faster.</del></p>
-        <p class="new"><span class="caret"></span><ins>Led a <mark>support team</mark> of 6 through peak season; cut wait times 30%.</ins></p>
-        <p class="approved"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
-      </div>
     </div>
   </div>
 </figure>

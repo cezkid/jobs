@@ -26,6 +26,7 @@ Project env (no inline deps): markdown-it-py comes locked through rich.
 """
 
 import argparse
+import copy
 import datetime
 import difflib
 import importlib.util
@@ -43,6 +44,7 @@ from urllib.parse import quote, urlsplit
 
 import yaml
 from markdown_it import MarkdownIt
+from markdown_it.rules_core import StateCore, smartquotes
 from markdown_it.token import Token
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -54,7 +56,9 @@ SOURCES = Path("app") / "web" / "research"
 REGISTRY = SOURCES / "sources.yml"
 REVIEWS = SOURCES / "reviews"
 AUTHOR = "Cesar Enrriquez-Zuniga"
-SAME_AS = ["https://github.com/cezkid"]  # the author's other profiles (ProfilePage sameAs)
+SAME_AS = ["https://github.com/cezkid", "https://www.enrriquez.com/"]  # the author's other profiles, each shown on About (ProfilePage sameAs)
+# a label + one link, never "approved" (owner decision 5); the label text makes the link running text (qa HIT_BOXES)
+AI_NOTE = 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>'
 # every generated page's share card: docs/og-research.png from app/web/og-research.html
 # (uv run app/web/assets.py --only og); changed => bump ?v=N here. Per-article cards: later.
 CARD = "og-research.png"
@@ -63,6 +67,7 @@ FEED_TITLE = "CEZ Job Finder Research"
 CARD_ALT = ("CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim"
             " marked in yellow, linked to its list of sources.")
 REPO = "https://github.com/cezkid/jobs/blob/main/"
+ISSUES = "https://github.com/cezkid/jobs/issues"  # body links may go here: readers report corrections
 KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited"}
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # special sources (about, methods, index) + names later steps use (feed, reviews/, sources.yml)
@@ -74,6 +79,8 @@ _spec.loader.exec_module(assets)
 FONT_CHARS = frozenset(map(chr, assets.UNICODES))
 LIMITS = {"title": 60, "description": 155, "og_title": 70}  # cut off past this in results / share previews
 # same as app/resume/lint.py INVISIBLE: looks like a space or nothing, breaks search + copy
+# hosts that hold a free full text: their link reads "Open copy", any other URL "Publisher"
+OPEN_COPY_HOSTS = ("arxiv.org", "ncbi.nlm.nih.gov", "nber.org", "ssrn.com", "osf.io", "europepmc.org")
 INVISIBLE = re.compile("[\u00a0\u202f\u200b\u200c\u200d\u2060\ufeff]")
 # same as test_docs.py JARGON + JARGON_OK (a test keeps them equal): the site's readers are the app's users
 JARGON = re.compile(r"\b(config|yml|json|slug|params|facet|pytest|repo|commit|branch|PR|API|schema)\b")
@@ -111,7 +118,13 @@ STAT = re.compile(
     r"\b\d[\d,.]*\s*%|\bper\s?cent\b|\bpercentage points?\b|\b\d[\d,.]*\s+(?:points?|pts?)\b"
     rf"|\b{_NUM}\s+(?:in|out of)\s+(?:{_NUM}|a hundred|a thousand)\b|\bn\s*=\s*\d"
     r"|\b(?:a|one|two|three|four|five|six|seven|eight|nine)[\s-](?:half|halves|thirds?|quarters?|fourths?|fifths?"
-    r"|sixths?|sevenths?|eighths?|ninths?|tenths?)\b", re.I)
+    r"|sixths?|sevenths?|eighths?|ninths?|tenths?)\b"
+    # 3/4 (not a date: one digit over 2-10, no slash either side), "half of", "twice as likely"
+    r"|(?<![\d/.])[1-9]/(?:10|[2-9])(?![\d/])|(?<!first )(?<!second )(?<!last )\bhalf (?:of|the|as|their)\b"
+    r"|\b(?:twice|thrice|double|triple|quadruple)\s+(?:as|the)\b"
+    rf"|\b(?:\d[\d.]*|{_NUM}|half)\s+times\s+(?:as|more|less|fewer|higher|lower|greater|larger|smaller|the|over)\b"
+    # counts: 83,000 / 12000 (5+ digits, so never a year) / 2 million
+    r"|\b\d{1,3}(?:,\d{3})+\b|\b\d{5,}\b|\b\d[\d.]*\s*(?:thousand|million|billion)\b", re.I)
 # a full stop after these doesn't end a sentence
 ABBREV = re.compile(r"\b(et al|pp?|e\.g|i\.e|vs|cf|vol|eds?|approx)\.", re.I)
 MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
@@ -152,15 +165,16 @@ def listed(docs: Path) -> list[str]:
                   if p.is_file() and not any(part.startswith(".") for part in p.relative_to(docs).parts))
 
 
-def sitemap(root: Path, pages: dict[str, str]) -> str:
+def sitemap(root: Path, pages: dict[str, str], lastmod: dict[str, str] | None = None) -> str:
     """Canonical URL of every indexed page, home first then sorted; once each. <lastmod> = the page's
-    article:modified_time (dated pages only: Google uses lastmod only while it's always accurate)."""
+    article:modified_time, or the one in lastmod (about + hub: no such meta); dated pages only: Google uses
+    lastmod only while it's always accurate, so hand-written pages stay without."""
     home = site(root)
     urls: dict[str, str | None] = {}
     for text in pages.values():
         head = Head(text)
         if head.canonical and not head.noindex:
-            urls[head.canonical] = head.modified
+            urls[head.canonical] = (lastmod or {}).get(head.canonical) or head.modified
     lines = [f"  <url><loc>{url}</loc>" + (f"<lastmod>{urls[url]}</lastmod>" if urls[url] else "") + "</url>"
              for url in sorted(urls, key=lambda u: (u != home, u))]
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -239,8 +253,9 @@ class Source:
         self.status = head.get("status")
         if self.status not in ("draft", "published", None):
             errors.append(f"{self.rel}:{self.line_of(text, 'status')}: status must be draft or published")
-        self.title, self.description = str(head.get("title", "")), str(head.get("description", ""))
-        self.og_title = str(head.get("og_title") or self.title)
+        # shown text, typeset; lints read self.head (as written)
+        self.title, self.description = typeset(str(head.get("title", ""))), typeset(str(head.get("description", "")))
+        self.og_title = typeset(str(head.get("og_title") or head.get("title", "")))
         self.uncited = head.get("uncited") or []
         if not isinstance(self.uncited, list) or not all(isinstance(u, str) and u.strip() for u in self.uncited):
             errors.append(f"{self.rel}:{self.line_of(text, 'uncited')}: uncited must be a list of text snippets")
@@ -381,7 +396,40 @@ def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
                         errors.append(f"{src.rel}:{src.find(token, word.group(0))}: {word.group(0)!r} is jargon - say it in plain words")
 
 
-MD = MarkdownIt("js-default")  # raw HTML escaped, tables on, no typographer
+MD = MarkdownIt("js-default")  # raw HTML escaped, tables on, no typographer: lints + heading ids read the source
+# typographer on output only (typeset): curly quotes + en dashes (A12, D13); its own replacements stay off -
+# (c) / (tm) / ... -> glyphs outside the font subset (assets.UNICODES)
+TYPO = MarkdownIt("js-default", {"typographer": True})
+RANGE = re.compile(r"(?<![\w:./\-–])(\d+)-(?!0\d)(\d+)(?![\w\-])")  # 10-15 years, p. 22-23; not 103-0804, 3:23-cv
+YEAR = re.compile(r"(?<!\w)'(?=\d\d\b)")  # FAccT '24: an apostrophe, not an opening quote
+URLISH = re.compile(r"://|^www\.")
+
+
+def _dashes(text: str) -> str:
+    if text.strip() == "-":  # a table cell's "none"
+        return text.replace("-", "–")
+    text = text.replace("--", "–").replace(" - ", " – ")
+    return YEAR.sub("’", RANGE.sub("\\1–\\2", text))
+
+
+def typeset_tokens(tokens: list[Token]) -> list[Token]:
+    """A copy of parsed tokens w/ curly quotes + en dashes in their text; code, URLs shown as text and the
+    source tokens themselves stay as written."""
+    tokens = copy.deepcopy(tokens)
+    for block in tokens:
+        depth = 0
+        for child in block.children or []:
+            depth += {"link_open": 1, "link_close": -1}.get(child.type, 0)
+            if child.type == "text" and not (depth and URLISH.search(child.content)):
+                child.content = _dashes(child.content)
+    smartquotes(StateCore("", TYPO, {}, tokens))
+    return tokens
+
+
+def typeset(text: str) -> str:
+    """Plain text (a title, a label) through the same rules as page text, so h1 == <title> == og == JSON-LD."""
+    inline = Token("inline", "", 0, content=text, children=[Token("text", "", 0, content=text)])
+    return typeset_tokens([inline])[0].children[0].content
 
 
 def _table_open(self, tokens, idx, options, env):
@@ -424,10 +472,15 @@ def _cite(state):
 
 
 def _render_cite(self, tokens, idx, options, env):
-    links = [f'<a href="#src-{ref}">{escape(env["labels"][ref])}</a>' + (f", {escape(loc)}" if loc else "")
+    links = [f'<a href="#src-{ref}">{escape(env["labels"][ref])}</a>' + (f", {escape(typeset(loc))}" if loc else "")
              for ref, loc in tokens[idx].meta["refs"]]
     return "(" + "; ".join(links) + ")"
 
+
+OPEN_COPY_NOTE = re.compile(r"(.+?)(?:\s*\((open copy[^()]*)\))?", re.S)
+# "(Vendor survey) (Enhancv 2025)" -> "(Vendor survey; Enhancv 2025)": an evidence label written just before a
+# citation joins it as one parenthetical (audit A13); the source .md keeps both
+LEAD_CITE = re.compile(r'\(([^()<>]+)\)[ \u00a0]\((?=<a href="#src-)')
 
 ESCAPED = "\ue000"  # \[ in a source: kept out of the cite rule, turned back into [ after it
 
@@ -551,19 +604,27 @@ class Registry:
         entry = self.entries[ref]
         authors = entry.get("authors") or []
         who = (", ".join(authors[:-1]) + " and " + authors[-1]) if len(authors) > 1 else authors[0] if authors else entry["org"]
-        parts = [f"{escape(who.strip())} ({entry['year']}).", escape(stop(entry["title"].strip()))]
+        parts = [f'<b class="evidence">{escape(typeset(EVIDENCE[entry["evidence"]]))}</b>',
+                 f"{escape(typeset(who.strip()))} ({entry['year']}).", escape(typeset(stop(entry["title"].strip())))]
         if entry.get("venue"):
-            parts.append(f"<i>{escape(stop(entry['venue'].strip()))}</i>")
-        if entry.get("doi"):
-            doi = "https://doi.org/" + quote(entry["doi"], safe="/:;()._-")
-            parts.append(f'<a href="{escape(doi)}">{escape(doi)}</a>')
-        if entry.get("url"):
-            parts.append(f'<a href="{escape(entry["url"])}">{escape(entry["url"])}</a>')
-        evidence = EVIDENCE[entry["evidence"]] + (f", {entry['sample'].strip()}" if entry.get("sample") else "")
-        parts.append(f'<span class="evidence">{escape(stop(evidence))}</span>')
+            # "Patterns 4(7) (open copy on arXiv)": the note is not the venue's name - its own sentence, not
+            # italic, so no ") (" in the list (critique K7)
+            venue, note = OPEN_COPY_NOTE.fullmatch(entry["venue"].strip()).groups()
+            parts.append(f"<i>{escape(typeset(stop(venue)))}</i>")
+            if note:
+                parts.append(escape(typeset(stop(note[:1].upper() + note[1:]))))
+        if entry.get("sample"):
+            parts.append(escape(typeset(stop(entry["sample"].strip()[:1].upper() + entry["sample"].strip()[1:]))))
         if entry.get("preprint"):
             parts.append("Preprint, not peer-reviewed.")
         parts.append(f'Checked <time datetime="{entry["checked"]}">{long_date(str(entry["checked"]))}</time>.')
+        links = []
+        if entry.get("doi"):
+            links.append(("DOI", "https://doi.org/" + quote(entry["doi"], safe="/:;()._-")))
+        if entry.get("url"):
+            host = urlsplit(entry["url"]).netloc.lower()
+            links.append(("Open copy" if host.endswith(OPEN_COPY_HOSTS) else "Publisher", entry["url"]))
+        parts.append(" ".join(f'<a href="{escape(url)}">{word}</a>' for word, url in links))
         return f'<li id="src-{ref}">' + " ".join(parts) + "</li>"
 
 
@@ -628,11 +689,23 @@ def citations(sources: list[Source], registry: Registry, errors: list[str], warn
             continue
         if cites(src) and "sources" in src.ids:
             errors.append(f"{src.rel}:{src.ids['sources']}: heading id 'sources' is the citation list's - rename the heading")
+        paragraphs = {}
         for inline, text in units(src):
-            stat = STAT.search(text.replace("\x02", " "))
-            if stat and "\x01" not in text and not any(u in text for u in src.uncited):
-                errors.append(f"{src.rel}:{src.find(inline, stat.group(0))}: statistic {stat.group(0)!r} without a citation"
-                              " - add [@id], or list a snippet of the sentence under uncited: in the header")
+            paragraphs.setdefault(id(inline), (inline, []))[1].append(text)
+        for inline, texts in paragraphs.values():
+            refs = iter([ref for ref, _ in c.meta["refs"] or []] for c in inline.children or [] if c.type == "cite")
+            cited = [{ref for _ in range(text.count("\x01")) for ref in next(refs, [])} for text in texts]
+            for i, text in enumerate(texts):
+                # a citation later in the paragraph covers the statistics before it: cite a run once, at its end
+                stat = STAT.search(text.replace("\x02", " "))
+                if stat and not any("\x01" in t for t in texts[i:]) and not any(u in text for u in src.uncited):
+                    errors.append(f"{src.rel}:{src.find(inline, stat.group(0))}: statistic {stat.group(0)!r} without a citation"
+                                  " - add [@id] in or after its sentence, or list a snippet of the sentence under uncited:"
+                                  " in the header")
+                run = cited[i].intersection(*cited[i + 1:i + 3]) - (cited[i - 1] if i else set())
+                for ref in sorted(run) if i + 2 < len(texts) else []:
+                    errors.append(f"{src.rel}:{src.find(inline, '@' + ref)}: [@{ref}] cited in 3 sentences in a row"
+                                  " - cite it once, at the end of the run")
     for ref in sorted(set(registry.entries) - used):
         warnings.append(f"{registry.rel}:{registry.lines[ref]}: {ref} is not cited by any page")
 
@@ -699,6 +772,8 @@ def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site
         if not path.endswith("/") and file + "/index.html" in site_files:
             raise ValueError(f"{href}: folder link needs a / at the end")
         return path + (f"?{url.query}" if url.query else "") + (f"#{url.fragment}" if url.fragment else "")
+    if href == ISSUES or href.startswith((ISSUES + "/", ISSUES + "?")):
+        return href
     if url.scheme or url.netloc or href.startswith("/"):
         raise ValueError(f"{href}: link to research pages as x.md, to this site as {home}..., to other sites through sources")
     target = (src.path.parent / url.path).resolve()
@@ -724,7 +799,7 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
     label = src.title
     for i, token in enumerate(src.tokens):
         if token.type == "heading_open":
-            label = src.tokens[i + 1].content
+            label = typeset(src.tokens[i + 1].content)
         elif token.type == "table_open":
             token.meta["label"] = f"Table: {label}"
         elif token.type == "inline":
@@ -734,7 +809,8 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
                         child.attrSet("href", rewrite(child.attrGet("href"), src, by_name, root, site_files, repo_files))
                     except ValueError as e:
                         errors.append(f"{src.rel}:{src.line(token)}: {e}")
-    html = MD.renderer.render(src.tokens, MD.options, {"labels": registry.labels})
+    labels = {ref: typeset(label) for ref, label in registry.labels.items()}
+    html = LEAD_CITE.sub(r"(\1; ", MD.renderer.render(typeset_tokens(src.tokens), MD.options, {"labels": labels}))
     cited = {ref for _, cite in cites(src) for ref, _ in cite.meta["refs"] or []} & set(registry.entries)
     if cited:
         # alphabetical by label, so a reader scanning for "Quillian et al. 2017" finds it
@@ -769,11 +845,15 @@ PAGE_CSS = """
   .crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
   .crumbs li { margin: 0; }
   .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
-  h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; font-weight: 700; margin: 0 0 16px; }
-  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.15; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  /* display scale, like the home page's section heads (>= 72px at 1440 wide); a two-part title's deck on its own line */
+  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
+  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
+  .list .deck { margin-top: 2px; font-size: 0.8em; }
+  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
+  .meta:has(+ .ai-note) { margin-bottom: 4px; }
   p { margin: 0 0 16px; }
   ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
@@ -785,9 +865,11 @@ PAGE_CSS = """
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
   /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  .meta + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  .meta + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  .meta + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  /* the heading after it: no hairline of its own right under the note's rule (A19) */
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -802,16 +884,55 @@ PAGE_CSS = """
   .sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
-  .sources .evidence { font-style: italic; font-synthesis: none; }
+  .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
+  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
+  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
+  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
+  .toc-mini li { margin: 0; }
+  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+  /* the section in view (TOC_JS marks it): bold, underlined in ink; without JS nothing is marked */
+  :is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration-color: var(--text); }
+  /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
+  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
+  /* Keep reading: the article's way on, under a thick rule like Sources */
+  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
+  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
+  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
+  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .more p { margin: 0 0 8px; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
-  .toc { display: none; }
+  .toc, .labels { display: none; }
+  .labels dl { margin: 0 0 12px; }
+  .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
+  .labels dd { margin: 0 0 8px; color: var(--text-2); }
+  .labels p { margin: 0; }
   @media (min-width: 1280px) {
-    main.wrap:has(> .toc) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); }
-    main.wrap:has(> .toc) > .page { grid-column: 1; grid-row: 1; }
+    main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
+    main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
+    /* hub + about: the second column holds real content (evidence labels; About's later sections) */
+    main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
+    .side > h2:first-child { margin-top: 0; }
+    /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
+    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
+    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
+    .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
+    .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
+    main.wrap > .list { grid-column: 1; grid-row: 2; }
+    /* hub (A16): the method lines beside the h1, the labels beside the list, the articles as 2-column clippings,
+       so 4 titles show in a 1440x900 first screen */
+    main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
+    .intro p:last-child { margin-bottom: 0; }
+    main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
+    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
+    .toc-mini { display: none; }
     .toc {
-      display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
+      /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
+      display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
-      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.4;
+      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
     }
     .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
     .toc ol { list-style: none; margin: 0; padding: 0; }
@@ -831,14 +952,25 @@ PAGE_CSS = """
     h2 { margin-top: 36px; }
     .sources li { padding-left: 2.2em; }
     .sources li::before { width: 1.7em; }
+    /* an article's current crumb repeats the h1 just below: hidden (screen readers keep it) so the crumbs fit one line */
+    article .crumbs [aria-current] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   }
   @media print {
     main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs, .toc { display: none !important; }
+    .crumbs, .toc, .toc-mini, .more { display: none !important; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
   }
 """
+
+
+# On this page: marks the link of the last h2 above the line 30% down the window (aria-current="true", both
+# lists). The observed band runs from far above the window to that line, so a heading crossing it either way
+# (a fast scroll included) calls back; budget 400 B (test_pages)
+TOC_JS = ('(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)'
+          'if(x.getBoundingClientRect().top<innerHeight*.3)c=x;for(const a of document.querySelectorAll('
+          '".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute('
+          '"aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -70% 0px"});h.forEach(x=>o.observe(x))})()')
 
 
 def jsonld(graph: list[dict]) -> str:
@@ -860,13 +992,67 @@ def newest(articles: list[Source]) -> list[Source]:
     return sorted(sorted(articles, key=lambda s: s.name), key=lambda s: s.published, reverse=True)
 
 
+def headline(title: str) -> str:
+    """A two-part title ("Question? Subtitle", "Topic: names") as the question + a deck on its own line, split at
+    the first "? " or ": " (A4); the deck span sits inside the h1 / link, so its text stays the title."""
+    part = re.match(r"(.+?[?:]) (.+)", title)
+    if not part:
+        return escape(title)
+    return f'{escape(part.group(1))} <span class="deck">{escape(part.group(2))}</span>'
+
+
 def listing(articles: list[Source]) -> str:
     """Hub list: newest first, link text = title."""
     items = []
     for src in newest(articles):
-        items.append(f'<li><a href="{src.url}">{escape(src.title)}</a>'
+        items.append(f'<li><a href="{src.url}">{headline(src.title)}</a>'
                      f'<p>{escape(src.description)}</p><p class="date">{dates(src)}</p></li>')
     return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
+
+
+def keep_reading(src: Source, articles: list[Source]) -> str:
+    """An article page's way on, last in <article>: the next 2 articles in hub order (wrapping round), the hub,
+    the install line, back to top. Plain links in a nav (touch: 44px hit boxes, like every nav link)."""
+    order = newest(articles)
+    i = next((n for n, s in enumerate(order) if s.name == src.name), -1)
+    picks = (order[i + 1:] + order[:max(i, 0)])[:2]
+    items = [f'<li><a href="{s.url}">{escape(s.title)}</a></li>' for s in picks]
+    return "\n".join(['<nav class="more" aria-label="Keep reading">', "<p>Keep reading</p>", "<ul>", *items,
+                      '<li><a href="/research/">All research</a></li>', "</ul>",
+                      '<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>',
+                      '<p><a href="#main">Back to top</a></p>', "</nav>", ""])
+
+
+def evidence_labels(methods: Source | None) -> str:
+    """Hub's second column (wide screens only): each evidence label + what it means, read from the methods
+    page's label table (header "In the text" ... "What it means"); a label listed twice joins its meanings."""
+    if methods is None or not methods.built:
+        return ""
+    heading, rows, table, cells = "", [], False, []
+    for i, token in enumerate(methods.tokens):
+        if token.type == "heading_open" and token.tag == "h2":
+            heading = methods.tokens[i + 1].content
+        elif token.type == "table_open":
+            table, rows = True, []
+        elif token.type == "table_close":
+            if rows and rows[0][0] == "In the text" and rows[0][-1] == "What it means":
+                break
+            table, rows = False, []
+        elif table and token.type == "tr_open":
+            cells = []
+        elif table and token.type == "inline":
+            cells.append(token.content)
+        elif table and token.type == "tr_close":
+            rows.append(cells)
+    else:
+        return ""
+    meaning: dict[str, str] = {}
+    for cells in rows[1:]:
+        label, what = cells[0], cells[-1]
+        meaning[label] = meaning[label] + ", or " + what[:1].lower() + what[1:] if label in meaning else what
+    items = "\n".join(f"<dt>{escape(typeset(k))}</dt><dd>{escape(typeset(v))}</dd>" for k, v in meaning.items())
+    return (f'<div class="side labels">\n<p>Evidence labels</p>\n<dl>\n{items}\n</dl>\n'
+            f'<p>How each label is chosen: <a href="{methods.url}#{slugify(heading)}">How we research</a>.</p>\n</div>\n')
 
 
 def stamp(day: str) -> str:
@@ -907,14 +1093,17 @@ def feed(root: Path, index: Source, articles: list[Source]) -> str:
     return '<?xml version="1.0" encoding="utf-8"?>\n' + ET.tostring(top, encoding="unicode") + "\n"
 
 
-def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -> str:
+def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, side: str = "",
+         after: str = "", more: str = "", hub_name: str = "Research") -> str:
+    """side: a second column on wide screens (stacks after the page below 1280px); after: full width below both;
+    more: last in the page column (an article's Keep reading); hub_name: /research/'s crumb = the hub's own title."""
     home = site(root)
     url = home + src.url.lstrip("/")
     person = {"@type": "Person", "@id": home + "about/#person", "name": AUTHOR, "url": home + "about/"}
     # breadcrumb: (name, path); Research is a link once the hub exists, plain text (and not in JSON-LD) before
     crumbs = [("Home", "/")]
     if src.name not in ("about", "index"):
-        crumbs.append(("Research", "/research/" if hub else None))
+        crumbs.append((hub_name, "/research/" if hub else None))
     crumbs.append((src.title, src.url))
     visible = [f'<li aria-current="page">{escape(name)}</li>' if i == len(crumbs) - 1
                else f'<li><a href="{path}">{escape(name)}</a></li>' if path else f"<li>{escape(name)}</li>"
@@ -962,11 +1151,15 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
                  f'<meta property="article:modified_time" content="{src.modified}">']
     head += [parts["og"], parts["twitter"], parts["links"], jsonld(graph)]
     wrapper = "article" if kind == "article" else "div"
-    # articles: "On this page" = every h2 (Sources too), shown beside the column on wide screens only
+    # articles: "On this page" = every h2 (Sources too): a sticky column beside the text from 1280px, a closed
+    # list under the byline below that. After the article in the source (grid places the column), so the h1
+    # comes first for screen readers, Tab + text extractors; one list shown at a time, no ids in either
     heads = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body, re.S) if kind == "article" else []
-    toc = ['<nav class="toc" aria-label="On this page">', "<p>On this page</p>", "<ol>",
-           *(f'<li><a href="#{slug}">{re.sub(r"<[^>]+>", "", text)}</a></li>' for slug, text in heads),
-           "</ol>", "</nav>"] if len(heads) > 2 else []
+    items = [f'<li><a href="#{slug}">{re.sub(r"<[^>]+>", "", text)}</a></li>' for slug, text in heads]
+    toc = ['<nav class="toc" aria-label="On this page">', "<p>On this page</p>", "<ol>", *items, "</ol>",
+           "</nav>"] if len(heads) > 2 else []
+    mini = ['<nav class="toc-mini" aria-label="Contents">', "<details>", "<summary>On this page</summary>",
+            "<ol>", *items, "</ol>", "</details>", "</nav>"] if toc else []
     return "\n".join([
         "<!doctype html>",
         '<html lang="en">',
@@ -982,15 +1175,21 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
         "<body>",
         parts["header"],
         '<main id="main" class="wrap">',
-        *toc,
         f'<{wrapper} class="page">',
         f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
-        f"<h1>{escape(src.title)}</h1>",
+        f"<h1>{headline(src.title)}</h1>",
         *([f'<p class="meta">{meta}</p>'] if meta else []),
+        *([f'<p class="meta ai-note">{AI_NOTE}</p>'] if kind == "article" else []),
+        *mini,
         body.rstrip("\n"),
+        *([more.rstrip("\n")] if more else []),
         f"</{wrapper}>",
+        *toc,
+        *([side.rstrip("\n")] if side else []),
+        *([after.rstrip("\n")] if after else []),
         "</main>",
         parts["footer"],
+        *([f"<script>{TOC_JS}</script>"] if toc else []),
         "</body>",
         "</html>",
         "",
@@ -1000,6 +1199,12 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool) -
 def research(root: Path, site_files: set[str], warnings: list[str] | None = None) -> dict[str, str]:
     """Every published research source as docs-relative path -> HTML. Raises SourceError on any problem;
     warnings (page still built) go to the list given."""
+    return dated(root, site_files, warnings)[0]
+
+
+def dated(root: Path, site_files: set[str], warnings: list[str] | None = None) -> tuple[dict[str, str], dict[str, str]]:
+    """research() + the sitemap lastmod of the pages with no article:modified_time: /about/ = about.md modified
+    (== ProfilePage dateModified), /research/ = max(index.md modified, newest article modified)."""
     folder = root / SOURCES
     errors: list[str] = []
     warnings = [] if warnings is None else warnings
@@ -1021,6 +1226,7 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
         else:
             index.hub = True
     hub = "index" in by_name and by_name["index"].hub
+    hub_name = by_name["index"].title if hub else "Research"  # one name for /research/ in every crumb (D22)
     built = [s for s in sources if s.built]
     out: dict[str, str] = {}
     if built:
@@ -1031,14 +1237,29 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
         repo_files = tracked(root)
         for src in built:
             body = body_html(src, by_name, root, files, errors, registry, repo_files)
+            side = after = ""
             if src.name == "index":
-                body += listing(articles)
-            out[src.out] = page(src, root, body, parts, hub)
+                # the first paragraph (the promise) stays under the h1; the method lines go beside it (A16)
+                cut = body.find("</p>") + len("</p>\n")
+                body, rest = body[:cut], body[cut:].strip("\n")
+                intro = f'<div class="side intro">\n{rest}\n</div>\n' if "<p" in rest else ""
+                side, after = intro + evidence_labels(by_name.get("methods")), listing(articles)
+            elif src.name == "about" and "<h2" in body:
+                cut = body.index("<h2")
+                body, side = body[:cut], '<div class="side">\n' + body[cut:] + "</div>\n"
+            more = keep_reading(src, articles) if hub and src.name not in ("index", "about") else ""
+            out[src.out] = page(src, root, body, parts, hub, side, after, more, hub_name)
         if hub:
             out[FEED] = feed(root, by_name["index"], articles)
     if errors:
         raise SourceError("\n".join(errors))
-    return out
+    lastmod: dict[str, str] = {}
+    home = site(root)
+    if "about" in by_name and by_name["about"].built:
+        lastmod[home + "about/"] = by_name["about"].modified
+    if hub:
+        lastmod[home + "research/"] = max(s.modified for s in [by_name["index"], *articles] if s.modified)
+    return out, lastmod
 
 
 def build(root: Path, warnings: list[str] | None = None) -> dict[str, str]:
@@ -1047,8 +1268,8 @@ def build(root: Path, warnings: list[str] | None = None) -> dict[str, str]:
     found = [rel for rel in listed(docs) if rel.split("/")[0] not in OWNED]
     hand = {rel: (docs / rel).read_text(encoding="utf-8") for rel in found
             if rel.endswith(".html") and rel.split("/")[0] not in NOT_PAGES}
-    out = research(root, set(found), warnings)
-    out["sitemap.xml"] = sitemap(root, {**hand, **{k: v for k, v in out.items() if k.endswith(".html")}})
+    out, lastmod = dated(root, set(found), warnings)
+    out["sitemap.xml"] = sitemap(root, {**hand, **{k: v for k, v in out.items() if k.endswith(".html")}}, lastmod)
     return dict(sorted(out.items()))
 
 

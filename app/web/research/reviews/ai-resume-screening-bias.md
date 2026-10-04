@@ -299,3 +299,15 @@ Lead for ai-written-resumes. Cross-employer measures of unattended AI screening:
 - Claim table rows 3-110: low "Supported; ..." notes applied where they named a wording (row 14
   "tests", row 25 GPT-3.5, row 54 base version + who "older" is, row 57, row 66 standard).
 
+
+## Re-review 2026-10-03: citations thinned (plan-xsy.48)
+
+Citation placement only - no wording, number or source changed. A run of sentences citing the
+same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
+sentence the moved citation now covers comes from that source.
+61 repeat citations dropped. Sentences newly under a citation, each checked against the claim
+table above: "The authors' note says the gender numbers should be swapped" + "The published
+2024 paper still prints the reverse" (wilson-caliskan-2024, arXiv v3 note; rows 17-18);
+"Bloomberg published its method and code" (bloomberg-2024); "That extra training is how makers
+turn a raw model into a chat assistant" + "Older meant over 45 in that test" (bone-2026);
+"The version with awards was the stronger resume ..." (glazko-2024 design). All supported.

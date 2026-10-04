@@ -148,8 +148,8 @@ every request into one tier:
   title, dates, degree or certification except to correct a real mistake; inflate seniority;
   shade a work-authorization or sponsorship answer (checked on Form I-9 once hired).
   Why, plainly: employers check these w/ past employers (HireRight 2025: over 3/4 of employers
-  found discrepancies, employment history the top one), and anything on the page gets asked
-  about in interview. Offer the honest route: tell them it's missing, never fill it.
+  found discrepancies; most common: undisclosed criminal records, education, work history; work
+  history checks find them most often in every region - 72% APAC, 64% EMEA), and anything on the page gets asked about in interview. Offer the honest route: tell them it's missing, never fill it.
   - Also Hold: dates shifted to hide a break; invented job, course or freelance to fill one; false
     birth date or grad year; non-legal name in a box labelled legal; renamed organisation; false
     answer to what a criminal-history question legally covers.
@@ -274,6 +274,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, `pages.py`, see
   `app/docs/site.md`), GitHub Pages (`https://jobs.enrriquez.com`, `docs/CNAME`; DNS: Cloudflare CNAME `jobs` -> `cezkid.github.io`, DNS only).
   Not in the app download (`.gitattributes` export-ignore) - nothing at runtime reads it.
+  Site sentence about the app carries a claim (`app/web/claims.yml`): app behavior the site
+  describes changes => fix the page sentence + its claim in the same change (test fails otherwise).
 - `app/web/research/` - Research article sources (`<slug>.md`, `sources.yml`, `reviews/`) -> `docs/research/`;
   editorial rules `app/docs/research.md`.
 

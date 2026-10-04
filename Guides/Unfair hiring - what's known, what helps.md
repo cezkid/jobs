@@ -61,8 +61,8 @@ that isn't asking for your legal name.
   after a year away; US studies saw drops sooner. *Big study.*
 - **Some hiring software filters breaks over 6 months** - about half the executives whose
   software sorts applicants said so. *Survey (2020).*
-- **Over 6 months: a one-line reason can help.** In one US study it won back about half the lost
-  replies from employers. In one big UK study a childcare line made no difference. Your call.
+- **Over 6 months: a one-line reason can help.** In one small US study it did a little better than
+  no reason. In one big UK study a childcare line made no difference. Your call.
   *Small study (US); big study (UK).*
 - **Lines to use, if you add one:** "Family care" · "A health matter, now resolved or well managed" - never
   name a condition · "Full-time study" · "Role cut in a company-wide layoff", under your last job,

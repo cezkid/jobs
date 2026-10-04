@@ -5,12 +5,15 @@
 """Build the install site's generated files in docs/.
 
 Makes: docs/fonts/caladea-{regular,bold,italic}.woff2 + OFL.txt (Latin subset of the resume font),
-docs/icon-192.png, icon-512.png, apple-touch-icon.png, icon-maskable-512.png and favicon.ico
-(all rendered from docs/icon.svg), and the share images docs/og.png (from app/web/og.html) and
-docs/og-research.png (from app/web/og-research.html).
+docs/icon.svg, icon-192.png, icon-512.png, apple-touch-icon.png, icon-maskable-512.png and
+favicon.ico (all from the app's own icon, app/install/icon*.svg - one source, so the site shows
+what the desktop shows), and the share images docs/og.png (from app/web/og.html) and
+docs/og-research.png (from app/web/og-research.html; both draw the app's icon too).
 
 Everything it writes in docs/ is generated and committed - never hand-edit those files; change
-this script, docs/icon.svg or app/web/og*.html and rerun. docs/icon.svg itself is hand-drawn.
+this script, app/install/icon*.svg or app/web/og*.html and rerun. app/web/icon-sync.json records
+the app icon's hashes + every file made from it; test_site_icons_follow_the_app_icon fails when
+the app icon changed and the site didn't follow.
 
 Share image changed => bump its ?v=N in every page's og:image (LinkedIn caches a preview ~7
 days, keyed by URL).
@@ -21,6 +24,9 @@ Own deps (inline above), so the project's deps stay untouched. Icons + og use Go
 
 import argparse
 import base64
+import hashlib
+import json
+import re
 import shutil
 import struct
 import sys
@@ -30,6 +36,10 @@ ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 CALADEA = ROOT / "app" / "resume" / "fonts" / "Caladea"
 WEB = ROOT / "app" / "web"
+APP_ICONS = ROOT / "app" / "install"
+# app icon file -> hash; files made from it -> hash (test_site.py recomputes both)
+SYNC = WEB / "icon-sync.json"
+INK = "#0c0c0e"  # outer stop of the app tile's ink gradient: plate under full-bleed icons
 CARDS = [(WEB / "og.html", DOCS / "og.png"), (WEB / "og-research.html", DOCS / "og-research.png")]
 SUPPLEMENTAL = Path("/System/Library/Fonts/Supplemental")
 # Caladea style -> the Georgia face standing in for it until the web font loads
@@ -105,14 +115,46 @@ def fallback_metrics(style, georgia):
     print(f"  line-gap-override: {pct(hhea.lineGap)};")
 
 
+def _sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def record_sync(made):
+    """Merge {docs file: hash} for made files + the app icon sources' hashes into SYNC."""
+    data = json.loads(SYNC.read_text()) if SYNC.exists() else {}
+    data["source"] = {f"app/install/{p.name}": _sha(p) for p in sorted(APP_ICONS.glob("icon*.svg"))}
+    data["made"] = dict(sorted({**data.get("made", {}), **{f"docs/{p.name}": _sha(p) for p in made}}.items()))
+    SYNC.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def favicon_svg():
+    """docs/icon.svg = the app's 32 px rung (whole pixels: sharp in a tab and the 28 px header),
+    <desc> stripped; on a dark page the #1c1c1e tile meets the #1c1c1e page, so a thin grey edge
+    is drawn there only."""
+    svg = (APP_ICONS / "icon-32.svg").read_text(encoding="utf-8")
+    svg = re.sub(r"<desc>.*?</desc>\n?", "", svg, flags=re.S)
+    edge = (
+        '<style>.edge{display:none}@media (prefers-color-scheme:dark){.edge{display:inline}}</style>\n'
+        '<rect class="edge" x="3.5" y="3.5" width="25" height="25" rx="5.5" fill="none" stroke="#636366"/>\n'
+    )
+    svg, n = re.subn(r'(<rect id="tile"[^>]*/>\n)', lambda m: m[1] + edge, svg)
+    if n != 1:
+        raise SystemExit("icons: app/install/icon-32.svg has no <rect id=\"tile\"> to edge for dark pages")
+    return svg
+
+
+def _b64(path):
+    return base64.b64encode(path.read_bytes()).decode()
+
+
 def _render(page, svg_b64, size, art=1.0, bg=None):
-    """Return PNG bytes of icon.svg at size px; art = share of the side the mark fills."""
+    """Return PNG bytes of an svg at size px; art = mark's side / canvas side (> 1 bleeds off)."""
     inner = round(size * art)
     pad = (size - inner) / 2
     body = f"background:{bg}" if bg else "background:transparent"
     page.set_viewport_size({"width": size, "height": size})
     page.set_content(
-        f'<html><body style="margin:0;{body}">'
+        f'<html><body style="margin:0;overflow:hidden;{body}">'
         f'<img src="data:image/svg+xml;base64,{svg_b64}" width="{inner}" height="{inner}"'
         f' style="display:block;position:absolute;left:{pad}px;top:{pad}px"></body></html>'
     )
@@ -133,26 +175,36 @@ def ico(frames):
     return head + entries + payloads
 
 
+# tile = 824 of the master's 1024 (Apple grid): 1024 / 824 fills the canvas w/ the tile (iOS rounds
+# its own corners); maskable: page corners reach 0.339 of the side from centre at art 1 => 1.15
+# keeps them in the 0.40 safe circle (0.39) w/ the tile near-full on its own ink
+BLEED, MASKABLE = 1024 / 824, 1.15
+
+
 def icons(qa=None):
     from playwright.sync_api import sync_playwright
 
-    svg_b64 = base64.b64encode((DOCS / "icon.svg").read_bytes()).decode()
+    (DOCS / "icon.svg").write_text(favicon_svg(), encoding="utf-8", newline="\n")
+    print("docs/icon.svg (app/install/icon-32.svg)")
+    master, s32, s16 = (_b64(APP_ICONS / f) for f in ("icon.svg", "icon-32.svg", "icon-16.svg"))
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
         page = browser.new_page(device_scale_factor=1, color_scheme="light")
         made = {
-            "icon-192.png": _render(page, svg_b64, 192),
-            "icon-512.png": _render(page, svg_b64, 512),
-            "apple-touch-icon.png": _render(page, svg_b64, 180, bg="#FFFFFF"),
-            "icon-maskable-512.png": _render(page, svg_b64, 512, art=0.8, bg="#FFFFFF"),
+            "icon-192.png": _render(page, master, 192),
+            "icon-512.png": _render(page, master, 512),
+            "apple-touch-icon.png": _render(page, master, 180, art=BLEED, bg=INK),
+            "icon-maskable-512.png": _render(page, master, 512, art=MASKABLE, bg=INK),
         }
-        frames = {s: _render(page, svg_b64, s) for s in (16, 32, 48)}
+        # hand-tuned rungs at their own sizes: sharper than the master scaled down
+        frames = {16: _render(page, s16, 16), 32: _render(page, s32, 32), 48: _render(page, master, 48)}
         browser.close()
     for name, png in made.items():
         (DOCS / name).write_bytes(png)
         print(f"docs/{name}")
     (DOCS / "favicon.ico").write_bytes(ico(frames))
     print("docs/favicon.ico (16, 32, 48)")
+    record_sync([DOCS / n for n in ("icon.svg", *made, "favicon.ico")])
     if qa:
         qa.mkdir(parents=True, exist_ok=True)
         for s, png in frames.items():
@@ -175,9 +227,8 @@ OVERFLOW_JS = """() => {
 
 
 def render_card(template, out):
-    """One share card: template (HTML, fonts inlined - Chrome blocks file:// fonts) -> out PNG,
-    1200x630 exactly, clipped; fails on unloaded fonts or overflow (OVERFLOW_JS)."""
-    import re
+    """One share card: template (HTML, fonts + app icon inlined - Chrome blocks file:// fonts) ->
+    out PNG, 1200x630 exactly, clipped; fails on unloaded fonts or overflow (OVERFLOW_JS)."""
     from playwright.sync_api import sync_playwright
 
     def inline(m):
@@ -188,6 +239,11 @@ def render_card(template, out):
     html, n = re.subn(r'url\("/fonts/([\w.-]+\.woff2)"\)', inline, template.read_text(encoding="utf-8"))
     if not n:
         raise SystemExit(f"og: no /fonts/*.woff2 url() in {name} to inline")
+    # the app's own icon files, never a copy of the mark: the card follows the desktop icon
+    html = re.sub(
+        r'src="/app/install/(icon[\w-]*\.svg)"',
+        lambda m: f'src="data:image/svg+xml;base64,{_b64(APP_ICONS / m[1])}"', html,
+    )
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
         try:
@@ -216,6 +272,7 @@ def og():
     """docs/og.png (home) + docs/og-research.png (research + about pages), 1200x630 each."""
     for template, out in CARDS:
         render_card(template, out)
+    record_sync([out for _, out in CARDS])
 
 
 def main():

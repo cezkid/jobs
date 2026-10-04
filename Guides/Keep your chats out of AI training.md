@@ -4,6 +4,8 @@ Your resume and what you tell the AI are read in your own AI chat (Claude, ChatG
 personal plan, those chats can be used to train future AI models unless you switch that off.
 One switch, 30 seconds. Only you can change it; CEZ Job Finder can't do it for you.
 
+Full version, with every source: https://jobs.enrriquez.com/research/keep-chats-out-of-ai-training/
+
 ## Claude (Free, Pro or Max)
 
 1. Open **[claude.ai/settings/data-privacy-controls](https://claude.ai/settings/data-privacy-controls)**. Log in if asked.

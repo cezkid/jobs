@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
   <title>CEZ Job Finder Research</title>
-  <subtitle>What studies say about AI and resumes - every claim linked to its source, every source graded by how strong it is.</subtitle>
+  <subtitle>What studies say about AI and resumes – every claim linked to its source, every source graded by how strong it is.</subtitle>
   <link rel="self" type="application/atom+xml" href="https://jobs.enrriquez.com/research/feed.xml" />
   <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/" />
   <id>https://jobs.enrriquez.com/research/feed.xml</id>
@@ -24,7 +24,7 @@
     <id>https://jobs.enrriquez.com/research/ai-written-resumes/</id>
     <published>2026-10-03T00:00:00Z</published>
     <updated>2026-10-03T00:00:00Z</updated>
-    <summary>Most people can't spot AI writing in tests, but about half of hiring managers say they'd care. What studies show on detectors, and what to do.</summary>
+    <summary>Most people can’t spot AI writing in tests, but about half of hiring managers say they’d care. What studies show on detectors, and what to do.</summary>
   </entry>
   <entry>
     <title>Do ATS reject 75% of resumes? Where the number came from</title>
@@ -40,7 +40,7 @@
     <id>https://jobs.enrriquez.com/research/keep-chats-out-of-ai-training/</id>
     <published>2026-10-03T00:00:00Z</published>
     <updated>2026-10-03T00:00:00Z</updated>
-    <summary>ChatGPT, Claude, GitHub Copilot and Gemini can train on personal-plan chats. Where each switch is, and what it doesn't stop.</summary>
+    <summary>ChatGPT, Claude, GitHub Copilot and Gemini can train on personal-plan chats. Where each switch is, and what it doesn’t stop.</summary>
   </entry>
   <entry>
     <title>What makes a good resume? The evidence, rule by rule</title>

@@ -1,0 +1,2 @@
+# Jekyll drops dot folders by default; security.txt must be served from /.well-known/
+include: [".well-known"]

@@ -4,6 +4,7 @@ Runs on a throwaway site in tmp_path - never app/web/research or the real docs/.
 """
 
 import importlib.util
+import json
 import xml.etree.ElementTree as ET
 from urllib.parse import urlsplit
 
@@ -96,7 +97,7 @@ import subprocess  # noqa: E402
 
 import pytest  # noqa: E402
 
-from site_checks import Head, files, loaded_urls, own_url, structured_data, target  # noqa: E402
+from site_checks import Head, crumb_clashes, crumbs, files, loaded_urls, own_url, structured_data, target  # noqa: E402
 from test_docs import anchors  # noqa: E402
 
 SOURCES = {
@@ -113,7 +114,7 @@ Callbacks differ by 36% [@quillian-2017, p. 3]. Firms vary [@kline-2021; @eeoc-2
 
 ## What the claim says
 
-Read [privacy](https://jobs.enrriquez.com/privacy.html) and [the code](../../docs/site.md#look).
+Read [privacy](https://jobs.enrriquez.com/privacy.html) and [the code](../../docs/site.md#look). [Report a mistake](https://github.com/cezkid/jobs/issues/new?title=Research%20correction).
 
 | Study | Year |
 |---|---|
@@ -149,6 +150,8 @@ published: 2026-09-01
 status: published
 ---
 ## Sources first
+
+## How is AI used?
 """,
     "index.md": """---
 title: Research
@@ -164,6 +167,8 @@ description: Who writes these articles.
 published: 2026-09-01
 status: published
 ---
+Contact: www.enrriquez.com. Code: github.com/cezkid/jobs.
+
 ## Work
 """,
 }
@@ -260,7 +265,8 @@ def test_article_head_body_and_links(tmp_path):
     assert set(ids) - {"sources"} == anchors(folder / "ats-myth.md") == {"what-the-claim-says", "what-the-claim-says-again"}
     hrefs = [a["href"] for a in head.all("a")]
     for href in ("/research/ai-bias/#what-was-measured", "/research/methods/", "/privacy.html",
-                 "https://github.com/cezkid/jobs/blob/main/app/docs/site.md#look", "#what-the-claim-says", "/about/"):
+                 "https://github.com/cezkid/jobs/blob/main/app/docs/site.md#look", "#what-the-claim-says", "/about/",
+                 "https://github.com/cezkid/jobs/issues/new?title=Research%20correction"):
         assert href in hrefs, href
     assert '<div class="table" role="region" aria-label="Table: What the claim says" tabindex="0">' in html
     assert ('By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-09-01">1 September 2026</time>.'
@@ -283,7 +289,7 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
     for name, text in raw.items():
         head = Head(text)
         assert [a["href"] for a in head.links("canonical")] == [own_url(name, "https://jobs.enrriquez.com/")], name
-        assert len(head.text["title"][0]) <= 60 and len(head.meta("description")) <= 160, name
+        assert len(head.text["title"][0]) <= 60 and len(head.meta("description")) <= 155, name
         for rel in "icon", "apple-touch-icon", "manifest", "preload":
             assert head.links(rel) == home.links(rel), (name, rel)
         assert head.meta("og:image") == "https://jobs.enrriquez.com/og-research.png" and head.meta("twitter:card") == "summary_large_image"
@@ -313,6 +319,9 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
      "ai-bias.md:7: next-one.md is not a published page"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "ats-myth.md#nope")}, "no heading #nope in ats-myth.md"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://example.com/")}, "to other sites through sources"),
+    # only the repo's issues page: its look-alikes are other sites
+    ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://github.com/cezkid/jobs/issues-x")}, "to other sites through sources"),
+    ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://github.com/cezkid/jobs/pulls")}, "to other sites through sources"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://jobs.enrriquez.com/nope.html")}, "is not a page on this site"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "../../docs/gone.md")}, "no such file in the repo"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "#nope")}, "no heading #nope on this page"),
@@ -445,14 +454,18 @@ def test_citations_render_author_year_links_and_an_alphabetical_sources_list(tmp
             '<a href="#src-eeoc-2023">US Equal Employment Opportunity Commission 2023</a>).') in html
     sources = html.split('<h2 id="sources">Sources</h2>\n<ol class="sources">\n')[1].split("</ol>")[0]
     assert re.findall(r'<li id="src-([^"]+)"', sources) == ["kline-2021", "quillian-2017", "eeoc-2023"]
-    assert ('<li id="src-quillian-2017">Quillian, Lincoln, Pager, Devah, Hexel, Ole and Midtboen, Arnfinn H. (2017). '
+    assert ('<li id="src-quillian-2017"><b class="evidence">Big study (many studies combined)</b> '
+            "Quillian, Lincoln, Pager, Devah, Hexel, Ole and Midtboen, Arnfinn H. (2017). "
             "Meta-analysis of field experiments shows no change in racial discrimination in hiring over time. "
-            "<i>Proceedings of the National Academy of Sciences.</i> "
-            '<a href="https://doi.org/10.1073/pnas.1706255114">https://doi.org/10.1073/pnas.1706255114</a> '
-            '<span class="evidence">Big study (many studies combined), 28 US studies, 55,842 applications.</span> '
-            'Checked <time datetime="2026-09-29">29 September 2026</time>.</li>') in sources
+            "<i>Proceedings of the National Academy of Sciences.</i> 28 US studies, 55,842 applications. "
+            'Checked <time datetime="2026-09-29">29 September 2026</time>. '
+            '<a href="https://doi.org/10.1073/pnas.1706255114">DOI</a></li>') in sources
+    # A14: each entry opens with its label; no visible text is a raw URL
+    for li in re.findall(r"<li id=.*?</li>", sources):
+        assert li.startswith(re.match(r'<li id="[^"]+">', li).group(0) + '<b class="evidence">'), li
+        assert not re.search(r">https?://", li)
     assert "Preprint, not peer-reviewed." in sources.split('id="src-kline-2021"')[1].split("</li>")[0]
-    assert '<a href="https://www.nber.org/papers/w29053">' in sources
+    assert '<a href="https://www.nber.org/papers/w29053">Open copy</a>' in sources
     # a page that cites nothing gets no list
     assert 'id="sources"' not in pages.build(tmp_path)["research/ai-bias/index.html"]
 
@@ -480,6 +493,54 @@ def test_escaped_bracket_keeps_a_citation_as_text(tmp_path):
     html = pages.build(tmp_path)["research/ai-bias/index.html"]
     assert "Write [@quillian-2017] to cite." in html
     assert html.count('href="#src-quillian-2017"') == 1
+
+
+def test_page_text_gets_curly_quotes_and_en_dashes_but_code_and_identifiers_stay(tmp_path):
+    # A12, D13: typographer on output; (c) stays (c) - its glyph is not in the font subset
+    research_site(tmp_path, body("It's \"fine\" - see 10-15 years [@quillian-2017, p. 22-23], FAccT '24, Act 103-0804,"
+                                 " case 3:23-cv-00770, on 2026-10-03 (c) and `it's - 10-15`."))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    assert "It’s “fine” – see 10–15 years" in html and ", p. 22–23)" in html
+    assert "FAccT ’24, Act 103-0804, case 3:23-cv-00770, on 2026-10-03 (c) and <code>it's - 10-15</code>" in html
+    # a URL shown as link text stays as written
+    research_site(tmp_path / "b", body("See [jobs.enrriquez.com/x - 1-2](https://jobs.enrriquez.com/privacy.html) [@quillian-2017]."))
+    assert ">jobs.enrriquez.com/x - 1-2</a>" not in pages.build(tmp_path / "b")["research/ai-bias/index.html"]
+    research_site(tmp_path / "c", body("See [https://jobs.enrriquez.com/x - 1-2](https://jobs.enrriquez.com/privacy.html)."))
+    assert ">https://jobs.enrriquez.com/x - 1-2</a>" in pages.build(tmp_path / "c")["research/ai-bias/index.html"]
+
+
+def test_one_typeset_title_in_h1_title_og_json_ld_and_feed(tmp_path):
+    title = "Don't trust \"75%\" - it's a 2012 claim"
+    curly = "Don’t trust “75%” – it’s a 2012 claim"
+    research_site(tmp_path, {"ai-bias.md": BIAS.replace("title: AI screening and bias", f"title: '{title.replace(chr(39), chr(39) * 2)}'")})
+    pages.write(tmp_path)
+    html = (tmp_path / "docs" / "research" / "ai-bias" / "index.html").read_text(encoding="utf-8")
+    head = Head(html)
+    assert head.text["title"] == [curly] and head.meta("og:title") == curly
+    assert f"<h1>{curly}</h1>" in html.replace("&quot;", '"')
+    graph = json.loads(re.search(r'application/ld\+json">(.*?)</script>', html, re.S).group(1))["@graph"]
+    assert [n["headline"] for n in graph if n["@type"] == "Article"] == [curly]
+    feed = ET.parse(tmp_path / "docs" / "research" / "feed.xml").getroot()
+    assert curly in [e.findtext("{http://www.w3.org/2005/Atom}title") for e in feed.iter("{http://www.w3.org/2005/Atom}entry")]
+
+
+def test_heading_ids_come_from_the_source_text_not_the_curly_text(tmp_path):
+    folder = research_site(tmp_path, body("[Down](#dont-panic---yet).\n\n## Don't panic - yet\n\nMore."))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    assert '<h2 id="dont-panic---yet">Don’t panic – yet</h2>' in html
+    ids = {a["id"] for t, a in Head(html).tags if t == "h2" and "id" in a}
+    assert ids == anchors(folder / "ai-bias.md") == {"what-was-measured", "dont-panic---yet"}
+
+
+def test_lints_read_the_source_as_written(tmp_path):
+    # an uncited: snippet w/ a straight ' still matches its sentence; the tokens the lints walk keep ' and -
+    own = {"ai-bias.md": BIAS.replace("status: published", "status: published\nuncited:\n  - our team's own test")
+           .replace("Text.", "In our team's own test - 3 in 10 parsers failed.")}
+    folder = research_site(tmp_path, own)
+    assert "In our team’s own test – 3 in 10" in pages.build(tmp_path)["research/ai-bias/index.html"]
+    src = pages.Source(folder / "ai-bias.md", tmp_path, [])
+    text = "".join(c.content for t in src.tokens if t.type == "inline" for c in t.children or [])
+    assert "team's own test - 3" in text and src.head["title"] == "AI screening and bias"
 
 
 def test_review_files_and_registry_are_not_built(tmp_path):
@@ -581,6 +642,13 @@ def test_registry_problems_are_reported_with_line(tmp_path, registry, problem):
     "Two-thirds of recruiters agreed.",
     "One fifth of firms did most of it.",
     "Smith et al. found it. Then 40% did. [@quillian-2017, p. 3] Next sentence has 5% too.",
+    "Over 3/4 of employers found one.",
+    "About half of recruiters agreed.",
+    "They were twice as likely to be called.",
+    "Callbacks were 1.5 times higher.",
+    "The firm screened 83,000 applications.",
+    "It got 12000 replies.",
+    "Some 2 million people applied.",
 ])
 def test_statistic_without_citation_is_an_error(tmp_path, snippet):
     research_site(tmp_path, body(snippet))
@@ -597,10 +665,22 @@ def test_statistic_without_citation_is_an_error(tmp_path, snippet):
     "As Quillian et al. (p. 4) put it, 36% fewer calls [@quillian-2017].",
     "Run `grep 50%` to see it.",
     "In 2021 three firms did.",
+    "On 2026-10-03 and 10/3/2026, open 24/7, in the first half of 2024, three times a week.",
+    "## Twice as likely, 3/4 of them, 83,000 calls\n\nThe text below cites [@quillian-2017].",
 ])
 def test_cited_or_code_or_plain_numbers_pass(tmp_path, snippet):
     research_site(tmp_path, body(snippet))
     assert "research/ai-bias/index.html" in pages.build(tmp_path)
+
+
+def test_a_later_citation_in_the_paragraph_covers_the_statistics_before_it(tmp_path):
+    run = "Calls fell 36%. Then 5% more fell. Both came from one audit [@quillian-2017]."
+    research_site(tmp_path, body(run + " Two [@quillian-2017]. Other [@kline-2021]. Three [@quillian-2017]."))
+    assert "research/ai-bias/index.html" in pages.build(tmp_path)
+    research_site(tmp_path / "b", body("Calls fell 36%.\n\nThe next paragraph cites [@quillian-2017]."))
+    with pytest.raises(pages.SourceError, match="ai-bias.md:11: statistic '36%'") as e:
+        pages.build(tmp_path / "b")
+    assert "in 3 sentences in a row" not in str(e.value)
 
 
 def test_table_row_cites_from_any_cell_and_uncited_snippets_pass(tmp_path):
@@ -621,6 +701,8 @@ def test_table_row_cites_from_any_cell_and_uncited_snippets_pass(tmp_path):
     (body("Gap [@Bad Id]."), "ai-bias.md:11: citation '[@Bad Id]'"),
     (body("Gap [@quillian-2017; nope]."), "citation '[@quillian-2017; nope]'"),
     (body("Gap [@quillian-2017].\n\n## Sources"), "ai-bias.md:13: heading id 'sources' is the citation list's"),
+    (body("One [@quillian-2017]. Two [@quillian-2017]. Three [@quillian-2017]."),
+     "ai-bias.md:11: [@quillian-2017] cited in 3 sentences in a row - cite it once, at the end of the run"),
     ({"ai-bias.md": BIAS.replace("status: published", "status: published\nuncited: our test")}, "uncited must be a list"),
 ])
 def test_citation_problems_are_reported_with_file_and_line(tmp_path, extra, problem):
@@ -672,6 +754,50 @@ def test_hub_lists_articles_newest_first_by_title_and_breadcrumbs_link_it(tmp_pa
     assert '<li><a href="/">Home</a></li><li aria-current="page">Research</li>' in hub
 
 
+def test_wide_screen_second_column_hub_labels_from_methods_and_about_sections(tmp_path):
+    table = ("\n## What the labels mean\n\n| In the text | In the Sources list | What it means |\n|---|---|---|\n"
+             "| Big study | Big study (pooled) | Many studies pooled |\n| Big study | Big study (field) | Real applications sent |\n"
+             "| Law | Law | The law's own text |\n")
+    research_site(tmp_path, {"methods.md": SOURCES["methods.md"] + table,
+                             "about.md": SOURCES["about.md"].replace("## Work", "Intro line.\n\n## Work\n\nWork line.")})
+    built = pages.build(tmp_path)
+    hub, about = built["research/index.html"], built["about/index.html"]
+    side = hub.split('<div class="side labels">')[1].split("</div>")[0]
+    assert "<dt>Big study</dt><dd>Many studies pooled, or real applications sent</dd>" in side
+    assert "<dt>Law</dt><dd>The law’s own text</dd>" in side
+    assert '<a href="/research/methods/#what-the-labels-mean">How we research</a>' in side
+    # labels column, then the list, both after the page column (narrow screens: labels hidden, list follows the intro)
+    assert hub.index('class="page"') < hub.index('class="side labels"') < hub.index('<ul class="list">') < hub.index("</main>")
+    # about: text before the first h2 stays in the page column, the h2 sections go to the second column
+    page, rest = about.split('<div class="side">')
+    assert "Intro line." in page and '<h2 id="work">Work</h2>' not in page
+    assert rest.index('<h2 id="work">Work</h2>') < rest.index("Work line.") < rest.index("</main>")
+    # no labels table on methods: no labels column
+    research_site(tmp_path / "b")
+    assert "labels" not in pages.build(tmp_path / "b")["research/index.html"].split("<body>")[1]
+
+
+def test_one_breadcrumb_name_per_url(tmp_path):
+    # D22: /research/ is named by the hub's own title in every crumb + BreadcrumbList, not "Research" on articles
+    research_site(tmp_path, {"index.md": SOURCES["index.md"].replace("title: Research\n", "title: Research on X\n")})
+    built = pages.build(tmp_path)
+    assert ("/research/", "Research on X") in crumbs(built["research/ats-myth/index.html"])
+    found = [crumbs(html) for name, html in built.items() if name.endswith(".html")]
+    assert crumb_clashes(found) == {}
+    # the check trips on the audited state: an article naming the hub "Research"
+    assert crumb_clashes(found + [{("/research/", "Research")}]) == {"/research/": ["Research", "Research on X"]}
+
+
+def test_hub_intro_first_line_under_h1_method_lines_beside(tmp_path):
+    # A16: the hub's first paragraph stays under the h1; the rest goes to the second column, before the labels
+    research_site(tmp_path, {"index.md": SOURCES["index.md"].rstrip("\n") + "\n\nSecond line.\n"})
+    hub = pages.build(tmp_path)["research/index.html"]
+    page, side = hub.split('<div class="side intro">')
+    assert "<p>Second line.</p>" in side.split("</div>")[0] and "Second line." not in page
+    assert "<h1>" in page and page.count("<p>") >= 1
+    assert hub.index('class="side intro"') < hub.index('<ul class="list">')
+
+
 def test_no_article_no_hub_and_an_article_needs_the_hub_intro(tmp_path):
     research_site(tmp_path, {"ats-myth.md": None, "ai-bias.md": None})
     built = pages.build(tmp_path)
@@ -692,11 +818,32 @@ def test_structured_data_and_sitemap_lastmod(tmp_path):
     sitemap = (docs / "sitemap.xml").read_text(encoding="utf-8")
     assert "<url><loc>https://jobs.enrriquez.com/research/ats-myth/</loc><lastmod>2026-09-20</lastmod></url>" in sitemap
     assert "<url><loc>https://jobs.enrriquez.com/research/ai-bias/</loc><lastmod>2026-09-10</lastmod></url>" in sitemap
-    # undated pages: no lastmod (Google drops lastmod for a site once it's seen wrong)
-    for url in "https://jobs.enrriquez.com/", "https://jobs.enrriquez.com/research/", "https://jobs.enrriquez.com/about/":
-        assert f"<url><loc>{url}</loc></url>" in sitemap
+    # hand-written pages: no lastmod (Google drops lastmod for a site once it's seen wrong)
+    assert "<url><loc>https://jobs.enrriquez.com/</loc></url>" in sitemap
+    # C7: about = about.md modified (== ProfilePage dateModified); hub = max(index.md, newest article modified)
+    assert "<url><loc>https://jobs.enrriquez.com/about/</loc><lastmod>2026-09-01</lastmod></url>" in sitemap
+    assert "<url><loc>https://jobs.enrriquez.com/research/</loc><lastmod>2026-09-20</lastmod></url>" in sitemap
     about = (docs / "about" / "index.html").read_text(encoding="utf-8")
-    assert '"sameAs":["https://github.com/cezkid"]' in about and '"@type":"ProfilePage"' in about
+    assert '"sameAs":["https://github.com/cezkid","https://www.enrriquez.com/"]' in about and '"@type":"ProfilePage"' in about
+    assert '"dateModified":"2026-09-01"' in about
+
+
+def test_hub_lastmod_is_the_newest_of_index_and_articles(tmp_path):
+    research_site(tmp_path, {"index.md": SOURCES["index.md"].replace("status: published", "modified: 2026-10-02\nstatus: published")})
+    assert "<loc>https://jobs.enrriquez.com/research/</loc><lastmod>2026-10-02</lastmod>" in pages.build(tmp_path)["sitemap.xml"]
+
+
+def test_every_article_links_how_ai_is_used_under_the_byline_and_never_says_approved(tmp_path):
+    # owner decision 5: a label + one link, never a claim of approval; not on the hub, about or methods
+    research_site(tmp_path)
+    built = pages.build(tmp_path)
+    for name in "research/ats-myth/index.html", "research/ai-bias/index.html":
+        html = built[name]
+        note = re.search(r'<p class="meta">By .*?</p>\n<p class="meta ai-note">(.*?)</p>', html, re.S)
+        assert note and note.group(1) == 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>', name
+        assert "approved" not in html.lower()
+    assert "how-is-ai-used" not in built["about/index.html"] + built["research/index.html"]
+    assert 'id="how-is-ai-used"' in built["research/methods/index.html"]
 
 
 
@@ -925,3 +1072,73 @@ def test_every_evidence_label_is_in_the_research_guide_and_the_methods_page():
     for label, words in pages.EVIDENCE.items():
         assert f"| `{label}` |" in guide, label
         assert f"| {words} |" in methods, words
+
+
+def test_toc_script_fits_its_budget():
+    assert len(pages.TOC_JS.encode()) <= 400
+    assert "</" not in pages.TOC_JS and 'aria-current","true"' in pages.TOC_JS
+
+
+def test_articles_end_with_keep_reading_and_the_h1_comes_before_on_this_page(tmp_path):
+    third = SOURCES["ai-bias.md"].replace("AI screening and bias", "Third one").replace("2026-09-10", "2026-09-05").replace(
+        "What tests of AI resume screeners found.", "A third page.")
+    research_site(tmp_path, {"third.md": third.replace("## What was measured", "## One\n\nA.\n\n## Two\n\nB.\n\n## Three")})
+    built = pages.build(tmp_path)
+    for name in "ats-myth", "ai-bias", "third":
+        html = built[f"research/{name}/index.html"]
+        article = html.split('<article class="page">')[1].split("</article>")[0].rstrip()
+        more = article[article.rindex('<nav class="more" aria-label="Keep reading">'):]
+        assert more.endswith("</nav>"), name  # nothing after it in the article
+        hrefs = re.findall(r'href="([^"]+)"', more)
+        others = [h for h in hrefs if h.startswith("/research/") and h not in ("/research/", f"/research/{name}/")]
+        assert len(others) == 2 and f"/research/{name}/" not in hrefs, (name, hrefs)
+        assert "/research/" in hrefs and "/#install" in hrefs and "#main" in hrefs, name
+        # source order: the h1 is main's first heading, the wide-screen column follows the article
+        main = html.split('<main id="main" class="wrap">')[1].split("</main>")[0]
+        assert re.search(r"<h[1-6]\b", main).group(0) == "<h1", name
+        if '<nav class="toc"' in main:
+            assert main.index("</article>") < main.index('<nav class="toc" aria-label="On this page">'), name
+            # narrow screens: the same list, closed, right under the byline; no ids repeated
+            mini = main.split('<nav class="toc-mini" aria-label="Contents">')[1].split("</nav>")[0]
+            assert main.index('class="meta"') < main.index('class="toc-mini"') < main.index("<h2")
+            assert "<details>\n<summary>On this page</summary>" in mini
+            assert re.findall(r'href="(#[^"]+)"', mini) == ["#" + i for i in re.findall(r'<h2 id="([^"]+)"', main)]
+            # the section-in-view script: after the footer, once, in its 400 B budget (A23); none without a list
+            assert html.count(f"<script>{pages.TOC_JS}</script>") == 1
+            assert html.index("</footer>") < html.index(pages.TOC_JS)
+        else:
+            assert "<script>(" not in html, name
+        ids = re.findall(r'\sid="([^"]+)"', html)
+        assert len(ids) == len(set(ids)), name
+    # the next two after it in hub order (newest first), wrapping round
+    order = re.findall(r'<li><a href="(/research/[^"]+/)">', built["research/index.html"])
+    ai = re.findall(r'href="(/research/[^"#]+/)"', built["research/ai-bias/index.html"].split('aria-label="Keep reading"')[1])
+    i = order.index("/research/ai-bias/")
+    assert ai[:2] == (order[i + 1:] + order[:i])[:2]
+
+
+@pytest.mark.parametrize("title, html", [
+    ("Is AI screening biased? What the studies show", 'Is AI screening biased? <span class="deck">What the studies show</span>'),
+    ("Keep chats out of training: ChatGPT, Claude", 'Keep chats out of training: <span class="deck">ChatGPT, Claude</span>'),
+    ("Do ATS reject 75%? Where: the number", 'Do ATS reject 75%? <span class="deck">Where: the number</span>'),
+    ("Can employers tell if AI wrote it?", "Can employers tell if AI wrote it?"),
+    ("How we research", "How we research"),
+    ("Fish & chips: A <b>", 'Fish &amp; chips: <span class="deck">A &lt;b&gt;</span>'),
+])
+def test_two_part_title_splits_at_the_first_question_or_colon(title, html):
+    assert pages.headline(title) == html
+
+
+def test_split_title_keeps_its_text_in_the_h1_the_hub_and_the_headline(tmp_path):
+    title = "Do resume robots reject you? What the studies show"
+    research_site(tmp_path, {"ats-myth.md": SOURCES["ats-myth.md"].replace("Do resume robots reject you?", title)})
+    built = pages.build(tmp_path)
+    html = built["research/ats-myth/index.html"]
+    h1 = re.search(r"<h1>(.*?)</h1>", html).group(1)
+    assert '<span class="deck">What the studies show</span>' in h1
+    assert re.sub(r"<[^>]+>", "", h1) == title == Head(html).text["title"][0]
+    ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', html, re.S).group(1))
+    article = next(n for n in ld["@graph"] if n["@type"] == "Article")
+    assert article["headline"] == title
+    item = re.search(r'<a href="/research/ats-myth/">(.*?)</a>', built["research/index.html"]).group(1)
+    assert "deck" in item and re.sub(r"<[^>]+>", "", item) == title
