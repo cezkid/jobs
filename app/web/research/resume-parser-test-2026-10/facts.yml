@@ -1,0 +1,38 @@
+# Made-up resume for the parser test (METHOD.md). Placeholders only: no real person, employer or school.
+# 555-01xx phone numbers are reserved for fiction; example.com is reserved for examples.
+name: Your Name
+email: your.name@example.com
+phone: (555) 010-0199
+location: City, State
+summary: >-
+  Operations analyst with eight years of reporting, scheduling and process work in warehouse and
+  retail settings. Builds weekly reports that managers use to plan staff and stock.
+jobs:
+  - title: Operations Analyst
+    employer: Company A
+    dates: Mar 2021 – Present
+    bullets:
+      - Built a weekly staffing report used by 12 store managers to plan shifts.
+      - Cut late deliveries from 9% to 4% by changing the order of morning loading.
+      - Trained 6 new analysts on the reporting tools and the monthly close.
+  - title: Inventory Coordinator
+    employer: Company B
+    dates: Jun 2018 – Feb 2021
+    bullets:
+      - Counted and reconciled stock for two warehouses holding 3,000 product lines.
+      - Set up a cycle count schedule that ended the yearly full shutdown.
+      - Answered supplier questions on short shipments within one working day.
+  - title: Sales Associate
+    employer: Company C
+    dates: Aug 2016 – May 2018
+    bullets:
+      - Served about 80 customers a day at a busy downtown counter.
+      - Kept the returns log that the store manager used for weekly orders.
+      - Opened and closed the store alone on weekends.
+education:
+  - degree: Bachelor of Science in Business Administration
+    school: University A
+    dates: 2016
+skills:
+  - "Tools: Excel, SQL, Power BI, inventory systems"
+  - "Languages: English, Spanish"
