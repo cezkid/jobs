@@ -3,8 +3,10 @@
 Not collected (no test_ prefix). Reads nothing at import: installed copies have no docs/ worth testing.
 """
 
+import json
 import re
 import struct
+from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -87,6 +89,31 @@ def target(url: str) -> str:
     """The docs/ file a root-relative URL fetches: query + fragment dropped, / or trailing / -> index.html."""
     path = unquote(urlsplit(url).path).lstrip("/")
     return path + "index.html" if path == "" or path.endswith("/") else path
+
+
+def crumbs(html: str) -> set[tuple[str, str]]:
+    """(site-relative url, name) for each crumb (links + the current page) and each BreadcrumbList item."""
+    nav = re.search(r'<nav class="crumbs".*?</nav>', html, re.S)
+    if not nav:
+        return set()
+    here = urlsplit(re.search(r'<link rel="canonical" href="([^"]*)">', html).group(1)).path
+    pairs = {(url, unescape(name)) for url, name in re.findall(r'<a href="([^"]+)">([^<]+)</a>', nav.group(0))}
+    pairs |= {(here, unescape(re.sub(r"<[^>]+>", "", name)))
+              for name in re.findall(r'aria-current="page">(.*?)</li>', nav.group(0))}
+    for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S):
+        for node in json.loads(block).get("@graph", []):
+            if node.get("@type") == "BreadcrumbList":
+                pairs |= {(urlsplit(i["item"]).path, i["name"]) for i in node["itemListElement"]}
+    return pairs
+
+
+def crumb_clashes(pages: list[set[tuple[str, str]]]) -> dict[str, list[str]]:
+    """url -> its names, for each url that crumbs name more than one way across the pages (D22)."""
+    names: dict[str, set[str]] = {}
+    for pairs in pages:
+        for url, name in pairs:
+            names.setdefault(url, set()).add(name)
+    return {url: sorted(n) for url, n in names.items() if len(n) > 1}
 
 
 def structured_data(docs: Path, site: str) -> list[str]:

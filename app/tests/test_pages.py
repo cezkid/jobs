@@ -97,7 +97,7 @@ import subprocess  # noqa: E402
 
 import pytest  # noqa: E402
 
-from site_checks import Head, files, loaded_urls, own_url, structured_data, target  # noqa: E402
+from site_checks import Head, crumb_clashes, crumbs, files, loaded_urls, own_url, structured_data, target  # noqa: E402
 from test_docs import anchors  # noqa: E402
 
 SOURCES = {
@@ -719,6 +719,27 @@ def test_wide_screen_second_column_hub_labels_from_methods_and_about_sections(tm
     # no labels table on methods: no labels column
     research_site(tmp_path / "b")
     assert "labels" not in pages.build(tmp_path / "b")["research/index.html"].split("<body>")[1]
+
+
+def test_one_breadcrumb_name_per_url(tmp_path):
+    # D22: /research/ is named by the hub's own title in every crumb + BreadcrumbList, not "Research" on articles
+    research_site(tmp_path, {"index.md": SOURCES["index.md"].replace("title: Research\n", "title: Research on X\n")})
+    built = pages.build(tmp_path)
+    assert ("/research/", "Research on X") in crumbs(built["research/ats-myth/index.html"])
+    found = [crumbs(html) for name, html in built.items() if name.endswith(".html")]
+    assert crumb_clashes(found) == {}
+    # the check trips on the audited state: an article naming the hub "Research"
+    assert crumb_clashes(found + [{("/research/", "Research")}]) == {"/research/": ["Research", "Research on X"]}
+
+
+def test_hub_intro_first_line_under_h1_method_lines_beside(tmp_path):
+    # A16: the hub's first paragraph stays under the h1; the rest goes to the second column, before the labels
+    research_site(tmp_path, {"index.md": SOURCES["index.md"].rstrip("\n") + "\n\nSecond line.\n"})
+    hub = pages.build(tmp_path)["research/index.html"]
+    page, side = hub.split('<div class="side intro">')
+    assert "<p>Second line.</p>" in side.split("</div>")[0] and "Second line." not in page
+    assert "<h1>" in page and page.count("<p>") >= 1
+    assert hub.index('class="side intro"') < hub.index('<ul class="list">')
 
 
 def test_no_article_no_hub_and_an_article_needs_the_hub_intro(tmp_path):

@@ -37,8 +37,8 @@ TOC_NARROW, every page with an On this page column at 390x844 (phone) + 1024x768
 summary in the first screen, opened = a link to every h2; TOC_WIDE at 1440x900 (also in --engines): the
 column's links all visible, the first in the first screen, right of the text column; TOC_CURRENT there: the
 3rd h2 scrolled to the top -> its link (both lists, only it) aria-current="true" + bold; CRUMBS_ONE_LINE at
-360x780 + 390x844 (phone): an article's visible crumbs share one line. ARTICLE_H1, research pages at 1440x900: the h1
->= 72px (the home page's display scale); HEADLINE_RAG, research pages at 375 (phone), 768, 1440 + 1920 wide: a
+360x780 + 390x844 (phone): an article's visible crumbs share one line. HUB_FOLD, the hub at 1440x900: >= 4
+article titles end above y 900. ARTICLE_H1, research pages at 1440x900: the h1 >= 72px (the home page's display scale); HEADLINE_RAG, research pages at 375 (phone), 768, 1440 + 1920 wide: a
 two-part title (h1, hub item) never puts the deck's first word on the question's line; RULES_STACKED on every
 article page too (privacy + articles, every size).
 
@@ -476,6 +476,10 @@ RULES_STACKED = """() => {
 # ARTICLE_H1 (A3), research pages at 1440x900: the h1 on the home page's display scale, >= H1_MIN px
 H1_MIN = 72
 H1_SIZE = "() => { const h = document.querySelector('main h1'); return h ? parseFloat(getComputedStyle(h).fontSize) : null; }"
+# HUB_FOLD (A16), the hub at 1440x900: >= HUB_FOLD_MIN article titles (link boxes, deck included) end above the
+# window's bottom - the method lines + labels beside them, not over the list
+HUB_FOLD_MIN = 4
+HUB_FOLD = "() => [...document.querySelectorAll('main .list li > a')].map(a => a.getBoundingClientRect().bottom)"
 # HEADLINE_RAG (A4), research pages at 375/768/1440/1920: in a two-part title (the h1, a hub item) split at the
 # first "? " / ": ", the deck's first word never shares a line with the question's last word
 RAG_AT = [((375, 812), True), ((768, 1024), False), ((1440, 900), False), ((1920, 1080), False)]
@@ -746,6 +750,8 @@ FAULTS = [
     ("research/ai-resume-screening-bias/index.html", "HEADLINE_RAG: the title in one run at the old h1 size (as audited)",
      "<style>h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem) !important; }</style><script>document.querySelector("
      "'h1 .deck').replaceWith(document.querySelector('h1 .deck').textContent)</script>", "wide"),
+    ("research/index.html", "HUB_FOLD: articles back in one column", "<style>.list { display: block "
+     "!important; }</style>", "wide"),
     ("research/index.html", "HEADLINE_RAG: hub titles back in one run", "<script>document.querySelectorAll('.deck')"
      ".forEach(d => d.replaceWith(d.textContent))</script>", "wide"),
     ("404.html", "FOOTER_BOTTOM: blank band under the 404's footer", "<style>body { min-height: 0 !important; }"
@@ -777,7 +783,7 @@ FAULTS = [
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
-             "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
+             "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
              "0 matches": "found 0 elements"}
 
 
@@ -999,6 +1005,13 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                 failed.append(f"ARTICLE_H1 {where}: check found 0 h1")
             elif size < H1_MIN:
                 failed.append(f"ARTICLE_H1 {where}: h1 {size:.1f}px, under {H1_MIN}px")
+        if name == "research/index.html" and not phone and (width, height) == (1440, 900):
+            ends = page.evaluate(HUB_FOLD)
+            if not ends:
+                failed.append(f"HUB_FOLD {where}: check found 0 elements (article titles)")
+            elif sum(y <= height for y in ends) < HUB_FOLD_MIN:
+                failed.append(f"HUB_FOLD {where}: {sum(y <= height for y in ends)} article titles end above y "
+                              f"{height}, under {HUB_FOLD_MIN} (title ends {[round(y) for y in ends]})")
         if name.startswith("research/") and ((width, height), phone) in RAG_AT:
             got = page.evaluate(HEADLINE_RAG)
             if got is None:

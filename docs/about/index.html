@@ -245,6 +245,13 @@
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
     main.wrap > .list { grid-column: 1; grid-row: 2; }
+    /* hub (A16): the method lines beside the h1, the labels beside the list, the articles as 2-column clippings,
+       so 4 titles show in a 1440x900 first screen */
+    main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
+    .intro p:last-child { margin-bottom: 0; }
+    main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
+    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {
       display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);

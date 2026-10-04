@@ -37,7 +37,10 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 - Hub `/research/` = `index.md` (published, no review: intro over the list) + every article, newest
   published first, link text = title, description + dates under it. Built once >= 1 article is
   published (article = not about / methods / index); an article w/o a published `index.md` = error.
-  Before the hub exists the Research breadcrumb is text, after it's a link.
+  Before the hub exists the Research breadcrumb is text, after it's a link named w/ the hub's own title
+  (one name per URL in every crumb + BreadcrumbList, D22). From 1280px: `index.md`'s first paragraph stays
+  under the h1, the rest sits beside it, evidence labels beside the list, articles in 2 columns (>= 4 titles
+  in a 1440x900 first screen, qa HUB_FOLD).
 - Render: markdown-it-py `js-default` (raw HTML shown as text, tables on). Heading id = the
   `test_docs.anchors()` rule, so `x.md#h` lands in VS Code, on GitHub and on the site. Table
   wrapped in a focusable, labelled scroll box (wide table scrolls, not the page).

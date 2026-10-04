@@ -23,7 +23,7 @@ if not (cfg.ROOT / ".git").exists():
 
 import pymupdf  # noqa: E402
 
-from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, files, head_scripts,  # noqa: E402
+from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts,  # noqa: E402
                          loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
                          run_together, stroke_on_paper, typewriter)
 
@@ -355,6 +355,13 @@ def test_home_resume_scene_shows_the_correction_as_del_and_ins():
     assert re.search(r"<del>.+?</del>", scene.group(0), re.S)
     assert re.search(r"<ins>.+?</ins>", scene.group(0), re.S)
     assert "You approved this line" in scene.group(0)
+
+
+def test_one_breadcrumb_name_per_url():
+    # D22: every crumb + BreadcrumbList names a URL one way (/research/ = the hub's own title)
+    found = [crumbs((DOCS / name).read_text(encoding="utf-8")) for name in PAGES]
+    assert sum(1 for pairs in found if pairs) > 3 and any(url == "/research/" for pairs in found for url, _ in pairs)
+    assert crumb_clashes(found) == {}
 
 
 def test_research_pages_carry_matching_structured_data():

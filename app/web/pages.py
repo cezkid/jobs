@@ -864,6 +864,13 @@ PAGE_CSS = """
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
     main.wrap > .list { grid-column: 1; grid-row: 2; }
+    /* hub (A16): the method lines beside the h1, the labels beside the list, the articles as 2-column clippings,
+       so 4 titles show in a 1440x900 first screen */
+    main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
+    .intro p:last-child { margin-bottom: 0; }
+    main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
+    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {
       display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
@@ -1030,16 +1037,16 @@ def feed(root: Path, index: Source, articles: list[Source]) -> str:
 
 
 def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, side: str = "",
-         after: str = "", more: str = "") -> str:
+         after: str = "", more: str = "", hub_name: str = "Research") -> str:
     """side: a second column on wide screens (stacks after the page below 1280px); after: full width below both;
-    more: last in the page column (an article's Keep reading)."""
+    more: last in the page column (an article's Keep reading); hub_name: /research/'s crumb = the hub's own title."""
     home = site(root)
     url = home + src.url.lstrip("/")
     person = {"@type": "Person", "@id": home + "about/#person", "name": AUTHOR, "url": home + "about/"}
     # breadcrumb: (name, path); Research is a link once the hub exists, plain text (and not in JSON-LD) before
     crumbs = [("Home", "/")]
     if src.name not in ("about", "index"):
-        crumbs.append(("Research", "/research/" if hub else None))
+        crumbs.append((hub_name, "/research/" if hub else None))
     crumbs.append((src.title, src.url))
     visible = [f'<li aria-current="page">{escape(name)}</li>' if i == len(crumbs) - 1
                else f'<li><a href="{path}">{escape(name)}</a></li>' if path else f"<li>{escape(name)}</li>"
@@ -1155,6 +1162,7 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
         else:
             index.hub = True
     hub = "index" in by_name and by_name["index"].hub
+    hub_name = by_name["index"].title if hub else "Research"  # one name for /research/ in every crumb (D22)
     built = [s for s in sources if s.built]
     out: dict[str, str] = {}
     if built:
@@ -1167,12 +1175,16 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
             body = body_html(src, by_name, root, files, errors, registry, repo_files)
             side = after = ""
             if src.name == "index":
-                side, after = evidence_labels(by_name.get("methods")), listing(articles)
+                # the first paragraph (the promise) stays under the h1; the method lines go beside it (A16)
+                cut = body.find("</p>") + len("</p>\n")
+                body, rest = body[:cut], body[cut:].strip("\n")
+                intro = f'<div class="side intro">\n{rest}\n</div>\n' if "<p" in rest else ""
+                side, after = intro + evidence_labels(by_name.get("methods")), listing(articles)
             elif src.name == "about" and "<h2" in body:
                 cut = body.index("<h2")
                 body, side = body[:cut], '<div class="side">\n' + body[cut:] + "</div>\n"
             more = keep_reading(src, articles) if hub and src.name not in ("index", "about") else ""
-            out[src.out] = page(src, root, body, parts, hub, side, after, more)
+            out[src.out] = page(src, root, body, parts, hub, side, after, more, hub_name)
         if hub:
             out[FEED] = feed(root, by_name["index"], articles)
     if errors:
