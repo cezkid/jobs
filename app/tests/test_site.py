@@ -27,7 +27,7 @@ import pymupdf  # noqa: E402
 
 from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts,  # noqa: E402
                          loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
-                         run_together, stroke_on_paper, typewriter, yellow_fills)
+                         run_together, stroke_on_paper, typewriter, yellow_fills, claim_problems)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -419,6 +419,40 @@ def test_home_ledger_names_the_same_recipients_as_privacy_in_order():
     assert len(on_home) == len(in_privacy) == len(keys), (on_home, in_privacy)
     for key, h, pv in zip(keys, on_home, in_privacy):
         assert key in h and key in pv, (key, h, pv)
+
+
+# every file a claim rests on (app/web/claims.yml) + the pages: enough for a scratch copy
+CLAIM_FILES = ("docs/index.html", "docs/privacy.html", "app/web/claims.yml", "AGENTS.md", "START HERE.md",
+               "app/vscode/say.json", "app/install/install-mac.sh", "app/install/install-windows.ps1",
+               "app/alert.py", "app/launch.py")
+
+
+def claim_copy(tmp_path):
+    import shutil
+    for rel in CLAIM_FILES:
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(cfg.ROOT / rel, tmp_path / rel)
+    shutil.copytree(cfg.ROOT / "app/apply/systems", tmp_path / "app/apply/systems")
+    return tmp_path
+
+
+def test_site_claims_still_match_the_app():
+    # the site says the app does something it no longer does (old button name, a privacy row the
+    # app added, a hiring system dropped) - visitors install on a promise the app breaks
+    assert not claim_problems(cfg.ROOT), "\n".join(claim_problems(cfg.ROOT))
+
+
+def test_claim_check_names_page_and_claim_when_the_app_changes(tmp_path):
+    # a renamed button or a new hiring system passing unnoticed = the guard above guards nothing
+    root = claim_copy(tmp_path)
+    assert claim_problems(root) == []
+    say = root / "app/vscode/say.json"
+    say.write_text(say.read_text(encoding="utf-8").replace('"Make my resume"', '"Make the resume"'), encoding="utf-8")
+    (root / "app/apply/systems/dayforce.py").write_text('NAME = "Dayforce"\n', encoding="utf-8")
+    problems = claim_problems(root)
+    assert any(p.startswith("index.html: claim today-page:") and "'Make the resume'" in p for p in problems), problems
+    assert any(p.startswith("index.html: claim apply-systems:") and "Dayforce" in p for p in problems), problems
+    assert all("app/web/claims.yml" in p for p in problems), problems
 
 
 def test_home_research_teaser_quotes_only_the_articles_own_titles_and_descriptions():

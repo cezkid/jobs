@@ -516,3 +516,111 @@ def yellow_fills(css: str) -> list[str]:
     """Selectors whose rule fills a solid highlighter background (marks use a sized gradient instead)."""
     css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
     return [sel.strip() for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css) if SOLID_MARK.search(body + ";")]
+
+
+class Claimed(HTMLParser):
+    """Text inside each element carrying data-claim="<id>" (nested tags included), whitespace collapsed."""
+
+    VOID = Prose.VOID
+
+    def __init__(self, text: str):
+        super().__init__(convert_charrefs=True)
+        self.stack, self.text = [], {}
+        self.feed(text)
+        self.text = {k: [" ".join(t.split()) for t in v] for k, v in self.text.items()}
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.VOID:
+            return
+        claim = dict(attrs).get("data-claim")
+        if claim:
+            self.text.setdefault(claim, []).append("")
+        self.stack.append(claim)
+
+    def handle_endtag(self, tag):
+        if tag not in self.VOID and self.stack:
+            self.stack.pop()
+
+    def handle_data(self, data):
+        for claim in {c for c in self.stack if c}:
+            self.text[claim][-1] += data
+
+
+def say_labels(root: Path) -> dict[str, str]:
+    data = json.loads((root / "app/vscode/say.json").read_text(encoding="utf-8"))
+    return {t["id"]: t["label"] for t in data["templates"]}
+
+
+def apply_systems(root: Path) -> tuple[set[str], set[str]]:
+    """(filled from the resume, start box only) as the code has them: one module per system
+    (NAME), start-box ones define start_box(); Workday = ELSEWHERE (Chrome extension)."""
+    full, start = set(), set()
+    folder = root / "app/apply/systems"
+    for module in sorted(folder.glob("*.py")):
+        source = module.read_text(encoding="utf-8")
+        name = re.search(r'^NAME = "(.+)"', source, re.M)
+        if name:
+            (start if "def start_box(" in source else full).add(name.group(1))
+    if re.search(r'"myworkdayjobs\.com": "Workday', (folder / "__init__.py").read_text(encoding="utf-8")):
+        full.add("Workday")
+    return full, start
+
+
+def fact_problems(root: Path, fact: dict, text: str) -> list[str]:
+    """What no longer holds of one `rests_on` fact (app/web/claims.yml)."""
+    if "contains" in fact:
+        path = root / fact["file"]
+        body = path.read_text(encoding="utf-8") if path.exists() else ""
+        return [] if fact["contains"] in body else [f"{fact['file']} no longer says {fact['contains']!r}"]
+    if "rows" in fact:
+        path = root / fact["file"]
+        lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+        now = [line.rstrip() for line in lines if re.search(fact["rows"], line)]
+        if now == fact["are"]:
+            return []
+        added = [r for r in now if r not in fact["are"]]
+        gone = [r for r in fact["are"] if r not in now]
+        return [f"{fact['file']} lines matching {fact['rows']!r} changed - new or changed: {added}; gone or changed: {gone}"]
+    if "say" in fact:
+        label = say_labels(root).get(fact["say"])
+        if label != fact["label"]:
+            return [f"app/vscode/say.json button {fact['say']!r} now reads {label!r}, not {fact['label']!r}"]
+        return [] if fact["label"] in text else [f"button label {fact['label']!r} not in the page text"]
+    if "apply_systems" in fact:
+        full, start = apply_systems(root)
+        out = []
+        for kind, now, said in (("filled", full, fact["filled"]), ("start box", start, fact["start_box"])):
+            said = [(n, n) if isinstance(n, str) else tuple(n) for n in said]
+            if now != {n for n, _ in said}:
+                out.append(f"app/apply/systems {kind}: code has {sorted(now)}, claim has {sorted(n for n, _ in said)}")
+            out += [f"{kind} system {shown!r} not in the page text" for _, shown in said if shown not in text]
+        return out
+    return [f"unknown fact {fact!r}"]
+
+
+def claim_problems(root: Path) -> list[str]:
+    """Every site sentence about the app (data-claim="<id>", app/web/claims.yml) against the
+    app fact it rests on: '<page>: claim <id>: <what> -> <what to update>'."""
+    import yaml
+    claims = yaml.safe_load((root / "app/web/claims.yml").read_text(encoding="utf-8"))
+    docs, out, fix = root / "docs", [], " -> update the page sentence to match the app, then its text + rests_on in app/web/claims.yml"
+    on_pages = {}
+    for path in sorted(docs.rglob("*.html")):
+        rel = path.relative_to(docs).as_posix()
+        for claim, texts in Claimed(path.read_text(encoding="utf-8")).text.items():
+            on_pages.setdefault(claim, []).extend((rel, t) for t in texts)
+    for claim in sorted(set(on_pages) - set(claims)):
+        out.append(f"{on_pages[claim][0][0]}: claim {claim}: on the page, not in app/web/claims.yml{fix}")
+    for claim, entry in claims.items():
+        page, recorded = entry["page"], " ".join(entry["text"].split())
+        found = [t for rel, t in on_pages.get(claim, []) if rel == page]
+        if len(found) != 1:
+            out.append(f"{page}: claim {claim}: {len(found)} elements carry data-claim=\"{claim}\" (want 1){fix}")
+            continue
+        if found[0] != recorded:
+            out.append(f"{page}: claim {claim}: page text changed - page {found[0]!r}, claims.yml {recorded!r}{fix}")
+        if not entry.get("rests_on"):
+            out.append(f"{page}: claim {claim}: names no app fact (rests_on){fix}")
+        for fact in entry.get("rests_on") or []:
+            out += [f"{page}: claim {claim}: {p}{fix}" for p in fact_problems(root, fact, found[0])]
+    return out

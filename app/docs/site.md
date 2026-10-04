@@ -35,6 +35,19 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   Deterministic: no clock, sorted, UTF-8 + LF (CRLF checkout counts as fresh); dates from a
   month-name list, never strftime.
 
+## Claims - site matches the app
+
+Owner 2026-10-04: site always says what the app does now. Every sentence or label on a page that
+describes the app (buttons, first start, privacy rows, hiring systems, installer question) carries
+`data-claim="<id>"`; `app/web/claims.yml` maps id -> page, its text, the app facts it rests on.
+`test_site_claims_still_match_the_app` (`site_checks.claim_problems`): page text = `text`, each
+fact still holds - `contains` (file says it, exact), `rows` (AGENTS.md privacy rows matching a
+regex = exactly these: a row added or reworded fails), `say` (button label in
+`app/vscode/say.json`), `apply_systems` (`app/apply/systems` NAMEs, start-box ones apart).
+Failure = `<page>: claim <id>: <what changed> -> update ...`. App change described on the site =>
+fix the sentence, then `text` + fact. Icon: `icon-sync.json` (above). Hero window + share card
+stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => add a claim.
+
 ## Research pages
 
 - Source `app/web/research/<slug>.md`: YAML header between `---` lines, then Markdown. Keys only

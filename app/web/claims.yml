@@ -1,0 +1,163 @@
+# Site sentences about the app -> the app fact each rests on (app/docs/site.md, Claims).
+# Element on the page carries data-claim="<id>"; test_site_claims_still_match_the_app checks the
+# page text = `text` and every rests_on fact still holds:
+#   {file, contains}    file still says it (exact)
+#   {file, rows, are}   lines matching `rows` (regex) are exactly `are` - a row added or reworded fails
+#   {say, label}        app/vscode/say.json button id still reads `label` + the page shows it
+#   {apply_systems}     app/apply/systems names: filled / start box, [code NAME, name on the page]
+# Fails => the app changed: fix the page sentence first, then `text` + the fact here.
+installer-ai-choice:
+  page: index.html
+  text: Type 1 for Claude, 2 for ChatGPT or 3 for GitHub Copilot
+  why: installer's AI question
+  rests_on:
+  - file: app/install/install-mac.sh
+    contains: 1 = Claude (Pro or Max)\n  2 = ChatGPT (Plus or Pro)\n  3 = GitHub Copilot Pro
+  - file: app/install/install-windows.ps1
+    contains: Type 1, 2 or 3, then press Enter
+apply-systems:
+  page: index.html
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
+  why: hiring systems the app fills (bold) or starts (plain)
+  rests_on:
+  - apply_systems: true
+    filled: [Ashby, BambooHR, Greenhouse, JazzHR, Lever, Paylocity, SmartRecruiters, UKG, Workable, Workday]
+    # [name in the code, name on the page]
+    start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
+today-page:
+  page: index.html
+  text: What’s waiting on you and the newest jobs, each time you start. Buttons like “Make my resume” ready the words for your chat; nothing is sent until you press Enter. “I sent it” keeps track in one click.
+  why: 'Today dashboard: buttons ready words, never send; I sent it records itself'
+  rests_on:
+  - say: resume
+    label: Make my resume
+  - say: sent
+    label: I sent it
+  - file: AGENTS.md
+    contains: Today page buttons put their words in the chat, never send them
+  - file: AGENTS.md
+    contains: Today's "I sent it" / "I heard back" / "It's closed" buttons record it themselves
+home-freehire:
+  page: index.html
+  text: 'freehire.me What they get: Your search words, which job from your list you make a resume for or ask about, and the company names on it. Never your resume. When: To find jobs and each company’s website, get the whole posting, or see if it’s still open.'
+  why: 'privacy table: what freehire gets'
+  rests_on:
+  - file: AGENTS.md
+    rows: ^\| .* \| freehire\.me job search \|
+    are:
+    - '| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |'
+    - '| Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it''s still open |'
+    - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website |'
+home-ai:
+  page: index.html
+  text: 'Your own AI account What they get: Your resume, the postings you work on and what you tell it, in Claude, ChatGPT or GitHub Copilot. When: While you chat. Personal plans may train on chats unless you switch it off.'
+  why: 'privacy table: what the AI account gets'
+  rests_on:
+  - file: AGENTS.md
+    rows: ^\| .* \| this AI chat
+    are:
+    - '| Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User''s own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |'
+first-window:
+  page: index.html
+  text: The CEZ Job Finder window opens, with the chat beside it.
+  why: 'first start: own CEZ Job Finder window, chat beside'
+  rests_on:
+  - file: AGENTS.md
+    contains: its own profile "CEZ Job Finder"
+  - file: START HERE.md
+    contains: Find the chat box on the right.
+set-me-up:
+  page: index.html
+  text: Type set me up. The chat asks what jobs you want and reads your resume, in about 10 minutes.
+  why: first-run words
+  rests_on:
+  - file: START HERE.md
+    contains: Type **set me up** and press Enter.
+desktop-icon:
+  page: index.html
+  text: 'Your first jobs show up. New ones come each morning, on the Today page: double-click CEZ Job Finder on your Desktop.'
+  why: how to open it next time
+  rests_on:
+  - file: app/install/install-mac.sh
+    contains: double-click "CEZ Job Finder" on your Desktop
+  - file: app/install/install-windows.ps1
+    contains: open 'CEZ Job Finder' on your Desktop
+privacy-freehire:
+  page: privacy.html
+  text: freehire.meYour search words; the company names on your job list; which job from your list you make a resume for or ask about. Not your resume.To find jobs, get the whole posting, or see if it’s still open. Each morning, to find each listed company’s website.
+  why: 'privacy table: what freehire gets'
+  rests_on:
+  - file: AGENTS.md
+    rows: ^\| .* \| freehire\.me job search \|
+    are:
+    - '| Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |'
+    - '| Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it''s still open |'
+    - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website |'
+privacy-ai:
+  page: privacy.html
+  text: Your AI (Claude, ChatGPT or GitHub Copilot)Your resume, the postings you work on and what you tell it, on your own account. Claude also gets your Today page’s job titles and companies as a chat opens.While you chat. Personal plans may train on chats unless you switch it off.
+  why: 'privacy table: what the AI account gets'
+  rests_on:
+  - file: AGENTS.md
+    rows: ^\| .* \| this AI chat
+    are:
+    - '| Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User''s own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |'
+privacy-employers:
+  page: privacy.html
+  text: EmployersWhat you apply with.When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.
+  why: 'privacy table: what employers get, per system'
+  rests_on:
+  - file: AGENTS.md
+    rows: '^\| .* \| that employer''s '
+    are:
+    - '| Resume + answers you paste | that employer''s site (Recruitee ...) | That employer, once you click Submit |'
+    - '| Work history, education, skills, work-permit answers you apply with | that employer''s Workday site | That employer, once you click Save |'
+    - '| Contact details, answers, resume you apply with | that employer''s Ashby site | That employer, once you click Submit |'
+    - '| Contact details, answers, resume you apply with | that employer''s Greenhouse site | That employer, once you click Submit |'
+    - '| Resume you apply with | that employer''s Lever site | That employer, as soon as you choose the file (Lever reads it to fill the form) |'
+    - '| Contact details, answers you apply with | that employer''s Lever site | That employer, once you click Submit |'
+    - '| Resume you apply with | that employer''s Workable site | That employer, as soon as you choose the file (it goes to Workable''s storage then) |'
+    - '| Contact details, answers you apply with | that employer''s Workable site | That employer, once you click Submit |'
+    - '| Work history, education, skills, links you apply with | that employer''s UKG site | That employer, as each is added (only after you say yes) |'
+    - '| Contact details, answers, resume you apply with | that employer''s UKG site | That employer, once you click Submit |'
+    - '| Contact details, answers, resume you apply with | that employer''s JazzHR site | That employer, once you click Submit |'
+    - '| Resume (and cover letter) you apply with | that employer''s BambooHR site | That employer, as soon as the file is chosen - before Submit |'
+    - '| Contact details, answers you apply with | that employer''s BambooHR site | That employer, once you click Submit |'
+    - '| Email, resume, contact details, answers you apply with | that employer''s Paylocity site | That employer: email as you leave its box, resume as you pick the file (both measured), the rest by Submit |'
+    - '| Resume file you apply with | that employer''s SmartRecruiters site | That employer, as soon as it is chosen (only after you say yes) |'
+    - '| Contact details, answers you apply with | that employer''s SmartRecruiters site | That employer, once you click Submit |'
+    - '| Name, email, phone you start with | that employer''s Paycom site | That employer, when you click Continue on its start box - before the form |'
+    - '| Name, email, phone you start with | that employer''s ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |'
+    - '| Email you start with | that employer''s Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |'
+    - '| Email you start with | that employer''s iCIMS site | That employer, when you click Next on its start box - before the form |'
+privacy-email:
+  page: privacy.html
+  text: Your email providerThe morning email, sent to yourself.Only if you turn on email alerts.
+  why: morning email goes to the user's own address
+  rests_on:
+  - file: app/alert.py
+    contains: to = os.environ.get("ALERT_TO") or user
+  - file: AGENTS.md
+    rows: ^\| .* \| your own email \|
+    are:
+    - '| Follow-up email you send | your own email | The person you send it to, when you click Send |'
+privacy-maintainer:
+  page: privacy.html
+  text: The maintainerA fix to the program’s code. Never your files.Only if you say yes.
+  why: 'privacy table: code fix only, after a yes'
+  rests_on:
+  - file: AGENTS.md
+    rows: ^\| .* \| maintainer \|
+    are:
+    - '| Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |'
+vscode-usage-data:
+  page: privacy.html
+  text: 'VS Code (Microsoft) sends usage data by default. If the installer put VS Code on your computer, the app turns that off. On a VS Code you already had: Settings, search “telemetry”.'
+  why: usage reports off only on a VS Code the installer put there
+  rests_on:
+  - file: app/launch.py
+    contains: '"telemetry.telemetryLevel": ''"off"'''
+  - file: app/install/install-mac.sh
+    contains: .data/vscode-ours
+  - file: app/install/install-windows.ps1
+    contains: vscode-ours

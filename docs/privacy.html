@@ -233,7 +233,7 @@
 <div class="page">
   <div class="head">
   <h1>Privacy</h1>
-  <p class="meta">Updated 3 October 2026</p>
+  <p class="meta">Updated 4 October 2026</p>
   </div>
 
   <section class="summary" aria-labelledby="short">
@@ -252,11 +252,11 @@
       <tr><th scope="col">Who</th><th scope="col">What they get</th><th scope="col">When</th></tr>
     </thead>
     <tbody>
-      <tr><th scope="row">freehire.me</th><td>Your search words; which job from your list you make a resume for or ask about. Not your resume.</td><td class="when">To find jobs, get the whole posting, or see if it’s still open.</td></tr>
-      <tr><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume and what you tell it, on your own account.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</td></tr>
-      <tr><th scope="row">Employers</th><td>What you apply with.</td><td class="when">When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</td></tr>
-      <tr><th scope="row">Your email provider</th><td>The morning email, sent to yourself.</td><td class="when">Only if you turn on email alerts.</td></tr>
-      <tr><th scope="row">The maintainer</th><td>A fix to the program’s code. Never your files.</td><td class="when">Only if you say yes.</td></tr>
+      <tr data-claim="privacy-freehire"><th scope="row">freehire.me</th><td>Your search words; the company names on your job list; which job from your list you make a resume for or ask about. Not your resume.</td><td class="when">To find jobs, get the whole posting, or see if it’s still open. Each morning, to find each listed company’s website.</td></tr>
+      <tr data-claim="privacy-ai"><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume, the postings you work on and what you tell it, on your own account. Claude also gets your Today page’s job titles and companies as a chat opens.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</td></tr>
+      <tr data-claim="privacy-employers"><th scope="row">Employers</th><td>What you apply with.</td><td class="when">When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</td></tr>
+      <tr data-claim="privacy-email"><th scope="row">Your email provider</th><td>The morning email, sent to yourself.</td><td class="when">Only if you turn on email alerts.</td></tr>
+      <tr data-claim="privacy-maintainer"><th scope="row">The maintainer</th><td>A fix to the program’s code. Never your files.</td><td class="when">Only if you say yes.</td></tr>
     </tbody>
   </table>
   <p>Nothing else from the app leaves your computer.</p>
@@ -264,7 +264,7 @@
   <h2>Other companies’ rules apply</h2>
   <ul>
     <li><strong>Your AI’s VS Code add-on</strong> follows that company’s privacy policy.</li>
-    <li><strong>VS Code</strong> (Microsoft) sends usage data by default. Turn off: Settings, search “telemetry”.</li>
+    <li data-claim="vscode-usage-data"><strong>VS Code</strong> (Microsoft) sends usage data by default. If the installer put VS Code on your computer, the app turns that off. On a VS Code you already had: Settings, search “telemetry”.</li>
     <li><strong>Installing and updating</strong> downloads from GitHub, Microsoft and Astral. They see your IP address.</li>
     <li><strong>This site</strong> is hosted by GitHub, which logs visits. We add no cookies, analytics or files from other sites.</li>
   </ul>

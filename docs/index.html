@@ -707,7 +707,7 @@
             </div>
           </li>
           <li>
-            <p class="step">Type 1 for Claude, 2 for ChatGPT or 3 for GitHub Copilot</p>
+            <p class="step" data-claim="installer-ai-choice">Type 1 for Claude, 2 for ChatGPT or 3 for GitHub Copilot</p>
           </li>
         </ol>
 
@@ -819,7 +819,7 @@
     <div class="half">
       <h2>Applications filled. You press Submit.</h2>
       <div>
-      <p class="names"><span class="vh">Filled from your resume: </span><b>Greenhouse</b> <b>Ashby</b> <b>Lever</b> <b>Workable</b> <b>UKG</b> <b>JazzHR</b> <b>BambooHR</b> <b>Paylocity</b> <b>SmartRecruiters</b> <b>Workday</b> <span class="vh">First box filled, next steps named: </span><span class="part">Paycom</span> <span class="part">ADP</span> <span class="part">Oracle</span> <span class="part">iCIMS</span></p>
+      <p class="names" data-claim="apply-systems"><span class="vh">Filled from your resume: </span><b>Greenhouse</b> <b>Ashby</b> <b>Lever</b> <b>Workable</b> <b>UKG</b> <b>JazzHR</b> <b>BambooHR</b> <b>Paylocity</b> <b>SmartRecruiters</b> <b>Workday</b> <span class="vh">First box filled, next steps named: </span><span class="part">Paycom</span> <span class="part">ADP</span> <span class="part">Oracle</span> <span class="part">iCIMS</span></p>
       <p class="key">Bold: filled from your resume in a window the app opens (Workday: with Claude, in Chrome). Plain: the app fills the start box, then tells you each next step. Any other form: answers ready to paste.</p>
       <p class="submit-line"><span class="submit" aria-hidden="true">Submit<svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="100" d="M30 8 C 90 0, 190 4, 195 28 C 199 50, 120 58, 60 55 C 18 53, 3 42, 6 28 C 9 14, 44 6, 100 6"/></svg></span>
         <span>It stops before Save and Submit. You check the form and press it yourself.</span></p>
@@ -830,7 +830,7 @@
       <dl class="defs">
         <div><dt>Interview practice</dt><dd>One question at a time, from the posting and your resume, with short honest feedback. And a talk-through after the real one.</dd></div>
         <div><dt>Follow-up emails</dt><dd>Written for you when a job goes quiet. You send it from your own email.</dd></div>
-        <div><dt>Today page</dt><dd>What’s waiting on you and the newest jobs. Opens each time you start.</dd></div>
+        <div><dt>Today page</dt><dd data-claim="today-page">What’s waiting on you and the newest jobs, each time you start. Buttons like “Make my resume” ready the words for your chat; nothing is sent until you press Enter. “I sent it” keeps track in one click.</dd></div>
       </dl>
     </div>
   </section>
@@ -846,11 +846,11 @@
       <span>What they get</span>
       <span>When</span></p>
     <ol class="ledger">
-      <li><h3>freehire.me</h3>
-        <p><span class="vh">What they get: </span>Your search words, and which job from your list you make a resume for or ask about. Never your resume.</p>
-        <p class="when"><span class="vh">When: </span>To find jobs, get the whole posting, or see if it’s still open.</p></li>
-      <li><h3>Your own AI account</h3>
-        <p><span class="vh">What they get: </span>Your resume and what you tell it, in Claude, ChatGPT or GitHub Copilot.</p>
+      <li data-claim="home-freehire"><h3>freehire.me</h3>
+        <p><span class="vh">What they get: </span>Your search words, which job from your list you make a resume for or ask about, and the company names on it. Never your resume.</p>
+        <p class="when"><span class="vh">When: </span>To find jobs and each company’s website, get the whole posting, or see if it’s still open.</p></li>
+      <li data-claim="home-ai"><h3>Your own AI account</h3>
+        <p><span class="vh">What they get: </span>Your resume, the postings you work on and what you tell it, in Claude, ChatGPT or GitHub Copilot.</p>
         <p class="when"><span class="vh">When: </span>While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</p></li>
       <li><h3>An employer</h3>
         <p><span class="vh">What they get: </span>What you apply with.</p>
@@ -943,9 +943,9 @@
     <div class="next desktop">
       <h3>After you paste the line</h3>
       <ol>
-        <li>VS Code opens, with the chat beside it.</li>
-        <li>Type <b>set me up</b>. The chat asks what jobs you want and reads your resume, in about 10 minutes.</li>
-        <li>Your first jobs show up. From then on, new ones come each morning, on the Today page.</li>
+        <li data-claim="first-window">The CEZ Job Finder window opens, with the chat beside it.</li>
+        <li data-claim="set-me-up">Type <b>set me up</b>. The chat asks what jobs you want and reads your resume, in about 10 minutes.</li>
+        <li data-claim="desktop-icon">Your first jobs show up. New ones come each morning, on the Today page: double-click CEZ Job Finder on your Desktop.</li>
       </ol>
     </div>
   </section>

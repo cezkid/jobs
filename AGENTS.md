@@ -274,6 +274,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, `pages.py`, see
   `app/docs/site.md`), GitHub Pages (`https://jobs.enrriquez.com`, `docs/CNAME`; DNS: Cloudflare CNAME `jobs` -> `cezkid.github.io`, DNS only).
   Not in the app download (`.gitattributes` export-ignore) - nothing at runtime reads it.
+  Site sentence about the app carries a claim (`app/web/claims.yml`): app behavior the site
+  describes changes => fix the page sentence + its claim in the same change (test fails otherwise).
 - `app/web/research/` - Research article sources (`<slug>.md`, `sources.yml`, `reviews/`) -> `docs/research/`;
   editorial rules `app/docs/research.md`.
 
