@@ -92,7 +92,7 @@ Laws and app settings change fast, so we re-check them every 3 to 6 months. Each
 
 ## What do we gain from the answers?
 
-We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We get nothing from those companies.
+We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We have no paid or business ties to the AI companies, hiring-software makers or resume companies named in these articles. The app uses freehire.me's free job search; we have no ties to it.
 
 Each article has a separate box, after the evidence, on how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.
 

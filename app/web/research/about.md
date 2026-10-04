@@ -2,11 +2,11 @@
 title: About Cesar Enrriquez-Zuniga
 description: Cesar Enrriquez-Zuniga makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one, and writes these Research articles.
 published: 2026-10-03
-modified: 2026-10-03
+modified: 2026-10-04
 status: published
 og_title: About Cesar Enrriquez-Zuniga
 ---
-Cesar Enrriquez-Zuniga makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan.
+Cesar Enrriquez-Zuniga makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan. CEZ = Cesar Enrriquez-Zuniga's initials.
 
 Cesar built the app to tailor resumes with AI, and needed to know which resume advice holds up. The Research section shares what the studies say.
 

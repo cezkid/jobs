@@ -141,3 +141,19 @@ old og_title, so search results say what the page is (audit C10). og_title dropp
 the title). Body, claims and description unchanged; in-body links keep the short text "How we
 research". The no-ties line (audit D9) waits on owner facts: plan-xsy.56's child bead. Verdict
 stays publish.
+
+## Re-review 2026-10-04: no-ties line (plan-xsy.56.1)
+
+"We get nothing from those companies." named only the AI plan makers (audit D9). Now: "We have no
+paid or business ties to the AI companies, hiring-software makers or resume companies named in
+these articles. The app uses freehire.me's free job search; we have no ties to it."
+
+| # | Claim | Evidence | Verdict |
+|---|---|---|---|
+| 1 | No paid or business ties to AI companies, hiring-software makers, resume companies named in articles | Owner-stated fact, 2026-10-04 (plan-xsy.56.1 note); a negative only the owner can know | Supported by owner |
+| 2 | The app uses freehire.me's job search | `app/docs/jobs/freehire.md`: app polls `https://freehire.me/api/v1` | Supported |
+| 3 | That search is free | Same doc: keyless API, no account or payment | Supported |
+| 4 | No ties to freehire.me | Owner-stated fact, 2026-10-04 | Supported by owner |
+
+Names all three groups + freehire.me, which articles cite (ats-rejection-myth,
+knockout-questions). No other text changed. Verdict stays publish.
