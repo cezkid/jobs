@@ -961,3 +961,13 @@ def test_ashby_choice_marked_a_moment_after_the_click_is_ok():
     radio = FakeRadio(lag=3)
     assert ashby.put_choice(FakeChoiceBox(radio), "8+") == "ok"
     assert radio.clicks == 1
+
+
+def test_no_message_piece_prints_its_placeholder_raw():
+    # a plain "..." piece inside an f-string message printed "{slug}" to the AI as is
+    import ast
+    tree = ast.parse(inspect.getsource(form))
+    pieces = [s for call in ast.walk(tree) if isinstance(call, ast.Call)
+              and getattr(call.func, "id", None) in ("print", "exit")
+              for s in ast.walk(call) if isinstance(s, ast.Constant) and isinstance(s.value, str)]
+    assert not [s.value for s in pieces if "{slug}" in s.value or "{'fill'" in s.value]
