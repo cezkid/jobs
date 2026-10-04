@@ -26,17 +26,13 @@ apply-systems:
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
   page: index.html
-  text: What’s waiting on you and the newest jobs, each time you start. Buttons like “Make my resume” ready the words for your chat; nothing is sent until you press Enter. “I sent it” keeps track in one click.
-  why: 'Today dashboard: buttons ready words, never send; I sent it records itself'
+  text: What’s waiting on you and the newest jobs, with “Make my resume” buttons.
+  why: 'Today dashboard: buttons ready words, never send'
   rests_on:
   - say: resume
     label: Make my resume
-  - say: sent
-    label: I sent it
   - file: AGENTS.md
     contains: Today page buttons put their words in the chat, never send them
-  - file: AGENTS.md
-    contains: Today's "I sent it" / "I heard back" / "It's closed" buttons record it themselves
 home-freehire:
   page: index.html
   text: 'freehire.me What they get: Your search words, which job from your list you make a resume for or ask about, and the company names on it. Never your resume. When: To find jobs and each company’s website, get the whole posting, or see if it’s still open.'
@@ -59,7 +55,7 @@ home-ai:
     - '| Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User''s own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |'
 first-window:
   page: index.html
-  text: The CEZ Job Finder window opens, with the chat beside it.
+  text: CEZ Job Finder opens, with the chat beside it.
   why: 'first start: own CEZ Job Finder window, chat beside'
   rests_on:
   - file: AGENTS.md
@@ -75,7 +71,7 @@ set-me-up:
     contains: Type **set me up** and press Enter.
 desktop-icon:
   page: index.html
-  text: 'Your first jobs show up. New ones come each morning, on the Today page: double-click CEZ Job Finder on your Desktop.'
+  text: 'Your first jobs show up. New ones come each morning, on the Today page.'
   why: how to open it next time
   rests_on:
   - file: app/install/install-mac.sh
