@@ -28,6 +28,26 @@ Most resume advice has never been tested in real hiring. A few rules have studie
 
 For you, the rules with studies behind them deserve the most care: accuracy, typos and time out of work.
 
+## Which resume rules have evidence behind them?
+
+The table sums up each rule, the strongest evidence we found for it, and what that evidence shows. The sections below give the details and limits.
+
+| Rule | Evidence | What it shows |
+|---|---|---|
+| Employer, title and dates match your records | Vendor survey | More than three-quarters of firms that run checks found a mismatch in the past year [@hireright-2025] |
+| Proofread for typos | Lab study | Two spelling errors lowered recruiters' rated interview chance by 7.3 points out of 100 [@sterkens-2023] |
+| Long time out of work costs callbacks | Big study, not yet peer-reviewed | 13-18 months out of work cut positive replies by about 21% [@dhert-2024, p. 15] |
+| Short spells out of work | Big study (the review not yet peer-reviewed); studies disagree | A 2024 review found no clear cost for 1-6 months; a US experiment found callbacks fell over the first 8 months [@dhert-2024; @kroft-2013] |
+| A reason for a gap helps | Small study and Big study; they disagree | One US study's early summary found slightly more replies with an illness reason, without saying if that could be chance; a UK study found none for a childcare reason [@namingit-2021; @kristal-2023] |
+| Results over duties | Convention | Career offices agree; no study found [@mit-capd-resumes; @harvard-ocs-resume] |
+| Use the posting's words for skills you have | Maker's docs | Recruiters can search stored resumes by word; no large study of interviews found [@greenhouse-search] |
+| Last 10-15 years in detail | Convention | One job-site guide says so for senior candidates; no study cited [@indeed-experience-2025] |
+| One page early on | Convention | Career offices say one page unless you have extensive experience [@mit-capd-resumes] |
+| No photo | Big study | In Israel, attractive men got more replies with a photo; women got the most replies without one [@ruffle-2015] |
+| Plain, one-column layout | Vendor survey | A job site's eye-tracking test linked clutter and several columns with the weakest resumes [@ladders-2018] |
+
+Most rules in the table rest on convention or a company's own survey, test or help page. Only a few have studies of real hiring behind them.
+
 ## Does your resume have to match your records?
 
 Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of firms in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].

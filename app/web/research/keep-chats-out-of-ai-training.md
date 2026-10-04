@@ -31,6 +31,19 @@ Both studies used text from public web pages, not users' chats. No study we foun
 
 For you, the switch is a cheap step. In ChatGPT, your chats stay in your history with it off [@openai-data-controls].
 
+## Which switch does each app use?
+
+Each app names its switch differently and puts it in a different menu. The table sums up each app's personal plans; the sections below give each step.
+
+| App | Switch name | Where | On by default? | Chats kept in your history with it off? | Feedback still trains with it off? |
+|---|---|---|---|---|---|
+| ChatGPT | Improve the model for everyone | Settings, then Data controls | Yes, unless you opt out | Yes | It can: the whole chat [@openai-data-controls; @openai-model-training] |
+| Claude | Help Improve our AI models | Settings, then Privacy | No set default: you choose at sign-up, and existing users were asked in 2025 | The pages don't say | It can: the whole chat, kept up to 5 years apart from your account [@anthropic-training-setting; @anthropic-consumer-terms-2025; @anthropic-training-consumer] |
+| GitHub Copilot | Allow GitHub to use my data for AI model training | Profile picture, then Copilot settings | Yes, from April 24, 2026, unless you opt out | The pages don't say | No: thumbs up or down counts as your interaction data, which isn't used once you opt out [@github-copilot-docs; @github-copilot-2026] |
+| Gemini | Keep Activity | Settings & help, then Activity | Yes, for users 18 and over | No: new chats kept up to 72 hours | It can, with your last 24 hours of chats [@google-gemini-activity; @google-gemini-privacy] |
+
+"The pages don't say" means the company's help pages we read in October 2026 don't answer the question.
+
 ## How do I stop ChatGPT training on my chats?
 
 On ChatGPT Free, Go, Plus and Pro, the switch is called **Improve the model for everyone** [@openai-data-controls].
@@ -99,7 +112,7 @@ Gemini's switch costs you your saved chats. ChatGPT keeps your history with its 
 
 **Your history stays.** Turning off ChatGPT's switch doesn't delete or hide saved chats. Delete a chat separately if you want it gone [@openai-data-controls].
 
-**Feedback can send the whole chat.** On ChatGPT, a thumbs up or down means "the entire conversation" may be used to train models. That holds even after you opt out [@openai-data-controls]. Anthropic may train on feedback too; it separates feedback from your account and keeps it up to 5 years [@anthropic-training-consumer]. In Gemini, feedback also sends your last 24 hours of chats. People review it, and it is kept up to 3 years [@google-gemini-privacy].
+**Feedback can send the whole chat.** On ChatGPT, a thumbs up or down means "the entire conversation" may be used to train models. That holds even after you opt out [@openai-data-controls]. Anthropic may train on feedback too; it separates feedback from your account and keeps it up to 5 years [@anthropic-training-consumer]. GitHub says thumbs up or down on Copilot is not used for training once you opt out [@github-copilot-2026]. In Gemini, feedback also sends your last 24 hours of chats. People review it, and it is kept up to 3 years [@google-gemini-privacy].
 
 **Safety review goes on.** Claude chats flagged by safety checks may still be used to improve those checks [@anthropic-training-setting]. OpenAI keeps even Temporary Chats up to 30 days for safety [@openai-data-controls]. Google has people review some Gemini chats even with its setting off [@google-gemini-privacy].
 

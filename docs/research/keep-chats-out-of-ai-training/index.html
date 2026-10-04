@@ -332,6 +332,7 @@
 <summary>On this page</summary>
 <ol>
 <li><a href="#why-does-this-matter-for-a-job-seeker">Why does this matter for a job seeker?</a></li>
+<li><a href="#which-switch-does-each-app-use">Which switch does each app use?</a></li>
 <li><a href="#how-do-i-stop-chatgpt-training-on-my-chats">How do I stop ChatGPT training on my chats?</a></li>
 <li><a href="#how-do-i-stop-claude-training-on-my-chats">How do I stop Claude training on my chats?</a></li>
 <li><a href="#how-do-i-stop-github-copilot-training-on-my-chats">How do I stop GitHub Copilot training on my chats?</a></li>
@@ -359,6 +360,57 @@
 <p>Training data can come back out. In a 2021 test, researchers pulled hundreds of exact passages from an older AI model’s training text. Those passages included names, phone numbers and email addresses already public online. A passage could leak even when it appeared in just one document (<a href="#src-carlini-2021">Carlini et al. 2021</a>). A follow-up study pulled thousands of training passages from ChatGPT with a special trick (<a href="#src-nasr-2023">Nasr et al. 2025</a>).</p>
 <p>Both studies used text from public web pages, not users’ chats. No study we found shows a chat from one user coming out in another user’s answers. The companies say they reduce personal details before training. OpenAI says it takes “steps to reduce the amount of personal information” in training data (<a href="#src-openai-model-training">OpenAI 2026b</a>). Anthropic says it filters or hides sensitive data (<a href="#src-anthropic-consumer-terms-2025">Anthropic 2025</a>). It also separates feedback chats from your account before using them (<a href="#src-anthropic-training-consumer">Anthropic 2026b</a>).</p>
 <p>For you, the switch is a cheap step. In ChatGPT, your chats stay in your history with it off (<a href="#src-openai-data-controls">OpenAI 2026a</a>).</p>
+<h2 id="which-switch-does-each-app-use">Which switch does each app use?</h2>
+<p>Each app names its switch differently and puts it in a different menu. The table sums up each app’s personal plans; the sections below give each step.</p>
+<div class="table" role="region" aria-label="Table: Which switch does each app use?" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>App</th>
+<th>Switch name</th>
+<th>Where</th>
+<th>On by default?</th>
+<th>Chats kept in your history with it off?</th>
+<th>Feedback still trains with it off?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ChatGPT</td>
+<td>Improve the model for everyone</td>
+<td>Settings, then Data controls</td>
+<td>Yes, unless you opt out</td>
+<td>Yes</td>
+<td>It can: the whole chat (<a href="#src-openai-data-controls">OpenAI 2026a</a>; <a href="#src-openai-model-training">OpenAI 2026b</a>)</td>
+</tr>
+<tr>
+<td>Claude</td>
+<td>Help Improve our AI models</td>
+<td>Settings, then Privacy</td>
+<td>No set default: you choose at sign-up, and existing users were asked in 2025</td>
+<td>The pages don’t say</td>
+<td>It can: the whole chat, kept up to 5 years apart from your account (<a href="#src-anthropic-training-setting">Anthropic 2026c</a>; <a href="#src-anthropic-consumer-terms-2025">Anthropic 2025</a>; <a href="#src-anthropic-training-consumer">Anthropic 2026b</a>)</td>
+</tr>
+<tr>
+<td>GitHub Copilot</td>
+<td>Allow GitHub to use my data for AI model training</td>
+<td>Profile picture, then Copilot settings</td>
+<td>Yes, from April 24, 2026, unless you opt out</td>
+<td>The pages don’t say</td>
+<td>No: thumbs up or down counts as your interaction data, which isn’t used once you opt out (<a href="#src-github-copilot-docs">GitHub 2026b</a>; <a href="#src-github-copilot-2026">GitHub 2026a</a>)</td>
+</tr>
+<tr>
+<td>Gemini</td>
+<td>Keep Activity</td>
+<td>Settings &amp; help, then Activity</td>
+<td>Yes, for users 18 and over</td>
+<td>No: new chats kept up to 72 hours</td>
+<td>It can, with your last 24 hours of chats (<a href="#src-google-gemini-activity">Google 2026a</a>; <a href="#src-google-gemini-privacy">Google 2026b</a>)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>“The pages don’t say” means the company’s help pages we read in October 2026 don’t answer the question.</p>
 <h2 id="how-do-i-stop-chatgpt-training-on-my-chats">How do I stop ChatGPT training on my chats?</h2>
 <p>On ChatGPT Free, Go, Plus and Pro, the switch is called <strong>Improve the model for everyone</strong> (<a href="#src-openai-data-controls">OpenAI 2026a</a>).</p>
 <ol>
@@ -405,7 +457,7 @@
 <h2 id="what-doesnt-the-switch-do">What doesn’t the switch do?</h2>
 <p><strong>Past training stays.</strong> Anthropic says so outright; the others don’t say. Anthropic says data “will still be included in model training that has already started”. Anthropic stops using older stored chats in future training runs (<a href="#src-anthropic-training-setting">Anthropic 2026c</a>). Claude chats from before the 2025 change were not used unless you reopened them (<a href="#src-anthropic-consumer-terms-2025">Anthropic 2025</a>).</p>
 <p><strong>Your history stays.</strong> Turning off ChatGPT’s switch doesn’t delete or hide saved chats. Delete a chat separately if you want it gone (<a href="#src-openai-data-controls">OpenAI 2026a</a>).</p>
-<p><strong>Feedback can send the whole chat.</strong> On ChatGPT, a thumbs up or down means “the entire conversation” may be used to train models. That holds even after you opt out (<a href="#src-openai-data-controls">OpenAI 2026a</a>). Anthropic may train on feedback too; it separates feedback from your account and keeps it up to 5 years (<a href="#src-anthropic-training-consumer">Anthropic 2026b</a>). In Gemini, feedback also sends your last 24 hours of chats. People review it, and it is kept up to 3 years (<a href="#src-google-gemini-privacy">Google 2026b</a>).</p>
+<p><strong>Feedback can send the whole chat.</strong> On ChatGPT, a thumbs up or down means “the entire conversation” may be used to train models. That holds even after you opt out (<a href="#src-openai-data-controls">OpenAI 2026a</a>). Anthropic may train on feedback too; it separates feedback from your account and keeps it up to 5 years (<a href="#src-anthropic-training-consumer">Anthropic 2026b</a>). GitHub says thumbs up or down on Copilot is not used for training once you opt out (<a href="#src-github-copilot-2026">GitHub 2026a</a>). In Gemini, feedback also sends your last 24 hours of chats. People review it, and it is kept up to 3 years (<a href="#src-google-gemini-privacy">Google 2026b</a>).</p>
 <p><strong>Safety review goes on.</strong> Claude chats flagged by safety checks may still be used to improve those checks (<a href="#src-anthropic-training-setting">Anthropic 2026c</a>). OpenAI keeps even Temporary Chats up to 30 days for safety (<a href="#src-openai-data-controls">OpenAI 2026a</a>). Google has people review some Gemini chats even with its setting off (<a href="#src-google-gemini-privacy">Google 2026b</a>).</p>
 <p><strong>Gemini’s switch has a gap.</strong> Google says its Gemini settings don’t cover chats it turns into anonymized data to improve its services (<a href="#src-google-gemini-privacy">Google 2026b</a>).</p>
 <p><strong>Your name still reaches the AI.</strong> The switch controls training, not reading. The AI has to read your resume to help with it.</p>
@@ -477,6 +529,7 @@
 <p>On this page</p>
 <ol>
 <li><a href="#why-does-this-matter-for-a-job-seeker">Why does this matter for a job seeker?</a></li>
+<li><a href="#which-switch-does-each-app-use">Which switch does each app use?</a></li>
 <li><a href="#how-do-i-stop-chatgpt-training-on-my-chats">How do I stop ChatGPT training on my chats?</a></li>
 <li><a href="#how-do-i-stop-claude-training-on-my-chats">How do I stop Claude training on my chats?</a></li>
 <li><a href="#how-do-i-stop-github-copilot-training-on-my-chats">How do I stop GitHub Copilot training on my chats?</a></li>

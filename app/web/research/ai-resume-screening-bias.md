@@ -104,6 +104,26 @@ As of October 2026, a few places set rules, and some may change. This is general
 
 In New York City and Illinois, employers must tell you when they use these tools. From 2027, Colorado employers must also explain a rejection. In New York City you can ask for another way to be assessed or an accommodation [@nyc-ll144].
 
+## Which studies found what?
+
+The table sums up the main AI studies in this article. Most rows are lab tests: AI models, or people helped by one, judging test resumes, not real hiring. The last two rows look at real applicants: one company's algorithm, and one vendor's game tests, not resumes.
+
+| Study | Year | Models | Result | Evidence |
+|---|---|---|---|---|
+| Wilson and Caliskan | 2024 | 3 text-matching models | White-linked names favored in 85.1% of tests; gender result corrected in 2026 [@wilson-caliskan-2024] | Lab study |
+| Bloomberg | 2024 | GPT-3.5, GPT-4 | Some groups' names ranked first less often than one in eight [@bloomberg-2024] | Lab study |
+| Glazko and others | 2024 | GPT-4 | The disability version, the stronger resume, ranked first in only 15 of 60 trials [@glazko-2024] | Lab study |
+| An and others | 2025 | 5 models | Four of five scored women or Black applicants higher on average; most scored Black men lower than white men [@an-2025] | Lab study |
+| Wilson and others | 2025 | A simulated AI, 528 people | People followed a biased AI up to 90% of the time [@wilson-2025] | Lab study |
+| Rozado | 2026 | 22 models | Female names won 56.9% of picks; the first resume listed won 63.5% [@rozado-2026] | Lab study |
+| Gao and others | 2026 | 14 models | GPT-3.5 favored white names; models from 2024 on showed no race gap or favored Black names [@gao-2026] | Lab study, not yet peer-reviewed |
+| Chen and Xiao | 2026 | 9 open models | Forced to choose, models looked biased; allowed a tie, most tied in at least 94% of cases [@chen-xiao-2026] | Lab study, not yet peer-reviewed |
+| Bone and others | 2026 | 10 open models | After extra training, 3.6% less likely than before to call back applicants over 45, in 8 of 10 models [@bone-2026] | Lab study |
+| Cowgill | 2020 | An older screening algorithm, one company | Picked more women and minorities than human screeners did, for one job [@cowgill-2020] | Small study, not yet peer-reviewed |
+| Bommasani and others | 2026 | One vendor's game tests, not resumes | In 10.62% of jobs, Black applicants were recommended below the four-fifths benchmark [@bommasani-2026] | Real records |
+
+Only one row, one job at one company with an older algorithm, shows a real employer's system reading resumes.
+
 ## What we don't know
 
 - How often employers let AI screen resumes without a person. No study found that measures it across employers. Surveys ask employers, but they report what employers say.
