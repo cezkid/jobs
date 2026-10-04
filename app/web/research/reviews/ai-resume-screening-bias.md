@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.22 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.23
 ---
@@ -311,3 +311,7 @@ table above: "The authors' note says the gender numbers should be swapped" + "Th
 "Bloomberg published its method and code" (bloomberg-2024); "That extra training is how makers
 turn a raw model into a chat assistant" + "Older meant over 45 in that test" (bone-2026);
 "The version with awards was the stronger resume ..." (glazko-2024 design). All supported.
+
+## Re-review 2026-10-04: voice pass (plan-xsy.53)
+
+Voice only. Section endings lost their "For you," opener (5 lines, plus "For you, our reading" -> "Our reading"); Glazko "the GPT-4 of early 2024" -> "on a GPT-4 version from early 2024" (matches source table: early-2024 GPT-4 web UI); home-page line added after the tool box; `modified` 2026-10-04. Checked: each changed line keeps its meaning, scope, hedging and evidence label; section endings still say what the finding means for the reader; no new "this"/"it" across sentences; no app jargon; closing line "CEZ Job Finder is a free job-search app for Windows and Mac" matches docs/index.html title + og:title; link is our own home page. No finding.

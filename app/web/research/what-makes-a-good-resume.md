@@ -2,7 +2,7 @@
 title: "What makes a good resume? The evidence, rule by rule"
 description: Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.
 published: 2026-10-03
-modified: 2026-10-03
+modified: 2026-10-04
 status: published
 og_title: "What makes a good resume? Each rule and the evidence behind it"
 uncited:
@@ -18,9 +18,7 @@ uncited:
 - True first: employer, title, dates match records. Firms that check find mismatches (Vendor survey) [@hireright-2025].
 - Typos: 2 errors, rated interview chance 7 points lower out of 100 (Lab study) [@sterkens-2023].
 - Long time out of work costs callbacks. Short spells: studies disagree (Big study) [@dhert-2024; @kroft-2013].
-- Results over duties, one page early on: career-guide convention, no study (Convention) [@mit-capd-resumes].
-- Last 10-15 years in detail: convention (Convention) [@indeed-experience-2025].
-- No photo: one field experiment found photos help some, hurt others (Big study) [@ruffle-2015].
+- Results over duties, one page early on: career-guide advice, no study (Convention) [@mit-capd-resumes]. Last 10-15 years in detail: one career guide (Convention) [@indeed-experience-2025]. No photo: one field experiment found photos help some, hurt others (Big study) [@ruffle-2015].
 
 ## What matters most on a resume?
 
@@ -36,7 +34,7 @@ Yes. Many employers check work history, and mismatches turn up. In a 2025 survey
 
 HireRight sells background checks, and the people it asked work at firms that run checks. The survey's question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.
 
-For you, the employer name, job title and dates should match what a past employer would confirm. Anything on the page can also come up in an interview.
+Each employer name, job title and dates should match what a past employer would confirm. Anything on the page can also come up in an interview.
 
 ## Should a resume list results or duties?
 
@@ -46,7 +44,7 @@ The rule is convention. We searched for a study that tested results lines agains
 
 A result does not need a number. A line can say what changed, for whom, or how big the work was. MIT says to add numbers where you can [@mit-capd-resumes]. Our view: a number you cannot explain in an interview hurts more than no number.
 
-For you, rewrite duty lines into what you did and what came of it, using only facts you can back up.
+So rewrite duty lines into what you did and what came of it, using only facts you can back up.
 
 ## Should you use the words in the job posting?
 
@@ -54,7 +52,7 @@ Use the posting's words for skills you really have. Recruiters can search stored
 
 The rule rests on how hiring software is built, not on a study of interviews. We searched for a large study showing that matching a posting's words gets more interviews and found none. The claim that software rejects most resumes traces to a 2012 trade article repeating a sales pitch [@levinson-2012-cio]. Why it does not hold up: [Do hiring systems reject most resumes?](ats-rejection-myth.md).
 
-For you, a skill the posting asks for and you lack is a gap to know about. Adding the word without the skill invites questions you cannot answer.
+A skill the posting asks for and you lack is a gap to know about. Adding the word without the skill invites questions you cannot answer.
 
 ## How far back should a resume go?
 
@@ -62,7 +60,7 @@ One job-site guide tells senior candidates to list work "up to the last 10-15 ye
 
 The rule is convention, with no study behind it. Older jobs can stay as short lines, so the page shows no false hole in the middle.
 
-For you, keep jobs newest first, give recent, relevant work the most room, and shorten older roles rather than hiding them.
+In practice, keep jobs newest first, give recent, relevant work the most room, and shorten older roles rather than hiding them.
 
 ## Does a gap in your resume hurt?
 
@@ -76,7 +74,7 @@ Most of these studies tested people out of work now, not a past break between jo
 
 Some screening software also filters gaps. In a 2020 survey, 48% of executives said their software filtered middle-skills applicants on gaps over 6 months [@fuller-2021, p. 22-23]. Only executives whose software ranks or filters applicants were asked. Those are their answers, not a measurement.
 
-For you, longer time out of work is worth handling with care. Shorter spells may matter too; the evidence is mixed.
+Longer time out of work is worth handling with care. Shorter spells may matter too; the evidence is mixed.
 
 ## Does explaining a gap help?
 
@@ -92,7 +90,7 @@ Probably, though no study has tested them in real hiring. Every typo study we fo
 
 About half of that penalty came from recruiters judging the applicant as less careful, less able or worse with people [@sterkens-2023]. The study asked recruiters to rate resumes, not to hire, so it is a lab study. The resumes were in Dutch, for recent graduates, so US results may differ.
 
-For you, a careful proofread, by you and someone else, is one of the cheapest fixes there is.
+A careful proofread, by you and someone else, is one of the cheapest fixes there is.
 
 ## How long should a resume be?
 
@@ -102,7 +100,7 @@ The test most often quoted for two pages is weak. ResumeGo, a resume-writing com
 
 Typeface changes page count more than people expect. Our measurement, September 2026: the same resume ran 2 pages in a font fitting 98 characters per line. A wider font fitting 91 characters per line ran 3 pages, with 19 lines with a few words alone. Nothing else changed.
 
-For you, use the length your relevant experience fills, and pick a narrow, plain font before cutting true content.
+So use the length your relevant experience fills, and pick a narrow, plain font before cutting true content.
 
 ## What should a resume leave off?
 
@@ -112,7 +110,7 @@ A photo invites judgments about looks. In an Israeli field experiment, 5,312 res
 
 A full street address adds little a US employer needs before an interview. Leaving it off is our rule; city and state are enough to show where you live.
 
-For you, leave off the photo, birth date, marital status and street address.
+Leave off the photo, birth date, marital status and street address.
 
 ## Does layout matter?
 
@@ -120,7 +118,7 @@ A plain, one-column page is the safe choice. In a 2018 eye-tracking test by Ladd
 
 Our measurement, September 2026, shows how layout trips up software. A heading with letters spaced apart came back as "EXP E R I ENC E" from one PDF-to-web-page converter. Three other PDF text readers read it whole. Dates set at the right edge of a line were read after the job's bullet points by pdftotext, a common PDF text reader. A degree and school on one line filled Workday's school box wrongly and left its degree box empty.
 
-For you, use one column, plain headings, normal letter spacing and black text, and put each item on its own line.
+In practice, use one column, plain headings, normal letter spacing and black text, and put each item on its own line.
 
 ## Which resume advice is not backed by evidence?
 
@@ -161,3 +159,5 @@ How we grade evidence: [How we research](methods.md). More articles: [Research](
 - Uses a posting's words only where your experience backs them.
 - Makes a one-column page, black text, no photo, and checks it reads back cleanly.
 - Asks you for real numbers; never makes one up.
+
+CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).

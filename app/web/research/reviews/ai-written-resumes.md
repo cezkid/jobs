@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.25 (no drafting context; sources opened before the draft was read)
 ---
@@ -239,3 +239,14 @@ Citation placement only - no wording, number or source changed. A run of sentenc
 same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
 sentence the moved citation now covers comes from that source.
 63 repeat citations dropped; no sentence that was uncited now falls under a citation.
+
+## Re-review 2026-10-04: voice pass (plan-xsy.53)
+
+Voice pass: section endings lost "For you,"; "jobseekers" -> "job seekers"; home-page line; `modified` 2026-10-04; Short answer bullets 1+2 merged into one citing [@jakesch-2023; @russell-2025]. Checked: each changed line keeps its meaning, scope, hedging and evidence label; section endings still say what the finding means for the reader; no new "this"/"it" across sentences; no app jargon; closing line "CEZ Job Finder is a free job-search app for Windows and Mac" matches docs/index.html title + og:title; link is our own home page.
+
+Findings (verdict revise):
+
+- **V1 (medium)** Merged Short answer bullet drops "4,600 people, older AI models" - the caveat F8 added (Jakesch = GPT-2/GPT-3 texts, online panel). Present-tense claim now reads as true of current AI. Fix: "- In tests with older AI models, most of 4,600 people couldn't tell AI writing from human writing; 5 readers who use AI often spotted whole AI-written texts far better (Lab studies) [@jakesch-2023; @russell-2025]." Russell half of the merge is fine (5 readers, whole AI-written texts, per source table).
+- **V2 (low)** "The result cuts both ways for job seekers." - "The result" points back across sentences to the Xu finding; does not stand alone when quoted. Fix: "An AI screener's preference for its own wording cuts both ways for job seekers."
+
+Revised (plan-xsy.53): V1 and V2 applied with the exact wording above; verdict publish.

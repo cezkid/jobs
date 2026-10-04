@@ -2,7 +2,7 @@
 title: "Do ATS reject 75% of resumes? Where the number came from"
 description: No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. Where software rejects alone, recruiters say yes/no questions do it.
 published: 2026-10-03
-modified: 2026-10-03
+modified: 2026-10-04
 status: published
 og_title: "Do hiring systems reject 75% of resumes? Where the claim came from"
 uncited:
@@ -35,7 +35,7 @@ The 2012 line was about the chances of getting an interview, not a count of reje
 
 Enhancv asked 25 recruiters where they had heard the rejection claim. 17 of the 25 recruiters guessed that job seekers picked it up on LinkedIn or TikTok [@enhancv-2025]. That answer is the recruiters' guess, from interviews run by a company that sells a resume builder.
 
-For you, the 75% figure is not evidence [@levinson-2012-cio]. The figure was a sales line, and we found nothing that backs it up.
+In short, the 75% figure is not evidence [@levinson-2012-cio]. The figure was a sales line, and we found nothing that backs it up.
 
 ## What does an applicant tracking system actually do?
 
@@ -43,7 +43,7 @@ An applicant tracking system, or ATS, is the software employers use to collect a
 
 The software does four main jobs. An ATS stores each application. An ATS lets recruiters search resumes for words, like a search engine [@greenhouse-search]. An ATS can filter applicants by their answers to the form's questions [@greenhouse-rules]. Newer versions also rank or score applicants against the job [@ashby-2024].
 
-Filtering and ranking can keep a resume from being read without anyone rejecting it by hand. In the Hidden Workers survey, over 90% of executives said they used their software to first filter or rank applicants [@fuller-2021, p. 20]. A resume that no recruiter searched up was not rejected by a rule. A filter or a low rank can still keep it from a person's eyes.
+Filtering and ranking can keep a resume from being read without anyone rejecting it by hand. In the Hidden Workers survey, over 90% of executives said they used their software to first filter or rank applicants [@fuller-2021, p. 20]. A resume that no recruiter searched for was not rejected by a rule. A filter or a low rank can still keep it from a person's eyes.
 
 For you, the useful question is not "will a robot reject me?" The useful question is "will a recruiter searching for this job find me, and will my answers pass the form?"
 
@@ -55,7 +55,7 @@ Greenhouse, one hiring system, lets employers reject applicants automatically ba
 
 Greenhouse's rules act on your answers, not on your resume text. The same help page says the system can send a rejection email automatically [@greenhouse-rules].
 
-23 of the 25 recruiters said their system did not reject automatically for formatting, content or design. Two said their systems were set up to reject on resume content, such as a low match score. A third recruiter, using a system called Phenom, applies a score cutoff to reject low matches, by the same page's account [@enhancv-2025]. So two, possibly three, of the 25 described rejection based on resume content. The sample is small, and how the 25 were chosen is not stated.
+23 of the 25 recruiters said their system did not reject automatically for formatting, content or design. Two said their systems were set up to reject on resume content, such as a low match score. The same page reports that a third recruiter, using a system called Phenom, applies a score cutoff to reject low matches [@enhancv-2025]. So two, possibly three, of the 25 described rejection based on resume content. The sample is small, and how the 25 were chosen is not stated.
 
 For you, the answers on the form matter more than the layout of the page.
 
@@ -72,13 +72,13 @@ Our measurement found 105 of the 143 forms asked about work permit, visa sponsor
 - Years of experience: 21 of 143 forms.
 - License, certificate or security clearance: 11 of 143 forms.
 
-These counts have limits. The job search we used leans toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically.
+These counts have limits. The job search we used, freehire.me, leans toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically.
 
-An earlier count of many more forms, published by the job search's maker, reported far fewer forms with extra questions. We could not re-find that page to check it, so we don't cite its numbers. Our sample is small, and its share may not hold for all forms.
+An earlier count of many more forms, published by freehire.me's maker, reported far fewer forms with extra questions. We could not re-find that page to check it, so we don't cite its numbers. Our sample is small, and its share may not hold for all forms.
 
 Our share of 105 of the 143 forms does not confirm the old 75% claim [@levinson-2012-cio]. A question on a form is not a rejection, and the two numbers measure different things.
 
-For you, expect a work-permit or sponsorship question on many forms, and an on-site or location question on some.
+Expect a work-permit or sponsorship question on many forms, and an on-site or location question on some.
 
 ## Do formatting errors get resumes rejected?
 
@@ -92,7 +92,7 @@ In one Workday test, a school and degree written on one line landed in the wrong
 
 Blank questions are not rejections either. Ashby's "Autofill from resume" filled only contact boxes in our test, leaving the employer's questions empty ([ashby.md](../../docs/apply/ashby.md)). Applicants can read the empty boxes as the system rejecting their resume. The autofill did not reject anyone.
 
-For you, a plain one-column page that reads back cleanly is the safe choice. Fancy layouts are a risk to being found, not a sure rejection.
+In practice, a plain one-column page that reads back cleanly is the safe choice. Fancy layouts are a risk to being found, not a sure rejection.
 
 ## Do employers' filters screen out people who could do the job?
 
@@ -102,7 +102,7 @@ Most of those executives said their system filters out qualified people at least
 
 The Hidden Workers numbers are what executives said, not a measurement of what the software did. The survey ran in early 2020, before today's AI screening tools were common [@fuller-2021].
 
-For you, gaps between your experience and the exact wording of a posting can matter. The fix is the posting's words for skills you really have, not words you lack.
+Gaps between your experience and the exact wording of a posting can matter. The fix is the posting's words for skills you really have, not words you lack.
 
 ## Is AI now rejecting resumes on its own?
 
@@ -118,7 +118,7 @@ In May 2025 a federal court in California let the age claim go forward as a coll
 
 In July 2025 the court ruled that applicants screened with Workday's HiredScore AI features also belong in the case. In June 2026 the court granted part of Workday's motion to dismiss the amended complaint and denied the rest [@clearinghouse-mobley]. As of October 2026, the plaintiffs are asking to widen the case to more groups of applicants. A hearing is set for March 2027, and Workday denies the claims [@lawyer-monthly-2026]. Nothing has been proven. Not legal advice.
 
-For you, AI scores are in use, but most managers in that survey said a person still makes the call [@resume-genius-2026].
+AI scores are in use, but most managers in that survey said a person still makes the call [@resume-genius-2026].
 
 ## What we don't know
 
@@ -144,3 +144,5 @@ How we grade evidence: [How we research](methods.md). More articles: [Research](
 - Keeps your work-permit answer exactly as you give it.
 - Makes a one-column resume and checks it reads back cleanly.
 - Uses a posting's words only where your own experience backs them.
+
+CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).

@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.28 (no drafting context; sources opened before the draft was read)
 ---
@@ -256,3 +256,13 @@ same source now cites it once, at the run's end (build rule: 3 in a row = error)
 sentence the moved citation now covers comes from that source.
 16 repeat citations dropped. Newly under a citation: "The same study tried listing years worked
 per job instead of dates, which hides the gap" (kristal-2023 design). Supported.
+
+## Re-review 2026-10-04: voice pass (plan-xsy.53)
+
+Voice only. Short answer "convention (Convention)" -> "career-guide advice (Convention)" for mit-capd-resumes and indeed-experience-2025 - both registry `convention`; singular "career-guide advice" does not reopen F18 (one guide). Ten section endings lost "For you," (no opener, "So", "In practice,"); "the employer name" -> "Your employer name", same meaning (optional nit: "Each employer name, job title and dates" avoids reading as current employer only). Home-page line; `modified` 2026-10-04. Checked: each changed line keeps its meaning, scope, hedging and evidence label; section endings still say what the finding means for the reader; no new "this"/"it" across sentences; no app jargon; closing line "CEZ Job Finder is a free job-search app for Windows and Mac" matches docs/index.html title + og:title; link is our own home page. No blocking finding.
+
+Optional nit applied: "Each employer name, job title and dates".
+
+Short answer merge (plan-xsy.53): checked the merged bullet 4 (two Convention bullets + photo bullet) against the claim table rows 8, 28 and F8/F18. Photo sentence keeps its own label and citation (Big study, ruffle-2015) - fine. Finding (medium, reopens F8 + F18): the Convention half now runs three claims under one "career-guide advice, no study" with a pooled [@mit-capd-resumes; @indeed-experience-2025]. "No study" was searched for and stated only on results-over-duties / one page (MIT row); it now also covers "last 10-15 years", which had no such search - a broader claim. Pooled citation hides that MIT says nothing on 10-15 years and Indeed nothing on results or one page - the F8 fix was "cite each". Fix, still 4 bullets: replace bullet 4 with "- Results over duties, one page early on: career-guide advice, no study (Convention) [@mit-capd-resumes]. Last 10-15 years in detail: one career guide (Convention) [@indeed-experience-2025]. No photo: one field experiment found photos help some, hurt others (Big study) [@ruffle-2015]."
+
+Revised (plan-xsy.53): bullet 4 replaced with the exact fix above; verdict publish.

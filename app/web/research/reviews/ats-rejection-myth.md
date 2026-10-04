@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.19 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.20
 ---
@@ -304,3 +304,7 @@ same source now cites it once, at the run's end (build rule: 3 in a row = error)
 sentence the moved citation now covers comes from that source.
 17 repeat citations dropped. Newly under a citation: "Recruiters call them knockout questions"
 (enhancv-2025 uses the term). Supported.
+
+## Re-review 2026-10-04: voice pass (plan-xsy.53)
+
+Voice only. Section endings reopened ("In short," / "In practice," / no opener); "searched up" -> "searched for"; Phenom sentence now "The same page reports that a third recruiter ... [@enhancv-2025]" - same attribution as before, matches source table (Enhancv page: one Phenom recruiter "applies a score threshold for auto-rejecting low-matches"); the job search named freehire.me in the limits paragraph and "freehire.me's maker" for the earlier ~100k-form count - matches this file's note (freehire's own published count) and app/docs/jobs/freehire.md (base freehire.me); home-page line; `modified` 2026-10-04. Checked: each changed line keeps its meaning, scope, hedging and evidence label; section endings still say what the finding means for the reader; no new "this"/"it" across sentences; no app jargon; closing line "CEZ Job Finder is a free job-search app for Windows and Mac" matches docs/index.html title + og:title; link is our own home page. No finding.

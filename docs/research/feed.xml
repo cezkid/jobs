@@ -5,7 +5,7 @@
   <link rel="self" type="application/atom+xml" href="https://jobs.enrriquez.com/research/feed.xml" />
   <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/" />
   <id>https://jobs.enrriquez.com/research/feed.xml</id>
-  <updated>2026-10-03T00:00:00Z</updated>
+  <updated>2026-10-04T00:00:00Z</updated>
   <author>
     <name>Cesar Enrriquez-Zuniga</name>
     <uri>https://jobs.enrriquez.com/about/</uri>
@@ -15,7 +15,7 @@
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/ai-resume-screening-bias/" />
     <id>https://jobs.enrriquez.com/research/ai-resume-screening-bias/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-03T00:00:00Z</updated>
+    <updated>2026-10-04T00:00:00Z</updated>
     <summary>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</summary>
   </entry>
   <entry>
@@ -23,7 +23,7 @@
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/ai-written-resumes/" />
     <id>https://jobs.enrriquez.com/research/ai-written-resumes/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-03T00:00:00Z</updated>
+    <updated>2026-10-04T00:00:00Z</updated>
     <summary>Most people can’t spot AI writing in tests, but about half of hiring managers say they’d care. What studies show on detectors, and what to do.</summary>
   </entry>
   <entry>
@@ -31,7 +31,7 @@
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/ats-rejection-myth/" />
     <id>https://jobs.enrriquez.com/research/ats-rejection-myth/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-03T00:00:00Z</updated>
+    <updated>2026-10-04T00:00:00Z</updated>
     <summary>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. Where software rejects alone, recruiters say yes/no questions do it.</summary>
   </entry>
   <entry>
@@ -39,7 +39,7 @@
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/keep-chats-out-of-ai-training/" />
     <id>https://jobs.enrriquez.com/research/keep-chats-out-of-ai-training/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-03T00:00:00Z</updated>
+    <updated>2026-10-04T00:00:00Z</updated>
     <summary>ChatGPT, Claude, GitHub Copilot and Gemini can train on personal-plan chats. Where each switch is, and what it doesn’t stop.</summary>
   </entry>
   <entry>
@@ -47,7 +47,7 @@
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/what-makes-a-good-resume/" />
     <id>https://jobs.enrriquez.com/research/what-makes-a-good-resume/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-03T00:00:00Z</updated>
+    <updated>2026-10-04T00:00:00Z</updated>
     <summary>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</summary>
   </entry>
 </feed>

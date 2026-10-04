@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.31 (no drafting context; sources opened before the draft was read)
 ---
@@ -203,3 +203,9 @@ Citation placement only - no wording, number or source changed. A run of sentenc
 same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
 sentence the moved citation now covers comes from that source.
 16 repeat citations dropped; no sentence that was uncited now falls under a citation.
+
+## Re-review 2026-10-04: voice pass (plan-xsy.53)
+
+Voice only. Six section endings lost "For you," (now no opener, "So" or "In practice,"); "So the switch keeps your chats out of that 5-year training store" follows the 5-year sentence as before; home-page line; `modified` 2026-10-04. No setting, date or citation changed. Checked: each changed line keeps its meaning, scope, hedging and evidence label; section endings still say what the finding means for the reader; no new "this"/"it" across sentences; no app jargon; closing line "CEZ Job Finder is a free job-search app for Windows and Mac" matches docs/index.html title + og:title; link is our own home page. No finding.
+
+Short answer merge (plan-xsy.53): checked the merged bullet 3 (switch stops future training + thumbs) against claim rows 14-15 and F3. Wording of both claims unchanged, "still" kept (openai-data-controls: "even after opt-out"); one label (Maker's docs) fits both halves, as before; citations are the union of the two old bullets - anthropic-training-setting + openai-data-controls cover the switch, openai-data-controls + anthropic-training-consumer cover thumbs. Box stays at 4 bullets. No blocking finding. Optional nit for readability: split the run-on into two sentences inside the bullet - "- Switch stops future training; training already done stays. Thumbs up or down can still send that whole chat to training (Maker's docs) [@anthropic-training-setting; @openai-data-controls; @anthropic-training-consumer]."

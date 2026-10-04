@@ -2,7 +2,7 @@
 title: "Is AI resume screening biased? What the studies show"
 description: AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.
 published: 2026-10-03
-modified: 2026-10-03
+modified: 2026-10-04
 status: published
 og_title: "Is AI resume screening biased? What the studies show"
 uncited:
@@ -45,7 +45,7 @@ Gao's gender results moved the same way. GPT-3.5 gave men a 1.92 percentage poin
 
 Test design can create a gap or hide one. A 2026 preprint asked nine openly released AI models to choose between two resumes. Forced to choose, the models looked biased. Allowed to call a tie, most models did so in at least 94% of cases [@chen-xiao-2026].
 
-For you, a headline that says "AI favors group X" describes one test. Another model or test may show the opposite.
+A headline that says "AI favors group X" describes one test. Another model or test may show the opposite.
 
 ## Does removing your name stop the bias?
 
@@ -53,17 +53,17 @@ Not reliably, in one preprint. The team built 620 made-up resumes with no names.
 
 The same preprint found the score differences between groups were very small [@chen-xiao-2026]. So the models could often tell, but in that test barely acted on it.
 
-For you, leaving your name off may not hide your background if other lines point to it. Cutting those lines has a cost: they may be real experience.
+In practice, leaving your name off may not hide your background if other lines point to it. Cutting those lines has a cost: they may be real experience.
 
 ## Are other groups affected - age, disability?
 
 Lab tests say yes. A 2026 conference paper tested 10 openly released AI models, each before and after extra training. That extra training is how makers turn a raw model into a chat assistant. Age showed through the graduation year. After training, the models were 3.6% less likely to call back older applicants than before. Older meant over 45 in that test. The drop held in 8 of the 10 models [@bone-2026].
 
-A small 2024 test gave GPT-4 one resume and the same resume plus disability-related awards. The version with awards was the stronger resume, so it should have come first. GPT-4 ranked the disability version first in only 15 of 60 trials. An autism-related version came first in none of 10 trials. A custom GPT-4 given disability-justice instructions did better, at 37 of 60 [@glazko-2024]. Each disability got only 10 trials, with the GPT-4 of early 2024.
+A small 2024 test gave GPT-4 one resume and the same resume plus disability-related awards. The version with awards was the stronger resume, so it should have come first. GPT-4 ranked the disability version first in only 15 of 60 trials. An autism-related version came first in none of 10 trials. A custom GPT-4 given disability-justice instructions did better, at 37 of 60 [@glazko-2024]. Each disability got only 10 trials, on a GPT-4 version from early 2024.
 
 Anthropic's own 2023 preprint tested its Claude 2.0 model on made-up decisions, including job offers. The model favored women and non-white people, and was less positive about people over 60. Those gaps were much smaller when the model had to infer the person from a name. Telling the model that discrimination is illegal cut the gaps [@tamkin-2023].
 
-For you, age and disability can count against you in some models' choices. Those tests use made-up applicants, not real hiring.
+Age and disability can count against you in some models' choices. Those tests use made-up applicants, not real hiring.
 
 ## What happens with real applicants?
 
@@ -79,7 +79,7 @@ One field experiment compared an algorithm with human resume screeners at one co
 
 People also follow a biased AI. In a 2025 study, 528 people screened resumes with help from a simulated AI. With no AI or a neutral AI, people picked groups about equally. With a biased AI, they followed its lean up to 90% of the time [@wilson-2025]. So "a person makes the final call" may not remove the bias. That study used a simulated AI in a lab, not a real hiring tool.
 
-For you, our reading: when many employers use one tool, the same person can be shut out many times. Applying through different routes may spread that risk.
+Our reading: when many employers use one tool, the same person can be shut out many times. Applying through different routes may spread that risk.
 
 ## What real cases are there?
 
@@ -102,7 +102,7 @@ As of October 2026, a few places set rules, and some may change. This is general
 - **European Union**: AI that filters applications is high-risk under the AI Act [@eu-ai-act]. Those rules now start in December 2027 [@eu-omnibus-2026].
 - **US federal**: a 2025 executive order tells agencies to move away from "disparate impact" cases [@eo-14281]. Those are cases about unequal results without intent. Private lawsuits like Mobley v. Workday still use that idea [@mobley-2026-order, p. 2].
 
-For you, in New York City and Illinois, employers must tell you when they use these tools. From 2027, Colorado employers must also explain a rejection. In New York City you can ask for another way to be assessed or an accommodation [@nyc-ll144].
+In New York City and Illinois, employers must tell you when they use these tools. From 2027, Colorado employers must also explain a rejection. In New York City you can ask for another way to be assessed or an accommodation [@nyc-ll144].
 
 ## What we don't know
 
@@ -128,3 +128,5 @@ How we grade evidence: [How we research](methods.md). More articles: [Research](
 - Ranks jobs by the posting and your search settings, never by your name, age, gender or background.
 - Never invents or changes a fact on your resume to get past a screener.
 - Checks for new jobs from your search every day, so you can apply widely.
+
+CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
