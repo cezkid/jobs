@@ -97,10 +97,10 @@
   year: 2024
   title: "OpenAI's GPT Is a Recruiter's Dream Tool. Tests Show There's Racial Bias"
   venue: Bloomberg, March 7, 2024 (method + code on GitHub, BloombergGraphics/2024-openai-gpt-hiring-racial-discrimination)
-  url: https://prod.cm.bloomberg.com/graphics/2024-openai-gpt-hiring-racial-discrimination/
+  url: https://www.bloomberg.com/graphics/2024-openai-gpt-hiring-racial-discrimination/
   evidence: lab/LLM audit
   sample: GPT-3.5 and GPT-4 asked 1,000 times per job to rank 8 equally qualified resumes with names from 8 race and gender groups, 4 jobs; news organisation's own test
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: bommasani-2026
   type: article
@@ -607,10 +607,10 @@
   org: US District Court for the Northern District of California
   year: 2026
   title: "Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting in Part and Denying in Part Motion to Dismiss"
-  url: https://clearinghouse-umich-production.s3.amazonaws.com/media/doc/171886.pdf
+  url: https://clearinghouse.net/doc/171886/
   evidence: court record
   sample: court order of June 22, 2026 (ECF 360); decides which claims go on, nothing on the facts
-  checked: 2026-10-03
+  checked: 2026-10-04
   recheck_by: 2027-01-03
 
 - id: liang-2023
@@ -758,12 +758,12 @@
   authors: ["Ruffle, Bradley J.", "Shtudiner, Ze'ev"]
   year: 2015
   title: Are Good-Looking People More Employable?
-  venue: Management Science 61(8), 1760-1776 (paywalled; read in the authors' open 2011 working-paper copy)
+  venue: Management Science 61(8), 1760-1776 (paywalled; read in the authors' open 2011 working paper on SSRN)
   doi: 10.1287/mnsc.2014.1927
-  url: https://dev.gerillaoneletrajz.hu/wp-content/uploads/beauty-and-resume.pdf
+  url: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1705244
   evidence: large field experiment
   sample: 5,312 made-up resumes sent in pairs to 2,656 real job ads in Israel, with and without a photo
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: russell-2025
   type: article
