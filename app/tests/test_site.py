@@ -515,13 +515,34 @@ def test_shared_colours_meet_contrast_in_both_schemes():
     assert contrasts((DOCS / "index.html").read_text(encoding="utf-8")) == []
 
 
-def test_every_page_crossfades_only_without_reduced_motion():
-    # page change = crossfade opted in by every page, masthead held; reduced motion => none at all
+def test_every_page_lays_its_sheet_down_only_without_reduced_motion():
+    # page change (PICK P-d2) opted in by every page: masthead held, main = the sheet that is laid
+    # down; reduced motion => no transition at all
     for name in PAGES:
         css = shared((DOCS / name).read_text(encoding="utf-8"))
         assert re.search(NO_PREFERENCE + r"[^}]*@view-transition\s*\{\s*navigation:\s*auto", css), name
         assert re.search(r"\.masthead\s*\{\s*view-transition-name:\s*masthead", css), name
+        assert re.search(r"(?<![\w.-])main\s*\{\s*view-transition-name:\s*sheet", css), name
         assert not re.search(r"@view-transition|view-transition-name", outside_no_preference(css)), name
+
+
+def test_page_change_moves_only_transform_and_opacity_within_400ms():
+    # ::view-transition-* keyframes animate transform + opacity only (compositor, no layout or paint)
+    # and each pseudo is done (delay + duration) by 400 ms, so a click never waits on the motion
+    for name in PAGES:
+        css = shared((DOCS / name).read_text(encoding="utf-8"))
+        rules = re.findall(r"::view-transition-[\w-]+\([^)]*\)\s*\{([^}]*)\}", css)
+        assert rules, name
+        frames = dict(re.findall(r"@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^}]*\})*)\s*\}", css))
+        for body in rules:
+            animation = re.search(r"animation\s*:\s*([^;]+)", body).group(1)
+            used = [w for w in animation.split() if w in frames]
+            assert used, (name, animation)
+            for frame in used:
+                props = {p.lower() for p in re.findall(r"([\w-]+)\s*:", re.sub(r"[^{};]*\{", ";", frames[frame]))}
+                assert props <= {"opacity", "transform"}, (name, frame, props)
+            times = [float(t) * (1000 if unit == "s" else 1) for t, unit in re.findall(r"(?<![\w.-])([\d.]+)(m?s)\b", animation)]
+            assert times and sum(times[:2]) <= 400, (name, animation)
 
 
 def test_site_md_tokens_table_is_the_shared_root():

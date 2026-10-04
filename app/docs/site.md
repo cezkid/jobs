@@ -231,10 +231,13 @@ Native CSS only - no animation library, no 3D, no WebGL. Text never waits for mo
   an SVG takes its parent `<svg>`'s named `view-timeline` (a subject with a real CSS box). A
   transformed sheet is a stacking context: its paper + border live on `::after`, the second sheet
   on `::before`, so the back sheet never paints over the front one.
-- Copy click: sweep on the command line + "Copied". Page change: cross-document View Transition
-  crossfade, header keeps its `view-transition-name`, no-preference only: both live in the shared
-  block inside `@media (prefers-reduced-motion: no-preference)` (test fails either outside it), so
-  every page opts in and reduced motion changes page instantly.
+- Copy click: sweep on the command line + "Copied". Page change (PICK P-d2, "page laid down"):
+  cross-document View Transition, header holds (`view-transition-name: masthead`), `main` is the
+  `sheet` - old lifts 8px + fades (300ms), new rises from 12px (340ms, 40ms late), `--ease-mark`;
+  keyframes move `transform` + `opacity` only, each done by 400ms (test). No-preference only: all of
+  it lives in the shared block inside `@media (prefers-reduced-motion: no-preference)` (test fails
+  any of it outside), so every page opts in and reduced motion changes page instantly. Browsers w/o
+  cross-document transitions (Firefox) change page instantly.
 - Animated properties only `transform`, `opacity`, `clip-path`, `stroke-dashoffset` (SVG circle /
   check), `background-size` (wrapping marks + Copy line): compositor-cheap or small paints; any
   other property relayouts or repaints big areas every frame (test fails `@keyframes` +
