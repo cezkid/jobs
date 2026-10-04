@@ -39,7 +39,7 @@ Tuesday, September 29. So far: 1 sent.
 ## Waiting on you
 
 - **Job 1** - Data Analyst, Globex
-  - Resume made 5 days ago
+  - Ready to send
   - [Open the posting](<https://jobs.lever.co/globex/1>) · [Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)
   - Say: `apply to job 1` - or `I sent job 1` if you already did
 
@@ -97,6 +97,8 @@ def test_dashboard_data_is_the_page(tmp_path):
     assert (card["num"], card["say"][0]) == (1, "apply to job 1")
     assert card["resume"] == "My Jobs/Globex - Data Analyst/Your_Name_Resume.pdf"
     assert card["folder"] == "My Jobs/Globex - Data Analyst"
+    # "Resume made 8 days ago" reads as overdue: no age on what waits, dashboard as page
+    assert card["detail"] == "Ready to send"
     assert json.loads(json.dumps(m)) == m
 
 
@@ -218,7 +220,7 @@ def test_waiting_never_counts_what_is_left(conn, tmp_path, monkeypatch):
     for i in range(3):
         make_folder(tmp_path, f"Globex - Role {i}", f"https://jobs.lever.co/globex/{i}", "Globex", f"Role {i}", None)
     text = page(conn, tmp_path)
-    assert text.count("Resume made") == 1
+    assert text.count("Ready to send") == 1
     assert "- More in the chat. Say: `what is waiting on me`" in text
     assert not any(ch.isdigit() for ch in text.split("More in the chat")[1].splitlines()[0])
 
@@ -306,7 +308,7 @@ def test_page_is_private():
 
 
 BRIEF = """Job Finder today (same as their Today page). If the user only greets you or asks what's next, answer with this in plain words, each job written "**Job 12** - title, company", never a 1. 2. 3. list; otherwise use it only when it helps. Never say how many resumes are unsent.
-- Waiting on you (resume made, not sent): Job 1 - Data Analyst, Globex, resume made 5 days ago
+- Waiting on you (resume made, not sent): Job 1 - Data Analyst, Globex
 - Follow up (no reply for a while): Job 2 - Senior Vue Engineer old, Acme, applied 29 days ago
 - New since last check: 2. Top: Job 3 - Senior Vue Engineer paid, Acme; Job 4 - Senior Vue Engineer plain, Acme
 - Not finished: The morning job check is off."""

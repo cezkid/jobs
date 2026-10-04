@@ -135,10 +135,13 @@ def test_dashboard_keeps_every_button_the_page_offers(tmp_path):
     script = (f"const t = require({json.dumps(str(vscode_ext.SOURCE / 'today.js'))});"
               f"const say = require({json.dumps(str(vscode_ext.SOURCE / 'say.json'))});"
               f"const m = t.model(JSON.parse(require('fs').readFileSync({json.dumps(str(data))}, 'utf8')), say);"
-              "console.log(JSON.stringify(m.sections.map((s) => s.cards.map((c) => [c.num, c.say.map((b) => b.words),"
-              " !!c.posting, c.resume && c.resume.path, c.folder && c.folder.path]))))")
+              # Next up = one job taken out of its section: every job still shown once
+              "const cards = [...(m.next && m.next.card ? [m.next.card] : []), ...m.sections.flatMap((s) => s.cards)];"
+              "console.log(JSON.stringify(cards.map((c) => [c.num, c.say.map((b) => b.words),"
+              " !!c.posting, c.resume && c.resume.path, c.folder && c.folder.path]).sort((a, b) => a[0] - b[0])))")
     run = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=60)
     assert run.returncode == 0, run.stderr
-    want = [[[c["num"], c["say"], bool(c["url"]), c["resume"], c["folder"]] for c in s["cards"]] for s in m["sections"]]
+    want = sorted(([c["num"], c["say"], bool(c["url"]), c["resume"], c["folder"]] for s in m["sections"] for c in s["cards"]),
+                  key=lambda c: c[0])
     assert json.loads(run.stdout) == want
-    assert any(c[3] for s in want for c in s) and any(c[4] for s in want for c in s)
+    assert any(c[3] for c in want) and any(c[4] for c in want)

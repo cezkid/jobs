@@ -18,6 +18,16 @@ const CLAUDE_ID = "anthropic.claude-code";
 // tested range: from 2.1.288 up to (not incl.) the next minor
 const CLAUDE_TESTED = { from: [2, 1, 288], below: [2, 2, 0] };
 const CLAUDE_NEW_CHAT = "claude-vscode.editor.open";
+// Next up: the one most valuable thing today, first found in this order (data order stays
+// app/today.py's). No resume yet blocks "Make my resume" => before new jobs
+const NEXT_ORDER = [{ section: "interviews" }, { section: "waiting" }, { todo: "import" }, { section: "new" }, { todo: "morning" }];
+// setup steps that stop the job search working => above the job sections, yellow; others stay last, quiet
+const BLOCKERS = new Set(["import", "morning"]);
+// sections past this many jobs draw as one-line rows; new jobs always do, 5 shown, rest in the chat
+const ROWS_AFTER = 4;
+const NEW_SHOWN = 5;
+// status changes: outline, never yellow; closing a job quietest of all
+const QUIET = new Set(["closed"]);
 
 function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -67,7 +77,7 @@ function model(raw, sayJson) {
   const act = (a) => actions.push(a) - 1;
   const sayButton = (words) => {
     const t = templateFor(words, tpls);
-    return t ? { words, label: t.label, action: act({ type: "say", words }) } : null;
+    return t ? { id: t.id, words, label: t.label, action: act({ type: "say", words }) } : null;
   };
   const open = (rel, how) => {
     const clean = cleanPath(rel);
@@ -91,22 +101,52 @@ function model(raw, sayJson) {
     progress: str(raw.progress, 200),
     tiles: (Array.isArray(raw.tiles) ? raw.tiles : [])
       .filter((t) => t && Number.isInteger(t.value) && t.value > 0)
-      .map((t) => ({ label: str(t.label, 60), value: t.value })),
+      .map((t) => ({ label: str(t.label, 60), value: t.value, section: str(t.section, 30) })),
     sections: raw.sections.filter((s) => s && Array.isArray(s.cards)).map((s) => ({
       id: str(s.id, 30), title: str(s.title, 80), note: str(s.note, 600),
       cards: s.cards.map(card).filter(Boolean), more: line(s.more),
     })),
     todo: (Array.isArray(raw.todo) ? raw.todo : []).map(line).filter(Boolean),
     empty: line(raw.empty),
-    examples: (Array.isArray(raw.examples) ? raw.examples : [])
-      .map((ex) => (Array.isArray(ex) ? ex : []).filter((w) => templateFor(w, tpls)).map((w) => str(w, 100)))
-      .filter((ex) => ex.length),
+    // words w/o a job number => a button; "job 12" ones stay example text (job 12 may not exist)
+    asks: [],
+    examples: [],
     guides: (Array.isArray(raw.guides) ? raw.guides : [])
       .map((g) => (g ? { title: str(g.title, 80), open: open(g.path, "page") } : null))
       .filter((g) => g && g.open),
   };
+  for (const ex of Array.isArray(raw.examples) ? raw.examples : []) {
+    const said = (Array.isArray(ex) ? ex : []).filter((w) => templateFor(w, tpls)).map((w) => str(w, 100));
+    if (said.length && said.every((w) => !/[0-9]/.test(w))) m.asks.push(...said.map(sayButton));
+    else if (said.length) m.examples.push(said);
+  }
+  // new jobs past NEW_SHOWN: the rest in the chat, even when the data's own list fit
+  const fresh = m.sections.find((x) => x.id === "new");
+  const moreNew = tpls.find((t) => t.id === "more_new");
+  if (fresh && fresh.cards.length > NEW_SHOWN && !fresh.more && moreNew) fresh.more = { text: "", say: sayButton(moreNew.words) };
+  for (const t of m.todo) t.blocks = Boolean(t.say && BLOCKERS.has(t.say.id));
+  m.next = nextUp(m);
+  m.sections = m.sections.filter((s) => s.cards.length || s.more);
+  // tiles in the order of what they tell about (Next up first); progress-only ones after
+  const at = (t) => {
+    if (m.next && t.section && m.next.section === t.section) return -1;
+    const i = m.sections.findIndex((s) => s.id === t.section);
+    return i < 0 ? m.sections.length : i;
+  };
+  m.tiles = m.tiles.map((t, i) => [at(t), i, t]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
   m.actions = actions;
   return m;
+}
+
+// takes the Next-up item out of its section or setup list (shown once, at the top)
+function nextUp(m) {
+  for (const want of NEXT_ORDER) {
+    const s = want.section && m.sections.find((x) => x.id === want.section && x.cards.length);
+    if (s) return { section: s.id, card: s.cards.shift() };
+    const i = want.todo ? m.todo.findIndex((t) => t.say && t.say.id === want.todo) : -1;
+    if (i >= 0) return { todo: m.todo.splice(i, 1)[0] };
+  }
+  return null;
 }
 
 function versionParts(text) {
@@ -226,39 +266,54 @@ body.vscode-high-contrast { --desk: var(--vscode-editor-background); --text: var
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0 20px; background: var(--desk); color: var(--text);
   font-family: Caladea, Georgia, "Times New Roman", serif; font-size: 16px; line-height: 1.45; }
-main { max-width: 72rem; margin: 0 auto; padding: 24px 0 56px; }
+main { max-width: 60rem; margin: 0 auto; padding: 24px 0 48px; }
 h1 { font-size: 2rem; line-height: 1.1; margin: 0 0 4px; }
-.sub { color: var(--text-2); margin: 0 0 4px; }
+.sub { color: var(--text-2); margin: 0 0 2px; }
 .how { color: var(--text-2); font-size: 0.9rem; margin: 0 0 20px; }
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: 10px; margin: 0 0 24px; }
-.tile { border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; background: var(--card); }
-.tile b { display: block; font-size: 1.9rem; line-height: 1.1; }
-.tile span { color: var(--text-2); font-size: 0.9rem; }
-.panel { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px 16px; margin: 0 0 18px; background: var(--tint); }
-.panel h2 { font-size: 1.25rem; margin: 0 0 10px; }
-.note { color: var(--text-2); font-size: 0.92rem; margin: -4px 0 12px; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: 12px; }
+section { margin: 24px 0 0; }
+section > h2 { font-size: 1.2rem; margin: 0 0 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+.note { color: var(--text-2); font-size: 0.92rem; margin: -2px 0 12px; max-width: 42rem; }
+.figures { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 22px 0 0; padding: 0; list-style: none; }
+.figures li { display: flex; align-items: baseline; gap: 8px; }
+.figures b { font-size: 1.6rem; line-height: 1.1; }
+.figures span { color: var(--text-2); font-size: 0.92rem; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: 12px; }
 .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px;
-  display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.num { font-size: 0.85rem; font-weight: 700; color: var(--text-2); letter-spacing: 0.02em; }
-.title { font-weight: 700; font-size: 1.05rem; overflow-wrap: anywhere; }
-.company { overflow-wrap: anywhere; }
-.detail { color: var(--text-2); font-size: 0.92rem; overflow-wrap: anywhere; }
-.row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
+  display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.next .cards { grid-template-columns: 1fr; }
+.next .card { padding: 14px 18px; }
+.next .card h3 { font-size: 1.3rem; }
+.card h3 { font-size: 1.05rem; line-height: 1.3; margin: 0; overflow-wrap: anywhere; }
+.num { display: block; font-size: 0.85rem; color: var(--text-2); }
+.card p { margin: 0; overflow-wrap: anywhere; }
+.detail { color: var(--text-2); font-size: 0.92rem; }
+.acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; padding-top: 6px; }
+.meta { font-size: 0.9rem; color: var(--text-2); margin-left: auto; }
+.card .meta { margin: 0 0 0 auto; padding-left: 6px; }
+.rows { list-style: none; margin: 0; padding: 0; }
+.rows li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px;
+  padding: 8px 0; border-bottom: 1px solid var(--line); }
+.rows li:first-child { border-top: 1px solid var(--line); }
+.rows .what { min-width: 0; flex: 1 1 18rem; overflow-wrap: anywhere; }
+.rows .what b { font-weight: 700; }
+.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.more { margin-top: 10px; }
+.later { font-size: 0.92rem; color: var(--text-2); }
+.says { color: var(--text-2); margin: 10px 0 0; }
+.says q { color: var(--text); font-weight: 700; }
 button { font: inherit; font-size: 0.92rem; font-weight: 700; cursor: pointer; border-radius: 6px; padding: 5px 12px;
-  border: 1px solid var(--line); background: var(--card); color: var(--text); text-align: left; }
-button:hover { border-color: var(--text); }
+  border: 1px solid var(--text-2); background: transparent; color: var(--text); text-align: center; }
+button:hover { background: var(--tint); }
 button.go { background: var(--mark); color: var(--mark-text); border-color: var(--mark); }
 button.go:hover { background: var(--mark-2); border-color: var(--mark-2); }
+button.quiet { border-color: var(--line); color: var(--text-2); font-weight: 400; }
+button.link { border: 0; border-radius: 2px; padding: 0; background: none; font-weight: 400; color: var(--text);
+  text-decoration: underline; text-underline-offset: 2px; }
+button.link:hover { background: none; text-decoration-thickness: 2px; }
 button[disabled] { cursor: progress; opacity: 0.75; }
 button:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
 body.vscode-high-contrast button.go { border-color: var(--line); }
-.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
-.list li { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
-.more { margin-top: 12px; }
-.note.guides { margin: 12px 0 8px; }
-.says { color: var(--text-2); margin: 0; padding-left: 1.2em; }
-.says q { color: var(--text); font-weight: 700; }
 #status { position: sticky; bottom: 0; margin: 16px 0 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--text);
   background: var(--card); color: var(--text); font-weight: 700; }
 #status:empty { display: none; }
@@ -297,44 +352,68 @@ window.addEventListener("message", (e) => {
 
 function render(m, { mode, nonce, ai = null }) {
   const h = escapeHtml;
-  const btn = (text, action, go = false, title = "", busy = "") =>
-    `<button type="button" data-a="${action}"${busy ? ` data-busy="${h(busy)}"` : ""}${go ? ' class="go"' : ""}`
+  const btn = (text, action, cls = "", title = "", busy = "") =>
+    `<button type="button" data-a="${action}"${busy ? ` data-busy="${h(busy)}"` : ""}${cls ? ` class="${cls}"` : ""}`
     + `${title ? ` title="${h(title)}"` : ""}>${h(text)}</button>`;
-  const say = (b, go) => btn(sayText(b, mode), b.action, go, sayTitle(b, mode), busyLabel(ai));
-  const card = (c) => {
-    const buttons = [
-      ...c.say.map((b, i) => say(b, i === 0)),
-      c.posting ? btn("Open the posting", c.posting.action) : "",
-      c.resume ? btn("Open resume", c.resume.action) : "",
-      c.folder ? btn("Open folder", c.folder.action) : "",
-    ].join("");
-    return `<article class="card"><div class="num">Job ${c.num}</div><div class="title">${h(c.title)}</div>`
-      + (c.company ? `<div class="company">${h(c.company)}</div>` : "")
-      + (c.detail ? `<div class="detail">${h(c.detail)}</div>` : "")
-      + `<div class="row">${buttons}</div></article>`;
+  // one yellow per card: its first say; status changes outline, closing quieter still
+  const say = (b, go) => btn(sayText(b, mode), b.action, go ? "go" : QUIET.has(b.id) ? "quiet" : "", sayTitle(b, mode), busyLabel(ai));
+  const acts = (c) => c.say.map((b, i) => say(b, i === 0)).join("");
+  // posting, resume, folder: places to look, not things to do => ink links on one line
+  const meta = (c) => {
+    const links = [c.posting && btn("Posting", c.posting.action, "link"), c.resume && btn("Resume", c.resume.action, "link"),
+      c.folder && btn("Folder", c.folder.action, "link")].filter(Boolean);
+    return links.length ? `<span class="meta">${links.join(" · ")}</span>` : "";
   };
-  const line = (x) => `<li><span>${h(x.text)}</span>${x.say ? say(x.say, true) : ""}</li>`;
-  const sections = m.sections.map((s) => `<section class="panel" aria-labelledby="s-${h(s.id)}">`
-    + `<h2 id="s-${h(s.id)}">${h(s.title)}</h2>${s.note ? `<p class="note">${h(s.note)}</p>` : ""}`
-    + `<div class="cards">${s.cards.map(card).join("")}</div>`
-    + (s.more ? `<ul class="list more">${line(s.more)}</ul>` : "")
-    + "</section>").join("");
-  const tiles = m.tiles.length
-    ? `<div class="tiles">${m.tiles.map((t) => `<div class="tile"><b>${t.value}</b><span>${h(t.label)}</span></div>`).join("")}</div>`
+  const card = (c) => `<article class="card"><h3><span class="num">Job ${c.num}</span>${h(c.title)}</h3>`
+    + (c.company ? `<p>${h(c.company)}</p>` : "") + (c.detail ? `<p class="detail">${h(c.detail)}</p>` : "")
+    + `<div class="acts">${acts(c)}${meta(c)}</div></article>`;
+  // one line a job: number, title, company, detail + its buttons
+  const row = (c, links) => `<li><span class="what"><b>Job ${c.num}</b> - ${h(c.title)}${c.company ? `, ${h(c.company)}` : ""}`
+    + `${c.detail ? ` <span class="detail">- ${h(c.detail)}</span>` : ""}</span><span class="acts">${acts(c)}`
+    + `${links ? meta(c) : ""}</span></li>`;
+  const line = (x, go) => `<li><span>${h(x.text)}</span>${x.say ? say(x.say, go) : ""}</li>`;
+  const tile = (id) => m.tiles.find((t) => t.section === id);
+  const section = (s) => {
+    const rows = s.id === "new" || s.cards.length > ROWS_AFTER;
+    const shown = s.id === "new" ? s.cards.slice(0, NEW_SHOWN) : s.cards;
+    let more = s.more;
+    if (more && s.id === "new") {
+      const total = tile("new") ? tile("new").value : s.cards.length;
+      const left = total - shown.length - (m.next && m.next.section === "new" ? 1 : 0);
+      more = left > 0 ? { ...more, text: `${left} more new ${left === 1 ? "job" : "jobs"}.` } : null;
+    }
+    return `<section aria-labelledby="s-${h(s.id)}"><h2 id="s-${h(s.id)}">${h(s.title)}</h2>`
+      + (s.note ? `<p class="note">${h(s.note)}</p>` : "")
+      + (rows ? `<ul class="rows">${shown.map((c) => row(c, s.id !== "new")).join("")}</ul>`
+        : `<div class="cards">${shown.map(card).join("")}</div>`)
+      + (more ? `<ul class="list more">${line(more, false)}</ul>` : "") + "</section>";
+  };
+  const next = m.next
+    ? `<section class="next" aria-labelledby="s-next"><h2 id="s-next">Next up</h2>`
+      + (m.next.card ? `<div class="cards">${card(m.next.card)}</div>`
+        : `<ul class="list">${line(m.next.todo, true)}</ul>`) + "</section>"
     : "";
-  const todo = m.todo.length
-    ? `<section class="panel"><h2>Not finished</h2><ul class="list">${m.todo.map(line).join("")}</ul></section>` : "";
-  const empty = m.empty ? `<section class="panel"><ul class="list">${line(m.empty)}</ul></section>` : "";
+  const tiles = m.tiles.length
+    ? `<ul class="figures">${m.tiles.map((t) => `<li><b>${t.value}</b><span>${h(t.label)}</span></li>`).join("")}</ul>` : "";
+  const blocking = m.todo.filter((t) => t.blocks);
+  const later = m.todo.filter((t) => !t.blocks);
+  const setup = blocking.length
+    ? `<section><h2>Finish setting up</h2><ul class="list">${blocking.map((t) => line(t, true)).join("")}</ul></section>` : "";
+  const todo = later.length
+    ? `<section class="later"><h2>Not finished</h2><ul class="list">${later.map((t) => line(t, false)).join("")}</ul></section>` : "";
+  const empty = m.empty ? `<section><ul class="list">${line(m.empty, true)}</ul></section>` : "";
+  const asks = m.asks.length ? `<div class="acts">${m.asks.map((b) => say(b, false)).join("")}</div>` : "";
   const examples = m.examples.length
-    ? `<ul class="says">${m.examples.map((ex) => `<li>${ex.map((w) => `<q>${h(w)}</q>`).join(" / ")}</li>`).join("")}</ul>` : "";
-  const guides = m.guides.length ? `<div class="row">${m.guides.map((g) => btn(g.title, g.open.action)).join("")}</div>` : "";
+    ? `<p class="says">For example: ${m.examples.map((ex) => ex.map((w) => `<q>${h(w)}</q>`).join(" or ")).join(" · ")}</p>` : "";
+  const guides = m.guides.length
+    ? `<p class="says">Guides: ${m.guides.map((g) => btn(g.title, g.open.action, "link")).join(" · ")}</p>` : "";
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${csp(nonce)}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Today</title><style nonce="${nonce}">${CSS}</style></head>
-<body><main><h1>Today</h1><p class="sub">${h(m.date)}.</p><p class="how">${h(howLine(mode))}</p>
-${tiles}${sections}${todo}${empty}
-<section class="panel"><h2>What you can say</h2>${examples}<p class="note guides">Guides:</p>${guides}</section>
+<body><main><h1>Today</h1><p class="sub">${h(m.date)}</p><p class="how">${h(howLine(mode))}</p>
+${next}${tiles}${setup}${m.sections.map(section).join("")}${todo}${empty}
+<section class="later"><h2>What you can say</h2>${asks}${examples}${guides}</section>
 <p id="status" role="status" aria-live="polite"></p></main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
 }
@@ -351,7 +430,7 @@ function fallback({ nonce }) {
 }
 
 module.exports = {
-  VIEW_TYPE, DATA, VERSION, OPENABLE, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
+  VIEW_TYPE, DATA, VERSION, OPENABLE, NEXT_ORDER, NEW_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, copiedLine, filledLine, newChatLine, SLOW_MS, busyLabel, startingLine, say,
   csp, render, fallback,

@@ -168,17 +168,19 @@ def progress(conn) -> str:
 
 
 def tiles(counts: dict[str, int], new: int) -> list[dict]:
-    """Dashboard's top row: progress + what's new only, never a count of what's left to do."""
-    shown = (("New since last check", new), ("Sent so far", counts["sent"]),
-             ("Interviews", counts["interview"]), ("Offers", counts["offer"]))
-    return [{"label": label, "value": n} for label, n in shown if n]
+    """Dashboard's top row: progress + what's new only, never a count of what's left to do.
+    section = the section it tells about (dashboard orders tiles like its sections)."""
+    shown = (("New since last check", new, "new"), ("Sent so far", counts["sent"], None),
+             ("Interviews", counts["interview"], "interviews"), ("Offers", counts["offer"], None))
+    return [{"label": label, "value": n, "section": sec} for label, n, sec in shown if n]
 
 
 def waiting_section(conn, now: str, dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT) -> dict | None:
     rows = status.waiting(conn, now)
     if not rows:
         return None
-    cards = [card(r, f"Resume made {days_ago(r['state_at'], now)}", [words("apply", r["num"]), words("sent", r["num"])],
+    # no age: "made 8 days ago" reads as overdue (critique 2026-10-04); Follow up keeps its days
+    cards = [card(r, "Ready to send", [words("apply", r["num"]), words("sent", r["num"])],
                   dirs, root, tail=" if you already did")
              for r in status.numbered(conn, rows[:WAITING_MAX])]
     more = {"text": "More in the chat.", "say": words("more_waiting")} if len(rows) > WAITING_MAX else None
@@ -341,16 +343,15 @@ def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) ->
     now_iso = now.astimezone(timezone.utc).strftime(store.ISO)
     status.backfill(conn, jobs_dir)
 
-    def jobs(rows: list[dict], when: str = "") -> str:
-        return "; ".join(f"Job {r['num']} - {name(r)}" + (f", {when} {days_ago(r['state_at'], now_iso)}" if when else "")
-                         for r in rows)
+    def jobs(rows: list[dict]) -> str:
+        return "; ".join(f"Job {r['num']} - {name(r)}" for r in rows)
 
     out = ["Job Finder today (same as their Today page). If the user only greets you or asks what's next,"
            " answer with this in plain words, each job written"
            " \"**Job 12** - title, company\", never a 1. 2. 3. list; otherwise use it only when it helps."
            " Never say how many resumes are unsent."]
     if rows := status.waiting(conn, now_iso)[:BRIEF_MAX]:
-        out.append(f"- Waiting on you (resume made, not sent): {jobs(status.numbered(conn, rows), 'resume made')}")
+        out.append(f"- Waiting on you (resume made, not sent): {jobs(status.numbered(conn, rows))}")
     if rows := follow_up_rows(conn, now_iso, config["follow_up"])[:BRIEF_MAX]:
         quiet = "; ".join(f"Job {r['num']} - {name(r)}, " + (f"followed up {days_ago(r['chased'], now_iso)}" if r["chased"]
                           else f"{STAGE_WORDS[r['state']].lower()} {days_ago(r['state_at'], now_iso)}")
