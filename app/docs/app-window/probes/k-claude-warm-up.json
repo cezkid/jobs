@@ -1,0 +1,2020 @@
+{
+ "what": "plan-ejf.1.21: Claude warm-up. Times in ms from window launch (code CLI call) unless named press*.",
+ "vscode": "1.140.0",
+ "extensions": [
+  "Anthropic.claude-code@2.1.289",
+  "cez-job-finder.window@0.5.0"
+ ],
+ "at": "2026-10-03",
+ "runs": [
+  {
+   "run": "k-hidden-0-first-off",
+   "warm": "off",
+   "settleMs": 6000,
+   "claudeActive": {
+    "launchToOursMs": 7553,
+    "atOurActivation": true,
+    "launchToActiveMs": 7605,
+    "launchToPageMs": 7908
+   },
+   "warmUp": null,
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 6984,
+    "launchToViewInitMs": [
+     14779
+    ],
+    "launchToChatLaunchMs": [
+     25999,
+     26038
+    ],
+    "pressToNewChatLaunchMs": 12081
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 34
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 0
+     },
+     {
+      "on": false,
+      "ms": 34
+     }
+    ],
+    "pressToReadyMs": 34,
+    "pressedLaunchMs": 13918,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-hidden-1-activate",
+   "warm": "activate",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6875,
+    "atOurActivation": true,
+    "launchToActiveMs": 6926,
+    "launchToPageMs": 7455
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "activate",
+    "launchToStartMs": 7455,
+    "launchToActiveMs": 7455,
+    "launchToViewMs": null
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 6132,
+    "launchToViewInitMs": [
+     11228
+    ],
+    "launchToChatLaunchMs": [
+     11547,
+     11591
+    ],
+    "pressToNewChatLaunchMs": 1078
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 37
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 0
+     },
+     {
+      "on": false,
+      "ms": 37
+     }
+    ],
+    "pressToReadyMs": 37,
+    "pressedLaunchMs": 10469,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-hidden-1-off",
+   "warm": "off",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6298,
+    "atOurActivation": true,
+    "launchToActiveMs": 6350,
+    "launchToPageMs": 6761
+   },
+   "warmUp": null,
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5809,
+    "launchToViewInitMs": [
+     10905
+    ],
+    "launchToChatLaunchMs": [
+     11276,
+     11320
+    ],
+    "pressToNewChatLaunchMs": 1505
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 42
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 42
+     }
+    ],
+    "pressToReadyMs": 42,
+    "pressedLaunchMs": 9771,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-hidden-1-view",
+   "warm": "view",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6433,
+    "atOurActivation": true,
+    "launchToActiveMs": 6487,
+    "launchToPageMs": 6983
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "view",
+    "launchToStartMs": 6981,
+    "launchToActiveMs": 6981,
+    "launchToViewMs": 7375
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5784,
+    "launchToViewInitMs": [
+     8638
+    ],
+    "launchToChatLaunchMs": [
+     9000,
+     10359
+    ],
+    "pressToNewChatLaunchMs": 104
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 86
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 86
+     }
+    ],
+    "pressToReadyMs": 86,
+    "pressedLaunchMs": 10255,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-hidden-2-activate",
+   "warm": "activate",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 7268,
+    "atOurActivation": true,
+    "launchToActiveMs": 7320,
+    "launchToPageMs": 7643
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "activate",
+    "launchToStartMs": 7643,
+    "launchToActiveMs": 7643,
+    "launchToViewMs": null
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 6489,
+    "launchToViewInitMs": [
+     11526
+    ],
+    "launchToChatLaunchMs": [
+     11959,
+     11999
+    ],
+    "pressToNewChatLaunchMs": 1306
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 36
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 36
+     }
+    ],
+    "pressToReadyMs": 36,
+    "pressedLaunchMs": 10653,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-hidden-2-off",
+   "warm": "off",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6504,
+    "atOurActivation": true,
+    "launchToActiveMs": 6556,
+    "launchToPageMs": 6950
+   },
+   "warmUp": null,
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5797,
+    "launchToViewInitMs": [
+     10891
+    ],
+    "launchToChatLaunchMs": [
+     11395,
+     11437
+    ],
+    "pressToNewChatLaunchMs": 1430
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 45
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 45
+     }
+    ],
+    "pressToReadyMs": 45,
+    "pressedLaunchMs": 9965,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-hidden-2-view",
+   "warm": "view",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 5728,
+    "atOurActivation": true,
+    "launchToActiveMs": 5780,
+    "launchToPageMs": 5978
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "view",
+    "launchToStartMs": 5977,
+    "launchToActiveMs": 5977,
+    "launchToViewMs": 6323
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5187,
+    "launchToViewInitMs": [
+     7151
+    ],
+    "launchToChatLaunchMs": [
+     7526,
+     8995
+    ],
+    "pressToNewChatLaunchMs": 7
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 3
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 3
+     }
+    ],
+    "pressToReadyMs": 3,
+    "pressedLaunchMs": 8988,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.21Xw/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-0-first-off",
+   "warm": "off",
+   "settleMs": 6000,
+   "claudeActive": {
+    "launchToOursMs": 8003,
+    "atOurActivation": true,
+    "launchToActiveMs": 8058,
+    "launchToPageMs": 8389
+   },
+   "warmUp": null,
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 7529,
+    "launchToViewInitMs": [
+     15314
+    ],
+    "launchToChatLaunchMs": [
+     26449
+    ],
+    "pressToNewChatLaunchMs": 12051
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 25
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 25
+     }
+    ],
+    "pressToReadyMs": 25,
+    "pressedLaunchMs": 14398,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-1-activate",
+   "warm": "activate",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6191,
+    "atOurActivation": true,
+    "launchToActiveMs": 6243,
+    "launchToPageMs": 6672
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "activate",
+    "launchToStartMs": 6672,
+    "launchToActiveMs": 6672,
+    "launchToViewMs": null
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5401,
+    "launchToViewInitMs": [
+     10455
+    ],
+    "launchToChatLaunchMs": [
+     10804,
+     10863
+    ],
+    "pressToNewChatLaunchMs": 1120
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 25
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 0
+     },
+     {
+      "on": false,
+      "ms": 25
+     }
+    ],
+    "pressToReadyMs": 26,
+    "pressedLaunchMs": 9684,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-1-off",
+   "warm": "off",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6971,
+    "atOurActivation": true,
+    "launchToActiveMs": 7025,
+    "launchToPageMs": 7324
+   },
+   "warmUp": null,
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 6456,
+    "launchToViewInitMs": [
+     11116
+    ],
+    "launchToChatLaunchMs": [
+     11465,
+     11505
+    ],
+    "pressToNewChatLaunchMs": 1130
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 26
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 26
+     }
+    ],
+    "pressToReadyMs": 26,
+    "pressedLaunchMs": 10335,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-1-view",
+   "warm": "view",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6296,
+    "atOurActivation": true,
+    "launchToActiveMs": 6350,
+    "launchToPageMs": 6783
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "view",
+    "launchToStartMs": 6783,
+    "launchToActiveMs": 6783,
+    "launchToViewMs": 7622
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5193,
+    "launchToViewInitMs": [
+     8512
+    ],
+    "launchToChatLaunchMs": [
+     8929,
+     10260
+    ],
+    "pressToNewChatLaunchMs": 113
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 94
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 94
+     }
+    ],
+    "pressToReadyMs": 94,
+    "pressedLaunchMs": 10147,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-2-activate",
+   "warm": "activate",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6267,
+    "atOurActivation": true,
+    "launchToActiveMs": 6318,
+    "launchToPageMs": 6578
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "activate",
+    "launchToStartMs": 6578,
+    "launchToActiveMs": 6578,
+    "launchToViewMs": null
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5730,
+    "launchToViewInitMs": [
+     10661
+    ],
+    "launchToChatLaunchMs": [
+     10977,
+     11021
+    ],
+    "pressToNewChatLaunchMs": 1388
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 31
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 31
+     }
+    ],
+    "pressToReadyMs": 31,
+    "pressedLaunchMs": 9589,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-2-off",
+   "warm": "off",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6921,
+    "atOurActivation": true,
+    "launchToActiveMs": 6974,
+    "launchToPageMs": 7637
+   },
+   "warmUp": null,
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5948,
+    "launchToViewInitMs": [
+     11391
+    ],
+    "launchToChatLaunchMs": [
+     11653,
+     11690
+    ],
+    "pressToNewChatLaunchMs": 1006
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 26
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 0
+     },
+     {
+      "on": false,
+      "ms": 26
+     }
+    ],
+    "pressToReadyMs": 27,
+    "pressedLaunchMs": 10647,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-2-view",
+   "warm": "view",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6117,
+    "atOurActivation": true,
+    "launchToActiveMs": 6168,
+    "launchToPageMs": 6444
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "view",
+    "launchToStartMs": 6444,
+    "launchToActiveMs": 6444,
+    "launchToViewMs": 7027
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5484,
+    "launchToViewInitMs": [
+     8237
+    ],
+    "launchToChatLaunchMs": [
+     8607,
+     9895
+    ],
+    "pressToNewChatLaunchMs": 131
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 106
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 0
+     },
+     {
+      "on": false,
+      "ms": 106
+     }
+    ],
+    "pressToReadyMs": 106,
+    "pressedLaunchMs": 9764,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.oW7B/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-0-first-plan",
+   "warm": "plan",
+   "settleMs": 6000,
+   "claudeActive": {
+    "launchToOursMs": 6984,
+    "atOurActivation": true,
+    "launchToActiveMs": 7036,
+    "launchToPageMs": 7334
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "plan",
+    "launchToStartMs": 7333,
+    "launchToActiveMs": 7333,
+    "launchToViewMs": 7590
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 6497,
+    "launchToViewInitMs": [
+     8497
+    ],
+    "launchToChatLaunchMs": [
+     19329,
+     19514
+    ],
+    "pressToNewChatLaunchMs": 162
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 135
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 135
+     }
+    ],
+    "pressToReadyMs": 136,
+    "pressedLaunchMs": 19352,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-1-activate",
+   "warm": "activate",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 7496,
+    "atOurActivation": true,
+    "launchToActiveMs": 7548,
+    "launchToPageMs": 8147
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "activate",
+    "launchToStartMs": 8147,
+    "launchToActiveMs": 8147,
+    "launchToViewMs": null
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 6737,
+    "launchToViewInitMs": [
+     12131
+    ],
+    "launchToChatLaunchMs": [
+     12600,
+     12645
+    ],
+    "pressToNewChatLaunchMs": 1443
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 29
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 29
+     }
+    ],
+    "pressToReadyMs": 29,
+    "pressedLaunchMs": 11157,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-1-off",
+   "warm": "off",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 8204,
+    "atOurActivation": true,
+    "launchToActiveMs": 8256,
+    "launchToPageMs": 8528
+   },
+   "warmUp": null,
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 7673,
+    "launchToViewInitMs": [
+     12270
+    ],
+    "launchToChatLaunchMs": [
+     12593,
+     12631
+    ],
+    "pressToNewChatLaunchMs": 1056
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 25
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 25
+     }
+    ],
+    "pressToReadyMs": 25,
+    "pressedLaunchMs": 11537,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-1-view",
+   "warm": "view",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 5424,
+    "atOurActivation": true,
+    "launchToActiveMs": 5474,
+    "launchToPageMs": 5667
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "view",
+    "launchToStartMs": 5666,
+    "launchToActiveMs": 5666,
+    "launchToViewMs": 5934
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 4915,
+    "launchToViewInitMs": [
+     6773
+    ],
+    "launchToChatLaunchMs": [
+     7113,
+     8684
+    ],
+    "pressToNewChatLaunchMs": 7
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 3
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 3
+     }
+    ],
+    "pressToReadyMs": 3,
+    "pressedLaunchMs": 8677,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-2-activate",
+   "warm": "activate",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 5457,
+    "atOurActivation": true,
+    "launchToActiveMs": 5509,
+    "launchToPageMs": 5768
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "activate",
+    "launchToStartMs": 5767,
+    "launchToActiveMs": 5767,
+    "launchToViewMs": null
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 4961,
+    "launchToViewInitMs": [
+     9492
+    ],
+    "launchToChatLaunchMs": [
+     9762,
+     9798
+    ],
+    "pressToNewChatLaunchMs": 985
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 25
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 0
+     },
+     {
+      "on": false,
+      "ms": 25
+     }
+    ],
+    "pressToReadyMs": 25,
+    "pressedLaunchMs": 8777,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-2-off",
+   "warm": "off",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 6562,
+    "atOurActivation": true,
+    "launchToActiveMs": 6614,
+    "launchToPageMs": 6994
+   },
+   "warmUp": null,
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5797,
+    "launchToViewInitMs": [
+     10866
+    ],
+    "launchToChatLaunchMs": [
+     11208,
+     11256
+    ],
+    "pressToNewChatLaunchMs": 1203
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 26
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 0
+     },
+     {
+      "on": false,
+      "ms": 26
+     }
+    ],
+    "pressToReadyMs": 26,
+    "pressedLaunchMs": 10005,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  },
+  {
+   "run": "k-visible-2-view",
+   "warm": "view",
+   "settleMs": 3000,
+   "claudeActive": {
+    "launchToOursMs": 5651,
+    "atOurActivation": true,
+    "launchToActiveMs": 5702,
+    "launchToPageMs": 5921
+   },
+   "warmUp": {
+    "id": "anthropic.claude-code",
+    "how": "view",
+    "launchToStartMs": 5920,
+    "launchToActiveMs": 5920,
+    "launchToViewMs": 6260
+   },
+   "claudeLog": {
+    "activationEvent": "onStartupFinished",
+    "launchToActiveMs": 5170,
+    "launchToViewInitMs": [
+     7083
+    ],
+    "launchToChatLaunchMs": [
+     7554,
+     8938
+    ],
+    "pressToNewChatLaunchMs": 7
+   },
+   "tabsAfterWarmUp": [
+    {
+     "viewColumn": 1,
+     "isActive": true,
+     "tabs": [
+      {
+       "label": "Today.md",
+       "isActive": true,
+       "type": "custom",
+       "viewType": "cezJobFinder.today",
+       "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+      }
+     ]
+    }
+   ],
+   "say": {
+    "words": "apply to job 1",
+    "mode": "new",
+    "status": [
+     {
+      "text": "New chat ready - press Enter",
+      "ms": 3
+     }
+    ],
+    "busy": [
+     {
+      "on": true,
+      "ms": 1
+     },
+     {
+      "on": false,
+      "ms": 3
+     }
+    ],
+    "pressToReadyMs": 3,
+    "pressedLaunchMs": 8931,
+    "claudeActiveBefore": true,
+    "tabsBefore": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ],
+    "tabsAfter": [
+     {
+      "viewColumn": 1,
+      "isActive": true,
+      "tabs": [
+       {
+        "label": "Today.md",
+        "isActive": true,
+        "type": "custom",
+        "viewType": "cezJobFinder.today",
+        "uri": "file:///tmp/jfv.dVop/folder/Today.md"
+       }
+      ]
+     }
+    ]
+   }
+  }
+ ]
+}

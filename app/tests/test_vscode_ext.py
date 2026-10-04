@@ -83,7 +83,7 @@ def test_extension_probe_runs_only_when_a_measurement_asks():
     # only the dashboard's registration runs before it: every probe step after the return
     assert body.lstrip().startswith("context.subscriptions.push(vscode.window.registerCustomEditorProvider(today.VIEW_TYPE")
     assert "const out = process.env[PROBE_ENV];" in body
-    assert body.index("if (!out) return;") < body.index("PROBE_EDITOR_ENV") < body.index("probe(context, out)")
+    assert body.index("if (!out) return;") < body.index("PROBE_EDITOR_ENV") < body.index("probe(context, out, opened, warmed)")
     assert body.count("probe(") == 1
 
 

@@ -170,6 +170,50 @@ function newChatLine() {
   return "New chat ready - press Enter";
 }
 
+// a cold window: Claude starts on the first click (seconds) => the button says so at once, the
+// status line once it's slower than SLOW_MS (owner 2026-10-03: "takes long time to load")
+const SLOW_MS = 400;
+
+function busyLabel(ai) {
+  return ai === "claude" ? "Starting Claude\u2026" : "Opening the chat\u2026";
+}
+
+function startingLine(ai) {
+  return `${ai === "claude" ? "Starting Claude" : "Opening the chat"} - the first time takes a few seconds`;
+}
+
+// one say button press: words into the chat, never sent; returns the mode that ran.
+// exec(command, ...args) + copy(text) = vscode calls; busy(on) + status(text) = page feedback.
+// busy at once; starting line if still waiting after SLOW_MS; then ready line, or copy fallback
+async function say({ ai, mode, words, platform, exec, copy, status, busy, wait = setTimeout, clear = clearTimeout }) {
+  busy(true);
+  const slow = wait(() => status(startingLine(ai)), SLOW_MS);
+  try {
+    if (mode === "fill") {
+      try {
+        // fills the box, never sends: isPartialQuery
+        await exec("workbench.action.chat.open", { query: words, isPartialQuery: true });
+        status(filledLine());
+        return mode;
+      } catch {}
+    }
+    if (mode === "new") {
+      try {
+        await exec(CLAUDE_NEW_CHAT, ...claudeNewChatArgs(words));
+        status(newChatLine());
+        return mode;
+      } catch {}
+    }
+    await copy(words);
+    if (CHAT_OPEN[ai]) await Promise.resolve().then(() => exec(CHAT_OPEN[ai])).catch(() => {});
+    status(copiedLine(platform));
+    return "copy";
+  } finally {
+    clear(slow);
+    busy(false);
+  }
+}
+
 // colors = app/window/brand.py tokens (test checks every hex); yellow only on buttons
 const CSS = `
 body.vscode-light { --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8; --card: #ffffff; --tint: #f3f3f1;
@@ -206,6 +250,7 @@ button { font: inherit; font-size: 0.92rem; font-weight: 700; cursor: pointer; b
 button:hover { border-color: var(--text); }
 button.go { background: var(--mark); color: var(--mark-text); border-color: var(--mark); }
 button.go:hover { background: var(--mark-2); border-color: var(--mark-2); }
+button[disabled] { cursor: progress; opacity: 0.75; }
 button:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
 body.vscode-high-contrast button.go { border-color: var(--line); }
 .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
@@ -228,18 +273,34 @@ const SCRIPT = `
 const vscode = acquireVsCodeApi();
 document.addEventListener("click", (e) => {
   const b = e.target.closest("button[data-a]");
-  if (b) vscode.postMessage({ action: Number(b.dataset.a) });
+  if (!b || b.disabled) return;
+  // say button: busy at once, before the chat answers (first one can take seconds)
+  if (b.dataset.busy) {
+    b.dataset.text = b.textContent;
+    b.textContent = b.dataset.busy;
+    b.disabled = true;
+    b.setAttribute("aria-busy", "true");
+  }
+  vscode.postMessage({ action: Number(b.dataset.a) });
 });
 window.addEventListener("message", (e) => {
   if (e.data && e.data.type === "status") document.getElementById("status").textContent = String(e.data.text);
+  if (e.data && e.data.type === "busy" && !e.data.on) {
+    for (const b of document.querySelectorAll("button[aria-busy]")) {
+      b.textContent = b.dataset.text;
+      b.disabled = false;
+      b.removeAttribute("aria-busy");
+    }
+  }
 });
 `;
 
-function render(m, { mode, nonce }) {
+function render(m, { mode, nonce, ai = null }) {
   const h = escapeHtml;
-  const btn = (text, action, go = false, title = "") =>
-    `<button type="button" data-a="${action}"${go ? ' class="go"' : ""}${title ? ` title="${h(title)}"` : ""}>${h(text)}</button>`;
-  const say = (b, go) => btn(sayText(b, mode), b.action, go, sayTitle(b, mode));
+  const btn = (text, action, go = false, title = "", busy = "") =>
+    `<button type="button" data-a="${action}"${busy ? ` data-busy="${h(busy)}"` : ""}${go ? ' class="go"' : ""}`
+    + `${title ? ` title="${h(title)}"` : ""}>${h(text)}</button>`;
+  const say = (b, go) => btn(sayText(b, mode), b.action, go, sayTitle(b, mode), busyLabel(ai));
   const card = (c) => {
     const buttons = [
       ...c.say.map((b, i) => say(b, i === 0)),
@@ -292,6 +353,6 @@ function fallback({ nonce }) {
 module.exports = {
   VIEW_TYPE, DATA, VERSION, OPENABLE, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
-  howLine, copiedLine, filledLine, newChatLine,
+  howLine, copiedLine, filledLine, newChatLine, SLOW_MS, busyLabel, startingLine, say,
   csp, render, fallback,
 };

@@ -155,3 +155,80 @@ test("cards without a job number are dropped", () => {
   raw.sections[0].cards.push({ title: "No number", say: ["find new jobs"] }, { num: "3", title: "Text number" });
   assert.deepEqual(today.model(raw, say).sections[0].cards.map((c) => c.num), [12]);
 });
+
+// fake clock + chat: what the page shows, in order, while one button press runs
+function pressed({ ai = "claude", mode = "new", fail = false, ms = 0 } = {}) {
+  const seen = [];
+  const timers = [];
+  let resolve, reject;
+  const done = today.say({
+    ai, mode, words: "apply to job 12", platform: "darwin",
+    exec: (command, ...args) => {
+      seen.push(["exec", command]);
+      if (command !== today.CLAUDE_NEW_CHAT && command !== "workbench.action.chat.open") return Promise.resolve();
+      return new Promise((ok, no) => { resolve = ok; reject = no; });
+    },
+    copy: async (text) => seen.push(["copy", text]),
+    status: (text) => seen.push(["status", text]),
+    busy: (on) => seen.push(["busy", on]),
+    wait: (fn, delay) => timers.push({ fn, delay, live: true }) - 1,
+    clear: (i) => { timers[i].live = false; },
+  });
+  // the clock moves ms before the chat answers
+  for (const t of timers) if (t.live && t.delay <= ms) { t.live = false; t.fn(); }
+  if (fail) reject(new Error("no Claude")); else resolve();
+  return done.then((mode) => ({ mode, seen, timers }));
+}
+
+// a click with nothing on screen for seconds reads as broken (owner 2026-10-03): busy at once
+test("button busy the moment it's pressed, labelled for the AI", () => {
+  assert.equal(today.busyLabel("claude"), "Starting Claude…");
+  assert.equal(today.busyLabel("copilot"), "Opening the chat…");
+  const page = html(today.model(RAW, say), "new").replace(/^[\s\S]*<body>/, "");
+  assert.match(page, /data-busy="Opening the chat…" class="go"[^>]*>Apply</);
+  const claude = today.render(today.model(RAW, say), { mode: "new", ai: "claude", nonce: "n" });
+  assert.match(claude, /data-a="0" data-busy="Starting Claude…"/);
+  // open buttons don't wait on the chat => never busy
+  assert.doesNotMatch(claude, /data-busy="[^"]*"[^>]*>Open the posting</);
+  assert.equal(today.SLOW_MS, 400);
+});
+
+// a cold Claude takes seconds: the status line says why past 400 ms, then the ready line
+test("slow start: starting line after 400 ms, then ready, busy off", async () => {
+  const { mode, seen, timers } = await pressed({ ms: 2500 });
+  assert.equal(mode, "new");
+  assert.deepEqual(timers.map((t) => t.delay), [today.SLOW_MS]);
+  assert.deepEqual(seen, [
+    ["busy", true], ["exec", today.CLAUDE_NEW_CHAT],
+    ["status", "Starting Claude - the first time takes a few seconds"],
+    ["status", "New chat ready - press Enter"], ["busy", false],
+  ]);
+});
+
+// a warm Claude answers at once: no "first time takes a few seconds" flash
+test("fast answer: no starting line, timer cleared", async () => {
+  const { seen, timers } = await pressed({ ms: 100 });
+  assert.deepEqual(seen.filter(([k]) => k === "status"), [["status", "New chat ready - press Enter"]]);
+  assert.equal(timers[0].live, false);
+  assert.deepEqual(seen.at(-1), ["busy", false]);
+});
+
+// Claude failing to start must still get the words to the user: copy + open its chat
+test("chat fails: words copied, chat opened, copy line, busy off", async () => {
+  const { mode, seen } = await pressed({ ms: 600, fail: true });
+  assert.equal(mode, "copy");
+  assert.deepEqual(seen, [
+    ["busy", true], ["exec", today.CLAUDE_NEW_CHAT],
+    ["status", "Starting Claude - the first time takes a few seconds"],
+    ["copy", "apply to job 12"], ["exec", "claude-vscode.sidebar.open"],
+    ["status", "Copied - click the chat box, paste (Cmd+V), press Enter."], ["busy", false],
+  ]);
+});
+
+// Copilot: same feedback around its own fill
+test("Copilot fill: busy, filled line, busy off", async () => {
+  const { mode, seen } = await pressed({ ai: "copilot", mode: "fill", ms: 0 });
+  assert.equal(mode, "fill");
+  assert.deepEqual(seen.map(([k, v]) => (k === "status" ? v : k)),
+    ["busy", "exec", "The words are in the chat box - press Enter to send them.", "busy"]);
+});

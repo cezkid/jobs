@@ -24,6 +24,10 @@ const PROBE_SETTLE_ENV = "JOBS_VSCODE_PROBE_SETTLE_MS";
 const PROBE_EDITOR_ENV = "JOBS_VSCODE_PROBE_EDITOR";
 // probe only: words a Today say button carries; run through the button's own path after settle
 const PROBE_SAY_ENV = "JOBS_VSCODE_PROBE_SAY";
+// probe only: warm-up as measured: off | activate | view (default = the shipped plan)
+const PROBE_WARM_ENV = "JOBS_VSCODE_PROBE_WARM";
+// probe only: epoch ms the window was launched, so times read from window start
+const PROBE_T0_ENV = "JOBS_VSCODE_PROBE_T0";
 const PROBE_COMMANDS = [/^claude-vscode\./, /^chatgpt\./, /^workbench\.action\.chat\./, /outline/i, /timeline/i, /^vscode\.moveViews$/, /^markdown\.showPreview/];
 const PROBE_SETTINGS = [
   "workbench.colorTheme", "window.autoDetectColorScheme", "workbench.startupEditor",
@@ -38,6 +42,7 @@ function activate(context) {
   const out = process.env[PROBE_ENV];
   // probe told which pages to open => measures that alone, not the start page
   const opened = out && process.env[PROBE_OPEN_ENV] ? Promise.resolve() : openStartPage().catch(() => {});
+  const warmed = opened.then((root) => (root ? warmUp(root) : null)).catch(() => null);
   if (!out) return;
   const editor = process.env[PROBE_EDITOR_ENV];
   if (editor) {
@@ -47,7 +52,7 @@ function activate(context) {
       },
     }));
   }
-  opened.then(() => probe(context, out));
+  probe(context, out, opened, warmed);
 }
 
 function deactivate() {}
@@ -77,6 +82,33 @@ async function openStartPage() {
     refreshToday(root);  // not awaited: the page shows now, its preview redraws once rewritten
   }
   await showPage(vscode.Uri.file(at(page)), page === start.TODAY);
+  return root;
+}
+
+// start the user's chat extension in the background, never a tab, never focus off the page
+async function warmUp(root) {
+  const ai = currentAi(root);
+  const plan = start.warmUpPlan(ai);
+  const how = process.env[PROBE_ENV] ? process.env[PROBE_WARM_ENV] : null;
+  if (!plan || how === "off") return null;
+  const ext = vscode.extensions.getExtension(plan.id);
+  if (!ext) return null;
+  const seen = { id: plan.id, how: how || "plan", startAt: Date.now() };
+  try {
+    if (!ext.isActive) await ext.activate();
+  } catch {
+    return seen;  // Restricted Mode or a broken install: the button's own path still works
+  }
+  seen.activeAt = Date.now();
+  if (how === "view" || (how !== "activate" && plan.view)) {
+    try {
+      await vscode.commands.executeCommand(today.CHAT_OPEN[ai]);
+      // its view takes focus => back to the page the user is reading
+      await vscode.commands.executeCommand("workbench.action.focusActiveEditorGroup");
+    } catch {}
+    seen.viewAt = Date.now();
+  }
+  return seen;
 }
 
 function tabSeen(tab) {
@@ -124,7 +156,7 @@ function showToday(document, panel) {
       if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
       if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
     }
-    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), nonce }) : today.fallback({ nonce });
+    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai: currentAi(root), nonce }) : today.fallback({ nonce });
   };
   draw();
   const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), start.TODAY));
@@ -173,7 +205,13 @@ async function act(root, at, page, m, msg, panel) {
   }
   if (action.type === "say") {
     if (!today.templateFor(action.words, today.templates(say))) return;
-    return sayWords(root, action.words, (text) => tell(panel, text));
+    if (saying) return;  // one at a time: a 2nd click would open a 2nd new chat
+    saying = true;
+    try {
+      return await sayWords(root, action.words, (text) => tell(panel, text), (on) => panel.webview.postMessage({ type: "busy", on }));
+    } finally {
+      saying = false;
+    }
   }
 }
 
@@ -190,30 +228,17 @@ function sayModeNow(root) {
   return today.sayMode(currentAi(root), claudeSeen());
 }
 
-// words into the chat, never sent; returns the mode that ran (probe reads it)
-async function sayWords(root, words, status) {
-  const ai = currentAi(root);
-  const mode = sayModeNow(root);
-  if (mode === "fill") {
-    try {
-      // fills the box, never sends: isPartialQuery
-      await vscode.commands.executeCommand("workbench.action.chat.open", { query: words, isPartialQuery: true });
-      status(today.filledLine());
-      return mode;
-    } catch {}
-  }
-  if (mode === "new") {
-    try {
-      await vscode.commands.executeCommand(today.CLAUDE_NEW_CHAT, ...today.claudeNewChatArgs(words));
-      status(today.newChatLine());
-      vscode.window.setStatusBarMessage(today.newChatLine(), 8000);
-      return mode;
-    } catch {}
-  }
-  await vscode.env.clipboard.writeText(words);
-  if (today.CHAT_OPEN[ai]) await Promise.resolve(vscode.commands.executeCommand(today.CHAT_OPEN[ai])).catch(() => {});
-  status(today.copiedLine(process.platform));
-  return "copy";
+let saying = false;
+
+// words into the chat, never sent (today.say); returns the mode that ran (probe reads it)
+async function sayWords(root, words, status, busy = () => {}) {
+  const mode = await today.say({
+    ai: currentAi(root), mode: sayModeNow(root), words, platform: process.platform, status, busy,
+    exec: (command, ...args) => vscode.commands.executeCommand(command, ...args),
+    copy: (text) => vscode.env.clipboard.writeText(text),
+  });
+  if (mode === "new") vscode.window.setStatusBarMessage(today.newChatLine(), 8000);
+  return mode;
 }
 
 function refreshToday(root) {
@@ -249,9 +274,19 @@ function readWindow() {
   }));
 }
 
-async function probe(context, out) {
+async function probe(context, out, opened, warmed) {
   const started = Date.now();
-  const report = { vscode: vscode.version, at: new Date().toISOString(), activatedMs: Math.round(process.uptime() * 1000) };
+  const t0 = Number(process.env[PROBE_T0_ENV]) || null;
+  const since = (at) => (t0 && at ? at - t0 : null);
+  const report = { vscode: vscode.version, at: new Date().toISOString(), activatedMs: Math.round(process.uptime() * 1000), t0 };
+  // when the chat extension turns active, from window launch (t0) - with or w/o our warm-up
+  const watched = vscode.extensions.getExtension(today.CLAUDE_ID);
+  report.claudeActive = { launchToOursMs: since(started), atOurActivation: Boolean(watched && watched.isActive) };
+  const poll = setInterval(() => {
+    if (watched && watched.isActive && report.claudeActive.launchToActiveMs == null) report.claudeActive.launchToActiveMs = since(Date.now());
+  }, 50);
+  await opened;
+  report.claudeActive.launchToPageMs = since(Date.now());
   report.tabsAtActivation = readWindow();
   const pages = (process.env[PROBE_OPEN_ENV] || "").split("|").filter(Boolean);
   if (pages.length) {
@@ -273,6 +308,11 @@ async function probe(context, out) {
   const settle = Number(process.env[PROBE_SETTLE_ENV] || 6000);
   await new Promise((done) => setTimeout(done, settle));
   report.settleMs = settle;
+  clearInterval(poll);
+  const warm = await Promise.race([warmed, new Promise((done) => setTimeout(() => done("pending"), 1))]);
+  report.warm = warm && typeof warm === "object"
+    ? { id: warm.id, how: warm.how, launchToStartMs: since(warm.startAt), launchToActiveMs: since(warm.activeAt), launchToViewMs: since(warm.viewAt) }
+    : warm;
   report.tabs = readWindow();
   report.theme = { kind: vscode.window.activeColorTheme.kind, name: vscode.workspace.getConfiguration("workbench").get("colorTheme") };
   report.folders = (vscode.workspace.workspaceFolders || []).map((f) => f.uri.toString());
@@ -293,7 +333,13 @@ async function probe(context, out) {
     const root = folder.uri.fsPath;
     report.say = { words, ai: currentAi(root), claude: claudeSeen(), status: [] };
     report.say.tabsBefore = readWindow();
-    report.say.mode = await sayWords(root, words, (text) => report.say.status.push(text));
+    report.say.claudeActiveBefore = Boolean(watched && watched.isActive);
+    const pressed = Date.now();
+    report.say.busy = [];
+    report.say.mode = await sayWords(root, words, (text) => report.say.status.push({ text, ms: Date.now() - pressed }),
+      (on) => report.say.busy.push({ on, ms: Date.now() - pressed }));
+    report.say.pressToReadyMs = Date.now() - pressed;
+    report.say.pressedLaunchMs = since(pressed);
     await new Promise((done) => setTimeout(done, 4000));
     report.say.tabsAfter = readWindow();
   }

@@ -85,3 +85,10 @@ test("plain-text tabs of the page are picked out to close", () => {
   assert.deepEqual(seen.text, [tabs[0]]);
   assert.equal(seen.formatted, null);
 });
+
+// first Today button waited seconds for Claude to start (owner 2026-10-03) => started w/ the page
+test("warm-up: the user's chat extension, nothing for Copilot or an unknown AI", () => {
+  assert.equal(start.warmUpPlan("claude").id, "anthropic.claude-code");
+  assert.equal(start.warmUpPlan("chatgpt").id, "openai.chatgpt");
+  for (const ai of ["copilot", null, "nova"]) assert.equal(start.warmUpPlan(ai), null);
+});

@@ -62,7 +62,19 @@ function pageTabs(tabs, pagePath, platform) {
   return { formatted, text: tabs.filter((t) => t.kind === "text" && mine(t)) };
 }
 
+// chat extension started in the background once the page shows => first Today button doesn't wait
+// for it (owner 2026-10-03). view = its chat view's open command, run only if activation alone
+// leaves the view unloaded (app-window.md k). Copilot's chat is built in: nothing to start.
+const WARM = {
+  claude: { id: "anthropic.claude-code", view: true },
+  chatgpt: { id: "openai.chatgpt", view: false },
+};
+
+function warmUpPlan(ai) {
+  return WARM[ai] || null;
+}
+
 module.exports = {
-  TODAY, START_HERE, MARKER, STAMP, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR,
-  isJobFinder, choosePage, needsRefresh, uvCandidates, pageTabs,
+  TODAY, START_HERE, MARKER, STAMP, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
+  isJobFinder, choosePage, needsRefresh, uvCandidates, pageTabs, warmUpPlan,
 };

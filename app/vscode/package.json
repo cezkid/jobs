@@ -3,7 +3,7 @@
   "publisher": "cez-job-finder",
   "displayName": "CEZ Job Finder window",
   "description": "Job Finder's own window: start page, Today dashboard and app look. Local only, never on the Marketplace.",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "license": "MIT",
   "engines": {
     "vscode": "^1.100.0"
