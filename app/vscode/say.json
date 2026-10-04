@@ -1,0 +1,23 @@
+{
+ "_": "Words to say in the chat: Today.md (app/today.py) + the dashboard buttons (app/vscode/today.js) read this one file. {n} = job number. label = button text when the words go into the chat box.",
+ "templates": [
+  {"id": "resume", "words": "resume for job {n}", "label": "Make my resume"},
+  {"id": "apply", "words": "apply to job {n}", "label": "Apply"},
+  {"id": "sent", "words": "I sent job {n}", "label": "I sent it"},
+  {"id": "follow_up", "words": "write a follow-up for job {n}", "label": "Write a follow-up"},
+  {"id": "heard_back", "words": "I heard back from job {n}", "label": "I heard back"},
+  {"id": "closed", "words": "job {n} is closed", "label": "It's closed"},
+  {"id": "practise", "words": "practise my interview for job {n}", "label": "Practise the interview"},
+  {"id": "had_interview", "words": "I had the interview for job {n}", "label": "I had the interview"},
+  {"id": "still_open", "words": "is job {n} still open?", "label": "Still open?"},
+  {"id": "find", "words": "find new jobs", "label": "Find new jobs"},
+  {"id": "search", "words": "change what I'm looking for", "label": "Change my search"},
+  {"id": "more_waiting", "words": "what is waiting on me", "label": "Show the rest"},
+  {"id": "more_follow_up", "words": "what should I follow up on", "label": "Show the rest"},
+  {"id": "more_new", "words": "show me more new jobs", "label": "Show more new jobs"},
+  {"id": "import", "words": "import my resume", "label": "Add my resume"},
+  {"id": "gaps", "words": "ask me about my resume numbers", "label": "Add my numbers"},
+  {"id": "morning", "words": "turn on the morning job check", "label": "Turn it on"},
+  {"id": "email", "words": "finish setting up email", "label": "Finish email"}
+ ]
+}

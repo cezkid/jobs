@@ -84,6 +84,8 @@ COMMON = {
     "extensions.ignoreRecommendations": True,
     "workbench.editorAssociations": {
         "*.md": "vscode.markdown.preview.editor",
+        # longer pattern wins; dropped by VS Code when the window's extension is missing => page view
+        "Today.md": "cezJobFinder.today",
     },
     # brand look over VS Code's two stock themes: light by default, dark when the computer is dark
     "window.autoDetectColorScheme": True,

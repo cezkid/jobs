@@ -85,16 +85,73 @@ Guides:
 
 
 def test_page_in_plain_words(conn, tmp_path):
-    folder = make_folder(tmp_path, "Globex - Data Analyst", "https://jobs.lever.co/globex/1", "Globex", "Data Analyst", None)
+    fill(conn, tmp_path)
+    assert page(conn, tmp_path, TODO) == SNAPSHOT
+
+
+def test_dashboard_data_is_the_page(tmp_path):
+    # data out of step w/ the page => a button saying other words than the page beside it
+    m = dashboard_model(tmp_path)
+    assert today.render(m) == SNAPSHOT.replace("](Globex%20", "](My%20Jobs/Globex%20")
+    card = m["sections"][0]["cards"][0]
+    assert (card["num"], card["say"][0]) == (1, "apply to job 1")
+    assert card["resume"] == "My Jobs/Globex - Data Analyst/Your_Name_Resume.pdf"
+    assert card["folder"] == "My Jobs/Globex - Data Analyst"
+    assert json.loads(json.dumps(m)) == m
+
+
+def test_write_puts_dashboard_data_beside_the_page(conn, tmp_path, monkeypatch):
+    # no data file => the dashboard shows yesterday's jobs or nothing
+    monkeypatch.setattr(cfg, "DATA", tmp_path / ".data")
+    monkeypatch.setattr(today, "unfinished", lambda config: [])
+    monkeypatch.setattr(store, "connect", lambda _path: conn)
+    fill(conn, tmp_path / "My Jobs")
+    config = cfg.merge(CONFIG, {"db": ".data/jobs.db"})
+    monkeypatch.setattr(cfg, "resume_path", lambda c, key: tmp_path / "My Jobs")
+    out = today.write(config, tmp_path / "Today.md", NOW)
+    data = json.loads((tmp_path / today.DASHBOARD).read_text(encoding="utf-8"))
+    assert data["version"] == today.DASHBOARD_VERSION
+    page_nums = [int(n) for n in re.findall(r"\*\*Job (\d+)\*\*", out.read_text(encoding="utf-8"))]
+    assert [c["num"] for s in data["sections"] for c in s["cards"]] == page_nums
+    assert data["sections"][0]["cards"][0]["resume"] == "My Jobs/Globex - Data Analyst/Your_Name_Resume.pdf"
+
+
+def test_every_word_on_the_page_is_a_shared_template(tmp_path):
+    # page words + dashboard button words drift apart => the extension refuses a button the page offers
+    patterns = [re.compile("^" + re.escape(w).replace(re.escape("{n}"), r"\d+") + "$") for w in today.TEMPLATES.values()]
+    chips = re.findall(r"`([^`]+)`", SNAPSHOT)
+    assert chips and all(any(p.match(w) for p in patterns) for w in chips)
+    m = dashboard_model(tmp_path)
+    said = [w for s in m["sections"] for c in s["cards"] for w in c["say"]]
+    said += [t["say"] for t in m["todo"] if t["say"]] + [w for e in m["examples"] for w in e]
+    assert said and all(any(p.match(w) for p in patterns) for w in said)
+
+
+def fill(conn, jobs_dir):
+    """Snapshot's jobs: one resume made (pdf in its folder), one quiet after applying, two new."""
+    folder = make_folder(jobs_dir, "Globex - Data Analyst", "https://jobs.lever.co/globex/1", "Globex", "Data Analyst", None)
     (folder / "Your_Name_Resume.pdf").write_bytes(b"%PDF")
-    status.backfill(conn, tmp_path)
+    status.backfill(conn, jobs_dir)
     conn.execute("UPDATE applications SET state_at = '2026-09-24T12:00:00Z'")
     conn.commit()
     store.upsert(conn, [job("old")], "2026-08-01T12:00:00Z")
     applied(conn, "old", "2026-08-31T12:00:00Z")
     store.upsert(conn, [job("plain"), job("paid", salary_min=150000, salary_max=190000,
                                            salary_currency="USD", salary_period="year")], CHECK)
-    assert page(conn, tmp_path, ["The morning job check is off. Say: `turn on the morning job check`"]) == SNAPSHOT
+
+
+TODO = ["The morning job check is off. Say: `turn on the morning job check`"]
+
+
+def dashboard_model(root: Path) -> dict:
+    """Snapshot page as the dashboard's data, job folders under My Jobs/ as installed (test_vscode_ext
+    feeds it to the extension's code, which opens nothing outside My Jobs/, My Resume/, Guides/)."""
+    c = store.connect(":memory:")
+    try:
+        fill(c, root / "My Jobs")
+        return today.model(c, CONFIG, root / "My Jobs", NOW, TODO, root=root)
+    finally:
+        c.close()
 
 
 def test_every_section_hides_when_empty(conn, tmp_path):

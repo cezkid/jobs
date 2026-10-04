@@ -57,6 +57,32 @@ Scripts: [measure/5-*.sh](app-window/measure/); results: [probes/](app-window/pr
 | f | Copilot chat open w/ text | command list | `workbench.action.chat.open` present in 1.140 ([c1](app-window/probes/c1-defaults.json)). Fill w/ `{query, isPartialQuery: true}`: owner: pending - needs a Copilot sign-in. |
 | g | Custom editor for Today.md | scratch build (+`customEditors` `filenamePattern: "Today.md"`, priority default) + provider; `vscode.open` 4 files | Takes every `Today.md` in the window: folder root, a subfolder, and one outside the folder ([g](app-window/probes/g-custom-editor.json)); `Notes.md` stays text. `customEditors` has no `when` => scope = wherever the extension is installed (the CEZ profile). Narrower = priority `option` + `workbench.editorAssociations` in the folder's settings (not measured). |
 | h | Start page w/o the 6 s wait (`app/vscode/start.js`) | scratch `jobs.py launch` on the demo folder: cold (launcher writes `.data/start-page`, ONE code call); cold again (tab restored); then `code <folder>` alone w/ Today 3 h old (Dock, no marker) | Cold: only tab = Today.md formatted (custom preview editor) ~2 s after start, no text tab, marker gone ([h1](app-window/probes/h1-start-page-cold.json)). Restored: still one tab ([h2](app-window/probes/h2-start-page-restored.json)). No marker: same one tab; extension found uv, `today --refresh` rewrote Today ([h3](app-window/probes/h3-start-page-no-launcher.json)). Launcher exit 6 s incl. profile + installs. Window already open: 2nd `code <folder> <page>`, no wait (unit-tested only). |
+| i | Today as a dashboard (`app/vscode/today.js`, custom editor `cezJobFinder.today`) | demo folder (`app/tests/demo.py`), scratch cold `jobs.py launch`, probe 8 s settle | Only tab = Today.md, `type: custom`, `viewType: cezJobFinder.today`, extension 0.3.0 ([i](app-window/probes/i-today-dashboard.json)). Editor priority `option` + folder association `Today.md` => only this folder's page; no extension => VS Code drops the association, page opens as the formatted Markdown (#b). Data: `.data/today.json` written beside the page by `today.py` (same model as the page; tested). |
+
+### Today dashboard - what a click does
+
+Buttons live inside the window only: no `vscode://` link handler (any web page or posting could
+call one). Webview sends a button index, never words, links or paths; words come from
+`.data/today.json`, each matched against `app/vscode/say.json` (shared w/ `today.py`, tested) or
+the button is dropped. CSP `default-src 'none'`, nonce'd style + script, no remote loads. Yellow
+only on buttons (owner rule).
+
+| Button | Copilot | Claude | ChatGPT | AI unknown / not set |
+|---|---|---|---|---|
+| Say words ("Make my resume", "Apply", "I sent it", ...) | `workbench.action.chat.open {query, isPartialQuery: true}`: words in the chat box, not sent | copy words + `claude-vscode.sidebar.open` + line "Copied - click the chat box, paste (Cmd+V, or Ctrl+V off Mac), press Enter."; button reads "Copy: <words>" | copy + `chatgpt.openSidebar` + same line | copy + same line |
+| Open the posting | `vscode.env.openExternal` - https only, the stored link as is | same | same | same |
+| Open resume / Open folder | `vscode.open` / `revealInExplorer` - only paths under `My Jobs/`, `My Resume/`, `Guides/` that exist under the folder's real path | same | same | same |
+
+Why no fill for Claude + ChatGPT: rows d, e (no command fills the chat shown w/o a new one).
+
+Owner checks by hand (scratch has no sign-ins):
+- Copilot: click "Make my resume" => words sit in the chat box, nothing sent. owner: pending.
+- Claude / ChatGPT: click => chat opens, the copied line shows, paste works, nothing sent; no new
+  chat in the history list. owner: pending.
+- "Never sent" by transcript count (no new file under `~/.claude/projects/<key>`,
+  `~/.codex/sessions`, `workspaceStorage/*/chatSessions` after a click): owner: pending - needs a
+  signed-in scratch.
+- Look: tiles, cards in columns beside the chat, light + dark theme. owner: pending (preview).
 
 ## Phase 1 - what + why
 

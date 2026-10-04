@@ -6,7 +6,10 @@ const childProcess = require("child_process");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
+const crypto = require("crypto");
 const start = require("./start");
+const today = require("./today");
+const say = require("./say.json");
 
 // probe: set only by a scratch window measurement (app/docs/app-window.md "Measured"). Writes
 // what the window holds to this path, then quits the window. Never set on a user's computer.
@@ -28,6 +31,8 @@ const PROBE_SETTINGS = [
 ];
 
 function activate(context) {
+  context.subscriptions.push(vscode.window.registerCustomEditorProvider(today.VIEW_TYPE, { resolveCustomTextEditor: showToday },
+    { webviewOptions: { enableFindWidget: true }, supportsMultipleEditorsPerDocument: false }));
   const out = process.env[PROBE_ENV];
   // probe told which pages to open => measures that alone, not the start page
   const opened = out && process.env[PROBE_OPEN_ENV] ? Promise.resolve() : openStartPage().catch(() => {});
@@ -80,17 +85,104 @@ function tabSeen(tab) {
   return { kind: "other", label: tab.label, tab };
 }
 
-async function showPage(uri, today) {
+async function showPage(uri, isToday) {
   const tabs = vscode.window.tabGroups.all.flatMap((group) => group.tabs.map(tabSeen));
   const { formatted, text } = start.pageTabs(tabs, uri.fsPath, process.platform);
-  if (formatted && formatted.kind === "custom") await vscode.commands.executeCommand("vscode.openWith", uri, formatted.viewType);
-  else if (formatted) await vscode.commands.executeCommand("markdown.showPreview", uri);
-  // Today: its default editor (the dashboard once it exists); START HERE: always the formatted page
-  else if (today) await vscode.commands.executeCommand("vscode.open", uri, { preview: false });
-  else await vscode.commands.executeCommand("vscode.openWith", uri, start.PREVIEW_EDITOR, { preview: false });
+  const stale = [];
+  // Today restored as the plain page view (window before the dashboard) => dashboard instead
+  const dashboard = isToday && !(formatted && formatted.viewType === today.VIEW_TYPE);
+  if (dashboard && formatted) stale.push(formatted.tab);
+  if (formatted && !dashboard && formatted.kind === "custom") await vscode.commands.executeCommand("vscode.openWith", uri, formatted.viewType);
+  else if (formatted && !dashboard) await vscode.commands.executeCommand("markdown.showPreview", uri);
+  // Today: the dashboard; START HERE: always the formatted page
+  else await vscode.commands.executeCommand("vscode.openWith", uri, isToday ? today.VIEW_TYPE : start.PREVIEW_EDITOR, { preview: false });
   // a plain-text copy from an older launch would come back on every start; the page is generated
-  const stale = text.map((t) => t.tab).filter((tab) => !tab.isDirty);
+  stale.push(...text.map((t) => t.tab).filter((tab) => !tab.isDirty));
   if (stale.length) await vscode.window.tabGroups.close(stale, true);
+}
+
+// Today dashboard (custom editor on Today.md, workspace association app/workspace.py): drawn from
+// .data/today.json, redrawn when the page is rewritten. Buttons send an index; what it does is
+// looked up here, checked again, never taken from the page.
+function showToday(document, panel) {
+  const root = path.dirname(document.uri.fsPath);
+  const at = (rel) => path.join(root, ...rel.split("/"));
+  panel.webview.options = { enableScripts: true, localResourceRoots: [] };
+  let m = null;
+  const draw = () => {
+    const nonce = crypto.randomBytes(16).toString("base64");
+    m = null;
+    try {
+      if (start.isJobFinder((rel) => fs.existsSync(at(rel)))) {
+        m = today.model(JSON.parse(fs.readFileSync(at(today.DATA), "utf8")), say);
+      }
+    } catch {}
+    // a file a button names may have moved since (job filed under another stage) => no button
+    if (m) for (const s of m.sections) for (const c of s.cards) {
+      if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
+      if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
+    }
+    panel.webview.html = m ? today.render(m, { mode: today.sayMode(currentAi(root)), nonce }) : today.fallback({ nonce });
+  };
+  draw();
+  const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), start.TODAY));
+  const subs = [
+    watcher, watcher.onDidChange(draw), watcher.onDidCreate(draw),
+    panel.onDidChangeViewState(() => { if (panel.visible) draw(); }),
+    panel.webview.onDidReceiveMessage((msg) => act(root, at, document.uri, m, msg, panel).catch(() => {})),
+  ];
+  panel.onDidDispose(() => subs.forEach((s) => s.dispose()));
+}
+
+function currentAi(root) {
+  try {
+    return fs.readFileSync(path.join(root, start.AI_FILE), "utf8").trim().toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+function tell(panel, text) {
+  panel.webview.postMessage({ type: "status", text });
+}
+
+async function act(root, at, page, m, msg, panel) {
+  const index = msg && Number.isInteger(msg.action) ? msg.action : null;
+  if (index === -1) return vscode.commands.executeCommand("vscode.openWith", page, start.PREVIEW_EDITOR);
+  const action = m && index != null ? m.actions[index] : null;
+  if (!action) return;
+  if (action.type === "posting") {
+    const url = today.cleanUrl(action.url);
+    // a string, not a Uri: passed on exactly as written (a Uri re-encodes it; a rebuilt link 404s)
+    if (url) await vscode.env.openExternal(url);
+    return;
+  }
+  if (action.type === "open") {
+    const rel = today.cleanPath(action.path);
+    if (!rel) return;
+    const file = at(rel);
+    let real;
+    try { real = fs.realpathSync(file); } catch { return tell(panel, "That file has moved - the page updates at the next check."); }
+    if (!real.startsWith(fs.realpathSync(root) + path.sep)) return;
+    const uri = vscode.Uri.file(file);
+    if (action.how === "folder") return vscode.commands.executeCommand("revealInExplorer", uri);
+    if (action.how === "page") return vscode.commands.executeCommand("vscode.openWith", uri, start.PREVIEW_EDITOR);
+    return vscode.commands.executeCommand("vscode.open", uri, { preview: false });
+  }
+  if (action.type === "say") {
+    if (!today.templateFor(action.words, today.templates(say))) return;
+    const ai = currentAi(root);
+    if (today.sayMode(ai) === "fill") {
+      try {
+        // fills the box, never sends: isPartialQuery
+        await vscode.commands.executeCommand("workbench.action.chat.open", { query: action.words, isPartialQuery: true });
+        return tell(panel, today.filledLine());
+      } catch {}
+    }
+    await vscode.env.clipboard.writeText(action.words);
+    if (today.CHAT_OPEN[ai]) await Promise.resolve(vscode.commands.executeCommand(today.CHAT_OPEN[ai])).catch(() => {});
+    tell(panel, today.copiedLine(process.platform));
+  }
 }
 
 function refreshToday(root) {
