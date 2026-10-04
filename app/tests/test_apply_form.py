@@ -753,7 +753,27 @@ def test_greenhouse_link_plain_eu_embed_or_tracking_tail():
                 "https://job-boards.greenhouse.io/embed/job_app?token=1234567&for=acme"):
         assert greenhouse.matches(url) and greenhouse.application_url(url) == base
     assert greenhouse.application_url("https://job-boards.eu.greenhouse.io/acme/jobs/7") == "https://job-boards.eu.greenhouse.io/acme/jobs/7"
-    assert not greenhouse.matches("https://www.example.com/careers?gh_jid=7654321")  # board unknown from an employer's own page
+
+
+# employer's own careers page w/ the form embedded (?gh_jid=) - "not supported" for 1 in 5 Greenhouse links (2026-10)
+def test_greenhouse_employer_site_link_finds_its_board(monkeypatch):
+    class Reply:
+        def __init__(self, to): self.is_redirect, self.headers = bool(to), {"location": to}
+    asked = []
+    def get(url, **kw):
+        asked.append(url)
+        return Reply("https://job-boards.greenhouse.io/embed/job_app?for=acme&token=7654321" if "7654321" in url else "")
+    monkeypatch.setattr(greenhouse.httpx, "get", get)
+    greenhouse.board_for.cache_clear()
+    for url in ("https://www.example.com/careers?gh_jid=7654321",
+                "https://careers.example.com/jobs/7654321?gh_jid=7654321&utm_source=freehire.me",
+                "https://example.com/careers/?utm_source=x&gh_jid=7654321"):
+        assert systems.for_url(url) is greenhouse
+        assert greenhouse.application_url(url) == "https://job-boards.greenhouse.io/acme/jobs/7654321"
+    assert asked == ["https://boards.greenhouse.io/embed/job_app?token=7654321"]  # listing id only, once
+    assert not greenhouse.matches("https://www.example.com/careers?jid=7654321")
+    with pytest.raises(ValueError, match="may have closed"):
+        greenhouse.parse_url("https://www.example.com/careers?gh_jid=1")
 
 
 # job board answer, anonymised from a live posting (2026-10-02)

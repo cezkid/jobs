@@ -1,8 +1,10 @@
-"""Greenhouse (job-boards.greenhouse.io): questions from its public job board, answers typed into its widgets.
+"""Greenhouse (job-boards.greenhouse.io, or embedded on an employer's own page as ?gh_jid=): questions from its
+public job board, answers typed into its widgets.
 
 Measured facts and why each rule exists: app/docs/apply/greenhouse.md.
 """
 import re
+from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote, urlsplit
 
@@ -14,6 +16,10 @@ NAME = "Greenhouse"
 # job-boards / boards, EU host too; the embed link carries the board + job as ?for=...&token=...
 POSTING_URL = re.compile(r"https?://(?:job-)?boards(\.eu)?\.greenhouse\.io/(?!embed/)([\w-]+)/jobs/(\d+)", re.I)
 EMBED_URL = re.compile(r"https?://(?:job-)?boards(\.eu)?\.greenhouse\.io/embed/job_app\?(?=.*\bfor=([\w-]+))(?=.*\btoken=(\d+))", re.I)
+# employer's own careers page w/ the Greenhouse form embedded: job id only, board looked up (board_for)
+EMPLOYER_URL = re.compile(r"https?://[^?#]+\?(?:[^#]*&)?gh_jid=(\d+)", re.I)
+# Greenhouse sends an embed link w/o the board on to the one naming it - the listing id is all that goes out
+LOOKUP = "https://boards.greenhouse.io/embed/job_app?token={}"
 # freehire `source` whose links land here (test_systems_live.py); link shapes, anonymised
 SOURCES = ("greenhouse",)
 EXAMPLES = ("https://job-boards.greenhouse.io/acme/jobs/4001234005",
@@ -38,16 +44,28 @@ HISPANIC = ("hispanic_ethnicity", "Are you Hispanic/Latino?", ["Yes", "No", "Dec
 
 def matches(url: str) -> bool:
     url = url.strip()
-    return bool(POSTING_URL.match(url) or EMBED_URL.match(url))
+    return bool(POSTING_URL.match(url) or EMBED_URL.match(url) or EMPLOYER_URL.match(url))
+
+
+@lru_cache(maxsize=64)
+def board_for(job: str) -> tuple[str, str]:
+    """(host suffix, board) for a job id seen only on an employer's page: Greenhouse redirects the
+    board-less embed link to the one naming it (10 of 10 employer-site links, 2026-10-04)."""
+    r = httpx.get(LOOKUP.format(job), timeout=30)
+    m = r.is_redirect and EMBED_URL.match(r.headers.get("location", ""))
+    if not m:
+        raise ValueError("posting not found on Greenhouse - it may have closed")
+    return m.group(1) or "", m.group(2)
 
 
 def parse_url(url: str) -> tuple[str, str, str]:
     """(host suffix "" or ".eu", board, job id)."""
     url = url.strip()
-    m = POSTING_URL.match(url) or EMBED_URL.match(url)
-    if not m:
-        raise ValueError(f"not a Greenhouse posting link: {url}")
-    return m.group(1) or "", m.group(2), m.group(3)
+    if m := POSTING_URL.match(url) or EMBED_URL.match(url):
+        return m.group(1) or "", m.group(2), m.group(3)
+    if m := EMPLOYER_URL.match(url):
+        return *board_for(m.group(1)), m.group(1)
+    raise ValueError(f"not a Greenhouse posting link: {url}")
 
 
 def application_url(url: str) -> str:
