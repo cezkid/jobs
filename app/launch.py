@@ -352,6 +352,33 @@ VIEWS_DONE_KEY = "cez-job-finder.views-hidden"
 def hide_side_views(paths: VSCodePaths | None = None) -> None:
     """Cold start, once per profile: Outline + Timeline hidden in Job Finder's profile. Never the
     file list; every other view's entry kept as VS Code wrote it."""
+    def change(views: list) -> list:
+        # VS Code reads a bare id as hidden too; ours become objects (order kept), the rest as is
+        ours = {v["id"]: v for v in views if isinstance(v, dict) and v.get("id") in HIDDEN_VIEWS}
+        views = [v for v in views if (v.get("id") if isinstance(v, dict) else v) not in HIDDEN_VIEWS]
+        return views + [{**ours.get(view, {"id": view}), "isHidden": True} for view in HIDDEN_VIEWS]
+    _change_views_once(paths, VIEWS_DONE_KEY, change)
+
+
+# Jobs panel (app/vscode/jobs.js) above the file list: an extension's Explorer view lands below
+# VS Code's own (no order => last); a stored order beats the file list's 1 (app-window.md #o)
+JOBS_VIEW = "cezJobFinder.jobs"
+JOBS_VIEW_ORDER = -1
+JOBS_VIEW_DONE_KEY = "cez-job-finder.jobs-view-placed"
+
+
+def place_jobs_view(paths: VSCodePaths | None = None) -> None:
+    """Cold start, once per profile: Jobs panel first in the Explorer, shown. Moved or hidden by the
+    user later => stays so."""
+    def change(views: list) -> list:
+        rest = [v for v in views if (v.get("id") if isinstance(v, dict) else v) != JOBS_VIEW]
+        return rest + [{"id": JOBS_VIEW, "isHidden": False, "order": JOBS_VIEW_ORDER}]
+    _change_views_once(paths, JOBS_VIEW_DONE_KEY, change)
+
+
+def _change_views_once(paths: VSCodePaths | None, done_key: str, change) -> None:
+    """Explorer's view list in the profile's state db, changed by change(list) -> list, once per
+    profile (own row done_key). VS Code running, no profile or a value we can't read => untouched."""
     paths = paths or vscode_paths()
     location = profile_location(paths)
     if not location or vscode_running(paths):
@@ -363,8 +390,8 @@ def hide_side_views(paths: VSCodePaths | None = None) -> None:
         try:
             with db:
                 db.execute(ITEM_TABLE)
-                rows = dict(db.execute("SELECT key, value FROM ItemTable WHERE key IN (?, ?)", (VIEWS_KEY, VIEWS_DONE_KEY)).fetchall())
-                if VIEWS_DONE_KEY in rows:
+                rows = dict(db.execute("SELECT key, value FROM ItemTable WHERE key IN (?, ?)", (VIEWS_KEY, done_key)).fetchall())
+                if done_key in rows:
                     return
                 try:
                     views = json.loads(rows.get(VIEWS_KEY) or "[]")
@@ -372,12 +399,8 @@ def hide_side_views(paths: VSCodePaths | None = None) -> None:
                     return  # VS Code's own value unreadable: never overwrite it
                 if not isinstance(views, list):
                     return
-                # VS Code reads a bare id as hidden too; ours become objects (order kept), the rest as is
-                ours = {v["id"]: v for v in views if isinstance(v, dict) and v.get("id") in HIDDEN_VIEWS}
-                views = [v for v in views if (v.get("id") if isinstance(v, dict) else v) not in HIDDEN_VIEWS]
-                views += [{**ours.get(view, {"id": view}), "isHidden": True} for view in HIDDEN_VIEWS]
                 db.executemany("INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)",
-                               [(VIEWS_KEY, json.dumps(views, separators=(",", ":"))), (VIEWS_DONE_KEY, "1")])
+                               [(VIEWS_KEY, json.dumps(change(views), separators=(",", ":"))), (done_key, "1")])
         finally:
             db.close()
     except (sqlite3.Error, OSError):
@@ -935,6 +958,7 @@ def window_setup() -> None:
     if ensure_profile():
         migrate_profile()
         hide_side_views()
+        place_jobs_view()
         print(f"{cfg.NAME} has its own space in VS Code, apart from anything else you use it for.")
     else:
         print(f"VS Code is open, so {cfg.NAME} gets its own space the next time it starts.")
@@ -989,8 +1013,9 @@ def main() -> None:
     if ensure_profile():
         # their model pick, zoom + text size come along, once
         migrate_profile()
-        # no Outline + Timeline under the file list (code-editor tells), once
+        # no Outline + Timeline under the file list (code-editor tells), Jobs panel above it, once
         hide_side_views()
+        place_jobs_view()
         PROFILE_PENDING.unlink(missing_ok=True)
     elif not profile_location():
         # VS Code left open => no profile yet; the window extension says how to finish (quit once)

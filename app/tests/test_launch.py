@@ -8,6 +8,7 @@ import pytest
 
 import cfg
 import launch
+import vscode_ext
 import notify
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -968,6 +969,23 @@ def test_hiding_views_keeps_what_vscode_wrote(tmp_path, monkeypatch):
     assert json.loads(rows[launch.VIEWS_KEY]) == [written[0], "npm", {"id": "outline", "isHidden": True, "order": 2},
                                                   {"id": "timeline", "isHidden": True}]
     assert rows[MODEL] == "copilot/claude-sonnet"
+
+
+def test_jobs_panel_placed_above_the_file_list_once(tmp_path, monkeypatch):
+    # an extension's view lands under the file list + Outline, out of sight; moved by the user => stays
+    paths = profile_paths(tmp_path, monkeypatch)
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    launch.hide_side_views(paths)
+    launch.place_jobs_view(paths)
+    views = json.loads(state_rows(views_state(paths))[launch.VIEWS_KEY])
+    assert views[-1] == {"id": "cezJobFinder.jobs", "isHidden": False, "order": -1}
+    assert {"id": "outline", "isHidden": True} in views  # the other step's change kept
+    moved = [{"id": "cezJobFinder.jobs", "isHidden": True, "order": 3}]
+    state_db(views_state(paths), [(launch.VIEWS_KEY, json.dumps(moved))])
+    launch.place_jobs_view(paths)
+    assert json.loads(state_rows(views_state(paths))[launch.VIEWS_KEY]) == moved
+    # id the extension contributes (package.json) = the one placed
+    assert launch.JOBS_VIEW == vscode_ext.manifest()["contributes"]["views"]["explorer"][0]["id"]
 
 
 def test_hiding_views_never_touches_a_running_or_unreadable_state(tmp_path, monkeypatch):

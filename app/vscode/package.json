@@ -2,8 +2,8 @@
   "name": "window",
   "publisher": "cez-job-finder",
   "displayName": "CEZ Job Finder window",
-  "description": "Job Finder's own window: start page, Today dashboard and app look. Local only, never on the Marketplace.",
-  "version": "0.17.0",
+  "description": "Job Finder's own window: start page, Today dashboard, Jobs panel and app look. Local only, never on the Marketplace.",
+  "version": "0.18.0",
   "license": "MIT",
   "engines": {
     "vscode": "^1.100.0"
@@ -11,7 +11,8 @@
   "main": "./extension.js",
   "activationEvents": [
     "onStartupFinished",
-    "onCustomEditor:cezJobFinder.today"
+    "onCustomEditor:cezJobFinder.today",
+    "onView:cezJobFinder.jobs"
   ],
   "capabilities": {
     "untrustedWorkspaces": {
@@ -31,6 +32,29 @@
         ],
         "priority": "option"
       }
-    ]
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "cezJobFinder.jobs",
+          "name": "Jobs",
+          "contextualTitle": "Jobs"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "cezJobFinder.jobs.run",
+        "title": "Run a Jobs panel row"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "cezJobFinder.jobs.run",
+          "when": "false"
+        }
+      ]
+    }
   }
 }

@@ -9,6 +9,7 @@ const path = require("path");
 const crypto = require("crypto");
 const start = require("./start");
 const today = require("./today");
+const jobs = require("./jobs");
 const say = require("./say.json");
 
 // probe: set only by a scratch window measurement (app/docs/app-window.md "Measured"). Writes
@@ -30,7 +31,7 @@ const PROBE_LOOK_ENV = "JOBS_VSCODE_PROBE_LOOK";
 const PROBE_WARM_ENV = "JOBS_VSCODE_PROBE_WARM";
 // probe only: epoch ms the window was launched, so times read from window start
 const PROBE_T0_ENV = "JOBS_VSCODE_PROBE_T0";
-const PROBE_COMMANDS = [/^claude-vscode\./, /^chatgpt\./, /^workbench\.action\.chat\./, /outline/i, /timeline/i, /^vscode\.moveViews$/, /^markdown\.showPreview/];
+const PROBE_COMMANDS = [/^cezJobFinder\./, /^claude-vscode\./, /^chatgpt\./, /^workbench\.action\.chat\./, /outline/i, /timeline/i, /^vscode\.moveViews$/, /^markdown\.showPreview/];
 const PROBE_SETTINGS = [
   "workbench.colorTheme", "window.autoDetectColorScheme", "workbench.startupEditor",
   "workbench.welcomePage.walkthroughs.openOnInstall", "workbench.editorAssociations",
@@ -42,10 +43,12 @@ function activate(context) {
   context.subscriptions.push(vscode.window.registerCustomEditorProvider(today.VIEW_TYPE, { resolveCustomTextEditor: (document, panel) =>
     showToday(document, panel, vscode.Uri.joinPath(context.extensionUri, ...today.FONT_DIR)) },
     { webviewOptions: { enableFindWidget: true }, supportsMultipleEditorsPerDocument: false }));
+  jobsTree = showJobs(context);
   const out = process.env[PROBE_ENV];
   // probe told which pages to open => measures that alone, not the start page
   const opened = out && process.env[PROBE_OPEN_ENV] ? Promise.resolve() : openStartPage().catch(() => {});
-  const warmed = opened.then((root) => (root ? warmUp(root) : null)).catch(() => null);
+  const shown = opened.then((root) => (root ? openJobs(context) : null)).catch(() => null);
+  const warmed = shown.then(() => opened).then((root) => (root ? warmUp(root) : null)).catch(() => null);
   if (!out) return;
   const editor = process.env[PROBE_EDITOR_ENV];
   if (editor) {
@@ -129,6 +132,21 @@ async function warmUp(root) {
   return seen;
 }
 
+// VS Code starts an extension's view in the Explorer collapsed, whatever package.json says (measured
+// 1.140, probe o) => open it once per folder, then focus back to the page; later the user's own
+// collapse holds (VS Code keeps it per folder, as we do the flag)
+const JOBS_SHOWN = "cez-job-finder.jobs-shown";
+
+async function openJobs(context) {
+  if (!jobsTree || context.workspaceState.get(JOBS_SHOWN)) return;
+  await context.workspaceState.update(JOBS_SHOWN, true);
+  if (jobsTree.view.visible) return;
+  try {
+    await vscode.commands.executeCommand(`${jobs.VIEW_ID}.focus`);
+    await vscode.commands.executeCommand("workbench.action.focusActiveEditorGroup");
+  } catch {}
+}
+
 function tabSeen(tab) {
   const input = tab.input;
   if (input instanceof vscode.TabInputText) return { kind: "text", fsPath: input.uri.fsPath, label: tab.label, tab };
@@ -153,6 +171,39 @@ async function showPage(uri, isToday) {
   if (stale.length) await vscode.window.tabGroups.close(stale, true);
 }
 
+// .data/today.json => today.model, files its buttons name checked; reason = why none (today.FALLBACK)
+function readModel(root) {
+  const at = (rel) => path.join(root, ...rel.split("/"));
+  let m = null;
+  let reason = "unreadable";
+  try {
+    if (start.isJobFinder((rel) => fs.existsSync(at(rel)))) {
+      if (!fs.existsSync(at(today.DATA))) reason = "missing";
+      else m = today.model(JSON.parse(fs.readFileSync(at(today.DATA), "utf8")), say);
+    }
+  } catch {}
+  if (refreshing) reason = "updating";
+  // a file a button names may have moved since (job filed under another stage) => no button
+  const cards = m ? [...m.sections.flatMap((s) => s.cards), ...(m.next && m.next.card ? [m.next.card] : [])] : [];
+  for (const c of cards) {
+    if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
+    if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
+  }
+  return { m, reason };
+}
+
+// I sent it / I heard back / It's closed: saved by `jobs.py status`, Undo after (today.statusKeeper)
+function keeperFor(root, refresh, tellFn) {
+  return today.statusKeeper({
+    run: (args) => {
+      const uv = findUv();
+      return uv ? start.runJobs({ execFile: childProcess.execFile, uv, root, args }) : Promise.reject(new Error("no uv"));
+    },
+    refresh: () => refreshToday(root, refresh),
+    tell: tellFn,
+  });
+}
+
 // Today dashboard (custom editor on Today.md, workspace association app/workspace.py): drawn from
 // .data/today.json, redrawn when the page is rewritten. Buttons send an index; what it does is
 // looked up here, checked again, never taken from the page. fontDir = the installed extension's
@@ -168,35 +219,15 @@ function showToday(document, panel, fontDir) {
   let m = null;
   const draw = () => {
     const nonce = crypto.randomBytes(16).toString("base64");
-    m = null;
-    // why no dashboard, in the fallback's words (today.FALLBACK)
-    let reason = "unreadable";
-    try {
-      if (start.isJobFinder((rel) => fs.existsSync(at(rel)))) {
-        if (!fs.existsSync(at(today.DATA))) reason = "missing";
-        else m = today.model(JSON.parse(fs.readFileSync(at(today.DATA), "utf8")), say);
-      }
-    } catch {}
-    if (refreshing) reason = "updating";
-    // a file a button names may have moved since (job filed under another stage) => no button
-    if (m) for (const s of m.sections) for (const c of s.cards) {
-      if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
-      if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
-    }
+    let reason;
+    ({ m, reason } = readModel(root));
     const ai = currentAi(root);
     panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai, nonce, fonts, look: currentLook(root), ready: chatWarm(ai) })
       : today.fallback({ nonce, reason, fonts });
   };
+  // I sent it / I heard back / It's closed: Undo in the page's status line
+  const keeper = keeperFor(root, draw, (text, how) => tell(panel, text, how));
   // fallback's Try again: rebuild the list (page redraws when it's rewritten), else just read it again
-  // I sent it / I heard back / It's closed: saved here, Undo in the status line (today.statusKeeper)
-  const keeper = today.statusKeeper({
-    run: (args) => {
-      const uv = findUv();
-      return uv ? start.runJobs({ execFile: childProcess.execFile, uv, root, args }) : Promise.reject(new Error("no uv"));
-    },
-    refresh: () => refreshToday(root, draw),
-    tell: (text, how) => tell(panel, text, how),
-  });
   const retry = () => {
     const started = !refreshing && refreshToday(root, draw);
     draw();
@@ -210,6 +241,118 @@ function showToday(document, panel, fontDir) {
     panel.webview.onDidReceiveMessage((msg) => act(root, at, document.uri, m, msg, panel, retry, keeper).catch(() => {})),
   ];
   panel.onDidDispose(() => subs.forEach((s) => s.dispose()));
+}
+
+// Jobs side panel (jobs.js, view at the top of the file list): same model + actions as the
+// dashboard, redrawn when Today's data or a job folder changes. Rows carry the model's generation +
+// an action index; a click on a row drawn from an older model does nothing
+let jobsTree = null;
+
+function showJobs(context) {
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  const root = folder && folder.uri.scheme === "file" ? folder.uri.fsPath : null;
+  const at = (rel) => path.join(root, ...rel.split("/"));
+  const changed = new vscode.EventEmitter();
+  const state = { m: null, groups: [], gen: 0 };
+  const load = () => {
+    state.gen += 1;
+    state.m = null;
+    state.groups = [];
+    if (root && start.isJobFinder((rel) => fs.existsSync(at(rel)))) {
+      state.m = readModel(root).m;
+      state.groups = jobs.tree(state.m, listApplied(at(jobs.APPLIED_DIR)));
+      state.ready = true;
+    }
+    changed.fire();
+  };
+  const run = (action) => (action != null ? { command: jobs.RUN, title: "", arguments: [{ gen: state.gen, action }] } : undefined);
+  const provider = {
+    onDidChangeTreeData: changed.event,
+    getChildren(el) {
+      if (!root || !state.ready) return [];
+      if (!el) return state.groups.length ? state.groups.map((g) => ({ group: g })) : [{ job: jobs.emptyRow(state.m) }];
+      if (el.group) return el.group.items.map((j) => ({ job: j }));
+      if (el.job) return el.job.rows.map((r) => ({ row: r, parent: el.job.id }));
+      return [];
+    },
+    getTreeItem(el) {
+      const None = vscode.TreeItemCollapsibleState.None;
+      if (el.group) {
+        const item = new vscode.TreeItem(el.group.label, vscode.TreeItemCollapsibleState.Expanded);
+        item.id = `group/${el.group.id}`;
+        item.description = String(el.group.items.length);
+        item.accessibilityInformation = { label: `${el.group.label}, ${el.group.items.length}` };
+        return item;
+      }
+      if (el.job) {
+        const j = el.job;
+        const item = new vscode.TreeItem(j.label, j.rows.length ? vscode.TreeItemCollapsibleState.Collapsed : None);
+        item.id = j.id;
+        item.description = j.description;
+        item.tooltip = j.tooltip;
+        item.accessibilityInformation = { label: j.accessible };
+        if (j.icon) item.iconPath = new vscode.ThemeIcon(j.icon);
+        item.command = run(j.action);
+        return item;
+      }
+      const r = el.row;
+      const item = new vscode.TreeItem(r.label, None);
+      item.id = `${el.parent}/${r.action}`;
+      item.iconPath = new vscode.ThemeIcon(r.icon);
+      if (r.tooltip) item.tooltip = r.tooltip;
+      item.command = run(r.action);
+      return item;
+    },
+  };
+  const view = vscode.window.createTreeView(jobs.VIEW_ID, { treeDataProvider: provider, showCollapseAll: true });
+  // the panel's own lines: a toast, Undo as its button; "starting" lines in the status bar
+  const tellJobs = (text, how = {}) => {
+    if (how.undo) {
+      vscode.window.showInformationMessage(text, "Undo").then((pick) => { if (pick) keeper.undo(); }, () => {});
+    } else if (how.hold) vscode.window.setStatusBarMessage(text, today.CLEAR_MS);
+    else vscode.window.showInformationMessage(text);
+  };
+  let busyLine = null;
+  const ui = {
+    tell: tellJobs,
+    busy: (on, label) => {
+      if (busyLine) busyLine.dispose();
+      busyLine = on ? vscode.window.setStatusBarMessage(label) : null;
+    },
+    keeper: null,
+  };
+  const keeper = root ? keeperFor(root, load, tellJobs) : null;
+  ui.keeper = keeper;
+  let timer = null;
+  const soon = () => { clearTimeout(timer); timer = setTimeout(load, 300); };
+  const subs = [view, changed,
+    vscode.commands.registerCommand(jobs.RUN, (arg) => {
+      if (!root || !state.m || !arg || arg.gen !== state.gen || !Number.isInteger(arg.action)) return;
+      const action = state.m.actions[arg.action];
+      if (action) return doAction(root, at, action, ui).catch(() => {});
+    })];
+  if (root) {
+    for (const glob of [today.DATA.split(path.sep).join("/"), `${jobs.APPLIED_DIR.split("/")[0]}/**`]) {
+      const w = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder.uri, glob));
+      subs.push(w, w.onDidChange(soon), w.onDidCreate(soon), w.onDidDelete(soon));
+    }
+  }
+  context.subscriptions.push(...subs, { dispose: () => clearTimeout(timer) });
+  load();
+  return { view, state };
+}
+
+// job folders under 2 Applied + the files in each (jobs.appliedFolders reads the names)
+function listApplied(dir) {
+  try {
+    return fs.readdirSync(dir, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => {
+      let files = [];
+      try { files = fs.readdirSync(path.join(dir, d.name)); } catch {}
+      return { name: d.name, files };
+    });
+  } catch {
+    return [];
+  }
 }
 
 function currentLook(root) {
@@ -269,6 +412,17 @@ async function act(root, at, page, m, msg, panel, retry, keeper) {
   if (index === today.TRY_AGAIN) return retry();
   const action = m && index != null ? m.actions[index] : null;
   if (!action) return;
+  return doAction(root, at, action, {
+    tell: (text, how) => tell(panel, text, how),
+    busy: (on, label) => panel.webview.postMessage({ type: "busy", on, label }),
+    keeper,
+  });
+}
+
+// one action of today.model's list, from the dashboard or the Jobs panel: the only place a click
+// opens a link or file, records a status or puts words in the chat. ui = { tell(text, how),
+// busy(on, label), keeper (today.statusKeeper) } of the surface clicked
+async function doAction(root, at, action, ui) {
   if (action.type === "posting") {
     const url = today.cleanUrl(action.url);
     // a string, not a Uri: passed on exactly as written (a Uri re-encodes it; a rebuilt link 404s)
@@ -285,22 +439,21 @@ async function act(root, at, page, m, msg, panel, retry, keeper) {
     if (!rel) return;
     const file = at(rel);
     let real;
-    try { real = fs.realpathSync(file); } catch { return tell(panel, "That file has moved - the page updates at the next check."); }
+    try { real = fs.realpathSync(file); } catch { return ui.tell("That file has moved - the page updates at the next check."); }
     if (!real.startsWith(fs.realpathSync(root) + path.sep)) return;
     const uri = vscode.Uri.file(file);
     if (action.how === "folder") return vscode.commands.executeCommand("revealInExplorer", uri);
     if (action.how === "page") return vscode.commands.executeCommand("vscode.openWith", uri, start.PREVIEW_EDITOR);
     return vscode.commands.executeCommand("vscode.open", uri, { preview: false });
   }
-  if (action.type === "status") return keeper.set(action.num, action.id, action.words);
+  if (action.type === "status") return ui.keeper.set(action.num, action.id, action.words);
   if (action.type === "say") {
     if (!today.templateFor(action.words, today.templates(say))) return;
     // one at a time: a 2nd click would open a 2nd new chat => said, never silently dropped
-    if (saying) return tell(panel, today.STILL_OPENING);
+    if (saying) return ui.tell(today.STILL_OPENING);
     saying = true;
     try {
-      return await sayWords(root, action.words, (text, how) => tell(panel, text, how),
-        (on, label) => panel.webview.postMessage({ type: "busy", on, label }));
+      return await sayWords(root, action.words, ui.tell, ui.busy);
     } finally {
       saying = false;
     }
@@ -426,6 +579,9 @@ async function probe(context, out, opened, warmed) {
     ? { id: warm.id, how: warm.how, launchToStartMs: since(warm.startAt), launchToActiveMs: since(warm.activeAt), launchToViewMs: since(warm.viewAt) }
     : warm;
   report.tabs = readWindow();
+  // Jobs panel as the window shows it at settle: VS Code's own visible flag + what it lists
+  report.jobsView = jobsTree ? { visible: jobsTree.view.visible, groups: jobsTree.state.groups
+    .map((g) => ({ label: g.label, items: g.items.map((i) => i.label) })) } : null;
   report.theme = { kind: vscode.window.activeColorTheme.kind, name: vscode.workspace.getConfiguration("workbench").get("colorTheme") };
   report.folders = (vscode.workspace.workspaceFolders || []).map((f) => f.uri.toString());
   report.trusted = vscode.workspace.isTrusted;
