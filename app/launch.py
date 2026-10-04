@@ -336,6 +336,49 @@ def copy_model_pick(source: Path, target: Path) -> bool:
     return True
 
 
+# Outline + Timeline under the file list = code-editor tells. No setting hides a view: VS Code keeps
+# the Explorer's hidden views in the profile's state db, this key (app/docs/app-window.md #m)
+VIEWS_KEY = "workbench.explorer.views.state.hidden"
+HIDDEN_VIEWS = ("outline", "timeline")
+# our own row in the same db: once per profile => a view the user shows again stays shown
+VIEWS_DONE_KEY = "cez-job-finder.views-hidden"
+
+
+def hide_side_views(paths: VSCodePaths | None = None) -> None:
+    """Cold start, once per profile: Outline + Timeline hidden in Job Finder's profile. Never the
+    file list; every other view's entry kept as VS Code wrote it."""
+    paths = paths or vscode_paths()
+    location = profile_location(paths)
+    if not location or vscode_running(paths):
+        return
+    state = paths.data / "User" / "profiles" / location / "globalStorage" / "state.vscdb"
+    try:
+        state.parent.mkdir(parents=True, exist_ok=True)
+        db = sqlite3.connect(state, timeout=2)
+        try:
+            with db:
+                db.execute(ITEM_TABLE)
+                rows = dict(db.execute("SELECT key, value FROM ItemTable WHERE key IN (?, ?)", (VIEWS_KEY, VIEWS_DONE_KEY)).fetchall())
+                if VIEWS_DONE_KEY in rows:
+                    return
+                try:
+                    views = json.loads(rows.get(VIEWS_KEY) or "[]")
+                except ValueError:
+                    return  # VS Code's own value unreadable: never overwrite it
+                if not isinstance(views, list):
+                    return
+                # VS Code reads a bare id as hidden too; ours become objects (order kept), the rest as is
+                ours = {v["id"]: v for v in views if isinstance(v, dict) and v.get("id") in HIDDEN_VIEWS}
+                views = [v for v in views if (v.get("id") if isinstance(v, dict) else v) not in HIDDEN_VIEWS]
+                views += [{**ours.get(view, {"id": view}), "isHidden": True} for view in HIDDEN_VIEWS]
+                db.executemany("INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)",
+                               [(VIEWS_KEY, json.dumps(views, separators=(",", ":"))), (VIEWS_DONE_KEY, "1")])
+        finally:
+            db.close()
+    except (sqlite3.Error, OSError):
+        pass
+
+
 def copy_settings(source: Path, target: Path) -> None:
     try:
         values = settings_values(source.read_text(encoding="utf-8")) if source.exists() else None
@@ -790,6 +833,7 @@ def window_setup() -> None:
     cfg.ensure_private_dirs()
     if ensure_profile():
         migrate_profile()
+        hide_side_views()
         print(f"{cfg.NAME} has its own space in VS Code, apart from anything else you use it for.")
     else:
         print(f"VS Code is open, so {cfg.NAME} gets its own space the next time it starts.")
@@ -843,6 +887,8 @@ def main() -> None:
     if ensure_profile():
         # their model pick, zoom + text size come along, once
         migrate_profile()
+        # no Outline + Timeline under the file list (code-editor tells), once
+        hide_side_views()
         PROFILE_PENDING.unlink(missing_ok=True)
     elif not profile_location():
         # VS Code left open => no profile yet; the window extension says how to finish (quit once)

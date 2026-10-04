@@ -933,3 +933,52 @@ def test_profile_waiting_on_a_cold_start_is_flagged_for_the_window(tmp_path):
     flag = tmp_path / "profile-pending"
     launch.mark_profile_pending(flag)
     assert "quit VS Code" in flag.read_text(encoding="utf-8")
+
+
+def views_state(paths):
+    return paths.data / "User" / "profiles" / "cez-job-finder" / "globalStorage" / "state.vscdb"
+
+
+def test_outline_and_timeline_hidden_under_the_file_list_once(tmp_path, monkeypatch):
+    # Outline + Timeline under the file list made the window read as a code editor
+    paths = profile_paths(tmp_path, monkeypatch)
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    launch.hide_side_views(paths)
+    views = json.loads(state_rows(views_state(paths))[launch.VIEWS_KEY])
+    assert views == [{"id": "outline", "isHidden": True}, {"id": "timeline", "isHidden": True}]
+    assert "workbench.explorer.fileView" not in str(views)  # file list never hidden
+    # user shows Outline again later => next cold start leaves it shown
+    state_db(views_state(paths), [(launch.VIEWS_KEY, '[{"id":"outline","isHidden":false}]')])
+    launch.hide_side_views(paths)
+    assert json.loads(state_rows(views_state(paths))[launch.VIEWS_KEY]) == [{"id": "outline", "isHidden": False}]
+
+
+def test_hiding_views_keeps_what_vscode_wrote(tmp_path, monkeypatch):
+    # rewriting VS Code's own list lost the file list's place or another view the user hid
+    paths = profile_paths(tmp_path, monkeypatch)
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    written = [{"id": "workbench.explorer.fileView", "isHidden": False, "order": 0},
+               {"id": "outline", "isHidden": False, "order": 2}, "npm"]
+    state_db(views_state(paths), [(launch.VIEWS_KEY, json.dumps(written)), (MODEL, "copilot/claude-sonnet")])
+    launch.hide_side_views(paths)
+    rows = state_rows(views_state(paths))
+    assert json.loads(rows[launch.VIEWS_KEY]) == [written[0], "npm", {"id": "outline", "isHidden": True, "order": 2},
+                                                  {"id": "timeline", "isHidden": True}]
+    assert rows[MODEL] == "copilot/claude-sonnet"
+
+
+def test_hiding_views_never_touches_a_running_or_unreadable_state(tmp_path, monkeypatch):
+    # VS Code running holds the db open; a value it wrote we can't read must never be replaced
+    paths = profile_paths(tmp_path, monkeypatch)
+    launch.hide_side_views(paths)  # no profile yet: nothing, no error
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    state_db(views_state(paths), [(launch.VIEWS_KEY, "not json")])
+    launch.hide_side_views(paths)
+    assert state_rows(views_state(paths)) == {launch.VIEWS_KEY: "not json"}
+    views_state(paths).unlink()
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    launch.hide_side_views(paths)
+    assert not views_state(paths).exists()
+    views_state(paths).write_bytes(b"not a database")
+    (paths.data / "code.lock").unlink()
+    launch.hide_side_views(paths)  # broken db: launch carries on
