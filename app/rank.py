@@ -309,12 +309,12 @@ def suspects(jobs: list[dict], min_categories: int) -> list[tuple[str, set[str]]
     return sorted(((c, s) for c, s in cats.items() if len(s) >= min_categories), key=lambda cs: -len(cs[1]))
 
 
-def row(job: dict, config: dict, now: datetime) -> str:
+def row(job: dict, config: dict, now: datetime, why: str | None = None) -> str:
     """One printed line: job number first (same in every chat, email, Today page), link = the
     posting's real address, slug last."""
     new = "-" if job["seen"] else "NEW"
     return (f"#{job['num']:<4} {new:3} {job['tier']:6} {job['title'][:60]} | {job['company']}  "
-            f"[{reasons(job, config, now)}]  {job['url']}  {job['public_slug']}")
+            f"[{why or reasons(job, config, now)}]  {job['url']}  {job['public_slug']}")
 
 
 def main() -> None:
@@ -323,6 +323,8 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=30)
     ap.add_argument("--suspects", action="store_true", help="list companies spanning unrelated categories")
     ap.add_argument("--would-hide", metavar="PHRASE", help="count + sample titles a title phrase would hide")
+    ap.add_argument("--best", action="store_true", help="Today page's 'Best to apply next' order: open jobs not"
+                    " acted on, resume match, asks, pay, where, freshness (app/best.py)")
     args = ap.parse_args()
     config = cfg.load()
     conn = store.connect(args.db or cfg.db_path(config))
@@ -338,6 +340,11 @@ def main() -> None:
             print(f"  {j['title']} | {j['company']}")
         return
     now = datetime.now(timezone.utc)
+    if args.best:
+        import best  # imports this module
+        for j in store.numbered(conn, best.ordered(conn, config, now)[: args.limit]):
+            print(row(j, config, now, best.reasons(j, config, now)))
+        return
     for j in store.numbered(conn, rank(jobs, config, now)[: args.limit]):
         print(row(j, config, now))
 

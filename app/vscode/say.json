@@ -14,7 +14,7 @@
   {"id": "search", "words": "change what I'm looking for", "label": "Change my search"},
   {"id": "more_waiting", "words": "what is waiting on me", "label": "Show the rest"},
   {"id": "more_follow_up", "words": "what should I follow up on", "label": "Show the rest"},
-  {"id": "more_new", "words": "show me more new jobs", "label": "Show more new jobs"},
+  {"id": "more_best", "words": "show me more jobs to apply to", "label": "Show more jobs"},
   {"id": "import", "words": "import my resume", "label": "Add my resume"},
   {"id": "gaps", "words": "ask me about my resume numbers", "label": "Add my numbers"},
   {"id": "morning", "words": "turn on the morning job check", "label": "Turn it on"},

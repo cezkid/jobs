@@ -25,6 +25,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Install | [desktop-icon.md](desktop-icon.md) | Desktop icon: brand files + how they're made, Mac applet edits, why the Dock still shows VS Code |
 | Jobs | [jobs/freehire.md](jobs/freehire.md) | Job API: filters, facets, measured pitfalls - read before touching search or ingest |
 | Jobs | [jobs/job-folders.md](jobs/job-folders.md) | My Jobs layout: stage folders by status, `N - Company - Title` names, when folders move, rename-only rules |
+| Jobs | [jobs/best-next.md](jobs/best-next.md) | "Best to apply next" order: Today, chat brief, email - each factor, weight, basis |
 | Applying | [apply/apply-systems.md](apply/apply-systems.md) | How application filling works, systems supported, adding one |
 | Applying | [apply/workday.md](apply/workday.md) | Workday forms, filled through the Chrome extension |
 | Applying | [apply/ashby.md](apply/ashby.md) | Ashby forms, filled in Job Finder's own Chrome |

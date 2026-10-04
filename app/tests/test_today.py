@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+import best
 import cfg
 import locks
 import status
@@ -18,6 +19,12 @@ CONFIG = cfg.load(cfg.PROFILES / "example.yml")
 CHECK = "2026-09-29T12:00:00Z"
 NOW = datetime(2026, 9, 29, 13, 0, tzinfo=timezone.utc)
 ROOT = Path(__file__).resolve().parents[2]
+
+
+@pytest.fixture(autouse=True)
+def no_resume(monkeypatch):
+    # a resume left in a developer checkout would reorder the jobs these pages expect
+    monkeypatch.setattr(best, "resume_facts", lambda config, today: None)
 
 
 def page(conn, jobs_dir, todo=()) -> str:
@@ -51,13 +58,15 @@ No reply for a while. Many employers never write back. [When to follow up](Guide
   - Applied 29 days ago, no reply yet
   - Say: `write a follow-up for job 2` - or `I heard back from job 2`, `job 2 is closed`
 
-## New since last check
+## Best to apply next
+
+Add your resume for a better order: it then puts the jobs you fit best first.
 
 - **Job 3** - [Senior Vue Engineer paid](<https://boards.greenhouse.io/acme/jobs/paid>), Acme
-  - Why: remote · $150k-190k (meets your pay) · added to your list today
+  - Why: $150k-190k (meets your pay) · remote · posted 1 day ago
   - Say: `resume for job 3`
 - **Job 4** - [Senior Vue Engineer plain](<https://boards.greenhouse.io/acme/jobs/plain>), Acme
-  - Why: remote · pay not listed · added to your list today
+  - Why: pay not listed · remote · posted 1 day ago
   - Say: `resume for job 4`
 
 ## Not finished
@@ -100,12 +109,16 @@ def test_dashboard_data_is_the_page(tmp_path):
 
 
 # "Make my resume" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
-def test_new_jobs_carry_their_why_as_data(tmp_path):
+def test_best_jobs_carry_their_why_as_data(tmp_path):
     m = dashboard_model(tmp_path)
-    new = next(s for s in m["sections"] if s["id"] == "new")
-    assert [c["why"] for c in new["cards"]] == ["remote · $150k-190k (meets your pay) · added to your list today",
-                                                "remote · pay not listed · added to your list today"]
-    assert all(c["detail"] == "" and c["url"] for c in new["cards"])
+    assert not any(s["id"] == "new" for s in m["sections"])
+    top = next(s for s in m["sections"] if s["id"] == "best")
+    assert top["title"] == "Best to apply next" and top["total"] == 2 and top["note"] == today.NO_RESUME_NOTE
+    assert [c["why"] for c in top["cards"]] == ["$150k-190k (meets your pay) · remote · posted 1 day ago",
+                                                "pay not listed · remote · posted 1 day ago"]
+    assert all(c["detail"] == "" and c["url"] for c in top["cards"])
+    # the new-since figure stays up top, pointing at the section that replaced it
+    assert {"label": "New since last check", "value": 2, "section": "best"} in m["tiles"]
     follow = next(s for s in m["sections"] if s["id"] == "follow_up")
     assert follow["guide"] == {"title": "When to follow up", "path": "Guides/Following up.md"}
     assert (ROOT / follow["guide"]["path"]).exists()
@@ -197,19 +210,16 @@ def test_new_is_last_check_or_unannounced_only(conn, tmp_path):
     assert [j["public_slug"] for j in today.new_jobs(conn, CONFIG, NOW)] == ["latest", "never"]
 
 
-def test_new_job_age_agrees_with_new(conn, tmp_path):
-    # reposted posting freehire first saw 66 days ago, reaching the list in this check (real install)
+def test_best_job_age_is_the_postings(conn, tmp_path):
+    # a repost freehire first saw 66 days ago, new on the list today, read "new" while likely filled
     store.upsert(conn, [job("repost", reality={"age_days": 66}), job("fresh", reality={"age_days": 3})], CHECK)
-    blocks = re.split(r"^- \*\*Job", page(conn, tmp_path), flags=re.M)
+    text = page(conn, tmp_path)
+    blocks = re.split(r"^- \*\*Job", text, flags=re.M)
     lines = {j: next(line for line in next(b for b in blocks if f"/jobs/{j}>" in b).splitlines() if "·" in line)
              for j in ("repost", "fresh")}
-    assert lines["repost"].endswith("added to your list today · posting first seen 66 days ago")
-    assert lines["fresh"].endswith("added to your list today")
-    assert "first seen 66d" not in page(conn, tmp_path)
-    # still unannounced from an earlier check: its own day on the list, never freehire's
-    store.upsert(conn, [job("waited", reality={"age_days": 40})], "2026-09-26T12:00:00Z")
-    conn.execute("UPDATE jobs SET fetched_at = ?", (CHECK,))
-    assert "added to your list 3 days ago · posting first seen 40 days ago" in page(conn, tmp_path)
+    assert lines["repost"].endswith("posted 66 days ago") and lines["fresh"].endswith("posted 3 days ago")
+    assert text.index("/jobs/fresh>") < text.index("/jobs/repost>")
+    assert "first seen 66d" not in text
 
 
 def test_new_leaves_out_jobs_already_in_progress(conn, tmp_path):
@@ -218,12 +228,12 @@ def test_new_leaves_out_jobs_already_in_progress(conn, tmp_path):
     assert [j["public_slug"] for j in today.new_jobs(conn, CONFIG, NOW)] == ["b"]
 
 
-def test_new_capped_with_rest_in_the_chat(conn, tmp_path, monkeypatch):
-    monkeypatch.setattr(today, "NEW_MAX", 2)
+def test_best_capped_with_rest_in_the_chat(conn, tmp_path, monkeypatch):
+    monkeypatch.setattr(today, "BEST_MAX", 2)
     store.upsert(conn, [job(f"j{i}") for i in range(5)], CHECK)
     text = page(conn, tmp_path)
     assert text.count("Say: `resume for job") == 2
-    assert "- 3 more - ask the chat. Say: `show me more new jobs`" in text
+    assert "- 3 more - ask the chat. Say: `show me more jobs to apply to`" in text
 
 
 def test_same_number_as_the_chat_list(conn, tmp_path):
@@ -327,7 +337,8 @@ def test_page_is_private():
 BRIEF = """Job Finder today (same as their Today page). If the user only greets you or asks what's next, answer with this in plain words, each job written "**Job 12** - title, company", never a 1. 2. 3. list; otherwise use it only when it helps. Never say how many resumes are unsent.
 - Waiting on you (resume made, not sent): Job 1 - Data Analyst, Globex
 - Follow up (no reply for a while): Job 2 - Senior Vue Engineer old, Acme, applied 29 days ago
-- New since last check: 2. Top: Job 3 - Senior Vue Engineer paid, Acme; Job 4 - Senior Vue Engineer plain, Acme
+- Best to apply next: Job 3 - Senior Vue Engineer paid, Acme; Job 4 - Senior Vue Engineer plain, Acme
+- New since last check: 2
 - Not finished: The morning job check is off."""
 
 

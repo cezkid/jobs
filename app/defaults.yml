@@ -118,3 +118,25 @@ rank:
   boost_collections: [fortune500]
   # company spanning this many enrichment categories -> printed by `rank --suspects`
   suspect_min_categories: 5
+  # "Best to apply next" (app/best.py): Today page, chat brief, morning email order. Each factor
+  # scores 0-1, weighted mean, less `demerit` per rank demerit. Why + basis: app/docs/jobs/best-next.md
+  best_next:
+    # share of the posting's required asks their resume backs (word overlap, years, degree);
+    # weighs most - an ask they can't show is where most applications stop
+    match: 0.35
+    # fewer asks scores higher: required asks + lead/manage duties (each twice), full marks at
+    # asks_light or fewer, none at asks_heavy (2026-10-04, 944 live US rows, 7 occupations: 449
+    # list required asks, median 7, top tenth 12+, 14 at 16+); a level 2+ rungs above career_level halves it
+    asks: 0.15
+    asks_light: 8
+    asks_heavy: 16
+    # place among the listed pay of the jobs scored; under salary_floor_usd halves it; not listed 0.25
+    pay: 0.2
+    # their own where-first order (passes): first tier 1, last 0
+    where: 0.15
+    # newer posting first: 1 posted today, 0 at fresh_days
+    fresh: 0.15
+    fresh_days: 21
+    # taken off per demerit rank already counts (likely ghost, level/hours mismatch, no sponsor,
+    # clearance they can't hold)
+    demerit: 0.15

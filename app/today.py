@@ -1,4 +1,4 @@
-"""Today page: what the user comes back to. Waiting on you, follow up, new since the last check,
+"""Today page: what the user comes back to. Waiting on you, follow up, best to apply next,
 not finished - each item ends w/ the exact words to say in the chat.
 
 Private (their jobs, their progress) => gitignored like My Jobs/. Lists, never tables: the
@@ -14,6 +14,7 @@ from urllib.parse import quote, unquote
 from dotenv import dotenv_values
 
 import autorun
+import best
 import cfg
 import companies
 import locks
@@ -29,7 +30,9 @@ DASHBOARD_VERSION = 1
 # words to say, shared w/ the dashboard buttons: a word changed here changes there
 SAY_FILE = cfg.APP / "vscode" / "say.json"
 TEMPLATES = {t["id"]: t["words"] for t in json.loads(SAY_FILE.read_text(encoding="utf-8"))["templates"]}
-WAITING_MAX, FOLLOW_UP_MAX, NEW_MAX = 5, 5, 10
+WAITING_MAX, FOLLOW_UP_MAX, BEST_MAX = 5, 5, 10
+# no resume yet: the order can't weigh fit, said once under the section
+NO_RESUME_NOTE = "Add your resume for a better order: it then puts the jobs you fit best first."
 # jobs per line in the chat brief: a few hundred tokens at most, the page holds the rest
 BRIEF_MAX = 3
 # where it stands -> how the follow-up item opens; the days come from settings `follow_up`
@@ -182,7 +185,7 @@ def progress(conn) -> str:
 def tiles(counts: dict[str, int], new: int) -> list[dict]:
     """Dashboard's top row: progress + what's new only, never a count of what's left to do.
     section = the section it tells about (dashboard orders tiles like its sections)."""
-    shown = (("New since last check", new, "new"), ("Sent so far", counts["sent"], None),
+    shown = (("New since last check", new, "best"), ("Sent so far", counts["sent"], None),
              ("Interview" if counts["interview"] == 1 else "Interviews", counts["interview"], "interviews"),
              ("Offer" if counts["offer"] == 1 else "Offers", counts["offer"], None))
     return [{"label": label, "value": n, "section": sec} for label, n, sec in shown if n]
@@ -254,17 +257,17 @@ def interviews_section(conn, now: str, days: dict[str, int], dirs: dict[str, Pat
     return {"id": "interviews", "title": "Interviews", "note": None, "cards": cards, "more": None}
 
 
-def new_jobs(conn, config: dict, now: datetime) -> list[dict]:
+def new_jobs(conn, config: dict, now: datetime, ranked: list[dict] | None = None) -> list[dict]:
     """Found in the last check, or not yet announced: the same jobs the email / pop-up named,
     ranked the same way, so "Job 12" here = Job 12 there. Stale rows (likely filled) and jobs
-    the user already acts on are left out."""
+    the user already acts on are left out. ranked = rank.rank of every row, when already made."""
     last_check = conn.execute("SELECT MAX(fetched_at) FROM jobs").fetchone()[0]
     if last_check is None:
         return []
     announced = {r[0] for r in conn.execute("SELECT public_slug FROM seen WHERE alerted_at >= ?", (last_check,))}
     acting = {v for r in conn.execute("SELECT public_slug, link_key(url) FROM applications") for v in r if v}
     out = []
-    for j in rank.rank(store.all_jobs(conn), config, now):
+    for j in rank.rank(store.all_jobs(conn), config, now) if ranked is None else ranked:
         slugs = {j["public_slug"], *j["duplicates"]}
         if j["stale"] or (j["seen"] and not slugs & announced) or (slugs | {store.link_key(j["url"])}) & acting:
             continue
@@ -272,16 +275,26 @@ def new_jobs(conn, config: dict, now: datetime) -> list[dict]:
     return out
 
 
-def new_section(conn, config: dict, now: datetime, rows: list[dict] | None = None) -> dict | None:
-    rows = new_jobs(conn, config, now) if rows is None else rows
+def best_section(conn, config: dict, rows: list[dict], has_resume: bool) -> dict | None:
+    """Open jobs not acted on, best to apply next first (app/best.py): replaces "new since last
+    check" (owner 2026-10-04) - a job from last week that fits beats today's that doesn't."""
     if not rows:
         return None
     # facts to decide on before "Make my resume": the why + the posting (critique 2026-10-04)
-    cards = [card(conn, j, "", [words("resume", j["num"])], why=rank.reasons(j, config, now, rank.added(j, now)))
-             for j in store.numbered(conn, rows[:NEW_MAX])]
-    more = ({"text": f"{len(rows) - NEW_MAX} more - ask the chat.", "say": words("more_new")}
-            if len(rows) > NEW_MAX else None)
-    return {"id": "new", "title": "New since last check", "note": None, "cards": cards, "more": more}
+    cards = [card(conn, j, "", [words("resume", j["num"])], why=j["why"])
+             for j in store.numbered(conn, rows[:BEST_MAX])]
+    more = ({"text": f"{len(rows) - BEST_MAX} more - ask the chat.", "say": words("more_best")}
+            if len(rows) > BEST_MAX else None)
+    return {"id": "best", "title": "Best to apply next", "note": None if has_resume else NO_RESUME_NOTE,
+            "cards": cards, "more": more, "total": len(rows)}
+
+
+def best_rows(conn, config: dict, now: datetime, ranked: list[dict] | None = None) -> tuple[list[dict], bool]:
+    """Best-next order, the shown ones w/ their why; second = their resume was read (else match
+    is neutral)."""
+    facts = best.resume_facts(config, now.date())
+    rows = best.score(best.candidates(conn, config, now, ranked), config, now, facts)
+    return [dict(j, why=best.reasons(j, config, now)) if i < BEST_MAX else j for i, j in enumerate(rows)], facts is not None
 
 
 def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | None = None) -> list[str]:
@@ -313,9 +326,11 @@ def model(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], ro
     status.backfill(conn, jobs_dir)
     dirs = job_folders(jobs_dir)
     days = config["follow_up"]
-    new = new_jobs(conn, config, now)
+    ranked = rank.rank(store.all_jobs(conn), config, now)
+    new = new_jobs(conn, config, now, ranked)
+    rows, has_resume = best_rows(conn, config, now, ranked)
     sections = [waiting_section(conn, now_iso, dirs, root), interviews_section(conn, now_iso, days, dirs, root),
-                follow_up_section(conn, now_iso, days, dirs, root), new_section(conn, config, now, new)]
+                follow_up_section(conn, now_iso, days, dirs, root), best_section(conn, config, rows, has_resume)]
     sections = [s for s in sections if s]
     return {
         "version": DASHBOARD_VERSION,
@@ -373,8 +388,11 @@ def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) ->
                           else f"{STAGE_WORDS[r['state']].lower()} {days_ago(r['state_at'], now_iso)}")
                           for r in status.numbered(conn, rows))
         out.append(f"- Follow up (no reply for a while): {quiet}")
-    if rows := new_jobs(conn, config, now):
-        out.append(f"- New since last check: {len(rows)}. Top: {jobs(store.numbered(conn, rows[:BRIEF_MAX]))}")
+    ranked = rank.rank(store.all_jobs(conn), config, now)
+    if rows := best_rows(conn, config, now, ranked)[0]:
+        out.append(f"- Best to apply next: {jobs(store.numbered(conn, rows[:BRIEF_MAX]))}")
+    if new := len(new_jobs(conn, config, now, ranked)):
+        out.append(f"- New since last check: {new}")
     out += [f"- Not finished: {t.split(' Say: ')[0]}" for t in todo]
     if len(out) == 1:
         out.append("- Nothing new since the last check.")
@@ -431,7 +449,7 @@ def refresh(config: dict, page: Path = PAGE) -> Path:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Write Today.md: waiting on you, follow up, new jobs, not finished")
+    ap = argparse.ArgumentParser(description="Write Today.md: waiting on you, follow up, best to apply next, not finished")
     ap.add_argument("--print", action="store_true", help="print the page instead of writing it")
     ap.add_argument("--brief", action="store_true", help="print a few lines for a new chat (Claude session-start hook)")
     ap.add_argument("--refresh", action="store_true", help="file job folders under their stage, then write the page"

@@ -243,8 +243,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 
 - `START HERE.md` - first-run steps only ("type set me up"); launcher opens it until search
   settings exist, then `Today.md`, and hides it from the file list. Plain words only.
-- `Today.md` - generated (`today`): waiting on you, follow up, new since last check, not
-  finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
+- `Today.md` - generated (`today`): waiting on you, follow up, best to apply next (`app/docs/jobs/best-next.md`;
+  same order in brief + email), not finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
   w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each morning check.
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
