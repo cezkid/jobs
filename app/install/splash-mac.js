@@ -2,6 +2,8 @@
 // osascript -l JavaScript splash-mac.js <root folder> [--dry]   (start-mac.sh runs it before update)
 // Closes when .data/window-ready is as new as .data/splash-start, after CAP_S, or on a click in it.
 // --dry: builds the window, never shows it, runs the same wait w/ a 1 s cap, prints what it built as JSON.
+// --render=<png>: builds the window, never shows it, draws its content into the file, ends (the look to show the owner).
+// --log=<json>: when it closes, writes when it started, was on screen and closed (epoch s) + why (measure script).
 // Why outside VS Code + every rule below: app/docs/app-window.md, plan-ejf.13.
 ObjC.import('Cocoa');
 
@@ -73,8 +75,27 @@ function label(words, font, hex, top, into) {
   return field;
 }
 
+function option(argv, name) {
+  var hit = argv.filter(function (a) { return a.indexOf('--' + name + '=') === 0; })[0];
+  return hit ? hit.slice(name.length + 3) : '';
+}
+
+// the content view as a PNG, drawn by the view itself: a screenshot needs the Screen Recording permission
+function render(win, path) {
+  var view = win.contentView, bounds = view.bounds;
+  var bitmap = view.bitmapImageRepForCachingDisplayInRect(bounds);
+  // the view is clear over the window's background colour => paint that first
+  $.NSGraphicsContext.saveGraphicsState;
+  $.NSGraphicsContext.setCurrentContext($.NSGraphicsContext.graphicsContextWithBitmapImageRep(bitmap));
+  win.backgroundColor.setFill;
+  $.NSRectFill(bounds);
+  $.NSGraphicsContext.restoreGraphicsState;
+  view.cacheDisplayInRectToBitmapImageRep(bounds, bitmap);
+  return bitmap.representationUsingTypeProperties($.NSBitmapImageFileTypePNG, $.NSDictionary.dictionary).writeToFileAtomically(path, true);
+}
+
 function run(argv) {
-  var dry = argv.indexOf('--dry') !== -1;
+  var dry = argv.indexOf('--dry') !== -1, renderTo = option(argv, 'render'), logTo = option(argv, 'log');
   var root = argv.filter(function (a) { return a.slice(0, 2) !== '--'; })[0] || '.';
   var started = Date.now() / 1000;
   // read now: update swaps app/ for a new one while the splash is up
@@ -115,7 +136,13 @@ function run(argv) {
   var hint = label(TEXT.hint, $.NSFont.systemFontOfSize(12), colours.hint, 212, view);
 
   app.finishLaunching;
+  if (renderTo) {
+    var drawn = render(win, renderTo);
+    win.close;
+    return JSON.stringify({ rendered: Boolean(drawn), look: look, to: renderTo });
+  }
   if (!dry) win.orderFrontRegardless;  // in front w/o taking the keyboard from the app in use
+  var shown = Date.now() / 1000, onScreen = Boolean(win.visible);
 
   // splash-start missing (run by hand) => our own start
   var since = mtime(root + '/.data/splash-start');
@@ -141,5 +168,9 @@ function run(argv) {
     cap: CAP_S, closed: closed, waited: Math.round((Date.now() / 1000 - started) * 100) / 100,
   }) : '';
   win.close;
+  if (logTo) {
+    $.NSString.alloc.initWithUTF8String(JSON.stringify({ started: started, shown: shown, onScreen: onScreen, closed: Date.now() / 1000, why: closed }))
+      .writeToFileAtomicallyEncodingError(logTo, true, $.NSUTF8StringEncoding, null);
+  }
   return report;
 }

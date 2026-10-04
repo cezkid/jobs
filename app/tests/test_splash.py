@@ -101,6 +101,31 @@ def test_splash_missing_icon_and_look_still_build(tmp_path):
 
 
 @mac
+@pytest.mark.parametrize("look", ["light", "dark"])
+def test_splash_render_draws_the_look_into_a_png_without_showing_it(tmp_path, look):
+    home, png = root(tmp_path, look), tmp_path / "splash.png"
+    began = time.time()
+    out = subprocess.run(["osascript", "-l", "JavaScript", str(SPLASH), str(home), f"--render={png}"],
+                         capture_output=True, text=True, timeout=30)
+    assert out.returncode == 0, out.stderr
+    assert json.loads(out.stdout) == {"rendered": True, "look": look, "to": str(png)}
+    assert png.read_bytes()[:8] == b"\x89PNG\r\n\x1a\n" and png.stat().st_size > 5000
+    assert time.time() - began < 20  # ends once drawn: never waits for the ready file
+
+
+@mac
+def test_splash_log_says_when_it_closed_and_why(tmp_path):
+    home, log = root(tmp_path), tmp_path / "log.json"
+    (home / ".data" / "window-ready").write_text("")
+    out = subprocess.run(["osascript", "-l", "JavaScript", str(SPLASH), str(home), "--dry", f"--log={log}"],
+                         capture_output=True, text=True, timeout=30)
+    assert out.returncode == 0, out.stderr
+    said = json.loads(log.read_text())
+    assert said["why"] == "ready" and said["onScreen"] is False
+    assert said["started"] <= said["shown"] <= said["closed"]
+
+
+@mac
 def test_splash_dry_closes_on_a_ready_file_as_new_as_its_start(tmp_path):
     home = root(tmp_path, "light")
     start = home / ".data" / "splash-start"
