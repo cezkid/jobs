@@ -24,7 +24,7 @@ uncited:
 - Plain one-column page: read right every time. Spaced-out headings: broke every reader.
 - Free readers only - no employer's hiring system was tested.
 
-This page holds the data from our resume layout test. It says what we built, how we scored each reading and where the test stops. Anyone can rerun it and get the same file. Why we recommend a plain page: [what makes a good resume](what-makes-a-good-resume.md#does-layout-matter) and [where the resume-rejection figure came from](ats-rejection-myth.md#do-formatting-errors-get-resumes-rejected).
+This page holds the data from our resume layout test. What it means: [Are two-column resumes ATS friendly?](resume-parser-test.md). This page says what we built, how we scored each reading and where the test stops. Anyone can rerun it and get the same file. Why we recommend a plain page: [what makes a good resume](what-makes-a-good-resume.md#does-layout-matter) and [where the resume-rejection figure came from](ats-rejection-myth.md#do-formatting-errors-get-resumes-rejected).
 
 ## What did we test?
 

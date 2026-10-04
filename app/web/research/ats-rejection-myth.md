@@ -99,6 +99,8 @@ In one Workday test, a school and degree written on one line landed in the wrong
 
 Blank questions are not rejections either. Ashby's "Autofill from resume" filled only contact boxes in our test, leaving the employer's questions empty ([ashby.md](../../docs/apply/ashby.md)). Applicants can read the empty boxes as the system rejecting their resume. The autofill did not reject anyone.
 
+Our own layout test read one resume in 7 layouts with free PDF readers: [Are two-column resumes ATS friendly?](resume-parser-test.md)
+
 In practice, a plain one-column page that reads back cleanly is the safe choice. Fancy layouts are a risk to being found, not a sure rejection.
 
 ## Do employers' filters screen out people who could do the job?

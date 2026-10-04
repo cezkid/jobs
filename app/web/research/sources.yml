@@ -338,6 +338,16 @@
   sample: 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published
   checked: 2026-10-03
 
+- id: enhancv-2026
+  type: web
+  authors: ["Vasileva, Doroteya"]
+  year: 2026
+  title: "What Happens to a Two-Column Resume When a Machine Reads It"
+  url: https://enhancv.com/blog/two-column-resume-ats-test/
+  evidence: vendor survey
+  sample: 3 resumes (one made-up, 3-role and 6-role ones) in 17 of the company's own templates, read by 7 free PDF text reader settings (pdftotext, PyMuPDF, pdfminer.six, pypdf), 357 readings; plus 10 customer resumes read by 4 AI models; by a resume builder that sells two-column templates, published August 24, 2026, updated September 30, 2026; not peer-reviewed
+  checked: 2026-10-04
+
 - id: eo-14281
   type: law
   org: Executive Office of the President
