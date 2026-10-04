@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.16 (no drafting context)
 ---
@@ -133,3 +133,11 @@ page can be trusted as the site's editorial policy. Fixes are wording on this pa
 ## Revision (plan-xsy.17, 2026-10-03)
 
 Every finding above fixed on the page or moved to a filed bead (named in its status). Verdict set to publish by the revise bead per app/docs/research.md; the owner read at ship (plan-xsy.36) is still required, and plan-xsy.44 holds the owner facts.
+
+## Re-review 2026-10-04: title (plan-xsy.56)
+
+Title only: "How we research" (15 chars) -> "How the Research articles are made and checked" (46), the
+old og_title, so search results say what the page is (audit C10). og_title dropped (now equal to
+the title). Body, claims and description unchanged; in-body links keep the short text "How we
+research". The no-ties line (audit D9) waits on owner facts: plan-xsy.56's child bead. Verdict
+stays publish.

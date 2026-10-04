@@ -1,10 +1,9 @@
 ---
-title: How we research
+title: How the Research articles are made and checked
 description: How these articles find sources, grade evidence, use AI, get checked and get corrected - and what we gain from the answers.
 published: 2026-10-03
-modified: 2026-10-03
+modified: 2026-10-04
 status: published
-og_title: How the Research articles are made and checked
 ---
 ## Who writes these articles?
 
