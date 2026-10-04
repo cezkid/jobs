@@ -37,6 +37,53 @@ test("page loads nothing: CSP default-src none, no http(s) source, nonce'd scrip
   }
 });
 
+// fonts from anywhere but the extension's own folder could tell a server when the user looked
+test("Caladea comes from the webview's own source only: font-src = cspSource, @font-face per weight", () => {
+  const fonts = { source: "https://file+.vscode-resource.vscode-cdn.net",
+    files: { 400: "https://file+.vscode-resource.vscode-cdn.net/ext/media/fonts/caladea-regular.woff2",
+      700: "https://file+.vscode-resource.vscode-cdn.net/ext/media/fonts/caladea-bold.woff2" } };
+  for (const page of [today.render(today.model(RAW, say), { mode: "copy", nonce: "abc123", fonts }), today.fallback({ nonce: "abc123", fonts })]) {
+    const meta = page.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/)[1];
+    assert.match(meta, /^default-src 'none';/);
+    assert.deepEqual(meta.match(/font-src ([^;]*);/)[1].split(" "), [fonts.source]);
+    assert.equal((page.match(/@font-face \{ font-family: Caladea; src: url\("https:\/\/file\+\.vscode-resource/g) || []).length, 2);
+    assert.match(page, /font-weight: 700/);
+  }
+  // a source or file that could break out of the rule => no font-src, no @font-face (Georgia)
+  const bad = { source: "https://x 'unsafe-inline'", files: { 400: 'x:a") ; } body { color: red' } };
+  const page = today.render(today.model(RAW, say), { mode: "copy", nonce: "abc123", fonts: bad });
+  assert.doesNotMatch(page, /font-src|@font-face/);
+  assert.equal(today.FONT_DIR.join("/"), "media/fonts");
+});
+
+// box in box in box read as any admin dashboard (critique 2026-10-04): paper + rules, Next up alone framed
+test("paper look: no card fill, jobs split by rules, one frame for Next up", () => {
+  const css = html(today.model(RAW, say)).match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
+  assert.doesNotMatch(css, /--card/);
+  const backgrounds = [...css.matchAll(/([^{}]+)\{[^}]*background: (?!transparent|none|var\(--(desk|mark|mark-2|tint|text)\))/g)].map((x) => x[1].trim());
+  assert.deepEqual(backgrounds, []);
+  assert.match(css, /\.card \+ \.card \{ border-top: 1px solid var\(--line\)/);
+  assert.match(css, /\.next \.card \{ border: 1px solid var\(--line\)/);
+  assert.match(css, /\.num, \.figures b, \.rows h3 b \{ font-variant-numeric: lining-nums tabular-nums/);
+});
+
+// "added to your list today" under "New since last check" says the same thing twice
+test("new jobs drop 'added to your list today', keep older days + the posting's age", () => {
+  const raw = structuredClone(RAW);
+  const fresh = raw.sections.find((s) => s.id === "new") || (raw.sections.push({ id: "new", title: "New since last check", cards: [] }), raw.sections.at(-1));
+  fresh.cards = [
+    { num: 31, title: "A", company: "Example Co", detail: "remote · pay not listed · added to your list today", say: ["resume for job 31"] },
+    { num: 32, title: "B", company: "Example Co", detail: "added to your list today · posting first seen 66 days ago", say: ["resume for job 32"] },
+    { num: 33, title: "C", company: "Example Co", detail: "remote · added to your list 3 days ago", say: ["resume for job 33"] },
+  ];
+  const m = today.model(raw, say);
+  const all = [...(m.next && m.next.card ? [m.next.card] : []), ...m.sections.flatMap((s) => s.cards)];
+  const detail = Object.fromEntries(all.map((c) => [c.num, c.detail]));
+  assert.equal(detail[31], "remote · pay not listed");
+  assert.equal(detail[32], "posting first seen 66 days ago");
+  assert.equal(detail[33], "remote · added to your list 3 days ago");
+});
+
 // a posting title is employer text: markup in it must show as words, never run or link
 test("employer text is escaped", () => {
   const raw = structuredClone(RAW);
@@ -484,7 +531,7 @@ test("skip links first: Skip to Next up, then each section, each a heading that 
 });
 
 // controls 1.6:1 against the page vanish for low vision (WCAG 1.4.11 asks 3:1)
-test("control borders >= 3:1 in light + dark; dark card stands off the desk", () => {
+test("control borders >= 3:1 in light + dark, on the page and under a hovered button", () => {
   const css = html(today.model(RAW, say)).match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
   const lum = (hex) => {
     const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
@@ -494,12 +541,11 @@ test("control borders >= 3:1 in light + dark; dark card stands off the desk", ()
   for (const theme of ["light", "dark"]) {
     const block = css.match(new RegExp(`body\\.vscode-${theme} \\{([^}]*)\\}`))[1];
     const v = Object.fromEntries([...block.matchAll(/--([a-z0-9-]+): (#[0-9a-f]{6})/g)].map((x) => [x[1], x[2]]));
-    for (const ground of ["desk", "card"]) {
+    for (const ground of ["desk", "tint"]) {
       assert.ok(ratio(v.edge, v[ground]) >= 3, `${theme} edge on ${ground}`);
       assert.ok(ratio(v["go-edge"], v[ground]) >= 3, `${theme} yellow button edge on ${ground}`);
       assert.ok(ratio(v.text, v[ground]) >= 4.5 && ratio(v["text-2"], v[ground]) >= 4.5, `${theme} text on ${ground}`);
     }
-    if (theme === "dark") assert.ok(ratio(v.card, v.desk) >= 1.2, "dark card fill vs desk");
   }
   assert.match(css, /button \{[^}]*border: 1px solid var\(--edge\)/);
   assert.match(css, /button:hover \{[^}]*box-shadow/);

@@ -37,7 +37,8 @@ const PROBE_SETTINGS = [
 ];
 
 function activate(context) {
-  context.subscriptions.push(vscode.window.registerCustomEditorProvider(today.VIEW_TYPE, { resolveCustomTextEditor: showToday },
+  context.subscriptions.push(vscode.window.registerCustomEditorProvider(today.VIEW_TYPE, { resolveCustomTextEditor: (document, panel) =>
+    showToday(document, panel, vscode.Uri.joinPath(context.extensionUri, ...today.FONT_DIR)) },
     { webviewOptions: { enableFindWidget: true }, supportsMultipleEditorsPerDocument: false }));
   const out = process.env[PROBE_ENV];
   // probe told which pages to open => measures that alone, not the start page
@@ -137,11 +138,16 @@ async function showPage(uri, isToday) {
 
 // Today dashboard (custom editor on Today.md, workspace association app/workspace.py): drawn from
 // .data/today.json, redrawn when the page is rewritten. Buttons send an index; what it does is
-// looked up here, checked again, never taken from the page.
-function showToday(document, panel) {
+// looked up here, checked again, never taken from the page. fontDir = the installed extension's
+// media/fonts (Caladea): the one folder the page may load from
+function showToday(document, panel, fontDir) {
   const root = path.dirname(document.uri.fsPath);
   const at = (rel) => path.join(root, ...rel.split("/"));
-  panel.webview.options = { enableScripts: true, localResourceRoots: [] };
+  panel.webview.options = { enableScripts: true, localResourceRoots: [fontDir] };
+  const fonts = { source: panel.webview.cspSource, files: {} };
+  for (const [weight, file] of Object.entries(today.FONTS)) {
+    fonts.files[weight] = panel.webview.asWebviewUri(vscode.Uri.joinPath(fontDir, file)).toString();
+  }
   let m = null;
   const draw = () => {
     const nonce = crypto.randomBytes(16).toString("base64");
@@ -160,7 +166,7 @@ function showToday(document, panel) {
       if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
       if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
     }
-    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai: currentAi(root), nonce }) : today.fallback({ nonce, reason });
+    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai: currentAi(root), nonce, fonts }) : today.fallback({ nonce, reason, fonts });
   };
   // fallback's Try again: rebuild the list (page redraws when it's rewritten), else just read it again
   const retry = () => {

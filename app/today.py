@@ -233,7 +233,8 @@ def interviews_section(conn, now: str, days: dict[str, int], dirs: dict[str, Pat
     rows = [r for r in status.in_progress(conn) if r["state"] == "interview" and r["key"] not in due]
     if not rows:
         return None
-    cards = [card(r, f"Interview stage since {days_ago(r['state_at'], now)}",
+    # no age: "since 5 days ago" read odd + is when it was set, not the interview's day
+    cards = [card(r, "Interview set",
                   [words("practise", r["num"]), words("had_interview", r["num"])], dirs, root)
              for r in status.numbered(conn, rows[:FOLLOW_UP_MAX])]
     return {"id": "interviews", "title": "Interviews", "note": None, "cards": cards, "more": None}

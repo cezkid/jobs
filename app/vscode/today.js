@@ -28,6 +28,12 @@ const ROWS_AFTER = 4;
 const NEW_SHOWN = 5;
 // status changes: outline, never yellow; closing a job quietest of all
 const QUIET = new Set(["closed"]);
+// Caladea, shipped in the vsix (OFL, media/fonts/OFL.txt): the webview may load only from there.
+// Italic left out: the page sets none
+const FONT_DIR = ["media", "fonts"];
+const FONTS = { 400: "caladea-regular.woff2", 700: "caladea-bold.woff2" };
+// New section: its own title already says "today"
+const ADDED_TODAY = /(^| · )added to your list today(?= · |$)/;
 
 function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -122,6 +128,7 @@ function model(raw, sayJson) {
   }
   // new jobs past NEW_SHOWN: the rest in the chat, even when the data's own list fit
   const fresh = m.sections.find((x) => x.id === "new");
+  if (fresh) for (const c of fresh.cards) c.detail = c.detail.replace(ADDED_TODAY, "").replace(/^ · /, "");
   const moreNew = tpls.find((t) => t.id === "more_new");
   if (fresh && fresh.cards.length > NEW_SHOWN && !fresh.more && moreNew) fresh.more = { text: "", say: sayButton(moreNew.words) };
   for (const t of m.todo) t.blocks = Boolean(t.say && BLOCKERS.has(t.say.id));
@@ -267,69 +274,78 @@ async function say({ ai, mode, words, platform, exec, copy, status, busy, wait =
 }
 
 // colors = app/window/brand.py tokens (test checks every hex); yellow only on buttons.
+// Paper look like the install site (docs/index.html): ink on paper, sections = heading + rule, jobs
+// split by rules - no grey panels, no boxed cards; Next up alone keeps one quiet frame.
 // --edge = every control's border: ink-2, >= 3:1 on paper + desk (WCAG 1.4.11); yellow button's own
-// edge in light = ink-2 too (yellow on paper 1.28:1). Dark card fill 1.22:1 on desk + its line
+// edge in light = ink-2 too (yellow on paper 1.28:1)
 const CSS = `
-body.vscode-light { --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8; --card: #ffffff; --tint: #f3f3f1;
+body.vscode-light { --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8; --tint: #f3f3f1;
   --edge: #3a3a3a; --go-edge: #3a3a3a; --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000; }
-body.vscode-dark { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; --card: #2c2c2e; --tint: #1c1c1e;
+body.vscode-dark { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; --tint: #2c2c2e;
   --edge: #bdbdbd; --go-edge: #ffe433; --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000; }
 body.vscode-high-contrast { --desk: var(--vscode-editor-background); --text: var(--vscode-editor-foreground);
-  --text-2: var(--vscode-editor-foreground); --line: var(--vscode-contrastBorder, currentColor); --card: transparent;
+  --text-2: var(--vscode-editor-foreground); --line: var(--vscode-contrastBorder, currentColor);
   --tint: transparent; --edge: var(--vscode-contrastBorder, currentColor); --go-edge: var(--edge); --mark: transparent;
   --mark-2: transparent; --mark-text: var(--vscode-editor-foreground); }
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0 20px; background: var(--desk); color: var(--text);
-  font-family: Caladea, Georgia, "Times New Roman", serif; font-size: 16px; line-height: 1.45; }
-main { max-width: 60rem; margin: 0 auto; padding: 24px 0 48px; }
+  font-family: Caladea, Georgia, "Times New Roman", serif; font-size: 16px; line-height: 1.45;
+  font-variant-numeric: lining-nums; }
+::selection { background: var(--text); color: var(--desk); }
+main { max-width: 52rem; margin: 0 auto; padding: 24px 0 48px; }
 h1 { font-size: 2rem; line-height: 1.1; margin: 0 0 4px; }
+h1, h2, h3 { text-wrap: balance; }
 [tabindex="-1"]:focus { outline: none; }
 .skip { position: absolute; left: -10000px; top: 0; }
 .skip:focus-within { position: static; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; }
 .sub { color: var(--text-2); margin: 0 0 2px; }
-.how { color: var(--text-2); font-size: 0.9rem; margin: 0 0 20px; }
-section { margin: 24px 0 0; }
-section > h2 { font-size: 1.2rem; margin: 0 0 10px; padding-top: 10px; border-top: 1px solid var(--line); }
-.note { color: var(--text-2); font-size: 0.92rem; margin: -2px 0 12px; max-width: 42rem; }
-.figures { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 22px 0 0; padding: 0; list-style: none; }
+.how { color: var(--text-2); font-size: 0.92rem; margin: 0 0 20px; }
+section { margin: 32px 0 0; }
+section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1px solid var(--text); }
+.note { color: var(--text-2); font-size: 0.92rem; margin: 10px 0 0; max-width: 42rem; }
+.figures { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 24px 0 0; padding: 0; list-style: none; }
 .figures li { display: flex; align-items: baseline; gap: 8px; }
 .figures b { font-size: 1.6rem; line-height: 1.1; }
 .figures span { color: var(--text-2); font-size: 0.92rem; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr)); gap: 12px; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px;
-  display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.next .cards { grid-template-columns: 1fr; }
-.next .card { padding: 14px 18px; }
+.num, .figures b, .rows h3 b { font-variant-numeric: lining-nums tabular-nums; }
+.cards { display: grid; grid-template-columns: 1fr; }
+.card { display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 14px 0; }
+.card + .card { border-top: 1px solid var(--line); }
+.next .card { border: 1px solid var(--line); border-radius: 8px; padding: 14px 18px; margin-top: 12px; }
 .next .card h3 { font-size: 1.3rem; }
 .card h3 { font-size: 1.05rem; line-height: 1.3; margin: 0; overflow-wrap: anywhere; }
 .num { display: block; font-size: 0.85rem; color: var(--text-2); }
 .card p { margin: 0; overflow-wrap: anywhere; }
 .detail { color: var(--text-2); font-size: 0.92rem; }
-.acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; padding-top: 6px; }
+.acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; padding-top: 8px; }
 .meta { font-size: 0.9rem; color: var(--text-2); margin-left: auto; }
 .card .meta { margin: 0 0 0 auto; padding-left: 6px; }
 .rows { list-style: none; margin: 0; padding: 0; }
 .rows li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 12px;
-  padding: 8px 0; border-bottom: 1px solid var(--line); }
-.rows li:first-child { border-top: 1px solid var(--line); }
+  padding: 10px 0; }
+.rows li + li { border-top: 1px solid var(--line); }
 .rows .what { min-width: 0; flex: 1 1 18rem; overflow-wrap: anywhere; }
+.rows .acts { padding-top: 0; }
 .rows h3 { display: inline; font: inherit; margin: 0; }
 .rows h3 b { font-weight: 700; }
-.list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
 .list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
-.more { margin-top: 10px; }
+.more { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .later { font-size: 0.92rem; color: var(--text-2); }
-.says { color: var(--text-2); margin: 10px 0 0; }
+.later .acts { padding-top: 12px; }
+.says { color: var(--text-2); margin: 12px 0 0; }
 .says q { color: var(--text); font-weight: 700; }
-button { font: inherit; font-size: 0.92rem; font-weight: 700; cursor: pointer; border-radius: 6px; padding: 5px 12px;
-  border: 1px solid var(--edge); background: transparent; color: var(--text); text-align: center; }
+.later h3 { font-size: 0.92rem; color: var(--text); margin: 18px 0 0; }
+.guides { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; }
+button { font: inherit; font-size: 0.92rem; font-weight: 700; line-height: 1.3; cursor: pointer; border-radius: 6px;
+  padding: 5px 12px; border: 1px solid var(--edge); background: transparent; color: var(--text); text-align: center; }
 button:hover { background: var(--tint); box-shadow: inset 0 0 0 1px var(--text); }
 button:active { box-shadow: inset 0 0 0 2px var(--text); transform: translateY(1px); }
 button.go { background: var(--mark); color: var(--mark-text); border-color: var(--go-edge); }
 button.go:hover { background: var(--mark-2); box-shadow: inset 0 0 0 1px var(--mark-text); }
 button.go:active { background: var(--mark-2); box-shadow: inset 0 0 0 2px var(--mark-text); }
 button.quiet { color: var(--text-2); font-weight: 400; }
-button.link { border: 0; border-radius: 2px; padding: 0; background: none; font-weight: 400; color: var(--text);
+button.link { border: 0; padding: 0; background: none; font-weight: 400; color: var(--text); text-align: left;
   text-decoration: underline; text-underline-offset: 2px; }
 button.link:hover { background: none; box-shadow: none; text-decoration-thickness: 2px; }
 button.link:active { box-shadow: none; text-decoration-thickness: 3px; }
@@ -340,13 +356,32 @@ body.vscode-high-contrast button.go { border-width: 3px; padding: 3px 10px; }
 body.vscode-high-contrast button.quiet { border-style: dashed; }
 body.vscode-high-contrast button.link { border: 0; }
 #status { position: sticky; bottom: 0; margin: 16px 0 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--text);
-  background: var(--card); color: var(--text); font-weight: 700; }
+  background: var(--desk); color: var(--text); font-weight: 700; }
 #status:empty { display: none; }
 `;
 
-// webview page: one inline script + style (nonce), nothing loaded from anywhere
-function csp(nonce) {
-  return `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';`;
+// webview URI of each shipped face + the webview's own source (extension.js: asWebviewUri, cspSource)
+// => @font-face rules; a URI that could break out of url("") => left out, Georgia instead
+function fontFaces(fonts) {
+  const safe = (u) => typeof u === "string" && /^[a-z][a-z0-9+.-]*:[^\s"'()\\<>;{}]+$/i.test(u);
+  return Object.entries((fonts && fonts.files) || {}).filter(([, u]) => safe(u)).map(([weight, u]) =>
+    `@font-face { font-family: Caladea; src: url("${u}") format("woff2"); font-weight: ${Number(weight)}; font-style: normal; font-display: swap; }`)
+    .join("\n");
+}
+
+// webview page: one inline script + style (nonce); fonts from the webview's own source only
+// (the extension's media/fonts, localResourceRoots), nothing else loaded from anywhere
+function csp(nonce, fontSource = "") {
+  const fonts = typeof fontSource === "string" && /^[^\s;'"<>]+$/.test(fontSource) ? ` font-src ${fontSource};` : "";
+  return `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';${fonts}`;
+}
+
+// <head> both pages share
+function head(nonce, fonts) {
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="${csp(nonce, fonts && fonts.source)}">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Today</title><style nonce="${nonce}">${fontFaces(fonts)}${CSS}</style></head>`;
 }
 
 // page side, sent as its source text (runs in the webview, nothing from this file in scope).
@@ -441,7 +476,8 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
 
 const SCRIPT = `(${page})(acquireVsCodeApi(), document, window, ${CLEAR_MS});`;
 
-function render(m, { mode, nonce, ai = null }) {
+// fonts = { source: webview.cspSource, files: { 400: uri, 700: uri } }; none => Georgia
+function render(m, { mode, nonce, ai = null, fonts = null }) {
   const h = escapeHtml;
   const btn = (text, action, { cls = "", title = "", busy = "", name = "", key = "", about = "" } = {}) =>
     `<button type="button" data-a="${action}"${key ? ` data-k="${h(key)}"` : ""}${busy ? ` data-busy="${h(busy)}"` : ""}`
@@ -520,14 +556,11 @@ function render(m, { mode, nonce, ai = null }) {
   const examples = m.examples.length
     ? `<p class="says">For example: ${m.examples.map((ex) => ex.map((w) => `<q>${h(w)}</q>`).join(" or ")).join(" · ")}</p>` : "";
   const guides = m.guides.length
-    ? `<p class="says">Guides: ${m.guides.map((g) => btn(g.title, g.open.action, { cls: "link", name: `Open the guide ${g.title}` })).join(" · ")}</p>` : "";
+    ? `<h3>Guides</h3><ul class="guides">${m.guides.map((g) => `<li>${btn(g.title, g.open.action, { cls: "link", name: `Open the guide ${g.title}` })}</li>`).join("")}</ul>` : "";
   // keyboard: skip past the header to any section (shown once focused; Tab order = reading order)
   const skip = `<nav class="skip" aria-label="Jump to">${jumps.map(([id, title], i) =>
     `<button type="button" class="link" data-jump="${h(id)}">${i ? "" : "Skip to "}${h(title)}</button>`).join("")}</nav>`;
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="${csp(nonce)}">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Today</title><style nonce="${nonce}">${CSS}</style></head>
+  return `${head(nonce, fonts)}
 <body>${skip}<main><h1>Today</h1><p class="sub">${h(m.date)}</p><p class="how" id="how">${h(howLine(mode))}</p>
 ${next}${tiles}${setup}${sections}${todo}${empty}
 <section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}</section>
@@ -543,11 +576,9 @@ const FALLBACK = {
 };
 
 // shown when today.json is missing, old or broken: Try again rebuilds it; the page view still has everything
-function fallback({ nonce, reason = "unreadable" }) {
+function fallback({ nonce, reason = "unreadable", fonts = null }) {
   const why = FALLBACK[reason] || FALLBACK.unreadable;
-  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="${csp(nonce)}">
-<title>Today</title><style nonce="${nonce}">${CSS}</style></head>
+  return `${head(nonce, fonts)}
 <body><main><h1>Today</h1><p class="sub">${escapeHtml(why)}</p>
 <div class="acts"><button type="button" class="go" data-a="${TRY_AGAIN}">Try again</button>
 <button type="button" data-a="${SHOW_PAGE}">Show the Today page</button></div>
@@ -560,7 +591,7 @@ const SHOW_PAGE = -1;
 const TRY_AGAIN = -2;
 
 module.exports = {
-  VIEW_TYPE, DATA, VERSION, OPENABLE, NEXT_ORDER, NEW_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
+  VIEW_TYPE, DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, NEW_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say,
   csp, page, render, FALLBACK, SHOW_PAGE, TRY_AGAIN, fallback,

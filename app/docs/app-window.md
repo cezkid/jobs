@@ -135,7 +135,10 @@ the user's own install + subscriptions.
 - Start page (`start.js`, #h): launcher writes `.data/start-page`, extension opens that page as
   the window starts and deletes the marker - no 6 s wait, one `code` call. Opened from the Dock
   (no marker): extension runs `today --refresh` itself, same as the launcher.
-- Today = dashboard (`today.js`, #i): tiles, job cards in columns, real buttons. Data =
+- Today = dashboard (`today.js`, #i): paper look like the install site (heading + rule, jobs split
+  by rules, Next up alone framed), tiles, real buttons. Caladea shipped in the vsix
+  (`app/vscode/media/fonts`, OFL.txt w/ it): `localResourceRoots` = that folder, CSP `font-src` =
+  `cspSource` only, `@font-face` via `asWebviewUri` - w/o it the page fell back to Georgia. Data =
   `.data/today.json`, same model as `Today.md`; words from `say.json`, shared w/ the page. W/o
   the extension the folder's association drops => formatted `Today.md`, words to type.
 - Buttons put words in the chat, never send: Copilot fills its box; Claude + ChatGPT can't be

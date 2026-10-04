@@ -47,8 +47,9 @@ def test_vsix_holds_a_manifest_vscode_accepts(tmp_path):
     assert path.name == f"cez-job-finder.window-{pkg['version']}.vsix"
     with zipfile.ZipFile(path) as z:
         assert sorted(z.namelist()) == ["[Content_Types].xml", "extension.vsixmanifest", "extension/extension.js",
-                                        "extension/package.json", "extension/say.json", "extension/start.js",
-                                        "extension/today.js"]
+                                        "extension/media/fonts/OFL.txt", "extension/media/fonts/caladea-bold.woff2",
+                                        "extension/media/fonts/caladea-regular.woff2", "extension/package.json",
+                                        "extension/say.json", "extension/start.js", "extension/today.js"]
         identity = ElementTree.fromstring(z.read("extension.vsixmanifest")).find("v:Metadata/v:Identity", NS)
         ElementTree.fromstring(z.read("[Content_Types].xml"))
         packed = json.loads(z.read("extension/package.json"))
@@ -67,7 +68,10 @@ def test_extension_never_reads_files_from_the_program_folder():
         local = re.findall(r"require\(\s*['\"](\.[^'\"]*)", source)
         assert all(Path(r).name in vscode_ext.SHIPPED or f"{Path(r).name}.js" in vscode_ext.SHIPPED for r in local), (
             f"{name}: local require not shipped")
-        assert "__dirname" not in source and "extensionPath" not in source and "extensionUri" not in source
+        assert "__dirname" not in source and "extensionPath" not in source
+        # extension's own folder (installed copy, never app/) only as the Today page's font folder
+        uses = re.findall(r"[^\n]*extensionUri[^\n]*", source)
+        assert all("joinPath(context.extensionUri, ...today.FONT_DIR)" in u for u in uses), uses
         # files read: launcher's start-page marker, the dashboard's data, which AI - all under .data/, never app/
         reads = ["at(start.MARKER", "at(today.DATA", "path.join(root"] if name == "extension.js" else []
         assert re.findall(r"readFile\w*\(([^,)]+)", source) == reads
@@ -100,7 +104,7 @@ def test_extension_has_no_link_handler():
     # a vscode:// handler answers any web page or posting, not just our own page => buttons live inside
     pkg = vscode_ext.manifest()
     assert not any(e.startswith("onUri") for e in pkg["activationEvents"])
-    for name in vscode_ext.SHIPPED:
+    for name in (n for n in vscode_ext.SHIPPED if n.endswith(".js")):
         assert "registerUriHandler" not in (vscode_ext.SOURCE / name).read_text(encoding="utf-8")
     assert "uriHandler" not in json.dumps(pkg)
 
@@ -115,6 +119,24 @@ def test_today_dashboard_takes_today_md_only_in_job_finder_folder():
     assert f"onCustomEditor:{view}" in pkg["activationEvents"]
     # option: other folders' Today.md files open as usual; only the workspace association picks it
     assert editor["priority"] == "option" and editor["selector"] == [{"filenamePattern": "Today.md"}]
+
+
+def test_vsix_carries_caladea_and_its_licence(tmp_path):
+    # no font in the vsix => the page falls back to Georgia (old-style figures dip "Job 46");
+    # fonts w/o OFL.txt break the licence they ship under
+    path = vscode_ext.build(tmp_path)
+    names = re.findall(r'\d+: "([^"]+)"', (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8").split("const FONTS = ", 1)[1].split("\n", 1)[0])
+    assert names == ["caladea-regular.woff2", "caladea-bold.woff2"]
+    site = vscode_ext.cfg.ROOT / "docs" / "fonts"  # developer checkout only (not in the app zip)
+    with zipfile.ZipFile(path) as z:
+        for name in names:
+            data = z.read(f"extension/media/fonts/{name}")
+            assert data[:4] == b"wOF2"
+            # same face as the install site + resume, not a stray copy
+            assert not site.exists() or data == (site / name).read_bytes()
+        assert b"SIL Open Font License" in z.read("extension/media/fonts/OFL.txt")
+        types = z.read("[Content_Types].xml").decode()
+    assert 'Extension=".woff2" ContentType="font/woff2"' in types
 
 
 def test_dashboard_colors_are_brand_tokens():
