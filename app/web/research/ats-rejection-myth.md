@@ -1,6 +1,6 @@
 ---
 title: "Do ATS reject 75% of resumes? Where the number came from"
-description: No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. Where software rejects alone, recruiters say yes/no questions do it.
+description: No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.
 published: 2026-10-03
 modified: 2026-10-04
 status: published

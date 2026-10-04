@@ -250,3 +250,7 @@ Findings (verdict revise):
 - **V2 (low)** "The result cuts both ways for job seekers." - "The result" points back across sentences to the Xu finding; does not stand alone when quoted. Fix: "An AI screener's preference for its own wording cuts both ways for job seekers."
 
 Revised (plan-xsy.53): V1 and V2 applied with the exact wording above; verdict publish.
+
+## Re-review 2026-10-04: description leads with the answer (plan-xsy.52)
+
+Description only, now: "Mostly no, in tests - most people can't spot AI writing. About half of hiring managers say they'd care. What studies show, and what to do." (138 chars). Why: the top search result answers "Usually, yes"; leading with ours shows the contrast (audit D12). Checked: "Mostly no, in tests" is hedged to tests, as short answer bullet 1 (jakesch-2023, 50-52%); the 5 frequent-AI readers who did spot AI text (russell-2025) are in bullet 1 and the body, so "mostly" not "no". "About half ... say they'd care" unchanged (insight-global-2025, 54%). Dropped "on detectors" for length - detectors still in the body + bullet 2. F2 still holds: no claim that using AI is safe. No finding.

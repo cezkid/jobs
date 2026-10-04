@@ -335,3 +335,7 @@ office jobs - accurate. `## Changes` line is right: plain words, dated October 2
 was missed and the 105 -> 109 change, and the conclusion (does not confirm the 75% claim) does
 stand. `modified: 2026-10-04` bumped, `uncited` snippets match the new text. Header stays
 `verdict: publish`.
+
+## Re-review 2026-10-04: description names our count (plan-xsy.52)
+
+Description only, now: "No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms." (140 chars). Why: our own count is what copies of the Enhancv page lack (audit D12). Checked: first sentence = short answer bullet 1 + body (levinson-2012-cio); "143 application forms" = body line 67 and the data page; "screening questions" = the body's term (Changes line, line 69 list). Dropped the old clause "recruiters say yes/no questions do it" - still in the short answer, not lost. The description makes no claim that the questions reject (body: "A question on a form is not a rejection"). No finding.

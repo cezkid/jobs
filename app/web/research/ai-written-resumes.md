@@ -1,6 +1,6 @@
 ---
 title: "Can employers tell if AI wrote your resume?"
-description: Most people can't spot AI writing in tests, but about half of hiring managers say they'd care. What studies show on detectors, and what to do.
+description: Mostly no, in tests - most people can't spot AI writing. About half of hiring managers say they'd care. What studies show, and what to do.
 published: 2026-10-03
 modified: 2026-10-04
 status: published

@@ -1,5 +1,5 @@
 ---
-title: "Keep your chats out of AI training: ChatGPT, Claude, Copilot"
+title: "Opt out of AI training: ChatGPT, Claude, Copilot and Gemini"
 description: ChatGPT, Claude, GitHub Copilot and Gemini can train on personal-plan chats. Where each switch is, and what it doesn't stop.
 published: 2026-10-03
 modified: 2026-10-04
