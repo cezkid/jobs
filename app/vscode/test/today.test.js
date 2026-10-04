@@ -175,7 +175,8 @@ test("button text honest per AI: Copilot fills, ChatGPT + untested Claude copy",
   for (const ai of ["claude", "chatgpt", null, "nova"]) assert.equal(today.sayMode(ai), "copy");
   const m = today.model(RAW, say);
   assert.match(html(m, "fill"), /class="go"[^>]*>Help me apply</);
-  assert.match(html(m, "copy"), /class="go"[^>]*>Copy: apply to job 12</);
+  assert.match(html(m, "copy"), /class="go"[^>]*>Help me apply</);
+  assert.doesNotMatch(html(m, "copy"), />Copy: /);
   assert.match(html(m, "copy"), /Paste them in the chat box and press Enter/);
   assert.equal(today.readyLine("copy", null, "darwin"), "Copied - click the chat box, paste (Cmd+V), press Enter.");
   assert.equal(today.readyLine("copy", 12, "win32"), "Job 12: copied - click the chat box, paste (Ctrl+V), press Enter.");

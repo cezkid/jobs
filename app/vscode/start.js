@@ -10,6 +10,12 @@ const STAMP = path.join(".data", "launched");
 const SETTINGS = path.join("My Settings", "Search settings.yml");
 // which AI the user picked (app/ai.py): claude | chatgpt | copilot
 const AI_FILE = path.join(".data", "ai");
+// launcher: VS Code was open, so Job Finder's own profile waits for one cold start (app/launch.py)
+const PROFILE_PENDING = path.join(".data", "profile-pending");
+const PROFILE_PENDING_LINE = {
+  darwin: "One more step: quit VS Code (Code > Quit, or Cmd+Q), then open CEZ Job Finder again.",
+  other: "One more step: close every VS Code window (File > Exit), then open CEZ Job Finder again.",
+};
 // Today older than this, window opened w/o the launcher (Dock, recent folders) => rebuilt
 const STALE_MS = 60 * 60 * 1000;
 const PREVIEW_EDITOR = "vscode.markdown.preview.editor";
@@ -84,6 +90,7 @@ function warmUpPlan(ai) {
 }
 
 module.exports = {
+  PROFILE_PENDING, PROFILE_PENDING_LINE,
   TODAY, START_HERE, MARKER, STAMP, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
   isJobFinder, choosePage, needsRefresh, uvCandidates, runJobs, pageTabs, warmUpPlan,
 };

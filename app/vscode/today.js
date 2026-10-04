@@ -241,8 +241,10 @@ function claudeNewChatArgs(words) {
 
 // what a say button's own text reads: fill/new => the label ("Make my resume"); copy => honest
 // about what it does ("Copy: resume for job 12")
-function sayText(button, mode) {
-  return mode === "copy" && !button.status ? `Copy: ${button.words}` : button.label;
+// button text = the action, every AI (owner 2026-10-04: no "Copy: ..." labels); how the words reach
+// the chat is said in the how-line, the tooltip and the status line
+function sayText(button) {
+  return button.label;
 }
 
 function sayTitle(button, mode) {
