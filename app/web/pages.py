@@ -27,9 +27,11 @@ Project env (no inline deps): markdown-it-py comes locked through rich.
 
 import argparse
 import copy
+import csv
 import datetime
 import difflib
 import importlib.util
+import io
 import json
 import re
 import shutil
@@ -68,7 +70,11 @@ CARD_ALT = ("CEZ Job Finder Research - AI and resumes: what the evidence says. A
             " marked in yellow, linked to its list of sources.")
 REPO = "https://github.com/cezkid/jobs/blob/main/"
 ISSUES = "https://github.com/cezkid/jobs/issues"  # body links may go here: readers report corrections
-KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited"}
+KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited", "data", "license"}
+# data page (header data: <name>.csv): the file is built next to the page, the page carries Dataset JSON-LD +
+# a download line; never on the hub or in the feed (not an article). license: one of these (owner picks)
+LICENSES = {"CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
+            "CC0 1.0": "https://creativecommons.org/publicdomain/zero/1.0/"}
 SLUG = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # special sources (about, methods, index) + names later steps use (feed, reviews/, sources.yml)
 RESERVED = {"about", "methods", "index", "feed", "reviews", "sources"}
@@ -261,6 +267,12 @@ class Source:
             errors.append(f"{self.rel}:{self.line_of(text, 'uncited')}: uncited must be a list of text snippets")
             self.uncited = []
         self.head = head
+        self.data, self.rows, self.columns, self.csv = head.get("data"), 0, [], ""
+        self.license = head.get("license")
+        if self.data is not None:
+            self._load_data(errors)
+        if self.license is not None and (self.data is None or self.license not in LICENSES):
+            errors.append(f"{self.rel}:{self.line_of(text, 'license')}: license goes on a data page, one of {', '.join(LICENSES)}")
         self.hub = False  # index.md: set once an article is published (the hub lists them)
         self.published = self.modified = None
         if self.status == "published":
@@ -286,6 +298,24 @@ class Source:
                 self.ids[slug] = self.line(token)
                 token.attrSet("id", slug)
 
+    def _load_data(self, errors: list[str]) -> None:
+        """data: <name>.csv next to the source - UTF-8, a header row, every row as wide as it."""
+        at = f"{self.rel}:{self.line_of(self.text, 'data')}"
+        if self.data != f"{self.name}.csv":
+            errors.append(f"{at}: data must be {self.name}.csv (the page's own name)")
+            self.data = None
+            return
+        file = self.path.with_name(self.data)
+        if not file.is_file():
+            errors.append(f"{at}: {self.data} not found next to the page")
+            self.data = None
+            return
+        self.csv = file.read_bytes().decode("utf-8").replace("\r\n", "\n")
+        rows = list(csv.reader(io.StringIO(self.csv)))
+        if not rows or not self.csv.endswith("\n") or any(len(r) != len(rows[0]) for r in rows):
+            errors.append(f"{at}: {self.data} needs a header row, every row as wide as it, and a last line break")
+        self.columns, self.rows = (rows[0], len(rows) - 1) if rows else ([], 0)
+
     @staticmethod
     def line_of(text: str, key: str) -> int:
         match = re.search(rf"^{re.escape(key)}\s*:", text, re.M)
@@ -310,7 +340,7 @@ class Source:
 
     @property
     def article(self) -> bool:
-        return self.name not in ("about", "methods", "index")
+        return self.name not in ("about", "methods", "index") and self.data is None
 
     @property
     def out(self) -> str:
@@ -320,6 +350,11 @@ class Source:
     @property
     def url(self) -> str:
         return "/" + self.out.removesuffix("index.html")
+
+    @property
+    def data_out(self) -> str | None:
+        """docs-relative data file, next to the page."""
+        return f"research/{self.name}/{self.data}" if self.data else None
 
 
 def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
@@ -379,6 +414,8 @@ def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
                     errors.append(f"{src.rel}:{src.line(token)}: HTML or &...; entity in a heading - plain text only")
                 if token.markup.startswith("#") and re.search(r"\s#+\s*$", raw):
                     errors.append(f"{src.rel}:{src.line(token)}: closing # in a heading - drop it")
+            if token.type == "bars_open" and token.meta.get("error"):
+                errors.append(f"{src.rel}:{src.line(token)}: {token.meta['error']}")
             if token.type != "inline":
                 continue
             for child in token.children or []:
@@ -432,18 +469,93 @@ def typeset(text: str) -> str:
     return typeset_tokens([inline])[0].children[0].content
 
 
+BAR_VALUE = re.compile(r"(\d+(?:\.\d+)?)(?:\s*(%)|\s+of\s+(\d+(?:\.\d+)?)\b)?")
+
+
+def _bar_widths(values: list[str]) -> tuple[list[float], str | None]:
+    """Bar length per value cell, as % of the row: "51%" of 100, "99 of 143" of 143, plain numbers of the
+    largest. Every bar starts at zero; one kind per figure (else lengths would compare different things)."""
+    found = [BAR_VALUE.match(v.replace(",", "")) for v in values]
+    if not all(found):
+        return [], "every value cell starts with a number (51%, 99 of 143 or 0.3)"
+    kinds = {"%" if m.group(2) else "of" if m.group(3) else "n" for m in found}
+    if len(kinds) > 1:
+        return [], "values mix %, 'N of M' and plain numbers - one kind per figure"
+    nums = [float(m.group(1)) for m in found]
+    scale = [100.0] * len(nums) if kinds == {"%"} else [float(m.group(3)) for m in found] if kinds == {"of"} else [max(nums)] * len(nums)
+    if any(n > s or s <= 0 for n, s in zip(nums, scale)):
+        return [], "a value is larger than its whole (over 100%, or N over M)"
+    return [round(100 * n / s, 1) for n, s in zip(nums, scale)], None
+
+
+def _bars(state):
+    """```bars fence -> <figure> w/ caption + a real two-column table whose value cells draw a bar (A15).
+    Line 1 = caption (Markdown: citations, links), line 2 = "Label | Value" column heads, then one
+    "label | value" row per bar. Parsed as inline tokens, so citations, statistic lints + typesetting
+    see the figure like any text; a problem -> meta error on bars_open (lint reports it)."""
+    out = []
+    for fence in state.tokens:
+        if fence.type != "fence" or fence.info.strip() != "bars":
+            out.append(fence)
+            continue
+        lines = [ln.strip() for ln in fence.content.split("\n") if ln.strip()]
+        rows = [[c.strip() for c in ln.split("|")] for ln in lines[1:]]
+        error = None
+        if len(lines) < 3 or any(len(r) != 2 or not all(r) for r in rows):
+            error = "bars block needs a caption line, a 'Label | Value' line, then 'label | value' rows"
+            widths = []
+        else:
+            widths, error = _bar_widths([r[1] for r in rows[1:]])
+
+        def tok(kind, tag, nesting, **kw):
+            return Token(kind, tag, nesting, map=fence.map, block=True, **kw)
+
+        def inline(text):
+            return Token("inline", "", 0, content=text, map=fence.map, children=[])
+
+        out.append(tok("bars_open", "figure", 1, attrs={"class": "bars"}, meta={"error": error}))
+        out += [tok("figcaption_open", "figcaption", 1), inline(lines[0] if lines else ""), tok("figcaption_close", "figcaption", -1)]
+        if not error:
+            out.append(tok("table_open", "table", 1, meta={"bars": True}))
+            out += [tok("thead_open", "thead", 1), tok("tr_open", "tr", 1)]
+            for head in rows[0]:
+                out += [tok("th_open", "th", 1, attrs={"scope": "col"}), inline(head), tok("th_close", "th", -1)]
+            out += [tok("tr_close", "tr", -1), tok("thead_close", "thead", -1), tok("tbody_open", "tbody", 1)]
+            for (label, value), width in zip(rows[1:], widths):
+                out += [tok("tr_open", "tr", 1), tok("th_open", "th", 1, attrs={"scope": "row"}), inline(label),
+                        tok("th_close", "th", -1), tok("td_open", "td", 1), inline(value),
+                        tok("td_close", "td", -1, meta={"bar": width}), tok("tr_close", "tr", -1)]
+            out += [tok("tbody_close", "tbody", -1), tok("table_close", "table", -1, meta={"bars": True})]
+        out.append(tok("bars_close", "figure", -1))
+    state.tokens[:] = out
+
+
+def _td_close(self, tokens, idx, options, env):
+    # a bar figure's value cell: the bar under the number, as long as the value's share (a border: prints,
+    # and forced colours paint it); hidden from screen readers, the number says it
+    bar = tokens[idx].meta.get("bar") if tokens[idx].meta else None
+    lead = f'<span class="bar" style="width:{bar:g}%" aria-hidden="true"></span>' if bar is not None else ""
+    return lead + self.renderToken(tokens, idx, options, env)
+
+
 def _table_open(self, tokens, idx, options, env):
+    if tokens[idx].meta.get("bars"):  # a bar figure: short, never scrolls; the figure + caption name it
+        return self.renderToken(tokens, idx, options, env)
     # wide table scrolls inside its own box, not the page; focusable so keyboards can scroll it
     label = escape(tokens[idx].meta.get("label", "Table"))
     return f'<div class="table" role="region" aria-label="{label}" tabindex="0">\n' + self.renderToken(tokens, idx, options, env)
 
 
 def _table_close(self, tokens, idx, options, env):
+    if tokens[idx].meta.get("bars"):
+        return self.renderToken(tokens, idx, options, env)
     return self.renderToken(tokens, idx, options, env) + "</div>\n"
 
 
+MD.core.ruler.after("block", "bars", _bars)
 MD.add_render_rule("table_open", _table_open)
 MD.add_render_rule("table_close", _table_close)
+MD.add_render_rule("td_close", _td_close)
 
 
 def _cite(state):
@@ -645,9 +757,19 @@ def units(src: Source):
         return "".join({"text": c.content, "cite": "\x01", "code_inline": "\x02", "softbreak": " ",
                         "hardbreak": " "}.get(c.type, "") for c in inline.children or [])
 
-    row = None
+    row, figure = None, None
     for i, token in enumerate(src.tokens):
-        if token.type == "tr_open":
+        # a bar figure is one unit: its caption's citation covers every row
+        if token.type == "bars_open":
+            figure = []
+        elif token.type == "bars_close":
+            if figure:
+                yield figure[0], " | ".join(flat(t) for t in figure)
+            figure = None
+        elif figure is not None:
+            if token.type == "inline":
+                figure.append(token)
+        elif token.type == "tr_open":
             row = []
         elif token.type == "tr_close":
             if row:
@@ -877,6 +999,14 @@ PAGE_CSS = """
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
+  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
+     print + forced colours paint it); no motion */
+  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .bars table { width: 100%; }
+  .bars tbody th { width: 42%; font-weight: 400; }
+  .bars td { font-weight: 700; }
+  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
   /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
   #sources { margin-top: 64px; border-top: 3px solid var(--text); }
   .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
@@ -985,6 +1115,16 @@ def dates(src: Source) -> str:
     if src.modified != src.published:
         out.append(f'Updated <time datetime="{src.modified}">{long_date(src.modified)}</time>')
     return ". ".join(out) + "."
+
+
+def download(src: Source) -> str:
+    """A data page's first line: the file (rows, size) + its license when the owner has named one."""
+    size = max(1, round(len(src.csv.encode("utf-8")) / 1000))
+    text = (f'<p class="download"><a href="/{src.data_out}" download>Download the data</a> '
+            f"(CSV, {src.rows:,} rows, {size} KB).")
+    if src.license:
+        text += f' License: <a href="{LICENSES[src.license]}" rel="license">{src.license}</a>.'
+    return text + "</p>\n"
 
 
 def newest(articles: list[Source]) -> list[Source]:
@@ -1119,6 +1259,14 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
                          "description": src.description, "url": url, "mainEntityOfPage": url,
                          "datePublished": src.published, "dateModified": src.modified, "author": person,
                          "image": image, "inLanguage": "en"})
+    elif src.data:
+        graph.insert(0, {"@type": "Dataset", "@id": url + "#dataset", "name": src.title,
+                         "description": src.description, "url": url, "creator": person,
+                         "datePublished": src.published, "dateModified": src.modified, "inLanguage": "en",
+                         "isAccessibleForFree": True, "variableMeasured": src.columns,
+                         **({"license": LICENSES[src.license]} if src.license else {}),
+                         "distribution": [{"@type": "DataDownload", "encodingFormat": "text/csv",
+                                           "contentUrl": home + src.data_out}]})
     elif src.name == "about":
         graph.insert(0, {"@type": "ProfilePage", "@id": url, "url": url, "name": src.title,
                          "dateModified": src.modified, "mainEntity": {**person, "sameAs": SAME_AS}})
@@ -1233,7 +1381,7 @@ def dated(root: Path, site_files: set[str], warnings: list[str] | None = None) -
         parts = home_parts(root)
         if any(s.name != "about" for s in built) and not (by_name.get("about") and by_name["about"].built):
             errors.append(f"{SOURCES.as_posix()}/about.md:1: bylines link /about/ - publish about.md with the first page")
-        files = site_files | {s.out for s in built} | ({FEED} if hub else set())
+        files = site_files | {s.out for s in built} | {s.data_out for s in built if s.data} | ({FEED} if hub else set())
         repo_files = tracked(root)
         for src in built:
             body = body_html(src, by_name, root, files, errors, registry, repo_files)
@@ -1247,6 +1395,9 @@ def dated(root: Path, site_files: set[str], warnings: list[str] | None = None) -
             elif src.name == "about" and "<h2" in body:
                 cut = body.index("<h2")
                 body, side = body[:cut], '<div class="side">\n' + body[cut:] + "</div>\n"
+            if src.data:
+                body = download(src) + body
+                out[src.data_out] = src.csv
             more = keep_reading(src, articles) if hub and src.name not in ("index", "about") else ""
             out[src.out] = page(src, root, body, parts, hub, side, after, more, hub_name)
         if hub:

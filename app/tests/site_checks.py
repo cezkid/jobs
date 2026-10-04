@@ -124,8 +124,9 @@ def structured_data(docs: Path, site: str) -> list[str]:
     @id == the ProfilePage Person's, image == og:image, sitemap <lastmod> == dateModified; every
     breadcrumb points at a canonical that exists. About: lastmod == ProfilePage dateModified, sameAs >= 2
     URLs each shown on the page; hub lastmod >= every article's dateModified. Every article links the
-    methods page's "How is AI used?" under the byline and never says "approved". Home keeps exactly one
-    WebSite block.
+    methods page's "How is AI used?" under the byline and never says "approved". A data page (Dataset +
+    BreadcrumbList) holds the same rules with name / creator for headline / author, and its download is a
+    file in docs/. Home keeps exactly one WebSite block.
     """
     import json
 
@@ -151,8 +152,10 @@ def structured_data(docs: Path, site: str) -> list[str]:
             problems.append(f"{name}: unescaped < in JSON-LD")
         data = json.loads(blocks[0])
         graph = {node["@type"]: node for node in data.get("@graph", [])}
+        types = {node.get("@type") for node in data.get("@graph", [])}
         want = ({"ProfilePage", "BreadcrumbList"} if name == "about/index.html"
                 else {"BreadcrumbList"} if name in ("research/index.html", "research/methods/index.html")
+                else {"Dataset", "BreadcrumbList"} if "Dataset" in types
                 else {"Article", "BreadcrumbList"})
         if data.get("@context") != "https://schema.org" or set(graph) != want or len(graph) != len(data["@graph"]):
             problems.append(f"{name}: JSON-LD types {sorted(graph)}, want {sorted(want)}")
@@ -172,6 +175,14 @@ def structured_data(docs: Path, site: str) -> list[str]:
                 problems.append(f"{name}: sitemap lastmod {lastmod.get(url)} != dateModified {profile.get('dateModified')}")
             if not (person.get("@type") == "Person" and person.get("name") and person.get("url") and person.get("sameAs")):
                 problems.append(f"{name}: ProfilePage mainEntity needs Person name, url, sameAs")
+        if "Dataset" in graph:
+            dataset = graph["Dataset"]
+            downloads = [d.get("contentUrl", "") for d in dataset.get("distribution", [])]
+            if not downloads or [u for u in downloads if not u.startswith(site) or u[len(site):] not in found]:
+                problems.append(f"{name}: Dataset download {downloads} is not a file on this site")
+            # same checks as an article's, under the Dataset's own names; never on the hub or in its lastmod
+            graph["Article"] = {**dataset, "headline": dataset.get("name"), "author": dataset.get("creator"),
+                                "image": head.meta("og:image")}
         if "Article" in graph:
             article = graph["Article"]
             missing = {"headline", "datePublished", "dateModified", "author", "image"} - set(article)
@@ -189,7 +200,8 @@ def structured_data(docs: Path, site: str) -> list[str]:
             if lastmod.get(url) != article["dateModified"]:
                 problems.append(f"{name}: sitemap lastmod {lastmod.get(url)} != dateModified {article['dateModified']}")
             authors.append((name, article["author"].get("@id")))
-            modified.append(article["dateModified"])
+            if "Dataset" not in graph:
+                modified.append(article["dateModified"])
             after = byline.group(0) + text[byline.end():byline.end() + 200] if byline else ""
             if "/research/methods/#how-is-ai-used" not in after or "approved" in text.lower():
                 problems.append(f"{name}: needs the How we research link under the byline and no 'approved'")
@@ -328,7 +340,9 @@ def budgets(docs: Path, name: str) -> list[str]:
         if "LINES" in code:
             problems.append(f"{name}: <head> script names LINES (install line + Copy live in the body script)")
     for inner in re.findall(r"<figure\b(.*?)</figure>", raw, re.S):
-        bad = sorted(set(re.findall(r"<(a|button|input|select|textarea)\b", inner)))
+        # a bar figure's caption cites its source: links there are the citation, not a control (A15)
+        held = re.sub(r"<figcaption\b.*?</figcaption>", "", inner, flags=re.S) if inner.startswith(' class="bars"') else inner
+        bad = sorted(set(re.findall(r"<(a|button|input|select|textarea)\b", held)))
         if bad:
             problems.append(f"{name}: <figure> holds {bad} (illustrations show controls, never hold one)")
         if "<figcaption" in inner and not (inner.split(">", 1)[1].lstrip().startswith("<figcaption")

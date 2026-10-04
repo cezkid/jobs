@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.19 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.20
 ---
@@ -304,3 +304,48 @@ same source now cites it once, at the run's end (build rule: 3 in a row = error)
 sentence the moved citation now covers comes from that source.
 17 repeat citations dropped. Newly under a citation: "Recruiters call them knockout questions"
 (enhancv-2025 uses the term). Supported.
+
+## Re-review 2026-10-04: voice pass (plan-xsy.53)
+
+Voice only. Section endings reopened ("In short," / "In practice," / no opener); "searched up" -> "searched for"; Phenom sentence now "The same page reports that a third recruiter ... [@enhancv-2025]" - same attribution as before, matches source table (Enhancv page: one Phenom recruiter "applies a score threshold for auto-rejecting low-matches"); the job search named freehire.me in the limits paragraph and "freehire.me's maker" for the earlier ~100k-form count - matches this file's note (freehire's own published count) and app/docs/jobs/freehire.md (base freehire.me); home-page line; `modified` 2026-10-04. Checked: each changed line keeps its meaning, scope, hedging and evidence label; section endings still say what the finding means for the reader; no new "this"/"it" across sentences; no app jargon; closing line "CEZ Job Finder is a free job-search app for Windows and Mac" matches docs/index.html title + og:title; link is our own home page. No finding.
+
+## 2026-10-04 - data page link (plan-xsy.57)
+
+Added sentence (end of "These counts have limits." paragraph): "The data, one row per form, and
+how we counted: [the knockout-question data](knockout-questions-2026-10.md)." Accurate: the data
+page holds one row per readable form and the counting method, and its counts match this section
+(105, 96, 43, 21, 11, 26, 92, middle form 4). Link target exists. The sentence is fine; header
+unchanged.
+
+Carried over from the data page review (`reviews/knockout-questions-2026-10.md`), affecting this
+article's numbers, not the new sentence: F1 (questions freehire lists under `basics` on some
+Workable forms are not counted; recount gives about 109 / 99 / 45 / 22 instead of 105 / 96 / 43 /
+26) and F2 ("The job search we used, freehire.me, leans toward tech and office jobs" - every field
+gave 60 postings; the lean comes from which forms are readable). When F1 is fixed, this section
+takes the new counts with a `## Changes` line and a fresh review date.
+
+### Re-review 2026-10-04 (plan-xsy.57)
+
+Corrected numbers checked against a fresh rerun of `knockout.py table` and a recount of the CSV:
+109 of 143 (any of the six), 99 (permit or sponsorship), 45 (location), 21 (years), 13 (license,
+certificate or clearance), 22 (nothing beyond basics), 92 (four fields), middle form 4 - all
+right. "Most of the rest" is accurate (Workday, Oracle, iCIMS plus job boards are about 445 of the
+697 unreadable postings). The lean sentence now says the readable forms lean toward tech and
+office jobs - accurate. `## Changes` line is right: plain words, dated October 2026, says what
+was missed and the 105 -> 109 change, and the conclusion (does not confirm the 75% claim) does
+stand. `modified: 2026-10-04` bumped, `uncited` snippets match the new text. Header stays
+`verdict: publish`.
+
+## Re-review 2026-10-04: description names our count (plan-xsy.52)
+
+Description only, now: "No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms." (140 chars). Why: our own count is what copies of the Enhancv page lack (audit D12). Checked: first sentence = short answer bullet 1 + body (levinson-2012-cio); "143 application forms" = body line 67 and the data page; "screening questions" = the body's term (Changes line, line 69 list). Dropped the old clause "recruiters say yes/no questions do it" - still in the short answer, not lost. The description makes no claim that the questions reject (body: "A question on a form is not a rejection"). No finding.
+
+## Re-review 2026-10-04: bar figure (plan-xsy.58)
+
+The 4-item list became a `bars` figure: caption "Forms asking each kind of question, October 2026 (Our measurement, 143 application forms; the data)", heads Question | Forms asking it, rows 99 / 45 / 21 / 13 of 143, then the sentence "Plain address boxes are not counted as on-site questions." Recounted from `knockout-questions-2026-10.csv` (143 rows): work_permit or sponsorship 99, location_screen 45, years_experience 21, license_certificate or security_clearance 13, any_knockout 109, nothing beyond basics 22 - all match the figure, the sentence above it and the data page's list. Built page checked: bars 69.2 / 31.5 / 14.7 / 9.1% wide (share of 143, right), caption link resolves to /research/knockout-questions-2026-10/. "Our measurement" label is right per app/docs/research.md; one form counts once per row, so rows need not sum, and the caption's "each kind" carries that. Share-of-143 bars are fair: the next paragraph states the sample's lean (92 of 143 from four fields, Workday and iCIMS not covered) right under the figure, and the figure claims nothing beyond these 143 forms.
+
+Findings (verdict publish):
+
+- **B1 (low)** The trailing sentence is narrower than the rule on the data page: a question asking only "where are you located" is not counted either, and the row is "on-site work, moving or living nearby", not just on-site. Fix: "A plain address box, or a question asking only where you live, is not counted in the on-site row."
+
+Revised (plan-xsy.58): every B finding applied with the wording above (sign list re-checked on the source page 2026-10-04 by the reviser); verdict publish.

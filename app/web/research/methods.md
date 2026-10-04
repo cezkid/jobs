@@ -1,10 +1,11 @@
 ---
-title: How we research
+title: How the Research articles are made and checked
 description: How these articles find sources, grade evidence, use AI, get checked and get corrected - and what we gain from the answers.
 published: 2026-10-03
-modified: 2026-10-03
+modified: 2026-10-04
 status: published
-og_title: How the Research articles are made and checked
+uncited:
+  - "A program flags numbers that lack a source"
 ---
 ## Who writes these articles?
 
@@ -64,7 +65,7 @@ Every source is listed in one shared list with the date it was last opened and c
 
 Before an article goes up, a program checks every DOI, the permanent ID a journal gives a paper. It asks the official DOI registry whether the paper exists, then compares the title and year. The same check runs for papers on arXiv, a public library of research papers. A source with neither ID, such as a book or a report, is opened by hand.
 
-Every number in an article must name its source in the same sentence. A program flags percentages and "N in M" numbers that lack a source. The review checks every other number by hand.
+Every number in an article must name its source in the same sentence. A program flags numbers that lack a source: percentages, "N in M", fractions such as "a third" or "3/4", "half of", "twice as likely" or "N times more", and large counts such as "83,000" or "2 million". The review checks every other number by hand.
 
 ## How is AI used?
 
@@ -93,7 +94,7 @@ Laws and app settings change fast, so we re-check them every 3 to 6 months. Each
 
 ## What do we gain from the answers?
 
-We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We get nothing from those companies.
+We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We have no paid or business ties to the AI companies, hiring-software makers or resume companies named in these articles. The app uses freehire.me's free job search; we have no ties to it.
 
 Each article has a separate box, after the evidence, on how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.
 

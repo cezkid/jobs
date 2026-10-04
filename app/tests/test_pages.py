@@ -833,6 +833,60 @@ def test_hub_lastmod_is_the_newest_of_index_and_articles(tmp_path):
     assert "<loc>https://jobs.enrriquez.com/research/</loc><lastmod>2026-10-02</lastmod>" in pages.build(tmp_path)["sitemap.xml"]
 
 
+DATA = {"counts.md": """---
+title: Counts of form questions
+description: One row per form we read, how we counted, and the limits of the count.
+published: 2026-09-15
+status: published
+data: counts.csv
+---
+Our count, see [the myth](ats-myth.md).
+""", "counts.csv": "form,field,asks\n1,Sales,1\n2,Law,0\n3,Sales,1\n"}
+
+
+def test_data_page_ships_its_file_with_a_dataset_and_stays_off_the_hub_and_feed(tmp_path):
+    research_site(tmp_path, DATA)
+    built = pages.build(tmp_path)
+    assert built["research/counts/counts.csv"] == DATA["counts.csv"]
+    html = built["research/counts/index.html"]
+    assert ('<p class="download"><a href="/research/counts/counts.csv" download>Download the data</a>'
+            " (CSV, 3 rows, 1 KB).</p>") in html and "License" not in html
+    data = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', html).group(1))
+    dataset = data["@graph"][0]
+    assert dataset["@type"] == "Dataset" and dataset["name"] == "Counts of form questions"
+    assert dataset["variableMeasured"] == ["form", "field", "asks"] and "license" not in dataset
+    assert dataset["distribution"] == [{"@type": "DataDownload", "encodingFormat": "text/csv",
+                                        "contentUrl": "https://jobs.enrriquez.com/research/counts/counts.csv"}]
+    assert '"@type":"Article"' not in html and "/research/counts/" not in built["research/index.html"] + built["research/feed.xml"]
+    assert "https://jobs.enrriquez.com/research/counts/</loc><lastmod>2026-09-15<" in built["sitemap.xml"]
+    pages.write(tmp_path)
+    assert structured_data(tmp_path / "docs", "https://jobs.enrriquez.com/") == [] and pages.problems(tmp_path) == []
+    (tmp_path / "docs" / "research" / "counts" / "counts.csv").unlink()
+    assert structured_data(tmp_path / "docs", "https://jobs.enrriquez.com/") == [
+        "research/counts/index.html: Dataset download ['https://jobs.enrriquez.com/research/counts/counts.csv'] is not a file on this site"]
+
+
+def test_data_page_license_is_named_on_the_page_and_in_the_dataset(tmp_path):
+    research_site(tmp_path, {**DATA, "counts.md": DATA["counts.md"].replace("data: counts.csv", "data: counts.csv\nlicense: CC BY 4.0")})
+    html = pages.build(tmp_path)["research/counts/index.html"]
+    assert ' License: <a href="https://creativecommons.org/licenses/by/4.0/" rel="license">CC BY 4.0</a>.</p>' in html
+    assert '"license":"https://creativecommons.org/licenses/by/4.0/"' in html
+
+
+@pytest.mark.parametrize("extra, problem", [
+    ({"counts.md": DATA["counts.md"].replace("data: counts.csv", "data: other.csv")}, "counts.md:6: data must be counts.csv"),
+    ({"counts.md": DATA["counts.md"]}, "counts.md:6: counts.csv not found next to the page"),
+    ({**DATA, "counts.csv": "form,field\n1,Sales,1\n"}, "needs a header row, every row as wide as it"),
+    ({**DATA, "counts.md": DATA["counts.md"].replace("data: counts.csv", "data: counts.csv\nlicense: MIT")}, "counts.md:7: license goes on a data page"),
+    ({"ai-bias.md": SOURCES["ai-bias.md"].replace("status: published", "status: published\nlicense: CC BY 4.0")}, "license goes on a data page"),
+])
+def test_data_page_problems_are_reported_with_file_and_line(tmp_path, extra, problem):
+    research_site(tmp_path, extra)
+    with pytest.raises(pages.SourceError) as e:
+        pages.build(tmp_path)
+    assert problem in str(e.value)
+
+
 def test_every_article_links_how_ai_is_used_under_the_byline_and_never_says_approved(tmp_path):
     # owner decision 5: a label + one link, never a claim of approval; not on the hub, about or methods
     research_site(tmp_path)
@@ -1142,3 +1196,43 @@ def test_split_title_keeps_its_text_in_the_h1_the_hub_and_the_headline(tmp_path)
     assert article["headline"] == title
     item = re.search(r'<a href="/research/ats-myth/">(.*?)</a>', built["research/index.html"]).group(1)
     assert "deck" in item and re.sub(r"<[^>]+>", "", item) == title
+
+
+BARS = "```bars\nWho got called, share of tests (Lab study) [@quillian-2017]\nGroup | Called\nWhite | 85.1% of tests\nBlack | 8.6% of tests\n```"
+
+
+def test_bars_block_is_a_figure_with_caption_citation_and_a_real_table(tmp_path):
+    research_site(tmp_path, body(BARS))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    figure = html[html.index('<figure class="bars">'):html.index("</figure>")]
+    assert '<figcaption>Who got called, share of tests (Lab study; <a href="#src-quillian-2017">' in figure
+    assert '<th scope="col">Group</th>' in figure and '<th scope="row">White</th>' in figure
+    assert '<td>85.1% of tests<span class="bar" style="width:85.1%" aria-hidden="true"></span></td>' in figure
+    assert 'role="region"' not in figure  # no scroll box: short, and the figure names it
+    assert '<li id="src-quillian-2017">' in html  # the caption's citation reaches Sources
+
+
+@pytest.mark.parametrize("values, widths", [
+    (["99 of 143", "13 of 143"], [69.2, 9.1]),
+    (["51%", "32%"], [51.0, 32.0]),
+    (["0.3", "1.2"], [25.0, 100.0]),
+    (["1,000", "500"], [100.0, 50.0]),
+])
+def test_bar_length_is_the_values_share_of_its_whole(values, widths):
+    assert pages._bar_widths(values) == (widths, None)
+
+
+@pytest.mark.parametrize("block, problem", [
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\n```", "needs a caption line"),
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\nA | 5\nB\n```", "needs a caption line"),
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\nA | 5%\nB | 7\n```", "one kind per figure"),
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\nA | about half\n```", "starts with a number"),
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\nA | 150%\n```", "larger than its whole"),
+    ("```bars\nCalls fell\nGroup | Called\nA | 36%\n```", "statistic '36%' without a citation"),
+])
+def test_bars_problems_are_reported_with_file_and_line(tmp_path, block, problem):
+    research_site(tmp_path, body(block))
+    # block problems at the fence's first line; an uncited statistic at its own row
+    line = 14 if "statistic" in problem else 11
+    with pytest.raises(pages.SourceError, match=f"ai-bias.md:{line}: .*{problem}"):
+        pages.build(tmp_path)

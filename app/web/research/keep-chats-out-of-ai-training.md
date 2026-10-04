@@ -1,8 +1,8 @@
 ---
-title: "Keep your chats out of AI training: ChatGPT, Claude, Copilot"
+title: "Opt out of AI training: ChatGPT, Claude, Copilot and Gemini"
 description: ChatGPT, Claude, GitHub Copilot and Gemini can train on personal-plan chats. Where each switch is, and what it doesn't stop.
 published: 2026-10-03
-modified: 2026-10-03
+modified: 2026-10-04
 status: published
 og_title: "Stop ChatGPT, Claude, GitHub Copilot and Gemini training on your chats"
 uncited:
@@ -16,8 +16,7 @@ uncited:
 
 - Personal plans of ChatGPT, Claude, GitHub Copilot and Gemini can train on your chats; one main switch each turns most of it off (Maker's docs) [@openai-data-controls; @anthropic-training-setting; @github-copilot-docs; @google-gemini-privacy]. See what the switch doesn't do, below.
 - Work and school plans don't train on chats by default (Maker's docs) [@openai-data-controls; @anthropic-training-work; @github-copilot-docs].
-- Switch stops future training; training already done stays (Maker's docs) [@anthropic-training-setting; @openai-data-controls].
-- Thumbs up or down can still send that whole chat to training (Maker's docs) [@openai-data-controls; @anthropic-training-consumer].
+- Switch stops future training; training already done stays, and thumbs up or down can still send that whole chat to training (Maker's docs) [@anthropic-training-setting; @openai-data-controls; @anthropic-training-consumer].
 - AI models can repeat rare text from their training data (Lab studies, web text, not chats) [@carlini-2021; @nasr-2023].
 
 ## Why does this matter for a job seeker?
@@ -31,6 +30,19 @@ Training data can come back out. In a 2021 test, researchers pulled hundreds of 
 Both studies used text from public web pages, not users' chats. No study we found shows a chat from one user coming out in another user's answers. The companies say they reduce personal details before training. OpenAI says it takes "steps to reduce the amount of personal information" in training data [@openai-model-training]. Anthropic says it filters or hides sensitive data [@anthropic-consumer-terms-2025]. It also separates feedback chats from your account before using them [@anthropic-training-consumer].
 
 For you, the switch is a cheap step. In ChatGPT, your chats stay in your history with it off [@openai-data-controls].
+
+## Which switch does each app use?
+
+Each app names its switch differently and puts it in a different menu. The table sums up each app's personal plans; the sections below give each step.
+
+| App | Switch name | Where | On by default? | Chats kept in your history with it off? | Feedback still trains with it off? |
+|---|---|---|---|---|---|
+| ChatGPT | Improve the model for everyone | Settings, then Data controls | Yes, unless you opt out | Yes | It can: the whole chat [@openai-data-controls; @openai-model-training] |
+| Claude | Help Improve our AI models | Settings, then Privacy | No set default: you choose at sign-up, and existing users were asked in 2025 | The pages don't say | It can: the whole chat, kept up to 5 years apart from your account [@anthropic-training-setting; @anthropic-consumer-terms-2025; @anthropic-training-consumer] |
+| GitHub Copilot | Allow GitHub to use my data for AI model training | Profile picture, then Copilot settings | Yes, from April 24, 2026, unless you opt out | The pages don't say | No: thumbs up or down counts as your interaction data, which isn't used once you opt out [@github-copilot-docs; @github-copilot-2026] |
+| Gemini | Keep Activity | Settings & help, then Activity | Yes, for users 18 and over | No: new chats kept up to 72 hours | It can, with your last 24 hours of chats [@google-gemini-activity; @google-gemini-privacy] |
+
+"The pages don't say" means the company's help pages we read in October 2026 don't answer the question.
 
 ## How do I stop ChatGPT training on my chats?
 
@@ -46,7 +58,7 @@ OpenAI also offers a "do not train on my content" button in its privacy portal [
 
 **Temporary Chat** is a one-off option. Those chats don't appear in your history and aren't used for training. OpenAI may keep them for up to 30 days for safety [@openai-data-controls].
 
-For you, turn the switch off once, then use Temporary Chat for anything you don't want in your history or in training.
+Turn the switch off once, then use Temporary Chat for anything you don't want in your history or in training.
 
 ## How do I stop Claude training on my chats?
 
@@ -60,7 +72,7 @@ The switch also covers Claude Code on those plans [@anthropic-training-setting].
 
 With the switch on, a de-identified copy of your chats can stay up to 5 years in training data. For everyone, a deleted chat leaves Anthropic's main systems within 30 days. Chats flagged by safety checks are kept up to 2 years [@anthropic-retention]. **Incognito** chats are never used for training, whatever the switch says [@anthropic-training-consumer].
 
-For you, the switch keeps your chats out of that 5-year training store.
+So the switch keeps your chats out of that 5-year training store.
 
 ## How do I stop GitHub Copilot training on my chats?
 
@@ -92,7 +104,7 @@ Keep Activity is on by default for users 18 and over [@google-gemini-activity]. 
 
 With it off, only a few connected apps keep working [@google-gemini-activity]. Google still has people review some chats for safety, even with the setting off. Reviewed chats are kept for up to 3 years, apart from your account. Gemini also has a **Temporary chat**; those chats aren't used for training and are kept up to 72 hours [@google-gemini-privacy].
 
-For you, Gemini's switch costs you your saved chats. ChatGPT keeps your history with its switch off [@openai-data-controls].
+Gemini's switch costs you your saved chats. ChatGPT keeps your history with its switch off [@openai-data-controls].
 
 ## What doesn't the switch do?
 
@@ -100,7 +112,7 @@ For you, Gemini's switch costs you your saved chats. ChatGPT keeps your history 
 
 **Your history stays.** Turning off ChatGPT's switch doesn't delete or hide saved chats. Delete a chat separately if you want it gone [@openai-data-controls].
 
-**Feedback can send the whole chat.** On ChatGPT, a thumbs up or down means "the entire conversation" may be used to train models. That holds even after you opt out [@openai-data-controls]. Anthropic may train on feedback too; it separates feedback from your account and keeps it up to 5 years [@anthropic-training-consumer]. In Gemini, feedback also sends your last 24 hours of chats. People review it, and it is kept up to 3 years [@google-gemini-privacy].
+**Feedback can send the whole chat.** On ChatGPT, a thumbs up or down means "the entire conversation" may be used to train models. That holds even after you opt out [@openai-data-controls]. Anthropic may train on feedback too; it separates feedback from your account and keeps it up to 5 years [@anthropic-training-consumer]. GitHub says thumbs up or down on Copilot is not used for training once you opt out [@github-copilot-2026]. In Gemini, feedback also sends your last 24 hours of chats. People review it, and it is kept up to 3 years [@google-gemini-privacy].
 
 **Safety review goes on.** Claude chats flagged by safety checks may still be used to improve those checks [@anthropic-training-setting]. OpenAI keeps even Temporary Chats up to 30 days for safety [@openai-data-controls]. Google has people review some Gemini chats even with its setting off [@google-gemini-privacy].
 
@@ -108,7 +120,7 @@ For you, Gemini's switch costs you your saved chats. ChatGPT keeps your history 
 
 **Your name still reaches the AI.** The switch controls training, not reading. The AI has to read your resume to help with it.
 
-For you, skip the thumbs buttons on any chat that holds your resume.
+Skip the thumbs buttons on any chat that holds your resume.
 
 ## What about work, school and developer accounts?
 
@@ -122,7 +134,7 @@ Business plans are the opposite: no training by default.
 
 Feedback is the exception here too. On Claude business plans, thumbs up or down can still send a chat to training [@anthropic-training-work].
 
-For you, a work login trains less, but your employer sets its rules and may see your chats [@openai-data-controls]. Job-hunt on your own account.
+In practice, a work login trains less, but your employer sets its rules and may see your chats [@openai-data-controls]. Job-hunt on your own account.
 
 ## What we don't know
 
@@ -147,3 +159,5 @@ What belongs on a resume at all: [What makes a good resume?](what-makes-a-good-r
 - At setup, it asks once whether you want your chats kept out of training, and walks you through the switch.
 - It never asks you to rate a chat, because feedback can send that chat to training.
 - Only you can change the switch. No setting in CEZ Job Finder reaches your AI account.
+
+CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
