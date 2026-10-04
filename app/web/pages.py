@@ -64,6 +64,8 @@ SAME_AS = ["https://github.com/cezkid", "https://www.enrriquez.com/"]  # the aut
 # "contact" and "code" are links, not addresses to copy
 OWN_LINKS = ("https://github.com/cezkid/jobs", "https://www.enrriquez.com/")
 BRAND = "CEZ Job Finder"  # kept from browser translation in page text: the name on the desktop icon
+# On this page: a heading's text w/o tags, but the app's name keeps its translate="no" span
+TAGS_BUT_BRAND = re.compile(r'<(?!span translate="no">|/span>)[^>]+>')
 # a label + one link, never "approved" (owner decision 5); the label text makes the link running text (qa HIT_BOXES)
 AI_NOTE = 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>'
 # every generated page's share card: docs/og-research.png from app/web/og-research.html
@@ -1338,9 +1340,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
     # wide-screen list was the 85th Tab stop on the longest page, behind every citation link. The h1 stays main's
     # first heading (the list's label is a <p>); one list shown at a time, no ids in either
     heads = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body, re.S) if kind == "article" else []
-    # heading text w/o tags, but the app's name keeps its translate="no" span
-    items = [f'<li><a href="#{slug}">{re.sub(r"<(?!span translate=\"no\">|/span>)[^>]+>", "", text)}</a></li>'
-             for slug, text in heads]
+    items = [f'<li><a href="#{slug}">{TAGS_BUT_BRAND.sub("", text)}</a></li>' for slug, text in heads]
     toc = ['<nav class="toc" aria-label="On this page">', "<p>On this page</p>", "<ol>", *items, "</ol>",
            "</nav>"] if len(heads) > 2 else []
     mini = ['<nav class="toc-mini" aria-label="Contents">', "<details>", "<summary>On this page</summary>",
