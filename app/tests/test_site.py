@@ -670,6 +670,8 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
     ({"head": "<script>const LINES = 1;</script>"}, {}, "<head> script names LINES"),
     ({"css": "body.is-mac .x { display: none; }"}, {}, "body.is-*"),
     ({"body": '<figure><p>Form</p><button>Submit</button></figure>'}, {}, "<figure> holds ['button']"),
+    ({"body": '<figure class="bars"><figcaption>x</figcaption><table><tr><td><a href="#">x</a></td></tr></table></figure>'},
+     {}, "<figure> holds ['a']"),
     ({"body": "<figure><p>Job 12</p><figcaption>x</figcaption><div>sheet</div></figure>"}, {}, "<figcaption> not the first"),
     ({"body": "<figure><figcaption>x</figcaption><h3>EXPERIENCE</h3></figure>"}, {}, "heading inside <figure>"),
     ({"css": ".ring { vector-effect: non-scaling-stroke; }"}, {}, "vector-effect in CSS"),
@@ -678,7 +680,7 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
              " header { view-transition-name: top; }"}, {}, "view transition outside"),
 ], ids=["html-gzip", "inline-js", "elements", "first-load", "critical", "script-src", "will-change",
         "keyframes", "transition", "transition-all", "use-target", "header-id", "footer-style", "lines-twice",
-        "head-script-size", "head-script-lines", "body-class", "figure-control", "figcaption-middle",
+        "head-script-size", "head-script-lines", "body-class", "figure-control", "bars-control", "figcaption-middle",
         "figure-heading", "vector-effect-css", "view-transition",
         "view-transition-name"])
 def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):

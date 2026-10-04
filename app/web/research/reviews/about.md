@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.16 (no drafting context)
 ---
@@ -65,3 +65,9 @@ revise - A1, A3, A5 before publishing; A2/A4 follow the methods fixes.
 ## Revision (plan-xsy.17, 2026-10-03)
 
 Every finding above fixed on the page or moved to a filed bead (named in its status). Verdict set to publish by the revise bead per app/docs/research.md; the owner read at ship (plan-xsy.36) is still required, and plan-xsy.44 holds the owner facts.
+
+## Re-review 2026-10-04: what CEZ stands for (plan-xsy.56.1)
+
+Added to the first paragraph: "CEZ = Cesar Enrriquez-Zuniga's initials." (audit D3: the page never
+said what CEZ means). Owner-stated fact, 2026-10-04 (plan-xsy.56.1 note); consistent with the
+app name CEZ Job Finder and the GitHub user cezkid. No other text changed. Verdict stays publish.

@@ -1,8 +1,8 @@
 ---
 title: "Can employers tell if AI wrote your resume?"
-description: Most people can't spot AI writing in tests, but about half of hiring managers say they'd care. What studies show on detectors, and what to do.
+description: Mostly no, in tests - most people can't spot AI writing. About half of hiring managers say they'd care. What studies show, and what to do.
 published: 2026-10-03
-modified: 2026-10-03
+modified: 2026-10-04
 status: published
 og_title: "Can employers tell if AI wrote your resume? What studies show"
 uncited:
@@ -12,8 +12,7 @@ uncited:
 ---
 **Short answer**
 
-- In tests, most people couldn't tell AI writing from human writing (Lab study, 4,600 people, older AI models) [@jakesch-2023].
-- People who use AI often for writing spot whole AI-written texts far better (Lab study, 5 readers) [@russell-2025].
+- In tests with older AI models, most of 4,600 people couldn't tell AI writing from human writing; 5 readers who use AI often spotted whole AI-written texts far better (Lab studies) [@jakesch-2023; @russell-2025].
 - Early detectors misfired and flagged non-native writers; one paid 2025 tool did far better; none tested on resumes (Lab studies; maker's docs) [@openai-2023; @liang-2023; @russell-2025].
 - About half of hiring managers say they'd care; they name generic, vague lines as AI signs (Vendor surveys) [@insight-global-2025; @resume-genius-2026].
 - Spelling and grammar help raised hires (2021, not chat AI); AI-tailored letters now count for less (Big study; Real records, preprint) [@wiles-2025; @cui-2025].
@@ -40,7 +39,7 @@ Detectors have changed since 2023. In the 2025 reader test above, one paid detec
 
 We found no study that tests detectors on resumes. We also found no study showing how many employers run them. A widely repeated survey figure on employer use led to no source we could open.
 
-For you, a detector's "AI" label is untested on resumes. Older detectors were tripped by plain, simple English [@liang-2023].
+A detector's "AI" label is untested on resumes. Older detectors were tripped by plain, simple English [@liang-2023].
 
 ## What do hiring managers say about AI-written resumes?
 
@@ -50,17 +49,29 @@ In an October 2024 survey of 1,005 US HR and hiring leaders, 88% said they can t
 
 A 2026 survey of 1,000 US hiring managers was run for a resume-builder company. In it, 80% said they can often tell when AI wrote a resume. Most, 76%, said AI-written resumes make it harder to see what a person actually did. And 72% said heavy reliance on AI makes applicants seem less skilled. Asked about disclosure, 79% said applicants should say when AI helped [@resume-genius-2026].
 
-Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%) and vague or inflated descriptions (41%). Formatting habits such as long dashes were named by 32% [@resume-genius-2026].
+Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%), and vague or inflated descriptions and buzzword-heavy writing (41% each). Formatting habits such as long dashes were named by 32% [@resume-genius-2026].
+
+```bars
+Signs of an AI-written resume that hiring managers named, 2026; each could name more than one (Vendor survey, 1,000 US hiring managers) [@resume-genius-2026]
+Sign | Share who named it
+Unnatural phrasing or tone | 51%
+Repetitive or generic wording | 44%
+Vague or inflated descriptions | 41%
+Buzzword-heavy writing | 41%
+Perfect grammar with no variation | 39%
+Formatting habits such as long dashes | 32%
+Incorrect or irrelevant details | 27%
+```
 
 Saying you can spot AI is not the same as spotting it. In one lab test, readers who rarely used AI felt sure but did no better than chance [@russell-2025].
 
-For you, the warning signs managers name are generic, vague and inflated lines. Those are worth cutting whoever wrote them.
+The warning signs managers name are generic, vague and inflated lines. Those are worth cutting whoever wrote them.
 
 ## Does using AI on your resume hurt your chances?
 
 Writing help raised hiring in the largest real test. That test used spelling and grammar help, not today's chat AI [@wiles-2025].
 
-In 2021, an online freelance platform ran an experiment with 480,948 new jobseekers. Half got automatic suggestions on spelling, grammar and wording for their profile. Those who got the help were hired about 8% more often, within a range of 3% to 13%. They got 10% higher pay, too. Employers rated the people they hired just as highly afterward. The authors' reading: clearer writing helped employers see what people could do. The platform funded the authors' work [@wiles-2025].
+In 2021, an online freelance platform ran an experiment with 480,948 new job seekers. Half got automatic suggestions on spelling, grammar and wording for their profile. Those who got the help were hired about 8% more often, within a range of 3% to 13%. They got 10% higher pay, too. Employers rated the people they hired just as highly afterward. The authors' reading: clearer writing helped employers see what people could do. The platform funded the authors' work [@wiles-2025].
 
 Chat AI that writes the whole text is different. Two 2025 studies looked at one freelance platform after it added an AI letter writer in April 2023 [@cui-2025; @galdin-silbert-2025]. Both are preprints, not yet peer-reviewed.
 
@@ -76,13 +87,13 @@ For you, fixing errors in your own wording helped in a large test. A letter that
 
 In one lab test, it did, when the screener was the same AI. A 2025 study took 2,245 real resumes and had AI models rewrite each summary section. Each AI model then picked between the person's own summary and one the same model wrote. In the updated June 2026 version, eight of the nine models picked their own version more often. In simulated hiring for 24 jobs, applicants using the screener's own AI were 23% to 60% more likely to be shortlisted. Simple changes to the screener's instructions cut this preference by more than half [@xu-2025]. That is a lab test, not a real employer's system.
 
-For you, this cuts both ways. An AI screener may like AI wording, while a human reader may dislike it. Clear, specific lines are our advice for both; no study tests it.
+An AI screener's preference for its own wording cuts both ways for job seekers. An AI screener may like AI wording, while a human reader may dislike it. Clear, specific lines are our advice for both; no study tests it.
 
 ## What words make writing sound like AI?
 
 Some words became much more common after chat AI arrived. A 2025 study counted words in over 15 million science paper summaries from 2010 to 2024. "Delves" appeared 28 times more often in 2024 than its earlier trend predicted. "Underscores" rose 13.8 times and "showcasing" 10.7 times. Common words like "crucial" and "potential" also jumped. The authors estimate at least 13.5% of 2024 summaries were processed with AI [@kobak-2025]. That study is about science writing, not resumes. It shows which words AI overuses, not whether employers notice them.
 
-For you, words like "delve," "showcase" and "pivotal" add no facts. Cutting them makes a line clearer, whoever wrote it.
+Words like "delve," "showcase" and "pivotal" add no facts. Cutting them makes a line clearer, whoever wrote it.
 
 ## What we don't know
 
@@ -110,3 +121,5 @@ How we grade evidence: [How we research](methods.md). How AI screeners treat app
 - You confirm every changed line before you get the resume.
 - A check flags overused AI words like "delve" and "showcasing", from a list built on studies like the one above. The list is in the program's [resume checks](../../resume/lint.py).
 - A posting term goes in only where your experience backs it.
+
+CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).

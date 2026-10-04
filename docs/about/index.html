@@ -29,7 +29,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfilePage","@id":"https://jobs.enrriquez.com/about/","url":"https://jobs.enrriquez.com/about/","name":"About Cesar Enrriquez-Zuniga","dateModified":"2026-10-03","mainEntity":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/","sameAs":["https://github.com/cezkid","https://www.enrriquez.com/"]}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"About Cesar Enrriquez-Zuniga","item":"https://jobs.enrriquez.com/about/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"ProfilePage","@id":"https://jobs.enrriquez.com/about/","url":"https://jobs.enrriquez.com/about/","name":"About Cesar Enrriquez-Zuniga","dateModified":"2026-10-04","mainEntity":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/","sameAs":["https://github.com/cezkid","https://www.enrriquez.com/"]}},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"About Cesar Enrriquez-Zuniga","item":"https://jobs.enrriquez.com/about/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -225,6 +225,14 @@
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
+  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
+     print + forced colours paint it); no motion */
+  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .bars table { width: 100%; }
+  .bars tbody th { width: 42%; font-weight: 400; }
+  .bars td { font-weight: 700; }
+  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
   /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
   #sources { margin-top: 64px; border-top: 3px solid var(--text); }
   .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
@@ -335,8 +343,8 @@
 <div class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">About Cesar Enrriquez-Zuniga</li></ol></nav>
 <h1>About Cesar Enrriquez-Zuniga</h1>
-<p class="meta">Updated <time datetime="2026-10-03">October 3, 2026</time></p>
-<p>Cesar Enrriquez-Zuniga makes <span translate="no">CEZ Job Finder</span>, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan.</p>
+<p class="meta">Updated <time datetime="2026-10-04">October 4, 2026</time></p>
+<p>Cesar Enrriquez-Zuniga makes <span translate="no">CEZ Job Finder</span>, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan. CEZ = Cesar Enrriquez-Zuniga’s initials.</p>
 <p>Cesar built the app to tailor resumes with AI, and needed to know which resume advice holds up. The Research section shares what the studies say.</p>
 <p>Cesar is not a recruiter or a lawyer. The Research section summarizes published studies and says how strong each one is.</p>
 </div>

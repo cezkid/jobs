@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.31 (no drafting context; sources opened before the draft was read)
 ---
@@ -203,3 +203,23 @@ Citation placement only - no wording, number or source changed. A run of sentenc
 same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
 sentence the moved citation now covers comes from that source.
 16 repeat citations dropped; no sentence that was uncited now falls under a citation.
+
+## Re-review 2026-10-04: voice pass (plan-xsy.53)
+
+Voice only. Six section endings lost "For you," (now no opener, "So" or "In practice,"); "So the switch keeps your chats out of that 5-year training store" follows the 5-year sentence as before; home-page line; `modified` 2026-10-04. No setting, date or citation changed. Checked: each changed line keeps its meaning, scope, hedging and evidence label; section endings still say what the finding means for the reader; no new "this"/"it" across sentences; no app jargon; closing line "CEZ Job Finder is a free job-search app for Windows and Mac" matches docs/index.html title + og:title; link is our own home page. No finding.
+
+Short answer merge (plan-xsy.53): checked the merged bullet 3 (switch stops future training + thumbs) against claim rows 14-15 and F3. Wording of both claims unchanged, "still" kept (openai-data-controls: "even after opt-out"); one label (Maker's docs) fits both halves, as before; citations are the union of the two old bullets - anthropic-training-setting + openai-data-controls cover the switch, openai-data-controls + anthropic-training-consumer cover thumbs. Box stays at 4 bullets. No blocking finding. Optional nit for readability: split the run-on into two sentences inside the bullet - "- Switch stops future training; training already done stays. Thumbs up or down can still send that whole chat to training (Maker's docs) [@anthropic-training-setting; @openai-data-controls; @anthropic-training-consumer]."
+
+## Re-review 2026-10-04: title vs searched wording (plan-xsy.52)
+
+Title only: "Keep your chats out of AI training: ChatGPT, Claude, Copilot" -> "Opt out of AI training: ChatGPT, Claude, Copilot and Gemini" (59 chars, limit 60). Why: searches use "opt out" / "stop ... training", and Gemini is covered but was missing (audit D12). Checked: all four products have a section and a switch in the body; "opt out" matches what the steps do (openai-model-training uses the same verb); "Copilot" stays as accepted in F6 (description + og_title say GitHub Copilot, Copilot section opens with the Microsoft Copilot line). Slug, description, og_title, body unchanged. No finding.
+
+## Re-review 2026-10-04: summary table (plan-xsy.54)
+
+New section "Which switch does each app use?": lead, a 4-row table (switch name, where, default, history with it off, feedback with it off) and a closing line on "The pages don't say". No other text changed. Checked every cell against the source table above, the body sections, and the live pages re-read 2026-10-04 by curl (privacy.claude.com 12109829 + 10023580 + retention page, anthropic.com consumer-terms news, docs.github.com manage-policies, github.blog 2026 policy post, GitHub community post 188488, support.google.com/gemini 13594961; OpenAI pages from the Archive copies as before); no source text addressed an AI. Switch names and click paths match the body and the makers' pages word for word; Gemini 72 hours / 24 hours and ChatGPT history cells match; every row carries a citation; label is Maker's docs throughout (all `vendor docs`); no app jargon. Findings:
+1. **Blocking.** GitHub Copilot row, "Feedback still trains with it off?" cell "The pages don't say" is wrong. github-copilot-2026 lists "Your feedback on suggestions (thumbs up/down ratings)" as interaction data, and under "This program does not use": "Interaction data from users who opt out of model training in their Copilot settings". Replace the cell with: "No: thumbs up or down counts as your interaction data, which isn't used once you opt out [@github-copilot-docs; @github-copilot-2026]". Optional, same fix in the body: add to "Feedback can send the whole chat." the sentence "GitHub says thumbs up or down on Copilot is not used for training once you opt out [@github-copilot-2026]."
+2. Medium. Claude row, "On by default?" cell "You were asked to choose in 2025" leaves out new users: anthropic-consumer-terms-2025 says "If you're a new user, you can pick your setting for model training during the signup process." Replace with: "No set default: you choose at sign-up, and existing users were asked in 2025".
+3. Low. Feedback column says "Yes" where every maker says "may": OpenAI "may be used to train", Anthropic "We may use your feedback to ... train", Google "won't be used to train ... unless you choose to send Google feedback". The body says "may". Replace the three cells with: ChatGPT "It can: the whole chat [@openai-data-controls; @openai-model-training]"; Claude "It can: the whole chat, kept up to 5 years apart from your account [@anthropic-training-setting; @anthropic-consumer-terms-2025; @anthropic-training-consumer]"; Gemini "It can, with your last 24 hours of chats [@google-gemini-activity; @google-gemini-privacy]".
+4. Low. Lead "The table sums up the four personal plans" reads as four plans, not four apps. Replace with: "The table sums up each app's personal plans; the sections below give each step."
+
+Revision (plan-xsy.54, 2026-10-04): findings 1-4 fixed with the proposed wording, plus the optional body line on Copilot feedback (under "Feedback can send the whole chat."). Verdict publish.

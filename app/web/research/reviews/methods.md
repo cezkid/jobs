@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-03
+reviewed: 2026-10-04
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.16 (no drafting context)
 ---
@@ -133,3 +133,37 @@ page can be trusted as the site's editorial policy. Fixes are wording on this pa
 ## Revision (plan-xsy.17, 2026-10-03)
 
 Every finding above fixed on the page or moved to a filed bead (named in its status). Verdict set to publish by the revise bead per app/docs/research.md; the owner read at ship (plan-xsy.36) is still required, and plan-xsy.44 holds the owner facts.
+
+## Re-review 2026-10-04: title (plan-xsy.56)
+
+Title only: "How we research" (15 chars) -> "How the Research articles are made and checked" (46), the
+old og_title, so search results say what the page is (audit C10). og_title dropped (now equal to
+the title). Body, claims and description unchanged; in-body links keep the short text "How we
+research". The no-ties line (audit D9) waits on owner facts: plan-xsy.56's child bead. Verdict
+stays publish.
+
+## Re-review 2026-10-04: no-ties line (plan-xsy.56.1)
+
+"We get nothing from those companies." named only the AI plan makers (audit D9). Now: "We have no
+paid or business ties to the AI companies, hiring-software makers or resume companies named in
+these articles. The app uses freehire.me's free job search; we have no ties to it."
+
+| # | Claim | Evidence | Verdict |
+|---|---|---|---|
+| 1 | No paid or business ties to AI companies, hiring-software makers, resume companies named in articles | Owner-stated fact, 2026-10-04 (plan-xsy.56.1 note); a negative only the owner can know | Supported by owner |
+| 2 | The app uses freehire.me's job search | `app/docs/jobs/freehire.md`: app polls `https://freehire.me/api/v1` | Supported |
+| 3 | That search is free | Same doc: keyless API, no account or payment | Supported |
+| 4 | No ties to freehire.me | Owner-stated fact, 2026-10-04 | Supported by owner |
+
+Names all three groups + freehire.me, which articles cite (ats-rejection-myth,
+knockout-questions). No other text changed. Verdict stays publish.
+
+## Re-check 2026-10-04 (plan-xsy.50): number-lint line
+
+plan-xsy.42 widened `pages.STAT`. Measured 2026-10-04: it now catches all five M2 misses ("Over 3/4
+of employers", "Half of employers", "twice as likely", "83,000 applications", "1.5 times more") plus
+"2 million resumes"; still passes small plain counts ("They tested 14 models") and a bare "rose 1.5
+times." with nothing after it - those stay with the review. Claim 9 line now lists what the program
+flags: percentages, "N in M", fractions ("a third", "3/4"), "half of", "twice as likely" / "N times
+more", large counts ("83,000", "2 million"). Supported as worded; "the review checks every other
+number by hand" unchanged. No other text changed. Verdict stays publish.
