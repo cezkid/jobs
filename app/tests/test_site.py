@@ -6,6 +6,7 @@ files on disk: no network, stdlib + pymupdf. Assets come from app/web/assets.py 
 """
 
 import datetime
+import hashlib
 import importlib.util
 import json
 import random
@@ -247,6 +248,40 @@ def ico_frames(path) -> list[tuple[int, int]]:
         assert struct.unpack(">II", payload[16:24]) == (w or 256, h or 256), (path, i)
         frames.append((w or 256, h or 256))
     return frames
+
+
+def stale_icons(root) -> list[str]:
+    """Faults vs app/web/icon-sync.json (written by assets.py): an app icon file changed or added /
+    removed since the site's icons were made, or a made file changed since (hand edit)."""
+    sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+    sync = json.loads((root / "app/web/icon-sync.json").read_text(encoding="utf-8"))
+    now = {f"app/install/{p.name}": sha(p) for p in sorted((root / "app/install").glob("icon*.svg"))}
+    faults = [f"{f}: app icon changed - rerun uv run app/web/assets.py --only icons + og" for f in sorted(now.keys() | sync["source"].keys()) if now.get(f) != sync["source"].get(f)]
+    faults += [f"{f}: differs from what assets.py made" for f, h in sync["made"].items() if not (root / f).exists() or sha(root / f) != h]
+    return faults
+
+
+# the app's desktop icon changed but the website still shows the old one (owner: "the website should
+# always sync with how the vscode is"); also a hand-edited favicon assets.py would overwrite
+def test_site_icons_follow_the_app_icon():
+    assert stale_icons(cfg.ROOT) == []
+    made = json.loads((cfg.ROOT / "app/web/icon-sync.json").read_text(encoding="utf-8"))["made"]
+    assert sorted(made) == sorted(f"docs/{n}" for n in ("icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png",
+                                                         "icon-maskable-512.png", "favicon.ico", "og.png", "og-research.png"))
+
+
+# a guard that can't fail guards nothing: one byte of the app icon changed => the test above fails
+def test_stale_icon_check_trips_on_a_changed_app_icon(tmp_path):
+    for f in ["app/web/icon-sync.json", *json.loads((cfg.ROOT / "app/web/icon-sync.json").read_text())["made"]]:
+        (tmp_path / f).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / f).write_bytes((cfg.ROOT / f).read_bytes())
+    (tmp_path / "app/install").mkdir(parents=True, exist_ok=True)
+    for src in (cfg.ROOT / "app/install").glob("icon*.svg"):
+        (tmp_path / "app/install" / src.name).write_bytes(src.read_bytes())
+    assert stale_icons(tmp_path) == []
+    svg = tmp_path / "app/install/icon.svg"
+    svg.write_bytes(svg.read_bytes().replace(b"#ffe433", b"#ffe434", 1))
+    assert stale_icons(tmp_path) == ["app/install/icon.svg: app icon changed - rerun uv run app/web/assets.py --only icons + og"]
 
 
 def opaque(path) -> bool:

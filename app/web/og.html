@@ -6,7 +6,8 @@
 <!-- Source of docs/og.png (1200x630): uv run app/web/assets.py --only og. Tokens, masthead double
      rule and the hero app window (story A, the morning list) copied from docs/index.html. Bottom
      90px kept clear (X lays its headline there); key content inside the central 1100x530. Never
-     put the install line on the card. -->
+     put the install line on the card.
+     Mark = the app's own icon files (src="/app/install/..."), inlined at render - never a copy. -->
 <style>
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; }
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; }
@@ -27,7 +28,7 @@
   }
   .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-bottom: 1px solid var(--ink); }
   .brand { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 700; }
-  .brand svg { width: 40px; height: 40px; }
+  .brand img { width: 50px; height: 50px; margin: -5px; } /* app icon's tile = 40px, as before */
   .site { font-size: 24px; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
 
   h1 {
@@ -44,7 +45,7 @@
   }
   .titlebar { display: flex; align-items: center; height: 34px; border-bottom: 1px solid var(--ink); }
   .title { flex: 1; display: flex; align-items: center; gap: 8px; padding-left: 14px; font-size: 15px; }
-  .title svg { width: 17px; height: 17px; }
+  .title img { width: 21px; height: 21px; margin: -2px; } /* 32 px rung's tile = 17px */
   .controls { display: flex; height: 100%; }
   .controls svg { width: 42px; height: 100%; fill: none; stroke: var(--ink); stroke-width: 1; }
   .today { padding: 12px 26px 14px 30px; isolation: isolate; }
@@ -69,16 +70,7 @@
 <body>
 <header class="top">
   <div class="brand">
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="#000"/>
-      <rect x="8" y="4" width="16" height="24" fill="#fff"/>
-      <rect x="10" y="13" width="12" height="6" fill="#FFE433"/>
-      <g stroke="#000" stroke-width="2.4" stroke-linecap="butt">
-        <path d="M11 9.5h10"/>
-        <path d="M11 16h10"/>
-        <path d="M11 22.5h7"/>
-      </g>
-    </svg>
+    <img src="/app/install/icon.svg" alt="">
     CEZ Job Finder
   </div>
   <div class="site">jobs.enrriquez.com</div>
@@ -89,16 +81,7 @@
 <figure>
   <div class="window">
     <div class="titlebar">
-      <span class="title"><svg viewBox="0 0 32 32" aria-hidden="true">
-<rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="#000"/>
-<rect x="8" y="4" width="16" height="24" fill="#fff"/>
-<rect x="10" y="13" width="12" height="6" fill="#FFE433"/>
-<g stroke="#000" stroke-width="2.4" stroke-linecap="butt">
-<path d="M11 9.5h10"/>
-<path d="M11 16h10"/>
-<path d="M11 22.5h7"/>
-</g>
-</svg>Today - CEZ Job Finder</span>
+      <span class="title"><img src="/app/install/icon-32.svg" alt="">Today - CEZ Job Finder</span>
       <span class="controls">
         <svg viewBox="0 0 42 34"><path d="M16 17h10"/></svg>
         <svg viewBox="0 0 42 34"><rect x="16.5" y="12.5" width="9" height="9" rx="1"/></svg>
