@@ -19,9 +19,11 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   reported only; page <= 8 screens at 1366x641, <= 9 at 375x812 (owner decision 4, plan-dxn;
   7.12 + 7.90 at the polish base); home also as a narrow desktop window at the 4 phone sizes
   (install line shown); at every size (COMPOSITION): rules on header, footer + main's rows span the
-  window, no section h2 cut by the fold, Job 12's ring box above the salary line, install line
+  window, no section h2 cut by the fold, Job 12's ring box above the salary line and (RING) no point of
+  its strokes inside the title's text box, install line
   breaks only at spaces, <= 1 framed object in the first screen; FRAMES at 1366x641 + 1440x900: <= 1 framed
   object (.window, .proof, .sheet-lg) wholly or >= 40% on screen at every half-screen scroll step;
+  WINDOW_TEXT at 1440x900: every text in the hero window's body >= 17px (A8);
   MAC_LINE: Mac browser name at 768, 1366x641, 1440x900, 1920x1080 -> the
   install line is one line box; a check whose selector finds 0 elements fails (missing()), never a
   silent pass; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
@@ -400,6 +402,30 @@ COMPOSITION = """() => {
   return bad;
 }"""
 
+# RING (A8, every home size): the Job 12 ring is drawn round the title, never through it - each of 200 points
+# along each ring path, widened by half its stroke on each axis (the svg stretches it), lies outside the title's
+# text box ("Job 12 - Customer Support Lead"); null = no ring or title found
+RING = """() => { const c = document.querySelector(".picked .circled"), paths = [...document.querySelectorAll(".picked svg.ring path")];
+  const b = c && c.querySelector("b"); if (!b || !paths.length) return null;
+  const range = document.createRange(); range.setStartBefore(b); range.setEnd(c, c.childNodes.length - 1);
+  const t = range.getBoundingClientRect(), bad = [];
+  for (const p of paths) { const m = p.getScreenCTM(), len = p.getTotalLength(), w = parseFloat(getComputedStyle(p).strokeWidth) / 2;
+    const hx = w * Math.hypot(m.a, m.b), hy = w * Math.hypot(m.c, m.d);
+    for (let i = 0; i <= 200; i++) { const q = p.getPointAtLength(len * i / 200);
+      const x = m.a * q.x + m.c * q.y + m.e, y = m.b * q.x + m.d * q.y + m.f;
+      if (x + hx > t.left && x - hx < t.right && y + hy > t.top && y - hy < t.bottom) {
+        bad.push(`ring stroke${p.classList.length ? " ." + p.classList[0] : ""} crosses the Job 12 title at ${Math.round(x)},${Math.round(y)}px (title ${Math.round(t.left)}-${Math.round(t.right)} x ${Math.round(t.top)}-${Math.round(t.bottom)})`);
+        break; } } }
+  return bad; }"""
+
+# WINDOW_TEXT (A8, home at 1440x900): the hero window read at a glance - every text in its body >= 17px
+WINDOW_TEXT_AT = (1440, 900)
+WINDOW_TEXT_MIN = 17
+WINDOW_TEXT = """() => [...document.querySelectorAll(".hero .window .today *")].filter(el =>
+  [...el.childNodes].some(n => n.nodeType === 3 && n.data.trim()) && el.getClientRects().length)
+  .map(el => [el.tagName.toLowerCase() + (el.className ? "." + el.className : ""), parseFloat(getComputedStyle(el).fontSize)])"""
+
+
 # empty right halves (BAND_AT): per row of main, 4px slices from its first content line to its last; a run
 # of slices whose rightmost content (text line boxes, svg/img/button, boxes with a border or background)
 # ends more than BAND_W px short of the row's content edge, taller than BAND_H px = a band left empty
@@ -710,6 +736,9 @@ FAULTS = [
     (ARTICLE, "console error on an article", "<script>console.error('qa self-test fault')</script>", "layout"),
     (HOME, "0 matches: Job 12 no longer picked (ring check would see nothing)",
      "<script>document.querySelector('.picked').classList.remove('picked')</script>", "layout"),
+    (HOME, "RING: the Job 12 ring slid onto the title", "<style>.slip .ring { left: 6px !important; }</style>", "layout"),
+    (HOME, "WINDOW_TEXT: the window's why lines back to 15px", "<style>.why { font-size: 0.9375rem !important; }</style>",
+     "wide"),
     (HOME, "PAINT_CONCURRENT: every paragraph sweeps its background at load", "<style>@keyframes qa-paint "
      "{ from { background-size: 0 100%; } } @media (prefers-reduced-motion: no-preference) { main p "
      "{ animation: qa-paint 30s linear both; } }</style>", "motion"),
@@ -781,6 +810,7 @@ FAULTS = [
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
+             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
@@ -1034,6 +1064,16 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
         if name == "index.html":
             failed += missing(page, where, "#copy", "#line", "main section h2", ".picked svg.ring", ".picked .meta")
             failed += [f"{where}: {line}" for line in page.evaluate(COMPOSITION)]
+            ring = page.evaluate(RING)
+            if ring is None:
+                failed.append(f"RING {where}: check found 0 elements (Job 12 ring paths + title)")
+            failed += [f"RING {where}: {line}" for line in ring or []]
+            if not phone and (width, height) == WINDOW_TEXT_AT:
+                sizes = page.evaluate(WINDOW_TEXT)
+                if not sizes:
+                    failed.append(f"WINDOW_TEXT {where}: check found 0 elements (hero window text)")
+                failed += [f"WINDOW_TEXT {where}: {what} text {px:.1f}px, under {WINDOW_TEXT_MIN}px"
+                           for what, px in sizes if px < WINDOW_TEXT_MIN]
             if mac and not phone and (width, height) in MAC_LINE_AT:
                 got = page.evaluate(LINE_BOXES)
                 if not got or not got[0].startswith("curl ") or got[1] != 1:

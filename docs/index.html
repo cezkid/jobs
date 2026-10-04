@@ -16,13 +16,13 @@
 <meta property="og:url" content="https://jobs.enrriquez.com/">
 <meta property="og:title" content="A free job-search app for Windows and Mac, with your own AI">
 <meta property="og:description" content="Free app for Windows or Mac that runs on your own Claude, ChatGPT or Copilot plan. Finds new jobs every morning and makes your resume for any job you pick. You press Submit.">
-<meta property="og:image" content="https://jobs.enrriquez.com/og.png?v=2">
+<meta property="og:image" content="https://jobs.enrriquez.com/og.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CEZ Job Finder - a free job-search app for your Windows or Mac computer. Beside it, the app on a morning: new jobs, each with one line on why it fits marked in yellow, job 12 circled, and one line of your resume for job 12 reworded and approved.">
+<meta property="og:image:alt" content="CEZ Job Finder - a free job-search app for your Windows or Mac computer. Beside it, the app on a morning: new jobs, each with one line on why it fits marked in yellow, and job 12 circled by hand.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="CEZ Job Finder - a free job-search app for your Windows or Mac computer. Beside it, the app on a morning: new jobs, each with one line on why it fits marked in yellow, job 12 circled, and one line of your resume for job 12 reworded and approved.">
+<meta name="twitter:image:alt" content="CEZ Job Finder - a free job-search app for your Windows or Mac computer. Beside it, the app on a morning: new jobs, each with one line on why it fits marked in yellow, and job 12 circled by hand.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -265,7 +265,7 @@
   .controls { display: flex; height: 100%; }
   .controls svg { width: 44px; height: 100%; fill: none; stroke: var(--ink); stroke-width: 1; }
 
-  /* proofreader correction (shared by both stories) */
+  /* proofreader correction (the resume scene) */
   .fix p { margin: 0; }
   .old { color: var(--ink-2); }
   /* strike drawn as a background line: survives a wrap (box-decoration-break), sweeps like a mark */
@@ -274,12 +274,11 @@
     background: linear-gradient(var(--ink), var(--ink)) no-repeat 0 58% / 100% 2px;
   }
   .new ins { text-decoration: none; }
-  .new { position: relative; }
-  .caret { position: absolute; left: -15px; top: 0.35em; width: 9px; height: 9px; border-left: 2px solid var(--ink); border-top: 2px solid var(--ink); transform: rotate(45deg); }
-  .approved { display: flex; align-items: center; gap: 8px; }
-  .approved svg { width: 22px; height: 22px; flex: none; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-  .approved .ring { stroke-dasharray: 64; stroke-dashoffset: 0; }
-  .approved .tick { stroke-dasharray: 16; stroke-dashoffset: 0; }
+  /* the insert mark a proofreader draws under the line, its point between the two words where the
+     posting's term goes in; a 0-width box, so the words keep their places */
+  .caret { position: relative; display: inline-block; width: 0; }
+  .caret svg { position: absolute; left: -0.24em; bottom: -0.5em; width: 0.72em; height: 0.54em; overflow: visible;
+    fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
   /* story A: the morning list */
   .today { padding: 14px 22px 18px 26px; }
@@ -293,22 +292,22 @@
   .meta { color: var(--ink-2); font-size: 0.9375rem; line-height: 1.35; }
   .why { margin-top: 3px !important; font-size: 0.9375rem; line-height: 1.4; }
   .circled { position: relative; display: inline-block; }
+  /* the ring, drawn by hand: a broad pen pass + a thin second pass a little off it (uneven width), a tail
+     past its start; box = the title + room, so no stroke crosses a letter (qa RING) */
   .slip .ring {
-    position: absolute; left: -16px; right: -18px; top: -7px; bottom: -4px; width: calc(100% + 34px); height: calc(100% + 11px); z-index: -1; overflow: visible;
-    fill: none; stroke: var(--mark); stroke-width: 7; stroke-linecap: round;
-    stroke-dasharray: 100; stroke-dashoffset: 0;
+    position: absolute; left: -20px; top: -13px; width: calc(100% + 50px); height: calc(100% + 22px); z-index: -1; overflow: visible;
+    fill: none; stroke: var(--mark); stroke-width: 8; stroke-linecap: round; stroke-linejoin: round;
   }
+  .slip .ring path { stroke-dasharray: 100; stroke-dashoffset: 0; }
+  .slip .ring .pass { stroke-width: 4; }
   /* room under the ring: its box ends above the salary line's letters */
-  .picked .job { position: relative; margin-bottom: 6px !important; }
+  .picked .job { position: relative; margin-bottom: 9px !important; }
   .today { isolation: isolate; }
   .slips, .slip { isolation: auto; }
-  .fix { margin-top: 12px; padding-left: 18px; font-size: 0.9375rem; line-height: 1.45; }
-  .fix-head { font-weight: 700; margin-left: -18px !important; margin-bottom: 4px !important; }
-  .fix .new { margin-top: 2px; }
-  .fix .approved { margin-top: 8px; font-size: 0.9375rem; }
   /* phones: the story stacks under the install steps, h1 set for 390px */
   @media (max-width: 600px) {
     .today { padding: 12px 16px 16px 20px; }
+    .slip .ring { left: -17px; width: calc(100% + 44px); }
     .switch { margin-left: 0; }
     /* the web address never breaks: the box takes the whole row, Copy goes under the line */
     ol.steps > li > .command { grid-column: 1 / -1; flex-wrap: wrap; padding-left: 12px; }
@@ -325,6 +324,13 @@
     h1 { font-size: var(--display); }
     .intro { grid-column: 1 / span 6; }
     figure { grid-column: 7 / -1; align-self: start; margin-top: 6px; }
+    /* the window read at a glance (A8): its text 17-18px, job lines 20px */
+    .day b { font-size: 1.625rem; }
+    .day span, .meta { font-size: 1.0625rem; }
+    .why { font-size: 1.125rem; }
+    .job { font-size: 1.25rem; }
+    .slip { padding: 11px 0 12px; }
+    .today { padding: 16px 26px 20px 30px; }
   }
   /* the half-width column's narrowest band: the Mac line steps down to the phone size to stay one line */
   @media (min-width: 1080px) and (max-width: 1139px) { .command code { font-size: 0.875rem; } }
@@ -349,25 +355,22 @@
   .slip:nth-child(1) .why mark { --t0: 0.25; --t1: 0.75; }
   .slip:nth-child(2) .why mark { --t0: 0.5; --t1: 1; }
   .slip:nth-child(3) .why mark { --t0: 0.75; --t1: 1.25; }
-  .slip .ring { --t0: 1.1; --t1: 1.7; --len: 100; --draw: draw cubic-bezier(0.5, 0, 0.3, 1); }
-  .old del { --t0: 1.75; --t1: 2.05; --draw: strike ease-out; }
-  .fix mark { --t0: 2; --t1: 2.4; }
-  .approved .ring { --t0: 2.3; --t1: 2.65; --len: 64; --draw: draw ease-out; }
-  .approved .tick { --t0: 2.6; --t1: 2.8; --len: 16; --draw: draw ease-out; }
+  .slip .ring path { --t0: 1.1; --t1: 1.75; --len: 100; --draw: draw cubic-bezier(0.5, 0, 0.3, 1); }
+  .slip .ring .pass { --t0: 1.5; --t1: 2.05; }
 
   @media (prefers-reduced-motion: no-preference) {
     @keyframes sweep { from { background-size: 0 100%; } }
     @keyframes strike { from { background-size: 0 2px; } }
     @keyframes draw { from { stroke-dashoffset: var(--len); } }
     .command.copied code { animation: sweep 0.45s var(--ease-mark) both; }
-    html:not(.seen):not(.is-phone) .today :is(mark, del, .ring, .tick) {
+    html:not(.seen):not(.is-phone) .today :is(mark, .ring path) {
       animation: var(--draw) calc((var(--t1) - var(--t0)) * 1s) calc(var(--t0) * 1s) both;
     }
   }
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
       html.is-phone .window { view-timeline: --window; }
-      html.is-phone:not(.seen) .today :is(mark, del, .ring, .tick) {
+      html.is-phone:not(.seen) .today :is(mark, .ring path) {
         animation: var(--draw) auto both;
         animation-timeline: --window;
         animation-range: cover calc(5% + var(--t0) * 40% / 2.8) cover calc(5% + var(--t1) * 40% / 2.8);
@@ -664,7 +667,7 @@
     </div>
 
     <figure>
-      <figcaption class="vh">Example: the CEZ Job Finder app on a morning. Three new jobs, each with one line on why it fits. Job 12 is circled; in your resume for job 12 one line is reworded, and you approve it.</figcaption>
+      <figcaption class="vh">Example: the CEZ Job Finder app on a morning. Three new jobs, each with one line on why it fits. Job 12 is circled.</figcaption>
       <div class="window">
         <div class="titlebar" aria-hidden="true">
           <span class="dots mac-only"><span></span><span></span><span></span></span>
@@ -685,7 +688,7 @@
               <p class="why"><mark>Asks for renewals work; you kept 94% of your accounts.</mark></p>
             </li>
             <li class="slip picked">
-              <p class="job"><span class="circled"><b>Job 12</b> - Customer Support Lead<svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M24 9 C 80 0, 186 2, 194 26 C 200 48, 128 58, 64 56 C 16 54, 2 42, 6 28 C 10 13, 42 6, 92 5"/></svg></span></p>
+              <p class="job"><span class="circled"><b>Job 12</b> - Customer Support Lead<svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path pathLength="100" d="M40 6 C 100 1, 170 1, 191 6 C 199 9, 200 46, 192 54 C 170 59, 60 59, 14 56 C 2 54, 0 20, 6 10 C 16 2, 52 -1, 100 1"/><path class="pass" pathLength="100" d="M56 3 C 120 2, 186 3, 194 12 C 199 24, 198 44, 188 55 C 160 58, 50 57, 12 53 C 3 48, 2 24, 9 13 C 15 7, 34 5, 60 6"/></svg></span></p>
               <p class="meta">$68,000 to $75,000 a year, remote</p>
               <p class="why"><mark>Wants a support team lead; you led a team of 6.</mark></p>
             </li>
@@ -695,12 +698,6 @@
               <p class="why"><mark>Help desk work, like your last two jobs.</mark></p>
             </li>
           </ul>
-          <div class="fix">
-            <p class="fix-head">Your resume for job 12</p>
-            <p class="old"><span class="vh">Old line: </span><del>Managed 6 agents and answered tickets faster.</del></p>
-            <p class="new"><span class="caret" aria-hidden="true"></span><span class="vh">New line: </span><ins>Led a <mark>support team</mark> of 6 through peak season; cut wait times 30%.</ins></p>
-            <p class="approved"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10"/><path class="tick" d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
-          </div>
         </div>
       </div>
     </figure>
@@ -734,8 +731,8 @@
         </div>
         <div class="line">
           <div class="fix">
-            <p class="old"><span class="vh">Old line: </span><del>Managed 6 agents and answered tickets faster.</del></p>
-            <p class="new"><span class="caret" aria-hidden="true"></span><span class="vh">New line: </span><ins>Led a <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</ins></p>
+            <p class="old"><span class="vh">Old line: </span><del>Managed 6 agents through peak season; cut queue times 30%.</del></p>
+            <p class="new"><span class="vh">New line: </span><ins>Led a<span class="caret" aria-hidden="true"><svg viewBox="0 0 16 12"><path d="M1.5 10.6 C 4 8.4, 6.2 4.6, 7.7 1.6 C 9.4 4.9, 11.6 8.2, 14.6 10.2"/></svg></span> <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</ins></p>
           </div>
           <p class="margin ok"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10"/><path class="tick" d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
         </div>

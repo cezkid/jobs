@@ -358,6 +358,17 @@ def test_hand_written_pages_use_typographic_quotes_and_dashes():
     assert "Start with tomorrow morning’s jobs." in (DOCS / "index.html").read_text(encoding="utf-8")
 
 
+def test_sample_corrections_add_no_number_the_old_line_lacks():
+    # "Nothing made up" beside a correction that adds a number would show the app inventing one
+    # (AGENTS.md Hold); the hero shows no correction since P-b2, the resume sheet does
+    raw = (DOCS / "index.html").read_text(encoding="utf-8")
+    pairs = re.findall(r"<del>(.*?)</del>.*?<ins>(.*?)</ins>", raw, re.S)
+    assert pairs, "no <del>/<ins> correction found on home - the parser lost the sheet"
+    for old, new in pairs:
+        old, new = re.sub(r"<[^>]+>", "", old), re.sub(r"<[^>]+>", "", new)
+        assert set(re.findall(r"\d+", new)) <= set(re.findall(r"\d+", old)), (old, new)
+
+
 def test_every_page_uses_typographic_quotes_and_dashes():
     # hand-written + generated (pages.py typesets research pages, About, the hub); mac/ + win/ = install scripts
     found, seen = [], 0
