@@ -1051,3 +1051,40 @@ def test_trust_uri_matches_vscode_on_windows():
     assert launch.trust_uri("C:\\Users\\Your Name\\jobs", windows=True) == {
         "$mid": 1, "path": "/C:/Users/Your Name/jobs", "scheme": "file"}
     assert launch.trust_uri("/Users/Your Name/jobs/", windows=False)["path"] == "/Users/Your Name/jobs"
+
+
+def test_start_shortcut_reads_back_target_icon_and_app_id():
+    # wrong bytes => Windows ignores the shortcut => toast still says "Windows PowerShell"
+    import shortcut
+    target = r"C:\Users\Your Name\jobs\app\install\start-windows.bat"
+    data = shortcut.build(target, r"C:\Users\Your Name\jobs\app\install\icon.ico",
+                          r"C:\Users\Your Name\jobs\app\install", notify.APP_ID)
+    back = shortcut.parse(data)
+    assert back["target"] == target
+    assert back["icon"].endswith(r"\icon.ico")
+    assert back["working_dir"].endswith(r"\install")
+    assert back["app_id"] == "CEZ.JobFinder"
+    assert back["show"] == shortcut.SHOW_MINIMIZED
+    assert data[:4] == b"\x4c\0\0\0" and data[-4:] == b"\0\0\0\0"
+
+
+def test_start_shortcut_written_once_and_rewritten_when_moved(tmp_path, monkeypatch):
+    # stale target after the folder moved => Start Menu entry + toast id point at nothing
+    import shortcut
+    link = tmp_path / "Programs" / "CEZ Job Finder.lnk"
+    launch.ensure_start_shortcut(link)
+    assert shortcut.parse(link.read_bytes())["target"] == str(launch.WINDOWS_LAUNCHER)
+    link.write_bytes(b"old")
+    launch.ensure_start_shortcut(link)
+    assert shortcut.parse(link.read_bytes())["app_id"] == notify.APP_ID
+
+
+def test_toast_uses_our_name_only_when_shortcut_exists(tmp_path):
+    # our id w/o its shortcut => Windows has no such app => no notification at all
+    link = tmp_path / "CEZ Job Finder.lnk"
+    assert notify.app_id(link) == notify.POWERSHELL_APP_ID
+    link.write_bytes(b"x")
+    assert notify.app_id(link) == notify.APP_ID
+    script = notify.windows_script("t", "b", notify.APP_ID)
+    assert script.index(f"'{notify.APP_ID}'") < script.index(f"'{notify.POWERSHELL_APP_ID}'")
+    assert "catch" in script

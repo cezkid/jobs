@@ -767,6 +767,23 @@ def ensure_windows_icon(done: Path = WINDOWS_ICON_DONE, run=autorun.powershell) 
         done.write_text("")
 
 
+def ensure_start_shortcut(path: Path | None = None) -> None:
+    # Start Menu shortcut carrying our app id => morning toast says CEZ Job Finder w/ its icon,
+    # not "Windows PowerShell". Bytes from Python (shortcut.py): no compiled code. Rewritten when
+    # the install moved; any failure => no shortcut => toast keeps PowerShell's id
+    import shortcut
+    path = path or notify.start_shortcut()
+    try:
+        data = shortcut.build(str(WINDOWS_LAUNCHER), str(WINDOWS_ICON), str(WINDOWS_LAUNCHER.parent),
+                              notify.APP_ID)
+        if path.is_file() and path.read_bytes() == data:
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    except (OSError, ValueError):
+        pass
+
+
 def claude_project_keys(folder: Path) -> list[str]:
     # Claude looks folder up by forward-slash path, drive letter case-sensitive; VS Code starts it
     # on `c:/...`, terminal on `C:/...` (measured 2026-09-28: backslash or other-case key => untrusted)
@@ -962,6 +979,7 @@ def main() -> None:
     if sys.platform == "win32":
         register_protocol()
         ensure_windows_icon()
+        ensure_start_shortcut()
     if sys.platform == "darwin":
         ensure_mac_icon()
     # before VS Code opens => file list shows the private folders even on a brand-new install
