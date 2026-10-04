@@ -44,6 +44,7 @@ from urllib.parse import quote, urlsplit
 
 import yaml
 from markdown_it import MarkdownIt
+from markdown_it.common.utils import escapeHtml
 from markdown_it.rules_core import StateCore, smartquotes
 from markdown_it.token import Token
 
@@ -57,6 +58,10 @@ REGISTRY = SOURCES / "sources.yml"
 REVIEWS = SOURCES / "reviews"
 AUTHOR = "Cesar Enrriquez-Zuniga"
 SAME_AS = ["https://github.com/cezkid", "https://www.enrriquez.com/"]  # the author's other profiles, each shown on About (ProfilePage sameAs)
+# other-site body links allowed besides ISSUES (fragment aside): the app's code + the author's own site, so About's
+# "contact" and "code" are links, not addresses to copy
+OWN_LINKS = ("https://github.com/cezkid/jobs", "https://www.enrriquez.com/")
+BRAND = "CEZ Job Finder"  # kept from browser translation in page text: the name on the desktop icon
 # a label + one link, never "approved" (owner decision 5); the label text makes the link running text (qa HIT_BOXES)
 AI_NOTE = 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>'
 # every generated page's share card: docs/og-research.png from app/web/og-research.html
@@ -132,9 +137,9 @@ MONTHS = ["January", "February", "March", "April", "May", "June", "July", "Augus
 
 
 def long_date(iso: str) -> str:
-    """2026-10-02 -> 2 October 2026."""
+    """2026-10-02 -> October 2, 2026 (US order: the site is en_US)."""
     year, month, day = (int(x) for x in iso.split("-"))
-    return f"{day} {MONTHS[month - 1]} {year}"
+    return f"{MONTHS[month - 1]} {day}, {year}"
 
 
 class Head(HTMLParser):
@@ -397,8 +402,8 @@ def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
 
 
 MD = MarkdownIt("js-default")  # raw HTML escaped, tables on, no typographer: lints + heading ids read the source
-# typographer on output only (typeset): curly quotes + en dashes (A12, D13); its own replacements stay off -
-# (c) / (tm) / ... -> glyphs outside the font subset (assets.UNICODES)
+# typographer on output only (typeset): curly quotes + en dashes (A12, D13) + the ellipsis character (U+2026 is in
+# the subset); markdown-it's own replacements stay off - (c) / (tm) -> glyphs outside it (assets.UNICODES)
 TYPO = MarkdownIt("js-default", {"typographer": True})
 RANGE = re.compile(r"(?<![\w:./\-–])(\d+)-(?!0\d)(\d+)(?![\w\-])")  # 10-15 years, p. 22-23; not 103-0804, 3:23-cv
 YEAR = re.compile(r"(?<!\w)'(?=\d\d\b)")  # FAccT '24: an apostrophe, not an opening quote
@@ -408,7 +413,7 @@ URLISH = re.compile(r"://|^www\.")
 def _dashes(text: str) -> str:
     if text.strip() == "-":  # a table cell's "none"
         return text.replace("-", "–")
-    text = text.replace("--", "–").replace(" - ", " – ")
+    text = text.replace("--", "–").replace(" - ", " – ").replace("...", "…")
     return YEAR.sub("’", RANGE.sub("\\1–\\2", text))
 
 
@@ -503,6 +508,26 @@ MD.core.ruler.before("text_join", "hide_escaped", _hide_escaped)
 MD.core.ruler.after("text_join", "cite", _cite)
 MD.core.ruler.after("cite", "show_escaped", _show_escaped)
 MD.add_render_rule("cite", _render_cite)
+
+
+def _keep_as_written(state):
+    """Code (inline + blocks) carries translate="no": a browser translating the page leaves commands, file names
+    and identifiers as written."""
+    for token in state.tokens:
+        if token.type in ("fence", "code_block"):
+            token.attrSet("translate", "no")
+        for child in token.children or []:
+            if child.type == "code_inline":
+                child.attrSet("translate", "no")
+
+
+def _render_text(self, tokens, idx, options, env):
+    # the app's name stays as written when a browser translates the page (the name on the desktop icon)
+    return escapeHtml(tokens[idx].content).replace(BRAND, f'<span translate="no">{BRAND}</span>')
+
+
+MD.core.ruler.push("keep_as_written", _keep_as_written)
+MD.add_render_rule("text", _render_text)
 
 
 class Registry:
@@ -772,10 +797,11 @@ def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site
         if not path.endswith("/") and file + "/index.html" in site_files:
             raise ValueError(f"{href}: folder link needs a / at the end")
         return path + (f"?{url.query}" if url.query else "") + (f"#{url.fragment}" if url.fragment else "")
-    if href == ISSUES or href.startswith((ISSUES + "/", ISSUES + "?")):
+    if href == ISSUES or href.startswith((ISSUES + "/", ISSUES + "?")) or href.split("#")[0] in OWN_LINKS:
         return href
     if url.scheme or url.netloc or href.startswith("/"):
-        raise ValueError(f"{href}: link to research pages as x.md, to this site as {home}..., to other sites through sources")
+        raise ValueError(f"{href}: link to research pages as x.md, to this site as {home}..., to other sites through sources"
+                         f" (body links outside the site: {ISSUES}, {', '.join(OWN_LINKS)})")
     target = (src.path.parent / url.path).resolve()
     sources = (root / SOURCES).resolve()
     if target.parent == sources and target.suffix == ".md":
@@ -915,7 +941,7 @@ PAGE_CSS = """
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -939,10 +965,18 @@ PAGE_CSS = """
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -1002,10 +1036,10 @@ def headline(title: str) -> str:
 
 
 def listing(articles: list[Source]) -> str:
-    """Hub list: newest first, link text = title."""
+    """Hub list: newest first, each title an h2 holding its link (link text = title)."""
     items = []
     for src in newest(articles):
-        items.append(f'<li><a href="{src.url}">{headline(src.title)}</a>'
+        items.append(f'<li><h2><a href="{src.url}">{headline(src.title)}</a></h2>'
                      f'<p>{escape(src.description)}</p><p class="date">{dates(src)}</p></li>')
     return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
 
@@ -1019,7 +1053,7 @@ def keep_reading(src: Source, articles: list[Source]) -> str:
     items = [f'<li><a href="{s.url}">{escape(s.title)}</a></li>' for s in picks]
     return "\n".join(['<nav class="more" aria-label="Keep reading">', "<p>Keep reading</p>", "<ul>", *items,
                       '<li><a href="/research/">All research</a></li>', "</ul>",
-                      '<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>',
+                      f'<p class="try">Try it: <a href="/#install">install <span translate="no">{BRAND}</span> on Windows or Mac</a></p>',
                       '<p><a href="#main">Back to top</a></p>', "</nav>", ""])
 
 
@@ -1051,7 +1085,7 @@ def evidence_labels(methods: Source | None) -> str:
         label, what = cells[0], cells[-1]
         meaning[label] = meaning[label] + ", or " + what[:1].lower() + what[1:] if label in meaning else what
     items = "\n".join(f"<dt>{escape(typeset(k))}</dt><dd>{escape(typeset(v))}</dd>" for k, v in meaning.items())
-    return (f'<div class="side labels">\n<p>Evidence labels</p>\n<dl>\n{items}\n</dl>\n'
+    return (f'<div class="side labels">\n<h2>Evidence labels</h2>\n<dl>\n{items}\n</dl>\n'
             f'<p>How each label is chosen: <a href="{methods.url}#{slugify(heading)}">How we research</a>.</p>\n</div>\n')
 
 
@@ -1152,10 +1186,13 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
     head += [parts["og"], parts["twitter"], parts["links"], jsonld(graph)]
     wrapper = "article" if kind == "article" else "div"
     # articles: "On this page" = every h2 (Sources too): a sticky column beside the text from 1280px, a closed
-    # list under the byline below that. After the article in the source (grid places the column), so the h1
-    # comes first for screen readers, Tab + text extractors; one list shown at a time, no ids in either
+    # list under the byline below that. Before the article in the source (grid places the column): after it, the
+    # wide-screen list was the 85th Tab stop on the longest page, behind every citation link. The h1 stays main's
+    # first heading (the list's label is a <p>); one list shown at a time, no ids in either
     heads = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body, re.S) if kind == "article" else []
-    items = [f'<li><a href="#{slug}">{re.sub(r"<[^>]+>", "", text)}</a></li>' for slug, text in heads]
+    # heading text w/o tags, but the app's name keeps its translate="no" span
+    items = [f'<li><a href="#{slug}">{re.sub(r"<(?!span translate=\"no\">|/span>)[^>]+>", "", text)}</a></li>'
+             for slug, text in heads]
     toc = ['<nav class="toc" aria-label="On this page">', "<p>On this page</p>", "<ol>", *items, "</ol>",
            "</nav>"] if len(heads) > 2 else []
     mini = ['<nav class="toc-mini" aria-label="Contents">', "<details>", "<summary>On this page</summary>",
@@ -1175,6 +1212,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         "<body>",
         parts["header"],
         '<main id="main" class="wrap">',
+        *toc,
         f'<{wrapper} class="page">',
         f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
         f"<h1>{headline(src.title)}</h1>",
@@ -1184,7 +1222,6 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         body.rstrip("\n"),
         *([more.rstrip("\n")] if more else []),
         f"</{wrapper}>",
-        *toc,
         *([side.rstrip("\n")] if side else []),
         *([after.rstrip("\n")] if after else []),
         "</main>",

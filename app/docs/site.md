@@ -57,19 +57,25 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
 - `<slug>.md` -> `/research/<slug>/`, `methods.md` -> `/research/methods/`, `about.md` ->
   `/about/` (must be published w/ the first page: every byline links it), `index.md` = hub intro.
 - Hub `/research/` = `index.md` (published, no review: intro over the list) + every article, newest
-  published first, link text = title, description + dates under it. Built once >= 1 article is
+  published first, each title an h2 holding its link (screen readers jump article to article; set like the
+  clipping it was), description + dates under it; the labels column heads itself w/ an h2 too. Built once >= 1 article is
   published (article = not about / methods / index); an article w/o a published `index.md` = error.
   Before the hub exists the Research breadcrumb is text, after it's a link named w/ the hub's own title
   (one name per URL in every crumb + BreadcrumbList, D22). From 1280px: `index.md`'s first paragraph stays
   under the h1, the rest sits beside it, evidence labels beside the list, articles in 2 columns (>= 4 titles
-  in a 1440x900 first screen, qa HUB_FOLD).
+  in a 1440x900 first screen, qa HUB_FOLD). Short windows (< 820px tall) the labels scroll w/ the page: sticky,
+  they hid 99px of themselves at 1280x720 (qa STICKY_FIT).
 - Render: markdown-it-py `js-default` (raw HTML shown as text, tables on). Heading id = the
   `test_docs.anchors()` rule, so `x.md#h` lands in VS Code, on GitHub and on the site. Table
-  wrapped in a focusable, labelled scroll box (wide table scrolls, not the page).
+  wrapped in a focusable, labelled scroll box (wide table scrolls, not the page). Code (inline +
+  blocks) carries `translate="no"`, and so does the app's name in page text (`<span translate="no">`,
+  `pages.BRAND`): a browser translating the page (a reader's own language) left commands + names mangled.
 - Links: `x.md#h` -> `/research/x/#h` (x published, heading exists); `https://jobs.enrriquez.com/p`
   -> `/p` (must exist); `#h` on the same page; other relative repo paths -> GitHub file URL (must be a file or folder git
   tracks, exact case: a macOS disk finds `SITE.md` for `site.md`, an ignored private file would name
-  itself on the page); `https://github.com/cezkid/jobs/issues...` as is (corrections link). Feed counts as a page. Anything else = error: other sites go through the sources list, not body links.
+  itself on the page); `https://github.com/cezkid/jobs/issues...` as is (corrections link); `OWN_LINKS` as
+  is (the app's code, www.enrriquez.com - About's contact + code are links, not addresses to copy; fragment
+  allowed, look-alikes not). Feed counts as a page. Anything else = error: other sites go through the sources list, not body links.
 - Feed `/research/feed.xml` (Atom, ElementTree, built w/ the hub): entries = published articles,
   newest first, id + link = canonical, summary = description; feed `updated` = latest modified.
   Dates as `YYYY-MM-DDT00:00:00Z` (RFC 3339 date-time: a date alone is invalid). `rel=self`
@@ -153,8 +159,8 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--mark` | `#ffe433` | same | highlighter: marks + Copy only |
 | `--desk` | `#ffffff` | `#1c1c1e` | page background |
 | `--text` | `#000000` | `#f2f2f2` | text, links, control borders, focus ring on the desk |
-| `--text-2` | `#3a3a3a` | `#bdbdbd` | secondary text on the desk |
-| `--line` | `#c8c8c8` | `#48484a` | hairlines between sections (decorative) |
+| `--text-2` | `#3a3a3a` | `#cfcfcf` | secondary text on the desk (APCA Lc 96 light, 76 dark) |
+| `--line` | `#c8c8c8` | `#5c5c5e` | hairlines between sections (decorative; Lc 30 light, 17 dark) |
 | `--serif` | `"Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif` | same | all text |
 | `--mono` | `ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace` | same | the install command only |
 | `--gutter` | `clamp(16px, 2.5vw, 32px)` | same | grid column gap (phones; 768px up below) |
@@ -187,14 +193,17 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
 - Hand-written pages use ’ “ ” and spaced – in prose (straight `'` reads as typewriter text at
   display size); the app window + resume sheet keep ` - ` because they mirror what the app prints.
   Test: `test_hand_written_pages_use_typographic_quotes_and_dashes`. Generated pages get the same
-  from `pages.typeset` on output only (markdown-it smartquotes + ` - ` / `--` / `10-15` -> –, never in
-  code, URLs or ids like `103-0804`; its (c)/(tm) replacements stay off - not in the font). Sources
+  from `pages.typeset` on output only (markdown-it smartquotes + ` - ` / `--` / `10-15` -> –, `...` -> …,
+  never in code, URLs or ids like `103-0804`; its (c)/(tm) replacements stay off - not in the font). Sources
   stay straight: lints, `uncited:` snippets and heading ids read them as written. Titles go through
   the same function, so h1 = `<title>` = og:title = JSON-LD = feed. Test:
   `test_every_page_uses_typographic_quotes_and_dashes`.
 - Contrast tested statically per scheme (`site_checks.contrasts`): text pairs 4.5:1, control
-  borders + focus ring 3:1 (WCAG 1.4.3, 1.4.11). Hairlines + the yellow itself carry no meaning
-  => not tested. Focus ring two-tone (outline `--text` + spread-only `box-shadow` `--desk`): a
+  borders + focus ring 3:1 (WCAG 1.4.3, 1.4.11); text pairs also APCA Lc >= 75 (its floor for body-size
+  text: the secondary grey sets 12-17px bylines, footer, Sources) + hairlines Lc >= 15 (its floor for a
+  line still seen). WCAG 2 rated dark mode too kindly: `#bdbdbd` passed at 9.1:1 but read at Lc 65 (light
+  Lc 96), dark hairlines `#48484a` at Lc 10 (light 30). The yellow itself carries no meaning => not
+  tested. Focus ring two-tone (outline `--text` + spread-only `box-shadow` `--desk`): a
   near-white ring alone vanished on a white sheet in dark mode (1.12:1, measured); the desk band
   keeps it 3:1+ on desk and sheet. Spread-only shadow = a ring, not a depth shadow.
   `::selection` = `--text` on `--desk` (ink, inverted); the check fails it if it paints `--mark`
@@ -221,7 +230,11 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
 - Home forced colours (B4): the correction's strike becomes a real `line-through` 2px, resume
   bullet dots a border - gradients + backgrounds vanish there. No JS (B6): `@media (scripting:
   none)` hides Copy + the OS switch (nothing would run them) and shows a link to the Mac answer
-  (`details#mac`); Chrome w/ JS off matches it (measured).
+  (`#mac`); Chrome w/ JS off matches it (measured).
+- Questions: every answer `<div>` has an id (`/#mac`, `/#safe` ...), so an answer can be linked. The id sits on
+  the answer, not the `<details>`: a link to an element inside a closed `<details>` opens it in Chrome, JS
+  or not (measured, 152); the body script opens it elsewhere (`hashchange` + load). `scroll-margin-top`
+  keeps the question in view. Mac steps say Return (the Mac key), Windows steps Enter.
 - Sizes in rem + vw (text zoom, WCAG 1.4.4); no vh in the home h1 below 1080px wide: browser zoom
   halves the viewport, and the vh cap made the h1 smaller at 200% (x0.95 at 1920x1080); >= 1080
   it stays, guarding the Copy fold (B8); body measure <= 68ch; `text-wrap: balance` on
@@ -241,6 +254,12 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
   >= 1280 px only), the 404 its drawing in the right half (>= 1024 px). qa.py checks the band (home per
   row; hub, about, methods, privacy + 404 with main as one row, a sticky column counted to its parent's
   bottom) + the article column (TOC_BESIDE: <= 120 px from the text, <= 400 px empty right of it). Privacy: no two rules stacked within 60 px w/o text between (RULES_STACKED).
+  A sticky column never hides part of itself: at 1280x720, 1366x641, 1440x780 + 1440x900 each fits the
+  window or scrolls w/ the page (qa STICKY_FIT) - the longest On this page hid 88px at 1366x641 (on a Mac
+  the last entries just weren't there; Windows drew a 2nd scrollbar). Under 820px tall its rows tighten.
+- On this page sits before the article in the source (grid places it): after the article, the wide-screen
+  list was the 85th Tab stop on the longest page, behind every citation link. The h1 is still main's
+  first heading (the list's label is a `<p>`); below 1280px the closed list under the byline is the one shown.
 - `<symbol>` + `<use>` on the home page only; shared marks are CSS only (generated pages copy the
   shared block, not the home page's SVG).
 
@@ -390,6 +409,13 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   layout + look don't change. Links inside running text are exempt. Footer links are grid/flex items
   (box = 1lh, not 1.1em): exactly 45px each, rows `45px - 1lh` apart - two rows 8px apart w/ 53px boxes
   overlapped, Lighthouse read Research as covered (20.4px left) => accessibility 95 on phones (G1, 2026-10-04).
+- Taps: links, buttons + summaries `touch-action: manipulation` (no double-tap zoom wait) and an ink tap
+  tint (`color-mix` of `--text`, 14%) - the browser's grey box vanished on the dark desk. A research pick /
+  hub item is one link (title link's `::after` covers the item): its rule + description react to the
+  pointer, so a click there lands (it was a dead zone). Copy sits 10px inside its box (2px border + 8px
+  padding): radii 6 + 16, so the corners run parallel.
+- Words that belong together don't break: `&nbsp;` in 5&nbsp;minutes, 100&nbsp;KB, Windows&nbsp;10,
+  Copilot&nbsp;Pro (hand-written pages). Dates US order ("October 3, 2026", `pages.long_date`): en_US site.
 - Short pages: body is a flex column, min-height 100svh, main grows => the footer sits at the window's
   bottom (404), never a blank band under it. Screen only (print keeps block flow).
 - `docs/index.html` marks each part with `<!-- region: name -->` ... `<!-- /region: name -->` so a

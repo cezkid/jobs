@@ -369,8 +369,9 @@ def test_home_says_what_it_is_and_what_it_costs_in_search_results():
     assert head.text["title"] == ["CEZ Job Finder – free AI job search app for Windows and Mac"]
     description = head.meta("description")
     assert len(description) <= 155 and all(w in description for w in ("resume", "your own", "plan"))
-    # one sentence with the name as its subject, for search + AI answers (D3)
-    assert "CEZ Job Finder is" in raw
+    # one sentence with the name as its subject, for search + AI answers (D3); the name sits in a
+    # translate="no" span, so read the text
+    assert "CEZ Job Finder is" in re.sub(r"<[^>]+>", "", raw)
     # the ledger's "switch it off" leads to how, as privacy.html does (D11a)
     assert 'href="/research/keep-chats-out-of-ai-training/"' in raw
     # job-tailor allows a second page 60%+ full (app/skills/job-tailor.md)
@@ -624,8 +625,8 @@ def test_site_md_tokens_table_is_the_shared_root():
 
 PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>
   /* shared */
-  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; }}
-  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; }} }}
+  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; --desk: #ffffff; --text: #000000; --line: #c8c8c8; --text-2: #3a3a3a; }}
+  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }} }}
   :focus-visible {{ outline: 3px solid var(--text); box-shadow: 0 0 0 3px var(--desk); }}
   ::selection {{ background: var(--text); color: var(--desk); }}
   .window ::selection, .proof ::selection {{ background: var(--ink); color: var(--paper); }}
@@ -690,7 +691,11 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
 
 @pytest.mark.parametrize("old, new, trips", [
     ("--text-2: #3a3a3a; }}", "--text-2: #999999; }}", "light: --text-2 on --desk"),
-    ("--text-2: #bdbdbd;", "--text-2: #555555;", "dark: --text-2 on --desk"),
+    ("--text-2: #cfcfcf;", "--text-2: #555555;", "dark: --text-2 on --desk"),
+    # passes WCAG 2 (9.1:1), reads weak: the dark grey before the APCA check (Lc 65)
+    ("--text-2: #cfcfcf;", "--text-2: #bdbdbd;", "dark: text --text-2 on --desk APCA"),
+    ("--line: #5c5c5e;", "--line: #48484a;", "dark: hairline --line on --desk APCA"),
+    ("--rule: #c8c8c8;", "--rule: #f4f4f4;", "light: hairline --rule on --paper APCA"),
     ("--mark: #ffe433;", "--mark: #333333;", "--ink on --mark"),
     (" box-shadow: 0 0 0 3px var(--desk);", "", "dark: focus ring on --paper"),
     (":focus-visible", ":focus", "no :focus-visible rule"),
@@ -701,7 +706,7 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
      "dark: selection on the paper sheet .window"),
     ("background: var(--ink); color: var(--paper)", "background: #dddddd; color: var(--ink)",
      "light: selection on the paper sheet .proof"),
-], ids=["text-light", "text-dark", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
+], ids=["text-light", "text-dark", "text-dark-apca", "line-dark-apca", "rule-light-apca", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
         "selection-faint", "selection-on-sheet-gone", "selection-on-sheet-faint"])
 def test_each_contrast_rule_trips_on_its_fixture(tmp_path, old, new, trips):
     template = PAGE.format(**dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), ""))
@@ -717,4 +722,4 @@ def test_token_table_check_trips_on_a_stale_row():
                    for k, v in tokens(css)["light"].items())
     table = "| Token | Light | Dark | Use |\n|---|---|---|---|\n" + rows
     assert token_table(table) == tokens(css)
-    assert token_table(table.replace("`#3a3a3a` | `#bdbdbd`", "`#3a3a3a` | same", 1)) != tokens(css)
+    assert token_table(table.replace("`#3a3a3a` | `#cfcfcf`", "`#3a3a3a` | same", 1)) != tokens(css)

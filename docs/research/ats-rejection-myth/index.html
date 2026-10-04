@@ -67,7 +67,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -78,6 +78,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -110,6 +113,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -261,7 +266,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -285,10 +290,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -313,7 +326,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -322,10 +335,26 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#where-does-the-75-number-come-from">Where does the 75% number come from?</a></li>
+<li><a href="#what-does-an-applicant-tracking-system-actually-do">What does an applicant tracking system actually do?</a></li>
+<li><a href="#what-gets-rejected-automatically">What gets rejected automatically?</a></li>
+<li><a href="#how-common-are-knockout-questions-our-measurement">How common are knockout questions? Our measurement</a></li>
+<li><a href="#do-formatting-errors-get-resumes-rejected">Do formatting errors get resumes rejected?</a></li>
+<li><a href="#do-employers-filters-screen-out-people-who-could-do-the-job">Do employers’ filters screen out people who could do the job?</a></li>
+<li><a href="#is-ai-now-rejecting-resumes-on-its-own">Is AI now rejecting resumes on its own?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Do ATS reject 75% of resumes? Where the number came from</li></ol></nav>
 <h1>Do ATS reject 75% of resumes? <span class="deck">Where the number came from</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -340,7 +369,7 @@
 <li><a href="#is-ai-now-rejecting-resumes-on-its-own">Is AI now rejecting resumes on its own?</a></li>
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
 </details>
@@ -420,7 +449,7 @@
 <li>Apply widely. Executives say rigid filters drop qualified people (<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 26), so one rejection may say more about the filter than about you.</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. More articles: <a href="/research/">Research</a>. Whether AI screeners treat people fairly: <a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a>. Which resume rules have evidence: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a>.</p>
-<h2 id="how-cez-job-finder-uses-this">How CEZ Job Finder uses this</h2>
+<h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
 <ul>
 <li>Reads a form’s questions ahead when it can (5 systems) and lists what they ask about.</li>
 <li>Keeps your work-permit answer exactly as you give it.</li>
@@ -429,20 +458,20 @@
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-ashby-2024"><b class="evidence">The maker’s own description of its product</b> Ashby (2024). AI-Assisted Application Review. The maker’s own description of its feature, September 2024. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.ashbyhq.com/blog/product/ai-assisted-application-review">Publisher</a></li>
-<li id="src-resume-genius-2026"><b class="evidence">Survey by a company that sells the service</b> Chan, Eva (2026). 2026 Hiring Insights Report. 1,000 US hiring managers, online panel; survey dates not given. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://resumegenius.com/blog/job-hunting/hiring-insights-report">Publisher</a></li>
-<li id="src-clearinghouse-mobley"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> Civil Rights Litigation Clearinghouse, University of Michigan (2025). Mobley v. Workday, Inc. 3:23-cv-00770 (N.D. Cal.). Case summary (updated December 2025) and list of court filings through June 2026; events only. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://clearinghouse.net/case/44074/">Publisher</a></li>
-<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></li>
-<li id="src-greenhouse-search"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2022). Search resumes for keywords. The maker’s own help page, updated June 2022. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords">Publisher</a></li>
-<li id="src-greenhouse-rules"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2026). Application Rules Overview. The maker’s own help page, updated March 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/203105595-Application-Rules-Overview">Publisher</a></li>
-<li id="src-lawyer-monthly-2026"><b class="evidence">News report (used for the event only)</b> Lawyer Monthly (2026). Workday AI Hiring Bias Case Seeks Class Status. News report of a filing, September 2026; used for the event only. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/">Publisher</a></li>
-<li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012.</i> Open copy on Computerworld. Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></li>
-<li id="src-levinson-2012-preptel"><b class="evidence">Survey by a company that sells the service</b> Levinson, Meredith (2012). New job search service helps job seekers penetrate applicant tracking systems. <i>CIO, February 2012.</i> News story about Preptel’s paid service. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.cio.com/article/284417/careers-staffing-new-job-search-service-helps-job-seekers-penetrate-applicant-tracking-systems.html">Publisher</a></li>
-<li id="src-preptel-2012"><b class="evidence">Survey by a company that sells the service</b> Preptel (2012). News. The company’s own news page, archived December 2012; no method given. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://web.archive.org/web/20121227085958/http://www.preptel.com:80/news/">Publisher</a></li>
-<li id="src-jobscan-2026"><b class="evidence">Survey by a company that sells the service</b> Purcell, Kelsey (2026). 2026 Applicant Tracking System (ATS) Usage Report: Key Shifts and Strategies for Job Seekers. Career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/">Publisher</a></li>
-<li id="src-uscis-i9"><b class="evidence">Law</b> US Citizenship and Immigration Services (2026). I-9, Employment Eligibility Verification. Agency page, last reviewed June 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.uscis.gov/i-9">Publisher</a></li>
-<li id="src-mobley-2025-order"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the Northern District of California (2025). Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting Preliminary Collective Certification. Court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf">Publisher</a></li>
-<li id="src-enhancv-2025"><b class="evidence">Survey by a company that sells the service</b> Vasileva, Doroteya (2025). Does the ATS Reject Your Resume? 25 Recruiters Explain What Really Happens. 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://enhancv.com/blog/does-ats-reject-resumes/">Publisher</a></li>
+<li id="src-ashby-2024"><b class="evidence">The maker’s own description of its product</b> Ashby (2024). AI-Assisted Application Review. The maker’s own description of its feature, September 2024. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.ashbyhq.com/blog/product/ai-assisted-application-review">Publisher</a></li>
+<li id="src-resume-genius-2026"><b class="evidence">Survey by a company that sells the service</b> Chan, Eva (2026). 2026 Hiring Insights Report. 1,000 US hiring managers, online panel; survey dates not given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://resumegenius.com/blog/job-hunting/hiring-insights-report">Publisher</a></li>
+<li id="src-clearinghouse-mobley"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> Civil Rights Litigation Clearinghouse, University of Michigan (2025). Mobley v. Workday, Inc. 3:23-cv-00770 (N.D. Cal.). Case summary (updated December 2025) and list of court filings through June 2026; events only. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://clearinghouse.net/case/44074/">Publisher</a></li>
+<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></li>
+<li id="src-greenhouse-search"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2022). Search resumes for keywords. The maker’s own help page, updated June 2022. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords">Publisher</a></li>
+<li id="src-greenhouse-rules"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2026). Application Rules Overview. The maker’s own help page, updated March 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/203105595-Application-Rules-Overview">Publisher</a></li>
+<li id="src-lawyer-monthly-2026"><b class="evidence">News report (used for the event only)</b> Lawyer Monthly (2026). Workday AI Hiring Bias Case Seeks Class Status. News report of a filing, September 2026; used for the event only. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/">Publisher</a></li>
+<li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012.</i> Open copy on Computerworld. Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></li>
+<li id="src-levinson-2012-preptel"><b class="evidence">Survey by a company that sells the service</b> Levinson, Meredith (2012). New job search service helps job seekers penetrate applicant tracking systems. <i>CIO, February 2012.</i> News story about Preptel’s paid service. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.cio.com/article/284417/careers-staffing-new-job-search-service-helps-job-seekers-penetrate-applicant-tracking-systems.html">Publisher</a></li>
+<li id="src-preptel-2012"><b class="evidence">Survey by a company that sells the service</b> Preptel (2012). News. The company’s own news page, archived December 2012; no method given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://web.archive.org/web/20121227085958/http://www.preptel.com:80/news/">Publisher</a></li>
+<li id="src-jobscan-2026"><b class="evidence">Survey by a company that sells the service</b> Purcell, Kelsey (2026). 2026 Applicant Tracking System (ATS) Usage Report: Key Shifts and Strategies for Job Seekers. Career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/">Publisher</a></li>
+<li id="src-uscis-i9"><b class="evidence">Law</b> US Citizenship and Immigration Services (2026). I-9, Employment Eligibility Verification. Agency page, last reviewed June 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.uscis.gov/i-9">Publisher</a></li>
+<li id="src-mobley-2025-order"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the Northern District of California (2025). Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting Preliminary Collective Certification. Court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf">Publisher</a></li>
+<li id="src-enhancv-2025"><b class="evidence">Survey by a company that sells the service</b> Vasileva, Doroteya (2025). Does the ATS Reject Your Resume? 25 Recruiters Explain What Really Happens. 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://enhancv.com/blog/does-ats-reject-resumes/">Publisher</a></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
@@ -451,26 +480,10 @@
 <li><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#where-does-the-75-number-come-from">Where does the 75% number come from?</a></li>
-<li><a href="#what-does-an-applicant-tracking-system-actually-do">What does an applicant tracking system actually do?</a></li>
-<li><a href="#what-gets-rejected-automatically">What gets rejected automatically?</a></li>
-<li><a href="#how-common-are-knockout-questions-our-measurement">How common are knockout questions? Our measurement</a></li>
-<li><a href="#do-formatting-errors-get-resumes-rejected">Do formatting errors get resumes rejected?</a></li>
-<li><a href="#do-employers-filters-screen-out-people-who-could-do-the-job">Do employers’ filters screen out people who could do the job?</a></li>
-<li><a href="#is-ai-now-rejecting-resumes-on-its-own">Is AI now rejecting resumes on its own?</a></li>
-<li><a href="#what-we-dont-know">What we don’t know</a></li>
-<li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
-<li><a href="#sources">Sources</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">
