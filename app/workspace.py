@@ -87,7 +87,8 @@ COMMON = {
         # longer pattern wins; dropped by VS Code when the window's extension is missing => page view
         "Today.md": "cezJobFinder.today",
     },
-    # brand look over VS Code's two stock themes: light by default, dark when the computer is dark
+    # brand look over VS Code's two stock themes: light by default, dark when the computer is dark;
+    # light / dark chosen (.data/look, app/look.py) => LOOK below. High contrast always follows the computer
     "window.autoDetectColorScheme": True,
     "workbench.preferredLightColorTheme": "Light Modern",
     "workbench.preferredDarkColorTheme": "Dark Modern",
@@ -101,6 +102,12 @@ COMMON = {
     # lightbulbs. YAML schema underline + hover stay (problems, decorations never touched)
     "[yaml]": DOCUMENT,
     "[markdown]": DOCUMENT,
+}
+
+# chosen look (app/look.py) -> fixed theme; brand colorCustomizations cover both themes
+LOOK = {
+    "light": {"window.autoDetectColorScheme": False, "workbench.colorTheme": "Light Modern"},
+    "dark": {"window.autoDetectColorScheme": False, "workbench.colorTheme": "Dark Modern"},
 }
 
 EXTENSION_CHAT = {
@@ -153,25 +160,30 @@ def copilot(home: Path | None = None, root: Path | None = None) -> dict:
     }
 
 
-def settings(ai: str | None, home: Path | None = None, root: Path | None = None, set_up: bool = False) -> dict:
+def settings(ai: str | None, home: Path | None = None, root: Path | None = None, set_up: bool = False,
+             look: str = "auto") -> dict:
     """None (nothing chosen yet) => the Claude/ChatGPT window, as before AI choice 3 existed.
-    set_up = search settings exist => START HERE ("type set me up") leaves the file list."""
-    out = {**COMMON, **(copilot(home, root) if ai == "copilot" else EXTENSION_CHAT)}
+    set_up = search settings exist => START HERE ("type set me up") leaves the file list.
+    look = auto | light | dark (anything else = auto)."""
+    out = {**COMMON, **LOOK.get(look, {}), **(copilot(home, root) if ai == "copilot" else EXTENSION_CHAT)}
     if set_up:
         out["files.exclude"] = {**out["files.exclude"], START_HERE: True}
     return out
 
 
-def render(ai: str | None, home: Path | None = None, root: Path | None = None, set_up: bool = False) -> str:
-    return HEADER + json.dumps(settings(ai, home, root, set_up), indent=2) + "\n"
+def render(ai: str | None, home: Path | None = None, root: Path | None = None, set_up: bool = False,
+           look: str = "auto") -> str:
+    return HEADER + json.dumps(settings(ai, home, root, set_up, look), indent=2) + "\n"
 
 
 def write(ai: str | None, path: Path | None = None, home: Path | None = None, root: Path | None = None,
-          set_up: bool | None = None) -> bool:
+          set_up: bool | None = None, look: str | None = None) -> bool:
     """Only when changed: VS Code reloads the window's settings on every write, open or not.
-    set_up None => read now (search settings file exists)."""
+    set_up None => read now (search settings file exists); look None => read now (.data/look)."""
+    import look as looks
     path = path or (cfg.ROOT / ".vscode" / "settings.json")
-    text = render(ai, home, root, cfg.config_path().exists() if set_up is None else set_up)
+    text = render(ai, home, root, cfg.config_path().exists() if set_up is None else set_up,
+                  looks.current() if look is None else look)
     try:
         if path.read_text(encoding="utf-8") == text:
             return False

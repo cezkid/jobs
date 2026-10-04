@@ -393,7 +393,7 @@ function fakeEl(attrs = {}, text = "") {
   el.getAttribute = (k) => (k in el.attrs ? el.attrs[k] : null);
   el.setAttribute = (k, v) => { el.attrs[k] = String(v); };
   el.removeAttribute = (k) => { delete el.attrs[k]; };
-  el.closest = (sel) => (sel === "button[data-a]" ? ("a" in el.dataset ? el : null) : sel === "button[data-jump]" ? ("jump" in el.dataset ? el : null) : null);
+  el.closest = (sel) => { const k = /^button\[data-(\w+)\]$/.exec(sel); return k && k[1] in el.dataset ? el : null; };
   el.focus = () => { el.focused = true; };
   el.scrollIntoView = () => {};
   return el;
@@ -407,11 +407,13 @@ function webview(store) {
     fakeEl({ "data-a": "0", "data-k": "12:apply", "data-busy": "Starting Claude…", "aria-label": "Apply, Job 12" }, "Apply"),
     fakeEl({ "data-a": "1", "data-k": "13:resume", "data-busy": "Starting Claude…", "aria-label": "Make my resume, Job 13" }, "Make my resume"),
   ];
+  const looks = today.LOOKS.map((l) => fakeEl({ "data-look": l.word, "aria-pressed": String(l.word === "auto") }, l.label));
   const status = fakeEl();
   const listeners = {};
   const doc = {
     getElementById: (id) => (id === "status" ? status : null),
-    querySelectorAll: (sel) => (sel === "button[data-k]" ? buttons : buttons.filter((b) => b.getAttribute("aria-busy"))),
+    querySelectorAll: (sel) => (sel === "button[data-k]" ? buttons : sel === "button[data-look]" ? looks
+      : buttons.filter((b) => b.getAttribute("aria-busy"))),
     addEventListener: (type, fn) => { listeners["doc:" + type] = fn; },
   };
   const win = {
@@ -425,7 +427,7 @@ function webview(store) {
   const vscode = { getState: () => store.state, setState: (s) => { store.state = JSON.parse(JSON.stringify(s)); }, postMessage: (m) => posted.push(m) };
   today.page(vscode, doc, win, today.CLEAR_MS, () => clock.t);
   return {
-    buttons, status, posted, win,
+    buttons, looks, status, posted, win,
     click: (b) => listeners["doc:click"]({ target: b }),
     msg: (data) => listeners["win:message"]({ data }),
     scroll: (y) => { win.scrollY = y; listeners["win:scroll"](); },
@@ -553,4 +555,43 @@ test("control borders >= 3:1 in light + dark, on the page and under a hovered bu
   // high contrast: primary told apart by its border width, closing by a dashed one - no color needed
   assert.match(css, /body\.vscode-high-contrast button\.go \{ border-width: 3px/);
   assert.match(css, /body\.vscode-high-contrast button\.quiet \{ border-style: dashed/);
+});
+
+// a look switch w/o its state read aloud, or yellow when merely chosen, reads as "something to do"
+test("look switch: Match my computer · Light · Dark, current one pressed, ink not yellow, named Look", () => {
+  const m = today.model(RAW, say);
+  for (const look of ["auto", "light", "dark"]) {
+    const page = today.render(m, { mode: "copy", nonce: "abc123", look });
+    const sw = /<div class="look" role="group" aria-label="Look">(.*?)<\/div>/.exec(page);
+    assert.ok(sw, "switch in the header");
+    const buttons = [...sw[1].matchAll(/<button type="button" data-look="(\w+)" aria-pressed="(true|false)">([^<]+)<\/button>/g)];
+    assert.deepEqual(buttons.map((b) => b[3]), ["Match my computer", "Light", "Dark"]);
+    assert.deepEqual(buttons.filter((b) => b[2] === "true").map((b) => b[1]), [look]);
+    assert.ok(!/class="[^"]*go/.test(sw[0]), "no yellow button class in the switch");
+    assert.ok(page.indexOf(sw[0]) < page.indexOf('id="how"'), "top of the page");
+  }
+  // missing or garbage look file = Match my computer
+  for (const text of [undefined, "", "purple", " DARK\n"]) assert.equal(today.lookOf(text), text === " DARK\n" ? "dark" : "auto");
+  assert.match(today.render(m, { mode: "copy", nonce: "x", look: "purple" }), /data-look="auto" aria-pressed="true"/);
+  // selected = ink fill w/ paper text; never the yellow mark
+  const css = /\.look button\[aria-pressed="true"\] \{([^}]*)\}/.exec(today.render(m, { mode: "copy", nonce: "x" }))[1];
+  assert.match(css, /background: var\(--text\); color: var\(--desk\)/);
+  assert.ok(!css.includes("--mark"));
+  assert.deepEqual(today.LOOKS.map((l) => today.lookDone(l.word)), ["Look matches your computer", "Light look on", "Dark look on"]);
+});
+
+// clicking a look must say which one at once (sent to the extension, not the chat) and fall back if it failed
+test("page: look click marks it at once + sends the word; extension's answer wins", () => {
+  const w = webview({});
+  const [auto, , dark] = w.looks;
+  w.click(dark);
+  assert.deepEqual(w.posted, [{ look: "dark" }]);
+  assert.deepEqual(w.looks.map((b) => b.getAttribute("aria-pressed")), ["false", "false", "true"]);
+  w.msg({ type: "status", text: "Dark look on" });
+  assert.equal(w.status.textContent, "Dark look on");
+  // switch failed => the look that holds comes back marked
+  w.msg({ type: "look", word: "auto" });
+  assert.equal(auto.getAttribute("aria-pressed"), "true");
+  assert.equal(dark.getAttribute("aria-pressed"), "false");
+  assert.ok(!w.posted.some((p) => "action" in p), "no chat words sent");
 });

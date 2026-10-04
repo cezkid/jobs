@@ -72,12 +72,13 @@ def test_extension_never_reads_files_from_the_program_folder():
         # extension's own folder (installed copy, never app/) only as the Today page's font folder
         uses = re.findall(r"[^\n]*extensionUri[^\n]*", source)
         assert all("joinPath(context.extensionUri, ...today.FONT_DIR)" in u for u in uses), uses
-        # files read: launcher's start-page marker, the dashboard's data, which AI - all under .data/, never app/
-        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root"] if name == "extension.js" else []
+        # files read: launcher's start-page marker, the dashboard's data, the look, which AI - all under .data/, never app/
+        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root"] if name == "extension.js" else []
         assert re.findall(r"readFile\w*\(([^,)]+)", source) == reads
     starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
     assert 'MARKER = path.join(".data", ' in starts and 'AI_FILE = path.join(".data", ' in starts
-    assert 'DATA = path.join(".data", ' in (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8")
+    todays = (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8")
+    assert 'DATA = path.join(".data", ' in todays and 'LOOK_FILE = path.join(".data", ' in todays
 
 
 def test_extension_probe_runs_only_when_a_measurement_asks():

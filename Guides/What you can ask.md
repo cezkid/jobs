@@ -15,6 +15,7 @@ first.) You never type commands or edit files.
 - **Where things stand:** "I sent job 3" · "I heard back from job 3" · "Is job 3 still open?" ·
   "Job 3 is closed"
 - **Anything:** "Who can see my information?" · "Why?"
+- **Light or dark:** use the switch at the top of Today, or say "dark mode"
 - **Bias:** worried about bias - your name, age or a break? Ask any time.
   **[Unfair hiring - what's known, what helps](Unfair%20hiring%20-%20what's%20known,%20what%20helps.md)**
 

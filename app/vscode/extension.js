@@ -24,6 +24,8 @@ const PROBE_SETTLE_ENV = "JOBS_VSCODE_PROBE_SETTLE_MS";
 const PROBE_EDITOR_ENV = "JOBS_VSCODE_PROBE_EDITOR";
 // probe only: words a Today say button carries; run through the button's own path after settle
 const PROBE_SAY_ENV = "JOBS_VSCODE_PROBE_SAY";
+// probe only: a look word (auto | light | dark) run through the switch's own path after settle
+const PROBE_LOOK_ENV = "JOBS_VSCODE_PROBE_LOOK";
 // probe only: warm-up as measured: off | activate | view (default = the shipped plan)
 const PROBE_WARM_ENV = "JOBS_VSCODE_PROBE_WARM";
 // probe only: epoch ms the window was launched, so times read from window start
@@ -166,7 +168,7 @@ function showToday(document, panel, fontDir) {
       if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
       if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
     }
-    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai: currentAi(root), nonce, fonts }) : today.fallback({ nonce, reason, fonts });
+    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai: currentAi(root), nonce, fonts, look: currentLook(root) }) : today.fallback({ nonce, reason, fonts });
   };
   // fallback's Try again: rebuild the list (page redraws when it's rewritten), else just read it again
   const retry = () => {
@@ -184,6 +186,40 @@ function showToday(document, panel, fontDir) {
   panel.onDidDispose(() => subs.forEach((s) => s.dispose()));
 }
 
+function currentLook(root) {
+  try {
+    return today.lookOf(fs.readFileSync(path.join(root, today.LOOK_FILE), "utf8"));
+  } catch {
+    return "auto";
+  }
+}
+
+// look switch: `jobs.py look WORD` saves .data/look + rewrites the window's settings => VS Code
+// switches at once. One run at a time; a click during one runs after it (last click wins)
+const LOOK_FAILED = "Couldn't switch the look - say \"dark mode\" or \"light mode\" in the chat.";
+let looking = null;
+let lookNext = null;
+
+// page marks the click at once; told the look that holds once done (the old one if it failed)
+function switchLook(root, word, panel) {
+  const held = (text) => {
+    panel.webview.postMessage({ type: "look", word: currentLook(root) });
+    tell(panel, text);
+  };
+  if (looking) { lookNext = word; return; }
+  const uv = start.uvCandidates({
+    platform: process.platform, home: os.homedir(), userProfile: process.env.USERPROFILE, envPath: process.env.PATH,
+  }).find((file) => fs.existsSync(file));
+  if (!uv) return held(LOOK_FAILED);
+  looking = word;
+  childProcess.execFile(uv, ["run", "app/jobs.py", "look", word], { cwd: root, windowsHide: true, timeout: 60000 }, (err) => {
+    looking = null;
+    if (lookNext && lookNext !== word) { const next = lookNext; lookNext = null; return switchLook(root, next, panel); }
+    lookNext = null;
+    held(err ? LOOK_FAILED : today.lookDone(word));
+  });
+}
+
 function currentAi(root) {
   try {
     return fs.readFileSync(path.join(root, start.AI_FILE), "utf8").trim().toLowerCase();
@@ -198,6 +234,10 @@ function tell(panel, text, { done = null, hold = false } = {}) {
 }
 
 async function act(root, at, page, m, msg, panel, retry) {
+  if (msg && typeof msg.look === "string") {
+    if (today.LOOKS.some((l) => l.word === msg.look)) switchLook(root, msg.look, panel);
+    return;
+  }
   const index = msg && Number.isInteger(msg.action) ? msg.action : null;
   if (index === today.SHOW_PAGE) return vscode.commands.executeCommand("vscode.openWith", page, start.PREVIEW_EDITOR);
   if (index === today.TRY_AGAIN) return retry();
@@ -366,6 +406,25 @@ async function probe(context, out, opened, warmed) {
     report.say.pressedLaunchMs = since(pressed);
     await new Promise((done) => setTimeout(done, 4000));
     report.say.tabsAfter = readWindow();
+  }
+  const word = process.env[PROBE_LOOK_ENV];
+  if (word && folder) {
+    const theme = () => ({ kind: vscode.window.activeColorTheme.kind, name: vscode.workspace.getConfiguration("workbench").get("colorTheme"),
+      autoDetect: vscode.workspace.getConfiguration("window").get("autoDetectColorScheme") });
+    report.look = { word, before: theme(), messages: [], changes: [] };
+    const pressed = Date.now();
+    const sub = vscode.window.onDidChangeActiveColorTheme((t) => report.look.changes.push({ kind: t.kind, ms: Date.now() - pressed }));
+    await new Promise((done) => {
+      const panel = { webview: { postMessage: (msg) => {
+        report.look.messages.push({ ...msg, ms: Date.now() - pressed });
+        if (msg.type === "status") done();
+      } } };
+      switchLook(folder.uri.fsPath, word, panel);
+    });
+    await new Promise((done) => setTimeout(done, 3000));
+    sub.dispose();
+    report.look.after = theme();
+    report.look.tabsAfter = readWindow();  // same extension host still running => no window reload
   }
   fs.writeFileSync(out, redact(JSON.stringify(report, null, 1)) + "\n");
   await vscode.commands.executeCommand("workbench.action.quit");

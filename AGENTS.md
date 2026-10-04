@@ -52,6 +52,8 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   make tailored resumes - never offer it).
   Switch: `uv run app/jobs.py ai <claude|chatgpt|copilot>`, then they close + reopen CEZ Job
   Finder.
+- "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
+  (switches at once), confirm in one line. Today has the same switch at the top.
 
 ## Speed - user's time first
 

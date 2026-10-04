@@ -3,10 +3,19 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 import cfg
+import look
 import workspace
 
 HOME = Path("/Users/someone")
+
+
+@pytest.fixture(autouse=True)
+def no_real_look(tmp_path, monkeypatch):
+    # a developer's own .data/look would change what every write here produces
+    monkeypatch.setattr(look, "CHOICE_FILE", tmp_path / ".data" / "look")
 
 
 def load(text: str) -> dict:
@@ -148,3 +157,49 @@ def test_setup_saving_search_settings_hides_start_here_in_the_open_window(tmp_pa
     assert written["files.exclude"]["START HERE.md"] is True
     assert written == workspace.settings("claude", set_up=True)  # the launcher's own file: no other key moves
     assert capsys.readouterr().out.startswith("ok: ")
+
+
+# light / dark picked => the window stays that way, whatever the computer's look
+def test_look_fixes_the_theme_and_auto_follows_the_computer():
+    for ai in ("claude", "copilot"):
+        dark, light, auto = (workspace.settings(ai, HOME, look=w) for w in ("dark", "light", "auto"))
+        assert dark["window.autoDetectColorScheme"] is False and dark["workbench.colorTheme"] == "Dark Modern"
+        assert light["window.autoDetectColorScheme"] is False and light["workbench.colorTheme"] == "Light Modern"
+        assert auto["window.autoDetectColorScheme"] is True and "workbench.colorTheme" not in auto
+        # brand colors for both themes stay; high contrast left to the computer
+        for s in (dark, light, auto):
+            assert s["workbench.colorCustomizations"] == auto["workbench.colorCustomizations"]
+            assert "window.autoDetectHighContrast" not in s
+
+
+# a missing, empty or garbled choice must not break the window: it just follows the computer
+def test_missing_or_garbage_look_is_auto(tmp_path):
+    path = tmp_path / "look"
+    assert look.current(path) == "auto"
+    for text in ("", "purple\n", "\x00\x01"):
+        path.write_text(text, encoding="utf-8")
+        assert look.current(path) == "auto"
+    path.write_bytes(b"\xff\xfe")
+    assert look.current(path) == "auto"
+    assert workspace.settings("claude", look="purple")["window.autoDetectColorScheme"] is True
+
+
+# "dark mode" in the chat must switch the open window at once, and survive the next launch
+def test_look_command_round_trip(tmp_path, monkeypatch, capsys):
+    import launch
+    path = tmp_path / ".vscode" / "settings.json"
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    monkeypatch.setattr(launch, "write_workspace", lambda ai: workspace.write(ai, path, set_up=False))
+    for args, said, auto, theme in ((["dark"], "Look: dark. Switched.", False, "Dark Modern"),
+                                    ([], "Look: dark.", False, "Dark Modern"),
+                                    (["light"], "Look: light. Switched.", False, "Light Modern"),
+                                    (["auto"], "Look: match my computer. Switched.", True, None)):
+        monkeypatch.setattr("sys.argv", ["look", *args])
+        look.main()
+        assert capsys.readouterr().out.strip() == said
+        written = load(path.read_text(encoding="utf-8"))
+        assert written["window.autoDetectColorScheme"] is auto and written.get("workbench.colorTheme") == theme
+    monkeypatch.setattr("sys.argv", ["look", "purple"])
+    with pytest.raises(SystemExit):
+        look.main()
+    assert look.current() == "auto"

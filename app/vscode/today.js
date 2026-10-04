@@ -32,6 +32,26 @@ const QUIET = new Set(["closed"]);
 // Italic left out: the page sets none
 const FONT_DIR = ["media", "fonts"];
 const FONTS = { 400: "caladea-regular.woff2", 700: "caladea-bold.woff2" };
+// window look (app/look.py, .data/look): word -> switch label + status line once switched.
+// Clicked here => extension runs `jobs.py look WORD`; never through the chat
+const LOOKS = [
+  { word: "auto", label: "Match my computer", done: "Look matches your computer" },
+  { word: "light", label: "Light", done: "Light look on" },
+  { word: "dark", label: "Dark", done: "Dark look on" },
+];
+const LOOK_FILE = path.join(".data", "look");
+
+// file text -> word; missing or unknown = auto (as app/look.py reads it)
+function lookOf(text) {
+  const word = typeof text === "string" ? text.trim().toLowerCase() : "";
+  return LOOKS.some((l) => l.word === word) ? word : "auto";
+}
+
+function lookDone(word) {
+  const found = LOOKS.find((l) => l.word === word);
+  return found ? found.done : null;
+}
+
 // New section: its own title already says "today"
 const ADDED_TODAY = /(^| · )added to your list today(?= · |$)/;
 
@@ -299,6 +319,12 @@ h1, h2, h3 { text-wrap: balance; }
 .skip { position: absolute; left: -10000px; top: 0; }
 .skip:focus-within { position: static; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; }
 .sub { color: var(--text-2); margin: 0 0 2px; }
+.top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
+.look { display: inline-flex; border: 1px solid var(--edge); border-radius: 6px; overflow: hidden; margin-top: 6px; }
+.look button { border: 0; border-radius: 0; font-weight: 400; padding: 3px 10px; color: var(--text-2); }
+.look button + button { border-left: 1px solid var(--edge); }
+.look button[aria-pressed="true"] { background: var(--text); color: var(--desk); font-weight: 700; }
+.look button[aria-pressed="true"]:hover { background: var(--text); box-shadow: none; }
 .how { color: var(--text-2); font-size: 0.92rem; margin: 0 0 20px; }
 section { margin: 32px 0 0; }
 section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1px solid var(--text); }
@@ -355,6 +381,8 @@ body.vscode-high-contrast button { border-color: var(--edge); }
 body.vscode-high-contrast button.go { border-width: 3px; padding: 3px 10px; }
 body.vscode-high-contrast button.quiet { border-style: dashed; }
 body.vscode-high-contrast button.link { border: 0; }
+body.vscode-high-contrast .look button[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-thickness: 2px; }
 #status { position: sticky; bottom: 0; margin: 16px 0 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--text);
   background: var(--desk); color: var(--text); font-weight: 700; }
 #status:empty { display: none; }
@@ -443,6 +471,13 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
       if (to) { to.focus(); to.scrollIntoView({ block: "start" }); }
       return;
     }
+    const lk = e.target.closest("button[data-look]");
+    if (lk) {
+      // marked at once; the window's colors follow when the extension has switched
+      for (const o of doc.querySelectorAll("button[data-look]")) o.setAttribute("aria-pressed", String(o === lk));
+      vscode.postMessage({ look: lk.dataset.look });
+      return;
+    }
     const b = e.target.closest("button[data-a]");
     if (!b || b.disabled) return;
     if (state.done) { state.done = null; save(); mark(); }
@@ -463,6 +498,9 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
       if (d.done && pressed) { state.done = { key: pressed, label: String(d.done) }; save(); }
       mark();
     }
+    if (d.type === "look") {
+      for (const o of doc.querySelectorAll("button[data-look]")) o.setAttribute("aria-pressed", String(o.dataset.look === d.word));
+    }
     if (d.type === "busy" && !d.on) {
       for (const b of doc.querySelectorAll("button[aria-busy]")) {
         label(b, b.dataset.text);
@@ -477,7 +515,8 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
 const SCRIPT = `(${page})(acquireVsCodeApi(), document, window, ${CLEAR_MS});`;
 
 // fonts = { source: webview.cspSource, files: { 400: uri, 700: uri } }; none => Georgia
-function render(m, { mode, nonce, ai = null, fonts = null }) {
+// look = auto | light | dark (lookOf), marked on the switch
+function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
   const h = escapeHtml;
   const btn = (text, action, { cls = "", title = "", busy = "", name = "", key = "", about = "" } = {}) =>
     `<button type="button" data-a="${action}"${key ? ` data-k="${h(key)}"` : ""}${busy ? ` data-busy="${h(busy)}"` : ""}`
@@ -561,11 +600,18 @@ function render(m, { mode, nonce, ai = null, fonts = null }) {
   const skip = `<nav class="skip" aria-label="Jump to">${jumps.map(([id, title], i) =>
     `<button type="button" class="link" data-jump="${h(id)}">${i ? "" : "Skip to "}${h(title)}</button>`).join("")}</nav>`;
   return `${head(nonce, fonts)}
-<body>${skip}<main><h1>Today</h1><p class="sub">${h(m.date)}</p><p class="how" id="how">${h(howLine(mode))}</p>
+<body>${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p></div>${lookSwitch(lookOf(look))}</div>
+<p class="how" id="how">${h(howLine(mode))}</p>
 ${next}${tiles}${setup}${sections}${todo}${empty}
 <section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}</section>
 <p id="status" role="status" aria-live="polite"></p></main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
+}
+
+// Match my computer · Light · Dark: one pressed, in ink (not yellow: yellow = something to do)
+function lookSwitch(look) {
+  return `<div class="look" role="group" aria-label="Look">${LOOKS.map((l) =>
+    `<button type="button" data-look="${l.word}" aria-pressed="${l.word === look}">${escapeHtml(l.label)}</button>`).join("")}</div>`;
 }
 
 // why the dashboard can't show (extension.js decides): plain words, what happens next
@@ -594,5 +640,5 @@ module.exports = {
   VIEW_TYPE, DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, NEW_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say,
-  csp, page, render, FALLBACK, SHOW_PAGE, TRY_AGAIN, fallback,
+  LOOKS, LOOK_FILE, lookOf, lookDone, lookSwitch, csp, page, render, FALLBACK, SHOW_PAGE, TRY_AGAIN, fallback,
 };
