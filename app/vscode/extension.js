@@ -77,6 +77,8 @@ async function openStartPage() {
   if (fs.existsSync(at(start.PROFILE_PENDING))) {
     vscode.window.showInformationMessage(start.PROFILE_PENDING_LINE[process.platform === "darwin" ? "darwin" : "other"]);
   }
+  // opened w/o the Desktop icon, folder not yet trusted => say how to get the AI panel back
+  if (!vscode.workspace.isTrusted) noteUntrusted();
   let marker = null;
   try {
     marker = fs.readFileSync(at(start.MARKER), "utf8");
@@ -90,6 +92,15 @@ async function openStartPage() {
   }
   await showPage(vscode.Uri.file(at(page)), page === start.TODAY);
   return root;
+}
+
+let untrustedShown = null;
+
+function noteUntrusted() {
+  untrustedShown = start.UNTRUSTED_LINE;
+  vscode.window.showWarningMessage(start.UNTRUSTED_LINE, start.UNTRUSTED_BUTTON).then((pick) => {
+    if (pick === start.UNTRUSTED_BUTTON) vscode.commands.executeCommand(start.UNTRUSTED_COMMAND);
+  }, () => {});
 }
 
 // start the user's chat extension in the background, never a tab, never focus off the page
@@ -417,6 +428,11 @@ async function probe(context, out, opened, warmed) {
   report.tabs = readWindow();
   report.theme = { kind: vscode.window.activeColorTheme.kind, name: vscode.workspace.getConfiguration("workbench").get("colorTheme") };
   report.folders = (vscode.workspace.workspaceFolders || []).map((f) => f.uri.toString());
+  report.trusted = vscode.workspace.isTrusted;
+  report.untrustedLine = untrustedShown;
+  report.claudeActive.atEnd = Boolean(watched && watched.isActive);
+  report.active = vscode.extensions.all.filter((e) => e.isActive && !e.packageJSON.isBuiltin && !e.id.startsWith("vscode."))
+    .map((e) => e.id).sort();
   report.extensions = vscode.extensions.all
     .filter((e) => !e.packageJSON.isBuiltin && !e.id.startsWith("vscode."))
     .map((e) => `${e.id}@${e.packageJSON.version}`).sort();

@@ -50,6 +50,7 @@ class VSCodePaths(NamedTuple):
     global_storage: Path
     claude_state: Path
     desktop: Path
+    shared: Path  # VS Code's app-wide store shared by its windows (1.140: trusted folders)
 
 
 def scratch_dir() -> Path | None:
@@ -72,8 +73,10 @@ def vscode_paths() -> VSCodePaths:
             data = home / ".config" / "Code"
         extensions, claude_state = home / ".vscode" / "extensions", home / ".claude.json"
     user = data / "User"
+    # VS Code's appSharedDataHome: ~/.vscode-shared (product.json sharedDataFolderName), every OS
+    shared = scratch / "shared" if scratch else home / ".vscode-shared"
     return VSCodePaths(home, data, extensions, user / "settings.json", user / "workspaceStorage",
-                       user / "globalStorage", claude_state, home / "Desktop")
+                       user / "globalStorage", claude_state, home / "Desktop", shared)
 
 
 def scratch_args() -> list[str]:
@@ -81,7 +84,9 @@ def scratch_args() -> list[str]:
     if not scratch_dir():
         return []
     paths = vscode_paths()
-    return ["--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions)]
+    # w/o --shared-data-dir a scratch VS Code reads + writes the owner's ~/.vscode-shared
+    return ["--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
+            "--shared-data-dir", str(paths.shared)]
 
 
 def has_claude(extensions: Path | None = None) -> bool:
@@ -377,6 +382,85 @@ def hide_side_views(paths: VSCodePaths | None = None) -> None:
             db.close()
     except (sqlite3.Error, OSError):
         pass
+
+
+# trusted folders: VS Code 1.140 keeps them app-wide in the shared store, under this key; older
+# ones (+ 1.140 before its first read) in the default state db, moved over on first read
+# (app/docs/app-window.md #n)
+TRUST_KEY = "content.trust.model.key"
+# shared store's list of keys already moved over: listed => the default db's copy is ignored
+MIGRATED_KEY = "__$__migratedStorageMarker"
+
+
+def trust_uri(folder: str, windows: bool | None = None) -> dict:
+    """Folder as VS Code saves a URI in JSON ($mid 1 = URI; revived from scheme + path)."""
+    windows = sys.platform == "win32" if windows is None else windows
+    path = str(folder).replace("\\", "/") if windows else str(folder)
+    path = path.rstrip("/") or "/"
+    if not path.startswith("/"):
+        path = "/" + path
+    return {"$mid": 1, "path": path, "scheme": "file"}
+
+
+def ensure_folder_trusted(root: Path | None = None, paths: VSCodePaths | None = None) -> None:
+    """Cold start: Job Finder's folder on VS Code's trusted list => opened from the Dock, recent
+    folders or File > Open it still runs the AI panel + PDF viewer (no Restricted Mode). This
+    folder only, never `security.workspace.trust.enabled`; every other entry kept."""
+    paths, root = paths or vscode_paths(), root or cfg.ROOT
+    if vscode_running(paths):
+        return  # VS Code holds the store + writes its own copy back on quit
+    shared = paths.shared / "sharedStorage" / "state.vscdb"
+    try:
+        target = paths.global_storage / "state.vscdb"
+        if shared.exists():
+            rows = state_values(shared, (TRUST_KEY, MIGRATED_KEY))
+            try:
+                moved = TRUST_KEY in json.loads(rows.get(MIGRATED_KEY) or "[]")
+            except (ValueError, TypeError):
+                return  # VS Code's own value unreadable: never guess where it reads trust
+            if TRUST_KEY in rows or moved:
+                target = shared
+        add_trusted(target, trust_uri(str(root)))
+    except (sqlite3.Error, OSError):
+        pass
+
+
+def state_values(state: Path, keys: tuple[str, ...]) -> dict:
+    db = sqlite3.connect(f"{state.as_uri()}?mode=ro", uri=True, timeout=2)
+    try:
+        marks = ",".join("?" * len(keys))
+        return dict(db.execute(f"SELECT key, value FROM ItemTable WHERE key IN ({marks})", keys).fetchall())
+    finally:
+        db.close()
+
+
+def add_trusted(state: Path, uri: dict) -> None:
+    windows = re.match(r"^/[A-Za-z]:", uri["path"]) is not None
+    norm = (lambda p: p.lower()) if windows else (lambda p: p)
+    state.parent.mkdir(parents=True, exist_ok=True)
+    db = sqlite3.connect(state, timeout=2)
+    try:
+        with db:
+            db.execute(ITEM_TABLE)
+            row = db.execute("SELECT value FROM ItemTable WHERE key = ?", (TRUST_KEY,)).fetchone()
+            try:
+                info = json.loads(row[0]) if row else {}
+            except (ValueError, TypeError):
+                return  # VS Code's own value unreadable: never overwrite it
+            entries = info.get("uriTrustInfo") if isinstance(info, dict) else None
+            if row and not isinstance(entries, list):
+                return
+            entries = entries or []
+            for entry in entries:
+                seen = entry.get("uri") if isinstance(entry, dict) else None
+                if (isinstance(seen, dict) and seen.get("scheme") == "file" and entry.get("trusted")
+                        and norm(str(seen.get("path", "")).rstrip("/")) == norm(uri["path"])):
+                    return
+            info = {**(info if isinstance(info, dict) else {}), "uriTrustInfo": [*entries, {"uri": uri, "trusted": True}]}
+            db.execute("INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)",
+                       (TRUST_KEY, json.dumps(info, separators=(",", ":"))))
+    finally:
+        db.close()
 
 
 def copy_settings(source: Path, target: Path) -> None:
@@ -893,6 +977,8 @@ def main() -> None:
     elif not profile_location():
         # VS Code left open => no profile yet; the window extension says how to finish (quit once)
         mark_profile_pending()
+    # opened later w/o the Desktop icon (Dock, recent folders) => still trusted: AI panel runs
+    ensure_folder_trusted()
     choice = chosen_ai()
     # before VS Code opens, into its profile once made => the window comes up with the chat panel,
     # the first click on a resume shows the page, a typo in the resume facts is underlined

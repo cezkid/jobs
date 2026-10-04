@@ -46,6 +46,7 @@ def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "ensure_profile", lambda: True)
+    monkeypatch.setattr(launch, "ensure_folder_trusted", lambda: None)
     monkeypatch.setattr(launch, "vscode_running", lambda: running)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
     monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(("sleep", s)))
@@ -515,6 +516,7 @@ def test_scratch_vscode_keeps_every_path_and_call_off_the_owners(tmp_path, monke
     monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or DONE)
     launch.code(["--install-extension", launch.PDF_EXTENSION])
     assert runs == [["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
+                     "--shared-data-dir", str(paths.shared),
                      "--install-extension", launch.PDF_EXTENSION]]
     launch.ensure_claude_trust(tmp_path / "jobs")
     assert paths.claude_state.exists()
@@ -736,7 +738,8 @@ def test_every_code_call_lands_in_job_finders_profile_once_made(tmp_path, monkey
     import jobs
     paths = profile_paths(tmp_path, monkeypatch)
     monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
-    scratch = ["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions)]
+    scratch = ["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
+               "--shared-data-dir", str(paths.shared)]
     assert launch.code_command(["x"]) == [*scratch, "x"]  # not made yet: an unknown name fails the call
     assert launch.ensure_profile(tmp_path / "jobs", paths)
     assert launch.code_command(["x"]) == [*scratch, "--profile", "CEZ Job Finder", "x"]
@@ -746,7 +749,7 @@ def test_every_code_call_lands_in_job_finders_profile_once_made(tmp_path, monkey
     page = tmp_path / "Job posting.md"
     page.write_text("x", encoding="utf-8")
     jobs.open_for_user(str(page))
-    assert [r[5:7] for r in runs] == [["--profile", "CEZ Job Finder"]] * 2
+    assert [r[7:9] for r in runs] == [["--profile", "CEZ Job Finder"]] * 2
 
 
 def test_code_calls_built_in_one_place():
@@ -793,7 +796,7 @@ def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_pat
     result.returncode = 0
     runs.clear()
     launch.window_setup()
-    assert "own space" in capsys.readouterr().out and runs[0][5:7] == ["--profile", "CEZ Job Finder"]
+    assert "own space" in capsys.readouterr().out and runs[0][7:9] == ["--profile", "CEZ Job Finder"]
 
 
 def state_db(path, rows):
@@ -982,3 +985,69 @@ def test_hiding_views_never_touches_a_running_or_unreadable_state(tmp_path, monk
     views_state(paths).write_bytes(b"not a database")
     (paths.data / "code.lock").unlink()
     launch.hide_side_views(paths)  # broken db: launch carries on
+
+
+def trust_list(state):
+    return json.loads(state_rows(state)[launch.TRUST_KEY])["uriTrustInfo"]
+
+
+def shared_state(paths):
+    return paths.shared / "sharedStorage" / "state.vscdb"
+
+
+def test_folder_trusted_so_a_dock_open_still_runs_the_ai_panel(tmp_path, monkeypatch):
+    # opened from the Dock / recent folders => Restricted Mode: Claude + PDF viewer never ran
+    paths = profile_paths(tmp_path, monkeypatch)
+    root = tmp_path / "jobs"
+    launch.ensure_folder_trusted(root, paths)
+    # VS Code never started: default db, VS Code moves it to its shared store on first read
+    default = paths.global_storage / "state.vscdb"
+    assert trust_list(default) == [{"uri": {"$mid": 1, "path": str(root), "scheme": "file"}, "trusted": True}]
+    launch.ensure_folder_trusted(root, paths)  # once only
+    assert len(trust_list(default)) == 1
+    # VS Code already moved the key into the shared store => written there, other folders kept
+    other = {"uri": {"$mid": 1, "path": "/Users/Your Name/code", "scheme": "file"}, "trusted": True}
+    state_db(shared_state(paths), [(launch.MIGRATED_KEY, json.dumps([launch.TRUST_KEY])),
+                                   (launch.TRUST_KEY, json.dumps({"uriTrustInfo": [other]}))])
+    launch.ensure_folder_trusted(root, paths)
+    assert trust_list(shared_state(paths)) == [other, {"uri": {"$mid": 1, "path": str(root), "scheme": "file"}, "trusted": True}]
+
+
+def test_trust_written_where_vscode_reads_it(tmp_path, monkeypatch):
+    # written to the default db after VS Code moved the key => ignored, folder stayed untrusted
+    paths = profile_paths(tmp_path, monkeypatch)
+    root = tmp_path / "jobs"
+    state_db(shared_state(paths), [(launch.MIGRATED_KEY, json.dumps([launch.TRUST_KEY]))])
+    launch.ensure_folder_trusted(root, paths)
+    assert trust_list(shared_state(paths))[0]["uri"]["path"] == str(root)
+    assert not (paths.global_storage / "state.vscdb").exists()
+    # shared store there but key not moved yet => default db, so the folders it holds move together
+    shared_state(paths).unlink()
+    state_db(shared_state(paths), [(launch.MIGRATED_KEY, "[]")])
+    launch.ensure_folder_trusted(root, paths)
+    assert launch.TRUST_KEY not in state_rows(shared_state(paths))
+    assert trust_list(paths.global_storage / "state.vscdb")[0]["uri"]["path"] == str(root)
+
+
+def test_trust_never_touches_a_running_or_unreadable_store(tmp_path, monkeypatch):
+    # VS Code running writes its own copy back on quit; a value we can't read must never be replaced
+    paths = profile_paths(tmp_path, monkeypatch)
+    root = tmp_path / "jobs"
+    state_db(shared_state(paths), [(launch.TRUST_KEY, "not json")])
+    launch.ensure_folder_trusted(root, paths)
+    assert state_rows(shared_state(paths)) == {launch.TRUST_KEY: "not json"}
+    shared_state(paths).unlink()
+    paths.data.mkdir(parents=True, exist_ok=True)
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    launch.ensure_folder_trusted(root, paths)
+    assert not (paths.global_storage / "state.vscdb").exists()
+    (paths.data / "code.lock").unlink()
+    shared_state(paths).write_bytes(b"not a database")
+    launch.ensure_folder_trusted(root, paths)  # broken store: launch carries on
+
+
+def test_trust_uri_matches_vscode_on_windows():
+    # backslash path never matched the open folder => untrusted on Windows
+    assert launch.trust_uri("C:\\Users\\Your Name\\jobs", windows=True) == {
+        "$mid": 1, "path": "/C:/Users/Your Name/jobs", "scheme": "file"}
+    assert launch.trust_uri("/Users/Your Name/jobs/", windows=False)["path"] == "/Users/Your Name/jobs"
