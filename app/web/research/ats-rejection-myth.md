@@ -123,7 +123,7 @@ A US lawsuit alleges otherwise for one vendor. In Mobley v. Workday, the plainti
 
 In May 2025 a federal court in California let the age claim go forward as a collective action, at a preliminary stage. Workday can still ask the court to undo that step later [@mobley-2025-order]. Workday told the court 1.1 billion applications were rejected using its software. The court said that estimate ignores the limits of who is in the case [@mobley-2025-order, p. 19].
 
-In July 2025 the court ruled that applicants screened with Workday's HiredScore AI features also belong in the case. In June 2026 the court granted part of Workday's motion to dismiss the amended complaint and denied the rest [@clearinghouse-mobley]. As of October 2026, the plaintiffs are asking to widen the case to more groups of applicants. A hearing is set for March 2027, and Workday denies the claims [@lawyer-monthly-2026]. Nothing has been proven. Not legal advice.
+In July 2025 the court ruled that applicants screened with Workday's HiredScore AI features also belong in the case. In June 2026 the court granted part of Workday's motion to dismiss the amended complaint and denied the rest [@clearinghouse-mobley]. As of October 2026, the plaintiffs are asking the court to certify four groups of applicants as a class action. A hearing is set for March 2027 [@lawyer-monthly-2026]. Workday denies the claims [@clearinghouse-mobley]. Nothing has been proven. Not legal advice. What the laws require of employers: [AI hiring laws in 2026](ai-hiring-laws.md).
 
 AI scores are in use, but most managers in that survey said a person still makes the call [@resume-genius-2026].
 

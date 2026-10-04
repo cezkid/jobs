@@ -125,6 +125,17 @@
   sample: 10 open AI models, each in a base and a trained version, choosing between pairs of made-up applicants; age shown by graduation year
   checked: 2026-10-03
 
+- id: ca-cppa-admt-2025
+  type: law
+  org: California Privacy Protection Agency
+  year: 2025
+  title: "Text of Regulations: CCPA Updates, Cybersecurity Audits, Risk Assessments, Automated Decisionmaking Technology (California Code of Regulations, title 11)"
+  url: https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf
+  evidence: law
+  sample: final rule text; Article 11, sections 7200-7222 (p. 112-120), and section 7001 definitions; businesses using automated tools that replace human decisions on jobs comply from January 1, 2027
+  checked: 2026-10-04
+  recheck_by: 2027-01-03
+
 - id: ca-crc-ads-2025
   type: law
   org: California Civil Rights Council
@@ -132,9 +143,20 @@
   title: Employment Regulations Regarding Automated-Decision Systems (California Code of Regulations, title 2)
   url: https://calcivilrights.ca.gov/2025/06/30/civil-rights-council-secures-approval-for-regulations-to-protect-against-employment-discrimination-related-to-artificial-intelligence/
   evidence: law
-  sample: the Council's announcement and the adopted text (Attachment B, version of March 17, 2025); in force October 1, 2025
+  sample: the Council's announcement of June 30, 2025 (the adopted text, Attachment B, not re-opened in October 2026); in force October 1, 2025
   checked: 2026-10-04
   recheck_by: 2027-01-03
+
+- id: ca-sb947-2026
+  type: law
+  org: California Legislature
+  year: 2026
+  title: "SB 947 (Chapter 859, Statutes of 2026): Employment: automated decision systems"
+  url: https://leginfo.legislature.ca.gov/faces/billTextClient.xhtml?bill_id=202520260SB947
+  evidence: law
+  sample: chaptered text, signed September 30, 2026; Labor Code sections 1520-1526.7; from July 1, 2027; limits employer use of automated systems on employees (incl. discipline, firing, inferring protected status), not applicants
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: carlini-2021
   type: article
@@ -177,7 +199,7 @@
   title: "SB23-058: Job Application Fairness Act"
   url: https://leg.colorado.gov/bills/sb23-058
   evidence: law
-  sample: bill page and official summary; no age, birth date or school dates on a first application from August 7, 2023
+  sample: bill page and official summary; act effective August 7, 2023; no age, birth date or school dates on a first application from July 1, 2024
   checked: 2026-10-04
   recheck_by: 2027-04-04
 
@@ -189,6 +211,17 @@
   url: https://leg.colorado.gov/bills/sb26-189
   evidence: law
   sample: bill page and official summary; signed May 14, 2026, in force January 1, 2027
+  checked: 2026-10-04
+  recheck_by: 2027-01-03
+
+- id: co-sb26-189-fiscal
+  type: report
+  org: Colorado Legislative Council Staff
+  year: 2026
+  title: "SB 26-189 Fiscal Note (First Revised Note)"
+  url: https://leg.colorado.gov/bill_files/115880/download
+  evidence: law
+  sample: nonpartisan staff note of May 6, 2026, on the bill as amended in two Senate committees (not the signed act); summary says disclosure duties begin January 1, 2027; its Effective Date section says deployer disclosure, consumer-rights and enforcement sections take effect on signature
   checked: 2026-10-04
   recheck_by: 2027-01-03
 
@@ -325,6 +358,17 @@
   sample: official text, read in the artificialintelligenceact.eu reproduction (EUR-Lex blocks scripts); Annex III point 4 lists AI used to filter job applications and evaluate candidates as high-risk; Articles 26 and 86 on telling people and explaining decisions
   checked: 2026-10-04
   recheck_by: 2027-04-03
+
+- id: eu-gdpr
+  type: law
+  org: European Union
+  year: 2016
+  title: "Regulation (EU) 2016/679 (General Data Protection Regulation), Articles 13, 14 and 22"
+  url: https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng
+  evidence: law
+  sample: official text, read in the gdpr-info.eu reproduction (EUR-Lex blocks scripts); in force since May 25, 2018; Article 22 covers decisions based solely on automated processing
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: eu-omnibus-2026
   type: law
@@ -499,6 +543,17 @@
   url: https://www.ilga.gov/ftp/legislation/103/BillStatus/HTML/10300HB3773.html
   evidence: law
   sample: bill status page and synopsis, read in an Internet Archive copy of August 28, 2026 (the site blocks scripts); in force January 1, 2026
+  checked: 2026-10-04
+  recheck_by: 2027-01-03
+
+- id: il-pa-103-0804
+  type: law
+  org: Illinois General Assembly
+  year: 2024
+  title: "Public Act 103-0804 (HB 3773 enrolled): Illinois Human Rights Act, sections 2-101 and 2-102(L)"
+  url: https://www.ilga.gov/legislation/publicacts/103/PDF/103-0804.pdf
+  evidence: law
+  sample: enrolled act text, 21 pages; section 2-102(L) on page 20; takes effect January 1, 2026
   checked: 2026-10-04
   recheck_by: 2027-01-03
 
@@ -923,6 +978,17 @@
   evidence: observational
   sample: 155 student investigators checked the websites of 391 employers for posted bias audits and notices
   checked: 2026-10-04
+
+- id: xai-weiser-stay
+  type: law
+  org: US District Court for the District of Colorado
+  year: 2026
+  title: "X. AI LLC v. Weiser, No. 1:26-cv-01515: Minute Order (ECF 24) granting joint motion to stay enforcement"
+  url: https://www.courtlistener.com/docket/73171074/x-ai-llc-v-weiser/
+  evidence: court record
+  sample: docket entries through October 2, 2026; minute order of April 27, 2026 (ECF 24); procedure only, nothing decided on the merits
+  checked: 2026-10-04
+  recheck_by: 2027-01-03
 
 - id: xu-2025
   type: article

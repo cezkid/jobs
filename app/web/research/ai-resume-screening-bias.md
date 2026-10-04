@@ -110,7 +110,7 @@ As of October 2026, a few places set rules, and some may change. This is general
 - **European Union**: AI that filters applications is high-risk under the AI Act [@eu-ai-act]. Those rules now start in December 2027 [@eu-omnibus-2026].
 - **US federal**: a 2025 executive order tells agencies to move away from "disparate impact" cases [@eo-14281]. Those are cases about unequal results without intent. Private lawsuits like Mobley v. Workday still use that idea [@mobley-2026-order, p. 2].
 
-In New York City and Illinois, employers must tell you when they use these tools. From 2027, Colorado employers must also explain a rejection. In New York City you can ask for another way to be assessed or an accommodation [@nyc-ll144].
+In New York City and Illinois, employers must tell you when they use these tools. From 2027, Colorado employers must also describe an AI tool's role in a rejection; a court has paused enforcement as of October 2026 [@xai-weiser-stay]. In New York City you can ask for another way to be assessed or an accommodation [@nyc-ll144]. Every law, its status and what you can ask for: [AI hiring laws in 2026](ai-hiring-laws.md).
 
 ## Which studies found what?
 

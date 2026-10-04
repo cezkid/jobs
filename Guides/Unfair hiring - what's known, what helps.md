@@ -98,7 +98,9 @@ No case details needed in the chat - what you type goes to your AI account.
   been shown to beat it. What works: an accurate, relevant, readable resume - and applying widely.
   *Lab studies, several not yet checked by other scientists (peer review), plus one study of a
   real hiring tool's records, also not yet peer-reviewed.*
-- **Your rights:** Colorado requires notice and an explanation of AI rejections from January 2027.
+- **Your rights:** Colorado requires notice, and after an AI rejection a plain description of the
+  tool's role, from January 2027 - a court has paused enforcement while a lawsuit goes on (as of
+  October 2026). California adds notice and a way to ask how the tool worked from January 2027.
   Illinois bans AI that discriminates (since January 2026). New York City requires yearly bias
   audits, but few employers have posted theirs. *Law.*
 
