@@ -38,29 +38,26 @@ Tuesday, September 29. So far: 1 sent.
 
 ## Waiting on you
 
-- **Job 1** - Data Analyst, Globex
+- **Job 1** - [Data Analyst](<https://jobs.lever.co/globex/1>), [Globex](<https://duckduckgo.com/?q=Globex>)
   - Ready to send
-  - [Open the posting](<https://jobs.lever.co/globex/1>) · [Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)
+  - [Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)
   - Say: `apply to job 1` - or `I sent job 1` if you already did
 
 ## Follow up
 
 No reply for a while. Many employers never write back. [When to follow up](Guides/Following%20up.md)
 
-- **Job 2** - Senior Vue Engineer old, Acme
+- **Job 2** - [Senior Vue Engineer old](<https://boards.greenhouse.io/acme/jobs/old>), [Acme](<https://duckduckgo.com/?q=Acme>)
   - Applied 29 days ago, no reply yet
-  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/old>)
   - Say: `write a follow-up for job 2` - or `I heard back from job 2`, `job 2 is closed`
 
 ## New since last check
 
-- **Job 3** - Senior Vue Engineer paid, Acme
+- **Job 3** - [Senior Vue Engineer paid](<https://boards.greenhouse.io/acme/jobs/paid>), [Acme](<https://duckduckgo.com/?q=Acme>)
   - Why: remote · $150k-190k (meets your pay) · added to your list today
-  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/paid>)
   - Say: `resume for job 3`
-- **Job 4** - Senior Vue Engineer plain, Acme
+- **Job 4** - [Senior Vue Engineer plain](<https://boards.greenhouse.io/acme/jobs/plain>), [Acme](<https://duckduckgo.com/?q=Acme>)
   - Why: remote · pay not listed · added to your list today
-  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/plain>)
   - Say: `resume for job 4`
 
 ## Not finished
@@ -203,7 +200,8 @@ def test_new_is_last_check_or_unannounced_only(conn, tmp_path):
 def test_new_job_age_agrees_with_new(conn, tmp_path):
     # reposted posting freehire first saw 66 days ago, reaching the list in this check (real install)
     store.upsert(conn, [job("repost", reality={"age_days": 66}), job("fresh", reality={"age_days": 3})], CHECK)
-    lines = {j: next(line for line in page(conn, tmp_path).split(f"/jobs/{j}")[0].splitlines()[::-1] if "·" in line)
+    blocks = re.split(r"^- \*\*Job", page(conn, tmp_path), flags=re.M)
+    lines = {j: next(line for line in next(b for b in blocks if f"/jobs/{j}>" in b).splitlines() if "·" in line)
              for j in ("repost", "fresh")}
     assert lines["repost"].endswith("added to your list today · posting first seen 66 days ago")
     assert lines["fresh"].endswith("added to your list today")
@@ -231,7 +229,7 @@ def test_new_capped_with_rest_in_the_chat(conn, tmp_path, monkeypatch):
 def test_same_number_as_the_chat_list(conn, tmp_path):
     store.upsert(conn, [job("a"), job("b")], CHECK)
     first = store.numbered(conn, [dict(store.all_jobs(conn)[1], duplicates=[])])[0]
-    assert f"**Job {first['num']}** - {first['title']}" in page(conn, tmp_path)
+    assert f"**Job {first['num']}** - [{first['title']}](<{first['url']}>)" in page(conn, tmp_path)
 
 
 def test_waiting_never_counts_what_is_left(conn, tmp_path, monkeypatch):
@@ -345,7 +343,7 @@ def test_chat_brief_matches_the_page(conn, tmp_path):
     todo = ["The morning job check is off. Say: `turn on the morning job check`"]
     assert today.brief(conn, CONFIG, tmp_path, NOW, todo) == BRIEF
     # same numbers as the page, whichever is built first
-    assert "**Job 3** - Senior Vue Engineer paid" in page(conn, tmp_path, todo)
+    assert "**Job 3** - [Senior Vue Engineer paid](" in page(conn, tmp_path, todo)
 
 
 def test_chat_brief_stays_short_on_a_full_list(conn, tmp_path):
@@ -435,9 +433,35 @@ def test_every_job_has_link_text_and_a_say_chip(conn, tmp_path):
     assert len(jobs) == 4
     for block in jobs:
         block = block.split("\n\n")[0]
-        assert "[Open the posting](<https://" in block and re.search(r"Say: `[^`]+`", block)
+        assert re.match(r" - \[[^\]]+\]\(<https://", block) and re.search(r"Say: `[^`]+`", block)
     # url exact, never rebuilt; a ')' in it can't end the link
     assert "(<https://jobs.lever.co/globex/1?utm_source=x>)" in text
     assert "(<https://boards.greenhouse.io/acme/jobs/a(b)>)" in text
     assert "[Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)" in text
     assert not re.search(r'Say: "', text) and "- `find new jobs`" in text
+
+
+# owner 2026-10-03: company name opens its website - the one on the job search's record, else a
+# web search for the name; never a link built from its listing id
+def test_company_links_its_website_else_a_web_search(conn, tmp_path):
+    store.upsert(conn, [job("a", company="Ramp", company_slug="ramp"), job("b", company="Sample & Co", company_slug="sample")],
+                 CHECK)
+    conn.execute("INSERT INTO companies VALUES ('ramp', 'https://ramp.com', ?)", (CHECK,))
+    conn.execute("INSERT INTO companies VALUES ('sample', NULL, ?)", (CHECK,))
+    m = today.model(conn, CONFIG, tmp_path, NOW, [], tmp_path)
+    cards = {c["company"]: c for c in m["sections"][0]["cards"]}
+    assert (cards["Ramp"]["company_url"], cards["Ramp"]["company_website"]) == ("https://ramp.com", True)
+    assert (cards["Sample & Co"]["company_url"], cards["Sample & Co"]["company_website"]) == (
+        "https://duckduckgo.com/?q=Sample+%26+Co", False)
+    text = today.render(m)
+    assert "[Senior Vue Engineer a](<https://boards.greenhouse.io/acme/jobs/a>), [Ramp](<https://ramp.com>)" in text
+    assert "[Sample &amp; Co](<https://duckduckgo.com/?q=Sample+%26+Co>)" in text  # text inert, url exact
+    assert "ramp.com/ramp" not in text and "Open the posting" not in text
+
+
+# a sent job (application row, no listing id of its own) still links its company's website
+def test_company_link_found_through_the_listed_job(conn, tmp_path):
+    store.upsert(conn, [job("old", company="Ramp", company_slug="ramp")], "2026-08-01T12:00:00Z")
+    applied(conn, "old", "2026-08-31T12:00:00Z")
+    conn.execute("INSERT INTO companies VALUES ('ramp', 'https://ramp.com', ?)", (CHECK,))
+    assert "[Ramp](<https://ramp.com>)" in page(conn, tmp_path)

@@ -15,6 +15,7 @@ from dotenv import dotenv_values
 
 import autorun
 import cfg
+import companies
 import locks
 import rank
 import status
@@ -75,12 +76,13 @@ def say(words: str, *more: str, tail: str = "") -> str:
     return f"Say: {chip(words)}{alts}{tail}"
 
 
-def posting(url: str | None) -> str:
-    """Link text, never a bare 100-char URL. URL copied as is (AGENTS.md: a rebuilt one 404s);
-    angle brackets keep a ')' in it from ending the link."""
+def md_link(text: str, url: str | None) -> str:
+    """Employer text as a link's words (inert: nothing in it renders), never a bare 100-char URL.
+    URL copied as is (AGENTS.md: a rebuilt one 404s); angle brackets keep a ')' in it from ending
+    the link. No URL => the words alone."""
     if not url:
-        return ""
-    return f"[Open the posting](<{url.replace('<', '%3C').replace('>', '%3E')}>)"
+        return inert_md(text)
+    return f"[{inert_md(text)}](<{url.replace('<', '%3C').replace('>', '%3E')}>)"
 
 
 def resume_pdf(job_dir: Path | None) -> Path | None:
@@ -125,24 +127,28 @@ def guide_link(g: dict) -> str:
 
 
 def item(row: dict, *details: str) -> list[str]:
-    return [f"- **Job {row['num']}** - {inert_md(name(row))}", *(f"  - {d}" for d in details if d)]
+    """Title links the posting, company its website (or a web search): no separate link to read."""
+    named = ", ".join(md_link(row[k], row.get(u)) for k, u in (("title", "url"), ("company", "company_url")) if row.get(k))
+    return [f"- **Job {row['num']}** - {named}", *(f"  - {d}" for d in details if d)]
 
 
-def card(row: dict, detail: str, says: list[str], dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT,
+def card(conn, row: dict, detail: str, says: list[str], dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT,
          tail: str = "", why: str | None = None) -> dict:
     """One job, as both the page and the dashboard show it: says[0] = the main thing to do.
-    why = the row's `[reasons]` (new jobs: AGENTS.md, each job carries its one-line why)."""
+    why = the row's `[reasons]` (new jobs: AGENTS.md, each job carries its one-line why).
+    company_url = its website on record (company_website true), else a web search for its name."""
     job_dir = (dirs or {}).get(row.get("key"))
+    site = companies.link(conn, row) or {}
     return {"num": row["num"], "title": row.get("title") or "", "company": row.get("company") or "",
+            "company_url": site.get("url"), "company_website": bool(site.get("website")),
             "detail": detail, "url": row.get("url") or None, "resume": rel(resume_pdf(job_dir), root),
             "folder": rel(job_dir, root), "say": says, "tail": tail, "why": why}
 
 
 def card_md(c: dict) -> list[str]:
-    """Posting + its resume on one line: both open from the page, no URL to read."""
-    links = " · ".join(filter(None, (posting(c["url"]), resume_link(c["resume"]))))
+    """Its resume opens from the page, no path to read; the posting from the title."""
     why = f"Why: {c['why']}" if c.get("why") else ""
-    return item(c, c["detail"], why, links, say(*c["say"], tail=c["tail"]))
+    return item(c, c["detail"], why, resume_link(c["resume"]), say(*c["say"], tail=c["tail"]))
 
 
 def section_md(sec: dict | None) -> list[str]:
@@ -188,7 +194,7 @@ def waiting_section(conn, now: str, dirs: dict[str, Path] | None = None, root: P
     if not rows:
         return None
     # no age: "made 8 days ago" reads as overdue (critique 2026-10-04); Follow up keeps its days
-    cards = [card(r, "Ready to send", [words("apply", r["num"]), words("sent", r["num"])],
+    cards = [card(conn, r, "Ready to send", [words("apply", r["num"]), words("sent", r["num"])],
                   dirs, root, tail=" if you already did")
              for r in status.numbered(conn, rows[:WAITING_MAX])]
     more = {"text": "More in the chat.", "say": words("more_waiting")} if len(rows) > WAITING_MAX else None
@@ -221,10 +227,10 @@ def follow_up_section(conn, now: str, days: dict[str, int], dirs: dict[str, Path
     for r in status.numbered(conn, rows[:FOLLOW_UP_MAX]):
         n = r["num"]
         if r["chased"]:
-            cards.append(card(r, f"You followed up {days_ago(r['chased'], now)}, still no reply",
+            cards.append(card(conn, r, f"You followed up {days_ago(r['chased'], now)}, still no reply",
                               [words("closed", n), words("heard_back", n)], dirs, root))
         else:
-            cards.append(card(r, f"{STAGE_WORDS[r['state']]} {days_ago(r['state_at'], now)}, no reply yet",
+            cards.append(card(conn, r, f"{STAGE_WORDS[r['state']]} {days_ago(r['state_at'], now)}, no reply yet",
                               [words("follow_up", n), words("heard_back", n), words("closed", n)], dirs, root))
     more = {"text": "More in the chat.", "say": words("more_follow_up")} if len(rows) > FOLLOW_UP_MAX else None
     return {"id": "follow_up", "title": "Follow up", "note": FOLLOW_UP_NOTE, "guide": FOLLOW_UP_GUIDE, "cards": cards,
@@ -243,7 +249,7 @@ def interviews_section(conn, now: str, days: dict[str, int], dirs: dict[str, Pat
     if not rows:
         return None
     # no age: "since 5 days ago" read odd + is when it was set, not the interview's day
-    cards = [card(r, "Interview set",
+    cards = [card(conn, r, "Interview set",
                   [words("practise", r["num"]), words("had_interview", r["num"])], dirs, root)
              for r in status.numbered(conn, rows[:FOLLOW_UP_MAX])]
     return {"id": "interviews", "title": "Interviews", "note": None, "cards": cards, "more": None}
@@ -272,7 +278,7 @@ def new_section(conn, config: dict, now: datetime, rows: list[dict] | None = Non
     if not rows:
         return None
     # facts to decide on before "Make my resume": the why + the posting (critique 2026-10-04)
-    cards = [card(j, "", [words("resume", j["num"])], why=rank.reasons(j, config, now, rank.added(j, now)))
+    cards = [card(conn, j, "", [words("resume", j["num"])], why=rank.reasons(j, config, now, rank.added(j, now)))
              for j in store.numbered(conn, rows[:NEW_MAX])]
     more = ({"text": f"{len(rows) - NEW_MAX} more - ask the chat.", "say": words("more_new")}
             if len(rows) > NEW_MAX else None)

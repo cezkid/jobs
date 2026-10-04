@@ -260,6 +260,11 @@ async function act(root, at, page, m, msg, panel, retry, keeper) {
     if (url) await vscode.env.openExternal(url);
     return;
   }
+  if (action.type === "company") {
+    const url = today.cleanSite(action.url);
+    if (url) await vscode.env.openExternal(url);
+    return;
+  }
   if (action.type === "open") {
     const rel = today.cleanPath(action.path);
     if (!rel) return;

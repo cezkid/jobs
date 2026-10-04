@@ -227,6 +227,8 @@ when asked, at setup, and before any step sending something new off computer.
 | Name, email, phone you start with | that employer's ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |
 | Email you start with | that employer's Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |
 | Email you start with | that employer's iCIMS site | That employer, when you click Next on its start box - before the form |
+| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company's website |
+| Company name you click when it has no website on record | DuckDuckGo | When you click it |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 
@@ -244,7 +246,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   settings exist, then `Today.md`, and hides it from the file list. Plain words only.
 - `Today.md` - generated (`today`): waiting on you, follow up, new since last check, not
   finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
-  w/o the extension: highlighted, user types them) + "Open the posting" / "Open its resume"; employer text inert, no links from it. Rebuilt at launch + after each morning check.
+  w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`) else a DuckDuckGo search; employer text inert, no other links from it. Rebuilt at launch + after each morning check.
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
   no resume text. Other AIs have no hook - they keep the page.

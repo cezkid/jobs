@@ -115,6 +115,38 @@ test("posting button for https links only, kept exactly as written", () => {
   assert.equal(m.actions[m.next.card.posting.action].url, RAW.sections[0].cards[0].url);
 });
 
+// owner 2026-10-03: "clicking title should lead to job posting. clicking company should take to ...
+// the main website" - else a web search for it; the name says which, so a click never surprises
+test("title opens the posting; company opens its website, else a web search; names say which", () => {
+  const raw = structuredClone(RAW);
+  raw.sections[0].cards = [
+    { ...raw.sections[0].cards[0], num: 12, company: "Example Co", company_url: "https://example.com", company_website: true },
+    { ...raw.sections[0].cards[0], num: 13, company: "Sample & Co", company_url: "https://duckduckgo.com/?q=Sample+%26+Co",
+      company_website: false, say: ["apply to job 13"] },
+  ];
+  const m = today.model(raw, say);
+  const page = html(m);
+  const site = page.match(/<button type="button" data-a="(\d+)" class="link named" title="Company website: Example Co" aria-label="Company website: Example Co">Example Co<\/button>/);
+  assert.ok(site, "company website link missing");
+  assert.deepEqual(m.actions[Number(site[1])], { type: "company", url: "https://example.com" });
+  const search = page.match(/data-a="(\d+)" class="link named" title="Search the web for Sample &amp; Co" aria-label="Search the web for Sample &amp; Co">Sample &amp; Co</);
+  assert.ok(search, "web search link missing");
+  assert.equal(m.actions[Number(search[1])].url, "https://duckduckgo.com/?q=Sample+%26+Co");
+  const title = page.match(/<h3 id="j-12"><span class="num">Job 12<\/span> <button type="button" data-a="(\d+)" class="link named" title="Open the posting" aria-label="Open the posting for Job 12: Financial Analyst">Financial Analyst<\/button><\/h3>/);
+  assert.ok(title, "title link missing");
+  assert.deepEqual(m.actions[Number(title[1])], { type: "posting", url: RAW.sections[0].cards[0].url });
+  // a bad or missing link => plain words, never a dead or unsafe button
+  for (const bad of ["javascript:alert(1)", "vscode://x", "file:///etc/passwd", "https://a b", 'https://x/"y', null, 7]) {
+    assert.equal(today.cleanSite(bad), null, String(bad));
+    const r = structuredClone(raw);
+    r.sections[0].cards[0].company_url = bad;
+    r.sections[0].cards[0].url = bad;
+    const p = html(today.model(r, say));
+    assert.match(p, /<h3 id="j-12"><span class="num">Job 12<\/span> Financial Analyst<\/h3><p>Example Co<\/p>/);
+  }
+  assert.equal(today.cleanSite("http://example.com/about"), "http://example.com/about");
+});
+
 // a path from the data file opening something outside the user's folders
 test("open buttons only for paths under My Jobs, My Resume, Guides", () => {
   for (const bad of ["../.ssh/id_rsa", "My Jobs/../../x", "/etc/passwd", "C:/Windows/x", "My Jobs\\..\\x", ".data/jobs.db",
@@ -251,7 +283,9 @@ test("yellow only on Next up + Waiting on you; status changes outline, closing q
   assert.equal(yellow(page), 1 + waiting);
   assert.match(page, /<button type="button" data-a="\d+" data-k="13:heard_back" title="Saves it here, no chat - you can undo it" aria-label="I heard back, Job 13">I heard back</);
   assert.match(page, /class="quiet"[^>]*>It&#39;s closed</);
-  assert.match(page, /<span class="meta"><button[^>]*class="link"[^>]*>Posting<\/button> · <button[^>]*class="link"[^>]*>Folder</);
+  assert.match(page, /<span class="meta"><button[^>]*class="link"[^>]*>Folder<\/button><\/span>/);
+  // the title opens the posting now: no separate Posting link (plan-ejf.1.28)
+  assert.doesNotMatch(page, />Posting</);
   assert.doesNotMatch(page, />Open the posting<|>Open folder</);
 });
 
@@ -260,9 +294,9 @@ test("new jobs: one-line rows, 5 shown, the rest in the chat", () => {
   const page = html(today.model(FULL, say), "new");
   const rows = page.split('aria-labelledby="s-new"')[1].split("</section>")[0];
   assert.equal((rows.match(/<li><div class="what">/g) || []).length, 5);
-  assert.match(rows, /<h3 id="j-100"><b>Job 100<\/b> - Role 100, Example Co<\/h3> <span class="detail">- remote<\/span>/);
+  assert.match(rows, /<h3 id="j-100"><b>Job 100<\/b> - <button[^>]*>Role 100<\/button>, Example Co<\/h3> <span class="detail">- remote<\/span>/);
   // a decision needs its facts: every new row has its posting (re-critique P2)
-  assert.equal((rows.match(/class="link" aria-label="Open the posting for Job 1\d\d">Posting</g) || []).length, 5);
+  assert.equal((rows.match(/class="link named" title="Open the posting" aria-label="Open the posting for Job 1\d\d: Role 1\d\d">/g) || []).length, 5);
   assert.match(rows, /7 more new jobs\.<\/span><button[^>]*>Show more new jobs</);
   // fewer than 5 + nothing beyond => no "more" line
   const few = { ...drop(FULL, "interviews", "waiting", "follow_up"), todo: [], tiles: [] };
@@ -280,7 +314,7 @@ test("new jobs carry their why; follow-up note one line + its guide; figures und
   const m = today.model(raw, say);
   const page = html(m, "new");
   const rows = page.split('aria-labelledby="s-new"')[1].split("</section>")[0];
-  assert.match(rows, /<b>Job 100<\/b> - Role 100, Example Co<\/h3> <span class="detail">- remote · \$150k-190k \(meets your pay\)<\/span>/);
+  assert.match(rows, /<b>Job 100<\/b> - <button[^>]*>Role 100<\/button>, Example Co<\/h3> <span class="detail">- remote · \$150k-190k \(meets your pay\)<\/span>/);
   const note = page.split('aria-labelledby="s-follow_up"')[1].split("</p>")[0];
   assert.match(note, /<p class="note">[^<]+ <button[^>]*class="link" aria-label="Open the guide When to follow up">When to follow up<\/button>$/);
   assert.equal(m.actions[m.sections.find((s) => s.id === "follow_up").guide.open.action].path, "Guides/Following up.md");
@@ -636,7 +670,7 @@ test("every button's name is its own; job buttons carry the job; headings h1 > h
   }
   const page = html(today.model(FULL, say), "new");
   assert.match(page, /aria-label="Make my resume, Job 100">Make my resume</);
-  assert.match(page, /aria-label="Open the posting for Job 3">Posting</);
+  assert.match(page, /aria-label="Open the posting for Job 3: Role 3">Role 3</);
   assert.match(page, /<article class="card" aria-labelledby="j-46"><h3 id="j-46">/);
   // every section named; a line's button described by the line ("Turn it on" - what?)
   assert.equal((page.match(/<section(?![^>]*aria-label)/g) || []).length, 0);

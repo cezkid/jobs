@@ -1,6 +1,7 @@
 // Today dashboard: checks .data/today.json (app/today.py) and draws it as one HTML page for a
 // webview. Pure (no vscode, no disk): extension.js passes what it read. Titles, companies + the why
-// line come from employer postings => data, escaped, never a link or markup.
+// line come from employer postings => data, escaped, never markup. Title + company click through our
+// own buttons only (posting / company website or web search): the page sends an index, never a URL.
 // Tests: node --test app/vscode/test/*.test.js
 const path = require("path");
 
@@ -95,6 +96,17 @@ function cleanUrl(url) {
   }
 }
 
+// company website: http(s) as stored (app/companies.py keeps only these), or our web search link
+function cleanSite(url) {
+  if (typeof url !== "string" || url.length > 2000 || !/^https?:\/\/[^\s"'<>\\`]+$/.test(url)) return null;
+  try {
+    const u = new URL(url);
+    return (u.protocol === "https:" || u.protocol === "http:") && u.hostname ? url : null;
+  } catch {
+    return null;
+  }
+}
+
 // relative path under one of OPENABLE, `/` between parts, no way out of the folder
 function cleanPath(rel) {
   if (typeof rel !== "string" || !rel || rel.length > 500 || rel.includes("\\") || rel.includes("\0")) return null;
@@ -127,10 +139,13 @@ function model(raw, sayJson) {
     const num = Number.isInteger(c.num) && c.num > 0 ? c.num : null;
     if (!num) return null;
     const url = cleanUrl(c.url);
+    const site = cleanSite(c.company_url);
+    const company = str(c.company);
     return {
-      num, title: str(c.title), company: str(c.company), detail: str(c.detail), why: str(c.why),
+      num, title: str(c.title), company, detail: str(c.detail), why: str(c.why),
       say: (Array.isArray(c.say) ? c.say : []).map(sayButton).filter(Boolean),
       posting: url ? { action: act({ type: "posting", url }) } : null,
+      site: site && company ? { website: c.company_website === true, action: act({ type: "company", url: site }) } : null,
       resume: open(c.resume, "file"),
       folder: open(c.folder, "folder"),
     };
@@ -457,6 +472,7 @@ button.link { border: 0; padding: 0; background: none; font-weight: 400; color: 
   text-decoration: underline; text-underline-offset: 2px; }
 button.link:hover { background: none; box-shadow: none; text-decoration-thickness: 2px; }
 button.link:active { box-shadow: none; text-decoration-thickness: 3px; }
+button.named { font-size: inherit; font-weight: inherit; line-height: inherit; overflow-wrap: anywhere; }
 button[disabled] { cursor: progress; opacity: 0.75; }
 button.done, button.done:hover, button.done:active { border-color: transparent; background: none; box-shadow: none;
   transform: none; color: var(--text-2); font-weight: 400; cursor: default; }
@@ -650,22 +666,30 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
       name: name || named(text, num), key: `${num || ""}:${b.id}`, about });
   };
   const acts = (c, lead) => c.say.map((b, i) => say(b, lead && i === 0, { num: c.num })).join("");
-  // posting, resume, folder: places to look, not things to do => ink links on one line
+  // resume, folder: places to look, not things to do => ink links on one line
   const meta = (c) => {
     const link = (x, text, what) => x && btn(text, x.action, { cls: "link", name: `Open the ${what} for Job ${c.num}` });
-    const links = [link(c.posting, "Posting", "posting"), link(c.resume, "Resume", "resume"), link(c.folder, "Folder", "folder")]
-      .filter(Boolean);
+    const links = [link(c.resume, "Resume", "resume"), link(c.folder, "Folder", "folder")].filter(Boolean);
     return links.length ? `<span class="meta">${links.join(" · ")}</span>` : "";
+  };
+  // title opens the posting, company its website (else a web search for it): the name says which
+  // (owner 2026-10-03); no link on record => plain words
+  const title = (c) => (c.posting ? btn(c.title, c.posting.action, { cls: "link named", title: "Open the posting",
+    name: `Open the posting for Job ${c.num}: ${c.title}` }) : h(c.title));
+  const company = (c) => {
+    if (!c.site) return h(c.company);
+    const what = c.site.website ? `Company website: ${c.company}` : `Search the web for ${c.company}`;
+    return btn(c.company, c.site.action, { cls: "link named", title: what, name: what });
   };
   // detail = where it stands; why = the row's reasons (new jobs)
   const facts = (c) => [c.detail, c.why].filter(Boolean).join(" · ");
   // job number = its id in the chat: bold, body size, same on cards + rows
   const card = (c, lead) => `<article class="card" aria-labelledby="j-${c.num}"><h3 id="j-${c.num}"><span class="num">Job ${c.num}</span> `
-    + `${h(c.title)}</h3>` + (c.company ? `<p>${h(c.company)}</p>` : "") + (facts(c) ? `<p class="detail">${h(facts(c))}</p>` : "")
+    + `${title(c)}</h3>` + (c.company ? `<p>${company(c)}</p>` : "") + (facts(c) ? `<p class="detail">${h(facts(c))}</p>` : "")
     + `<div class="acts">${acts(c, lead)}${meta(c)}</div></article>`;
   // one line a job where it fits: number, title, company, detail/why + its buttons + links
-  const row = (c, lead) => `<li><div class="what"><h3 id="j-${c.num}"><b>Job ${c.num}</b> - ${h(c.title)}`
-    + `${c.company ? `, ${h(c.company)}` : ""}</h3>${facts(c) ? ` <span class="detail">- ${h(facts(c))}</span>` : ""}</div>`
+  const row = (c, lead) => `<li><div class="what"><h3 id="j-${c.num}"><b>Job ${c.num}</b> - ${title(c)}`
+    + `${c.company ? `, ${company(c)}` : ""}</h3>${facts(c) ? ` <span class="detail">- ${h(facts(c))}</span>` : ""}</div>`
     + `<span class="acts">${acts(c, lead)}${meta(c)}</span></li>`;
   // a line w/ one button: the button's description = the line's own words ("Turn it on" - what?)
   let lines = 0;
@@ -767,7 +791,7 @@ const TRY_AGAIN = -2;
 
 module.exports = {
   VIEW_TYPE, DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, NEW_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
-  escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
+  escapeHtml, templates, templateFor, cleanUrl, cleanSite, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say, STILL_OPENING, STILL_SAVING,
   STATUS_SET, UNDO_MS, statusLine, undoneLine, statusFailed, UNDO_FAILED, statusKeeper,
   LOOKS, LOOK_FILE, lookOf, lookDone, lookSwitch, csp, page, render, FALLBACK, SHOW_PAGE, TRY_AGAIN, fallback,

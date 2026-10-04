@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 import httpx
 
 import cfg
+import companies
 import store
 
 API_OFFSET_CEILING = 10000
@@ -150,6 +151,7 @@ def main() -> None:
     conn = store.connect(args.db or cfg.db_path(config))
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
         summary = run(config, conn, client)
+        companies.refresh_quietly(conn, client, config["api"]["base"])
     for tier, s in summary.items():
         print(f"{tier}: fetched {s['fetched']} ({s['days']} days), closed {s['closed']}")
 
