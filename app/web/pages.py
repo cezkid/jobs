@@ -477,6 +477,11 @@ def _render_cite(self, tokens, idx, options, env):
     return "(" + "; ".join(links) + ")"
 
 
+OPEN_COPY_NOTE = re.compile(r"(.+?)(?:\s*\((open copy[^()]*)\))?", re.S)
+# "(Vendor survey) (Enhancv 2025)" -> "(Vendor survey; Enhancv 2025)": an evidence label written just before a
+# citation joins it as one parenthetical (audit A13); the source .md keeps both
+LEAD_CITE = re.compile(r'\(([^()<>]+)\)[ \u00a0]\((?=<a href="#src-)')
+
 ESCAPED = "\ue000"  # \[ in a source: kept out of the cite rule, turned back into [ after it
 
 
@@ -602,7 +607,12 @@ class Registry:
         parts = [f'<b class="evidence">{escape(typeset(EVIDENCE[entry["evidence"]]))}</b>',
                  f"{escape(typeset(who.strip()))} ({entry['year']}).", escape(typeset(stop(entry["title"].strip())))]
         if entry.get("venue"):
-            parts.append(f"<i>{escape(typeset(stop(entry['venue'].strip())))}</i>")
+            # "Patterns 4(7) (open copy on arXiv)": the note is not the venue's name - its own sentence, not
+            # italic, so no ") (" in the list (critique K7)
+            venue, note = OPEN_COPY_NOTE.fullmatch(entry["venue"].strip()).groups()
+            parts.append(f"<i>{escape(typeset(stop(venue)))}</i>")
+            if note:
+                parts.append(escape(typeset(stop(note[:1].upper() + note[1:]))))
         if entry.get("sample"):
             parts.append(escape(typeset(stop(entry["sample"].strip()[:1].upper() + entry["sample"].strip()[1:]))))
         if entry.get("preprint"):
@@ -800,7 +810,7 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
                     except ValueError as e:
                         errors.append(f"{src.rel}:{src.line(token)}: {e}")
     labels = {ref: typeset(label) for ref, label in registry.labels.items()}
-    html = MD.renderer.render(typeset_tokens(src.tokens), MD.options, {"labels": labels})
+    html = LEAD_CITE.sub(r"(\1; ", MD.renderer.render(typeset_tokens(src.tokens), MD.options, {"labels": labels}))
     cited = {ref for _, cite in cites(src) for ref, _ in cite.meta["refs"] or []} & set(registry.entries)
     if cited:
         # alphabetical by label, so a reader scanning for "Quillian et al. 2017" finds it
@@ -919,7 +929,8 @@ PAGE_CSS = """
     main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {
-      display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
+      /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
+      display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
       margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.4;
     }

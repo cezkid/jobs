@@ -267,7 +267,8 @@
     main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {
-      display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
+      /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
+      display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
       margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.4;
     }

@@ -268,7 +268,8 @@
     main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {
-      display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
+      /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
+      display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
       margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.4;
     }
@@ -339,10 +340,10 @@
 </nav>
 <p><strong>Short answer</strong></p>
 <ul>
-<li>“75% rejected by ATS”: a 2012 sales claim; we found no method or data behind it (News report) (<a href="#src-levinson-2012-cio">Levinson 2012a</a>).</li>
-<li>Hiring software stores, searches, filters and ranks; recruiters say a person usually decides (Vendor survey) (<a href="#src-enhancv-2025">Vasileva 2025</a>).</li>
-<li>Where software rejects alone, recruiters name yes/no questions: work permit, location, license (Vendor survey, 25 recruiters) (<a href="#src-enhancv-2025">Vasileva 2025</a>).</li>
-<li>About a third of hiring managers in one 2026 vendor survey use AI to screen or rank (Vendor survey) (<a href="#src-resume-genius-2026">Chan 2026</a>). How often it rejects alone: unknown.</li>
+<li>“75% rejected by ATS”: a 2012 sales claim; we found no method or data behind it (News report; <a href="#src-levinson-2012-cio">Levinson 2012a</a>).</li>
+<li>Hiring software stores, searches, filters and ranks; recruiters say a person usually decides (Vendor survey; <a href="#src-enhancv-2025">Vasileva 2025</a>).</li>
+<li>Where software rejects alone, recruiters name yes/no questions: work permit, location, license (Vendor survey, 25 recruiters; <a href="#src-enhancv-2025">Vasileva 2025</a>).</li>
+<li>About a third of hiring managers in one 2026 vendor survey use AI to screen or rank (Vendor survey; <a href="#src-resume-genius-2026">Chan 2026</a>). How often it rejects alone: unknown.</li>
 </ul>
 <h2 id="where-does-the-75-number-come-from">Where does the 75% number come from?</h2>
 <p>No study shows that applicant tracking systems reject 75% of resumes. The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems “kill 75% of candidates’ chances” of an interview. The article credited that figure to Preptel, a company selling help to beat those systems (<a href="#src-levinson-2012-cio">Levinson 2012a</a>).</p>
@@ -428,7 +429,7 @@
 <li id="src-greenhouse-search"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2022). Search resumes for keywords. The maker’s own help page, updated June 2022. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords">Publisher</a></li>
 <li id="src-greenhouse-rules"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2026). Application Rules Overview. The maker’s own help page, updated March 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/203105595-Application-Rules-Overview">Publisher</a></li>
 <li id="src-lawyer-monthly-2026"><b class="evidence">News report (used for the event only)</b> Lawyer Monthly (2026). Workday AI Hiring Bias Case Seeks Class Status. News report of a filing, September 2026; used for the event only. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/">Publisher</a></li>
-<li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012 (open copy on Computerworld).</i> Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></li>
+<li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012.</i> Open copy on Computerworld. Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></li>
 <li id="src-levinson-2012-preptel"><b class="evidence">Survey by a company that sells the service</b> Levinson, Meredith (2012). New job search service helps job seekers penetrate applicant tracking systems. <i>CIO, February 2012.</i> News story about Preptel’s paid service. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.cio.com/article/284417/careers-staffing-new-job-search-service-helps-job-seekers-penetrate-applicant-tracking-systems.html">Publisher</a></li>
 <li id="src-preptel-2012"><b class="evidence">Survey by a company that sells the service</b> Preptel (2012). News. The company’s own news page, archived December 2012; no method given. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://web.archive.org/web/20121227085958/http://www.preptel.com:80/news/">Publisher</a></li>
 <li id="src-jobscan-2026"><b class="evidence">Survey by a company that sells the service</b> Purcell, Kelsey (2026). 2026 Applicant Tracking System (ATS) Usage Report: Key Shifts and Strategies for Job Seekers. Career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/">Publisher</a></li>

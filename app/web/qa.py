@@ -34,8 +34,8 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   install line is one line box; a check whose selector finds 0 elements fails (missing()), never a
   silent pass; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
   main leaves a band > 400px wide + > 200px tall empty right of its content (hub, about, methods too: main as
-  one row, a sticky column counted to its parent's bottom), and an article page has a visible element
-  starting right of x 900 (its On this page column)
+  one row, a sticky column counted to its parent's bottom); TOC_BESIDE: an article's On this page column
+  <= 120px right of its text, <= 400px empty right of the column (A3)
 
 HIT_BOXES, every page at 390x844 (phone, touch): every visible link + button but links inside running text
 and the skip link is >= 44px tall; HIT_OVERLAP, same pages + size: every header / footer / nav tap box keeps
@@ -584,11 +584,14 @@ HEADLINE_RAG = """() => {
   }
   return out;
 }"""
-# wide article: a visible element starts right of ARTICLE_X (the On this page column), not one 68ch column alone
-ARTICLE_X = 900
-RIGHTMOST = """() => Math.max(0, ...[...document.querySelectorAll("main *")].filter(el => {
-  const r = el.getBoundingClientRect(); return r.width > 2 && r.height > 2 && getComputedStyle(el).visibility !== "hidden";
-}).map(el => el.getBoundingClientRect().left))"""
+# TOC_BESIDE (A3, critique K6), wide article: the On this page column sits <= TOC_GAP px right of the text
+# (pushed to the window's edge it was 297px off at 1440) and leaves <= BAND_W px empty right of itself
+# (not one 68ch column alone); null = no visible column
+TOC_GAP = 120
+TOC_BESIDE = """() => { const t = document.querySelector("main nav.toc"), p = document.querySelector("main article p");
+  if (!t || !p || !t.getBoundingClientRect().width) return null;
+  const m = document.querySelector("main"), s = getComputedStyle(m), edge = m.getBoundingClientRect().right - parseFloat(s.paddingRight);
+  const r = t.getBoundingClientRect(); return [r.left - p.getBoundingClientRect().right, edge - r.right]; }"""
 
 # MAC_LINE (A6, a gate since plan-dxn.3): home under MAC_UA shows the Mac line
 # as ONE line box at these sizes; null = no #line
@@ -891,6 +894,10 @@ FAULTS = [
      "toc"),
     (ARTICLE, "TOC_NARROW: the opened list drops a heading", "<script>document.querySelector('.toc-mini li:last-child')"
      ".remove()</script>", "toc"),
+    (ARTICLE, "TOC_BESIDE: On this page back at the window's edge", "<style>.toc { justify-self: end !important; }"
+     "</style>", "wide"),
+    (ARTICLE, "TOC_BESIDE: a thin column, the right half empty again", "<style>.toc { width: 8rem !important; }"
+     "</style>", "wide"),
     (ARTICLE, "TOC_WIDE: On this page column hidden on wide screens", "<style>@media (min-width: 1280px) "
      "{ .toc { display: none !important; } }</style>", "toc"),
     (ARTICLE, "TOC_CURRENT: the section in view never marked", "<script>new MutationObserver(() => document"
@@ -909,7 +916,7 @@ CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FR
              "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT", "SHEET_NOTE": "SHEET_NOTE", "AFTER_RULES": "AFTER_RULES", "TYPE_TIERS": "TYPE_TIERS", "SHEET_REPLAY": "SHEET_REPLAY",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
-             "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
+             "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_BESIDE": "TOC_BESIDE", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
              "HIT_OVERLAP": "HIT_OVERLAP", "0 matches": "found 0 elements"}
 
 
@@ -1158,10 +1165,12 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                 rows = "main > *" if name == "index.html" else "main"
                 failed += [f"{where}: {line}" for line in page.evaluate(EMPTY_RIGHT, rows)]
             if page.evaluate("!!document.querySelector('main article')"):
-                x = page.evaluate(RIGHTMOST)
-                if x <= ARTICLE_X:
-                    failed.append(f"{where}: nothing right of x {ARTICLE_X}px (rightmost starts at {x:.0f}px) - "
-                                  f"the right half is empty")
+                got = page.evaluate(TOC_BESIDE)
+                if got is None:
+                    failed.append(f"TOC_BESIDE {where}: check found 0 elements (On this page column)")
+                elif got[0] > TOC_GAP or got[1] > BAND_W:
+                    failed.append(f"TOC_BESIDE {where}: On this page {got[0]:.0f}px right of the text (cap {TOC_GAP}), "
+                                  f"{got[1]:.0f}px empty right of it (cap {BAND_W})")
         if name == "index.html":
             failed += missing(page, where, "#copy", "#line", "main section h2", ".picked svg.ring", ".picked .meta")
             failed += [f"{where}: {line}" for line in page.evaluate(COMPOSITION)]

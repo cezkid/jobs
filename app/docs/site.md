@@ -196,12 +196,13 @@ questions, install). Real behaviour only: employers, titles, dates never change;
   control); no clickable control inside an illustration.
 - Wide screens fill both halves with real content, never decoration: at 1440x900 + 1920x1080 no home
   row leaves a band > 400 x 200 px empty right of its content, hero columns end within 24 px of each
-  other, articles carry an "On this page" column (their h2s, sticky, >= 1280 px only; `pages.py`), the
+  other, articles carry an "On this page" column (their h2s, sticky, >= 1280 px only, one gutter right of the
+  text - at the window's edge it sat 297 px off at 1440; `pages.py`), the
   hub an "Evidence labels" column (sticky, read from the methods page's label table, >= 1280 px only) and
   About its h2 sections beside its opening (stacked below 1280 px), privacy its Short version (sticky,
   >= 1280 px only), the 404 its drawing in the right half (>= 1024 px). qa.py checks the band (home per
   row; hub, about, methods, privacy + 404 with main as one row, a sticky column counted to its parent's
-  bottom) + the article column. Privacy: no two rules stacked within 60 px w/o text between (RULES_STACKED).
+  bottom) + the article column (TOC_BESIDE: <= 120 px from the text, <= 400 px empty right of it). Privacy: no two rules stacked within 60 px w/o text between (RULES_STACKED).
 - `<symbol>` + `<use>` on the home page only; shared marks are CSS only (generated pages copy the
   shared block, not the home page's SVG).
 

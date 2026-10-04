@@ -191,7 +191,7 @@
   :root { --h1: clamp(2.5rem, 1.5rem + 3vw, 6rem); }
   @media (max-width: 600px) { :root { --h1: clamp(2.25rem, 1rem + 6.4vw, 3rem); } }
   @media (min-width: 1080px) { :root { --h1: var(--display); } }
-  @media (min-width: 1080px) and (min-height: 800px) { :root { --h1: min(clamp(2.5rem, 1rem + 4.6vw, 7rem), 8.6vh + 0.5rem); } }
+  @media (min-width: 1080px) and (min-height: 760px) { :root { --h1: min(clamp(2.5rem, 1rem + 4.6vw, 7rem), 8.6vh + 0.5rem); } }
 
   /* hero: literal h1 + install steps beside the app window (story A: the morning list, finished state) */
   .hero { padding-top: clamp(28px, 4.2vh, 56px); padding-bottom: 64px; row-gap: 40px; }
@@ -259,6 +259,7 @@
   html.is-mac .win-only { display: none; }
   html.is-mac .step.mac-only { display: flex; }
 
+  .nw { white-space: nowrap; }
   .vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
   /* the app window: one framed object, depth = offset second sheet */
@@ -351,7 +352,7 @@
   @media (min-width: 1080px) and (max-width: 1139px) { .command code { font-size: 0.875rem; } }
   /* wide + tall: the h1 runs across both columns as display type (two or three balanced lines), steps
      + window side by side under it; the font stays capped by the screen's height so Copy keeps its room */
-  @media (min-width: 1080px) and (min-height: 800px) {
+  @media (min-width: 1080px) and (min-height: 760px) {
     .hero { row-gap: 0; align-content: start; grid-template-rows: auto auto 1fr; }
     .intro { display: contents; }
     h1 { grid-column: 1 / -1; max-width: none; }
@@ -572,12 +573,9 @@
   .picks > li::before { top: -2px; border-top-width: 10px; }
   @media (min-width: 900px) {
     .picks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .picks li { padding: 0 var(--gutter); border-left: 1px solid var(--line); }
-    .picks li:first-child { padding-left: 0; border-left: 0; }
-    .picks li:last-child { padding-right: 0; }
-    .picks > li::before { left: var(--gutter); right: var(--gutter); }
-    .picks > li:first-child::before { left: 0; }
-    .picks > li:last-child::before { right: 0; }
+    /* the rules sit in the column gaps, so all three columns get the same text width (was 408 / 375 / 407) */
+    .picks { column-gap: calc(2 * var(--gutter) + 1px); }
+    .picks li + li::after { content: ""; position: absolute; top: 0; bottom: 0; left: calc(-1 * var(--gutter) - 1px); border-left: 1px solid var(--line); }
   }
 
   /* questions: two stacks (not CSS columns: a column break can split an open answer) */
@@ -627,6 +625,10 @@
   @media (max-width: 600px) {
     .hero { padding-bottom: 32px; }
     .scene { padding-top: 30px; padding-bottom: 30px; row-gap: 20px; }
+    /* the two halves stay two blocks, as on tablets (A11) */
+    .after { row-gap: 48px; }
+    /* 1.2x, not 1.3x: at 1.3x "morning's jobs." is a hair wider than a 390 phone, so "jobs." sat alone */
+    .closing h2 { font-size: calc(var(--h1) * 1.2); }
     .ledger li { padding: 12px 0 13px; }
     .defs > div { padding: 9px 0 10px; }
     .questions { row-gap: 0; }
@@ -891,7 +893,7 @@
         <div><p>The app is free. You need one AI plan: Claude Pro or Max, ChatGPT Plus or Pro, or GitHub Copilot Pro ($10 a month). Copilot’s free plan can’t make tailored resumes.</p></div>
       </details>
       <details>
-        <summary>Can I use Nova, Poe or another all-in-one AI app?</summary>
+        <summary>Can I use Nova, Poe or another <span class="nw">all-in-one</span> AI app?</summary>
         <div><p>Those apps can’t run programs on your computer, so they can’t run CEZ Job Finder. GitHub Copilot Pro ($10 a month) works like them – several AIs in one plan – and runs here. Pick Claude Sonnet as its AI.</p></div>
       </details>
     </div>
