@@ -545,6 +545,11 @@ EMPTY_RIGHT = """(rows) => {
     for (const el of row.querySelectorAll("*")) {
       const c = getComputedStyle(el);
       if (c.visibility === "hidden" || parseFloat(c.opacity) === 0) continue;
+      // a display heading (>= 48px) counts as its whole block: the rag of its last line is type, not an
+      // empty half (closing line at 1920, 2026-10-04)
+      if (/^h[1-3]$/.test(el.localName) && parseFloat(c.fontSize) >= 48) {
+        rects.push(el.getBoundingClientRect()); continue;
+      }
       if ([...el.childNodes].some(n => n.nodeType === 3 && n.data.trim())) {
         const r = document.createRange(); r.selectNodeContents(el);
         rects.push(...[...r.getClientRects()].filter(q => q.width > 2 && q.height > 2));

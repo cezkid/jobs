@@ -143,8 +143,8 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--step-1` | `1.375rem` | same | lede, large body |
 | `--step-2` | `1.75rem` | same | small headings |
 | `--display` | `min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem)` | same | home h1: as large as the 1366x641 fold allows |
-| `--track-display` | `-0.024em` | same | letter-spacing of display lines (h1 + scene h2, 941px+ wide) |
-| `--lead-display` | `0.98` | same | line-height of the same lines: text-size values read loose at 90-112px |
+| `--track-display` | `-0.016em` | same | letter-spacing of display lines (h1 + scene h2, 941px+ wide) |
+| `--lead-display` | `1.06` | same | line-height of the same lines: 0.98 (2026-10-03) read cramped at 82-131px in bold - owner 2026-10-04; multi-line text <= 18px >= 1.45 |
 | `--ease-mark` | `cubic-bezier(0.3, 0.7, 0.4, 1)` | same | highlighter sweeps |
 
 768px up, the spacing grows with the display type (owner, plan-dxn.37, S1 look: "such large font and
