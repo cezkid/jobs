@@ -213,6 +213,8 @@
   .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.4; }
   .toc-mini li { margin: 0; }
   .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+  /* the section in view (TOC_JS marks it): bold, underlined in ink; without JS nothing is marked */
+  :is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration-color: var(--text); }
   /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
   @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
   /* Keep reading: the article's way on, under a thick rule like Sources */
@@ -264,6 +266,8 @@
     h2 { margin-top: 36px; }
     .sources li { padding-left: 2.2em; }
     .sources li::before { width: 1.7em; }
+    /* an article's current crumb repeats the h1 just below: hidden (screen readers keep it) so the crumbs fit one line */
+    article .crumbs [aria-current] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   }
   @media print {
     main.wrap { padding-top: 0; padding-bottom: 0; }
@@ -472,5 +476,6 @@
     </nav>
   </div>
 </footer>
+<script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.3)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -70% 0px"});h.forEach(x=>o.observe(x))})()</script>
 </body>
 </html>

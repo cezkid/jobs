@@ -975,6 +975,11 @@ def test_every_evidence_label_is_in_the_research_guide_and_the_methods_page():
         assert f"| {words} |" in methods, words
 
 
+def test_toc_script_fits_its_budget():
+    assert len(pages.TOC_JS.encode()) <= 400
+    assert "</" not in pages.TOC_JS and 'aria-current","true"' in pages.TOC_JS
+
+
 def test_articles_end_with_keep_reading_and_the_h1_comes_before_on_this_page(tmp_path):
     third = SOURCES["ai-bias.md"].replace("AI screening and bias", "Third one").replace("2026-09-10", "2026-09-05").replace(
         "What tests of AI resume screeners found.", "A third page.")
@@ -999,6 +1004,11 @@ def test_articles_end_with_keep_reading_and_the_h1_comes_before_on_this_page(tmp
             assert main.index('class="meta"') < main.index('class="toc-mini"') < main.index("<h2")
             assert "<details>\n<summary>On this page</summary>" in mini
             assert re.findall(r'href="(#[^"]+)"', mini) == ["#" + i for i in re.findall(r'<h2 id="([^"]+)"', main)]
+            # the section-in-view script: after the footer, once, in its 400 B budget (A23); none without a list
+            assert html.count(f"<script>{pages.TOC_JS}</script>") == 1
+            assert html.index("</footer>") < html.index(pages.TOC_JS)
+        else:
+            assert "<script>(" not in html, name
         ids = re.findall(r'\sid="([^"]+)"', html)
         assert len(ids) == len(set(ids)), name
     # the next two after it in hub order (newest first), wrapping round

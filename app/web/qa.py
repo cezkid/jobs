@@ -35,7 +35,9 @@ underlined thicker than Install on /research/** and the same elsewhere; FOOTER_B
 1440x900: the footer ends within 2px of the window's bottom or the page end (404: no blank band under it).
 TOC_NARROW, every page with an On this page column at 390x844 (phone) + 1024x768: a visible 'On this page'
 summary in the first screen, opened = a link to every h2; TOC_WIDE at 1440x900 (also in --engines): the
-column's links all visible, the first in the first screen, right of the text column.
+column's links all visible, the first in the first screen, right of the text column; TOC_CURRENT there: the
+3rd h2 scrolled to the top -> its link (both lists, only it) aria-current="true" + bold; CRUMBS_ONE_LINE at
+360x780 + 390x844 (phone): an article's visible crumbs share one line.
 
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
@@ -512,6 +514,17 @@ TOC_BOX = """sel => { const el = document.querySelector(sel); if (!el) return nu
 TOC_LINKS = """sel => [...document.querySelectorAll(sel)].filter(a => { const r = a.getBoundingClientRect();
   return a.checkVisibility({visibilityProperty: true}) && r.width > 0 && r.height > 0 && r.right <= innerWidth; })
   .map(a => a.getAttribute("href"))"""
+# TOC_CURRENT (A23), with TOC_WIDE: the 3rd h2 scrolled to the top -> its link, and only it, aria-current="true"
+# in both lists, set in ink (bold, not the other links' weight). Read 400 ms after the scroll (IO calls back next frame)
+TOC_CURRENT = """i => { const h = document.querySelectorAll("main article h2[id]")[i]; if (!h) return null;
+  h.scrollIntoView(); return new Promise(r => setTimeout(() => r({want: "#" + h.id,
+    got: [...document.querySelectorAll(".toc a[aria-current=true], .toc-mini a[aria-current=true]")]
+      .map(a => [a.closest("nav").className, a.getAttribute("href"), getComputedStyle(a).fontWeight]),
+    plain: getComputedStyle(document.querySelector(".toc a:not([aria-current])")).fontWeight}), 400)); }"""
+# CRUMBS_ONE_LINE (A20), articles at 360 + 390 wide: the breadcrumb's visible crumbs share one line
+CRUMBS_AT = [(360, 780), (390, 844)]
+CRUMBS_TOPS = """() => [...document.querySelectorAll("article .crumbs li")].filter(li => li.getBoundingClientRect().width > 1)
+  .map(li => Math.round(li.getBoundingClientRect().top))"""
 # FOOTER_BOTTOM (C2/short pages): at 1440x900 the footer ends within 2px of the window's bottom or the page end
 FOOTER_BOTTOM_AT = (1440, 900)
 FOOTER_BOTTOM = """() => { const f = document.querySelector("footer"); if (!f) return null;
@@ -711,6 +724,14 @@ FAULTS = [
      ".remove()</script>", "toc"),
     (ARTICLE, "TOC_WIDE: On this page column hidden on wide screens", "<style>@media (min-width: 1280px) "
      "{ .toc { display: none !important; } }</style>", "toc"),
+    (ARTICLE, "TOC_CURRENT: the section in view never marked", "<script>new MutationObserver(() => document"
+     ".querySelectorAll('[aria-current=true]').forEach(a => a.removeAttribute('aria-current'))).observe("
+     "document.body, {subtree: true, attributes: true, attributeFilter: ['aria-current']})</script>", "toc"),
+    (ARTICLE, "TOC_CURRENT: current link looks like the rest", "<style>:is(.toc, .toc-mini) a[aria-current] "
+     "{ font-weight: 400 !important; }</style>", "toc"),
+    (ARTICLE, "CRUMBS_ONE_LINE: current crumb shown on phones", "<style>article .crumbs [aria-current] "
+     "{ position: static !important; width: auto !important; height: auto !important; clip-path: none !important; "
+     "white-space: normal !important; }</style>", "toc"),
     ("research/index.html", "HOVER: hub item's top rule stays put", "<style>.list > li:hover::before "
      "{ transform: scaleX(0) !important; }</style>", "hover"),
 ]
@@ -718,7 +739,7 @@ FAULTS = [
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
-             "RULES_STACKED": "RULES_STACKED", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
+             "RULES_STACKED": "RULES_STACKED", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
              "0 matches": "found 0 elements"}
 
 
@@ -860,6 +881,14 @@ def check_toc(browser, base: str, inject: str | None = None, names: list[str] | 
                 if got != heads:
                     failed.append(f"{where}: opened list shows {len(got)} links, page has {len(heads)} h2s "
                                   f"(first missing: {next((x for x in heads if x not in got), None)})")
+        for w, h in CRUMBS_AT if narrow else []:
+            where = f"CRUMBS_ONE_LINE {label_for(browser, name, w, h, True)}"
+            with opened(browser, base, name, w, h, True, failed, where, inject) as page:
+                tops = page.evaluate(CRUMBS_TOPS)
+                if not tops:
+                    failed.append(f"{where}: check found 0 elements for article .crumbs li")
+                elif len(set(tops)) > 1:
+                    failed.append(f"{where}: breadcrumb runs to {len(set(tops))} lines")
         w, h = TOC_WIDE_AT
         where = f"TOC_WIDE {label_for(browser, name, w, h, False)}"
         with opened(browser, base, name, w, h, False, failed, where, inject) as page:
@@ -873,6 +902,14 @@ def check_toc(browser, base: str, inject: str | None = None, names: list[str] | 
                 spot = f"at x {first['left']:.0f}, bottom {first['bottom']:.0f}" if first["shown"] else "hidden"
                 failed.append(f"{where}: On this page column shows {len(got)} of {len(heads)} links, first {spot}"
                               f" (text column ends at x {text:.0f}, screen {h}px)")
+            cur = page.evaluate(TOC_CURRENT, 2)
+            where = f"TOC_CURRENT {label_for(browser, name, w, h, False)}"
+            if cur is None:
+                failed.append(f"{where}: check found 0 elements for a 3rd h2")
+            elif sorted(c[:2] for c in cur["got"]) != [["toc", cur["want"]], ["toc-mini", cur["want"]]]:
+                failed.append(f"{where}: 3rd h2 {cur['want']} at the top, links marked current: {cur['got']}")
+            elif any(int(c[2]) < 700 or c[2] == cur["plain"] for c in cur["got"]):
+                failed.append(f"{where}: current link weight {cur['got'][0][2]}, others {cur['plain']} - not set apart")
     return failed
 
 
