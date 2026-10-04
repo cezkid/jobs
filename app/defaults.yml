@@ -88,7 +88,8 @@ home_address:
   zip: null
 
 # Ranking (rank.py). Order: tier > not seen lately (may be closed) > likely ghost / level /
-# hours / sponsorship mismatch > pay floor > pay > employer lists > first seen. Only max_age_days hides a job.
+# hours / sponsorship mismatch > pay floor > pay > employer lists > first seen. Only max_age_days
+# and pay_filter hide a job.
 rank:
   # open job no check has returned in more than this many days sorts to the bottom of its tier
   # ("may be closed") and is never announced as new: filled jobs outside a pass's
@@ -111,8 +112,21 @@ rank:
   # any of full_time part_time contract internship fellowship; [] = doesn't matter.
   # Rows w/o employment_type (~30-45%) never demoted.
   employment_types: []
-  # yearly USD; a job whose top of range reaches it ranks above those that don't. Boost only.
+  # yearly USD; a job whose top of range reaches it ranks above those that don't. 0 = no floor
+  # (pay_filter then hides nothing)
   salary_floor_usd: 0
+  # hides jobs by pay on every list (Today, chat, email, find); rows stay saved. Owner 2026-10-04:
+  # "only if job count is low should lower paying jobs be allowed". Why + measured counts:
+  # app/docs/jobs/pay-filter.md
+  pay_filter:
+    # top of range under salary_floor_usd => hidden
+    hide_below_floor: true
+    # no pay listed => hidden. Off by default: unlisted pay != low pay, and most postings outside
+    # tech list none (owner's list 2026-10-04: 866 of 1,589 open)
+    hide_unlisted: false
+    # fewer than this many shown jobs reached their list in the last 7 days => hidden ones from
+    # that week come back up to it, closest first, each saying why. 0 = never
+    relax_under_new_per_week: 25
   # freehire employer lists; only order jobs with no pay listed. bigtech/unicorn/yc are
   # tech-only - add them for a tech search. fortune500 spans every field (54k US rows 2026-09-24)
   boost_collections: [fortune500]

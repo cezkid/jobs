@@ -475,3 +475,25 @@ def test_company_link_found_through_the_listed_job(conn, tmp_path):
     applied(conn, "old", "2026-08-31T12:00:00Z")
     conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?)", (CHECK,))
     assert "[Notion](<https://notion.so>)" in page(conn, tmp_path)
+
+
+# a job under their pay hidden on the Today page still came in the morning email or the chat brief
+def test_today_email_and_brief_share_one_pay_filter(conn, tmp_path, monkeypatch):
+    import alert
+    import rank
+    config = cfg.merge(CONFIG, {"rank": {"salary_floor_usd": 100000,
+                                         "pay_filter": {"relax_under_new_per_week": 0}}})
+    pay = dict(salary_currency="USD", salary_period="year")
+    store.upsert(conn, [job("meets", salary_min=120000, salary_max=140000, **pay),
+                        job("below", salary_min=50000, salary_max=60000, **pay)], CHECK)
+    calls = []
+    real = rank.pay_filter
+    monkeypatch.setattr(rank, "pay_filter", lambda *a: calls.append(1) or real(*a))
+    surfaces = {"page": lambda: today.build(conn, config, tmp_path, NOW, [], root=tmp_path),
+                "brief": lambda: today.brief(conn, config, tmp_path, NOW, []),
+                "email": lambda: " ".join(j["public_slug"] for j in alert.unseen_ranked(conn, config))}
+    for name, build in surfaces.items():
+        calls.clear()
+        text = build()
+        assert "meets" in text and "below" not in text.replace("below your pay", ""), name
+        assert calls, name

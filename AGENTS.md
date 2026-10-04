@@ -52,6 +52,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   make tailored resumes - never offer it).
   Switch: `uv run app/jobs.py ai <claude|chatgpt|copilot>`, then they close + reopen CEZ Job
   Finder.
+- Jobs under their lowest pay are hidden on every list unless few came in that week (then the
+  closest come back, marked); no-pay-listed stays unless they choose. Changing it = narrowing:
+  `rank --pay-floor N` counts first. `app/docs/jobs/pay-filter.md`.
 - "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
   (switches at once), confirm in one line. Today has the same switch at the top.
 

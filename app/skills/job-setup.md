@@ -49,7 +49,13 @@ First, broad:
 - full time / part time / contract, `multiSelect` + "doesn't matter". Types they didn't pick ->
   `blocklist.employment_types` (hidden, by the job search's own tag; untagged jobs stay) - say the
   count each hides from `probe --facets employment_type <their params>` before saving
-- lowest yearly pay - 4 bands (ranks higher-paying first, never hides jobs; say so in the question)
+- lowest yearly pay - 4 bands + "doesn't matter". Say in the question: jobs paying less are hidden
+  unless few new jobs come in that week; jobs with no pay listed stay. Before saving, count it:
+  `uv run app/jobs.py rank --pay-floor <band>` (once jobs are in; before that, `probe` counts of
+  `salary_min`) and say "hides N, keeps M" (AGENTS.md, narrowing). Want no-pay-listed jobs hidden
+  too -> push back once (unlisted pay isn't low pay; most fields outside tech list none; count
+  with `--hide-unlisted`), then `rank.pay_filter.hide_unlisted: true` if they still want it.
+  `app/docs/jobs/pay-filter.md`
 
 Then narrowing what they picked:
 - which exact roles inside the family they picked, `multiSelect`. Then count the role itself,
@@ -128,7 +134,7 @@ showing jobs from <company>" any time.
 
 Write `My Settings/Search settings.yml`: `profile.name` (their words, e.g. "accounting jobs" -
 heads notification + email), `passes`, `blocklist` (keep `jobgether` + their companies),
-`rank.salary_floor_usd`, `rank.career_level`, `rank.employment_types` (full/part time/contract
+`rank.salary_floor_usd` (+ `rank.pay_filter` only if they changed it), `rank.career_level`, `rank.employment_types` (full/part time/contract
 answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date as comment beside each param. Then
 `uv run app/jobs.py check-settings`.
 

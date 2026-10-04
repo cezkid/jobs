@@ -112,6 +112,76 @@ def pay_label(job: dict) -> str:
     return f"${lo:.0f}k" if lo == hi else f"${lo:.0f}k-{hi:.0f}k"
 
 
+def pay_hidden(job: dict, rc: dict) -> str | None:
+    """Why rank.pay_filter hides it: "below" (top of range under the floor), "unlisted" (no USD
+    pay to compare - not low pay, just unknown), else None. No floor set => never hidden."""
+    pf, floor = rc.get("pay_filter") or {}, rc.get("salary_floor_usd")
+    if not floor:
+        return None
+    if pay(job) is None:
+        return "unlisted" if pf.get("hide_unlisted") else None
+    return "below" if pf.get("hide_below_floor") and not meets_floor(job, floor) else None
+
+
+def listed_days(job: dict, now: datetime) -> int | None:
+    """Days since it reached their list (first fetch)."""
+    since = job.get("first_fetched_at")
+    return None if not since else (now - datetime.strptime(since[:19], "%Y-%m-%dT%H:%M:%S").replace(tzinfo=timezone.utc)).days
+
+
+def pay_filter(jobs: list[dict], rc: dict, now: datetime) -> list[dict]:
+    """The one pay filter every list goes through (rank => Today, chat brief, email, find):
+    drops jobs under the pay floor (and, per setting, w/o pay listed); rows stay in jobs.db.
+    Relax: fewer than relax_under_new_per_week live jobs that pass reached the list in the last
+    7 days => hidden ones from that week come back up to it, closest first - below-floor
+    nearest the floor (pay known, gap small), then pay not listed, newest first (unknown, could
+    be either). Each back carries `pay_relaxed` = why it was hidden, named in its reasons."""
+    hide = [pay_hidden(j, rc) for j in jobs]
+    if not any(hide):
+        return jobs
+    want = (rc.get("pay_filter") or {}).get("relax_under_new_per_week") or 0
+    week = lambda j: not j.get("stale") and (d := listed_days(j, now)) is not None and d < 7
+    short = want - sum(1 for j, h in zip(jobs, hide) if not h and week(j))
+    pool = sorted((i for i, j in enumerate(jobs) if hide[i] and week(jobs[i])), key=lambda i: (
+        hide[i] == "unlisted", -(top_annual(jobs[i]) or 0), listed_days(jobs[i], now)))
+    back = set(pool[:max(0, short)])
+    return [dict(j, pay_relaxed=hide[i]) if i in back else j
+            for i, j in enumerate(jobs) if not hide[i] or i in back]
+
+
+def pay_probe(jobs: list[dict], config: dict, floor: float, hide_unlisted: bool, now: datetime) -> str:
+    """What a floor would hide among the rows shown today (blocklist + max_age_days applied, pay
+    filter off) - the narrowing count AGENTS.md wants said before saving."""
+    off = cfg.merge(config, {"rank": {"pay_filter": {"hide_below_floor": False, "hide_unlisted": False}}})
+    rc = cfg.merge(config["rank"], {"salary_floor_usd": floor,
+                                    "pay_filter": {"hide_below_floor": True, "hide_unlisted": hide_unlisted}})
+    shown, out = rank(jobs, off, now), []
+    week = [j for j in shown if (d := listed_days(j, now)) is not None and d < 7]
+    for label, rows in (("open", shown), ("reached your list in the last 7 days", week)):
+        why = [pay_hidden(j, rc) for j in rows]
+        out.append(f"{label}: {len(rows)} - keeps {why.count(None)}, hides {why.count('below')} below"
+                   f" ${floor:,.0f}" + (f" + {why.count('unlisted')} with no pay listed" if hide_unlisted else
+                                        f" (no pay listed, kept: {sum(1 for j in rows if pay(j) is None)})"))
+    return "\n".join(out)
+
+
+def top_annual(job: dict) -> float | None:
+    p = pay(job)
+    return p[1] * PERIODS_PER_YEAR[p[2]] if p else None
+
+
+def pay_words(job: dict, rc: dict) -> str:
+    """Pay in a job's why: shown against their floor; one the pay filter let back says so."""
+    label = pay_label(job)
+    if job.get("pay_relaxed") == "below":
+        return f"below your pay: {label} (few new jobs this week)"
+    if job.get("pay_relaxed") == "unlisted":
+        return "pay not listed (few new jobs this week)"
+    if label and rc["salary_floor_usd"]:
+        label += " (meets your pay)" if meets_floor(job, rc["salary_floor_usd"]) else " (below your pay)"
+    return label or "pay not listed"
+
+
 def has_salary(job: dict) -> bool:
     return job.get("salary_min") is not None or job.get("salary_max") is not None
 
@@ -214,8 +284,8 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     rc = config["rank"]
     tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
     now = now or datetime.now(timezone.utc)
-    kept = collapse([dict(j, stale=stale_for(j, rc, now)) for j in jobs
-                     if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)])
+    kept = pay_filter(collapse([dict(j, stale=stale_for(j, rc, now)) for j in jobs
+                                if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)]), rc, now)
     # Order, most decisive first:
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
@@ -281,11 +351,8 @@ def reasons(job: dict, config: dict, now: datetime | None = None, when: str | No
     in place of age_label (Today page + email: added, when it reached the user's list)."""
     rc = config["rank"]
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
-    label = pay_label(job)
-    if label and rc["salary_floor_usd"]:
-        label += " (meets your pay)" if meets_floor(job, rc["salary_floor_usd"]) else " (below your pay)"
     hits = [COLLECTION_NAMES.get(c, c) for c in job.get("collections") or [] if c in rc["boost_collections"]]
-    parts = [place, label or "pay not listed", *hits,
+    parts = [place, pay_words(job, rc), *hits,
              age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
@@ -323,6 +390,9 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=30)
     ap.add_argument("--suspects", action="store_true", help="list companies spanning unrelated categories")
     ap.add_argument("--would-hide", metavar="PHRASE", help="count + sample titles a title phrase would hide")
+    ap.add_argument("--pay-floor", type=float, metavar="USD", help="count what a yearly pay floor would hide"
+                    " (all open + last 7 days, before the thin-week relax), to say before saving it")
+    ap.add_argument("--hide-unlisted", action="store_true", help="with --pay-floor: no pay listed hides too")
     ap.add_argument("--best", action="store_true", help="Today page's 'Best to apply next' order: open jobs not"
                     " acted on, resume match, asks, pay, where, freshness (app/best.py)")
     args = ap.parse_args()
@@ -340,6 +410,9 @@ def main() -> None:
             print(f"  {j['title']} | {j['company']}")
         return
     now = datetime.now(timezone.utc)
+    if args.pay_floor is not None:
+        print(pay_probe(jobs, config, args.pay_floor, args.hide_unlisted, now))
+        return
     if args.best:
         import best  # imports this module
         for j in store.numbered(conn, best.ordered(conn, config, now)[: args.limit]):

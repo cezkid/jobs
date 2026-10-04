@@ -215,10 +215,7 @@ def reasons(job: dict, config: dict, now: datetime) -> str:
         parts.append(heavy + (f", {f['lead']} to lead or manage" if f["lead"] >= 2 else ""))
     if f["above"]:
         parts.append(f"{job['seniority'].replace('_', '-')} level, above yours")
-    label = rank.pay_label(job)
-    if label and rc["salary_floor_usd"]:
-        label += " (meets your pay)" if rank.meets_floor(job, rc["salary_floor_usd"]) else " (below your pay)"
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
-    parts += [label or "pay not listed", place, ago(posted_days(job, now))]
+    parts += [rank.pay_words(job, rc), place, ago(posted_days(job, now))]
     parts += rank.doubts(job, rc) + rank.mismatches(job, rc) + rank.sponsorship(job, config) + rank.clearance(job)
     return " · ".join(p for p in parts if p)
