@@ -216,9 +216,18 @@ Native CSS only - no animation library, no 3D, no WebGL. Text never waits for mo
   the same drawing on the window's view timeline (cover 5% -> 45%: it starts below the fold).
 - Scenes: scroll-driven (`animation-timeline: view()`) as the single path, inside `@supports` +
   `prefers-reduced-motion: no-preference`. No scroll timelines (Firefox) => finished state. Only
-  circles, checks + small object shifts animate; text opacity 1 at every scroll position; start +
-  end layout boxes identical. Home: the resume sheet lifts 12px + its second sheet slides out,
-  the "You approved this line" circle + tick and the Submit circle draw in. A drawn shape inside
+  circles, checks + small object shifts animate (one exception below); text opacity 1 at every
+  scroll position; start + end layout boxes identical. Home: the resume sheet lifts 12px + its
+  second sheet slides out, the "You approved this line" circle + tick and the Submit circle draw in.
+- Signature sheet only (owner decision 1, 2026-10-03; relaxes the "only circles + checks" lock
+  there): the correction replays on the `.proof` view timeline `--sheet` as the sheet arrives -
+  strike on the old line (cover 26-31%), then the new line's two marks (31-36%, 35-40%), all
+  finished by cover 40%, before the sheet is centred; then the circle (40-47%) + tick (47-51%).
+  Cover ranges only: the figure is taller than a 641px screen, so `entry 70%` lands after
+  `cover 26%` (an inverted range: Safari never draws it, Chrome jumps it). Measured: each line is
+  wholly on screen when its range starts (bottom in at cover 17-32%; 1366x641 the latest) and finished by mid-screen (48-54%),
+  phone through 1920. Reduced motion + Firefox keep the finished state; CSS only, so nothing waits on JS. qa SHEET_REPLAY:
+  under way at cover 10%, finished at 40%; MARK_STATE counts the strike as a mark. A drawn shape inside
   an SVG takes its parent `<svg>`'s named `view-timeline` (a subject with a real CSS box). A
   transformed sheet is a stacking context: its paper + border live on `::after`, the second sheet
   on `::before`, so the back sheet never paints over the front one.

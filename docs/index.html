@@ -462,16 +462,20 @@
   }
 
   /* scene motion: scroll-driven draw-ins, the single path - no support (Firefox) or reduced motion
-     shows the finished state; only circles, checks + the sheet's 12px lift move, text never waits */
+     shows the finished state; the sheet's 12px lift, the correction (owner decision 1: strike, then
+     the new line's two marks, done by cover 40%), then the approval circle + tick; text never waits */
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
       @keyframes lift { from { transform: translateY(12px); } }
       @keyframes under { from { transform: translate(0, 0); } }
+      .proof { view-timeline: --sheet; }
       .sheet-lg { animation: lift linear both; animation-timeline: view(); animation-range: entry 0% entry 80%; }
       .sheet-lg::before { animation: under linear both; animation-timeline: view(); animation-range: entry 20% cover 40%; }
-      .margin.ok svg { view-timeline: --ok; }
-      .margin.ok .ring { --len: 64; animation: draw linear both; animation-timeline: --ok; animation-range: entry 100% cover 55%; }
-      .margin.ok .tick { --len: 16; animation: draw linear both; animation-timeline: --ok; animation-range: cover 50% cover 62%; }
+      .sheet-lg .old del { animation: strike linear both; animation-timeline: --sheet; animation-range: cover 26% cover 31%; }
+      .sheet-lg .new mark:first-of-type { animation: sweep linear both; animation-timeline: --sheet; animation-range: cover 31% cover 36%; }
+      .sheet-lg .new mark:last-of-type { animation: sweep linear both; animation-timeline: --sheet; animation-range: cover 35% cover 40%; }
+      .margin.ok .ring { --len: 64; animation: draw linear both; animation-timeline: --sheet; animation-range: cover 40% cover 47%; }
+      .margin.ok .tick { --len: 16; animation: draw linear both; animation-timeline: --sheet; animation-range: cover 47% cover 51%; }
       .submit svg { --len: 100; animation: draw linear both; animation-timeline: view(); animation-range: entry 100% cover 50%; }
     }
   }

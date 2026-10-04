@@ -48,12 +48,14 @@ article page too (privacy + articles, every size).
 
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
-- reduced motion: document.getAnimations() empty, every mark finished (MARK_STATE), every dashed
+- reduced motion: document.getAnimations() empty, every mark + the correction's strike finished (MARK_STATE), every dashed
   SVG stroke drawn (DRAWN: stroke-dashoffset 0)
 - full motion: PAINT_CONCURRENT <= 3 animations mid-way on background-size / clip-path /
   stroke-dashoffset at every half-screen scroll step from load on; no animation loops forever; once the timed ones end (the opening moment), text
   opacity 1 at every half-screen scroll step; every mark finished once scrolled to mid-screen;
   every dashed stroke drawn after a full scroll; reloaded at the bottom, none above the screen undrawn
+- SHEET_REPLAY (home, full motion, view() timelines): the correction's strike + new-line marks still under
+  way at cover 10% of the resume figure, all finished by cover 40% (owner decision 1)
 - layout boxes (offset rects: transforms don't move them) equal between reduced and full motion
 - no JS (CSS still animates: judged once the timed animations end): all text shown
   (opacity 1, visible) + home's Windows install line; NOJS_SCRIPTING: no visible <button> (nothing
@@ -184,6 +186,8 @@ ONE_LINE = """() => {
 # shared helpers, prepended to the snippets below
 HELPERS = """
 const MARKS = "mark, .mark";
+// sweeps judged finished: marks + the correction's strike (a background line, owner decision 1)
+const SWEPT = MARKS + ", .old del";
 const opacity = el => { let o = 1; for (let e = el; e && e.nodeType === 1; e = e.parentElement)
   o *= parseFloat(getComputedStyle(e).opacity); return o; };
 const shown = el => el.checkVisibility({contentVisibilityAuto: true});
@@ -214,14 +218,14 @@ const frames = () => new Promise(r => requestAnimationFrame(() => requestAnimati
 
 # every mark not finished, as "label: why"
 MARK_STATE = "() => {" + HELPERS + """
-  return [...document.querySelectorAll(MARKS)].map(el => [el, markState(el)])
+  return [...document.querySelectorAll(SWEPT)].map(el => [el, markState(el)])
     .filter(([, s]) => s && s !== "ok").map(([el, s]) => label(el) + ": " + s);
 }"""
 
 # full motion: scroll each mark to mid-screen, let its timed animations end, then judge it
 MARKS_SCROLLED = "async () => {" + HELPERS + """
   const bad = [];
-  for (const el of document.querySelectorAll(MARKS)) {
+  for (const el of document.querySelectorAll(SWEPT)) {
     el.scrollIntoView({block: "center"});
     await frames();
     await Promise.race([Promise.all(el.getAnimations({subtree: true})
@@ -436,6 +440,24 @@ SHEET_NOTE = """() => { const q = s => document.querySelector(".sheet-lg " + s);
   if (!ok || !nw || !od || !bul) return null;
   const px = el => parseFloat(getComputedStyle(el).fontSize);
   return [ok.getBoundingClientRect().top, nw.getBoundingClientRect().top, px(nw), px(od), px(bul)]; }"""
+
+# SHEET_REPLAY (owner decision 1, full motion where view() timelines run): the correction (strike + the new
+# line's marks) replays on the .proof view timeline - at cover SHEET_REPLAY_EARLY one of them is still
+# under way, by cover SHEET_REPLAY_DONE every one is finished; [early unfinished, late unfinished] or null
+SHEET_REPLAY_EARLY = 0.10
+SHEET_REPLAY_DONE = 0.40
+SHEET_REPLAY = "async () => {" + HELPERS + """
+  if (!CSS.supports("animation-timeline: view()")) return [[], []];
+  const fig = document.querySelector(".proof"), els = [...document.querySelectorAll(".sheet-lg .old del, .sheet-lg .new mark")];
+  if (!fig || els.length < 3) return null;
+  const top = fig.getBoundingClientRect().top + scrollY, span = innerHeight + fig.offsetHeight;
+  const at = async p => { scrollTo(0, Math.ceil(top - innerHeight + p * span) + 1); await frames();
+    return els.filter(el => el.getAnimations().some(a => { const t = a.effect.getComputedTiming();
+      return t.progress === null || t.progress < 0.999; }) || markState(el) !== "ok").map(label); };
+  const out = [await at(""" + str(SHEET_REPLAY_EARLY) + """), await at(""" + str(SHEET_REPLAY_DONE) + """)];
+  scrollTo(0, 0);
+  return out;
+}"""
 
 # empty right halves (BAND_AT): per row of main, 4px slices from its first content line to its last; a run
 # of slices whose rightmost content (text line boxes, svg/img/button, boxes with a border or background)
@@ -754,6 +776,12 @@ FAULTS = [
      "top: -2.4em; }</style>", "layout"),
     (HOME, "SHEET_NOTE: the new line back at 15px", "<style>.sheet-lg .new { font-size: 0.9375rem !important; }</style>",
      "layout"),
+    (HOME, "SHEET_REPLAY: correction finishes at cover 60%", "<style>.sheet-lg .new mark:last-of-type "
+     "{ animation-range: cover 50% cover 60% !important; }</style>", "motion"),
+    (HOME, "SHEET_REPLAY: correction shown finished from the start", "<style>.sheet-lg :is(.old del, .new mark) "
+     "{ animation: none !important; }</style>", "motion"),
+    (HOME, "strike undrawn in reduced motion", "<style>.sheet-lg .old del { background-size: 0 2px !important; }</style>",
+     "motion"),
     (HOME, "PAINT_CONCURRENT: every paragraph sweeps its background at load", "<style>@keyframes qa-paint "
      "{ from { background-size: 0 100%; } } @media (prefers-reduced-motion: no-preference) { main p "
      "{ animation: qa-paint 30s linear both; } }</style>", "motion"),
@@ -825,7 +853,7 @@ FAULTS = [
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
-             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT", "SHEET_NOTE": "SHEET_NOTE",
+             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT", "SHEET_NOTE": "SHEET_NOTE", "SHEET_REPLAY": "SHEET_REPLAY",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
@@ -1169,6 +1197,16 @@ def check_motion(browser, base: str, name: str, width: int, height: int, phone: 
             failed.append(f"{where}: PAINT_CONCURRENT {count} paint animations at once at y={y} "
                           f"(cap {PAINT_CAP}): {'; '.join(which)}")
         failed += [f"{where}: animation never ends: {a}" for a in page.evaluate(SETTLE)]
+        if name == HOME:
+            got = page.evaluate(SHEET_REPLAY)
+            if got is None:
+                failed.append(f"SHEET_REPLAY {where}: check found 0 elements (.proof, strike + new line's marks)")
+            elif page.evaluate('CSS.supports("animation-timeline: view()")'):
+                early, late = got
+                if not early:
+                    failed.append(f"SHEET_REPLAY {where}: correction already finished at cover "
+                                  f"{SHEET_REPLAY_EARLY:.0%} (no replay)")
+                failed += [f"SHEET_REPLAY {where}: {m} not finished by cover {SHEET_REPLAY_DONE:.0%}" for m in late]
         moving = dict(page.evaluate(BOXES))
         if full:
             failed += [f"{where}: text not fully shown at {t}" for t in page.evaluate(TEXT_OPACITY)[:10]]
