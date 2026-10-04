@@ -8,7 +8,7 @@ import sys
 import time
 from pathlib import Path
 from typing import NamedTuple
-from urllib.parse import unquote, urlparse
+from urllib.parse import quote, unquote, urlparse
 from urllib.request import url2pathname
 
 import autorun
@@ -25,10 +25,12 @@ YAML_EXTENSION = "redhat.vscode-yaml"
 START_PAGE = cfg.ROOT / "START HERE.md"
 # once set up, START HERE ("type set me up") is the wrong page: Today (waiting on you, new jobs)
 TODAY_PAGE = cfg.ROOT / "Today.md"
-# file named in the same call as the folder opens before VS Code knows its formatted view =>
-# plain text, and the tab stays text on every later launch. Opened 6 s after the window it
-# comes up formatted (fresh window each way, measured 2026-09-26: 0 s text, 6 s formatted)
-START_PAGE_DELAY_S = 6
+# page for the window extension (app/vscode/start.js) to open formatted as it starts, then delete.
+# Named in the same call as the folder on a cold start, it opens as plain text and stays text on
+# every later launch (measured 2026-09-26); the extension opens it formatted at once (probe b)
+START_MARKER = "start-page"
+# when the launcher last ran: the extension opened from the Dock rebuilds a Today older than this
+LAUNCH_STAMP = "launched"
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
 MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
 MAC_ICON = cfg.APP / "install" / "icon.icns"
@@ -89,10 +91,11 @@ def has_claude(extensions: Path | None = None) -> bool:
 def has_pdf_viewer(extensions: Path | None = None) -> bool:
     # any extension already claiming .pdf counts => never replace the viewer the user chose,
     # and never a second one (two defaults => VS Code asks which editor, every single click)
-    for manifest in (extensions or vscode_paths().extensions).glob("*/package.json"):
+    for folder in installed(extensions).values():
         try:
-            contributes = json.loads(manifest.read_text(encoding="utf-8")).get("contributes") or {}
-        except (OSError, ValueError):
+            manifest = json.loads((folder / "package.json").read_text(encoding="utf-8"))
+            contributes = manifest.get("contributes") or {}
+        except (OSError, ValueError, AttributeError):
             continue
         for editor in contributes.get("customEditors") or []:
             for selector in editor.get("selector") or []:
@@ -101,13 +104,338 @@ def has_pdf_viewer(extensions: Path | None = None) -> bool:
     return False
 
 
-def ensure_pdf_viewer() -> None:
-    if not has_pdf_viewer():
-        code(["--install-extension", PDF_EXTENSION, "--force"], quiet=True)
-
-
 def has_extension(name: str, extensions: Path | None = None) -> bool:
-    return any((extensions or vscode_paths().extensions).glob(f"{name}-*"))
+    return name.lower() in installed(extensions)
+
+
+EXTENSION_FOLDER = re.compile(r"^(.+?)-\d")
+
+
+def installed(extensions: Path | None = None, listing: Path | None = None) -> dict[str, Path]:
+    """id (lower case) -> folder of each extension Job Finder's window runs.
+
+    Shared extensions dir holds every profile's => a viewer from another profile read as present
+    and resumes showed as binary. So the window's own list: Job Finder's profile once it exists,
+    else the dir's `extensions.json` (default profile); folder names only w/o either list.
+    """
+    if extensions is None:
+        paths = vscode_paths()
+        extensions, location = paths.extensions, profile_location(paths)
+        if location and listing is None:
+            listing = paths.data / "User" / "profiles" / location / "extensions.json"
+            if not listing.exists():
+                return {}  # profile made, nothing installed into it yet
+    listing = listing or extensions / "extensions.json"
+    try:
+        entries = json.loads(listing.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        found = {}
+        for folder in extensions.glob("*-*"):
+            match = EXTENSION_FOLDER.match(folder.name)
+            if match and folder.is_dir():
+                found[match.group(1).lower()] = folder
+        return found
+    except (OSError, ValueError):
+        return {}
+    found = {}
+    for entry in entries if isinstance(entries, list) else []:
+        try:
+            relative = entry.get("relativeLocation")  # older lists: absolute path only
+            folder = extensions / relative if relative else Path(entry["location"]["path"])
+            found[entry["identifier"]["id"].lower()] = folder
+        except (KeyError, TypeError, AttributeError):
+            continue
+    return found
+
+
+# Job Finder's own VS Code profile: its extensions, settings + chat model, apart from the user's
+# other work. Created on a cold start only: a running VS Code holds that list in memory
+# (app/docs/app-window.md "Measured")
+PROFILE_LOCATION = "cez-job-finder"
+PROFILE_ICON = "briefcase"
+# app-wide or machine keys a workspace can't set; the default profile's copy doesn't reach this one
+PROFILE_SETTINGS = {
+    "workbench.welcomePage.walkthroughs.openOnInstall": "false",
+    "redhat.telemetry.enabled": "false",
+}
+
+
+def storage_file(paths: VSCodePaths | None = None) -> Path:
+    return (paths or vscode_paths()).global_storage / "storage.json"
+
+
+def read_storage(paths: VSCodePaths | None = None) -> dict | None:
+    """VS Code's own state file (plain JSON); {} before its first start, None if unreadable."""
+    try:
+        data = json.loads(storage_file(paths).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return {}
+    except (OSError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def profile_location(paths: VSCodePaths | None = None) -> str | None:
+    for profile in (read_storage(paths) or {}).get("userDataProfiles") or []:
+        if isinstance(profile, dict) and profile.get("name") == cfg.NAME and profile.get("location"):
+            return str(profile["location"])
+    return None
+
+
+def folder_uri(folder: str, windows: bool | None = None) -> str:
+    """Folder as VS Code's URI.file writes it: storage.json keys on it.
+
+    Mac file:///Users/Your%20Name/jobs; Windows file:///c%3A/Users/... (drive lower-cased,
+    `:` escaped; vscode-uri 3.2.0, app/docs/app-window/measure/1-windows-key.txt).
+    """
+    windows = sys.platform == "win32" if windows is None else windows
+    path = str(folder)
+    if windows:
+        path = path.replace("\\", "/")
+        if re.match(r"^[A-Za-z]:", path):
+            path = "/" + path[0].lower() + path[1:]
+    return "file://" + quote(path, safe="/")
+
+
+def same_folder(uri: str, folder: str, windows: bool | None = None) -> bool:
+    # VS Code parses keys => file:///C:/x and file:///c%3A/x name one folder; one key per folder
+    windows = sys.platform == "win32" if windows is None else windows
+    norm = (lambda p: p.lower()) if windows else (lambda p: p)
+    return norm(unquote(uri)) == norm(unquote(folder_uri(folder, windows)))
+
+
+def process_alive(pid: int) -> bool:
+    if sys.platform == "win32":
+        import ctypes  # os.kill(pid, 0) on Windows ends the process
+        handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)  # QUERY_LIMITED_INFORMATION
+        if not handle:
+            return False
+        code_ = ctypes.c_ulong()
+        ctypes.windll.kernel32.GetExitCodeProcess(handle, ctypes.byref(code_))
+        ctypes.windll.kernel32.CloseHandle(handle)
+        return code_.value == 259  # STILL_ACTIVE
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except OSError:
+        return True  # someone else's process: alive
+    return True
+
+
+def vscode_running(paths: VSCodePaths | None = None) -> bool:
+    """VS Code holds this data dir: code.lock names its main process."""
+    lock = (paths or vscode_paths()).data / "code.lock"
+    try:
+        text = lock.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return False
+    except OSError:
+        return True  # can't tell => as if running: change nothing
+    try:
+        return process_alive(int(text.split()[0]))
+    except (ValueError, IndexError):
+        return True
+
+
+def ensure_profile(root: Path | None = None, paths: VSCodePaths | None = None) -> bool:
+    """Job Finder's profile + this folder opening in it. Cold start only; True once in place.
+
+    Running VS Code => nothing now, next cold start does it. Every other profile, association
+    and key in storage.json kept.
+    """
+    paths, root = paths or vscode_paths(), root or cfg.ROOT
+    if vscode_running(paths):
+        return False
+    storage = read_storage(paths)
+    if storage is None:
+        return False  # unreadable: never overwrite VS Code's own state
+    profiles = storage.get("userDataProfiles")
+    profiles = profiles if isinstance(profiles, list) else []
+    location = profile_location(paths)
+    if not location:
+        taken = {str(p.get("location")) for p in profiles if isinstance(p, dict)}
+        location, n = PROFILE_LOCATION, 2
+        while location in taken:
+            location, n = f"{PROFILE_LOCATION}-{n}", n + 1
+        profiles = [*profiles, {"location": location, "name": cfg.NAME, "icon": PROFILE_ICON}]
+    associations = storage.get("profileAssociations")
+    associations = dict(associations) if isinstance(associations, dict) else {}
+    workspaces = associations.get("workspaces")
+    workspaces = workspaces if isinstance(workspaces, dict) else {}
+    key = folder_uri(str(root))
+    workspaces = {k: v for k, v in workspaces.items() if k == key or not same_folder(k, str(root))}
+    workspaces[key] = location
+    associations["workspaces"] = workspaces
+    updated = {**storage, "userDataProfiles": profiles, "profileAssociations": associations}
+    folder = paths.data / "User" / "profiles" / location
+    try:
+        folder.mkdir(parents=True, exist_ok=True)
+        if updated != storage:
+            target = storage_file(paths)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            temp = target.with_name(target.name + ".jobfinder")
+            temp.write_text(json.dumps(updated, indent=4), encoding="utf-8")
+            os.replace(temp, target)
+        ensure_profile_settings(folder / "settings.json")
+    except OSError:
+        return False
+    return True
+
+
+# what the user set in their default profile that a new profile starts without: Copilot's model
+# pick (Auto instead of the one they chose, app/docs/app-window.md #6), zoom + text size (a
+# smaller window than they set). Copied once, cold start, marker here; never overwrites the profile's
+PROFILE_MIGRATED = cfg.DATA / "profile-migrated"
+MODEL_KEYS = "chat.currentLanguageModel.%"
+CARRIED_SETTINGS = ("window.zoomLevel", "editor.fontSize")
+ITEM_TABLE = "CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)"
+
+
+def migrate_profile(paths: VSCodePaths | None = None, marker: Path | None = None) -> None:
+    """Once, after `ensure_profile` (cold): default profile's model pick, zoom + text size into Job
+    Finder's. Nothing to copy or a copy fails => no error, marker still written: the setup skill's
+    pick-Claude-Sonnet line covers a lost model pick (Copilot)."""
+    paths, marker = paths or vscode_paths(), marker or PROFILE_MIGRATED
+    location = profile_location(paths)
+    if not location or marker.exists() or vscode_running(paths):
+        return
+    profile = paths.data / "User" / "profiles" / location
+    copied = copy_model_pick(paths.global_storage / "state.vscdb", profile / "globalStorage" / "state.vscdb")
+    copy_settings(paths.settings, profile / "settings.json")
+    try:
+        marker.parent.mkdir(parents=True, exist_ok=True)
+        marker.write_text(f"model: {'copied' if copied else 'not copied'}\n", encoding="utf-8")
+    except OSError:
+        pass
+
+
+def copy_model_pick(source: Path, target: Path) -> bool:
+    """Chat model keys from VS Code's own state db (read-only) into the profile's; True if any copied."""
+    if not source.exists():
+        return False
+    try:
+        db = sqlite3.connect(f"{source.as_uri()}?mode=ro", uri=True, timeout=2)
+        try:
+            rows = db.execute("SELECT key, value FROM ItemTable WHERE key LIKE ?", (MODEL_KEYS,)).fetchall()
+        finally:
+            db.close()
+        if not rows:
+            return False
+        target.parent.mkdir(parents=True, exist_ok=True)
+        db = sqlite3.connect(target, timeout=2)
+        try:
+            with db:
+                db.execute(ITEM_TABLE)
+                # OR IGNORE: a pick already made in the profile wins
+                db.executemany("INSERT OR IGNORE INTO ItemTable (key, value) VALUES (?, ?)", rows)
+        finally:
+            db.close()
+    except (sqlite3.Error, OSError):
+        return False
+    return True
+
+
+def copy_settings(source: Path, target: Path) -> None:
+    try:
+        values = settings_values(source.read_text(encoding="utf-8")) if source.exists() else None
+        text = target.read_text(encoding="utf-8") if target.exists() else ""
+    except OSError:
+        return
+    merged = text
+    for key in CARRIED_SETTINGS:
+        if values and key in values and f'"{key}"' not in merged:
+            merged = add_setting(merged, f'"{key}": {json.dumps(values[key])}')
+    if merged != text:
+        try:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(merged, encoding="utf-8")
+        except OSError:
+            pass
+
+
+# Settings Sync sends every extension in a profile, ours too (pinned + version) => another computer
+# signed in to the same account asks the Marketplace for an id that isn't there, or later someone
+# else's under that id (app/docs/app-window.md #5). Sync skips machine-scoped ones + ignored ids
+SYNC_IGNORED = "settingsSync.ignoredExtensions"
+
+
+def keep_out_of_sync(paths: VSCodePaths | None = None) -> None:
+    """After installs, cold start only: ours marked machine-scoped in the profile's list (each
+    install rewrites the entry); sync on => its id in `ignoredExtensions` too (app-wide key, default
+    profile's settings only; that one id added, the rest of the file byte for byte)."""
+    paths = paths or vscode_paths()
+    location = profile_location(paths)
+    if not location or vscode_running(paths):
+        return
+    import vscode_ext
+    try:
+        ours = vscode_ext.extension_id().lower()
+    except (OSError, ValueError, KeyError):
+        return
+    mark_machine_scoped(paths.data / "User" / "profiles" / location / "extensions.json", ours)
+    if sync_on(paths):
+        try:
+            text = paths.settings.read_text(encoding="utf-8") if paths.settings.exists() else ""
+            merged = add_to_list_setting(text, SYNC_IGNORED, ours)
+            if merged != text:
+                paths.settings.parent.mkdir(parents=True, exist_ok=True)
+                paths.settings.write_text(merged, encoding="utf-8")
+        except OSError:
+            pass
+
+
+def mark_machine_scoped(listing: Path, ident: str) -> None:
+    try:
+        entries = json.loads(listing.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return
+    if not isinstance(entries, list):
+        return
+    changed = False
+    for entry in entries:
+        try:
+            if entry["identifier"]["id"].lower() != ident:
+                continue
+            metadata = entry.get("metadata") if isinstance(entry.get("metadata"), dict) else {}
+        except (KeyError, TypeError, AttributeError):
+            continue
+        if metadata.get("isMachineScoped") is not True:
+            entry["metadata"] = {**metadata, "isMachineScoped": True}
+            changed = True
+    if changed:
+        try:
+            temp = listing.with_name(listing.name + ".jobfinder")
+            temp.write_text(json.dumps(entries), encoding="utf-8")
+            os.replace(temp, listing)
+        except OSError:
+            pass
+
+
+def sync_on(paths: VSCodePaths) -> bool:
+    # VS Code keeps "sync.enable" app-wide in the default state db (1.140 bundle: storage scope -1)
+    state = paths.global_storage / "state.vscdb"
+    if not state.exists():
+        return False
+    try:
+        db = sqlite3.connect(f"{state.as_uri()}?mode=ro", uri=True, timeout=2)
+        try:
+            row = db.execute("SELECT value FROM ItemTable WHERE key = 'sync.enable'").fetchone()
+        finally:
+            db.close()
+    except sqlite3.Error:
+        return False
+    return bool(row) and str(row[0]).strip() == "true"
+
+
+def ensure_profile_settings(settings: Path) -> None:
+    text = settings.read_text(encoding="utf-8") if settings.exists() else ""
+    merged = text
+    for key, value in PROFILE_SETTINGS.items():
+        if f'"{key}"' not in merged:
+            merged = add_setting(merged, f'"{key}": {value}')
+    if merged != text:
+        settings.write_text(merged, encoding="utf-8")
 
 
 def vscode_settings() -> Path:
@@ -173,8 +501,6 @@ def ensure_yaml_checker(settings: Path | None = None) -> None:
             settings.write_text(add_setting(text, TELEMETRY), encoding="utf-8")
     except OSError:
         pass
-    if not has_extension(YAML_EXTENSION):
-        code(["--install-extension", YAML_EXTENSION, "--force"], quiet=True)
 
 
 # app-wide in VS Code: only the default profile's user settings change them, never a workspace.
@@ -194,17 +520,42 @@ VSCODE_OURS = cfg.DATA / "vscode-ours"
 JSONC_TOKEN = re.compile(r'"(?:\\.|[^"\\])*"|//[^\n]*|/\*.*?\*/', re.S)
 
 
-def settings_keys(text: str) -> set[str] | None:
-    """Top-level keys of VS Code's settings file (comments + trailing commas allowed); None if unreadable."""
+def settings_values(text: str) -> dict | None:
+    """VS Code's settings file read (comments + trailing commas allowed); None if unreadable."""
     plain = JSONC_TOKEN.sub(lambda m: m.group(0) if m.group(0).startswith('"') else "", text)
     plain = re.sub(r",(\s*[}\]])", r"\1", plain).strip()
     if not plain:
-        return set()
+        return {}
     try:
         data = json.loads(plain)
     except ValueError:
         return None
-    return set(data) if isinstance(data, dict) else None
+    return data if isinstance(data, dict) else None
+
+
+def settings_keys(text: str) -> set[str] | None:
+    values = settings_values(text)
+    return None if values is None else set(values)
+
+
+def add_to_list_setting(text: str, key: str, item: str) -> str:
+    """`item` into list setting `key`, rest of the file byte for byte (see `add_setting`).
+
+    Key missing => added; already listed (any case) or not a list => unchanged.
+    """
+    # comments blanked, same length => offsets in `bare` are offsets in `text`
+    bare = JSONC_TOKEN.sub(lambda m: m.group(0) if m.group(0).startswith('"') else " " * len(m.group(0)), text)
+    if f'"{key}"' not in bare:
+        return add_setting(text, f'"{key}": [{json.dumps(item)}]')
+    found = re.search(rf'"{re.escape(key)}"\s*:\s*\[', bare)
+    end = bare.find("]", found.end()) if found else -1
+    if end < 0:
+        return text
+    inside = bare[found.end():end]
+    if json.dumps(item).lower() in inside.lower():
+        return text
+    separator = ", " if inside.strip() else ""
+    return text[:found.end()] + json.dumps(item) + separator + text[found.end():]
 
 
 def quiet_keys() -> dict[str, str]:
@@ -340,14 +691,91 @@ def write_workspace(choice: str | None) -> None:
         pass  # last launch's file still opens the window
 
 
-def code(args: list[str], quiet: bool = False) -> None:
+def code_command(args: list[str]) -> list[str] | None:
+    """The one place a code call is built (launcher, `jobs.py open`, `window-setup`); None w/o VS Code.
+
+    Job Finder's profile made => `--profile` on every call: installs land in its list, not the
+    default profile's, and a file opens in its window. Not made yet => no flag (an unknown name
+    fails: "Profile ... not found.", exit 1).
+    """
     exe = shutil.which("code")
     if not exe:
+        return None
+    profile = ["--profile", cfg.NAME] if profile_location() else []
+    return [exe, *scratch_args(), *profile, *args]
+
+
+def code(args: list[str], quiet: bool = False) -> int:
+    command = code_command(args)
+    if not command:
         sys.exit(f"VS Code not found; run the {cfg.NAME} installer again")
     # VS Code started cold inherits console => launcher's terminal window stays up until VS Code
     # quits, and closing it can take VS Code down (measured 2026-09-28, Windows Terminal)
     own_hidden_console = subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
-    subprocess.run([exe, *scratch_args(), *args], check=False, capture_output=quiet, creationflags=own_hidden_console)
+    return subprocess.run(command, check=False, capture_output=quiet, creationflags=own_hidden_console).returncode
+
+
+# AI chat panel per choice; Copilot's chat is built into VS Code => nothing to add
+AI_EXTENSIONS = {"claude": CLAUDE_EXTENSION, "chatgpt": "openai.chatgpt"}
+AI_PANEL_NAMES = {"claude": "the Claude chat panel", "chatgpt": "the ChatGPT chat panel"}
+
+
+def installed_version(name: str) -> str | None:
+    folder = installed().get(name.lower())
+    try:
+        return str(json.loads((folder / "package.json").read_text(encoding="utf-8"))["version"])
+    except (TypeError, OSError, ValueError, KeyError):
+        return None
+
+
+def missing_extensions(choice: str | None) -> list[tuple[str, str]]:
+    """(install arg, plain name) of each one Job Finder's window lacks; read off its list, no code call."""
+    import vscode_ext
+    missing = []
+    if choice in AI_EXTENSIONS and not has_extension(AI_EXTENSIONS[choice]):
+        missing.append((AI_EXTENSIONS[choice], AI_PANEL_NAMES[choice]))
+    if not has_pdf_viewer():
+        missing.append((PDF_EXTENSION, "the PDF viewer"))
+    if not has_extension(YAML_EXTENSION):
+        missing.append((YAML_EXTENSION, "the resume typo checker"))
+    try:
+        # other version listed (older or newer) => this release's copy; VS Code refuses an older
+        # one w/o --force yet exits 0 (app/docs/app-window.md #4)
+        if installed_version(vscode_ext.extension_id()) != vscode_ext.manifest()["version"]:
+            missing.append((str(vscode_ext.build()), f"{cfg.NAME}'s window"))
+    except (OSError, ValueError, KeyError):
+        pass  # can't build it => the window still opens, just w/o it
+    return missing
+
+
+def ensure_extensions(choice: str | None, quiet: bool = True) -> bool:
+    """Everything missing in ONE code call: 3 gallery + vsix = 3.0 s vs ~3 s each (measured)."""
+    missing = missing_extensions(choice)
+    if not missing:
+        return True
+    if not quiet:
+        print("Adding " + ", ".join(name for _, name in missing) + "...")
+    args = [a for ext, _ in missing for a in ("--install-extension", ext)]
+    return code([*args, "--force"], quiet=True) == 0
+
+
+def window_setup() -> None:
+    """Installer step: profile (cold start only) + every extension, w/ plain progress lines.
+
+    VS Code running => no profile yet: installs land in the default profile as before, the
+    launcher makes the profile at its next cold start. Fails (exit 1) => installer falls back to
+    its plain AI install.
+    """
+    cfg.ensure_private_dirs()
+    if ensure_profile():
+        migrate_profile()
+        print(f"{cfg.NAME} has its own space in VS Code, apart from anything else you use it for.")
+    else:
+        print(f"VS Code is open, so {cfg.NAME} gets its own space the next time it starts.")
+    if not ensure_extensions(chosen_ai(), quiet=False):
+        sys.exit("Could not add everything to VS Code.")
+    keep_out_of_sync()
+    print("VS Code is ready.")
 
 
 def first_page(settings: Path | None = None, page: Path | None = None) -> Path:
@@ -359,22 +787,26 @@ def first_page(settings: Path | None = None, page: Path | None = None) -> Path:
         return START_PAGE
     try:
         import today  # here, not on top: a broken page module must not stop VS Code opening
-        config = cfg.load(settings)
-        file_jobs(config)
-        return today.write(config, page)
+        # same entry as the window extension's (`today --refresh`): job folders filed, then the page
+        return today.refresh(cfg.load(settings), page)
     except (Exception, SystemExit):
         return page if page.exists() else START_PAGE
 
 
-def file_jobs(config: dict) -> None:
-    """Every job folder under the stage its status names (one moved by hand, one a file kept from
-    moving last time) before the page is built. Never stops the launch: what can't move now
-    waits for the next one."""
+def mark_start_page(page: Path | None, data: Path | None = None) -> None:
+    """Launch stamp always; `page` => marker naming it for the extension, None => no marker left.
+    Read per call (cfg.ROOT), never cfg.DATA: tests point ROOT at a throwaway folder."""
+    data = data or cfg.ROOT / ".data"
     try:
-        import status
-        status.sort_jobs(config)
-    except (Exception, SystemExit):
-        pass
+        data.mkdir(parents=True, exist_ok=True)
+        (data / LAUNCH_STAMP).write_text(time.strftime("%Y-%m-%dT%H:%M:%S%z") + "\n", encoding="utf-8")
+        marker = data / START_MARKER
+        if page:
+            marker.write_text(page.name + "\n", encoding="utf-8")  # both pages sit in the folder root
+        else:
+            marker.unlink(missing_ok=True)
+    except OSError:
+        pass  # no marker => the extension still opens a page, just its own pick
 
 
 def main() -> None:
@@ -385,13 +817,21 @@ def main() -> None:
         ensure_mac_icon()
     # before VS Code opens => file list shows the private folders even on a brand-new install
     cfg.ensure_private_dirs()
-    # before VS Code opens => the first click on a resume already shows the page
-    ensure_pdf_viewer()
+    # before any install + before VS Code opens => this folder's window comes up in Job Finder's
+    # profile; VS Code already running => next cold start
+    if ensure_profile():
+        # their model pick, zoom + text size come along, once
+        migrate_profile()
+    choice = chosen_ai()
+    # before VS Code opens, into its profile once made => the window comes up with the chat panel,
+    # the first click on a resume shows the page, a typo in the resume facts is underlined
+    ensure_extensions(choice)
+    # our window extension never synced to another computer (the Marketplace has no such id)
+    keep_out_of_sync()
     # before VS Code opens => no Release Notes tab over Today, no usage reports (ours only)
     ensure_quiet_vscode()
-    # before VS Code opens => a typo in the resume facts is underlined on the first edit
+    # before VS Code opens => Red Hat's telemetry popup never asks mid job search
     ensure_yaml_checker()
-    choice = chosen_ai()
     # before VS Code opens => the window comes up with this user's chat (Copilot's built-in one
     # shown, or hidden for Claude/ChatGPT), never reloading mid-chat
     write_workspace(choice)
@@ -406,10 +846,19 @@ def main() -> None:
     # group, on top of START HERE, and every file the AI then opens lands on top of the chat
     # (extension 2.1.283, measured 2026-09-26)
     window = ["--disable-workspace-trust", str(cfg.ROOT)]
+    cold = not vscode_running()
+    # before the window => the page is fresh when the extension opens it
+    page = first_page()
+    if cold:
+        # ONE call, folder only: the window extension opens the page formatted as it starts
+        mark_start_page(page)
+        code(window)
+        return
+    mark_start_page(None)
     code(window)
-    page = first_page()  # while the window comes up
-    time.sleep(START_PAGE_DELAY_S)
-    code([*window, str(page)])  # folder again => lands in this window, not the last used
+    # window already up => the page lands formatted at once, no wait; double-click on the Desktop
+    # icon brings it forward. Folder again => lands in this window, not the last used
+    code([*window, str(page)])
 
 
 if __name__ == "__main__":

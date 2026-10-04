@@ -201,3 +201,33 @@ def test_vscode_ours_marker_only_where_installer_downloads_vscode(name, start, e
     branch = body[body.index(start):]
     branch = branch[:branch.index(end)]
     assert "update.code.visualstudio.com" in branch and "vscode-ours" in branch
+
+
+@pytest.mark.parametrize("name, setup, fallback", [
+    ("install-mac.sh", 'if ! (cd "$DIR" && uv run app/jobs.py window-setup); then',
+     'code --install-extension "$ai_extension" --force'),
+    ("install-windows.ps1", "uv run app/jobs.py window-setup", 'code --install-extension $AiExtension --force'),
+])
+def test_ai_panel_step_sets_up_the_window_after_the_program_is_ready_and_falls_back(name, setup, fallback):
+    # launcher output goes nowhere (start-mac.sh, no Windows console) => installs + their failures
+    # belong in the installer's window; window-setup needs the program downloaded + synced first
+    body = script(name)
+    step = re.search(r"(?i)step 5 [\"']adding the AI panel to VS Code\.\.\.[\"']", body)
+    assert step and body.index("uv sync --quiet") < step.start() < body.index(setup) < body.index(fallback)
+    assert body.count("--install-extension") == 1  # only the fallback: everything else via window-setup
+    assert 'code --list-extensions --profile "CEZ Job Finder"' in body  # repair re-run sees the profile's AI
+
+
+@pytest.mark.skipif(not shutil.which("bash") or os.name == "nt", reason="mac installer runs in bash")
+def test_mac_repair_finds_ai_in_job_finders_profile_only(tmp_path):
+    # AI installed into the profile only => re-run asked again which AI the user has
+    body = script("install-mac.sh")
+    funcs = body[body.index("ai_word() {"):body.index("printf '\\n\\033[36mInstalling")]
+    (tmp_path / "bin").mkdir()
+    stub = tmp_path / "bin" / "code"
+    stub.write_text('#!/bin/bash\n[ "$2" = "--profile" ] && echo openai.chatgpt || true\n')
+    stub.chmod(0o755)
+    run = f'DIR="{tmp_path}"\nhave() {{ command -v "$1" >/dev/null 2>&1; }}\n{funcs}\npick_ai ""\n'
+    out = subprocess.run(["bash", "-c", run], capture_output=True, text=True, stdin=subprocess.DEVNULL,
+                         env={"PATH": f"{tmp_path / 'bin'}:/usr/bin:/bin"}, start_new_session=True)
+    assert out.stdout.strip() == "chatgpt"

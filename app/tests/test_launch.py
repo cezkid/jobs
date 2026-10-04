@@ -11,6 +11,7 @@ import launch
 import notify
 
 FIXTURES = Path(__file__).parent / "fixtures"
+DONE = type("Done", (), {"returncode": 0})  # subprocess.run result of a code call that worked
 
 
 def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
@@ -19,20 +20,20 @@ def test_launch_creates_private_folders_on_fresh_install(tmp_path, monkeypatch):
     monkeypatch.setattr(launch, "has_claude", lambda: False)
     monkeypatch.setattr(launch, "chosen_ai", lambda: None)
     monkeypatch.setattr(launch, "write_workspace", lambda choice: None)
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
+    monkeypatch.setattr(launch, "ensure_profile", lambda: True)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: None)
     monkeypatch.setattr(launch.time, "sleep", lambda s: None)
     monkeypatch.setattr(launch, "first_page", lambda: launch.START_PAGE)
     launch.main()
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["My Jobs", "My Resume", "My Settings"]
+    assert sorted(p.name for p in tmp_path.iterdir() if not p.name.startswith(".")) == ["My Jobs", "My Resume", "My Settings"]
     launch.main()  # second launch leaves what is already there alone
 
 
-def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch):
-    # the extension's open link always makes a tab in the active group => START HERE hidden
+def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
     calls = []
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: True)
@@ -40,17 +41,57 @@ def test_launch_never_opens_chat_as_a_tab_over_start_here(tmp_path, monkeypatch)
     monkeypatch.setattr(launch, "ensure_chat_sidebar", lambda: None)
     monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
     monkeypatch.setattr(launch, "write_workspace", lambda choice: calls.append(("workspace", choice)))
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
+    monkeypatch.setattr(launch, "ensure_profile", lambda: True)
+    monkeypatch.setattr(launch, "vscode_running", lambda: running)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
-    monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(s))
+    monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(("sleep", s)))
     monkeypatch.setattr(launch, "first_page", lambda: tmp_path / "Today.md")
     launch.main()
+    return calls
+
+
+def test_cold_launch_opens_folder_once_and_leaves_the_page_to_the_window(tmp_path, monkeypatch):
+    # page named w/ the folder on a cold start opened as plain text; the old fix waited 6 s first.
+    # No vscode://...claude link either: it opens chat as a tab over START HERE
+    calls = launch_calls(tmp_path, monkeypatch, running=False)
     window = ["--disable-workspace-trust", str(tmp_path)]
-    # page after the window is up => formatted, not plain text
-    assert calls == [("workspace", "claude"), window, launch.START_PAGE_DELAY_S, [*window, str(tmp_path / "Today.md")]]
+    assert calls == [("workspace", "claude"), window]
+    assert (tmp_path / ".data" / launch.START_MARKER).read_text(encoding="utf-8") == "Today.md\n"
+    assert (tmp_path / ".data" / launch.LAUNCH_STAMP).exists()
+
+
+def test_launch_with_window_open_brings_the_page_forward_at_once(tmp_path, monkeypatch):
+    # double-click on the Desktop icon w/ the window open must still show Today, w/o a 6 s wait;
+    # a marker left over would open the page again at the next cold start
+    (tmp_path / ".data").mkdir()
+    (tmp_path / ".data" / launch.START_MARKER).write_text("START HERE.md\n")
+    calls = launch_calls(tmp_path, monkeypatch, running=True)
+    window = ["--disable-workspace-trust", str(tmp_path)]
+    assert calls == [("workspace", "claude"), window, [*window, str(tmp_path / "Today.md")]]
+    assert not (tmp_path / ".data" / launch.START_MARKER).exists()
+    assert (tmp_path / ".data" / launch.LAUNCH_STAMP).exists()
+
+
+def test_launcher_has_no_fixed_wait_for_the_page():
+    # the 6 s pause before the page came back => every launch slow again
+    assert "sleep" not in Path(launch.__file__).read_text(encoding="utf-8")
+    assert not hasattr(launch, "START_PAGE_DELAY_S")
+
+
+def test_launcher_and_window_rebuild_today_through_one_entry(tmp_path, monkeypatch):
+    # two different rebuilds => job folders filed by one, not the other, or both on today.lock
+    settings, page = tmp_path / "Search settings.yml", tmp_path / "Today.md"
+    settings.write_text("")
+    monkeypatch.setattr(launch.cfg, "load", lambda path: {})
+    import today
+    monkeypatch.setattr(today, "refresh", lambda config, to: (to.write_text("# Today\n"), to)[1])
+    assert launch.first_page(settings, page) == page
+    js = (cfg.APP / "vscode" / "extension.js").read_text(encoding="utf-8")
+    assert '["run", "app/jobs.py", "today", "--refresh"]' in js
 
 
 def test_first_run_opens_start_here_then_today(tmp_path, monkeypatch):
@@ -170,18 +211,6 @@ def test_pdf_viewer_detected_whoever_provides_it(tmp_path):
     assert launch.has_pdf_viewer(tmp_path)
 
 
-def test_pdf_viewer_installed_once_and_never_over_the_users_own(tmp_path, monkeypatch):
-    installed = []
-    monkeypatch.setattr(launch, "code", lambda args, quiet=False: installed.append(args))
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: False)
-    launch.ensure_pdf_viewer()
-    assert installed == [["--install-extension", launch.PDF_EXTENSION, "--force"]]
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
-    monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
-    launch.ensure_pdf_viewer()
-    assert len(installed) == 1
-
-
 def test_claude_trusts_this_folder_only(tmp_path):
     # untrusted folder => its permission list ignored, user asked before every step
     state = tmp_path / ".claude.json"
@@ -232,7 +261,7 @@ def test_pdf_opens_as_tab_with_viewer_system_viewer_without(tmp_path, monkeypatc
     pdf.write_bytes(b"%PDF")
     page.write_text("x", encoding="utf-8")
     viewer, tabs = [], []
-    monkeypatch.setattr(jobs.shutil, "which", lambda name: "code")
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "code")
     monkeypatch.setattr(jobs.webbrowser, "open", viewer.append)
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: tabs.append(args[-1]))
     monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
@@ -251,24 +280,18 @@ def test_vscode_started_on_its_own_hidden_console(monkeypatch):
     monkeypatch.setattr(launch.shutil, "which", lambda name: "code")
     monkeypatch.setattr(launch.sys, "platform", "win32")
     monkeypatch.setattr(launch.subprocess, "CREATE_NO_WINDOW", 0x08000000, raising=False)
-    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(kw["creationflags"]))
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(kw["creationflags"]) or DONE)
     launch.code(["folder"])
     assert runs == [0x08000000]
 
 
-def test_yaml_checker_installed_once_and_telemetry_answered(tmp_path, monkeypatch):
+def test_yaml_telemetry_answered_once(tmp_path, monkeypatch):
     # user is asked to decide about Red Hat telemetry on first activation otherwise, mid job search
-    installed = []
-    monkeypatch.setattr(launch, "code", lambda args, quiet=False: installed.append(args))
-    monkeypatch.setattr(launch, "has_extension", lambda name: False)
     settings = tmp_path / "User" / "settings.json"
     launch.ensure_yaml_checker(settings)
     assert launch.TELEMETRY in settings.read_text(encoding="utf-8")
-    assert installed == [["--install-extension", launch.YAML_EXTENSION, "--force"]]
-    monkeypatch.setattr(launch, "has_extension", lambda name: True)
     launch.ensure_yaml_checker(settings)
     assert settings.read_text(encoding="utf-8").count("redhat.telemetry.enabled") == 1
-    assert len(installed) == 1
 
 
 def test_vscode_settings_keep_comments_and_trailing_commas():
@@ -348,7 +371,7 @@ def test_start_page_leads_with_the_first_step():
 def test_old_mac_icon_swapped_for_app_once(tmp_path, monkeypatch):
     # .command icon leaves a Terminal window open after every launch
     runs = []
-    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or DONE)
     old, app = tmp_path / "CEZ Job Finder.command", tmp_path / "CEZ Job Finder.app"
     launch.ensure_mac_icon(old, app)
     assert runs == []  # no old icon => nothing made, a deleted icon stays deleted
@@ -360,7 +383,7 @@ def test_old_mac_icon_swapped_for_app_once(tmp_path, monkeypatch):
 def test_mac_app_icon_gets_brand_picture_once(tmp_path, monkeypatch):
     # app icons made before the brand icon kept the generic script picture on the Desktop
     runs = []
-    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or DONE)
     app = tmp_path / "CEZ Job Finder.app"
     icns = app / "Contents" / "Resources" / "applet.icns"
     icns.parent.mkdir(parents=True)
@@ -430,10 +453,11 @@ def test_copilot_window_gets_its_chat_sidebar_without_claude(tmp_path, monkeypat
     monkeypatch.setattr(launch, "write_workspace", lambda choice: calls.append(("workspace", choice)))
     monkeypatch.setattr(launch, "ensure_claude_trust", lambda: calls.append("trust"))
     monkeypatch.setattr(launch, "ensure_chat_sidebar", lambda: calls.append("sidebar"))
-    monkeypatch.setattr(launch, "has_pdf_viewer", lambda: True)
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: True)
     monkeypatch.setattr(launch, "ensure_yaml_checker", lambda: None)
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
+    monkeypatch.setattr(launch, "ensure_profile", lambda: True)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append("code"))
     monkeypatch.setattr(launch.time, "sleep", lambda s: None)
     monkeypatch.setattr(launch, "first_page", lambda: launch.START_PAGE)
@@ -488,7 +512,7 @@ def test_scratch_vscode_keeps_every_path_and_call_off_the_owners(tmp_path, monke
     assert launch.vscode_settings() == paths.settings
     runs = []
     monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
-    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args))
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or DONE)
     launch.code(["--install-extension", launch.PDF_EXTENSION])
     assert runs == [["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
                      "--install-extension", launch.PDF_EXTENSION]]
@@ -515,7 +539,7 @@ def test_open_for_user_lands_in_the_scratch_vscode(tmp_path, monkeypatch):
     page.write_text("x", encoding="utf-8")
     monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "scratch"))
     runs = []
-    monkeypatch.setattr(jobs.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
     jobs.open_for_user(str(page))
     assert runs[0][1:3] == ["--user-data-dir", str(launch.vscode_paths().data)] and runs[0][-1] == str(page.resolve())
@@ -537,7 +561,358 @@ def test_open_names_job_finders_folder_with_the_file(tmp_path, monkeypatch):
     page = tmp_path / "Job posting.md"
     page.write_text("x", encoding="utf-8")
     runs = []
-    monkeypatch.setattr(jobs.shutil, "which", lambda name: "/bin/code")
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
     jobs.open_for_user(str(page))
     assert runs[0][-2:] == [str(cfg.ROOT), str(page.resolve())] and "-r" not in runs[0]
+
+
+def profile_paths(tmp_path, monkeypatch):
+    monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "scratch"))
+    return launch.vscode_paths()
+
+
+def write_storage(paths, data):
+    target = launch.storage_file(paths)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(data), encoding="utf-8")
+
+
+def test_cold_start_creates_profile_and_opens_folder_in_it(tmp_path, monkeypatch):
+    # without the profile the window ran the user's own extensions + settings, not Job Finder's
+    paths, root = profile_paths(tmp_path, monkeypatch), tmp_path / "Your Name" / "jobs"
+    assert launch.ensure_profile(root, paths)
+    storage = json.loads(launch.storage_file(paths).read_text(encoding="utf-8"))
+    assert storage["userDataProfiles"] == [{"location": "cez-job-finder", "name": cfg.NAME, "icon": "briefcase"}]
+    assert storage["profileAssociations"]["workspaces"] == {launch.folder_uri(str(root)): "cez-job-finder"}
+    settings = paths.data / "User" / "profiles" / "cez-job-finder" / "settings.json"
+    assert json.loads(settings.read_text(encoding="utf-8"))["workbench.welcomePage.walkthroughs.openOnInstall"] is False
+    before = launch.storage_file(paths).stat().st_mtime_ns
+    assert launch.ensure_profile(root, paths)  # next launch: nothing to change, nothing written
+    assert launch.storage_file(paths).stat().st_mtime_ns == before
+    assert launch.profile_location(paths) == "cez-job-finder"
+
+
+def test_running_vscode_leaves_its_state_alone(tmp_path, monkeypatch):
+    # VS Code running holds storage.json in memory => a write now is lost or fights it
+    paths = profile_paths(tmp_path, monkeypatch)
+    write_storage(paths, {"theme": "dark"})
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    before = launch.storage_file(paths).read_bytes()
+    assert not launch.ensure_profile(tmp_path / "jobs", paths)
+    assert launch.storage_file(paths).read_bytes() == before
+    assert not (paths.data / "User" / "profiles").exists()
+    (paths.data / "code.lock").write_text("999999999", encoding="utf-8")  # crashed: stale lock
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+
+
+def test_users_other_profiles_and_folders_kept(tmp_path, monkeypatch):
+    # dropping the user's own profiles or folder links would lose their setup in VS Code
+    paths, root = profile_paths(tmp_path, monkeypatch), tmp_path / "jobs"
+    theirs = {"location": "-5a1b2c", "name": "Work", "icon": "code"}
+    other = launch.folder_uri(str(tmp_path / "work"))
+    write_storage(paths, {"userDataProfiles": [theirs],
+                          "profileAssociations": {"workspaces": {other: "-5a1b2c"}, "emptyWindows": {}},
+                          "windowsState": {"lastActiveWindow": {"folder": other}}})
+    assert launch.ensure_profile(root, paths)
+    storage = json.loads(launch.storage_file(paths).read_text(encoding="utf-8"))
+    assert storage["userDataProfiles"][0] == theirs and len(storage["userDataProfiles"]) == 2
+    assert storage["profileAssociations"] == {"workspaces": {other: "-5a1b2c", launch.folder_uri(str(root)): "cez-job-finder"},
+                                              "emptyWindows": {}}
+    assert storage["windowsState"] == {"lastActiveWindow": {"folder": other}}
+
+
+def test_unreadable_vscode_state_never_overwritten(tmp_path, monkeypatch):
+    # rewriting a file we could not read would wipe every window + profile VS Code remembers
+    paths = profile_paths(tmp_path, monkeypatch)
+    launch.storage_file(paths).parent.mkdir(parents=True)
+    launch.storage_file(paths).write_text("{half", encoding="utf-8")
+    assert not launch.ensure_profile(tmp_path / "jobs", paths)
+    assert launch.storage_file(paths).read_text(encoding="utf-8") == "{half"
+
+
+def test_folder_key_matches_vscode_on_windows_and_mac():
+    # key spelled differently from VS Code's => folder opens in the default profile
+    assert launch.folder_uri("C:\\Home\\Your Name\\jobs", windows=True) == "file:///c%3A/Home/Your%20Name/jobs"
+    assert launch.folder_uri("D:/Jobs \u00d1", windows=True) == "file:///d%3A/Jobs%20%C3%91"
+    assert launch.folder_uri("/Users/Your Name/CEZ Job Finder", windows=False) == "file:///Users/Your%20Name/CEZ%20Job%20Finder"
+    assert launch.same_folder("file:///C:/Home/Your%20Name/jobs", "C:\\Home\\Your Name\\jobs", windows=True)
+
+
+def test_old_spelling_of_folder_key_replaced_not_doubled(tmp_path, monkeypatch):
+    # two keys for one folder => VS Code picks either profile
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(launch.sys, "platform", "win32")
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: False)
+    write_storage(paths, {"profileAssociations": {"workspaces": {"file:///C:/Home/jobs": "__default__profile__"}}})
+    assert launch.ensure_profile(Path("C:\\Home\\jobs"), paths)
+    storage = json.loads(launch.storage_file(paths).read_text(encoding="utf-8"))
+    assert storage["profileAssociations"]["workspaces"] == {"file:///c%3A/Home/jobs": "cez-job-finder"}
+
+
+def listed(ext_dir, *ids):
+    entries = []
+    for ident in ids:
+        (ext_dir / f"{ident}-1.0.0").mkdir(parents=True, exist_ok=True)
+        entries.append({"identifier": {"id": ident}, "version": "1.0.0", "relativeLocation": f"{ident}-1.0.0",
+                        "location": {"$mid": 1, "path": str(ext_dir / f"{ident}-1.0.0"), "scheme": "file"}})
+    return entries
+
+
+def test_extension_in_another_profile_does_not_count(tmp_path, monkeypatch):
+    # shared extensions folder holds every profile's => a PDF viewer from another profile read as
+    # present, never installed into Job Finder's, and resumes showed as binary
+    paths = profile_paths(tmp_path, monkeypatch)
+    viewer = paths.extensions / "tomoki1207.pdf-1.0.0"
+    viewer.mkdir(parents=True)
+    (viewer / "package.json").write_text(json.dumps({"contributes": {"customEditors": [
+        {"selector": [{"filenamePattern": "*.pdf"}]}]}}), encoding="utf-8")
+    (paths.extensions / "extensions.json").write_text(json.dumps(
+        listed(paths.extensions, "tomoki1207.pdf", "anthropic.claude-code")), encoding="utf-8")
+    assert launch.has_pdf_viewer() and launch.has_claude()  # default profile: its own list
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    assert not launch.has_pdf_viewer() and not launch.has_claude()  # new profile: nothing in it yet
+    own = paths.data / "User" / "profiles" / "cez-job-finder" / "extensions.json"
+    own.write_text(json.dumps(listed(paths.extensions, "anthropic.claude-code")), encoding="utf-8")
+    assert launch.has_claude() and not launch.has_pdf_viewer()
+    import ai
+    assert ai.current(tmp_path / "no-choice") == "claude"
+
+
+def profile_extension(paths, ident, version="1.0.0", manifest=None):
+    """List `ident` in Job Finder's profile w/ its package.json, as VS Code leaves it."""
+    folder = paths.extensions / f"{ident}-{version}"
+    folder.mkdir(parents=True, exist_ok=True)
+    (folder / "package.json").write_text(json.dumps({"version": version, **(manifest or {})}), encoding="utf-8")
+    own = paths.data / "User" / "profiles" / "cez-job-finder" / "extensions.json"
+    entries = json.loads(own.read_text(encoding="utf-8")) if own.exists() else []
+    entries = [e for e in entries if e["identifier"]["id"] != ident]
+    entries.append({"identifier": {"id": ident}, "version": version, "relativeLocation": folder.name})
+    own.write_text(json.dumps(entries), encoding="utf-8")
+
+
+PDF_MANIFEST = {"contributes": {"customEditors": [{"selector": [{"filenamePattern": "*.pdf"}]}]}}
+
+
+@pytest.mark.parametrize("choice, ai_ext", [("claude", "anthropic.claude-code"), ("chatgpt", "openai.chatgpt"),
+                                            ("copilot", None)])
+def test_one_install_call_for_only_what_the_profile_lacks(tmp_path, monkeypatch, choice, ai_ext):
+    # one call per extension = ~3 s each at every launch (one batched call: 3.0 s for all four);
+    # one already listed reinstalled = slower launch for nothing; Copilot's chat is built in
+    import vscode_ext
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(vscode_ext, "OUT", tmp_path / "vsix")
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    calls = []
+    monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args) or 0)
+    assert launch.ensure_extensions(choice)
+    ours, version = vscode_ext.extension_id(), vscode_ext.manifest()["version"]
+    vsix = str(tmp_path / "vsix" / f"{ours}-{version}.vsix")
+    wanted = [*([ai_ext] if ai_ext else []), launch.PDF_EXTENSION, launch.YAML_EXTENSION, vsix]
+    assert calls == [[*(a for ext in wanted for a in ("--install-extension", ext)), "--force"]]
+    assert Path(vsix).exists()
+    if ai_ext:
+        profile_extension(paths, ai_ext)
+    profile_extension(paths, launch.PDF_EXTENSION, manifest=PDF_MANIFEST)
+    profile_extension(paths, launch.YAML_EXTENSION)
+    profile_extension(paths, ours, version)
+    calls.clear()
+    assert launch.ensure_extensions(choice) and calls == []  # all listed => no code call at all
+    profile_extension(paths, ours, "0.0.1")  # last release's copy => this one, nothing else
+    assert launch.ensure_extensions(choice) and calls == [["--install-extension", vsix, "--force"]]
+
+
+def test_users_own_pdf_viewer_in_the_profile_kept(tmp_path, monkeypatch):
+    # two viewers claiming .pdf => VS Code asks which editor on every single click
+    paths = profile_paths(tmp_path, monkeypatch)
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    profile_extension(paths, "someone.elses-pdf-viewer", manifest=PDF_MANIFEST)
+    assert launch.PDF_EXTENSION not in [ext for ext, _ in launch.missing_extensions(None)]
+
+
+def test_every_code_call_lands_in_job_finders_profile_once_made(tmp_path, monkeypatch):
+    # w/o --profile, installs went to the default profile (reinstalled at every launch, never
+    # seen by the window) and an opened file could land in a default-profile window
+    import jobs
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
+    scratch = ["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions)]
+    assert launch.code_command(["x"]) == [*scratch, "x"]  # not made yet: an unknown name fails the call
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    assert launch.code_command(["x"]) == [*scratch, "--profile", "CEZ Job Finder", "x"]
+    runs = []
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or type("R", (), {"returncode": 0}))
+    launch.code(["--install-extension", launch.YAML_EXTENSION])
+    page = tmp_path / "Job posting.md"
+    page.write_text("x", encoding="utf-8")
+    jobs.open_for_user(str(page))
+    assert [r[5:7] for r in runs] == [["--profile", "CEZ Job Finder"]] * 2
+
+
+def test_code_calls_built_in_one_place():
+    # a call site building its own command skipped --profile => installed into or opened in the
+    # default profile; every call site named here so a new one is a deliberate choice
+    import ast
+    sites = {}
+    for name in "jobs.py", "ai.py", "launch.py":
+        tree = ast.parse((cfg.APP / name).read_text(encoding="utf-8"))
+        for func in (n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef)):
+            for call in (c for c in ast.walk(func) if isinstance(c, ast.Call)):
+                callee = ast.unparse(call.func)
+                if callee in ("code", "launch.code", "code_command", "launch.code_command"):
+                    sites.setdefault(name, set()).add(func.name)
+                if callee == "shutil.which" and ast.unparse(call.args[0]) in ("'code'", '"code"'):
+                    sites.setdefault(name, set()).add(f"which:{func.name}")
+    assert sites == {"jobs.py": {"open_for_user"},
+                     "launch.py": {"which:code_command", "code", "ensure_extensions", "main"}}
+
+
+def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_path, monkeypatch, capsys):
+    # installer terminal is the only place an install failure shows (launcher output goes nowhere)
+    import vscode_ext
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(vscode_ext, "OUT", tmp_path / "vsix")
+    monkeypatch.setattr(launch.cfg, "ensure_private_dirs", lambda: None)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: True)
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
+    runs = []
+    result = type("R", (), {"returncode": 0})
+    monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or result)
+    launch.window_setup()  # VS Code open => default profile, as installers did before
+    out = capsys.readouterr().out
+    assert "next time it starts" in out and "the Claude chat panel" in out and "VS Code is ready." in out
+    assert "--profile" not in runs[0] and "anthropic.claude-code" in runs[0]
+    for jargon in "profile", "extension", "vsix", "yaml":
+        assert jargon not in out.lower(), jargon
+    result.returncode = 1
+    with pytest.raises(SystemExit):  # installer then installs the AI panel the old way
+        launch.window_setup()
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: False)
+    monkeypatch.setattr(launch, "PROFILE_MIGRATED", tmp_path / "profile-migrated")
+    result.returncode = 0
+    runs.clear()
+    launch.window_setup()
+    assert "own space" in capsys.readouterr().out and runs[0][5:7] == ["--profile", "CEZ Job Finder"]
+
+
+def state_db(path, rows):
+    """VS Code's state.vscdb, same table as VS Code makes it."""
+    import sqlite3
+    path.parent.mkdir(parents=True, exist_ok=True)
+    db = sqlite3.connect(path)
+    with db:
+        db.execute(launch.ITEM_TABLE)
+        db.executemany("INSERT INTO ItemTable (key, value) VALUES (?, ?)", rows)
+    db.close()
+
+
+def state_rows(path):
+    import sqlite3
+    db = sqlite3.connect(path)
+    try:
+        return dict(db.execute("SELECT key, value FROM ItemTable").fetchall())
+    finally:
+        db.close()
+
+
+MODEL = "chat.currentLanguageModel.panel"
+
+
+def test_model_pick_zoom_and_text_size_follow_into_the_profile_once(tmp_path, monkeypatch):
+    # new profile starts on Copilot's automatic model (fails tailored resumes) and at default zoom
+    paths, marker = profile_paths(tmp_path, monkeypatch), tmp_path / "data" / "profile-migrated"
+    state_db(paths.global_storage / "state.vscdb", [(MODEL, "copilot/claude-sonnet"), (f"{MODEL}.isDefault", "false"),
+                                                     ("sync.enable", "true"), ("other.key", "x")])
+    paths.settings.write_text('{\n  // mine\n  "window.zoomLevel": 1.5,\n  "editor.fontSize": 16,\n  "editor.tabSize": 8,\n}\n',
+                              encoding="utf-8")
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    launch.migrate_profile(paths, marker)
+    profile = paths.data / "User" / "profiles" / "cez-job-finder"
+    assert state_rows(profile / "globalStorage" / "state.vscdb") == {MODEL: "copilot/claude-sonnet", f"{MODEL}.isDefault": "false"}
+    settings = launch.settings_values((profile / "settings.json").read_text(encoding="utf-8"))
+    assert settings["window.zoomLevel"] == 1.5 and settings["editor.fontSize"] == 16 and "editor.tabSize" not in settings
+    assert marker.read_text(encoding="utf-8") == "model: copied\n"
+    # run once: a pick changed later in the default profile never overwrites the profile's
+    state_db(paths.global_storage / "state.vscdb", [(MODEL, "copilot/gpt-auto")])
+    launch.migrate_profile(paths, marker)
+    assert state_rows(profile / "globalStorage" / "state.vscdb")[MODEL] == "copilot/claude-sonnet"
+
+
+def test_pick_already_made_in_the_profile_kept(tmp_path, monkeypatch):
+    # the user's choice inside Job Finder overwritten by an older one from their other work
+    paths = profile_paths(tmp_path, monkeypatch)
+    state_db(paths.global_storage / "state.vscdb", [(MODEL, "copilot/gpt-auto")])
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    own = paths.data / "User" / "profiles" / "cez-job-finder" / "globalStorage" / "state.vscdb"
+    state_db(own, [(MODEL, "copilot/claude-sonnet")])
+    settings = paths.data / "User" / "profiles" / "cez-job-finder" / "settings.json"
+    settings.write_text('{"editor.fontSize": 20}', encoding="utf-8")
+    paths.settings.write_text('{"editor.fontSize": 12}', encoding="utf-8")
+    launch.migrate_profile(paths, tmp_path / "marker")
+    assert state_rows(own)[MODEL] == "copilot/claude-sonnet"
+    assert launch.settings_values(settings.read_text(encoding="utf-8")) == {"editor.fontSize": 20}
+
+
+def test_nothing_to_copy_or_unreadable_state_is_no_error(tmp_path, monkeypatch):
+    # a launch that stops on a broken VS Code state file never opens the window at all
+    paths, marker = profile_paths(tmp_path, monkeypatch), tmp_path / "marker"
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    launch.migrate_profile(paths, marker)  # fresh VS Code: no state db, no settings
+    assert marker.read_text(encoding="utf-8") == "model: not copied\n"
+    marker.unlink()
+    paths.global_storage.joinpath("state.vscdb").write_bytes(b"not a database")
+    launch.migrate_profile(paths, marker)
+    assert marker.read_text(encoding="utf-8") == "model: not copied\n"
+    assert not (paths.data / "User" / "profiles" / "cez-job-finder" / "globalStorage").exists()
+
+
+def test_running_vscode_profile_state_untouched(tmp_path, monkeypatch):
+    # VS Code running holds the state db open => our write lost or the user's pick clobbered
+    paths, marker = profile_paths(tmp_path, monkeypatch), tmp_path / "marker"
+    state_db(paths.global_storage / "state.vscdb", [(MODEL, "copilot/claude-sonnet"), ("sync.enable", "true")])
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    launch.migrate_profile(paths, marker)
+    launch.keep_out_of_sync(paths)
+    assert not marker.exists() and not (paths.data / "User" / "profiles" / "cez-job-finder" / "globalStorage").exists()
+    assert not paths.settings.exists()
+
+
+def test_window_extension_kept_out_of_settings_sync(tmp_path, monkeypatch):
+    # synced, another computer asks the Marketplace for an id that isn't there (or someone else's)
+    import vscode_ext
+    paths = profile_paths(tmp_path, monkeypatch)
+    ours = vscode_ext.extension_id()
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    profile_extension(paths, launch.PDF_EXTENSION)
+    profile_extension(paths, ours)
+    listing = paths.data / "User" / "profiles" / "cez-job-finder" / "extensions.json"
+    entries = json.loads(listing.read_text(encoding="utf-8"))
+    entries[-1]["metadata"] = {"source": "vsix", "pinned": True, "isMachineScoped": False}
+    listing.write_text(json.dumps(entries), encoding="utf-8")
+    paths.settings.write_text('{"editor.tabSize": 8}', encoding="utf-8")
+    launch.keep_out_of_sync(paths)  # sync off: their settings file untouched
+    entries = {e["identifier"]["id"]: e for e in json.loads(listing.read_text(encoding="utf-8"))}
+    assert entries[ours]["metadata"] == {"source": "vsix", "pinned": True, "isMachineScoped": True}
+    assert "metadata" not in entries[launch.PDF_EXTENSION]
+    assert paths.settings.read_text(encoding="utf-8") == '{"editor.tabSize": 8}'
+    state_db(paths.global_storage / "state.vscdb", [("sync.enable", "true")])
+    launch.keep_out_of_sync(paths)
+    launch.keep_out_of_sync(paths)  # once only
+    assert launch.settings_values(paths.settings.read_text(encoding="utf-8")) == {
+        "editor.tabSize": 8, launch.SYNC_IGNORED: [ours]}
+
+
+def test_sync_ignore_list_edited_in_place():
+    # rewriting the settings file as JSON drops every comment the user wrote in it
+    text = '{\n  // keep\n  "settingsSync.ignoredExtensions": [\n    "a.b", // theirs\n  ],\n}\n'
+    out = launch.add_to_list_setting(text, launch.SYNC_IGNORED, "cez-job-finder.window")
+    assert out == text.replace('[\n', '["cez-job-finder.window", \n', 1)
+    assert launch.settings_values(out)[launch.SYNC_IGNORED] == ["cez-job-finder.window", "a.b"]
+    assert launch.add_to_list_setting(out, launch.SYNC_IGNORED, "CEZ-Job-Finder.window") == out
+    empty = '{"settingsSync.ignoredExtensions": []}'
+    assert launch.add_to_list_setting(empty, launch.SYNC_IGNORED, "x.y") == '{"settingsSync.ignoredExtensions": ["x.y"]}'
+    commented = '{\n  // "settingsSync.ignoredExtensions": ["old"]\n}'
+    assert launch.settings_values(launch.add_to_list_setting(commented, launch.SYNC_IGNORED, "x.y")) == {
+        launch.SYNC_IGNORED: ["x.y"]}

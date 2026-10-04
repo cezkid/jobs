@@ -1,0 +1,14 @@
+# version content-hash, one line per release, append only (app/vscode_ext.py)
+0.1.0 96afd64ad5632216
+0.2.0 be744b1907142d4f
+0.3.0 016a09ff62fc00d6
+0.4.0 bc944a107e8f4e3d
+0.5.0 49e4456981ac96c3
+0.6.0 68ea30b9b52daf26
+0.7.0 30f2794a7a2f40dc
+0.8.0 93f64708535f16d3
+0.9.0 6b0b4d97e1667176
+0.10.0 a7c250878bad3cb4
+0.11.0 1b17590612eb5838
+0.12.0 5bdd65a5a4e41c38
+0.13.0 d560d142f6b9df1b

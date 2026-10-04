@@ -12,7 +12,9 @@ CONTACT = {"email", "name", "first_name", "resume"}
 
 
 def newest(source: str) -> list[str]:
-    r = httpx.get(SEARCH, params={"countries": "us", "source": source, "limit": 10, "sort": "posted_at",
+    # 50, not 10: one employer posting a batch can fill the newest 10 alone, all on its own careers
+    # domain (17 Roku links on www.weareroku.com in a row on Greenhouse, 2026-10-03)
+    r = httpx.get(SEARCH, params={"countries": "us", "source": source, "limit": 50, "sort": "posted_at",
                                   "order": "desc"}, timeout=30)
     r.raise_for_status()
     return [row["url"] for row in r.json()["data"]]

@@ -245,6 +245,24 @@ def set_state(conn, job: dict, state: str, at: str) -> None:
     conn.commit()
 
 
+def undo(conn, key: str, state: str) -> None:
+    """Today's Undo: the last state recorded taken back - its log line dropped, the one before
+    restored w/ its own date (history + "sent so far" as if never clicked). Only while `state`
+    still holds => never takes back a later change from a chat. None before => no status again."""
+    row = get(conn, key)
+    marks = ",".join("?" * len(STATES))
+    last = conn.execute(f"SELECT rowid, state, at FROM application_log WHERE key = ? AND state IN ({marks})"
+                        " ORDER BY rowid DESC LIMIT 2", (key, *STATES)).fetchall()
+    if not row or row["state"] != state or not last or last[0]["state"] != state:
+        raise ValueError(f"nothing to undo: this job isn't marked {STATES.get(state, state).lower()} now")
+    conn.execute("DELETE FROM application_log WHERE rowid = ?", (last[0]["rowid"],))
+    if len(last) > 1:
+        conn.execute("UPDATE applications SET state = ?, state_at = ? WHERE key = ?", (last[1]["state"], last[1]["at"], key))
+    else:
+        conn.execute("DELETE FROM applications WHERE key = ?", (key,))
+    conn.commit()
+
+
 def get(conn, key: str) -> dict | None:
     row = conn.execute("SELECT * FROM applications WHERE key = ?", (key,)).fetchone()
     return dict(row) if row else None
@@ -460,7 +478,8 @@ def main() -> None:
     steps.add_parser("sort", help="file every job folder under the stage its status names (launch does it too)")
     for name, helptext in (("show", "one job's status, its history + its folder"),
                            ("set", "record a job's status; its folder moves to that stage"),
-                           ("followed-up", "log a follow-up the user sent; the job stays where it stands")):
+                           ("followed-up", "log a follow-up the user sent; the job stays where it stands"),
+                           ("undo", "take back the last status set (Today's Undo); its folder moves back")):
         p = steps.add_parser(name, help=helptext)
         p.add_argument("job", nargs="?", help="job number, slug, the job's https link, or its job folder name")
         p.add_argument("--company")
@@ -470,6 +489,8 @@ def main() -> None:
             p.add_argument("state", help=" | ".join(STATES))
         if name in ("set", "followed-up"):
             p.add_argument("--on", help="YYYY-MM-DD it happened, when not today")
+        if name == "undo":
+            p.add_argument("--from", dest="was", required=True, help="the status being taken back - must still hold")
     # `set <job> <state>` or `set <state> --company C --title T`: argparse fills state first
     args = ap.parse_args()
     config = cfg.load_or_defaults()
@@ -536,6 +557,9 @@ def main() -> None:
             if args.step == "set":
                 set_state(conn, job, state_key(args.state), when(args.on, store.utc_now()))
                 stuck = sort_folders(conn, jobs_dir, job["key"])[1]
+            if args.step == "undo":
+                undo(conn, job["key"], state_key(args.was))
+                stuck = sort_folders(conn, jobs_dir, job["key"])[1]
             if args.step == "followed-up":
                 if (get(conn, job["key"]) or {}).get("state") not in ("applied", "heard_back", "interview"):
                     raise ValueError("a follow-up is for a job sent and waiting on a reply - record that first")
@@ -544,7 +568,7 @@ def main() -> None:
             sys.exit(str(e))
         row = get(conn, job["key"])
         print(line(numbered(conn, [row])[0]) if row else f"no status yet: {job['company']} - {job['title']}")
-        if row and args.step != "set":
+        if row and args.step not in ("set", "undo"):
             print("\n".join(f"      {day}  {what}" for day, what in history(conn, job["key"])))
         # moved folder => old paths in the chat are stale; this line is the one to use
         if d := folder_of(jobs_dir, job["key"]):

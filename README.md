@@ -66,6 +66,13 @@ All code under `app/`; root = user folders, `Guides/`, `docs/` (install page, Gi
 - `app/docs/jobs/freehire.md` - API facts, filter pitfalls, filters vs rank boosts
 - `app/docs/resume/bullets.md` / `typeface.md` / `page-format.md` - bullet rules, font + page gates
 - `app/skills/` - skill bodies; stubs in `.claude/skills/` + `.agents/skills/`
+- `app/vscode/` - the window's own VS Code extension (start page, Today dashboard), plain JS, no
+  npm. `uv run app/vscode_ext.py` packs it into `.data/vscode/*.vsix` (launch installs it into the
+  CEZ Job Finder profile); content change => bump `version` in `package.json` + a `releases.txt`
+  line (tested). JS tests: `node --test app/vscode/test/*.test.js` (pytest runs them too). Try
+  it live w/o touching your own VS Code: `uv run python app/tests/demo.py`, then
+  `JOBS_VSCODE_DIR=$(mktemp -d /tmp/jfv.XXXX) uv run app/jobs.py launch` (separate VS Code;
+  short path - [app-window.md](app/docs/app-window.md)); quit it after
 - `.github/CONTRIBUTING.md` - bug fixes + PRs (AI: `report-defect` skill)
 - `docs/` - install site (GitHub Pages); generated files from `uv run app/web/assets.py` + `pages.py`, rules in
   [`app/docs/site.md`](app/docs/site.md); left out of the app download (`.gitattributes`)

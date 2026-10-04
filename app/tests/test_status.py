@@ -505,3 +505,41 @@ def test_old_stage_folders_go_once_empty_never_with_a_job_inside(conn, jobs):
     (jobs / "2 Sent" / "notes.txt").write_text("mine")
     status.sort_folders(conn, jobs)
     assert (jobs / "2 Sent" / "notes.txt").exists()  # the user's own file: folder kept
+
+
+# Today's "I sent it" clicked by mistake: Undo must leave the job, its date + its folder as before,
+# and the click must not count as sent later
+def test_undo_restores_state_date_history_and_folder(cli, tmp_path, capsys):
+    jobs = tmp_path / "My Jobs"
+    make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    cli("set", PASTED_URL, "resume made", "--on", "2026-09-20")
+    conn = store.connect(tmp_path / "jobs.db")
+    before = (status.get(conn, PASTED_URL), status.history(conn, PASTED_URL))
+    [made] = (jobs / "1 To apply").iterdir()
+    cli("set", PASTED_URL, "applied")
+    assert [d.name for d in (jobs / "2 Applied").iterdir()] == [made.name]
+    capsys.readouterr()
+    cli("undo", PASTED_URL, "--from", "applied")
+    assert f"folder: {made}\n" in capsys.readouterr().out
+    assert [d.name for d in (jobs / "1 To apply").iterdir()] == [made.name] and not any((jobs / "2 Applied").iterdir())
+    assert (status.get(conn, PASTED_URL), status.history(conn, PASTED_URL)) == before
+    assert not conn.execute("SELECT 1 FROM application_log WHERE state = 'applied'").fetchall()
+
+
+# a chat changed it after the click (heard back): a late Undo must not wipe that out
+def test_undo_refuses_once_the_state_moved_on(conn, tmp_path):
+    job = status.resolve(conn, tmp_path, company="Initech", title="Analyst")
+    status.set_state(conn, job, "resume_made", "2026-09-20T12:00:00Z")
+    status.set_state(conn, job, "applied", NOW)
+    status.set_state(conn, job, "heard_back", LATER)
+    with pytest.raises(ValueError, match="isn't marked applied now"):
+        status.undo(conn, job["key"], "applied")
+    assert status.get(conn, job["key"])["state"] == "heard_back"
+
+
+# nothing recorded before the click => back to no status, not a made-up one
+def test_undo_of_first_status_leaves_none(conn, tmp_path):
+    job = status.resolve(conn, tmp_path, company="Initech", title="Analyst")
+    status.set_state(conn, job, "applied", NOW)
+    status.undo(conn, job["key"], "applied")
+    assert status.get(conn, job["key"]) is None

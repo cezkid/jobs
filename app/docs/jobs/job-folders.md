@@ -40,10 +40,10 @@ No job file (a stray note, a half-copied folder) => not a job: never counted, nu
 |---|---|
 | `status set N <state>` | that job's folder; prints `folder: <path>` |
 | `tailor prepare` | new job -> `1 To apply`; a closed one reopens (saved) -> `1 To apply`; filed before any path is printed, so the task file's answer path stays good |
-| launch (`launch.first_page`) | every folder not where its status says, before the Today page is built |
+| start: launcher (`launch.first_page`) or window opened w/o it (extension, stale Today) - both `today --refresh` | every folder not where its status says, before the Today page is built |
 | `status sort` | same, on demand |
 
-Never from the chat-start hook, the Today rebuild, the morning check or a reading command.
+Never from the chat-start hook, a plain `today` rebuild, the morning check or a reading command.
 Never on a timer: a resume made weeks ago stays in To apply until the user says otherwise.
 
 Rules (`status.sort_folders`):

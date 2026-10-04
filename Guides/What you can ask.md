@@ -15,6 +15,7 @@ first.) You never type commands or edit files.
 - **Where things stand:** "I sent job 3" · "I heard back from job 3" · "Is job 3 still open?" ·
   "Job 3 is closed"
 - **Anything:** "Who can see my information?" · "Why?"
+- **Light or dark:** use the switch at the top of Today, or say "dark mode"
 - **Bias:** worried about bias - your name, age or a break? Ask any time.
   **[Unfair hiring - what's known, what helps](Unfair%20hiring%20-%20what's%20known,%20what%20helps.md)**
 
@@ -39,4 +40,8 @@ and job boards. Each job links to the real posting. New ones checked every morni
 
 Double-click **CEZ Job Finder** on your Desktop (on Windows, clicking the morning notification
 works too). The **Today** page opens: what's waiting on you and the newest jobs. Each one shows
-the words to type in the chat, and **Open the posting** to read the job itself.
+a button with the words to say. Click a job's title to read the posting, its company to see the
+company's website (when it's known). Click a
+button and its words go into the chat (with Claude, a new chat opens beside the page with them
+typed in; with ChatGPT: click the chat box, paste, press Enter). Nothing is sent until you press
+Enter.

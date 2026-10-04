@@ -35,7 +35,8 @@ pick_ai() {
   if [ -z "$word" ] && [ -f "$DIR/.data/ai" ]; then word=$(ai_word "$(cat "$DIR/.data/ai")"); fi
   if [ -z "$word" ] && have code; then  # re-run to repair => keep the AI already set up, no question
     local have_ext
-    have_ext=$(code --list-extensions 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
+    # default profile + Job Finder's own (absent before its first setup: "not found", exit 1)
+    have_ext=$({ code --list-extensions; code --list-extensions --profile "CEZ Job Finder"; } 2>/dev/null | tr '[:upper:]' '[:lower:]' || true)
     if grep -qx anthropic.claude-code <<<"$have_ext"; then word=claude
     elif grep -qx openai.chatgpt <<<"$have_ext"; then word=chatgpt; fi
   fi
@@ -91,12 +92,7 @@ if ! have code; then
 fi
 have code || fail "could not install VS Code."
 
-step 3 "adding the AI panel to VS Code..."
-if [ -n "$ai_extension" ]; then
-  code --install-extension "$ai_extension" --force >/dev/null 2>&1 || fail "could not add the AI panel to VS Code."
-fi
-
-step 4 "downloading CEZ Job Finder to $DIR..."
+step 3 "downloading CEZ Job Finder to $DIR..."
 # My folders + .data never in zip => replacing every top-level entry keeps them
 staging="$DIR/.data/install"
 rm -rf "$staging"
@@ -111,8 +107,17 @@ done
 rm -rf "$staging"
 echo "$ai" >"$DIR/.data/ai"  # private, kept by updates; launcher + `jobs.py ai` read it
 
-step 5 "getting CEZ Job Finder ready..."
+step 4 "getting CEZ Job Finder ready..."
 (cd "$DIR" && uv sync --quiet) || fail "could not get CEZ Job Finder ready."
+
+step 5 "adding the AI panel to VS Code..."
+# Job Finder's own VS Code profile + AI panel, PDF viewer, typo checker, its window (plain lines);
+# VS Code open => default profile. Fails => AI panel the plain way, as before the profile
+if ! (cd "$DIR" && uv run app/jobs.py window-setup); then
+  if [ -n "$ai_extension" ]; then
+    code --install-extension "$ai_extension" --force >/dev/null 2>&1 || fail "could not add the AI panel to VS Code."
+  fi
+fi
 
 bash "$DIR/app/install/make-icon-mac.sh"
 

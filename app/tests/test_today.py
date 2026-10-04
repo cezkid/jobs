@@ -38,29 +38,26 @@ Tuesday, September 29. So far: 1 sent.
 
 ## Waiting on you
 
-- **Job 1** - Data Analyst, Globex
-  - Resume made 5 days ago
-  - [Open the posting](<https://jobs.lever.co/globex/1>) · [Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)
+- **Job 1** - [Data Analyst](<https://jobs.lever.co/globex/1>), Globex
+  - Ready to send
+  - [Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)
   - Say: `apply to job 1` - or `I sent job 1` if you already did
 
 ## Follow up
 
-No reply for a while. A short note asking where things stand is common practice - about 3 weeks after applying, about 2 weeks once you've talked with them - if you have someone to write to. Many employers never write back.
+No reply for a while. Many employers never write back. [When to follow up](Guides/Following%20up.md)
 
-- **Job 2** - Senior Vue Engineer old, Acme
+- **Job 2** - [Senior Vue Engineer old](<https://boards.greenhouse.io/acme/jobs/old>), Acme
   - Applied 29 days ago, no reply yet
-  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/old>)
   - Say: `write a follow-up for job 2` - or `I heard back from job 2`, `job 2 is closed`
 
 ## New since last check
 
-- **Job 3** - Senior Vue Engineer paid, Acme
-  - remote · $150k-190k (meets your pay) · added to your list today
-  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/paid>)
+- **Job 3** - [Senior Vue Engineer paid](<https://boards.greenhouse.io/acme/jobs/paid>), Acme
+  - Why: remote · $150k-190k (meets your pay) · added to your list today
   - Say: `resume for job 3`
-- **Job 4** - Senior Vue Engineer plain, Acme
-  - remote · pay not listed · added to your list today
-  - [Open the posting](<https://boards.greenhouse.io/acme/jobs/plain>)
+- **Job 4** - [Senior Vue Engineer plain](<https://boards.greenhouse.io/acme/jobs/plain>), Acme
+  - Why: remote · pay not listed · added to your list today
   - Say: `resume for job 4`
 
 ## Not finished
@@ -85,16 +82,94 @@ Guides:
 
 
 def test_page_in_plain_words(conn, tmp_path):
-    folder = make_folder(tmp_path, "Globex - Data Analyst", "https://jobs.lever.co/globex/1", "Globex", "Data Analyst", None)
+    fill(conn, tmp_path)
+    assert page(conn, tmp_path, TODO) == SNAPSHOT
+
+
+def test_dashboard_data_is_the_page(tmp_path):
+    # data out of step w/ the page => a button saying other words than the page beside it
+    m = dashboard_model(tmp_path)
+    assert today.render(m) == SNAPSHOT.replace("](Globex%20", "](My%20Jobs/Globex%20")
+    card = m["sections"][0]["cards"][0]
+    assert (card["num"], card["say"][0]) == (1, "apply to job 1")
+    assert card["resume"] == "My Jobs/Globex - Data Analyst/Your_Name_Resume.pdf"
+    assert card["folder"] == "My Jobs/Globex - Data Analyst"
+    # "Resume made 8 days ago" reads as overdue: no age on what waits, dashboard as page
+    assert card["detail"] == "Ready to send"
+    assert json.loads(json.dumps(m)) == m
+
+
+# "Make my resume" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
+def test_new_jobs_carry_their_why_as_data(tmp_path):
+    m = dashboard_model(tmp_path)
+    new = next(s for s in m["sections"] if s["id"] == "new")
+    assert [c["why"] for c in new["cards"]] == ["remote · $150k-190k (meets your pay) · added to your list today",
+                                                "remote · pay not listed · added to your list today"]
+    assert all(c["detail"] == "" and c["url"] for c in new["cards"])
+    follow = next(s for s in m["sections"] if s["id"] == "follow_up")
+    assert follow["guide"] == {"title": "When to follow up", "path": "Guides/Following up.md"}
+    assert (ROOT / follow["guide"]["path"]).exists()
+
+
+# "1 Interviews" reads as a typo on the first figure a user sees
+def test_figures_say_one_interview_not_one_interviews():
+    labels = lambda **c: [t["label"] for t in today.tiles({"sent": 3, "interview": 0, "offer": 0, **c}, 0)]
+    assert labels(interview=1, offer=1) == ["Sent so far", "Interview", "Offer"]
+    assert labels(interview=2, offer=3) == ["Sent so far", "Interviews", "Offers"]
+
+
+def test_write_puts_dashboard_data_beside_the_page(conn, tmp_path, monkeypatch):
+    # no data file => the dashboard shows yesterday's jobs or nothing
+    monkeypatch.setattr(cfg, "DATA", tmp_path / ".data")
+    monkeypatch.setattr(today, "unfinished", lambda config: [])
+    monkeypatch.setattr(store, "connect", lambda _path: conn)
+    fill(conn, tmp_path / "My Jobs")
+    config = cfg.merge(CONFIG, {"db": ".data/jobs.db"})
+    monkeypatch.setattr(cfg, "resume_path", lambda c, key: tmp_path / "My Jobs")
+    out = today.write(config, tmp_path / "Today.md", NOW)
+    data = json.loads((tmp_path / today.DASHBOARD).read_text(encoding="utf-8"))
+    assert data["version"] == today.DASHBOARD_VERSION
+    page_nums = [int(n) for n in re.findall(r"\*\*Job (\d+)\*\*", out.read_text(encoding="utf-8"))]
+    assert [c["num"] for s in data["sections"] for c in s["cards"]] == page_nums
+    assert data["sections"][0]["cards"][0]["resume"] == "My Jobs/Globex - Data Analyst/Your_Name_Resume.pdf"
+
+
+def test_every_word_on_the_page_is_a_shared_template(tmp_path):
+    # page words + dashboard button words drift apart => the extension refuses a button the page offers
+    patterns = [re.compile("^" + re.escape(w).replace(re.escape("{n}"), r"\d+") + "$") for w in today.TEMPLATES.values()]
+    chips = re.findall(r"`([^`]+)`", SNAPSHOT)
+    assert chips and all(any(p.match(w) for p in patterns) for w in chips)
+    m = dashboard_model(tmp_path)
+    said = [w for s in m["sections"] for c in s["cards"] for w in c["say"]]
+    said += [t["say"] for t in m["todo"] if t["say"]] + [w for e in m["examples"] for w in e]
+    assert said and all(any(p.match(w) for p in patterns) for w in said)
+
+
+def fill(conn, jobs_dir):
+    """Snapshot's jobs: one resume made (pdf in its folder), one quiet after applying, two new."""
+    folder = make_folder(jobs_dir, "Globex - Data Analyst", "https://jobs.lever.co/globex/1", "Globex", "Data Analyst", None)
     (folder / "Your_Name_Resume.pdf").write_bytes(b"%PDF")
-    status.backfill(conn, tmp_path)
+    status.backfill(conn, jobs_dir)
     conn.execute("UPDATE applications SET state_at = '2026-09-24T12:00:00Z'")
     conn.commit()
     store.upsert(conn, [job("old")], "2026-08-01T12:00:00Z")
     applied(conn, "old", "2026-08-31T12:00:00Z")
     store.upsert(conn, [job("plain"), job("paid", salary_min=150000, salary_max=190000,
                                            salary_currency="USD", salary_period="year")], CHECK)
-    assert page(conn, tmp_path, ["The morning job check is off. Say: `turn on the morning job check`"]) == SNAPSHOT
+
+
+TODO = ["The morning job check is off. Say: `turn on the morning job check`"]
+
+
+def dashboard_model(root: Path) -> dict:
+    """Snapshot page as the dashboard's data, job folders under My Jobs/ as installed (test_vscode_ext
+    feeds it to the extension's code, which opens nothing outside My Jobs/, My Resume/, Guides/)."""
+    c = store.connect(":memory:")
+    try:
+        fill(c, root / "My Jobs")
+        return today.model(c, CONFIG, root / "My Jobs", NOW, TODO, root=root)
+    finally:
+        c.close()
 
 
 def test_every_section_hides_when_empty(conn, tmp_path):
@@ -125,7 +200,8 @@ def test_new_is_last_check_or_unannounced_only(conn, tmp_path):
 def test_new_job_age_agrees_with_new(conn, tmp_path):
     # reposted posting freehire first saw 66 days ago, reaching the list in this check (real install)
     store.upsert(conn, [job("repost", reality={"age_days": 66}), job("fresh", reality={"age_days": 3})], CHECK)
-    lines = {j: next(line for line in page(conn, tmp_path).split(f"/jobs/{j}")[0].splitlines()[::-1] if "·" in line)
+    blocks = re.split(r"^- \*\*Job", page(conn, tmp_path), flags=re.M)
+    lines = {j: next(line for line in next(b for b in blocks if f"/jobs/{j}>" in b).splitlines() if "·" in line)
              for j in ("repost", "fresh")}
     assert lines["repost"].endswith("added to your list today · posting first seen 66 days ago")
     assert lines["fresh"].endswith("added to your list today")
@@ -153,7 +229,7 @@ def test_new_capped_with_rest_in_the_chat(conn, tmp_path, monkeypatch):
 def test_same_number_as_the_chat_list(conn, tmp_path):
     store.upsert(conn, [job("a"), job("b")], CHECK)
     first = store.numbered(conn, [dict(store.all_jobs(conn)[1], duplicates=[])])[0]
-    assert f"**Job {first['num']}** - {first['title']}" in page(conn, tmp_path)
+    assert f"**Job {first['num']}** - [{first['title']}](<{first['url']}>)" in page(conn, tmp_path)
 
 
 def test_waiting_never_counts_what_is_left(conn, tmp_path, monkeypatch):
@@ -161,7 +237,7 @@ def test_waiting_never_counts_what_is_left(conn, tmp_path, monkeypatch):
     for i in range(3):
         make_folder(tmp_path, f"Globex - Role {i}", f"https://jobs.lever.co/globex/{i}", "Globex", f"Role {i}", None)
     text = page(conn, tmp_path)
-    assert text.count("Resume made") == 1
+    assert text.count("Ready to send") == 1
     assert "- More in the chat. Say: `what is waiting on me`" in text
     assert not any(ch.isdigit() for ch in text.split("More in the chat")[1].splitlines()[0])
 
@@ -249,7 +325,7 @@ def test_page_is_private():
 
 
 BRIEF = """Job Finder today (same as their Today page). If the user only greets you or asks what's next, answer with this in plain words, each job written "**Job 12** - title, company", never a 1. 2. 3. list; otherwise use it only when it helps. Never say how many resumes are unsent.
-- Waiting on you (resume made, not sent): Job 1 - Data Analyst, Globex, resume made 5 days ago
+- Waiting on you (resume made, not sent): Job 1 - Data Analyst, Globex
 - Follow up (no reply for a while): Job 2 - Senior Vue Engineer old, Acme, applied 29 days ago
 - New since last check: 2. Top: Job 3 - Senior Vue Engineer paid, Acme; Job 4 - Senior Vue Engineer plain, Acme
 - Not finished: The morning job check is off."""
@@ -267,7 +343,7 @@ def test_chat_brief_matches_the_page(conn, tmp_path):
     todo = ["The morning job check is off. Say: `turn on the morning job check`"]
     assert today.brief(conn, CONFIG, tmp_path, NOW, todo) == BRIEF
     # same numbers as the page, whichever is built first
-    assert "**Job 3** - Senior Vue Engineer paid" in page(conn, tmp_path, todo)
+    assert "**Job 3** - [Senior Vue Engineer paid](" in page(conn, tmp_path, todo)
 
 
 def test_chat_brief_stays_short_on_a_full_list(conn, tmp_path):
@@ -357,9 +433,34 @@ def test_every_job_has_link_text_and_a_say_chip(conn, tmp_path):
     assert len(jobs) == 4
     for block in jobs:
         block = block.split("\n\n")[0]
-        assert "[Open the posting](<https://" in block and re.search(r"Say: `[^`]+`", block)
+        assert re.match(r" - \[[^\]]+\]\(<https://", block) and re.search(r"Say: `[^`]+`", block)
     # url exact, never rebuilt; a ')' in it can't end the link
     assert "(<https://jobs.lever.co/globex/1?utm_source=x>)" in text
     assert "(<https://boards.greenhouse.io/acme/jobs/a(b)>)" in text
     assert "[Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)" in text
     assert not re.search(r'Say: "', text) and "- `find new jobs`" in text
+
+
+# owner 2026-10-03: company name opens its website on the job search's record; none on record =>
+# plain name (no web search); never a link built from its listing id
+def test_company_links_its_website_else_plain_name(conn, tmp_path):
+    store.upsert(conn, [job("a", company="Notion", company_slug="notion"), job("b", company="Sample & Co", company_slug="sample")],
+                 CHECK)
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?)", (CHECK,))
+    conn.execute("INSERT INTO companies VALUES ('sample', NULL, ?)", (CHECK,))
+    m = today.model(conn, CONFIG, tmp_path, NOW, [], tmp_path)
+    cards = {c["company"]: c for c in m["sections"][0]["cards"]}
+    assert cards["Notion"]["company_url"] == "https://notion.so"
+    assert cards["Sample & Co"]["company_url"] is None
+    text = today.render(m)
+    assert "[Senior Vue Engineer a](<https://boards.greenhouse.io/acme/jobs/a>), [Notion](<https://notion.so>)" in text
+    assert "[Senior Vue Engineer b](<https://boards.greenhouse.io/acme/jobs/b>), Sample &amp; Co\n" in text  # text inert
+    assert "notion.so/notion" not in text and "Open the posting" not in text and "?q=" not in text
+
+
+# a sent job (application row, no listing id of its own) still links its company's website
+def test_company_link_found_through_the_listed_job(conn, tmp_path):
+    store.upsert(conn, [job("old", company="Notion", company_slug="notion")], "2026-08-01T12:00:00Z")
+    applied(conn, "old", "2026-08-31T12:00:00Z")
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?)", (CHECK,))
+    assert "[Notion](<https://notion.so>)" in page(conn, tmp_path)
