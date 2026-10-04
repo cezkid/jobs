@@ -91,6 +91,18 @@
   checked: 2026-10-03
   recheck_by: 2027-04-03
 
+- id: bast-2017
+  type: article
+  authors: ["Bast, Hannah", "Korzen, Claudius"]
+  year: 2017
+  title: "A Benchmark and Evaluation for Text Extraction from PDF"
+  venue: Proceedings of the 2017 ACM/IEEE Joint Conference on Digital Libraries (JCDL)
+  doi: 10.1109/JCDL.2017.7991564
+  url: https://ad-publications.informatik.uni-freiburg.de/benchmark.pdf
+  evidence: lab/LLM audit
+  sample: 14 PDF text readers tested on 12,098 scientific articles from arXiv; peer-reviewed conference paper; not resumes
+  checked: 2026-10-04
+
 - id: bloomberg-2024
   type: article
   authors: ["Yin, Leon", "Alba, Davey", "Nicoletti, Leonardo"]
@@ -483,6 +495,17 @@
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
+- id: greenhouse-parse
+  type: web
+  org: Greenhouse
+  year: 2026
+  title: Unsuccessful resume parse
+  url: https://support.greenhouse.io/hc/en-us/articles/200989175-Unsuccessful-resume-parse
+  evidence: vendor docs
+  sample: the maker's help page for employers using Greenhouse Recruiting, last updated March 2, 2026
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: greenhouse-rules
   type: web
   org: Greenhouse
@@ -689,6 +712,16 @@
   checked: 2026-10-03
 
 # Court order: allegations, not findings
+- id: mit-capd-ats
+  type: web
+  org: MIT Career Advising & Professional Development
+  year: 2026
+  title: Make your resume ATS-friendly
+  url: https://capd.mit.edu/resources/make-your-resume-ats-friendly/
+  evidence: convention
+  sample: a university career office's guide, updated April 2026
+  checked: 2026-10-04
+
 - id: mobley-2025-order
   type: law
   org: US District Court for the Northern District of California
@@ -842,6 +875,16 @@
   sample: the company's own news page, archived December 2012; no method given
   checked: 2026-10-03
 
+- id: resumap-2026
+  type: web
+  org: Resumap
+  year: 2026
+  title: "We ran the same resume through 4 real ATS parsers in 36 layouts: same text, different parses"
+  url: https://dev.to/resumap/we-ran-the-same-resume-through-4-real-ats-parsers-in-36-layouts-same-text-different-parses-3mfc
+  evidence: vendor survey
+  sample: one made-up resume in 36 templates, read by 4 commercial hiring systems or resume readers (Zoho Recruit, Manatal, Workable, Textkernel); a test by the company that makes the templates, posted July 28, 2026; not peer-reviewed
+  checked: 2026-10-04
+
 - id: resume-genius-2026
   type: web
   authors: ["Chan, Eva"]
@@ -920,6 +963,17 @@
   sample: one AI model (Claude 2.0), 70 made-up decision questions including job offers, with age, race and gender varied
   preprint: true
   checked: 2026-10-03
+
+- id: textkernel-2023
+  type: web
+  org: Textkernel
+  year: 2023
+  title: Improving extraction from column resumes
+  url: https://textkernel.com/learn-support/blog/improving-extraction-from-column-resumes
+  evidence: vendor docs
+  sample: the maker's own blog post, October 18, 2023, on its resume reader; its tests on its own files, method in outline only
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: uscis-i9
   type: law
