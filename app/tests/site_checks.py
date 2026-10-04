@@ -231,6 +231,11 @@ TEXT_PAIRS = [("--text", "--desk"), ("--text-2", "--desk"), ("--desk", "--text")
               ("--ink", "--paper"), ("--ink-2", "--paper"), ("--ink", "--mark")]  # sheets + marks keep ink
 NON_TEXT_PAIRS = [("--text", "--desk"), ("--ink", "--paper"), ("--ink", "--mark")]  # control borders, frames
 RING_BACKGROUNDS = ["--desk", "--paper"]  # focus ring on the desk and on a white sheet, both schemes
+# APCA (perceptual lightness contrast, WCAG 3 drafts): text pairs >= Lc 75, its floor for body-size text (the
+# secondary grey sets 12-17px bylines, footer + Sources); hairlines >= Lc 15, its floor for a line still seen.
+# WCAG 2 rated dark mode too kindly: #bdbdbd on #1c1c1e passed at 9.1:1 but read at Lc 65 (light: Lc 96)
+APCA_TEXT_MIN, APCA_LINE_MIN = 75, 15
+LINE_PAIRS = [("--line", "--desk"), ("--rule", "--paper")]  # hairlines between sections, on the sheets
 
 
 def styles(head: Head) -> str:
@@ -373,6 +378,22 @@ def contrast(a: str, b: str) -> float:
     return (hi + 0.05) / (lo + 0.05)
 
 
+def apca(text: str, background: str) -> float:
+    """APCA Lc (APCA-W3 0.0.98G-4g), either polarity, as a positive number."""
+    def y(hex_colour: str) -> float:
+        h = hex_colour.lstrip("#")
+        h = "".join(c * 2 for c in h) if len(h) == 3 else h[:6]
+        r, g, b = (int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
+        v = 0.2126729 * r ** 2.4 + 0.7151522 * g ** 2.4 + 0.0721750 * b ** 2.4
+        return v + (0.022 - v) ** 1.414 if v < 0.022 else v  # soft clamp near black
+    t, b = y(text), y(background)
+    if b > t:  # dark text on a light background
+        s = (b ** 0.56 - t ** 0.57) * 1.14
+        return 0.0 if s < 0.1 else (s - 0.027) * 100
+    s = (b ** 0.65 - t ** 0.62) * 1.14
+    return 0.0 if s > -0.1 else (-s - 0.027) * 100
+
+
 def shared(raw: str) -> str:
     m = re.search(r"/\* shared \*/.*?/\* /shared \*/", raw, re.S)
     return m.group(0) if m else ""
@@ -412,7 +433,7 @@ SHEETS = (".window", ".proof")  # white paper in both schemes (home's app window
 
 def contrasts(raw: str) -> list[str]:
     """Token pairs under the minimum, light + dark, incl. the focus ring on desk + white sheet, the ink selection
-    and the selection on the white sheets against --paper (3:1); empty = fine."""
+    and the selection on the white sheets against --paper (3:1); text + hairlines in APCA too; empty = fine."""
     css = shared(raw)
     problems = []
     rings = [d for sel, d in re.findall(r"([^{}]*:focus-visible[^{}]*)\{([^}]*)\}", css)]
@@ -432,6 +453,14 @@ def contrasts(raw: str) -> list[str]:
                 ratio = contrast(colour(scheme[fg], scheme)[0], colour(scheme[bg], scheme)[0])
                 if ratio < least:
                     problems.append(f"{mode}: {fg} on {bg} {ratio:.2f}:1 < {least}:1")
+        for pairs, least, kind in (TEXT_PAIRS, APCA_TEXT_MIN, "text"), (LINE_PAIRS, APCA_LINE_MIN, "hairline"):
+            for fg, bg in pairs:
+                if fg not in scheme or bg not in scheme:
+                    problems.append(f"{mode}: token {fg if fg not in scheme else bg} missing")
+                    continue
+                lc = apca(colour(scheme[fg], scheme)[0], colour(scheme[bg], scheme)[0])
+                if lc < least:
+                    problems.append(f"{mode}: {kind} {fg} on {bg} APCA Lc {lc:.1f} < {least}")
         ring = [c for d in rings for k, v in re.findall(r"(outline(?:-color)?|box-shadow)\s*:\s*([^;]+)", d)
                 for c in colour(v, scheme)]
         for bg in RING_BACKGROUNDS:

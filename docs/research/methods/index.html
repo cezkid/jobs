@@ -66,7 +66,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -77,6 +77,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -109,6 +112,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -268,7 +273,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -292,10 +297,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -320,7 +333,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -329,10 +342,25 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#who-writes-these-articles">Who writes these articles?</a></li>
+<li><a href="#why-publish-them">Why publish them?</a></li>
+<li><a href="#which-sources-come-first">Which sources come first?</a></li>
+<li><a href="#what-do-the-evidence-labels-mean">What do the evidence labels mean?</a></li>
+<li><a href="#how-is-each-claim-checked">How is each claim checked?</a></li>
+<li><a href="#how-is-ai-used">How is AI used?</a></li>
+<li><a href="#how-are-mistakes-corrected">How are mistakes corrected?</a></li>
+<li><a href="#how-often-are-articles-updated">How often are articles updated?</a></li>
+<li><a href="#what-do-we-gain-from-the-answers">What do we gain from the answers?</a></li>
+<li><a href="#is-this-legal-advice">Is this legal advice?</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">How the Research articles are made and checked</li></ol></nav>
 <h1>How the Research articles are made and checked</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>. Updated <time datetime="2026-10-04">4 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-04">October 4, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -352,11 +380,11 @@
 </details>
 </nav>
 <h2 id="who-writes-these-articles">Who writes these articles?</h2>
-<p>Every article is by <a href="/about/">Cesar Enrriquez-Zuniga</a>. Cesar makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan.</p>
+<p>Every article is by <a href="/about/">Cesar Enrriquez-Zuniga</a>. Cesar makes <span translate="no">CEZ Job Finder</span>, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan.</p>
 <p>Cesar is not a recruiter or a lawyer. The articles summarize published studies and say how strong each one is.</p>
 <p>On these pages, “we” means Cesar and the AI tools Cesar uses.</p>
 <h2 id="why-publish-them">Why publish them?</h2>
-<p>CEZ Job Finder follows these findings when it writes a resume. Publishing them lets anyone check the reasons behind the app.</p>
+<p><span translate="no">CEZ Job Finder</span> follows these findings when it writes a resume. Publishing them lets anyone check the reasons behind the app.</p>
 <p>Much advice about resumes and AI repeats claims nobody can trace. Here, every claim carries a label for how strong it is. Every claim from a study links to that study.</p>
 <h2 id="which-sources-come-first">Which sources come first?</h2>
 <p>We cite the strongest source that exists, never a weaker one that repeats it. Strongest first:</p>
@@ -472,7 +500,7 @@
 <h2 id="how-often-are-articles-updated">How often are articles updated?</h2>
 <p>Laws and app settings change fast, so we re-check them every 3 to 6 months. Each law carries a re-check date, and the site build warns when that date passes. Studies are re-checked once a year, for a newer study, a retraction, or a preprint now published. Each Sources entry shows the date it was last checked.</p>
 <h2 id="what-do-we-gain-from-the-answers">What do we gain from the answers?</h2>
-<p>We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We have no paid or business ties to the AI companies, hiring-software makers or resume companies named in these articles. The app uses freehire.me’s free job search; we have no ties to it.</p>
+<p>We make <span translate="no">CEZ Job Finder</span>, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We have no paid or business ties to the AI companies, hiring-software makers or resume companies named in these articles. The app uses freehire.me’s free job search; we have no ties to it.</p>
 <p>Each article has a separate box, after the evidence, on how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.</p>
 <h2 id="is-this-legal-advice">Is this legal advice?</h2>
 <p>These articles are not legal advice or career counselling. A page that describes a law says so and gives the date it was checked. For your own situation, ask a lawyer or a career adviser.</p>
@@ -483,25 +511,10 @@
 <li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#who-writes-these-articles">Who writes these articles?</a></li>
-<li><a href="#why-publish-them">Why publish them?</a></li>
-<li><a href="#which-sources-come-first">Which sources come first?</a></li>
-<li><a href="#what-do-the-evidence-labels-mean">What do the evidence labels mean?</a></li>
-<li><a href="#how-is-each-claim-checked">How is each claim checked?</a></li>
-<li><a href="#how-is-ai-used">How is AI used?</a></li>
-<li><a href="#how-are-mistakes-corrected">How are mistakes corrected?</a></li>
-<li><a href="#how-often-are-articles-updated">How often are articles updated?</a></li>
-<li><a href="#what-do-we-gain-from-the-answers">What do we gain from the answers?</a></li>
-<li><a href="#is-this-legal-advice">Is this legal advice?</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">

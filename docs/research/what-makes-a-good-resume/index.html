@@ -67,7 +67,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -78,6 +78,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -110,6 +113,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -269,7 +274,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -293,10 +298,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -321,7 +334,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -330,10 +343,32 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#what-matters-most-on-a-resume">What matters most on a resume?</a></li>
+<li><a href="#which-resume-rules-have-evidence-behind-them">Which resume rules have evidence behind them?</a></li>
+<li><a href="#does-your-resume-have-to-match-your-records">Does your resume have to match your records?</a></li>
+<li><a href="#should-a-resume-list-results-or-duties">Should a resume list results or duties?</a></li>
+<li><a href="#should-you-use-the-words-in-the-job-posting">Should you use the words in the job posting?</a></li>
+<li><a href="#how-far-back-should-a-resume-go">How far back should a resume go?</a></li>
+<li><a href="#does-a-gap-in-your-resume-hurt">Does a gap in your resume hurt?</a></li>
+<li><a href="#does-explaining-a-gap-help">Does explaining a gap help?</a></li>
+<li><a href="#do-typos-really-matter">Do typos really matter?</a></li>
+<li><a href="#how-long-should-a-resume-be">How long should a resume be?</a></li>
+<li><a href="#what-should-a-resume-leave-off">What should a resume leave off?</a></li>
+<li><a href="#does-layout-matter">Does layout matter?</a></li>
+<li><a href="#which-resume-advice-is-not-backed-by-evidence">Which resume advice is not backed by evidence?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">What makes a good resume? The evidence, rule by rule</li></ol></nav>
 <h1>What makes a good resume? <span class="deck">The evidence, rule by rule</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>. Updated <time datetime="2026-10-04">4 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-04">October 4, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -354,7 +389,7 @@
 <li><a href="#which-resume-advice-is-not-backed-by-evidence">Which resume advice is not backed by evidence?</a></li>
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
 </details>
@@ -518,7 +553,7 @@
 <li>Use a plain, one-column page with clear headings (<a href="#src-ladders-2018">Ladders 2018</a>).</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. More articles: <a href="/research/">Research</a>.</p>
-<h2 id="how-cez-job-finder-uses-this">How CEZ Job Finder uses this</h2>
+<h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
 <ul>
 <li>Never changes an employer, title or date, except to fix a real mistake.</li>
 <li>Checks spelling and US forms on every resume.</li>
@@ -526,26 +561,26 @@
 <li>Makes a one-column page, black text, no photo, and checks it reads back cleanly.</li>
 <li>Asks you for real numbers; never makes one up.</li>
 </ul>
-<p>CEZ Job Finder is a free job-search app for Windows and Mac: <a href="/">see how CEZ Job Finder works</a>.</p>
+<p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-dhert-2024"><b class="evidence">Big study (many studies combined)</b> D’hert, Louis, Baert, Stijn and Lippens, Louis (2024). Unemployment, Inactivity, and Hiring Chances: A Systematic Review and Meta-Analysis. <i>IZA Discussion Paper 17141, July 2024.</i> Field experiments with about 67,000 made-up applicants in 7 countries, combined. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.2139/ssrn.4898321">DOI</a> <a href="https://docs.iza.org/dp17141.pdf">Publisher</a></li>
-<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></li>
-<li id="src-greenhouse-search"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2022). Search resumes for keywords. The maker’s own help page, updated June 2022. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords">Publisher</a></li>
-<li id="src-harvard-ocs-resume"><b class="evidence">Convention (no study)</b> Harvard College Office of Career Services (2026). Harvard College Guide to Creating a Strong Resume. A university career office’s guide for students. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://careerservices.fas.harvard.edu/resources/create-a-strong-resume/">Publisher</a></li>
-<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></li>
-<li id="src-hireright-2025-sept"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). Identity Fraud and Candidate Discrepancies Remain Key Concerns for Employers, Finds HireRight’s 2025 Global Benchmark Report. September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers">Publisher</a></li>
-<li id="src-indeed-experience-2025"><b class="evidence">Convention (no study)</b> Indeed Editorial Team (2025). Listing Professional Experience on Your Resume. A job site’s advice article, updated December 2025, republished by the University of Wyoming’s business career office. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://haubcareers.uwyo.edu/resources/listing-professional-experience-on-your-resume-2/">Publisher</a></li>
-<li id="src-kristal-2023"><b class="evidence">Big study (thousands of real applications)</b> Kristal, Ariella S., Nicks, Leanne, Gloor, Jamie L. and Hauser, Oliver P. (2023). Reducing discrimination against job seekers with and without employment gaps. <i>Nature Human Behaviour 7, 211–218.</i> Open copy on PubMed Central. 9,022 made-up applications to real UK job ads, plan registered in advance. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1038/s41562-022-01485-6">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/">Open copy</a></li>
-<li id="src-kroft-2013"><b class="evidence">Big study (thousands of real applications)</b> Kroft, Kory, Lange, Fabian and Notowidigdo, Matthew J. (2013). Duration Dependence and Labor Market Conditions: Evidence from a Field Experiment. <i>Quarterly Journal of Economics 128(3), 1123–1167.</i> Open copy, NBER working paper 18387. About 12,000 made-up resumes sent to job ads in 100 US cities. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1093/qje/qjt015">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w18387/w18387.pdf">Open copy</a></li>
-<li id="src-ladders-2018"><b class="evidence">Survey by a company that sells the service</b> Ladders (2018). Ladders updates popular recruiter eye-tracking study with new key insights on how job seekers can improve their resumes. A job site’s press release, November 2018, reposted by Onrec; number of recruiters not stated. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://onrec.com/news/news-archive/ladders-updates-popular-recruiter-eye-tracking-study-with-new-key-insights-how-job">Publisher</a></li>
-<li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012.</i> Open copy on Computerworld. Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></li>
-<li id="src-mit-capd-resumes"><b class="evidence">Convention (no study)</b> MIT Career Advising &amp; Professional Development (2026). Resumes. A university career office’s guide. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://capd.mit.edu/resources/resumes/">Publisher</a></li>
-<li id="src-namingit-2021"><b class="evidence">Small study (real applications)</b> Namingit, Sheryll, Blankenau, William and Schwab, Benjamin (2021). Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate. <i>Journal of Economic Behavior &amp; Organization 2021 (paywalled; numbers from the authors’ open 2018 conference abstract).</i> 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1016/j.jebo.2020.09.033">DOI</a> <a href="https://ashecon.confex.com/ashecon/2018/webprogram/Paper5280.html">Publisher</a></li>
-<li id="src-resumego-2018"><b class="evidence">Survey by a company that sells the service</b> ResumeGo (2018). Settling the Debate: One or Two Page Resumes. 482 recruiters, HR staff and managers in a hiring simulation with made-up resumes; run by a resume-writing company. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.resumego.net/research/one-or-two-page-resumes/">Publisher</a></li>
-<li id="src-ruffle-2015"><b class="evidence">Big study (thousands of real applications)</b> Ruffle, Bradley J. and Shtudiner, Ze’ev (2015). Are Good-Looking People More Employable? <i>Management Science 61(8), 1760–1776 (paywalled; read in the authors’ open 2011 working paper on SSRN).</i> 5,312 made-up resumes sent in pairs to 2,656 real job ads in Israel, with and without a photo. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1287/mnsc.2014.1927">DOI</a> <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1705244">Open copy</a></li>
-<li id="src-sterkens-2023"><b class="evidence">Lab test (not real hiring)</b> Sterkens, Philippe, Caers, Ralf, De Couck, Marijke, Van Driessche, Victor, Geamanu, Michel and Baert, Stijn (2023). Costly mistakes: Why and when spelling errors in resumes jeopardise interview chances. <i>PLOS ONE 18(4), e0283280.</i> 445 recruiters in Flanders, Belgium, rating made-up graduate resumes (1,335 ratings); not real hiring. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1371/journal.pone.0283280">DOI</a></li>
-<li id="src-ladders-2012"><b class="evidence">Survey by a company that sells the service</b> TheLadders (2012). Keeping an Eye on Recruiter Behavior. 30 professional recruiters watched with eye tracking over 10 weeks; run by a job site; not peer-reviewed. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://web.archive.org/web/20131214121352/http://cdn.theladders.net/static/images/basicSite/pdfs/TheLadders-EyeTracking-StudyC2.pdf">Publisher</a></li>
+<li id="src-dhert-2024"><b class="evidence">Big study (many studies combined)</b> D’hert, Louis, Baert, Stijn and Lippens, Louis (2024). Unemployment, Inactivity, and Hiring Chances: A Systematic Review and Meta-Analysis. <i>IZA Discussion Paper 17141, July 2024.</i> Field experiments with about 67,000 made-up applicants in 7 countries, combined. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.2139/ssrn.4898321">DOI</a> <a href="https://docs.iza.org/dp17141.pdf">Publisher</a></li>
+<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></li>
+<li id="src-greenhouse-search"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2022). Search resumes for keywords. The maker’s own help page, updated June 2022. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords">Publisher</a></li>
+<li id="src-harvard-ocs-resume"><b class="evidence">Convention (no study)</b> Harvard College Office of Career Services (2026). Harvard College Guide to Creating a Strong Resume. A university career office’s guide for students. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://careerservices.fas.harvard.edu/resources/create-a-strong-resume/">Publisher</a></li>
+<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></li>
+<li id="src-hireright-2025-sept"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). Identity Fraud and Candidate Discrepancies Remain Key Concerns for Employers, Finds HireRight’s 2025 Global Benchmark Report. September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers">Publisher</a></li>
+<li id="src-indeed-experience-2025"><b class="evidence">Convention (no study)</b> Indeed Editorial Team (2025). Listing Professional Experience on Your Resume. A job site’s advice article, updated December 2025, republished by the University of Wyoming’s business career office. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://haubcareers.uwyo.edu/resources/listing-professional-experience-on-your-resume-2/">Publisher</a></li>
+<li id="src-kristal-2023"><b class="evidence">Big study (thousands of real applications)</b> Kristal, Ariella S., Nicks, Leanne, Gloor, Jamie L. and Hauser, Oliver P. (2023). Reducing discrimination against job seekers with and without employment gaps. <i>Nature Human Behaviour 7, 211–218.</i> Open copy on PubMed Central. 9,022 made-up applications to real UK job ads, plan registered in advance. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1038/s41562-022-01485-6">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/">Open copy</a></li>
+<li id="src-kroft-2013"><b class="evidence">Big study (thousands of real applications)</b> Kroft, Kory, Lange, Fabian and Notowidigdo, Matthew J. (2013). Duration Dependence and Labor Market Conditions: Evidence from a Field Experiment. <i>Quarterly Journal of Economics 128(3), 1123–1167.</i> Open copy, NBER working paper 18387. About 12,000 made-up resumes sent to job ads in 100 US cities. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1093/qje/qjt015">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w18387/w18387.pdf">Open copy</a></li>
+<li id="src-ladders-2018"><b class="evidence">Survey by a company that sells the service</b> Ladders (2018). Ladders updates popular recruiter eye-tracking study with new key insights on how job seekers can improve their resumes. A job site’s press release, November 2018, reposted by Onrec; number of recruiters not stated. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://onrec.com/news/news-archive/ladders-updates-popular-recruiter-eye-tracking-study-with-new-key-insights-how-job">Publisher</a></li>
+<li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012.</i> Open copy on Computerworld. Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></li>
+<li id="src-mit-capd-resumes"><b class="evidence">Convention (no study)</b> MIT Career Advising &amp; Professional Development (2026). Resumes. A university career office’s guide. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://capd.mit.edu/resources/resumes/">Publisher</a></li>
+<li id="src-namingit-2021"><b class="evidence">Small study (real applications)</b> Namingit, Sheryll, Blankenau, William and Schwab, Benjamin (2021). Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate. <i>Journal of Economic Behavior &amp; Organization 2021 (paywalled; numbers from the authors’ open 2018 conference abstract).</i> 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1016/j.jebo.2020.09.033">DOI</a> <a href="https://ashecon.confex.com/ashecon/2018/webprogram/Paper5280.html">Publisher</a></li>
+<li id="src-resumego-2018"><b class="evidence">Survey by a company that sells the service</b> ResumeGo (2018). Settling the Debate: One or Two Page Resumes. 482 recruiters, HR staff and managers in a hiring simulation with made-up resumes; run by a resume-writing company. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.resumego.net/research/one-or-two-page-resumes/">Publisher</a></li>
+<li id="src-ruffle-2015"><b class="evidence">Big study (thousands of real applications)</b> Ruffle, Bradley J. and Shtudiner, Ze’ev (2015). Are Good-Looking People More Employable? <i>Management Science 61(8), 1760–1776 (paywalled; read in the authors’ open 2011 working paper on SSRN).</i> 5,312 made-up resumes sent in pairs to 2,656 real job ads in Israel, with and without a photo. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1287/mnsc.2014.1927">DOI</a> <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1705244">Open copy</a></li>
+<li id="src-sterkens-2023"><b class="evidence">Lab test (not real hiring)</b> Sterkens, Philippe, Caers, Ralf, De Couck, Marijke, Van Driessche, Victor, Geamanu, Michel and Baert, Stijn (2023). Costly mistakes: Why and when spelling errors in resumes jeopardise interview chances. <i>PLOS ONE 18(4), e0283280.</i> 445 recruiters in Flanders, Belgium, rating made-up graduate resumes (1,335 ratings); not real hiring. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1371/journal.pone.0283280">DOI</a></li>
+<li id="src-ladders-2012"><b class="evidence">Survey by a company that sells the service</b> TheLadders (2012). Keeping an Eye on Recruiter Behavior. 30 professional recruiters watched with eye tracking over 10 weeks; run by a job site; not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://web.archive.org/web/20131214121352/http://cdn.theladders.net/static/images/basicSite/pdfs/TheLadders-EyeTracking-StudyC2.pdf">Publisher</a></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
@@ -554,32 +589,10 @@
 <li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#what-matters-most-on-a-resume">What matters most on a resume?</a></li>
-<li><a href="#which-resume-rules-have-evidence-behind-them">Which resume rules have evidence behind them?</a></li>
-<li><a href="#does-your-resume-have-to-match-your-records">Does your resume have to match your records?</a></li>
-<li><a href="#should-a-resume-list-results-or-duties">Should a resume list results or duties?</a></li>
-<li><a href="#should-you-use-the-words-in-the-job-posting">Should you use the words in the job posting?</a></li>
-<li><a href="#how-far-back-should-a-resume-go">How far back should a resume go?</a></li>
-<li><a href="#does-a-gap-in-your-resume-hurt">Does a gap in your resume hurt?</a></li>
-<li><a href="#does-explaining-a-gap-help">Does explaining a gap help?</a></li>
-<li><a href="#do-typos-really-matter">Do typos really matter?</a></li>
-<li><a href="#how-long-should-a-resume-be">How long should a resume be?</a></li>
-<li><a href="#what-should-a-resume-leave-off">What should a resume leave off?</a></li>
-<li><a href="#does-layout-matter">Does layout matter?</a></li>
-<li><a href="#which-resume-advice-is-not-backed-by-evidence">Which resume advice is not backed by evidence?</a></li>
-<li><a href="#what-we-dont-know">What we don’t know</a></li>
-<li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
-<li><a href="#sources">Sources</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">

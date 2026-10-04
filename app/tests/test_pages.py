@@ -85,8 +85,9 @@ def test_crlf_copy_is_not_stale_but_an_edit_is(tmp_path):
 
 
 def test_dates_spelled_in_english_without_the_clock():
-    assert pages.long_date("2026-10-02") == "2 October 2026"
-    assert pages.long_date("2027-01-31") == "31 January 2027"
+    # US order: the site is en_US and its readers are US job seekers
+    assert pages.long_date("2026-10-02") == "October 2, 2026"
+    assert pages.long_date("2027-01-31") == "January 31, 2027"
 
 
 # --- articles from Markdown: a copy of the real site + throwaway sources in tmp_path ---
@@ -269,8 +270,8 @@ def test_article_head_body_and_links(tmp_path):
                  "https://github.com/cezkid/jobs/issues/new?title=Research%20correction"):
         assert href in hrefs, href
     assert '<div class="table" role="region" aria-label="Table: What the claim says" tabindex="0">' in html
-    assert ('By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-09-01">1 September 2026</time>.'
-            ' Updated <time datetime="2026-09-20">20 September 2026</time>.') in html
+    assert ('By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-09-01">September 1, 2026</time>.'
+            ' Updated <time datetime="2026-09-20">September 20, 2026</time>.') in html
     assert '<nav class="crumbs" aria-label="Breadcrumb">' in html
     # no update => one date
     assert "Updated" not in pages.build(tmp_path)["research/ai-bias/index.html"].split('class="meta"')[1].split("</p>")[0]
@@ -322,6 +323,9 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
     # only the repo's issues page: its look-alikes are other sites
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://github.com/cezkid/jobs/issues-x")}, "to other sites through sources"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://github.com/cezkid/jobs/pulls")}, "to other sites through sources"),
+    # the code + the author's site are allowed as named, not their neighbours
+    ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://github.com/cezkid/jobs-x")}, "to other sites through sources"),
+    ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://www.enrriquez.com/blog")}, "to other sites through sources"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "https://jobs.enrriquez.com/nope.html")}, "is not a page on this site"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "../../docs/gone.md")}, "no such file in the repo"),
     ({"ai-bias.md": SOURCES["ai-bias.md"].replace("ats-myth.md", "#nope")}, "no heading #nope on this page"),
@@ -458,7 +462,7 @@ def test_citations_render_author_year_links_and_an_alphabetical_sources_list(tmp
             "Quillian, Lincoln, Pager, Devah, Hexel, Ole and Midtboen, Arnfinn H. (2017). "
             "Meta-analysis of field experiments shows no change in racial discrimination in hiring over time. "
             "<i>Proceedings of the National Academy of Sciences.</i> 28 US studies, 55,842 applications. "
-            'Checked <time datetime="2026-09-29">29 September 2026</time>. '
+            'Checked <time datetime="2026-09-29">September 29, 2026</time>. '
             '<a href="https://doi.org/10.1073/pnas.1706255114">DOI</a></li>') in sources
     # A14: each entry opens with its label; no visible text is a raw URL
     for li in re.findall(r"<li id=.*?</li>", sources):
@@ -483,7 +487,7 @@ def test_citation_in_code_or_link_text_stays_text_and_same_labels_get_a_b(tmp_pa
     research_site(tmp_path, body("Code `[@nope]` and [link [@nope]](ats-myth.md) and [@quillian-2017-b; @quillian-2017]."),
                   registry=twin)
     html = pages.build(tmp_path)["research/ai-bias/index.html"]
-    assert "<code>[@nope]</code>" in html and ">link [@nope]</a>" in html
+    assert '<code translate="no">[@nope]</code>' in html and ">link [@nope]</a>" in html
     assert ('(<a href="#src-quillian-2017-b">Quillian et al. 2017b</a>; '
             '<a href="#src-quillian-2017">Quillian et al. 2017a</a>)') in html
 
@@ -501,7 +505,7 @@ def test_page_text_gets_curly_quotes_and_en_dashes_but_code_and_identifiers_stay
                                  " case 3:23-cv-00770, on 2026-10-03 (c) and `it's - 10-15`."))
     html = pages.build(tmp_path)["research/ai-bias/index.html"]
     assert "It’s “fine” – see 10–15 years" in html and ", p. 22–23)" in html
-    assert "FAccT ’24, Act 103-0804, case 3:23-cv-00770, on 2026-10-03 (c) and <code>it's - 10-15</code>" in html
+    assert "FAccT ’24, Act 103-0804, case 3:23-cv-00770, on 2026-10-03 (c) and <code translate=\"no\">it's - 10-15</code>" in html
     # a URL shown as link text stays as written
     research_site(tmp_path / "b", body("See [jobs.enrriquez.com/x - 1-2](https://jobs.enrriquez.com/privacy.html) [@quillian-2017]."))
     assert ">jobs.enrriquez.com/x - 1-2</a>" not in pages.build(tmp_path / "b")["research/ai-bias/index.html"]
@@ -741,11 +745,41 @@ def test_review_same_day_as_modified_passes_and_orphan_review_warns(tmp_path):
 
 # --- hub, JSON-LD, sitemap lastmod ---
 
+def test_three_dots_become_the_ellipsis_character_but_code_keeps_them(tmp_path):
+    # U+2026 is in the font subset (assets.UNICODES); three periods read as three periods
+    assert pages.typeset("A, B ... AA, AB ...") == "A, B … AA, AB …"
+    research_site(tmp_path, body("Letters A, B ... AA and `a...b`."))
+    assert 'Letters A, B … AA and <code translate="no">a...b</code>.' in pages.build(tmp_path)["research/ai-bias/index.html"]
+
+
+def test_code_and_the_apps_name_stay_as_written_when_a_browser_translates_the_page(tmp_path):
+    research_site(tmp_path, body("Run `uv run x`; CEZ Job Finder does it.\n\n```\ncurl x | bash\n```"))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    assert '<code translate="no">uv run x</code>; <span translate="no">CEZ Job Finder</span> does it.' in html
+    assert '<pre><code translate="no">curl x | bash\n</code></pre>' in html
+    # a heading keeps the span on the page and in On this page; ids + the table label read the plain text
+    research_site(tmp_path / "b", body("A.\n\n## How CEZ Job Finder uses this\n\nB.\n\n## Three\n\nC."))
+    html = pages.build(tmp_path / "b")["research/ai-bias/index.html"]
+    named = 'How <span translate="no">CEZ Job Finder</span> uses this'
+    assert f'<h2 id="how-cez-job-finder-uses-this">{named}</h2>' in html
+    assert html.count(f'<li><a href="#how-cez-job-finder-uses-this">{named}</a></li>') == 2  # both lists
+    assert 'install <span translate="no">CEZ Job Finder</span> on Windows or Mac' in html
+
+
+def test_body_may_link_the_apps_code_and_the_authors_site(tmp_path):
+    # About's contact + code are links, not addresses to copy (look-alikes: the problem table above)
+    research_site(tmp_path, {"ai-bias.md": SOURCES["ai-bias.md"].replace(
+        "See [the myth](ats-myth.md).", "See [the code](https://github.com/cezkid/jobs) or [write](https://www.enrriquez.com/#contact).")})
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    assert '<a href="https://github.com/cezkid/jobs">the code</a>' in html
+    assert '<a href="https://www.enrriquez.com/#contact">write</a>' in html
+
 def test_hub_lists_articles_newest_first_by_title_and_breadcrumbs_link_it(tmp_path):
     research_site(tmp_path)
     built = pages.build(tmp_path)
     hub = built["research/index.html"]
-    listed = re.findall(r'<li><a href="([^"]+)">([^<]+)</a>', hub.split('<ul class="list">')[1])
+    # each title a heading holding its link: screen readers jump article to article
+    listed = re.findall(r'<li><h2><a href="([^"]+)">([^<]+)</a></h2>', hub.split('<ul class="list">')[1])
     assert listed == [("/research/ai-bias/", "AI screening and bias"), ("/research/ats-myth/", "Do resume robots reject you?")]
     assert '<a href="/research/methods/">methods</a>' in hub and 'class="meta"' not in hub
     assert Head(hub).meta("og:type") == "website"
@@ -766,6 +800,7 @@ def test_wide_screen_second_column_hub_labels_from_methods_and_about_sections(tm
     assert "<dt>Big study</dt><dd>Many studies pooled, or real applications sent</dd>" in side
     assert "<dt>Law</dt><dd>The law’s own text</dd>" in side
     assert '<a href="/research/methods/#what-the-labels-mean">How we research</a>' in side
+    assert side.lstrip("\n").startswith("<h2>Evidence labels</h2>")
     # labels column, then the list, both after the page column (narrow screens: labels hidden, list follows the intro)
     assert hub.index('class="page"') < hub.index('class="side labels"') < hub.index('<ul class="list">') < hub.index("</main>")
     # about: text before the first h2 stays in the page column, the h2 sections go to the second column
@@ -1133,7 +1168,7 @@ def test_toc_script_fits_its_budget():
     assert "</" not in pages.TOC_JS and 'aria-current","true"' in pages.TOC_JS
 
 
-def test_articles_end_with_keep_reading_and_the_h1_comes_before_on_this_page(tmp_path):
+def test_articles_end_with_keep_reading_and_on_this_page_comes_before_the_article(tmp_path):
     third = SOURCES["ai-bias.md"].replace("AI screening and bias", "Third one").replace("2026-09-10", "2026-09-05").replace(
         "What tests of AI resume screeners found.", "A third page.")
     research_site(tmp_path, {"third.md": third.replace("## What was measured", "## One\n\nA.\n\n## Two\n\nB.\n\n## Three")})
@@ -1147,11 +1182,12 @@ def test_articles_end_with_keep_reading_and_the_h1_comes_before_on_this_page(tmp
         others = [h for h in hrefs if h.startswith("/research/") and h not in ("/research/", f"/research/{name}/")]
         assert len(others) == 2 and f"/research/{name}/" not in hrefs, (name, hrefs)
         assert "/research/" in hrefs and "/#install" in hrefs and "#main" in hrefs, name
-        # source order: the h1 is main's first heading, the wide-screen column follows the article
+        # source order: the wide-screen column first (after the article it was the 85th Tab stop, behind every
+        # citation link); the h1 is still main's first heading (the list's label is a <p>)
         main = html.split('<main id="main" class="wrap">')[1].split("</main>")[0]
         assert re.search(r"<h[1-6]\b", main).group(0) == "<h1", name
         if '<nav class="toc"' in main:
-            assert main.index("</article>") < main.index('<nav class="toc" aria-label="On this page">'), name
+            assert main.index('<nav class="toc" aria-label="On this page">') < main.index('<article class="page">'), name
             # narrow screens: the same list, closed, right under the byline; no ids repeated
             mini = main.split('<nav class="toc-mini" aria-label="Contents">')[1].split("</nav>")[0]
             assert main.index('class="meta"') < main.index('class="toc-mini"') < main.index("<h2")
@@ -1165,7 +1201,7 @@ def test_articles_end_with_keep_reading_and_the_h1_comes_before_on_this_page(tmp
         ids = re.findall(r'\sid="([^"]+)"', html)
         assert len(ids) == len(set(ids)), name
     # the next two after it in hub order (newest first), wrapping round
-    order = re.findall(r'<li><a href="(/research/[^"]+/)">', built["research/index.html"])
+    order = re.findall(r'<li><h2><a href="(/research/[^"]+/)">', built["research/index.html"])
     ai = re.findall(r'href="(/research/[^"#]+/)"', built["research/ai-bias/index.html"].split('aria-label="Keep reading"')[1])
     i = order.index("/research/ai-bias/")
     assert ai[:2] == (order[i + 1:] + order[:i])[:2]

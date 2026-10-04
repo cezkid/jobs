@@ -48,7 +48,9 @@ TOC_NARROW, every page with an On this page column at 390x844 (phone) + 1024x768
 summary in the first screen, opened = a link to every h2; TOC_WIDE at 1440x900 (also in --engines): the
 column's links all visible, the first in the first screen, right of the text column; TOC_CURRENT there: the
 3rd h2 scrolled to the top -> its link (both lists, only it) aria-current="true" + bold; CRUMBS_ONE_LINE at
-360x780 + 390x844 (phone): an article's visible crumbs share one line. HUB_FOLD, the hub at 1440x900: >= 4
+360x780 + 390x844 (phone): an article's visible crumbs share one line. STICKY_FIT, every page w/ a side column
+(articles, hub, privacy) at 1280x720, 1366x641, 1440x780 + 1440x900: the column shows all of itself - nothing hidden
+in its own scroll box, a stuck one no taller than the window. HUB_FOLD, the hub at 1440x900: >= 4
 article titles end above y 900. ARTICLE_H1, research pages at 1440x900: the h1 >= 72px (the home page's display scale); HEADLINE_RAG, research pages at 375 (phone), 768, 1440 + 1920 wide: a
 two-part title (h1, hub item) never puts the deck's first word on the question's line; RULES_STACKED on every
 article page too (privacy + articles, every size).
@@ -66,7 +68,7 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
 - layout boxes (offset rects: transforms don't move them) equal between reduced and full motion
 - no JS (CSS still animates: judged once the timed animations end): all text shown
   (opacity 1, visible) + home's Windows install line; NOJS_SCRIPTING: no visible <button> (nothing
-  would run it; Chrome w/o JS matches @media (scripting: none)) + home links to its Mac answer (details#mac)
+  would run it; Chrome w/o JS matches @media (scripting: none)) + home links to its Mac answer (#mac, inside its question)
 - forced colours: every mark still paints something its parent doesn't; FORCED_DEL: every <del> keeps
   a line-through or background image, every .bul dot paints (0 of either on home = fail)
 - home in print: <= 5 pages (PDF) and the install line shows
@@ -100,7 +102,8 @@ w/o crossfade, an opening played after one, a check finding 0 elements, paint an
 the Mac line on more lines, two framed objects at once, Copy + OS switch results unannounced / Copy named
 by a fixed label, the strike / bullet dots gone in forced colours, Copy shown / the Mac answer link hidden w/o JS,
 the h1's vh cap back below 1080px, footer links back to text height on touch), an article (a wide element, a
-console error, the Research link plain, links unchanged on hover), the hub (an item's top rule stuck), the
+console error, the Research link plain, links unchanged on hover, On this page rows too tall for a short window),
+the hub (an item's top rule stuck, the labels stuck + clipped on a short window), the
 404 (a blank band under its footer); home also gets a hover rule painting the highlighter.
 --capture DIR: every page at 1366x641, 1440x900, 1440x780 (Mac), 1920x1080, 390x844 phone, light +
 dark, reduced motion: full-page + per-screen shots and DIR/numbers.md (screens long, print pages, h1 +
@@ -363,7 +366,7 @@ NOJS_SCRIPTING = """() => {
   const buttons = [...document.querySelectorAll("button")].filter(shown)
     .map(b => "button" + (b.id ? "#" + b.id : "") + " " + JSON.stringify(b.textContent.trim().replace(/\\s+/g, " ").slice(0, 30)));
   const mac = document.getElementById("mac");
-  const answer = !!mac && mac.tagName === "DETAILS" && mac.textContent.includes("curl -fsSL");
+  const answer = !!mac && !!mac.closest("details") && mac.textContent.includes("curl -fsSL");
   return {buttons, answer, link: [...document.querySelectorAll('a[href="#mac"]')].some(shown)};
 }"""
 
@@ -612,7 +615,18 @@ H1_SIZE = "() => { const h = document.querySelector('main h1'); return h ? parse
 # HUB_FOLD (A16), the hub at 1440x900: >= HUB_FOLD_MIN article titles (link boxes, deck included) end above the
 # window's bottom - the method lines + labels beside them, not over the list
 HUB_FOLD_MIN = 4
-HUB_FOLD = "() => [...document.querySelectorAll('main .list li > a')].map(a => a.getBoundingClientRect().bottom)"
+HUB_FOLD = "() => [...document.querySelectorAll('main .list li > h2 > a')].map(a => a.getBoundingClientRect().bottom)"
+# STICKY_FIT, every page w/ a side column at laptop sizes (>= 1280 wide: the columns show): each visible side
+# column shows all of itself - nothing hidden in its own scroll box (the longest On this page hid 88px at
+# 1366x641: on a Mac the last entries just weren't there, Windows drew a 2nd scrollbar), and a stuck one is no
+# taller than the window below its top offset (its end out of reach). [class, position, px hidden, px over]
+STICKY_AT = [(1280, 720), (1366, 641), (1440, 780), (1440, 900)]
+STICKY_SIDES = "main .toc, main .labels, main .summary"
+STICKY_FIT = """() => [...document.querySelectorAll("STICKY_SIDES")].filter(el => el.checkVisibility()
+    && el.getBoundingClientRect().height > 0).map(el => { const cs = getComputedStyle(el);
+  return [el.className.split(" ").pop(), cs.position, el.scrollHeight - el.clientHeight,
+          Math.round(el.getBoundingClientRect().height + (parseFloat(cs.top) || 0) - innerHeight)]; })""".replace(
+    "STICKY_SIDES", STICKY_SIDES)
 # HEADLINE_RAG (A4), research pages at 375/768/1440/1920: in a two-part title (the h1, a hub item) split at the
 # first "? " / ": ", the deck's first word never shares a line with the question's last word
 RAG_AT = [((375, 812), True), ((768, 1024), False), ((1440, 900), False), ((1920, 1080), False)]
@@ -732,7 +746,7 @@ HOVER_STATE = """i => { const el = document.querySelectorAll("a, button, summary
   const q = el.getClientRects()[0];
   return {what: el.tagName.toLowerCase() + " " + JSON.stringify(el.textContent.trim().slice(0, 40)),
           x: q.left + q.width / 2, y: q.top + q.height / 2, style,
-          rule: li && li.firstElementChild === el ? getComputedStyle(li, "::before").transform : null}; }"""
+          rule: li && li.querySelector("a") === el ? getComputedStyle(li, "::before").transform : null}; }"""
 PAINT_CAP = 3
 PAINT_CONCURRENT ="async () => {" + HELPERS + """
   const PAINT = ["backgroundSize", "clipPath", "strokeDashoffset"];
@@ -945,6 +959,11 @@ FAULTS = [
      "toc"),
     (ARTICLE, "TOC_NARROW: the opened list drops a heading", "<script>document.querySelector('.toc-mini li:last-child')"
      ".remove()</script>", "toc"),
+    (ARTICLE, "STICKY_FIT: On this page rows back to full height on a short window", "<style>@media (max-height: "
+     "819px) { .toc a { padding: 8px 0 9px !important; } }</style>", "sticky"),
+    ("research/index.html", "STICKY_FIT: evidence labels stuck + clipped on a short window", "<style>@media "
+     "(min-width: 1280px) { .labels { position: sticky !important; max-height: calc(100vh - 48px) !important; "
+     "overflow-y: auto !important; } }</style>", "sticky"),
     (ARTICLE, "TOC_BESIDE: On this page back at the window's edge", "<style>.toc { justify-self: end !important; }"
      "</style>", "wide"),
     (ARTICLE, "TOC_BESIDE: a thin column, the right half empty again", "<style>.toc { width: 6rem !important; }"
@@ -968,7 +987,7 @@ CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FR
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_BESIDE": "TOC_BESIDE", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
-             "HIT_OVERLAP": "HIT_OVERLAP", "SPACE_RATIO": "SPACE_RATIO", "0 matches": "found 0 elements"}
+             "HIT_OVERLAP": "HIT_OVERLAP", "SPACE_RATIO": "SPACE_RATIO", "STICKY_FIT": "STICKY_FIT", "0 matches": "found 0 elements"}
 
 
 def pages() -> list[str]:
@@ -1138,6 +1157,32 @@ def check_toc(browser, base: str, inject: str | None = None, names: list[str] | 
                 failed.append(f"{where}: 3rd h2 {cur['want']} at the top, links marked current: {cur['got']}")
             elif any(int(c[2]) < 700 or c[2] == cur["plain"] for c in cur["got"]):
                 failed.append(f"{where}: current link weight {cur['got'][0][2]}, others {cur['plain']} - not set apart")
+    return failed
+
+
+def sticky_pages() -> list[str]:
+    return [name for name in pages()
+            if re.search(r'class="(?:toc|side labels|summary)"', (DOCS / name).read_text(encoding="utf-8"))]
+
+
+def check_sticky(browser, base: str, inject: str | None = None, names: list[str] | None = None) -> list[str]:
+    """STICKY_FIT: every side column shows all of itself at laptop sizes."""
+    failed = []
+    names = names or sticky_pages()
+    if not names:
+        return ["STICKY_FIT: check found 0 pages with a side column"]
+    for name in names:
+        for w, h in STICKY_AT:
+            where = f"STICKY_FIT {label_for(browser, name, w, h, False)}"
+            with opened(browser, base, name, w, h, False, failed, where, inject) as page:
+                sides = page.evaluate(STICKY_FIT)
+                if not sides:
+                    failed.append(f"{where}: check found 0 elements for {STICKY_SIDES!r}")
+                for cls, position, hidden, over in sides:
+                    if hidden > 1:
+                        failed.append(f"{where}: .{cls} hides {hidden}px of itself (scrolls inside its own box)")
+                    elif position == "sticky" and over > 1:
+                        failed.append(f"{where}: .{cls} stuck {over}px taller than the window (its end out of reach)")
     return failed
 
 
@@ -1392,7 +1437,7 @@ def check_motion(browser, base: str, name: str, width: int, height: int, phone: 
             if not line or line[0] != WIN_LINE or not line[1]:
                 failed.append(f"{where}: Windows install line missing or hidden ({line})")
             if not nojs["answer"]:
-                failed.append(f"NOJS_SCRIPTING {where}: no details#mac holding the Mac install line")
+                failed.append(f"NOJS_SCRIPTING {where}: no #mac answer inside a details holding the Mac install line")
             elif not nojs["link"]:
                 failed.append(f"NOJS_SCRIPTING {where}: no visible link to the Mac answer (#mac)")
 
@@ -1597,6 +1642,7 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
         failed += check_status(browser, base)
         failed += check_hover(browser, base)
         failed += check_toc(browser, base)
+        failed += check_sticky(browser, base)
         f, r = check_zoom(browser, base)
         failed += f
         reports += r
@@ -1650,6 +1696,8 @@ def run_self_test(base: str) -> list[str]:
             return check_hover(browser, base, inject, [name])
         if kind == "toc":
             return check_toc(browser, base, inject, [name])
+        if kind == "sticky":
+            return check_sticky(browser, base, inject, [name])
         if kind == "zoom":
             return check_zoom(browser, base, inject)[0]
         return check_motion(browser, base, name, *FOLD, False, inject)

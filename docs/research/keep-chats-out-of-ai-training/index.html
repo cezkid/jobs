@@ -67,7 +67,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -78,6 +78,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -110,6 +113,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -269,7 +274,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -293,10 +298,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -321,7 +334,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -330,10 +343,27 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#why-does-this-matter-for-a-job-seeker">Why does this matter for a job seeker?</a></li>
+<li><a href="#which-switch-does-each-app-use">Which switch does each app use?</a></li>
+<li><a href="#how-do-i-stop-chatgpt-training-on-my-chats">How do I stop ChatGPT training on my chats?</a></li>
+<li><a href="#how-do-i-stop-claude-training-on-my-chats">How do I stop Claude training on my chats?</a></li>
+<li><a href="#how-do-i-stop-github-copilot-training-on-my-chats">How do I stop GitHub Copilot training on my chats?</a></li>
+<li><a href="#how-do-i-stop-gemini-training-on-my-chats">How do I stop Gemini training on my chats?</a></li>
+<li><a href="#what-doesnt-the-switch-do">What doesn’t the switch do?</a></li>
+<li><a href="#what-about-work-school-and-developer-accounts">What about work, school and developer accounts?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Opt out of AI training: ChatGPT, Claude, Copilot and Gemini</li></ol></nav>
 <h1>Opt out of AI training: <span class="deck">ChatGPT, Claude, Copilot and Gemini</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>. Updated <time datetime="2026-10-04">4 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-04">October 4, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -349,7 +379,7 @@
 <li><a href="#what-about-work-school-and-developer-accounts">What about work, school and developer accounts?</a></li>
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
 </details>
@@ -497,30 +527,30 @@
 <li>Leave out what the AI doesn’t need. Your street address, birth date and ID numbers rarely help a resume; that is common advice, not a study finding.</li>
 </ul>
 <p>What belongs on a resume at all: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a>. Using AI to write it: <a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a>. How we check sources: <a href="/research/methods/">How we research</a>. We searched the companies’ help pages, news and research archives in October 2026 for outside tests of these switches.</p>
-<h2 id="how-cez-job-finder-uses-this">How CEZ Job Finder uses this</h2>
+<h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
 <ul>
-<li>CEZ Job Finder runs inside your own AI chat: Claude, ChatGPT or GitHub Copilot. Your resume is read there.</li>
+<li><span translate="no">CEZ Job Finder</span> runs inside your own AI chat: Claude, ChatGPT or GitHub Copilot. Your resume is read there.</li>
 <li>At setup, it asks once whether you want your chats kept out of training, and walks you through the switch.</li>
 <li>It never asks you to rate a chat, because feedback can send that chat to training.</li>
-<li>Only you can change the switch. No setting in CEZ Job Finder reaches your AI account.</li>
+<li>Only you can change the switch. No setting in <span translate="no">CEZ Job Finder</span> reaches your AI account.</li>
 </ul>
-<p>CEZ Job Finder is a free job-search app for Windows and Mac: <a href="/">see how CEZ Job Finder works</a>.</p>
+<p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-anthropic-consumer-terms-2025"><b class="evidence">The maker’s own description of its product</b> Anthropic (2025). Updates to Consumer Terms and Privacy Policy. The maker’s announcement of August 28, 2025; covers Claude Free, Pro and Max, including Claude Code on those plans. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://www.anthropic.com/news/updates-to-our-consumer-terms">Publisher</a></li>
-<li id="src-anthropic-retention"><b class="evidence">The maker’s own description of its product</b> Anthropic (2026). How long do you store my data? The maker’s privacy help page for Claude Free, Pro and Max, updated July 1, 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://privacy.claude.com/en/articles/10023548-how-long-do-you-store-my-data">Publisher</a></li>
-<li id="src-anthropic-training-consumer"><b class="evidence">The maker’s own description of its product</b> Anthropic (2026). Is my data used for model training? (Claude Free, Pro and Max). The maker’s privacy help page for Claude Free, Pro and Max, updated March 16, 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training">Publisher</a></li>
-<li id="src-anthropic-training-setting"><b class="evidence">The maker’s own description of its product</b> Anthropic (2026). How do I change my model improvement privacy settings? The maker’s step-by-step help page for Claude Free, Pro and Max, updated August 3, 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://privacy.claude.com/en/articles/12109829-how-do-i-change-my-model-improvement-privacy-settings">Publisher</a></li>
-<li id="src-anthropic-training-work"><b class="evidence">The maker’s own description of its product</b> Anthropic (2026). Is my data used for model training? (Claude for Work and the developer platform). The maker’s privacy help page for its business products, updated August 18, 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training">Publisher</a></li>
-<li id="src-carlini-2021"><b class="evidence">Lab test (not real hiring)</b> Carlini, Nicholas, Tramer, Florian, Wallace, Eric, Jagielski, Matthew, Herbert-Voss, Ariel, Lee, Katherine, Roberts, Adam, Brown, Tom, Song, Dawn, Erlingsson, Ulfar, Oprea, Alina and Raffel, Colin (2021). Extracting Training Data from Large Language Models. <i>30th USENIX Security Symposium.</i> Open copy on arXiv. Researchers queried GPT-2, an older AI model trained on public web pages, and pulled out hundreds of exact passages from its training text; not chat data. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://arxiv.org/abs/2012.07805">Open copy</a></li>
-<li id="src-github-copilot-2026"><b class="evidence">The maker’s own description of its product</b> GitHub (2026). Updates to GitHub Copilot interaction data usage policy. The maker’s announcement of March 25, 2026, for Copilot Free, Pro and Pro+, taking effect April 24, 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://github.blog/news-insights/company-news/updates-to-github-copilot-interaction-data-usage-policy/">Publisher</a></li>
-<li id="src-github-copilot-docs"><b class="evidence">The maker’s own description of its product</b> GitHub (2026). Managing GitHub Copilot policies as an individual subscriber. The maker’s step-by-step help page for Copilot Free, Pro, Pro+ and Max. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://docs.github.com/en/copilot/how-tos/manage-your-account/manage-policies">Publisher</a></li>
-<li id="src-github-copilot-faq-2026"><b class="evidence">The maker’s own description of its product</b> GitHub (2026). FAQ: Updates to GitHub Copilot interaction data usage policy. GitHub’s own question-and-answer post on its community forum, March 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://github.com/orgs/community/discussions/188488">Publisher</a></li>
-<li id="src-google-gemini-activity"><b class="evidence">The maker’s own description of its product</b> Google (2026). Manage &amp; delete your Gemini Apps activity. The maker’s step-by-step help page for personal Google accounts. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://support.google.com/gemini/answer/13278892?hl=en">Publisher</a></li>
-<li id="src-google-gemini-privacy"><b class="evidence">The maker’s own description of its product</b> Google (2026). Gemini Apps Privacy Hub. The maker’s privacy help page for Gemini on personal Google accounts. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://support.google.com/gemini/answer/13594961">Publisher</a></li>
-<li id="src-nasr-2023"><b class="evidence">Lab test (not real hiring)</b> Nasr, Milad, Rando, Javier, Carlini, Nicholas, Hayase, Jonathan, Jagielski, Matthew, Cooper, A. Feder, Ippolito, Daphne, Choquette-Choo, Christopher A., Tramèr, Florian and Lee, Katherine (2025). Scalable Extraction of Training Data from Aligned, Production Language Models. <i>ICLR 2025, International Conference on Learning Representations.</i> Researchers pulled gigabytes of exact training text from open AI models and thousands of training examples from ChatGPT (GPT-3.5) with a new trick; training text came from the web, not users’ chats. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://proceedings.iclr.cc/paper_files/paper/2025/hash/cce0e917b050208170151f77b497fc71-Abstract-Conference.html">Publisher</a></li>
-<li id="src-openai-data-controls"><b class="evidence">The maker’s own description of its product</b> OpenAI (2026). Data controls in ChatGPT. The maker’s help page for ChatGPT; the live page blocks automated readers, so it was read from the Internet Archive copy of September 25, 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://help.openai.com/en/articles/7730893-data-controls-faq">Publisher</a></li>
-<li id="src-openai-model-training"><b class="evidence">The maker’s own description of its product</b> OpenAI (2026). How your data is used to improve model performance. The maker’s policy page, updated March 13, 2026; the live page blocks automated readers, so it was read from the Internet Archive copy of September 28, 2026. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://openai.com/policies/how-your-data-is-used-to-improve-model-performance/">Publisher</a></li>
+<li id="src-anthropic-consumer-terms-2025"><b class="evidence">The maker’s own description of its product</b> Anthropic (2025). Updates to Consumer Terms and Privacy Policy. The maker’s announcement of August 28, 2025; covers Claude Free, Pro and Max, including Claude Code on those plans. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.anthropic.com/news/updates-to-our-consumer-terms">Publisher</a></li>
+<li id="src-anthropic-retention"><b class="evidence">The maker’s own description of its product</b> Anthropic (2026). How long do you store my data? The maker’s privacy help page for Claude Free, Pro and Max, updated July 1, 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://privacy.claude.com/en/articles/10023548-how-long-do-you-store-my-data">Publisher</a></li>
+<li id="src-anthropic-training-consumer"><b class="evidence">The maker’s own description of its product</b> Anthropic (2026). Is my data used for model training? (Claude Free, Pro and Max). The maker’s privacy help page for Claude Free, Pro and Max, updated March 16, 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://privacy.claude.com/en/articles/10023580-is-my-data-used-for-model-training">Publisher</a></li>
+<li id="src-anthropic-training-setting"><b class="evidence">The maker’s own description of its product</b> Anthropic (2026). How do I change my model improvement privacy settings? The maker’s step-by-step help page for Claude Free, Pro and Max, updated August 3, 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://privacy.claude.com/en/articles/12109829-how-do-i-change-my-model-improvement-privacy-settings">Publisher</a></li>
+<li id="src-anthropic-training-work"><b class="evidence">The maker’s own description of its product</b> Anthropic (2026). Is my data used for model training? (Claude for Work and the developer platform). The maker’s privacy help page for its business products, updated August 18, 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training">Publisher</a></li>
+<li id="src-carlini-2021"><b class="evidence">Lab test (not real hiring)</b> Carlini, Nicholas, Tramer, Florian, Wallace, Eric, Jagielski, Matthew, Herbert-Voss, Ariel, Lee, Katherine, Roberts, Adam, Brown, Tom, Song, Dawn, Erlingsson, Ulfar, Oprea, Alina and Raffel, Colin (2021). Extracting Training Data from Large Language Models. <i>30th USENIX Security Symposium.</i> Open copy on arXiv. Researchers queried GPT-2, an older AI model trained on public web pages, and pulled out hundreds of exact passages from its training text; not chat data. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://arxiv.org/abs/2012.07805">Open copy</a></li>
+<li id="src-github-copilot-2026"><b class="evidence">The maker’s own description of its product</b> GitHub (2026). Updates to GitHub Copilot interaction data usage policy. The maker’s announcement of March 25, 2026, for Copilot Free, Pro and Pro+, taking effect April 24, 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://github.blog/news-insights/company-news/updates-to-github-copilot-interaction-data-usage-policy/">Publisher</a></li>
+<li id="src-github-copilot-docs"><b class="evidence">The maker’s own description of its product</b> GitHub (2026). Managing GitHub Copilot policies as an individual subscriber. The maker’s step-by-step help page for Copilot Free, Pro, Pro+ and Max. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://docs.github.com/en/copilot/how-tos/manage-your-account/manage-policies">Publisher</a></li>
+<li id="src-github-copilot-faq-2026"><b class="evidence">The maker’s own description of its product</b> GitHub (2026). FAQ: Updates to GitHub Copilot interaction data usage policy. GitHub’s own question-and-answer post on its community forum, March 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://github.com/orgs/community/discussions/188488">Publisher</a></li>
+<li id="src-google-gemini-activity"><b class="evidence">The maker’s own description of its product</b> Google (2026). Manage &amp; delete your Gemini Apps activity. The maker’s step-by-step help page for personal Google accounts. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://support.google.com/gemini/answer/13278892?hl=en">Publisher</a></li>
+<li id="src-google-gemini-privacy"><b class="evidence">The maker’s own description of its product</b> Google (2026). Gemini Apps Privacy Hub. The maker’s privacy help page for Gemini on personal Google accounts. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://support.google.com/gemini/answer/13594961">Publisher</a></li>
+<li id="src-nasr-2023"><b class="evidence">Lab test (not real hiring)</b> Nasr, Milad, Rando, Javier, Carlini, Nicholas, Hayase, Jonathan, Jagielski, Matthew, Cooper, A. Feder, Ippolito, Daphne, Choquette-Choo, Christopher A., Tramèr, Florian and Lee, Katherine (2025). Scalable Extraction of Training Data from Aligned, Production Language Models. <i>ICLR 2025, International Conference on Learning Representations.</i> Researchers pulled gigabytes of exact training text from open AI models and thousands of training examples from ChatGPT (GPT-3.5) with a new trick; training text came from the web, not users’ chats. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://proceedings.iclr.cc/paper_files/paper/2025/hash/cce0e917b050208170151f77b497fc71-Abstract-Conference.html">Publisher</a></li>
+<li id="src-openai-data-controls"><b class="evidence">The maker’s own description of its product</b> OpenAI (2026). Data controls in ChatGPT. The maker’s help page for ChatGPT; the live page blocks automated readers, so it was read from the Internet Archive copy of September 25, 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://help.openai.com/en/articles/7730893-data-controls-faq">Publisher</a></li>
+<li id="src-openai-model-training"><b class="evidence">The maker’s own description of its product</b> OpenAI (2026). How your data is used to improve model performance. The maker’s policy page, updated March 13, 2026; the live page blocks automated readers, so it was read from the Internet Archive copy of September 28, 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://openai.com/policies/how-your-data-is-used-to-improve-model-performance/">Publisher</a></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
@@ -529,27 +559,10 @@
 <li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#why-does-this-matter-for-a-job-seeker">Why does this matter for a job seeker?</a></li>
-<li><a href="#which-switch-does-each-app-use">Which switch does each app use?</a></li>
-<li><a href="#how-do-i-stop-chatgpt-training-on-my-chats">How do I stop ChatGPT training on my chats?</a></li>
-<li><a href="#how-do-i-stop-claude-training-on-my-chats">How do I stop Claude training on my chats?</a></li>
-<li><a href="#how-do-i-stop-github-copilot-training-on-my-chats">How do I stop GitHub Copilot training on my chats?</a></li>
-<li><a href="#how-do-i-stop-gemini-training-on-my-chats">How do I stop Gemini training on my chats?</a></li>
-<li><a href="#what-doesnt-the-switch-do">What doesn’t the switch do?</a></li>
-<li><a href="#what-about-work-school-and-developer-accounts">What about work, school and developer accounts?</a></li>
-<li><a href="#what-we-dont-know">What we don’t know</a></li>
-<li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
-<li><a href="#sources">Sources</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">

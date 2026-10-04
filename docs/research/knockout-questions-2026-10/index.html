@@ -66,7 +66,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -77,6 +77,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -109,6 +112,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -268,7 +273,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -292,10 +297,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -320,7 +333,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -329,10 +342,21 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#what-is-in-the-file">What is in the file?</a></li>
+<li><a href="#how-did-we-draw-the-sample">How did we draw the sample?</a></li>
+<li><a href="#how-did-we-count-the-questions">How did we count the questions?</a></li>
+<li><a href="#what-does-the-data-show">What does the data show?</a></li>
+<li><a href="#what-are-the-limits">What are the limits?</a></li>
+<li><a href="#how-can-you-use-it">How can you use it?</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Knockout questions on 143 job application forms: the data</li></ol></nav>
 <h1>Knockout questions on 143 job application forms: <span class="deck">the data</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">4 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -367,63 +391,63 @@
 </thead>
 <tbody>
 <tr>
-<td><code>form</code></td>
+<td><code translate="no">form</code></td>
 <td>Row number, 1 to 143</td>
 </tr>
 <tr>
-<td><code>employer</code></td>
-<td>A letter per employer (A, B ... AA, AB ...)</td>
+<td><code translate="no">employer</code></td>
+<td>A letter per employer (A, B … AA, AB …)</td>
 </tr>
 <tr>
-<td><code>job_field</code></td>
+<td><code translate="no">job_field</code></td>
 <td>The job field the posting was drawn from</td>
 </tr>
 <tr>
-<td><code>form_system</code></td>
+<td><code translate="no">form_system</code></td>
 <td>The hiring system that runs the form (Greenhouse, Lever, Ashby, Workable, Recruitee)</td>
 </tr>
 <tr>
-<td><code>questions_beyond_basics</code></td>
+<td><code translate="no">questions_beyond_basics</code></td>
 <td>Questions on the form other than the basics (see below)</td>
 </tr>
 <tr>
-<td><code>work_permit</code></td>
+<td><code translate="no">work_permit</code></td>
 <td>1 if a question asks about the right to work</td>
 </tr>
 <tr>
-<td><code>sponsorship</code></td>
+<td><code translate="no">sponsorship</code></td>
 <td>1 if a question asks about visa sponsorship</td>
 </tr>
 <tr>
-<td><code>location_screen</code></td>
+<td><code translate="no">location_screen</code></td>
 <td>1 if a question asks about on-site work, moving or living nearby</td>
 </tr>
 <tr>
-<td><code>years_experience</code></td>
+<td><code translate="no">years_experience</code></td>
 <td>1 if a question asks for years of experience</td>
 </tr>
 <tr>
-<td><code>license_certificate</code></td>
+<td><code translate="no">license_certificate</code></td>
 <td>1 if a question asks about a license or certificate</td>
 </tr>
 <tr>
-<td><code>security_clearance</code></td>
+<td><code translate="no">security_clearance</code></td>
 <td>1 if a question asks about a security clearance or export rules</td>
 </tr>
 <tr>
-<td><code>any_knockout</code></td>
+<td><code translate="no">any_knockout</code></td>
 <td>1 if any of the six columns before it is 1</td>
 </tr>
 <tr>
-<td><code>age_18</code></td>
+<td><code translate="no">age_18</code></td>
 <td>1 if a question asks whether you are 18 or older</td>
 </tr>
 <tr>
-<td><code>degree</code></td>
+<td><code translate="no">degree</code></td>
 <td>1 if a question asks about a degree or level of education</td>
 </tr>
 <tr>
-<td><code>background_or_drug</code></td>
+<td><code translate="no">background_or_drug</code></td>
 <td>1 if a question asks about a background check or drug test</td>
 </tr>
 </tbody>
@@ -444,8 +468,8 @@
 <li>License or certificate: “license”, “certification”, “registered nurse”, “CPA” or “bar status”.</li>
 <li>Security clearance: “clearance”, “polygraph” or “export control”.</li>
 </ul>
-<p>A plain address box is not a location screen. Our measurement found 11 forms whose only location questions were an address, city, state, country or zip code box, or “where are you located”. Those 11 forms have a 0 in <code>location_screen</code>.</p>
-<p>Basics are name, pronoun, email, phone, address, resume, cover letter and profile-link boxes, such as LinkedIn or a website. <code>questions_beyond_basics</code> counts every other question on the form.</p>
+<p>A plain address box is not a location screen. Our measurement found 11 forms whose only location questions were an address, city, state, country or zip code box, or “where are you located”. Those 11 forms have a 0 in <code translate="no">location_screen</code>.</p>
+<p>Basics are name, pronoun, email, phone, address, resume, cover letter and profile-link boxes, such as LinkedIn or a website. <code translate="no">questions_beyond_basics</code> counts every other question on the form.</p>
 <h2 id="what-does-the-data-show">What does the data show?</h2>
 <p>The counts below come straight from the file, and the article reports the same ones.</p>
 <ul>
@@ -464,7 +488,7 @@
 <p>Matching phrases can miss a question worded in an unusual way, or count one that only looks similar. We checked the phrase lists by reading the questions they matched, not every question on every form.</p>
 <p>Some employers posted several jobs. Our measurement found 16 employers with more than one row, and one employer with eight, so those employers weigh more in the counts by form.</p>
 <h2 id="how-can-you-use-it">How can you use it?</h2>
-<p>You can download the file, open it in any spreadsheet and count it yourself. When you cite it, name the page and its date: “Knockout questions on 143 job application forms, CEZ Job Finder Research, October 2026”.</p>
+<p>You can download the file, open it in any spreadsheet and count it yourself. When you cite it, name the page and its date: “Knockout questions on 143 job application forms, <span translate="no">CEZ Job Finder</span> Research, October 2026”.</p>
 <p>If you find a mistake in the data, <a href="https://github.com/cezkid/jobs/issues/new?title=Research%20correction">report it here</a>. We fix the file, note the change on this page and say what changed. How we research and correct pages: <a href="/research/methods/">our methods</a>.</p>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
@@ -473,21 +497,10 @@
 <li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#what-is-in-the-file">What is in the file?</a></li>
-<li><a href="#how-did-we-draw-the-sample">How did we draw the sample?</a></li>
-<li><a href="#how-did-we-count-the-questions">How did we count the questions?</a></li>
-<li><a href="#what-does-the-data-show">What does the data show?</a></li>
-<li><a href="#what-are-the-limits">What are the limits?</a></li>
-<li><a href="#how-can-you-use-it">How can you use it?</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">

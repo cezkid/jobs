@@ -67,7 +67,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -78,6 +78,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -110,6 +113,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -269,7 +274,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -293,10 +298,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -321,7 +334,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -330,10 +343,25 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#can-people-tell-if-a-resume-was-written-by-ai">Can people tell if a resume was written by AI?</a></li>
+<li><a href="#do-ai-detectors-work-on-resumes">Do AI detectors work on resumes?</a></li>
+<li><a href="#what-do-hiring-managers-say-about-ai-written-resumes">What do hiring managers say about AI-written resumes?</a></li>
+<li><a href="#does-using-ai-on-your-resume-hurt-your-chances">Does using AI on your resume hurt your chances?</a></li>
+<li><a href="#does-ai-wording-help-with-ai-screeners">Does AI wording help with AI screeners?</a></li>
+<li><a href="#what-words-make-writing-sound-like-ai">What words make writing sound like AI?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Can employers tell if AI wrote your resume?</li></ol></nav>
 <h1>Can employers tell if AI wrote your resume?</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>. Updated <time datetime="2026-10-04">4 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-04">October 4, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -347,7 +375,7 @@
 <li><a href="#what-words-make-writing-sound-like-ai">What words make writing sound like AI?</a></li>
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
 </details>
@@ -452,28 +480,28 @@
 <li>Never let AI invent a skill, job or number. That is a false claim, whoever typed it.</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. How AI screeners treat applicants: <a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a>. Whether software rejects most resumes: <a href="/research/ats-rejection-myth/">Do hiring systems reject most resumes?</a>. Keeping your resume out of AI training: <a href="/research/keep-chats-out-of-ai-training/">Keep your chats out of AI training</a>.</p>
-<h2 id="how-cez-job-finder-uses-this">How CEZ Job Finder uses this</h2>
+<h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
 <ul>
 <li>AI rewords your resume for each job, from your own facts only. It never adds a skill, job or number you didn’t give.</li>
 <li>You confirm every changed line before you get the resume.</li>
 <li>A check flags overused AI words like “delve” and “showcasing”, from a list built on studies like the one above. The list is in the program’s <a href="https://github.com/cezkid/jobs/blob/main/app/resume/lint.py">resume checks</a>.</li>
 <li>A posting term goes in only where your experience backs it.</li>
 </ul>
-<p>CEZ Job Finder is a free job-search app for Windows and Mac: <a href="/">see how CEZ Job Finder works</a>.</p>
+<p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-al-ali-2026"><b class="evidence">Lab test (not real hiring)</b> Al Ali, Adnan, Helcl, Jindřich and Libovický, Jindřich (2026). Different Time, Different Language: Revisiting the Bias Against Non-Native Speakers in GPT Detectors. <i>arXiv preprint.</i> Essays in Czech by non-native students (AKCES 3 corpus) and native peers, plus other text types; three kinds of AI detectors of 2025, one of them commercial; not English, not resumes. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://arxiv.org/abs/2602.05769">Open copy</a></li>
-<li id="src-resume-genius-2026"><b class="evidence">Survey by a company that sells the service</b> Chan, Eva (2026). 2026 Hiring Insights Report. 1,000 US hiring managers, online panel; survey dates not given. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://resumegenius.com/blog/job-hunting/hiring-insights-report">Publisher</a></li>
-<li id="src-cui-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Cui, Jingyi, Dias, Gabriel and Ye, Justin (2025). Signaling in the Age of AI: Evidence from Cover Letters. <i>arXiv preprint.</i> 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://arxiv.org/abs/2509.25054">Open copy</a></li>
-<li id="src-galdin-silbert-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Galdin, Anaïs and Silbert, Jesse (2025). Making Talk Cheap: Generative AI and Labor Market Signaling. <i>arXiv preprint.</i> About 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://arxiv.org/abs/2511.08785">Open copy</a></li>
-<li id="src-insight-global-2025"><b class="evidence">Survey by a company that sells the service</b> Insight Global (2025). AI in Hiring 2025 Survey Report. 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17–22, 2024; a staffing firm’s survey; question wording not published. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf">Publisher</a></li>
-<li id="src-jakesch-2023"><b class="evidence">Lab test (not real hiring)</b> Jakesch, Maurice, Hancock, Jeffrey T. and Naaman, Mor (2023). Human heuristics for AI-generated language are flawed. <i>PNAS 120(11), e2208839120.</i> 4,600 people in six experiments judged 7,600 short self-descriptions (job, rental host and dating profiles), half written by older AI models (GPT-2, GPT-3). Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1073/pnas.2208839120">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10089155/">Open copy</a></li>
-<li id="src-kobak-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Kobak, Dmitry, González-Márquez, Rita, Horvát, Emőke-Ágnes and Lause, Jan (2025). Delving into LLM-assisted writing in biomedical publications through excess vocabulary. <i>Science Advances 11(27).</i> Open copy on arXiv. Word counts in over 15 million science paper summaries (PubMed), 2010–2024; not resumes. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1126/sciadv.adt3813">DOI</a> <a href="https://arxiv.org/abs/2406.07016">Open copy</a></li>
-<li id="src-liang-2023"><b class="evidence">Lab test (not real hiring)</b> Liang, Weixin, Yuksekgonul, Mert, Mao, Yining, Wu, Eric and Zou, James (2023). GPT detectors are biased against non-native English writers. <i>Patterns 4(7), 100779.</i> Open copy on arXiv. 7 AI detectors run on 91 essays by non-native English writers (TOEFL) and 88 essays by US eighth graders, all written by people. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1016/j.patter.2023.100779">DOI</a> <a href="https://arxiv.org/abs/2304.02819">Open copy</a></li>
-<li id="src-openai-2023"><b class="evidence">The maker’s own description of its product</b> OpenAI (2023). New AI classifier for indicating AI-written text. The maker’s own page, January 31, 2023, with its note of July 20, 2023 (archived copy; the live page blocks automated checks). Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://web.archive.org/web/20230802023548/https://openai.com/blog/new-ai-classifier-for-indicating-ai-written-text/">Publisher</a></li>
-<li id="src-russell-2025"><b class="evidence">Lab test (not real hiring)</b> Russell, Jenna, Karpinska, Marzena and Iyyer, Mohit (2025). People who frequently use ChatGPT for writing tasks are accurate and robust detectors of AI-generated text. <i>Proceedings of ACL 2025 (Long Papers).</i> Open copy on arXiv. 9 paid readers (4 rarely using AI, 5 using it often for writing) labelled 300 news-style articles as human or AI; detectors tested on the same set; not resumes. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.18653/v1/2025.acl-long.267">DOI</a> <a href="https://arxiv.org/abs/2501.15654">Open copy</a></li>
-<li id="src-wiles-2025"><b class="evidence">Big study (thousands of real applications)</b> Wiles, Emma, Munyikwa, Zanele and Horton, John J. (2025). Algorithmic Writing Assistance on Jobseekers’ Resumes Increases Hires. <i>Management Science 71(12), 10144–10164 (a 2023 working-paper version is free on arXiv, 2301.08083).</i> 480,948 new jobseekers on one online freelance platform, June-July 2021; half got spelling and grammar suggestions on their profile text (not generative AI). Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1287/mnsc.2024.04528">DOI</a></li>
-<li id="src-xu-2025"><b class="evidence">Lab test (not real hiring)</b> Xu, Jiannan, Li, Gujie and Jiang, Jane Yi (2025). AI Self-preferencing in Algorithmic Hiring: Empirical Evidence and Insights. <i>EAAMO ’25, ACM Conference on Equity and Access in Algorithms, Mechanisms, and Optimization (updated open copy on arXiv, June 2026).</i> 2,245 real resumes; 9 AI models compared each person’s own summary with AI-written versions; hiring simulated for 24 jobs. Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1145/3757887.3767676">DOI</a> <a href="https://arxiv.org/abs/2509.00462">Open copy</a></li>
+<li id="src-al-ali-2026"><b class="evidence">Lab test (not real hiring)</b> Al Ali, Adnan, Helcl, Jindřich and Libovický, Jindřich (2026). Different Time, Different Language: Revisiting the Bias Against Non-Native Speakers in GPT Detectors. <i>arXiv preprint.</i> Essays in Czech by non-native students (AKCES 3 corpus) and native peers, plus other text types; three kinds of AI detectors of 2025, one of them commercial; not English, not resumes. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://arxiv.org/abs/2602.05769">Open copy</a></li>
+<li id="src-resume-genius-2026"><b class="evidence">Survey by a company that sells the service</b> Chan, Eva (2026). 2026 Hiring Insights Report. 1,000 US hiring managers, online panel; survey dates not given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://resumegenius.com/blog/job-hunting/hiring-insights-report">Publisher</a></li>
+<li id="src-cui-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Cui, Jingyi, Dias, Gabriel and Ye, Justin (2025). Signaling in the Age of AI: Evidence from Cover Letters. <i>arXiv preprint.</i> 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://arxiv.org/abs/2509.25054">Open copy</a></li>
+<li id="src-galdin-silbert-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Galdin, Anaïs and Silbert, Jesse (2025). Making Talk Cheap: Generative AI and Labor Market Signaling. <i>arXiv preprint.</i> About 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://arxiv.org/abs/2511.08785">Open copy</a></li>
+<li id="src-insight-global-2025"><b class="evidence">Survey by a company that sells the service</b> Insight Global (2025). AI in Hiring 2025 Survey Report. 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17–22, 2024; a staffing firm’s survey; question wording not published. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf">Publisher</a></li>
+<li id="src-jakesch-2023"><b class="evidence">Lab test (not real hiring)</b> Jakesch, Maurice, Hancock, Jeffrey T. and Naaman, Mor (2023). Human heuristics for AI-generated language are flawed. <i>PNAS 120(11), e2208839120.</i> 4,600 people in six experiments judged 7,600 short self-descriptions (job, rental host and dating profiles), half written by older AI models (GPT-2, GPT-3). Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1073/pnas.2208839120">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10089155/">Open copy</a></li>
+<li id="src-kobak-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Kobak, Dmitry, González-Márquez, Rita, Horvát, Emőke-Ágnes and Lause, Jan (2025). Delving into LLM-assisted writing in biomedical publications through excess vocabulary. <i>Science Advances 11(27).</i> Open copy on arXiv. Word counts in over 15 million science paper summaries (PubMed), 2010–2024; not resumes. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1126/sciadv.adt3813">DOI</a> <a href="https://arxiv.org/abs/2406.07016">Open copy</a></li>
+<li id="src-liang-2023"><b class="evidence">Lab test (not real hiring)</b> Liang, Weixin, Yuksekgonul, Mert, Mao, Yining, Wu, Eric and Zou, James (2023). GPT detectors are biased against non-native English writers. <i>Patterns 4(7), 100779.</i> Open copy on arXiv. 7 AI detectors run on 91 essays by non-native English writers (TOEFL) and 88 essays by US eighth graders, all written by people. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1016/j.patter.2023.100779">DOI</a> <a href="https://arxiv.org/abs/2304.02819">Open copy</a></li>
+<li id="src-openai-2023"><b class="evidence">The maker’s own description of its product</b> OpenAI (2023). New AI classifier for indicating AI-written text. The maker’s own page, January 31, 2023, with its note of July 20, 2023 (archived copy; the live page blocks automated checks). Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://web.archive.org/web/20230802023548/https://openai.com/blog/new-ai-classifier-for-indicating-ai-written-text/">Publisher</a></li>
+<li id="src-russell-2025"><b class="evidence">Lab test (not real hiring)</b> Russell, Jenna, Karpinska, Marzena and Iyyer, Mohit (2025). People who frequently use ChatGPT for writing tasks are accurate and robust detectors of AI-generated text. <i>Proceedings of ACL 2025 (Long Papers).</i> Open copy on arXiv. 9 paid readers (4 rarely using AI, 5 using it often for writing) labelled 300 news-style articles as human or AI; detectors tested on the same set; not resumes. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.18653/v1/2025.acl-long.267">DOI</a> <a href="https://arxiv.org/abs/2501.15654">Open copy</a></li>
+<li id="src-wiles-2025"><b class="evidence">Big study (thousands of real applications)</b> Wiles, Emma, Munyikwa, Zanele and Horton, John J. (2025). Algorithmic Writing Assistance on Jobseekers’ Resumes Increases Hires. <i>Management Science 71(12), 10144–10164 (a 2023 working-paper version is free on arXiv, 2301.08083).</i> 480,948 new jobseekers on one online freelance platform, June-July 2021; half got spelling and grammar suggestions on their profile text (not generative AI). Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1287/mnsc.2024.04528">DOI</a></li>
+<li id="src-xu-2025"><b class="evidence">Lab test (not real hiring)</b> Xu, Jiannan, Li, Gujie and Jiang, Jane Yi (2025). AI Self-preferencing in Algorithmic Hiring: Empirical Evidence and Insights. <i>EAAMO ’25, ACM Conference on Equity and Access in Algorithms, Mechanisms, and Optimization (updated open copy on arXiv, June 2026).</i> 2,245 real resumes; 9 AI models compared each person’s own summary with AI-written versions; hiring simulated for 24 jobs. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1145/3757887.3767676">DOI</a> <a href="https://arxiv.org/abs/2509.00462">Open copy</a></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
@@ -482,25 +510,10 @@
 <li><a href="/research/keep-chats-out-of-ai-training/">Opt out of AI training: ChatGPT, Claude, Copilot and Gemini</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#can-people-tell-if-a-resume-was-written-by-ai">Can people tell if a resume was written by AI?</a></li>
-<li><a href="#do-ai-detectors-work-on-resumes">Do AI detectors work on resumes?</a></li>
-<li><a href="#what-do-hiring-managers-say-about-ai-written-resumes">What do hiring managers say about AI-written resumes?</a></li>
-<li><a href="#does-using-ai-on-your-resume-hurt-your-chances">Does using AI on your resume hurt your chances?</a></li>
-<li><a href="#does-ai-wording-help-with-ai-screeners">Does AI wording help with AI screeners?</a></li>
-<li><a href="#what-words-make-writing-sound-like-ai">What words make writing sound like AI?</a></li>
-<li><a href="#what-we-dont-know">What we don’t know</a></li>
-<li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
-<li><a href="#sources">Sources</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">

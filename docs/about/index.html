@@ -64,7 +64,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -75,6 +75,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -107,6 +110,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -266,7 +271,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -290,10 +295,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -318,7 +331,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -330,8 +343,8 @@
 <div class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li aria-current="page">About Cesar Enrriquez-Zuniga</li></ol></nav>
 <h1>About Cesar Enrriquez-Zuniga</h1>
-<p class="meta">Updated <time datetime="2026-10-04">4 October 2026</time></p>
-<p>Cesar Enrriquez-Zuniga makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan. CEZ = Cesar Enrriquez-Zuniga’s initials.</p>
+<p class="meta">Updated <time datetime="2026-10-04">October 4, 2026</time></p>
+<p>Cesar Enrriquez-Zuniga makes <span translate="no">CEZ Job Finder</span>, a free app that finds jobs and makes a resume for each one. The app needs your own paid Claude, ChatGPT or GitHub Copilot plan. CEZ = Cesar Enrriquez-Zuniga’s initials.</p>
 <p>Cesar built the app to tailor resumes with AI, and needed to know which resume advice holds up. The Research section shares what the studies say.</p>
 <p>Cesar is not a recruiter or a lawyer. The Research section summarizes published studies and says how strong each one is.</p>
 </div>
@@ -339,7 +352,7 @@
 <h2 id="how-the-articles-are-made">How the articles are made</h2>
 <p>AI tools help find sources and write drafts. A fresh AI session checks every claim, and AI revises the draft to answer that review. Cesar reads and approves each article before it goes up. The full process is on <a href="/research/methods/">How we research</a>.</p>
 <h2 id="contact-and-code">Contact and code</h2>
-<p>To reach Cesar, use the contact page at www.enrriquez.com. The app’s code is public on GitHub: github.com/cezkid/jobs. To report a mistake in any article, see <a href="/research/methods/#how-are-mistakes-corrected">how mistakes are corrected</a>.</p>
+<p>To reach Cesar, use the <a href="https://www.enrriquez.com/#contact">contact details on www.enrriquez.com</a>. The app’s code is public on GitHub: <a href="https://github.com/cezkid/jobs">github.com/cezkid/jobs</a>. To report a mistake in any article, see <a href="/research/methods/#how-are-mistakes-corrected">how mistakes are corrected</a>.</p>
 </div>
 </main>
 <footer>
