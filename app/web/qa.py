@@ -37,7 +37,10 @@ TOC_NARROW, every page with an On this page column at 390x844 (phone) + 1024x768
 summary in the first screen, opened = a link to every h2; TOC_WIDE at 1440x900 (also in --engines): the
 column's links all visible, the first in the first screen, right of the text column; TOC_CURRENT there: the
 3rd h2 scrolled to the top -> its link (both lists, only it) aria-current="true" + bold; CRUMBS_ONE_LINE at
-360x780 + 390x844 (phone): an article's visible crumbs share one line.
+360x780 + 390x844 (phone): an article's visible crumbs share one line. ARTICLE_H1, research pages at 1440x900: the h1
+>= 72px (the home page's display scale); HEADLINE_RAG, research pages at 375 (phone), 768, 1440 + 1920 wide: a
+two-part title (h1, hub item) never puts the deck's first word on the question's line; RULES_STACKED on every
+article page too (privacy + articles, every size).
 
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
@@ -441,7 +444,8 @@ EMPTY_RIGHT = """(rows) => {
   return out;
 }""".replace("BAND_W", str(BAND_W)).replace("BAND_H", str(BAND_H))
 # RULES_STACKED (privacy, every size): two horizontal rules (a border edge > 100px wide) overlapping side by
-# side, <= RULE_GAP px apart with no text line between them = a double rule (A19); articles join in P2a
+# side, <= RULE_GAP px apart with no text line between them = a double rule (A19); every article page too
+# (Short answer's rule over the next h2)
 RULES_PAGES = {"privacy.html"}
 RULE_GAP = 60
 RULES_STACKED = """() => {
@@ -449,9 +453,10 @@ RULES_STACKED = """() => {
   const rules = [], lines = [];
   for (const el of main.querySelectorAll("*")) {
     const c = getComputedStyle(el), q = el.getBoundingClientRect();
-    if (c.display === "none" || c.visibility === "hidden" || q.width <= 100) continue;
-    if (parseFloat(c.borderTopWidth) > 0 && c.borderTopStyle !== "none") rules.push({y: q.top, l: q.left, r: q.right, el});
-    if (parseFloat(c.borderBottomWidth) > 0 && c.borderBottomStyle !== "none") rules.push({y: q.bottom, l: q.left, r: q.right, el});
+    if (c.display === "none" || c.visibility === "hidden") continue;
+    // rules: border edges over 100px wide; text: any line, a short link's included
+    if (q.width > 100 && parseFloat(c.borderTopWidth) > 0 && c.borderTopStyle !== "none") rules.push({y: q.top, l: q.left, r: q.right, el});
+    if (q.width > 100 && parseFloat(c.borderBottomWidth) > 0 && c.borderBottomStyle !== "none") rules.push({y: q.bottom, l: q.left, r: q.right, el});
     if ([...el.childNodes].some(n => n.nodeType === 3 && n.data.trim())) {
       const r = document.createRange(); r.selectNodeContents(el);
       lines.push(...[...r.getClientRects()].filter(q => q.width > 2 && q.height > 2));
@@ -468,6 +473,28 @@ RULES_STACKED = """() => {
   }
   return out;
 }""".replace("RULE_GAP", str(RULE_GAP))
+# ARTICLE_H1 (A3), research pages at 1440x900: the h1 on the home page's display scale, >= H1_MIN px
+H1_MIN = 72
+H1_SIZE = "() => { const h = document.querySelector('main h1'); return h ? parseFloat(getComputedStyle(h).fontSize) : null; }"
+# HEADLINE_RAG (A4), research pages at 375/768/1440/1920: in a two-part title (the h1, a hub item) split at the
+# first "? " / ": ", the deck's first word never shares a line with the question's last word
+RAG_AT = [((375, 812), True), ((768, 1024), False), ((1440, 900), False), ((1920, 1080), False)]
+HEADLINE_RAG = """() => {
+  if (!document.querySelector("main h1")) return null;
+  const out = [];
+  for (const el of document.querySelectorAll("main h1, main .list a")) {
+    const text = el.textContent, m = /[?:] (?=\\S)/.exec(text); if (!m) continue;
+    const at = i => { const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); let n, seen = 0;
+      while ((n = w.nextNode())) { if (i < seen + n.data.length) { const r = document.createRange();
+        r.setStart(n, i - seen); r.setEnd(n, i - seen + 1); return r.getBoundingClientRect(); } seen += n.data.length; } };
+    const end = at(m.index), start = at(m.index + 2);
+    // same line: either glyph's middle inside the other's box (a smaller deck sits lower on a shared line)
+    const mid = q => (q.top + q.bottom) / 2, inside = (y, q) => y > q.top && y < q.bottom;
+    if (end && start && (inside(mid(start), end) || inside(mid(end), start)))
+      out.push(`${el.localName}: "${text.slice(m.index + 2).split(" ")[0]}" ends the line "${text.slice(0, m.index + 1)}" sits on`);
+  }
+  return out;
+}"""
 # wide article: a visible element starts right of ARTICLE_X (the On this page column), not one 68ch column alone
 ARTICLE_X = 900
 RIGHTMOST = """() => Math.max(0, ...[...document.querySelectorAll("main *")].filter(el => {
@@ -710,6 +737,17 @@ FAULTS = [
      "justify-self: start !important; }</style>", "wide"),
     ("privacy.html", "RULES_STACKED: a hairline under the Short version, over the next heading's",
      "<style>.short { border-bottom: 1px solid; padding-bottom: 30px; }</style>", "narrow"),
+    ("research/ai-resume-screening-bias/index.html", "RULES_STACKED: the next heading's hairline back under the "
+     "Short answer", "<style>:is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { padding-top: 14px "
+     "!important; border-top: 1px solid !important; }</style>", "narrow"),
+    (ARTICLE, "ARTICLE_H1: article h1 back to 64px", "<style>h1 { font-size: 4rem !important; }</style>", "wide"),
+    ("research/index.html", "ARTICLE_H1: hub h1 below the display scale", "<style>h1 { font-size: clamp(2.25rem, "
+     "1.4rem + 2.6vw, 4rem) !important; }</style>", "wide"),
+    ("research/ai-resume-screening-bias/index.html", "HEADLINE_RAG: the title in one run at the old h1 size (as audited)",
+     "<style>h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem) !important; }</style><script>document.querySelector("
+     "'h1 .deck').replaceWith(document.querySelector('h1 .deck').textContent)</script>", "wide"),
+    ("research/index.html", "HEADLINE_RAG: hub titles back in one run", "<script>document.querySelectorAll('.deck')"
+     ".forEach(d => d.replaceWith(d.textContent))</script>", "wide"),
     ("404.html", "FOOTER_BOTTOM: blank band under the 404's footer", "<style>body { min-height: 0 !important; }"
      "</style>", "wide"),
     (HOME, "ZOOM_H1: vh cap back below 1080px", "<style>@media (max-width: 1079px) { h1 { font-size: "
@@ -739,7 +777,7 @@ FAULTS = [
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
-             "RULES_STACKED": "RULES_STACKED", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
+             "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
              "0 matches": "found 0 elements"}
 
 
@@ -955,7 +993,18 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
             elif got[0] < got[1] - 2:
                 failed.append(f"FOOTER_BOTTOM {where}: footer ends at {got[0]:.0f}px, page/window at "
                               f"{got[1]:.0f}px - a blank band under it")
-        if name in RULES_PAGES:
+        if name.startswith("research/") and not phone and (width, height) == (1440, 900):
+            size = page.evaluate(H1_SIZE)
+            if size is None:
+                failed.append(f"ARTICLE_H1 {where}: check found 0 h1")
+            elif size < H1_MIN:
+                failed.append(f"ARTICLE_H1 {where}: h1 {size:.1f}px, under {H1_MIN}px")
+        if name.startswith("research/") and ((width, height), phone) in RAG_AT:
+            got = page.evaluate(HEADLINE_RAG)
+            if got is None:
+                failed.append(f"HEADLINE_RAG {where}: check found 0 h1")
+            failed += [f"HEADLINE_RAG {where}: {line}" for line in got or []]
+        if name in RULES_PAGES or page.evaluate("!!document.querySelector('main article')"):
             got = page.evaluate(RULES_STACKED)
             if got is None:
                 failed.append(f"RULES_STACKED {where}: check found 0 main elements")

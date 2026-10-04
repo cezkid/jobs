@@ -790,7 +790,10 @@ PAGE_CSS = """
   .crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
   .crumbs li { margin: 0; }
   .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
-  h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; font-weight: 700; margin: 0 0 16px; }
+  /* display scale, like the home page's section heads (>= 72px at 1440 wide); a two-part title's deck on its own line */
+  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.02; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
+  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.15; letter-spacing: -0.005em; }
+  .list .deck { margin-top: 2px; font-size: 0.8em; }
   h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.15; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
@@ -809,6 +812,8 @@ PAGE_CSS = """
   :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
   :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
   :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  /* the heading after it: no hairline of its own right under the note's rule (A19) */
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -923,11 +928,20 @@ def newest(articles: list[Source]) -> list[Source]:
     return sorted(sorted(articles, key=lambda s: s.name), key=lambda s: s.published, reverse=True)
 
 
+def headline(title: str) -> str:
+    """A two-part title ("Question? Subtitle", "Topic: names") as the question + a deck on its own line, split at
+    the first "? " or ": " (A4); the deck span sits inside the h1 / link, so its text stays the title."""
+    part = re.match(r"(.+?[?:]) (.+)", title)
+    if not part:
+        return escape(title)
+    return f'{escape(part.group(1))} <span class="deck">{escape(part.group(2))}</span>'
+
+
 def listing(articles: list[Source]) -> str:
     """Hub list: newest first, link text = title."""
     items = []
     for src in newest(articles):
-        items.append(f'<li><a href="{src.url}">{escape(src.title)}</a>'
+        items.append(f'<li><a href="{src.url}">{headline(src.title)}</a>'
                      f'<p>{escape(src.description)}</p><p class="date">{dates(src)}</p></li>')
     return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
 
@@ -1099,7 +1113,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         '<main id="main" class="wrap">',
         f'<{wrapper} class="page">',
         f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
-        f"<h1>{escape(src.title)}</h1>",
+        f"<h1>{headline(src.title)}</h1>",
         *([f'<p class="meta">{meta}</p>'] if meta else []),
         *mini,
         body.rstrip("\n"),

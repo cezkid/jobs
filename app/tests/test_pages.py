@@ -4,6 +4,7 @@ Runs on a throwaway site in tmp_path - never app/web/research or the real docs/.
 """
 
 import importlib.util
+import json
 import xml.etree.ElementTree as ET
 from urllib.parse import urlsplit
 
@@ -1016,3 +1017,30 @@ def test_articles_end_with_keep_reading_and_the_h1_comes_before_on_this_page(tmp
     ai = re.findall(r'href="(/research/[^"#]+/)"', built["research/ai-bias/index.html"].split('aria-label="Keep reading"')[1])
     i = order.index("/research/ai-bias/")
     assert ai[:2] == (order[i + 1:] + order[:i])[:2]
+
+
+@pytest.mark.parametrize("title, html", [
+    ("Is AI screening biased? What the studies show", 'Is AI screening biased? <span class="deck">What the studies show</span>'),
+    ("Keep chats out of training: ChatGPT, Claude", 'Keep chats out of training: <span class="deck">ChatGPT, Claude</span>'),
+    ("Do ATS reject 75%? Where: the number", 'Do ATS reject 75%? <span class="deck">Where: the number</span>'),
+    ("Can employers tell if AI wrote it?", "Can employers tell if AI wrote it?"),
+    ("How we research", "How we research"),
+    ("Fish & chips: A <b>", 'Fish &amp; chips: <span class="deck">A &lt;b&gt;</span>'),
+])
+def test_two_part_title_splits_at_the_first_question_or_colon(title, html):
+    assert pages.headline(title) == html
+
+
+def test_split_title_keeps_its_text_in_the_h1_the_hub_and_the_headline(tmp_path):
+    title = "Do resume robots reject you? What the studies show"
+    research_site(tmp_path, {"ats-myth.md": SOURCES["ats-myth.md"].replace("Do resume robots reject you?", title)})
+    built = pages.build(tmp_path)
+    html = built["research/ats-myth/index.html"]
+    h1 = re.search(r"<h1>(.*?)</h1>", html).group(1)
+    assert '<span class="deck">What the studies show</span>' in h1
+    assert re.sub(r"<[^>]+>", "", h1) == title == Head(html).text["title"][0]
+    ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', html, re.S).group(1))
+    article = next(n for n in ld["@graph"] if n["@type"] == "Article")
+    assert article["headline"] == title
+    item = re.search(r'<a href="/research/ats-myth/">(.*?)</a>', built["research/index.html"]).group(1)
+    assert "deck" in item and re.sub(r"<[^>]+>", "", item) == title
