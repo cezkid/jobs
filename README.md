@@ -44,8 +44,9 @@ setup offers to switch off AI training on their account (`Guides/Keep your chats
 ## For developers
 
 Thin client over freehire's keyless job API: polls search settings, dedupes, ranks, notifies
-daily of new rows, tailors resume to one posting as PDF. Discovery + tailoring only - no
-application tracking, no auto-apply. Needs Python 3.11+ and [uv](https://docs.astral.sh/uv/).
+daily of new rows, tailors resume to one posting as PDF. Finds jobs, tailors resumes, tracks where each application stands, fills forms but never
+submits. How it works, in plain words: [research](https://jobs.enrriquez.com/research/) and
+[privacy](https://jobs.enrriquez.com/privacy.html). Needs Python 3.11+ and [uv](https://docs.astral.sh/uv/).
 
 ```sh
 git clone https://github.com/cezkid/jobs && cd jobs && uv sync

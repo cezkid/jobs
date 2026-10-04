@@ -353,6 +353,7 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   command always visible, no key combos, "Read the script first" link to the GitHub file (never
   `/win` `/mac`: served as HTML), no command on the share image.
 - robots.txt Disallow `/mac/` `/win/` - not `/mac` (prefix: would also block a future `/macos.html`).
+- robots.txt allows search, retrieval AND AI training bots on purpose (free public tool, research meant to be quoted; Google-Extended never blocked): a `# Training bots:` comment lists both groups (2026-10-03). `.well-known/security.txt` Contact = GitHub private advisory; `docs/_config.yml` `include` keeps Jekyll from dropping the dot folder; test fails within 30 days of Expires - renew yearly.
 - Home JSON-LD = WebSite only (site name in results); research pages carry their own (above). SoftwareApplication w/o ratings = invalid in
   Search Console; FAQ rich results now limited to government + health sites.
 - `og:title` w/o brand suffix (`og:site_name` carries it). Cards 1200x630, < 300 KB (WhatsApp

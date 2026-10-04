@@ -5,6 +5,7 @@ another site, and a share card fails silently (preview just shows no picture). T
 files on disk: no network, stdlib + pymupdf. Assets come from app/web/assets.py + app/web/og.html.
 """
 
+import datetime
 import importlib.util
 import json
 import random
@@ -160,14 +161,22 @@ def test_titles_and_descriptions_are_unique():
         assert len(seen) == len(set(seen)), key
 
 
+# the only dot / underscore paths on purpose: security.txt must live in .well-known, and
+# _config.yml's include list is what stops Jekyll dropping that folder
+JEKYLL_DOT_OK = {"docs/_config.yml", "docs/.well-known/security.txt"}
+
+
 def test_nothing_in_docs_trips_jekyll():
     # Pages runs Jekyll on docs/: .md becomes HTML, front matter (---) gets templated, and
     # _x / .x / #x / x~ files are dropped from the site
     tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", "docs"], capture_output=True, text=True,
                              check=True).stdout.splitlines()
     assert tracked
+    assert {p for p in tracked if any(seg.startswith(("_", ".")) for seg in p.split("/")[1:])} == JEKYLL_DOT_OK
     for path in tracked:
         assert not path.endswith(".md"), path
+        if path in JEKYLL_DOT_OK:
+            continue
         assert not any(seg.startswith(("_", ".", "#")) or seg.endswith("~") for seg in path.split("/")[1:]), path
         assert not (cfg.ROOT / path).read_bytes().startswith(b"---"), path
 
@@ -267,6 +276,30 @@ def test_sitemap_and_robots_point_search_at_the_indexed_pages_only():
     assert f"Sitemap: {SITE}sitemap.xml" in robots
     # /mac/ + /win/ are install scripts served as HTML => keep them out of search results
     assert sorted(l.split(":", 1)[1].strip() for l in robots if l.startswith("Disallow:")) == ["/mac/", "/win/"]
+
+
+def test_robots_says_why_training_bots_are_allowed():
+    robots = (DOCS / "robots.txt").read_text(encoding="utf-8").splitlines()
+    assert any(l.startswith("# Training bots:") for l in robots)
+    groups = [l for l in robots if l.lower().startswith("user-agent:")]
+    assert [g.split(":", 1)[1].strip() for g in groups] == ["*"]  # no per-bot group blocks a search bot or Google-Extended
+
+
+def test_security_txt_is_current():
+    path = DOCS / ".well-known" / "security.txt"
+    fields = dict(l.split(": ", 1) for l in path.read_text(encoding="utf-8").splitlines() if ": " in l)
+    assert fields["Contact"].startswith("https://"), path
+    assert fields["Canonical"] == f"{SITE}.well-known/security.txt", path
+    expires = datetime.datetime.fromisoformat(fields["Expires"].replace("Z", "+00:00"))
+    left = expires - datetime.datetime.now(datetime.timezone.utc)
+    assert left > datetime.timedelta(days=30), f"{path} expires {fields['Expires']}: renew it (Expires <= 1 year out)"
+    assert ".well-known" in (DOCS / "_config.yml").read_text(encoding="utf-8")
+
+
+def test_readme_links_research_and_has_no_stale_tracking_line():
+    readme = (cfg.ROOT / "README.md").read_text(encoding="utf-8")
+    assert "no application tracking" not in " ".join(readme.split()).lower()
+    assert "https://jobs.enrriquez.com/research/" in readme and "https://jobs.enrriquez.com/privacy.html" in readme
 
 
 def test_home_page_describes_the_site_not_an_app_or_faq():
