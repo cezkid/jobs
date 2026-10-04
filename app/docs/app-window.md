@@ -111,6 +111,41 @@ Still stock VS Code, on the user's own install + subscriptions; only settings + 
   installers write it only when they download VS Code), or a settings file holding only Job
   Finder's own keys (installs before the marker). A developer's own VS Code stays byte for byte.
 
+## Phase 2 - what + why
+
+Owner pick 2026-10-03 (plan-ejf.1.10): own profile + local extension. Still stock VS Code on
+the user's own install + subscriptions.
+
+- Own profile "CEZ Job Finder" (`launch.ensure_profile`, #7): made on a cold start, folder tied
+  to it => extensions installed there only (AI panel, pdf, yaml, ours), user's own VS Code
+  elsewhere unchanged. Every `code` call carries `--profile`; what's missing goes in ONE batched
+  install (#2: 3 s vs ~15 s one by one).
+- Moving in (`launch.migrate_profile`, #8): Copilot model pick, zoom, text size copied once from
+  the default profile; pick not found => `.data/profile-migrated` `model: not copied` =>
+  `job-setup` re-says the pick-Sonnet line once (Copilot).
+- Out of Settings Sync (#5): ours marked machine-scoped + id in `settingsSync.ignoredExtensions`
+  when sync is on - another computer would fetch "cez-job-finder.window" from the Marketplace
+  (not there; could be squatted).
+- Local extension `app/vscode/` (plain JS, no npm), vsix built by `app/vscode_ext.py` into
+  `.data/vscode/`, pinned (never auto-updated), new version per content change. Runs before the
+  folder is trusted (`untrustedWorkspaces`, #a).
+- Start page (`start.js`, #h): launcher writes `.data/start-page`, extension opens that page as
+  the window starts and deletes the marker - no 6 s wait, one `code` call. Opened from the Dock
+  (no marker): extension runs `today --refresh` itself, same as the launcher.
+- Today = dashboard (`today.js`, #i): tiles, job cards in columns, real buttons. Data =
+  `.data/today.json`, same model as `Today.md`; words from `say.json`, shared w/ the page. W/o
+  the extension the folder's association drops => formatted `Today.md`, words to type.
+- Buttons put words in the chat, never send: Copilot fills its box; Claude + ChatGPT can't be
+  filled w/o a new chat (#d, #e) => copy + open + one paste line. No `vscode://` handler.
+
+Owner checks still open (beyond the button checks above):
+- Windows: folder key + profile on a real Windows install (#1w). owner: pending.
+- Settings Sync skips ours on a signed-in account (#5, #8). owner: pending.
+- First cold launch on the live install: profile made, AI panel + sign-in carried over, Today
+  dashboard opens. owner: pending (plan-ejf.1.17).
+- ChatGPT: chat on the right at first start (#e: secondary sidebar) - START HERE + What you can
+  ask still say "click its icon on the left". owner: pending.
+
 ## Rejected
 
 - Own Electron / Tauri shell: Claude, ChatGPT + Copilot chats exist only as VS Code extensions
@@ -127,3 +162,6 @@ Still stock VS Code, on the user's own install + subscriptions; only settings + 
 - Problems / decorations off: loses the YAML red underline on a mistyped resume fact.
 - `vscode://anthropic.claude-code/open` from a page: opens the chat as a tab over the page.
 - `vscode://` handler for Today buttons: reachable from any web page or posting, not just ours.
+- Filling Claude's / ChatGPT's chat from a button: only via a new chat (#d, #e) - breaks one chat.
+- Extension on the Marketplace: a public listing for a local-only helper; sync would pull it in
+  everywhere. Local vsix, pinned, out of sync instead.

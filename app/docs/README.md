@@ -45,7 +45,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/answers.md](apply/answers.md) | What an application asks, read ahead when a resume is made; answers drafted + pasted for systems w/o a filler; questions never drafted |
 | Applying | [apply/interview.md](apply/interview.md) | Interview practice + debrief: what each rule rests on, how a stated fact reaches the resume, declined |
 | Applying | [apply/follow-up.md](apply/follow-up.md) | When a quiet job is suggested for a follow-up (days per stage + basis), one nudge per silence, what the draft says and never says |
-| App window | [app-window.md](app-window.md) | VS Code window the Desktop icon opens: phase 1 look, pages, Today links + chips, quiet settings - what + why, measured (profile, local extension, window probes), rejected |
+| App window | [app-window.md](app-window.md) | VS Code window the Desktop icon opens: phase 1 look, pages, Today links + chips, quiet settings; phase 2 own profile + extension (`app/vscode`: start page, Today dashboard, buttons that fill the chat, never send) - what + why, measured, owner checks open, rejected |
 | Site | [site.md](site.md) | Install site in `docs/`: generated files + `app/web/assets.py`, look, rules (no third-party requests, scam-safe install line, robots, JSON-LD, share image), measured hosting facts |
 | Site | [research.md](research.md) | Research articles: sourcing order, evidence labels (plain scale -> registry), citations, 3-step review + publication gate, style, search rules, laws, privacy, re-check + corrections |
 

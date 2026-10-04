@@ -39,4 +39,6 @@ and job boards. Each job links to the real posting. New ones checked every morni
 
 Double-click **CEZ Job Finder** on your Desktop (on Windows, clicking the morning notification
 works too). The **Today** page opens: what's waiting on you and the newest jobs. Each one shows
-the words to type in the chat, and **Open the posting** to read the job itself.
+a button with the words to say, and **Open the posting** to read the job itself. Click a
+button and its words go into the chat (with Claude or ChatGPT: click the chat box, paste, press
+Enter). Nothing is sent until you press Enter.
