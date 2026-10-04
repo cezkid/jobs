@@ -172,7 +172,7 @@ Job rows carry `company` + `company_slug`, no website. `GET /companies/<company_
 US postings had a website. No about-us URL anywhere => main website only, never a guessed path or a
 URL built from the slug. Python urllib w/o a User-Agent gets 403; httpx fine.
 `app/companies.py`: asked at the job check (50 per check, one after another), cached in
-`companies` 30 d, failure = asked again next check; Today links it, else a DuckDuckGo search.
+`companies` 30 d, failure = asked again next check; Today links it, else plain name (no web search, owner 2026-10-03).
 
 ## What the job source leaves out
 

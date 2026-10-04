@@ -1,12 +1,12 @@
 """Company links on the Today page: each company's own website, from the job search's company
-record (`GET /companies/<its listing id>` -> `data.company.company_info.website`), else a web search
-for its name. Asked once per company at the job check, cached 30 days, never at click time
+record (`GET /companies/<its listing id>` -> `data.company.company_info.website`); none on record
+=> plain name, no link (owner 2026-10-03: no web-search fallback). Asked once per company at the job check, cached 30 days, never at click time
 (app/docs/jobs/freehire.md#companies). No about-us page in the data: main website only, never a
 guessed path, never a link built from the slug.
 """
 import sys
 from datetime import datetime, timedelta, timezone
-from urllib.parse import quote, quote_plus, urlsplit
+from urllib.parse import quote, urlsplit
 
 import httpx
 
@@ -15,7 +15,6 @@ import store
 MAX_AGE_DAYS = 30
 # asked one after another, this many per check: the rest wait for the next one
 BATCH = 50
-SEARCH = "https://duckduckgo.com/?q="
 
 
 def website(value) -> str | None:
@@ -95,13 +94,10 @@ def slug_of(conn, row: dict) -> str | None:
     return found[0] if found else None
 
 
-def link(conn, row: dict) -> dict | None:
-    """{url, website}: the company's website on record (website True), else a web search for its
-    name. No company name => None."""
-    name = (row.get("company") or "").strip()
-    if not name:
+def link(conn, row: dict) -> str | None:
+    """The company's website on record, else None: name shows as plain words, no link."""
+    if not (row.get("company") or "").strip():
         return None
     slug = slug_of(conn, row)
     found = conn.execute("SELECT website FROM companies WHERE slug = ?", (slug,)).fetchone() if slug else None
-    site = website(found[0]) if found else None
-    return {"url": site, "website": True} if site else {"url": SEARCH + quote_plus(name), "website": False}
+    return website(found[0]) if found else None

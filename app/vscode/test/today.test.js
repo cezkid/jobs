@@ -116,22 +116,22 @@ test("posting button for https links only, kept exactly as written", () => {
 });
 
 // owner 2026-10-03: "clicking title should lead to job posting. clicking company should take to ...
-// the main website" - else a web search for it; the name says which, so a click never surprises
-test("title opens the posting; company opens its website, else a web search; names say which", () => {
+// the main website"; then "remove duckduck go if not company website no link" => no website on
+// record = plain name, not a button
+test("title opens the posting; company opens its website, none on record => plain name", () => {
   const raw = structuredClone(RAW);
   raw.sections[0].cards = [
-    { ...raw.sections[0].cards[0], num: 12, company: "Example Co", company_url: "https://example.com", company_website: true },
-    { ...raw.sections[0].cards[0], num: 13, company: "Sample & Co", company_url: "https://duckduckgo.com/?q=Sample+%26+Co",
-      company_website: false, say: ["apply to job 13"] },
+    { ...raw.sections[0].cards[0], num: 12, company: "Example Co", company_url: "https://example.com" },
+    { ...raw.sections[0].cards[0], num: 13, company: "Sample & Co", company_url: null, say: ["apply to job 13"] },
   ];
   const m = today.model(raw, say);
   const page = html(m);
   const site = page.match(/<button type="button" data-a="(\d+)" class="link named" title="Company website: Example Co" aria-label="Company website: Example Co">Example Co<\/button>/);
   assert.ok(site, "company website link missing");
   assert.deepEqual(m.actions[Number(site[1])], { type: "company", url: "https://example.com" });
-  const search = page.match(/data-a="(\d+)" class="link named" title="Search the web for Sample &amp; Co" aria-label="Search the web for Sample &amp; Co">Sample &amp; Co</);
-  assert.ok(search, "web search link missing");
-  assert.equal(m.actions[Number(search[1])].url, "https://duckduckgo.com/?q=Sample+%26+Co");
+  assert.match(page, /<p>Sample &amp; Co<\/p>/, "company w/o website not plain text");
+  assert.doesNotMatch(page, />Sample &amp; Co<\/button>/);
+  assert.ok(!m.actions.some((x) => x.type === "company" && x.url !== "https://example.com"), "extra company action");
   const title = page.match(/<h3 id="j-12"><span class="num">Job 12<\/span> <button type="button" data-a="(\d+)" class="link named" title="Open the posting" aria-label="Open the posting for Job 12: Financial Analyst">Financial Analyst<\/button><\/h3>/);
   assert.ok(title, "title link missing");
   assert.deepEqual(m.actions[Number(title[1])], { type: "posting", url: RAW.sections[0].cards[0].url });

@@ -96,11 +96,10 @@ def test_refresh_quietly_never_raises(conn, monkeypatch):
     companies.refresh_quietly(conn, client({}), BASE)
 
 
-# a company without a website on record opens a web search for its name, never a link from its id
-def test_link_falls_back_to_web_search(conn):
+# a company without a website on record shows as plain words: no web search, no link from its id
+def test_link_none_without_a_website(conn):
     listed(conn, "sample")
-    assert companies.link(conn, {"company": "Sample & Co", "company_slug": "sample"}) == {
-        "url": "https://duckduckgo.com/?q=Sample+%26+Co", "website": False}
+    assert companies.link(conn, {"company": "Sample & Co", "company_slug": "sample"}) is None
     assert companies.link(conn, {"company": ""}) is None
 
 

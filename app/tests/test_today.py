@@ -38,7 +38,7 @@ Tuesday, September 29. So far: 1 sent.
 
 ## Waiting on you
 
-- **Job 1** - [Data Analyst](<https://jobs.lever.co/globex/1>), [Globex](<https://duckduckgo.com/?q=Globex>)
+- **Job 1** - [Data Analyst](<https://jobs.lever.co/globex/1>), Globex
   - Ready to send
   - [Open its resume](Globex%20-%20Data%20Analyst/Your_Name_Resume.pdf)
   - Say: `apply to job 1` - or `I sent job 1` if you already did
@@ -47,16 +47,16 @@ Tuesday, September 29. So far: 1 sent.
 
 No reply for a while. Many employers never write back. [When to follow up](Guides/Following%20up.md)
 
-- **Job 2** - [Senior Vue Engineer old](<https://boards.greenhouse.io/acme/jobs/old>), [Acme](<https://duckduckgo.com/?q=Acme>)
+- **Job 2** - [Senior Vue Engineer old](<https://boards.greenhouse.io/acme/jobs/old>), Acme
   - Applied 29 days ago, no reply yet
   - Say: `write a follow-up for job 2` - or `I heard back from job 2`, `job 2 is closed`
 
 ## New since last check
 
-- **Job 3** - [Senior Vue Engineer paid](<https://boards.greenhouse.io/acme/jobs/paid>), [Acme](<https://duckduckgo.com/?q=Acme>)
+- **Job 3** - [Senior Vue Engineer paid](<https://boards.greenhouse.io/acme/jobs/paid>), Acme
   - Why: remote · $150k-190k (meets your pay) · added to your list today
   - Say: `resume for job 3`
-- **Job 4** - [Senior Vue Engineer plain](<https://boards.greenhouse.io/acme/jobs/plain>), [Acme](<https://duckduckgo.com/?q=Acme>)
+- **Job 4** - [Senior Vue Engineer plain](<https://boards.greenhouse.io/acme/jobs/plain>), Acme
   - Why: remote · pay not listed · added to your list today
   - Say: `resume for job 4`
 
@@ -441,22 +441,21 @@ def test_every_job_has_link_text_and_a_say_chip(conn, tmp_path):
     assert not re.search(r'Say: "', text) and "- `find new jobs`" in text
 
 
-# owner 2026-10-03: company name opens its website - the one on the job search's record, else a
-# web search for the name; never a link built from its listing id
-def test_company_links_its_website_else_a_web_search(conn, tmp_path):
+# owner 2026-10-03: company name opens its website on the job search's record; none on record =>
+# plain name (no web search); never a link built from its listing id
+def test_company_links_its_website_else_plain_name(conn, tmp_path):
     store.upsert(conn, [job("a", company="Ramp", company_slug="ramp"), job("b", company="Sample & Co", company_slug="sample")],
                  CHECK)
     conn.execute("INSERT INTO companies VALUES ('ramp', 'https://ramp.com', ?)", (CHECK,))
     conn.execute("INSERT INTO companies VALUES ('sample', NULL, ?)", (CHECK,))
     m = today.model(conn, CONFIG, tmp_path, NOW, [], tmp_path)
     cards = {c["company"]: c for c in m["sections"][0]["cards"]}
-    assert (cards["Ramp"]["company_url"], cards["Ramp"]["company_website"]) == ("https://ramp.com", True)
-    assert (cards["Sample & Co"]["company_url"], cards["Sample & Co"]["company_website"]) == (
-        "https://duckduckgo.com/?q=Sample+%26+Co", False)
+    assert cards["Ramp"]["company_url"] == "https://ramp.com"
+    assert cards["Sample & Co"]["company_url"] is None
     text = today.render(m)
     assert "[Senior Vue Engineer a](<https://boards.greenhouse.io/acme/jobs/a>), [Ramp](<https://ramp.com>)" in text
-    assert "[Sample &amp; Co](<https://duckduckgo.com/?q=Sample+%26+Co>)" in text  # text inert, url exact
-    assert "ramp.com/ramp" not in text and "Open the posting" not in text
+    assert "[Senior Vue Engineer b](<https://boards.greenhouse.io/acme/jobs/b>), Sample &amp; Co\n" in text  # text inert
+    assert "ramp.com/ramp" not in text and "Open the posting" not in text and "?q=" not in text
 
 
 # a sent job (application row, no listing id of its own) still links its company's website

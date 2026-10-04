@@ -75,7 +75,7 @@ only on buttons (owner rule).
 | Say words ("Make my resume", "Help me apply", ...) | `workbench.action.chat.open {query, isPartialQuery: true}`: words in the chat box, not sent | new chat in the sidebar, words typed in, not sent: `claude-vscode.editor.open(undefined, words, undefined, undefined, false, {programmatic: "honor-preferred-location"})`; chat shown before moves to Claude's session history; title "Opens a new chat with these words typed in - press Enter to start", then "New chat ready - press Enter" on the page + status bar (owner 2026-10-03, measured: [j](app-window/probes/j-claude-new-chat.json)). Pressed: button reads "Starting Claude…" (others "Opening the chat…"), greyed until done; still waiting after 400 ms => "Starting Claude - the first time takes a few seconds"; chat view opened at window start so it rarely shows (k). Only Claude 2.1.288 up to 2.2 w/ `claudeCode.preferredLocation: sidebar`; else copy words + `claude-vscode.sidebar.open` + line "Copied - click the chat box, paste (Cmd+V, or Ctrl+V off Mac), press Enter."; button reads "Copy: <words>" | copy + `chatgpt.openSidebar` + same line | copy + same line |
 | I sent it / I heard back / It's closed | no chat: `jobs.py status set N applied\|heard_back\|closed` run by the extension (user's click = their own record), folder moves; line "Job N marked as sent." + Undo for 10 s => `status undo N --from STATE` (takes back only that state, log row dropped, folder back); fail => plain line + the chat words (owner 2026-10-04) | same | same | same |
 | Job title (opens the posting) | `vscode.env.openExternal` - https only, the stored link as is | same | same | same |
-| Company name | `vscode.env.openExternal` - http(s) website from the job search's company record (`app/companies.py`, cached 30 d), else `https://duckduckgo.com/?q=<name>` (owner 2026-10-03) | same | same | same |
+| Company name | `vscode.env.openExternal` - http(s) website from the job search's company record (`app/companies.py`, cached 30 d); none on record => plain name, no link, no web search (owner 2026-10-03) | same | same | same |
 | Open resume / Open folder | `vscode.open` / `revealInExplorer` - only paths under `My Jobs/`, `My Resume/`, `Guides/` that exist under the folder's real path | same | same | same |
 
 Why a new chat for Claude, copy for ChatGPT: rows d, e (no command fills the chat shown w/o a new
@@ -98,7 +98,7 @@ Still stock VS Code, on the user's own install + subscriptions; only settings + 
   the workspace => only this folder's window changes, their own theme elsewhere untouched.
 - Pages: `app/window/pages.css` (`markdown.styles`) - Caladea, 68ch measure, list items as cards.
   Reads as one program's pages, not a code editor's Markdown preview. No remote loads.
-- Today: job title = link to the posting, company = its website (else a web search), "Open its
+- Today: job title = link to the posting, company = its website (none on record => plain name), "Open its
   resume" link text, never a bare 100-char URL; separate "Open the posting" dropped 2026-10-04
   (the title does it, less clutter); words to say as plain bold
   quoted words (code spans) - user reads + types them; real buttons + a dashboard Today = phase 2

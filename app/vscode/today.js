@@ -1,7 +1,7 @@
 // Today dashboard: checks .data/today.json (app/today.py) and draws it as one HTML page for a
 // webview. Pure (no vscode, no disk): extension.js passes what it read. Titles, companies + the why
 // line come from employer postings => data, escaped, never markup. Title + company click through our
-// own buttons only (posting / company website or web search): the page sends an index, never a URL.
+// own buttons only (posting / company website): the page sends an index, never a URL.
 // Tests: node --test app/vscode/test/*.test.js
 const path = require("path");
 
@@ -96,7 +96,7 @@ function cleanUrl(url) {
   }
 }
 
-// company website: http(s) as stored (app/companies.py keeps only these), or our web search link
+// company website: http(s) as stored (app/companies.py keeps only these); none => plain name
 function cleanSite(url) {
   if (typeof url !== "string" || url.length > 2000 || !/^https?:\/\/[^\s"'<>\\`]+$/.test(url)) return null;
   try {
@@ -145,7 +145,7 @@ function model(raw, sayJson) {
       num, title: str(c.title), company, detail: str(c.detail), why: str(c.why),
       say: (Array.isArray(c.say) ? c.say : []).map(sayButton).filter(Boolean),
       posting: url ? { action: act({ type: "posting", url }) } : null,
-      site: site && company ? { website: c.company_website === true, action: act({ type: "company", url: site }) } : null,
+      site: site && company ? { action: act({ type: "company", url: site }) } : null,
       resume: open(c.resume, "file"),
       folder: open(c.folder, "folder"),
     };
@@ -672,13 +672,13 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
     const links = [link(c.resume, "Resume", "resume"), link(c.folder, "Folder", "folder")].filter(Boolean);
     return links.length ? `<span class="meta">${links.join(" · ")}</span>` : "";
   };
-  // title opens the posting, company its website (else a web search for it): the name says which
-  // (owner 2026-10-03); no link on record => plain words
+  // title opens the posting, company its website on record (owner 2026-10-03); no link on record
+  // => plain words, never a web search
   const title = (c) => (c.posting ? btn(c.title, c.posting.action, { cls: "link named", title: "Open the posting",
     name: `Open the posting for Job ${c.num}: ${c.title}` }) : h(c.title));
   const company = (c) => {
     if (!c.site) return h(c.company);
-    const what = c.site.website ? `Company website: ${c.company}` : `Search the web for ${c.company}`;
+    const what = `Company website: ${c.company}`;
     return btn(c.company, c.site.action, { cls: "link named", title: what, name: what });
   };
   // detail = where it stands; why = the row's reasons (new jobs)

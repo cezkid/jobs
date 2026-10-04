@@ -127,7 +127,7 @@ def guide_link(g: dict) -> str:
 
 
 def item(row: dict, *details: str) -> list[str]:
-    """Title links the posting, company its website (or a web search): no separate link to read."""
+    """Title links the posting, company its website on record (none => plain name): no separate link to read."""
     named = ", ".join(md_link(row[k], row.get(u)) for k, u in (("title", "url"), ("company", "company_url")) if row.get(k))
     return [f"- **Job {row['num']}** - {named}", *(f"  - {d}" for d in details if d)]
 
@@ -136,11 +136,10 @@ def card(conn, row: dict, detail: str, says: list[str], dirs: dict[str, Path] | 
          tail: str = "", why: str | None = None) -> dict:
     """One job, as both the page and the dashboard show it: says[0] = the main thing to do.
     why = the row's `[reasons]` (new jobs: AGENTS.md, each job carries its one-line why).
-    company_url = its website on record (company_website true), else a web search for its name."""
+    company_url = its website on record, else None (plain name)."""
     job_dir = (dirs or {}).get(row.get("key"))
-    site = companies.link(conn, row) or {}
     return {"num": row["num"], "title": row.get("title") or "", "company": row.get("company") or "",
-            "company_url": site.get("url"), "company_website": bool(site.get("website")),
+            "company_url": companies.link(conn, row),
             "detail": detail, "url": row.get("url") or None, "resume": rel(resume_pdf(job_dir), root),
             "folder": rel(job_dir, root), "say": says, "tail": tail, "why": why}
 
