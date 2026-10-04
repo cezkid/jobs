@@ -10,6 +10,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+import best
 import cfg
 import locks
 import rank
@@ -66,7 +67,10 @@ def unseen_ranked(conn, config: dict) -> list[dict]:
     """Numbered where the digest lists them => "job 12" in the email = job 12 in the chat."""
     # rank every open row so a repost of a job already sent collapses into it, not in as new;
     # stale rows (likely filled) are never announced - they stay in the chat list only
-    ranked = [j for j in rank.rank(store.all_jobs(conn), config) if not j["seen"] and not j["stale"]]
+    now = datetime.now(timezone.utc)
+    ranked = [j for j in rank.rank(store.all_jobs(conn), config, now) if not j["seen"] and not j["stale"]]
+    # best-to-apply-next order, as Today + the chat brief: the top ones get the lowest new numbers
+    ranked = best.score(ranked, config, now, best.resume_facts(config, now.date()))
     store.numbered(conn, ranked[:DIGEST_CAP])
     return ranked
 

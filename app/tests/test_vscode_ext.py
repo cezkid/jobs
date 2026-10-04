@@ -46,7 +46,7 @@ def test_vsix_holds_a_manifest_vscode_accepts(tmp_path):
     pkg = vscode_ext.manifest()
     assert path.name == f"cez-job-finder.window-{pkg['version']}.vsix"
     with zipfile.ZipFile(path) as z:
-        assert sorted(z.namelist()) == ["[Content_Types].xml", "extension.vsixmanifest", "extension/extension.js",
+        assert sorted(z.namelist()) == ["[Content_Types].xml", "extension.vsixmanifest", "extension/extension.js", "extension/jobs.js",
                                         "extension/media/fonts/OFL.txt", "extension/media/fonts/caladea-bold.woff2",
                                         "extension/media/fonts/caladea-regular.woff2", "extension/package.json",
                                         "extension/say.json", "extension/start.js", "extension/today.js"]

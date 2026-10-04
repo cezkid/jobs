@@ -1,6 +1,7 @@
 # Greenhouse application forms - measured facts
 
-Greenhouse = careers site for many tech employers (`job-boards.greenhouse.io/<company>/jobs/<id>`).
+Greenhouse = careers site for many tech employers (`job-boards.greenhouse.io/<company>/jobs/<id>`, or
+embedded on the employer's own page as `?gh_jid=<id>` - below).
 `app/apply/systems/greenhouse.py` reads questions from Greenhouse's public job board, types answers
 into its widgets; shared steps (`apply-form`) in `apply-systems.md`. Tenant named by letter, never
 employer; add yours as a new line.
@@ -50,3 +51,21 @@ never clicked. After Submit the address ends `/confirmation`.
 field names - no `#first_name`). `recover` opens `embed/job_app?for=<co>&token=<id>&b=<site>`
 instead: `b=` stops the redirect, same form ids. Wait for network idle before the upload - too
 early, the page shows its own "Cannot read properties of undefined (reading 'uploadFile')".
+
+## Employer's own page w/ `?gh_jid=` (2026-10-04)
+
+Many Greenhouse postings link to the employer's own careers page, form embedded, job id in
+`gh_jid` - board name not in the link. Share of newest 50 US Greenhouse rows on freehire:
+
+| Measured | On employer's page | On greenhouse.io |
+|---|---|---|
+| 2026-10-03 | 17 | 33 |
+| 2026-10-04 | 10 (4 employers) | 40 |
+
+One employer posting a batch swings it. greenhouse.io links can carry `gh_jid` too - host decides. `board_for`: `GET boards.greenhouse.io/embed/job_app?token=<id>`
+(no redirect follow) -> 301 to `job-boards.greenhouse.io/embed/job_app?for=<board>&token=<id>`;
+10 of 10 resolved, unknown id -> 404 -> "posting not found on Greenhouse - it may have closed".
+Only the listing id goes out, to Greenhouse - same as opening the posting. Board found -> same path
+as any Greenhouse link (job board read, `recover` to the embed form when its page redirects).
+freehire's row also carries it (`external_id` = `<board>:<id>`), not stored - lookup works for a
+pasted link too. Live gate: `test_greenhouse_employer_site_links_read`.

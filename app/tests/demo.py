@@ -4,7 +4,8 @@ jobs so `jobs.py today` + the window show every section. Never real data, never 
     uv run python app/tests/demo.py
 
 Writes My Settings/Search settings.yml (example search), My Jobs/1 To apply + 2 Applied (3 job
-folders), .data/jobs.db (8 listed jobs); My Resume left empty => Not finished shows too. Each
+folders), .data/jobs.db (8 listed jobs, sample required asks), My Resume/Resume details.yml
+("Your Name", finance) => Best to apply next shows its match; no numbers yet => Not finished shows too. Each
 file it writes is listed in .data/demo-files.txt; a file there it did not write => refuses, so a
 real user's folder is never overwritten. Rerun = same demo, fresh dates.
 """
@@ -39,6 +40,50 @@ LISTED = [
     ("demo-8", "Tax Associate", "Demo Partners", "local", "Springfield", 58000, 70000, 2),
 ]
 # slug, stage, status set here (None = from the folder: resume made / saved), days since
+# required asks per listed job: strong + weak matches, a light + a heavy list (Best to apply next)
+ASKS = {
+    "demo-2": ["Bachelor's degree in Accounting or Finance", "3+ years of accounting experience",
+               "Month-end close and account reconciliations", "Advanced Excel", "Experience with NetSuite"],
+    "demo-3": ["1+ years of accounts payable experience", "Invoice processing and vendor payments", "Excel"],
+    "demo-5": ["Bachelor's degree in Accounting", "2+ years of experience in general ledger accounting",
+               "Journal entries and account reconciliations", "Month-end close", "Excel"],
+    "demo-6": ["3+ years of payroll processing experience", "Experience with ADP Workforce Now",
+               "Multi-state payroll tax filings", "Garnishments and benefits deductions", "CPP certification"],
+    "demo-8": ["CPA or CPA eligible", "2+ years of public accounting experience", "Individual and partnership tax returns",
+               "Experience with CCH Axcess", "Lead client engagements end to end", "Manage seasonal staff",
+               "Own the review of workpapers", "Research complex tax issues", "Excel", "Bachelor's degree in Accounting",
+               "Supervise junior associates", "Manage multiple client deadlines", "Tax provision experience",
+               "State and local tax filings"],
+}
+RESUME = """contact:
+  name: Your Name
+  email: your.name@example.com
+  location: Springfield, IL
+summary: Accountant with six years of month-end close, reconciliations and financial reporting.
+roles:
+  - company: Example Co
+    title: Senior Accountant
+    start: "2022-03"
+    end: present
+    bullets:
+      - Ran the month-end close for three entities in NetSuite, closing in five days instead of eight.
+      - Built account reconciliations and journal entries for the general ledger in Excel.
+  - company: Sample Corp
+    title: Staff Accountant
+    start: "2019-06"
+    end: "2022-02"
+    bullets:
+      - Processed invoices and vendor payments for accounts payable, about 400 a month.
+      - Prepared budget variance reports for the finance team each quarter.
+skills:
+  - group: Tools
+    items: [Excel, NetSuite, QuickBooks]
+education:
+  - institution: State University
+    degree: Bachelor of Science
+    field: Accounting
+    end: "2019-05"
+"""
 FOLDERS = [
     ("demo-1", "1 To apply", None, 2),
     ("demo-4", "1 To apply", None, 1),
@@ -76,7 +121,8 @@ def job(slug, title, company, tier, city, low, high, days, now) -> dict:
             "category": "finance", "salary_min": low, "salary_max": high,
             "salary_currency": "USD" if low else None, "salary_period": "year" if low else None,
             "posted_at": iso(now - timedelta(days=days)), "created_at": iso(now - timedelta(days=days)),
-            "description": f"Placeholder posting for {title} at {company}.", "enrichment": {}, "reality": {}}
+            "description": f"Placeholder posting for {title} at {company}.", "reality": {},
+            "enrichment": {"requirements": [{"text": t, "priority": "required"} for t in ASKS.get(slug, [])]}}
 
 
 def job_folder(root: Path, conn, row: dict, stage: str, made: bool, at: datetime) -> Path:
@@ -105,6 +151,7 @@ def fill(root: Path | None = None, now: datetime | None = None) -> list[Path]:
     (root / ".data").mkdir(exist_ok=True)
     settings = root / "My Settings" / "Search settings.yml"
     shutil.copyfile(cfg.PROFILES / "example.yml", settings)
+    (root / "My Resume" / "Resume details.yml").write_text(RESUME, encoding="utf-8")
 
     conn = store.connect(root / DB)
     rows = {r[0]: job(*r, now) for r in LISTED}

@@ -101,3 +101,13 @@ test("runJobs: uv run app/jobs.py + args in the folder; rejects on a failed run"
   assert.deepEqual(calls[0], ["/bin/uv", ["run", "app/jobs.py", "status", "set", "12", "applied"], "/jf"]);
   await assert.rejects(start.runJobs({ execFile: exec(true), uv: "/bin/uv", root: "/jf", args: ["status"] }));
 });
+
+// opened w/o the Desktop icon: a VS Code word ("Restricted Mode", "workspace") the user can't act on
+test("untrusted window line: plain words, says the Desktop icon, one button", () => {
+  for (const word of ["restricted", "workspace", "trust", "extension", "vs code"]) {
+    assert.ok(!start.UNTRUSTED_LINE.toLowerCase().includes(word), word);
+    assert.ok(!start.UNTRUSTED_BUTTON.toLowerCase().includes(word), word);
+  }
+  assert.match(start.UNTRUSTED_LINE, /Desktop icon/);
+  assert.strictEqual(start.UNTRUSTED_COMMAND, "workbench.trust.manage");
+});

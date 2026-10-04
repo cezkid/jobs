@@ -34,3 +34,11 @@ What the user double-clicks to open Job Finder. Art = `app/install/icon.svg` (ma
   failed run retried next launch.
 - Taskbar + running window show VS Code's icon (its AppUserModelID `Microsoft.VisualStudioCode`):
   only the Desktop shortcut carries the brand, as on Mac.
+- Morning notification (Windows): toast names + pictures the app whose AppUserModelID it carries.
+  Launch (`ensure_start_shortcut`) writes Start Menu `CEZ Job Finder.lnk` (-> `start-windows.bat`,
+  brand icon, `System.AppUserModel.ID` = `CEZ.JobFinder`) as bytes from Python (`app/shortcut.py`,
+  [MS-SHLLINK] + [MS-PROPSTORE]): WScript.Shell can't set the id, IPropertyStore needs Add-Type C#
+  (unsigned temp DLL - Smart App Control / Constrained Language Mode). Rewritten when bytes differ
+  (install moved). `notify` uses `CEZ.JobFinder` only while that shortcut exists, and falls back
+  to PowerShell's id inside the script if Windows refuses ours - never no toast. Click still goes
+  through `jobfinder:`. owner: pending - live Windows check (plan-ejf.12.3 child).
