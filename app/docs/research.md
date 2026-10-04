@@ -152,6 +152,39 @@ author.
   ("October 2026 - corrected the sample size of the 2021 study; the finding is unchanged."). Never
   silently rewrite a number. Re-review (new `reviewed:` date) before republishing.
 
+## Wave 1 lessons (October 2026)
+
+5 articles, 58 beads (plan-xsy). Each line = a process change for every later article.
+
+- **Brief numbers are leads, never facts.** Wave-1 briefs carried 5 wrong ones: a paper's latest
+  version had inverted its gender result (arXiv v3 correction), quoted "AI tells" absent from the
+  report, a study called "writing help" that was non-generative help, a vendor figure mis-stated,
+  a corpus count nobody could re-find. Open the latest version (arXiv vN, errata, published venue).
+- **Link only to pages that exist.** Links to unwritten sibling articles broke the docs test for
+  three beads; the drafter missed it because the new file was untracked (tests read tracked
+  files). `git add` new files before the gate. Revise bead adds >= 2 links in + >= 2 out to
+  published siblings (the site-wide pass found articles with 0).
+- **Pick the title from searched wording at draft time** (after publishing, 3 of 5 got a new title or description to match searches).
+- **Draft with the reader's shape**: Short answer <= 4 bullets; "For you," at most twice (drafts had
+  6-11); a summary table where >= 5 findings compare; a `bars` figure where one source gives >= 3
+  comparable shares (all added after publishing in wave 1).
+- **Script-blocked sources**: many publishers + help centres 403 scripts (OpenAI help, PeerJ,
+  EUR-Lex, Cloudflare sites). Read an Internet Archive copy, put its snapshot date in `sample`,
+  and add a browser-check line to the ship bead. Prefer stable hosts (DOI, SSRN, arXiv, PMC, agency
+  pages) over dev/prod/S3 copies.
+- **Label = what the thing is**: a magazine repeating a sales claim is a News report, not a Vendor
+  survey; a help page is Maker's docs. Four labels were added mid-wave; check the table first.
+- **Any later edit that moves a claim or a citation gets a fresh-context re-review** (a subagent
+  that did not make the edit), appended to the review file as a dated `Re-review` section. One
+  wave-1 re-review ran in the editing context - not independent.
+- **Our own measurement is the most original thing a page has; treat it like a study.** Commit the
+  script + CSV, publish a data page (method, columns, limits, licence, Dataset markup), and the
+  reviewer reruns the script: the wave-1 review caught a recount error (105 -> 109 forms).
+- **Ask the owner's facts when filing, not mid-wave** (conflict of interest, contact, data licence
+  each paused a bead).
+- **Research beads run long**: 3 of 5 needed a second context. Hand off with every source opened +
+  its locator in the bead notes; raw downloads in `~/.cache/plan-<id>/`, never the repo.
+
 ## Where this is used
 
 - AI writers drafting, reviewing or revising a research page (cronling beads under the Research epic).
