@@ -467,6 +467,16 @@ def when(day: str | None, now: str) -> str:
     return date.fromisoformat(day).strftime("%Y-%m-%dT12:00:00Z") if day else now
 
 
+def rebuild_today(config: dict) -> None:
+    """A status recorded from a chat shows on Today at once - the page's own buttons rebuild it
+    too. Never stops the record: a page that can't be written now is rebuilt at next launch."""
+    import today  # today imports status
+    try:
+        today.write(config)
+    except (Exception, SystemExit):
+        print("Today page: updates at next start")
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description="Where each job stands: saved, resume made, applied, heard back ...")
     steps = ap.add_subparsers(dest="step")
@@ -578,6 +588,8 @@ def main() -> None:
             print("offer: interview practice (job-interview skill)")
     finally:
         conn.close()
+    if args.step in ("set", "undo", "followed-up"):
+        rebuild_today(config)
 
 
 if __name__ == "__main__":

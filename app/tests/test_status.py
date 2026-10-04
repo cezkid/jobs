@@ -167,7 +167,25 @@ def cli(monkeypatch, tmp_path):
     config = {"db": str(tmp_path / "jobs.db"), "resume": {"jobs_dir": str(tmp_path / "My Jobs")}}
     monkeypatch.setattr(status.cfg, "load_or_defaults", lambda: config)
     monkeypatch.setattr(status.cfg, "DATA", tmp_path / ".data")
+    monkeypatch.setattr(status, "rebuild_today", lambda config: TODAY_REBUILDS.append(config))
+    TODAY_REBUILDS.clear()
     return lambda *argv: run(monkeypatch, tmp_path, *argv)
+
+
+TODAY_REBUILDS: list = []
+
+
+def test_recording_from_a_chat_rebuilds_today_reading_never_does(cli, tmp_path):
+    # a job marked sent in the chat stayed under Waiting on you until the next launch
+    jobs = tmp_path / "My Jobs"
+    make_folder(jobs, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "g-da")
+    for reading in (("open",), (), ("show", PASTED_URL), ("ask",), ("sort",)):
+        cli(*reading)
+    assert TODAY_REBUILDS == []
+    cli("set", PASTED_URL, "applied")
+    cli("followed-up", PASTED_URL)
+    cli("undo", PASTED_URL, "--from", "applied")
+    assert len(TODAY_REBUILDS) == 3
 
 
 def test_one_command_sets_and_reads_each_source(cli, tmp_path, capsys):
