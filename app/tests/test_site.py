@@ -325,6 +325,16 @@ def test_hand_written_pages_use_typographic_quotes_and_dashes():
     assert "Start with tomorrow morning’s jobs." in (DOCS / "index.html").read_text(encoding="utf-8")
 
 
+def test_every_page_uses_typographic_quotes_and_dashes():
+    # hand-written + generated (pages.py typesets research pages, About, the hub); mac/ + win/ = install scripts
+    found, seen = [], 0
+    for rel in sorted(files(DOCS)):
+        if rel.endswith(".html") and rel.split("/")[0] not in ("mac", "win"):
+            seen += 1
+            found += [f"{rel}: {hit!r}" for hit in typewriter((DOCS / rel).read_text(encoding="utf-8"))[1]]
+    assert seen >= 10 and not found, found
+
+
 def test_typographic_check_trips_on_a_straight_quote_and_a_hyphen_dash():
     clean = "<main><p>It’s here – kept.</p><code>it's - code</code><div class=\"window\">Job 11 - x</div></main>"
     assert typewriter(clean)[1] == []

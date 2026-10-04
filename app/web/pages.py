@@ -26,6 +26,7 @@ Project env (no inline deps): markdown-it-py comes locked through rich.
 """
 
 import argparse
+import copy
 import datetime
 import difflib
 import importlib.util
@@ -43,6 +44,7 @@ from urllib.parse import quote, urlsplit
 
 import yaml
 from markdown_it import MarkdownIt
+from markdown_it.rules_core import StateCore, smartquotes
 from markdown_it.token import Token
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -246,8 +248,9 @@ class Source:
         self.status = head.get("status")
         if self.status not in ("draft", "published", None):
             errors.append(f"{self.rel}:{self.line_of(text, 'status')}: status must be draft or published")
-        self.title, self.description = str(head.get("title", "")), str(head.get("description", ""))
-        self.og_title = str(head.get("og_title") or self.title)
+        # shown text, typeset; lints read self.head (as written)
+        self.title, self.description = typeset(str(head.get("title", ""))), typeset(str(head.get("description", "")))
+        self.og_title = typeset(str(head.get("og_title") or head.get("title", "")))
         self.uncited = head.get("uncited") or []
         if not isinstance(self.uncited, list) or not all(isinstance(u, str) and u.strip() for u in self.uncited):
             errors.append(f"{self.rel}:{self.line_of(text, 'uncited')}: uncited must be a list of text snippets")
@@ -388,7 +391,40 @@ def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
                         errors.append(f"{src.rel}:{src.find(token, word.group(0))}: {word.group(0)!r} is jargon - say it in plain words")
 
 
-MD = MarkdownIt("js-default")  # raw HTML escaped, tables on, no typographer
+MD = MarkdownIt("js-default")  # raw HTML escaped, tables on, no typographer: lints + heading ids read the source
+# typographer on output only (typeset): curly quotes + en dashes (A12, D13); its own replacements stay off -
+# (c) / (tm) / ... -> glyphs outside the font subset (assets.UNICODES)
+TYPO = MarkdownIt("js-default", {"typographer": True})
+RANGE = re.compile(r"(?<![\w:./\-–])(\d+)-(?!0\d)(\d+)(?![\w\-])")  # 10-15 years, p. 22-23; not 103-0804, 3:23-cv
+YEAR = re.compile(r"(?<!\w)'(?=\d\d\b)")  # FAccT '24: an apostrophe, not an opening quote
+URLISH = re.compile(r"://|^www\.")
+
+
+def _dashes(text: str) -> str:
+    if text.strip() == "-":  # a table cell's "none"
+        return text.replace("-", "–")
+    text = text.replace("--", "–").replace(" - ", " – ")
+    return YEAR.sub("’", RANGE.sub("\\1–\\2", text))
+
+
+def typeset_tokens(tokens: list[Token]) -> list[Token]:
+    """A copy of parsed tokens w/ curly quotes + en dashes in their text; code, URLs shown as text and the
+    source tokens themselves stay as written."""
+    tokens = copy.deepcopy(tokens)
+    for block in tokens:
+        depth = 0
+        for child in block.children or []:
+            depth += {"link_open": 1, "link_close": -1}.get(child.type, 0)
+            if child.type == "text" and not (depth and URLISH.search(child.content)):
+                child.content = _dashes(child.content)
+    smartquotes(StateCore("", TYPO, {}, tokens))
+    return tokens
+
+
+def typeset(text: str) -> str:
+    """Plain text (a title, a label) through the same rules as page text, so h1 == <title> == og == JSON-LD."""
+    inline = Token("inline", "", 0, content=text, children=[Token("text", "", 0, content=text)])
+    return typeset_tokens([inline])[0].children[0].content
 
 
 def _table_open(self, tokens, idx, options, env):
@@ -431,7 +467,7 @@ def _cite(state):
 
 
 def _render_cite(self, tokens, idx, options, env):
-    links = [f'<a href="#src-{ref}">{escape(env["labels"][ref])}</a>' + (f", {escape(loc)}" if loc else "")
+    links = [f'<a href="#src-{ref}">{escape(env["labels"][ref])}</a>' + (f", {escape(typeset(loc))}" if loc else "")
              for ref, loc in tokens[idx].meta["refs"]]
     return "(" + "; ".join(links) + ")"
 
@@ -558,16 +594,16 @@ class Registry:
         entry = self.entries[ref]
         authors = entry.get("authors") or []
         who = (", ".join(authors[:-1]) + " and " + authors[-1]) if len(authors) > 1 else authors[0] if authors else entry["org"]
-        parts = [f"{escape(who.strip())} ({entry['year']}).", escape(stop(entry["title"].strip()))]
+        parts = [f"{escape(typeset(who.strip()))} ({entry['year']}).", escape(typeset(stop(entry["title"].strip())))]
         if entry.get("venue"):
-            parts.append(f"<i>{escape(stop(entry['venue'].strip()))}</i>")
+            parts.append(f"<i>{escape(typeset(stop(entry['venue'].strip())))}</i>")
         if entry.get("doi"):
             doi = "https://doi.org/" + quote(entry["doi"], safe="/:;()._-")
             parts.append(f'<a href="{escape(doi)}">{escape(doi)}</a>')
         if entry.get("url"):
             parts.append(f'<a href="{escape(entry["url"])}">{escape(entry["url"])}</a>')
         evidence = EVIDENCE[entry["evidence"]] + (f", {entry['sample'].strip()}" if entry.get("sample") else "")
-        parts.append(f'<span class="evidence">{escape(stop(evidence))}</span>')
+        parts.append(f'<span class="evidence">{escape(typeset(stop(evidence)))}</span>')
         if entry.get("preprint"):
             parts.append("Preprint, not peer-reviewed.")
         parts.append(f'Checked <time datetime="{entry["checked"]}">{long_date(str(entry["checked"]))}</time>.')
@@ -745,7 +781,7 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
     label = src.title
     for i, token in enumerate(src.tokens):
         if token.type == "heading_open":
-            label = src.tokens[i + 1].content
+            label = typeset(src.tokens[i + 1].content)
         elif token.type == "table_open":
             token.meta["label"] = f"Table: {label}"
         elif token.type == "inline":
@@ -755,7 +791,8 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
                         child.attrSet("href", rewrite(child.attrGet("href"), src, by_name, root, site_files, repo_files))
                     except ValueError as e:
                         errors.append(f"{src.rel}:{src.line(token)}: {e}")
-    html = MD.renderer.render(src.tokens, MD.options, {"labels": registry.labels})
+    labels = {ref: typeset(label) for ref, label in registry.labels.items()}
+    html = MD.renderer.render(typeset_tokens(src.tokens), MD.options, {"labels": labels})
     cited = {ref for _, cite in cites(src) for ref, _ in cite.meta["refs"] or []} & set(registry.entries)
     if cited:
         # alphabetical by label, so a reader scanning for "Quillian et al. 2017" finds it
@@ -993,7 +1030,7 @@ def evidence_labels(methods: Source | None) -> str:
     for cells in rows[1:]:
         label, what = cells[0], cells[-1]
         meaning[label] = meaning[label] + ", or " + what[:1].lower() + what[1:] if label in meaning else what
-    items = "\n".join(f"<dt>{escape(k)}</dt><dd>{escape(v)}</dd>" for k, v in meaning.items())
+    items = "\n".join(f"<dt>{escape(typeset(k))}</dt><dd>{escape(typeset(v))}</dd>" for k, v in meaning.items())
     return (f'<div class="side labels">\n<p>Evidence labels</p>\n<dl>\n{items}\n</dl>\n'
             f'<p>How each label is chosen: <a href="{methods.url}#{slugify(heading)}">How we research</a>.</p>\n</div>\n')
 

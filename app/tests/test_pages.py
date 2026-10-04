@@ -487,6 +487,54 @@ def test_escaped_bracket_keeps_a_citation_as_text(tmp_path):
     assert html.count('href="#src-quillian-2017"') == 1
 
 
+def test_page_text_gets_curly_quotes_and_en_dashes_but_code_and_identifiers_stay(tmp_path):
+    # A12, D13: typographer on output; (c) stays (c) - its glyph is not in the font subset
+    research_site(tmp_path, body("It's \"fine\" - see 10-15 years [@quillian-2017, p. 22-23], FAccT '24, Act 103-0804,"
+                                 " case 3:23-cv-00770, on 2026-10-03 (c) and `it's - 10-15`."))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    assert "It’s “fine” – see 10–15 years" in html and ", p. 22–23)" in html
+    assert "FAccT ’24, Act 103-0804, case 3:23-cv-00770, on 2026-10-03 (c) and <code>it's - 10-15</code>" in html
+    # a URL shown as link text stays as written
+    research_site(tmp_path / "b", body("See [jobs.enrriquez.com/x - 1-2](https://jobs.enrriquez.com/privacy.html) [@quillian-2017]."))
+    assert ">jobs.enrriquez.com/x - 1-2</a>" not in pages.build(tmp_path / "b")["research/ai-bias/index.html"]
+    research_site(tmp_path / "c", body("See [https://jobs.enrriquez.com/x - 1-2](https://jobs.enrriquez.com/privacy.html)."))
+    assert ">https://jobs.enrriquez.com/x - 1-2</a>" in pages.build(tmp_path / "c")["research/ai-bias/index.html"]
+
+
+def test_one_typeset_title_in_h1_title_og_json_ld_and_feed(tmp_path):
+    title = "Don't trust \"75%\" - it's a 2012 claim"
+    curly = "Don’t trust “75%” – it’s a 2012 claim"
+    research_site(tmp_path, {"ai-bias.md": BIAS.replace("title: AI screening and bias", f"title: '{title.replace(chr(39), chr(39) * 2)}'")})
+    pages.write(tmp_path)
+    html = (tmp_path / "docs" / "research" / "ai-bias" / "index.html").read_text(encoding="utf-8")
+    head = Head(html)
+    assert head.text["title"] == [curly] and head.meta("og:title") == curly
+    assert f"<h1>{curly}</h1>" in html.replace("&quot;", '"')
+    graph = json.loads(re.search(r'application/ld\+json">(.*?)</script>', html, re.S).group(1))["@graph"]
+    assert [n["headline"] for n in graph if n["@type"] == "Article"] == [curly]
+    feed = ET.parse(tmp_path / "docs" / "research" / "feed.xml").getroot()
+    assert curly in [e.findtext("{http://www.w3.org/2005/Atom}title") for e in feed.iter("{http://www.w3.org/2005/Atom}entry")]
+
+
+def test_heading_ids_come_from_the_source_text_not_the_curly_text(tmp_path):
+    folder = research_site(tmp_path, body("[Down](#dont-panic---yet).\n\n## Don't panic - yet\n\nMore."))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    assert '<h2 id="dont-panic---yet">Don’t panic – yet</h2>' in html
+    ids = {a["id"] for t, a in Head(html).tags if t == "h2" and "id" in a}
+    assert ids == anchors(folder / "ai-bias.md") == {"what-was-measured", "dont-panic---yet"}
+
+
+def test_lints_read_the_source_as_written(tmp_path):
+    # an uncited: snippet w/ a straight ' still matches its sentence; the tokens the lints walk keep ' and -
+    own = {"ai-bias.md": BIAS.replace("status: published", "status: published\nuncited:\n  - our team's own test")
+           .replace("Text.", "In our team's own test - 3 in 10 parsers failed.")}
+    folder = research_site(tmp_path, own)
+    assert "In our team’s own test – 3 in 10" in pages.build(tmp_path)["research/ai-bias/index.html"]
+    src = pages.Source(folder / "ai-bias.md", tmp_path, [])
+    text = "".join(c.content for t in src.tokens if t.type == "inline" for c in t.children or [])
+    assert "team's own test - 3" in text and src.head["title"] == "AI screening and bias"
+
+
 def test_review_files_and_registry_are_not_built(tmp_path):
     research_site(tmp_path)
     assert not [k for k in pages.build(tmp_path) if "review" in k or "sources" in k]
@@ -708,7 +756,7 @@ def test_wide_screen_second_column_hub_labels_from_methods_and_about_sections(tm
     hub, about = built["research/index.html"], built["about/index.html"]
     side = hub.split('<div class="side labels">')[1].split("</div>")[0]
     assert "<dt>Big study</dt><dd>Many studies pooled, or real applications sent</dd>" in side
-    assert "<dt>Law</dt><dd>The law&#x27;s own text</dd>" in side
+    assert "<dt>Law</dt><dd>The law’s own text</dd>" in side
     assert '<a href="/research/methods/#what-the-labels-mean">How we research</a>' in side
     # labels column, then the list, both after the page column (narrow screens: labels hidden, list follows the intro)
     assert hub.index('class="page"') < hub.index('class="side labels"') < hub.index('<ul class="list">') < hub.index("</main>")

@@ -148,7 +148,12 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 
 - Hand-written pages use ’ “ ” and spaced – in prose (straight `'` reads as typewriter text at
   display size); the app window + resume sheet keep ` - ` because they mirror what the app prints.
-  Test: `test_hand_written_pages_use_typographic_quotes_and_dashes`.
+  Test: `test_hand_written_pages_use_typographic_quotes_and_dashes`. Generated pages get the same
+  from `pages.typeset` on output only (markdown-it smartquotes + ` - ` / `--` / `10-15` -> –, never in
+  code, URLs or ids like `103-0804`; its (c)/(tm) replacements stay off - not in the font). Sources
+  stay straight: lints, `uncited:` snippets and heading ids read them as written. Titles go through
+  the same function, so h1 = `<title>` = og:title = JSON-LD = feed. Test:
+  `test_every_page_uses_typographic_quotes_and_dashes`.
 - Contrast tested statically per scheme (`site_checks.contrasts`): text pairs 4.5:1, control
   borders + focus ring 3:1 (WCAG 1.4.3, 1.4.11). Hairlines + the yellow itself carry no meaning
   => not tested. Focus ring two-tone (outline `--text` + spread-only `box-shadow` `--desk`): a
