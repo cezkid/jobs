@@ -157,3 +157,13 @@ these articles. The app uses freehire.me's free job search; we have no ties to i
 
 Names all three groups + freehire.me, which articles cite (ats-rejection-myth,
 knockout-questions). No other text changed. Verdict stays publish.
+
+## Re-check 2026-10-04 (plan-xsy.50): number-lint line
+
+plan-xsy.42 widened `pages.STAT`. Measured 2026-10-04: it now catches all five M2 misses ("Over 3/4
+of employers", "Half of employers", "twice as likely", "83,000 applications", "1.5 times more") plus
+"2 million resumes"; still passes small plain counts ("They tested 14 models") and a bare "rose 1.5
+times." with nothing after it - those stay with the review. Claim 9 line now lists what the program
+flags: percentages, "N in M", fractions ("a third", "3/4"), "half of", "twice as likely" / "N times
+more", large counts ("83,000", "2 million"). Supported as worded; "the review checks every other
+number by hand" unchanged. No other text changed. Verdict stays publish.
