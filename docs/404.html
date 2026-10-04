@@ -153,6 +153,7 @@
   main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
   /* the note beside a cut sheet: the page that was here has been cut away */
   .lost { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px var(--gutter); align-items: center; max-width: 60rem; }
+  .ways { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 32px; }
   h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; font-weight: 700; margin: 0 0 16px; }
   p { margin: 0 0 16px; max-width: 34rem; }
   .go { font-size: var(--step-1); font-weight: 700; }
@@ -161,9 +162,15 @@
   .cut .sheet { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
   .cut .line { stroke: var(--rule); stroke-width: 6; stroke-linecap: round; }
   .cut .head { stroke: var(--ink); }
-  .cut .dash { fill: none; stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 6 5; }
+  /* the cut runs over paper only (sheet edge to sheet edge): ink, never --text, which turns white in dark mode */
+  .cut .dash { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 6 5; }
   @media (min-width: 720px) {
     .lost { grid-template-columns: minmax(0, 1fr) auto; }
+  }
+  /* wide screens: note + drawing share the whole column box, the drawing centred in its half */
+  @media (min-width: 1024px) {
+    .lost { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: none; }
+    .cut { width: min(100%, 400px); justify-self: center; }
   }
   @media (max-width: 600px) {
     main.wrap { padding-top: 22px; }
@@ -192,8 +199,11 @@
 <div class="lost">
   <div>
     <h1>This page isn’t here</h1>
-    <p>The link may be old or mistyped. Everything you need to install CEZ Job Finder is on one page.</p>
-    <p><a class="go tap" href="/">Go to the install page</a></p>
+    <p>The link may be old or mistyped, or the page was cut. The install page and the research are still here.</p>
+    <ul class="ways">
+      <li><a class="go tap" href="/">Go to the install page</a></li>
+      <li><a class="go tap" href="/research/">Read the research</a></li>
+    </ul>
   </div>
   <div class="cut" aria-hidden="true">
     <svg viewBox="0 0 200 250" width="200" height="250" focusable="false">
@@ -201,7 +211,7 @@
       <path class="sheet" d="M8 2H158V112H8Z"/>
       <path class="line head" d="M26 26H96"/>
       <path class="line" d="M26 48H138M26 64H130M26 80H138M26 96H104"/>
-      <path class="dash" d="M2 120H166"/>
+      <path class="dash" d="M22 120H172"/>
       <g transform="rotate(7 90 180)">
         <path class="sheet" d="M14 136H164V230H14Z"/>
         <path class="line" d="M32 154H144M32 170H126M32 186H144M32 202H98"/>

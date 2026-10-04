@@ -190,9 +190,10 @@ questions, install). Real behaviour only: employers, titles, dates never change;
   row leaves a band > 400 x 200 px empty right of its content, hero columns end within 24 px of each
   other, articles carry an "On this page" column (their h2s, sticky, >= 1280 px only; `pages.py`), the
   hub an "Evidence labels" column (sticky, read from the methods page's label table, >= 1280 px only) and
-  About its h2 sections beside its opening (stacked below 1280 px). qa.py checks the band (home per row;
-  hub, about + methods with main as one row, a sticky column counted to its parent's bottom) + the
-  article column.
+  About its h2 sections beside its opening (stacked below 1280 px), privacy its Short version (sticky,
+  >= 1280 px only), the 404 its drawing in the right half (>= 1024 px). qa.py checks the band (home per
+  row; hub, about, methods, privacy + 404 with main as one row, a sticky column counted to its parent's
+  bottom) + the article column. Privacy: no two rules stacked within 60 px w/o text between (RULES_STACKED).
 - `<symbol>` + `<use>` on the home page only; shared marks are CSS only (generated pages copy the
   shared block, not the home page's SVG).
 

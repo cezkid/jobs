@@ -25,7 +25,7 @@ import pymupdf  # noqa: E402
 
 from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, files, head_scripts,  # noqa: E402
                          loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
-                         run_together, typewriter)
+                         run_together, stroke_on_paper, typewriter)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -194,6 +194,21 @@ def test_footer_links_home_research_install_about_and_the_author():
         footer = Head(re.search(r"<footer\b.*?</footer>", (DOCS / name).read_text(encoding="utf-8"), re.S).group(0))
         hrefs = {a.get("href") for a in footer.all("a")}
         assert {"/", "/research/", "/#install", "/about/", "https://www.enrriquez.com"} <= hrefs, (name, hrefs)
+
+
+def test_404_offers_install_and_research():
+    # a missing research link lands here too: the way out names both halves of the site (A18), not only install
+    raw = (DOCS / "404.html").read_text(encoding="utf-8")
+    main = Head(re.search(r"<main\b.*?</main>", raw, re.S).group(0))
+    assert {"/", "/research/"} <= {a.get("href") for a in main.all("a")}
+
+
+def test_404_cut_line_shows_on_the_paper_in_both_schemes():
+    # the dashed cut crosses the white sheet; --text turns near-white in dark mode and the line vanishes (A17)
+    raw = (DOCS / "404.html").read_text(encoding="utf-8")
+    assert all(r >= 3 for r in stroke_on_paper(raw, ".cut .dash").values()), stroke_on_paper(raw, ".cut .dash")
+    faint = raw.replace(".cut .dash { fill: none; stroke: var(--ink)", ".cut .dash { fill: none; stroke: var(--text)", 1)
+    assert faint != raw and stroke_on_paper(faint, ".cut .dash")["dark"] < 3
 
 
 def test_about_is_one_click_from_home():

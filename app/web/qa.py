@@ -399,7 +399,7 @@ BAND_AT = [(1440, 900), (1920, 1080)]  # 1920 too: bigger display type wraps to 
 BAND_W, BAND_H = 400, 200
 # hub, about, methods: main itself is the one row (their columns are main's children); a sticky element
 # (methods' On this page) stays beside the text, so it counts down to its parent's bottom
-WIDE_PAGES = {"research/index.html", "about/index.html", "research/methods/index.html"}
+WIDE_PAGES = {"research/index.html", "about/index.html", "research/methods/index.html", "privacy.html", "404.html"}
 EMPTY_RIGHT = """(rows) => {
   const out = [];
   for (const row of document.querySelectorAll(rows)) {
@@ -435,6 +435,34 @@ EMPTY_RIGHT = """(rows) => {
   }
   return out;
 }""".replace("BAND_W", str(BAND_W)).replace("BAND_H", str(BAND_H))
+# RULES_STACKED (privacy, every size): two horizontal rules (a border edge > 100px wide) overlapping side by
+# side, <= RULE_GAP px apart with no text line between them = a double rule (A19); articles join in P2a
+RULES_PAGES = {"privacy.html"}
+RULE_GAP = 60
+RULES_STACKED = """() => {
+  const main = document.querySelector("main"); if (!main) return null;
+  const rules = [], lines = [];
+  for (const el of main.querySelectorAll("*")) {
+    const c = getComputedStyle(el), q = el.getBoundingClientRect();
+    if (c.display === "none" || c.visibility === "hidden" || q.width <= 100) continue;
+    if (parseFloat(c.borderTopWidth) > 0 && c.borderTopStyle !== "none") rules.push({y: q.top, l: q.left, r: q.right, el});
+    if (parseFloat(c.borderBottomWidth) > 0 && c.borderBottomStyle !== "none") rules.push({y: q.bottom, l: q.left, r: q.right, el});
+    if ([...el.childNodes].some(n => n.nodeType === 3 && n.data.trim())) {
+      const r = document.createRange(); r.selectNodeContents(el);
+      lines.push(...[...r.getClientRects()].filter(q => q.width > 2 && q.height > 2));
+    }
+  }
+  const name = el => el.localName + (el.className ? "." + String(el.className).trim().split(/\\s+/).join(".") : "");
+  const out = [];
+  for (const a of rules) for (const b of rules) {
+    const gap = b.y - a.y, l = Math.max(a.l, b.l), r = Math.min(a.r, b.r);
+    if (gap <= 2 || gap > RULE_GAP || r - l <= 100) continue;
+    if (lines.some(t => t.left < r && t.right > l && (t.top + t.bottom) / 2 > a.y && (t.top + t.bottom) / 2 < b.y)) continue;
+    out.push(`${name(a.el)} rule at y ${Math.round(a.y + scrollY)} then ${name(b.el)} rule ${Math.round(gap)}px below, ` +
+             `no text between`);
+  }
+  return out;
+}""".replace("RULE_GAP", str(RULE_GAP))
 # wide article: a visible element starts right of ARTICLE_X (the On this page column), not one 68ch column alone
 ARTICLE_X = 900
 RIGHTMOST = """() => Math.max(0, ...[...document.querySelectorAll("main *")].filter(el => {
@@ -646,6 +674,12 @@ FAULTS = [
      "{ footer a { padding-block: 0 !important; margin-block: 0 !important; } }</style>", "phone"),
     (ARTICLE, "NAV_CURRENT: Research link plain on an article", "<style>.links a { text-decoration-thickness: 1px "
      "!important; }</style>", "layout"),
+    ("privacy.html", "EMPTY_RIGHT: Short version back in the text column, right half empty",
+     "<style>.page { display: block !important; max-width: 68ch !important; }</style>", "wide"),
+    ("404.html", "EMPTY_RIGHT: drawing back to its small size", "<style>.cut { width: 200px !important; "
+     "justify-self: start !important; }</style>", "wide"),
+    ("privacy.html", "RULES_STACKED: a hairline under the Short version, over the next heading's",
+     "<style>.short { border-bottom: 1px solid; padding-bottom: 30px; }</style>", "narrow"),
     ("404.html", "FOOTER_BOTTOM: blank band under the 404's footer", "<style>body { min-height: 0 !important; }"
      "</style>", "wide"),
     (HOME, "ZOOM_H1: vh cap back below 1080px", "<style>@media (max-width: 1079px) { h1 { font-size: "
@@ -660,7 +694,8 @@ FAULTS = [
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
-             "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
+             "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
+             "RULES_STACKED": "RULES_STACKED", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
              "0 matches": "found 0 elements"}
 
 
@@ -817,6 +852,11 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
             elif got[0] < got[1] - 2:
                 failed.append(f"FOOTER_BOTTOM {where}: footer ends at {got[0]:.0f}px, page/window at "
                               f"{got[1]:.0f}px - a blank band under it")
+        if name in RULES_PAGES:
+            got = page.evaluate(RULES_STACKED)
+            if got is None:
+                failed.append(f"RULES_STACKED {where}: check found 0 main elements")
+            failed += [f"RULES_STACKED {where}: {line}" for line in got or []]
         if (width, height) in BAND_AT and not phone:
             if name == "index.html" or name in WIDE_PAGES:
                 rows = "main > *" if name == "index.html" else "main"

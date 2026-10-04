@@ -394,6 +394,20 @@ def contrasts(raw: str) -> list[str]:
     return problems
 
 
+def stroke_on_paper(raw: str, selector: str) -> dict[str, float]:
+    """Contrast of the stroke a page's own CSS rule for selector paints against --paper, per scheme (light, dark);
+    0 = no such rule or no colour (a drawing on a white sheet keeps --paper in both schemes)."""
+    css = re.sub(r"/\*.*?\*/", "", raw.split("/* /shared */", 1)[-1], flags=re.S)
+    rule = next((d for sel, d in re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+                 if selector in [x.strip() for x in sel.split(",")]), "")
+    stroke = " ".join(re.findall(r"(?<![-\w])stroke\s*:\s*([^;]+)", rule))
+    out = {}
+    for mode, scheme in tokens(shared(raw)).items():
+        fg, paper = colour(stroke, scheme), colour(scheme.get("--paper", ""), scheme)
+        out[mode] = contrast(fg[0], paper[0]) if fg and paper else 0.0
+    return out
+
+
 def token_table(markdown: str) -> dict[str, dict[str, str]]:
     """The site.md tokens table (| `--x` | `light` | `dark` or same | use |) in tokens()' shape."""
     light, dark = {}, {}
