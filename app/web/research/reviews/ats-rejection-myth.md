@@ -339,3 +339,13 @@ stand. `modified: 2026-10-04` bumped, `uncited` snippets match the new text. Hea
 ## Re-review 2026-10-04: description names our count (plan-xsy.52)
 
 Description only, now: "No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms." (140 chars). Why: our own count is what copies of the Enhancv page lack (audit D12). Checked: first sentence = short answer bullet 1 + body (levinson-2012-cio); "143 application forms" = body line 67 and the data page; "screening questions" = the body's term (Changes line, line 69 list). Dropped the old clause "recruiters say yes/no questions do it" - still in the short answer, not lost. The description makes no claim that the questions reject (body: "A question on a form is not a rejection"). No finding.
+
+## Re-review 2026-10-04: bar figure (plan-xsy.58)
+
+The 4-item list became a `bars` figure: caption "Forms asking each kind of question, October 2026 (Our measurement, 143 application forms; the data)", heads Question | Forms asking it, rows 99 / 45 / 21 / 13 of 143, then the sentence "Plain address boxes are not counted as on-site questions." Recounted from `knockout-questions-2026-10.csv` (143 rows): work_permit or sponsorship 99, location_screen 45, years_experience 21, license_certificate or security_clearance 13, any_knockout 109, nothing beyond basics 22 - all match the figure, the sentence above it and the data page's list. Built page checked: bars 69.2 / 31.5 / 14.7 / 9.1% wide (share of 143, right), caption link resolves to /research/knockout-questions-2026-10/. "Our measurement" label is right per app/docs/research.md; one form counts once per row, so rows need not sum, and the caption's "each kind" carries that. Share-of-143 bars are fair: the next paragraph states the sample's lean (92 of 143 from four fields, Workday and iCIMS not covered) right under the figure, and the figure claims nothing beyond these 143 forms.
+
+Findings (verdict publish):
+
+- **B1 (low)** The trailing sentence is narrower than the rule on the data page: a question asking only "where are you located" is not counted either, and the row is "on-site work, moving or living nearby", not just on-site. Fix: "A plain address box, or a question asking only where you live, is not counted in the on-site row."
+
+Revised (plan-xsy.58): every B finding applied with the wording above (sign list re-checked on the source page 2026-10-04 by the reviser); verdict publish.

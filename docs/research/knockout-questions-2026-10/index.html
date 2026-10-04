@@ -222,6 +222,14 @@
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
+  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
+     print + forced colours paint it); no motion */
+  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .bars table { width: 100%; }
+  .bars tbody th { width: 42%; font-weight: 400; }
+  .bars td { font-weight: 700; }
+  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
   /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
   #sources { margin-top: 64px; border-top: 3px solid var(--text); }
   .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }

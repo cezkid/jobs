@@ -21,7 +21,15 @@ uncited:
 
 Yes, in many lab tests, though some tests find no gap. Researchers give AI models resumes that are the same except for the name. The models then often pick, rank or score them differently.
 
-In a 2024 test, three AI text-matching models ranked over 500 resumes with 120 names added. The models favored names linked with white people in 85.1% of tests. Names linked with Black people were favored in 8.6% of tests. White men's names beat Black men's names in 100% of tests [@wilson-caliskan-2024].
+In a 2024 test, three AI text-matching models ranked over 500 resumes with 120 names added. The models favored names linked with white people in 85.1% of tests. Names linked with Black people were favored in 8.6% of tests. The other 6.3% showed no clear difference. White men's names beat Black men's names in 100% of tests [@wilson-caliskan-2024].
+
+```bars
+Whose names three AI models favored, share of tests, 2024 (Lab study) [@wilson-caliskan-2024]
+Names linked with | Favored in
+White people | 85.1% of tests
+Black people | 8.6% of tests
+Neither, no clear difference | 6.3% of tests
+```
 
 The same study's gender result was corrected in August 2026. Another team tried to repeat the study and found a coding error. The authors' note says the gender numbers should be swapped. Swapped as the note directs, female names were favored in 51.9% of tests and male names in 11.1%. The published 2024 paper still prints the reverse. The race results held up when repeated [@wilson-caliskan-2024].
 

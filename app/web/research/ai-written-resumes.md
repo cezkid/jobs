@@ -49,7 +49,19 @@ In an October 2024 survey of 1,005 US HR and hiring leaders, 88% said they can t
 
 A 2026 survey of 1,000 US hiring managers was run for a resume-builder company. In it, 80% said they can often tell when AI wrote a resume. Most, 76%, said AI-written resumes make it harder to see what a person actually did. And 72% said heavy reliance on AI makes applicants seem less skilled. Asked about disclosure, 79% said applicants should say when AI helped [@resume-genius-2026].
 
-Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%) and vague or inflated descriptions (41%). Formatting habits such as long dashes were named by 32% [@resume-genius-2026].
+Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%), and vague or inflated descriptions and buzzword-heavy writing (41% each). Formatting habits such as long dashes were named by 32% [@resume-genius-2026].
+
+```bars
+Signs of an AI-written resume that hiring managers named, 2026; each could name more than one (Vendor survey, 1,000 US hiring managers) [@resume-genius-2026]
+Sign | Share who named it
+Unnatural phrasing or tone | 51%
+Repetitive or generic wording | 44%
+Vague or inflated descriptions | 41%
+Buzzword-heavy writing | 41%
+Perfect grammar with no variation | 39%
+Formatting habits such as long dashes | 32%
+Incorrect or irrelevant details | 27%
+```
 
 Saying you can spot AI is not the same as spotting it. In one lab test, readers who rarely used AI felt sure but did no better than chance [@russell-2025].
 

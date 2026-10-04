@@ -254,3 +254,15 @@ Revised (plan-xsy.53): V1 and V2 applied with the exact wording above; verdict p
 ## Re-review 2026-10-04: description leads with the answer (plan-xsy.52)
 
 Description only, now: "Mostly no, in tests - most people can't spot AI writing. About half of hiring managers say they'd care. What studies show, and what to do." (138 chars). Why: the top search result answers "Usually, yes"; leading with ours shows the contrast (audit D12). Checked: "Mostly no, in tests" is hedged to tests, as short answer bullet 1 (jakesch-2023, 50-52%); the 5 frequent-AI readers who did spot AI text (russell-2025) are in bullet 1 and the body, so "mostly" not "no". "About half ... say they'd care" unchanged (insight-global-2025, 54%). Dropped "on detectors" for length - detectors still in the body + bullet 2. F2 still holds: no claim that using AI is safe. No finding.
+
+## Re-review 2026-10-04: bar figure (plan-xsy.58)
+
+New `bars` figure after the Resume Genius paragraph: caption "Signs of an AI-written resume that hiring managers named, 2026 (Vendor survey, 1,000 US hiring managers)", heads Sign | Share who named it, four rows 51 / 44 / 41 / 32%. Checked against the source page (resumegenius.com/blog/job-hunting/hiring-insights-report, opened 2026-10-04), the paragraph above it and the built page (bars 51 / 44 / 41 / 32% wide, of 100%). Every shown number matches the source and the prose; sample (1,000 US hiring managers, Pollfish), vendor label and year are right. But the source lists seven signs, multi-select ("all that applied"): unnatural phrasing or tone 51%, repetitive or overly generic language 44%, vague or inflated descriptions 41%, buzzword-heavy writing 41%, perfect grammar with no variation 39%, specific formatting habits such as em dashes 32%, incorrect or irrelevant details 27%. The figure drops two signs that rank above the 32% one.
+
+Findings (verdict revise):
+
+- **B1 (medium)** A ranked bar chart titled "Signs ... hiring managers named" shows formatting habits (32%) as fourth, but buzzword-heavy writing (41%) and perfect grammar with no variation (39%) were named more often. Readers take a chart as the full ranking. Fix: add two rows after "Vague or inflated descriptions | 41%": "Buzzword-heavy writing | 41%" and "Perfect grammar with no variation | 39%" (all seven rows is fine too: add "Incorrect or irrelevant details | 27%" last). The prose "The top ones were ... (41%)" can stay; optionally make it "The top ones were unnatural phrasing (51%), repetitive or generic wording (44%), and vague or inflated descriptions and buzzword-heavy writing (41% each)."
+- **B2 (low)** Shares don't sum to 100 and nothing says why. Fix caption: "Signs of an AI-written resume that hiring managers named, 2026; each could name more than one (Vendor survey, 1,000 US hiring managers) [@resume-genius-2026]"
+- **B3 (low)** Row 1 shortens the source's "Unnatural phrasing or tone". Fix: "Unnatural phrasing or tone | 51%".
+
+Revised (plan-xsy.58): every B finding applied with the wording above (sign list re-checked on the source page 2026-10-04 by the reviser); verdict publish.

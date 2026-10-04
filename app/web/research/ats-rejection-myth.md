@@ -68,10 +68,16 @@ Our measurement: 840 postings yielded 143 application forms we could read. Most 
 
 Our measurement found 109 of the 143 forms asked about work permit, visa sponsorship, where you work, years of experience, a license or a security clearance.
 
-- Work permit or visa sponsorship: 99 of 143 forms.
-- On-site work, moving or living nearby: 45 of 143 forms. Plain address boxes are not counted here.
-- Years of experience: 21 of 143 forms.
-- License, certificate or security clearance: 13 of 143 forms.
+```bars
+Forms asking each kind of question, October 2026 (Our measurement, 143 application forms; [the data](knockout-questions-2026-10.md))
+Question | Forms asking it
+Work permit or visa sponsorship | 99 of 143
+On-site work, moving or living nearby | 45 of 143
+Years of experience | 21 of 143
+License, certificate or security clearance | 13 of 143
+```
+
+A plain address box, or a question asking only where you live, is not counted in the on-site row.
 
 These counts have limits. The forms we could read lean toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically. The data, one row per form, and how we counted: [the knockout-question data](knockout-questions-2026-10.md).
 

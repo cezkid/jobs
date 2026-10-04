@@ -1196,3 +1196,43 @@ def test_split_title_keeps_its_text_in_the_h1_the_hub_and_the_headline(tmp_path)
     assert article["headline"] == title
     item = re.search(r'<a href="/research/ats-myth/">(.*?)</a>', built["research/index.html"]).group(1)
     assert "deck" in item and re.sub(r"<[^>]+>", "", item) == title
+
+
+BARS = "```bars\nWho got called, share of tests (Lab study) [@quillian-2017]\nGroup | Called\nWhite | 85.1% of tests\nBlack | 8.6% of tests\n```"
+
+
+def test_bars_block_is_a_figure_with_caption_citation_and_a_real_table(tmp_path):
+    research_site(tmp_path, body(BARS))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    figure = html[html.index('<figure class="bars">'):html.index("</figure>")]
+    assert '<figcaption>Who got called, share of tests (Lab study; <a href="#src-quillian-2017">' in figure
+    assert '<th scope="col">Group</th>' in figure and '<th scope="row">White</th>' in figure
+    assert '<td>85.1% of tests<span class="bar" style="width:85.1%" aria-hidden="true"></span></td>' in figure
+    assert 'role="region"' not in figure  # no scroll box: short, and the figure names it
+    assert '<li id="src-quillian-2017">' in html  # the caption's citation reaches Sources
+
+
+@pytest.mark.parametrize("values, widths", [
+    (["99 of 143", "13 of 143"], [69.2, 9.1]),
+    (["51%", "32%"], [51.0, 32.0]),
+    (["0.3", "1.2"], [25.0, 100.0]),
+    (["1,000", "500"], [100.0, 50.0]),
+])
+def test_bar_length_is_the_values_share_of_its_whole(values, widths):
+    assert pages._bar_widths(values) == (widths, None)
+
+
+@pytest.mark.parametrize("block, problem", [
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\n```", "needs a caption line"),
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\nA | 5\nB\n```", "needs a caption line"),
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\nA | 5%\nB | 7\n```", "one kind per figure"),
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\nA | about half\n```", "starts with a number"),
+    ("```bars\nCaption [@quillian-2017]\nGroup | Called\nA | 150%\n```", "larger than its whole"),
+    ("```bars\nCalls fell\nGroup | Called\nA | 36%\n```", "statistic '36%' without a citation"),
+])
+def test_bars_problems_are_reported_with_file_and_line(tmp_path, block, problem):
+    research_site(tmp_path, body(block))
+    # block problems at the fence's first line; an uncited statistic at its own row
+    line = 14 if "statistic" in problem else 11
+    with pytest.raises(pages.SourceError, match=f"ai-bias.md:{line}: .*{problem}"):
+        pages.build(tmp_path)

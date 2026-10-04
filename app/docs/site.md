@@ -73,6 +73,13 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
 - Render: markdown-it-py `js-default` (raw HTML shown as text, tables on). Heading id = the
   `test_docs.anchors()` rule, so `x.md#h` lands in VS Code, on GitHub and on the site. Table
   wrapped in a focusable, labelled scroll box (wide table scrolls, not the page).
+- Bar figure (A15): a ```` ```bars ```` fence = line 1 caption (Markdown: citation, evidence label, links), line 2
+  `Label | Value` column heads, then `label | value` rows -> `<figure class="bars">` w/ `<figcaption>` + a real
+  table (row heads `scope="row"`, no scroll box), an ink bar under each value (a border: prints, forced colours
+  paint it; `aria-hidden`, the number says it). Bar = value's share of its whole: `51%` of 100, `99 of 143` of
+  143, plain numbers of the largest; from zero, one kind per figure, never over its whole - else `file:line`
+  error. Citation lints read the figure as one unit: the caption's citation covers every row. The source shows
+  a code block on GitHub - fine, the site is the reader's copy.
 - Links: `x.md#h` -> `/research/x/#h` (x published, heading exists); `https://jobs.enrriquez.com/p`
   -> `/p` (must exist); `#h` on the same page; other relative repo paths -> GitHub file URL (must be a file or folder git
   tracks, exact case: a macOS disk finds `SITE.md` for `site.md`, an ignored private file would name

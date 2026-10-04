@@ -223,6 +223,14 @@
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
+  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
+     print + forced colours paint it); no motion */
+  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .bars table { width: 100%; }
+  .bars tbody th { width: 42%; font-weight: 400; }
+  .bars td { font-weight: 700; }
+  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
   /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
   #sources { margin-top: 64px; border-top: 3px solid var(--text); }
   .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
@@ -355,7 +363,32 @@
 </ul>
 <h2 id="do-ai-resume-screeners-treat-people-differently-by-name">Do AI resume screeners treat people differently by name?</h2>
 <p>Yes, in many lab tests, though some tests find no gap. Researchers give AI models resumes that are the same except for the name. The models then often pick, rank or score them differently.</p>
-<p>In a 2024 test, three AI text-matching models ranked over 500 resumes with 120 names added. The models favored names linked with white people in 85.1% of tests. Names linked with Black people were favored in 8.6% of tests. White men’s names beat Black men’s names in 100% of tests (<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>).</p>
+<p>In a 2024 test, three AI text-matching models ranked over 500 resumes with 120 names added. The models favored names linked with white people in 85.1% of tests. Names linked with Black people were favored in 8.6% of tests. The other 6.3% showed no clear difference. White men’s names beat Black men’s names in 100% of tests (<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>).</p>
+<figure class="bars">
+<figcaption>Whose names three AI models favored, share of tests, 2024 (Lab study; <a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>)</figcaption>
+<table>
+<thead>
+<tr>
+<th scope="col">Names linked with</th>
+<th scope="col">Favored in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">White people</th>
+<td>85.1% of tests<span class="bar" style="width:85.1%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Black people</th>
+<td>8.6% of tests<span class="bar" style="width:8.6%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Neither, no clear difference</th>
+<td>6.3% of tests<span class="bar" style="width:6.3%" aria-hidden="true"></span></td>
+</tr>
+</tbody>
+</table>
+</figure>
 <p>The same study’s gender result was corrected in August 2026. Another team tried to repeat the study and found a coding error. The authors’ note says the gender numbers should be swapped. Swapped as the note directs, female names were favored in 51.9% of tests and male names in 11.1%. The published 2024 paper still prints the reverse. The race results held up when repeated (<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>).</p>
 <p>A larger 2025 study scored about 361,000 made-up resumes with five AI models. Four of the five models scored women or Black applicants higher on average. Black men were the exception: most of the models scored them lower than white men. GPT-3.5, for example, scored Black men 0.3 points lower, out of 100. With a pass mark of 80, GPT-3.5 cut Black men’s chance of passing by 1.4 percentage points. In that test, Black women’s chance rose 1.7 points and white women’s rose 1.4. The gaps look small per resume, but the authors call them economically significant across many applicants (<a href="#src-an-2025">An et al. 2025</a>).</p>
 <p>In 2024, Bloomberg ran its own test of GPT-3.5 and GPT-4. GPT ranked eight equally qualified resumes, 1,000 times for each of four jobs. Some groups’ names came first less often than an even share of one in eight. For a software engineer job, GPT-3.5 put Black women’s names first 11% of the time. Bloomberg published its method and code. OpenAI said the test may not reflect how its customers use the models (<a href="#src-bloomberg-2024">Yin et al. 2024</a>).</p>

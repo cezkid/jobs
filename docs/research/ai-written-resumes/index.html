@@ -223,6 +223,14 @@
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
+  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
+     print + forced colours paint it); no motion */
+  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .bars table { width: 100%; }
+  .bars tbody th { width: 42%; font-weight: 400; }
+  .bars td { font-weight: 700; }
+  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
   /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
   #sources { margin-top: 64px; border-top: 3px solid var(--text); }
   .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
@@ -367,7 +375,48 @@
 <p>They say they can tell, and about half say they care. Both surveys below are vendor surveys, run for companies in the hiring or resume business.</p>
 <p>In an October 2024 survey of 1,005 US HR and hiring leaders, 88% said they can tell when applicants use AI. Of those leaders, 54% said they would care if a resume or cover letter was written by AI. The other 46% said they would not care (<a href="#src-insight-global-2025">Insight Global 2025</a>).</p>
 <p>A 2026 survey of 1,000 US hiring managers was run for a resume-builder company. In it, 80% said they can often tell when AI wrote a resume. Most, 76%, said AI-written resumes make it harder to see what a person actually did. And 72% said heavy reliance on AI makes applicants seem less skilled. Asked about disclosure, 79% said applicants should say when AI helped (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
-<p>Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%) and vague or inflated descriptions (41%). Formatting habits such as long dashes were named by 32% (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
+<p>Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%), and vague or inflated descriptions and buzzword-heavy writing (41% each). Formatting habits such as long dashes were named by 32% (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
+<figure class="bars">
+<figcaption>Signs of an AI-written resume that hiring managers named, 2026; each could name more than one (Vendor survey, 1,000 US hiring managers; <a href="#src-resume-genius-2026">Chan 2026</a>)</figcaption>
+<table>
+<thead>
+<tr>
+<th scope="col">Sign</th>
+<th scope="col">Share who named it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Unnatural phrasing or tone</th>
+<td>51%<span class="bar" style="width:51%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Repetitive or generic wording</th>
+<td>44%<span class="bar" style="width:44%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Vague or inflated descriptions</th>
+<td>41%<span class="bar" style="width:41%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Buzzword-heavy writing</th>
+<td>41%<span class="bar" style="width:41%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Perfect grammar with no variation</th>
+<td>39%<span class="bar" style="width:39%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Formatting habits such as long dashes</th>
+<td>32%<span class="bar" style="width:32%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Incorrect or irrelevant details</th>
+<td>27%<span class="bar" style="width:27%" aria-hidden="true"></span></td>
+</tr>
+</tbody>
+</table>
+</figure>
 <p>Saying you can spot AI is not the same as spotting it. In one lab test, readers who rarely used AI felt sure but did no better than chance (<a href="#src-russell-2025">Russell et al. 2025</a>).</p>
 <p>The warning signs managers name are generic, vague and inflated lines. Those are worth cutting whoever wrote them.</p>
 <h2 id="does-using-ai-on-your-resume-hurt-your-chances">Does using AI on your resume hurt your chances?</h2>

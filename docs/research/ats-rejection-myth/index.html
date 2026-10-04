@@ -223,6 +223,14 @@
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
+  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
+     print + forced colours paint it); no motion */
+  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .bars table { width: 100%; }
+  .bars tbody th { width: 42%; font-weight: 400; }
+  .bars td { font-weight: 700; }
+  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
   /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
   #sources { margin-top: 64px; border-top: 3px solid var(--text); }
   .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
@@ -374,12 +382,36 @@
 <p>We wanted to know how often real application forms ask these questions. In October 2026 we drew a sample of US job postings from the last 14 days. The sample covered 14 job fields, from healthcare and sales to law and education.</p>
 <p>Our measurement: 840 postings yielded 143 application forms we could read. Most of the rest sat on Workday, Oracle or iCIMS forms we can’t read, or on job boards that copy postings. In our sample, the middle form asked four questions beyond name, contact details, address and profile links. 22 of the 143 forms asked nothing beyond those.</p>
 <p>Our measurement found 109 of the 143 forms asked about work permit, visa sponsorship, where you work, years of experience, a license or a security clearance.</p>
-<ul>
-<li>Work permit or visa sponsorship: 99 of 143 forms.</li>
-<li>On-site work, moving or living nearby: 45 of 143 forms. Plain address boxes are not counted here.</li>
-<li>Years of experience: 21 of 143 forms.</li>
-<li>License, certificate or security clearance: 13 of 143 forms.</li>
-</ul>
+<figure class="bars">
+<figcaption>Forms asking each kind of question, October 2026 (Our measurement, 143 application forms; <a href="/research/knockout-questions-2026-10/">the data</a>)</figcaption>
+<table>
+<thead>
+<tr>
+<th scope="col">Question</th>
+<th scope="col">Forms asking it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Work permit or visa sponsorship</th>
+<td>99 of 143<span class="bar" style="width:69.2%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">On-site work, moving or living nearby</th>
+<td>45 of 143<span class="bar" style="width:31.5%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Years of experience</th>
+<td>21 of 143<span class="bar" style="width:14.7%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">License, certificate or security clearance</th>
+<td>13 of 143<span class="bar" style="width:9.1%" aria-hidden="true"></span></td>
+</tr>
+</tbody>
+</table>
+</figure>
+<p>A plain address box, or a question asking only where you live, is not counted in the on-site row.</p>
 <p>These counts have limits. The forms we could read lean toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically. The data, one row per form, and how we counted: <a href="/research/knockout-questions-2026-10/">the knockout-question data</a>.</p>
 <p>An earlier count of many more forms, published by freehire.me’s maker, reported far fewer forms with extra questions. We could not re-find that page to check it, so we don’t cite its numbers. Our sample is small, and its share may not hold for all forms.</p>
 <p>Our share of 109 of the 143 forms does not confirm the old 75% claim (<a href="#src-levinson-2012-cio">Levinson 2012a</a>). A question on a form is not a rejection, and the two numbers measure different things.</p>

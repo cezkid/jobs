@@ -414,6 +414,8 @@ def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
                     errors.append(f"{src.rel}:{src.line(token)}: HTML or &...; entity in a heading - plain text only")
                 if token.markup.startswith("#") and re.search(r"\s#+\s*$", raw):
                     errors.append(f"{src.rel}:{src.line(token)}: closing # in a heading - drop it")
+            if token.type == "bars_open" and token.meta.get("error"):
+                errors.append(f"{src.rel}:{src.line(token)}: {token.meta['error']}")
             if token.type != "inline":
                 continue
             for child in token.children or []:
@@ -467,18 +469,93 @@ def typeset(text: str) -> str:
     return typeset_tokens([inline])[0].children[0].content
 
 
+BAR_VALUE = re.compile(r"(\d+(?:\.\d+)?)(?:\s*(%)|\s+of\s+(\d+(?:\.\d+)?)\b)?")
+
+
+def _bar_widths(values: list[str]) -> tuple[list[float], str | None]:
+    """Bar length per value cell, as % of the row: "51%" of 100, "99 of 143" of 143, plain numbers of the
+    largest. Every bar starts at zero; one kind per figure (else lengths would compare different things)."""
+    found = [BAR_VALUE.match(v.replace(",", "")) for v in values]
+    if not all(found):
+        return [], "every value cell starts with a number (51%, 99 of 143 or 0.3)"
+    kinds = {"%" if m.group(2) else "of" if m.group(3) else "n" for m in found}
+    if len(kinds) > 1:
+        return [], "values mix %, 'N of M' and plain numbers - one kind per figure"
+    nums = [float(m.group(1)) for m in found]
+    scale = [100.0] * len(nums) if kinds == {"%"} else [float(m.group(3)) for m in found] if kinds == {"of"} else [max(nums)] * len(nums)
+    if any(n > s or s <= 0 for n, s in zip(nums, scale)):
+        return [], "a value is larger than its whole (over 100%, or N over M)"
+    return [round(100 * n / s, 1) for n, s in zip(nums, scale)], None
+
+
+def _bars(state):
+    """```bars fence -> <figure> w/ caption + a real two-column table whose value cells draw a bar (A15).
+    Line 1 = caption (Markdown: citations, links), line 2 = "Label | Value" column heads, then one
+    "label | value" row per bar. Parsed as inline tokens, so citations, statistic lints + typesetting
+    see the figure like any text; a problem -> meta error on bars_open (lint reports it)."""
+    out = []
+    for fence in state.tokens:
+        if fence.type != "fence" or fence.info.strip() != "bars":
+            out.append(fence)
+            continue
+        lines = [ln.strip() for ln in fence.content.split("\n") if ln.strip()]
+        rows = [[c.strip() for c in ln.split("|")] for ln in lines[1:]]
+        error = None
+        if len(lines) < 3 or any(len(r) != 2 or not all(r) for r in rows):
+            error = "bars block needs a caption line, a 'Label | Value' line, then 'label | value' rows"
+            widths = []
+        else:
+            widths, error = _bar_widths([r[1] for r in rows[1:]])
+
+        def tok(kind, tag, nesting, **kw):
+            return Token(kind, tag, nesting, map=fence.map, block=True, **kw)
+
+        def inline(text):
+            return Token("inline", "", 0, content=text, map=fence.map, children=[])
+
+        out.append(tok("bars_open", "figure", 1, attrs={"class": "bars"}, meta={"error": error}))
+        out += [tok("figcaption_open", "figcaption", 1), inline(lines[0] if lines else ""), tok("figcaption_close", "figcaption", -1)]
+        if not error:
+            out.append(tok("table_open", "table", 1, meta={"bars": True}))
+            out += [tok("thead_open", "thead", 1), tok("tr_open", "tr", 1)]
+            for head in rows[0]:
+                out += [tok("th_open", "th", 1, attrs={"scope": "col"}), inline(head), tok("th_close", "th", -1)]
+            out += [tok("tr_close", "tr", -1), tok("thead_close", "thead", -1), tok("tbody_open", "tbody", 1)]
+            for (label, value), width in zip(rows[1:], widths):
+                out += [tok("tr_open", "tr", 1), tok("th_open", "th", 1, attrs={"scope": "row"}), inline(label),
+                        tok("th_close", "th", -1), tok("td_open", "td", 1), inline(value),
+                        tok("td_close", "td", -1, meta={"bar": width}), tok("tr_close", "tr", -1)]
+            out += [tok("tbody_close", "tbody", -1), tok("table_close", "table", -1, meta={"bars": True})]
+        out.append(tok("bars_close", "figure", -1))
+    state.tokens[:] = out
+
+
+def _td_close(self, tokens, idx, options, env):
+    # a bar figure's value cell: the bar under the number, as long as the value's share (a border: prints,
+    # and forced colours paint it); hidden from screen readers, the number says it
+    bar = tokens[idx].meta.get("bar") if tokens[idx].meta else None
+    lead = f'<span class="bar" style="width:{bar:g}%" aria-hidden="true"></span>' if bar is not None else ""
+    return lead + self.renderToken(tokens, idx, options, env)
+
+
 def _table_open(self, tokens, idx, options, env):
+    if tokens[idx].meta.get("bars"):  # a bar figure: short, never scrolls; the figure + caption name it
+        return self.renderToken(tokens, idx, options, env)
     # wide table scrolls inside its own box, not the page; focusable so keyboards can scroll it
     label = escape(tokens[idx].meta.get("label", "Table"))
     return f'<div class="table" role="region" aria-label="{label}" tabindex="0">\n' + self.renderToken(tokens, idx, options, env)
 
 
 def _table_close(self, tokens, idx, options, env):
+    if tokens[idx].meta.get("bars"):
+        return self.renderToken(tokens, idx, options, env)
     return self.renderToken(tokens, idx, options, env) + "</div>\n"
 
 
+MD.core.ruler.after("block", "bars", _bars)
 MD.add_render_rule("table_open", _table_open)
 MD.add_render_rule("table_close", _table_close)
+MD.add_render_rule("td_close", _td_close)
 
 
 def _cite(state):
@@ -680,9 +757,19 @@ def units(src: Source):
         return "".join({"text": c.content, "cite": "\x01", "code_inline": "\x02", "softbreak": " ",
                         "hardbreak": " "}.get(c.type, "") for c in inline.children or [])
 
-    row = None
+    row, figure = None, None
     for i, token in enumerate(src.tokens):
-        if token.type == "tr_open":
+        # a bar figure is one unit: its caption's citation covers every row
+        if token.type == "bars_open":
+            figure = []
+        elif token.type == "bars_close":
+            if figure:
+                yield figure[0], " | ".join(flat(t) for t in figure)
+            figure = None
+        elif figure is not None:
+            if token.type == "inline":
+                figure.append(token)
+        elif token.type == "tr_open":
             row = []
         elif token.type == "tr_close":
             if row:
@@ -912,6 +999,14 @@ PAGE_CSS = """
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
+  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
+     print + forced colours paint it); no motion */
+  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .bars table { width: 100%; }
+  .bars tbody th { width: 42%; font-weight: 400; }
+  .bars td { font-weight: 700; }
+  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
   /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
   #sources { margin-top: 64px; border-top: 3px solid var(--text); }
   .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
