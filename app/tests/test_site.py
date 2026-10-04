@@ -369,6 +369,35 @@ def test_sample_corrections_add_no_number_the_old_line_lacks():
         assert set(re.findall(r"\d+", new)) <= set(re.findall(r"\d+", old)), (old, new)
 
 
+def test_home_ledger_names_the_same_recipients_as_privacy_in_order():
+    # the home ledger is the short form of privacy.html's table (privacy.html says "in full"): a
+    # recipient on one and not the other = a promise only half-made. Names are worded per page, so
+    # each row is matched by the one word that identifies it.
+    home = (DOCS / "index.html").read_text(encoding="utf-8")
+    ledger = re.search(r'<ol class="ledger">(.*?)</ol>', home, re.S)
+    assert ledger, "no ledger on home - the parser lost it"
+    on_home = re.findall(r"<h3>(.*?)</h3>", ledger.group(1))
+    table = re.search(r'<h2 id="leaves">.*?<tbody>(.*?)</tbody>', (DOCS / "privacy.html").read_text(encoding="utf-8"), re.S)
+    assert table, "no recipients table on privacy.html - the parser lost it"
+    in_privacy = re.findall(r'<th scope="row">(.*?)</th>', table.group(1))
+    keys = ("freehire.me", "AI", "mployer", "email", "maintainer")
+    assert len(on_home) == len(in_privacy) == len(keys), (on_home, in_privacy)
+    for key, h, pv in zip(keys, on_home, in_privacy):
+        assert key in h and key in pv, (key, h, pv)
+
+
+def test_home_research_teaser_quotes_only_the_articles_own_titles_and_descriptions():
+    # a teaser line no article says is a new claim on the home page, unreviewed by the research loop
+    home = (DOCS / "index.html").read_text(encoding="utf-8")
+    picks = re.findall(r'<li><a href="/research/([^"/]+)/">(.*?)</a><p>(.*?)</p></li>',
+                       re.search(r'<ul class="picks">(.*?)</ul>', home, re.S).group(1))
+    assert len(picks) == 3, picks
+    for slug, title, line in picks:
+        head = page(f"research/{slug}/index.html")
+        assert head.text["title"] == [title], (slug, title)
+        assert line in head.meta("description"), (slug, line)
+
+
 def test_every_page_uses_typographic_quotes_and_dashes():
     # hand-written + generated (pages.py typesets research pages, About, the hub); mac/ + win/ = install scripts
     found, seen = [], 0

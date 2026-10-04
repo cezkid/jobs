@@ -525,7 +525,8 @@
   .who-head .big { font-size: clamp(1.375rem, 1.1rem + 0.8vw, 1.75rem); line-height: 1.35; }
   .ledger { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; border-top: 2px solid var(--text); }
   .ledger li { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px 32px; padding: 16px 0 17px; border-bottom: 1px solid var(--line); }
-  .ledger h3 { margin: 0; font-size: 1.375rem; line-height: 1.25; }
+  /* the recipients at display scale in the ledger's first column (PICK P-e1) */
+  .ledger h3 { margin: 0; font-size: clamp(1.625rem, 0.8rem + 2.2vw, 3rem); line-height: 1.02; letter-spacing: -0.01em; }
   .ledger .when { color: var(--text-2); }
   .ledger-head { display: none; }
   .who-foot { grid-column: 1 / -1; max-width: 46rem; color: var(--text-2); }
@@ -537,21 +538,34 @@
     .who-head .big { grid-column: 7 / -1; }
   }
   @media (min-width: 900px) {
-    .ledger li, .ledger-head { grid-template-columns: 3fr 5fr 4fr; }
+    .ledger li, .ledger-head { grid-template-columns: 5fr 5fr 4fr; }
     .ledger-head { grid-column: 1 / -1; display: grid; gap: 4px 32px; color: var(--text-2); font-size: 1rem; margin-bottom: -24px !important; }
   }
 
   h2 { font-size: 1.5rem; line-height: 1.25; margin: 0 0 16px; }
   h3 { font-size: 1.25rem; line-height: 1.3; margin: 20px 0 2px; }
 
-  /* research teaser: curated picks, not the newest */
+  /* research teaser: curated picks, not the newest. Clippings (PICK P-e1): each article's own title +
+     description only, heavy rule above the headline, column rules between, no frames */
   .research-head { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; }
   .research-head h2 { margin: 0; }
-  .picks { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 var(--gutter); }
-  .picks li { padding: 16px 0 18px; border-top: 2px solid var(--text); }
-  .picks a { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
-  .picks p { margin-top: 8px; color: var(--text-2); }
-  @media (min-width: 900px) { .picks { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  .picks { grid-column: 1 / -1; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px 0; }
+  .picks li { padding: 0 0 8px; }
+  .picks a { display: block; font-size: clamp(1.5rem, 0.9rem + 1.5vw, 2.5rem); font-weight: 700; line-height: 1.04; letter-spacing: -0.01em;
+    text-decoration: none; padding-top: 12px; border-top: 6px solid var(--text); }
+  @media (hover: hover) { .picks a:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; } }
+  .picks p { font-style: italic; font-size: 1.0625rem; color: var(--text-2); margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); }
+  /* the shared hover rule sits on the headline's 6px rule: 6 -> 10px */
+  .picks > li::before { top: -2px; border-top-width: 10px; }
+  @media (min-width: 900px) {
+    .picks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .picks li { padding: 0 var(--gutter); border-left: 1px solid var(--line); }
+    .picks li:first-child { padding-left: 0; border-left: 0; }
+    .picks li:last-child { padding-right: 0; }
+    .picks > li::before { left: var(--gutter); right: var(--gutter); }
+    .picks > li:first-child::before { left: 0; }
+    .picks > li:last-child::before { right: 0; }
+  }
 
   /* questions: two stacks (not CSS columns: a column break can split an open answer) */
   .questions h2 { grid-column: 1 / -1; }
@@ -603,8 +617,6 @@
     .ledger li { padding: 12px 0 13px; }
     .defs > div { padding: 9px 0 10px; }
     .questions { row-gap: 0; }
-    .picks a { font-size: 1.3125rem; }
-    .picks li { padding: 12px 0 14px; }
     .stack summary { padding-top: 10px; padding-bottom: 10px; }
     .colophon p { padding: 14px 0 20px; }
   }
@@ -846,9 +858,9 @@
       <a class="tap" href="/research/">All research</a>
     </div>
     <ul class="picks">
-      <li><a class="tap" href="/research/what-makes-a-good-resume/">What makes a good resume?</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower ratings.</p></li>
-      <li><a class="tap" href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes?</a><p>No study shows it. The number traces to a 2012 sales claim.</p></li>
-      <li><a class="tap" href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a><p>In tests, yes – by name, gender, age and disability. The direction changes by model.</p></li>
+      <li><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</p></li>
+      <li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim.</p></li>
+      <li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test.</p></li>
     </ul>
   </section>
   <!-- /region: research -->
