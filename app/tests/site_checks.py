@@ -507,3 +507,12 @@ def run_together(raw: str) -> list[str]:
     """Each place two words would touch in the page's raw text (style + script removed)."""
     text = re.sub(r"<(style|script)\b.*?</\1>", "", raw, flags=re.S)
     return [text[max(0, m.start() - 30):m.end() + 30] for m in RUN_TOGETHER.finditer(text)]
+
+
+SOLID_MARK = re.compile(r"background(?:-color)?\s*:\s*(?:var\(--mark\)|#ffe433)\s*[;}]", re.I)
+
+
+def yellow_fills(css: str) -> list[str]:
+    """Selectors whose rule fills a solid highlighter background (marks use a sized gradient instead)."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    return [sel.strip() for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css) if SOLID_MARK.search(body + ";")]

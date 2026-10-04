@@ -26,7 +26,7 @@ import pymupdf  # noqa: E402
 
 from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts,  # noqa: E402
                          loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
-                         run_together, stroke_on_paper, typewriter)
+                         run_together, stroke_on_paper, typewriter, yellow_fills)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -410,6 +410,22 @@ def test_home_resume_scene_shows_the_correction_as_del_and_ins():
     assert re.search(r"<ins>.+?</ins>", scene.group(0), re.S)
     assert "You approved this line" in scene.group(0)
 
+
+
+def test_copy_is_the_only_filled_yellow_control_on_home():
+    # the highlighter marks words; one filled yellow control (Copy) says "press this" - the illustrated
+    # Submit stays an ink outline, never filled (A21), so a juror never takes it for a working button
+    raw = (DOCS / "index.html").read_text(encoding="utf-8")
+    css = raw[raw.index("<style>"):raw.index("</style>")]
+    assert yellow_fills(css) == ["#copy"]
+    submit = re.search(r"\n  \.submit \{([^}]*)\}", css)
+    assert submit and "background: none" in submit.group(1) and "border: 2px solid var(--text)" in submit.group(1)
+
+
+def test_yellow_fill_check_trips_on_a_second_filled_control():
+    css = "#copy { background: var(--mark); } mark { background: linear-gradient(var(--mark), var(--mark)); }"
+    assert yellow_fills(css) == ["#copy"]
+    assert yellow_fills(css + " .submit { color: var(--ink); background: #FFE433 }") == ["#copy", ".submit"]
 
 def test_one_breadcrumb_name_per_url():
     # D22: every crumb + BreadcrumbList names a URL one way (/research/ = the hub's own title)

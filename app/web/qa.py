@@ -26,6 +26,8 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   WINDOW_TEXT at 1440x900: every text in the hero window's body >= 17px (A8);
   SHEET_NOTE at every desktop size >= 760 wide: the resume sheet's approval note top within 4px of the new
   line's, old + new lines at the sheet's bullet size (A10);
+  AFTER_RULES: the applications + help pair's top rules (first block under each h2) within 1px at every
+  desktop size >= 1080 wide; at 768 the two stacked halves >= 48px apart (A11);
   MAC_LINE: Mac browser name at 768, 1366x641, 1440x900, 1920x1080 -> the
   install line is one line box; a check whose selector finds 0 elements fails (missing()), never a
   silent pass; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
@@ -459,6 +461,18 @@ SHEET_REPLAY = "async () => {" + HELPERS + """
   return out;
 }"""
 
+# AFTER_RULES (A11, home): the two halves' first block under the h2 (its top rule) shares one line at >= 1080;
+# at tablet width the stacked halves keep a gap; [[rule top per half], gap from half 1's foot to half 2] or null
+AFTER_RULES_W = 1080
+AFTER_RULES_PX = 1
+AFTER_GAP_AT = (768, 1024)
+AFTER_GAP_MIN = 48
+AFTER_RULES = """() => { const h = [...document.querySelectorAll(".after .half")];
+  const r = h.map(el => el.querySelector(":scope > :not(h2)")).filter(Boolean);
+  if (h.length !== 2 || r.length !== 2) return null;
+  return [r.map(el => el.getBoundingClientRect().top),
+          h[1].getBoundingClientRect().top - h[0].getBoundingClientRect().bottom]; }"""
+
 # empty right halves (BAND_AT): per row of main, 4px slices from its first content line to its last; a run
 # of slices whose rightmost content (text line boxes, svg/img/button, boxes with a border or background)
 # ends more than BAND_W px short of the row's content edge, taller than BAND_H px = a band left empty
@@ -774,6 +788,10 @@ FAULTS = [
      "wide"),
     (HOME, "SHEET_NOTE: approval note back beside the struck line", "<style>.sheet-lg .margin.ok { position: relative; "
      "top: -2.4em; }</style>", "layout"),
+    (HOME, "AFTER_RULES: the help table's rule drops below the names' rule", "<style>.half { display: block "
+     "!important; }</style>", "wide"),
+    (HOME, "AFTER_RULES: stacked halves jammed together at tablet width", "<style>.after { row-gap: 20px !important; }"
+     "</style>", "tablet"),
     (HOME, "SHEET_NOTE: the new line back at 15px", "<style>.sheet-lg .new { font-size: 0.9375rem !important; }</style>",
      "layout"),
     (HOME, "SHEET_REPLAY: correction finishes at cover 60%", "<style>.sheet-lg .new mark:last-of-type "
@@ -853,7 +871,7 @@ FAULTS = [
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
-             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT", "SHEET_NOTE": "SHEET_NOTE", "SHEET_REPLAY": "SHEET_REPLAY",
+             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT", "SHEET_NOTE": "SHEET_NOTE", "AFTER_RULES": "AFTER_RULES", "SHEET_REPLAY": "SHEET_REPLAY",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
@@ -1129,6 +1147,15 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                     if not new_px == old_px == bul_px:
                         failed.append(f"SHEET_NOTE {where}: old/new lines {old_px:g}/{new_px:g}px, "
                                       f"the sheet's bullets {bul_px:g}px")
+            if not phone and name == HOME and (width >= AFTER_RULES_W or (width, height) == AFTER_GAP_AT):
+                got = page.evaluate(AFTER_RULES)
+                if got is None:
+                    failed.append(f"AFTER_RULES {where}: check found 0 elements (.after .half pair)")
+                elif width >= AFTER_RULES_W and abs(got[0][0] - got[0][1]) > AFTER_RULES_PX:
+                    failed.append(f"AFTER_RULES {where}: top rules at y {got[0][0]:.0f} vs {got[0][1]:.0f} "
+                                  f"(over {AFTER_RULES_PX}px apart)")
+                elif width < AFTER_RULES_W and got[1] < AFTER_GAP_MIN:
+                    failed.append(f"AFTER_RULES {where}: halves {got[1]:.0f}px apart, under {AFTER_GAP_MIN}px")
             if mac and not phone and (width, height) in MAC_LINE_AT:
                 got = page.evaluate(LINE_BOXES)
                 if not got or not got[0].startswith("curl ") or got[1] != 1:
@@ -1489,8 +1516,8 @@ def run_self_test(base: str) -> list[str]:
             return check_layout(browser, base, name, *FOLD, False, inject, shots=False, ua=ua)[0]
         if kind == "phone":
             return check_layout(browser, base, name, *SEND_AT, True, inject, shots=False, ua=ua)[0]
-        if kind in ("narrow", "wide", "frames", "mac"):
-            size = {"narrow": PHONES[0], "mac": FOLD}.get(kind, (1440, 900))
+        if kind in ("narrow", "wide", "frames", "mac", "tablet"):
+            size = {"narrow": PHONES[0], "mac": FOLD, "tablet": AFTER_GAP_AT}.get(kind, (1440, 900))
             return check_layout(browser, base, name, *size, False, inject, shots=False, ua=ua)[0]
         if kind == "opening":
             return check_opening(browser, base, inject)[0]

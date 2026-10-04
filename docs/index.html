@@ -489,9 +489,17 @@
   .defs dt { font-weight: 700; }
   .defs dd { margin: 0; }
   .submit-line { display: flex; align-items: center; gap: 22px; margin-top: 22px !important; }
+  /* the hiring sites it fills, set as one display-size block of names (A9); plain = first box only */
+  .names { margin: 0 !important; padding-top: 14px; border-top: 2px solid var(--text);
+    font-size: clamp(1.75rem, 0.9rem + 2.3vw, 3.25rem); line-height: 1.08; letter-spacing: -0.012em; }
+  .names b, .names .part { display: inline-block; margin-right: 0.28em; }
+  .names .part { color: var(--text-2); }
+  .key { margin-top: 14px !important; color: var(--text-2); font-size: 1.0625rem; max-width: 36rem; }
+  /* illustrated Submit: outline only, a sketch on paper - never filled, never a second yellow control (A21) */
   .submit {
-    position: relative; flex: none; display: inline-block; padding: 8px 20px; font-weight: 700; line-height: 1.2;
-    color: var(--desk); background: var(--text); border-radius: 6px; margin: 10px 14px;
+    position: relative; flex: none; display: inline-block; padding: 6px 18px; font-weight: 700; line-height: 1.2;
+    color: var(--text); background: none; border: 2px solid var(--text); border-radius: 6px; margin: 10px 14px;
+    transform: rotate(-2deg);
   }
   .submit svg {
     position: absolute; left: -16px; top: -13px; width: calc(100% + 32px); height: calc(100% + 26px); overflow: visible;
@@ -499,10 +507,18 @@
     stroke-dasharray: 100; stroke-dashoffset: 0;
   }
   @media (min-width: 600px) { .defs > div { grid-template-columns: 11rem minmax(0, 1fr); } }
+  /* wide: the halves share two subgrid rows, h2s sit on the row's foot => both top rules on one line (A11) */
   @media (min-width: 1080px) {
-    .half:first-child { grid-column: 1 / span 6; }
-    .half + .half { grid-column: 7 / -1; }
+    .after { grid-template-rows: auto 1fr; row-gap: 0; }
+    .half { display: grid; grid-template-rows: subgrid; grid-row: span 2; align-content: start; }
+    .half h2 { align-self: end; }
+    .half > :not(h2) { grid-row: 2; }
+    .half:first-child { grid-column: 1 / span 7; }
+    .half + .half { grid-column: 8 / -1; }
+    .half + .half h2 { font-size: clamp(1.75rem, 0.5rem + 2.6vw, 3rem); }
   }
+  /* tablet: the halves stack; a wide gap keeps them two blocks (A11) */
+  @media (min-width: 600px) and (max-width: 1079px) { .after { row-gap: 64px; } }
 
   /* who sees what: every recipient as text, item for item with privacy.html */
   .who-head { grid-column: 1 / -1; max-width: 46rem; }
@@ -775,14 +791,12 @@
   <section class="grid scene after" aria-label="Applying and after">
     <div class="half">
       <h2>Applications filled. You press Submit.</h2>
-      <dl class="defs">
-        <div><dt>Most hiring sites</dt><dd>Filled from your resume in a window the app opens: Greenhouse, Ashby, Lever, Workable, UKG, JazzHR, BambooHR, Paylocity, SmartRecruiters.</dd></div>
-        <div><dt>Paycom, ADP, Oracle, iCIMS</dt><dd>The app fills the start box, then tells you each next step.</dd></div>
-        <div><dt>Workday</dt><dd>Filled with Claude, in Chrome.</dd></div>
-        <div><dt>Any other form</dt><dd>Answers ready to paste.</dd></div>
-      </dl>
+      <div>
+      <p class="names"><span class="vh">Filled from your resume: </span><b>Greenhouse</b> <b>Ashby</b> <b>Lever</b> <b>Workable</b> <b>UKG</b> <b>JazzHR</b> <b>BambooHR</b> <b>Paylocity</b> <b>SmartRecruiters</b> <b>Workday</b> <span class="vh">First box filled, next steps named: </span><span class="part">Paycom</span> <span class="part">ADP</span> <span class="part">Oracle</span> <span class="part">iCIMS</span></p>
+      <p class="key">Bold: filled from your resume in a window the app opens (Workday: with Claude, in Chrome). Plain: the app fills the start box, then tells you each next step. Any other form: answers ready to paste.</p>
       <p class="submit-line"><span class="submit" aria-hidden="true">Submit<svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="100" d="M30 8 C 90 0, 190 4, 195 28 C 199 50, 120 58, 60 55 C 18 53, 3 42, 6 28 C 9 14, 44 6, 100 6"/></svg></span>
         <span>It stops before Save and Submit. You check the form and press it yourself.</span></p>
+      </div>
     </div>
     <div class="half">
       <h2>Help after you apply</h2>
