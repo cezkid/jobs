@@ -846,10 +846,10 @@ PAGE_CSS = """
   .crumbs li { margin: 0; }
   .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
   /* display scale, like the home page's section heads (>= 72px at 1440 wide); a two-part title's deck on its own line */
-  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.02; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
-  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.15; letter-spacing: -0.005em; }
+  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
+  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
   .list .deck { margin-top: 2px; font-size: 0.8em; }
-  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.15; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
@@ -888,7 +888,7 @@ PAGE_CSS = """
   /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
-  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.4; }
+  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
   .toc-mini li { margin: 0; }
   .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
   /* the section in view (TOC_JS marks it): bold, underlined in ink; without JS nothing is marked */
@@ -914,7 +914,7 @@ PAGE_CSS = """
     main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
-    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.4; }
+    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
     .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
@@ -925,14 +925,14 @@ PAGE_CSS = """
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
     main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {
       /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
       display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
-      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.4;
+      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
     }
     .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
     .toc ol { list-style: none; margin: 0; padding: 0; }

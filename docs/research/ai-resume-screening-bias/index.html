@@ -53,11 +53,18 @@
     --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
     --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
-    --gutter: clamp(16px, 2.5vw, 32px); --max: 1320px;
+    --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
     --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
     --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
-    --track-display: -0.024em; --lead-display: 0.98;
+    --track-display: -0.016em; --lead-display: 1.06;
     --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  /* desktop: the gaps grow with the display type (owner, plan-dxn.37: 107px headings over 32px gutters
+     read cramped). 768px up, continuous with the phone values: gap 22 -> 56 -> 72px, side margin
+     32 -> 83 -> 103px at 768x1024 / 1440x900 / 1920x1080 (past 1576px the --max centring margin is wider
+     anyway); capped by height like the display type (11vh - 16px: 54px at 1366x641 keeps Copy on screen) */
+  @media (min-width: 768px) {
+    :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
     :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
@@ -107,11 +114,11 @@
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
     display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
-    padding: 0 max(var(--gutter), (100% - var(--max)) / 2);
+    padding: 0 max(var(--side), (100% - var(--max)) / 2);
   }
-  .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
+  .wrap { max-width: calc(var(--max) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
   .skip {
-    position: absolute; z-index: 1; left: var(--gutter); top: 8px; padding: 6px 12px;
+    position: absolute; z-index: 1; left: var(--side); top: 8px; padding: 6px 12px;
     background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
   }
   .skip:focus { transform: none; }
@@ -185,10 +192,10 @@
   .crumbs li { margin: 0; }
   .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
   /* display scale, like the home page's section heads (>= 72px at 1440 wide); a two-part title's deck on its own line */
-  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.02; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
-  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.15; letter-spacing: -0.005em; }
+  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
+  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
   .list .deck { margin-top: 2px; font-size: 0.8em; }
-  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.15; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
@@ -227,7 +234,7 @@
   /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
-  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.4; }
+  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
   .toc-mini li { margin: 0; }
   .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
   /* the section in view (TOC_JS marks it): bold, underlined in ink; without JS nothing is marked */
@@ -253,7 +260,7 @@
     main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
-    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.4; }
+    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
     .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
@@ -264,14 +271,14 @@
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
     main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {
       /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
       display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
-      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.4;
+      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
     }
     .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
     .toc ol { list-style: none; margin: 0; padding: 0; }
