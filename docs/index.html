@@ -157,6 +157,10 @@
      inline link's own box (Caladea ascent + descent); a flex-item link's (1lh) is taller => also >= 44 */
   @media (pointer: coarse) {
     .brand, :is(nav, footer) a, .tap { padding-block: calc((45px - 1.1em) / 2); margin-block: calc((1.1em - 45px) / 2); }
+    /* footer links are grid/flex items (box 1lh): exactly 45px each, rows 45px apart - overlapping boxes
+       read as covered (Lighthouse target-size) */
+    footer nav { row-gap: calc(45px - 1lh); }
+    footer nav a { padding-block: calc((45px - 1lh) / 2); margin-block: calc((1lh - 45px) / 2); }
   }
   /* under 360px (320px phones) the links may drop below the brand */
   @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }

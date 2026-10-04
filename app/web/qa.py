@@ -38,7 +38,8 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   starting right of x 900 (its On this page column)
 
 HIT_BOXES, every page at 390x844 (phone, touch): every visible link + button but links inside running text
-and the skip link is >= 44px tall; NAV_CURRENT, every page at 1366x641: the header's Research link is
+and the skip link is >= 44px tall; HIT_OVERLAP, same pages + size: every header / footer / nav tap box keeps
+>= 24px of its height uncovered by its neighbours' boxes (Lighthouse target-size); NAV_CURRENT, every page at 1366x641: the header's Research link is
 underlined thicker than Install on /research/** and the same elsewhere; FOOTER_BOTTOM, every page at
 1440x900: the footer ends within 2px of the window's bottom or the page end (404: no blank band under it).
 TOC_NARROW, every page with an On this page column at 390x844 (phone) + 1024x768: a visible 'On this page'
@@ -611,6 +612,22 @@ HIT_BOXES = """() => { const out = [];
     if (!inText) out.push([el.tagName.toLowerCase() + " " + JSON.stringify(el.textContent.trim().slice(0, 40)), r.height]);
   }
   return out; }"""
+# HIT_OVERLAP (G1): same pages + size, the links + buttons in header, footer and nav: each keeps >= 24px of its
+# height (WCAG 2.5.8 floor) not covered by its neighbours' boxes (Lighthouse target-size reads a covered strip as
+# obscured: footer rows 35px apart w/ 53px hit boxes left Research 20.4px -> accessibility 95 on phones)
+HIT_FREE = 24
+HIT_OVERLAP = """() => { const els = [...document.querySelectorAll("header a, header button, footer a, nav a")]
+    .filter(el => el.checkVisibility({visibilityProperty: true}) && !el.classList.contains("skip"))
+    .map(el => [el.textContent.trim().slice(0, 30), el.getBoundingClientRect()]), out = [];
+  for (const [name, r] of els) {
+    const cut = els.filter(([, q]) => q !== r && Math.min(r.right, q.right) - Math.max(r.left, q.left) > 1)
+      .map(([n, q]) => [n, Math.max(r.top, q.top), Math.min(r.bottom, q.bottom)]).filter(([, t, b]) => b - t > 1)
+      .sort((x, y) => x[1] - y[1]);
+    let covered = 0, end = r.top;
+    for (const [, t, b] of cut) { if (b > end) { covered += b - Math.max(t, end); end = b; } }
+    if (r.height - covered < HIT_FREE) out.push([name, cut.map(c => c[0]), r.height - covered]);
+  }
+  return [els.length, out]; }""".replace("HIT_FREE", str(HIT_FREE))
 # NAV_CURRENT (B12): the header's Research link is thicker-underlined on /research/** only (vs Install)
 NAV_CURRENT = """() => { const t = s => { const a = document.querySelector(s);
     return a ? parseFloat(getComputedStyle(a).textDecorationThickness) || 0 : null; };
@@ -838,6 +855,9 @@ FAULTS = [
      "motion"),
     (HOME, "HIT_BOXES: footer links back to their text height on touch", "<style>@media (pointer: coarse) "
      "{ footer a { padding-block: 0 !important; margin-block: 0 !important; } }</style>", "phone"),
+    (ARTICLE, "HIT_OVERLAP: footer rows 8px apart w/ 53px tap boxes on touch (before G1)", "<style>@media (pointer: "
+     "coarse) { footer nav { row-gap: 8px !important; } footer nav a { padding-block: calc((45px - 1.1em) / 2) "
+     "!important; margin-block: calc((1.1em - 45px) / 2) !important; } }</style>", "phone"),
     (ARTICLE, "NAV_CURRENT: Research link plain on an article", "<style>.links a { text-decoration-thickness: 1px "
      "!important; }</style>", "layout"),
     ("privacy.html", "EMPTY_RIGHT: Short version back in the text column, right half empty",
@@ -890,7 +910,7 @@ CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FR
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
-             "0 matches": "found 0 elements"}
+             "HIT_OVERLAP": "HIT_OVERLAP", "0 matches": "found 0 elements"}
 
 
 def pages() -> list[str]:
@@ -1088,6 +1108,11 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                 failed.append(f"HIT_BOXES {where}: check found 0 links or buttons")
             failed += [f"HIT_BOXES {where}: {what} hit box {h:.1f}px tall, under {HIT_MIN}px"
                        for what, h in boxes if h < HIT_MIN]
+            n, overlaps = page.evaluate(HIT_OVERLAP)
+            if not n:
+                failed.append(f"HIT_OVERLAP {where}: check found 0 elements")
+            failed += [f"HIT_OVERLAP {where}: {a!r} keeps {h:.1f}px of its tap box (under {HIT_FREE}px), "
+                       f"covered by {', '.join(map(repr, b))}" for a, b, h in overlaps]
         if (width, height) == FOLD and not phone and not mac:
             research, other = page.evaluate(NAV_CURRENT)
             if research is None or other is None:

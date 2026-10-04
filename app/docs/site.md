@@ -284,7 +284,8 @@ KB = 1000 bytes.
   finished; no JS = all text + the Windows line, no visible
   button, a link to the Mac answer; h1 at 200% zoom >= 100% (1366x641, 1440x900, 1920x1080); text opacity 1 at every scroll step once the
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint, every
-  `<del>` struck, every bullet dot painted; phone 390x844 every non-inline link + button >= 44px tall;
+  `<del>` struck, every bullet dot painted; phone 390x844 every non-inline link + button >= 44px tall, and each
+  header / footer / nav one keeps >= 24px of its height uncovered by its neighbours' hit boxes (Lighthouse target-size);
   Research link thicker on /research/** only (1366x641); footer at the window/page bottom (1440x900);
   print <= 5 pages w/ the install line; 0 console errors; every dashed SVG stroke at
   `stroke-dashoffset` 0 in reduced motion, after a full scroll, and above the screen after a
@@ -293,8 +294,8 @@ KB = 1000 bytes.
   within 12px at first paint, LCP element outside every animated element (selector reported),
   a same-tab reload animates nothing; page change via the header links (1366x641):
   `pagereveal.viewTransition` set both ways in full motion, null in reduced, home arriving through
-  one skips its opening; `--engines` webkit + firefox; `--self-test` injects 25 faults into home + an
-  article (a new check's fault must be caught by that check), each must fail; `--capture DIR` = shots of
+  one skips its opening; `--engines` webkit + firefox; `--self-test` injects 66 faults (G1) into home, articles, hub,
+  privacy + 404 (a new check's fault must be caught by that check), each must fail; `--capture DIR` = shots of
   every page at 5 sizes light + dark + `numbers.md` (lengths, print pages, h1/h2 px) for before/after. Mark = `<mark>` or class `mark` (new kinds
   carry it, or the checks can't see them).
 - Perf (`qa.py --perf`, median of 3 vs a frozen copy of the polish base): phone LCP <= 1.5 s
@@ -347,7 +348,9 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   Phone footer: the credit, then its 6 links as 2 even rows of 3 (no link alone on a row).
 - Touch (`pointer: coarse`): links in nav + footer, the brand and `.tap` links get hit boxes >= 44px
   tall (Apple HIG 44pt; WCAG 2.5.8's 24px is the floor) via padding + an equal negative margin, so
-  layout + look don't change. Links inside running text are exempt.
+  layout + look don't change. Links inside running text are exempt. Footer links are grid/flex items
+  (box = 1lh, not 1.1em): exactly 45px each, rows `45px - 1lh` apart - two rows 8px apart w/ 53px boxes
+  overlapped, Lighthouse read Research as covered (20.4px left) => accessibility 95 on phones (G1, 2026-10-04).
 - Short pages: body is a flex column, min-height 100svh, main grows => the footer sits at the window's
   bottom (404), never a blank band under it. Screen only (print keeps block flow).
 - `docs/index.html` marks each part with `<!-- region: name -->` ... `<!-- /region: name -->` so a
@@ -382,3 +385,8 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   `.woff2` font/woff2 - no headers file needed.
 - `/privacy` + `/index.html` also answer 200 -> every page carries a canonical == sitemap URL.
 - Font subset: regular 18.2 KB, bold 18.2 KB; og.png 81.4 KB, og-research.png 51.6 KB.
+- Polish pass end (plan-dxn G1, 2026-10-04, vs base e704f97): home 7.28 screens at 1366x641 (was 7.12),
+  8.11 at 375x812 (was 7.90), print 5; perf median of 3 phone LCP 532 ms (base 516), desktop 116 (92),
+  no-GPU 336 (276), CLS 0, scroll long frame 136-149 ms (base 136-146); Lighthouse 6 pages x phone +
+  desktop x 3 runs: Accessibility + Best Practices 100 every run, Performance median 100 everywhere.
+  First Lighthouse run caught footer tap boxes overlapping on phones (accessibility 95) - fixed + qa HIT_OVERLAP.
