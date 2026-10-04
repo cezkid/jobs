@@ -26,7 +26,7 @@ import pymupdf  # noqa: E402
 
 from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts,  # noqa: E402
                          loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
-                         run_together, stroke_on_paper, typewriter, yellow_fills)
+                         run_together, wide_table, wide_tokens, stroke_on_paper, typewriter, yellow_fills)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -550,6 +550,7 @@ def test_site_md_tokens_table_is_the_shared_root():
     css = shared((DOCS / "index.html").read_text(encoding="utf-8"))
     doc = (cfg.APP / "docs" / "site.md").read_text(encoding="utf-8")
     assert token_table(doc) == tokens(css)
+    assert wide_table(doc) == wide_tokens(css) != {}
 
 
 PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>

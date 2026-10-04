@@ -365,15 +365,23 @@ def shared(raw: str) -> str:
 
 
 def tokens(css: str) -> dict[str, dict[str, str]]:
-    """Custom properties of the shared :root, light + dark (dark = light w/ the dark-scheme overrides)."""
+    """Custom properties of the shared :root, light + dark (dark = light w/ the dark-scheme overrides);
+    the (min-width: 768px) overrides are wide_tokens()'."""
     def props(body: str) -> dict[str, str]:
         return {k: " ".join(v.split()) for k, v in re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", body)}
     dark_m = re.search(r"@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{([^}]*)\}", css)
+    wide_m = re.search(r"@media\s*\(min-width:\s*768px\)\s*\{\s*:root\s*\{([^}]*)\}", css)
     light = {}
     for m in re.finditer(r":root\s*\{([^}]*)\}", css):
-        if not dark_m or not (dark_m.start() <= m.start() < dark_m.end()):
+        if not any(o and o.start() <= m.start() < o.end() for o in (dark_m, wide_m)):
             light.update(props(m.group(1)))
     return {"light": light, "dark": {**light, **(props(dark_m.group(1)) if dark_m else {})}}
+
+
+def wide_tokens(css: str) -> dict[str, str]:
+    """The shared :root's (min-width: 768px) overrides: spacing that grows with the display type (plan-dxn.37)."""
+    m = re.search(r"@media\s*\(min-width:\s*768px\)\s*\{\s*:root\s*\{([^}]*)\}", css)
+    return {k: " ".join(v.split()) for k, v in re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", m.group(1))} if m else {}
 
 
 def colour(value: str, scheme: dict[str, str]) -> list[str]:
@@ -459,6 +467,11 @@ def token_table(markdown: str) -> dict[str, dict[str, str]]:
         light[name] = lv
         dark[name] = lv if dv == "same" else dv.strip("`")
     return {"light": light, "dark": dark}
+
+
+def wide_table(markdown: str) -> dict[str, str]:
+    """site.md's 768px-up rows (| 768px+ | `--x` | `value` | use |) in wide_tokens()' shape."""
+    return dict(re.findall(r"^\| 768px\+ \| `(--[\w-]+)` \| `([^`]+)` \|", markdown, re.M))
 
 
 class Prose(HTMLParser):

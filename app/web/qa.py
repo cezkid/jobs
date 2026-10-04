@@ -30,6 +30,8 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   desktop size >= 1080 wide; at 768 the two stacked halves >= 48px apart (A11);
   TYPE_TIERS at 1366x641, 1440x900, 1440x780, 1920x1080: every scene h2 is <= 0.8x or >= 1.2x the h1, never
   between (PICK P-c2 role tiers);
+  SPACE_RATIO, every page at 1440x900 + 1920x1080: grid gap >= 0.4x the largest h2, side margin >= 0.75x
+  the h1, each display heading (>= 48px) >= 0.5x its size clear of the next column (plan-dxn.37);
   MAC_LINE: Mac browser name at 768, 1366x641, 1440x900, 1920x1080 -> the
   install line is one line box; a check whose selector finds 0 elements fails (missing()), never a
   silent pass; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
@@ -485,6 +487,47 @@ TYPE_TIERS = """() => { const h1 = document.querySelector("h1"), h2s = [...docum
   const px = el => parseFloat(getComputedStyle(el).fontSize);
   return h2s.map(h => [h.textContent.trim().slice(0, 30), px(h) / px(h1)]); }"""
 
+# SPACE_RATIO (plan-dxn.37, owner at S1: "such large font and tiny gutter"), every page at SPACE_AT: the
+# grid gap (--gutter, read off a probe) >= 0.4x the page's largest h2, the page's side margin (main's content
+# box) >= 0.75x the h1, and each display heading (>= 48px) keeps >= 0.5x its size clear to the next column
+# (a sibling grid item level with one of its line boxes). [gap, h2, side, h1, [[text, px, clear]]] or null
+SPACE_AT = [(1440, 900), (1920, 1080)]
+SPACE_GAP, SPACE_SIDE, SPACE_CLEAR, SPACE_DISPLAY = 0.4, 0.75, 0.5, 48
+SPACE_RATIO = """() => {
+  const main = document.querySelector("main"), h1 = document.querySelector("main h1");
+  if (!main || !h1) return null;
+  const px = el => parseFloat(getComputedStyle(el).fontSize), shown = el => el.getBoundingClientRect().width > 0;
+  const probe = document.createElement("div"); probe.style.cssText = "display: grid; column-gap: var(--gutter)";
+  document.body.append(probe); const gap = parseFloat(getComputedStyle(probe).columnGap); probe.remove();
+  const h2s = [...main.querySelectorAll("h2")].filter(shown), h2 = Math.max(0, ...h2s.map(px));
+  const box = main.matches(".grid, .wrap") ? main : main.querySelector(".grid, .wrap");
+  if (!box) return null;
+  const r = box.getBoundingClientRect(), s = getComputedStyle(box);
+  const side = Math.min(r.left + parseFloat(s.paddingLeft), innerWidth - r.right + parseFloat(s.paddingRight));
+  const near = [];
+  for (const h of [h1, ...h2s].filter(h => px(h) >= """ + str(SPACE_DISPLAY) + """)) {
+    let item = h;
+    while (item.parentElement && item.parentElement !== document.body) {
+      const g = getComputedStyle(item.parentElement);
+      if (g.display.includes("grid") && g.gridTemplateColumns.split(" ").length > 1) break;
+      item = item.parentElement;
+    }
+    if (!item.parentElement || item.parentElement === document.body) continue;
+    const range = document.createRange(); range.selectNodeContents(h);
+    const lines = [...range.getClientRects()].filter(l => l.width > 1);
+    let clear = Infinity;
+    for (const sib of item.parentElement.children) {
+      if (sib === item || !shown(sib) || getComputedStyle(sib).position === "absolute") continue;
+      const b = sib.getBoundingClientRect();
+      for (const l of lines) {
+        if (Math.min(l.bottom, b.bottom) - Math.max(l.top, b.top) < 2) continue;
+        clear = Math.min(clear, b.left >= l.left ? b.left - l.right : l.left - b.right);
+      }
+    }
+    if (clear < Infinity) near.push([h.textContent.trim().slice(0, 30), px(h), clear]);
+  }
+  return [gap, h2, side, px(h1), near]; }"""
+
 # empty right halves (BAND_AT): per row of main, 4px slices from its first content line to its last; a run
 # of slices whose rightmost content (text line boxes, svg/img/button, boxes with a border or background)
 # ends more than BAND_W px short of the row's content edge, taller than BAND_H px = a band left empty
@@ -825,6 +868,9 @@ FAULTS = [
      "</style>", "tablet"),
     (HOME, "SHEET_NOTE: the new line back at 15px", "<style>.sheet-lg .new { font-size: 0.9375rem !important; }</style>",
      "layout"),
+    (HOME, "SPACE_RATIO: gap forced back to 32px", "<style>:root { --gutter: 32px !important; }</style>", "wide"),
+    (HOME, "SPACE_RATIO: side margin back to the --max centring alone (60px at 1440)", "<style>:root { --side: 32px "
+     "!important; }</style>", "wide"),
     (HOME, "TYPE_TIERS: Questions back at the h1's size", "<style>.questions h2 { font-size: var(--h1) !important; }"
      "</style>", "wide"),
     (HOME, "TYPE_TIERS: the help subhead a step under the h1", "<style>.half + .half h2 { font-size: "
@@ -896,7 +942,7 @@ FAULTS = [
      ".remove()</script>", "toc"),
     (ARTICLE, "TOC_BESIDE: On this page back at the window's edge", "<style>.toc { justify-self: end !important; }"
      "</style>", "wide"),
-    (ARTICLE, "TOC_BESIDE: a thin column, the right half empty again", "<style>.toc { width: 8rem !important; }"
+    (ARTICLE, "TOC_BESIDE: a thin column, the right half empty again", "<style>.toc { width: 6rem !important; }"
      "</style>", "wide"),
     (ARTICLE, "TOC_WIDE: On this page column hidden on wide screens", "<style>@media (min-width: 1280px) "
      "{ .toc { display: none !important; } }</style>", "toc"),
@@ -917,7 +963,7 @@ CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FR
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_BESIDE": "TOC_BESIDE", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
-             "HIT_OVERLAP": "HIT_OVERLAP", "0 matches": "found 0 elements"}
+             "HIT_OVERLAP": "HIT_OVERLAP", "SPACE_RATIO": "SPACE_RATIO", "0 matches": "found 0 elements"}
 
 
 def pages() -> list[str]:
@@ -1160,6 +1206,20 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
             if got is None:
                 failed.append(f"RULES_STACKED {where}: check found 0 main elements")
             failed += [f"RULES_STACKED {where}: {line}" for line in got or []]
+        if (width, height) in SPACE_AT and not phone and not mac:
+            got = page.evaluate(SPACE_RATIO)
+            if got is None:
+                failed.append(f"SPACE_RATIO {where}: check found 0 elements (main, h1, content box)")
+            else:
+                gap, h2, side, h1, near = got
+                reports.append(f"report: SPACE_RATIO {where}: gap {gap:.0f}px, largest h2 {h2:.0f}px, side {side:.0f}px, "
+                               f"h1 {h1:.0f}px, clear {', '.join(f'{c:.0f}/{f:.0f}' for _, f, c in near) or '-'}")
+                if gap < SPACE_GAP * h2:
+                    failed.append(f"SPACE_RATIO {where}: grid gap {gap:.0f}px, under {SPACE_GAP}x the {h2:.0f}px h2")
+                if side < SPACE_SIDE * h1:
+                    failed.append(f"SPACE_RATIO {where}: side margin {side:.0f}px, under {SPACE_SIDE}x the {h1:.0f}px h1")
+                failed += [f"SPACE_RATIO {where}: \"{text}\" ({f:.0f}px) {c:.0f}px from the next column, under "
+                           f"{SPACE_CLEAR}x its size" for text, f, c in near if c < SPACE_CLEAR * f]
         if (width, height) in BAND_AT and not phone:
             if name == "index.html" or name in WIDE_PAGES:
                 rows = "main > *" if name == "index.html" else "main"

@@ -52,11 +52,18 @@
     --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
     --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
-    --gutter: clamp(16px, 2.5vw, 32px); --max: 1320px;
+    --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
     --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
     --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
     --track-display: -0.024em; --lead-display: 0.98;
     --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  /* desktop: the gaps grow with the display type (owner, plan-dxn.37: 107px headings over 32px gutters
+     read cramped). 768px up, continuous with the phone values: gap 22 -> 56 -> 72px, side margin
+     32 -> 83 -> 103px at 768x1024 / 1440x900 / 1920x1080 (past 1576px the --max centring margin is wider
+     anyway); capped by height like the display type (11vh - 16px: 54px at 1366x641 keeps Copy on screen) */
+  @media (min-width: 768px) {
+    :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
     :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
@@ -106,11 +113,11 @@
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
     display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
-    padding: 0 max(var(--gutter), (100% - var(--max)) / 2);
+    padding: 0 max(var(--side), (100% - var(--max)) / 2);
   }
-  .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
+  .wrap { max-width: calc(var(--max) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
   .skip {
-    position: absolute; z-index: 1; left: var(--gutter); top: 8px; padding: 6px 12px;
+    position: absolute; z-index: 1; left: var(--side); top: 8px; padding: 6px 12px;
     background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
   }
   .skip:focus { transform: none; }
@@ -263,7 +270,7 @@
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
     main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {

@@ -135,7 +135,8 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--line` | `#c8c8c8` | `#48484a` | hairlines between sections (decorative) |
 | `--serif` | `"Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif` | same | all text |
 | `--mono` | `ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace` | same | the install command only |
-| `--gutter` | `clamp(16px, 2.5vw, 32px)` | same | grid column gap + page side padding |
+| `--gutter` | `clamp(16px, 2.5vw, 32px)` | same | grid column gap (phones; 768px up below) |
+| `--side` | `var(--gutter)` | same | page side margin of `.grid` / `.wrap` + the skip link (phones; 768px up below) |
 | `--max` | `1320px` | same | widest content box (`.grid`, `.wrap`) |
 | `--step--1` | `0.9375rem` | same | small print (15px at default zoom) |
 | `--step-0` | `1.25rem` | same | body text (20px) |
@@ -145,6 +146,21 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--track-display` | `-0.024em` | same | letter-spacing of display lines (h1 + scene h2, 941px+ wide) |
 | `--lead-display` | `0.98` | same | line-height of the same lines: text-size values read loose at 90-112px |
 | `--ease-mark` | `cubic-bezier(0.3, 0.7, 0.4, 1)` | same | highlighter sweeps |
+
+768px up, the spacing grows with the display type (owner, plan-dxn.37, S1 look: "such large font and
+tiny gutter" - 107px label h2s over a 32px gap, 60px side margin at 1440). Linear in the window width,
+continuous with the phone values, so tablets sit in between; phones (< 768) keep the rows above:
+
+| From | Token | Value | Gives |
+|---|---|---|---|
+| 768px+ | `--gutter` | `min(72px, 5vw - 16px)` | gap 22 / 56 / 72px at 768 / 1440 / 1920: >= 0.4x the largest h2 (107px at 1440x900, 131px at 1920x1080) |
+| 768px+ | `--side` | `max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px))` | side margin 32 / 54 / 83px at 768x1024 / 1366x641 / 1440x900 (1576px up the `--max` centring margin is wider: 300px at 1920) - >= 0.75x the h1; capped by height like the display type (`8.6vh` cap): 56px+ at 1366x641 pushes the Mac Copy button under the fold (645px) |
+
+`--max` stays 1320px: at 1440x900 the content box is 1274px (83px margins), columns 55px wide, still wider
+than the gap; the 68ch reading measure is unchanged. Home scenes (1080px up) take their block padding from their h2:
+`max(clamp(56px, 9vh, 104px), 0.9x the h1)`, label scenes (who sees what, research, closing) 1.15x the h1.
+qa SPACE_RATIO (every page at 1440x900 + 1920x1080): gap >= 0.4x the largest h2, side margin >= 0.75x the h1,
+each display heading (>= 48px) >= 0.5x its size clear of the next column.
 
 - Hand-written pages use ’ “ ” and spaced – in prose (straight `'` reads as typewriter text at
   display size); the app window + resume sheet keep ` - ` because they mirror what the app prints.
@@ -334,7 +350,7 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   canonical -> `noindex`. Sitemap = exactly the indexed URLs, once each. Titles + descriptions unique.
 - Shared CSS (`/* shared */` ... `/* /shared */`: fonts, tokens, base type, `.grid`, `.wrap`, skip
   link, header, footer) identical on every page; test guards. `.grid` = 12 columns, gap
-  `--gutter`, max `--max`, for composed pages (home); `.wrap` = the same outer box w/o columns
+  `--gutter`, side margin `--side`, max `--max`, for composed pages (home); `.wrap` = the same outer box w/o columns
   (generated pages, privacy, 404), so every edge lines up with the header.
 - Header (`<header class="masthead">`: skip link to `<main id="main">`, brand, Research
   `/research/`, Install `/#install`, Source code) + bare `<footer>` (Made by -> www.enrriquez.com,

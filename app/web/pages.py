@@ -925,7 +925,7 @@ PAGE_CSS = """
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: 32px; }
+    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
     main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
     .toc {
