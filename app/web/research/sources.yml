@@ -270,7 +270,7 @@
   evidence: observational
   sample: 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: dastin-2018
   type: article
@@ -424,7 +424,7 @@
   evidence: observational
   sample: about 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: gao-2026
   type: article
@@ -608,7 +608,7 @@
   url: https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf
   evidence: vendor survey
   sample: 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17-22, 2024; a staffing firm's survey; question wording not published
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: jakesch-2023
   type: article
@@ -722,6 +722,16 @@
   checked: 2026-10-03
 
 # Court order: allegations, not findings
+- id: mit-capd-ai-cover-letters
+  type: web
+  org: MIT Career Advising & Professional Development
+  year: 2026
+  title: Using AI for cover letters
+  url: https://capd.mit.edu/resources/using-ai-for-cover-letters/
+  evidence: convention
+  sample: a university career office's guide for students; page undated
+  checked: 2026-10-04
+
 - id: mit-capd-ats
   type: web
   org: MIT Career Advising & Professional Development
@@ -766,6 +776,16 @@
   evidence: lab/LLM audit
   sample: 7 AI detectors run on 91 essays by non-native English writers (TOEFL) and 88 essays by US eighth graders, all written by people
   checked: 2026-10-03
+
+- id: mit-capd-cover-letters
+  type: web
+  org: MIT Career Advising & Professional Development
+  year: 2026
+  title: How to write an effective cover letter (with samples)
+  url: https://capd.mit.edu/resources/how-to-write-an-effective-cover-letter/
+  evidence: convention
+  sample: a university career office's guide for students; page undated
+  checked: 2026-10-04
 
 - id: mit-capd-resumes
   type: web
@@ -914,6 +934,36 @@
   evidence: vendor survey
   sample: 482 recruiters, HR staff and managers in a hiring simulation with made-up resumes; run by a resume-writing company
   checked: 2026-10-03
+
+- id: resumego-2020
+  type: web
+  authors: ["Yang, Peter"]
+  year: 2020
+  title: "Cover Letters: Just How Important Are They?"
+  url: https://www.resumego.net/research/cover-letters/
+  evidence: field experiment
+  sample: 7,287 made-up applications on ZipRecruiter, Glassdoor and Indeed, July 2019 to January 2020, in three groups (no letter, generic letter, tailored letter); run by a resume-writing company, not peer-reviewed; group sizes, job types and a test for chance not given
+  checked: 2026-10-04
+
+- id: resumego-2020-survey
+  type: web
+  authors: ["Yang, Peter"]
+  year: 2020
+  title: "Cover Letters: Just How Important Are They? (recruiter survey)"
+  url: https://www.resumego.net/research/cover-letters/
+  evidence: vendor survey
+  sample: 236 recruiters and hiring managers, yes/no questions on the same page as the experiment; run by a resume-writing company; how they were found and the survey dates not given
+  checked: 2026-10-04
+
+- id: resumelab-2025
+  type: web
+  org: ResumeLab
+  year: 2025
+  title: "Is a Cover Letter Necessary in 2026? Do I Need a Cover Letter?"
+  url: https://web.archive.org/web/20260311155744/https://resumelab.com/cover-letter/are-cover-letters-necessary
+  evidence: vendor survey
+  sample: 200 US recruiters, HR staff and hiring managers, online survey by OnePoll for a company that sells a cover letter builder; dates and question wording not given; page dated December 2025, read in an Internet Archive copy of March 11, 2026 (live page timed out)
+  checked: 2026-10-04
 
 - id: rozado-2026
   type: article
