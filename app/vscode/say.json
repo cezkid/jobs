@@ -2,7 +2,7 @@
  "_": "Words to say in the chat: Today.md (app/today.py) + the dashboard buttons (app/vscode/today.js) read this one file. {n} = job number. label = button text when the words go into the chat box.",
  "templates": [
   {"id": "resume", "words": "resume for job {n}", "label": "Make my resume"},
-  {"id": "apply", "words": "apply to job {n}", "label": "Apply"},
+  {"id": "apply", "words": "apply to job {n}", "label": "Help me apply"},
   {"id": "sent", "words": "I sent job {n}", "label": "I sent it"},
   {"id": "follow_up", "words": "write a follow-up for job {n}", "label": "Write a follow-up"},
   {"id": "heard_back", "words": "I heard back from job {n}", "label": "I heard back"},

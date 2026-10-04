@@ -47,6 +47,15 @@ function uvCandidates({ platform, home, userProfile, envPath }) {
   return [...new Set([...spots, ...onPath].map((dir) => join(dir, exe)))];
 }
 
+// `uv run app/jobs.py ...args` in the Job Finder folder => Promise of its output; rejects on a
+// non-zero exit or timeout. execFile = child_process.execFile (passed in: this file stays pure)
+function runJobs({ execFile, uv, root, args, timeout = 60000, env = undefined }) {
+  return new Promise((ok, no) => {
+    execFile(uv, ["run", "app/jobs.py", ...args], { cwd: root, windowsHide: true, timeout, env },
+      (err, stdout) => (err ? no(err) : ok(String(stdout || ""))));
+  });
+}
+
 function samePath(a, b, platform) {
   const norm = (p) => (platform === "win32" ? path.win32.normalize(p).toLowerCase() : path.posix.normalize(p));
   return norm(a) === norm(b);
@@ -76,5 +85,5 @@ function warmUpPlan(ai) {
 
 module.exports = {
   TODAY, START_HERE, MARKER, STAMP, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
-  isJobFinder, choosePage, needsRefresh, uvCandidates, pageTabs, warmUpPlan,
+  isJobFinder, choosePage, needsRefresh, uvCandidates, runJobs, pageTabs, warmUpPlan,
 };

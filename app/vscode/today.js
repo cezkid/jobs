@@ -42,6 +42,14 @@ const LOOKS = [
   { word: "dark", label: "Dark", done: "Dark look on" },
 ];
 const LOOK_FILE = path.join(".data", "look");
+// one click records where a job stands, never through the chat (owner 2026-10-04): say.json id ->
+// status set; the status line then offers Undo for UNDO_MS. The user's click = their own record
+const STATUS_SET = {
+  sent: { state: "applied", done: "marked as sent" },
+  heard_back: { state: "heard_back", done: "marked as heard back" },
+  closed: { state: "closed", done: "marked as closed" },
+};
+const UNDO_MS = 10000;
 
 // file text -> word; missing or unknown = auto (as app/look.py reads it)
 function lookOf(text) {
@@ -105,7 +113,11 @@ function model(raw, sayJson) {
   const act = (a) => actions.push(a) - 1;
   const sayButton = (words) => {
     const t = templateFor(words, tpls);
-    return t ? { id: t.id, words, label: t.label, action: act({ type: "say", words }) } : null;
+    if (!t) return null;
+    const num = jobOf(words);
+    // status change: recorded here (extension runs status set), not words for the chat
+    if (STATUS_SET[t.id] && num) return { id: t.id, words, label: t.label, status: true, action: act({ type: "status", id: t.id, num, words }) };
+    return { id: t.id, words, label: t.label, action: act({ type: "say", words }) };
   };
   const open = (rel, how) => {
     const clean = cleanPath(rel);
@@ -215,10 +227,11 @@ function claudeNewChatArgs(words) {
 // what a say button's own text reads: fill/new => the label ("Make my resume"); copy => honest
 // about what it does ("Copy: resume for job 12")
 function sayText(button, mode) {
-  return mode === "copy" ? `Copy: ${button.words}` : button.label;
+  return mode === "copy" && !button.status ? `Copy: ${button.words}` : button.label;
 }
 
 function sayTitle(button, mode) {
+  if (button.status) return "Saves it here, no chat - you can undo it";
   if (mode === "fill") return `Puts "${button.words}" in the chat box`;
   if (mode === "new") return "Opens a new chat with these words typed in - press Enter to start";
   return "";
@@ -256,23 +269,84 @@ const CLEAR_MS = 8000;
 // status line once it's slower than SLOW_MS (owner 2026-10-03: "takes long time to load")
 const SLOW_MS = 400;
 
-function busyLabel(ai) {
-  return ai === "claude" ? "Starting Claude\u2026" : "Opening the chat\u2026";
+// ready = the chat extension already running (window warm-up, extension.js): "Starting Claude"
+// only when it really is starting (re-critique 2026-10-04)
+function busyLabel(ai, ready = false) {
+  return ai === "claude" && !ready ? "Starting Claude\u2026" : "Opening the chat\u2026";
 }
 
-function startingLine(ai) {
-  return `${ai === "claude" ? "Starting Claude" : "Opening the chat"} - the first time takes a few seconds`;
+function startingLine(ai, ready = false) {
+  return ai === "claude" && !ready ? "Starting Claude - the first time takes a few seconds" : "Opening the chat - one moment";
+}
+
+// a 2nd chat button while one is opening: said, never silently dropped
+const STILL_OPENING = "One moment - the last one is still opening.";
+const STILL_SAVING = "One moment - the last change is still being saved.";
+
+// status line once a click recorded it / took it back / failed
+function statusLine(id, num) {
+  return `Job ${num} ${STATUS_SET[id].done}.`;
+}
+
+function undoneLine(num) {
+  return `Undone - Job ${num} is back where it was.`;
+}
+
+function statusFailed(id, num, words) {
+  return `Couldn't save that for Job ${num}. Try again, or say "${words}" in the chat.`;
+}
+
+const UNDO_FAILED = "Couldn't undo that - tell the chat where the job really stands.";
+
+// one-click status, no chat. run(args) = `jobs.py ...args`, rejects on failure; refresh() =
+// rebuild Today (page redraws from it); tell(text, { undo }) = status line, undo => its Undo button.
+// One change at a time; Undo takes back the last one only, within UNDO_MS, by the state it set
+// (status undo --from: never a later change made in a chat)
+function statusKeeper({ run, refresh, tell, now = () => Date.now() }) {
+  let busy = false;
+  let last = null;
+  const once = async (fn) => {
+    if (busy) return tell(STILL_SAVING);
+    busy = true;
+    try { await fn(); } finally { busy = false; }
+  };
+  return {
+    set: (num, id, words = "") => once(async () => {
+      const s = STATUS_SET[id];
+      if (!s || !Number.isInteger(num) || num < 1) return;
+      try {
+        await run(["status", "set", String(num), s.state]);
+      } catch {
+        return tell(statusFailed(id, num, words));
+      }
+      last = { num, state: s.state, until: now() + UNDO_MS };
+      tell(statusLine(id, num), { undo: true });
+      refresh();
+    }),
+    undo: () => once(async () => {
+      const was = last;
+      last = null;
+      if (!was || now() > was.until) return;
+      try {
+        await run(["status", "undo", String(was.num), "--from", was.state]);
+      } catch {
+        return tell(UNDO_FAILED);
+      }
+      tell(undoneLine(was.num));
+      refresh();
+    }),
+  };
 }
 
 // one say button press: words into the chat, never sent; returns the mode that ran.
 // exec(command, ...args) + copy(text) = vscode calls; busy(on) + status(text, { done, hold }) =
 // page feedback (done = the pressed button's label after; hold = line stays until the next one).
 // busy at once; starting line if still waiting after SLOW_MS; then ready line, or copy fallback
-async function say({ ai, mode, words, platform, exec, copy, status, busy, wait = setTimeout, clear = clearTimeout }) {
+async function say({ ai, mode, words, platform, exec, copy, status, busy, wait = setTimeout, clear = clearTimeout, warm = false }) {
   const num = jobOf(words);
   const ready = (ran) => status(readyLine(ran, num, platform), { done: doneLabel(ran) });
-  busy(true);
-  const slow = wait(() => status(startingLine(ai), { hold: true }), SLOW_MS);
+  busy(true, busyLabel(ai, warm));
+  const slow = wait(() => status(startingLine(ai, warm), { hold: true }), SLOW_MS);
   try {
     if (mode === "fill") {
       try {
@@ -321,7 +395,7 @@ body { margin: 0; padding: 0 20px; background: var(--desk); color: var(--text);
 main { max-width: 52rem; margin: 0 auto; padding: 24px 0 48px; }
 h1 { font-size: 2rem; line-height: 1.1; margin: 0 0 4px; }
 h1, h2, h3 { text-wrap: balance; }
-[tabindex="-1"]:focus { outline: none; }
+[tabindex="-1"]:focus { outline: 3px solid var(--text); outline-offset: 4px; }
 .skip { position: absolute; left: -10000px; top: 0; }
 .skip:focus-within { position: static; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; }
 .sub { color: var(--text-2); margin: 0 0 2px; }
@@ -384,6 +458,8 @@ button.link { border: 0; padding: 0; background: none; font-weight: 400; color: 
 button.link:hover { background: none; box-shadow: none; text-decoration-thickness: 2px; }
 button.link:active { box-shadow: none; text-decoration-thickness: 3px; }
 button[disabled] { cursor: progress; opacity: 0.75; }
+button.done, button.done:hover, button.done:active { border-color: transparent; background: none; box-shadow: none;
+  transform: none; color: var(--text-2); font-weight: 400; cursor: default; }
 button:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
 body.vscode-high-contrast button { border-color: var(--edge); }
 body.vscode-high-contrast button.go { border-width: 3px; padding: 3px 10px; }
@@ -391,9 +467,10 @@ body.vscode-high-contrast button.quiet { border-style: dashed; }
 body.vscode-high-contrast button.link { border: 0; }
 body.vscode-high-contrast .look button[aria-pressed="true"] { text-decoration: underline; text-underline-offset: 3px;
   text-decoration-thickness: 2px; }
-#status { position: sticky; bottom: 0; margin: 16px 0 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--text);
-  background: var(--desk); color: var(--text); font-weight: 700; }
-#status:empty { display: none; }
+.bar { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 16px 0 0;
+  padding: 10px 14px; border-radius: 8px; border: 1px solid var(--text); background: var(--desk); color: var(--text); }
+.bar:has(#status:empty) { display: none; }
+#status { margin: 0; font-weight: 700; flex: 1 1 16rem; }
 `;
 
 // webview URI of each shipped face + the webview's own source (extension.js: asWebviewUri, cspSource)
@@ -424,20 +501,32 @@ function head(nonce, fonts) {
 // Keeps scroll, the status line + the pressed button's done state across redraws: the extension
 // replaces the html on every show + Today rewrite; vscode.getState survives that (cheaper than
 // retainContextWhenHidden, which keeps the whole page alive while hidden)
-function page(vscode, doc, win, clearMs, now = () => Date.now()) {
-  const state = Object.assign({ y: 0, status: "", until: 0, done: null }, vscode.getState() || {});
+function page(vscode, doc, win, clearMs, undoMs, now = () => Date.now()) {
+  const state = Object.assign({ y: 0, status: "", until: 0, done: null, undo: false, day: "" }, vscode.getState() || {});
+  // kept for Today's own day only: "Ready in chat" from yesterday would read as still waiting
+  const day = (doc.body && doc.body.dataset.day) || "";
+  // (fallback page: no day => nothing reset)
   const save = () => vscode.setState(state);
+  if (day && state.day !== day) { Object.assign(state, { y: 0, status: "", until: 0, done: null, undo: false, day }); save(); }
   const box = doc.getElementById("status");
+  const undoBtn = doc.getElementById("undo");
   let timer = null;
   let pressed = null;
-  // until = when it clears (0 = stays: a still-running "Starting Claude" line)
-  const show = (text, until) => {
+  // until = when it clears (0 = stays: a still-running "Starting Claude" line); undo = its Undo
+  // button shows as long as the line. Line gone => pressed button's done state goes too
+  const show = (text, until, undo = false) => {
     win.clearTimeout(timer);
     box.textContent = text;
     state.status = text;
     state.until = until;
+    state.undo = Boolean(text && undo);
+    if (undoBtn) {
+      undoBtn.hidden = !state.undo;
+      if (state.undo) undoBtn.setAttribute("aria-label", `Undo: ${text}`);
+    }
+    if (!text) state.done = null;
     save();
-    if (text && until) timer = win.setTimeout(() => show("", 0), Math.max(0, until - now()));
+    if (text && until) timer = win.setTimeout(() => { show("", 0); mark(); }, Math.max(0, until - now()));
   };
   // a button's own words, kept before the first change
   const keep = (b) => {
@@ -450,7 +539,8 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
     b.textContent = text;
     if (b.dataset.name) b.setAttribute("aria-label", text + b.dataset.name.slice(b.dataset.text.length));
   };
-  // done state: the pressed button reads e.g. "Ready in chat" until the next press
+  // done state: the pressed button reads e.g. "Ready in chat" - plain text, not a button to press
+  // again (a 2nd press = a 2nd chat) - until its status line clears or another button is pressed
   const mark = () => {
     for (const b of doc.querySelectorAll("button[data-k]")) {
       if (b.getAttribute("aria-busy")) continue;
@@ -458,12 +548,19 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
       if (!on && !b.dataset.done) continue;
       keep(b);
       label(b, on ? state.done.label : b.dataset.text);
-      if (on) b.dataset.done = "1";
-      else delete b.dataset.done;
+      if (on) {
+        b.dataset.done = "1";
+        b.classList.add("done");
+        b.setAttribute("aria-disabled", "true");
+      } else {
+        delete b.dataset.done;
+        b.classList.remove("done");
+        b.removeAttribute("aria-disabled");
+      }
     }
   };
-  if (state.status && state.until > now()) show(state.status, state.until);
-  else if (state.status) show("", 0);
+  if (state.status && state.until > now()) show(state.status, state.until, state.undo);
+  else if (state.status || state.done) show("", 0);
   mark();
   if (state.y) win.scrollTo(0, state.y);
   let saving = false;
@@ -486,12 +583,19 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
       vscode.postMessage({ look: lk.dataset.look });
       return;
     }
+    if (e.target.closest("button[data-undo]")) {
+      // once: the button goes at once, the extension's line says how it went
+      show(state.status, state.until, false);
+      vscode.postMessage({ undo: true });
+      return;
+    }
     const b = e.target.closest("button[data-a]");
-    if (!b || b.disabled) return;
+    if (!b || b.disabled || b.dataset.done) return;
     if (state.done) { state.done = null; save(); mark(); }
     pressed = b.dataset.k || null;
     // say button: busy at once, before the chat answers (first one can take seconds)
-    if (b.dataset.busy) {
+    // (one already opening => this one isn't marked: the extension says "One moment")
+    if (b.dataset.busy && !doc.querySelectorAll("button[aria-busy]").length) {
       keep(b);
       label(b, b.dataset.busy);
       b.disabled = true;
@@ -502,12 +606,16 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
   win.addEventListener("message", (e) => {
     const d = e.data || {};
     if (d.type === "status") {
-      show(String(d.text || ""), d.hold ? 0 : now() + clearMs);
+      show(String(d.text || ""), d.hold ? 0 : now() + (d.undo ? undoMs : clearMs), Boolean(d.undo));
       if (d.done && pressed) { state.done = { key: pressed, label: String(d.done) }; save(); }
       mark();
     }
     if (d.type === "look") {
       for (const o of doc.querySelectorAll("button[data-look]")) o.setAttribute("aria-pressed", String(o.dataset.look === d.word));
+    }
+    // label = the extension's word for it (Claude already running => no "Starting Claude")
+    if (d.type === "busy" && d.on && d.label) {
+      for (const b of doc.querySelectorAll("button[aria-busy]")) label(b, String(d.label));
     }
     if (d.type === "busy" && !d.on) {
       for (const b of doc.querySelectorAll("button[aria-busy]")) {
@@ -520,11 +628,12 @@ function page(vscode, doc, win, clearMs, now = () => Date.now()) {
   });
 }
 
-const SCRIPT = `(${page})(acquireVsCodeApi(), document, window, ${CLEAR_MS});`;
+const SCRIPT = `(${page})(acquireVsCodeApi(), document, window, ${CLEAR_MS}, ${UNDO_MS});`;
 
 // fonts = { source: webview.cspSource, files: { 400: uri, 700: uri } }; none => Georgia
 // look = auto | light | dark (lookOf), marked on the switch
-function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
+// ready = the chat extension already running (busy label says "Opening", not "Starting Claude")
+function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready = false }) {
   const h = escapeHtml;
   const btn = (text, action, { cls = "", title = "", busy = "", name = "", key = "", about = "" } = {}) =>
     `<button type="button" data-a="${action}"${key ? ` data-k="${h(key)}"` : ""}${busy ? ` data-busy="${h(busy)}"` : ""}`
@@ -535,7 +644,9 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
   // yellow = a task (lead): its first say; status changes outline, closing quieter still
   const say = (b, go, { num = null, name = "", about = "" } = {}) => {
     const text = sayText(b, mode);
-    return btn(text, b.action, { cls: go ? "go" : QUIET.has(b.id) ? "quiet" : "", title: sayTitle(b, mode), busy: busyLabel(ai),
+    // status change: never yellow, never busy (no chat to wait on)
+    return btn(text, b.action, { cls: go && !b.status ? "go" : QUIET.has(b.id) ? "quiet" : "", title: sayTitle(b, mode),
+      busy: b.status ? "" : busyLabel(ai, ready),
       name: name || named(text, num), key: `${num || ""}:${b.id}`, about });
   };
   const acts = (c, lead) => c.say.map((b, i) => say(b, lead && i === 0, { num: c.num })).join("");
@@ -575,8 +686,8 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
       const left = total - shown.length - (m.next && m.next.section === "new" ? 1 : 0);
       more = left > 0 ? { ...more, text: `${left} more new ${left === 1 ? "job" : "jobs"}.` } : null;
     }
-    // "Show the rest" under two sections => named by its section
-    const moreName = more && more.say ? `${sayText(more.say, mode)}: ${s.title}` : "";
+    // "Show the rest" under two sections => named by its section; "Show more new jobs" says it already
+    const moreName = more && more.say && s.id !== "new" ? `${sayText(more.say, mode)}: ${s.title}` : "";
     jumps.push([`s-${s.id}`, s.title]);
     const lead = LEADS.has(s.id);
     const note = [s.note ? h(s.note) : "", s.guide ? guideBtn(s.guide, `Open the guide ${s.guide.title}`) : ""].filter(Boolean).join(" ");
@@ -615,13 +726,16 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto" }) {
   const skip = `<nav class="skip" aria-label="Jump to">${jumps.map(([id, title], i) =>
     `<button type="button" class="link" data-jump="${h(id)}">${i ? "" : "Skip to "}${h(title)}</button>`).join("")}</nav>`;
   return `${head(nonce, fonts)}
-<body>${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${tiles}</div>${lookSwitch(lookOf(look))}</div>
+<body data-day="${h(m.date)}">${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${tiles}</div>${lookSwitch(lookOf(look))}</div>
 <p class="how" id="how">${h(howLine(mode))}</p>
 ${next}${setup}${sections}${todo}${empty}
 <section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}</section>
-<p id="status" role="status" aria-live="polite"></p></main>
+${BAR}</main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
 }
+
+// status line + its Undo (shown only after a status click), stuck to the window's bottom
+const BAR = `<div class="bar"><p id="status" role="status" aria-live="polite"></p><button type="button" id="undo" data-undo="1" hidden>Undo</button></div>`;
 
 // Match my computer · Light · Dark: one pressed, in ink (not yellow: yellow = something to do)
 function lookSwitch(look) {
@@ -643,7 +757,7 @@ function fallback({ nonce, reason = "unreadable", fonts = null }) {
 <body><main><h1>Today</h1><p class="sub">${escapeHtml(why)}</p>
 <div class="acts"><button type="button" class="go" data-a="${TRY_AGAIN}">Try again</button>
 <button type="button" data-a="${SHOW_PAGE}">Show the Today page</button></div>
-<p id="status" role="status" aria-live="polite"></p></main>
+${BAR}</main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
 }
 
@@ -654,6 +768,7 @@ const TRY_AGAIN = -2;
 module.exports = {
   VIEW_TYPE, DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, NEW_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
-  howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say,
+  howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say, STILL_OPENING, STILL_SAVING,
+  STATUS_SET, UNDO_MS, statusLine, undoneLine, statusFailed, UNDO_FAILED, statusKeeper,
   LOOKS, LOOK_FILE, lookOf, lookDone, lookSwitch, csp, page, render, FALLBACK, SHOW_PAGE, TRY_AGAIN, fallback,
 };

@@ -25,7 +25,7 @@ COMMANDS = {
     "tailor": ("resume.tailor", "tailored resume for one job: posting | prepare | check"),
     "letter": ("resume.letter", "cover letter for one job, checked like the resume: prepare | check JOB"),
     "today": ("today", "write Today.md: waiting on you, follow up, new since last check, not finished"),
-    "status": ("status", "where each job stands: list | show JOB | set JOB STATE (or --company --title) | followed-up JOB | sort"),
+    "status": ("status", "where each job stands: list | show JOB | set JOB STATE (or --company --title) | followed-up JOB | undo JOB --from STATE | sort"),
     "follow-up": ("followup", "draft a follow-up email for one job into its folder - the user sends it: JOB [--name NAME]"),
     "interview": ("interview", "interview practice or debrief for one job: requirements, backing lines, pay: JOB"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),

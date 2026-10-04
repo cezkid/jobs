@@ -124,6 +124,8 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
 - User says it in passing ("applied to Acme", "got an interview") -> `status set` by number,
   link or `--company C --title T`, confirm in one line. Never a count of unsent resumes. An
   interview -> offer practice once (`job-interview` skill); Today lists it under Interviews.
+- Today's "I sent it" / "I heard back" / "It's closed" buttons record it themselves (their click =
+  their record, Undo 10 s) - no chat; `status show` reads it.
 - Unsure what they sent ("which did I apply to?"): `status sent` - reads browser history on this
   computer (nothing leaves it; say so), each job not marked sent -> sent / likely not sent /
   can't tell, w/ why. Sent -> `status set`, say which page showed it; the rest -> ONE clickable

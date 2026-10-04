@@ -92,3 +92,12 @@ test("warm-up: the user's chat extension, nothing for Copilot or an unknown AI",
   assert.equal(start.warmUpPlan("chatgpt").id, "openai.chatgpt");
   for (const ai of ["copilot", null, "nova"]) assert.equal(start.warmUpPlan(ai), null);
 });
+
+// Today's status click runs jobs.py in the Job Finder folder; a failed run must reach the page as a failure
+test("runJobs: uv run app/jobs.py + args in the folder; rejects on a failed run", async () => {
+  const calls = [];
+  const exec = (fail) => (file, args, opts, cb) => { calls.push([file, args, opts.cwd]); cb(fail ? new Error("exit 1") : null, "ok\n"); };
+  assert.equal(await start.runJobs({ execFile: exec(false), uv: "/bin/uv", root: "/jf", args: ["status", "set", "12", "applied"] }), "ok\n");
+  assert.deepEqual(calls[0], ["/bin/uv", ["run", "app/jobs.py", "status", "set", "12", "applied"], "/jf"]);
+  await assert.rejects(start.runJobs({ execFile: exec(true), uv: "/bin/uv", root: "/jf", args: ["status"] }));
+});

@@ -142,7 +142,7 @@ test("button text honest per AI: Copilot fills, ChatGPT + untested Claude copy",
   assert.equal(today.sayMode("copilot"), "fill");
   for (const ai of ["claude", "chatgpt", null, "nova"]) assert.equal(today.sayMode(ai), "copy");
   const m = today.model(RAW, say);
-  assert.match(html(m, "fill"), /class="go"[^>]*>Apply</);
+  assert.match(html(m, "fill"), /class="go"[^>]*>Help me apply</);
   assert.match(html(m, "copy"), /class="go"[^>]*>Copy: apply to job 12</);
   assert.match(html(m, "copy"), /Paste them in the chat box and press Enter/);
   assert.equal(today.readyLine("copy", null, "darwin"), "Copied - click the chat box, paste (Cmd+V), press Enter.");
@@ -167,7 +167,7 @@ test("Claude on a tested version: new sidebar chat w/ the words, not sent", () =
   assert.equal(today.CLAUDE_NEW_CHAT, "claude-vscode.editor.open");
   const m = today.model(RAW, say);
   const page = html(m, "new");
-  assert.match(page, /class="go" title="Opens a new chat with these words typed in - press Enter to start" aria-label="Apply, Job 12">Apply</);
+  assert.match(page, /class="go" title="Opens a new chat with these words typed in - press Enter to start" aria-label="Help me apply, Job 12">Help me apply</);
   assert.match(page, /open a new chat with the words typed in\. Nothing is sent until you press Enter/);
   assert.doesNotMatch(page, /Copy:/);
   assert.equal(today.readyLine("new", 12), "Job 12: new chat ready on the right - press Enter");
@@ -249,7 +249,7 @@ test("yellow only on Next up + Waiting on you; status changes outline, closing q
   const waiting = FULL.sections.find((s) => s.id === "waiting").cards.length;
   // Next up's interview + one per waiting job, nothing else
   assert.equal(yellow(page), 1 + waiting);
-  assert.match(page, /<button type="button" data-a="\d+" data-k="13:heard_back" data-busy="[^"]*" title="[^"]*" aria-label="I heard back, Job 13">I heard back</);
+  assert.match(page, /<button type="button" data-a="\d+" data-k="13:heard_back" title="Saves it here, no chat - you can undo it" aria-label="I heard back, Job 13">I heard back</);
   assert.match(page, /class="quiet"[^>]*>It&#39;s closed</);
   assert.match(page, /<span class="meta"><button[^>]*class="link"[^>]*>Posting<\/button> · <button[^>]*class="link"[^>]*>Folder</);
   assert.doesNotMatch(page, />Open the posting<|>Open folder</);
@@ -353,8 +353,8 @@ function pressed({ ai = "claude", mode = "new", fail = false, ms = 0 } = {}) {
 test("button busy the moment it's pressed, labelled for the AI", () => {
   assert.equal(today.busyLabel("claude"), "Starting Claude…");
   assert.equal(today.busyLabel("copilot"), "Opening the chat…");
-  const page = html(today.model(RAW, say), "new").replace(/^[\s\S]*<body>/, "");
-  assert.match(page, /data-busy="Opening the chat…" class="go"[^>]*>Apply</);
+  const page = html(today.model(RAW, say), "new").replace(/^[\s\S]*<body[^>]*>/, "");
+  assert.match(page, /data-busy="Opening the chat…" class="go"[^>]*>Help me apply</);
   const claude = today.render(today.model(RAW, say), { mode: "new", ai: "claude", nonce: "n" });
   assert.match(claude, /data-a="0" data-k="12:apply" data-busy="Starting Claude…"/);
   // open buttons don't wait on the chat => never busy
@@ -416,7 +416,7 @@ test("status line names the job + where to look, per AI; button label after", ()
 
 // fake webview: page() runs against it; state survives a "redraw" (a 2nd page() on fresh DOM)
 function fakeEl(attrs = {}, text = "") {
-  const el = { textContent: text, disabled: false, dataset: {}, attrs: {}, focused: false };
+  const el = { textContent: text, disabled: false, hidden: false, dataset: {}, attrs: {}, focused: false, classes: new Set() };
   for (const [k, v] of Object.entries(attrs)) {
     if (k.startsWith("data-")) el.dataset[k.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = v;
     else el.attrs[k] = v;
@@ -424,25 +424,31 @@ function fakeEl(attrs = {}, text = "") {
   el.getAttribute = (k) => (k in el.attrs ? el.attrs[k] : null);
   el.setAttribute = (k, v) => { el.attrs[k] = String(v); };
   el.removeAttribute = (k) => { delete el.attrs[k]; };
+  el.classList = { add: (c) => el.classes.add(c), remove: (c) => el.classes.delete(c), contains: (c) => el.classes.has(c) };
   el.closest = (sel) => { const k = /^button\[data-(\w+)\]$/.exec(sel); return k && k[1] in el.dataset ? el : null; };
   el.focus = () => { el.focused = true; };
   el.scrollIntoView = () => {};
   return el;
 }
 
-function webview(store) {
+function webview(store, day = "Tuesday, September 29") {
   // one clock across redraws: the page's timers die with it, time doesn't
   store.clock = store.clock || { t: 1000 };
   const clock = { timers: [], get t() { return store.clock.t; }, set t(v) { store.clock.t = v; } };
   const buttons = [
-    fakeEl({ "data-a": "0", "data-k": "12:apply", "data-busy": "Starting Claude…", "aria-label": "Apply, Job 12" }, "Apply"),
+    fakeEl({ "data-a": "0", "data-k": "12:apply", "data-busy": "Starting Claude…", "aria-label": "Help me apply, Job 12" }, "Help me apply"),
     fakeEl({ "data-a": "1", "data-k": "13:resume", "data-busy": "Starting Claude…", "aria-label": "Make my resume, Job 13" }, "Make my resume"),
+    // status change: no data-busy (nothing to wait on in a chat)
+    fakeEl({ "data-a": "2", "data-k": "12:sent", "aria-label": "I sent it, Job 12" }, "I sent it"),
   ];
   const looks = today.LOOKS.map((l) => fakeEl({ "data-look": l.word, "aria-pressed": String(l.word === "auto") }, l.label));
   const status = fakeEl();
+  const undo = fakeEl({ "data-undo": "1" }, "Undo");
+  undo.hidden = true;
   const listeners = {};
   const doc = {
-    getElementById: (id) => (id === "status" ? status : null),
+    body: { dataset: day ? { day } : {} },
+    getElementById: (id) => (id === "status" ? status : id === "undo" ? undo : null),
     querySelectorAll: (sel) => (sel === "button[data-k]" ? buttons : sel === "button[data-look]" ? looks
       : buttons.filter((b) => b.getAttribute("aria-busy"))),
     addEventListener: (type, fn) => { listeners["doc:" + type] = fn; },
@@ -456,9 +462,9 @@ function webview(store) {
   };
   const posted = [];
   const vscode = { getState: () => store.state, setState: (s) => { store.state = JSON.parse(JSON.stringify(s)); }, postMessage: (m) => posted.push(m) };
-  today.page(vscode, doc, win, today.CLEAR_MS, () => clock.t);
+  today.page(vscode, doc, win, today.CLEAR_MS, today.UNDO_MS, () => clock.t);
   return {
-    buttons, looks, status, posted, win,
+    buttons, looks, status, undo, posted, win,
     click: (b) => listeners["doc:click"]({ target: b }),
     msg: (data) => listeners["win:message"]({ data }),
     scroll: (y) => { win.scrollY = y; listeners["win:scroll"](); },
@@ -469,8 +475,8 @@ function webview(store) {
   };
 }
 
-// a status line that never clears reads as stale; the pressed button says it's done until the next press
-test("page: busy at once, then job status + done label; status clears after 8 s; next press resets", () => {
+// a status line that never clears reads as stale; "Ready in chat" still clickable = a 2nd chat w/ the same words
+test("page: busy at once, then job status + inert done label; both clear after 8 s", () => {
   const w = webview({});
   const [apply, resume] = w.buttons;
   w.click(apply);
@@ -484,17 +490,33 @@ test("page: busy at once, then job status + done label; status clears after 8 s;
   w.msg({ type: "busy", on: false });
   assert.equal(apply.textContent, "Ready in chat");
   assert.equal(apply.getAttribute("aria-label"), "Ready in chat, Job 12");
-  assert.equal(apply.disabled, false);
+  assert.equal(apply.getAttribute("aria-disabled"), "true");
+  assert.ok(apply.classList.contains("done"), "plain text look, not a yellow button");
+  // pressing it again sends nothing
+  w.click(apply);
+  assert.deepEqual(w.posted, [{ action: 0 }]);
   assert.equal(w.status.textContent, "Job 12: new chat ready on the right - press Enter");
   w.tick(today.CLEAR_MS - 1);
   assert.notEqual(w.status.textContent, "");
   w.tick(1);
   assert.equal(w.status.textContent, "", "clears after 8 s");
-  assert.equal(apply.textContent, "Ready in chat", "done label stays until the next press");
+  assert.equal(apply.textContent, "Help me apply", "done label goes w/ its line");
+  assert.equal(apply.getAttribute("aria-disabled"), null);
+  assert.ok(!apply.classList.contains("done"));
   w.click(resume);
-  assert.equal(apply.textContent, "Apply");
-  assert.equal(apply.getAttribute("aria-label"), "Apply, Job 12");
   assert.equal(resume.textContent, "Starting Claude…");
+});
+
+// a press elsewhere while a chat button shows done: the done one goes back to its own words
+test("page: next press resets the done label", () => {
+  const w = webview({});
+  const [apply, resume] = w.buttons;
+  w.click(apply);
+  w.msg({ type: "status", text: "Job 12: new chat ready on the right - press Enter", done: "Ready in chat" });
+  w.msg({ type: "busy", on: false });
+  w.click(resume);
+  assert.equal(apply.textContent, "Help me apply");
+  assert.equal(apply.getAttribute("aria-label"), "Help me apply, Job 12");
 });
 
 // the page is redrawn on every show + Today rewrite: scroll, status + done state must survive it
@@ -513,9 +535,77 @@ test("page: redraw keeps scroll, a live status line (rest of its 8 s) and the do
   assert.equal(again.buttons[1].textContent, "Ready in chat");
   again.tick(today.CLEAR_MS);
   assert.equal(again.status.textContent, "");
+  assert.equal(again.buttons[1].textContent, "Make my resume");
   // a line already past its 8 s isn't brought back
   store.state.status = "old"; store.state.until = 500;
   assert.equal(webview(store).status.textContent, "");
+});
+
+// "Ready in chat" from yesterday reads as words still waiting in a chat that's long gone
+test("page: a new day starts clean - no status, done label or scroll kept from Today's last date", () => {
+  const store = {};
+  const w = webview(store);
+  w.scroll(500);
+  w.tick(200);
+  w.click(w.buttons[0]);
+  w.msg({ type: "status", text: "Job 12: new chat ready on the right - press Enter", done: "Ready in chat" });
+  w.msg({ type: "busy", on: false });
+  const same = webview(store);
+  assert.equal(same.buttons[0].textContent, "Ready in chat");
+  const next = webview(store, "Wednesday, September 30");
+  assert.equal(next.buttons[0].textContent, "Help me apply");
+  assert.equal(next.status.textContent, "");
+  assert.equal(next.win.scrolledTo, null);
+  assert.equal(store.state.day, "Wednesday, September 30");
+});
+
+// a status click: line + Undo for 10 s, Undo posts once, survives a redraw, goes w/ its line
+test("page: status line w/ Undo for 10 s; Undo click sends once + hides it; redraw keeps it", () => {
+  const store = {};
+  const w = webview(store);
+  const sent = w.buttons[2];
+  w.click(sent);
+  assert.deepEqual(w.posted, [{ action: 2 }]);
+  assert.equal(sent.disabled, false, "never busy: no chat to wait on");
+  assert.equal(sent.textContent, "I sent it");
+  assert.equal(w.undo.hidden, true);
+  w.msg({ type: "status", text: "Job 12 marked as sent.", undo: true });
+  assert.equal(w.status.textContent, "Job 12 marked as sent.");
+  assert.equal(w.undo.hidden, false);
+  assert.equal(w.undo.getAttribute("aria-label"), "Undo: Job 12 marked as sent.");
+  w.tick(4000);
+  const again = webview(store);
+  assert.equal(again.undo.hidden, false, "Undo survives the page redraw from the new list");
+  again.tick(today.UNDO_MS - 4000 - 1);
+  assert.equal(again.undo.hidden, false);
+  again.tick(1);
+  assert.equal(again.undo.hidden, true);
+  assert.equal(again.status.textContent, "");
+  // click within the 10 s: one message, button gone at once, line stays until the answer
+  const u = webview({});
+  u.msg({ type: "status", text: "Job 12 marked as sent.", undo: true });
+  u.click(u.undo);
+  assert.deepEqual(u.posted, [{ undo: true }]);
+  assert.equal(u.undo.hidden, true);
+  assert.equal(u.status.textContent, "Job 12 marked as sent.");
+  u.msg({ type: "status", text: today.undoneLine(12) });
+  assert.equal(u.status.textContent, "Undone - Job 12 is back where it was.");
+  assert.equal(u.undo.hidden, true);
+});
+
+// a 2nd chat button pressed while the first opens: not marked busy, the extension says "One moment"
+test("page: second chat button while one opens isn't marked; extension's answer relabels the busy one", () => {
+  const w = webview({});
+  const [apply, resume] = w.buttons;
+  w.click(apply);
+  w.click(resume);
+  assert.deepEqual(w.posted, [{ action: 0 }, { action: 1 }]);
+  assert.equal(resume.textContent, "Make my resume");
+  assert.equal(resume.disabled, false);
+  w.msg({ type: "status", text: today.STILL_OPENING });
+  assert.equal(w.status.textContent, "One moment - the last one is still opening.");
+  w.msg({ type: "busy", on: true, label: "Opening the chat…" });
+  assert.equal(apply.textContent, "Opening the chat…");
 });
 
 // "Getting today's list ready" forever with no reason or way out = a dead end (critique P2)
@@ -556,7 +646,7 @@ test("every button's name is its own; job buttons carry the job; headings h1 > h
 // keyboard users tab through every card to reach setup or the list (52 stops, critique)
 test("skip links first: Skip to Next up, then each section, each a heading that takes focus", () => {
   const page = html(today.model(FULL, say), "new");
-  const nav = page.match(/<body><nav class="skip" aria-label="Jump to">([\s\S]*?)<\/nav>/)[1];
+  const nav = page.match(/<body[^>]*><nav class="skip" aria-label="Jump to">([\s\S]*?)<\/nav>/)[1];
   const jumps = [...nav.matchAll(/data-jump="([^"]+)">([^<]+)</g)].map((x) => [x[1], x[2]]);
   assert.deepEqual(jumps[0], ["s-next", "Skip to Next up"]);
   for (const [id] of jumps) assert.match(page, new RegExp(`<h2 id="${id}" tabindex="-1">`));
@@ -628,4 +718,100 @@ test("page: look click marks it at once + sends the word; extension's answer win
   assert.equal(auto.getAttribute("aria-pressed"), "true");
   assert.equal(dark.getAttribute("aria-pressed"), "false");
   assert.ok(!w.posted.some((p) => "action" in p), "no chat words sent");
+});
+
+// fake jobs.py for statusKeeper: records each run, fails when told to, answers when released
+function keeper({ fail = [] } = {}) {
+  const runs = [];
+  const told = [];
+  let refreshed = 0;
+  const clock = { t: 0 };
+  const k = today.statusKeeper({
+    run: async (args) => { runs.push(args.join(" ")); if (fail.includes(args[1])) throw new Error("exit 1"); return ""; },
+    refresh: () => { refreshed++; },
+    tell: (text, how) => told.push([text, Boolean(how && how.undo)]),
+    now: () => clock.t,
+  });
+  return { k, runs, told, clock, refreshed: () => refreshed };
+}
+
+// "I sent it" opening a chat to say what one click could record cost a chat per job (re-critique P2)
+test("status buttons: recorded here, outlined, named w/ the job, never busy, no chat words", () => {
+  const m = today.model(FULL, say);
+  const all = [m.next.card, ...m.sections.flatMap((s) => s.cards)].flatMap((c) => c.say);
+  const sent = all.find((b) => b.id === "sent");
+  assert.deepEqual(m.actions[sent.action], { type: "status", id: "sent", num: 3, words: "I sent job 3" });
+  for (const id of ["heard_back", "closed"]) assert.equal(m.actions[all.find((b) => b.id === id).action].type, "status");
+  // the rest still go to the chat
+  assert.equal(m.actions[all.find((b) => b.id === "had_interview").action].type, "say");
+  for (const mode of ["new", "fill", "copy"]) {
+    const page = html(m, mode);
+    assert.match(page, /<button type="button" data-a="\d+" data-k="5:sent" title="Saves it here, no chat - you can undo it" aria-label="I sent it, Job 5">I sent it</);
+    assert.doesNotMatch(page, /data-k="\d+:(sent|heard_back|closed)"[^>]*(data-busy|class="go")/);
+  }
+  assert.deepEqual(Object.fromEntries(Object.entries(today.STATUS_SET).map(([k, v]) => [k, v.state])),
+    { sent: "applied", heard_back: "heard_back", closed: "closed" });
+});
+
+// a click that said nothing, or an Undo that took back a chat's later change, breaks trust in the list
+test("statusKeeper: set => line w/ Undo + refresh; Undo within 10 s takes back that state only", async () => {
+  const s = keeper();
+  await s.k.set(13, "sent", "I sent job 13");
+  assert.deepEqual(s.runs, ["status set 13 applied"]);
+  assert.deepEqual(s.told, [["Job 13 marked as sent.", true]]);
+  assert.equal(s.refreshed(), 1);
+  s.clock.t = today.UNDO_MS;
+  await s.k.undo();
+  assert.deepEqual(s.runs.at(-1), "status undo 13 --from applied");
+  assert.deepEqual(s.told.at(-1), ["Undone - Job 13 is back where it was.", false]);
+  assert.equal(s.refreshed(), 2);
+  // Undo once only
+  await s.k.undo();
+  assert.equal(s.runs.length, 2);
+  // past 10 s: nothing taken back
+  await s.k.set(14, "closed");
+  s.clock.t += today.UNDO_MS + 1;
+  await s.k.undo();
+  assert.deepEqual(s.runs, ["status set 13 applied", "status undo 13 --from applied", "status set 14 closed"]);
+  assert.equal(today.statusLine("heard_back", 7), "Job 7 marked as heard back.");
+});
+
+// a failed save must say so in plain words + the chat route, never a silent "marked"
+test("statusKeeper: failure lines; one change at a time", async () => {
+  const s = keeper({ fail: ["set"] });
+  await s.k.set(13, "heard_back", "I heard back from job 13");
+  assert.deepEqual(s.told, [[`Couldn't save that for Job 13. Try again, or say "I heard back from job 13" in the chat.`, false]]);
+  assert.equal(s.refreshed(), 0);
+  await s.k.undo();
+  assert.equal(s.runs.length, 1, "nothing to undo after a failed save");
+  const u = keeper({ fail: ["undo"] });
+  await u.k.set(13, "sent");
+  await u.k.undo();
+  assert.deepEqual(u.told.at(-1), [today.UNDO_FAILED, false]);
+  // 2nd click while the first saves
+  const b = keeper();
+  const first = b.k.set(13, "sent");
+  await b.k.set(14, "sent");
+  await first;
+  assert.deepEqual(b.runs, ["status set 13 applied"]);
+  assert.deepEqual(b.told[0], [today.STILL_SAVING, false]);
+});
+
+// "Starting Claude" when Claude already runs reads as the program being slow for no reason
+test("busy label + starting line honest: Starting Claude only while it isn't running yet", () => {
+  assert.equal(today.busyLabel("claude", false), "Starting Claude…");
+  assert.equal(today.busyLabel("claude", true), "Opening the chat…");
+  assert.equal(today.startingLine("claude", true), "Opening the chat - one moment");
+  const warm = today.render(today.model(RAW, say), { mode: "new", ai: "claude", nonce: "n", ready: true });
+  assert.match(warm, /data-k="12:apply" data-busy="Opening the chat…"/);
+  assert.equal(today.STILL_OPENING, "One moment - the last one is still opening.");
+});
+
+// "Show more new jobs: New since last check" read twice the same thing; Help me apply says what it does
+test("labels: Help me apply; more-row named plainly; heading jump target shows focus", () => {
+  assert.equal(say.templates.find((t) => t.id === "apply").label, "Help me apply");
+  const page = html(today.model(FULL, say), "new");
+  assert.match(page, />Show more new jobs</);
+  assert.doesNotMatch(page, /aria-label="Show more new jobs: /);
+  assert.match(page, /\[tabindex="-1"\]:focus \{ outline: 3px solid var\(--text\)/);
 });

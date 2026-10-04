@@ -168,3 +168,38 @@ def test_dashboard_keeps_every_button_the_page_offers(tmp_path):
                   key=lambda c: c[0])
     assert json.loads(run.stdout) == want
     assert any(c[3] for c in want) and any(c[4] for c in want)
+
+
+@pytest.mark.skipif(not (shutil.which("node") and shutil.which("uv")), reason="node or uv not installed")
+def test_dashboard_sent_click_moves_the_folder_and_undo_moves_it_back(tmp_path):
+    # the dashboard's own "I sent it" + Undo (today.statusKeeper over start.runJobs, the extension's
+    # path) against a demo job: a click that said "marked" but left the folder put => two truths
+    import test_status
+    jobs = tmp_path / "My Jobs"
+    test_status.make_folder(jobs, "Example Co - Data Analyst", "https://jobs.example.com/1", "Example Co", "Data Analyst", "ex-1")
+    settings = tmp_path / "Search settings.yml"
+    import yaml
+    example = yaml.safe_load((vscode_ext.SOURCE.parent / "profiles" / "example.yml").read_text(encoding="utf-8"))
+    settings.write_text(yaml.safe_dump({**example, "db": str(tmp_path / "jobs.db"),
+                                        "resume": {**example.get("resume", {}), "jobs_dir": str(jobs)}}), encoding="utf-8")
+    env = {**__import__("os").environ, "JOBS_CONFIG": str(settings)}
+    root = vscode_ext.SOURCE.parent.parent
+    subprocess.run(["uv", "run", "app/jobs.py", "status", "sort"], cwd=root, env=env, check=True, capture_output=True)
+    [made] = (jobs / "1 To apply").iterdir()
+    num = int(made.name.split(" - ")[0])
+    script = (f"const t = require({json.dumps(str(vscode_ext.SOURCE / 'today.js'))});"
+              f"const s = require({json.dumps(str(vscode_ext.SOURCE / 'start.js'))});"
+              "const fs = require('fs'); const told = [];"
+              f"const where = () => fs.readdirSync({json.dumps(str(jobs))}).filter((d) => fs.readdirSync("
+              f"require('path').join({json.dumps(str(jobs))}, d)).length);"
+              "const k = t.statusKeeper({ run: (args) => s.runJobs({ execFile: require('child_process').execFile,"
+              f" uv: 'uv', root: {json.dumps(str(root))}, args, env: process.env }}),"
+              " refresh: () => {}, tell: (text, how) => told.push([text, !!(how && how.undo)]) });"
+              f"(async () => {{ await k.set({num}, 'sent', 'I sent job {num}'); const sent = where();"
+              " await k.undo(); console.log(JSON.stringify({ sent, back: where(), told })); })();")
+    run = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=120, env=env)
+    assert run.returncode == 0, run.stderr
+    out = json.loads(run.stdout)
+    assert out["sent"] == ["2 Applied"] and out["back"] == ["1 To apply"], out
+    assert out["told"] == [[f"Job {num} marked as sent.", True], [f"Undone - Job {num} is back where it was.", False]]
+    assert [d.name for d in (jobs / "1 To apply").iterdir()] == [made.name]

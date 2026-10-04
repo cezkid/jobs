@@ -168,9 +168,20 @@ function showToday(document, panel, fontDir) {
       if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
       if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
     }
-    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai: currentAi(root), nonce, fonts, look: currentLook(root) }) : today.fallback({ nonce, reason, fonts });
+    const ai = currentAi(root);
+    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai, nonce, fonts, look: currentLook(root), ready: chatWarm(ai) })
+      : today.fallback({ nonce, reason, fonts });
   };
   // fallback's Try again: rebuild the list (page redraws when it's rewritten), else just read it again
+  // I sent it / I heard back / It's closed: saved here, Undo in the status line (today.statusKeeper)
+  const keeper = today.statusKeeper({
+    run: (args) => {
+      const uv = findUv();
+      return uv ? start.runJobs({ execFile: childProcess.execFile, uv, root, args }) : Promise.reject(new Error("no uv"));
+    },
+    refresh: () => refreshToday(root, draw),
+    tell: (text, how) => tell(panel, text, how),
+  });
   const retry = () => {
     const started = !refreshing && refreshToday(root, draw);
     draw();
@@ -181,7 +192,7 @@ function showToday(document, panel, fontDir) {
   const subs = [
     watcher, watcher.onDidChange(draw), watcher.onDidCreate(draw),
     panel.onDidChangeViewState(() => { if (panel.visible) draw(); }),
-    panel.webview.onDidReceiveMessage((msg) => act(root, at, document.uri, m, msg, panel, retry).catch(() => {})),
+    panel.webview.onDidReceiveMessage((msg) => act(root, at, document.uri, m, msg, panel, retry, keeper).catch(() => {})),
   ];
   panel.onDidDispose(() => subs.forEach((s) => s.dispose()));
 }
@@ -207,9 +218,7 @@ function switchLook(root, word, panel) {
     tell(panel, text);
   };
   if (looking) { lookNext = word; return; }
-  const uv = start.uvCandidates({
-    platform: process.platform, home: os.homedir(), userProfile: process.env.USERPROFILE, envPath: process.env.PATH,
-  }).find((file) => fs.existsSync(file));
+  const uv = findUv();
   if (!uv) return held(LOOK_FAILED);
   looking = word;
   childProcess.execFile(uv, ["run", "app/jobs.py", "look", word], { cwd: root, windowsHide: true, timeout: 60000 }, (err) => {
@@ -228,16 +237,18 @@ function currentAi(root) {
   }
 }
 
-// status line on the page: clears after today.CLEAR_MS unless hold; done = pressed button's label
-function tell(panel, text, { done = null, hold = false } = {}) {
-  panel.webview.postMessage({ type: "status", text, done, hold });
+// status line on the page: clears after today.CLEAR_MS unless hold; done = pressed button's label;
+// undo = an Undo button beside it, both gone after today.UNDO_MS
+function tell(panel, text, { done = null, hold = false, undo = false } = {}) {
+  panel.webview.postMessage({ type: "status", text, done, hold, undo });
 }
 
-async function act(root, at, page, m, msg, panel, retry) {
+async function act(root, at, page, m, msg, panel, retry, keeper) {
   if (msg && typeof msg.look === "string") {
     if (today.LOOKS.some((l) => l.word === msg.look)) switchLook(root, msg.look, panel);
     return;
   }
+  if (msg && msg.undo === true) return keeper.undo();
   const index = msg && Number.isInteger(msg.action) ? msg.action : null;
   if (index === today.SHOW_PAGE) return vscode.commands.executeCommand("vscode.openWith", page, start.PREVIEW_EDITOR);
   if (index === today.TRY_AGAIN) return retry();
@@ -261,12 +272,15 @@ async function act(root, at, page, m, msg, panel, retry) {
     if (action.how === "page") return vscode.commands.executeCommand("vscode.openWith", uri, start.PREVIEW_EDITOR);
     return vscode.commands.executeCommand("vscode.open", uri, { preview: false });
   }
+  if (action.type === "status") return keeper.set(action.num, action.id, action.words);
   if (action.type === "say") {
     if (!today.templateFor(action.words, today.templates(say))) return;
-    if (saying) return;  // one at a time: a 2nd click would open a 2nd new chat
+    // one at a time: a 2nd click would open a 2nd new chat => said, never silently dropped
+    if (saying) return tell(panel, today.STILL_OPENING);
     saying = true;
     try {
-      return await sayWords(root, action.words, (text, how) => tell(panel, text, how), (on) => panel.webview.postMessage({ type: "busy", on }));
+      return await sayWords(root, action.words, (text, how) => tell(panel, text, how),
+        (on, label) => panel.webview.postMessage({ type: "busy", on, label }));
     } finally {
       saying = false;
     }
@@ -288,10 +302,20 @@ function sayModeNow(root) {
 
 let saying = false;
 
+// chat extension already running (window warm-up or an earlier click) => "Opening the chat", not
+// "Starting Claude"; Copilot's chat is built in. Not installed => the copy path, nothing starts
+function chatWarm(ai) {
+  const plan = start.warmUpPlan(ai);
+  if (!plan) return true;
+  const ext = vscode.extensions.getExtension(plan.id);
+  return !ext || ext.isActive;
+}
+
 // words into the chat, never sent (today.say); returns the mode that ran (probe reads it)
 async function sayWords(root, words, status, busy = () => {}) {
+  const ai = currentAi(root);
   const mode = await today.say({
-    ai: currentAi(root), mode: sayModeNow(root), words, platform: process.platform, status, busy,
+    ai, mode: sayModeNow(root), words, platform: process.platform, status, busy, warm: chatWarm(ai),
     exec: (command, ...args) => vscode.commands.executeCommand(command, ...args),
     copy: (text) => vscode.env.clipboard.writeText(text),
   });
@@ -303,10 +327,14 @@ async function sayWords(root, words, status, busy = () => {}) {
 let refreshing = false;
 
 // rebuilds Today in the background; done() once it ends. false = couldn't start (no uv)
-function refreshToday(root, done = () => {}) {
-  const uv = start.uvCandidates({
+function findUv() {
+  return start.uvCandidates({
     platform: process.platform, home: os.homedir(), userProfile: process.env.USERPROFILE, envPath: process.env.PATH,
-  }).find((file) => fs.existsSync(file));
+  }).find((file) => fs.existsSync(file)) || null;
+}
+
+function refreshToday(root, done = () => {}) {
+  const uv = findUv();
   if (!uv) return false;  // last page stays: still better than none
   refreshing = true;
   childProcess.execFile(uv, ["run", "app/jobs.py", "today", "--refresh"],
