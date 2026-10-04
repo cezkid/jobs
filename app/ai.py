@@ -17,8 +17,12 @@ def current(path: Path | None = None, extensions: Path | None = None) -> str | N
         word = path.read_text(encoding="utf-8").strip().lower()
         if word in NAMES:
             return word
+    # the AI panel the user already had: Job Finder's own profile, else the default profile's list.
+    # Profile only => a fresh CEZ profile (nothing installed yet) found no AI, so none was installed
+    # into it and the window came up without its chat (owner's install, 2026-10-04)
+    places = [extensions] if extensions is not None else [None, launch.vscode_paths().extensions]
     for name, extension in EXTENSIONS.items():
-        if launch.has_extension(extension, extensions):
+        if any(launch.has_extension(extension, place) for place in places):
             return name
     return None
 

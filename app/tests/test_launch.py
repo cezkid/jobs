@@ -916,3 +916,35 @@ def test_sync_ignore_list_edited_in_place():
     commented = '{\n  // "settingsSync.ignoredExtensions": ["old"]\n}'
     assert launch.settings_values(launch.add_to_list_setting(commented, launch.SYNC_IGNORED, "x.y")) == {
         launch.SYNC_IGNORED: ["x.y"]}
+
+
+def test_ai_found_from_its_extension_is_written_down(tmp_path, monkeypatch):
+    # installs before the choice file: the window extension saw no AI and every Today button copied
+    import ai
+    choice = tmp_path / "ai"
+    monkeypatch.setattr(ai, "CHOICE_FILE", choice)
+    monkeypatch.setattr(ai, "current", lambda: "claude")
+    assert launch.chosen_ai() == "claude"
+    assert choice.read_text(encoding="utf-8").strip() == "claude"
+
+
+def test_profile_waiting_on_a_cold_start_is_flagged_for_the_window(tmp_path):
+    # VS Code left open => no profile, and nothing told the user to quit it once
+    flag = tmp_path / "profile-pending"
+    launch.mark_profile_pending(flag)
+    assert "quit VS Code" in flag.read_text(encoding="utf-8")
+
+
+def test_ai_still_found_when_the_new_profile_has_no_extensions_yet(tmp_path, monkeypatch):
+    # first cold start into the CEZ profile: its list is empty, the user's Claude lives in the
+    # default profile => no AI found, none installed, window without its chat
+    import ai
+    monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "s"))
+    paths = launch.vscode_paths()
+    paths.extensions.mkdir(parents=True)
+    (paths.extensions / "extensions.json").write_text(
+        '[{"identifier": {"id": "anthropic.claude-code"}, "version": "2.1.289", '
+        '"relativeLocation": "anthropic.claude-code-2.1.289"}]', encoding="utf-8")
+    (paths.extensions / "anthropic.claude-code-2.1.289").mkdir()
+    monkeypatch.setattr(launch, "profile_location", lambda p=None: "cez-job-finder")
+    assert ai.current(tmp_path / "no-choice-file") == "claude"

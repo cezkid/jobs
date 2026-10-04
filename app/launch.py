@@ -677,9 +677,30 @@ def ensure_claude_trust(root: Path | None = None, state: Path | None = None) -> 
     except OSError:
         pass
 
+# launcher: VS Code was running, profile waits for a cold start; the window extension reads it
+PROFILE_PENDING = cfg.DATA / "profile-pending"
+
+
+def mark_profile_pending(path: Path | None = None) -> None:
+    path = path or PROFILE_PENDING
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("quit VS Code once, then open CEZ Job Finder\n", encoding="utf-8")
+    except OSError:
+        pass
+
+
 def chosen_ai() -> str | None:
     import ai  # here, not on top: ai imports this module
-    return ai.current()
+    name = ai.current()
+    # installs before the choice file (or a repaired one) => the AI found from its extension is
+    # written down: the window extension reads only the file, and w/o it every button copied
+    if name and not ai.CHOICE_FILE.is_file():
+        try:
+            ai.set(name)
+        except (OSError, ValueError):
+            pass
+    return name
 
 
 def write_workspace(choice: str | None) -> None:
@@ -822,6 +843,10 @@ def main() -> None:
     if ensure_profile():
         # their model pick, zoom + text size come along, once
         migrate_profile()
+        PROFILE_PENDING.unlink(missing_ok=True)
+    elif not profile_location():
+        # VS Code left open => no profile yet; the window extension says how to finish (quit once)
+        mark_profile_pending()
     choice = chosen_ai()
     # before VS Code opens, into its profile once made => the window comes up with the chat panel,
     # the first click on a resume shows the page, a typo in the resume facts is underlined
