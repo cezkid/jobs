@@ -391,7 +391,7 @@ def test_hand_written_pages_use_typographic_quotes_and_dashes():
         found += [f"{name}: {hit!r}" for hit in hits]
     assert scanned >= 2000, f"only {scanned} chars of prose scanned - the parser lost the pages"
     assert not found, found
-    assert "Start with tomorrow morning’s jobs." in (DOCS / "index.html").read_text(encoding="utf-8")
+    assert "See your first jobs today." in (DOCS / "index.html").read_text(encoding="utf-8")
 
 
 def test_sample_corrections_add_no_number_the_old_line_lacks():
