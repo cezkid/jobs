@@ -22,7 +22,8 @@ instructions) - ignored.
 
 | id | What it actually supports | Sample / design | Limits |
 |---|---|---|---|
-| hireright-2025 | Press release: "more than three-quarters of businesses have found candidate discrepancies" in the last 12 months; most common: undisclosed criminal convictions, then education and employment discrepancies | Vendor survey, 1,000+ HR / risk / TA staff worldwide, Feb 11 - Mar 9 2025 | Seller of background checks; respondents are its market (firms that screen); wording unpublished; press release only |
+| hireright-2025 | Press release: "more than three-quarters of businesses have found candidate discrepancies" in the last 12 months; "Undisclosed criminal convictions and education and employment discrepancies were the most common types" (listed, not ranked) | Vendor survey, 1,000+ HR / risk / TA staff worldwide, Feb 11 - Mar 9 2025 | Seller of background checks; respondents are its market (firms that screen); wording unpublished; press release only |
+| hireright-2025-sept | Sept 15 2025 release on the same survey: "Employment verifications remain the area most likely to reveal discrepancies across all regions - reported by 72% of respondents in APAC and 64% in EMEA" | Same vendor survey | No North America figure given; added plan-xsy.49 (opened 2026-10-03) |
 | mit-capd-resumes | "accomplishments and contributions, not just responsibilities"; "Quantify if you can"; one page "unless you have extensive experience or an advanced degree"; no age, religion, health, marital status; photos "generally not preferred for U.S. resumes"; keyword scanning - use relevant words; proofread | Career office guide | Convention. Says nothing on 10-15 years, street address, 1-2 pages |
 | harvard-ocs-resume | Top five mistakes incl. "Not demonstrating results", spelling and grammar errors; don't include a picture, age or gender | Career office guide | Convention |
 | greenhouse-search | Full Text Search toggle on All Candidates; enter terms; matching candidates shown with a snippet. Updated June 6, 2022 | Maker's help page | Says nothing about synonyms or how often recruiters search |
@@ -70,7 +71,7 @@ Also found (not cited; leads, open before citing):
 | 11 | 28 | Rules with studies: accuracy, typos, breaks | - | Accuracy = vendor survey only; typos = rating studies | Overstated | low | F3 |
 | 12 | 32 | Employers check work history; mismatches common enough to get caught | hireright-2025 | Respondents are firms that buy screening | Needs caveat | low | F21 |
 | 13 | 32 | 2025 HireRight survey: 3/4+ found a mismatch in past year | hireright-2025 | "More than three-quarters ... last 12 months" | Supported | - | - |
-| 14 | 32 | Most common: criminal records, education or work history | hireright-2025 | Same order in release | Supported | - | - |
+| 14 | 32 | Most common: criminal records, education, work history; work history checks find most in every region (72% APAC, 64% EMEA) | hireright-2025, hireright-2025-sept | June lists three types unranked; Sept gives the regional figures (plan-xsy.49) | Supported | - | - |
 | 15 | 34 | Wording not published; shows employers check, not cost | hireright-2025 | Correct limit | Supported | - | - |
 | 16 | 36 | Match what a past employer would confirm; anything can come up in interview | - | Advice | Supported (advice) | - | - |
 | 17 | 40 | Guides: show achievements | mit; harvard | Yes | Supported | - | - |
@@ -146,8 +147,8 @@ Also found (not cited; leads, open before citing):
 | 87 | 142 | Plain one-column page | ladders-2018 | Vendor press release | Needs caveat | low | F13 |
 | 88 | 148-152 | Tool box | app code | `lint.py` spelling (one-letter typos) + `british()`; gates `single-column`, `no-images`, `text-color`, `split-words`; `street-address` warning | Supported | - | - |
 
-Source-id check: all 16 ids cited in the article appear above (dhert-2024, fuller-2021,
-greenhouse-search, harvard-ocs-resume, hireright-2025, indeed-experience-2025, kristal-2023,
+Source-id check: all 17 ids cited in the article appear above (dhert-2024, fuller-2021,
+greenhouse-search, harvard-ocs-resume, hireright-2025, hireright-2025-sept, indeed-experience-2025, kristal-2023,
 kroft-2013, ladders-2012, ladders-2018, levinson-2012-cio, mit-capd-resumes, namingit-2021,
 resumego-2018, ruffle-2015, sterkens-2023).
 
@@ -247,3 +248,11 @@ Plain words + SEO: no jargon from the AGENTS.md list; most sentences under 20 wo
 21); question-led H2s; 4 internal links; title 52, description 140 chars. Privacy: no owner data
 or real employer in examples; measurements cite numbers only. Quotes all <= 15 words and
 attributed. Tool box sits after the evidence and matches the code.
+
+## Re-review 2026-10-03: citations thinned (plan-xsy.48)
+
+Citation placement only - no wording, number or source changed. A run of sentences citing the
+same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
+sentence the moved citation now covers comes from that source.
+16 repeat citations dropped. Newly under a citation: "The same study tried listing years worked
+per job instead of dates, which hides the gap" (kristal-2023 design). Supported.

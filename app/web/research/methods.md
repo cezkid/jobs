@@ -83,7 +83,9 @@ AI never makes images of people for these pages. No quote, number or study is in
 
 A correction changes the text, updates the page date, and adds a dated line to a Changes list. The Changes list sits at the end of the article, above the Sources. A number is never changed silently. A corrected article gets a new AI review before it goes back up.
 
-To report a mistake, post a note titled "Research correction" on the app's GitHub page. Posting there needs a free GitHub account. The page to post on: github.com/cezkid/jobs/issues/new
+To report a mistake, post a note titled "Research correction" on the app's GitHub page. Posting there needs a free GitHub account. [Post a correction on GitHub](https://github.com/cezkid/jobs/issues/new?title=Research%20correction).
+
+No GitHub account? Use the contact page at www.enrriquez.com.
 
 ## How often are articles updated?
 
@@ -91,7 +93,7 @@ Laws and app settings change fast, so we re-check them every 3 to 6 months. Each
 
 ## What do we gain from the answers?
 
-We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors.
+We make CEZ Job Finder, a free app. The app works with your own paid Claude, ChatGPT or GitHub Copilot plan. These pages carry no ads, no affiliate links and no sponsors. We get nothing from those companies.
 
 Each article has a separate box, after the evidence, on how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.
 

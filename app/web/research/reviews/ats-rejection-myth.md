@@ -296,3 +296,11 @@ screens; any knockout-type question 105 of 143.
 - L10: links to the two unwritten articles dropped; links to methods + the Research hub instead.
 - SEO: quotable answer added as the first body sentence ("No study shows that applicant tracking
   systems reject 75% of resumes.").
+
+## Re-review 2026-10-03: citations thinned (plan-xsy.48)
+
+Citation placement only - no wording, number or source changed. A run of sentences citing the
+same source now cites it once, at the run's end (build rule: 3 in a row = error). Checked: every
+sentence the moved citation now covers comes from that source.
+17 repeat citations dropped. Newly under a citation: "Recruiters call them knockout questions"
+(enhancv-2025 uses the term). Supported.

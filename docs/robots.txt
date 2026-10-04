@@ -1,3 +1,9 @@
+# Training bots: allowed on purpose (2026-10-03). Free public tool; the research
+# articles are meant to be quoted. Google-Extended is never blocked.
+#   Search + retrieval bots: Googlebot, Bingbot, OAI-SearchBot, ChatGPT-User,
+#     PerplexityBot, Perplexity-User, Claude-SearchBot, Claude-User
+#   Training bots: GPTBot, ClaudeBot, Google-Extended, Applebot-Extended,
+#     CCBot, Meta-ExternalAgent
 User-agent: *
 Allow: /
 Disallow: /mac/

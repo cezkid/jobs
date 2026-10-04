@@ -1,5 +1,5 @@
 ---
-title: About the author
+title: About Cesar Enrriquez-Zuniga
 description: Cesar Enrriquez-Zuniga makes CEZ Job Finder, a free app that finds jobs and makes a resume for each one, and writes these Research articles.
 published: 2026-10-03
 modified: 2026-10-03
@@ -18,4 +18,4 @@ AI tools help find sources and write drafts. A fresh AI session checks every cla
 
 ## Contact and code
 
-The app's code is public on GitHub: github.com/cezkid/jobs. To report a mistake in any article, see [how mistakes are corrected](methods.md#how-are-mistakes-corrected).
+To reach Cesar, use the contact page at www.enrriquez.com. The app's code is public on GitHub: github.com/cezkid/jobs. To report a mistake in any article, see [how mistakes are corrected](methods.md#how-are-mistakes-corrected).

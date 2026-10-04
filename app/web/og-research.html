@@ -8,7 +8,8 @@
      og.html; the sheet set like a generated article page (display title, ruled Sources, hairlines).
      Bottom 90px kept clear (X lays its headline there; the render fails if anything lands there);
      key content inside the central 1100x530. No numbers on the card: a statistic here would have
-     no source. -->
+     no source.
+     Mark = the app's own icon files (src="/app/install/..."), inlined at render - never a copy. -->
 <style>
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; }
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; }
@@ -29,7 +30,7 @@
   }
   .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-bottom: 1px solid var(--ink); }
   .brand { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 700; }
-  .brand svg { width: 40px; height: 40px; }
+  .brand img { width: 50px; height: 50px; margin: -5px; } /* app icon's tile = 40px, as before */
   .site { font-size: 24px; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
 
   .intro { position: absolute; left: 50px; top: 148px; width: 560px; }
@@ -57,16 +58,7 @@
 <body>
 <header class="top">
   <div class="brand">
-    <svg viewBox="0 0 32 32" aria-hidden="true">
-      <rect x="0.5" y="0.5" width="31" height="31" rx="7" fill="#000"/>
-      <rect x="8" y="4" width="16" height="24" fill="#fff"/>
-      <rect x="10" y="13" width="12" height="6" fill="#FFE433"/>
-      <g stroke="#000" stroke-width="2.4" stroke-linecap="butt">
-        <path d="M11 9.5h10"/>
-        <path d="M11 16h10"/>
-        <path d="M11 22.5h7"/>
-      </g>
-    </svg>
+    <img src="/app/install/icon.svg" alt="">
     CEZ Job Finder Research
   </div>
   <div class="site">jobs.enrriquez.com/research</div>

@@ -5,6 +5,8 @@ another site, and a share card fails silently (preview just shows no picture). T
 files on disk: no network, stdlib + pymupdf. Assets come from app/web/assets.py + app/web/og.html.
 """
 
+import datetime
+import hashlib
 import importlib.util
 import json
 import random
@@ -23,8 +25,9 @@ if not (cfg.ROOT / ".git").exists():
 
 import pymupdf  # noqa: E402
 
-from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, files, head_scripts,  # noqa: E402
-                         loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens)
+from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts,  # noqa: E402
+                         loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
+                         run_together, wide_table, wide_tokens, stroke_on_paper, typewriter, yellow_fills, claim_problems)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -61,9 +64,9 @@ def test_indexed_pages_share_one_url_and_fit_search_and_share_limits():
         # canonical + og:url differ => search and share cards count two pages
         assert [a["href"] for a in head.links("canonical")] == [url], name
         assert head.meta("og:url") == url, name
-        # Google cuts titles ~60 chars, descriptions ~160
+        # Google cuts titles ~60 chars, descriptions ~155-160: 155 (pages.LIMITS) keeps every one whole
         assert len(head.text["title"][0]) <= 60, name
-        assert len(head.meta("description")) <= 160, name
+        assert len(head.meta("description")) <= 155, name
         # og:site_name already shows the brand on the card; a suffix repeats it
         assert not re.search(r" [-|] CEZ Job Finder$", head.meta("og:title")), name
         assert head.meta("twitter:card") == "summary_large_image", name
@@ -133,6 +136,18 @@ def test_every_link_lands_on_a_file_and_a_heading_that_exist():
                 assert url.scheme in ("https", "mailto"), (name, href)
 
 
+def test_guides_link_only_to_site_pages_that_exist():
+    # in-app Guides point at their web versions: a slug rename would leave the user a 404
+    linked = 0
+    for guide in sorted((cfg.ROOT / "Guides").glob("*.md")):
+        for url in re.findall(re.escape(SITE) + r"[^\s)>\]]*", guide.read_text(encoding="utf-8")):
+            path = urlsplit(url).path
+            assert target(path) in FILES, (guide.name, url)
+            assert path.endswith("/") or target(path + "/") not in FILES, (guide.name, url, "folder link w/o /")
+            linked += 1
+    assert linked >= 2
+
+
 def test_ids_are_unique_on_every_page():
     # two elements w/ one id (a heading "Src x" next to the Sources entry src-x) => #links land on the first
     for name in PAGES:
@@ -147,14 +162,22 @@ def test_titles_and_descriptions_are_unique():
         assert len(seen) == len(set(seen)), key
 
 
+# the only dot / underscore paths on purpose: security.txt must live in .well-known, and
+# _config.yml's include list is what stops Jekyll dropping that folder
+JEKYLL_DOT_OK = {"docs/_config.yml", "docs/.well-known/security.txt"}
+
+
 def test_nothing_in_docs_trips_jekyll():
     # Pages runs Jekyll on docs/: .md becomes HTML, front matter (---) gets templated, and
     # _x / .x / #x / x~ files are dropped from the site
     tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", "docs"], capture_output=True, text=True,
                              check=True).stdout.splitlines()
     assert tracked
+    assert {p for p in tracked if any(seg.startswith(("_", ".")) for seg in p.split("/")[1:])} == JEKYLL_DOT_OK
     for path in tracked:
         assert not path.endswith(".md"), path
+        if path in JEKYLL_DOT_OK:
+            continue
         assert not any(seg.startswith(("_", ".", "#")) or seg.endswith("~") for seg in path.split("/")[1:]), path
         assert not (cfg.ROOT / path).read_bytes().startswith(b"---"), path
 
@@ -175,6 +198,44 @@ def test_header_and_footer_are_the_same_on_every_page():
         assert len({f[0] for f in found.values()}) == 1, (tag, sorted(found))
 
 
+def test_footer_links_home_research_install_about_and_the_author():
+    # the bottom of a 20-screen article is a dead end w/o them; Made by keeps the author's site (owner, plan-dxn)
+    for name in PAGES:
+        footer = Head(re.search(r"<footer\b.*?</footer>", (DOCS / name).read_text(encoding="utf-8"), re.S).group(0))
+        hrefs = {a.get("href") for a in footer.all("a")}
+        assert {"/", "/research/", "/#install", "/about/", "https://www.enrriquez.com"} <= hrefs, (name, hrefs)
+
+
+def test_404_offers_install_and_research():
+    # a missing research link lands here too: the way out names both halves of the site (A18), not only install
+    raw = (DOCS / "404.html").read_text(encoding="utf-8")
+    main = Head(re.search(r"<main\b.*?</main>", raw, re.S).group(0))
+    assert {"/", "/research/"} <= {a.get("href") for a in main.all("a")}
+
+
+def test_404_cut_line_shows_on_the_paper_in_both_schemes():
+    # the dashed cut crosses the white sheet; --text turns near-white in dark mode and the line vanishes (A17)
+    raw = (DOCS / "404.html").read_text(encoding="utf-8")
+    assert all(r >= 3 for r in stroke_on_paper(raw, ".cut .dash").values()), stroke_on_paper(raw, ".cut .dash")
+    faint = raw.replace(".cut .dash { fill: none; stroke: var(--ink)", ".cut .dash { fill: none; stroke: var(--text)", 1)
+    assert faint != raw and stroke_on_paper(faint, ".cut .dash")["dark"] < 3
+
+
+def test_about_is_one_click_from_home():
+    # Google: a byline should lead to more about the author; a page deep in the link graph reads as minor
+    graph = {name: {target(a["href"]) for a in page(name).all("a")
+                    if a.get("href", "").startswith("/") and not a["href"].startswith("//")} for name in INDEXED}
+    depth, todo = {"index.html": 0}, ["index.html"]
+    while todo:
+        name = todo.pop(0)
+        for nxt in graph.get(name, ()):
+            if nxt in INDEXED and nxt not in depth:
+                depth[nxt] = depth[name] + 1
+                todo.append(nxt)
+    assert depth.get("about/index.html") == 1, depth
+    assert all(depth.get(name, 99) <= 2 for name in INDEXED), {n: depth.get(n) for n in INDEXED}
+
+
 def ico_frames(path) -> list[tuple[int, int]]:
     data = path.read_bytes()
     reserved, kind, count = struct.unpack("<HHH", data[:6])
@@ -187,6 +248,40 @@ def ico_frames(path) -> list[tuple[int, int]]:
         assert struct.unpack(">II", payload[16:24]) == (w or 256, h or 256), (path, i)
         frames.append((w or 256, h or 256))
     return frames
+
+
+def stale_icons(root) -> list[str]:
+    """Faults vs app/web/icon-sync.json (written by assets.py): an app icon file changed or added /
+    removed since the site's icons were made, or a made file changed since (hand edit)."""
+    sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
+    sync = json.loads((root / "app/web/icon-sync.json").read_text(encoding="utf-8"))
+    now = {f"app/install/{p.name}": sha(p) for p in sorted((root / "app/install").glob("icon*.svg"))}
+    faults = [f"{f}: app icon changed - rerun uv run app/web/assets.py --only icons + og" for f in sorted(now.keys() | sync["source"].keys()) if now.get(f) != sync["source"].get(f)]
+    faults += [f"{f}: differs from what assets.py made" for f, h in sync["made"].items() if not (root / f).exists() or sha(root / f) != h]
+    return faults
+
+
+# the app's desktop icon changed but the website still shows the old one (owner: "the website should
+# always sync with how the vscode is"); also a hand-edited favicon assets.py would overwrite
+def test_site_icons_follow_the_app_icon():
+    assert stale_icons(cfg.ROOT) == []
+    made = json.loads((cfg.ROOT / "app/web/icon-sync.json").read_text(encoding="utf-8"))["made"]
+    assert sorted(made) == sorted(f"docs/{n}" for n in ("icon.svg", "icon-192.png", "icon-512.png", "apple-touch-icon.png",
+                                                         "icon-maskable-512.png", "favicon.ico", "og.png", "og-research.png"))
+
+
+# a guard that can't fail guards nothing: one byte of the app icon changed => the test above fails
+def test_stale_icon_check_trips_on_a_changed_app_icon(tmp_path):
+    for f in ["app/web/icon-sync.json", *json.loads((cfg.ROOT / "app/web/icon-sync.json").read_text())["made"]]:
+        (tmp_path / f).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / f).write_bytes((cfg.ROOT / f).read_bytes())
+    (tmp_path / "app/install").mkdir(parents=True, exist_ok=True)
+    for src in (cfg.ROOT / "app/install").glob("icon*.svg"):
+        (tmp_path / "app/install" / src.name).write_bytes(src.read_bytes())
+    assert stale_icons(tmp_path) == []
+    svg = tmp_path / "app/install/icon.svg"
+    svg.write_bytes(svg.read_bytes().replace(b"#ffe433", b"#ffe434", 1))
+    assert stale_icons(tmp_path) == ["app/install/icon.svg: app icon changed - rerun uv run app/web/assets.py --only icons + og"]
 
 
 def opaque(path) -> bool:
@@ -218,6 +313,30 @@ def test_sitemap_and_robots_point_search_at_the_indexed_pages_only():
     assert sorted(l.split(":", 1)[1].strip() for l in robots if l.startswith("Disallow:")) == ["/mac/", "/win/"]
 
 
+def test_robots_says_why_training_bots_are_allowed():
+    robots = (DOCS / "robots.txt").read_text(encoding="utf-8").splitlines()
+    assert any(l.startswith("# Training bots:") for l in robots)
+    groups = [l for l in robots if l.lower().startswith("user-agent:")]
+    assert [g.split(":", 1)[1].strip() for g in groups] == ["*"]  # no per-bot group blocks a search bot or Google-Extended
+
+
+def test_security_txt_is_current():
+    path = DOCS / ".well-known" / "security.txt"
+    fields = dict(l.split(": ", 1) for l in path.read_text(encoding="utf-8").splitlines() if ": " in l)
+    assert fields["Contact"].startswith("https://"), path
+    assert fields["Canonical"] == f"{SITE}.well-known/security.txt", path
+    expires = datetime.datetime.fromisoformat(fields["Expires"].replace("Z", "+00:00"))
+    left = expires - datetime.datetime.now(datetime.timezone.utc)
+    assert left > datetime.timedelta(days=30), f"{path} expires {fields['Expires']}: renew it (Expires <= 1 year out)"
+    assert ".well-known" in (DOCS / "_config.yml").read_text(encoding="utf-8")
+
+
+def test_readme_links_research_and_has_no_stale_tracking_line():
+    readme = (cfg.ROOT / "README.md").read_text(encoding="utf-8")
+    assert "no application tracking" not in " ".join(readme.split()).lower()
+    assert "https://jobs.enrriquez.com/research/" in readme and "https://jobs.enrriquez.com/privacy.html" in readme
+
+
 def test_home_page_describes_the_site_not_an_app_or_faq():
     # SoftwareApplication wants ratings + price, FAQPage rich results are limited to gov/health
     # sites since 2023 => both only draw warnings; WebSite gives the site name in results
@@ -236,6 +355,150 @@ def test_home_h1_is_the_literal_answer_to_is_this_a_website():
     assert h1 == ["A free job-search app for your Windows or Mac computer."]
 
 
+def test_every_page_has_one_h1():
+    # two h1s => search + screen readers can't tell which is the page's subject; none => no subject
+    for name in PAGES:
+        raw = (DOCS / name).read_text(encoding="utf-8")
+        assert len(re.findall(r"<h1[\s>]", raw)) == 1, name
+
+
+def test_home_says_what_it_is_and_what_it_costs_in_search_results():
+    # "free" alone in a snippet, then a paid AI plan, reads as bait (D5); the title stays (C1 cut)
+    head = page("index.html")
+    raw = (DOCS / "index.html").read_text(encoding="utf-8")
+    assert head.text["title"] == ["CEZ Job Finder – free AI job search app for Windows and Mac"]
+    description = head.meta("description")
+    assert len(description) <= 155 and all(w in description for w in ("resume", "your own", "plan"))
+    # one sentence with the name as its subject, for search + AI answers (D3)
+    assert "CEZ Job Finder is" in raw
+    # the ledger's "switch it off" leads to how, as privacy.html does (D11a)
+    assert 'href="/research/keep-chats-out-of-ai-training/"' in raw
+    # job-tailor allows a second page 60%+ full (app/skills/job-tailor.md)
+    assert "One page, set to fit" not in raw
+
+
+HAND_WRITTEN = ("index.html", "privacy.html", "404.html")
+
+
+def test_hand_written_pages_use_typographic_quotes_and_dashes():
+    # a straight ' at 90-112px reads as typewriter text (A12); the app window + resume sheet keep
+    # ' - ' because they mirror what the app prints (app/today.py)
+    scanned, found = 0, []
+    for name in HAND_WRITTEN:
+        chars, hits = typewriter((DOCS / name).read_text(encoding="utf-8"))
+        scanned += chars
+        found += [f"{name}: {hit!r}" for hit in hits]
+    assert scanned >= 2000, f"only {scanned} chars of prose scanned - the parser lost the pages"
+    assert not found, found
+    assert "Start with tomorrow morning’s jobs." in (DOCS / "index.html").read_text(encoding="utf-8")
+
+
+def test_sample_corrections_add_no_number_the_old_line_lacks():
+    # "Nothing made up" beside a correction that adds a number would show the app inventing one
+    # (AGENTS.md Hold); the hero shows no correction since P-b2, the resume sheet does
+    raw = (DOCS / "index.html").read_text(encoding="utf-8")
+    pairs = re.findall(r"<del>(.*?)</del>.*?<ins>(.*?)</ins>", raw, re.S)
+    assert pairs, "no <del>/<ins> correction found on home - the parser lost the sheet"
+    for old, new in pairs:
+        old, new = re.sub(r"<[^>]+>", "", old), re.sub(r"<[^>]+>", "", new)
+        assert set(re.findall(r"\d+", new)) <= set(re.findall(r"\d+", old)), (old, new)
+
+
+def test_home_ledger_names_the_same_recipients_as_privacy_in_order():
+    # the home ledger is the short form of privacy.html's table (privacy.html says "in full"): a
+    # recipient on one and not the other = a promise only half-made. Names are worded per page, so
+    # each row is matched by the one word that identifies it.
+    home = (DOCS / "index.html").read_text(encoding="utf-8")
+    ledger = re.search(r'<ol class="ledger">(.*?)</ol>', home, re.S)
+    assert ledger, "no ledger on home - the parser lost it"
+    on_home = re.findall(r"<h3>(.*?)</h3>", ledger.group(1))
+    table = re.search(r'<h2 id="leaves">.*?<tbody>(.*?)</tbody>', (DOCS / "privacy.html").read_text(encoding="utf-8"), re.S)
+    assert table, "no recipients table on privacy.html - the parser lost it"
+    in_privacy = re.findall(r'<th scope="row">(.*?)</th>', table.group(1))
+    keys = ("freehire.me", "AI", "mployer", "email", "maintainer")
+    assert len(on_home) == len(in_privacy) == len(keys), (on_home, in_privacy)
+    for key, h, pv in zip(keys, on_home, in_privacy):
+        assert key in h and key in pv, (key, h, pv)
+
+
+# every file a claim rests on (app/web/claims.yml) + the pages: enough for a scratch copy
+CLAIM_FILES = ("docs/index.html", "docs/privacy.html", "app/web/claims.yml", "AGENTS.md", "START HERE.md",
+               "app/vscode/say.json", "app/install/install-mac.sh", "app/install/install-windows.ps1",
+               "app/alert.py", "app/launch.py")
+
+
+def claim_copy(tmp_path):
+    import shutil
+    for rel in CLAIM_FILES:
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(cfg.ROOT / rel, tmp_path / rel)
+    shutil.copytree(cfg.ROOT / "app/apply/systems", tmp_path / "app/apply/systems")
+    return tmp_path
+
+
+def test_site_claims_still_match_the_app():
+    # the site says the app does something it no longer does (old button name, a privacy row the
+    # app added, a hiring system dropped) - visitors install on a promise the app breaks
+    assert not claim_problems(cfg.ROOT), "\n".join(claim_problems(cfg.ROOT))
+
+
+def test_claim_check_names_page_and_claim_when_the_app_changes(tmp_path):
+    # a renamed button or a new hiring system passing unnoticed = the guard above guards nothing
+    root = claim_copy(tmp_path)
+    assert claim_problems(root) == []
+    say = root / "app/vscode/say.json"
+    say.write_text(say.read_text(encoding="utf-8").replace('"Make my resume"', '"Make the resume"'), encoding="utf-8")
+    (root / "app/apply/systems/dayforce.py").write_text('NAME = "Dayforce"\n', encoding="utf-8")
+    problems = claim_problems(root)
+    assert any(p.startswith("index.html: claim today-page:") and "'Make the resume'" in p for p in problems), problems
+    assert any(p.startswith("index.html: claim apply-systems:") and "Dayforce" in p for p in problems), problems
+    assert all("app/web/claims.yml" in p for p in problems), problems
+
+
+def test_home_research_teaser_quotes_only_the_articles_own_titles_and_descriptions():
+    # a teaser line no article says is a new claim on the home page, unreviewed by the research loop
+    home = (DOCS / "index.html").read_text(encoding="utf-8")
+    picks = re.findall(r'<li><a href="/research/([^"/]+)/">(.*?)</a><p>(.*?)</p></li>',
+                       re.search(r'<ul class="picks">(.*?)</ul>', home, re.S).group(1))
+    assert len(picks) == 3, picks
+    for slug, title, line in picks:
+        head = page(f"research/{slug}/index.html")
+        assert head.text["title"] == [title], (slug, title)
+        assert line in head.meta("description"), (slug, line)
+
+
+def test_every_page_uses_typographic_quotes_and_dashes():
+    # hand-written + generated (pages.py typesets research pages, About, the hub); mac/ + win/ = install scripts
+    found, seen = [], 0
+    for rel in sorted(files(DOCS)):
+        if rel.endswith(".html") and rel.split("/")[0] not in ("mac", "win"):
+            seen += 1
+            found += [f"{rel}: {hit!r}" for hit in typewriter((DOCS / rel).read_text(encoding="utf-8"))[1]]
+    assert seen >= 10 and not found, found
+
+
+def test_typographic_check_trips_on_a_straight_quote_and_a_hyphen_dash():
+    clean = "<main><p>It’s here – kept.</p><code>it's - code</code><div class=\"window\">Job 11 - x</div></main>"
+    assert typewriter(clean)[1] == []
+    assert typewriter(clean.replace("It’s", "It's"))[1]
+    assert typewriter(clean.replace(" – ", " - "))[1]
+    assert typewriter('<p title="it\'s">ok</p>')[1] == []
+
+
+def test_no_words_run_together_in_page_text():
+    # raw HTML w/o CSS (AI crawlers): "Install on WindowsMac" is one made-up word (C4, D10)
+    found = [f"{name}: {hit!r}" for name in HAND_WRITTEN for hit in run_together((DOCS / name).read_text(encoding="utf-8"))]
+    assert not found, found
+
+
+def test_run_together_check_trips_on_touching_inline_text():
+    assert run_together('<h2>On <span>Windows</span>\n<span>Mac</span></h2><p>Done.\n<span>Next</span></p>') == []
+    assert run_together('<h2>On <span>Windows</span><span>Mac</span></h2>')
+    assert run_together('<p><b>Today</b><span>3 new</span></p>')
+    assert run_together('<p>You press Submit.<span>Works with</span></p>')
+    assert run_together('<style>b</b><b>x</style><script>"a</b><b>b"</script>') == []
+
+
 def test_home_resume_scene_shows_the_correction_as_del_and_ins():
     # signature scene: the old line is struck (<del>), the new one inserted (<ins>), and you approved it
     raw = (DOCS / "index.html").read_text(encoding="utf-8")
@@ -244,6 +507,29 @@ def test_home_resume_scene_shows_the_correction_as_del_and_ins():
     assert re.search(r"<del>.+?</del>", scene.group(0), re.S)
     assert re.search(r"<ins>.+?</ins>", scene.group(0), re.S)
     assert "You approved this line" in scene.group(0)
+
+
+
+def test_copy_is_the_only_filled_yellow_control_on_home():
+    # the highlighter marks words; one filled yellow control (Copy) says "press this" - the illustrated
+    # Submit stays an ink outline, never filled (A21), so a juror never takes it for a working button
+    raw = (DOCS / "index.html").read_text(encoding="utf-8")
+    css = raw[raw.index("<style>"):raw.index("</style>")]
+    assert yellow_fills(css) == ["#copy"]
+    submit = re.search(r"\n  \.submit \{([^}]*)\}", css)
+    assert submit and "background: none" in submit.group(1) and "border: 2px solid var(--text)" in submit.group(1)
+
+
+def test_yellow_fill_check_trips_on_a_second_filled_control():
+    css = "#copy { background: var(--mark); } mark { background: linear-gradient(var(--mark), var(--mark)); }"
+    assert yellow_fills(css) == ["#copy"]
+    assert yellow_fills(css + " .submit { color: var(--ink); background: #FFE433 }") == ["#copy", ".submit"]
+
+def test_one_breadcrumb_name_per_url():
+    # D22: every crumb + BreadcrumbList names a URL one way (/research/ = the hub's own title)
+    found = [crumbs((DOCS / name).read_text(encoding="utf-8")) for name in PAGES]
+    assert sum(1 for pairs in found if pairs) > 3 and any(url == "/research/" for pairs in found for url, _ in pairs)
+    assert crumb_clashes(found) == {}
 
 
 def test_research_pages_carry_matching_structured_data():
@@ -298,13 +584,34 @@ def test_shared_colours_meet_contrast_in_both_schemes():
     assert contrasts((DOCS / "index.html").read_text(encoding="utf-8")) == []
 
 
-def test_every_page_crossfades_only_without_reduced_motion():
-    # page change = crossfade opted in by every page, masthead held; reduced motion => none at all
+def test_every_page_lays_its_sheet_down_only_without_reduced_motion():
+    # page change (PICK P-d2) opted in by every page: masthead held, main = the sheet that is laid
+    # down; reduced motion => no transition at all
     for name in PAGES:
         css = shared((DOCS / name).read_text(encoding="utf-8"))
         assert re.search(NO_PREFERENCE + r"[^}]*@view-transition\s*\{\s*navigation:\s*auto", css), name
         assert re.search(r"\.masthead\s*\{\s*view-transition-name:\s*masthead", css), name
+        assert re.search(r"(?<![\w.-])main\s*\{\s*view-transition-name:\s*sheet", css), name
         assert not re.search(r"@view-transition|view-transition-name", outside_no_preference(css)), name
+
+
+def test_page_change_moves_only_transform_and_opacity_within_400ms():
+    # ::view-transition-* keyframes animate transform + opacity only (compositor, no layout or paint)
+    # and each pseudo is done (delay + duration) by 400 ms, so a click never waits on the motion
+    for name in PAGES:
+        css = shared((DOCS / name).read_text(encoding="utf-8"))
+        rules = re.findall(r"::view-transition-[\w-]+\([^)]*\)\s*\{([^}]*)\}", css)
+        assert rules, name
+        frames = dict(re.findall(r"@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^}]*\})*)\s*\}", css))
+        for body in rules:
+            animation = re.search(r"animation\s*:\s*([^;]+)", body).group(1)
+            used = [w for w in animation.split() if w in frames]
+            assert used, (name, animation)
+            for frame in used:
+                props = {p.lower() for p in re.findall(r"([\w-]+)\s*:", re.sub(r"[^{};]*\{", ";", frames[frame]))}
+                assert props <= {"opacity", "transform"}, (name, frame, props)
+            times = [float(t) * (1000 if unit == "s" else 1) for t, unit in re.findall(r"(?<![\w.-])([\d.]+)(m?s)\b", animation)]
+            assert times and sum(times[:2]) <= 400, (name, animation)
 
 
 def test_site_md_tokens_table_is_the_shared_root():
@@ -312,6 +619,7 @@ def test_site_md_tokens_table_is_the_shared_root():
     css = shared((DOCS / "index.html").read_text(encoding="utf-8"))
     doc = (cfg.APP / "docs" / "site.md").read_text(encoding="utf-8")
     assert token_table(doc) == tokens(css)
+    assert wide_table(doc) == wide_tokens(css) != {}
 
 
 PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>
@@ -320,6 +628,7 @@ PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>
   @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; }} }}
   :focus-visible {{ outline: 3px solid var(--text); box-shadow: 0 0 0 3px var(--desk); }}
   ::selection {{ background: var(--text); color: var(--desk); }}
+  .window ::selection, .proof ::selection {{ background: var(--ink); color: var(--paper); }}
   {css}
   /* /shared */
 </style></head><body><header><a href="/">x</a>{header}</header><main>{body}</main><footer>{footer}</footer>{scripts}</body></html>"""
@@ -360,12 +669,16 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
     ({"head": "<script>const LINES = 1;</script>"}, {}, "<head> script names LINES"),
     ({"css": "body.is-mac .x { display: none; }"}, {}, "body.is-*"),
     ({"body": '<figure><p>Form</p><button>Submit</button></figure>'}, {}, "<figure> holds ['button']"),
+    ({"body": "<figure><p>Job 12</p><figcaption>x</figcaption><div>sheet</div></figure>"}, {}, "<figcaption> not the first"),
+    ({"body": "<figure><figcaption>x</figcaption><h3>EXPERIENCE</h3></figure>"}, {}, "heading inside <figure>"),
+    ({"css": ".ring { vector-effect: non-scaling-stroke; }"}, {}, "vector-effect in CSS"),
     ({"css": "@view-transition { navigation: auto; }"}, {}, "view transition outside"),
     ({"css": "@media (prefers-reduced-motion: no-preference) { .x { opacity: 1; } }"
              " header { view-transition-name: top; }"}, {}, "view transition outside"),
 ], ids=["html-gzip", "inline-js", "elements", "first-load", "critical", "script-src", "will-change",
         "keyframes", "transition", "transition-all", "use-target", "header-id", "footer-style", "lines-twice",
-        "head-script-size", "head-script-lines", "body-class", "figure-control", "view-transition",
+        "head-script-size", "head-script-lines", "body-class", "figure-control", "figcaption-middle",
+        "figure-heading", "vector-effect-css", "view-transition",
         "view-transition-name"])
 def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
     for rel, size in files.items():
@@ -384,8 +697,12 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
     ("::selection", "::marker", "no ::selection rule"),
     ("background: var(--text); color: var(--desk)", "background: var(--mark); color: var(--ink)", "paints the highlighter"),
     ("background: var(--text); color: var(--desk)", "background: var(--text); color: var(--text-2)", "dark: ::selection"),
+    (".window ::selection, .proof ::selection {", ".gone {",
+     "dark: selection on the paper sheet .window"),
+    ("background: var(--ink); color: var(--paper)", "background: #dddddd; color: var(--ink)",
+     "light: selection on the paper sheet .proof"),
 ], ids=["text-light", "text-dark", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
-        "selection-faint"])
+        "selection-faint", "selection-on-sheet-gone", "selection-on-sheet-faint"])
 def test_each_contrast_rule_trips_on_its_fixture(tmp_path, old, new, trips):
     template = PAGE.format(**dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), ""))
     old, new = old.replace("}}", "}"), new.replace("}}", "}")

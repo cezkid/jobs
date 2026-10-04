@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Page not found - CEZ Job Finder</title>
+<title>Page not found – CEZ Job Finder</title>
 <meta name="robots" content="noindex">
 <meta name="description" content="The link may be old or mistyped. Everything you need to install CEZ Job Finder is on one page.">
 <meta name="color-scheme" content="light dark">
@@ -35,10 +35,18 @@
     --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
     --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
-    --gutter: clamp(16px, 2.5vw, 32px); --max: 1320px;
+    --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
     --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
     --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
+    --track-display: -0.016em; --lead-display: 1.06;
     --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  /* desktop: the gaps grow with the display type (owner, plan-dxn.37: 107px headings over 32px gutters
+     read cramped). 768px up, continuous with the phone values: gap 22 -> 56 -> 72px, side margin
+     32 -> 83 -> 103px at 768x1024 / 1440x900 / 1920x1080 (past 1576px the --max centring margin is wider
+     anyway); capped by height like the display type (11vh - 16px: 54px at 1366x641 keeps Copy on screen) */
+  @media (min-width: 768px) {
+    :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
     :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
@@ -57,6 +65,8 @@
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
   /* selection in ink, never yellow: the highlighter means "marked by the app" */
   ::selection { background: var(--text); color: var(--desk); }
+  /* on the white sheets (app window, resume) the desk's selection vanishes in dark mode: ink on paper */
+  .window ::selection, .proof ::selection { background: var(--ink); color: var(--paper); }
   /* forced colours drop the gradient: system mark colours keep the words marked */
   @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
   /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */
@@ -67,15 +77,30 @@
   }
   summary::after { transform: rotate(90deg); }
   details[open] > summary::after { transform: none; }
+  /* hover in ink, never yellow (audit A5): underline 1 -> 2px, instant; (hover: hover) = no hover left
+     stuck after a tap. The current Research link (3px) goes to 4px so it still answers the pointer */
+  @media (hover: hover) {
+    a:hover, summary:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; }
+    :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
+  }
+  /* research picks (home) + hub list: hovering an item thickens its top rule left to right (a ::before
+     scaleX: transform only, eased in full motion, instant in reduced) */
+  :is(.picks, .list) > li { position: relative; }
+  :is(.picks, .list) > li::before {
+    content: ""; position: absolute; left: 0; right: 0; top: -2px; border-top: 4px solid var(--text);
+    transform: scaleX(0); transform-origin: 0 0;
+  }
+  @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
+  @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
     display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
-    padding: 0 max(var(--gutter), (100% - var(--max)) / 2);
+    padding: 0 max(var(--side), (100% - var(--max)) / 2);
   }
-  .wrap { max-width: calc(var(--max) + 2 * var(--gutter)); margin: 0 auto; padding: 0 var(--gutter); }
+  .wrap { max-width: calc(var(--max) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
   .skip {
-    position: absolute; z-index: 1; left: var(--gutter); top: 8px; padding: 6px 12px;
+    position: absolute; z-index: 1; left: var(--side); top: 8px; padding: 6px 12px;
     background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
   }
   .skip:focus { transform: none; }
@@ -84,16 +109,38 @@
   .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  .brand img { width: 28px; height: 28px; }
+  .brand img { width: 34px; height: 34px; margin: -3px; } /* icon tile 26/32 of the file: 28px tile in a 28px box */
   .links { display: flex; gap: 28px; white-space: nowrap; }
+  /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
+  :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
   footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
-  footer .row { display: flex; flex-wrap: wrap; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
+  footer .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
   footer p { margin: 0 auto 0 0; }
-  /* phones: brand + 3 links don't fit 360px => Source code only in the footer */
+  /* the links wrap as one group: under the credit, never one link alone on a row */
+  footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+  /* a short page (404) keeps its footer at the window's bottom: main grows, no blank band under it;
+     width 100%: .wrap's auto margins would shrink main to its content in a flex column */
+  @media screen {
+    body { display: flex; flex-direction: column; min-height: 100svh; }
+    main { flex: 1 0 auto; width: 100%; }
+  }
+  /* phones: brand + 3 links don't fit 360px => Source code only in the footer; footer = credit, then
+     its 6 links as 2 even rows of 3 */
   @media (max-width: 600px) {
     .top { gap: 12px; }
     .links { gap: 14px; font-size: 1.0625rem; }
     .links .code { display: none; }
+    footer nav { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px 28px; }
+  }
+  /* touch: link hit boxes >= 44px tall (Apple HIG 44pt) - padding grows the box, an equal negative
+     margin keeps layout + look unchanged (an inline link's padding never moves its line). 1.1em ~ an
+     inline link's own box (Caladea ascent + descent); a flex-item link's (1lh) is taller => also >= 44 */
+  @media (pointer: coarse) {
+    .brand, :is(nav, footer) a, .tap { padding-block: calc((45px - 1.1em) / 2); margin-block: calc((1.1em - 45px) / 2); }
+    /* footer links are grid/flex items (box 1lh): exactly 45px each, rows 45px apart - overlapping boxes
+       read as covered (Lighthouse target-size) */
+    footer nav { row-gap: calc(45px - 1lh); }
+    footer nav a { padding-block: calc((45px - 1lh) / 2); margin-block: calc((1lh - 45px) / 2); }
   }
   /* under 360px (320px phones) the links may drop below the brand */
   @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
@@ -106,10 +153,16 @@
     figure, li, details, pre { break-inside: avoid; }
     footer .row { padding-bottom: 0; }
   }
-  /* page change: a plain crossfade (no page turn), the masthead holds still; reduced motion = instant */
+  /* page change (PICK P-d2, page laid down): the old sheet lifts off, the new one is set down from below,
+     transform + opacity only, done by 380 ms; the masthead holds still; reduced motion = instant */
   @media (prefers-reduced-motion: no-preference) {
     @view-transition { navigation: auto; }
     .masthead { view-transition-name: masthead; }
+    main { view-transition-name: sheet; }
+    @keyframes sheet-off { to { opacity: 0; transform: translateY(-8px); } }
+    @keyframes sheet-on { from { opacity: 0; transform: translateY(12px); } }
+    ::view-transition-old(sheet) { animation: sheet-off 300ms var(--ease-mark) both; }
+    ::view-transition-new(sheet) { animation: sheet-on 340ms var(--ease-mark) 40ms both; }
   }
   /* /shared */
 
@@ -117,6 +170,7 @@
   main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
   /* the note beside a cut sheet: the page that was here has been cut away */
   .lost { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px var(--gutter); align-items: center; max-width: 60rem; }
+  .ways { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 32px; }
   h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; font-weight: 700; margin: 0 0 16px; }
   p { margin: 0 0 16px; max-width: 34rem; }
   .go { font-size: var(--step-1); font-weight: 700; }
@@ -125,9 +179,15 @@
   .cut .sheet { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
   .cut .line { stroke: var(--rule); stroke-width: 6; stroke-linecap: round; }
   .cut .head { stroke: var(--ink); }
-  .cut .dash { fill: none; stroke: var(--text); stroke-width: 1.5; stroke-dasharray: 6 5; }
+  /* the cut runs over paper only (sheet edge to sheet edge): ink, never --text, which turns white in dark mode */
+  .cut .dash { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 6 5; }
   @media (min-width: 720px) {
     .lost { grid-template-columns: minmax(0, 1fr) auto; }
+  }
+  /* wide screens: note + drawing share the whole column box, the drawing centred in its half */
+  @media (min-width: 1024px) {
+    .lost { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: none; }
+    .cut { width: min(100%, 400px); justify-self: center; }
   }
   @media (max-width: 600px) {
     main.wrap { padding-top: 22px; }
@@ -155,9 +215,12 @@
 <main id="main" class="wrap">
 <div class="lost">
   <div>
-    <h1>This page isn't here</h1>
-    <p>The link may be old or mistyped. Everything you need to install CEZ Job Finder is on one page.</p>
-    <p><a class="go" href="/">Go to the install page</a></p>
+    <h1>This page isn’t here</h1>
+    <p>The link may be old or mistyped, or the page was cut. The install page and the research are still here.</p>
+    <ul class="ways">
+      <li><a class="go tap" href="/">Go to the install page</a></li>
+      <li><a class="go tap" href="/research/">Read the research</a></li>
+    </ul>
   </div>
   <div class="cut" aria-hidden="true">
     <svg viewBox="0 0 200 250" width="200" height="250" focusable="false">
@@ -165,7 +228,7 @@
       <path class="sheet" d="M8 2H158V112H8Z"/>
       <path class="line head" d="M26 26H96"/>
       <path class="line" d="M26 48H138M26 64H130M26 80H138M26 96H104"/>
-      <path class="dash" d="M2 120H166"/>
+      <path class="dash" d="M22 120H172"/>
       <g transform="rotate(7 90 180)">
         <path class="sheet" d="M14 136H164V230H14Z"/>
         <path class="line" d="M32 154H144M32 170H126M32 186H144M32 202H98"/>
@@ -177,8 +240,14 @@
 <footer>
   <div class="wrap row">
     <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
-    <a href="/privacy.html">Privacy</a>
-    <a href="https://github.com/cezkid/jobs">Source code</a>
+    <nav aria-label="Footer">
+      <a href="/">Home</a>
+      <a href="/research/">Research</a>
+      <a href="/#install">Install</a>
+      <a href="/about/">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="https://github.com/cezkid/jobs">Source code</a>
+    </nav>
   </div>
 </footer>
 </body>

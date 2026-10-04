@@ -3,8 +3,10 @@
 Not collected (no test_ prefix). Reads nothing at import: installed copies have no docs/ worth testing.
 """
 
+import json
 import re
 import struct
+from html import unescape
 from html.parser import HTMLParser
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -89,13 +91,41 @@ def target(url: str) -> str:
     return path + "index.html" if path == "" or path.endswith("/") else path
 
 
+def crumbs(html: str) -> set[tuple[str, str]]:
+    """(site-relative url, name) for each crumb (links + the current page) and each BreadcrumbList item."""
+    nav = re.search(r'<nav class="crumbs".*?</nav>', html, re.S)
+    if not nav:
+        return set()
+    here = urlsplit(re.search(r'<link rel="canonical" href="([^"]*)">', html).group(1)).path
+    pairs = {(url, unescape(name)) for url, name in re.findall(r'<a href="([^"]+)">([^<]+)</a>', nav.group(0))}
+    pairs |= {(here, unescape(re.sub(r"<[^>]+>", "", name)))
+              for name in re.findall(r'aria-current="page">(.*?)</li>', nav.group(0))}
+    for block in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S):
+        for node in json.loads(block).get("@graph", []):
+            if node.get("@type") == "BreadcrumbList":
+                pairs |= {(urlsplit(i["item"]).path, i["name"]) for i in node["itemListElement"]}
+    return pairs
+
+
+def crumb_clashes(pages: list[set[tuple[str, str]]]) -> dict[str, list[str]]:
+    """url -> its names, for each url that crumbs name more than one way across the pages (D22)."""
+    names: dict[str, set[str]] = {}
+    for pairs in pages:
+        for url, name in pairs:
+            names.setdefault(url, set()).add(name)
+    return {url: sorted(n) for url, n in names.items() if len(n) > 1}
+
+
 def structured_data(docs: Path, site: str) -> list[str]:
     """JSON-LD problems on the generated pages (research/, about/) + the home page; empty = fine.
 
     One block per page. Article (+ BreadcrumbList) on articles, BreadcrumbList on the hub + methods,
     ProfilePage (+ BreadcrumbList) on about/. Article dates == the byline's <time> values, author
     @id == the ProfilePage Person's, image == og:image, sitemap <lastmod> == dateModified; every
-    breadcrumb points at a canonical that exists. Home keeps exactly one WebSite block.
+    breadcrumb points at a canonical that exists. About: lastmod == ProfilePage dateModified, sameAs >= 2
+    URLs each shown on the page; hub lastmod >= every article's dateModified. Every article links the
+    methods page's "How is AI used?" under the byline and never says "approved". Home keeps exactly one
+    WebSite block.
     """
     import json
 
@@ -110,7 +140,7 @@ def structured_data(docs: Path, site: str) -> list[str]:
     home = Head((docs / "index.html").read_text(encoding="utf-8")).text.get("application/ld+json", [])
     if [json.loads(b).get("@type") for b in home] != ["WebSite"]:
         problems.append("index.html: needs exactly one WebSite block")
-    person, authors = None, []
+    person, authors, modified = None, [], []
     for name, text in pages.items():
         head, url = Head(text), own_url(name, site)
         blocks = head.text.get("application/ld+json", [])
@@ -132,7 +162,14 @@ def structured_data(docs: Path, site: str) -> list[str]:
             problems.append(f"{name}: breadcrumb positions or last item wrong")
         problems += [f"{name}: breadcrumb {i['item']} is not a page" for i in items if i["item"] not in canonicals]
         if "ProfilePage" in graph:
-            person = graph["ProfilePage"]["mainEntity"]
+            profile = graph["ProfilePage"]
+            person = profile["mainEntity"]
+            shown = re.sub(r"<[^>]+>", " ", text)
+            same = person.get("sameAs") or []
+            if len(same) < 2 or [u for u in same if re.sub(r"^https?://|/$", "", u) not in shown]:
+                problems.append(f"{name}: sameAs needs >= 2 URLs, each shown on the page ({same})")
+            if lastmod.get(url) != profile.get("dateModified"):
+                problems.append(f"{name}: sitemap lastmod {lastmod.get(url)} != dateModified {profile.get('dateModified')}")
             if not (person.get("@type") == "Person" and person.get("name") and person.get("url") and person.get("sameAs")):
                 problems.append(f"{name}: ProfilePage mainEntity needs Person name, url, sameAs")
         if "Article" in graph:
@@ -152,6 +189,13 @@ def structured_data(docs: Path, site: str) -> list[str]:
             if lastmod.get(url) != article["dateModified"]:
                 problems.append(f"{name}: sitemap lastmod {lastmod.get(url)} != dateModified {article['dateModified']}")
             authors.append((name, article["author"].get("@id")))
+            modified.append(article["dateModified"])
+            after = byline.group(0) + text[byline.end():byline.end() + 200] if byline else ""
+            if "/research/methods/#how-is-ai-used" not in after or "approved" in text.lower():
+                problems.append(f"{name}: needs the How we research link under the byline and no 'approved'")
+    hub = lastmod.get(site + "research/")
+    if modified and (not hub or hub < max(modified)):
+        problems.append(f"research/index.html: sitemap lastmod {hub} older than the newest article {max(modified)}")
     for name, ref in authors:
         if person is None or ref != person.get("@id"):
             problems.append(f"{name}: author @id {ref} != the About page's Person")
@@ -287,6 +331,13 @@ def budgets(docs: Path, name: str) -> list[str]:
         bad = sorted(set(re.findall(r"<(a|button|input|select|textarea)\b", inner)))
         if bad:
             problems.append(f"{name}: <figure> holds {bad} (illustrations show controls, never hold one)")
+        if "<figcaption" in inner and not (inner.split(">", 1)[1].lstrip().startswith("<figcaption")
+                                           or inner.rstrip().endswith("</figcaption>")):
+            problems.append(f"{name}: <figcaption> not the first or last child of its <figure> (W3C error)")
+        if re.search(r"<h[1-6]\b", inner):
+            problems.append(f"{name}: heading inside <figure> (an illustration's text joins the page outline)")
+    if re.search(r"vector-effect", css):
+        problems.append(f"{name}: vector-effect in CSS (unknown to the W3C CSS checker; an SVG attribute instead)")
     if re.search(r"body\.is-", css):
         problems.append(f"{name}: body.is-* selector (head script sets html.is-* before first paint)")
     if sum("LINES" in s for s in scripts) > 1:
@@ -314,15 +365,23 @@ def shared(raw: str) -> str:
 
 
 def tokens(css: str) -> dict[str, dict[str, str]]:
-    """Custom properties of the shared :root, light + dark (dark = light w/ the dark-scheme overrides)."""
+    """Custom properties of the shared :root, light + dark (dark = light w/ the dark-scheme overrides);
+    the (min-width: 768px) overrides are wide_tokens()'."""
     def props(body: str) -> dict[str, str]:
         return {k: " ".join(v.split()) for k, v in re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", body)}
     dark_m = re.search(r"@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{([^}]*)\}", css)
+    wide_m = re.search(r"@media\s*\(min-width:\s*768px\)\s*\{\s*:root\s*\{([^}]*)\}", css)
     light = {}
     for m in re.finditer(r":root\s*\{([^}]*)\}", css):
-        if not dark_m or not (dark_m.start() <= m.start() < dark_m.end()):
+        if not any(o and o.start() <= m.start() < o.end() for o in (dark_m, wide_m)):
             light.update(props(m.group(1)))
     return {"light": light, "dark": {**light, **(props(dark_m.group(1)) if dark_m else {})}}
+
+
+def wide_tokens(css: str) -> dict[str, str]:
+    """The shared :root's (min-width: 768px) overrides: spacing that grows with the display type (plan-dxn.37)."""
+    m = re.search(r"@media\s*\(min-width:\s*768px\)\s*\{\s*:root\s*\{([^}]*)\}", css)
+    return {k: " ".join(v.split()) for k, v in re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", m.group(1))} if m else {}
 
 
 def colour(value: str, scheme: dict[str, str]) -> list[str]:
@@ -334,15 +393,21 @@ def colour(value: str, scheme: dict[str, str]) -> list[str]:
     return re.findall(r"#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b", value)
 
 
+SHEETS = (".window", ".proof")  # white paper in both schemes (home's app window + resume sheet)
+
+
 def contrasts(raw: str) -> list[str]:
-    """Token pairs under the minimum, light + dark, incl. the focus ring on desk + white sheet and the ink selection; empty = fine."""
+    """Token pairs under the minimum, light + dark, incl. the focus ring on desk + white sheet, the ink selection
+    and the selection on the white sheets against --paper (3:1); empty = fine."""
     css = shared(raw)
     problems = []
     rings = [d for sel, d in re.findall(r"([^{}]*:focus-visible[^{}]*)\{([^}]*)\}", css)]
     if not rings:
         problems.append("shared CSS: no :focus-visible rule")
-    selections = [d for sel, d in re.findall(r"([^{}]*::selection[^{}]*)\{([^}]*)\}", css)]
-    if not selections:
+    selections_by = [(re.sub(r"/\*.*?\*/", "", sel, flags=re.S), d)
+                     for sel, d in re.findall(r"([^{}]*::selection[^{}]*)\{([^}]*)\}", css)]
+    selections = [d for sel, d in selections_by]
+    if not any(sel.strip() == "::selection" for sel, d in selections_by):
         problems.append("shared CSS: no ::selection rule")
     for mode, scheme in tokens(css).items():
         for pairs, least in (TEXT_PAIRS, TEXT_MIN), (NON_TEXT_PAIRS, NON_TEXT_MIN):
@@ -367,7 +432,32 @@ def contrasts(raw: str) -> list[str]:
                 problems.append(f"{mode}: ::selection paints the highlighter")
             elif fg and bg and contrast(fg[0], bg[0]) < TEXT_MIN:
                 problems.append(f"{mode}: ::selection {contrast(fg[0], bg[0]):.2f}:1 < {TEXT_MIN}:1")
+        # the app window + resume sheet stay white in dark mode: their selection must show on --paper
+        # (their own ::selection rule, else the page-wide one)
+        paper = colour(scheme.get("--paper", ""), scheme)
+        for sheet in SHEETS:
+            rules = [d for sel, d in selections_by if sheet in sel] or \
+                    [d for sel, d in selections_by if sel.strip() == "::selection"]
+            bg = [c for d in rules for c in colour(" ".join(re.findall(r"background(?:-color)?\s*:\s*([^;]+)", d)), scheme)]
+            ratio = contrast(bg[-1], paper[0]) if bg and paper else 0
+            if ratio < NON_TEXT_MIN:
+                problems.append(f"{mode}: selection on the paper sheet {sheet} {ratio:.2f}:1 against --paper "
+                                f"< {NON_TEXT_MIN}:1")
     return problems
+
+
+def stroke_on_paper(raw: str, selector: str) -> dict[str, float]:
+    """Contrast of the stroke a page's own CSS rule for selector paints against --paper, per scheme (light, dark);
+    0 = no such rule or no colour (a drawing on a white sheet keeps --paper in both schemes)."""
+    css = re.sub(r"/\*.*?\*/", "", raw.split("/* /shared */", 1)[-1], flags=re.S)
+    rule = next((d for sel, d in re.findall(r"([^{}]+)\{([^{}]*)\}", css)
+                 if selector in [x.strip() for x in sel.split(",")]), "")
+    stroke = " ".join(re.findall(r"(?<![-\w])stroke\s*:\s*([^;]+)", rule))
+    out = {}
+    for mode, scheme in tokens(shared(raw)).items():
+        fg, paper = colour(stroke, scheme), colour(scheme.get("--paper", ""), scheme)
+        out[mode] = contrast(fg[0], paper[0]) if fg and paper else 0.0
+    return out
 
 
 def token_table(markdown: str) -> dict[str, dict[str, str]]:
@@ -377,3 +467,173 @@ def token_table(markdown: str) -> dict[str, dict[str, str]]:
         light[name] = lv
         dark[name] = lv if dv == "same" else dv.strip("`")
     return {"light": light, "dark": dark}
+
+
+def wide_table(markdown: str) -> dict[str, str]:
+    """site.md's 768px-up rows (| 768px+ | `--x` | `value` | use |) in wide_tokens()' shape."""
+    return dict(re.findall(r"^\| 768px\+ \| `(--[\w-]+)` \| `([^`]+)` \|", markdown, re.M))
+
+
+class Prose(HTMLParser):
+    """Visible text a reader sees as prose: outside code/pre/script/style, attributes and the
+    illustrations (.window = the app, .proof = the resume sheet) that mirror what the app prints."""
+
+    SKIP_TAGS = {"code", "pre", "script", "style", "kbd", "samp"}
+    SKIP_CLASSES = {"window", "proof"}
+    VOID = {"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"}
+
+    def __init__(self, text: str):
+        super().__init__(convert_charrefs=True)
+        self.stack, self.chunks = [], []
+        self.feed(text)
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.VOID:
+            return
+        classes = set((dict(attrs).get("class") or "").split())
+        self.stack.append(tag in self.SKIP_TAGS or bool(classes & self.SKIP_CLASSES))
+
+    def handle_endtag(self, tag):
+        if tag not in self.VOID and self.stack:
+            self.stack.pop()
+
+    def handle_data(self, data):
+        if not any(self.stack):
+            self.chunks.append(data)
+
+
+def typewriter(raw: str) -> tuple[int, list[str]]:
+    """(chars of prose scanned, each straight quote or ' - ' dash found w/ its context)."""
+    text = " ".join(" ".join(Prose(raw).chunks).split())
+    found = [text[max(0, m.start() - 30):m.end() + 30] for m in re.finditer(r"['\"]| - ", text)]
+    return len(text), found
+
+
+# C4: raw-HTML readers (AI crawlers) skip CSS: text in two adjacent inline elements, or a sentence and the
+# inline element after it, reads as one word ("Install on WindowsMac") unless whitespace sits between
+INLINE = r"(?:span|b|strong|em|mark|a|code|del|ins|time)"
+RUN_TOGETHER = re.compile(rf"[A-Za-z0-9]</{INLINE}>(?:<[^>]+>)*<{INLINE}\b[^>]*>[A-Za-z0-9]"
+                          rf"|[A-Za-z0-9][.!?]<{INLINE}\b[^>]*>[A-Za-z0-9]")
+
+
+def run_together(raw: str) -> list[str]:
+    """Each place two words would touch in the page's raw text (style + script removed)."""
+    text = re.sub(r"<(style|script)\b.*?</\1>", "", raw, flags=re.S)
+    return [text[max(0, m.start() - 30):m.end() + 30] for m in RUN_TOGETHER.finditer(text)]
+
+
+SOLID_MARK = re.compile(r"background(?:-color)?\s*:\s*(?:var\(--mark\)|#ffe433)\s*[;}]", re.I)
+
+
+def yellow_fills(css: str) -> list[str]:
+    """Selectors whose rule fills a solid highlighter background (marks use a sized gradient instead)."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    return [sel.strip() for sel, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css) if SOLID_MARK.search(body + ";")]
+
+
+class Claimed(HTMLParser):
+    """Text inside each element carrying data-claim="<id>" (nested tags included), whitespace collapsed."""
+
+    VOID = Prose.VOID
+
+    def __init__(self, text: str):
+        super().__init__(convert_charrefs=True)
+        self.stack, self.text = [], {}
+        self.feed(text)
+        self.text = {k: [" ".join(t.split()) for t in v] for k, v in self.text.items()}
+
+    def handle_starttag(self, tag, attrs):
+        if tag in self.VOID:
+            return
+        claim = dict(attrs).get("data-claim")
+        if claim:
+            self.text.setdefault(claim, []).append("")
+        self.stack.append(claim)
+
+    def handle_endtag(self, tag):
+        if tag not in self.VOID and self.stack:
+            self.stack.pop()
+
+    def handle_data(self, data):
+        for claim in {c for c in self.stack if c}:
+            self.text[claim][-1] += data
+
+
+def say_labels(root: Path) -> dict[str, str]:
+    data = json.loads((root / "app/vscode/say.json").read_text(encoding="utf-8"))
+    return {t["id"]: t["label"] for t in data["templates"]}
+
+
+def apply_systems(root: Path) -> tuple[set[str], set[str]]:
+    """(filled from the resume, start box only) as the code has them: one module per system
+    (NAME), start-box ones define start_box(); Workday = ELSEWHERE (Chrome extension)."""
+    full, start = set(), set()
+    folder = root / "app/apply/systems"
+    for module in sorted(folder.glob("*.py")):
+        source = module.read_text(encoding="utf-8")
+        name = re.search(r'^NAME = "(.+)"', source, re.M)
+        if name:
+            (start if "def start_box(" in source else full).add(name.group(1))
+    if re.search(r'"myworkdayjobs\.com": "Workday', (folder / "__init__.py").read_text(encoding="utf-8")):
+        full.add("Workday")
+    return full, start
+
+
+def fact_problems(root: Path, fact: dict, text: str) -> list[str]:
+    """What no longer holds of one `rests_on` fact (app/web/claims.yml)."""
+    if "contains" in fact:
+        path = root / fact["file"]
+        body = path.read_text(encoding="utf-8") if path.exists() else ""
+        return [] if fact["contains"] in body else [f"{fact['file']} no longer says {fact['contains']!r}"]
+    if "rows" in fact:
+        path = root / fact["file"]
+        lines = path.read_text(encoding="utf-8").splitlines() if path.exists() else []
+        now = [line.rstrip() for line in lines if re.search(fact["rows"], line)]
+        if now == fact["are"]:
+            return []
+        added = [r for r in now if r not in fact["are"]]
+        gone = [r for r in fact["are"] if r not in now]
+        return [f"{fact['file']} lines matching {fact['rows']!r} changed - new or changed: {added}; gone or changed: {gone}"]
+    if "say" in fact:
+        label = say_labels(root).get(fact["say"])
+        if label != fact["label"]:
+            return [f"app/vscode/say.json button {fact['say']!r} now reads {label!r}, not {fact['label']!r}"]
+        return [] if fact["label"] in text else [f"button label {fact['label']!r} not in the page text"]
+    if "apply_systems" in fact:
+        full, start = apply_systems(root)
+        out = []
+        for kind, now, said in (("filled", full, fact["filled"]), ("start box", start, fact["start_box"])):
+            said = [(n, n) if isinstance(n, str) else tuple(n) for n in said]
+            if now != {n for n, _ in said}:
+                out.append(f"app/apply/systems {kind}: code has {sorted(now)}, claim has {sorted(n for n, _ in said)}")
+            out += [f"{kind} system {shown!r} not in the page text" for _, shown in said if shown not in text]
+        return out
+    return [f"unknown fact {fact!r}"]
+
+
+def claim_problems(root: Path) -> list[str]:
+    """Every site sentence about the app (data-claim="<id>", app/web/claims.yml) against the
+    app fact it rests on: '<page>: claim <id>: <what> -> <what to update>'."""
+    import yaml
+    claims = yaml.safe_load((root / "app/web/claims.yml").read_text(encoding="utf-8"))
+    docs, out, fix = root / "docs", [], " -> update the page sentence to match the app, then its text + rests_on in app/web/claims.yml"
+    on_pages = {}
+    for path in sorted(docs.rglob("*.html")):
+        rel = path.relative_to(docs).as_posix()
+        for claim, texts in Claimed(path.read_text(encoding="utf-8")).text.items():
+            on_pages.setdefault(claim, []).extend((rel, t) for t in texts)
+    for claim in sorted(set(on_pages) - set(claims)):
+        out.append(f"{on_pages[claim][0][0]}: claim {claim}: on the page, not in app/web/claims.yml{fix}")
+    for claim, entry in claims.items():
+        page, recorded = entry["page"], " ".join(entry["text"].split())
+        found = [t for rel, t in on_pages.get(claim, []) if rel == page]
+        if len(found) != 1:
+            out.append(f"{page}: claim {claim}: {len(found)} elements carry data-claim=\"{claim}\" (want 1){fix}")
+            continue
+        if found[0] != recorded:
+            out.append(f"{page}: claim {claim}: page text changed - page {found[0]!r}, claims.yml {recorded!r}{fix}")
+        if not entry.get("rests_on"):
+            out.append(f"{page}: claim {claim}: names no app fact (rests_on){fix}")
+        for fact in entry.get("rests_on") or []:
+            out += [f"{page}: claim {claim}: {p}{fix}" for p in fact_problems(root, fact, found[0])]
+    return out

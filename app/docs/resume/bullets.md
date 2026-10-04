@@ -25,9 +25,9 @@ Can cost the offer, not just the interview. Claims a third party checks.
 
 | Rule | Basis | |
 |---|---|---|
-| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of employers found discrepancies in prior year, employment verification top category; rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a seniority word (Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor) |
+| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of employers found discrepancies in prior year; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of firms APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a seniority word (Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor) |
 | Overlap fine; **unlabelled** overlap isn't | National Resume Writers' Association: "concurrent roles are not frowned upon." Same employer -> stacked titles; different -> marker (part-time, freelance, contract), else reads as date mistake. | enforce: `role-dates-overlap`, incl. same-employer case |
-| Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US hiring managers): ~88% think they spot AI-written material, 54% care; "impressive numbers with no context" a named tell. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
+| Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US hiring managers): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
 | Year in a bullet inside the role's dates | No external source; internal consistency. Jobscan 2026 runs against it (dates on header, not bullets). | **report only** - see [Considered, not mechanised](#considered-not-mechanised) |
 | No uncheckable grade | Berkeley: "minimize the use of adjectives and adverbs"; Arizona: "better to be clear than be complicated". *Advanced, best-in-class, world-class, industry-leading* carry nothing; the fact behind them does. Word-ban lists = resume-product blogs; defensible core is substitution. **Grade word inside a term isn't a grade** (*Advanced Cardiac Life Support*, *advanced practice nurse*). | enforce: `unmeasurable-grade`, skipped when facts or posting use the word |
 
@@ -43,12 +43,12 @@ What earns the line its space.
 | Rule | Basis | |
 |---|---|---|
 | Bullet carries **evidence**: outcome metric, else scope (how many / large / often, source known to writer) or named qualitative result (approval won, process adopted, audit passed). None -> reported, never filled. | Most contested point. MIT PAR ends in a result; Emory: "Action Verb + task, resulting in quantitative outcome". But **Arizona: not every bullet needs a numeric result** ("whenever possible"). Emory splits *scale* from *results* questions: scope alone = quantified. | **report** - proxy `specificity` |
-| **Every clause adds something new.** Fails when true of any instance ("a component library, so new screens assemble from existing pieces"), restates the opening, or true of anyone in the role ("shipping features end to end"). | Mirror of Tier 1: true by definition -> conveys nothing, spent words at 7 s. AI-tell shape: Insight Global 2025 - rejection tracks "generic, uncontextualised content"; Arizona warns against bullets to "sound professional". Duty dressed as outcome - Harvard, Emory, Berkeley rank last. | **report**: `empty-clause` WARNs, purpose-clause form only (*names nothing specific*, not *adds nothing*); other forms report |
+| **Every clause adds something new.** Fails when true of any instance ("a component library, so new screens assemble from existing pieces"), restates the opening, or true of anyone in the role ("shipping features end to end"). | Mirror of Tier 1: true by definition -> conveys nothing, spent words at 7 s. Arizona warns against bullets to "sound professional". Duty dressed as outcome - Harvard, Emory, Berkeley rank last. | **report**: `empty-clause` WARNs, purpose-clause form only (*names nothing specific*, not *adds nothing*); other forms report |
 | Achievements over duties | Most consistent rule found, no dissent. Harvard: "not demonstrating results" a top mistake; Emory: "daily job duties and tasks" heads "do not include"; Berkeley: "the impact that your work had". | **report** - lives in facts, not shape |
 | Scope vs change numbers differ; all-one-kind role worth noticing | Emory "Scale" vs "Results" questions; MIT scale ("over 100,000 data points", "size of your department, event, budget") vs % change. Both quantify. | **report only** - enforcing demands a scope number; Tier 1 wins |
 | No hedged opener - **unless the hedge is the truth** | Arizona cuts "helped to", "worked on", "responsible for". Dissent: UConn *recommends* "assisted", "collaborated" - objection is the opening, not the word. Own "assisted with" -> "performed" = ownership claim (next row), Tier 1. | **report**: `hedge` WARNs, quiet when another fact uses it. Prompt keeps sourced hedge, bans upgrades (assisted -> performed, coordinated -> led, member -> lead) |
 | Ownership matches actual role | Screening red flag: "led" work merely joined, "managed" w/ no reports, team result as personal. Surfaces at reference checks. | **report only** - measured 100% false positives (below). `tailor.py`: never upgrade the candidate's part |
-| No two bullets on one template | Insight Global 2025: "identical sentence structure across all bullet points" a primary AI tell, w/ "vague power verbs without proof". Rejection tracks generic content, not AI use: only 54% of these hiring managers say they'd care if an applicant used AI. | partial: `same-verb-opening` compares first words. **No shipped check measures syntax.** `uniform-bullet-length` = word-count spread, unmeasured |
+| No two bullets on one template | No source found naming repeated sentence structure as a tell: Insight Global 2025 reports 88% of hiring managers say they can tell AI-written applications, 54% would care, but lists no tells (report re-read 2026-10-03). Convention: varied openings read as distinct work. | partial: `same-verb-opening` compares first words. **No shipped check measures syntax.** `uniform-bullet-length` = word-count spread, unmeasured |
 
 ## Tier 3 - Relevance
 
@@ -305,8 +305,7 @@ verifiable. Kept as WARN: cheap proxy for verb monotony, a real AI tell. Better-
 `same-verb-opening`.
 
 **"Add soft-skill keywords to close the match gap."** Rejected by own Tier 3 evidence: recruiters
-search posting skills, systems don't score-reject, Insight Global names vague self-descriptors an
-AI tell.
+search posting skills, systems don't score-reject.
 
 **"Every bullet needs an outcome metric."** Contradicted by Arizona, vs Tier 1; enforcing it
 produced a request to invent a cost-savings figure. Report a role w/ no outcome; never demand one
@@ -326,7 +325,7 @@ Common in resume tools, declined 2026-10-01 (re-propose only w/ new evidence):
 
 ## Sources
 
-HireRight 2025 Global Benchmark Report. Insight Global, *2025 AI in Hiring* (Atomik Research,
+HireRight 2025 Global Benchmark Report (June + Sept 15 2025 releases). Insight Global, *2025 AI in Hiring* (Atomik Research,
 n=1,005 US HR + talent-acquisition executives it calls hiring managers, fielded Oct 2024; a staffing firm's survey). Enhancv ATS auto-rejection study, 2025 (n=25), via IT Brief. The
 Ladders eye-tracking study, 2018 press release + HR Dive (sample not stated); its 2012 report (30 recruiters, 10 weeks). Jobscan ATS Usage Report 2026 + keyword
 guidance 2026. Greenhouse Boolean search docs. Career centres: Harvard FAS Mignone Center, MIT

@@ -1106,3 +1106,18 @@ def test_toast_uses_our_name_only_when_shortcut_exists(tmp_path):
     script = notify.windows_script("t", "b", notify.APP_ID)
     assert script.index(f"'{notify.APP_ID}'") < script.index(f"'{notify.POWERSHELL_APP_ID}'")
     assert "catch" in script
+
+
+def test_ai_still_found_when_the_new_profile_has_no_extensions_yet(tmp_path, monkeypatch):
+    # first cold start into the CEZ profile: its list is empty, the user's Claude lives in the
+    # default profile => no AI found, none installed, window without its chat
+    import ai
+    monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "s"))
+    paths = launch.vscode_paths()
+    paths.extensions.mkdir(parents=True)
+    (paths.extensions / "extensions.json").write_text(
+        '[{"identifier": {"id": "anthropic.claude-code"}, "version": "2.1.289", '
+        '"relativeLocation": "anthropic.claude-code-2.1.289"}]', encoding="utf-8")
+    (paths.extensions / "anthropic.claude-code-2.1.289").mkdir()
+    monkeypatch.setattr(launch, "profile_location", lambda p=None: "cez-job-finder")
+    assert ai.current(tmp_path / "no-choice-file") == "claude"
