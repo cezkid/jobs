@@ -806,9 +806,9 @@ PAGE_CSS = """
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
   /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  .meta + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  .meta + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  .meta + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -824,6 +824,20 @@ PAGE_CSS = """
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { font-style: italic; font-synthesis: none; }
+  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
+  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
+  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.4; }
+  .toc-mini li { margin: 0; }
+  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+  /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
+  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
+  /* Keep reading: the article's way on, under a thick rule like Sources */
+  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
+  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
+  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
+  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .more p { margin: 0 0 8px; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -843,6 +857,7 @@ PAGE_CSS = """
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
     main.wrap > .list { grid-column: 1; grid-row: 2; }
+    .toc-mini { display: none; }
     .toc {
       display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
@@ -869,7 +884,7 @@ PAGE_CSS = """
   }
   @media print {
     main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs, .toc { display: none !important; }
+    .crumbs, .toc, .toc-mini, .more { display: none !important; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
   }
@@ -902,6 +917,19 @@ def listing(articles: list[Source]) -> str:
         items.append(f'<li><a href="{src.url}">{escape(src.title)}</a>'
                      f'<p>{escape(src.description)}</p><p class="date">{dates(src)}</p></li>')
     return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
+
+
+def keep_reading(src: Source, articles: list[Source]) -> str:
+    """An article page's way on, last in <article>: the next 2 articles in hub order (wrapping round), the hub,
+    the install line, back to top. Plain links in a nav (touch: 44px hit boxes, like every nav link)."""
+    order = newest(articles)
+    i = next((n for n, s in enumerate(order) if s.name == src.name), -1)
+    picks = (order[i + 1:] + order[:max(i, 0)])[:2]
+    items = [f'<li><a href="{s.url}">{escape(s.title)}</a></li>' for s in picks]
+    return "\n".join(['<nav class="more" aria-label="Keep reading">', "<p>Keep reading</p>", "<ul>", *items,
+                      '<li><a href="/research/">All research</a></li>', "</ul>",
+                      '<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>',
+                      '<p><a href="#main">Back to top</a></p>', "</nav>", ""])
 
 
 def evidence_labels(methods: Source | None) -> str:
@@ -975,8 +1003,9 @@ def feed(root: Path, index: Source, articles: list[Source]) -> str:
 
 
 def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, side: str = "",
-         after: str = "") -> str:
-    """side: a second column on wide screens (stacks after the page below 1280px); after: full width below both."""
+         after: str = "", more: str = "") -> str:
+    """side: a second column on wide screens (stacks after the page below 1280px); after: full width below both;
+    more: last in the page column (an article's Keep reading)."""
     home = site(root)
     url = home + src.url.lstrip("/")
     person = {"@type": "Person", "@id": home + "about/#person", "name": AUTHOR, "url": home + "about/"}
@@ -1031,11 +1060,15 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
                  f'<meta property="article:modified_time" content="{src.modified}">']
     head += [parts["og"], parts["twitter"], parts["links"], jsonld(graph)]
     wrapper = "article" if kind == "article" else "div"
-    # articles: "On this page" = every h2 (Sources too), shown beside the column on wide screens only
+    # articles: "On this page" = every h2 (Sources too): a sticky column beside the text from 1280px, a closed
+    # list under the byline below that. After the article in the source (grid places the column), so the h1
+    # comes first for screen readers, Tab + text extractors; one list shown at a time, no ids in either
     heads = re.findall(r'<h2 id="([^"]+)">(.*?)</h2>', body, re.S) if kind == "article" else []
-    toc = ['<nav class="toc" aria-label="On this page">', "<p>On this page</p>", "<ol>",
-           *(f'<li><a href="#{slug}">{re.sub(r"<[^>]+>", "", text)}</a></li>' for slug, text in heads),
-           "</ol>", "</nav>"] if len(heads) > 2 else []
+    items = [f'<li><a href="#{slug}">{re.sub(r"<[^>]+>", "", text)}</a></li>' for slug, text in heads]
+    toc = ['<nav class="toc" aria-label="On this page">', "<p>On this page</p>", "<ol>", *items, "</ol>",
+           "</nav>"] if len(heads) > 2 else []
+    mini = ['<nav class="toc-mini" aria-label="Contents">', "<details>", "<summary>On this page</summary>",
+            "<ol>", *items, "</ol>", "</details>", "</nav>"] if toc else []
     return "\n".join([
         "<!doctype html>",
         '<html lang="en">',
@@ -1051,13 +1084,15 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         "<body>",
         parts["header"],
         '<main id="main" class="wrap">',
-        *toc,
         f'<{wrapper} class="page">',
         f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
         f"<h1>{escape(src.title)}</h1>",
         *([f'<p class="meta">{meta}</p>'] if meta else []),
+        *mini,
         body.rstrip("\n"),
+        *([more.rstrip("\n")] if more else []),
         f"</{wrapper}>",
+        *toc,
         *([side.rstrip("\n")] if side else []),
         *([after.rstrip("\n")] if after else []),
         "</main>",
@@ -1108,7 +1143,8 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
             elif src.name == "about" and "<h2" in body:
                 cut = body.index("<h2")
                 body, side = body[:cut], '<div class="side">\n' + body[cut:] + "</div>\n"
-            out[src.out] = page(src, root, body, parts, hub, side, after)
+            more = keep_reading(src, articles) if hub and src.name not in ("index", "about") else ""
+            out[src.out] = page(src, root, body, parts, hub, side, after, more)
         if hub:
             out[FEED] = feed(root, by_name["index"], articles)
     if errors:

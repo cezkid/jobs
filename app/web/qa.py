@@ -33,6 +33,9 @@ HIT_BOXES, every page at 390x844 (phone, touch): every visible link + button but
 and the skip link is >= 44px tall; NAV_CURRENT, every page at 1366x641: the header's Research link is
 underlined thicker than Install on /research/** and the same elsewhere; FOOTER_BOTTOM, every page at
 1440x900: the footer ends within 2px of the window's bottom or the page end (404: no blank band under it).
+TOC_NARROW, every page with an On this page column at 390x844 (phone) + 1024x768: a visible 'On this page'
+summary in the first screen, opened = a link to every h2; TOC_WIDE at 1440x900 (also in --engines): the
+column's links all visible, the first in the first screen, right of the text column.
 
 Every page again at 1366x641 (desktop) + 390x844 (phone):
 
@@ -66,7 +69,7 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
 
 --engines: WebKit + Firefox (Playwright's own builds), every page at 390x844 + 1366x641: no
 sideways scroll, no console errors, finished states (reduced: 0 animations + marks + strokes;
-full: marks + strokes after a full scroll + after a reload at the bottom).
+full: marks + strokes after a full scroll + after a reload at the bottom); TOC_NARROW + TOC_WIDE.
 --self-test: injects each FAULTS entry into its page (+ browser name) and exits 1 unless it adds a
 failure line its clean page lacks (a new check's fault: a line of that check) and each clean page
 passes its gates. Faults: home (Copy below the fold, a hidden mark, a console error, a
@@ -495,6 +498,20 @@ HIT_BOXES = """() => { const out = [];
 NAV_CURRENT = """() => { const t = s => { const a = document.querySelector(s);
     return a ? parseFloat(getComputedStyle(a).textDecorationThickness) || 0 : null; };
   return [t('.links a[href="/research/"]'), t('.links a[href="/#install"]')]; }"""
+# TOC_NARROW (B2): every page with an On this page column, at 390x844 (phone) + 1024x768: a visible summary
+# "On this page" inside the first screen; opened, its visible links = every h2 of the page, in order.
+# TOC_WIDE (B2/D21), 1440x900, Chrome + WebKit + Firefox: the column's links all visible, the first in the
+# first screen, right of the text column, and again = every h2
+TOC_NARROW_AT = [((390, 844), True), ((1024, 768), False)]
+TOC_WIDE_AT = (1440, 900)
+TOC_HEADS = """() => [...document.querySelectorAll("main article h2[id]")].map(h => "#" + h.id)"""
+# sel -> null (none) or {text, shown, top, bottom, left of first link?} for the first match
+TOC_BOX = """sel => { const el = document.querySelector(sel); if (!el) return null; const r = el.getBoundingClientRect();
+  return {text: el.textContent.trim().split("\\n")[0], shown: el.checkVisibility({visibilityProperty: true}) && r.width > 0
+          && r.height > 0, top: r.top, bottom: r.bottom, left: r.left}; }"""
+TOC_LINKS = """sel => [...document.querySelectorAll(sel)].filter(a => { const r = a.getBoundingClientRect();
+  return a.checkVisibility({visibilityProperty: true}) && r.width > 0 && r.height > 0 && r.right <= innerWidth; })
+  .map(a => a.getAttribute("href"))"""
 # FOOTER_BOTTOM (C2/short pages): at 1440x900 the footer ends within 2px of the window's bottom or the page end
 FOOTER_BOTTOM_AT = (1440, 900)
 FOOTER_BOTTOM = """() => { const f = document.querySelector("footer"); if (!f) return null;
@@ -688,6 +705,12 @@ FAULTS = [
      "!important; }</style>", "hover"),
     (ARTICLE, "HOVER: links look the same on hover", "<style>a:hover { text-decoration-thickness: 1px !important; }"
      "</style>", "hover"),
+    (ARTICLE, "TOC_NARROW: no On this page below 1280px", "<style>.toc-mini { display: none !important; }</style>",
+     "toc"),
+    (ARTICLE, "TOC_NARROW: the opened list drops a heading", "<script>document.querySelector('.toc-mini li:last-child')"
+     ".remove()</script>", "toc"),
+    (ARTICLE, "TOC_WIDE: On this page column hidden on wide screens", "<style>@media (min-width: 1280px) "
+     "{ .toc { display: none !important; } }</style>", "toc"),
     ("research/index.html", "HOVER: hub item's top rule stays put", "<style>.list > li:hover::before "
      "{ transform: scaleX(0) !important; }</style>", "hover"),
 ]
@@ -695,7 +718,7 @@ FAULTS = [
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
-             "RULES_STACKED": "RULES_STACKED", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
+             "RULES_STACKED": "RULES_STACKED", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
              "0 matches": "found 0 elements"}
 
 
@@ -808,6 +831,49 @@ def label_for(browser, name: str, width: int, height: int, phone: bool, extra: s
     kind = "phone" if phone else "desktop"
     return (f"{name} at {width}x{height} ({kind}{', ' + engine if engine != 'chromium' else ''}"
             f"{', ' + extra if extra else ''})")
+
+
+def toc_pages() -> list[str]:
+    return [name for name in pages() if '<nav class="toc"' in (DOCS / name).read_text(encoding="utf-8")]
+
+
+def check_toc(browser, base: str, inject: str | None = None, names: list[str] | None = None,
+              narrow: bool = True) -> list[str]:
+    """TOC_NARROW + TOC_WIDE (B2, D21): On this page reachable at every width."""
+    failed = []
+    names = names or toc_pages()
+    if not names:
+        return ["TOC: check found 0 pages with an On this page column"]
+    for name in names:
+        for (w, h), phone in TOC_NARROW_AT if narrow else []:
+            where = f"TOC_NARROW {label_for(browser, name, w, h, phone)}"
+            with opened(browser, base, name, w, h, phone, failed, where, inject) as page:
+                heads, box = page.evaluate(TOC_HEADS), page.evaluate(TOC_BOX, ".toc-mini summary")
+                if not heads or box is None:
+                    failed.append(f"{where}: check found 0 elements for {'h2' if not heads else '.toc-mini summary'}")
+                    continue
+                if not box["shown"] or box["text"] != "On this page" or box["bottom"] > h:
+                    failed.append(f"{where}: no visible 'On this page' in the first screen ({box})")
+                    continue
+                page.click(".toc-mini summary")
+                got = page.evaluate(TOC_LINKS, ".toc-mini a")
+                if got != heads:
+                    failed.append(f"{where}: opened list shows {len(got)} links, page has {len(heads)} h2s "
+                                  f"(first missing: {next((x for x in heads if x not in got), None)})")
+        w, h = TOC_WIDE_AT
+        where = f"TOC_WIDE {label_for(browser, name, w, h, False)}"
+        with opened(browser, base, name, w, h, False, failed, where, inject) as page:
+            heads, first = page.evaluate(TOC_HEADS), page.evaluate(TOC_BOX, ".toc a")
+            if not heads or first is None:
+                failed.append(f"{where}: check found 0 elements for {'h2' if not heads else '.toc a'}")
+                continue
+            got = page.evaluate(TOC_LINKS, ".toc a")
+            text = page.evaluate("document.querySelector('main article h1').getBoundingClientRect().right")
+            if got != heads or not first["shown"] or first["bottom"] > h or first["left"] < text:
+                spot = f"at x {first['left']:.0f}, bottom {first['bottom']:.0f}" if first["shown"] else "hidden"
+                failed.append(f"{where}: On this page column shows {len(got)} of {len(heads)} links, first {spot}"
+                              f" (text column ends at x {text:.0f}, screen {h}px)")
+    return failed
 
 
 def check_layout(browser, base: str, name: str, width: int, height: int, phone: bool,
@@ -1178,6 +1244,7 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
         failed += check_print(browser, base)
         failed += check_status(browser, base)
         failed += check_hover(browser, base)
+        failed += check_toc(browser, base)
         f, r = check_zoom(browser, base)
         failed += f
         reports += r
@@ -1203,6 +1270,7 @@ def run_engines(base: str) -> list[str]:
                     failed += [line for line in f if "header" not in line and "Copy button" not in line
                                and not line.startswith(REPORT_ONLY)]
                     failed += check_motion(browser, base, name, w, h, phone, full=False)
+            failed += check_toc(browser, base)
             browser.close()
     return failed
 
@@ -1228,6 +1296,8 @@ def run_self_test(base: str) -> list[str]:
             return check_status(browser, base, inject)
         if kind == "hover":
             return check_hover(browser, base, inject, [name])
+        if kind == "toc":
+            return check_toc(browser, base, inject, [name])
         if kind == "zoom":
             return check_zoom(browser, base, inject)[0]
         return check_motion(browser, base, name, *FOLD, False, inject)

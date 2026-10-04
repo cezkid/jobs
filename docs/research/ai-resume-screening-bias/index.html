@@ -190,9 +190,9 @@
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
   /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  .meta + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  .meta + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  .meta + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -208,6 +208,20 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { font-style: italic; font-synthesis: none; }
+  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
+  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
+  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.4; }
+  .toc-mini li { margin: 0; }
+  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+  /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
+  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
+  /* Keep reading: the article's way on, under a thick rule like Sources */
+  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
+  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
+  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
+  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .more p { margin: 0 0 8px; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -227,6 +241,7 @@
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
     main.wrap > .list { grid-column: 1; grid-row: 2; }
+    .toc-mini { display: none; }
     .toc {
       display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
@@ -253,7 +268,7 @@
   }
   @media print {
     main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs, .toc { display: none !important; }
+    .crumbs, .toc, .toc-mini, .more { display: none !important; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
   }
@@ -272,8 +287,13 @@
   </div>
 </header>
 <main id="main" class="wrap">
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
+<article class="page">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research</a></li><li aria-current="page">Is AI resume screening biased? What the studies show</li></ol></nav>
+<h1>Is AI resume screening biased? What the studies show</h1>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>.</p>
+<nav class="toc-mini" aria-label="Contents">
+<details>
+<summary>On this page</summary>
 <ol>
 <li><a href="#do-ai-resume-screeners-treat-people-differently-by-name">Do AI resume screeners treat people differently by name?</a></li>
 <li><a href="#does-the-bias-always-go-against-the-same-people">Does the bias always go against the same people?</a></li>
@@ -287,11 +307,8 @@
 <li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
+</details>
 </nav>
-<article class="page">
-<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research</a></li><li aria-current="page">Is AI resume screening biased? What the studies show</li></ol></nav>
-<h1>Is AI resume screening biased? What the studies show</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>.</p>
 <p><strong>Short answer</strong></p>
 <ul>
 <li>AI models judge identical resumes differently by name, gender, age or disability (Lab study, many tests) (<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>; <a href="#src-an-2025">An et al. 2025</a>; <a href="#src-rozado-2026">Rozado 2026</a>; <a href="#src-bone-2026">Bone et al. 2026</a>; <a href="#src-glazko-2024">Glazko et al. 2024</a>).</li>
@@ -401,7 +418,33 @@
 <li id="src-wright-2024">Wright, Lucas, Muenster, Roxana Mika, Vecchione, Briana, Qu, Tianyao, Cai, Pika, Smith, Alan, Metcalf, Jacob and Matias, J. Nathan (2024). Null Compliance: NYC Local Law 144 and the challenges of algorithm accountability. <i>FAccT &#x27;24, ACM Conference on Fairness, Accountability, and Transparency.</i> <a href="https://doi.org/10.1145/3630106.3658998">https://doi.org/10.1145/3630106.3658998</a> <a href="https://facctconference.org/static/papers24/facct24-113.pdf">https://facctconference.org/static/papers24/facct24-113.pdf</a> <span class="evidence">Real records, no experiment (a link, not proof of cause), 155 student investigators checked the websites of 391 employers for posted bias audits and notices.</span> Checked <time datetime="2026-10-03">3 October 2026</time>.</li>
 <li id="src-bloomberg-2024">Yin, Leon, Alba, Davey and Nicoletti, Leonardo (2024). OpenAI&#x27;s GPT Is a Recruiter&#x27;s Dream Tool. Tests Show There&#x27;s Racial Bias. <i>Bloomberg, March 7, 2024 (method + code on GitHub, BloombergGraphics/2024-openai-gpt-hiring-racial-discrimination).</i> <a href="https://prod.cm.bloomberg.com/graphics/2024-openai-gpt-hiring-racial-discrimination/">https://prod.cm.bloomberg.com/graphics/2024-openai-gpt-hiring-racial-discrimination/</a> <span class="evidence">Lab test (not real hiring), GPT-3.5 and GPT-4 asked 1,000 times per job to rank 8 equally qualified resumes with names from 8 race and gender groups, 4 jobs; news organisation&#x27;s own test.</span> Checked <time datetime="2026-10-03">3 October 2026</time>.</li>
 </ol>
+<nav class="more" aria-label="Keep reading">
+<p>Keep reading</p>
+<ul>
+<li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a></li>
+<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a></li>
+<li><a href="/research/">All research</a></li>
+</ul>
+<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p><a href="#main">Back to top</a></p>
+</nav>
 </article>
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#do-ai-resume-screeners-treat-people-differently-by-name">Do AI resume screeners treat people differently by name?</a></li>
+<li><a href="#does-the-bias-always-go-against-the-same-people">Does the bias always go against the same people?</a></li>
+<li><a href="#does-removing-your-name-stop-the-bias">Does removing your name stop the bias?</a></li>
+<li><a href="#are-other-groups-affected---age-disability">Are other groups affected - age, disability?</a></li>
+<li><a href="#what-happens-with-real-applicants">What happens with real applicants?</a></li>
+<li><a href="#what-real-cases-are-there">What real cases are there?</a></li>
+<li><a href="#what-do-the-laws-say">What do the laws say?</a></li>
+<li><a href="#what-we-dont-know">What we don't know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 </main>
 <footer>
   <div class="wrap row">

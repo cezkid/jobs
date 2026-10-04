@@ -188,9 +188,9 @@
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
   /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  .meta + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  .meta + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  .meta + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -206,6 +206,20 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { font-style: italic; font-synthesis: none; }
+  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
+  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
+  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.4; }
+  .toc-mini li { margin: 0; }
+  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+  /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
+  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
+  /* Keep reading: the article's way on, under a thick rule like Sources */
+  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
+  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
+  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
+  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .more p { margin: 0 0 8px; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -225,6 +239,7 @@
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
     main.wrap > .list { grid-column: 1; grid-row: 2; }
+    .toc-mini { display: none; }
     .toc {
       display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
@@ -251,7 +266,7 @@
   }
   @media print {
     main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs, .toc { display: none !important; }
+    .crumbs, .toc, .toc-mini, .more { display: none !important; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
   }

@@ -973,3 +973,36 @@ def test_every_evidence_label_is_in_the_research_guide_and_the_methods_page():
     for label, words in pages.EVIDENCE.items():
         assert f"| `{label}` |" in guide, label
         assert f"| {words} |" in methods, words
+
+
+def test_articles_end_with_keep_reading_and_the_h1_comes_before_on_this_page(tmp_path):
+    third = SOURCES["ai-bias.md"].replace("AI screening and bias", "Third one").replace("2026-09-10", "2026-09-05").replace(
+        "What tests of AI resume screeners found.", "A third page.")
+    research_site(tmp_path, {"third.md": third.replace("## What was measured", "## One\n\nA.\n\n## Two\n\nB.\n\n## Three")})
+    built = pages.build(tmp_path)
+    for name in "ats-myth", "ai-bias", "third":
+        html = built[f"research/{name}/index.html"]
+        article = html.split('<article class="page">')[1].split("</article>")[0].rstrip()
+        more = article[article.rindex('<nav class="more" aria-label="Keep reading">'):]
+        assert more.endswith("</nav>"), name  # nothing after it in the article
+        hrefs = re.findall(r'href="([^"]+)"', more)
+        others = [h for h in hrefs if h.startswith("/research/") and h not in ("/research/", f"/research/{name}/")]
+        assert len(others) == 2 and f"/research/{name}/" not in hrefs, (name, hrefs)
+        assert "/research/" in hrefs and "/#install" in hrefs and "#main" in hrefs, name
+        # source order: the h1 is main's first heading, the wide-screen column follows the article
+        main = html.split('<main id="main" class="wrap">')[1].split("</main>")[0]
+        assert re.search(r"<h[1-6]\b", main).group(0) == "<h1", name
+        if '<nav class="toc"' in main:
+            assert main.index("</article>") < main.index('<nav class="toc" aria-label="On this page">'), name
+            # narrow screens: the same list, closed, right under the byline; no ids repeated
+            mini = main.split('<nav class="toc-mini" aria-label="Contents">')[1].split("</nav>")[0]
+            assert main.index('class="meta"') < main.index('class="toc-mini"') < main.index("<h2")
+            assert "<details>\n<summary>On this page</summary>" in mini
+            assert re.findall(r'href="(#[^"]+)"', mini) == ["#" + i for i in re.findall(r'<h2 id="([^"]+)"', main)]
+        ids = re.findall(r'\sid="([^"]+)"', html)
+        assert len(ids) == len(set(ids)), name
+    # the next two after it in hub order (newest first), wrapping round
+    order = re.findall(r'<li><a href="(/research/[^"]+/)">', built["research/index.html"])
+    ai = re.findall(r'href="(/research/[^"#]+/)"', built["research/ai-bias/index.html"].split('aria-label="Keep reading"')[1])
+    i = order.index("/research/ai-bias/")
+    assert ai[:2] == (order[i + 1:] + order[:i])[:2]

@@ -190,9 +190,9 @@
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
   /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  .meta + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  .meta + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  .meta + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -208,6 +208,20 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { font-style: italic; font-synthesis: none; }
+  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
+  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
+  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.4; }
+  .toc-mini li { margin: 0; }
+  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+  /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
+  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
+  /* Keep reading: the article's way on, under a thick rule like Sources */
+  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
+  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
+  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
+  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .more p { margin: 0 0 8px; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -227,6 +241,7 @@
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
     main.wrap > .list { grid-column: 1; grid-row: 2; }
+    .toc-mini { display: none; }
     .toc {
       display: block; grid-column: 2; grid-row: 1; justify-self: end; align-self: start; width: min(100%, 20rem);
       position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
@@ -253,7 +268,7 @@
   }
   @media print {
     main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs, .toc { display: none !important; }
+    .crumbs, .toc, .toc-mini, .more { display: none !important; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
   }
@@ -272,8 +287,13 @@
   </div>
 </header>
 <main id="main" class="wrap">
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
+<article class="page">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research</a></li><li aria-current="page">What makes a good resume? The evidence, rule by rule</li></ol></nav>
+<h1>What makes a good resume? The evidence, rule by rule</h1>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>.</p>
+<nav class="toc-mini" aria-label="Contents">
+<details>
+<summary>On this page</summary>
 <ol>
 <li><a href="#what-matters-most-on-a-resume">What matters most on a resume?</a></li>
 <li><a href="#does-your-resume-have-to-match-your-records">Does your resume have to match your records?</a></li>
@@ -292,11 +312,8 @@
 <li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
+</details>
 </nav>
-<article class="page">
-<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research</a></li><li aria-current="page">What makes a good resume? The evidence, rule by rule</li></ol></nav>
-<h1>What makes a good resume? The evidence, rule by rule</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>.</p>
 <p><strong>Short answer</strong></p>
 <ul>
 <li>True first: employer, title, dates match records. Firms that check find mismatches (Vendor survey) (<a href="#src-hireright-2025">HireRight 2025a</a>).</li>
@@ -415,7 +432,38 @@
 <li id="src-sterkens-2023">Sterkens, Philippe, Caers, Ralf, De Couck, Marijke, Van Driessche, Victor, Geamanu, Michel and Baert, Stijn (2023). Costly mistakes: Why and when spelling errors in resumes jeopardise interview chances. <i>PLOS ONE 18(4), e0283280.</i> <a href="https://doi.org/10.1371/journal.pone.0283280">https://doi.org/10.1371/journal.pone.0283280</a> <span class="evidence">Lab test (not real hiring), 445 recruiters in Flanders, Belgium, rating made-up graduate resumes (1,335 ratings); not real hiring.</span> Checked <time datetime="2026-10-03">3 October 2026</time>.</li>
 <li id="src-ladders-2012">TheLadders (2012). Keeping an Eye on Recruiter Behavior. <a href="https://web.archive.org/web/20131214121352/http://cdn.theladders.net/static/images/basicSite/pdfs/TheLadders-EyeTracking-StudyC2.pdf">https://web.archive.org/web/20131214121352/http://cdn.theladders.net/static/images/basicSite/pdfs/TheLadders-EyeTracking-StudyC2.pdf</a> <span class="evidence">Survey by a company that sells the service, 30 professional recruiters watched with eye tracking over 10 weeks; run by a job site; not peer-reviewed.</span> Checked <time datetime="2026-10-03">3 October 2026</time>.</li>
 </ol>
+<nav class="more" aria-label="Keep reading">
+<p>Keep reading</p>
+<ul>
+<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a></li>
+<li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a></li>
+<li><a href="/research/">All research</a></li>
+</ul>
+<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p><a href="#main">Back to top</a></p>
+</nav>
 </article>
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#what-matters-most-on-a-resume">What matters most on a resume?</a></li>
+<li><a href="#does-your-resume-have-to-match-your-records">Does your resume have to match your records?</a></li>
+<li><a href="#should-a-resume-list-results-or-duties">Should a resume list results or duties?</a></li>
+<li><a href="#should-you-use-the-words-in-the-job-posting">Should you use the words in the job posting?</a></li>
+<li><a href="#how-far-back-should-a-resume-go">How far back should a resume go?</a></li>
+<li><a href="#does-a-gap-in-your-resume-hurt">Does a gap in your resume hurt?</a></li>
+<li><a href="#does-explaining-a-gap-help">Does explaining a gap help?</a></li>
+<li><a href="#do-typos-really-matter">Do typos really matter?</a></li>
+<li><a href="#how-long-should-a-resume-be">How long should a resume be?</a></li>
+<li><a href="#what-should-a-resume-leave-off">What should a resume leave off?</a></li>
+<li><a href="#does-layout-matter">Does layout matter?</a></li>
+<li><a href="#which-resume-advice-is-not-backed-by-evidence">Which resume advice is not backed by evidence?</a></li>
+<li><a href="#what-we-dont-know">What we don't know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 </main>
 <footer>
   <div class="wrap row">
