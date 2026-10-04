@@ -450,14 +450,18 @@ def test_citations_render_author_year_links_and_an_alphabetical_sources_list(tmp
             '<a href="#src-eeoc-2023">US Equal Employment Opportunity Commission 2023</a>).') in html
     sources = html.split('<h2 id="sources">Sources</h2>\n<ol class="sources">\n')[1].split("</ol>")[0]
     assert re.findall(r'<li id="src-([^"]+)"', sources) == ["kline-2021", "quillian-2017", "eeoc-2023"]
-    assert ('<li id="src-quillian-2017">Quillian, Lincoln, Pager, Devah, Hexel, Ole and Midtboen, Arnfinn H. (2017). '
+    assert ('<li id="src-quillian-2017"><b class="evidence">Big study (many studies combined)</b> '
+            "Quillian, Lincoln, Pager, Devah, Hexel, Ole and Midtboen, Arnfinn H. (2017). "
             "Meta-analysis of field experiments shows no change in racial discrimination in hiring over time. "
-            "<i>Proceedings of the National Academy of Sciences.</i> "
-            '<a href="https://doi.org/10.1073/pnas.1706255114">https://doi.org/10.1073/pnas.1706255114</a> '
-            '<span class="evidence">Big study (many studies combined), 28 US studies, 55,842 applications.</span> '
-            'Checked <time datetime="2026-09-29">29 September 2026</time>.</li>') in sources
+            "<i>Proceedings of the National Academy of Sciences.</i> 28 US studies, 55,842 applications. "
+            'Checked <time datetime="2026-09-29">29 September 2026</time>. '
+            '<a href="https://doi.org/10.1073/pnas.1706255114">DOI</a></li>') in sources
+    # A14: each entry opens with its label; no visible text is a raw URL
+    for li in re.findall(r"<li id=.*?</li>", sources):
+        assert li.startswith(re.match(r'<li id="[^"]+">', li).group(0) + '<b class="evidence">'), li
+        assert not re.search(r">https?://", li)
     assert "Preprint, not peer-reviewed." in sources.split('id="src-kline-2021"')[1].split("</li>")[0]
-    assert '<a href="https://www.nber.org/papers/w29053">' in sources
+    assert '<a href="https://www.nber.org/papers/w29053">Open copy</a>' in sources
     # a page that cites nothing gets no list
     assert 'id="sources"' not in pages.build(tmp_path)["research/ai-bias/index.html"]
 

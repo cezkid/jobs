@@ -77,6 +77,8 @@ _spec.loader.exec_module(assets)
 FONT_CHARS = frozenset(map(chr, assets.UNICODES))
 LIMITS = {"title": 60, "description": 155, "og_title": 70}  # cut off past this in results / share previews
 # same as app/resume/lint.py INVISIBLE: looks like a space or nothing, breaks search + copy
+# hosts that hold a free full text: their link reads "Open copy", any other URL "Publisher"
+OPEN_COPY_HOSTS = ("arxiv.org", "ncbi.nlm.nih.gov", "nber.org", "ssrn.com", "osf.io", "europepmc.org")
 INVISIBLE = re.compile("[\u00a0\u202f\u200b\u200c\u200d\u2060\ufeff]")
 # same as test_docs.py JARGON + JARGON_OK (a test keeps them equal): the site's readers are the app's users
 JARGON = re.compile(r"\b(config|yml|json|slug|params|facet|pytest|repo|commit|branch|PR|API|schema)\b")
@@ -594,19 +596,22 @@ class Registry:
         entry = self.entries[ref]
         authors = entry.get("authors") or []
         who = (", ".join(authors[:-1]) + " and " + authors[-1]) if len(authors) > 1 else authors[0] if authors else entry["org"]
-        parts = [f"{escape(typeset(who.strip()))} ({entry['year']}).", escape(typeset(stop(entry["title"].strip())))]
+        parts = [f'<b class="evidence">{escape(typeset(EVIDENCE[entry["evidence"]]))}</b>',
+                 f"{escape(typeset(who.strip()))} ({entry['year']}).", escape(typeset(stop(entry["title"].strip())))]
         if entry.get("venue"):
             parts.append(f"<i>{escape(typeset(stop(entry['venue'].strip())))}</i>")
-        if entry.get("doi"):
-            doi = "https://doi.org/" + quote(entry["doi"], safe="/:;()._-")
-            parts.append(f'<a href="{escape(doi)}">{escape(doi)}</a>')
-        if entry.get("url"):
-            parts.append(f'<a href="{escape(entry["url"])}">{escape(entry["url"])}</a>')
-        evidence = EVIDENCE[entry["evidence"]] + (f", {entry['sample'].strip()}" if entry.get("sample") else "")
-        parts.append(f'<span class="evidence">{escape(typeset(stop(evidence)))}</span>')
+        if entry.get("sample"):
+            parts.append(escape(typeset(stop(entry["sample"].strip()[:1].upper() + entry["sample"].strip()[1:]))))
         if entry.get("preprint"):
             parts.append("Preprint, not peer-reviewed.")
         parts.append(f'Checked <time datetime="{entry["checked"]}">{long_date(str(entry["checked"]))}</time>.')
+        links = []
+        if entry.get("doi"):
+            links.append(("DOI", "https://doi.org/" + quote(entry["doi"], safe="/:;()._-")))
+        if entry.get("url"):
+            host = urlsplit(entry["url"]).netloc.lower()
+            links.append(("Open copy" if host.endswith(OPEN_COPY_HOSTS) else "Publisher", entry["url"]))
+        parts.append(" ".join(f'<a href="{escape(url)}">{word}</a>' for word, url in links))
         return f'<li id="src-{ref}">' + " ".join(parts) + "</li>"
 
 
@@ -865,7 +870,7 @@ PAGE_CSS = """
   .sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
-  .sources .evidence { font-style: italic; font-synthesis: none; }
+  .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
   /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
