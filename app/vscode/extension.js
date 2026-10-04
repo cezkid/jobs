@@ -73,6 +73,10 @@ async function openStartPage() {
   const root = folder.uri.fsPath;
   const at = (rel) => path.join(root, rel);
   if (!start.isJobFinder((rel) => fs.existsSync(at(rel)))) return;
+  // launcher found VS Code running => its own profile waits for one cold start; say how, once a window
+  if (fs.existsSync(at(start.PROFILE_PENDING))) {
+    vscode.window.showInformationMessage(start.PROFILE_PENDING_LINE[process.platform === "darwin" ? "darwin" : "other"]);
+  }
   let marker = null;
   try {
     marker = fs.readFileSync(at(start.MARKER), "utf8");

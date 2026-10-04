@@ -916,3 +916,20 @@ def test_sync_ignore_list_edited_in_place():
     commented = '{\n  // "settingsSync.ignoredExtensions": ["old"]\n}'
     assert launch.settings_values(launch.add_to_list_setting(commented, launch.SYNC_IGNORED, "x.y")) == {
         launch.SYNC_IGNORED: ["x.y"]}
+
+
+def test_ai_found_from_its_extension_is_written_down(tmp_path, monkeypatch):
+    # installs before the choice file: the window extension saw no AI and every Today button copied
+    import ai
+    choice = tmp_path / "ai"
+    monkeypatch.setattr(ai, "CHOICE_FILE", choice)
+    monkeypatch.setattr(ai, "current", lambda: "claude")
+    assert launch.chosen_ai() == "claude"
+    assert choice.read_text(encoding="utf-8").strip() == "claude"
+
+
+def test_profile_waiting_on_a_cold_start_is_flagged_for_the_window(tmp_path):
+    # VS Code left open => no profile, and nothing told the user to quit it once
+    flag = tmp_path / "profile-pending"
+    launch.mark_profile_pending(flag)
+    assert "quit VS Code" in flag.read_text(encoding="utf-8")

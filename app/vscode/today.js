@@ -241,8 +241,10 @@ function claudeNewChatArgs(words) {
 
 // what a say button's own text reads: fill/new => the label ("Make my resume"); copy => honest
 // about what it does ("Copy: resume for job 12")
-function sayText(button, mode) {
-  return mode === "copy" && !button.status ? `Copy: ${button.words}` : button.label;
+// button text = the action, every AI (owner 2026-10-04: no "Copy: ..." labels); how the words reach
+// the chat is said in the how-line, the tooltip and the status line
+function sayText(button) {
+  return button.label;
 }
 
 function sayTitle(button, mode) {
@@ -415,10 +417,9 @@ h1, h2, h3 { text-wrap: balance; }
 .skip:focus-within { position: static; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; }
 .sub { color: var(--text-2); margin: 0 0 2px; }
 .top { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
-.look { display: inline-flex; border: 1px solid var(--edge); border-radius: 6px; overflow: hidden; margin-top: 6px; }
-.look button { border: 0; border-radius: 0; font-weight: 400; min-height: 32px; padding: 5px 12px; color: var(--text-2); }
-.look button + button { border-left: 1px solid var(--edge); }
-.look button[aria-pressed="true"] { color: var(--text); font-weight: 700; text-decoration: underline;
+.look { color: var(--text-2); font-size: 0.9rem; margin: 18px 0 0; }
+.look button { font-size: 0.9rem; color: var(--text-2); }
+.look button[aria-pressed="true"] { color: var(--text); font-weight: 700; text-decoration: none;
   text-decoration-thickness: 2px; text-underline-offset: 4px; }
 .how { color: var(--text-2); font-size: 0.92rem; margin: 10px 0 20px; }
 section { margin: 32px 0 0; }
@@ -750,10 +751,10 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   const skip = `<nav class="skip" aria-label="Jump to">${jumps.map(([id, title], i) =>
     `<button type="button" class="link" data-jump="${h(id)}">${i ? "" : "Skip to "}${h(title)}</button>`).join("")}</nav>`;
   return `${head(nonce, fonts)}
-<body data-day="${h(m.date)}">${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${tiles}</div>${lookSwitch(lookOf(look))}</div>
+<body data-day="${h(m.date)}">${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${tiles}</div></div>
 <p class="how" id="how">${h(howLine(mode))}</p>
 ${next}${setup}${sections}${todo}${empty}
-<section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}</section>
+<section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}${lookSwitch(lookOf(look))}</section>
 ${BAR}</main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
 }
@@ -762,9 +763,10 @@ ${BAR}</main>
 const BAR = `<div class="bar"><p id="status" role="status" aria-live="polite"></p><button type="button" id="undo" data-undo="1" hidden>Undo</button></div>`;
 
 // Match my computer · Light · Dark: one pressed, in ink (not yellow: yellow = something to do)
+// owner 2026-10-04: picked once, so a quiet line at the bottom, not a control in the header
 function lookSwitch(look) {
-  return `<div class="look" role="group" aria-label="Look">${LOOKS.map((l) =>
-    `<button type="button" data-look="${l.word}" aria-pressed="${l.word === look}">${escapeHtml(l.label)}</button>`).join("")}</div>`;
+  return `<p class="look" role="group" aria-label="Look"><span>Look:</span> ${LOOKS.map((l) =>
+    `<button type="button" class="link" data-look="${l.word}" aria-pressed="${l.word === look}">${escapeHtml(l.label)}</button>`).join(" · ")}</p>`;
 }
 
 // why the dashboard can't show (extension.js decides): plain words, what happens next

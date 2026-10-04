@@ -175,7 +175,8 @@ test("button text honest per AI: Copilot fills, ChatGPT + untested Claude copy",
   for (const ai of ["claude", "chatgpt", null, "nova"]) assert.equal(today.sayMode(ai), "copy");
   const m = today.model(RAW, say);
   assert.match(html(m, "fill"), /class="go"[^>]*>Help me apply</);
-  assert.match(html(m, "copy"), /class="go"[^>]*>Copy: apply to job 12</);
+  assert.match(html(m, "copy"), /class="go"[^>]*>Help me apply</);
+  assert.doesNotMatch(html(m, "copy"), />Copy: /);
   assert.match(html(m, "copy"), /Paste them in the chat box and press Enter/);
   assert.equal(today.readyLine("copy", null, "darwin"), "Copied - click the chat box, paste (Cmd+V), press Enter.");
   assert.equal(today.readyLine("copy", 12, "win32"), "Job 12: copied - click the chat box, paste (Ctrl+V), press Enter.");
@@ -717,13 +718,13 @@ test("look switch: Match my computer · Light · Dark, current one pressed, ink 
   const m = today.model(RAW, say);
   for (const look of ["auto", "light", "dark"]) {
     const page = today.render(m, { mode: "copy", nonce: "abc123", look });
-    const sw = /<div class="look" role="group" aria-label="Look">(.*?)<\/div>/.exec(page);
-    assert.ok(sw, "switch in the header");
-    const buttons = [...sw[1].matchAll(/<button type="button" data-look="(\w+)" aria-pressed="(true|false)">([^<]+)<\/button>/g)];
+    const sw = /<p class="look" role="group" aria-label="Look">(.*?)<\/p>/.exec(page);
+    assert.ok(sw, "quiet line at the bottom");
+    assert.ok(page.indexOf('class="look"') > page.indexOf('id="s-say"'), "not in the header: picked once");
+    const buttons = [...sw[1].matchAll(/<button type="button" class="link" data-look="(\w+)" aria-pressed="(true|false)">([^<]+)<\/button>/g)];
     assert.deepEqual(buttons.map((b) => b[3]), ["Match my computer", "Light", "Dark"]);
     assert.deepEqual(buttons.filter((b) => b[2] === "true").map((b) => b[1]), [look]);
     assert.ok(!/class="[^"]*go/.test(sw[0]), "no yellow button class in the switch");
-    assert.ok(page.indexOf(sw[0]) < page.indexOf('id="how"'), "top of the page");
   }
   // missing or garbage look file = Match my computer
   for (const text of [undefined, "", "purple", " DARK\n"]) assert.equal(today.lookOf(text), text === " DARK\n" ? "dark" : "auto");
@@ -731,10 +732,8 @@ test("look switch: Match my computer · Light · Dark, current one pressed, ink 
   // selected = ink underline, no fill: a solid block was the heaviest mark at the top (re-critique P3)
   const page = today.render(m, { mode: "copy", nonce: "x" });
   const css = /\.look button\[aria-pressed="true"\] \{([^}]*)\}/.exec(page)[1];
-  assert.match(css, /color: var\(--text\); font-weight: 700; text-decoration: underline/);
+  assert.match(css, /color: var\(--text\); font-weight: 700; text-decoration: none/);
   assert.ok(!css.includes("background") && !css.includes("--mark"));
-  // 32 px tall: a 25 px segment is a small target
-  assert.match(page, /\.look button \{[^}]*min-height: 32px/);
   assert.deepEqual(today.LOOKS.map((l) => today.lookDone(l.word)), ["Look matches your computer", "Light look on", "Dark look on"]);
 });
 
