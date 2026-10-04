@@ -1,0 +1,84 @@
+# 3-4: local vsix into profile, VS Code 1.140.0, 2026-10-03T22:09:09Z
+## install a.vsix (0.0.1, A)
+Installing extensions...
+Extension 'a.vsix' was successfully installed.
+exit=0 secs=0.8
+{
+ "identifier": {
+  "id": "cez-job-finder.window"
+ },
+ "version": "0.0.1",
+ "relativeLocation": "cez-job-finder.window-0.0.1",
+ "metadata": {
+  "installedTimestamp": 1791065350970,
+  "pinned": true,
+  "source": "vsix"
+ }
+}
+// content-A
+## list profile
+anthropic.claude-code@2.1.288
+cez-job-finder.window@0.0.1
+redhat.vscode-yaml@1.24.0
+tomoki1207.pdf@1.2.2
+## list default
+tomoki1207.pdf
+## reinstall b.vsix (same 0.0.1, content B) no --force
+Installing extensions...
+Extension 'b.vsix' was successfully installed.
+exit=0
+// content-B
+## reinstall b.vsix --force
+Installing extensions...
+Extension 'b.vsix' was successfully installed.
+exit=0
+// content-B
+{
+ "identifier": {
+  "id": "cez-job-finder.window"
+ },
+ "version": "0.0.1",
+ "relativeLocation": "cez-job-finder.window-0.0.1",
+ "metadata": {
+  "isApplicationScoped": false,
+  "isMachineScoped": false,
+  "isBuiltin": false,
+  "installedTimestamp": 1791065353698,
+  "pinned": true,
+  "source": "vsix"
+ }
+}
+## install c.vsix (0.0.2) no --force
+Installing extensions...
+Extension 'c.vsix' was successfully installed.
+exit=0
+{
+ "identifier": {
+  "id": "cez-job-finder.window"
+ },
+ "version": "0.0.2",
+ "relativeLocation": "cez-job-finder.window-0.0.2",
+ "metadata": {
+  "isApplicationScoped": false,
+  "isMachineScoped": false,
+  "isBuiltin": false,
+  "installedTimestamp": 1791065354526,
+  "pinned": true,
+  "source": "vsix"
+ }
+}
+cez-job-finder.window-0.0.1
+cez-job-finder.window-0.0.2
+// content-C
+## downgrade a.vsix (0.0.1) no --force
+Installing extensions...
+A newer version of extension 'cez-job-finder.window' v0.0.2 is already installed. Use '--force' option to downgrade to older version.
+exit=0
+cez-job-finder.window@0.0.2
+## ext/extensions.json (shared) cez entries
+[('tomoki1207.pdf', '1.2.2')]
+## gallery lookup of the id
+Installing extensions...
+Extension 'cez-job-finder.window' not found.
+Make sure you use the full extension ID, including the publisher, e.g.: ms-dotnettools.csharp
+Failed Installing Extensions: cez-job-finder.window

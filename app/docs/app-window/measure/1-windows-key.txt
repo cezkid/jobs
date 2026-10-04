@@ -1,0 +1,5 @@
+vscode-uri 3.2.0 (VS Code URI class); Windows paths given w/ forward slashes, as VS Code normalises on win32
+"C:/Home/Your Name/jobs" -> file:///c%3A/Home/Your%20Name/jobs
+"c:/Home/Your Name/CEZ Job Finder" -> file:///c%3A/Home/Your%20Name/CEZ%20Job%20Finder
+"D:/Jobs Ñ" -> file:///d%3A/Jobs%20%C3%91
+parse round trip: file:///c%3A/Home/Your%20Name/jobs

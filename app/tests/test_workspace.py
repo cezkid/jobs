@@ -3,10 +3,19 @@ import re
 import subprocess
 from pathlib import Path
 
+import pytest
+
 import cfg
+import look
 import workspace
 
 HOME = Path("/Users/someone")
+
+
+@pytest.fixture(autouse=True)
+def no_real_look(tmp_path, monkeypatch):
+    # a developer's own .data/look would change what every write here produces
+    monkeypatch.setattr(look, "CHOICE_FILE", tmp_path / ".data" / "look")
 
 
 def load(text: str) -> dict:
@@ -86,13 +95,13 @@ def test_claude_rules_read_as_commands_once_each():
 def test_written_only_when_changed(tmp_path):
     # every write reloads the open window's settings
     path = tmp_path / ".vscode" / "settings.json"
-    assert workspace.write("claude", path) is True
+    assert workspace.write("claude", path, set_up=False) is True
     text = path.read_text(encoding="utf-8")
     assert text.startswith("//") and "app/workspace.py" in text.splitlines()[0]
     assert load(text) == workspace.settings("claude")
     stamp = path.stat().st_mtime_ns
-    assert workspace.write("claude", path) is False and path.stat().st_mtime_ns == stamp
-    assert workspace.write("copilot", path, HOME) is True
+    assert workspace.write("claude", path, set_up=False) is False and path.stat().st_mtime_ns == stamp
+    assert workspace.write("copilot", path, HOME, set_up=False) is True
     assert load(path.read_text(encoding="utf-8"))["chat.disableAIFeatures"] is False
 
 
@@ -104,3 +113,93 @@ def test_settings_file_generated_not_tracked():
     tracked = subprocess.run([*git, "ls-files", ".vscode"], capture_output=True, text=True).stdout
     assert tracked.strip() == ""
     assert subprocess.run([*git, "check-ignore", "-q", ".vscode/settings.json"]).returncode == 0
+
+
+def test_start_here_leaves_the_file_list_once_set_up(tmp_path, monkeypatch):
+    # "type set me up" stayed in the file list for good, weeks after setup
+    path, search = tmp_path / ".vscode" / "settings.json", tmp_path / "Search settings.yml"
+    monkeypatch.setenv("JOBS_CONFIG", str(search))
+    workspace.write("claude", path)
+    assert "START HERE.md" not in load(path.read_text(encoding="utf-8"))["files.exclude"]
+    search.write_text("{}\n", encoding="utf-8")
+    assert workspace.write("claude", path) is True
+    assert load(path.read_text(encoding="utf-8"))["files.exclude"]["START HERE.md"] is True
+
+
+def test_resume_and_settings_files_read_as_documents():
+    # line numbers, folding arrows, lightbulbs made Resume details.yml look like a code file
+    for ai in ("claude", "copilot"):
+        settings = workspace.settings(ai, HOME)
+        for lang in ("[yaml]", "[markdown]"):
+            block = settings[lang]
+            assert block["editor.lineNumbers"] == "off" and block["editor.folding"] is False
+            assert block["editor.glyphMargin"] is False and block["editor.wordWrap"] == "on"
+        assert settings["terminal.integrated.hideOnStartup"] == "always"
+        # schema's red underline + hover are the point of the YAML checker: never switched off
+        flat = {k: v for block in (settings, settings["[yaml]"], settings["[markdown]"]) for k, v in block.items()}
+        assert not any(k.startswith(("problems.", "editor.hover", "explorer.decorations", "workbench.editor.decorations"))
+                       or k.endswith(".decorations.enabled") for k in flat)
+        assert settings["yaml.validate"] is True
+
+
+def test_setup_saving_search_settings_hides_start_here_in_the_open_window(tmp_path, monkeypatch, capsys):
+    # START HERE stayed listed until the next launch after setup saved search settings
+    import jobs
+    import launch
+    search = tmp_path / "My Settings" / "Search settings.yml"
+    search.parent.mkdir()
+    search.write_text((cfg.PROFILES / "example.yml").read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setenv("JOBS_CONFIG", str(search))
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    jobs.check_settings()
+    written = load((tmp_path / ".vscode" / "settings.json").read_text(encoding="utf-8"))
+    assert written["files.exclude"]["START HERE.md"] is True
+    assert written == workspace.settings("claude", set_up=True)  # the launcher's own file: no other key moves
+    assert capsys.readouterr().out.startswith("ok: ")
+
+
+# light / dark picked => the window stays that way, whatever the computer's look
+def test_look_fixes_the_theme_and_auto_follows_the_computer():
+    for ai in ("claude", "copilot"):
+        dark, light, auto = (workspace.settings(ai, HOME, look=w) for w in ("dark", "light", "auto"))
+        assert dark["window.autoDetectColorScheme"] is False and dark["workbench.colorTheme"] == "Dark Modern"
+        assert light["window.autoDetectColorScheme"] is False and light["workbench.colorTheme"] == "Light Modern"
+        assert auto["window.autoDetectColorScheme"] is True and "workbench.colorTheme" not in auto
+        # brand colors for both themes stay; high contrast left to the computer
+        for s in (dark, light, auto):
+            assert s["workbench.colorCustomizations"] == auto["workbench.colorCustomizations"]
+            assert "window.autoDetectHighContrast" not in s
+
+
+# a missing, empty or garbled choice must not break the window: it just follows the computer
+def test_missing_or_garbage_look_is_auto(tmp_path):
+    path = tmp_path / "look"
+    assert look.current(path) == "auto"
+    for text in ("", "purple\n", "\x00\x01"):
+        path.write_text(text, encoding="utf-8")
+        assert look.current(path) == "auto"
+    path.write_bytes(b"\xff\xfe")
+    assert look.current(path) == "auto"
+    assert workspace.settings("claude", look="purple")["window.autoDetectColorScheme"] is True
+
+
+# "dark mode" in the chat must switch the open window at once, and survive the next launch
+def test_look_command_round_trip(tmp_path, monkeypatch, capsys):
+    import launch
+    path = tmp_path / ".vscode" / "settings.json"
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    monkeypatch.setattr(launch, "write_workspace", lambda ai: workspace.write(ai, path, set_up=False))
+    for args, said, auto, theme in ((["dark"], "Look: dark. Switched.", False, "Dark Modern"),
+                                    ([], "Look: dark.", False, "Dark Modern"),
+                                    (["light"], "Look: light. Switched.", False, "Light Modern"),
+                                    (["auto"], "Look: match my computer. Switched.", True, None)):
+        monkeypatch.setattr("sys.argv", ["look", *args])
+        look.main()
+        assert capsys.readouterr().out.strip() == said
+        written = load(path.read_text(encoding="utf-8"))
+        assert written["window.autoDetectColorScheme"] is auto and written.get("workbench.colorTheme") == theme
+    monkeypatch.setattr("sys.argv", ["look", "purple"])
+    with pytest.raises(SystemExit):
+        look.main()
+    assert look.current() == "auto"

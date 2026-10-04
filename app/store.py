@@ -80,6 +80,13 @@ CREATE TABLE IF NOT EXISTS asked (
     key TEXT PRIMARY KEY,
     at TEXT NOT NULL
 );
+-- company website from the job search's company record (companies.py); website NULL = none on
+-- record. Asked at the job check, never at click time
+CREATE TABLE IF NOT EXISTS companies (
+    slug TEXT PRIMARY KEY,
+    website TEXT,
+    fetched_at TEXT NOT NULL
+);
 -- job number the user sees in chat, email, Today page: given the first time a job is shown,
 -- never changed or reused (AUTOINCREMENT). key = slug, or the applications key of a job w/o one
 CREATE TABLE IF NOT EXISTS numbers (

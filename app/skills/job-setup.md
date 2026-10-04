@@ -12,6 +12,8 @@ chat; nothing goes to CEZ Job Finder's maintainer without asking first.
 On Copilot (`.data/ai`): in the same opening, one line - pick Claude Sonnet in the model list
 under the chat box, the automatic model can't make tailored resumes (`AGENTS.md` #User = not
 technical). Copilot's free tier can't either: say Copilot Pro ($10 a month) if they're on it.
+Copilot, already set up: `.data/profile-migrated` reads `model: not copied` (window moved to its
+own space, model pick stayed behind) => say that same line once, then add `told` to that file.
 
 Then, BEFORE any interview question (their answers - work permit, pay - are typed into this
 chat too), AI training, one question. Personal Claude (Free/Pro/Max), ChatGPT (Free/Go/Plus/

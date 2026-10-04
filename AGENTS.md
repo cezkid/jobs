@@ -22,6 +22,11 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   never a `12.` list (chat renumbers it 1, 2, 3). Commands take it as is (`tailor prepare 12`).
   Link = the row's `https://` column, copied as is; never build one from the slug (404).
 - Each job carries its one-line why from the row's `[reasons]`, in plain words.
+- Window = stock VS Code dressed as one program (brand colors, page look, no code chrome), in
+  its own profile "CEZ Job Finder" w/ Job Finder's extension (`app/vscode/`); why + what was
+  rejected: `app/docs/app-window.md`.
+- Today page buttons put their words in the chat, never send them: Copilot fills its chat box;
+  Claude: one fresh sidebar chat w/ them typed in; ChatGPT: copy + open, user pastes + presses Enter.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
   tab, link in browser.
 - Need file from user (resume PDF): ask them to drag it onto My Resume in the file list, then
@@ -39,13 +44,16 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   askQuestions. AI w/o one: same options as a short numbered list, "reply with the number".
 - On Copilot: the AI matters. Free tier on its automatic model failed 3 of 3 tailored resumes
   (measured; Pro untested). Recommend once, at setup or after a STOP: pick a strong model such as
-  Claude Sonnet in the model list under the chat box (Copilot Pro).
+  Claude Sonnet in the model list under the chat box (Copilot Pro). Once more after the move to
+  its own profile left the pick behind (`.data/profile-migrated`, `job-setup`).
 - User mentions Nova, Perplexity, Monica, Poe or another all-in-one AI app: say plainly those
   apps can't run programs on their computer, so they can't run CEZ Job Finder. The three that
   can: Claude, ChatGPT, GitHub Copilot Pro ($10 a month, several AIs in one plan; its free tier can't
   make tailored resumes - never offer it).
   Switch: `uv run app/jobs.py ai <claude|chatgpt|copilot>`, then they close + reopen CEZ Job
   Finder.
+- "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
+  (switches at once), confirm in one line. Today has the same switch at the top.
 
 ## Speed - user's time first
 
@@ -74,6 +82,7 @@ unseen - a tab badge is the only sign one waits.
 
 - Never offer or open extra chats yourself. A new chat opens as a tab over their resume or
   START HERE / Today, and files you open then land on top of it (Claude extension 2.1.283, measured).
+- Only exception: a Today button for Claude opens one fresh sidebar chat (owner 2026-10-03), never a tab.
 - User asks how anyway: icons at the top of the chat. Claude: hover - "New session" starts one,
   "Session history" lists past chats. Copilot: "+" starts a new chat, the clock icon lists past
   chats. Say it works; both chats share their files safely.
@@ -115,6 +124,8 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
 - User says it in passing ("applied to Acme", "got an interview") -> `status set` by number,
   link or `--company C --title T`, confirm in one line. Never a count of unsent resumes. An
   interview -> offer practice once (`job-interview` skill); Today lists it under Interviews.
+- Today's "I sent it" / "I heard back" / "It's closed" buttons record it themselves (their click =
+  their record, Undo 10 s) - no chat; `status show` reads it.
 - Unsure what they sent ("which did I apply to?"): `status sent` - reads browser history on this
   computer (nothing leaves it; say so), each job not marked sent -> sent / likely not sent /
   can't tell, w/ why. Sent -> `status set`, say which page showed it; the rest -> ONE clickable
@@ -216,6 +227,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Name, email, phone you start with | that employer's ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |
 | Email you start with | that employer's Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |
 | Email you start with | that employer's iCIMS site | That employer, when you click Next on its start box - before the form |
+| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company's website |
 | Follow-up email you send | your own email | The person you send it to, when you click Send |
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 
@@ -230,15 +242,16 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 ## Layout
 
 - `START HERE.md` - first-run steps only ("type set me up"); launcher opens it until search
-  settings exist, then `Today.md`. Plain words only.
+  settings exist, then `Today.md`, and hides it from the file list. Plain words only.
 - `Today.md` - generated (`today`): waiting on you, follow up, new since last check, not
-  finished; each item ends w/ the words to say. Rebuilt at launch + after each morning check.
+  finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
+  w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each morning check.
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
   no resume text. Other AIs have no hook - they keep the page.
 - `Guides/` - plain-words guides in the user's file list (`What you can ask.md`, `Who sees
   what.md`, `What makes a good resume.md`, `Unfair hiring - what's known, what helps.md`, `Keep
-  your chats out of AI training.md`); link,
+  your chats out of AI training.md`, `Following up.md`); link,
   don't repeat, from `START HERE.md`, the Today page and reports.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Resume/` - `Original resume.pdf`, `Resume details.yml` (single source of resume facts;
@@ -249,9 +262,11 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 - `My Jobs/<stage>/N - Company - Title/` - one per tailored job, under where it stands
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
-- `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `resume-index.yml`, AI task files for import,
+- `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `today.json` (Today as data for the window), `start-page`
+  (launcher -> extension: page to open, then deleted), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
-- `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `update.py`
+- `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
+  extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),

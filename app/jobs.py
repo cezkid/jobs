@@ -1,5 +1,4 @@
 import importlib
-import shutil
 import subprocess
 import sys
 import webbrowser
@@ -26,7 +25,7 @@ COMMANDS = {
     "tailor": ("resume.tailor", "tailored resume for one job: posting | prepare | check"),
     "letter": ("resume.letter", "cover letter for one job, checked like the resume: prepare | check JOB"),
     "today": ("today", "write Today.md: waiting on you, follow up, new since last check, not finished"),
-    "status": ("status", "where each job stands: list | show JOB | set JOB STATE (or --company --title) | followed-up JOB | sort"),
+    "status": ("status", "where each job stands: list | show JOB | set JOB STATE (or --company --title) | followed-up JOB | undo JOB --from STATE | sort"),
     "follow-up": ("followup", "draft a follow-up email for one job into its folder - the user sends it: JOB [--name NAME]"),
     "interview": ("interview", "interview practice or debrief for one job: requirements, backing lines, pay: JOB"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
@@ -34,9 +33,11 @@ COMMANDS = {
     "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill; measure | try LINK (developers)"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "ai": ("ai", "which AI the user chats with: prints it; ai claude | chatgpt | copilot saves it"),
+    "look": ("look", "window look: prints it; look auto | light | dark saves it + switches the open window"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
     "launch": ("launch", "open VS Code on Today (START HERE before setup), chat in right sidebar (Desktop launcher)"),
     "open": (None, "open file or link for user: VS Code tab (PDF too), link in browser"),
+    "window-setup": (None, "installer step: Job Finder's VS Code profile + its extensions, plain progress lines"),
     "tui": ("tui", "terminal job browser (developers)"),
 }
 
@@ -54,12 +55,26 @@ def opens_as_tab(path: Path) -> bool:
 
 
 def open_for_user(target: str) -> None:
+    import cfg
+    import launch
     path = Path(target)
-    code = shutil.which("code")
-    if path.exists() and code and opens_as_tab(path):
-        subprocess.run([code, "-r", str(path.resolve())], check=False)
+    # folder too, as launch.py does => lands in Job Finder's window, never the last-used one
+    # (-r alone put it in whichever VS Code window was active)
+    command = launch.code_command(["--disable-workspace-trust", str(cfg.ROOT), str(path.resolve())])
+    if path.exists() and command and opens_as_tab(path):
+        subprocess.run(command, check=False)
     else:
         webbrowser.open(path.resolve().as_uri() if path.exists() else target)
+
+
+def check_settings() -> None:
+    import cfg
+    import launch
+    cfg.load()
+    # setup runs this right after saving search settings => START HERE ("type set me up") leaves
+    # the open window's file list now, not at next launch; no-op when nothing changed
+    launch.write_workspace(launch.chosen_ai())
+    print(f"ok: {cfg.config_path()}")
 
 
 def main() -> None:
@@ -73,11 +88,12 @@ def main() -> None:
         run_module("ingest.freehire", [])
         run_module("rank", args)
     elif name == "check-settings":
-        import cfg
-        cfg.load()
-        print(f"ok: {cfg.config_path()}")
+        check_settings()
     elif name == "open":
         open_for_user(" ".join(args))
+    elif name == "window-setup":
+        import launch
+        launch.window_setup()
     else:
         run_module(COMMANDS[name][0], args)
 

@@ -1,0 +1,27 @@
+# Bundle reads, VS Code 1.140.0 darwin-x64, 2026-10-03. Minified excerpts, grep -o.
+
+## 1. stored profiles: location relative to User/profiles, id = basename; associations keyed by folder URI string (cliProcessMain.js)
+getStoredProfiles(){return this.stateReadonlyService.getItem(zn.PROFILES_KEY,[]).map(n=>({...n,location:$(n.location)?this.uriIdentityService.extUri.joinPath(this.profilesHome,n.location):E.revive(n.location)}))}getStoredProfileAssociations(){return th
+let o=this.getStoredProfileAssociations();if(o.workspaces)for(let[s,a]of Object.entries(o.workspaces)){let l=E.parse(s),c=n.find(u=>u.id===a);if(c){let u=c.workspaces?c.workspaces.slice(0):[];u.push(l),c.workspaces=u}}
+
+## 3. auto-update skips pinned (workbench.desktop.main.js shouldAutoUpdateExtension)
+shouldAutoUpdateExtension(e){if(e.deprecationInfo?.disallowInstall)return!1;if(e.local?.forceAutoUpdate)return!0;if(this.getAutoUpdateValue()==="off"){let n=this.getEnabledAutoUpdateExtensions(),r=e.identifier.id.toLowerCase();return!!(n.includes(r)||this.isAutoUpdateEnabledForPublisher(e.publisher)&&!n.includes(`-${r}`))}return e.pinned||this.getDisabledAutoUpdateExtensions().includes(e.identifier.id.toLowerCase())?!1:e.enablementState!==10&&e.
+
+## 3. manual Update button on a vsix-pinned extension when the gallery has the same id (unpins on update)
+this.extension.local?.source==="vsix"&&this.extension.local.pinned&&(t.pinned=!1),this.extension.local?.preRelease&&(t.installPreReleaseVersion=!0);try{xn(d(1759
+
+## 5. settingsSync.ignoredExtensions: scope 1 = APPLICATION (default profile settings only)
+"settingsSync.ignoredExtensions":{type:"array",markdownDescription:v(4037,null),items:[{type:"string",pattern:vf,errorMessage:v(4035,null)}],default:[],scope:1,uniqueItems:!0,disallowSyncIgnore:!0,tags:["sync","usesOnlineServices"]},"settingsSync
+
+## 5. extensions sync sends every installed ext (vsix too) incl. pinned + version; skips machine-scoped + ignored
+getIgnoredExtensions(n){let e=n.filter(s=>s.isMachineScoped).map(s=>s.identifier.id.toLowerCase()),t=this.getConfiguredIgnoredExtensions().map(s=>s.toLowerCase()),r=[],o=[];if(Arra
+let{identifier:c,isBuiltin:d,manifest:u,preRelease:p,pinned:f,isApplicationScoped:h}=l,y={identifier:c,preRelease:p,version:u.version,pinned:!!f}
+
+## 5. other machine installs synced pinned ext from gallery at that exact version
+options:{isMachineScoped:!1,donotIncludePackAndDependencies:!0,installGivenVersion:S.pinned&&!!S.version,pinned:S.pinned,installPreReleaseVersio
+
+## 5. non-default profile: workspaceState not synced; profiles list is its own sync resource
+"profiles"&&!this.profile.isDefault||e==="workspaceState")return;
+
+## 6. Copilot / chat model pick: key chat.currentLanguageModel.<location>[.<target>], scope 0 = PROFILE, target 0 = USER; old APPLICATION (-1) value migrated once
+var uui="chat.currentLanguageModel.",cEt=0,zwr=0;function lEt(s,o){return o?`${uui}${s}.${o}`:`${uui}${s}`}function Sro(s,o,e,t){s.store(lEt(o,e),t,cEt,zwr)}function yro(s,o,e){let t=lEt(o,e),i=`${t}.isDefault`,n=s.get(t,cEt);if(n){let c=s.getBoolean(i,cEt);if(s.remove(i,cEt),c){s.remove(t,cEt);return}return n}let r=s.get(t,-1);if(!r)return;let a=s.getBoolean(i,-1,!0);if(s.remove(t,-1),s.remove(i,-1),!a)return Sro(s,o,e,r),r}function ddn(s,o){let e=s.g

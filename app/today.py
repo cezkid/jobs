@@ -5,29 +5,39 @@ Private (their jobs, their progress) => gitignored like My Jobs/. Lists, never t
 editor sits beside the chat, narrow. No counts of what the user has not done - progress only.
 """
 import argparse
+import json
 import os
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import quote, unquote
 
 from dotenv import dotenv_values
 
 import autorun
 import cfg
+import companies
 import locks
 import rank
 import status
 import store
+from text import inert_md
 
 PAGE = cfg.ROOT / "Today.md"
+# same page as data for the window's dashboard (app/vscode/today.js); beside the page's own .data/
+DASHBOARD = Path(".data") / "today.json"
+DASHBOARD_VERSION = 1
+# words to say, shared w/ the dashboard buttons: a word changed here changes there
+SAY_FILE = cfg.APP / "vscode" / "say.json"
+TEMPLATES = {t["id"]: t["words"] for t in json.loads(SAY_FILE.read_text(encoding="utf-8"))["templates"]}
 WAITING_MAX, FOLLOW_UP_MAX, NEW_MAX = 5, 5, 10
 # jobs per line in the chat brief: a few hundred tokens at most, the page holds the rest
 BRIEF_MAX = 3
 # where it stands -> how the follow-up item opens; the days come from settings `follow_up`
 # (app/docs/apply/follow-up.md: convention + thin measurements, said so on the page)
 STAGE_WORDS = {"applied": "Applied", "heard_back": "Heard back", "interview": "Interview"}
-FOLLOW_UP_NOTE = ("No reply for a while. A short note asking where things stand is common practice - about 3 weeks"
-                  " after applying, about 2 weeks once you've talked with them - if you have someone to write to."
-                  " Many employers never write back.")
+# one line; when + why in the guide (critique 2026-10-04: a 3-line note at ~110 chars a line)
+FOLLOW_UP_NOTE = "No reply for a while. Many employers never write back."
+FOLLOW_UP_GUIDE = {"title": "When to follow up", "path": "Guides/Following up.md"}
 # applied or further along: counted as progress on the page
 SENT = ("applied", "heard_back", "interview", "no", "offer")
 # START HERE is first-run steps only; everything else it said lives in these (launch.py)
@@ -37,17 +47,70 @@ GUIDES = (
     ("What makes a good resume", "Guides/What%20makes%20a%20good%20resume.md"),
     ("Keep your chats out of AI training", "Guides/Keep%20your%20chats%20out%20of%20AI%20training.md"),
 )
+
+
+def words(template: str, n: int | None = None) -> str:
+    """Words to say from say.json; job number filled in."""
+    return TEMPLATES[template].replace("{n}", str(n))
+
+
+# "What you can say": example number 12, each one a say.json template
 SAY = (
-    "find new jobs",
-    "resume for job 12",
-    "I sent job 12 / I heard back from job 12",
-    "is job 12 still open?",
-    "change what I'm looking for",
+    (words("find"),),
+    (words("resume", 12),),
+    (words("sent", 12), words("heard_back", 12)),
+    (words("still_open", 12),),
+    (words("search"),),
 )
 
 
-def say(words: str) -> str:
-    return f'Say: "{words}"'
+def chip(words: str) -> str:
+    """Words to say as a code span: pages.css draws them as bold quoted words (never yellow: yellow
+    means a button), the words stay on the page for other AIs + the chat brief."""
+    return f"`{words}`"
+
+
+def say(words: str, *more: str, tail: str = "") -> str:
+    """Say: `apply to job 12` - or `I sent job 12` if you already did."""
+    alts = f" - or {', '.join(map(chip, more))}" if more else ""
+    return f"Say: {chip(words)}{alts}{tail}"
+
+
+def md_link(text: str, url: str | None) -> str:
+    """Employer text as a link's words (inert: nothing in it renders), never a bare 100-char URL.
+    URL copied as is (AGENTS.md: a rebuilt one 404s); angle brackets keep a ')' in it from ending
+    the link. No URL => the words alone."""
+    if not url:
+        return inert_md(text)
+    return f"[{inert_md(text)}](<{url.replace('<', '%3C').replace('>', '%3E')}>)"
+
+
+def resume_pdf(job_dir: Path | None) -> Path | None:
+    """Tailored resume in the job folder (`First_Last_Resume.pdf`); not made yet => None."""
+    if job_dir is None:
+        return None
+    return next(iter(sorted(job_dir.glob("*Resume.pdf"))), None)
+
+
+def rel(path: Path | None, root: Path) -> str | None:
+    """Path relative to the page's folder, `/` between parts; outside it => None."""
+    if path is None:
+        return None
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return None
+
+
+def resume_link(rel_pdf: str | None) -> str:
+    """Opens the PDF as a tab in the preview (measured: file link -> vscode.open; a folder link only
+    reveals it in the file list). Relative to the page, spaces %20 - preview reads no raw spaces."""
+    return f"[Open its resume]({quote(rel_pdf)})" if rel_pdf else ""
+
+
+def job_folders(jobs_dir: Path) -> dict[str, Path]:
+    """Job key -> its folder, read once per page."""
+    return {status.folder_key(f): f["dir"] for f in status.folders(jobs_dir)}
 
 
 def name(row: dict) -> str:
@@ -59,33 +122,86 @@ def days_ago(since: str, now: str) -> str:
     return "today" if days < 1 else "1 day ago" if days == 1 else f"{days} days ago"
 
 
+def guide_link(g: dict) -> str:
+    return f"[{g['title']}]({quote(g['path'])})"
+
+
 def item(row: dict, *details: str) -> list[str]:
-    return [f"- **Job {row['num']}** - {name(row)}", *(f"  - {d}" for d in details if d)]
+    """Title links the posting, company its website on record (none => plain name): no separate link to read."""
+    named = ", ".join(md_link(row[k], row.get(u)) for k, u in (("title", "url"), ("company", "company_url")) if row.get(k))
+    return [f"- **Job {row['num']}** - {named}", *(f"  - {d}" for d in details if d)]
 
 
-def progress(conn) -> str:
+def card(conn, row: dict, detail: str, says: list[str], dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT,
+         tail: str = "", why: str | None = None) -> dict:
+    """One job, as both the page and the dashboard show it: says[0] = the main thing to do.
+    why = the row's `[reasons]` (new jobs: AGENTS.md, each job carries its one-line why).
+    company_url = its website on record, else None (plain name)."""
+    job_dir = (dirs or {}).get(row.get("key"))
+    return {"num": row["num"], "title": row.get("title") or "", "company": row.get("company") or "",
+            "company_url": companies.link(conn, row),
+            "detail": detail, "url": row.get("url") or None, "resume": rel(resume_pdf(job_dir), root),
+            "folder": rel(job_dir, root), "say": says, "tail": tail, "why": why}
+
+
+def card_md(c: dict) -> list[str]:
+    """Its resume opens from the page, no path to read; the posting from the title."""
+    why = f"Why: {c['why']}" if c.get("why") else ""
+    return item(c, c["detail"], why, resume_link(c["resume"]), say(*c["say"], tail=c["tail"]))
+
+
+def section_md(sec: dict | None) -> list[str]:
+    if not sec:
+        return []
+    note = " ".join(filter(None, (sec.get("note"), guide_link(sec["guide"]) if sec.get("guide") else "")))
+    out = [f"## {sec['title']}", ""] + ([note, ""] if note else [])
+    for c in sec["cards"]:
+        out += card_md(c)
+    if more := sec.get("more"):
+        out.append(f"- {more['text']} {say(more['say'])}")
+    return out + [""]
+
+
+def progress_counts(conn) -> dict[str, int]:
     """Sent so far, counting a job closed after it was sent: closing it never un-sends it."""
     marks = ",".join("?" * len(SENT))
     counts = dict(conn.execute(
         f"SELECT state, COUNT(*) FROM applications a WHERE state IN ({marks}) OR (state = 'closed' AND EXISTS"
         f" (SELECT 1 FROM application_log l WHERE l.key = a.key AND l.state IN ({marks}))) GROUP BY state",
         SENT + SENT).fetchall())
-    parts = [f"{sum(counts.values())} sent"] if counts else []
-    parts += [f"{n} {w}" for n, w in ((counts.get("interview", 0), "interview"), (counts.get("offer", 0), "offer")) if n]
+    return {"sent": sum(counts.values()), "interview": counts.get("interview", 0), "offer": counts.get("offer", 0)}
+
+
+def progress(conn) -> str:
+    counts = progress_counts(conn)
+    parts = [f"{counts['sent']} sent"] if counts["sent"] else []
+    parts += [f"{counts[w]} {w}" for w in ("interview", "offer") if counts[w]]
     return f"So far: {', '.join(parts)}." if parts else ""
 
 
-def waiting(conn, now: str) -> list[str]:
+def tiles(counts: dict[str, int], new: int) -> list[dict]:
+    """Dashboard's top row: progress + what's new only, never a count of what's left to do.
+    section = the section it tells about (dashboard orders tiles like its sections)."""
+    shown = (("New since last check", new, "new"), ("Sent so far", counts["sent"], None),
+             ("Interview" if counts["interview"] == 1 else "Interviews", counts["interview"], "interviews"),
+             ("Offer" if counts["offer"] == 1 else "Offers", counts["offer"], None))
+    return [{"label": label, "value": n, "section": sec} for label, n, sec in shown if n]
+
+
+def waiting_section(conn, now: str, dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT) -> dict | None:
     rows = status.waiting(conn, now)
     if not rows:
-        return []
-    out = ["## Waiting on you", ""]
-    for r in status.numbered(conn, rows[:WAITING_MAX]):
-        out += item(r, f"Resume made {days_ago(r['state_at'], now)}", r["url"],
-                    say(f"apply to job {r['num']}") + f' - or "I sent job {r["num"]}" if you already did')
-    if len(rows) > WAITING_MAX:
-        out.append(f"- More in the chat. {say('what is waiting on me')}")
-    return out + [""]
+        return None
+    # no age: "made 8 days ago" reads as overdue (critique 2026-10-04); Follow up keeps its days
+    cards = [card(conn, r, "Ready to send", [words("apply", r["num"]), words("sent", r["num"])],
+                  dirs, root, tail=" if you already did")
+             for r in status.numbered(conn, rows[:WAITING_MAX])]
+    more = {"text": "More in the chat.", "say": words("more_waiting")} if len(rows) > WAITING_MAX else None
+    return {"id": "waiting", "title": "Waiting on you", "note": None, "cards": cards, "more": more}
+
+
+def waiting(conn, now: str, dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT) -> list[str]:
+    return section_md(waiting_section(conn, now, dirs, root))
 
 
 def follow_up_rows(conn, now: str, days: dict[str, int]) -> list[dict]:
@@ -101,35 +217,41 @@ def follow_up_rows(conn, now: str, days: dict[str, int]) -> list[dict]:
     return out
 
 
-def follow_up(conn, now: str, days: dict[str, int]) -> list[str]:
+def follow_up_section(conn, now: str, days: dict[str, int], dirs: dict[str, Path] | None = None,
+                      root: Path = cfg.ROOT) -> dict | None:
     rows = follow_up_rows(conn, now, days)
     if not rows:
-        return []
-    out = ["## Follow up", "", FOLLOW_UP_NOTE, ""]
+        return None
+    cards = []
     for r in status.numbered(conn, rows[:FOLLOW_UP_MAX]):
         n = r["num"]
         if r["chased"]:
-            out += item(r, f"You followed up {days_ago(r['chased'], now)}, still no reply", r["url"],
-                        say(f"job {n} is closed") + f' - or "I heard back from job {n}"')
+            cards.append(card(conn, r, f"You followed up {days_ago(r['chased'], now)}, still no reply",
+                              [words("closed", n), words("heard_back", n)], dirs, root))
         else:
-            out += item(r, f"{STAGE_WORDS[r['state']]} {days_ago(r['state_at'], now)}, no reply yet", r["url"],
-                        say(f"write a follow-up for job {n}") + f' - or "I heard back from job {n}", "job {n} is closed"')
-    if len(rows) > FOLLOW_UP_MAX:
-        out.append(f"- More in the chat. {say('what should I follow up on')}")
-    return out + [""]
+            cards.append(card(conn, r, f"{STAGE_WORDS[r['state']]} {days_ago(r['state_at'], now)}, no reply yet",
+                              [words("follow_up", n), words("heard_back", n), words("closed", n)], dirs, root))
+    more = {"text": "More in the chat.", "say": words("more_follow_up")} if len(rows) > FOLLOW_UP_MAX else None
+    return {"id": "follow_up", "title": "Follow up", "note": FOLLOW_UP_NOTE, "guide": FOLLOW_UP_GUIDE, "cards": cards,
+            "more": more}
 
 
-def interviews(conn, now: str, days: dict[str, int]) -> list[str]:
+def follow_up(conn, now: str, days: dict[str, int], dirs: dict[str, Path] | None = None, root: Path = cfg.ROOT) -> list[str]:
+    return section_md(follow_up_section(conn, now, days, dirs, root))
+
+
+def interviews_section(conn, now: str, days: dict[str, int], dirs: dict[str, Path] | None = None,
+                       root: Path = cfg.ROOT) -> dict | None:
     """Jobs at the interview stage, until a follow-up is due (they move to Follow up then)."""
     due = {r["key"] for r in follow_up_rows(conn, now, days)}
     rows = [r for r in status.in_progress(conn) if r["state"] == "interview" and r["key"] not in due]
     if not rows:
-        return []
-    out = ["## Interviews", ""]
-    for r in status.numbered(conn, rows[:FOLLOW_UP_MAX]):
-        out += item(r, f"Interview stage since {days_ago(r['state_at'], now)}", r["url"],
-                    say(f"practise my interview for job {r['num']}") + f' - or "I had the interview for job {r["num"]}"')
-    return out + [""]
+        return None
+    # no age: "since 5 days ago" read odd + is when it was set, not the interview's day
+    cards = [card(conn, r, "Interview set",
+                  [words("practise", r["num"]), words("had_interview", r["num"])], dirs, root)
+             for r in status.numbered(conn, rows[:FOLLOW_UP_MAX])]
+    return {"id": "interviews", "title": "Interviews", "note": None, "cards": cards, "more": None}
 
 
 def new_jobs(conn, config: dict, now: datetime) -> list[dict]:
@@ -150,16 +272,16 @@ def new_jobs(conn, config: dict, now: datetime) -> list[dict]:
     return out
 
 
-def new_section(conn, config: dict, now: datetime) -> list[str]:
-    rows = new_jobs(conn, config, now)
+def new_section(conn, config: dict, now: datetime, rows: list[dict] | None = None) -> dict | None:
+    rows = new_jobs(conn, config, now) if rows is None else rows
     if not rows:
-        return []
-    out = ["## New since last check", ""]
-    for j in store.numbered(conn, rows[:NEW_MAX]):
-        out += item(j, rank.reasons(j, config, now, rank.added(j, now)), j["url"], say(f"resume for job {j['num']}"))
-    if len(rows) > NEW_MAX:
-        out.append(f"- {len(rows) - NEW_MAX} more - ask the chat. {say('show me more new jobs')}")
-    return out + [""]
+        return None
+    # facts to decide on before "Make my resume": the why + the posting (critique 2026-10-04)
+    cards = [card(conn, j, "", [words("resume", j["num"])], why=rank.reasons(j, config, now, rank.added(j, now)))
+             for j in store.numbered(conn, rows[:NEW_MAX])]
+    more = ({"text": f"{len(rows) - NEW_MAX} more - ask the chat.", "say": words("more_new")}
+            if len(rows) > NEW_MAX else None)
+    return {"id": "new", "title": "New since last check", "note": None, "cards": cards, "more": more}
 
 
 def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | None = None) -> list[str]:
@@ -167,33 +289,66 @@ def unfinished(config: dict, data: Path = cfg.DATA, morning_check_on: bool | Non
     started and left half done, never as a nudge to add it."""
     out = []
     if not cfg.resume_path(config, "master").exists():
-        out.append(f"Your resume isn't in yet. {say('import my resume')}")
+        out.append(f"Your resume isn't in yet. {say(words('import'))}")
     elif not (data / "gaps.json").exists():
-        out.append(f"Your resume lines could carry more of your own numbers. {say('ask me about my resume numbers')}")
+        out.append(f"Your resume lines could carry more of your own numbers. {say(words('gaps'))}")
     if not (autorun.is_on() if morning_check_on is None else morning_check_on):
-        out.append(f"The morning job check is off. {say('turn on the morning job check')}")
+        out.append(f"The morning job check is off. {say(words('morning'))}")
     email = data / "email.env"
     if email.exists() and not all(dotenv_values(email).get(k) for k in ("SMTP_USER", "SMTP_PASSWORD")):
-        out.append(f"Email alerts are half set up. {say('finish setting up email')}")
+        out.append(f"Email alerts are half set up. {say(words('email'))}")
     return out
 
 
-def build(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) -> str:
-    """now = local time the page is for (shown in its heading); every section hides when empty."""
+def todo_item(line: str) -> dict:
+    """`text Say: `words`` => its two parts (dashboard: text + a button)."""
+    text, _, rest = line.partition(" Say: ")
+    return {"text": text, "say": rest.strip("`") if rest else None}
+
+
+def model(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], root: Path = cfg.ROOT) -> dict:
+    """What the page shows, as data: the Markdown page + the window's dashboard both drawn from it.
+    Paths relative to root (the page's folder), `/` between parts."""
     now_iso = now.astimezone(timezone.utc).strftime(store.ISO)
     status.backfill(conn, jobs_dir)
-    out = ["# Today", "", f"{now:%A, %B} {now.day}."]
-    if line := progress(conn):
-        out[-1] += f" {line}"
-    out.append("")
-    body = (waiting(conn, now_iso) + interviews(conn, now_iso, config["follow_up"])
-            + follow_up(conn, now_iso, config["follow_up"]) + new_section(conn, config, now))
-    if todo:
-        body += ["## Not finished", "", *(f"- {t}" for t in todo), ""]
-    out += body or [f"Nothing new since the last check. {say('find new jobs')}", ""]
-    out += ["## What you can say", "", *(f'- "{s}"' for s in SAY), "",
+    dirs = job_folders(jobs_dir)
+    days = config["follow_up"]
+    new = new_jobs(conn, config, now)
+    sections = [waiting_section(conn, now_iso, dirs, root), interviews_section(conn, now_iso, days, dirs, root),
+                follow_up_section(conn, now_iso, days, dirs, root), new_section(conn, config, now, new)]
+    sections = [s for s in sections if s]
+    return {
+        "version": DASHBOARD_VERSION,
+        "date": f"{now:%A, %B} {now.day}",
+        "progress": progress(conn),
+        "tiles": tiles(progress_counts(conn), len(new)),
+        "sections": sections,
+        "todo": [todo_item(t) for t in todo],
+        "empty": None if sections or todo else {"text": "Nothing new since the last check.", "say": words("find")},
+        "examples": [list(s) for s in SAY],
+        "guides": [{"title": title, "path": unquote(link)} for title, link in GUIDES],
+    }
+
+
+def render(m: dict) -> str:
+    """Markdown page from the model: other AIs, the chat brief's twin, and the fallback when the
+    window's own extension is missing."""
+    out = ["# Today", "", f"{m['date']}." + (f" {m['progress']}" if m["progress"] else ""), ""]
+    for sec in m["sections"]:
+        out += section_md(sec)
+    if m["todo"]:
+        out += ["## Not finished", "", *(f"- {t['text']}" + (f" {say(t['say'])}" if t["say"] else "") for t in m["todo"]), ""]
+    if m["empty"]:
+        out += [f"{m['empty']['text']} {say(m['empty']['say'])}", ""]
+    out += ["## What you can say", "", *("- " + " / ".join(map(chip, s)) for s in m["examples"]), "",
             "Guides:", "", *(f"- [{title}]({link})" for title, link in GUIDES), ""]
     return "\n".join(out)
+
+
+def build(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str], root: Path = cfg.ROOT) -> str:
+    """now = local time the page is for (shown in its heading); every section hides when empty.
+    root = folder the page sits in: its resume links are relative to it."""
+    return render(model(conn, config, jobs_dir, now, todo, root))
 
 
 def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) -> str:
@@ -204,16 +359,15 @@ def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) ->
     now_iso = now.astimezone(timezone.utc).strftime(store.ISO)
     status.backfill(conn, jobs_dir)
 
-    def jobs(rows: list[dict], when: str = "") -> str:
-        return "; ".join(f"Job {r['num']} - {name(r)}" + (f", {when} {days_ago(r['state_at'], now_iso)}" if when else "")
-                         for r in rows)
+    def jobs(rows: list[dict]) -> str:
+        return "; ".join(f"Job {r['num']} - {name(r)}" for r in rows)
 
     out = ["Job Finder today (same as their Today page). If the user only greets you or asks what's next,"
            " answer with this in plain words, each job written"
            " \"**Job 12** - title, company\", never a 1. 2. 3. list; otherwise use it only when it helps."
            " Never say how many resumes are unsent."]
     if rows := status.waiting(conn, now_iso)[:BRIEF_MAX]:
-        out.append(f"- Waiting on you (resume made, not sent): {jobs(status.numbered(conn, rows), 'resume made')}")
+        out.append(f"- Waiting on you (resume made, not sent): {jobs(status.numbered(conn, rows))}")
     if rows := follow_up_rows(conn, now_iso, config["follow_up"])[:BRIEF_MAX]:
         quiet = "; ".join(f"Job {r['num']} - {name(r)}, " + (f"followed up {days_ago(r['chased'], now_iso)}" if r["chased"]
                           else f"{STAGE_WORDS[r['state']].lower()} {days_ago(r['state_at'], now_iso)}")
@@ -253,18 +407,35 @@ def write(config: dict, page: Path = PAGE, now: datetime | None = None) -> Path:
     conn = store.connect(cfg.db_path(config))
     try:
         with lock():
-            text = build(conn, config, cfg.resume_path(config, "jobs_dir"), now or datetime.now().astimezone(),
-                         unfinished(config))
-            locks.write_atomic(page, text)
+            m = model(conn, config, cfg.resume_path(config, "jobs_dir"), now or datetime.now().astimezone(),
+                      unfinished(config), page.parent)
+            # data first: the dashboard redraws on the page's change and finds today's data there
+            dashboard = page.parent / DASHBOARD
+            dashboard.parent.mkdir(parents=True, exist_ok=True)
+            locks.write_atomic(dashboard, json.dumps(m, indent=1, ensure_ascii=False) + "\n")
+            locks.write_atomic(page, render(m))
     finally:
         conn.close()
     return page
+
+
+def refresh(config: dict, page: Path = PAGE) -> Path:
+    """The one rebuild the launcher + the window extension both call: job folders filed under their
+    stage (one moved by hand, one a file kept from moving last time), then the page. Filing never
+    stops the page: what can't move now waits for the next one."""
+    try:
+        status.sort_jobs(config)
+    except (Exception, SystemExit):
+        pass
+    return write(config, page)
 
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Write Today.md: waiting on you, follow up, new jobs, not finished")
     ap.add_argument("--print", action="store_true", help="print the page instead of writing it")
     ap.add_argument("--brief", action="store_true", help="print a few lines for a new chat (Claude session-start hook)")
+    ap.add_argument("--refresh", action="store_true", help="file job folders under their stage, then write the page"
+                    " (launcher + window do this at start)")
     args = ap.parse_args()
     if args.brief:
         print_brief()
@@ -274,7 +445,8 @@ def main() -> None:
         conn = store.connect(cfg.db_path(config))
         print(build(conn, config, cfg.resume_path(config, "jobs_dir"), datetime.now().astimezone(), unfinished(config)))
         return
-    print(f"written: {os.path.relpath(write(config), cfg.ROOT)}")
+    page = refresh(config) if args.refresh else write(config)
+    print(f"written: {os.path.relpath(page, cfg.ROOT)}")
 
 
 if __name__ == "__main__":

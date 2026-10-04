@@ -12,7 +12,7 @@ The AI asks a few questions, then shows your first jobs. You never type commands
 ## After that
 
 Next time you open CEZ Job Finder, the **Today** page opens here instead: what's waiting on
-you and the newest jobs.
+you, the newest jobs, and buttons for what to say next.
 
 - **[What you can ask](Guides/What%20you%20can%20ask.md)** - things to say, where the jobs come from, how your resume is made
 - **[Who sees what](Guides/Who%20sees%20what.md)** - everything in the file list stays on this computer

@@ -10,6 +10,7 @@ from dotenv import load_dotenv
 
 import alert
 import cfg
+import companies
 import notify
 import store
 import today
@@ -35,6 +36,7 @@ def check(config: dict, send: Sender) -> None:
     with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
         for tier, s in freehire.run(config, conn, client).items():
             print(f"{tier}: fetched {s['fetched']} ({s['days']} days), closed {s['closed']}" + (" (cut at ceiling)" if s["truncated"] else ""))
+        companies.refresh_quietly(conn, client, config["api"]["base"])
     with alert.lock(cfg.db_path(config)):
         new = alert.run(conn, config, send[0])
     print(f"{new} new, {send[1]}" if new else "0 new, nothing sent")
