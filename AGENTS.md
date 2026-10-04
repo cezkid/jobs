@@ -266,7 +266,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `today.json` (Today as data for the window), `start-page`
-  (launcher -> extension: page to open, then deleted), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
+  (launcher -> extension: page to open, then deleted), `splash-start` (loading splash began), `window-ready` (page up: splash closes), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`

@@ -56,6 +56,85 @@ def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
     return calls
 
 
+def ready_after_launch(tmp_path, monkeypatch, running=False, current=True, code=lambda args, quiet=False: 0) -> bool:
+    """main() w/ every machine step stubbed; True = the launcher wrote the splash's ready signal."""
+    for name in ("ensure_claude_trust", "ensure_chat_sidebar", "ensure_yaml_checker", "ensure_mac_icon",
+                 "ensure_folder_trusted", "keep_out_of_sync", "ensure_quiet_vscode"):
+        monkeypatch.setattr(launch, name, lambda: None)
+    monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "has_claude", lambda: True)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    monkeypatch.setattr(launch, "write_workspace", lambda choice: None)
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: True)
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "ensure_profile", lambda: True)
+    monkeypatch.setattr(launch, "vscode_running", lambda: running)
+    monkeypatch.setattr(launch, "window_extension_current", lambda: current)
+    monkeypatch.setattr(launch, "code", code)
+    monkeypatch.setattr(launch, "first_page", lambda: tmp_path / "Today.md")
+    launch.main()
+    return (tmp_path / ".data" / launch.READY_MARKER).exists()
+
+
+def test_cold_launch_leaves_the_ready_signal_to_the_window(tmp_path, monkeypatch):
+    # a cold start returns as VS Code starts: written here, the loading splash would close seconds
+    # before the window is up => blank screen again
+    assert not ready_after_launch(tmp_path, monkeypatch)
+
+
+def test_launch_with_window_open_signals_ready_after_both_calls(tmp_path, monkeypatch):
+    # extension already started => it writes nothing more; w/o this the splash sits over the open
+    # window until its cap
+    seen = []
+    real = cfg.ROOT / ".data" / launch.READY_MARKER
+    before = real.stat().st_mtime_ns if real.exists() else None
+
+    def code(args, quiet=False):
+        seen.append((len(args), (tmp_path / ".data" / launch.READY_MARKER).exists()))
+        return 0
+    assert ready_after_launch(tmp_path, monkeypatch, running=True, code=code)
+    # path read per call from cfg.ROOT: the install's own .data untouched
+    assert (real.stat().st_mtime_ns if real.exists() else None) == before
+    assert seen == [(2, False), (3, False)]  # folder, then folder + page: signal only after both
+
+
+def test_cold_launch_signals_ready_when_the_window_lacks_this_release(tmp_path, monkeypatch):
+    # install failed or an older copy stayed => nothing in the window writes the signal
+    assert ready_after_launch(tmp_path, monkeypatch, current=False)
+
+
+def test_cold_launch_signals_ready_when_vscode_fails_to_open(tmp_path, monkeypatch):
+    assert ready_after_launch(tmp_path, monkeypatch, code=lambda args, quiet=False: 1)
+
+
+@pytest.mark.parametrize("error", [RuntimeError("boom"), SystemExit("VS Code not found"), KeyboardInterrupt()])
+def test_failed_launch_signals_ready_and_still_fails(tmp_path, monkeypatch, error):
+    # VS Code not found is a SystemExit: caught as Exception only, the splash would stay 45 s
+    # over the error the user has to read
+    def code(args, quiet=False):
+        raise error
+    with pytest.raises(type(error)):
+        ready_after_launch(tmp_path, monkeypatch, code=code)
+    assert (tmp_path / ".data" / launch.READY_MARKER).exists()
+
+
+def test_ready_signal_never_written_on_every_exit():
+    # a `finally` would cover the cold start too (see test_cold_launch_leaves_the_ready_signal_to_the_window)
+    source = Path(launch.__file__).read_text(encoding="utf-8")
+    assert not re.search(r"finally:\s*(#[^\n]*\s*)*mark_ready", source)
+    assert source.count("mark_ready()") == 3  # failed launch, no window / old extension, window already open
+
+
+def test_window_extension_current_reads_the_profiles_copy(monkeypatch):
+    version = vscode_ext.manifest()["version"]
+    monkeypatch.setattr(launch, "installed_version", lambda name: version)
+    assert launch.window_extension_current()
+    monkeypatch.setattr(launch, "installed_version", lambda name: "0.0.1")
+    assert not launch.window_extension_current()
+    monkeypatch.setattr(launch, "installed_version", lambda name: None)
+    assert not launch.window_extension_current()
+
+
 def test_cold_launch_opens_folder_once_and_leaves_the_page_to_the_window(tmp_path, monkeypatch):
     # page named w/ the folder on a cold start opened as plain text; the old fix waited 6 s first.
     # No vscode://...claude link either: it opens chat as a tab over START HERE
@@ -768,7 +847,7 @@ def test_code_calls_built_in_one_place():
                 if callee == "shutil.which" and ast.unparse(call.args[0]) in ("'code'", '"code"'):
                     sites.setdefault(name, set()).add(f"which:{func.name}")
     assert sites == {"jobs.py": {"open_for_user"},
-                     "launch.py": {"which:code_command", "code", "ensure_extensions", "main"}}
+                     "launch.py": {"which:code_command", "code", "ensure_extensions", "open_window"}}
 
 
 def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_path, monkeypatch, capsys):
