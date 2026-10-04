@@ -21,12 +21,12 @@ const CLAUDE_TESTED = { from: [2, 1, 288], below: [2, 2, 0] };
 const CLAUDE_NEW_CHAT = "claude-vscode.editor.open";
 // Next up: the one most valuable thing today, first found in this order (data order stays
 // app/today.py's). No resume yet blocks "Make my resume" => before new jobs
-const NEXT_ORDER = [{ section: "interviews" }, { section: "waiting" }, { todo: "import" }, { section: "new" }, { todo: "morning" }];
+const NEXT_ORDER = [{ section: "interviews" }, { section: "waiting" }, { todo: "import" }, { section: "best" }, { todo: "morning" }];
 // setup steps that stop the job search working => above the job sections, yellow; others stay last, quiet
 const BLOCKERS = new Set(["import", "morning"]);
 // sections past this many jobs draw as one-line rows; new jobs always do, 5 shown, rest in the chat
 const ROWS_AFTER = 4;
-const NEW_SHOWN = 5;
+const BEST_SHOWN = 5;
 // yellow leads: Next up's main button + each Waiting on you job's - tasks. Every other button
 // outlined: options (new jobs), status changes; closing quietest of all (re-critique 2026-10-04 P1)
 const LEADS = new Set(["waiting"]);
@@ -62,9 +62,6 @@ function lookDone(word) {
   const found = LOOKS.find((l) => l.word === word);
   return found ? found.done : null;
 }
-
-// New section: its own title already says "today"
-const ADDED_TODAY = /(^| · )added to your list today(?= · |$)/;
 
 function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -165,6 +162,7 @@ function model(raw, sayJson) {
       id: str(s.id, 30), title: str(s.title, 80), note: str(s.note, 600),
       guide: s.guide && typeof s.guide === "object" ? guideLink(s.guide) : null,
       cards: s.cards.map(card).filter(Boolean), more: line(s.more),
+      total: Number.isInteger(s.total) && s.total > 0 ? s.total : null,
     })),
     todo: (Array.isArray(raw.todo) ? raw.todo : []).map(line).filter(Boolean),
     empty: line(raw.empty),
@@ -178,12 +176,10 @@ function model(raw, sayJson) {
     if (said.length && said.every((w) => !/[0-9]/.test(w))) m.asks.push(...said.map(sayButton));
     else if (said.length) m.examples.push(said);
   }
-  // new jobs past NEW_SHOWN: the rest in the chat, even when the data's own list fit
-  const fresh = m.sections.find((x) => x.id === "new");
-  const unsaid = (t) => t.replace(ADDED_TODAY, "").replace(/^ · /, "");
-  if (fresh) for (const c of fresh.cards) { c.detail = unsaid(c.detail); c.why = unsaid(c.why); }
-  const moreNew = tpls.find((t) => t.id === "more_new");
-  if (fresh && fresh.cards.length > NEW_SHOWN && !fresh.more && moreNew) fresh.more = { text: "", say: sayButton(moreNew.words) };
+  // best-next jobs past BEST_SHOWN: the rest in the chat, even when the data's own list fit
+  const best = m.sections.find((x) => x.id === "best");
+  const moreBest = tpls.find((t) => t.id === "more_best");
+  if (best && best.cards.length > BEST_SHOWN && !best.more && moreBest) best.more = { text: "", say: sayButton(moreBest.words) };
   for (const t of m.todo) t.blocks = Boolean(t.say && BLOCKERS.has(t.say.id));
   m.next = nextUp(m);
   m.sections = m.sections.filter((s) => s.cards.length || s.more);
@@ -698,21 +694,20 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
     const id = `l-${lines++}`;
     return `<li><span id="${id}">${h(x.text)}</span>${x.say ? say(x.say, go, { name, about: x.text ? id : "" }) : ""}</li>`;
   };
-  const tile = (id) => m.tiles.find((t) => t.section === id);
   const guideBtn = (g, name) => btn(g.title, g.open.action, { cls: "link", name });
   const heading = (id, title) => `<h2 id="${id}" tabindex="-1">${h(title)}</h2>`;
   const jumps = [];
   const section = (s) => {
-    const rows = s.id === "new" || s.cards.length > ROWS_AFTER;
-    const shown = s.id === "new" ? s.cards.slice(0, NEW_SHOWN) : s.cards;
+    const rows = s.id === "best" || s.cards.length > ROWS_AFTER;
+    const shown = s.id === "best" ? s.cards.slice(0, BEST_SHOWN) : s.cards;
     let more = s.more;
-    if (more && s.id === "new") {
-      const total = tile("new") ? tile("new").value : s.cards.length;
-      const left = total - shown.length - (m.next && m.next.section === "new" ? 1 : 0);
-      more = left > 0 ? { ...more, text: `${left} more new ${left === 1 ? "job" : "jobs"}.` } : null;
+    if (more && s.id === "best") {
+      const total = s.total || s.cards.length;
+      const left = total - shown.length - (m.next && m.next.section === "best" ? 1 : 0);
+      more = left > 0 ? { ...more, text: `${left} more ${left === 1 ? "job" : "jobs"} to apply to.` } : null;
     }
-    // "Show the rest" under two sections => named by its section; "Show more new jobs" says it already
-    const moreName = more && more.say && s.id !== "new" ? `${sayText(more.say, mode)}: ${s.title}` : "";
+    // "Show the rest" under two sections => named by its section; "Show more jobs" says it already
+    const moreName = more && more.say && s.id !== "best" ? `${sayText(more.say, mode)}: ${s.title}` : "";
     jumps.push([`s-${s.id}`, s.title]);
     const lead = LEADS.has(s.id);
     const note = [s.note ? h(s.note) : "", s.guide ? guideBtn(s.guide, `Open the guide ${s.guide.title}`) : ""].filter(Boolean).join(" ");
@@ -792,7 +787,7 @@ const SHOW_PAGE = -1;
 const TRY_AGAIN = -2;
 
 module.exports = {
-  VIEW_TYPE, DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, NEW_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
+  VIEW_TYPE, DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, BEST_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanSite, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say, STILL_OPENING, STILL_SAVING,
   STATUS_SET, UNDO_MS, statusLine, undoneLine, statusFailed, UNDO_FAILED, statusKeeper,

@@ -133,7 +133,9 @@ seniority as `unspecified`.
 
 Hard filter drops rows w/ NO data, not rows that fail:
 - `salary_min=<floor>` cut 177 -> 40; only 91 of 247 carried salary. => `rank.salary_floor_usd`
-  boost, compared to TOP of posted range ($55k-$90k meets $60k); rows then ordered by midpoint.
+  compared to TOP of posted range ($55k-$90k meets $60k), applied locally, never as a search
+  param; rows then ordered by midpoint. Under it = hidden by `rank.pay_filter`, no pay listed kept
+  unless they choose (`pay-filter.md`).
 - `collections` cut 177 -> 21. => `rank.boost_collections` boost, below pay: `bigtech`
   `unicorn` `yc` mean nothing outside tech, so only order rows w/o pay. Default `fortune500`.
 - `employment_type` / level: same null problem => `rank.employment_types` + `rank.career_level`

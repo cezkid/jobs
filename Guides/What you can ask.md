@@ -6,6 +6,8 @@ first.) You never type commands or edit files.
 ## Just ask
 
 - **Jobs:** "Any new jobs?" · "Why is job 3 on my list?" · "Stop showing jobs from Acme Staffing"
+- **Pay:** jobs paying less than your lowest pay are hidden, unless few new jobs come in that week -
+  then the closest come back, marked. "Change my lowest pay" · "Hide jobs with no pay listed"
 - **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number"
 - **One job:** "Make my resume for job 3" · "What does job 3's application ask?" · "Write a cover letter for job 3" · "Why did you change that?" ·
   "Help me apply to job 3"

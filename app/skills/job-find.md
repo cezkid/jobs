@@ -32,6 +32,9 @@ missing -> `job-setup` skill instead.
    - whole search too wide -> tighten params, measured w/ `uv run app/jobs.py probe` first
    - any narrowing (filter, city, blocked field) -> measure, state the cost BEFORE saving, do
      what they pick (`AGENTS.md` #Lead, explain, push back).
+   "Show me more jobs to apply to" (Today's "Show more jobs") / "what should I apply to next?" ->
+   `uv run app/jobs.py rank --best --limit 15`: Today's "Best to apply next" order (resume match,
+   how much it asks, pay, where, how new - `app/docs/jobs/best-next.md`), its `[why]` says which.
 5. "Why is job 12 here?" -> its row's `[reasons]`: what it matched, what put it at that spot.
    Reason is wrong -> step 4. "may be closed" -> say so before tailoring for it.
 6. `uv run app/jobs.py rank --suspects` lists companies posting across many unrelated fields

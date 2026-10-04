@@ -16,6 +16,12 @@ const PROFILE_PENDING_LINE = {
   darwin: "One more step: quit VS Code (Code > Quit, or Cmd+Q), then open CEZ Job Finder again.",
   other: "One more step: close every VS Code window (File > Exit), then open CEZ Job Finder again.",
 };
+// folder not trusted (opened w/o the Desktop icon before the launcher marked it trusted) =>
+// Restricted Mode: AI panel + PDF viewer don't run. One line + one button, no VS Code words
+const UNTRUSTED_LINE = "The AI panel can't run in this window yet. Close it and open CEZ Job Finder from its Desktop icon - after that it runs however you open it.";
+const UNTRUSTED_BUTTON = "Allow it here";
+// VS Code's own page for it (Trust button); never a setting change
+const UNTRUSTED_COMMAND = "workbench.trust.manage";
 // Today older than this, window opened w/o the launcher (Dock, recent folders) => rebuilt
 const STALE_MS = 60 * 60 * 1000;
 const PREVIEW_EDITOR = "vscode.markdown.preview.editor";
@@ -90,7 +96,7 @@ function warmUpPlan(ai) {
 }
 
 module.exports = {
-  PROFILE_PENDING, PROFILE_PENDING_LINE,
+  PROFILE_PENDING, PROFILE_PENDING_LINE, UNTRUSTED_LINE, UNTRUSTED_BUTTON, UNTRUSTED_COMMAND,
   TODAY, START_HERE, MARKER, STAMP, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
   isJobFinder, choosePage, needsRefresh, uvCandidates, runJobs, pageTabs, warmUpPlan,
 };
