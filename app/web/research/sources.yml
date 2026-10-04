@@ -403,6 +403,16 @@
   checked: 2026-10-04
   recheck_by: 2027-04-03
 
+- id: freehire-letter-count
+  type: web
+  org: freehire
+  year: 2026
+  title: "Cover letter generation (internal notes, internal/candidate/coverletter/AGENTS.md)"
+  url: https://github.com/strelov1/freehire/blob/20d8a4cf9fe0f1031ec716fd07805ecc6b60abcd/internal/candidate/coverletter/AGENTS.md
+  evidence: vendor docs
+  sample: the job search maker's own count in its code notes - 209,297 of 402,117 open postings whose apply form it captured ask for a letter; no method or date given; file last changed September 8, 2026
+  checked: 2026-10-04
+
 - id: fuller-2021
   type: report
   authors: ["Fuller, Joseph B.", "Raman, Manjari", "Sage-Gavin, Eva", "Hines, Kristen"]
@@ -631,6 +641,16 @@
   evidence: vendor survey
   sample: career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026
   checked: 2026-10-03
+
+- id: kleine-allekotte-2024
+  type: report
+  authors: ["Kleine-Allekotte, Aleydis"]
+  year: 2024
+  title: "Spot the difference! Recruiter reaction to ChatGPT in cover letters (MSc thesis, Tilburg University)"
+  url: https://arno.uvt.nl/show.cgi?fid=176589
+  evidence: lab/LLM audit
+  sample: 86 raters (recruited on LinkedIn, by word of mouth and SurveyCircle; screened only by two self-report questions on English and familiarity with cover letters) each rated six made-up letters - self-written, ChatGPT-improved or ChatGPT-written, by a native or non-native writer - before and after being told AI may have been used; an unpublished student thesis, hypothetical decisions
+  checked: 2026-10-04
 
 - id: kobak-2025
   type: article
@@ -955,14 +975,14 @@
   sample: 236 recruiters and hiring managers, yes/no questions on the same page as the experiment; run by a resume-writing company; how they were found and the survey dates not given
   checked: 2026-10-04
 
-- id: resumelab-2025
+- id: resumelab-2020
   type: web
   org: ResumeLab
-  year: 2025
+  year: 2020
   title: "Is a Cover Letter Necessary in 2026? Do I Need a Cover Letter?"
   url: https://web.archive.org/web/20260311155744/https://resumelab.com/cover-letter/are-cover-letters-necessary
   evidence: vendor survey
-  sample: 200 US recruiters, HR staff and hiring managers, online survey by OnePoll for a company that sells a cover letter builder; dates and question wording not given; page dated December 2025, read in an Internet Archive copy of March 11, 2026 (live page timed out)
+  sample: 200 US recruiters, HR staff and hiring managers, online survey by OnePoll for a company that sells a cover letter builder; dates not given, and the page says some questions and answers were rephrased; the page is dated December 2025, but an Internet Archive copy of February 27, 2020 already holds the same survey and figures (a December 6, 2019 copy does not), so it ran about December 2019 - February 2020, before chat AI; read in an Internet Archive copy of March 11, 2026 (live page timed out)
   checked: 2026-10-04
 
 - id: rozado-2026

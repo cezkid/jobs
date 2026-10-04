@@ -75,11 +75,11 @@ In 2021, an online freelance platform ran an experiment with 480,948 new job see
 
 Chat AI that writes the whole text is different. Two 2025 studies looked at one freelance platform after it added an AI letter writer in April 2023 [@cui-2025; @galdin-silbert-2025]. Both are preprints, not yet peer-reviewed.
 
-The first studied 5 million cover letters to over 100,000 jobs. Having the tool raised callbacks by 0.43 per 100 letters. For people who chose to use it, the estimate was 3.56 more callbacks per 100 letters. That larger estimate was not certain enough to rule out chance, and it faded after two months. The study found no change in overall hiring [@cui-2025].
+The first studied 5 million cover letters to over 100,000 jobs. Having the tool raised callbacks by 0.43 per 100 letters. For people who chose to use it, the estimate was 3.56 more callbacks per 100 letters. Neither estimate was certain enough to rule out chance, and the gain faded after two months. The authors found no evidence of a change in overall hiring [@cui-2025].
 
 Before the tool, a letter that closely matched the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker's past reviews on the platform. Longer editing of the AI draft went with a higher chance of a job offer. Most AI letters were sent with little or no editing [@cui-2025].
 
-The second studied about 2.7 million applications to coding jobs. Before chat AI, employers paid more for workers whose applications fit the job closely. After chat AI, that premium mostly disappeared. The authors then used a model of the market to ask what happens with no such signal. In that model, the most able workers were hired 19% less often. The least able were hired 14% more often. Those two numbers come from the model, not from counting real hires [@galdin-silbert-2025].
+The second studied about 2.7 million applications to coding jobs. Before chat AI, employers were willing to pay more for workers whose applications fit the job closely. After chat AI, that premium mostly disappeared. The authors then used a model of the market to test an extreme case: applications that tell employers nothing about how able a worker is. In that case, the top fifth of workers were hired 19% less often. The bottom fifth were hired 14% more often. Those two numbers come from the model, not from counting real hires [@galdin-silbert-2025]. What this means for cover letters: [Do cover letters still matter now that AI writes them?](cover-letters-after-ai.md)
 
 For you, fixing errors in your own wording helped in a large test. A letter that only echoes the job post now tells employers less.
 
@@ -123,3 +123,7 @@ How we grade evidence: [How we research](methods.md). How AI screeners treat app
 - A posting term goes in only where your experience backs it.
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - reworded the two cover letter studies. The hiring shifts by ability come from an extreme case in the authors' model, and both callback estimates were too weak to rule out chance; the numbers are unchanged.

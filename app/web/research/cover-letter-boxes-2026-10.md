@@ -2,7 +2,7 @@
 title: "Cover letter boxes on 143 job application forms: the data"
 description: "Our count of cover letter boxes on 143 US job application forms, October 2026: one row per form, required or optional, how we counted, and its limits."
 published: 2026-10-04
-status: draft
+status: published
 data: cover-letter-boxes-2026-10.csv
 license: CC BY 4.0
 uncited:
@@ -46,15 +46,15 @@ The file has 143 rows, one per application form we could read. Our measurement c
 
 ## How did we draw the sample?
 
-The forms are the 143 readable forms from our knockout-question count. On 3 October 2026 we drew US postings from the last 14 days across 14 job fields on freehire.me, a free job search. How the postings were picked is on [the knockout-question data page](knockout-questions-2026-10.md#how-did-we-draw-the-sample).
+The forms are the 143 readable forms from our knockout-question count. On 3 October 2026 we drew US postings from the last 14 days across 14 job fields on freehire.me, a free job search. 13 of those fields had a form we could read; design had none. How the postings were picked is on [the knockout-question data page](knockout-questions-2026-10.md#how-did-we-draw-the-sample).
 
 ## How did we count the boxes?
 
 A form has a box when freehire.me's read of the form lists an entry named "cover letter". That entry can sit among the basic boxes, such as name and email, or among the questions.
 
-Whether the box is required came from the form itself. Ashby forms carry that flag in freehire.me's read. For Greenhouse, Workable and Recruitee forms, we asked each hiring system's public job page once, on 4 October 2026. We sent only the posting's own number, nothing about anyone. The answers are saved, so a rerun asks nothing new. The steps are in [the counting code](../letter_count.py).
+Whether the box is required came from the form itself. Ashby forms carry that flag in freehire.me's read. For Greenhouse, Workable and Recruitee forms, we asked each hiring system's public job page once, on 4 October 2026. We first looked up each posting's number on freehire.me. We sent only that number, nothing about anyone. The answers are saved in our raw file, which is not published, so a rerun from it asks nothing new. The required flags can't be read again once a posting closes. The steps are in [the counting code](../letter_count.py).
 
-Lever forms list no cover letter box. Lever offers an open "additional information" box instead, which we did not count as a letter box.
+Lever forms list no box named cover letter. Some Lever forms show an open "additional information" box whose hint says to add a cover letter. freehire.me's read does not list that box, so we did not count it.
 
 ## What does the data show?
 
@@ -63,7 +63,7 @@ The counts below come straight from the file, and the article reports the same o
 - A cover letter box: 96 of the 143 forms.
 - Optional: 91 of the 96 forms with a box.
 - Required: 2 of the 96, one Greenhouse form and one Recruitee form.
-- Could not check: 3 of the 96, because the posting had closed by the next day.
+- Could not check: 3 of the 96, because the hiring system no longer showed the posting.
 - By employer: 71 of the 104 employers had a box on at least one form.
 
 By form system, our measurement found a box on 85 of 96 Greenhouse forms and 0 of 19 Lever forms. Ashby forms had one on 3 of 15, Workable on 7 of 12 and Recruitee on 1 of 1.

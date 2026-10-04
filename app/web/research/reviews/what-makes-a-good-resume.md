@@ -281,3 +281,11 @@ Revision (plan-xsy.54, 2026-10-04): findings 1-5 fixed with the proposed wording
 ## Edit after review (2026-10-04, plan-xsy.63)
 
 Added one link line in "Does layout matter?" to the layout-test data page (resume-parser-test-2026-10). Navigation only; no claim, number or source changed. The article on the test (plan-xsy.64) links it properly.
+
+## Re-review (2026-10-04, fresh AI session, plan-xsy.69)
+
+Edit in plan-xsy.69: added one "What we don't know" bullet linking cover-letters-after-ai (link only). Checked against the sources by a fresh AI session that did not make the edit; its findings and their fixes are in [the cover-letters-after-ai review](cover-letters-after-ai.md) ("Re-review" section, R3, R5, R6). No open finding.
+
+## Edit after review (2026-10-04, plan-xsy.69)
+
+Added one link sentence to the same bullet, to the cover letter data page (cover-letter-boxes-2026-10), so that page is two clicks from the home page. Navigation only; the "143 forms" in the link text is that page's title, checked in its own review. No claim or source changed here.

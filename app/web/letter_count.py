@@ -1,6 +1,6 @@
 """Cover-letter count: which forms in the knockout-question sample have a cover letter box, and is it required.
 
-The measurement behind /research/cover-letters-after-ai/ "How many application forms ask for a cover letter?".
+The measurement behind /research/cover-letters-after-ai/ "Do employers still ask for cover letters?".
 Same forms as knockout_count.py (its raw file, same form numbers + employer letters as its CSV):
 
   uv run app/web/letter_count.py raw.json > app/web/research/cover-letter-boxes-2026-10.csv

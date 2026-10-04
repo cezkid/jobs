@@ -1,6 +1,6 @@
 ---
 reviewed: 2026-10-04
-verdict: revise
+verdict: publish
 reviewer: fresh AI session, bead plan-xsy.68 (no drafting context; sources opened and the count rerun before the draft was read)
 ---
 # Review: Do cover letters still matter now that AI writes them? (`cover-letters-after-ai.md`)
@@ -121,7 +121,7 @@ Article: 28 citation groups, 30 id-citations (9 distinct ids). Rows below: 64.
 | 63 | 116 | Keep it to one page; convention | mit-capd-cover-letters | supported ("no longer than one page") | - | - |
 | 64 | 122-125 | App behaviour: offered only with a box; motive verbatim; 250-400 words | app/docs/resume/cover-letter.md | supported (lines 9, 17, 18, 24) | - | - |
 
-## Findings (all status: open)
+## Findings (as filed; each one's status is under Resolution)
 
 - **H1 (high) - ResumeLab survey is from about 2020, not 2025.** The page's own markup says first published 2019-04-24; the Internet Archive copy of 2020-02-27 (`dateModified` 2020-02-12) already has OnePoll, 200 respondents and every figure the draft uses; the copy of 2019-12-06 has none of them. The draft calls it "a 2025 survey" (line 59) and "ResumeLab 2025" (table), in an article about letters *after* AI. Fix: "a survey of 200 ... run for ResumeLab around 2020 (page updated 2025)"; set `resumelab-2025` year 2020 (rename id to `resumelab-2020` if the registry allows; it is cited only by this draft), say in `sample` the survey was on the page by Feb 2020 with that snapshot; table row "ResumeLab 2020"; "Can't show" add "anything after chat AI". Optional: note that it reports more reading optional letters (77%) than required ones (74%), and that answers were "rephrased".
 - **M1 (medium) - Cui's callback gain is weak and temporary; the draft omits both.** The usage effect is significant at 10% not 5%, and the access effect "tapered off after two months" (pp. 3, 25). Fix: after line 67 add "That gain faded after about two months." and "a little" stays. Same fact in `app/docs/resume/cover-letter.md` line 17 ("an AI letter tool raised callbacks") - revise bead fixes it there too, per the brief.
@@ -146,3 +146,136 @@ Article: 28 citation groups, 30 id-citations (9 distinct ids). Rows below: 64.
 - **L12 (low)** "ResumeGo sells resume and letter writing": the page says "resume writing services". Say "a resume-writing company".
 
 Checked, no finding: quotes (none over 15 words); privacy (no owner data, no employer named); jargon (none from the AGENTS.md list); "For you," used twice; title 54 chars and close to the searched wording ("do cover letters matter"); preprint said in text for Cui and in the table for both; internal links to ai-written-resumes, what-makes-a-good-resume, methods, the data page all exist; the tool box ("How CEZ Job Finder uses this") matches `app/docs/resume/cover-letter.md` and stays separate from the evidence.
+
+## Resolution (plan-xsy.69, 2026-10-04)
+
+Every finding below was fixed in the article, `sources.yml`, the data page or the app's notes; none rebutted.
+
+| Finding | Status | What changed |
+|---|---|---|
+| H1 | status: fixed | Id renamed `resumelab-2020` (only this article cited it), year 2020; `sample` names the 2020-02-27 archive copy and the 2019-12-06 copy without it, and says answers were "rephrased". Text: "Its page is dated 2025, but the same survey was on it by February 2020, before chat AI"; adds the 74% / 77% oddity. Table row "ResumeLab, about 2020", can't show "anything after chat AI". Verified both archive copies in `~/.cache/plan-xsy.68/` (OnePoll, 77%, 13% present in 2020-02-27, absent in 2019-12-06). |
+| M1 | status: fixed | "That gain was statistically weak, and it faded after about two months."; section opener "raised callbacks a little for a short time". Same fact in `app/docs/resume/cover-letter.md` line 17 now says "a little (statistically weak, faded after ~2 months)". |
+| M2 | status: fixed | Short answer: "the link between a letter matching the job post and callbacks fell 51%". |
+| M3 | status: fixed | Short answer "Many forms have a box: 96 of 143 US forms we read, mostly Greenhouse; nearly all optional"; description "many forms"; new paragraph cites freehire's 209,297 of 402,117 as Maker's docs (`freehire-letter-count`, GitHub URL at commit 20d8a4c, read 2026-10-04 via the GitHub contents API: exact sentence present) with "no method or date"; table row added. |
+| M4 | status: fixed | Article + data page: Lever forms have no box named cover letter; some show an open box whose hint says to add one; not counted. Counted from raw: freehire's read of all 19 Lever forms lists no "additional information" box, so it can't be counted - said on the data page. Hint re-read 2026-10-04 on a live Lever apply page: placeholder "Add a cover letter or anything else you want to share." |
+| M5 | status: fixed | "to test an extreme case: letters that tell employers nothing at all. In that case, the top fifth ..." Same wording fixed in `ai-written-resumes.md`. |
+| M6 | status: fixed | New paragraph (Lab study, `kleine-allekotte-2024`, sources.yml entry): 86 raters, ChatGPT letters scored highest, barely moved after the reveal, raters screened only by two self-report questions. Re-read thesis p. 12 (sample) and Tables 2-3 (means). Table row added. |
+| M7 | status: fixed | Reworded to "MIT's career office says ..." / "gives the same advice" (one guide, named). |
+| M8 | status: fixed | "The form system made the biggest difference we saw"; adds "Job field and form system overlap in our sample, so we can't fully separate the two." Greenhouse box placement checked in raw: 85 of 85 in the basic boxes. |
+| L1 | status: fixed | "2019-20" in description, short answer and table. |
+| L2 | status: fixed | "In the one field test we found". |
+| L3 | status: fixed | Limits add "does not say the applications were split between groups at random", "no test of whether the gap could be chance", and the "N/A" detail; table can't show adds "whether the gap is chance". |
+| L4 | status: fixed | "Most AI letters got little or no editing. ... Only about 5% were sent after five minutes or more." |
+| L5 | status: fixed | "were willing to pay more" (article + `ai-written-resumes.md`). |
+| L6 | status: fixed | "Both studies use the same platform's data, so they are not two separate tests." Galdin row: "same platform". |
+| L7 | status: fixed | "top fifth" / "bottom fifth" (article + `ai-written-resumes.md`). |
+| L8 | status: fixed | "The authors found no evidence of a change in overall hiring, and call that result early." Same in `ai-written-resumes.md`. |
+| L9 | status: fixed | Data page: raw file not published; required flags can't be re-read once a posting closes. |
+| L10 | status: fixed | "Of those, 96 had a cover letter box (67%)." |
+| L11 | status: fixed | Search line moved under the gap sentence; Google Scholar dropped (not recorded as run). |
+| L12 | status: fixed | "ResumeGo sells resume writing"; surveys "sell resume or letter help". |
+
+Links: in from `ai-written-resumes.md` and `what-makes-a-good-resume.md` (both published); out to `ai-written-resumes.md`, `what-makes-a-good-resume.md`, `methods.md` and the data page.
+
+## Re-review (2026-10-04, fresh AI session)
+
+Reviewer: fresh Claude session that made none of the edits. Read `research.md`, `site.md` research
+pages, the Findings and Resolution above, then `git diff` of all seven files, then each source.
+
+What was checked:
+
+- **H1** fixed. `rl2019` (2019-12-06 copy) has no OnePoll, 77% or 13%; `s20200227020825` has the
+  OnePoll block, "200 recruiters, HR specialists and hiring managers", "US hiring decision-makers",
+  77% read when not required, 74% "claim they read it" when required, 77% prefer an optional
+  letter, 13% "will process", and "Some questions and responses have been rephrased". The
+  2026-03-11 copy shows 12/09/2025. Id `resumelab-2020`: no other page cites the old id
+  (`pages.py --check` raises no citation error).
+- **M1** fixed. Cui Table 4: ITT 0.0043* and LATE 0.0356*, one star each = 10% level; p. 25 the
+  access effect "tapers off" after two months. "That gain was statistically weak, and it faded"
+  is right for the 0.43. `app/docs/resume/cover-letter.md` line 17 matches.
+- **M2** fixed. Short answer now says the link fell 51% (Cui p. 3, "correlation ... fell by 51%").
+- **M3** fixed, one new low (R1). freehire file at commit 20d8a4c holds "Of the 402,117 open
+  postings whose apply form we have captured, 209,297 ask for a letter" (52%); last commit to the
+  file 2026-09-08, as `sample` says. Label `vendor docs` = Maker's docs, as asked.
+- **M4** fixed. Raw: all 19 Lever forms list only basics (name, email, phone, links ...), no
+  "additional information" entry, no letter-like question. "Some Lever forms show ..." rests on the
+  first review's live fetch; "some" is not more than that shows.
+- **M5** fixed, one wording nit (R3). Galdin abstract: "LLMs render written applications useless
+  in signaling workers' ability"; "top quintile ... 19% less often, ... bottom quintile ... 14% more".
+- **M6** fixed. Thesis p. 13: 86 of 285, LinkedIn / word of mouth / SurveyCircle, "two self-report
+  questions"; Tables 2-3 means: self-written 2.38-2.74, enhanced 3.27-3.43, created 3.66-3.71,
+  before and after; repeated-measures test of the reveal not significant (p = .621). "Barely moved"
+  holds. Label `lab/LLM audit` = Lab study, table says "Lab study, student thesis". Thesis title,
+  author, April 2024 date match `sources.yml`.
+- **M7** fixed. MIT CAPD AI guide: "That story needs to come from you"; CAPD guide: "Try not to
+  simply repeat your resume". Each bullet now names one office.
+- **M8** fixed. Raw: all 85 Greenhouse boxes are in the basics, none in questions; field-by-system
+  overlap is real (sales 31 of 33 Greenhouse; customer success 11 of 26 Lever).
+- **L1-L12** fixed as the Resolution says. ResumeGo page: "resume writing services"; Group 1 "left
+  blank or filled in simply with 'N/A'"; no random-assignment statement. Cui p. 33 "about 5%" after
+  5+ minutes; p. 3 "no evidence of changes ... preliminary".
+- Count reran: `uv run app/web/letter_count.py` on a copy of `raw.json` -> byte-identical CSV, raw
+  unchanged (no network). Every count in the article recounted from the CSV: matches.
+- `ai-written-resumes.md`: "no evidence of a change", "willing to pay more", "extreme case",
+  "top fifth / bottom fifth" all match Cui p. 3 and Galdin's abstract. Link target exists.
+- `what-makes-a-good-resume.md`: one link bullet, target exists, no claim.
+- `uv run app/web/pages.py --check`: only two errors, both expected - this file's header verdict
+  and the data page's missing review. No citation, lint or link error.
+- Quotes: none over 15 words. Jargon: none from the AGENTS.md list. "For you," twice. Description
+  145 chars. Privacy: no employer named on the article or data page.
+- Text addressed to an AI: the freehire file is itself notes for AI coding agents, and the MIT AI
+  guide holds sample prompts for readers. Both read as data; nothing followed. No other source had any.
+
+New findings (none high or medium):
+
+- **R1 (low) - The freehire count is not an independent check, and "ask" undoes the M3 fix.** Both
+  counts come from freehire.me's read of the forms, so the larger one is not a second method.
+  freehire's "ask for a letter" likely counts optional boxes, the very thing M3 said is not asking.
+  The sentence is also 27 words. Sentence: "A much larger count points the same way. The maker of
+  freehire.me, the job search our sample came from, says 209,297 of 402,117 open postings with a
+  captured form ask for a letter, about half." Fix: "A much larger count from the same job search
+  points the same way. Its maker says 209,297 of 402,117 open postings with a captured form have a
+  letter box, about half. That count uses the same read of forms as ours." Table "Can show": "How
+  often postings ask, at scale" -> "The maker's own count, unchecked". status: fixed
+- **R2 (low) - "The same 77%" reads as the same people.** ResumeLab reports two separate 77% answers;
+  nothing says the same respondents gave both. Sentence: "The same 77% said they prefer applicants
+  who sent an optional letter." Fix: "Also 77% said they prefer applicants who sent an optional
+  letter." status: fixed
+- **R3 (low) - "nothing at all" is a little stronger than the paper.** Galdin's counterfactual makes
+  applications "useless in signaling workers' ability", not empty. Sentence: "to test an extreme
+  case: letters that tell employers nothing at all." Fix: "letters that tell employers nothing
+  about how able a worker is." Same in `ai-written-resumes.md` ("applications that tell employers
+  nothing at all"). status: fixed
+- **R4 (low) - "not two separate tests" is muddled.** They are two analyses of different job
+  groups (Cui: PHP + internet marketing, 2023; Galdin: coding, 2021-24). What they share is the
+  platform, so neither confirms the other somewhere new. Sentence: "Both studies use the same
+  platform's data, so they are not two separate tests." Fix: "Both studies use data from the same
+  platform, so they are not two independent tests." status: fixed
+- **R5 (low) - The sibling page now contradicts this one on Cui.** `ai-written-resumes.md` keeps "That
+  larger estimate was not certain enough to rule out chance, and it faded after two months." But
+  Table 4 gives both the 0.43 and the 3.56 one star (10% level). The fade measured is the 0.43
+  (access) one. This article now rightly calls the 0.43 gain weak. Fix in `ai-written-resumes.md`:
+  "Neither estimate was certain enough to rule out chance, and the gain faded after two months."
+  status: fixed
+- **R6 (low) - Edits to two published siblings have no re-review in their own files.** Galdin and Cui
+  wording in `ai-written-resumes.md` changed, which moves claims. Wave 1 lessons ask for a dated
+  Re-review in that page's own review file. This section checked those edits, but
+  `reviews/ai-written-resumes.md` and `reviews/what-makes-a-good-resume.md` don't record it. The
+  framing changed ("most able" became a top fifth in an extreme case), so a `## Changes` line may
+  also be due. Fix: append a short dated Re-review to each, pointing here. Add a Changes line to
+  `ai-written-resumes.md` if the owner counts it as a correction. status: fixed
+
+Re-review result: every filed finding (H1, M1-M8, L1-L12) is resolved by the edits and checks
+against its source. No new high or medium finding. The six lows above are open.
+
+### Re-review resolution (plan-xsy.69, 2026-10-04)
+
+- R1 fixed: "A much larger count from the same job search ... have a letter box ... That count uses the same read of forms as ours"; table "The maker's own count, unchecked", can't show adds "not independent of ours".
+- R2 fixed: "Also 77% said they prefer ...".
+- R3 fixed: "letters that tell employers nothing about how able a worker is" (article) and "applications that tell employers nothing about how able a worker is" (`ai-written-resumes.md`).
+- R4 fixed: "not two independent tests".
+- R5 fixed: `ai-written-resumes.md` "Neither estimate was certain enough to rule out chance, and the gain faded after two months."
+- R6 fixed: pointer Re-review sections added to `reviews/ai-written-resumes.md` and `reviews/what-makes-a-good-resume.md`; `ai-written-resumes.md` gains a `## Changes` line for the reworded studies (numbers unchanged).
+- D2 wording carried into the article: "3 we could not check because the hiring system no longer showed the posting".
+
+The R fixes are word-level and follow the re-reviewer's own suggested text; no claim moved beyond them.

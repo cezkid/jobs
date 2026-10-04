@@ -163,6 +163,7 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 - Whether a gap reason helps: one US study says a little, one larger UK study says no.
 - Whether one page or two works better for experienced people. The only test found is a vendor's simulation.
 - How AI screening tools treat any of these rules. See [Can employers tell if AI wrote your resume?](ai-written-resumes.md).
+- Whether a cover letter still helps now that AI can write one. See [Do cover letters still matter now that AI writes them?](cover-letters-after-ai.md). Our count of letter boxes is on its own page: [cover letter boxes on 143 job application forms](cover-letter-boxes-2026-10.md).
 
 ## What helps
 

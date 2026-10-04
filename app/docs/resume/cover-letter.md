@@ -14,7 +14,7 @@ repo github.com/strelov1/freehire, internal/candidate/coverletter/AGENTS.md) - a
 | Rule | Basis | Strength |
 |---|---|---|
 | Write one when the form asks | ResumeGo 2019-20: 7,287 fictitious applications (ZipRecruiter, Glassdoor, Indeed), tailored letter 53% more callbacks than none | vendor study, not peer-reviewed |
-| The user's own sentence on why this job, verbatim; never AI-written motive | Cui, Dias & Ye 2025 (*preprint*): an AI letter tool raised callbacks, but the link between a letter matching the posting and callbacks then fell 51%, and time spent editing the AI draft went w/ getting hired - generic tailoring stops signalling; the user's own words still do | preprint, observational |
+| The user's own sentence on why this job, verbatim; never AI-written motive | Cui, Dias & Ye 2025 (*preprint*): an AI letter tool raised callbacks a little (statistically weak, faded after ~2 months), but the link between a letter matching the posting and callbacks then fell 51%, and time spent editing the AI draft went w/ getting hired - generic tailoring stops signalling; the user's own words still do | preprint, observational |
 | 3-4 paragraphs, 250-400 words, one page; "Dear Hiring Team" | Harvard FAS career guide (2026): one page, 3-4 short paragraphs, 250-400 words, shorter usually better; MIT CAPD: at most a page, 3-4 paragraphs | convention |
 | Add what the resume doesn't show; never restate a line | career guides: a letter is not a resume summary | convention |
 | Every number, tool, name from the facts each paragraph cites; never a word the resume never shows | `bullets.md` Tier 1 - anything on paper gets asked about | policy (FAIL) |

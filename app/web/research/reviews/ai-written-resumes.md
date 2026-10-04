@@ -266,3 +266,7 @@ Findings (verdict revise):
 - **B3 (low)** Row 1 shortens the source's "Unnatural phrasing or tone". Fix: "Unnatural phrasing or tone | 51%".
 
 Revised (plan-xsy.58): every B finding applied with the wording above (sign list re-checked on the source page 2026-10-04 by the reviser); verdict publish.
+
+## Re-review (2026-10-04, fresh AI session, plan-xsy.69)
+
+Edit in plan-xsy.69: reworded the Cui and Galdin-Silbert paragraphs (both estimates too weak to rule out chance; the 19%/14% as an extreme model case, top/bottom fifth; "no evidence of a change in overall hiring"; "willing to pay more"), added a `## Changes` line and a link to cover-letters-after-ai. Checked against the sources by a fresh AI session that did not make the edit; its findings and their fixes are in [the cover-letters-after-ai review](cover-letters-after-ai.md) ("Re-review" section, R3, R5, R6). No open finding.
