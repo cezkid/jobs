@@ -197,18 +197,27 @@ function howLine(mode) {
   return "Buttons copy the words. Paste them in the chat box and press Enter.";
 }
 
-function copiedLine(platform) {
+// job the words name ("resume for job 12" => 12), null for plain asks
+function jobOf(words) {
+  const m = /\bjob ([1-9][0-9]{0,5})\b/.exec(String(words || ""));
+  return m ? Number(m[1]) : null;
+}
+
+// status line once the words are in: names the job + where to look (critique P3). Clears after
+// CLEAR_MS on the page; the button pressed keeps doneLabel until the next press
+function readyLine(mode, num = null, platform = "darwin") {
   const keys = platform === "darwin" ? "Cmd+V" : "Ctrl+V";
-  return `Copied - click the chat box, paste (${keys}), press Enter.`;
+  const line = mode === "fill" ? "the words are in the chat box - press Enter to send them."
+    : mode === "new" ? "new chat ready on the right - press Enter"
+      : `copied - click the chat box, paste (${keys}), press Enter.`;
+  return num ? `Job ${num}: ${line}` : line[0].toUpperCase() + line.slice(1);
 }
 
-function filledLine() {
-  return "The words are in the chat box - press Enter to send them.";
+function doneLabel(mode) {
+  return mode === "fill" ? "In the chat box" : mode === "new" ? "Ready in chat" : "Copied";
 }
 
-function newChatLine() {
-  return "New chat ready - press Enter";
-}
+const CLEAR_MS = 8000;
 
 // a cold window: Claude starts on the first click (seconds) => the button says so at once, the
 // status line once it's slower than SLOW_MS (owner 2026-10-03: "takes long time to load")
@@ -223,30 +232,33 @@ function startingLine(ai) {
 }
 
 // one say button press: words into the chat, never sent; returns the mode that ran.
-// exec(command, ...args) + copy(text) = vscode calls; busy(on) + status(text) = page feedback.
+// exec(command, ...args) + copy(text) = vscode calls; busy(on) + status(text, { done, hold }) =
+// page feedback (done = the pressed button's label after; hold = line stays until the next one).
 // busy at once; starting line if still waiting after SLOW_MS; then ready line, or copy fallback
 async function say({ ai, mode, words, platform, exec, copy, status, busy, wait = setTimeout, clear = clearTimeout }) {
+  const num = jobOf(words);
+  const ready = (ran) => status(readyLine(ran, num, platform), { done: doneLabel(ran) });
   busy(true);
-  const slow = wait(() => status(startingLine(ai)), SLOW_MS);
+  const slow = wait(() => status(startingLine(ai), { hold: true }), SLOW_MS);
   try {
     if (mode === "fill") {
       try {
         // fills the box, never sends: isPartialQuery
         await exec("workbench.action.chat.open", { query: words, isPartialQuery: true });
-        status(filledLine());
+        ready(mode);
         return mode;
       } catch {}
     }
     if (mode === "new") {
       try {
         await exec(CLAUDE_NEW_CHAT, ...claudeNewChatArgs(words));
-        status(newChatLine());
+        ready(mode);
         return mode;
       } catch {}
     }
     await copy(words);
     if (CHAT_OPEN[ai]) await Promise.resolve().then(() => exec(CHAT_OPEN[ai])).catch(() => {});
-    status(copiedLine(platform));
+    ready("copy");
     return "copy";
   } finally {
     clear(slow);
@@ -254,20 +266,26 @@ async function say({ ai, mode, words, platform, exec, copy, status, busy, wait =
   }
 }
 
-// colors = app/window/brand.py tokens (test checks every hex); yellow only on buttons
+// colors = app/window/brand.py tokens (test checks every hex); yellow only on buttons.
+// --edge = every control's border: ink-2, >= 3:1 on paper + desk (WCAG 1.4.11); yellow button's own
+// edge in light = ink-2 too (yellow on paper 1.28:1). Dark card fill 1.22:1 on desk + its line
 const CSS = `
 body.vscode-light { --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8; --card: #ffffff; --tint: #f3f3f1;
-  --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000; }
-body.vscode-dark { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; --card: #2c2c2e; --tint: #2c2c2e;
-  --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000; }
+  --edge: #3a3a3a; --go-edge: #3a3a3a; --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000; }
+body.vscode-dark { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; --card: #2c2c2e; --tint: #1c1c1e;
+  --edge: #bdbdbd; --go-edge: #ffe433; --mark: #ffe433; --mark-2: #f2cf00; --mark-text: #000000; }
 body.vscode-high-contrast { --desk: var(--vscode-editor-background); --text: var(--vscode-editor-foreground);
   --text-2: var(--vscode-editor-foreground); --line: var(--vscode-contrastBorder, currentColor); --card: transparent;
-  --tint: transparent; --mark: transparent; --mark-2: transparent; --mark-text: var(--vscode-editor-foreground); }
+  --tint: transparent; --edge: var(--vscode-contrastBorder, currentColor); --go-edge: var(--edge); --mark: transparent;
+  --mark-2: transparent; --mark-text: var(--vscode-editor-foreground); }
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0 20px; background: var(--desk); color: var(--text);
   font-family: Caladea, Georgia, "Times New Roman", serif; font-size: 16px; line-height: 1.45; }
 main { max-width: 60rem; margin: 0 auto; padding: 24px 0 48px; }
 h1 { font-size: 2rem; line-height: 1.1; margin: 0 0 4px; }
+[tabindex="-1"]:focus { outline: none; }
+.skip { position: absolute; left: -10000px; top: 0; }
+.skip:focus-within { position: static; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; }
 .sub { color: var(--text-2); margin: 0 0 2px; }
 .how { color: var(--text-2); font-size: 0.9rem; margin: 0 0 20px; }
 section { margin: 24px 0 0; }
@@ -295,7 +313,8 @@ section > h2 { font-size: 1.2rem; margin: 0 0 10px; padding-top: 10px; border-to
   padding: 8px 0; border-bottom: 1px solid var(--line); }
 .rows li:first-child { border-top: 1px solid var(--line); }
 .rows .what { min-width: 0; flex: 1 1 18rem; overflow-wrap: anywhere; }
-.rows .what b { font-weight: 700; }
+.rows h3 { display: inline; font: inherit; margin: 0; }
+.rows h3 b { font-weight: 700; }
 .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
 .list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
 .more { margin-top: 10px; }
@@ -303,17 +322,23 @@ section > h2 { font-size: 1.2rem; margin: 0 0 10px; padding-top: 10px; border-to
 .says { color: var(--text-2); margin: 10px 0 0; }
 .says q { color: var(--text); font-weight: 700; }
 button { font: inherit; font-size: 0.92rem; font-weight: 700; cursor: pointer; border-radius: 6px; padding: 5px 12px;
-  border: 1px solid var(--text-2); background: transparent; color: var(--text); text-align: center; }
-button:hover { background: var(--tint); }
-button.go { background: var(--mark); color: var(--mark-text); border-color: var(--mark); }
-button.go:hover { background: var(--mark-2); border-color: var(--mark-2); }
-button.quiet { border-color: var(--line); color: var(--text-2); font-weight: 400; }
+  border: 1px solid var(--edge); background: transparent; color: var(--text); text-align: center; }
+button:hover { background: var(--tint); box-shadow: inset 0 0 0 1px var(--text); }
+button:active { box-shadow: inset 0 0 0 2px var(--text); transform: translateY(1px); }
+button.go { background: var(--mark); color: var(--mark-text); border-color: var(--go-edge); }
+button.go:hover { background: var(--mark-2); box-shadow: inset 0 0 0 1px var(--mark-text); }
+button.go:active { background: var(--mark-2); box-shadow: inset 0 0 0 2px var(--mark-text); }
+button.quiet { color: var(--text-2); font-weight: 400; }
 button.link { border: 0; border-radius: 2px; padding: 0; background: none; font-weight: 400; color: var(--text);
   text-decoration: underline; text-underline-offset: 2px; }
-button.link:hover { background: none; text-decoration-thickness: 2px; }
+button.link:hover { background: none; box-shadow: none; text-decoration-thickness: 2px; }
+button.link:active { box-shadow: none; text-decoration-thickness: 3px; }
 button[disabled] { cursor: progress; opacity: 0.75; }
 button:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
-body.vscode-high-contrast button.go { border-color: var(--line); }
+body.vscode-high-contrast button { border-color: var(--edge); }
+body.vscode-high-contrast button.go { border-width: 3px; padding: 3px 10px; }
+body.vscode-high-contrast button.quiet { border-style: dashed; }
+body.vscode-high-contrast button.link { border: 0; }
 #status { position: sticky; bottom: 0; margin: 16px 0 0; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--text);
   background: var(--card); color: var(--text); font-weight: 700; }
 #status:empty { display: none; }
@@ -324,55 +349,136 @@ function csp(nonce) {
   return `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';`;
 }
 
-const SCRIPT = `
-const vscode = acquireVsCodeApi();
-document.addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-a]");
-  if (!b || b.disabled) return;
-  // say button: busy at once, before the chat answers (first one can take seconds)
-  if (b.dataset.busy) {
-    b.dataset.text = b.textContent;
-    b.textContent = b.dataset.busy;
-    b.disabled = true;
-    b.setAttribute("aria-busy", "true");
-  }
-  vscode.postMessage({ action: Number(b.dataset.a) });
-});
-window.addEventListener("message", (e) => {
-  if (e.data && e.data.type === "status") document.getElementById("status").textContent = String(e.data.text);
-  if (e.data && e.data.type === "busy" && !e.data.on) {
-    for (const b of document.querySelectorAll("button[aria-busy]")) {
-      b.textContent = b.dataset.text;
-      b.disabled = false;
-      b.removeAttribute("aria-busy");
+// page side, sent as its source text (runs in the webview, nothing from this file in scope).
+// Keeps scroll, the status line + the pressed button's done state across redraws: the extension
+// replaces the html on every show + Today rewrite; vscode.getState survives that (cheaper than
+// retainContextWhenHidden, which keeps the whole page alive while hidden)
+function page(vscode, doc, win, clearMs, now = () => Date.now()) {
+  const state = Object.assign({ y: 0, status: "", until: 0, done: null }, vscode.getState() || {});
+  const save = () => vscode.setState(state);
+  const box = doc.getElementById("status");
+  let timer = null;
+  let pressed = null;
+  // until = when it clears (0 = stays: a still-running "Starting Claude" line)
+  const show = (text, until) => {
+    win.clearTimeout(timer);
+    box.textContent = text;
+    state.status = text;
+    state.until = until;
+    save();
+    if (text && until) timer = win.setTimeout(() => show("", 0), Math.max(0, until - now()));
+  };
+  // a button's own words, kept before the first change
+  const keep = (b) => {
+    if (b.dataset.text == null) {
+      b.dataset.text = b.textContent;
+      b.dataset.name = b.getAttribute("aria-label") || "";
     }
-  }
-});
-`;
+  };
+  const label = (b, text) => {
+    b.textContent = text;
+    if (b.dataset.name) b.setAttribute("aria-label", text + b.dataset.name.slice(b.dataset.text.length));
+  };
+  // done state: the pressed button reads e.g. "Ready in chat" until the next press
+  const mark = () => {
+    for (const b of doc.querySelectorAll("button[data-k]")) {
+      if (b.getAttribute("aria-busy")) continue;
+      const on = Boolean(state.done && state.done.key === b.dataset.k);
+      if (!on && !b.dataset.done) continue;
+      keep(b);
+      label(b, on ? state.done.label : b.dataset.text);
+      if (on) b.dataset.done = "1";
+      else delete b.dataset.done;
+    }
+  };
+  if (state.status && state.until > now()) show(state.status, state.until);
+  else if (state.status) show("", 0);
+  mark();
+  if (state.y) win.scrollTo(0, state.y);
+  let saving = false;
+  win.addEventListener("scroll", () => {
+    if (saving) return;
+    saving = true;
+    win.setTimeout(() => { saving = false; state.y = win.scrollY; save(); }, 100);
+  });
+  doc.addEventListener("click", (e) => {
+    const jump = e.target.closest("button[data-jump]");
+    if (jump) {
+      const to = doc.getElementById(jump.dataset.jump);
+      if (to) { to.focus(); to.scrollIntoView({ block: "start" }); }
+      return;
+    }
+    const b = e.target.closest("button[data-a]");
+    if (!b || b.disabled) return;
+    if (state.done) { state.done = null; save(); mark(); }
+    pressed = b.dataset.k || null;
+    // say button: busy at once, before the chat answers (first one can take seconds)
+    if (b.dataset.busy) {
+      keep(b);
+      label(b, b.dataset.busy);
+      b.disabled = true;
+      b.setAttribute("aria-busy", "true");
+    }
+    vscode.postMessage({ action: Number(b.dataset.a) });
+  });
+  win.addEventListener("message", (e) => {
+    const d = e.data || {};
+    if (d.type === "status") {
+      show(String(d.text || ""), d.hold ? 0 : now() + clearMs);
+      if (d.done && pressed) { state.done = { key: pressed, label: String(d.done) }; save(); }
+      mark();
+    }
+    if (d.type === "busy" && !d.on) {
+      for (const b of doc.querySelectorAll("button[aria-busy]")) {
+        label(b, b.dataset.text);
+        b.disabled = false;
+        b.removeAttribute("aria-busy");
+      }
+      mark();
+    }
+  });
+}
+
+const SCRIPT = `(${page})(acquireVsCodeApi(), document, window, ${CLEAR_MS});`;
 
 function render(m, { mode, nonce, ai = null }) {
   const h = escapeHtml;
-  const btn = (text, action, cls = "", title = "", busy = "") =>
-    `<button type="button" data-a="${action}"${busy ? ` data-busy="${h(busy)}"` : ""}${cls ? ` class="${cls}"` : ""}`
-    + `${title ? ` title="${h(title)}"` : ""}>${h(text)}</button>`;
+  const btn = (text, action, { cls = "", title = "", busy = "", name = "", key = "", about = "" } = {}) =>
+    `<button type="button" data-a="${action}"${key ? ` data-k="${h(key)}"` : ""}${busy ? ` data-busy="${h(busy)}"` : ""}`
+    + `${cls ? ` class="${cls}"` : ""}${title ? ` title="${h(title)}"` : ""}${name ? ` aria-label="${h(name)}"` : ""}`
+    + `${about ? ` aria-describedby="${h(about)}"` : ""}>${h(text)}</button>`;
+  // accessible name carries the job: 10 "Make my resume" buttons read the same to a screen reader
+  const named = (text, num) => (num && !text.toLowerCase().includes(`job ${num}`) ? `${text}, Job ${num}` : "");
   // one yellow per card: its first say; status changes outline, closing quieter still
-  const say = (b, go) => btn(sayText(b, mode), b.action, go ? "go" : QUIET.has(b.id) ? "quiet" : "", sayTitle(b, mode), busyLabel(ai));
-  const acts = (c) => c.say.map((b, i) => say(b, i === 0)).join("");
+  const say = (b, go, { num = null, name = "", about = "" } = {}) => {
+    const text = sayText(b, mode);
+    return btn(text, b.action, { cls: go ? "go" : QUIET.has(b.id) ? "quiet" : "", title: sayTitle(b, mode), busy: busyLabel(ai),
+      name: name || named(text, num), key: `${num || ""}:${b.id}`, about });
+  };
+  const acts = (c) => c.say.map((b, i) => say(b, i === 0, { num: c.num })).join("");
   // posting, resume, folder: places to look, not things to do => ink links on one line
   const meta = (c) => {
-    const links = [c.posting && btn("Posting", c.posting.action, "link"), c.resume && btn("Resume", c.resume.action, "link"),
-      c.folder && btn("Folder", c.folder.action, "link")].filter(Boolean);
+    const link = (x, text, what) => x && btn(text, x.action, { cls: "link", name: `Open the ${what} for Job ${c.num}` });
+    const links = [link(c.posting, "Posting", "posting"), link(c.resume, "Resume", "resume"), link(c.folder, "Folder", "folder")]
+      .filter(Boolean);
     return links.length ? `<span class="meta">${links.join(" · ")}</span>` : "";
   };
-  const card = (c) => `<article class="card"><h3><span class="num">Job ${c.num}</span>${h(c.title)}</h3>`
-    + (c.company ? `<p>${h(c.company)}</p>` : "") + (c.detail ? `<p class="detail">${h(c.detail)}</p>` : "")
+  const card = (c) => `<article class="card" aria-labelledby="j-${c.num}"><h3 id="j-${c.num}"><span class="num">Job ${c.num}</span> `
+    + `${h(c.title)}</h3>` + (c.company ? `<p>${h(c.company)}</p>` : "") + (c.detail ? `<p class="detail">${h(c.detail)}</p>` : "")
     + `<div class="acts">${acts(c)}${meta(c)}</div></article>`;
   // one line a job: number, title, company, detail + its buttons
-  const row = (c, links) => `<li><span class="what"><b>Job ${c.num}</b> - ${h(c.title)}${c.company ? `, ${h(c.company)}` : ""}`
-    + `${c.detail ? ` <span class="detail">- ${h(c.detail)}</span>` : ""}</span><span class="acts">${acts(c)}`
-    + `${links ? meta(c) : ""}</span></li>`;
-  const line = (x, go) => `<li><span>${h(x.text)}</span>${x.say ? say(x.say, go) : ""}</li>`;
+  const row = (c, links) => `<li><div class="what"><h3 id="j-${c.num}"><b>Job ${c.num}</b> - ${h(c.title)}`
+    + `${c.company ? `, ${h(c.company)}` : ""}</h3>${c.detail ? ` <span class="detail">- ${h(c.detail)}</span>` : ""}</div>`
+    + `<span class="acts">${acts(c)}${links ? meta(c) : ""}</span></li>`;
+  // a line w/ one button: the button's description = the line's own words ("Turn it on" - what?)
+  let lines = 0;
+  const line = (x, go, name = "") => {
+    const id = `l-${lines++}`;
+    return `<li><span id="${id}">${h(x.text)}</span>${x.say ? say(x.say, go, { name, about: x.text ? id : "" }) : ""}</li>`;
+  };
   const tile = (id) => m.tiles.find((t) => t.section === id);
+  const heading = (id, title) => `<h2 id="${id}" tabindex="-1">${h(title)}</h2>`;
+  const jumps = [];
   const section = (s) => {
     const rows = s.id === "new" || s.cards.length > ROWS_AFTER;
     const shown = s.id === "new" ? s.cards.slice(0, NEW_SHOWN) : s.cards;
@@ -382,56 +488,80 @@ function render(m, { mode, nonce, ai = null }) {
       const left = total - shown.length - (m.next && m.next.section === "new" ? 1 : 0);
       more = left > 0 ? { ...more, text: `${left} more new ${left === 1 ? "job" : "jobs"}.` } : null;
     }
-    return `<section aria-labelledby="s-${h(s.id)}"><h2 id="s-${h(s.id)}">${h(s.title)}</h2>`
+    // "Show the rest" under two sections => named by its section
+    const moreName = more && more.say ? `${sayText(more.say, mode)}: ${s.title}` : "";
+    jumps.push([`s-${s.id}`, s.title]);
+    return `<section aria-labelledby="s-${h(s.id)}">${heading(`s-${h(s.id)}`, s.title)}`
       + (s.note ? `<p class="note">${h(s.note)}</p>` : "")
       + (rows ? `<ul class="rows">${shown.map((c) => row(c, s.id !== "new")).join("")}</ul>`
         : `<div class="cards">${shown.map(card).join("")}</div>`)
-      + (more ? `<ul class="list more">${line(more, false)}</ul>` : "") + "</section>";
+      + (more ? `<ul class="list more">${line(more, false, moreName)}</ul>` : "") + "</section>";
   };
+  if (m.next) jumps.push(["s-next", "Next up"]);
   const next = m.next
-    ? `<section class="next" aria-labelledby="s-next"><h2 id="s-next">Next up</h2>`
+    ? `<section class="next" aria-labelledby="s-next">${heading("s-next", "Next up")}`
       + (m.next.card ? `<div class="cards">${card(m.next.card)}</div>`
         : `<ul class="list">${line(m.next.todo, true)}</ul>`) + "</section>"
     : "";
   const tiles = m.tiles.length
-    ? `<ul class="figures">${m.tiles.map((t) => `<li><b>${t.value}</b><span>${h(t.label)}</span></li>`).join("")}</ul>` : "";
+    ? `<ul class="figures" aria-label="In numbers">${m.tiles.map((t) => `<li><b>${t.value}</b><span>${h(t.label)}</span></li>`).join("")}</ul>` : "";
   const blocking = m.todo.filter((t) => t.blocks);
   const later = m.todo.filter((t) => !t.blocks);
+  if (blocking.length) jumps.push(["s-setup", "Finish setting up"]);
   const setup = blocking.length
-    ? `<section><h2>Finish setting up</h2><ul class="list">${blocking.map((t) => line(t, true)).join("")}</ul></section>` : "";
+    ? `<section aria-labelledby="s-setup">${heading("s-setup", "Finish setting up")}<ul class="list">${blocking.map((t) => line(t, true)).join("")}</ul></section>` : "";
+  const sections = m.sections.map(section).join("");
+  if (later.length) jumps.push(["s-later", "Not finished"]);
   const todo = later.length
-    ? `<section class="later"><h2>Not finished</h2><ul class="list">${later.map((t) => line(t, false)).join("")}</ul></section>` : "";
-  const empty = m.empty ? `<section><ul class="list">${line(m.empty, true)}</ul></section>` : "";
+    ? `<section class="later" aria-labelledby="s-later">${heading("s-later", "Not finished")}<ul class="list">${later.map((t) => line(t, false)).join("")}</ul></section>` : "";
+  const empty = m.empty ? `<section aria-label="Nothing new"><ul class="list">${line(m.empty, true)}</ul></section>` : "";
+  jumps.push(["s-say", "What you can say"]);
   const asks = m.asks.length ? `<div class="acts">${m.asks.map((b) => say(b, false)).join("")}</div>` : "";
   const examples = m.examples.length
     ? `<p class="says">For example: ${m.examples.map((ex) => ex.map((w) => `<q>${h(w)}</q>`).join(" or ")).join(" · ")}</p>` : "";
   const guides = m.guides.length
-    ? `<p class="says">Guides: ${m.guides.map((g) => btn(g.title, g.open.action, "link")).join(" · ")}</p>` : "";
+    ? `<p class="says">Guides: ${m.guides.map((g) => btn(g.title, g.open.action, { cls: "link", name: `Open the guide ${g.title}` })).join(" · ")}</p>` : "";
+  // keyboard: skip past the header to any section (shown once focused; Tab order = reading order)
+  const skip = `<nav class="skip" aria-label="Jump to">${jumps.map(([id, title], i) =>
+    `<button type="button" class="link" data-jump="${h(id)}">${i ? "" : "Skip to "}${h(title)}</button>`).join("")}</nav>`;
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${csp(nonce)}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Today</title><style nonce="${nonce}">${CSS}</style></head>
-<body><main><h1>Today</h1><p class="sub">${h(m.date)}</p><p class="how">${h(howLine(mode))}</p>
-${next}${tiles}${setup}${m.sections.map(section).join("")}${todo}${empty}
-<section class="later"><h2>What you can say</h2>${asks}${examples}${guides}</section>
+<body>${skip}<main><h1>Today</h1><p class="sub">${h(m.date)}</p><p class="how" id="how">${h(howLine(mode))}</p>
+${next}${tiles}${setup}${sections}${todo}${empty}
+<section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}</section>
 <p id="status" role="status" aria-live="polite"></p></main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
 }
 
-// shown when today.json is missing, old or broken: the page view still has everything
-function fallback({ nonce }) {
+// why the dashboard can't show (extension.js decides): plain words, what happens next
+const FALLBACK = {
+  missing: "Today's list isn't made yet. Job Finder makes it when it starts and after each morning check.",
+  updating: "Today's list is being updated - this takes a few seconds.",
+  unreadable: "Today's list couldn't be read. Trying again usually fixes it.",
+};
+
+// shown when today.json is missing, old or broken: Try again rebuilds it; the page view still has everything
+function fallback({ nonce, reason = "unreadable" }) {
+  const why = FALLBACK[reason] || FALLBACK.unreadable;
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${csp(nonce)}">
 <title>Today</title><style nonce="${nonce}">${CSS}</style></head>
-<body><main><h1>Today</h1><p class="sub">Getting today's list ready.</p>
-<div class="row"><button type="button" class="go" data-a="-1">Show the page</button></div>
+<body><main><h1>Today</h1><p class="sub">${escapeHtml(why)}</p>
+<div class="acts"><button type="button" class="go" data-a="${TRY_AGAIN}">Try again</button>
+<button type="button" data-a="${SHOW_PAGE}">Show the Today page</button></div>
 <p id="status" role="status" aria-live="polite"></p></main>
 <script nonce="${nonce}">${SCRIPT}</script></body></html>`;
 }
+
+// fallback buttons' own action numbers (data actions are 0 up)
+const SHOW_PAGE = -1;
+const TRY_AGAIN = -2;
 
 module.exports = {
   VIEW_TYPE, DATA, VERSION, OPENABLE, NEXT_ORDER, NEW_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
-  howLine, copiedLine, filledLine, newChatLine, SLOW_MS, busyLabel, startingLine, say,
-  csp, render, fallback,
+  howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say,
+  csp, page, render, FALLBACK, SHOW_PAGE, TRY_AGAIN, fallback,
 };

@@ -146,24 +146,34 @@ function showToday(document, panel) {
   const draw = () => {
     const nonce = crypto.randomBytes(16).toString("base64");
     m = null;
+    // why no dashboard, in the fallback's words (today.FALLBACK)
+    let reason = "unreadable";
     try {
       if (start.isJobFinder((rel) => fs.existsSync(at(rel)))) {
-        m = today.model(JSON.parse(fs.readFileSync(at(today.DATA), "utf8")), say);
+        if (!fs.existsSync(at(today.DATA))) reason = "missing";
+        else m = today.model(JSON.parse(fs.readFileSync(at(today.DATA), "utf8")), say);
       }
     } catch {}
+    if (refreshing) reason = "updating";
     // a file a button names may have moved since (job filed under another stage) => no button
     if (m) for (const s of m.sections) for (const c of s.cards) {
       if (c.resume && !fs.existsSync(at(c.resume.path))) c.resume = null;
       if (c.folder && !fs.existsSync(at(c.folder.path))) c.folder = null;
     }
-    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai: currentAi(root), nonce }) : today.fallback({ nonce });
+    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai: currentAi(root), nonce }) : today.fallback({ nonce, reason });
+  };
+  // fallback's Try again: rebuild the list (page redraws when it's rewritten), else just read it again
+  const retry = () => {
+    const started = !refreshing && refreshToday(root, draw);
+    draw();
+    if (!started && !refreshing && !m) tell(panel, "Still not ready - it's made again at the next start.");
   };
   draw();
   const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), start.TODAY));
   const subs = [
     watcher, watcher.onDidChange(draw), watcher.onDidCreate(draw),
     panel.onDidChangeViewState(() => { if (panel.visible) draw(); }),
-    panel.webview.onDidReceiveMessage((msg) => act(root, at, document.uri, m, msg, panel).catch(() => {})),
+    panel.webview.onDidReceiveMessage((msg) => act(root, at, document.uri, m, msg, panel, retry).catch(() => {})),
   ];
   panel.onDidDispose(() => subs.forEach((s) => s.dispose()));
 }
@@ -176,13 +186,15 @@ function currentAi(root) {
   }
 }
 
-function tell(panel, text) {
-  panel.webview.postMessage({ type: "status", text });
+// status line on the page: clears after today.CLEAR_MS unless hold; done = pressed button's label
+function tell(panel, text, { done = null, hold = false } = {}) {
+  panel.webview.postMessage({ type: "status", text, done, hold });
 }
 
-async function act(root, at, page, m, msg, panel) {
+async function act(root, at, page, m, msg, panel, retry) {
   const index = msg && Number.isInteger(msg.action) ? msg.action : null;
-  if (index === -1) return vscode.commands.executeCommand("vscode.openWith", page, start.PREVIEW_EDITOR);
+  if (index === today.SHOW_PAGE) return vscode.commands.executeCommand("vscode.openWith", page, start.PREVIEW_EDITOR);
+  if (index === today.TRY_AGAIN) return retry();
   const action = m && index != null ? m.actions[index] : null;
   if (!action) return;
   if (action.type === "posting") {
@@ -208,7 +220,7 @@ async function act(root, at, page, m, msg, panel) {
     if (saying) return;  // one at a time: a 2nd click would open a 2nd new chat
     saying = true;
     try {
-      return await sayWords(root, action.words, (text) => tell(panel, text), (on) => panel.webview.postMessage({ type: "busy", on }));
+      return await sayWords(root, action.words, (text, how) => tell(panel, text, how), (on) => panel.webview.postMessage({ type: "busy", on }));
     } finally {
       saying = false;
     }
@@ -237,17 +249,23 @@ async function sayWords(root, words, status, busy = () => {}) {
     exec: (command, ...args) => vscode.commands.executeCommand(command, ...args),
     copy: (text) => vscode.env.clipboard.writeText(text),
   });
-  if (mode === "new") vscode.window.setStatusBarMessage(today.newChatLine(), 8000);
+  if (mode === "new") vscode.window.setStatusBarMessage(today.readyLine(mode, today.jobOf(words)), today.CLEAR_MS);
   return mode;
 }
 
-function refreshToday(root) {
+// true while a rebuild runs: the fallback says "being updated", not "couldn't be read"
+let refreshing = false;
+
+// rebuilds Today in the background; done() once it ends. false = couldn't start (no uv)
+function refreshToday(root, done = () => {}) {
   const uv = start.uvCandidates({
     platform: process.platform, home: os.homedir(), userProfile: process.env.USERPROFILE, envPath: process.env.PATH,
   }).find((file) => fs.existsSync(file));
-  if (!uv) return;  // last page stays: still better than none
+  if (!uv) return false;  // last page stays: still better than none
+  refreshing = true;
   childProcess.execFile(uv, ["run", "app/jobs.py", "today", "--refresh"],
-    { cwd: root, windowsHide: true, timeout: 120000 }, () => {});
+    { cwd: root, windowsHide: true, timeout: 120000 }, () => { refreshing = false; done(); });
+  return true;
 }
 
 function redact(text) {

@@ -97,8 +97,8 @@ test("button text honest per AI: Copilot fills, ChatGPT + untested Claude copy",
   assert.match(html(m, "fill"), /class="go"[^>]*>Apply</);
   assert.match(html(m, "copy"), /class="go"[^>]*>Copy: apply to job 12</);
   assert.match(html(m, "copy"), /Paste them in the chat box and press Enter/);
-  assert.equal(today.copiedLine("darwin"), "Copied - click the chat box, paste (Cmd+V), press Enter.");
-  assert.equal(today.copiedLine("win32"), "Copied - click the chat box, paste (Ctrl+V), press Enter.");
+  assert.equal(today.readyLine("copy", null, "darwin"), "Copied - click the chat box, paste (Cmd+V), press Enter.");
+  assert.equal(today.readyLine("copy", 12, "win32"), "Job 12: copied - click the chat box, paste (Ctrl+V), press Enter.");
   assert.deepEqual(today.CHAT_OPEN, { claude: "claude-vscode.sidebar.open", chatgpt: "chatgpt.openSidebar" });
 });
 
@@ -119,10 +119,10 @@ test("Claude on a tested version: new sidebar chat w/ the words, not sent", () =
   assert.equal(today.CLAUDE_NEW_CHAT, "claude-vscode.editor.open");
   const m = today.model(RAW, say);
   const page = html(m, "new");
-  assert.match(page, /class="go" title="Opens a new chat with these words typed in - press Enter to start">Apply</);
+  assert.match(page, /class="go" title="Opens a new chat with these words typed in - press Enter to start" aria-label="Apply, Job 12">Apply</);
   assert.match(page, /open a new chat with the words typed in\. Nothing is sent until you press Enter/);
   assert.doesNotMatch(page, /Copy:/);
-  assert.equal(today.newChatLine(), "New chat ready - press Enter");
+  assert.equal(today.readyLine("new", 12), "Job 12: new chat ready on the right - press Enter");
 });
 
 // an untested Claude could open the chat in a tab over Today, or drop the words => keep copy + open
@@ -146,7 +146,7 @@ test("yellow only on buttons", () => {
   const css = html(today.model(RAW, say)).match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
   const rules = css.split("}").filter((r) => /var\(--mark(-2)?\)/.test(r));
   assert.ok(rules.length);
-  for (const rule of rules) assert.match(rule.trim(), /^button\.go(:hover)? \{/);
+  for (const rule of rules) assert.match(rule.trim(), /^button\.go(:hover|:active)? \{/);
   // and the yellow class only ever on a button
   const page = html(today.model(FULL, say), "new");
   assert.ok((page.match(/class="go"/g) || []).length > 3);
@@ -192,15 +192,15 @@ test("Next up: interview, else oldest ready resume, else no resume yet, else top
 // 18 yellow buttons for 16 cards: nothing leads (critique P1) => one yellow per card
 test("one yellow per card; status changes outline, closing quietest; posting + folder are links", () => {
   const page = html(today.model(FULL, say), "new");
-  const cards = page.match(/<article class="card">[\s\S]*?<\/article>|<ul class="rows">[\s\S]*?<\/ul>/g);
-  for (const c of page.match(/<article class="card">[\s\S]*?<\/article>/g)) assert.equal((c.match(/class="go"/g) || []).length, 1, c);
+  const cards = page.match(/<article class="card"[^>]*>[\s\S]*?<\/article>|<ul class="rows">[\s\S]*?<\/ul>/g);
+  for (const c of page.match(/<article class="card"[^>]*>[\s\S]*?<\/article>/g)) assert.equal((c.match(/class="go"/g) || []).length, 1, c);
   for (const r of page.match(/<ul class="rows">([\s\S]*?)<\/ul>/)[1].split("</li>").filter((x) => x.trim())) {
     assert.equal((r.match(/class="go"/g) || []).length, 1, r);
   }
   assert.ok(cards.length >= 3);
-  assert.match(page, /<button type="button" data-a="\d+" data-busy="[^"]*" title="[^"]*">I heard back</);
+  assert.match(page, /<button type="button" data-a="\d+" data-k="13:heard_back" data-busy="[^"]*" title="[^"]*" aria-label="I heard back, Job 13">I heard back</);
   assert.match(page, /class="quiet"[^>]*>It&#39;s closed</);
-  assert.match(page, /<span class="meta"><button[^>]*class="link">Posting<\/button> · <button[^>]*class="link">Folder</);
+  assert.match(page, /<span class="meta"><button[^>]*class="link"[^>]*>Posting<\/button> · <button[^>]*class="link"[^>]*>Folder</);
   assert.doesNotMatch(page, />Open the posting<|>Open folder</);
 });
 
@@ -208,8 +208,8 @@ test("one yellow per card; status changes outline, closing quietest; posting + f
 test("new jobs: one-line rows, 5 shown, the rest in the chat", () => {
   const page = html(today.model(FULL, say), "new");
   const rows = page.split('aria-labelledby="s-new"')[1].split("</section>")[0];
-  assert.equal((rows.match(/<li><span class="what">/g) || []).length, 5);
-  assert.match(rows, /<b>Job 100<\/b> - Role 100, Example Co <span class="detail">- remote<\/span>/);
+  assert.equal((rows.match(/<li><div class="what">/g) || []).length, 5);
+  assert.match(rows, /<h3 id="j-100"><b>Job 100<\/b> - Role 100, Example Co<\/h3> <span class="detail">- remote<\/span>/);
   assert.doesNotMatch(rows, />Posting</);
   assert.match(rows, /7 more new jobs\.<\/span><button[^>]*>Show more new jobs</);
   // fewer than 5 + nothing beyond => no "more" line
@@ -222,10 +222,10 @@ test("new jobs: one-line rows, 5 shown, the rest in the chat", () => {
 test("setup that blocks sits above the jobs; the rest stays last, quiet", () => {
   const raw = { ...FULL, todo: [...FULL.todo, { text: "The morning job check is off.", say: "turn on the morning job check" }] };
   const page = html(today.model(raw, say), "new");
-  const setup = page.indexOf("Finish setting up");
+  const setup = page.indexOf("Finish setting up</h2>");
   assert.ok(setup > 0 && setup < page.indexOf('id="s-waiting"'));
-  assert.match(page.split("Finish setting up")[1].split("</section>")[0], /class="go"[^>]*>Add my resume[\s\S]*class="go"[^>]*>Turn it on/);
-  const later = page.split("<h2>Not finished</h2>")[1].split("</section>")[0];
+  assert.match(page.split("Finish setting up</h2>")[1].split("</section>")[0], /class="go"[^>]*>Add my resume[\s\S]*class="go"[^>]*>Turn it on/);
+  const later = page.split("Not finished</h2>")[1].split("</section>")[0];
   assert.match(later, /numbers\.<\/span><button[^>]*>Add my numbers</);
   assert.doesNotMatch(later, /class="go"/);
 });
@@ -260,7 +260,7 @@ function pressed({ ai = "claude", mode = "new", fail = false, ms = 0 } = {}) {
       return new Promise((ok, no) => { resolve = ok; reject = no; });
     },
     copy: async (text) => seen.push(["copy", text]),
-    status: (text) => seen.push(["status", text]),
+    status: (text, how) => seen.push(["status", text, how]),
     busy: (on) => seen.push(["busy", on]),
     wait: (fn, delay) => timers.push({ fn, delay, live: true }) - 1,
     clear: (i) => { timers[i].live = false; },
@@ -278,7 +278,7 @@ test("button busy the moment it's pressed, labelled for the AI", () => {
   const page = html(today.model(RAW, say), "new").replace(/^[\s\S]*<body>/, "");
   assert.match(page, /data-busy="Opening the chat…" class="go"[^>]*>Apply</);
   const claude = today.render(today.model(RAW, say), { mode: "new", ai: "claude", nonce: "n" });
-  assert.match(claude, /data-a="0" data-busy="Starting Claude…"/);
+  assert.match(claude, /data-a="0" data-k="12:apply" data-busy="Starting Claude…"/);
   // open buttons don't wait on the chat => never busy
   assert.doesNotMatch(claude, /data-busy="[^"]*"[^>]*>Open the posting</);
   assert.equal(today.SLOW_MS, 400);
@@ -291,15 +291,15 @@ test("slow start: starting line after 400 ms, then ready, busy off", async () =>
   assert.deepEqual(timers.map((t) => t.delay), [today.SLOW_MS]);
   assert.deepEqual(seen, [
     ["busy", true], ["exec", today.CLAUDE_NEW_CHAT],
-    ["status", "Starting Claude - the first time takes a few seconds"],
-    ["status", "New chat ready - press Enter"], ["busy", false],
+    ["status", "Starting Claude - the first time takes a few seconds", { hold: true }],
+    ["status", "Job 12: new chat ready on the right - press Enter", { done: "Ready in chat" }], ["busy", false],
   ]);
 });
 
 // a warm Claude answers at once: no "first time takes a few seconds" flash
 test("fast answer: no starting line, timer cleared", async () => {
   const { seen, timers } = await pressed({ ms: 100 });
-  assert.deepEqual(seen.filter(([k]) => k === "status"), [["status", "New chat ready - press Enter"]]);
+  assert.deepEqual(seen.filter(([k]) => k === "status"), [["status", "Job 12: new chat ready on the right - press Enter", { done: "Ready in chat" }]]);
   assert.equal(timers[0].live, false);
   assert.deepEqual(seen.at(-1), ["busy", false]);
 });
@@ -310,9 +310,9 @@ test("chat fails: words copied, chat opened, copy line, busy off", async () => {
   assert.equal(mode, "copy");
   assert.deepEqual(seen, [
     ["busy", true], ["exec", today.CLAUDE_NEW_CHAT],
-    ["status", "Starting Claude - the first time takes a few seconds"],
+    ["status", "Starting Claude - the first time takes a few seconds", { hold: true }],
     ["copy", "apply to job 12"], ["exec", "claude-vscode.sidebar.open"],
-    ["status", "Copied - click the chat box, paste (Cmd+V), press Enter."], ["busy", false],
+    ["status", "Job 12: copied - click the chat box, paste (Cmd+V), press Enter.", { done: "Copied" }], ["busy", false],
   ]);
 });
 
@@ -321,5 +321,190 @@ test("Copilot fill: busy, filled line, busy off", async () => {
   const { mode, seen } = await pressed({ ai: "copilot", mode: "fill", ms: 0 });
   assert.equal(mode, "fill");
   assert.deepEqual(seen.map(([k, v]) => (k === "status" ? v : k)),
-    ["busy", "exec", "The words are in the chat box - press Enter to send them.", "busy"]);
+    ["busy", "exec", "Job 12: the words are in the chat box - press Enter to send them.", "busy"]);
+});
+
+// "New chat ready" w/o a job: after 3 clicks the user can't tell which job's words are waiting
+test("status line names the job + where to look, per AI; button label after", () => {
+  assert.equal(today.jobOf("resume for job 1123"), 1123);
+  assert.equal(today.jobOf("find new jobs"), null);
+  assert.equal(today.readyLine("new", 1123), "Job 1123: new chat ready on the right - press Enter");
+  assert.equal(today.readyLine("fill", 3), "Job 3: the words are in the chat box - press Enter to send them.");
+  assert.equal(today.readyLine("copy", 3, "darwin"), "Job 3: copied - click the chat box, paste (Cmd+V), press Enter.");
+  assert.equal(today.readyLine("new", null), "New chat ready on the right - press Enter");
+  assert.deepEqual(["new", "fill", "copy"].map(today.doneLabel), ["Ready in chat", "In the chat box", "Copied"]);
+  assert.equal(today.CLEAR_MS, 8000);
+});
+
+// fake webview: page() runs against it; state survives a "redraw" (a 2nd page() on fresh DOM)
+function fakeEl(attrs = {}, text = "") {
+  const el = { textContent: text, disabled: false, dataset: {}, attrs: {}, focused: false };
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k.startsWith("data-")) el.dataset[k.slice(5).replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = v;
+    else el.attrs[k] = v;
+  }
+  el.getAttribute = (k) => (k in el.attrs ? el.attrs[k] : null);
+  el.setAttribute = (k, v) => { el.attrs[k] = String(v); };
+  el.removeAttribute = (k) => { delete el.attrs[k]; };
+  el.closest = (sel) => (sel === "button[data-a]" ? ("a" in el.dataset ? el : null) : sel === "button[data-jump]" ? ("jump" in el.dataset ? el : null) : null);
+  el.focus = () => { el.focused = true; };
+  el.scrollIntoView = () => {};
+  return el;
+}
+
+function webview(store) {
+  // one clock across redraws: the page's timers die with it, time doesn't
+  store.clock = store.clock || { t: 1000 };
+  const clock = { timers: [], get t() { return store.clock.t; }, set t(v) { store.clock.t = v; } };
+  const buttons = [
+    fakeEl({ "data-a": "0", "data-k": "12:apply", "data-busy": "Starting Claude…", "aria-label": "Apply, Job 12" }, "Apply"),
+    fakeEl({ "data-a": "1", "data-k": "13:resume", "data-busy": "Starting Claude…", "aria-label": "Make my resume, Job 13" }, "Make my resume"),
+  ];
+  const status = fakeEl();
+  const listeners = {};
+  const doc = {
+    getElementById: (id) => (id === "status" ? status : null),
+    querySelectorAll: (sel) => (sel === "button[data-k]" ? buttons : buttons.filter((b) => b.getAttribute("aria-busy"))),
+    addEventListener: (type, fn) => { listeners["doc:" + type] = fn; },
+  };
+  const win = {
+    scrollY: 0, scrolledTo: null,
+    scrollTo: (x, y) => { win.scrolledTo = y; win.scrollY = y; },
+    setTimeout: (fn, ms) => clock.timers.push({ fn, at: clock.t + ms, live: true }),
+    clearTimeout: (id) => { if (clock.timers[id - 1]) clock.timers[id - 1].live = false; },
+    addEventListener: (type, fn) => { listeners["win:" + type] = fn; },
+  };
+  const posted = [];
+  const vscode = { getState: () => store.state, setState: (s) => { store.state = JSON.parse(JSON.stringify(s)); }, postMessage: (m) => posted.push(m) };
+  today.page(vscode, doc, win, today.CLEAR_MS, () => clock.t);
+  return {
+    buttons, status, posted, win,
+    click: (b) => listeners["doc:click"]({ target: b }),
+    msg: (data) => listeners["win:message"]({ data }),
+    scroll: (y) => { win.scrollY = y; listeners["win:scroll"](); },
+    tick: (ms) => {
+      clock.t += ms;
+      for (const t of clock.timers) if (t.live && t.at <= clock.t) { t.live = false; t.fn(); }
+    },
+  };
+}
+
+// a status line that never clears reads as stale; the pressed button says it's done until the next press
+test("page: busy at once, then job status + done label; status clears after 8 s; next press resets", () => {
+  const w = webview({});
+  const [apply, resume] = w.buttons;
+  w.click(apply);
+  assert.deepEqual(w.posted, [{ action: 0 }]);
+  assert.equal(apply.textContent, "Starting Claude…");
+  assert.equal(apply.disabled, true);
+  w.msg({ type: "status", text: "Starting Claude - the first time takes a few seconds", hold: true });
+  w.tick(20000);
+  assert.match(w.status.textContent, /^Starting Claude/, "hold line stays while Claude starts");
+  w.msg({ type: "status", text: "Job 12: new chat ready on the right - press Enter", done: "Ready in chat" });
+  w.msg({ type: "busy", on: false });
+  assert.equal(apply.textContent, "Ready in chat");
+  assert.equal(apply.getAttribute("aria-label"), "Ready in chat, Job 12");
+  assert.equal(apply.disabled, false);
+  assert.equal(w.status.textContent, "Job 12: new chat ready on the right - press Enter");
+  w.tick(today.CLEAR_MS - 1);
+  assert.notEqual(w.status.textContent, "");
+  w.tick(1);
+  assert.equal(w.status.textContent, "", "clears after 8 s");
+  assert.equal(apply.textContent, "Ready in chat", "done label stays until the next press");
+  w.click(resume);
+  assert.equal(apply.textContent, "Apply");
+  assert.equal(apply.getAttribute("aria-label"), "Apply, Job 12");
+  assert.equal(resume.textContent, "Starting Claude…");
+});
+
+// the page is redrawn on every show + Today rewrite: scroll, status + done state must survive it
+test("page: redraw keeps scroll, a live status line (rest of its 8 s) and the done label", () => {
+  const store = {};
+  const w = webview(store);
+  w.scroll(840);
+  w.tick(100);
+  w.click(w.buttons[1]);
+  w.msg({ type: "status", text: "Job 13: new chat ready on the right - press Enter", done: "Ready in chat" });
+  w.msg({ type: "busy", on: false });
+  w.tick(3000);
+  const again = webview(store);  // html replaced: fresh DOM, same webview state
+  assert.equal(again.win.scrolledTo, 840);
+  assert.equal(again.status.textContent, "Job 13: new chat ready on the right - press Enter");
+  assert.equal(again.buttons[1].textContent, "Ready in chat");
+  again.tick(today.CLEAR_MS);
+  assert.equal(again.status.textContent, "");
+  // a line already past its 8 s isn't brought back
+  store.state.status = "old"; store.state.until = 500;
+  assert.equal(webview(store).status.textContent, "");
+});
+
+// "Getting today's list ready" forever with no reason or way out = a dead end (critique P2)
+test("fallback says why in plain words, with Try again + Show the Today page", () => {
+  for (const [reason, why] of Object.entries(today.FALLBACK)) {
+    const page = today.fallback({ nonce: "n", reason });
+    assert.ok(page.includes(today.escapeHtml(why)), reason);
+    assert.match(page, new RegExp(`class="go" data-a="${today.TRY_AGAIN}">Try again<`));
+    assert.match(page, new RegExp(`data-a="${today.SHOW_PAGE}">Show the Today page<`));
+  }
+  assert.deepEqual(Object.keys(today.FALLBACK), ["missing", "updating", "unreadable"]);
+  assert.ok(today.fallback({ nonce: "n", reason: "nonsense" }).includes(today.escapeHtml(today.FALLBACK.unreadable)));
+  assert.ok(today.TRY_AGAIN < 0 && today.SHOW_PAGE < 0, "never a data action index");
+});
+
+const names = (page) => [...page.matchAll(/<button\b([^>]*)>([^<]*)<\/button>/g)]
+  .map(([, attrs, text]) => (/aria-label="([^"]*)"/.exec(attrs) || [, text])[1]);
+
+// 10 buttons all called "Make my resume": a screen reader user can't tell which job each acts on
+test("every button's name is its own; job buttons carry the job; headings h1 > h2 > h3", () => {
+  for (const mode of ["new", "fill", "copy"]) {
+    const page = html(today.model({ ...FULL, sections: [...FULL.sections, sec("follow_up_2", [], { text: "", say: "what is waiting on me" })] }, say), mode);
+    const all = names(page);
+    assert.equal(new Set(all).size, all.length, all.filter((n, i) => all.indexOf(n) !== i).join(" | "));
+    const levels = [...page.matchAll(/<h([1-6])\b/g)].map((x) => Number(x[1]));
+    assert.equal(levels[0], 1);
+    for (let i = 1; i < levels.length; i++) assert.ok(levels[i] <= levels[i - 1] + 1, `h${levels[i - 1]} -> h${levels[i]}`);
+  }
+  const page = html(today.model(FULL, say), "new");
+  assert.match(page, /aria-label="Make my resume, Job 100">Make my resume</);
+  assert.match(page, /aria-label="Open the posting for Job 3">Posting</);
+  assert.match(page, /<article class="card" aria-labelledby="j-46"><h3 id="j-46">/);
+  // every section named; a line's button described by the line ("Turn it on" - what?)
+  assert.equal((page.match(/<section(?![^>]*aria-label)/g) || []).length, 0);
+  assert.match(page, /<span id="(l-\d+)">Your resume lines could carry more of your own numbers\.<\/span><button[^>]*aria-describedby="\1"/);
+});
+
+// keyboard users tab through every card to reach setup or the list (52 stops, critique)
+test("skip links first: Skip to Next up, then each section, each a heading that takes focus", () => {
+  const page = html(today.model(FULL, say), "new");
+  const nav = page.match(/<body><nav class="skip" aria-label="Jump to">([\s\S]*?)<\/nav>/)[1];
+  const jumps = [...nav.matchAll(/data-jump="([^"]+)">([^<]+)</g)].map((x) => [x[1], x[2]]);
+  assert.deepEqual(jumps[0], ["s-next", "Skip to Next up"]);
+  for (const [id] of jumps) assert.match(page, new RegExp(`<h2 id="${id}" tabindex="-1">`));
+  assert.deepEqual(jumps.map((j) => j[0]), ["s-next", "s-setup", "s-waiting", "s-follow_up", "s-new", "s-later", "s-say"]);
+});
+
+// controls 1.6:1 against the page vanish for low vision (WCAG 1.4.11 asks 3:1)
+test("control borders >= 3:1 in light + dark; dark card stands off the desk", () => {
+  const css = html(today.model(RAW, say)).match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
+  const lum = (hex) => {
+    const c = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255).map((v) => (v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4));
+    return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+  };
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  for (const theme of ["light", "dark"]) {
+    const block = css.match(new RegExp(`body\\.vscode-${theme} \\{([^}]*)\\}`))[1];
+    const v = Object.fromEntries([...block.matchAll(/--([a-z0-9-]+): (#[0-9a-f]{6})/g)].map((x) => [x[1], x[2]]));
+    for (const ground of ["desk", "card"]) {
+      assert.ok(ratio(v.edge, v[ground]) >= 3, `${theme} edge on ${ground}`);
+      assert.ok(ratio(v["go-edge"], v[ground]) >= 3, `${theme} yellow button edge on ${ground}`);
+      assert.ok(ratio(v.text, v[ground]) >= 4.5 && ratio(v["text-2"], v[ground]) >= 4.5, `${theme} text on ${ground}`);
+    }
+    if (theme === "dark") assert.ok(ratio(v.card, v.desk) >= 1.2, "dark card fill vs desk");
+  }
+  assert.match(css, /button \{[^}]*border: 1px solid var\(--edge\)/);
+  assert.match(css, /button:hover \{[^}]*box-shadow/);
+  assert.match(css, /button:active \{/);
+  // high contrast: primary told apart by its border width, closing by a dashed one - no color needed
+  assert.match(css, /body\.vscode-high-contrast button\.go \{ border-width: 3px/);
+  assert.match(css, /body\.vscode-high-contrast button\.quiet \{ border-style: dashed/);
 });
