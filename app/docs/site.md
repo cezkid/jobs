@@ -61,7 +61,7 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 - JSON-LD: one `@graph` block per page (`jsonld()`: compact, UTF-8, `<` -> `\u003c`). Article
   (headline, dates == the byline `<time>`s, author Person `@id` `/about/#person` w/ name + url,
   image = og:image, no publisher) + BreadcrumbList on articles; BreadcrumbList on hub + methods;
-  ProfilePage (mainEntity Person, `sameAs` GitHub) + BreadcrumbList on about. Breadcrumb items =
+  ProfilePage (mainEntity Person, `sameAs` GitHub + www.enrriquez.com, both shown on About) + BreadcrumbList on about. Breadcrumb items =
   canonicals that exist. `site_checks.structured_data()` checks it on fixture + real pages.
 - Citations: `[@id]`, `[@id, p. 12]`, `[@a; @b]` (markdown-it core rule after `text_join`: never in
   code or link text) -> `(<a href="#src-id">Quillian et al. 2017</a>, p. 12)`; `\[@id]` stays text. Label = surname

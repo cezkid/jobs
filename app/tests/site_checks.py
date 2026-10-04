@@ -122,7 +122,10 @@ def structured_data(docs: Path, site: str) -> list[str]:
     One block per page. Article (+ BreadcrumbList) on articles, BreadcrumbList on the hub + methods,
     ProfilePage (+ BreadcrumbList) on about/. Article dates == the byline's <time> values, author
     @id == the ProfilePage Person's, image == og:image, sitemap <lastmod> == dateModified; every
-    breadcrumb points at a canonical that exists. Home keeps exactly one WebSite block.
+    breadcrumb points at a canonical that exists. About: lastmod == ProfilePage dateModified, sameAs >= 2
+    URLs each shown on the page; hub lastmod >= every article's dateModified. Every article links the
+    methods page's "How is AI used?" under the byline and never says "approved". Home keeps exactly one
+    WebSite block.
     """
     import json
 
@@ -137,7 +140,7 @@ def structured_data(docs: Path, site: str) -> list[str]:
     home = Head((docs / "index.html").read_text(encoding="utf-8")).text.get("application/ld+json", [])
     if [json.loads(b).get("@type") for b in home] != ["WebSite"]:
         problems.append("index.html: needs exactly one WebSite block")
-    person, authors = None, []
+    person, authors, modified = None, [], []
     for name, text in pages.items():
         head, url = Head(text), own_url(name, site)
         blocks = head.text.get("application/ld+json", [])
@@ -159,7 +162,14 @@ def structured_data(docs: Path, site: str) -> list[str]:
             problems.append(f"{name}: breadcrumb positions or last item wrong")
         problems += [f"{name}: breadcrumb {i['item']} is not a page" for i in items if i["item"] not in canonicals]
         if "ProfilePage" in graph:
-            person = graph["ProfilePage"]["mainEntity"]
+            profile = graph["ProfilePage"]
+            person = profile["mainEntity"]
+            shown = re.sub(r"<[^>]+>", " ", text)
+            same = person.get("sameAs") or []
+            if len(same) < 2 or [u for u in same if re.sub(r"^https?://|/$", "", u) not in shown]:
+                problems.append(f"{name}: sameAs needs >= 2 URLs, each shown on the page ({same})")
+            if lastmod.get(url) != profile.get("dateModified"):
+                problems.append(f"{name}: sitemap lastmod {lastmod.get(url)} != dateModified {profile.get('dateModified')}")
             if not (person.get("@type") == "Person" and person.get("name") and person.get("url") and person.get("sameAs")):
                 problems.append(f"{name}: ProfilePage mainEntity needs Person name, url, sameAs")
         if "Article" in graph:
@@ -179,6 +189,13 @@ def structured_data(docs: Path, site: str) -> list[str]:
             if lastmod.get(url) != article["dateModified"]:
                 problems.append(f"{name}: sitemap lastmod {lastmod.get(url)} != dateModified {article['dateModified']}")
             authors.append((name, article["author"].get("@id")))
+            modified.append(article["dateModified"])
+            after = byline.group(0) + text[byline.end():byline.end() + 200] if byline else ""
+            if "/research/methods/#how-is-ai-used" not in after or "approved" in text.lower():
+                problems.append(f"{name}: needs the How we research link under the byline and no 'approved'")
+    hub = lastmod.get(site + "research/")
+    if modified and (not hub or hub < max(modified)):
+        problems.append(f"research/index.html: sitemap lastmod {hub} older than the newest article {max(modified)}")
     for name, ref in authors:
         if person is None or ref != person.get("@id"):
             problems.append(f"{name}: author @id {ref} != the About page's Person")

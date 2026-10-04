@@ -56,7 +56,9 @@ SOURCES = Path("app") / "web" / "research"
 REGISTRY = SOURCES / "sources.yml"
 REVIEWS = SOURCES / "reviews"
 AUTHOR = "Cesar Enrriquez-Zuniga"
-SAME_AS = ["https://github.com/cezkid"]  # the author's other profiles (ProfilePage sameAs)
+SAME_AS = ["https://github.com/cezkid", "https://www.enrriquez.com/"]  # the author's other profiles, each shown on About (ProfilePage sameAs)
+# a label + one link, never "approved" (owner decision 5); the label text makes the link running text (qa HIT_BOXES)
+AI_NOTE = 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>'
 # every generated page's share card: docs/og-research.png from app/web/og-research.html
 # (uv run app/web/assets.py --only og); changed => bump ?v=N here. Per-article cards: later.
 CARD = "og-research.png"
@@ -163,15 +165,16 @@ def listed(docs: Path) -> list[str]:
                   if p.is_file() and not any(part.startswith(".") for part in p.relative_to(docs).parts))
 
 
-def sitemap(root: Path, pages: dict[str, str]) -> str:
+def sitemap(root: Path, pages: dict[str, str], lastmod: dict[str, str] | None = None) -> str:
     """Canonical URL of every indexed page, home first then sorted; once each. <lastmod> = the page's
-    article:modified_time (dated pages only: Google uses lastmod only while it's always accurate)."""
+    article:modified_time, or the one in lastmod (about + hub: no such meta); dated pages only: Google uses
+    lastmod only while it's always accurate, so hand-written pages stay without."""
     home = site(root)
     urls: dict[str, str | None] = {}
     for text in pages.values():
         head = Head(text)
         if head.canonical and not head.noindex:
-            urls[head.canonical] = head.modified
+            urls[head.canonical] = (lastmod or {}).get(head.canonical) or head.modified
     lines = [f"  <url><loc>{url}</loc>" + (f"<lastmod>{urls[url]}</lastmod>" if urls[url] else "") + "</url>"
              for url in sorted(urls, key=lambda u: (u != home, u))]
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -840,6 +843,7 @@ PAGE_CSS = """
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
+  .meta:has(+ .ai-note) { margin-bottom: 4px; }
   p { margin: 0 0 16px; }
   ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
@@ -1164,6 +1168,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
         f"<h1>{headline(src.title)}</h1>",
         *([f'<p class="meta">{meta}</p>'] if meta else []),
+        *([f'<p class="meta ai-note">{AI_NOTE}</p>'] if kind == "article" else []),
         *mini,
         body.rstrip("\n"),
         *([more.rstrip("\n")] if more else []),
@@ -1183,6 +1188,12 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
 def research(root: Path, site_files: set[str], warnings: list[str] | None = None) -> dict[str, str]:
     """Every published research source as docs-relative path -> HTML. Raises SourceError on any problem;
     warnings (page still built) go to the list given."""
+    return dated(root, site_files, warnings)[0]
+
+
+def dated(root: Path, site_files: set[str], warnings: list[str] | None = None) -> tuple[dict[str, str], dict[str, str]]:
+    """research() + the sitemap lastmod of the pages with no article:modified_time: /about/ = about.md modified
+    (== ProfilePage dateModified), /research/ = max(index.md modified, newest article modified)."""
     folder = root / SOURCES
     errors: list[str] = []
     warnings = [] if warnings is None else warnings
@@ -1231,7 +1242,13 @@ def research(root: Path, site_files: set[str], warnings: list[str] | None = None
             out[FEED] = feed(root, by_name["index"], articles)
     if errors:
         raise SourceError("\n".join(errors))
-    return out
+    lastmod: dict[str, str] = {}
+    home = site(root)
+    if "about" in by_name and by_name["about"].built:
+        lastmod[home + "about/"] = by_name["about"].modified
+    if hub:
+        lastmod[home + "research/"] = max(s.modified for s in [by_name["index"], *articles] if s.modified)
+    return out, lastmod
 
 
 def build(root: Path, warnings: list[str] | None = None) -> dict[str, str]:
@@ -1240,8 +1257,8 @@ def build(root: Path, warnings: list[str] | None = None) -> dict[str, str]:
     found = [rel for rel in listed(docs) if rel.split("/")[0] not in OWNED]
     hand = {rel: (docs / rel).read_text(encoding="utf-8") for rel in found
             if rel.endswith(".html") and rel.split("/")[0] not in NOT_PAGES}
-    out = research(root, set(found), warnings)
-    out["sitemap.xml"] = sitemap(root, {**hand, **{k: v for k, v in out.items() if k.endswith(".html")}})
+    out, lastmod = dated(root, set(found), warnings)
+    out["sitemap.xml"] = sitemap(root, {**hand, **{k: v for k, v in out.items() if k.endswith(".html")}}, lastmod)
     return dict(sorted(out.items()))
 
 

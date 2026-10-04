@@ -150,6 +150,8 @@ published: 2026-09-01
 status: published
 ---
 ## Sources first
+
+## How is AI used?
 """,
     "index.md": """---
 title: Research
@@ -165,6 +167,8 @@ description: Who writes these articles.
 published: 2026-09-01
 status: published
 ---
+Contact: www.enrriquez.com. Code: github.com/cezkid/jobs.
+
 ## Work
 """,
 }
@@ -814,11 +818,32 @@ def test_structured_data_and_sitemap_lastmod(tmp_path):
     sitemap = (docs / "sitemap.xml").read_text(encoding="utf-8")
     assert "<url><loc>https://jobs.enrriquez.com/research/ats-myth/</loc><lastmod>2026-09-20</lastmod></url>" in sitemap
     assert "<url><loc>https://jobs.enrriquez.com/research/ai-bias/</loc><lastmod>2026-09-10</lastmod></url>" in sitemap
-    # undated pages: no lastmod (Google drops lastmod for a site once it's seen wrong)
-    for url in "https://jobs.enrriquez.com/", "https://jobs.enrriquez.com/research/", "https://jobs.enrriquez.com/about/":
-        assert f"<url><loc>{url}</loc></url>" in sitemap
+    # hand-written pages: no lastmod (Google drops lastmod for a site once it's seen wrong)
+    assert "<url><loc>https://jobs.enrriquez.com/</loc></url>" in sitemap
+    # C7: about = about.md modified (== ProfilePage dateModified); hub = max(index.md, newest article modified)
+    assert "<url><loc>https://jobs.enrriquez.com/about/</loc><lastmod>2026-09-01</lastmod></url>" in sitemap
+    assert "<url><loc>https://jobs.enrriquez.com/research/</loc><lastmod>2026-09-20</lastmod></url>" in sitemap
     about = (docs / "about" / "index.html").read_text(encoding="utf-8")
-    assert '"sameAs":["https://github.com/cezkid"]' in about and '"@type":"ProfilePage"' in about
+    assert '"sameAs":["https://github.com/cezkid","https://www.enrriquez.com/"]' in about and '"@type":"ProfilePage"' in about
+    assert '"dateModified":"2026-09-01"' in about
+
+
+def test_hub_lastmod_is_the_newest_of_index_and_articles(tmp_path):
+    research_site(tmp_path, {"index.md": SOURCES["index.md"].replace("status: published", "modified: 2026-10-02\nstatus: published")})
+    assert "<loc>https://jobs.enrriquez.com/research/</loc><lastmod>2026-10-02</lastmod>" in pages.build(tmp_path)["sitemap.xml"]
+
+
+def test_every_article_links_how_ai_is_used_under_the_byline_and_never_says_approved(tmp_path):
+    # owner decision 5: a label + one link, never a claim of approval; not on the hub, about or methods
+    research_site(tmp_path)
+    built = pages.build(tmp_path)
+    for name in "research/ats-myth/index.html", "research/ai-bias/index.html":
+        html = built[name]
+        note = re.search(r'<p class="meta">By .*?</p>\n<p class="meta ai-note">(.*?)</p>', html, re.S)
+        assert note and note.group(1) == 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>', name
+        assert "approved" not in html.lower()
+    assert "how-is-ai-used" not in built["about/index.html"] + built["research/index.html"]
+    assert 'id="how-is-ai-used"' in built["research/methods/index.html"]
 
 
 
