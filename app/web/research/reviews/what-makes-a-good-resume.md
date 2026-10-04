@@ -277,3 +277,7 @@ New section "Which resume rules have evidence behind them?": lead, an 11-row tab
 5. Low. Closing "rest on convention or a seller's test": two of the non-study rows are a survey (HireRight) and a help page (Greenhouse), not tests. Replace with: "Most rules in the table rest on convention or a company's own survey, test or help page. Only a few have studies of real hiring behind them."
 
 Revision (plan-xsy.54, 2026-10-04): findings 1-5 fixed with the proposed wording (finding 4: "no study cited", table only; the body sentence stays as flagged in plan-xsy.53).
+
+## Edit after review (2026-10-04, plan-xsy.63)
+
+Added one link line in "Does layout matter?" to the layout-test data page (resume-parser-test-2026-10). Navigation only; no claim, number or source changed. The article on the test (plan-xsy.64) links it properly.

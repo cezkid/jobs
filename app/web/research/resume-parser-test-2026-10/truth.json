@@ -30,7 +30,8 @@
   },
   {
    "section": "experience",
-   "text": "Operations Analyst | Company A | Mar 2021 – Present"
+   "text": "Operations Analyst | Company A | Mar 2021 – Present",
+   "key": "Operations Analyst | Company A"
   },
   {
    "section": "experience",
@@ -46,7 +47,8 @@
   },
   {
    "section": "experience",
-   "text": "Inventory Coordinator | Company B | Jun 2018 – Feb 2021"
+   "text": "Inventory Coordinator | Company B | Jun 2018 – Feb 2021",
+   "key": "Inventory Coordinator | Company B"
   },
   {
    "section": "experience",
@@ -62,7 +64,8 @@
   },
   {
    "section": "experience",
-   "text": "Sales Associate | Company C | Aug 2016 – May 2018"
+   "text": "Sales Associate | Company C | Aug 2016 – May 2018",
+   "key": "Sales Associate | Company C"
   },
   {
    "section": "experience",

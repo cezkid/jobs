@@ -211,3 +211,6 @@ All F and R findings are closed. Notes where the fix is partial or a finding is 
 - R7: "As of October 2026" added to the federal private-claims sentence.
 - R9: California added to SA bullet 3 and What helps.
 
+## Edit after review (2026-10-04, plan-xsy.63)
+
+Added one line under the "at a glance" table: "Each row's last column links to the law or rule it summarizes." And one line under the New York City bar figure: "Even among employers listing city jobs, few had posted either one." (restates the figure's 14 and 12 of 267). Layout only: the site check failed on a table or figure rule stacked on the next heading's rule; no number or source changed.

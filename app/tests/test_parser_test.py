@@ -138,5 +138,26 @@ def test_corpus_is_fresh_and_placeholder_only():
     assert facts["name"] == "Your Name" and facts["email"].endswith("@example.com")
     assert all(re.fullmatch(r"Company [A-Z]", j["employer"]) for j in facts["jobs"])
     assert all(re.fullmatch(r"University [A-Z]", e["school"]) for e in facts["education"])
-    keys = [tuple(pt.words(b["text"])[:pt.KEY_WORDS]) for b in pt.truth(facts)["blocks"]]
+    keys = [tuple(pt.block_key(b)) for b in pt.truth(facts)["blocks"]]
     assert len(keys) == len(set(keys))  # every block's opening is its own
+
+
+def test_words_merged_across_columns_are_merged_not_lost():
+    # a sidebar line read onto the end of a job header: "PresentCity" - truth words that are not neighbours
+    text = plain().replace("Mar 2021 – Present", "Mar 2021 – PresentCity,").replace("City, State\n", "State\n")
+    row = pt.score(T, text)
+    assert (row["merged_words"], row["lost_words"]) == (1, 0)
+
+
+def test_dates_ahead_of_the_title_on_the_same_line_are_kept_together():
+    # a table layout: dates in the left cell, title + employer in the right, one row
+    text = plain().replace("Operations Analyst | Company A | Mar 2021 – Present", "Mar 2021 – Present  Operations Analyst | Company A")
+    row = pt.score(T, text)
+    assert not row["broke"], row["broke_because"]
+    assert row["job_headers_together"] == 1 and row["blocks_not_found"] == 0
+
+
+def test_data_page_file_is_the_study_results():
+    # the data page publishes <name>.csv next to its page; it must be the study's own results, byte for byte
+    published = cfg.APP / "web" / "research" / "resume-parser-test-2026-10.csv"
+    assert published.read_bytes() == (pt.STUDY / "results.csv").read_bytes()

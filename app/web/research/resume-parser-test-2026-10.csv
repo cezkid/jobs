@@ -1,0 +1,36 @@
+layout,reader,broke,broke_because,lost_words,extra_words,split_words,merged_words,name_first_line,name_found,email,phone,job_headers_together,blocks_not_found,sections_mixed,within_section_order,page_order
+one-column,pdfminer,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+one-column,pymupdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+one-column,pymupdf-sort,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+one-column,pypdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+one-column,pypdf-layout,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+sidebar,pdfminer,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,0.71
+sidebar,pymupdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,0.71
+sidebar,pymupdf-sort,true,merged words 1; job headers together 2/3; sections mixed 4; blocks not found 1,0,0,0,1,true,true,true,true,2,1,4,1.0,0.67
+sidebar,pypdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,0.71
+sidebar,pypdf-layout,true,sections mixed 4,0,0,0,0,true,true,true,true,3,0,4,1.0,0.67
+table,pdfminer,true,name first line wrong; job headers together 0/3; sections mixed 4,0,0,0,0,false,true,true,true,0,0,4,1.0,0.83
+table,pymupdf,true,job headers together 0/3,0,0,0,0,true,true,true,true,0,0,0,1.0,1.0
+table,pymupdf-sort,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+table,pypdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+table,pypdf-layout,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+header-footer,pdfminer,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,0.88
+header-footer,pymupdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,0.88
+header-footer,pymupdf-sort,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,0.88
+header-footer,pypdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,0.88
+header-footer,pypdf-layout,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,0.88
+icons,pdfminer,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+icons,pymupdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+icons,pymupdf-sort,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+icons,pypdf,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+icons,pypdf-layout,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+text-boxes,pdfminer,false,,0,0,0,0,true,true,true,true,3,0,0,1.0,1.0
+text-boxes,pymupdf,true,name first line wrong,0,0,0,0,false,true,true,true,3,0,0,1.0,0.75
+text-boxes,pymupdf-sort,true,sections mixed 3,0,0,0,0,true,true,true,true,3,0,3,1.0,0.79
+text-boxes,pypdf,true,name first line wrong,0,0,0,0,false,true,true,true,3,0,0,1.0,0.75
+text-boxes,pypdf-layout,true,sections mixed 3,0,0,0,0,true,true,true,true,3,0,3,1.0,0.79
+spaced-headings,pdfminer,true,split words 4; blocks not found 4,0,0,4,0,true,true,true,true,3,4,0,1.0,0.83
+spaced-headings,pymupdf,true,split words 4; blocks not found 4,0,0,4,0,true,true,true,true,3,4,0,1.0,0.83
+spaced-headings,pymupdf-sort,true,split words 4; blocks not found 4,0,0,4,0,true,true,true,true,3,4,0,1.0,0.83
+spaced-headings,pypdf,true,split words 4; blocks not found 4,0,0,4,0,true,true,true,true,3,4,0,1.0,0.83
+spaced-headings,pypdf-layout,true,split words 4; blocks not found 4,0,0,4,0,true,true,true,true,3,4,0,1.0,0.83

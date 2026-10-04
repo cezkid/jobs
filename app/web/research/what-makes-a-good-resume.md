@@ -138,6 +138,8 @@ A plain, one-column page is the safe choice. In a 2018 eye-tracking test by Ladd
 
 Our measurement, September 2026, shows how layout trips up software. A heading with letters spaced apart came back as "EXP E R I ENC E" from one PDF-to-web-page converter. Three other PDF text readers read it whole. Dates set at the right edge of a line were read after the job's bullet points by pdftotext, a common PDF text reader. A degree and school on one line filled Workday's school box wrongly and left its degree box empty.
 
+The data from our October 2026 layout test is on its own page: [seven resume layouts, three PDF text readers](resume-parser-test-2026-10.md).
+
 In practice, use one column, plain headings, normal letter spacing and black text, and put each item on its own line.
 
 ## Which resume advice is not backed by evidence?

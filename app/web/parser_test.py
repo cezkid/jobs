@@ -55,20 +55,22 @@ def load_facts(study: Path = STUDY) -> dict:
 
 def truth(facts: dict) -> dict:
     """Expected blocks in reading order (each tagged with its section) + the fields, from the facts alone.
-    Text here = what every layout prints; separators (|) are not words, so they never matter."""
+    Text here = what every layout prints; separators (|) are not words, so they never matter. A job header
+    is found by title + employer (its "key"): where the dates sit on the row varies by layout, and whether
+    they stay on its line is the job-header measure (METHOD.md Changes, 2026-10-04)."""
     blocks = [("name", facts["name"])]
     blocks += [("contact", facts[k]) for k in ("email", "phone", "location")]
     blocks += [("summary", HEADINGS["summary"]), ("summary", squash(facts["summary"]))]
     blocks.append(("experience", HEADINGS["experience"]))
     for j in facts["jobs"]:
-        blocks.append(("experience", f"{j['title']} | {j['employer']} | {j['dates']}"))
+        blocks.append(("experience", f"{j['title']} | {j['employer']} | {j['dates']}", f"{j['title']} | {j['employer']}"))
         blocks += [("experience", b) for b in j["bullets"]]
     blocks.append(("education", HEADINGS["education"]))
     blocks += [("education", f"{e['degree']} | {e['school']} | {e['dates']}") for e in facts["education"]]
     blocks.append(("skills", HEADINGS["skills"]))
     blocks += [("skills", s) for s in facts["skills"]]
     return {
-        "blocks": [{"section": s, "text": t} for s, t in blocks],
+        "blocks": [{"section": b[0], "text": b[1], **({"key": b[2]} if len(b) > 2 else {})} for b in blocks],
         "name": facts["name"], "email": facts["email"], "phone": facts["phone"],
         "jobs": [{k: j[k] for k in ("title", "employer", "dates")} for j in facts["jobs"]],
     }
@@ -107,6 +109,25 @@ def build(study: Path = STUDY, check: bool = False) -> list[str]:
 
 # --- score ---
 
+def block_key(block: dict) -> list[str]:
+    """The opening words a block is found by."""
+    return words(block.get("key", block["text"]))[:KEY_WORDS]
+
+
+def segment(word: str, pool: collections.Counter) -> list[str]:
+    """word as 2+ pool words run together (longest piece first), else []. Pool = truth words the reader lost."""
+    def go(rest: str, left: collections.Counter) -> list[str] | None:
+        if not rest:
+            return []
+        for piece in sorted((w for w in left if left[w] > 0 and rest.startswith(w)), key=lambda w: (-len(w), w)):
+            tail = go(rest[len(piece):], left - collections.Counter([piece]))
+            if tail is not None:
+                return [piece, *tail]
+        return None
+    pieces = go(word, pool)
+    return pieces if pieces and len(pieces) >= 2 else []
+
+
 def find_run(stream: list[str], key: list[str], taken: list[bool]) -> int:
     """First index where key sits as a run in stream on words no other block has claimed, else -1."""
     n = len(key)
@@ -119,7 +140,7 @@ def find_run(stream: list[str], key: list[str], taken: list[bool]) -> int:
 def locate(blocks: list[dict], stream: list[str]) -> list[int]:
     """Position of each block's opening words in the stream (-1 = not found). Longer keys claim first, so
     "Your Name" can't take the start of the email (your.name@...) when the name itself is missing."""
-    keys = [words(b["text"])[:KEY_WORDS] for b in blocks]
+    keys = [block_key(b) for b in blocks]
     taken, pos = [False] * len(stream), [-1] * len(blocks)
     for i in sorted(range(len(blocks)), key=lambda i: (-len(keys[i]), i)):
         at = find_run(stream, keys[i], taken)
@@ -162,20 +183,14 @@ def word_damage(want: list[str], got: list[str]) -> dict[str, int]:
                     for k in range(i, j + 1):
                         extra[got[k]] -= 1
                     break
-    for o in sorted(extra):
+    for o in sorted(extra):  # the lost pieces need not sit side by side in the truth: columns read across merge too
         for _ in range(extra[o]):
-            for i in range(len(want)):
-                piece, j = want[i], i
-                while len(piece) < len(o) and j + 1 < len(want) and o.startswith(piece):
-                    j += 1
-                    piece += want[j]
-                if j > i and piece == o:
-                    merged += 1
-                    extra[o] -= 1
-                    for k in range(i, j + 1):
-                        if missing[want[k]] > 0:
-                            missing[want[k]] -= 1
-                    break
+            pieces = segment(o, +missing)
+            if not pieces:
+                break
+            merged += 1
+            extra[o] -= 1
+            missing -= collections.Counter(pieces)
     return {"lost_words": sum(v for v in missing.values() if v > 0), "extra_words": sum(v for v in extra.values() if v > 0),
             "split_words": split, "merged_words": merged}
 

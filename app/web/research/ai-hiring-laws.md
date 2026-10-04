@@ -105,6 +105,8 @@ No city jobs listed: a bias audit report | 4 of 124
 No city jobs listed: a notice to candidates | 1 of 124
 ```
 
+Even among employers listing city jobs, few had posted either one.
+
 ## What about the Workday lawsuit?
 
 Mobley v. Workday is a US lawsuit still in progress, as of October 2026. The plaintiffs allege Workday's screening tools discriminated by race, age and disability [@mobley-2026-order, p. 1]. In May 2025 the court let the age claim go forward for a wider group of applicants, at a preliminary stage. Workday denies the claims, and nothing has been proven [@clearinghouse-mobley]. In September 2026 the plaintiffs asked the court to certify four groups as a class action: African American applicants, women, people over 40 and people with disabilities. A hearing is set for March 9, 2027 [@lawyer-monthly-2026].
@@ -124,6 +126,8 @@ Mobley v. Workday is a US lawsuit still in progress, as of October 2026. The pla
 | Disparate impact rules | New Jersey | No hiring tools with unlawful unequal effects | No request right in the announcement | Adopted December 2025 | [@nj-dcr-2025] |
 | SB23-058 | Colorado | No age, birth date or school dates on a first application | Black out those dates on transcripts asked for then | In force since July 2024 | [@co-sb23-058] |
 | ADA | United States | No disability questions before an offer | An accommodation in the hiring process | In force | [@eeoc-ada-preemployment] |
+
+Each row's last column links to the law or rule it summarizes.
 
 ## What we don't know
 

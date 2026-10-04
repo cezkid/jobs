@@ -73,8 +73,8 @@ Text is compared as words: lower-cased, split on anything that is not a letter o
    lacks (reported, not scored - an icon read as a letter shows here).
 2. **Split words** - a truth word missing from the output whose letters appear as 2+ output words
    in a row (`EXP E R I ENC E`). Score: count.
-3. **Merged words** - an output word not in the truth that is 2+ truth words run together
-   (`LANGUAGESBachelor`). Score: count.
+3. **Merged words** - an output word not in the truth that is 2+ lost truth words run together
+   (`LANGUAGESBachelor`, `PresentCity`). Score: count.
 4. **Name** - the first non-empty line of the output is exactly "Your Name" (spacing collapsed).
    Many parsers take the top line as the name. Also reported: name found anywhere.
 5. **Email, phone** - the exact strings `your.name@example.com` and `(555) 010-0199` appear in
@@ -82,7 +82,8 @@ Text is compared as words: lower-cased, split on anything that is not a letter o
 6. **Job headers** - for each of 3 jobs: title, employer and dates all on one output line. Score:
    jobs kept together, of 3.
 7. **Reading order** - each truth block is located in the output's word stream by its first
-   words (up to 5; every block's opening is unique by design). Then:
+   words (up to 5; every block's opening is unique by design; a job header by its title +
+   employer - see Changes). Then:
    - *within sections*: blocks of each section in truth order (longest in-order run / blocks
      found; 1.0 = all in order);
    - *sections kept apart*: no block of one section lands between two blocks of another;
@@ -121,10 +122,22 @@ article and its other failures are read against that baseline.
 - `layouts/<layout>.typ` - one Typst source per layout; each reads the facts as JSON.
 - `pdf/<layout>.pdf` - built files (committed).
 - `truth.json` - expected blocks + fields, from `facts.yml`.
+- `readings.json` - each reader's raw text of each layout, with reader versions (`parser_read.py`).
+- `results.csv` - one row per layout x reader (`parser_test.py score readings.json`).
 - `app/web/parser_test.py` - `build` (PDFs + truth), `score` (reader output -> results CSV),
   scoring functions (tested in `app/tests/test_parser_test.py`).
 - `app/web/parser_read.py` - runs the readers, writes their text as JSON.
 
 ## Changes
 
-None yet.
+- 2026-10-04, after the first scoring pass (plan-xsy.63), before any result was written up.
+  Both from reading the raw reader text against the scores; no layout, reader or "broke" rule moved.
+  - *Merged words* now also counts lost words run together that are not neighbours in the truth.
+    Why: in `sidebar`, PyMuPDF (sorted) read "Present" from a job row and "City" from the sidebar
+    as one word, "PresentCity". The first scorer only joined neighbouring truth words, so it
+    counted 2 lost words instead of 1 merged word.
+  - *Reading order*: a job header is found by its title + employer, not by its first 5 words.
+    Why: `table` puts the dates in the left cell, so a reader that keeps the row whole reads
+    "Mar 2021 – Present Operations Analyst | Company A". That is the row as printed; the first
+    scorer called it "block not found". Whether the dates stay on the title's line is still
+    scored, by *job headers* (measure 6).
