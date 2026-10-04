@@ -24,6 +24,8 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   breaks only at spaces, <= 1 framed object in the first screen; FRAMES at 1366x641 + 1440x900: <= 1 framed
   object (.window, .proof, .sheet-lg) wholly or >= 40% on screen at every half-screen scroll step;
   WINDOW_TEXT at 1440x900: every text in the hero window's body >= 17px (A8);
+  SHEET_NOTE at every desktop size >= 760 wide: the resume sheet's approval note top within 4px of the new
+  line's, old + new lines at the sheet's bullet size (A10);
   MAC_LINE: Mac browser name at 768, 1366x641, 1440x900, 1920x1080 -> the
   install line is one line box; a check whose selector finds 0 elements fails (missing()), never a
   silent pass; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
@@ -425,6 +427,15 @@ WINDOW_TEXT = """() => [...document.querySelectorAll(".hero .window .today *")].
   [...el.childNodes].some(n => n.nodeType === 3 && n.data.trim()) && el.getClientRects().length)
   .map(el => [el.tagName.toLowerCase() + (el.className ? "." + el.className : ""), parseFloat(getComputedStyle(el).fontSize)])"""
 
+# SHEET_NOTE (A10, home >= 760 wide): the approval note sits on the corrected line's row (tops within 4px) and
+# the old + new lines are set at the sheet's bullet size; [note top, new top, new px, old px, bullet px] or null
+SHEET_NOTE_W = 760
+SHEET_NOTE_PX = 4
+SHEET_NOTE = """() => { const q = s => document.querySelector(".sheet-lg " + s);
+  const ok = q(".margin.ok"), nw = q(".new"), od = q(".old"), bul = q(".bul:not(.old):not(.new)");
+  if (!ok || !nw || !od || !bul) return null;
+  const px = el => parseFloat(getComputedStyle(el).fontSize);
+  return [ok.getBoundingClientRect().top, nw.getBoundingClientRect().top, px(nw), px(od), px(bul)]; }"""
 
 # empty right halves (BAND_AT): per row of main, 4px slices from its first content line to its last; a run
 # of slices whose rightmost content (text line boxes, svg/img/button, boxes with a border or background)
@@ -739,6 +750,10 @@ FAULTS = [
     (HOME, "RING: the Job 12 ring slid onto the title", "<style>.slip .ring { left: 6px !important; }</style>", "layout"),
     (HOME, "WINDOW_TEXT: the window's why lines back to 15px", "<style>.why { font-size: 0.9375rem !important; }</style>",
      "wide"),
+    (HOME, "SHEET_NOTE: approval note back beside the struck line", "<style>.sheet-lg .margin.ok { position: relative; "
+     "top: -2.4em; }</style>", "layout"),
+    (HOME, "SHEET_NOTE: the new line back at 15px", "<style>.sheet-lg .new { font-size: 0.9375rem !important; }</style>",
+     "layout"),
     (HOME, "PAINT_CONCURRENT: every paragraph sweeps its background at load", "<style>@keyframes qa-paint "
      "{ from { background-size: 0 100%; } } @media (prefers-reduced-motion: no-preference) { main p "
      "{ animation: qa-paint 30s linear both; } }</style>", "motion"),
@@ -810,7 +825,7 @@ FAULTS = [
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
-             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT",
+             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT", "SHEET_NOTE": "SHEET_NOTE",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
@@ -1074,6 +1089,18 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                     failed.append(f"WINDOW_TEXT {where}: check found 0 elements (hero window text)")
                 failed += [f"WINDOW_TEXT {where}: {what} text {px:.1f}px, under {WINDOW_TEXT_MIN}px"
                            for what, px in sizes if px < WINDOW_TEXT_MIN]
+            if not phone and width >= SHEET_NOTE_W:
+                got = page.evaluate(SHEET_NOTE)
+                if got is None:
+                    failed.append(f"SHEET_NOTE {where}: check found 0 elements (sheet note, old/new line, bullet)")
+                else:
+                    note, top, new_px, old_px, bul_px = got
+                    if abs(note - top) > SHEET_NOTE_PX:
+                        failed.append(f"SHEET_NOTE {where}: approval note top {note:.0f}px vs new line top {top:.0f}px "
+                                      f"(over {SHEET_NOTE_PX}px apart)")
+                    if not new_px == old_px == bul_px:
+                        failed.append(f"SHEET_NOTE {where}: old/new lines {old_px:g}/{new_px:g}px, "
+                                      f"the sheet's bullets {bul_px:g}px")
             if mac and not phone and (width, height) in MAC_LINE_AT:
                 got = page.evaluate(LINE_BOXES)
                 if not got or not got[0].startswith("curl ") or got[1] != 1:

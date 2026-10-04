@@ -266,7 +266,6 @@
   .controls svg { width: 44px; height: 100%; fill: none; stroke: var(--ink); stroke-width: 1; }
 
   /* proofreader correction (the resume scene) */
-  .fix p { margin: 0; }
   .old { color: var(--ink-2); }
   /* strike drawn as a background line: survives a wrap (box-decoration-break), sweeps like a mark */
   .old del {
@@ -423,10 +422,11 @@
   .margin svg { width: 26px; height: 26px; flex: none; margin-top: -3px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
   .margin.ok { color: var(--ink); font-weight: 700; }
   .margin .dash { width: 18px; flex: none; margin-top: 0.68em; border-top: 1px solid var(--ink-2); }
-  .sheet-lg .fix { padding-left: 18px; }
-  .sheet-lg .fix .new { margin-top: 2px; }
   .sheet-lg .ring { stroke-dasharray: 64; stroke-dashoffset: 0; }
   .sheet-lg .tick { stroke-dasharray: 16; stroke-dashoffset: 0; }
+  /* the correction = two rows at the sheet's own size, both bulleted; the approval note on the new
+     line's row (A10) */
+  .sheet-lg .was, .sheet-lg .now { padding: 2px 0; }
   @media (min-width: 760px) {
     .line { grid-template-columns: minmax(0, 1fr) 17rem; }
     .line.solo { grid-template-columns: minmax(0, 1fr); }
@@ -448,6 +448,17 @@
       margin-bottom: calc(0.565 * clamp(2rem, 1rem + 5.1vw, 6.5rem)); }  /* last line on the h2 baseline */
     .resume .rules { grid-column: 1 / span 4; align-self: start; }
     .proof { grid-column: 5 / -1; grid-row: 2; }
+    /* the signature at display scale (A1): sheet type 22-26px, so the corrected line reads as an object */
+    .sheet-lg { font-size: clamp(1.375rem, 0.5rem + 1.2vw, 1.625rem); line-height: 1.38;
+      padding: clamp(32px, 3.4vw, 52px) clamp(32px, 3.6vw, 56px); }
+    .sheet-lg .name { font-size: 3rem; line-height: 1.05; letter-spacing: var(--track-display); }
+    .sheet-lg .contact { font-size: 0.72em; margin-top: 4px !important; }
+    .sheet-lg .sec { font-size: 0.68em; margin: 0.9em 0 0.3em; }
+    .line { grid-template-columns: minmax(0, 1fr) 13.5rem; column-gap: 24px; padding: 0.22em 0; }
+    .bul { padding-left: 0.8em; }
+    .bul::before { left: 0.12em; width: 0.24em; height: 0.24em; top: 0.62em; }
+    .margin { font-size: 1.0625rem; padding-top: 0.32em; }
+    .resume .rules li { padding: 14px 0; }
   }
 
   /* scene motion: scroll-driven draw-ins, the single path - no support (Firefox) or reduced motion
@@ -729,11 +740,12 @@
           <p><b>Customer Support Lead</b>, 2021 to now</p>
           <p class="margin"><span class="dash" aria-hidden="true"></span>Title and dates as you gave them</p>
         </div>
-        <div class="line">
-          <div class="fix">
-            <p class="old"><span class="vh">Old line: </span><del>Managed 6 agents through peak season; cut queue times 30%.</del></p>
-            <p class="new"><span class="vh">New line: </span><ins>Led a<span class="caret" aria-hidden="true"><svg viewBox="0 0 16 12"><path d="M1.5 10.6 C 4 8.4, 6.2 4.6, 7.7 1.6 C 9.4 4.9, 11.6 8.2, 14.6 10.2"/></svg></span> <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</ins></p>
-          </div>
+        <div class="line was">
+          <p class="old bul"><span class="vh">Old line: </span><del>Managed 6 agents through peak season; cut queue times 30%.</del></p>
+          <p class="margin"><span class="dash" aria-hidden="true"></span>Your words, same facts</p>
+        </div>
+        <div class="line now">
+          <p class="new bul"><span class="vh">New line: </span><ins>Led a<span class="caret" aria-hidden="true"><svg viewBox="0 0 16 12"><path d="M1.5 10.6 C 4 8.4, 6.2 4.6, 7.7 1.6 C 9.4 4.9, 11.6 8.2, 14.6 10.2"/></svg></span> <mark>support team</mark> of 6 through peak season; cut <mark>wait times</mark> 30%.</ins></p>
           <p class="margin ok"><svg viewBox="0 0 24 24" aria-hidden="true"><circle class="ring" cx="12" cy="12" r="10"/><path class="tick" d="M7.5 12.5l3 3 6-6.5"/></svg>You approved this line</p>
         </div>
         <div class="line">
