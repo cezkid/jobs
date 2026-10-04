@@ -167,7 +167,7 @@ form, open + posted in the last 30 days.
 ## Companies (2026-10-03)
 
 Job rows carry `company` + `company_slug`, no website. `GET /companies/<company_slug>` ->
-`data.company.company_info.website` (Toast https://pos.toasttab.com, Ramp https://ramp.com);
+`data.company.company_info.website` (Notion https://notion.so, Figma https://figma.com);
 `company_info` empty for some (Muse Group); 404 = no record. 17 of 30 companies of the newest 30
 US postings had a website. No about-us URL anywhere => main website only, never a guessed path or a
 URL built from the slug. Python urllib w/o a User-Agent gets 403; httpx fine.

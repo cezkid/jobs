@@ -40,20 +40,20 @@ def cached(conn, slug):
 
 # a company's website shows on Today after one morning check, from its job search record
 def test_website_stored_once_answered(conn):
-    listed(conn, "ramp")
-    assert companies.refresh(conn, client({"ramp": "https://ramp.com"}), BASE, NOW) == 1
-    assert cached(conn, "ramp") == ("https://ramp.com", stamp(0))
+    listed(conn, "notion")
+    assert companies.refresh(conn, client({"notion": "https://notion.so"}), BASE, NOW) == 1
+    assert cached(conn, "notion") == ("https://notion.so", stamp(0))
 
 
 # the job search asked about each company once a month, not at every check
 def test_fresh_answer_not_asked_again_old_one_is(conn):
-    listed(conn, "ramp", "toast")
-    conn.execute("INSERT INTO companies VALUES ('ramp', 'https://ramp.com', ?)", (stamp(5),))
-    conn.execute("INSERT INTO companies VALUES ('toast', NULL, ?)", (stamp(31),))
+    listed(conn, "notion", "figma")
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?)", (stamp(5),))
+    conn.execute("INSERT INTO companies VALUES ('figma', NULL, ?)", (stamp(31),))
     asked = []
-    companies.refresh(conn, client({"toast": "https://pos.toasttab.com"}, asked), BASE, NOW)
-    assert asked == ["toast"]
-    assert cached(conn, "toast")[0] == "https://pos.toasttab.com"
+    companies.refresh(conn, client({"figma": "https://figma.com"}, asked), BASE, NOW)
+    assert asked == ["figma"]
+    assert cached(conn, "figma")[0] == "https://figma.com"
 
 
 # no record on the job search = a web search link, and not asked again for a month
@@ -66,19 +66,19 @@ def test_no_record_stored_as_none(conn):
 # a hiccup at the job search doesn't leave a company without its website for a month
 @pytest.mark.parametrize("failure", [500, httpx.ConnectError("down")])
 def test_failed_request_retried_next_check(conn, failure):
-    listed(conn, "ramp")
-    assert companies.refresh(conn, client({"ramp": failure}), BASE, NOW) == 0
-    assert cached(conn, "ramp") is None
-    assert companies.due(conn, NOW) == ["ramp"]
+    listed(conn, "notion")
+    assert companies.refresh(conn, client({"notion": failure}), BASE, NOW) == 0
+    assert cached(conn, "notion") is None
+    assert companies.due(conn, NOW) == ["notion"]
 
 
 # a website value the browser shouldn't open never becomes a link on Today
 @pytest.mark.parametrize("bad", ["javascript:alert(1)", "ftp://x.test", "https://x.test/a b",
-                                 'https://x.test/"onclick', "ramp.com", "", None])
+                                 'https://x.test/"onclick', "notion.so", "", None])
 def test_unsafe_website_dropped(conn, bad):
-    listed(conn, "ramp")
-    companies.refresh(conn, client({"ramp": bad}), BASE, NOW)
-    assert cached(conn, "ramp") == (None, stamp(0))
+    listed(conn, "notion")
+    companies.refresh(conn, client({"notion": bad}), BASE, NOW)
+    assert cached(conn, "notion") == (None, stamp(0))
 
 
 # a long job list asks politely: a small batch per check, the rest next time
@@ -91,7 +91,7 @@ def test_batch_per_check(conn):
 
 # a broken company lookup never stops the morning job check
 def test_refresh_quietly_never_raises(conn, monkeypatch):
-    listed(conn, "ramp")
+    listed(conn, "notion")
     monkeypatch.setattr(companies, "refresh", lambda *a, **k: 1 / 0)
     companies.refresh_quietly(conn, client({}), BASE)
 
@@ -103,8 +103,8 @@ def test_link_none_without_a_website(conn):
     assert companies.link(conn, {"company": ""}) is None
 
 
-# live: the job search still answers with a website for a well-known company (Ramp, 2026-10-03)
+# live: the job search still answers with a website for a well-known company (Notion, 2026-10-03)
 def test_live_companies_endpoint_has_a_website():
     with httpx.Client(timeout=30) as c:
-        ok, site = companies.ask(c, "https://freehire.me/api/v1", "ramp")
+        ok, site = companies.ask(c, "https://freehire.me/api/v1", "notion")
     assert ok and site and site.startswith("http"), site

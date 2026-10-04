@@ -444,23 +444,23 @@ def test_every_job_has_link_text_and_a_say_chip(conn, tmp_path):
 # owner 2026-10-03: company name opens its website on the job search's record; none on record =>
 # plain name (no web search); never a link built from its listing id
 def test_company_links_its_website_else_plain_name(conn, tmp_path):
-    store.upsert(conn, [job("a", company="Ramp", company_slug="ramp"), job("b", company="Sample & Co", company_slug="sample")],
+    store.upsert(conn, [job("a", company="Notion", company_slug="notion"), job("b", company="Sample & Co", company_slug="sample")],
                  CHECK)
-    conn.execute("INSERT INTO companies VALUES ('ramp', 'https://ramp.com', ?)", (CHECK,))
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?)", (CHECK,))
     conn.execute("INSERT INTO companies VALUES ('sample', NULL, ?)", (CHECK,))
     m = today.model(conn, CONFIG, tmp_path, NOW, [], tmp_path)
     cards = {c["company"]: c for c in m["sections"][0]["cards"]}
-    assert cards["Ramp"]["company_url"] == "https://ramp.com"
+    assert cards["Notion"]["company_url"] == "https://notion.so"
     assert cards["Sample & Co"]["company_url"] is None
     text = today.render(m)
-    assert "[Senior Vue Engineer a](<https://boards.greenhouse.io/acme/jobs/a>), [Ramp](<https://ramp.com>)" in text
+    assert "[Senior Vue Engineer a](<https://boards.greenhouse.io/acme/jobs/a>), [Notion](<https://notion.so>)" in text
     assert "[Senior Vue Engineer b](<https://boards.greenhouse.io/acme/jobs/b>), Sample &amp; Co\n" in text  # text inert
-    assert "ramp.com/ramp" not in text and "Open the posting" not in text and "?q=" not in text
+    assert "notion.so/notion" not in text and "Open the posting" not in text and "?q=" not in text
 
 
 # a sent job (application row, no listing id of its own) still links its company's website
 def test_company_link_found_through_the_listed_job(conn, tmp_path):
-    store.upsert(conn, [job("old", company="Ramp", company_slug="ramp")], "2026-08-01T12:00:00Z")
+    store.upsert(conn, [job("old", company="Notion", company_slug="notion")], "2026-08-01T12:00:00Z")
     applied(conn, "old", "2026-08-31T12:00:00Z")
-    conn.execute("INSERT INTO companies VALUES ('ramp', 'https://ramp.com', ?)", (CHECK,))
-    assert "[Ramp](<https://ramp.com>)" in page(conn, tmp_path)
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?)", (CHECK,))
+    assert "[Notion](<https://notion.so>)" in page(conn, tmp_path)
