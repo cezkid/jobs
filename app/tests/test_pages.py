@@ -284,7 +284,7 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
     for name, text in raw.items():
         head = Head(text)
         assert [a["href"] for a in head.links("canonical")] == [own_url(name, "https://jobs.enrriquez.com/")], name
-        assert len(head.text["title"][0]) <= 60 and len(head.meta("description")) <= 160, name
+        assert len(head.text["title"][0]) <= 60 and len(head.meta("description")) <= 155, name
         for rel in "icon", "apple-touch-icon", "manifest", "preload":
             assert head.links(rel) == home.links(rel), (name, rel)
         assert head.meta("og:image") == "https://jobs.enrriquez.com/og-research.png" and head.meta("twitter:card") == "summary_large_image"

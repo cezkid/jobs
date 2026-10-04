@@ -62,9 +62,9 @@ def test_indexed_pages_share_one_url_and_fit_search_and_share_limits():
         # canonical + og:url differ => search and share cards count two pages
         assert [a["href"] for a in head.links("canonical")] == [url], name
         assert head.meta("og:url") == url, name
-        # Google cuts titles ~60 chars, descriptions ~160
+        # Google cuts titles ~60 chars, descriptions ~155-160: 155 (pages.LIMITS) keeps every one whole
         assert len(head.text["title"][0]) <= 60, name
-        assert len(head.meta("description")) <= 160, name
+        assert len(head.meta("description")) <= 155, name
         # og:site_name already shows the brand on the card; a suffix repeats it
         assert not re.search(r" [-|] CEZ Job Finder$", head.meta("og:title")), name
         assert head.meta("twitter:card") == "summary_large_image", name
@@ -270,6 +270,28 @@ def test_home_h1_is_the_literal_answer_to_is_this_a_website():
     # owner's fix for "is this a website?": the h1 says what it is, in plain words, unchanged
     h1 = re.findall(r"<h1[^>]*>(.*?)</h1>", (DOCS / "index.html").read_text(encoding="utf-8"), re.S)
     assert h1 == ["A free job-search app for your Windows or Mac computer."]
+
+
+def test_every_page_has_one_h1():
+    # two h1s => search + screen readers can't tell which is the page's subject; none => no subject
+    for name in PAGES:
+        raw = (DOCS / name).read_text(encoding="utf-8")
+        assert len(re.findall(r"<h1[\s>]", raw)) == 1, name
+
+
+def test_home_says_what_it_is_and_what_it_costs_in_search_results():
+    # "free" alone in a snippet, then a paid AI plan, reads as bait (D5); the title stays (C1 cut)
+    head = page("index.html")
+    raw = (DOCS / "index.html").read_text(encoding="utf-8")
+    assert head.text["title"] == ["CEZ Job Finder – free AI job search app for Windows and Mac"]
+    description = head.meta("description")
+    assert len(description) <= 155 and all(w in description for w in ("resume", "your own", "plan"))
+    # one sentence with the name as its subject, for search + AI answers (D3)
+    assert "CEZ Job Finder is" in raw
+    # the ledger's "switch it off" leads to how, as privacy.html does (D11a)
+    assert 'href="/research/keep-chats-out-of-ai-training/"' in raw
+    # job-tailor allows a second page 60%+ full (app/skills/job-tailor.md)
+    assert "One page, set to fit" not in raw
 
 
 HAND_WRITTEN = ("index.html", "privacy.html", "404.html")
