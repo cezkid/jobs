@@ -176,13 +176,20 @@
   }
   /* /shared */
 
+  /* heading tiers (PICK P-c2): one h1 size per band (--h1); every scene h2 is a multiple of it, never
+     0.9-1.1x - statements 0.78x (reading size), labels 1.3x (posters); qa TYPE_TIERS */
+  :root { --h1: clamp(2.5rem, 1.5rem + 3vw, 6rem); }
+  @media (max-width: 600px) { :root { --h1: clamp(2.25rem, 1rem + 6.4vw, 3rem); } }
+  @media (min-width: 1080px) { :root { --h1: var(--display); } }
+  @media (min-width: 1080px) and (min-height: 800px) { :root { --h1: min(clamp(2.5rem, 1rem + 4.6vw, 7rem), 8.6vh + 0.5rem); } }
+
   /* hero: literal h1 + install steps beside the app window (story A: the morning list, finished state) */
   .hero { padding-top: clamp(28px, 4.2vh, 56px); padding-bottom: 64px; row-gap: 40px; }
   .intro { grid-column: 1 / -1; }
   h1 {
     /* no vh term below 1080px: browser zoom shrinks the viewport's height, and a vh cap made the h1
        smaller at 200% (WCAG 1.4.4, audit B8); the cap stays where it guards the Copy fold */
-    font-size: clamp(2.5rem, 1.5rem + 3vw, 6rem); line-height: 1.02; font-weight: 700; letter-spacing: -0.012em;
+    font-size: var(--h1); line-height: 1.02; font-weight: 700; letter-spacing: -0.012em;
     margin: 0 0 0.32em; max-width: 13em;
   }
   .lede { margin: 0 0 1.4rem; font-size: var(--step-1); line-height: 1.4; max-width: 30em; }
@@ -312,7 +319,7 @@
     ol.steps > li > .command { grid-column: 1 / -1; flex-wrap: wrap; padding-left: 12px; }
     .command code { flex-basis: 100%; font-size: 0.875rem; }
     .hero { padding-top: 22px; row-gap: 28px; }
-    h1 { font-size: clamp(2.25rem, 1rem + 6.4vw, 3rem); line-height: 1.04; }
+    h1 { line-height: 1.04; }
     .lede { font-size: var(--step-0); }
   }
 
@@ -320,7 +327,6 @@
      rule), so the next scene's heading + sheet start below the fold, never cut by it */
   @media (min-width: 1080px) {
     .hero { min-height: calc(100svh - 37px - 1.9375rem); }
-    h1 { font-size: var(--display); }
     .intro { grid-column: 1 / span 6; }
     figure { grid-column: 7 / -1; align-self: start; margin-top: 6px; }
     /* the window read at a glance (A8): its text 17-18px, job lines 20px */
@@ -338,7 +344,7 @@
   @media (min-width: 1080px) and (min-height: 800px) {
     .hero { row-gap: 0; align-content: start; grid-template-rows: auto auto 1fr; }
     .intro { display: contents; }
-    h1 { grid-column: 1 / -1; max-width: none; font-size: min(clamp(2.5rem, 1rem + 4.6vw, 7rem), 8.6vh + 0.5rem); }
+    h1 { grid-column: 1 / -1; max-width: none; }
     .lede, #install { grid-column: 1 / span 6; }
     #install { align-self: start; }
     /* what you need, under the steps: ends the left column level with the window */
@@ -379,7 +385,8 @@
 
   /* scenes below the hero */
   .scene { padding-top: clamp(56px, 9vh, 104px); padding-bottom: clamp(56px, 9vh, 104px); row-gap: 32px; border-top: 1px solid var(--line); }
-  .scene h2 { font-size: clamp(2rem, 1rem + 5.1vw, 6.5rem); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 0.45em; }
+  .scene h2 { font-size: calc(var(--h1) * 0.78); line-height: 1.05; letter-spacing: -0.01em; margin: 0 0 0.45em; }
+  .who h2, .research h2, .questions h2, .closing h2 { font-size: calc(var(--h1) * 1.3); }
   .scene p { margin: 0; }
   /* display lines (64px+ from 941px wide): text-size tracking + leading read loose at 90-112px */
   @media (min-width: 941px) {
@@ -443,9 +450,8 @@
        its last line so the heading row has no empty right band (qa EMPTY_RIGHT, 1920 too) */
     .resume { row-gap: 0; grid-template-rows: auto 1fr; }
     .resume .scene-text { display: contents; }
-    .resume h2 { grid-column: 1 / span 8; }
-    .resume .scene-text > p { grid-column: 9 / -1; grid-row: 1; align-self: end;
-      margin-bottom: calc(0.565 * clamp(2rem, 1rem + 5.1vw, 6.5rem)); }  /* last line on the h2 baseline */
+    .resume h2 { grid-column: 1 / span 8; align-self: last baseline; }
+    .resume .scene-text > p { grid-column: 9 / -1; grid-row: 1; align-self: last baseline; }  /* last line on the h2 baseline */
     .resume .rules { grid-column: 1 / span 4; align-self: start; }
     .proof { grid-column: 5 / -1; grid-row: 2; }
     /* the signature at display scale (A1): sheet type 22-26px, so the corrected line reads as an object */
@@ -482,8 +488,6 @@
 
   /* applications + help after: a compact typeset pair, no framed object; illustrated Submit = ink, never a control */
   .half { grid-column: 1 / -1; min-width: 0; }
-  /* a paired subhead, half width: capped where "Applications filled." still fits one line */
-  .half h2 { font-size: clamp(1.75rem, 0.5rem + 3.9vw, 4rem); }
   .defs { margin: 0; border-top: 2px solid var(--text); }
   .defs > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 20px; padding: 12px 0 13px; border-bottom: 1px solid var(--line); }
   .defs dt { font-weight: 700; }
@@ -515,7 +519,6 @@
     .half > :not(h2) { grid-row: 2; }
     .half:first-child { grid-column: 1 / span 7; }
     .half + .half { grid-column: 8 / -1; }
-    .half + .half h2 { font-size: clamp(1.75rem, 0.5rem + 2.6vw, 3rem); }
   }
   /* tablet: the halves stack; a wide gap keeps them two blocks (A11) */
   @media (min-width: 600px) and (max-width: 1079px) { .after { row-gap: 64px; } }
@@ -568,6 +571,7 @@
   }
 
   /* questions: two stacks (not CSS columns: a column break can split an open answer) */
+  .questions { padding-top: clamp(40px, 6vh, 72px); padding-bottom: clamp(40px, 6vh, 72px); }
   .questions h2 { grid-column: 1 / -1; }
   .stack { grid-column: 1 / -1; min-width: 0; }
   .stack details { border-bottom: 1px solid var(--line); }
@@ -588,9 +592,11 @@
   @media (max-width: 899px) { .stack + .stack details:first-child { border-top: 0; } }
 
   /* closing install beat (phone: send the link; no second command) + colophon */
-  .closing { border-top: 0; padding-top: clamp(24px, 4vh, 48px); }
+  /* the bookend: ruled like the masthead (3px + 1px, 3px apart), the h2 in the poster tier */
+  .closing { position: relative; border-top: 3px solid var(--text); padding-top: clamp(40px, 7vh, 88px); }
+  .closing::before { content: ""; position: absolute; left: 0; right: 0; top: 3px; border-top: 1px solid var(--text); }
   .closing .scene-text { max-width: none; }
-  .closing h2 { font-size: clamp(2.25rem, 1rem + 5.4vw, 7rem); margin-bottom: 0.3em; }
+  .closing h2 { margin-bottom: 0.3em; }
   .closing p { max-width: 34rem; }
   .closing .go { display: inline-block; margin-top: 8px; font-size: var(--step-1); font-weight: 700; }
   .closing .phone p { font-weight: 400; }
@@ -611,9 +617,6 @@
   @media (max-width: 600px) {
     .hero { padding-bottom: 32px; }
     .scene { padding-top: 30px; padding-bottom: 30px; row-gap: 20px; }
-    .scene h2 { font-size: clamp(2rem, 1.2rem + 2.2vw, 3.25rem); }
-    .half h2 { font-size: clamp(1.75rem, 1.1rem + 1.6vw, 2.5rem); }
-    .closing h2 { font-size: clamp(2.25rem, 1.3rem + 3vw, 4.25rem); }
     .ledger li { padding: 12px 0 13px; }
     .defs > div { padding: 9px 0 10px; }
     .questions { row-gap: 0; }

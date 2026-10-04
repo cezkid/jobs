@@ -28,6 +28,8 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   line's, old + new lines at the sheet's bullet size (A10);
   AFTER_RULES: the applications + help pair's top rules (first block under each h2) within 1px at every
   desktop size >= 1080 wide; at 768 the two stacked halves >= 48px apart (A11);
+  TYPE_TIERS at 1366x641, 1440x900, 1440x780, 1920x1080: every scene h2 is <= 0.8x or >= 1.2x the h1, never
+  between (PICK P-c2 role tiers);
   MAC_LINE: Mac browser name at 768, 1366x641, 1440x900, 1920x1080 -> the
   install line is one line box; a check whose selector finds 0 elements fails (missing()), never a
   silent pass; at 1440x900 + 1920x1080 (EMPTY_RIGHT) no row of
@@ -473,6 +475,15 @@ AFTER_RULES = """() => { const h = [...document.querySelectorAll(".after .half")
   return [r.map(el => el.getBoundingClientRect().top),
           h[1].getBoundingClientRect().top - h[0].getBoundingClientRect().bottom]; }"""
 
+# TYPE_TIERS (PICK P-c2, home): each scene h2's size over the h1's is a tier - statements <= 0.8x, labels >= 1.2x,
+# nothing in between; [[h2 text, ratio]] or null (no h1 / no scene h2)
+TYPE_TIERS_AT = [(1366, 641), (1440, 900), (1440, 780), (1920, 1080)]
+TYPE_TIERS_LOW, TYPE_TIERS_HIGH = 0.8, 1.2
+TYPE_TIERS = """() => { const h1 = document.querySelector("h1"), h2s = [...document.querySelectorAll("main section.scene h2")];
+  if (!h1 || !h2s.length) return null;
+  const px = el => parseFloat(getComputedStyle(el).fontSize);
+  return h2s.map(h => [h.textContent.trim().slice(0, 30), px(h) / px(h1)]); }"""
+
 # empty right halves (BAND_AT): per row of main, 4px slices from its first content line to its last; a run
 # of slices whose rightmost content (text line boxes, svg/img/button, boxes with a border or background)
 # ends more than BAND_W px short of the row's content edge, taller than BAND_H px = a band left empty
@@ -789,11 +800,15 @@ FAULTS = [
     (HOME, "SHEET_NOTE: approval note back beside the struck line", "<style>.sheet-lg .margin.ok { position: relative; "
      "top: -2.4em; }</style>", "layout"),
     (HOME, "AFTER_RULES: the help table's rule drops below the names' rule", "<style>.half { display: block "
-     "!important; }</style>", "wide"),
+     "!important; } .half + .half h2 { margin-bottom: 1.2em !important; }</style>", "wide"),
     (HOME, "AFTER_RULES: stacked halves jammed together at tablet width", "<style>.after { row-gap: 20px !important; }"
      "</style>", "tablet"),
     (HOME, "SHEET_NOTE: the new line back at 15px", "<style>.sheet-lg .new { font-size: 0.9375rem !important; }</style>",
      "layout"),
+    (HOME, "TYPE_TIERS: Questions back at the h1's size", "<style>.questions h2 { font-size: var(--h1) !important; }"
+     "</style>", "wide"),
+    (HOME, "TYPE_TIERS: the help subhead a step under the h1", "<style>.half + .half h2 { font-size: "
+     "calc(var(--h1) * 0.92) !important; }</style>", "layout"),
     (HOME, "SHEET_REPLAY: correction finishes at cover 60%", "<style>.sheet-lg .new mark:last-of-type "
      "{ animation-range: cover 50% cover 60% !important; }</style>", "motion"),
     (HOME, "SHEET_REPLAY: correction shown finished from the start", "<style>.sheet-lg :is(.old del, .new mark) "
@@ -871,7 +886,7 @@ FAULTS = [
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
-             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT", "SHEET_NOTE": "SHEET_NOTE", "AFTER_RULES": "AFTER_RULES", "SHEET_REPLAY": "SHEET_REPLAY",
+             "RING": "RING", "WINDOW_TEXT": "WINDOW_TEXT", "SHEET_NOTE": "SHEET_NOTE", "AFTER_RULES": "AFTER_RULES", "TYPE_TIERS": "TYPE_TIERS", "SHEET_REPLAY": "SHEET_REPLAY",
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
@@ -1156,6 +1171,13 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                                   f"(over {AFTER_RULES_PX}px apart)")
                 elif width < AFTER_RULES_W and got[1] < AFTER_GAP_MIN:
                     failed.append(f"AFTER_RULES {where}: halves {got[1]:.0f}px apart, under {AFTER_GAP_MIN}px")
+            if not phone and not mac and (width, height) in TYPE_TIERS_AT:
+                got = page.evaluate(TYPE_TIERS)
+                if not got:
+                    failed.append(f"TYPE_TIERS {where}: check found 0 elements (h1 + scene h2s)")
+                failed += [f"TYPE_TIERS {where}: h2 \"{text}\" is {ratio:.2f}x the h1, between "
+                           f"{TYPE_TIERS_LOW} and {TYPE_TIERS_HIGH}" for text, ratio in got or []
+                           if TYPE_TIERS_LOW < ratio < TYPE_TIERS_HIGH]
             if mac and not phone and (width, height) in MAC_LINE_AT:
                 got = page.evaluate(LINE_BOXES)
                 if not got or not got[0].startswith("curl ") or got[1] != 1:
