@@ -1,8 +1,8 @@
 ---
 title: "Age discrimination in hiring: when it starts, what helps"
-description: "US tests find no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s."
+description: "US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s."
 published: 2026-10-04
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 uncited:
   - "no field test has removed it alone"
@@ -13,7 +13,7 @@ uncited:
 **Short answer**
 
 - Older applicants get fewer employer replies: about 42% fewer across 17 field tests, more in Europe than in the US (Big study) [@lippens-2023].
-- US tests find no drop at 40. The drop shows somewhere between the mid-40s and mid-50s. In a Swedish test with age stated, it shows from the early 40s (Big studies) [@farber-2017; @neumark-2019; @carlsson-eriksson-2019].
+- Two US tests of women applying to office jobs found no clear drop from the mid-30s to the early 40s [@farber-2017; @farber-2019]. A test at 108 large US employers found a small gap for all ages over 40 counted together: 0.6 points, when about 24% got a reply; one check could not rule out chance [@kline-2022, pp. 2, 4, 11, 13]. In US tests a clearer drop shows somewhere between the mid-40s and mid-50s. In a Swedish test with age stated, it shows from the early 40s (Big studies) [@farber-2017; @neumark-2019; @carlsson-eriksson-2019].
 - The graduation year is the usual cue. No field test has removed the graduation year alone. One US test shortened the work history and left the year on; callbacks did not clearly change (Big study) [@neumark-2019].
 - Never use a false date. The bias is the employer's, not a flaw in you.
 
@@ -27,20 +27,23 @@ A rating study points the same way (Lab study). A 2025 study showed 5,017 Danish
 
 ## At what age does the hiring penalty start?
 
-In US tests, somewhere between the mid-40s and mid-50s. In the largest test the drop was already there for women at 49 to 51. In a Swedish test where the resume stated age, in the early 40s.
+In US tests, somewhere between the mid-40s and mid-50s. In the largest US test built to study age, the drop was already there for women at 49 to 51. In a Swedish test where the resume stated age, in the early 40s.
 
 | Study | Country | Ages tested | How age showed | What happened to employer replies |
 |---|---|---|---|---|
 | Farber and others 2017 [@farber-2017, p. 180] | US | 35-37, 40-42, 55-58 | College graduation year | 11.0%, 11.9% and 8.9%; only the oldest group was lower, and the gap was clear only in the last of four rounds |
 | Farber and others 2019 [@farber-2019, p. 16] | US | 22-23 up to 60-61 | College graduation and job dates | No clear difference from 27 to 52; lower at 60-61 |
 | Neumark and others 2019 [@neumark-2019, p. 26] | US | 29-31, 49-51, 64-66 | High school graduation year | 18.7%, 15.4% and 12.2% over all jobs tested |
+| Kline and others 2022 [@kline-2022, pp. 9-11, 13] | US | 22 to 58 | High school graduation year | 0.6 points lower for all ages over 40 counted as one group; in the 72 firms tested in every round, about as large but could be chance |
 | Lahey 2008 [@lahey-2008, pp. 4, 18] | US | 35 to 62 | High school graduation year | Applicants under 50 were 42% to 46% more likely to get an interview offer; could be chance, and 50 was the cut-off that gave the strongest result |
 | Carlsson and Eriksson 2019 [@carlsson-eriksson-2019, p. 7] | Sweden | 35 to 70 | Age stated outright | About 0.5 points lower for each year of age |
 | Dalle and others 2025 [@dalle-2025, pp. 22-23] | Belgium | 38, 44, 50, 56 | Birth year | Only 56-year-olds were clearly lower, about 28% fewer positive replies |
 
-Forty is the legal line in the US, not the measured start. Federal age law protects people who are at least 40, as of October 2026 [@adea-631]. No US test here found a drop at 40. In one test, women aged 40 to 42 got callbacks as often as women aged 35 to 37 [@farber-2017, p. 180]. One study of a restaurant chain's records treats everyone 40 and over as one group, so that study cannot say where the drop starts [@neumark-2024, p. 2].
+Forty is the legal line in the US, not the measured start. Federal age law protects people who are at least 40, as of October 2026 [@adea-631]. No US test here found a sudden drop at 40. In one test, women aged 40 to 42 got callbacks as often as women aged 35 to 37 [@farber-2017, p. 180]. One study of a restaurant chain's records treats everyone 40 and over as one group, so that study cannot say where the drop starts [@neumark-2024, p. 2].
 
-The largest US test sent 40,223 applications at three ages and tested nothing between 31 and 49. So that test cannot say where the drop begins. Women applying to office jobs got callbacks 14.4% of the time at 29 to 31, 10.3% at 49 to 51 and 7.6% at 64 to 66. Men applying to sales jobs got 20.9%, 21.1% and 14.7% [@neumark-2019, p. 26]. In this test the drop at 49 to 51 showed for women and not for men in sales. The authors say their evidence for men is weaker than for women [@neumark-2019, p. 37].
+A US test aimed mainly at race and gender also tested age. That test sent more than 83,000 applications to 108 of the largest US employers [@kline-2022, pp. 2-4]. The test's made-up applicants were aged 22 to 58, shown by a high school graduation year [@kline-2022, pp. 4, 9-10]. About 24% of all applications got a reply within 30 days. In that test, applicants over 40, counted as one group, got 0.6 points fewer replies than applicants under 40. In the 72 firms tested in every round, the gap was about as large but could be chance. Replies fell a little and steadily with each older age group; the authors call that slide borderline. The authors say their test confirms age bias in US hiring, though smaller than in the largest US test built to study age [@kline-2022, pp. 11, 13]. The age groups in that test differed too little to show where the drop starts.
+
+The largest US test built to study age sent 40,223 applications at three ages and tested nothing between 31 and 49. So that test cannot say where the drop begins. Women applying to office jobs got callbacks 14.4% of the time at 29 to 31, 10.3% at 49 to 51 and 7.6% at 64 to 66. Men applying to sales jobs got 20.9%, 21.1% and 14.7% [@neumark-2019, p. 26]. In this test the drop at 49 to 51 showed for women and not for men in sales. The authors say their evidence for men is weaker than for women [@neumark-2019, p. 37].
 
 One US test covered six ages in the same kind of job. Its applicants were women applying to office support jobs.
 
@@ -67,7 +70,7 @@ The graduation year is how readers guess age, but no field test has removed it a
 
 Every US test in the table showed age through a graduation year. Real resumes show it too: 56% of more than 25,000 real resumes in one sample listed a high school graduation year [@neumark-2019, p. 17]. In a 2022 survey for a resume company, 41% of 800 US hiring managers said a graduation year makes age bias more likely. Nearly one in four said they would never recommend listing it. The largest group, 26%, said to always list all relevant experience [@resumebuilder-2022]. A resume company ran that survey, so read it with care.
 
-A shorter work history did not help while the year stayed. The largest US test cut older applicants' work history short and left the graduation year on. Callbacks did not clearly change, except for janitor jobs [@neumark-2019, p. 30]. That test hid no age cue, so it cannot say what hiding one does.
+A shorter work history did not help while the year stayed. The largest US age test cut older applicants' work history short and left the graduation year on. Callbacks did not clearly change, except for janitor jobs [@neumark-2019, p. 30]. That test hid no age cue, so it cannot say what hiding one does.
 
 Real records from one US restaurant chain show where the loss came. The records come from reports filed in an age-discrimination lawsuit, so the result is a link, not proof of cause. The author discloses a financial relationship that may be relevant to the research. Applicants 40 and over who applied online were picked for interviews as often as younger ones, or more often. After the in-person interview, their job offers were 40% lower. For paper applications handed in face to face, offers were 68% lower [@neumark-2024, p. 2]. The online form still asked for a high school graduation year, and some applicants gave it [@neumark-2024, p. 7]. At this one employer, older applicants reached the interview as often as younger ones. The offers fell after the interview.
 
@@ -114,8 +117,8 @@ A missing year is not a false statement. A false year found in a check is a mism
 
 - Whether removing only the graduation year raises callbacks. We found no field test of it. We searched the web and arXiv in October 2026.
 - What a missing graduation year costs on a US resume. The one test of a missing date was a Belgian lab study of birth dates [@derous-2017].
-- Where the US penalty starts between the mid-40s and mid-50s. The largest test skipped ages 32 to 48; the six-age test jumped from 42-43 to 51-52 [@neumark-2019; @farber-2019].
-- Whether the results hold for men and for jobs outside office, sales and service work. Most US tests used women applying to office jobs [@farber-2017; @farber-2019].
+- Where the US penalty starts between the mid-40s and mid-50s. The largest US age test skipped ages 32 to 48; the six-age test jumped from 42-43 to 51-52; the 108-employer test's age groups differed too little to tell [@neumark-2019; @farber-2019; @kline-2022].
+- Whether the results hold for men and for jobs outside office, sales and service work. Three of the five US tests here used only women, two of them in office jobs [@farber-2017; @farber-2019; @lahey-2008].
 - Whether showing recent training closes the gap. The skills finding comes from a lab study [@van-borm-2021].
 - How employers' AI tools treat age in real hiring. The tests used made-up applicants [@bone-2026].
 - Whether results from before 2020 still hold. Most field tests here ran before then.
@@ -142,3 +145,7 @@ How we grade evidence: [How we research](methods.md). What else makes a resume w
 - The rules and their sources are in the program's [fair screening notes](../../docs/resume/fair-screening.md).
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - added a US test of more than 83,000 applications at 108 large employers. Applicants over 40, counted together, got slightly fewer replies [@kline-2022]. So the short answer, the description and one body sentence no longer say US tests found no drop at 40. Neumark 2019 is now called the largest US test built to study age, not the largest US test. The other findings are unchanged.

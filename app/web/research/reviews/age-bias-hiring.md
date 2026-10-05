@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.74 (no drafting context; sources opened before the draft was read)
 ---
@@ -369,3 +369,59 @@ Also taken from its notes: `fair-screening.md` Delaware row now says "Signed 202
 force since" (the session law has no effective-date clause). Still open for the ship bead's
 browser check: the journal page of Dalle 2025 and California's official copy of 2 CCR 11079. Not
 re-read: sentences and sources the revision did not touch.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.84)
+
+Change reviewed: the Short answer said "US tests find no drop at 40". Kline, Rose and Walters 2022
+(kline-2022, 83,000+ applications, 108 large US employers) found 0.6 points fewer replies for all
+ages over 40 counted together. Neumark 2019 tested nothing between 31 and 49. The edit added
+Kline to the Short answer, the table and the onset section. It reworded the description and "No
+US test here found a sudden drop at 40". Neumark 2019 is now "the largest US test built to study
+age", since Kline sent more applications. A Changes line was added.
+
+A subagent that made none of the edits read Kline first: NBER w29053, printed pp. 2-4, 9-16,
+Table 2 (p. 62), Figure A5 (p. 75) and Appendix B (p. 88). It then read the diff, the article and
+this file's Farber and Neumark rows. It edited nothing. Verdict **revise**: no high, 2 medium, 7
+low. All nine are answered below, so the header verdict stays publish.
+
+Checked and supported: 0.6 points (p. 4; Table 2 -0.00587, SE 0.00299). The 72-firm check:
+-0.00472, SE 0.00341, not significant, "similar in magnitude" (p. 13). Also 83,000 (p. 3), 108
+Fortune 500 firms (p. 2), ages 22 to 58 (pp. 9-10), the high school graduation year as the cue
+(pp. 4, 10-11), and about 24% replied within 30 days (pp. 3, 11). "Sudden drop at 40" is
+defensible: the age groups slide slowly. So is "largest US test built to study age": Neumark
+calls theirs "by far the largest", and Kline's "main focus is on race and gender" (p. 4). No
+source text addressed an AI.
+
+- **R1 (medium)** "that pattern could be chance too" undersold the age-group slide (p = 0.052,
+  about as strong as the main estimate). "Pooled all ages over 40" was wrong: the paper also
+  reports five age groups. The authors' own conclusion, age bias confirmed but smaller than
+  Neumark's, was missing. status: fixed ("Replies fell a little and steadily with each older age
+  group; the authors call that slide borderline. The authors say their test confirms age bias in
+  US hiring, though smaller than in the largest US test built to study age [@kline-2022, pp. 11,
+  13]. The age groups in that test differed too little to show where the drop starts."). The
+  What-we-don't-know line now says the 108-employer test's age groups "differed too little to
+  tell". Proposed "no sudden step at 40" and the p. 75 figure locator were not used. They rest
+  on reading the figure; the text on p. 13 carries the claim.
+- **R2 (medium)** The Short answer's "one check did not confirm it" read as no drop. "0.6 points"
+  had no base rate. 108 is on p. 2, not pp. 4 or 13. status: fixed ("found a small gap for all
+  ages over 40 counted together: 0.6 points, when about 24% got a reply; one check could not rule
+  out chance [@kline-2022, pp. 2, 4, 11, 13]"). Shorter than proposed, to keep the box short.
+- **R3 (low)** The Changes line left out the description, the body sentence and the "largest US
+  test" correction. status: fixed (wording as proposed, with a kline-2022 cite the build needs)
+- **R4 (low)** "It" and "Its" across sentences; "mainly at race and gender" is on p. 4. status:
+  fixed ("That test ... [@kline-2022, pp. 2-4]", "The test's made-up applicants", "In that test,
+  applicants over 40 ...")
+- **R5 (low)** "Pooled" is a stats word. status: fixed ("counted together" or "counted as one
+  group" in every place; none left)
+- **R6 (low)** farber-2017 no longer covered the mid-50s end. status: fixed (back in the trailing
+  cite)
+- **R7 (low)** "no drop" (Farber) against "small drop" (Kline) was uneven; both Farber tests used
+  women in office jobs. status: fixed ("Two US tests of women applying to office jobs found no
+  clear drop ...")
+- **R8 (low)** "Most US tests used women applying to office jobs" became false with five US tests.
+  status: fixed ("Three of the five US tests here used only women, two of them in office jobs",
+  citing Lahey, women only per the source row above)
+- **R9 (low)** Neumark's short name varied. status: fixed ("the largest US test built to study
+  age" in the onset section, "the largest US age test" in the two later mentions)
+
+Not re-read: sentences and sources this change did not touch.
