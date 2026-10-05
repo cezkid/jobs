@@ -11,7 +11,7 @@
 | Your resume + jobs you ask about, what you say in interview practice, and the jobs on your Today page when a Claude chat opens | Your own AI chat account (Claude, ChatGPT or GitHub Copilot - Copilot's may be shared with Microsoft) |
 | Pages Claude reads in your Chrome browser while it fills a Workday application (the page's words and pictures of it) | Your own Claude account, each time it reads the page |
 | Pages GitHub Copilot reads inside the CEZ Job Finder window - ones it opens itself, or ones you agree to share when VS Code asks (the page's words and pictures of it) | Your own GitHub account (may be shared with Microsoft), each time it reads the page |
-| What you apply with | That employer, when you click Submit - many sites get your resume as soon as you choose it, a few get other parts as they're filled, and on some your email (on some also your name and phone) goes when you click Continue or Next on their first box, before the form; the AI tells you first |
+| What you apply with | That employer, when you click Submit - many sites get your resume as soon as you choose it, a few get other parts as they're filled (Ashby: each answer as you fill its box, and a town letter by letter as you type it), and on some your email (on some also your name and phone) goes when you click Continue or Next on their first box, before the form; the AI tells you first |
 | Which companies are on your job list (just their names on the job search, nothing about you) | freehire.me, each morning, to find each company's website |
 | A follow-up email you send | The person you send it to, from your own email |
 

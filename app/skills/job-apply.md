@@ -156,7 +156,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    plainly their resume was tailored with AI help in this chat, so the answer is theirs, on the
    page - read the wording back, never draft, tick or pick for them.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
-   any banner (application limits), and that nothing is sent until they click **Submit**.
+   any banner (application limits), and that nothing more is sent until they click **Submit** -
+   name what already went (resume on choosing; Ashby: each answer + the town as filled).
    Greenhouse (Chrome or `--in-window`): also say after Submit it may email them a security code -
    they paste it on the page, then it goes through; the employer's spam setting decides
    (`app/docs/apply/greenhouse.md` #Email security code after Submit).

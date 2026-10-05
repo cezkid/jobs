@@ -104,7 +104,7 @@ privacy-ai:
     - '| Text + screenshots of Job Finder window pages Copilot reads (VS Code''s browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User''s own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |'
 privacy-employers:
   page: privacy.html
-  text: EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.
+  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.'
   why: 'privacy table: what employers get, per system'
   rests_on:
   - file: AGENTS.md
