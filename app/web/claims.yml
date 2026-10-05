@@ -159,3 +159,30 @@ vscode-usage-data:
     contains: .data/vscode-ours
   - file: app/install/install-windows.ps1
     contains: vscode-ours
+privacy-delete:
+  page: privacy.html
+  text: 'Ask the chat to turn off the daily check. Sign-ins from pages you opened in the app’s window are kept by VS Code, outside the folder: in that window press Ctrl+Shift+P (Mac: Cmd+Shift+P) and pick Browser: Clear Storage (Workspace). Then delete the CEZ Job Finder folder.'
+  why: window sign-ins live in VS Code's storage for the folder, not in it; the palette command clears them (probe s)
+  rests_on: &window-signins
+  - file: app/workspace.py
+    contains: '"workbench.browser.dataStorage": "workspace",'
+  - file: app/docs/app-window.md
+    contains: 'Clear (Workspace): 0 errors, next `/whoami` sent no cookie; after a restart still none.'
+home-remove:
+  page: index.html
+  text: 'Ask the chat to turn off the daily check. Clear sign-ins from pages opened in the app’s window – VS Code keeps them outside the folder: in that window press Ctrl+Shift+P (Mac: Cmd+Shift+P) and pick Browser: Clear Storage (Workspace). Then delete the CEZ Job Finder folder. More'
+  why: same as privacy-delete, short
+  rests_on: *window-signins
+privacy-delete-later:
+  page: privacy.html
+  text: 'Folder already gone? Paste %APPDATA%\Code\User\workspaceStorage into File Explorer’s address bar (Mac: ~/Library/Application Support/Code/User/workspaceStorage into Finder’s Go to Folder, Shift-Cmd-G). Delete the folder in it whose workspace.json names your CEZ Job Finder folder.'
+  why: where VS Code keeps the window's sign-ins - the app's own VS Code data paths + the measured layout (probe s)
+  rests_on:
+  - file: app/workspace.py
+    contains: '"workbench.browser.dataStorage": "workspace",'
+  - file: app/launch.py
+    contains: data = Path(os.environ.get("APPDATA", home)) / "Code"
+  - file: app/launch.py
+    contains: data = home / "Library" / "Application Support" / "Code"
+  - file: app/docs/app-window.md
+    contains: 'One dir: `<data>/User/workspaceStorage/<id>/browserStorage` - not under `User/profiles/` even w/ the profile; its `workspace.json` = `{"folder": "file:///<the folder>"}`'
