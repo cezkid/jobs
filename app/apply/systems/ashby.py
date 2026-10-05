@@ -24,9 +24,12 @@ EXAMPLES = ("https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a"
 QUESTIONS_OVER_HTTP = True
 READY = "[data-field-path]"
 # Ashby type -> shared kind; a type missing here is asked as text and flagged by the contract test
+# (types on 111 open forms, 2026-10-05: ashby.md "Kinds on real forms")
 KIND = {"String": "text", "LongText": "longtext", "Email": "email", "Phone": "phone", "Number": "number",
         "Date": "date", "Location": "location", "Boolean": "yesno", "ValueSelect": "choice",
-        "MultiValueSelect": "multichoice", "File": "file"}
+        "MultiValueSelect": "multichoice", "File": "file", "Url": "url", "EducationHistory": "text"}
+# one block of boxes per school (school, degree, major, dates; repeatable): never typed as one answer
+ON_PAGE = {"EducationHistory": "ASK Education History - add each school in its own boxes on the page"}
 SYSTEM_KEY = {"_systemfield_name": "name", "_systemfield_email": "email",
               "_systemfield_location": "location", "_systemfield_resume": "resume"}
 
@@ -193,6 +196,8 @@ def fill(page, q: dict, resume_file: str | None) -> str:
         return "FAIL question not on page"
     box.scroll_into_view_if_needed()
     kind, value = q["kind"], q["answer"]
+    if q.get("native") in ON_PAGE:
+        return ON_PAGE[q["native"]]
     if kind == "file":
         # the resume goes in the resume box only; a cover letter box gets the letter made for this job
         if q.get("key") not in ("resume", "cover_letter"):

@@ -29,11 +29,45 @@ Lever's public postings API (`api.lever.co/v0/postings/<co>/<id>`) has no questi
 Card field types seen (51 fields, 4 tenants): `text` 15, `textarea` 14, `multiple-choice` 14,
 `dropdown` 6, `multiple-select` 2. Shared kinds: `text` -> text, `textarea` -> longtext,
 `multiple-choice` -> choice (Yes/No only -> yesno), `dropdown` -> choice (Yes/No only -> yesno),
-`multiple-select` -> multichoice. Other card types (file, date ...): unmeasured.
+`multiple-select` -> multichoice. `file-upload` -> file; no other card type on 21 forms (Kinds on real forms).
 
 No "Additional information" (`comments`) box on any of the 4 (2026-10-03). Required flags in the
 card JSON match the page's `required` attr (4 of 4). The read-ahead line "Lever doesn't publish
 which questions are required" is about the job search's captured questions, not this page.
+
+## Kinds on real forms (2026-10-05)
+
+`apply-form survey` (`app/apply/survey.py`): one plain GET of `/apply` per employer, one open posting
+each, 22 employers on the owner's list -> 21 read, 1 closed (404), 0 refused (paced 2 s). Counts only.
+Required = card JSON `required` / page `required` or `✱`.
+
+| Part | Type | Shared kind | Fields | Required | Employers |
+|---|---|---|---|---|---|
+| card | multiple-choice | choice / yesno | 43 | 42 | 12 |
+| card | textarea | longtext | 41 | 34 | 14 |
+| card | dropdown | choice / yesno | 37 | 36 | 8 |
+| card | text | text | 22 | 18 | 10 |
+| card | multiple-select | multichoice | 11 | 10 | 3 |
+| card | file-upload | file (new: was text) | 1 | 0 | 1 |
+| survey | multiple-choice | choice | 10 | 0 | 3 |
+| survey | multiple-select | multichoice | 3 | 0 | 3 |
+| EEO | select | choice | 45 | 0 | 14 |
+| EEO | text (disability signature) | text, applicant's | 8 | 0 | 4 |
+| EEO | radio | choice | 1 | 0 | 1 |
+| standard | resume | file | 21 | 19 | 21 |
+| standard | name, email | text, email | 21 each | 21 each | 21 |
+| standard | phone | phone | 21 | 16 | 21 |
+| standard | location | location | 21 | 9 | 21 |
+| standard | org | text | 21 | 4 | 21 |
+| standard | LinkedIn / Portfolio / GitHub / Twitter / Other | url | 18 / 16 / 15 / 11 / 11 | 6 / 0 / 0 / 0 / 0 | same |
+| other | `urls[...]` not standard | text | 4 | 0 | 4 |
+| other | `pronouns` checkboxes | multichoice | 4 | 0 | 4 |
+
+- file-upload card ("upload a copy of your certification(s)", optional): `input[type=file]
+  .application-file-input` in the card; `fill` ASKs - the user's own file, never the resume. Fixture
+  `app/tests/fixtures/lever/card-file.html`. Upload behaviour unmeasured.
+- Employer surveys: 3 of 21. File boxes other than the resume: 1 (the card above).
+- No card type besides these six on any of the 21.
 
 ## Widgets (tenants A-D, 2026-10-03)
 

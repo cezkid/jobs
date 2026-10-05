@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import json
 import pkgutil
 from datetime import date
 from pathlib import Path
@@ -457,6 +458,28 @@ def test_ashby_form_becomes_shared_questions():
     assert got["_systemfield_name"]["key"] == "name" and got["_systemfield_resume"]["kind"] == "file"
     assert got["abc"]["key"] == "linkedin" and got["def"]["options"] == ["10+"] and got["ghi"]["kind"] == "yesno"
     assert got["new"]["kind"] == "text" and got["new"]["native"] == "SomeNewType"  # unknown type: typed as text
+
+
+def test_ashby_types_from_real_forms_url_and_education_history():
+    """Url (31 of 111 open forms) + EducationHistory (2), 2026-10-05: ashby.md "Kinds on real forms"."""
+    job = json.loads((Path(__file__).parent / "fixtures" / "ashby" / "survey-kinds.json").read_text())
+    got = {q["title"]: q for q in ashby.from_form(job)}
+    assert {q["native"] for q in got.values()} <= set(ashby.KIND)
+    assert (got["LinkedIn Profile"]["kind"], got["LinkedIn Profile"]["key"]) == ("url", "linkedin")
+    samples = next(q for t, q in got.items() if t.startswith("Please provide relevant work samples"))
+    assert (samples["kind"], samples["key"], samples["required"]) == ("url", None, False)
+    school = got["Education History"]
+    assert school["required"] and school["native"] == "EducationHistory"
+
+    class Box:
+        first = property(lambda self: self)
+        count = lambda self: 1
+        scroll_into_view_if_needed = lambda self: None
+
+    class Page:
+        locator = lambda self, selector: Box()
+    # a block of boxes per school: never one answer typed into its first box
+    assert ashby.fill(Page(), school | {"answer": "State University"}, None).startswith("ASK Education History")
 
 
 
@@ -1387,3 +1410,16 @@ def test_ashby_long_list_choice_the_page_empties_reads_as_dropped(fixture_page):
     page.wait_for_timeout(1200)  # the page empties the pick after 800 ms
     assert page.locator('[data-field-path="q_country"] .value').inner_text() == ""
     assert not ashby.holds(page, country)
+
+
+def test_survey_tally_is_counts_only():
+    from apply import survey
+    f = lambda **k: {"type": "t", "required": False, "survey": False, "resume": False, "file": False, "known": True,
+                     "raw": {"title": "Why Acme?"}} | k
+    got = survey.tally([("Lever", [f(type="standard:resume:file", file=True, resume=True, required=True),
+                                   f(type="card:file-upload", file=True, known=False), f(survey=True)]),
+                        ("Lever", None)])["Lever"]
+    assert (got["employers"], got["closed"], got["survey_forms"]) == (2, 1, 1)
+    assert (got["other_file_boxes"], got["employers_with_other_file"], got["unknown"]) == (1, 1, ["card:file-upload"])
+    assert got["types"]["standard:resume:file"] == {"employers": 1, "fields": 1, "required": 1}
+    assert "Acme" not in json.dumps(got)  # question text never in the counts

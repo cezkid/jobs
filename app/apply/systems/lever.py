@@ -26,9 +26,10 @@ QUESTIONS_OVER_HTTP = True
 READY = "#application-form input[name=name]"
 # a chosen resume goes to Lever at once to be read, before Submit (lever.md)
 FILE_ON_CHOICE = True
-# card field type -> shared kind (51 fields, 4 tenants, 2026-10-03); a type missing here is asked as text
+# card field type -> shared kind (21 open forms, 2026-10-05: lever.md "Kinds on real forms"); a type missing
+# here is asked as text
 KIND = {"text": "text", "textarea": "longtext", "multiple-choice": "choice", "dropdown": "choice",
-        "multiple-select": "multichoice"}
+        "multiple-select": "multichoice", "file-upload": "file"}
 # Lever's own boxes, by name: (title when the page label is blank, kind, key)
 STANDARD = {"resume": ("Resume/CV", "file", "resume"), "name": ("Full name", "text", "name"),
             "email": ("Email", "email", "email"), "phone": ("Phone", "phone", "phone"),

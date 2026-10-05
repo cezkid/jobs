@@ -12,6 +12,7 @@ reported LATER), the user clicks Next / Continue, then `prepare` again (systems 
 and `fill` again.
 `measure <link>` (developers): a safe look at a live form - apply/lab.py; `try <link> [--next] [--no-upload]`: a
 system's filler on it with synthetic answers - apply/trial.py.
+`survey <links file>` (developers): question kinds on many Ashby + Lever forms, plain reads - apply/survey.py.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
 import argparse
@@ -384,7 +385,13 @@ def main() -> None:
     tr.add_argument("--next", action="store_true", help="then press the one Next / Continue button (block on)")
     tr.add_argument("--no-upload", action="store_true", help="leave file boxes: a page whose upload is blocked "
                     "can break the rest of the form (Workable)")
+    sv = sub.add_parser("survey", help="(developers) question kinds on many Ashby + Lever forms: one plain read per "
+                        "link, paced, counts only -> .data/measure/")
+    sv.add_argument("links", type=Path, help="file of posting links, one per line")
     args = ap.parse_args()
+    if args.step == "survey":
+        from apply import survey
+        return survey.survey(args.links)
     if args.step == "measure":
         from apply import lab
         return lab.measure(args.url, args.click)

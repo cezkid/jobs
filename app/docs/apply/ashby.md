@@ -18,10 +18,40 @@ autofill add-ons (Simplify, JobWizard) fill more but hold the resume on their se
 `jobPosting(organizationHostedJobsPageName, jobPostingId) { applicationForm { sections {
 fieldEntries { ... on FormFieldEntry { isRequired field } } } } }`. `field` = JSON blob: `path`,
 `title`, `type`, `selectableValues`. Types seen (tenant A): String, Email, Phone, Location, File,
-ValueSelect, LongText, Boolean. Voluntary disclosure (EEO: gender, race, veteran) is
+ValueSelect, LongText, Boolean; every type on 111 forms: Kinds on real forms. Voluntary disclosure (EEO: gender, race, veteran) is
 `surveyForms`, same shape - asked for in the same query (measured 2026-10, tenant A: three
 ValueSelect, page labels = option labels exactly). Any other on-page question missing from the file
 -> `fill` counts it, leaves it to the user.
+
+## Kinds on real forms (2026-10-05)
+
+`apply-form survey` (`app/apply/survey.py`): one form-definition read per employer, one open posting each,
+114 employers on the owner's list -> 111 read, 3 closed (`jobPosting` null), 0 refused (paced 2 s).
+Counts only. Required = `isRequired`.
+
+| Ashby type | Shared kind | Fields | Required | Employers |
+|---|---|---|---|---|
+| String | text | 335 | 223 | 111 |
+| ValueSelect | choice | 231 | 103 | 68 |
+| Boolean | yesno | 183 | 178 | 78 |
+| File | file | 129 | 105 | 110 |
+| LongText | longtext | 127 | 88 | 67 |
+| Email | email | 111 | 111 | 111 |
+| Phone | phone | 53 | 45 | 53 |
+| Location | location | 46 | 43 | 46 |
+| MultiValueSelect | multichoice | 45 | 9 | 25 |
+| Url | url (new: was typed as text) | 42 | 23 | 31 |
+| Number | number | 12 | 10 | 11 |
+| EducationHistory | text, filler ASKs (new) | 2 | 2 | 2 |
+| Date | date | 2 | 2 | 2 |
+
+- Url: link boxes (LinkedIn, GitHub, website, work samples) - keyed by title like a String; fixture
+  `app/tests/fixtures/ashby/survey-kinds.json`.
+- EducationHistory (`_systemfield_education_history`): one block per school - school (required),
+  degree, major, start, end (optional), repeatable, min 1. Not filled: `fill` ASKs, user adds schools on
+  the page. Widget unmeasured.
+- Survey forms (voluntary EEO): 37 of 111.
+- File boxes other than the resume: 19, on 19 employers (titles not kept; cover letter vs other unmeasured).
 
 ## Read back
 

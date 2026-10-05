@@ -98,6 +98,18 @@ def test_lever_signature_and_consent_are_the_applicants():
         assert lever.fill(None, q | {"answer": "x"}, None).startswith("ASK yours to do on the page")
 
 
+def test_lever_file_upload_card_is_a_file_box_never_the_resume():
+    """1 of 21 open forms, 2026-10-05: lever.md "Kinds on real forms"."""
+    got = lever.from_page((FIXTURES / "card-file.html").read_text())
+    certs = next(q for q in got if q["native"] == "cards:file-upload")
+    assert (certs["kind"], certs["key"], certs["required"]) == ("file", None, False)
+    assert certs["id"].endswith("[field1]") and certs["title"].startswith("Please upload a copy of your certification")
+
+    class Page:
+        locator = lambda self, selector: type("Box", (), {"count": lambda self: 1, "first": None})()
+    assert lever.fill(Page(), certs | {"answer": True}, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")
+
+
 def test_lever_broken_card_json_falls_back_to_the_page():
     page = (FIXTURES / "tenant-b.html").read_text().replace("Salary Expectations&quot;", "Salary Expectations")
     got = lever.from_page(page)
