@@ -80,7 +80,7 @@ One job-site guide tells senior candidates to list work "up to the last 10-15 ye
 
 The rule is convention, with no study behind it. Older jobs can stay as short lines, so the page shows no false hole in the middle.
 
-In practice, keep jobs newest first, give recent, relevant work the most room, and shorten older roles rather than hiding them.
+In practice, keep jobs newest first, give recent, relevant work the most room, and shorten older roles rather than hiding them. How dates on a resume let a reader guess age is covered in [Age discrimination in hiring](age-bias-hiring.md).
 
 ## Does a gap in your resume hurt?
 

@@ -65,15 +65,15 @@ before adding a claim; a figure listed there never reaches a user as fact.
 
 | Rule | Basis | Strength |
 |---|---|---|
-| Penalty onset ~50, not 40 | US audits: none at 35-43 (Farber 2017: 35-37 = 40-42, p=0.97; Farber 2019 peak 33-43, 12.6-12.9%, then 11.0% at 51-52, 9.7% at 60-61). Appears ~50, women first (Neumark 2019); large 55-66: women 64-66 admin 7.6% vs 14.4% (-47%), men in sales -30%. Europe, age stated outright: from early 40s (Carlsson 2019, Sweden). 40 = federal legal line (some states protect younger ages), not the measured onset. | large field experiment + field experiments |
+| Penalty onset: not 40; somewhere mid-40s to mid-50s | US audits: none at 35-43 (Farber 2017: 35-37 = 40-42, p=0.97; Farber 2019 peak 33-43, 12.6-12.9%, then 11.0% at 51-52, 9.7% at 60-61). Present at 49-51 for women, not for men in sales (Neumark 2019; authors: men's evidence not robust; nothing tested 32-48); large 55-66: women 64-66 admin 7.6% vs 14.4% (-47%), men in sales -30%. Europe, age stated outright: from early 40s (Carlsson 2019, Sweden). 40 = federal legal line (some states protect younger ages), not the measured onset. | large field experiment + field experiments |
 | Graduation year = the cue | Every US age audit signals age this way (Lahey, Neumark, Farber) and it moves callbacks. | large field experiment |
-| Cues work together - offer them as one bundle | Neumark 2019: shorter job history alone, grad year still shown -> no significant change (janitors the exception, -9.4 pts; low-skill jobs only). Neumark 2024 (one restaurant employer): age-blind online screening -> 40+ not under-selected for interviews; offers after interview still 40% lower. Each part alone untested. | large field experiment |
+| Offer the age cues as one bundle (judgement) | No field test hid a cue: removing the grad year alone = untested. Neumark 2019: shorter job history, grad year still shown -> no significant change (janitors the exception, -9.4 pts; low-skill jobs only) - age stayed visible, so it says nothing on hiding. Neumark 2024 (one restaurant employer's records from a lawsuit; author discloses a financial relationship; 40+ = one group): online screening -> 40+ picked for interviews as often or more; offers after interview still 40% lower; its form still asked HS grad year. A long history lets a reader guess age too => bundle = our judgement, no test compared the parts. | derived from field experiments; observational |
 | Recommend the bundle once degree is 20+ years old | Bundle = grad + cert years, oldest roles, "25 years" wording. 20 years ~ implied age 42+: covers every band where a penalty was found, w/ margin. Threshold itself = judgement from the audits, not tested. | derived from field experiments |
-| Hiding has a small cost - name it | 60% of hiring managers say candidates should always list grad year (ResumeBuilder 2024, n=1,000, self-report). Derous 2017 (610 Belgian HR raters): leaving out birth date lowered ratings slightly (η²=0.02) - birth date, where customary, not grad year. | vendor survey; lab/LLM audit |
+| Hiding may have a small cost - name it, say it is not measured in the US | ResumeBuilder 2022 (800 US hiring managers, self-report): 41% say a grad year makes age bias more likely, nearly one in four would never recommend listing it, largest group (26%) says always list all relevant experience. Derous 2017 (610 Belgian HR raters): leaving out birth date lowered ratings slightly (η²=0.02) - birth date, where customary, not grad year. No US test of a missing grad year. | vendor survey; lab/LLM audit |
 | Keep the year early in career | Students + within ~10 years of graduating keep it ("Expected May 2027"); new-grad programmes screen on it. Farber 2019: ages 22-23 at 9.4% was mostly missing experience. | convention + field experiment |
 | Dated tools read as age | Van Borm 2021: perceived tech skill, flexibility, trainability explain ~41% of the age effect. Show current tools really used; no test shows recent training closes the gap. | lab/LLM audit |
-| AI reads grad year too | Bone 2026 *preprint* (COLM 2026, 10 open-model families): post-training moved callbacks against older applicants 3.6 pts on average, 8 of 10 models. Tamkin 2023 (Claude 2.0, explicit age): negative over 60. | lab/LLM audit, preprint |
-| Never a false date | Leaving a date off = fine; a false one = Hold. National Student Clearinghouse covers ~97% of US college enrollment for degree checks. Required form field -> answer truthfully; optional -> blank is fine. | vendor docs; law |
+| AI reads grad year too | Bone 2026 (COLM 2026 conference paper, 10 open-model families, one applicant per prompt, older = 45-58): post-trained models 3.6% less likely to call back older applicants than their own base models, 8 of 10 moved that way - a shift between model versions, not an older-vs-younger gap. Tamkin 2023 *preprint* (Claude 2.0, explicit age, loans + visas + jobs): negative over 60. | lab/LLM audit |
+| Never a false date | Leaving a date off = fine; a false one = Hold. National Student Clearinghouse: member schools enroll ~97% of US college students (its About page); it runs a degree + attendance verification service (its Verify page). Required form field -> answer truthfully; optional -> blank is fine. | vendor docs; law |
 | Wording | "This year lets a reader guess age" - never "because you're older". Offer fires on dates in the file, same for everyone. | convention (policy) |
 
 ## Work breaks
@@ -117,10 +117,12 @@ required box, or that any employer broke the law.
 | Form I-9 | Full legal name; filled in after the offer is accepted, by the first day of work. | In force | [USCIS I-9](https://www.uscis.gov/i-9) |
 | Work-permit questions | Employers may generally ask whether you're authorised to work in the US + whether you'll need visa sponsorship. | In force | [DOJ IER FAQ](https://www.justice.gov/crt/iers-frequently-asked-questions-faqs) |
 | California 2 CCR 11079 | Limits age-revealing questions (age, birth date, graduation dates) at every pre-employment stage, unless age is a genuine job requirement. | Operative 2020-07-01 | [2 CCR 11079](https://www.law.cornell.edu/regulations/california/2-CCR-11079) |
-| Oregon HB 3187 | Limits age, birth date, attendance/graduation dates until after the first interview (or a conditional offer). | Effective 2025-09-26 (91 days after the session ended) | [Oregon Legislature](https://olis.oregonlegislature.gov/liz/2025R1/Measures/Overview/HB3187) |
+| Oregon HB 3187 | Limits age, birth date, attendance/graduation dates until after the first interview (or a conditional offer). | Effective 2025-09-26 (Oregon Laws 2025 ch. 125, opened 2026-10-04) | [Oregon Legislature](https://olis.oregonlegislature.gov/liz/2025R1/Measures/Overview/HB3187) |
 | Connecticut PA 21-69 | Limits age, birth date, graduation dates on the initial application; 3+ staff; job-requirement + legal exceptions. | In force 2021-10-01 | [CT General Assembly](https://www.cga.ct.gov/asp/cgabillstatus/cgabillstatus.asp?selBillType=Public+Act&which_year=2021&bill_num=69) |
-| Delaware SB 211 (19 Del. C. 711) | Same, initial application; 4+ staff. | In force since 2022-09-08 (signed) | [Delaware Code title 19](https://delcode.delaware.gov/title19/c007/sc02/index.html) |
+| Delaware SB 211 (19 Del. C. 711) | Same, initial application; 4+ staff. | Signed 2022-09-08 (83 Del. Laws c. 421, opened 2026-10-04; no effective-date clause in it) | [Delaware Code title 19](https://delcode.delaware.gov/title19/c007/sc02/index.html) |
 | Colorado SB23-058 | Same, initial application, any employer size; employers must say applicants may black out age details on transcripts + certificates. | In force 2024-07-01 | [Colorado General Assembly](https://leg.colorado.gov/bills/sb23-058) |
+| Minnesota Stat. 363A.08 subd. 4(a)(1) | Before a person is employed: no requiring or requesting information that pertains to age, unless a bona fide occupational qualification. | In force (text opened 2026-10-04; 2026 amendment changed a cross-reference only) | [Minnesota Revisor](https://www.revisor.mn.gov/statutes/cite/363A.08) |
+| Pennsylvania Human Relations Act sec. 5(b)(1) (43 P.S. 955(b)(1)) | Before employment: no eliciting information or using an application form w/ questions or entries concerning age. The act's age definition not opened - never state an age range. | In force (text opened 2026-10-04) | [Pennsylvania General Assembly](https://www.palegis.us/statutes/unconsolidated/law-information/view-statute?txtType=PDF&SessYr=1955&SessInd=0&ActNum=0222.&chpt=000.&subchpt=000.&sctn=5&subsctn=000.) |
 | Colorado SB 26-189 (AI in hiring) | Employers using AI decisions must give notice at the point of interaction, describe the system's role in an adverse decision in plain language within 30 days (Attorney General rules on it due 2027-01-01), let applicants correct factually wrong data, give "meaningful human review and reconsideration" on request. | Signed 2026-05-14, from 2027-01-01; replaces SB24-205; Attorney General enforces only, no private suits; 60-day cure notice until 2030 "if a cure is deemed possible"; start date from the fiscal note's summary - its Effective Date section puts notice, rights + enforcement sections at signing; signed act text not opened; DOJ moved 2026-04-24 to join xAI's suit vs the 2024 law; court order 2026-04-27 (xAI v. Weiser, D. Colo., ECF 24): Attorney General won't enforce SB24-205 or its replacement for conduct up to 14 days after a preliminary-injunction ruling, motion due 28 days after final rules; no ruling as of 2026-10-02 | [CourtListener docket](https://www.courtlistener.com/docket/73171074/x-ai-llc-v-weiser/),  [Colorado General Assembly](https://leg.colorado.gov/bills/sb26-189) |
 | California ADS rules (2 CCR, FEHA) | Automated-decision systems in hiring can violate FEHA if they harm a protected group; keep ADS data 4 years; anti-bias testing (or its lack) counts in a claim. | In force 2025-10-01 | [Civil Rights Council](https://calcivilrights.ca.gov/2025/06/30/civil-rights-council-secures-approval-for-regulations-to-protect-against-employment-discrimination-related-to-artificial-intelligence/) |
 | California privacy rules on automated decisions (CPPA, 11 CCR 7200ff) | Businesses using a tool that replaces or substantially replaces a human decision on hiring: pre-use notice (7220); access to the tool's logic + how its output was used (7222); opt-out or human appeal (7221) - hiring exception if the tool only assesses ability to do the work + doesn't unlawfully discriminate. | Comply from 2027-01-01 | [CPPA regulation text](https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf) |
@@ -190,7 +192,6 @@ Never stated to a user as fact.
 - Quillian & Midtbøen 2026 exact figures (foreign-education penalty reported as both 35% + 42%).
 - Any field test of bare initials, or initials w/ an ethnic surname.
 - Any HBCU field experiment.
-- Minnesota + Pennsylvania restricting age questions on applications.
 - NYC grad-date questions "illegal" (contradicts the city's 2020 guidance).
 - "Resumes implying 50+ get 29% fewer callbacks (41% in tech)" - no source traced.
 - Hiring-manager shares for age cues (82% / 79% / 46%) - secondary sources only.
@@ -200,7 +201,7 @@ Never stated to a user as fact.
 - Ghayad 2013 sample size; ResumeGo per-reason rates; LinkedIn break-type counts + "61% see gaps
   as negative"; SHRM functional-resume shares; Path Forward 80% conversion (self-reported).
 - Batinovic 2023 published figures (thesis version only read).
-- Oregon HB 3187 exact effective date (19 vs 26 Sep 2025).
+- California 2 CCR 11079 changes since 2020: official copy blocks scripts; Cornell copy still shows the 2020 text (2026-10-04).
 
 ## Sources
 
@@ -213,12 +214,12 @@ Zimmermann 2012. Åslund & Nordström Skans, ILR Review 2012. Biernat, Zhao & Wa
 Greenhouse support docs (preferred name, blurring). Checkr docs.
 Gao, Jiang & Yan, arXiv 2606.28978 (preprint). Bommasani et al., arXiv 2605.27371 (preprint).
 Chen & Xiao, arXiv 2609.16501 (preprint). Bone, Stephany & del Rio-Chanona, arXiv 2609.22169
-(preprint, COLM 2026). Rozado, PeerJ CS 2026. An et al., PNAS Nexus 2025. Wilson & Caliskan,
+(COLM 2026). Rozado, PeerJ CS 2026. An et al., PNAS Nexus 2025. Wilson & Caliskan,
 AIES 2024. Wilson et al., AIES 2025. Glazko et al., FAccT 2024. Tamkin et al. 2023.
 Neumark, Burn & Button, JPE 2019 (NBER w21669). Neumark, JHR 2024. Lahey, JHR 2008. Farber,
 Silverman & von Wachter, RSF 2017. Farber, Herbst, Silverman & von Wachter, JOLE 2019. Carlsson
 & Eriksson, Labour Econ. 2019. Derous & Decoster 2017. Van Borm, Burn & Baert 2021. ResumeBuilder
-survey 2024. National Student Clearinghouse (degree verification, ~97% of US college enrollment).
+survey 2022. National Student Clearinghouse (About + Verify pages; ~97% of US college enrollment). Dalle, Lippens & Baert, Socio-Economic Review 2025.
 Fuller & Raman, *Hidden Workers*, HBS/Accenture 2021. D'hert, Baert & Lippens, Socio-Economic Review 24(3), 2026. Nunley, Pugh, Romero & Seals, ILR Review 2017.
 Kroft, Lange & Notowidigdo, QJE 2013. Namingit, Blankenau & Schwab, JEBO 2021. Kristal et al.,
 Nature Human Behaviour 2023 (w/ the Behavioural Insights Team). Weisshaar, ASR 2018 + Socius 2021. Pedulla, ASR

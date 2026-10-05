@@ -40,18 +40,20 @@ that isn't asking for your legal name.
 
 ## Dates that show age
 
-- **Age bias shows up around 50, not 40.** US studies found none at 35 to 43. It starts around 50
-  and grows after 55. *Big study.*
+- **Age bias does not start at 40.** US studies found none at 35 to 43. It shows somewhere between
+  the mid-40s and mid-50s and grows after 55, for the women and jobs tested. *Big study.*
 - **Your graduation year is the main clue.** *Big study.*
-- **Clues work together.** In one big study, a shorter job history changed nothing while the
-  graduation year still showed. So the program offers one bundle: graduation and certificate years, jobs that ended 15+ years ago, and
+- **No study has tested taking only the year off.** In one big study, a shorter job history
+  changed nothing while the graduation year still showed. A long history lets a reader guess age
+  too. So the program offers one bundle: graduation and certificate years, jobs that ended 15+ years ago, and
   long counts like "25 years of experience". Recommended once your degree is 20+ years old.
-  *Big study; the 20-year line is judgement.*
-- **It has a small cost.** Some hiring managers like to see the year. *Vendor survey.*
+  *The bundle and the 20-year line are judgement.*
+- **It may have a small cost.** Some hiring managers like to see the full history. No US study
+  has measured what a missing year costs. *Vendor survey.*
 - **Never a false date.** Leaving one off is fine. A required form box: answer truthfully. An
   optional one: blank is fine.
 - **Some states limit when employers may ask** your age, birth date or graduation dates:
-  California at every step before an offer, Oregon until the first interview, Colorado,
+  California, Minnesota and Pennsylvania before hiring, Oregon until the first interview, Colorado,
   Connecticut and Delaware on the first application. Which applies depends on where the job is
   and the employer's size. *Law.*
 

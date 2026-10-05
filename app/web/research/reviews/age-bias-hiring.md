@@ -1,11 +1,11 @@
 ---
 reviewed: 2026-10-04
-verdict: revise
+verdict: publish
 reviewer: fresh AI session, bead plan-xsy.74 (no drafting context; sources opened before the draft was read)
 ---
-# Review: Age bias in hiring: when it starts and what helps (`age-bias-hiring.md`)
+# Review: Age discrimination in hiring: when it starts, what helps (`age-bias-hiring.md`)
 
-Verdict **revise**: 1 high, 7 medium, 12 low findings. Every number the draft takes from its 24
+Verdict at review **revise**: 1 high, 7 medium, 12 low findings. All answered in plan-xsy.75 (20 fixed, one of them with a part left for a browser check; see "Revision" below), so the header verdict is now publish. The title at review was "Age bias in hiring: when it starts and what helps". Every number the draft takes from its 24
 sources matches the source. The problems are in what three claims are made to carry. The
 "cues work together" line (Short answer, a section opener, a What-helps bullet) rests on a test
 that never hid an age cue: the graduation year stayed on every resume. The Belgian paper called
@@ -169,7 +169,7 @@ under "Searched". No source held text addressing an AI.
   did little". Line 118 -> "If you take the year off, shorten the oldest jobs too. A long history
   lets a reader guess age as well. That is our judgement; no test compared the two." The same
   wording sits in `fair-screening.md` ("Cues work together") and the Guide - the revise bead
-  brings them into line. status: open
+  brings them into line. status: fixed
 
 ### Medium
 
@@ -178,7 +178,7 @@ under "Searched". No source held text addressing an AI.
   3, page 1253. Fix: open the journal version (browser if scripts are blocked), re-check 56 =
   about 28% and "no significant differences" at 44 and 50, update `sources.yml` (venue, doi, drop
   `preprint`), and replace "A Belgian working paper, not yet peer-reviewed" with "A Belgian test".
-  If only the working paper can be opened, say "we read the working-paper copy". status: open
+  If only the working paper can be opened, say "we read the working-paper copy". status: fixed
 - **M2. The AI sentence misreads the study.** Line 79 (rows 44, 45). The models did not choose
   between applicants: each profile got its own yes/no decision. The 3.6 is how far the trained
   versions moved from their own base versions, not a gap between older and younger applicants.
@@ -187,12 +187,12 @@ under "Searched". No source held text addressing an AI.
   45 to 58. The makers' extra training moved callbacks for older applicants down by 3.6% against
   the same models before that training. Eight of the ten moved that way [@bone-2026]." Fix the
   `sources.yml` sample ("choosing between pairs" is wrong). The paper writes "3.6%";
-  `fair-screening.md` writes "3.6 pts" and "preprint" - align both. status: open
+  `fair-screening.md` writes "3.6 pts" and "preprint" - align both. status: fixed
 - **M3. "Five states" is wrong.** Lines 85, 96 (rows 48, 55). Minnesota bars employers, before
   hiring, from asking for information "that pertains to ... age" (Minn. Stat. 363A.08, subd. 4,
   opened today). AARP's May 2026 page also lists Pennsylvania. Fix: open and add Minnesota; open
   Pennsylvania's statute (43 P.S. 955(b)) and add it if it says so; change the count to "at least
-  N states" and keep the "not all 50" line. status: open
+  N states" and keep the "not all 50" line. status: fixed
 - **M4. Neumark 2024 needs two more facts, and one sentence leans too far.** Lines 36, 67 (rows
   19, 36, 39). (a) The author discloses a financial relationship, and the data come from reports
   filed in the lawsuit. Say so: "The author worked on the case and says so in the paper" - only
@@ -202,19 +202,19 @@ under "Searched". No source held text addressing an AI.
   paper sees a contradiction. (c) "A page without age cues may get you to the interview" is one
   employer's records, and the form was not fully age-blind. Fix: "At this one employer, older
   applicants reached the interview as often as younger ones. The offers fell after it." status:
-  open
+  fixed
 - **M5. The men's result lacks the authors' caveat.** Line 38 (row 23). The paper's abstract
   says there is "considerably less evidence" for men after its correction, and calls the men's
   result not robust. Fix: after the sales figures add "The authors say their evidence for men is
   weaker than for women." Drop "It does show the drop came earlier for women" in favour of "In
-  this test the drop at 49 to 51 showed for women and not for men in sales." status: open
+  this test the drop at 49 to 51 showed for women and not for men in sales." status: fixed
 - **M6. "Costs little or nothing" has no US evidence.** Lines 69, 104 (rows 40, 59). The only
   source is a Belgian lab study of birth dates with a very small effect. The brief's US survey
   figure could not be opened. Fix: line 69 opener -> "Leaving a date off may cost a little; no US
   test has measured it." Line 104 -> "A missing year is not a false statement. A false year found
   in a check is a mismatch on record." Add to "What we don't know": "What a missing graduation
   year costs on a US resume." Line 130 ("names the small cost") -> "says the cost is not
-  measured in the US". status: open
+  measured in the US". status: fixed
 - **M7. "About 50" is firmer than the tests.** Lines 3, 11, 25, 57 (rows 1, 3, 11, 30). What the
   four US tests show: no drop at 40-43 (two tests, women, office jobs); a drop at 49-51 for women
   in one test, not for men in sales; no clear drop at 51-52 in another; a clear drop from 55.
@@ -222,44 +222,44 @@ under "Searched". No source held text addressing an AI.
   between the mid-40s and mid-50s, about 50 for women in the largest test". Description ->
   "US tests find no drop in employer replies at 40; it shows around 50. With age stated, Swedish
   employers reply less from the early 40s." (under 160 characters - check). Line 57 -> add "for
-  the women and jobs tested". status: open
+  the women and jobs tested". status: fixed
 
 ### Low
 
 - **L1** Lines 10, 19. The 40% covers 19 age tests, two of them on younger applicants; the 17
   older-age tests give about 42%. Either figure is fine; say which. Add one sentence: the authors
-  say published tests may over-state gaps. status: open
+  say published tests may over-state gaps. status: fixed
 - **L2** Line 21. "Employers say the same when asked" - they were not asked; they rated made-up
-  applicants. Fix: "A rating study points the same way (Lab study)." status: open
+  applicants. Fix: "A rating study points the same way (Lab study)." status: fixed
 - **L3** Table. Farber 2017 row: add "gap came from the last round; none in the first three".
   `sources.yml` farber-2017 sample: "12,224 applications to 4,594 postings (Table 4)", not "about
-  12,000 by our count". Carlsson and Dalle rows carry no page. status: open
+  12,000 by our count". Carlsson and Dalle rows carry no page. status: fixed
 - **L4** Line 32. Add what "borderline" hides: the author picked 50 as the cut-off because it
-  gave the strongest result (footnote 23). status: open
+  gave the strongest result (footnote 23). status: fixed
 - **L5** Lines 63, 73. Same vendor survey: managers worried as much about applicants under 25,
   and the largest group said to list all relevant experience. One clause keeps the pick honest.
-  Van Borm: say "400 people on an online panel, nine in ten in the US". status: open
+  Van Borm: say "400 people on an online panel, nine in ten in the US". status: fixed
 - **L6** Law table. Oregon row has no start date (primary source needed; law firms say September
   26 or 28, 2025). Delaware has none (AARP: enacted September 2022 - open the session law).
   California was read on a third-party copy showing the 2020 text: open the official text and
-  check for changes since October 2025. status: open
+  check for changes since October 2025. status: fixed (Oregon and Delaware dates from the session laws; California's official copy blocks scripts - see Revision)
 - **L7** Line 81. Add "as of October 2026" to the Mobley sentence; the case is still running.
-  status: open
+  status: fixed
 - **L8** Line 79. Name the limit: the 2023 test used one older model and covered many kinds of
-  decisions, not only hiring. status: open
+  decisions, not only hiring. status: fixed
 - **L9** Missing leads, none opened by either session: Batinovic 2023 meta-analysis (Collabra);
   the 2025 Nature paper on age and gender in language models. Open in a browser at ship time, or
-  list under `uncited:` as searched and not readable. Do not cite unopened. status: open
+  list under `uncited:` as searched and not readable. Do not cite unopened. status: fixed (neither cited; the unread 2023 review is named under "What we don't know")
 - **L10** Lines 102, 122. "Employers use services like it to confirm degrees and dates" has no
   source: the page read gives coverage only. Cite the Clearinghouse's degree-check page (saved
   as `nscdv.html`, not in `sources.yml`) or cut the sentence. `fair-screening.md` says "for
-  degree checks" - same fix. status: open
+  degree checks" - same fix. status: fixed
 - **L11** Title and description. Description is 164 characters. The title has neither
   "discrimination" nor "resume"; the H2s carry the searched wording, so acceptable. Consider "Age
-  discrimination in hiring: when it starts, what helps". status: open
+  discrimination in hiring: when it starts, what helps". status: fixed
 - **L12** Line 123. "Employers differ, so one rejection says little about the next" has no
   source. Cut "Employers differ, so", or open and cite a study of differences between employers.
-  status: open
+  status: fixed
 
 Checked and fine: every figure in rows marked supported, against the saved source text (Farber
 2017 Table 4 from the PDF itself); the bars figure against farber-2019 Table 5; the wording rule
@@ -269,3 +269,103 @@ vendor surveys and the preprint are labelled in the sentence; "What we don't kno
 the tool box is separate from the evidence; no owner data, no real employer besides the named
 court case; no own-measurement numbers. `fair-screening.md` still cites "ResumeBuilder 2024,
 n=1,000, 60%", which nobody could open - the revise bead removes or replaces it.
+
+## Revision (plan-xsy.75, 2026-10-04)
+
+Every finding answered: 20 fixed, none rebutted. Line numbers above are the draft's. Sources
+opened for the fixes, all on 2026-10-04; none held text addressing an AI.
+
+- **H1** Short answer, the section paragraph and the What-helps bullet now use the reviewer's
+  wording: no field test removed the graduation year alone; the one US test shortened the history
+  and left the year on; "shorten the oldest jobs too" is marked as our judgement. "Cues work
+  together", "One cue alone did little" and "together or not at all" are gone from the article,
+  `app/docs/resume/fair-screening.md` and the Guide.
+- **M1** Crossref and Ghent University's library page confirm the journal version: Socio-Economic
+  Review 23(3), 1253-1285, doi 10.1093/ser/mwae070. The publisher page answers 403 to scripts.
+  The authors' open copy (submitted version, Ghent library) was read: 712 vacancies; age 56 27.74%
+  fewer, p = 0.001; "no significant differences were found for other ages" (pp. 22-23 of that
+  copy). Registry id `dalle-2023` -> `dalle-2025`, type article, venue + doi, `preprint` dropped.
+  Text: "A Belgian test, published in 2025 ... We read the authors' open copy of the Belgian
+  paper." Browser check of the journal page at ship time.
+- **M2** Reviewer's sentences used. Registry sample now "a yes or no callback to one made-up
+  applicant at a time ... older = 45 to 58". `fair-screening.md`: "3.6%", conference paper,
+  "a shift between model versions".
+- **M3** Minnesota Statutes 363A.08 subd. 4(a)(1) re-opened (the 2026 amendment, chapter 88,
+  changed a cross-reference only). Pennsylvania Human Relations Act section 5(b)(1) opened on the
+  legislature's site: before employment, unlawful to "Elicit any information ... or use any form
+  of application ... containing questions or entries concerning ... age". Its age definition was
+  not opened, so no age range is stated. Both added as rows (`mn-363a-08`, `pa-phra-955`); "at
+  least seven states"; "these eight sources"; "did not survey all 50 states" kept.
+- **M4** (a) Title page re-read: it only says the author "has disclosed a financial relationship
+  of potential relevance", so the text says "The author discloses a financial relationship that
+  may be relevant to the research" and "reports filed in an age-discrimination lawsuit" - not
+  "worked on the case". (b) Added after the no-drop-at-40 sentence. (c) Reviewer's sentence used.
+- **M5** Reviewer's sentences used; the caveat cites p. 37 of the working paper ("not robust").
+- **M6** Opener, the false-date paragraph and the tool box reworded; new unknown "What a missing
+  graduation year costs on a US resume". The tool box says "may have a small cost that no US test
+  has measured" (the program still names a possible cost; `fair-screening.md` row and the
+  `job-setup` skill say the same).
+- **M7** Section opener, Short answer, description and the "For you" line reworded as proposed.
+  Description is 134 characters.
+- **L1** Short answer gives the 17 older-age tests (about 42%); the body gives both figures and
+  the authors' publication-bias caveat. **L2**, **L4**, **L5**, **L7**, **L8**, **L12** as
+  proposed. **L3** Farber row, registry sample (12,224 applications, 4,594 postings), page
+  numbers on the Carlsson and Dalle rows. **L11** title changed (56 characters), slug unchanged.
+- **L6** Oregon Laws 2025 chapter 125: "Effective date September 26, 2025". Delaware, 83 Del. Laws
+  c. 421: "Approved September 8, 2022". Both in the table and the registry samples. California:
+  the official Westlaw copy answers 403 and no archive copy exists; the Cornell copy re-fetched
+  today still ends "operative 7-1-2020". Left for a browser check at ship time; the registry
+  sample keeps "as amended in 2020, read on Cornell's ... copy".
+- **L9** Batinovic 2023 still answers 403; the Nature lead was never identified. Neither is
+  cited. "What we don't know" says a 2023 review would not open and is not used.
+- **L10** The Clearinghouse's Verify page opened: "trusted source for education verification
+  offering U.S. degrees and attendance records". New entry `nsc-verify`; sentence now "The
+  Clearinghouse runs a service that confirms degrees and attendance". Same in `fair-screening.md`.
+- Claim-table rows: 31 (`uncited:` snippets plus "We searched the web and arXiv in October
+  2026"), 33 ("more than 25,000"), 37 ("or more often"), 60 (ages 32 to 48; the six-age test
+  jumped from 42-43 to 51-52).
+- Also changed: `fair-screening.md` age rows, Laws rows (Minnesota, Pennsylvania, dates) and
+  Unverified list; the unopened "ResumeBuilder 2024, 60%" figure removed and replaced by the
+  opened 2022 survey; the Guide's age lines; `app/skills/job-setup.md` cost wording.
+- Links in: `ai-resume-screening-bias.md`, `ai-hiring-laws.md`, `what-makes-a-good-resume.md`.
+  Links out: those three, `employment-gaps.md`, `methods.md`.
+
+## Re-review (2026-10-04, fresh AI session, plan-xsy.75)
+
+A subagent that made none of the edits read the diff, the registry changes, the companion files
+and the saved source copies. It edited nothing. Verdict **revise**: no high, 1 medium, 7 low. All
+eight answered below, so the header verdict stays publish.
+
+Checked and supported against the saved copies: both Lippens figures (19 tests about 40%, 17
+about 42%), Europe and US for older applicants, and the publication-bias caveat; Neumark 2019
+figures and the experience test; Neumark 2024 disclosure, "reports filed in the case", 40 and
+over as one group; all three ResumeBuilder 2022 additions; Van Borm panel details; Bone 2026 (one
+decision per applicant, 45 to 58, 3.6%, eight of ten); Tamkin (one model, loans and visas);
+Dalle (27.74% at 56, nothing clear elsewhere); Minnesota, Pennsylvania, Oregon and Delaware texts;
+seven states and eight table sources; the exceptions sentence for both new rows; the
+Clearinghouse Verify page. "For you," once; no quote over 15 words; every statistic cited; the
+old wording gone from the app docs and the Guide. No source held text addressing an AI.
+
+- **R1 (medium)** `fair-screening.md` still said "onset ~50 ... women first" and the Guide "It
+  starts around 50", which M5 and M7 removed from the article. status: fixed (rule now "not 40;
+  somewhere mid-40s to mid-50s", "present at 49-51 for women, not for men in sales ... men's
+  evidence not robust"; Guide bullet reworded as proposed)
+- **R2 (low)** "not robust" is on printed p. 37 of neumark-2019; 39 is the PDF sheet, and the
+  article's other locators for that paper are printed pages. status: fixed (p. 37)
+- **R3 (low)** The Carlsson cite did not cover "2% to 3%" (PDF sheet 20). status: fixed
+  (pp. 3, 7, 20, all PDF sheets of the working paper)
+- **R4 (low)** Lahey's cut-off clause comes from footnote 23, p. 18. status: fixed (pp. 4, 18)
+- **R5 (low)** "the gap came from the last of four rounds" said more than Farber 2017: earlier
+  rounds were lower but not clearly so. status: fixed ("was clear only in the last of four rounds")
+- **R6 (low)** "published in 2025": online November 2024, in print July 2025. status: fixed
+  ("printed in a journal in 2025")
+- **R7 (low)** "about 50 for women in the largest test" sat badly with "that test cannot say where
+  the drop begins". status: fixed ("In the largest test the drop was already there for women at
+  49 to 51.")
+- **R8 (low)** "Leaving a date off is fine" against "may cost a little". status: fixed ("is
+  honest")
+
+Also taken from its notes: `fair-screening.md` Delaware row now says "Signed 2022-09-08", not "in
+force since" (the session law has no effective-date clause). Still open for the ship bead's
+browser check: the journal page of Dalle 2025 and California's official copy of 2 CCR 11079. Not
+re-read: sentences and sources the revision did not touch.

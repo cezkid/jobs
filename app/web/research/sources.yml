@@ -180,7 +180,7 @@
   venue: COLM 2026, Conference on Language Modeling (open copy on arXiv)
   url: https://arxiv.org/abs/2609.22169
   evidence: lab/LLM audit
-  sample: 10 open AI models, each in a base and a trained version, choosing between pairs of made-up applicants; age shown by graduation year
+  sample: 10 open AI models, each in a base and a trained version, giving a yes or no callback to one made-up applicant at a time; age shown by graduation year, older = 45 to 58
   checked: 2026-10-04
 
 - id: ca-2ccr-11079
@@ -363,15 +363,16 @@
   preprint: true
   checked: 2026-10-04
 
-- id: dalle-2023
-  type: report
+- id: dalle-2025
+  type: article
   authors: ["Dalle, Axana", "Lippens, Louis", "Baert, Stijn"]
-  year: 2023
+  year: 2025
   title: "Nothing Really Matters: Evaluating Demand-Side Moderators of Age Discrimination in Hiring"
-  url: https://docs.iza.org/dp16672.pdf
+  venue: "Socio-Economic Review 23(3), 1253-1285 (authors' open copy read)"
+  doi: 10.1093/ser/mwae070
+  url: https://biblio.ugent.be/publication/01JH3FY6BJB2FM7PKB8WY96X0Z/file/01JJ1KNE3W1TZW2QSSY5N1G8S9.pdf
   evidence: field experiment
-  sample: pairs of made-up applicants aged 38 to 56 sent to 712 job openings in Flanders, Belgium, 2020-2021; IZA discussion paper 16672
-  preprint: true
+  sample: pairs of made-up applicants aged 38 to 56 sent to 712 job openings in Flanders, Belgium; authors' open copy (submitted version) read on Ghent University's library site, page numbers are that copy's; the journal page blocks scripts
   checked: 2026-10-04
 
 - id: dastin-2018
@@ -392,7 +393,7 @@
   title: "Delaware Code, title 19, chapter 7, subchapter II: Discrimination in Employment (sections 710 and 711)"
   url: https://delcode.delaware.gov/title19/c007/sc02/index.html
   evidence: law
-  sample: state code online; section 711(m) on first applications, section 710 for who counts as an employer
+  sample: "state code online; section 711(m) on first applications, section 710 for who counts as an employer; session law 83 Del. Laws c. 421: signed September 8, 2022"
   checked: 2026-10-04
   recheck_by: 2027-04-04
 
@@ -558,7 +559,7 @@
   venue: "RSF: The Russell Sage Foundation Journal of the Social Sciences 3(3), 168-201"
   doi: 10.7758/RSF.2017.3.3.08
   evidence: large field experiment
-  sample: about 12,000 made-up applications by our count, from college-educated women to US office support jobs
+  sample: 12,224 made-up applications to 4,594 postings (Table 4), from college-educated women to US office support jobs
   checked: 2026-10-04
 
 - id: farber-2019
@@ -948,6 +949,7 @@
   checked: 2026-10-04
 
 # Court order: allegations, not findings
+
 - id: mit-capd-ai-cover-letters
   type: web
   org: MIT Career Advising & Professional Development
@@ -968,6 +970,17 @@
   sample: a university career office's guide, updated April 2026
   checked: 2026-10-04
 
+- id: mn-363a-08
+  type: law
+  org: Minnesota Legislature, Office of the Revisor of Statutes
+  year: 2026
+  title: "Minnesota Statutes, section 363A.08: Unfair discriminatory practices relating to employment"
+  url: https://www.revisor.mn.gov/statutes/cite/363A.08
+  evidence: law
+  sample: "state statute online; subdivision 4(a)(1): before a person is employed, no requiring or requesting information that pertains to age, unless a real job requirement"
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: mobley-2025-order
   type: law
   org: US District Court for the Northern District of California
@@ -980,6 +993,7 @@
   recheck_by: 2027-01-03
 
 # Court order: allegations, not findings
+
 - id: mobley-2026-order
   type: law
   org: US District Court for the Northern District of California
@@ -1080,6 +1094,16 @@
   sample: the organisation's own description of its coverage
   checked: 2026-10-04
 
+- id: nsc-verify
+  type: web
+  org: National Student Clearinghouse
+  year: 2026
+  title: Verify Degrees and Enrollment
+  url: https://www.studentclearinghouse.org/verify/
+  evidence: vendor docs
+  sample: the organisation's own description of its service for confirming degrees and attendance
+  checked: 2026-10-04
+
 - id: nunley-2017
   type: article
   authors: ["Nunley, John M.", "Pugh, Adam", "Romero, Nicholas", "Seals, R. Alan"]
@@ -1174,7 +1198,18 @@
   title: "House Bill 3187 (2025 Regular Session), Enrolled"
   url: https://olis.oregonlegislature.gov/liz/2025R1/Measures/Overview/HB3187
   evidence: law
-  sample: bill page and enrolled text; takes effect 91 days after the 2025 session ended
+  sample: "bill page and enrolled text; Oregon Laws 2025 chapter 125: signed May 22, 2025, effective September 26, 2025"
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: pa-phra-955
+  type: law
+  org: Pennsylvania General Assembly
+  year: 1955
+  title: "Pennsylvania Human Relations Act (Act of 1955, P.L. 744, No. 222), section 5: Unlawful discriminatory practices"
+  url: "https://www.palegis.us/statutes/unconsolidated/law-information/view-statute?txtType=PDF&SessYr=1955&SessInd=0&ActNum=0222.&chpt=000.&subchpt=000.&sctn=5&subsctn=000."
+  evidence: law
+  sample: "the legislature's current copy of the act; section 5(b)(1), also cited as 43 P.S. 955(b)(1): before employment, no questions or form entries about age; the act's age definition was not read"
   checked: 2026-10-04
   recheck_by: 2027-04-04
 

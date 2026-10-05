@@ -71,7 +71,7 @@ A small 2024 test gave GPT-4 one resume and the same resume plus disability-rela
 
 Anthropic's own 2023 preprint tested its Claude 2.0 model on made-up decisions, including job offers. The model favored women and non-white people, and was less positive about people over 60. Those gaps were much smaller when the model had to infer the person from a name. Telling the model that discrimination is illegal cut the gaps [@tamkin-2023].
 
-Age and disability can count against you in some models' choices. Those tests use made-up applicants, not real hiring.
+Age and disability can count against you in some models' choices. Those tests use made-up applicants, not real hiring. What field tests with real employers show about age is in [Age discrimination in hiring](age-bias-hiring.md).
 
 ## What happens with real applicants?
 

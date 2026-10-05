@@ -171,8 +171,8 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 - Lint warns `street-address`, `personal-details` -> the push back above. `old-graduation-year`
   / `old-certification-year` (15+ years) -> offer `hide_year`, their call; degree 20+ years
   (detail says so) -> recommend the one bundle - graduation + certificate years, jobs that ended
-  15+ years ago, long year counts ("25 years") - and name its small cost (some hiring managers
-  like to see the year; vendor survey). Words: "this year lets a reader guess age", never
+  15+ years ago, long year counts ("25 years") - and name its possible small cost (some hiring
+  managers want the full history - vendor survey; not measured in the US). Words: "this year lets a reader guess age", never
   "because you're older". `abbreviated-school` -> ask the full name (forms say "Do not use
   abbreviations").
 - Languages, every user, once (a fact in their file, same question for all): "Do you speak any

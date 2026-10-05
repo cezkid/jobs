@@ -78,7 +78,7 @@ As of October 2026, California's civil rights rules took effect October 1, 2025.
 
 As of October 2026, New Jersey has civil rights rules on unequal effects, adopted in December 2025. The rules name automated online application tools and face-analysis software in hiring. Either may cause unlawful unequal effects under New Jersey's anti-discrimination law [@nj-dcr-2025].
 
-A separate Colorado law limits age questions, as of October 2026. A first job application may not ask your age, birth date or school dates. If the employer asks for transcripts or certificates then, it must say you may black out those dates. The ban has applied since July 1, 2024 [@co-sb23-058].
+A separate Colorado law limits age questions, as of October 2026. A first job application may not ask your age, birth date or school dates. If the employer asks for transcripts or certificates then, it must say you may black out those dates. The ban has applied since July 1, 2024 [@co-sb23-058]. Other states' limits on age questions are listed in [Age discrimination in hiring](age-bias-hiring.md).
 
 As of October 2026, the federal disability law, the ADA, applies before any job offer. Federal guidance says employers may not ask disability questions before an offer. You may ask for a reasonable accommodation for any test in the hiring process, AI ones too [@eeoc-ada-preemployment].
 
