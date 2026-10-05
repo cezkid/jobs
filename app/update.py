@@ -1,6 +1,7 @@
 import io
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -19,6 +20,7 @@ PRIVATE = {*cfg.PRIVATE_DIRS, ".data", ".venv"}
 KEEP = (Path(".claude") / "settings.local.json", Path(".vscode") / "settings.json")
 OFFLINE = "Could not check for updates; continuing."
 IN_USE = "Could not update now (a program file is open); continuing with this version."
+UP_TO_DATE = "Up to date."
 
 
 def download(url: str = ZIP_URL) -> bytes:
@@ -65,7 +67,7 @@ def swap_in(archive: bytes, root: Path) -> None:
 def update(root: Path) -> str:
     if (root / ".git").exists():
         pulled = subprocess.run(["git", "-C", str(root), "pull", "--ff-only", "-q"], check=False)
-        return "Up to date." if pulled.returncode == 0 else OFFLINE
+        return UP_TO_DATE if pulled.returncode == 0 else OFFLINE
     try:
         archive = download()
     except httpx.HTTPError:
@@ -74,11 +76,16 @@ def update(root: Path) -> str:
         swap_in(archive, root)
     except OSError:
         return IN_USE
-    return "Up to date."
+    return UP_TO_DATE
 
 
 def main() -> None:
-    print(update(cfg.ROOT))
+    said = update(cfg.ROOT)
+    print(said)
+    if said == UP_TO_DATE:
+        # new window extension into the profile now, by the NEW program (this process still holds
+        # the old modules); an open window on the old one gets a plain restart line
+        subprocess.run([sys.executable, str(cfg.ROOT / "app" / "jobs.py"), "window-update"], check=False)
 
 
 if __name__ == "__main__":

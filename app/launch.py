@@ -943,12 +943,95 @@ def missing_extensions(choice: str | None) -> list[tuple[str, str]]:
 def ensure_extensions(choice: str | None, quiet: bool = True) -> bool:
     """Everything missing in ONE code call: 3 gallery + vsix = 3.0 s vs ~3 s each (measured)."""
     missing = missing_extensions(choice)
-    if not missing:
-        return True
-    if not quiet:
-        print("Adding " + ", ".join(name for _, name in missing) + "...")
-    args = [a for ext, _ in missing for a in ("--install-extension", ext)]
-    return code([*args, "--force"], quiet=True) == 0
+    ok = True
+    if missing:
+        if not quiet:
+            print("Adding " + ", ".join(name for _, name in missing) + "...")
+        args = [a for ext, _ in missing for a in ("--install-extension", ext)]
+        ok = code([*args, "--force"], quiet=True) == 0
+    record_window_installed()
+    return ok
+
+
+# the window extension writes RUNNING_RECORD as it starts ({version, pid of its extension host});
+# the launcher writes INSTALLED_RECORD (one line, version) once this release's copy is in the
+# profile. An open window keeps the version it started with until it closes: the Desktop icon on
+# it only brings it forward (owner's window ran 0.19 after 0.24 shipped, 2026-10-05). Closing the
+# window is enough, VS Code left running or not: the next one loads the new copy (#u). The
+# extension compares the two and says so on Today; update, open + apply say it here
+RUNNING_RECORD = "window-running.json"
+INSTALLED_RECORD = "window-installed"
+# same words in app/vscode/start.js RESTART_LINE (test_vscode_ext checks both sides)
+RESTART_LINE = f"Restart {cfg.NAME} to finish the update: close its window, then open it again from the Desktop icon."
+BEHIND = "the Job Finder window still runs the version from before the update"
+
+
+def version_tuple(text: object) -> tuple[int, ...] | None:
+    try:
+        return tuple(int(part) for part in str(text).strip().split("."))
+    except ValueError:
+        return None
+
+
+def record_window_installed(data: Path | None = None) -> None:
+    """INSTALLED_RECORD = this release's window extension, once it is in the profile. Read per
+    call (cfg.ROOT) like `mark_ready`: tests point ROOT at a throwaway folder."""
+    import vscode_ext
+    if not window_extension_current():
+        return
+    data = data or cfg.ROOT / ".data"
+    try:
+        version = vscode_ext.manifest()["version"]
+        record = data / INSTALLED_RECORD
+        if record.exists() and record.read_text(encoding="utf-8").strip() == version:
+            return  # unchanged => the running window's watcher stays quiet
+        data.mkdir(parents=True, exist_ok=True)
+        record.write_text(version + "\n", encoding="utf-8")
+    except (OSError, ValueError, KeyError):
+        pass  # no record => the window just shows no restart line
+
+
+def window_behind(data: Path | None = None, paths: VSCodePaths | None = None) -> bool:
+    """A running Job Finder window started on an older window extension than the one installed.
+
+    Can't tell => False: a wrong "restart" line costs more than a missing one.
+    """
+    import vscode_ext
+    paths = paths or vscode_paths()
+    data = data or cfg.ROOT / ".data"
+    if not vscode_running(paths):
+        return False
+    installed_now = version_tuple(installed_version(vscode_ext.extension_id()))
+    if not installed_now:
+        return False
+    try:
+        record = json.loads((data / RUNNING_RECORD).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        # extensions before 0.25 write no record: one came up in this VS Code run => it is older
+        try:
+            return (data / READY_MARKER).stat().st_mtime >= (paths.data / "code.lock").stat().st_mtime
+        except OSError:
+            return False
+    except (OSError, ValueError):
+        return False
+    try:
+        if not process_alive(int(record["pid"])):
+            return False  # window closed (Mac: VS Code stays up); the next one loads the new version
+        running = version_tuple(record["version"])
+    except (TypeError, ValueError, KeyError):
+        return False
+    return bool(running) and running < installed_now
+
+
+def window_update() -> None:
+    """`jobs.py update`, run by the new program: its window extension into the profile now, and
+    one plain line when the open window still runs the old one. No profile yet => the next
+    launch makes it + installs there (never into the default profile from here)."""
+    if not profile_location() or not code_command([]):
+        return
+    ensure_extensions(chosen_ai())
+    if window_behind():
+        print(RESTART_LINE)
 
 
 def window_setup() -> None:

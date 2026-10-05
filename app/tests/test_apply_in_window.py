@@ -208,6 +208,17 @@ def test_in_window_page_at_stops_plainly_and_names_the_chrome_way(tmp_path, monk
     assert ext.detached == [] and len(ext.attached) == int(running)
 
 
+def test_in_window_page_at_says_restart_when_the_window_runs_the_old_extension(tmp_path, monkeypatch):
+    # old extension = no attach request answered: a plain line + the Chrome way, not a 15 s timeout
+    window_setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(launch, "window_behind", lambda: True)
+    with FakeExtension(tmp_path, {}) as ext, pytest.raises(SystemExit) as stop:
+        with window.page_at("https://job-boards.greenhouse.io/acme/jobs/1"):
+            pytest.fail("no page from a window on the old extension")
+    assert str(stop.value) == f"not filled: {launch.BEHIND} - {window.FALLBACK}. {launch.RESTART_LINE}"
+    assert ext.opened == [] and ext.attached == []
+
+
 def fill_setup(tmp_path, monkeypatch, name):
     from resume import tailor
     folder = tmp_path / "7 - Acme - Analyst"

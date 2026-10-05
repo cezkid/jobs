@@ -1,0 +1,129 @@
+{
+ "what": "u: update ships window extension N+1 while the window runs N",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "at": "2026-10-05T07:32:17Z",
+ "mac": "macOS 26.4.1 x86_64",
+ "setup": [
+  {
+   "cmd": [
+    "uv",
+    "run",
+    "python",
+    "app/tests/demo.py"
+   ],
+   "rc": 0,
+   "ms": 7352
+  },
+  {
+   "cmd": [
+    "uv",
+    "run",
+    "app/jobs.py",
+    "today"
+   ],
+   "rc": 0,
+   "ms": 2012
+  }
+ ],
+ "versions": {
+  "N": "0.25.0",
+  "N+1": "0.25.1"
+ },
+ "steps": {
+  "cold": {
+   "running": {
+    "version": "0.25.0",
+    "pid": 69271,
+    "at": "2026-10-05T07:32:38.240Z"
+   },
+   "installed": "0.25.0",
+   "today": {
+    "own": "0.25.0",
+    "restart": null,
+    "error": null
+   }
+  },
+  "update": {
+   "said": {
+    "rc": 0,
+    "stdout": "Restart CEZ Job Finder to finish the update: close its window, then open it again from the Desktop icon.",
+    "stderr": "",
+    "ms": 1402
+   },
+   "running": {
+    "version": "0.25.0",
+    "pid": 69271,
+    "at": "2026-10-05T07:32:38.240Z"
+   },
+   "installed": "0.25.1",
+   "today": {
+    "own": "0.25.0",
+    "restart": "Restart CEZ Job Finder to finish the update: close its window, then open it again from the Desktop icon.",
+    "error": null
+   },
+   "noticeMs": 157
+  },
+  "closed": {
+   "vscodeStillRunning": true,
+   "running": {
+    "version": "0.25.0",
+    "pid": 69271,
+    "at": "2026-10-05T07:32:38.240Z"
+   },
+   "installed": "0.25.1",
+   "said": {
+    "rc": 0,
+    "stdout": "",
+    "stderr": ""
+   }
+  },
+  "warm": {
+   "running": {
+    "version": "0.25.1",
+    "pid": 69362,
+    "at": "2026-10-05T07:32:55.366Z"
+   },
+   "installed": "0.25.1",
+   "newRecord": true,
+   "today": {
+    "own": "0.25.1",
+    "restart": null,
+    "error": null
+   }
+  },
+  "relaunch": {
+   "running": {
+    "version": "0.25.1",
+    "pid": 69409,
+    "at": "2026-10-05T07:33:05.940Z"
+   },
+   "installed": "0.25.1",
+   "today": {
+    "own": "0.25.1",
+    "restart": null,
+    "error": null
+   }
+  }
+ },
+ "cold": {
+  "rc": 0,
+  "ms": 6670,
+  "holdUp": true
+ },
+ "warm": {
+  "rc": 0,
+  "ms": 4877,
+  "holdUp": true
+ },
+ "warmQuit": {
+  "killed": false
+ },
+ "relaunch": {
+  "rc": 0,
+  "ms": 3524,
+  "holdUp": true
+ },
+ "relaunchQuit": {
+  "killed": false
+ }
+}

@@ -668,7 +668,8 @@ const SCRIPT = `(${page})(acquireVsCodeApi(), document, window, ${CLEAR_MS}, ${U
 // fonts = { source: webview.cspSource, files: { 400: uri, 700: uri } }; none => Georgia
 // look = auto | light | dark (lookOf), marked on the switch
 // ready = the chat extension already running (busy label says "Opening", not "Starting Claude")
-function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready = false }) {
+// restart = start.restartLine when a newer copy of the window extension waits (quiet, never yellow)
+function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready = false, restart = null }) {
   const h = escapeHtml;
   const btn = (text, action, { cls = "", title = "", busy = "", name = "", key = "", about = "" } = {}) =>
     `<button type="button" data-a="${action}"${key ? ` data-k="${h(key)}"` : ""}${busy ? ` data-busy="${h(busy)}"` : ""}`
@@ -768,7 +769,7 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
   const skip = `<nav class="skip" aria-label="Jump to">${jumps.map(([id, title], i) =>
     `<button type="button" class="link" data-jump="${h(id)}">${i ? "" : "Skip to "}${h(title)}</button>`).join("")}</nav>`;
   return `${head(nonce, fonts)}
-<body data-day="${h(m.date)}">${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${tiles}</div></div>
+<body data-day="${h(m.date)}">${skip}<main><div class="top"><div><h1>Today</h1><p class="sub">${h(m.date)}</p>${restart ? `<p class="note restart">${h(restart)}</p>` : ""}${tiles}</div></div>
 <p class="how" id="how">${h(howLine(mode))}</p>
 ${next}${setup}${sections}${todo}${empty}
 <section class="later" aria-labelledby="s-say">${heading("s-say", "What you can say")}${asks}${examples}${guides}${lookSwitch(lookOf(look))}</section>

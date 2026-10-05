@@ -45,6 +45,7 @@ COMMANDS = {
     "open": (None, "open file or link for user: VS Code tab (PDF too); link as a tab in the Job Finder window, browser when it's closed; --outside: browser always"),
     "clear-signins": (None, "empty sign-ins + site data of pages opened in the Job Finder window (VS Code keeps them outside this folder) - before removing the app"),
     "window-setup": (None, "installer step: Job Finder's VS Code profile + its extensions, plain progress lines"),
+    "window-update": (None, "after update: the new window extension into Job Finder's profile now; says when the open window must restart"),
     "tui": ("tui", "terminal job browser (developers)"),
 }
 
@@ -198,6 +199,9 @@ def open_for_user(target: str, outside: bool = False, wait: float = LINK_WAIT) -
         return
     webbrowser.open(target)
     print(IN_BROWSER)
+    # window open but on the extension from before an update => no link folder watcher; say why
+    if not outside and launch.window_behind():
+        print(f"{launch.BEHIND}. {launch.RESTART_LINE}")
 
 
 def check_settings() -> None:
@@ -229,6 +233,9 @@ def main() -> None:
     elif name == "window-setup":
         import launch
         launch.window_setup()
+    elif name == "window-update":
+        import launch
+        launch.window_update()
     else:
         run_module(COMMANDS[name][0], args)
 

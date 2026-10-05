@@ -130,3 +130,15 @@ def test_download_leaves_site_out_keeps_program_docs():
     names = zipfile.ZipFile(io.BytesIO(out)).namelist()
     assert [n for n in names if n.startswith("jobs-main/docs/")] == ["jobs-main/docs/"]
     assert "jobs-main/app/docs/site.md" in names
+
+
+@pytest.mark.parametrize("said, runs_new", [(update.UP_TO_DATE, True), (update.OFFLINE, False), (update.IN_USE, False)])
+def test_update_hands_the_window_extension_to_the_new_program(monkeypatch, capsys, said, runs_new):
+    # owner 2026-10-05: update shipped a new window extension, the window never got it until the
+    # next cold launch. The NEW program installs it (this process still holds the old modules)
+    calls = []
+    monkeypatch.setattr(update, "update", lambda root: said)
+    monkeypatch.setattr(update.subprocess, "run", lambda args, check: calls.append(args))
+    update.main()
+    assert capsys.readouterr().out == f"{said}\n"
+    assert calls == ([[update.sys.executable, str(update.cfg.ROOT / "app" / "jobs.py"), "window-update"]] if runs_new else [])

@@ -49,6 +49,7 @@ function activate(context) {
     { webviewOptions: { enableFindWidget: true }, supportsMultipleEditorsPerDocument: false }));
   jobsTree = showJobs(context);
   watchLinks(context);
+  noteRunning(context);
   const out = process.env[PROBE_ENV];
   // probe told which pages to open => measures that alone, not the start page
   const opened = out && process.env[PROBE_OPEN_ENV] ? Promise.resolve() : openStartPage().catch(() => {});
@@ -244,7 +245,9 @@ function showToday(document, panel, fontDir) {
     let reason;
     ({ m, reason } = readModel(root));
     const ai = currentAi(root);
-    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai, nonce, fonts, look: currentLook(root), ready: chatWarm(ai) })
+    const restart = restartNow(root);
+    todayShown = { restart, at: Date.now() };
+    panel.webview.html = m ? today.render(m, { mode: sayModeNow(root), ai, nonce, fonts, look: currentLook(root), ready: chatWarm(ai), restart })
       : today.fallback({ nonce, reason, fonts });
   };
   // I sent it / I heard back / It's closed: Undo in the page's status line
@@ -266,7 +269,11 @@ function showToday(document, panel, fontDir) {
     panel.onDidChangeViewState(() => { if (panel.visible) draw(); }),
     panel.webview.onDidReceiveMessage((msg) => act(root, at, document.uri, m, msg, panel, retry, keeper).catch(() => {})),
   ];
-  panel.onDidDispose(() => subs.forEach((s) => s.dispose()));
+  todayDraws.add(draw);
+  panel.onDidDispose(() => {
+    todayDraws.delete(draw);
+    subs.forEach((s) => s.dispose());
+  });
 }
 
 // Jobs side panel (jobs.js, view at the top of the file list): same model + actions as the
@@ -419,6 +426,43 @@ function currentAi(root) {
   } catch {
     return null;
   }
+}
+
+// launcher installed a newer copy of this extension than the one running => Today's quiet line
+function restartNow(root) {
+  try {
+    return start.restartLine({ own: ownVersion, installed: fs.readFileSync(path.join(root, start.INSTALLED), "utf8") });
+  } catch {
+    return null;
+  }
+}
+
+// this window's version (start.RUNNING) for jobs.py, and Today redrawn when the launcher records
+// a newer copy (start.INSTALLED). Only a new window loads that copy => say so, never
+// reload mid-chat. Job Finder's folder only; never throws
+let ownVersion = null;
+const todayDraws = new Set();
+let todayShown = null;
+
+function noteRunning(context) {
+  ownVersion = context.extension.packageJSON.version;
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  if (!folder || folder.uri.scheme !== "file") return;
+  const root = folder.uri.fsPath;
+  if (!start.isJobFinder((rel) => fs.existsSync(path.join(root, rel)))) return;
+  try {
+    const { file, text } = start.runningRecord(root, { version: ownVersion, pid: process.pid, now: Date.now() });
+    fs.writeFileSync(file, text);
+  } catch {}
+  const installed = path.join(root, start.INSTALLED);
+  // plain pattern on the .data folder itself, as watchLinks: never cut by files.watcherExclude
+  const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(path.dirname(installed)), path.basename(installed)));
+  const redraw = () => todayDraws.forEach((draw) => {
+    try {
+      draw();
+    } catch {}
+  });
+  context.subscriptions.push(watcher, watcher.onDidCreate(redraw), watcher.onDidChange(redraw));
 }
 
 // status line on the page: clears after today.CLEAR_MS unless hold; done = pressed button's label;
@@ -859,6 +903,8 @@ async function holdFor(dir, root) {
         if (req.do === "today-link") await Promise.all(req.urls.map((url) => doAction(root, at, { type: "company", url }, ui)));
         else if (req.do === "command") await vscode.commands.executeCommand(req.id, ...(req.args || []));
         res = { req, ms: Date.now() - begun, tabs: readWindow() };
+        // last Today drawn: its restart line (null = none) + this window's version
+        if (req.do === "today") Object.assign(res, { today: todayShown, own: ownVersion });
       } catch (err) {
         res = { req, ms: Date.now() - begun, error: String(err), tabs: readWindow() };
       }

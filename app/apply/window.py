@@ -306,6 +306,9 @@ def page_at(url: str, match=None, before_load=None):
     import launch
     if not launch.vscode_running():
         sys.exit(f"not filled: the Job Finder window isn't open - open CEZ Job Finder, or {FALLBACK}")
+    # extension from before an update => no link watcher or debugger hand-off: say so, not a timeout
+    if launch.window_behind():
+        sys.exit(f"not filled: {launch.BEHIND} - {FALLBACK}. {launch.RESTART_LINE}")
     with holding_page() as (local, seen):
         if not jobs.send_request({"url": local}, cfg.ROOT) or not seen.wait(OPEN_WAIT):
             sys.exit(f"not filled: the Job Finder window didn't open a tab for the form - {FALLBACK}")

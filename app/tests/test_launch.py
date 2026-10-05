@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import shutil
 from pathlib import Path, PurePosixPath, PureWindowsPath
@@ -968,10 +969,13 @@ def test_one_install_call_for_only_what_the_profile_lacks(tmp_path, monkeypatch,
     import vscode_ext
     paths = profile_paths(tmp_path, monkeypatch)
     monkeypatch.setattr(vscode_ext, "OUT", tmp_path / "vsix")
+    monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)  # INSTALLED_RECORD lands in a throwaway .data
+    record = tmp_path / ".data" / launch.INSTALLED_RECORD
     assert launch.ensure_profile(tmp_path / "jobs", paths)
     calls = []
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args) or 0)
     assert launch.ensure_extensions(choice)
+    assert not record.exists()  # not listed yet => the running window is told nothing
     ours, version = vscode_ext.extension_id(), vscode_ext.manifest()["version"]
     vsix = str(tmp_path / "vsix" / f"{ours}-{version}.vsix")
     wanted = [*([ai_ext] if ai_ext else []), launch.PDF_EXTENSION, launch.YAML_EXTENSION, vsix]
@@ -984,6 +988,8 @@ def test_one_install_call_for_only_what_the_profile_lacks(tmp_path, monkeypatch,
     profile_extension(paths, ours, version)
     calls.clear()
     assert launch.ensure_extensions(choice) and calls == []  # all listed => no code call at all
+    # this release's copy in the profile => the open window learns of it (Today's restart line)
+    assert record.read_text(encoding="utf-8") == f"{version}\n"
     profile_extension(paths, ours, "0.0.1")  # last release's copy => this one, nothing else
     assert launch.ensure_extensions(choice) and calls == [["--install-extension", vsix, "--force"]]
 
@@ -1031,7 +1037,7 @@ def test_code_calls_built_in_one_place():
                 if callee == "shutil.which" and ast.unparse(call.args[0]) in ("'code'", '"code"'):
                     sites.setdefault(name, set()).add(f"which:{func.name}")
     assert sites == {"jobs.py": {"open_for_user"},
-                     "launch.py": {"which:code_command", "code", "ensure_extensions", "open_window"}}
+                     "launch.py": {"which:code_command", "code", "ensure_extensions", "open_window", "window_update"}}
 
 
 def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_path, monkeypatch, capsys):
@@ -1384,3 +1390,104 @@ def test_ai_still_found_when_the_new_profile_has_no_extensions_yet(tmp_path, mon
     (paths.extensions / "anthropic.claude-code-2.1.289").mkdir()
     monkeypatch.setattr(launch, "profile_location", lambda p=None: "cez-job-finder")
     assert ai.current(tmp_path / "no-choice-file") == "claude"
+
+
+def behind_setup(tmp_path, monkeypatch, installed="0.25.1"):
+    import vscode_ext
+    paths = profile_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: False)  # profile made at a cold start
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    if installed:
+        profile_extension(paths, vscode_ext.extension_id(), installed)
+    data = tmp_path / ".data"
+    data.mkdir()
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: True)
+    return paths, data
+
+
+def running_record(data, version, pid=None):
+    record = {"version": version, "pid": os.getpid() if pid is None else pid, "at": "2026-10-05T12:00:00Z"}
+    (data / launch.RUNNING_RECORD).write_text(json.dumps(record), encoding="utf-8")
+
+
+@pytest.mark.parametrize("running, alive, expected", [
+    ("0.25.0", True, True),   # update installed 0.25.1 while the window ran 0.25.0 (owner 2026-10-05)
+    ("0.24.9", True, True),
+    ("0.25.1", True, False),  # restarted since
+    ("0.26.0", True, False),
+    ("0.25.0", False, False),  # window closed (Mac: VS Code stays up) => the next one loads 0.25.1
+    ("x", True, False),
+])
+def test_window_behind_compares_the_running_window_with_the_installed_copy(tmp_path, monkeypatch, running, alive, expected):
+    paths, data = behind_setup(tmp_path, monkeypatch)
+    running_record(data, running)
+    monkeypatch.setattr(launch, "process_alive", lambda pid: alive)
+    assert launch.window_behind(data, paths) is expected
+
+
+def test_window_behind_says_no_when_it_cant_tell(tmp_path, monkeypatch):
+    # a wrong "restart" line costs more than a missing one
+    paths, data = behind_setup(tmp_path, monkeypatch)
+    running_record(data, "0.25.0")
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: False)
+    assert not launch.window_behind(data, paths)  # VS Code not running
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: True)
+    (data / launch.RUNNING_RECORD).write_text("{half", encoding="utf-8")
+    assert not launch.window_behind(data, paths)
+    paths, data = behind_setup(tmp_path / "none", monkeypatch, installed=None)
+    running_record(data, "0.25.0")
+    assert not launch.window_behind(data, paths)  # ours not listed in the profile
+
+
+def test_window_behind_without_a_record_only_when_a_window_came_up_this_run(tmp_path, monkeypatch):
+    # extensions before 0.25 write no record: a window that signalled ready since VS Code started
+    # runs one of them; ready from an earlier run says nothing about this one
+    paths, data = behind_setup(tmp_path, monkeypatch)
+    paths.data.mkdir(parents=True, exist_ok=True)
+    lock, ready = paths.data / "code.lock", data / launch.READY_MARKER
+    lock.write_text(f"{os.getpid()}\n", encoding="utf-8")
+    assert not launch.window_behind(data, paths)  # no ready signal at all
+    ready.write_text("x\n", encoding="utf-8")
+    os.utime(lock, (1000, 1000))
+    os.utime(ready, (2000, 2000))
+    assert launch.window_behind(data, paths)
+    os.utime(ready, (500, 500))
+    assert not launch.window_behind(data, paths)
+
+
+def test_window_update_installs_now_and_says_how_to_finish(monkeypatch, capsys):
+    # owner 2026-10-05: 0.24 shipped, the open window kept running 0.19 and links quietly went to
+    # the browser - nobody said a restart was needed
+    installs = []
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "copilot")
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: installs.append(choice) or True)
+    monkeypatch.setattr(launch, "code_command", lambda args: ["/bin/code", *args])
+    monkeypatch.setattr(launch, "profile_location", lambda: None)
+    launch.window_update()  # no profile yet => the next launch makes it + installs there
+    assert installs == [] and capsys.readouterr().out == ""
+    monkeypatch.setattr(launch, "profile_location", lambda: "cez-job-finder")
+    monkeypatch.setattr(launch, "window_behind", lambda: False)
+    launch.window_update()
+    assert installs == ["copilot"] and capsys.readouterr().out == ""
+    monkeypatch.setattr(launch, "window_behind", lambda: True)
+    launch.window_update()
+    assert capsys.readouterr().out == launch.RESTART_LINE + "\n"
+
+
+def test_restart_line_plain_words():
+    # closing the window is enough, VS Code left running or not (app-window.md #u): no Quit menu
+    assert "close its window" in launch.RESTART_LINE and "Desktop icon" in launch.RESTART_LINE
+    for line in launch.RESTART_LINE, launch.BEHIND:
+        for jargon in "extension", "profile", "version 0", "reload":
+            assert jargon not in line.lower(), jargon
+
+
+def test_open_link_says_restart_when_the_window_runs_the_old_extension(tmp_path, monkeypatch, capsys):
+    # the old window has no link watcher => the browser, then why + how to finish the update
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(launch, "window_behind", lambda: True)
+    jobs.open_for_user(POSTING, wait=0.2)
+    assert browser == [POSTING]
+    assert capsys.readouterr().out == f"{jobs.IN_BROWSER}\n{launch.BEHIND}. {launch.RESTART_LINE}\n"
+    jobs.open_for_user(POSTING, outside=True, wait=0.2)  # asked for the browser => nothing to explain
+    assert capsys.readouterr().out == f"{jobs.IN_BROWSER}\n"
