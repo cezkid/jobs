@@ -88,8 +88,11 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
    skill first, or ask whether to use their own resume as is.
 2. `uv run app/jobs.py apply <job number>` (none = own resume) -> writes `apply.js`, prints counts.
 3. Browser: `tabs_context_mcp` (createIfEmpty), new tab, navigate to the posting's apply link.
-   Sign-in page -> step aside (limits). "Autofill with Resume" / "Apply Manually" / "Use My Last
-   Application" -> ask which; autofill only pre-fills, our fill overwrites it anyway.
+   Posting page, before Apply or sign-in: send the text of `app/apply/workday.js` +
+   `\nwindow.__jf.closed()` in one `javascript_tool` call. `true` -> the posting is closed: tell the user in one line, no
+   sign-in, then `AGENTS.md` #Where each job stands (`status set <job> closed` after their yes).
+   `false` -> carry on. Sign-in page -> step aside (limits). "Autofill with Resume" / "Apply
+   Manually" / "Use My Last Application" -> ask which; autofill only pre-fills, our fill overwrites it anyway.
 4. On **My Experience**: read `apply.js`, send its whole text in ONE `javascript_tool` call - it
    starts the fill in the background and returns `'started'`. Poll every ~30s with
    `await new Promise(r => setTimeout(r, 25000)); window.__jf.status()` until `done: true`.

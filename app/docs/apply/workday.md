@@ -29,6 +29,26 @@ never id -> one filler, every tenant. Each fact names its tenant by letter, neve
 | tenant A | Field of Study | niche program name ("<X> Media Technology") absent; nearest a broad media field -> ASK, user confirms |
 | tenant A | Skills | every resume skill name accepted as written (54/54) |
 
+## Closed posting
+
+Checked on the posting page, before Apply + sign-in: `window.__jf.closed()` (send `workday.js` + that
+call in one tool call; awaits up to 10 s). Closed only when no Apply button (`adventureButton`) shows
+AND the page says so (`CLOSED` in `workday.js`). Page is blank at load, drawn seconds later - read
+before that, it is neither (`apply-form measure` read 0 words, 0 buttons on both kinds: it reads too
+early for Workday). Measured 2026-10-05, posting link GET only, cookie notice left alone:
+
+| Tenant | Job search said | Apply button | Page says | `closed()` on its saved page |
+|---|---|---|---|---|
+| tenant B | closed | none | "The page you are looking for doesn't exist." (`errorContainer` > `errorMessage`, Search for Jobs button) | true |
+| tenant C | closed | none | same words; cookie notice above | true |
+| tenant D | open | `adventureButton` "Apply" under the title | posting | false |
+| tenant E | open | same; cookie notice above | posting | false |
+| tenant F | open | none | same "doesn't exist" words | no saved page; the job search's open is not the page's |
+
+Same words + hooks on every closed page seen; another wording -> false (not closed), the AI reads
+the page. Wording from other systems (`form.CLOSED`) also in the pattern, unmeasured on Workday.
+Saved pages (anonymised): `app/tests/fixtures/workday/posting-*.html`.
+
 ## Resume autofill ("Autofill with Resume")
 
 Workday parses the uploaded PDF once, at start. Tenant A, before education fix (PR #18): school

@@ -104,3 +104,42 @@ def test_answers_kept_on_focus_out_stay_put(filled):
                        ("[data-key=fromMonth]", "03"), ("[data-key=fromYear]", "2020")]:
         assert page.input_value(box) == value, box
     assert len(status["problems"]) == 2, status["problems"]
+
+
+@pytest.fixture(scope="module")
+def posting(chrome):
+    """closed() on a saved posting page (anonymised, drawn ~1.5 s after load like the live one)."""
+    context = chrome.new_context()
+
+    def serve(route):
+        u = urlsplit(route.request.url)
+        file = FIXTURES / u.path.lstrip("/")
+        if u.hostname != urlsplit(HOME).hostname or not file.is_file():
+            return route.abort()
+        return route.fulfill(path=str(file))
+
+    context.route("**/*", serve)
+
+    def closed(name):
+        page = context.new_page()
+        page.goto(f"https://{urlsplit(HOME).hostname}/{name}")
+        page.evaluate(profile.FILLER.read_text(encoding="utf-8") + "\n0")
+        try:
+            return page.evaluate("window.__jf.closed()")
+        finally:
+            page.close()
+
+    yield closed
+    context.close()
+
+
+@pytest.mark.parametrize("name", ["posting-closed-b.html", "posting-closed-c.html"])
+def test_closed_posting_read_closed(posting, name):
+    assert posting(name) is True
+
+
+@pytest.mark.parametrize("name", ["posting-open-d.html", "posting-open-e.html",
+                                  # Apply shows => open, whatever closed words its text holds
+                                  "posting-open-says-closed.html"])
+def test_open_posting_never_read_closed(posting, name):
+    assert posting(name) is False

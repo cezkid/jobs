@@ -229,5 +229,14 @@ window.__jf = (() => {
   // tool call times out at 45s => run() in background, poll status()
   const status = () => JSON.stringify({ step: S.step, done: S.done, problems: S.report.filter((r) => !r.startsWith('OK')), ok: S.report.filter((r) => r.startsWith('OK')).length });
   const errors = () => [...new Set([...document.querySelectorAll('[data-automation-id="errorMessage"]')].filter(shown).map(txt))];
-  return { run, status, errors, S };
+  // posting page, before Apply + sign-in: closed only when no Apply button shows AND the page says
+  // so. The page draws itself seconds after load (blank before) - wait for either. Workday wording
+  // measured 2026-10-05 (workday.md #Closed posting); the rest is form.CLOSED's, unmeasured here
+  const CLOSED = /page you are looking for doesn['’]t exist|no longer (?:accepting applications|available|open)|(?:this )?job (?:post(?:ing)? )?(?:is )?closed|not accepting applications|posting (?:has )?expired/i;
+  const apply = () => document.querySelector('[data-automation-id="adventureButton"]');
+  async function closed(ms = 10000) {
+    await until(() => shown(apply()) || shown(document.querySelector('[data-automation-id="errorContainer"]')) || CLOSED.test(txt(document.body)), ms);
+    return !shown(apply()) && CLOSED.test(document.body.innerText || '');
+  }
+  return { run, status, errors, closed, S };
 })();
