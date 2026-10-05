@@ -130,7 +130,8 @@ def prepare(slug: str, url: str) -> None:
         print(note)
     selfid = config.get("self_identification") or {}
     if questions.asks_voluntary(answers) and selfid and selfid.get("fill_on_forms") is None:
-        print("ask once: fill the user's saved voluntary answers (gender, race, veteran) on forms, named before "
+        print("ask once: fill the user's saved voluntary answers (gender, race, veteran, orientation, transgender, "
+              "disability, armed forces) on forms, named before "
               "Submit? Yes -> self_identification.fill_on_forms: true in search settings, then prepare again; "
               "No -> false (asked on each form as now)")
     if keeping is None:

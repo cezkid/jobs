@@ -971,6 +971,107 @@ def test_saved_voluntary_answers_match_other_wordings():
     assert [a["answer"] for a in got] == ["Man", ["Hispanic, Latinx, or Spanish Origin"]]
 
 
+# Greenhouse's own demographic survey (tenant G's 3 tag lists + Yes/No lists, one more board 2026-10-05:
+# "I prefer to self-describe" is a free box, left out by from_board)
+SURVEY_DISABILITY = ("Do you have a disability or chronic condition (physical, visual, auditory, cognitive, mental, "
+                     "emotional, other) that substantially limits one or more of your major life activities, including "
+                     "mobility, communication (seeing, hearing, speaking), & learning")
+SURVEY = [questions.question("o", "How would you describe your sexual orientation? (mark all that apply)", "multichoice",
+                             False, ["Asexual", "Bisexual and/or pansexual", "Gay", "Heterosexual", "Lesbian", "Queer",
+                                     "I don't wish to answer"]),
+          questions.question("t", "Do you identify as transgender?", "choice", False, ["Yes", "No", "I don't wish to answer"]),
+          questions.question("d", SURVEY_DISABILITY, "choice", False, ["Yes", "No", "I don't wish to answer"]),
+          questions.question("a", "Are you a veteran or active member of the United States Armed Forces?", "choice", False,
+                             ["Yes, I am a veteran or active member", "No, I am not a veteran or active member",
+                              "I don't wish to answer"]),
+          questions.question("v", "Veteran Status", "choice", False, VETERAN)]
+SELF_ID = {"gender": "Male", "hispanic_latino": True, "protected_veteran": False, "disability": False,
+           "sexual_orientation": "Heterosexual", "transgender": False, "armed_forces": False}
+
+
+def test_saved_orientation_transgender_disability_armed_forces_fill_the_survey():
+    got = questions.draft(SURVEY, {}, config={"self_identification": {**SELF_ID, "fill_on_forms": True}})
+    assert [a["answer"] for a in got] == [["Heterosexual"], "No", "No", "No, I am not a veteran or active member",
+                                          "I am not a protected veteran"]
+    assert all(questions.VOLUNTARY_SAVED in a["source"] for a in got) and not questions.unvouched(got)
+    # disability stays a sensitive kind: named as one, its wording read back before Submit
+    assert "sensitive: disability or health" in got[2]["source"] and questions.READ_FIRST in got[2]["source"]
+    assert "disability or health" in form.line(got[2])
+    for consent in (None, False):  # asked on the form as before, disability as a sensitive question
+        got = questions.draft(SURVEY, {}, config={"self_identification": {**SELF_ID, "fill_on_forms": consent}})
+        assert all(a["answer"] is None and a["source"].startswith(questions.ASK) for a in got)
+    assert questions.asks_voluntary([SURVEY[2]])  # a form asking only about disability still gets the ask-once
+
+
+def test_saved_armed_forces_and_protected_veteran_kept_apart():
+    """Both titles say "veteran": a protected veteran is one kind of veteran, never answered from the other."""
+    only_armed = {"armed_forces": False, "fill_on_forms": True}
+    got = questions.draft(SURVEY[3:], {}, config={"self_identification": only_armed})
+    assert [a["answer"] for a in got] == ["No, I am not a veteran or active member", None]
+    only_eeoc = {"protected_veteran": False, "fill_on_forms": True}
+    got = questions.draft(SURVEY[3:], {}, config={"self_identification": only_eeoc})
+    assert [a["answer"] for a in got] == [None, "I am not a protected veteran"]
+    yes = questions.draft(SURVEY[3:4], {}, config={"self_identification": {"armed_forces": True, "fill_on_forms": True}})
+    assert yes[0]["answer"] == "Yes, I am a veteran or active member"
+    # the EEOC list decides, whatever armed-forces words its text carries
+    long = questions.question("v", "Protected veteran status (disabled veteran, recently separated veteran, active duty "
+                                   "wartime or campaign badge veteran, Armed Forces service medal veteran)", "choice",
+                              False, VETERAN)
+    assert questions.voluntary_kind(long) == "protected_veteran"
+    assert questions.voluntary_answer(long, {"self_identification": {**only_eeoc, "armed_forces": True}}) == \
+        "I am not a protected veteran"
+
+
+def test_saved_voluntary_answers_match_other_survey_wordings():
+    """Option lists seen on four more Greenhouse boards (2026-10-05)."""
+    config = {"self_identification": {**SELF_ID, "fill_on_forms": True}}
+    q = questions.question
+    asked = [
+        q("o", "What sexual orientation do you most closely identify with? ", "choice", False,
+          ["Asexual", "Bisexual", "Gay", "Heterosexual", "Lesbian", "Pansexual", "Queer", "Not listed",
+           "I don't wish to answer"]),
+        q("t", "Are you a person of transgender experience? ", "choice", False, ["Yes", "No", "I don't wish to answer"]),
+        q("d1", "Do you live with a disability (as outlined by the ADA)?", "choice", False,
+          ["Yes, I have a disability, or have a history/record of having a disability",
+           "No, I do not have a disability, or have a history/record of having a disability", "I don't wish to answer"]),
+        q("d2", "What is your disability status?", "choice", False,
+          ["Yes, I have a disability", "No, I don't have a disability", "I don't wish to answer"]),
+        q("d3", "Disability Status", "choice", False,
+          ["I do not want to answer", "No, I do not have a disability and have not had one in the past",
+           "Yes, I have a disability, or have had one in the past"]),
+        q("a1", "What is your military status?", "choice", False,
+          ["I am on active duty", "I am part of the national guard or on reserve", "I have never served in the military",
+           "I identify as a protected veteran", "I identify as a non-protected veteran",
+           "I identify in multiple military status categories", "I don't wish to answer"]),
+        q("a2", "Are you a veteran/have you served in the military? ", "choice", False,
+          ["Active Reserve", "Inactive Reserve", "Other Protected Veteran", "Retired", "Unspecified Veteran",
+           "Vietnam Era Veteran", "Vietnam Veteran and Other Protected Veteran", "No military service",
+           "I don't wish to answer"]),
+        q("a3", "Are you a veteran or active member of the United States Armed Forces?", "choice", False,
+          ["I am a veteran or active member", "No, I am not a veteran or active member", "I don't wish to answer"])]
+    got = questions.draft(asked, {}, config=config)
+    assert [a["answer"] for a in got] == [
+        "Heterosexual", "No", "No, I do not have a disability, or have a history/record of having a disability",
+        "No, I don't have a disability", "No, I do not have a disability and have not had one in the past",
+        "I have never served in the military", "No military service", "No, I am not a veteran or active member"]
+    assert questions.voluntary_answer(q("o", "Sexual Orientation", "choice", False, ["Gay", "Straight/Heterosexual"]),
+                                      config) == "Straight/Heterosexual"
+
+
+def test_saved_voluntary_answers_never_stretched_to_another_question():
+    config = {"self_identification": {**SELF_ID, "fill_on_forms": True}}
+    q = questions.question
+    asked = [q("r", "Will you require a reasonable accommodation due to a disability during the interview?", "yesno",
+               False, ["Yes", "No"]),
+             q("l", "Do you identify as part of the LGBTQ+ community?", "choice", False,
+               ["Yes", "No", "Questioning", "I don't wish to answer"]),
+             q("b", "Veteran and disability status", "choice", False, ["Yes", "No"])]  # two kinds in one
+    got = questions.draft(asked, {}, config=config)
+    assert all(a["answer"] is None and a["source"].startswith(questions.ASK) for a in got)
+    assert "sensitive: disability or health" in got[0]["source"]
+    assert f"{questions.YOURS}: {questions.VOLUNTARY}" in got[1]["source"]  # never drafted, not even unsaved
+
+
 def test_answer_dropped_after_filling_is_filled_again_then_flagged():
     class System:
         def __init__(self, sticks): self.sticks, self.fills = sticks, 0

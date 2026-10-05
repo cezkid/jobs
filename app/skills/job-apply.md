@@ -29,9 +29,13 @@ form over, fix the program after.
   first choice. `prepare` says "ask once: keep the user's own answers" -> one clickable question,
   save `saved_answers` in search settings. "Forget my answer to ..." -> `answers list`, `answers forget N`. Ask each with clickable choices; disclosures
   always offer "I don't wish to answer". User asks to reuse a disclosure answer -> save it under
-  `self_identification` in search settings. Filled on forms only after ONE clickable yes:
+  `self_identification` in search settings: `gender`, `sexual_orientation` (their word), and
+  true / false for `hispanic_latino`, `protected_veteran`, `armed_forces` (served or serving at
+  all - a separate question from protected veteran), `transgender`, `disability`
+  (`app/docs/apply/answers.md` #Saved voluntary answers). Filled on forms only after ONE clickable yes:
   `prepare` prints "ask once: fill the user's saved voluntary answers" -> Yes / No, saved as
-  `self_identification.fill_on_forms`, then `prepare` again; named before Submit either way.
+  `self_identification.fill_on_forms`, then `prepare` again; named before Submit either way -
+  a filled disability answer as a sensitive question, its wording read back.
 - Work authorization, sponsorship, citizenship: `apply` prints their setup answers. Use one only
   when the form asks that same thing about the US (without restriction; sponsorship now or in the
   future; US citizen or permanent resident / green card), and name the choice you picked so they
@@ -64,7 +68,7 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
   LinkedIn may still show their full name.
 - **Sensitive questions** (`prepare` prints `sensitive: <kind>` - birth date, graduation date,
   criminal history, work break, disability or health, other names): read the exact wording back,
-  never pick for them. Required -> answer truthfully; optional -> blank is fine. Criminal history:
+  never pick for them (their saved disability answer after their yes aside - above). Required -> answer truthfully; optional -> blank is fine. Criminal history:
   "Answer only what it asks - a conviction or any arrest, how many years back. Sealed or expunged
   records often don't count - rules differ by state; free legal aid can check." Never save a
   record answer unless they ask.
