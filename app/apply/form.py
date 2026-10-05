@@ -32,7 +32,10 @@ ANSWERS_FILE = "Application answers.md"
 # how long a form gets to save typed answers before they are read back
 SETTLE_MS = 2500
 # what a closed posting says where its form would be
-CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|(?:position|job|role) (?:has been|is) "
+# "deleted 6 months after the position has been filled" (an employer's privacy notice under an open form,
+# 2026-10-05) is no closed posting: a time clause ahead of the words rules them out
+CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|"
+                    r"(?<!after the )(?<!once the )(?<!until the )(?<!when the )(?:position|job|role) (?:has been|is) "
                     r"(?:filled|closed)|(?:this )?job (?:post(?:ing)? )?(?:is )?closed|isn't accepting applications|"
                     r"not accepting applications|posting (?:has )?expired|"
                     # Lever, 404 at the form link (2026-10-03)
@@ -230,7 +233,7 @@ def fill(slug: str, in_window: bool = False) -> None:
     match = systems.tab_match(system, data["url"]) if per_page else None
     with opener(data["url"], match=match) as page:
         # a closed posting never shows its form: say so instead of timing out on it
-        if said := closed(page):
+        if said := closed(page, system):
             sys.exit(f"the posting says it's closed (\"{said}\") - nothing filled; ask the user, "
                      "then status set <job> closed")
         open_form(page, system, data["url"])
@@ -255,8 +258,15 @@ def fill(slug: str, in_window: bool = False) -> None:
           "Nothing is sent until the user clicks Submit.")
 
 
-def closed(page) -> str | None:
-    """What a closed posting says where its form would be, else None."""
+def closed(page, system=None) -> str | None:
+    """What a closed posting says where its form would be, else None. Its form on the page => open,
+    whatever the text says (privacy notices talk about filled positions too)."""
+    if system is not None:
+        try:
+            page.locator(system.READY).first.wait_for(timeout=10000)
+            return None
+        except Exception:
+            pass  # no form came up: the page's own words decide
     said = CLOSED.search(page_text(page))
     return said.group() if said else None
 

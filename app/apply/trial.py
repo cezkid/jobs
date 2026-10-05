@@ -217,7 +217,7 @@ def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool 
             page.goto(app_url, wait_until="load")
             lab.idle(page)
             lab.check_page(page)
-            if said := form.closed(page):
+            if said := form.closed(page, system):
                 sys.exit(f"the posting says it's closed (\"{said}\") - try another")
             block.step = "open form"
             form.open_form(page, system, url)
