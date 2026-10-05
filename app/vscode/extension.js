@@ -440,19 +440,32 @@ async function act(root, at, page, m, msg, panel, retry, keeper) {
   });
 }
 
+// VS Code's Integrated Browser (1.109+): a url string, never { reuseUrlFilter } - a matching tab
+// would be re-navigated, wiping a half-filled form (app/docs/app-window.md)
+const BROWSER_OPEN = "workbench.action.browser.open";
+
+// posting / company link => a tab in this window, system browser when VS Code has no browser.
+// A string, not a Uri: passed on exactly as written (a Uri re-encodes it; a rebuilt link 404s)
+function openLink(url) {
+  return today.openLink(url, {
+    hasBrowser: async () => (await vscode.commands.getCommands(true)).includes(BROWSER_OPEN),
+    inWindow: (link) => vscode.commands.executeCommand(BROWSER_OPEN, link),
+    external: (link) => vscode.env.openExternal(link),
+  });
+}
+
 // one action of today.model's list, from the dashboard or the Jobs panel: the only place a click
 // opens a link or file, records a status or puts words in the chat. ui = { tell(text, how),
 // busy(on, label), keeper (today.statusKeeper) } of the surface clicked
 async function doAction(root, at, action, ui) {
   if (action.type === "posting") {
     const url = today.cleanUrl(action.url);
-    // a string, not a Uri: passed on exactly as written (a Uri re-encodes it; a rebuilt link 404s)
-    if (url) await vscode.env.openExternal(url);
+    if (url) await openLink(url);
     return;
   }
   if (action.type === "company") {
     const url = today.cleanSite(action.url);
-    if (url) await vscode.env.openExternal(url);
+    if (url) await openLink(url);
     return;
   }
   if (action.type === "open") {

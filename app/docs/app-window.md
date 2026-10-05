@@ -86,6 +86,13 @@ only on buttons (owner rule).
 Why a new chat for Claude, copy for ChatGPT: rows d, e (no command fills the chat shown w/o a new
 one); owner 2026-10-03 picked a fresh Claude chat over copy-paste (row j).
 
+Integrated Browser chat tools (`workbench.browser.enableChatTools`, plan-29g.1): left at VS Code's
+default (on). Its own words (1.140): "chat agents can use browser tools to open and interact with
+pages in the Integrated Browser". Reaches VS Code's own chat only = Copilot users (Claude +
+ChatGPT windows run w/ `chat.disableAIFeatures` on). Off now would settle "fill applications
+inside the window" before it's measured (plan-29g.7) + owner decides (plan-29g.8); page text stays
+data either way (AGENTS.md). Revisit there.
+
 Owner checks by hand (scratch has no sign-ins):
 - Copilot: click "Make my resume" => words sit in the chat box, nothing sent. owner: pending.
 - Claude / ChatGPT: click => chat opens, the copied line shows, paste works, nothing sent; no new

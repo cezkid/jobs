@@ -66,6 +66,17 @@ def test_every_ai_gets_the_same_window():
         assert settings["yaml.schemas"] == {"./app/resume/details.schema.json": "My Resume/Resume details.yml"}
 
 
+def test_window_browser_keeps_its_sign_ins_to_this_folder():
+    # default (global) shares cookies + sign-ins w/ every VS Code window and profile, kept after
+    # uninstall; the globe button is experiment-controlled => pinned off
+    for ai in ("claude", "chatgpt", "copilot", None):
+        settings = workspace.settings(ai, HOME)
+        assert settings["workbench.browser.dataStorage"] == "workspace"
+        assert settings["workbench.browser.showInTitleBar"] is False
+        # chat tools left at VS Code's default: decided in app/docs/app-window.md, not here
+        assert "workbench.browser.enableChatTools" not in settings
+
+
 def codex_commands() -> set[str]:
     rules = (cfg.ROOT / ".codex" / "rules" / "default.rules").read_text(encoding="utf-8")
     found = set()

@@ -113,11 +113,12 @@ test("extension runs panel rows and page buttons through the one doAction", () =
   const body = (name) => src.split(`function ${name}(`)[1].split("\n}\n")[0];
   assert.match(body("act"), /return doAction\(root, at, action, \{/);
   assert.match(body("showJobs"), /doAction\(root, at, action, ui\)/);
-  // links, files, status + chat words happen only inside doAction
-  const outside = src.replace(body("doAction"), "");
-  for (const call of ["openExternal(", "keeper.set(", "sayWords(root, action.words", "revealInExplorer"]) {
+  // links, files, status + chat words happen only inside doAction; links through openLink alone
+  const outside = src.replace(body("doAction"), "").replace(body("openLink"), "");
+  for (const call of ["openExternal(", "executeCommand(BROWSER_OPEN", "keeper.set(", "sayWords(root, action.words", "revealInExplorer"]) {
     assert.ok(!outside.includes(call), `${call} outside doAction`);
   }
+  assert.strictEqual(outside.split("openLink(").length, 2, "openLink called outside doAction");
   assert.strictEqual(jobs.tree.length, 1);
   assert.match(fs.readFileSync(path.join(__dirname, "..", "jobs.js"), "utf8"), /require\("\.\/today"\)/);
 });
