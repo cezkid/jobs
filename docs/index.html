@@ -16,7 +16,7 @@
 <meta property="og:url" content="https://jobs.enrriquez.com/">
 <meta property="og:title" content="A free job-search app for Windows and Mac, with your own AI">
 <meta property="og:description" content="Free app for Windows or Mac that runs on your own Claude, ChatGPT or Copilot plan. Finds new jobs every morning and makes your resume for any job you pick. You press Submit.">
-<meta property="og:image" content="https://jobs.enrriquez.com/og.png?v=5">
+<meta property="og:image" content="https://jobs.enrriquez.com/og.png?v=6">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -58,7 +58,7 @@
   @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
     size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
   :root {
-    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8;
+    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --beak-low: #e57a00; --rule: #c8c8c8;
     --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
     --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
     --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
@@ -141,13 +141,15 @@
   .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg): ink = the text colour => the page's
-     tone, black in print, CanvasText in forced colours. 32px = the cut's own size; margins keep the row's
-     height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
-  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: currentColor; }
+  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg) on its paper disc: a black bird on every
+     ground (a pale one read as a white bird, its yellow lost on it); the disc vanishes on the white desk + paper.
+     Two-tone bill: the orange lower half carries its edge on white. 32px = the cut's own size; margins keep the
+     row's height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
+  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: var(--ink); }
+  .bird .disc { fill: var(--paper); }
   .bird :is(.beak, .eye) { fill: var(--mark); }
-  /* pale bird on the dark desk: its eye is a hole to the page */
-  @media screen and (prefers-color-scheme: dark) { .brand .eye { fill: var(--desk); } }
+  .bird .beak-low { fill: var(--beak-low); }
+  @media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }
   .links { display: flex; gap: 28px; white-space: nowrap; }
   /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
   :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
@@ -293,6 +295,7 @@
   .titlebar { display: flex; align-items: center; height: 38px; border-bottom: 1px solid var(--ink); }
   .title { flex: 1; display: flex; align-items: center; gap: 8px; padding-left: 14px; font-size: 0.9375rem; }
   .title .bird { width: 16px; height: 16px; margin: 0; } /* the cut's 16px fit; the window is paper in both schemes => ink bird */
+  .title .bird .beak { fill: var(--beak-low); } /* 16px: the beak is 2px tall, a 1px yellow row is lost on white */
   .dots.mac-only { display: none; }
   html.is-mac .dots.mac-only { display: flex; }
   .dots { gap: 8px; padding-left: 14px; }
@@ -688,7 +691,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><circle class="disc" cx="16" cy="16" r="16"/><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><path class="beak-low" d="M22 8 H31 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -764,7 +767,7 @@
       <div class="window">
         <div class="titlebar" aria-hidden="true">
           <span class="dots mac-only"><span></span><span></span><span></span></span>
-          <span class="title" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>Today - CEZ Job Finder</span>
+          <span class="title" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><circle class="disc" cx="16" cy="16" r="16"/><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><path class="beak-low" d="M22 8 H31 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>Today - CEZ Job Finder</span>
           <span class="controls win-only">
             <svg viewBox="0 0 44 38"><path d="M17 19h10"/></svg>
             <svg viewBox="0 0 44 38"><rect x="17.5" y="14.5" width="9" height="9" rx="1"/></svg>
