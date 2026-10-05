@@ -108,6 +108,41 @@ Reading: Ashby has none of Greenhouse's frame or pause costs - no other-site fra
 otherwise (debug chrome, stop only the page session, trusted folder, one-tab urlFilter). Answers + file
 leave before Submit, window or Chrome alike - privacy rows already say so. Owner decides (plan-nko.7).
 
+## Lever - route 2 (plan-nko.13)
+
+Same `measure.py raw` as Ashby, level 3, no named read (Lever's form is in the page). Box = `input[name=name]`,
+file = hidden `#resume-upload-input`. 3 employers (tenants A-C; C picked for its Apply with LinkedIn row - plain
+GET of 2 apply pages, 1 had it), 2026-10-05; page loads on `jobs.lever.co`: 3 navigations + 2 plain GETs = 5.
+Numbers: [lever-tenant-a.json](vscode-browser/lever-tenant-a.json), [lever-tenant-b.json](vscode-browser/lever-tenant-b.json),
+[lever-tenant-c.json](vscode-browser/lever-tenant-c.json) (org, posting + card ids scrubbed).
+
+| Step | A | B | C |
+|---|---|---|---|
+| Canary first | received none | none | none |
+| `READY` from navigate | 2.0 s | 0.8 s | 1.4 s |
+| Boxes listed | 6 (standard boxes only) | 56 | 30 |
+| `debugger;` pauses | 0 | 0 | 0 |
+| hCaptcha on load | `js.hcaptcha.com/1/secure-api.js` + 2 enclave frames (`newassets.hcaptcha.com`, other site) - failed by the block before they loaded; 0 `checksiteconfig` (runs inside the frame; Chrome lab: ~10 POSTs/load, `lever.md`) | same | same |
+| Cloudflare challenge | `cdn-cgi/challenge-platform/.../jsd` POST, 1 (blocked) + an empty 1x1 frame | none | none |
+| Apply with LinkedIn | - | - | `platform.linkedin.com/in.js` + widget script load (reads); its frame = POST `linkedin.com/talentwidgets/apply-with-linkedin` (other site, failed). Row stays "Loading..." (`lever-route2-tab.png`) |
+| Frame targets | none | none | none - every other-site frame failed before it became one |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant" | same | same |
+| Dummy PDF chosen | `POST jobs.lever.co/parseResume` (multipart) at once (blocked); label "Couldn't auto-read resume." | same | same |
+| Other writes | none while typing | none | none |
+
+Readings:
+- No `debugger;`, no frame needed to fill: every box + the file box is in the page.
+- hCaptcha's frames load on the form, not only at Submit. Blocked here (level 3), the form still fills; the
+  hidden `#hcaptchaSubmitBtn` is there 3 of 3. Whether hCaptcha passes at Submit in the window tab
+  (frame unblocked, debugger attached) - unmeasured: never Submit. Greenhouse's reCAPTCHA frame same open question.
+- "Couldn't auto-read resume." here = the block's doing (send failed), not Lever's verdict - as in Chrome
+  (`lever.md` #Read back). File name shows in the file button (upper-case by CSS: `innerText` reads it upper).
+- Resume leaves on choosing, window or Chrome alike; privacy row already says so.
+- LinkedIn row: left alone either way (it signs in to LinkedIn); in the window it is one more other-site frame.
+
+Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
+urlFilter). Owner decides (plan-nko.14).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any

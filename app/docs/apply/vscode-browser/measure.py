@@ -22,7 +22,7 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
   score    reCAPTCHA v3 demo score: window tab (opened plain, then reloaded w/ the debugger on) vs a
            Chrome started as Job Finder's own - relative hint only, never Submit
   restricted  untrusted folder (Restricted Mode): does the attach start?
-  raw      route 2 on ONE public posting of any system `systems.for_url` knows (plan-nko.6, Ashby first):
+  raw      route 2 on ONE public posting of any system `systems.for_url` knows (plan-nko.6 Ashby, .13 Lever):
            level-3 block (+ lab.NAMED_READS, the owner's one exception) + canary first in the same tab;
            the page's `debugger;` pauses counted (skip off once, resumed in the handler, cap 20, then
            skip on), other-site frames listed + what each is, Input.insertText into one text box + read
@@ -1122,6 +1122,15 @@ def score(result):
 # another site's frame -> what it is, by its host
 FRAME_KIND = (("recaptcha", r"recaptcha\.net|google\.com/recaptcha|gstatic\.com/recaptcha"), ("hcaptcha", r"hcaptcha\.com"),
               ("turnstile", r"challenges\.cloudflare\.com"), ("linkedin", r"linkedin\.com"), ("google sign-in", r"accounts\.google\.com"))
+# what the page carries before Submit: captcha + Cloudflare scripts, Lever's Apply with LinkedIn widget
+MARKS = """(() => ({hcaptchaApi: typeof window.hcaptcha, grecaptchaApi: typeof window.grecaptcha, turnstileApi: typeof window.turnstile,
+  hiddenCaptchaButton: !!document.querySelector('#hcaptchaSubmitBtn, .h-captcha, [data-hcaptcha-widget-id]'),
+  linkedinWidget: !!document.querySelector('script[type="IN/AwliWidget"]'),
+  scripts: [...new Set([...document.scripts].map((s) => s.src).filter((u) => /hcaptcha|recaptcha|challenge-platform|turnstile|linkedin|licdn/.test(u))
+    .map((u) => { try { const x = new URL(u); return x.host + x.pathname.replace(/[0-9a-f]{16,}/gi, '<h>').slice(0, 80) } catch (e) { return '?' } }))]}))()"""
+# the upload's own words: Ashby's toast, Lever's label states (lever.md)
+VERDICT = """(() => { const m = document.body.innerText.match(/failed to upload|couldn.t auto-read resume\\.?|analyzing resume\\.*|success!/i);
+  return m ? m[0] : null })()"""
 FRAMES = """(() => [...document.querySelectorAll('iframe')].map((f) => ({src: (f.src || '').slice(0, 300),
   title: (f.title || '').slice(0, 60), shown: !!f.getClientRects().length, w: f.offsetWidth, h: f.offsetHeight})))()"""
 
@@ -1145,9 +1154,10 @@ def raw(result):
     system = systems.for_url(GH_URL or "")
     if not system:
         sys.exit("raw needs a posting link systems.for_url knows")
-    if hasattr(system, "parse_url"):
-        org, pid = system.parse_url(GH_URL)
+    if hasattr(system, "parse_url"):  # Ashby (org, id); Lever (eu, org, id)
+        org, pid = system.parse_url(GH_URL)[-2:]
         SCRUB.extend([(pid, "<id>"), (org, "<org>")])
+    tag = system.NAME.lower()
     app_url = system.application_url(GH_URL)
     cap, level = int(os.environ.get("JF_PAUSE_CAP", "20")), int(os.environ.get("JF_BLOCK_LEVEL", "3"))
     result |= {"system": system.NAME, "ready": system.READY, "url": app_url, "level": level, "pauseCap": cap}
@@ -1205,8 +1215,9 @@ def raw(result):
                                      for b in block.log if b["type"] == "other-site frame"]
         frames["targets"] = attempt(lambda: [{"type": t["type"], "url": short(t["url"]), "kind": frame_kind(t["url"])}
                                              for t in c.send("Target.getTargets")["targetInfos"] if t["type"] == "iframe"])
+        result["marks"] = quietly(lambda: c.evaluate(MARKS))
         fill = result["fill"] = {"resume": dummy}
-        box = next((s for s in ('[id="_systemfield_name"]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
             block.step = "type"
@@ -1220,7 +1231,7 @@ def raw(result):
                 return {"focused": focused}
             fill["type: click + Input.insertText"] = attempt(typed)
             fill["readBack"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
-        fbox = next((s for s in ('[id="_systemfield_resume"]', 'input[type=file]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        fbox = next((s for s in ('[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["fileBox"] = fbox
         if fbox:
             block.step = "upload"
@@ -1228,12 +1239,13 @@ def raw(result):
             time.sleep(6)
             fill["nameShown"] = quietly(lambda: c.evaluate(f"document.body.innerText.includes({json.dumps(RESUME.name)})"))
             fill["failedLine"] = quietly(lambda: c.evaluate("/failed to upload/i.test(document.body.innerText)"))
+            fill["verdict"] = quietly(lambda: c.evaluate(VERDICT))
             fill["sentOnChoice"] = [{"method": b["method"], "url": short(b["url"]), "type": b["type"],
                                      "contentType": b.get("contentType"), "body": b.get("body")}
                                     for b in block.log if b["after"] == "upload"]
         block.step = "end"
-        fill["tabShot"] = tab_shot(c, "ashby-route2-tab")
-        result["shot"] = screenshot("ashby-route2-window", proc)
+        fill["tabShot"] = tab_shot(c, f"{tag}-route2-tab")
+        result["shot"] = screenshot(f"{tag}-route2-window", proc)
         result["pausesTotal"] = len(pauses)
         result["skipOnAfterCap"] = len(pauses) >= cap
         result["submitClicked"] = False
