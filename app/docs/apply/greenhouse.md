@@ -31,6 +31,7 @@ multichoice, `input_hidden` skipped.
 | text | `input.input__single-line` | focus, wait 400 ms, `fill`, read back, once more on mismatch. Signed in to MyGreenhouse in that Chrome, first focus on First/Last Name drops the saved name in a moment later: typed at once, the two ran together ("JaneAda") |
 | choice / yesno / multichoice / Country | react-select: `input[role=combobox]`, list `.select__menu [role=option]` | type, click option w/ exact text - never the first offered; nothing matches -> clear + ASK. Read back from `single-value` / `multi-value__label`. Always scope to `.select__menu`: the phone box's own hidden country list is also `[role=option]` |
 | Country | options read "United States +1"; chosen it shows flag + "+1" only | match w/o the code, read back the code |
+| multichoice drawn as checkboxes (some questions, 2026-10-05: one form had one of each) | `fieldset#question_<n>[]` of `input[type=checkbox][name="question_<n>[]"]`, id `question_<n>[]_<value>`, each named by its `label[for]`; the job board's list says nothing of which | checkboxes w/ that name on the page -> tick each answer by its label, untick the rest, read each back; else react-select. Counted as one question on the page |
 | Location (City) | combobox `candidate-location`, places after typing (e.g. "Springfield, Illinois, United States") | type city only, pick option starting w/ the full answer |
 | Resume/CV, Cover Letter | hidden `input[type=file]#resume` / `#cover_letter`; after upload `[aria-labelledby=upload-label-<id>] .file-upload__filename` shows the file name | upload first, confirm by name. Choosing it sends the file at once - see below |
 | Race | shown only after Hispanic/Latino = No | not shown -> skipped |
@@ -65,7 +66,8 @@ name never shows ("upload not confirmed").
 | tenant A | EEOC + own demographic survey both on one form - two separate sets of voluntary questions |
 | tenant C | 26 questions: work permit + sponsorship, start date, salary, own demographic survey (gender identity, orientation, transgender, disability) + EEOC; all but the resume filled with the upload blocked |
 | tenant D | 12 questions, resume + cover letter boxes; both files POST to storage when chosen |
-| tenant E | employer's own page (`?gh_jid=`); 30 questions; 2 "select all that apply" questions are checkboxes, not react-select - the filler FAILs them (plan-29g.16); work history entries on the page, not in the job board's list |
+| tenant E | employer's own page (`?gh_jid=`); 30 questions; 2 "select all that apply" questions are checkboxes, not react-select (4 and 14 options) - FAILed, ticked since 2026-10-05; work history entries on the page, not in the job board's list |
+| tenant F | job board; 2 multi-selects on one form: the required one checkboxes, the optional one react-select - both filled (try, 2026-10-05) |
 
 ## Board that sends its job page to the employer's own site (2026-10)
 
