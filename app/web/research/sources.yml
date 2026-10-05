@@ -12,6 +12,17 @@
   checked: 2026-10-04
   recheck_by: 2027-04-04
 
+- id: adea-631
+  type: law
+  org: United States Code
+  year: 1967
+  title: "29 U.S.C. 631: Age limits (Age Discrimination in Employment Act)"
+  url: https://www.law.cornell.edu/uscode/text/29/631
+  evidence: law
+  sample: the federal age-discrimination law's age line, read on Cornell's Legal Information Institute copy
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: al-ali-2026
   type: article
   authors: ["Al Ali, Adnan", "Helcl, Jindřich", "Libovický, Jindřich"]
@@ -170,7 +181,18 @@
   url: https://arxiv.org/abs/2609.22169
   evidence: lab/LLM audit
   sample: 10 open AI models, each in a base and a trained version, choosing between pairs of made-up applicants; age shown by graduation year
-  checked: 2026-10-03
+  checked: 2026-10-04
+
+- id: ca-2ccr-11079
+  type: law
+  org: California Civil Rights Council
+  year: 2020
+  title: "California Code of Regulations, title 2, section 11079: Pre-Employment Inquiries, Interviews and Applications"
+  url: https://www.law.cornell.edu/regulations/california/2-CCR-11079
+  evidence: law
+  sample: state regulation as amended in 2020, read on Cornell's Legal Information Institute copy
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: ca-cppa-admt-2025
   type: law
@@ -215,6 +237,29 @@
   evidence: lab/LLM audit
   sample: researchers queried GPT-2, an older AI model trained on public web pages, and pulled out hundreds of exact passages from its training text; not chat data
   checked: 2026-10-03
+
+- id: carlsson-eriksson-2019
+  type: article
+  authors: ["Carlsson, Magnus", "Eriksson, Stefan"]
+  year: 2019
+  title: "Age discrimination in hiring decisions: Evidence from a field experiment in the labor market"
+  venue: Labour Economics 59, 173-183 (open copy read, IFAU working paper 2017:8, "The effect of age and gender on labor demand")
+  doi: 10.1016/j.labeco.2019.03.002
+  url: https://www.ifau.se/globalassets/pdf/se/2017/wp2017-08-the-effect-of-age-and-gender-on-labor-demand.pdf
+  evidence: large field experiment
+  sample: 6,066 made-up applications in Sweden, ages 35 to 70, age stated in the letter and on the resume; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: cfr-1625-5
+  type: law
+  org: US Equal Employment Opportunity Commission
+  year: 2007
+  title: "29 CFR 1625.5: Employment applications"
+  url: https://www.ecfr.gov/current/title-29/section-1625.5
+  evidence: law
+  sample: federal regulation under the Age Discrimination in Employment Act, last amended 2007
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: chen-xiao-2026
   type: article
@@ -284,6 +329,17 @@
   preprint: true
   checked: 2026-10-03
 
+- id: ct-pa21-69
+  type: law
+  org: Connecticut General Assembly
+  year: 2021
+  title: "Public Act 21-69: An Act Deterring Age Discrimination in Employment Applications"
+  url: https://www.cga.ct.gov/2021/ACT/PA/PDF/2021PA-00069-R00SB-00056-PA.PDF
+  evidence: law
+  sample: the act's text; effective October 1, 2021
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: ct-pa26-15
   type: law
   org: Connecticut General Assembly
@@ -307,6 +363,17 @@
   preprint: true
   checked: 2026-10-04
 
+- id: dalle-2023
+  type: report
+  authors: ["Dalle, Axana", "Lippens, Louis", "Baert, Stijn"]
+  year: 2023
+  title: "Nothing Really Matters: Evaluating Demand-Side Moderators of Age Discrimination in Hiring"
+  url: https://docs.iza.org/dp16672.pdf
+  evidence: field experiment
+  sample: pairs of made-up applicants aged 38 to 56 sent to 712 job openings in Flanders, Belgium, 2020-2021; IZA discussion paper 16672
+  preprint: true
+  checked: 2026-10-04
+
 - id: dastin-2018
   type: article
   authors: ["Dastin, Jeffrey"]
@@ -317,6 +384,28 @@
   evidence: news report
   sample: news report based on five unnamed people familiar with the project; Amazon declined to comment
   checked: 2026-10-03
+
+- id: de-19-711
+  type: law
+  org: Delaware General Assembly
+  year: 2022
+  title: "Delaware Code, title 19, chapter 7, subchapter II: Discrimination in Employment (sections 710 and 711)"
+  url: https://delcode.delaware.gov/title19/c007/sc02/index.html
+  evidence: law
+  sample: state code online; section 711(m) on first applications, section 710 for who counts as an employer
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: derous-2017
+  type: article
+  authors: ["Derous, Eva", "Decoster, Jeroen"]
+  year: 2017
+  title: "Implicit Age Cues in Resumes: Subtle Effects on Hiring Discrimination"
+  venue: Frontiers in Psychology 8, 1321
+  doi: 10.3389/fpsyg.2017.01321
+  evidence: lab/LLM audit
+  sample: 610 HR professionals in Belgium rating made-up resumes; birth date shown or left off
+  checked: 2026-10-04
 
 - id: dhert-2026
   type: article
@@ -459,6 +548,17 @@
   url: https://www.nber.org/system/files/working_papers/w21689/w21689.pdf
   evidence: large field experiment
   sample: about 12,000 made-up applications (by our count of its four rounds) from college-educated women to office support jobs in 8 US cities, 2012-2014
+  checked: 2026-10-04
+
+- id: farber-2017
+  type: article
+  authors: ["Farber, Henry S.", "Silverman, Dan", "von Wachter, Till M."]
+  year: 2017
+  title: "Factors Determining Callbacks to Job Applications by the Unemployed: An Audit Study"
+  venue: "RSF: The Russell Sage Foundation Journal of the Social Sciences 3(3), 168-201"
+  doi: 10.7758/RSF.2017.3.3.08
+  evidence: large field experiment
+  sample: about 12,000 made-up applications by our count, from college-educated women to US office support jobs
   checked: 2026-10-04
 
 - id: farber-2019
@@ -790,6 +890,18 @@
   sample: a job site's press release, November 2018, reposted by Onrec; number of recruiters not stated
   checked: 2026-10-03
 
+- id: lahey-2008
+  type: article
+  authors: ["Lahey, Joanna N."]
+  year: 2008
+  title: "Age, Women, and Hiring: An Experimental Study"
+  venue: Journal of Human Resources 43(1), 30-56 (open copy read, NBER working paper 11435)
+  doi: 10.3368/jhr.43.1.30
+  url: https://www.nber.org/system/files/working_papers/w11435/w11435.pdf
+  evidence: large field experiment
+  sample: pairs of made-up resumes from women aged 35 to 62 sent to 3,996 firms in Boston and St. Petersburg, Florida; page numbers are the working paper's
+  checked: 2026-10-04
+
 - id: lawyer-monthly-2026
   type: web
   org: Lawyer Monthly
@@ -823,6 +935,18 @@
   sample: news story about Preptel's paid service
   checked: 2026-10-03
 
+- id: lippens-2023
+  type: article
+  authors: ["Lippens, Louis", "Vermeiren, Siel", "Baert, Stijn"]
+  year: 2023
+  title: "The state of hiring discrimination: A meta-analysis of (almost) all recent correspondence experiments"
+  venue: European Economic Review 151, 104315 (open copy read, IZA discussion paper 14966)
+  doi: 10.1016/j.euroecorev.2022.104315
+  url: https://docs.iza.org/dp14966.pdf
+  evidence: meta-analysis
+  sample: 306 field experiments published 2005-2020, 17 of them on older age; figures and page numbers are the working paper's
+  checked: 2026-10-04
+
 # Court order: allegations, not findings
 - id: mit-capd-ai-cover-letters
   type: web
@@ -852,7 +976,7 @@
   url: https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf
   evidence: court record
   sample: court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts
-  checked: 2026-10-03
+  checked: 2026-10-04
   recheck_by: 2027-01-03
 
 # Court order: allegations, not findings
@@ -921,6 +1045,40 @@
   evidence: lab/LLM audit
   sample: researchers pulled gigabytes of exact training text from open AI models and thousands of training examples from ChatGPT (GPT-3.5) with a new trick; training text came from the web, not users' chats
   checked: 2026-10-03
+
+- id: neumark-2019
+  type: article
+  authors: ["Neumark, David", "Burn, Ian", "Button, Patrick"]
+  year: 2019
+  title: "Is It Harder for Older Workers to Find Jobs? New and Improved Evidence from a Field Experiment"
+  venue: Journal of Political Economy 127(2), 922-970 (open copy read, NBER working paper 21669, revised November 2017)
+  doi: 10.1086/701029
+  url: https://www.nber.org/system/files/working_papers/w21669/w21669.pdf
+  evidence: large field experiment
+  sample: 40,223 made-up applications to US jobs, ages 29-31, 49-51 and 64-66; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: neumark-2024
+  type: article
+  authors: ["Neumark, David"]
+  year: 2024
+  title: "Age Discrimination in Hiring: Evidence from Age-Blind vs. Non-Age-Blind Hiring Procedures"
+  venue: Journal of Human Resources 59(1), 1-34 (open copy read, NBER working paper 26623)
+  doi: 10.3368/jhr.0420-10831R1
+  url: https://www.nber.org/system/files/working_papers/w26623/w26623.pdf
+  evidence: observational
+  sample: hiring records of one US restaurant chain, from an age-discrimination lawsuit; about 48,000 online applications used; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: nsc-about
+  type: web
+  org: National Student Clearinghouse
+  year: 2026
+  title: About the Clearinghouse
+  url: https://www.studentclearinghouse.org/about/
+  evidence: vendor docs
+  sample: the organisation's own description of its coverage
+  checked: 2026-10-04
 
 - id: nunley-2017
   type: article
@@ -1009,6 +1167,17 @@
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
+- id: or-hb3187
+  type: law
+  org: Oregon Legislative Assembly
+  year: 2025
+  title: "House Bill 3187 (2025 Regular Session), Enrolled"
+  url: https://olis.oregonlegislature.gov/liz/2025R1/Measures/Overview/HB3187
+  evidence: law
+  sample: bill page and enrolled text; takes effect 91 days after the 2025 session ended
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: pedulla-2016
   type: article
   authors: ["Pedulla, David S."]
@@ -1031,6 +1200,17 @@
   sample: the company's own news page, archived December 2012; no method given
   checked: 2026-10-03
 
+- id: qvist-larsen-2025
+  type: article
+  authors: ["Qvist, Jeevitha Yogachandiran", "Larsen, Christian Albrekt"]
+  year: 2025
+  title: "Age discrimination in hiring: Relative importance and additive and multiplicative effects"
+  venue: Social Science Research 126, 103135
+  doi: 10.1016/j.ssresearch.2024.103135
+  evidence: lab/LLM audit
+  sample: 5,017 Danish employers rating 20,068 made-up applicant descriptions, ages 45 to 75; plan registered in advance
+  checked: 2026-10-04
+
 - id: resumap-2026
   type: web
   org: Resumap
@@ -1050,6 +1230,16 @@
   evidence: vendor survey
   sample: 1,000 US hiring managers, online panel; survey dates not given
   checked: 2026-10-03
+
+- id: resumebuilder-2022
+  type: web
+  org: ResumeBuilder.com
+  year: 2022
+  title: 4 in 10 Hiring Managers Admit to Age Bias
+  url: https://web.archive.org/web/20250116054658/https://www.resumebuilder.com/4-in-10-hiring-managers-admit-to-age-bias/
+  evidence: vendor survey
+  sample: 800 US hiring managers, online, February 1-2, 2022; run for a resume-writing company; read in the Internet Archive copy of January 16, 2025 (the live page now redirects)
+  checked: 2026-10-04
 
 - id: resumego-2018
   type: web
@@ -1148,7 +1338,7 @@
   evidence: lab/LLM audit
   sample: one AI model (Claude 2.0), 70 made-up decision questions including job offers, with age, race and gender varied
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: textkernel-2023
   type: web
@@ -1171,6 +1361,18 @@
   sample: agency page, last reviewed June 2026
   checked: 2026-10-03
   recheck_by: 2027-04-03
+
+- id: van-borm-2021
+  type: article
+  authors: ["Van Borm, Hannah", "Burn, Ian", "Baert, Stijn"]
+  year: 2021
+  title: "What Does a Job Candidate's Age Signal to Employers?"
+  venue: Labour Economics 71, 102003 (open copy read, IZA discussion paper 12849)
+  doi: 10.1016/j.labeco.2021.102003
+  url: https://docs.iza.org/dp12849.pdf
+  evidence: lab/LLM audit
+  sample: 400 people with hiring experience rating made-up candidates; page numbers are the working paper's
+  checked: 2026-10-04
 
 - id: weisshaar-2018
   type: article
