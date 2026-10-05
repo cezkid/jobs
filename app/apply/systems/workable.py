@@ -7,7 +7,7 @@ import re
 import httpx
 
 from apply import dom
-from apply.questions import question, signs
+from apply.questions import left_on_page, question, signs
 
 NAME = "Workable"
 # freehire serves the short /j/<code>?utm_source=freehire.me; the page itself moves to /<account>/j/<code>/
@@ -217,7 +217,7 @@ def put_ticks(page, q: dict, value) -> str:
 def fill(page, q: dict, resume_file: str | None) -> str:
     kind, value, id = q["kind"], q["answer"], q["id"]
     if signs(q["title"]):
-        return "ASK yours to do on the page - agreeing, consenting or signing"
+        return left_on_page(q)
     if kind == "file":
         if q.get("key") != "resume":
             return f"ASK not the resume box ({q['title']}) - the user uploads their own file there"

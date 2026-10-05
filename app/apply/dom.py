@@ -10,7 +10,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from apply import answers
-from apply.questions import LATER, key_from_title, question, signs
+from apply.questions import LATER, key_from_title, left_on_page, question, signs
 
 # security checks are the applicant's own step: listed "not readable", never read as zero questions
 CAPTCHA_HOSTS = ("hcaptcha.com", "recaptcha.net", "challenges.cloudflare.com")
@@ -351,7 +351,7 @@ def fill(page, q: dict, resume_file: str | None, later: bool = False) -> str:
     """Type q["answer"] into the box its hook names -> "ok" | "ASK ..." | "FAIL ..." | "LATER ...".
     `later`: a multi-page caller - a box not on this page is filled after Next, not a failure."""
     if signs(q["title"]):
-        return "ASK yours to do on the page - agreeing, consenting or signing"
+        return left_on_page(q)
     found = find(page, q["id"])
     if found is None:
         return f"{LATER} on another page of the form" if later else "FAIL question not on page"

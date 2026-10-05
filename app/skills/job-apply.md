@@ -143,6 +143,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    the check and click Continue yourself; I fill the boxes I know". A consent, terms or
    signature question: clickable choices, the user's own words - they tick or sign it on the
    page. Which sites work this way: `app/docs/apply/apply-systems.md`.
+   A question asking them to confirm no AI helped (`prepare`: "saying whether AI helped"): say
+   plainly their resume was tailored with AI help in this chat, so the answer is theirs, on the
+   page - read the wording back, never draft, tick or pick for them.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
    any banner (application limits), and that nothing is sent until they click **Submit**.
 6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).

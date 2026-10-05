@@ -87,6 +87,14 @@ def upload_note(system, answers: list[dict]) -> str:
     return ""
 
 
+def ai_note(answers: list[dict]) -> str:
+    """A form asking the applicant to say whether AI helped: the AI names it and how the resume was made."""
+    if any(questions.never_draft(a["title"]) == questions.AI_USE for a in answers):
+        return (f"name it to the user: the form asks them to say whether AI helped ({questions.AI_USE}) - their "
+                "resume was tailored with AI help in this chat; only they answer it, on the page, never drafted or ticked")
+    return ""
+
+
 def prepare(slug: str, url: str) -> None:
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
@@ -117,6 +125,8 @@ def prepare(slug: str, url: str) -> None:
     for a in answers:
         print(line(a))
     if note := upload_note(system, answers):
+        print(note)
+    if note := ai_note(answers):
         print(note)
     selfid = config.get("self_identification") or {}
     if questions.asks_voluntary(answers) and selfid and selfid.get("fill_on_forms") is None:

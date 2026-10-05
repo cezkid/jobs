@@ -248,6 +248,40 @@ def test_consent_near_misses_not_tagged(title):
     assert questions.never_draft(title) != questions.SIGNING
 
 
+# measured 2026-10-05, Greenhouse tenant E (employer's own page), a required question
+AI_ATTESTATION = ("I confirm that my application materials and interview responses reflect my own work and were not "
+                  "generated, edited, or supplemented by AI tools (e.g., ChatGPT, Gemini, Claude, etc.).")
+AI_USE = [AI_ATTESTATION, "Did you use AI tools such as ChatGPT to write or edit your resume or cover letter?",
+          "I certify that my responses to this application were not written by artificial intelligence.",
+          "Was any part of your application generated using AI?"]
+AI_NEAR_MISSES = ["Do you have experience with AI tools such as ChatGPT or Copilot?",
+                  "Describe how you have used generative AI in your work.",
+                  "Tell us about a time you used AI to draft responses to customers.",
+                  "How would you use LLMs to help our recruiting team review applications?",
+                  "Please confirm your email address"]
+
+
+@pytest.mark.parametrize("title", AI_USE)
+def test_ai_use_attestation_left_for_the_user_on_the_page(title):
+    (a,) = questions.draft([q(title, "yesno")], CONTACT)
+    assert questions.never_draft(title) == questions.AI_USE and questions.signs(title)
+    assert a["answer"] is None and a["source"] == f"{questions.ASK} - {questions.SIGN_ON_PAGE}: {questions.AI_USE}"
+    assert "(yours to do on the page: saying whether AI helped)" in form.line(a)
+    # a Yes the AI wrote, or the user's own "you said": never kept, never typed, not counted missing
+    said = {**a, "answer": "Yes", "source": questions.USER_SAID}
+    assert questions.draft([q(title, "yesno")], CONTACT, [said])[0]["answer"] is None
+    assert questions.missing([a]) == [] and questions.on_page([said])
+    with pytest.raises(SystemExit, match="ticks or signs these on the page"):
+        form.refuse([said])
+    assert questions.left_on_page(a) == "ASK yours to do on the page - saying whether AI helped"
+    assert "tailored with AI help" in form.ai_note([a]) and form.ai_note([q("Why us?", "longtext")]) == ""
+
+
+@pytest.mark.parametrize("title", AI_NEAR_MISSES)
+def test_ai_use_near_misses_not_tagged(title):
+    assert questions.never_draft(title) != questions.AI_USE and not questions.signs(title)
+
+
 def test_signature_box_never_answered_from_the_resume():
     for title in ("Signature (type your full name)", "Electronic signature - legal name", "Full name (signature)"):
         assert questions.key_from_title(title, "text") is None, title

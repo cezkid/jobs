@@ -45,6 +45,11 @@ def test_consent_and_other_files_left_for_the_applicant(no_settings):
     for title in ("I agree to the Terms and Conditions", "Signature", "I consent to receive SMS messages"):
         answer, why = trial.synthetic(q(title, "yesno"))
         assert answer is None and trial.APPLICANT in why
+    # measured 2026-10-05 (Greenhouse tenant E): filled [ok] with a test Yes before
+    answer, why = trial.synthetic(q("I confirm that my application materials and interview responses reflect my "
+                                    "own work and were not generated, edited, or supplemented by AI tools "
+                                    "(e.g., ChatGPT, Gemini, Claude, etc.).", "yesno"))
+    assert answer is None and why == f"saying whether AI helped - {trial.APPLICANT}"
     answer, why = trial.synthetic(q("Transcript", "file"))
     assert answer is None and trial.APPLICANT in why
     assert trial.synthetic(q("Gender", "choice", options=["Decline", "Prefer not to say"]))[0] is None

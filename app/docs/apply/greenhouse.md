@@ -66,7 +66,7 @@ name never shows ("upload not confirmed").
 | tenant A | EEOC + own demographic survey both on one form - two separate sets of voluntary questions |
 | tenant C | 26 questions: work permit + sponsorship, start date, salary, own demographic survey (gender identity, orientation, transgender, disability) + EEOC; all but the resume filled with the upload blocked |
 | tenant D | 12 questions, resume + cover letter boxes; both files POST to storage when chosen |
-| tenant E | employer's own page (`?gh_jid=`); 30 questions; 2 "select all that apply" questions are checkboxes, not react-select (4 and 14 options) - FAILed, ticked since 2026-10-05; work history entries on the page, not in the job board's list |
+| tenant E | employer's own page (`?gh_jid=`); 30 questions; 2 "select all that apply" questions are checkboxes, not react-select (4 and 14 options) - FAILed, ticked since 2026-10-05; work history entries on the page, not in the job board's list; a required "not generated ... by AI tools" confirm - filled with a test Yes, left to the applicant since 2026-10-05 (`answers.md`) |
 | tenant F | job board; 2 multi-selects on one form: the required one checkboxes, the optional one react-select - both filled (try, 2026-10-05) |
 
 ## Board that sends its job page to the employer's own site (2026-10)
