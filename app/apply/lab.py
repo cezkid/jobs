@@ -102,6 +102,15 @@ def named_read(method: str, url: str, body: str | None) -> str | None:
     return op
 
 
+def body(request) -> str | None:
+    """The request's body as text; a binary one (a gzipped analytics beacon on Ashby's closed page,
+    2026-10-05: Playwright's post_data raised, the block's handler crashed) is never a named read."""
+    try:
+        return request.post_data
+    except UnicodeDecodeError:
+        return None
+
+
 class Refused(Exception):
     """Page not measured: the block can't vouch for it."""
 
@@ -130,7 +139,7 @@ class Block:
         r = route.request
         if r.method in READS:
             return route.continue_()
-        if op := named_read(r.method, r.url, r.post_data):
+        if op := named_read(r.method, r.url, body(r)):
             self.passed.append({"method": r.method, "url": r.url[:300], "op": op, "after": self.step})
             return route.continue_()
         self.log.append({"method": r.method, "url": r.url[:300], "type": r.resource_type, "after": self.step})
@@ -321,7 +330,7 @@ def load(page, url: str, clicks: list[str], block: Block, n: int) -> tuple[dict,
         snap["page_data"], snap["unlabelled"] = page.evaluate(PAGE_DATA), page.evaluate(AROUND)
         snap["outline"] = page.evaluate(OUTLINE)
         return snap, [response(r) for r in got if r.request.method == "GET"
-                      or named_read(r.request.method, r.request.url, r.request.post_data)]
+                      or named_read(r.request.method, r.request.url, body(r.request))]
     finally:
         page.remove_listener("response", listen)
 

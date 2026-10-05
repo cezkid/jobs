@@ -195,6 +195,17 @@ def test_block_passes_named_read_and_aborts_its_mutation():
     assert [b["url"] for b in block.log] == [ASHBY]
 
 
+def test_block_aborts_binary_body():
+    # Ashby's closed page, 2026-10-05: a gzipped beacon - post_data raised inside the route handler
+    class Binary(FakeRoute):
+        def __init__(self):
+            super().__init__("POST", ASHBY, None)
+            type(self.request).post_data = property(lambda r: b"\x9c".decode())
+    block, route = lab.Block(), Binary()
+    block.request(route)
+    assert route.done == "aborted" and [b["url"] for b in block.log] == [ASHBY] and block.passed == []
+
+
 def test_canary_still_blocks_every_kind_with_named_reads(page):
     # the exception never widens the block for anything the canary sends
     block = lab.Block()

@@ -4,16 +4,20 @@ Same throwaway Chrome, context-level block and canary as `measure` (apply/lab.py
 own questions, synthetic answers by key / kind only, typed through the SAME per-page path as
 `apply-form fill` (form.fill_page). Prints what took, what is the applicant's own step, and every
 blocked request with the box being filled when it fired - system docs cite that for "what leaves
-the computer, when". Never reads the user's settings or resume: nothing typed here is theirs.
+the computer, when". Kept as JSON beside measure's files: every request the page made while each box
+was filled (reads too), how each box shows its answer after the settle, and - `--upload-errors` - the
+page's own words for a wrong-type and an empty resume file. Never reads the user's settings or
+resume: nothing typed here is theirs.
 Rules + why: app/docs/apply/apply-systems.md (Add a system).
 """
+import json
 import re
 import sys
 import tempfile
 from collections import Counter
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 
@@ -37,6 +41,19 @@ NEXT = {"next", "continue", "next step"}
 REFUSE_NEXT = re.compile(r"submit|send|save|finish|complete|apply|sign", re.I)
 NEXT_NAME = re.compile(r"^\s*(?:next|continue|next\s+step)\s*$", re.I)
 APPLICANT = "the applicant's own step"
+# requests the page makes itself (not its pictures, styles, scripts): what a box sends as it is filled
+SENT_TYPES = {"xhr", "fetch", "ping", "eventsource", "websocket", "other"}
+# how a box shows its answer: its words, its boxes' values, the chosen radio / tick / button / option
+READOUT = """e => { const t = x => (x.innerText || x.textContent || '').replace(/\\s+/g, ' ').trim();
+  const ticks = [...e.querySelectorAll('input[type=radio], input[type=checkbox]')];
+  return {text: t(e).slice(0, 300),
+    boxes: [...e.querySelectorAll('input:not([type=hidden]):not([type=radio]):not([type=checkbox]), textarea, select')]
+      .map(i => ({tag: i.tagName.toLowerCase(), type: i.type || '', role: i.getAttribute('role') || '',
+                  value: (i.value || '').slice(0, 120), accept: i.getAttribute('accept') || ''})),
+    ticked: ticks.filter(i => i.checked).map(i => (i.labels && i.labels[0] ? t(i.labels[0]) : i.value).slice(0, 80)),
+    ticks: ticks.length,
+    pressed: [...e.querySelectorAll('[aria-pressed]')].map(b => ({name: t(b).slice(0, 40), pressed: b.getAttribute('aria-pressed')})),
+    selected: [...e.querySelectorAll('[aria-selected=true], [aria-checked=true]')].map(x => t(x).slice(0, 80))}; }"""
 
 
 def pick_option(options: list[str]) -> str | None:
@@ -99,6 +116,71 @@ def files(folder: Path) -> tuple[str, str]:
     letter = test_pdf(folder / "Test_Applicant_Cover_Letter.pdf", "Test Applicant - Test Cover Letter",
                       ["Dear hiring team,", "", "Test answer.", "", "Test Applicant"])
     return resume, letter
+
+
+def probe_files(folder: Path) -> list[tuple[str, str]]:
+    """(what, path): a picture where a resume goes, and an empty PDF - mistakes a person makes."""
+    png = folder / "Test_Applicant_Photo.png"
+    png.write_bytes(b"\x89PNG\r\n\x1a\n" + bytes(64))
+    empty = folder / "Test_Applicant_Empty.pdf"
+    empty.write_bytes(b"")
+    return [("wrong type (.png)", str(png)), ("empty file (0 bytes)", str(empty))]
+
+
+def new_lines(before: str, after: str, keep: int = 10) -> list[str]:
+    """Lines the page shows now that it didn't before: an error it raised."""
+    had = {" ".join(x.split()) for x in before.splitlines()}
+    out = [" ".join(x.split())[:200] for x in after.splitlines()]
+    return list(dict.fromkeys(x for x in out if x and x not in had))[:keep]
+
+
+def body_text(page) -> str:
+    try:
+        return page.evaluate("() => document.body.innerText || ''")
+    except Exception:
+        return ""
+
+
+def upload_errors(page, system, qs: list[dict], folder: Path, block: lab.Block) -> list[dict]:
+    """The page's own words for each mistaken resume file, chosen in the resume box before the real
+    one. With every write blocked, words that come only after a send are the block's, not the page's:
+    `blocked` says whether one fired."""
+    resume = next((q for q in qs if q["kind"] == "file" and q.get("key") == "resume"), None)
+    if resume is None:
+        return [{"probe": "none", "said": ["no resume box in the questions"]}]
+    out = []
+    for what, path in probe_files(folder):
+        before, step = body_text(page), f"upload probe: {what}"
+        block.step = step
+        result = form.put(page, system, resume | {"answer": True}, path)
+        page.wait_for_timeout(form.SETTLE_MS)
+        out.append({"probe": what, "fill": result, "said": new_lines(before, body_text(page)),
+                    "blocked": [f"{b['method']} {urlsplit(b['url']).hostname}{urlsplit(b['url']).path}"
+                                for b in block.log if b["after"] == step]})
+    return out
+
+
+def readout(page, system, qs: list[dict]) -> list[dict]:
+    """How each box shows its answer, read off the page: systems with `box_of(page, q)` only."""
+    if not hasattr(system, "box_of"):
+        return []
+    out = []
+    for q in qs:
+        try:
+            shows = system.box_of(page, q).evaluate(READOUT, timeout=3000)
+        except Exception as e:
+            shows = {"error": type(e).__name__}
+        out.append({"id": q["id"], "title": q["title"], "kind": q["kind"], "native": q.get("native"),
+                    "answer": q.get("answer"), "shows": shows})
+    return out
+
+
+def keep(record: dict, host: str) -> Path:
+    out = lab.OUT / f"{host}-try-{datetime.now():%Y%m%d-%H%M%S}.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(record, indent=1, ensure_ascii=False, default=str), encoding="utf-8")
+    print(f"written: {out}")
+    return out
 
 
 def next_ok(text: str) -> bool:
@@ -196,22 +278,34 @@ def press_next(page, block: lab.Block) -> None:
         print(f"  {APPLICANT}: {step}")
 
 
-def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool = True) -> None:
+def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool = True, probe: bool = False) -> None:
     """`upload=False`: file boxes left - an upload goes out on choosing the file on some systems, and
-    blocked it can take the form down with it (Workable, 2026-10-03): the rest is then tried without it."""
+    blocked it can take the form down with it (Workable, 2026-10-03): the rest is then tried without it.
+    `probe`: a wrong-type + an empty file in the resume box first (upload_errors)."""
     system = systems.for_url(url)
     if system is None:
         sys.exit("no system matches this link - try runs a system's own filler; add the system first")
     app_url, per_page = system.application_url(url), getattr(system, "PER_PAGE", False)
     with tempfile.TemporaryDirectory() as tmp, lab.throwaway(headless) as page:
         page.on("dialog", lambda d: d.dismiss())  # a leave-page prompt never holds the tab open
-        block, loads = lab.Block(), []
+        block, loads, sent = lab.Block(), [], []
         block.install(page)
         page.on("request", lambda r: loads.append(r.url) if r.is_navigation_request() and r.frame == page.main_frame
                 and r.url.startswith("http") and block.step != "canary" else None)
-        if failed := lab.canary_failed(lab.canary(page, block)):
+        page.on("request", lambda r: sent.append({"method": r.method, "url": (urlsplit(r.url).hostname or "") + urlsplit(r.url).path[:120],
+                                                  "type": r.resource_type, "op": parse_qs(urlsplit(r.url).query).get("op", [""])[0],
+                                                  "after": block.step})
+                if r.resource_type in SENT_TYPES and r.url.startswith("http") and block.step not in ("canary", "load") else None)
+        test = lab.canary(page, block)
+        if failed := lab.canary_failed(test):
             sys.exit(f"{failed}. Nothing tried")
         print(f"canary ok: 0 of {len(lab.KINDS)} kinds of test write got through, each blocked")
+        record = {"url": url, "system": system.NAME, "canary": test, "upload": upload}
+
+        def done(**more) -> None:
+            log = [b for b in block.log if b["after"] != "canary"]
+            keep(record | more | {"loads": len(loads), "blocked": log, "named_reads": block.passed, "requests": sent},
+                 urlsplit(url).hostname or "page")
         try:
             block.step = "load"
             page.goto(app_url, wait_until="load")
@@ -227,6 +321,8 @@ def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool 
         except Exception as e:  # READY never showed: a write it needed was blocked, or a wall
             print(f"form never showed ({type(e).__name__}) - not measurable while blocked")
             print("\n".join(["blocked:", *blocked_lines(block.log)]))
+            print(f"page loads: {len(loads)} (budget: 10 per site per bead)")
+            done(form_shown=False, page_text=body_text(page)[:lab.TEXT_KEEP])
             return
         print(f"page loads: {len(loads)} (budget: 10 per site per bead)")
         snap = dom.snapshot(page)
@@ -244,6 +340,10 @@ def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool 
             if why:
                 left.append(f"  left: {q['title']} - {why}")
         shown = set(system.ids_on_page(page)) if per_page else set()
+        probes = upload_errors(page, system, qs, Path(tmp), block) if probe else []
+        for p in probes:
+            print(f"upload probe, {p['probe']}: [{p.get('fill', '')}] page says: {' | '.join(p['said']) or 'nothing new'}"
+                  + (f"; blocked: {', '.join(p['blocked'])}" if p.get("blocked") else ""))
         report, extra = form.fill_page(page, system, qs, resume, letter,
                                        before=lambda q: setattr(block, "step", f"filling {q['title']!r}" if q else "after filling"))
         lines, other = form.page_report(qs, mark_blocked(qs, report, block.log), shown, per_page)
@@ -253,8 +353,11 @@ def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool 
         if extra:
             print(f"on the page, not in the questions: {len(extra)} ({', '.join(extra[:8])})")
         print("\n".join(left + [f"  {APPLICANT}: {step}" for step in dom.user_steps(snap)]))
+        shows = readout(page, system, qs)
         if go_next:
             press_next(page, block)
+        done(form_shown=True, questions=[{k: q.get(k) for k in ("id", "title", "kind", "native", "required", "key", "answer")} for q in qs],
+             report=dict(report), extra=extra, left=left, probes=probes, readout=shows)
         log = [b for b in block.log if b["after"] != "canary"]
         print("\n".join([f"blocked: {len(log)}", *blocked_lines(log)]))
         passed = ", ".join(sorted({p["op"] for p in block.passed}))

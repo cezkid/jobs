@@ -83,6 +83,11 @@ def ids_on_page(page) -> list[str]:
     return page.eval_on_selector_all(READY, "es => es.map(e => e.dataset.fieldPath)")
 
 
+def box_of(page, q: dict):
+    """The question's wrapper: one per form-definition path (try reads how each shows its answer)."""
+    return page.locator(f'[data-field-path="{q["id"]}"]').first
+
+
 def digits(s: str) -> str:
     return re.sub(r"\D", "", s)
 
@@ -171,7 +176,7 @@ def put_file(box, path: str) -> str:
 
 def holds(page, q: dict) -> bool:
     """The answer still shows, read back after the form had time to save it."""
-    box = page.locator(f'[data-field-path="{q["id"]}"]').first
+    box = box_of(page, q)
     kind, value = q["kind"], q["answer"]
     if kind == "yesno":
         word = "Yes" if str(value).casefold() in ("yes", "true") else "No"
@@ -191,7 +196,7 @@ def holds(page, q: dict) -> bool:
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:
-    box = page.locator(f'[data-field-path="{q["id"]}"]').first
+    box = box_of(page, q)
     if not box.count():
         return "FAIL question not on page"
     box.scroll_into_view_if_needed()

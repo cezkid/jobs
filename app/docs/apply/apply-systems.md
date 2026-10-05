@@ -75,7 +75,11 @@ In order - each step's output feeds the next:
    step. Prints the per-question report, `this page: X of Y`, LATER count, every blocked request
    w/ the question being filled when it fired. `--next` presses the one Next / Continue / Next
    Step button (never "Save and Continue"; anything saying submit / send / save / finish /
-   complete / apply / sign refused); page unchanged -> "not measurable while blocked".
+   complete / apply / sign refused); page unchanged -> "not measurable while blocked". Kept as
+   `.data/measure/<host>-try-<time>.json`: every request the page made while each box was filled
+   (reads too; GraphQL `op` named), how each box shows its answer after the settle (systems w/
+   `box_of(page, q)`). `--upload-errors`: a `.png` + an empty PDF in the resume box first, the
+   page's new words kept - a send error then is the block's, not the page's.
 6. **Shared rows**: a row in the table above, and the `AGENTS.md` privacy row for the system,
    from try's blocked log (what leaves the computer, when).
 

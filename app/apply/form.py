@@ -385,6 +385,8 @@ def main() -> None:
     tr.add_argument("--next", action="store_true", help="then press the one Next / Continue button (block on)")
     tr.add_argument("--no-upload", action="store_true", help="leave file boxes: a page whose upload is blocked "
                     "can break the rest of the form (Workable)")
+    tr.add_argument("--upload-errors", action="store_true", help="first choose a wrong-type + an empty file in the "
+                    "resume box, keep what the page says")
     sv = sub.add_parser("survey", help="(developers) question kinds on many Ashby + Lever forms: one plain read per "
                         "link, paced, counts only -> .data/measure/")
     sv.add_argument("links", type=Path, help="file of posting links, one per line")
@@ -397,7 +399,7 @@ def main() -> None:
         return lab.measure(args.url, args.click)
     if args.step == "try":
         from apply import trial
-        return trial.trial(args.url, args.next, upload=not args.no_upload)
+        return trial.trial(args.url, args.next, upload=not args.no_upload, probe=args.upload_errors)
     {"prepare": lambda: prepare(args.slug, args.url), "fill": lambda: fill(args.slug, args.in_window),
      "paste": lambda: paste(args.slug)}[args.step]()
 

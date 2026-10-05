@@ -53,11 +53,73 @@ Counts only. Required = `isRequired`.
 - Survey forms (voluntary EEO): 37 of 111.
 - File boxes other than the resume: 19, on 19 employers (titles not kept; cover letter vs other unmeasured).
 
-## Read back
+## What leaves the computer, when (2026-10-05)
+
+`apply-form try --upload-errors` on 3 open postings, tenants C, D, E (5 loads on jobs.ashbyhq.com
+incl. the closed page below; canary ok each run). Every request the page made while each box was
+filled, named by its GraphQL `op` (all POST to `non-user-graphql`, all blocked - so the page never
+got an answer back). Request bodies not kept: what each carries is read off its name, unmeasured.
+
+| When | Request | C | D | E |
+|---|---|---|---|---|
+| page opens | `ApiJobPosting` (questions; the one named read let through) | 1 | 1 | 1 |
+| file chosen, resume / cover letter / probe | `ApiCreateFileUploadHandle` - at once, before Submit | 3 | 4 | 3 |
+| each box filled or clicked (text, Yes/No, choice, EEO survey too) | `ApiSetFormValue` - per box, before Submit | 15 | 31 | 20 |
+| each key typed in Location | `ApiAutocompleteGeoLocation` - typed letters, as typed | - | - | 26 |
+| any GET while filling | none | 0 | 0 | 0 |
+
+- So Ashby takes answers box by box, not at Submit: the privacy table (AGENTS.md, Guides, site claim)
+  says "once you click Submit" - wrong for Ashby (follow-up filed).
+- Location: blocked search = no places offered -> `fill` ASKs (tenant E) - never a guess.
+- Files: `.data/measure/jobs.ashbyhq.com-try-20261005-14{0423,0516,0607}.json`.
+
+## Upload errors (2026-10-05)
+
+Resume box, before the real file: a `.png` (box `accept` = pdf, doc, docx ...; a picked file skips it)
+and an empty PDF.
+
+- No check before sending: both fire `ApiCreateFileUploadHandle` at once (C, D, E).
+- Then "ERROR" + "<file> failed to upload" (C, D; E's words not caught - 10-line diff filled by
+  text the page drew late). With the send blocked these are the block's errors, not a verdict on the
+  file: Ashby's own type / empty-file wording unmeasured (needs an unblocked send = a real application).
+- Failed upload still shows the file name + "Replace" in the box (C, D, E): `put_file` waiting for the
+  name says ok on an upload that failed - plan-nko.5.
+
+## Read back (2026-10)
 
 A user saw Preferred First Name + a Yes/No flagged empty at Submit though both showed filled
 (2026-10); not reproduced - a clean form kept all 14 answers 12 s later. `fill` now waits 2.5 s, reads
 each answer back (`holds`), fills a dropped one once more, else FAILs it for the user.
+
+How each widget shows its answer, read after `fill` + the 2.5 s settle (`try` readout, 2026-10-05):
+
+| Type | Shows the answer as | Seen |
+|---|---|---|
+| String, Url, Email, Phone, LongText | box `value` | C, D, E |
+| Date | plain text input, `value` "11/04/2026" (typed as given, month first) | C |
+| Number | `input[type=number]`, `value` | E |
+| Boolean | chosen button `aria-pressed="true"`, other "false"; 1 hidden checkbox | C, D |
+| ValueSelect, short (3-8 options) | radios, chosen one `checked` | D, E |
+| ValueSelect, long (15 options) | one `input[role=combobox]`, pick = its `value`; no radios | D |
+| MultiValueSelect (9, 18 options) | checkboxes, each pick `checked` - 18 still checkboxes, not a search box | D, E |
+| Location | `input[role=combobox]`; empty here (search blocked, nothing picked) | E |
+| File | box text "<file name> Replace or drag and drop here"; `input[type=file]` value = fake path | C, D, E |
+
+- `holds()` on a long ValueSelect: no label matches, so nothing is checked and it says held -
+  reads nothing; plan-nko.5.
+- Phone (C): an SMS-updates Yes / No consent sits inside the Phone wrapper (2 radios) - not a question
+  in the form definition.
+- Consent w/ empty title (D): a MultiValueSelect "I agree" whose words are in its description, title "";
+  `try` ticked it (synthetic answers check the title) - follow-up filed.
+
+## Closed posting (2026-10-05)
+
+- Question read (`ApiJobPosting`, plain HTTP): 3 closed links on the list -> HTTP 200, `jobPosting: null`,
+  no errors. Null = closed or never existed; can't tell which.
+- Page (tenant F, measure, 2 loads): lands on `jobs.ashbyhq.com/<org>/`, heading "Page not found",
+  "The page you requested was not found"; `window.__appData.posting` + `.organization` null (an open
+  posting's page: both objects). No "closed" wording - `form.CLOSED` misses it; plan-nko.5.
+- File: `.data/measure/jobs.ashbyhq.com-20261005-140653.json`.
 
 ## Widgets (tenant A)
 
