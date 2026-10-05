@@ -1,4 +1,5 @@
-"""Smallest CDP client over a WebSocket, stdlib only (plan-29g.7 measuring, never shipped).
+"""Smallest CDP client over a WebSocket, stdlib only: measuring (app/docs/apply/vscode-browser/measure.py) and
+the in-window fill trial (apply/window.py).
 Talks to js-debug's CDP proxy (`extension.js-debug.requestCDPProxy` -> {host, port, path}) or to a
 target's own `webSocketDebuggerUrl`. Events reach handlers on the reader thread: a handler may
 send (fire and forget) but never wait on a reply there."""
@@ -13,6 +14,11 @@ import time
 
 class Closed(Exception):
     pass
+
+
+class ScriptError(RuntimeError):
+    """The page's script threw: a real answer, never retried (a plain RuntimeError may be a page
+    mid-navigation, worth another look)."""
 
 
 class CDP:
@@ -146,7 +152,7 @@ class CDP:
     def evaluate(self, expr: str, timeout: float = 15, **extra):
         r = self.send("Runtime.evaluate", {"expression": expr, "returnByValue": True, "awaitPromise": True, **extra}, timeout)
         if "exceptionDetails" in r:
-            raise RuntimeError(r["exceptionDetails"].get("exception", {}).get("description") or r["exceptionDetails"].get("text"))
+            raise ScriptError(r["exceptionDetails"].get("exception", {}).get("description") or r["exceptionDetails"].get("text"))
         return r.get("result", {}).get("value")
 
     def close(self) -> None:

@@ -36,6 +36,12 @@ const LINK_GLOB = "*.json";
 const LINK_MAX_AGE_MS = 10 * 1000;
 // `jobs.py clear-signins`: same folder, {do: this} instead of a url; answered in <id>.done
 const CLEAR_REQUEST = "clear-signins";
+// `apply-form fill --in-window` (trial, app/apply/window.py): attach to the tab on jobs.py's own
+// holding page - only that loopback page, never a site's tab - then let it go by its session id
+const ATTACH_REQUEST = "attach-form";
+const DETACH_REQUEST = "detach-form";
+const HOLDING_PAGE = /^http:\/\/127\.0\.0\.1:\d{1,5}\/jf-[0-9a-f]{32}$/;
+const SESSION_ID = /^[\w-]{1,64}$/;
 
 // Job Finder's own folder: private folders the launcher makes; any other folder in this profile
 // is left alone
@@ -69,9 +75,10 @@ function isLinkFile(name) {
   return typeof name === "string" && /^[0-9a-f]{32}\.json$/.test(name);
 }
 
-// a request's text => {url} (a link to open) or {clear: true} (empty the window's sign-ins), or
-// null: unreadable, not http(s), unknown, or a leftover. The link goes on as the same string (a
-// rebuilt link 404s)
+// a request's text => {url} (a link to open), {clear: true} (empty the window's sign-ins),
+// {attach: holding page url} / {detach: session id} (the in-window fill trial), or null:
+// unreadable, not http(s), unknown, or a leftover. The link goes on as the same string (a rebuilt
+// link 404s)
 function windowRequest(text, now) {
   let req;
   try {
@@ -81,6 +88,8 @@ function windowRequest(text, now) {
   }
   if (!req || typeof req.t !== "number" || !(Math.abs(now - req.t) <= LINK_MAX_AGE_MS)) return null;
   if (req.do === CLEAR_REQUEST) return { clear: true };
+  if (req.do === ATTACH_REQUEST) return typeof req.url === "string" && HOLDING_PAGE.test(req.url) ? { attach: req.url } : null;
+  if (req.do === DETACH_REQUEST) return typeof req.session === "string" && SESSION_ID.test(req.session) ? { detach: req.session } : null;
   if (req.do !== undefined || typeof req.url !== "string") return null;
   let scheme;
   try {
@@ -91,8 +100,8 @@ function windowRequest(text, now) {
   return scheme === "https:" || scheme === "http:" ? { url: req.url } : null;
 }
 
-// <id>.json => where the window answers a clear request: <id>.done, written whole
-function clearAnswer(file, answer) {
+// <id>.json => where the window answers a request: <id>.done, written whole
+function answerFor(file, answer) {
   const done = file.replace(/\.json$/, ".done");
   return { temp: `${done}.tmp`, done, text: JSON.stringify(answer) };
 }
@@ -148,7 +157,7 @@ function warmUpPlan(ai) {
 module.exports = {
   PROFILE_PENDING, PROFILE_PENDING_LINE, UNTRUSTED_LINE, UNTRUSTED_BUTTON, UNTRUSTED_COMMAND,
   TODAY, START_HERE, MARKER, STAMP, READY, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
-  LINK_DIR, LINK_GLOB, LINK_MAX_AGE_MS, CLEAR_REQUEST,
-  isJobFinder, choosePage, needsRefresh, readyFile, isLinkFile, windowRequest, clearAnswer, uvCandidates, runJobs, pageTabs,
+  LINK_DIR, LINK_GLOB, LINK_MAX_AGE_MS, CLEAR_REQUEST, ATTACH_REQUEST, DETACH_REQUEST,
+  isJobFinder, choosePage, needsRefresh, readyFile, isLinkFile, windowRequest, answerFor, uvCandidates, runJobs, pageTabs,
   warmUpPlan,
 };

@@ -36,7 +36,7 @@ COMMANDS = {
     "interview": ("interview", "interview practice or debrief for one job: requirements, backing lines, pay: JOB"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
     "answers": ("apply.answers", "the user's saved answers from application forms: list | forget N"),
-    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill; measure | try LINK (developers)"),
+    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse only); measure | try LINK (developers)"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "ai": ("ai", "which AI the user chats with: prints it; ai claude | chatgpt | copilot saves it"),
     "look": ("look", "window look: prints it; look auto | light | dark saves it + switches the open window"),
@@ -132,6 +132,23 @@ def send_request(request: dict, root: Path, wait: float = LINK_WAIT) -> str | No
     return name
 
 
+def window_answer(name: str, root: Path, wait: float):
+    """What the window answered request `name` in <name>.done (None: unreadable); TimeoutError when
+    it took the request but said nothing in time."""
+    done = root / LINK_DIR / f"{name}.done"
+    deadline = time.monotonic() + wait
+    while not done.exists():
+        if time.monotonic() >= deadline:
+            raise TimeoutError(name)
+        time.sleep(0.05)
+    try:
+        answer = json.loads(done.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        answer = None
+    done.unlink(missing_ok=True)
+    return answer
+
+
 # the window's sign-ins live in VS Code's storage for this folder, outside it (app/docs/app-window.md
 # #s, #t): deleting the folder leaves them, and only the open window can empty them => asked through
 # the link folder; extension.js answers in <name>.done once VS Code's own clear has run
@@ -148,17 +165,10 @@ def clear_signins(wait: float = LINK_WAIT, answer_wait: float = CLEAR_WAIT) -> N
     if not name:
         # also a VS Code w/o its browser (before 1.109): nothing kept there
         sys.exit("not cleared: the Job Finder window isn't open - open CEZ Job Finder, then run this again")
-    done = cfg.ROOT / LINK_DIR / f"{name}.done"
-    deadline = time.monotonic() + answer_wait
-    while not done.exists():
-        if time.monotonic() >= deadline:
-            sys.exit("not sure it cleared: the window took the request but never answered - run this again")
-        time.sleep(0.05)
     try:
-        answer = json.loads(done.read_text(encoding="utf-8"))
-    except (OSError, ValueError):
-        answer = None
-    done.unlink(missing_ok=True)
+        answer = window_answer(name, cfg.ROOT, answer_wait)
+    except TimeoutError:
+        sys.exit("not sure it cleared: the window took the request but never answered - run this again")
     if not isinstance(answer, dict) or answer.get("ok") is not True:
         error = answer.get("error") if isinstance(answer, dict) else None
         sys.exit(f"not cleared: VS Code's clear failed ({error or 'no reason given'})")

@@ -184,7 +184,7 @@ def page_text(page) -> str:
         return ""
 
 
-def fill(slug: str) -> None:
+def fill(slug: str, in_window: bool = False) -> None:
     config = cfg.load()
     folder = job_dir(config, slug)
     saved = folder / tailor.JOB_DATA / questions.FILE
@@ -195,6 +195,13 @@ def fill(slug: str) -> None:
         sys.exit(f"this form can't be filled here - write the answers to paste: uv run app/jobs.py apply-form paste {slug}")
     refuse(data["questions"])
     system = system_for(data["url"])
+    # trial, off by default (apply/window.py): one system until it is checked live
+    opener = browser.page_at
+    if in_window:
+        from apply import window
+        if system.NAME not in window.SYSTEMS:
+            sys.exit(f"in the window: {', '.join(window.SYSTEMS)} only for now - run fill without --in-window")
+        opener = window.page_at
     per_page = getattr(system, "PER_PAGE", False)
     if not per_page and (gaps := questions.missing(data["questions"])):
         sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
@@ -206,7 +213,7 @@ def fill(slug: str) -> None:
               "- the user uploads one by hand, or make the resume again")
     # a multi-page form: the user's own tab, where they are - a fresh tab is page 1 again
     match = systems.tab_match(system, data["url"]) if per_page else None
-    with browser.page_at(data["url"], match=match) as page:
+    with opener(data["url"], match=match) as page:
         # a closed posting never shows its form: say so instead of timing out on it
         if said := closed(page):
             sys.exit(f"the posting says it's closed (\"{said}\") - nothing filled; ask the user, "
@@ -229,7 +236,8 @@ def fill(slug: str) -> None:
     if extra:
         print(f"  {len(extra)} question(s) on the page not in the answers file - user answers them on screen")
     remember(config, folder, data)
-    print("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.")
+    print(f"{'The Job Finder window shows' if in_window else 'Chrome is open on'} the filled form. "
+          "Nothing is sent until the user clicks Submit.")
 
 
 def closed(page) -> str | None:
@@ -322,6 +330,8 @@ def main() -> None:
     p.add_argument("url")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
+    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse only, off by default) fill in a tab "
+                   "of the Job Finder window instead of Chrome")
     t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
     t.add_argument("slug")
     m = sub.add_parser("measure", help="(developers) safe look at a live form: throwaway Chrome, every write "
@@ -341,7 +351,7 @@ def main() -> None:
     if args.step == "try":
         from apply import trial
         return trial.trial(args.url, args.next, upload=not args.no_upload)
-    {"prepare": lambda: prepare(args.slug, args.url), "fill": lambda: fill(args.slug),
+    {"prepare": lambda: prepare(args.slug, args.url), "fill": lambda: fill(args.slug, args.in_window),
      "paste": lambda: paste(args.slug)}[args.step]()
 
 

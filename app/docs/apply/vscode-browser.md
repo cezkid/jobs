@@ -10,7 +10,7 @@ macOS 26.4.1 x86_64. Binary started directly (never `launch.py`, never `~/.vscod
 folder = program copy + demo + the window's own settings, throwaway browser storage. Dummy data
 only (Test Person, `test.person@example.com`, 100-byte dummy PDF), never the user's; Submit never
 clicked. Scripts: [measure.py](vscode-browser/measure.py) (stages setup, ext, route1, route2, gh,
-restricted), [cdp.py](vscode-browser/cdp.py) (stdlib CDP client), [formsite.py](vscode-browser/formsite.py)
+restricted), [cdp.py](../../apply/cdp.py) (stdlib CDP client, now shipped for the trial), [formsite.py](vscode-browser/formsite.py)
 (local test form, logs every request), [probe-ext/](vscode-browser/probe-ext/extension.js) (scratch
 extension: opens tabs, starts the attach, asks for proxies). Screenshots (window only, ignored):
 `.data/probe-shots/form/`.
@@ -96,3 +96,43 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
 window, Greenhouse only, off by default (plan-29g.9).
+
+## Owner decision (plan-29g.8)
+
+2026-10-05: build the Greenhouse trial, off by default; verify live on one real application before
+anyone else gets it. Greenhouse = largest system on the owner's list (537 of 1,589 open rows;
+Ashby 178, Lever 98, Workday 94). Built on the route-2 costs above: skip pauses on every attach,
+scroll `instant`, stop only the page session (never stop all - closes the tab), urlFilter matching
+exactly one tab, trusted folder required, embed forms opened top-level. Default Chrome path unchanged.
+
+## Trial (plan-29g.9)
+
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse only (other systems refused in
+one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
+
+- Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
+  the window opens it (plain open request), then `attach-form` w/ that link as urlFilter. Never the
+  posting's link: a Greenhouse posting is its own form page, often already open from Today => two
+  matches => js-debug's picker. js-debug's filter drops scheme, trailing slash + `#hash`, keeps the
+  query (bundle read, VS Code 1.140) - a fragment can't make a tab unique.
+- `extension.js`: `attach-form` taken only for that loopback shape (`start.js` `ATTACH_REQUEST`);
+  Restricted Mode => "untrusted"; picker shown anyway => closed after 15 s, "picker"; waits for the
+  page session, asks `requestCDPProxy` for it, answers {session, proxy}.
+- Python drives the tab over raw CDP ([cdp.py](../../apply/cdp.py), moved from the measure
+  scripts): Playwright can't use the proxy (one page, no browser). `apply/window.py` `Page` +
+  `Locator` cover only what `greenhouse.py` + `form.fill` call: click = instant scroll to the box's
+  middle + real mouse events, typing = `Input.insertText`, file = `DOM.setFileInputFiles`.
+  `Debugger.setSkipAllPauses` on attach + after each navigation.
+- Done: `detach-form` => `disconnect {terminateDebuggee: false}` on the page session, then its
+  parent - never stop all (closes the tab).
+- Any failure: one plain line ending "run fill without --in-window to fill it in Chrome".
+
+Tests (`uv run pytest -k in_window`): the adapter fills `app/tests/fixtures/dom/greenhouse-form.html`
+(smooth scrolling, a `debugger;` line on input, react-select dropdown, checkbox list, file box) in
+real headless Chrome over CDP, every answer read back off the page; w/o pause skipping the same
+test hangs (checked). Window side = fake extension: holding page, attach, detach, each refusal.
+
+Unmeasured live, left to plan-29g.18 (one real application in the window): detach keeps the tab +
+leaves no session; whether `internalConsoleOptions: "neverOpen"` + the suppress options now hide the
+Debug Console + toolbar (above: options didn't); reCAPTCHA w/ the window's frame at Submit.

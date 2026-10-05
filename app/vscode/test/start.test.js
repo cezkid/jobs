@@ -156,9 +156,29 @@ test("clear-signins request: fresh only, answered beside it", () => {
   assert.equal(start.windowRequest(clear(), NOW + start.LINK_MAX_AGE_MS + 1), null);
   assert.equal(start.windowRequest(clear({ t: "now" }), NOW), null);
   const file = "/f/.data/open-link/0123456789abcdef0123456789abcdef.json";
-  assert.deepEqual(start.clearAnswer(file, { ok: true }), {
+  assert.deepEqual(start.answerFor(file, { ok: true }), {
     temp: "/f/.data/open-link/0123456789abcdef0123456789abcdef.done.tmp",
     done: "/f/.data/open-link/0123456789abcdef0123456789abcdef.done",
     text: "{\"ok\":true}",
   });
+});
+
+// in-window fill trial (app/apply/window.py): attach only to jobs.py's own loopback holding page -
+// a request naming any site's tab is dropped; detach only by a session id's shape
+test("in_window attach-form: only jobs.py's holding page, detach-form: only a session id", () => {
+  const ask = (over) => JSON.stringify({ t: NOW, ...over });
+  const page = "http://127.0.0.1:52817/jf-0123456789abcdef0123456789abcdef";
+  assert.equal(start.ATTACH_REQUEST, "attach-form");
+  assert.equal(start.DETACH_REQUEST, "detach-form");
+  assert.deepEqual(start.windowRequest(ask({ do: "attach-form", url: page }), NOW), { attach: page });
+  for (const url of ["https://job-boards.greenhouse.io/acme/jobs/123", "http://localhost:52817/jf-0123456789abcdef0123456789abcdef",
+    "http://127.0.0.1:52817/jf-0123456789abcdef0123456789abcdef/x", "http://127.0.0.1:52817/jf-0123", `${page}?a=1`,
+    "http://127.0.0.1.evil.com:52817/jf-0123456789abcdef0123456789abcdef", undefined, 5]) {
+    assert.equal(start.windowRequest(ask({ do: "attach-form", url }), NOW), null, String(url));
+  }
+  assert.equal(start.windowRequest(ask({ do: "attach-form", url: page, t: NOW - start.LINK_MAX_AGE_MS - 1 }), NOW), null);
+  assert.deepEqual(start.windowRequest(ask({ do: "detach-form", session: "a1b2-c3_d4" }), NOW), { detach: "a1b2-c3_d4" });
+  for (const session of ["", "a b", "../x", "x".repeat(65), undefined, 7]) {
+    assert.equal(start.windowRequest(ask({ do: "detach-form", session }), NOW), null, String(session));
+  }
 });

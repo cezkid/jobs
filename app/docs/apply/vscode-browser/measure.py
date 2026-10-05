@@ -37,7 +37,7 @@ F, HOLD = D / "f", D / "hold"
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path[:0] = [str(HERE), str(SRC / "app")]
 import formsite  # noqa: E402
-from cdp import CDP  # noqa: E402
+from apply.cdp import CDP  # noqa: E402
 
 CODE = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
 CLI = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code"  # the binary itself opens a window
