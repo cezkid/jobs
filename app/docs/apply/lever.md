@@ -91,13 +91,29 @@ Submit, 4 of 4. Never clicked.
 
 ## Read back
 
-`holds` (2026-10-05, saved tenant pages A-D in headless Chrome - not yet on a live page, plan-nko.12):
-`form.recheck` waits 2.5 s, reads each `ok` answer off the page, fills a dropped one once more, else
-FAILs it for the user. Shown value only: text by `input_value` (phone by digits), dropdown by the
-option it shows, radios + checkboxes by each option's own checked state (an extra tick = not this
-answer), place = `#selected-location` set AND the box starts w/ the answer's town (typed but never
-picked = dropped). Box gone or unreadable = dropped. Refill clicks only a tick that differs, so
-fill twice = same page (4 of 4 saved tenants).
+`holds` (2026-10-05, saved tenant pages A-D in headless Chrome): `form.recheck` waits 2.5 s, reads
+each `ok` answer off the page, fills a dropped one once more, else FAILs it for the user. Shown value
+only: text by `input_value` (phone by digits), dropdown by the option it shows, radios + checkboxes by
+each option's own checked state (an extra tick = not this answer), place = `#selected-location` set
+AND the box starts w/ the answer's town (typed but never picked = dropped). Box gone or unreadable =
+dropped. Refill clicks only a tick that differs, so fill twice = same page (4 of 4 saved tenants).
+
+Live (`apply-form try`, 3 postings, 3 employers not among A-D, 2026-10-05; 1 load each, canary ok,
+0 writes sent; files `.data/measure/jobs.lever.co-try-20261005-151*.json`). `ok` = read back after
+the 2.5 s settle (a refill, if any, not counted):
+
+| Tenant | Boxes filled | Read back ok | Dropped (FAIL) | Kinds read back | Resume | Place |
+|---|---|---|---|---|---|---|
+| E | 28 | 27 | 0 | text 8 (address cards), dropdown 7, survey radios 6 + ticks 1, url 2, phone, email | ASK, block's | picked, read back |
+| F | 25 | 24 | 0 | dropdown 8, multiple-select ticks 6, EEO selects 3, radios 1, textarea 1, text, phone, email | ASK, block's | picked, read back |
+| G | 6 | 5 | 0 | standard boxes only (name, email, phone, company) | ASK, block's | picked, read back |
+
+- Resume: `put_file` -> "ASK upload not confirmed on page" 3 of 3 - `POST /parseResume` blocked, so
+  no "Success!" / "Couldn't auto-read" label came: the block's verdict, not the page's. Real verdict
+  wording + timing still unmeasured (needs an unblocked send = a real application).
+- Place: typing the town fired one `GET jobs.lever.co/searchLocations` (3 of 3, a read, came through);
+  the result was clicked and `#selected-location` read back set.
+- Left for the applicant (E): a required texting-consent dropdown - the applicant's own step.
 
 ## Pages
 
@@ -115,7 +131,7 @@ in full with all of them blocked.
 | Step | Sent | When |
 |---|---|---|
 | Resume chosen | the file: `POST jobs.lever.co/parseResume` | at once, before Submit - Lever reads it to fill boxes (3 of 3) |
-| Current location typed | the town, as a search (a read - results came while every write was blocked) | as typed |
+| Current location typed | the town, as a search: one `GET /searchLocations` per box (a read - came through while every write was blocked, 3 of 3 again 2026-10-05) | as typed |
 | Every other box typed or ticked | nothing (no write fired, 3 of 3) | at Submit |
 
 So the resume reaches the employer's Lever as soon as it is chosen; the rest at Submit (hCaptcha
@@ -127,6 +143,20 @@ runs there, the applicant's own step).
 anything here The job posting you're looking for might have closed, or it has been removed."
 (1 probe, 2026-10-03). `questions` says closed on 404; `form.CLOSED` knows the wording.
 
+Check run over the links files (2026-10-05, `questions()` = plain GET of `/apply`, no redirects
+followed, 2 s apart, 0 errors / 429):
+
+| List | Links | Form there | May have closed (404) |
+|---|---|---|---|
+| open | 104 | 52 | 52 |
+| closed | 9 | 6 | 3 |
+
+- Open read as closed: 0. All 55 "may have closed" (49 + 3 of one job-board reposter on the open list,
+  3 others) are 404 AND missing from the employer's own public list (`api.lever.co/v0/postings/<co>`,
+  one read per employer, 2026-10-05) = taken down since the list was made. No redirect seen (0 of 113).
+- 6 "closed" links still open per Lever: the list's closed mark is older or from elsewhere.
+- File: `.data/measure/lever-closed-check-2026-10-05.json` (counts).
+
 ## Tenant notes
 
 | Tenant | Measured 2026-10-03 |
@@ -135,3 +165,6 @@ anything here The job posting you're looking for might have closed, or it has be
 | tenant B | 2 cards (salary text, work permit + sponsorship dropdowns); EEO gender / race / veteran all selects, no disability; Apply with LinkedIn |
 | tenant C | 2 cards, 22 fields (home address boxes, preferred name, pronouns, start date, salary, non-compete); no EEO - employer's own survey (race checkboxes, gender, veteran); Current location required |
 | tenant D | 3 cards, all optional Yes/No + one textarea; required privacy "I Accept" card + marketing consent box; no EEO; Links: LinkedIn + Other only |
+| tenant E | 2026-10-05: 7 cards incl. home address as text (street, city, state, province, postal code, country), work-history + family-at-employer Yes/No, salary text; employer survey (age range, race ticks, gender, LGBTQ+, pronouns, veteran, disability); required texting-consent dropdown |
+| tenant F | 2026-10-05: 1 card, 17 fields - work permit + sponsorship, referral, state, degree, years; 6 multiple-select skill lists; one-sentence textarea; EEO gender / race / veteran selects |
+| tenant G | 2026-10-05: no cards, no EEO - standard boxes only; Phone + Current location optional |
