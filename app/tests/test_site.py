@@ -515,7 +515,8 @@ def test_home_ledger_names_the_same_recipients_as_privacy_in_order():
 # every file a claim rests on (app/web/claims.yml) + the pages: enough for a scratch copy
 CLAIM_FILES = ("docs/index.html", "docs/privacy.html", "app/web/claims.yml", "AGENTS.md", "START HERE.md",
                "app/vscode/say.json", "app/install/install-mac.sh", "app/install/install-windows.ps1",
-               "app/alert.py", "app/launch.py", "app/workspace.py", "app/docs/app-window.md")
+               "app/alert.py", "app/launch.py", "app/workspace.py", "app/docs/app-window.md", "app/jobs.py",
+               "app/vscode/extension.js")
 
 
 def claim_copy(tmp_path):

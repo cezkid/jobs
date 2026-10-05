@@ -114,8 +114,12 @@ test("extension runs panel rows and page buttons through the one doAction", () =
   assert.match(body("act"), /return doAction\(root, at, action, \{/);
   assert.match(body("showJobs"), /doAction\(root, at, action, ui\)/);
   // links, files, status + chat words happen only inside doAction; links through openLink alone,
-  // from doAction + takeLink (`jobs.py open "<link>"`, a request start.linkRequest checked)
-  assert.match(body("takeLink"), /url = start\.linkRequest\([^\n]*\n[\s\S]*if \(url\) await openLink\(url\);$/);
+  // from doAction + takeLink (`jobs.py open "<link>"`, a request start.windowRequest checked)
+  assert.match(body("takeLink"), /req = start\.windowRequest\([^\n]*\n[\s\S]*if \(url\) await openLink\(url\);$/);
+  // VS Code's clear only for `jobs.py clear-signins`, never from a click
+  assert.match(body("takeLink"), /if \(req && req\.clear\) return clearSignins\(file\);/);
+  assert.strictEqual(src.split("executeCommand(CLEAR_STORAGE").length, 2);
+  assert.match(body("clearSignins"), /executeCommand\(CLEAR_STORAGE\)/);
   const outside = src.replace(body("doAction"), "").replace(body("openLink"), "").replace(body("takeLink"), "");
   for (const call of ["openExternal(", "executeCommand(BROWSER_OPEN", "keeper.set(", "sayWords(root, action.words", "revealInExplorer"]) {
     assert.ok(!outside.includes(call), `${call} outside doAction`);

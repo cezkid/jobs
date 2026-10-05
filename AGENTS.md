@@ -59,6 +59,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   `rank --pay-floor N` counts first. `app/docs/jobs/pay-filter.md`.
 - "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
   (switches at once), confirm in one line. Today has the same switch at the top.
+- "Remove CEZ Job Finder" -> `uv run app/jobs.py autorun off`, then `uv run app/jobs.py clear-signins`
+  (window sign-ins live outside the folder; deleting it leaves them), then they delete the folder
+  themselves (`docs/privacy.html#delete`). Chats stay in their AI account - delete them there.
 
 ## Speed - user's time first
 
@@ -208,7 +211,7 @@ when asked, at setup, and before any step sending something new off computer.
 |---|---|---|
 | Resume, job folders, search settings, saved form answers, Today page | `My Resume/`, `My Jobs/`, `My Settings/`, `Today.md` | Private - only this computer |
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
-| Sign-ins + site data of pages opened in the Job Finder window | the window's own browser storage, kept by VS Code outside the folder (this folder only, not their usual browser or other VS Code windows; palette "Browser: Clear Storage (Workspace)" empties it, `app/docs/app-window.md`) | Private - only this computer; the page's own site sees the visit, as in any browser |
+| Sign-ins + site data of pages opened in the Job Finder window | the window's own browser storage, kept by VS Code outside the folder (this folder only, not their usual browser or other VS Code windows; `uv run app/jobs.py clear-signins` empties it, `app/docs/app-window.md`) | Private - only this computer; the page's own site sees the visit, as in any browser |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |

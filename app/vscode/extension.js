@@ -449,6 +449,10 @@ async function act(root, at, page, m, msg, panel, retry, keeper) {
 // would be re-navigated, wiping a half-filled form (app/docs/app-window.md)
 const BROWSER_OPEN = "workbench.action.browser.open";
 
+// palette "Browser: Clear Storage (Workspace)": empties this folder's sign-ins + site data, kept
+// by VS Code outside the folder (app/docs/app-window.md #s); no dialog, no tab needed (#t)
+const CLEAR_STORAGE = "workbench.action.browser.clearWorkspaceStorage";
+
 async function hasBrowser() {
   return (await vscode.commands.getCommands(true)).includes(BROWSER_OPEN);
 }
@@ -463,7 +467,8 @@ function openLink(url) {
   });
 }
 
-// `jobs.py open "<link>"` (every AI shows a link with it) => a tab here. Job Finder's folder only.
+// `jobs.py open "<link>"` (every AI shows a link with it) => a tab here; `jobs.py clear-signins` =>
+// this window's sign-ins emptied. Job Finder's folder only.
 // Requests already waiting as the window starts: fresh ones opened, leftovers deleted unseen
 function watchLinks(context) {
   const folder = (vscode.workspace.workspaceFolders || [])[0];
@@ -504,14 +509,33 @@ async function takeLink(file) {
       await new Promise((ok) => setTimeout(ok, 50));
     }
   }
-  let url = null;
+  let req = null;
   try {
-    url = start.linkRequest(fs.readFileSync(taken, "utf8"), Date.now());
+    req = start.windowRequest(fs.readFileSync(taken, "utf8"), Date.now());
   } catch {}
   try {
     fs.unlinkSync(taken);
   } catch {}
+  if (req && req.clear) return clearSignins(file);
+  const url = req && req.url;
   if (url) await openLink(url);
+}
+
+// `jobs.py clear-signins` (before removing the app): only this window can empty them; jobs.py
+// waits for the answer so the AI never says cleared when it wasn't
+async function clearSignins(file) {
+  let answer;
+  try {
+    await vscode.commands.executeCommand(CLEAR_STORAGE);
+    answer = { ok: true };
+  } catch (e) {
+    answer = { error: String((e && e.message) || e) };
+  }
+  const { temp, done, text } = start.clearAnswer(file, answer);
+  try {
+    fs.writeFileSync(temp, text);
+    fs.renameSync(temp, done);
+  } catch {}
 }
 
 // one action of today.model's list, from the dashboard or the Jobs panel: the only place a click

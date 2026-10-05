@@ -655,9 +655,10 @@ POSTING = "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b"
 class FakeWindow:
     """Job Finder's window as jobs.py sees it: claims each request by renaming it, as extension.js does."""
 
-    def __init__(self, root):
+    def __init__(self, root, clear_answer=None):
         import jobs
-        self.dir, self.opened, self.done = root / jobs.LINK_DIR, [], None
+        self.dir, self.opened, self.cleared, self.done = root / jobs.LINK_DIR, [], 0, None
+        self.clear_answer = {"ok": True} if clear_answer is None else clear_answer
 
     def watch(self):
         while not self.done.is_set():
@@ -667,8 +668,16 @@ class FakeWindow:
                     request.rename(taken)
                 except OSError:
                     continue
-                self.opened.append(json.loads(taken.read_text(encoding="utf-8"))["url"])
+                req = json.loads(taken.read_text(encoding="utf-8"))
                 taken.unlink()
+                if req.get("do") == "clear-signins":
+                    self.cleared += 1
+                    if self.clear_answer != "silent":
+                        temp = request.with_suffix(".done.tmp")
+                        temp.write_text(json.dumps(self.clear_answer), encoding="utf-8")
+                        temp.rename(request.with_suffix(".done"))
+                else:
+                    self.opened.append(req["url"])
             self.done.wait(0.01)
 
     def __enter__(self):
@@ -786,6 +795,42 @@ def test_open_link_leftovers_cleared_and_busy_file_retried(tmp_path, monkeypatch
     with pytest.raises(FileNotFoundError):
         jobs.retry_busy(lambda: calls.append(1) or (_ for _ in ()).throw(FileNotFoundError()))
     assert len(calls) == 4  # gone = an answer, never retried
+
+
+def test_clear_signins_runs_in_the_window_and_says_so_only_once_done(tmp_path, monkeypatch, capsys):
+    # removing the app: the window's sign-ins live outside the folder, only the window can empty
+    # them (app-window.md #s, #t) => the AI runs it, never the palette
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(jobs.sys, "argv", ["jobs.py", "clear-signins"])
+    with FakeWindow(tmp_path) as window:
+        jobs.main()
+    assert window.cleared == 1 and window.opened == [] and browser == []
+    assert capsys.readouterr().out == f"{jobs.CLEARED}\n"
+    assert list((tmp_path / jobs.LINK_DIR).iterdir()) == []
+
+
+@pytest.mark.parametrize("running, answer, said", [
+    (False, None, "not cleared: the Job Finder window isn't open"),
+    (True, "silent", "not sure it cleared"),
+    (True, {"error": "command 'workbench.action.browser.clearWorkspaceStorage' not found"},
+     "not cleared: VS Code's clear failed (command 'workbench.action.browser.clearWorkspaceStorage' not found)"),
+    (True, ["ok"], "not cleared: VS Code's clear failed (no reason given)"),
+])
+def test_clear_signins_never_claims_a_clear_that_did_not_happen(tmp_path, monkeypatch, capsys, running, answer, said):
+    jobs, browser = link_setup(tmp_path, monkeypatch, running=running)
+    with FakeWindow(tmp_path, answer) as window, pytest.raises(SystemExit) as stop:
+        jobs.clear_signins(wait=5, answer_wait=0.3)
+    assert str(stop.value).startswith(said) and capsys.readouterr().out == "" and browser == []
+    assert window.cleared == int(running)
+    assert not (tmp_path / jobs.LINK_DIR).exists() or list((tmp_path / jobs.LINK_DIR).iterdir()) == []
+
+
+def test_clear_signins_window_without_its_browser_takes_nothing(tmp_path, monkeypatch):
+    # VS Code before 1.109 leaves every request alone (extension.js takeLink) => taken back
+    jobs, _ = link_setup(tmp_path, monkeypatch)
+    with pytest.raises(SystemExit) as stop:
+        jobs.clear_signins(wait=0.2)
+    assert str(stop.value).startswith("not cleared: ") and list((tmp_path / jobs.LINK_DIR).iterdir()) == []
 
 
 def profile_paths(tmp_path, monkeypatch):

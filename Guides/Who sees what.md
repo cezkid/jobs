@@ -15,8 +15,8 @@
 | A follow-up email you send | The person you send it to, from your own email |
 
 **Removing CEZ Job Finder:** sign-ins from pages opened in its window stay in VS Code after the
-folder is deleted. Clear them first: press Ctrl+Shift+P (Mac: Cmd+Shift+P), pick Browser: Clear
-Storage (Workspace). Then delete the folder.
+folder is deleted. Say "Remove CEZ Job Finder" in the chat first: it turns off the daily check
+and clears them. Then delete the folder.
 
 **VS Code's own usage reports to Microsoft:** switched off when CEZ Job Finder installed VS Code for you.
 

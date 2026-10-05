@@ -1,0 +1,259 @@
+{
+ "what": "t: jobs.py clear-signins empties the window's sign-ins (with and without a tab open)",
+ "uniq": "5f164a2f",
+ "at": "2026-10-05T05:34:27Z",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "setup": [
+  {
+   "cmd": [
+    "uv",
+    "run",
+    "python",
+    "app/tests/demo.py"
+   ],
+   "rc": 0,
+   "ms": 9331
+  },
+  {
+   "cmd": [
+    "uv",
+    "run",
+    "app/jobs.py",
+    "today"
+   ],
+   "rc": 0,
+   "ms": 2813
+  }
+ ],
+ "steps": {
+  "signin": {
+   "tries": [
+    "opened in the Job Finder window"
+   ],
+   "served": true,
+   "tab": "JF probe 5f164a2f signin"
+  },
+  "before": {
+   "said": "opened in the Job Finder window",
+   "cookieSent": "jf_signin=5f164a2f",
+   "kept": true,
+   "tab": "JF probe 5f164a2f whoami kept"
+  },
+  "closeAll": null,
+  "whereQuit": [
+   {
+    "path": "$D/data/User/workspaceStorage/b138c63153dbacd80649c533426a77f3/browserStorage",
+    "workspaceJson": {
+     "folder": "file://$D/f"
+    },
+    "files": 45,
+    "bytes": 1823459,
+    "cookieRows": [
+     "jf_signin"
+    ]
+   }
+  ],
+  "coldTabs": [],
+  "coldLoadsBefore": 4,
+  "coldBefore": [
+   {
+    "path": "$D/data/User/workspaceStorage/b138c63153dbacd80649c533426a77f3/browserStorage",
+    "workspaceJson": {
+     "folder": "file://$D/f"
+    },
+    "files": 45,
+    "bytes": 1823459,
+    "cookieRows": [
+     "jf_signin"
+    ]
+   }
+  ],
+  "coldClear": {
+   "rc": 0,
+   "stdout": "cleared: sign-ins + site data of pages opened in the Job Finder window",
+   "stderr": "",
+   "ms": 1112
+  },
+  "coldLoadsAtClear": 4,
+  "coldShot": {
+   "path": "<checkout>/.data/probe-shots/t-cold-clear.png",
+   "bytes": 293671
+  },
+  "coldWhere": [
+   {
+    "path": "$D/data/User/workspaceStorage/b138c63153dbacd80649c533426a77f3/browserStorage",
+    "workspaceJson": {
+     "folder": "file://$D/f"
+    },
+    "files": 56,
+    "bytes": 2129224,
+    "cookieRows": []
+   }
+  ],
+  "coldAfter": {
+   "said": "opened in the Job Finder window",
+   "cookieSent": null,
+   "kept": false,
+   "tab": "JF probe 5f164a2f whoami none"
+  },
+  "signinAgain": {
+   "tries": [
+    "opened in the Job Finder window"
+   ],
+   "served": true,
+   "tab": "JF probe 5f164a2f signin"
+  },
+  "tabsBefore": {
+   "said": "opened in the Job Finder window",
+   "cookieSent": "jf_signin=5f164a2f",
+   "kept": true,
+   "tab": "JF probe 5f164a2f whoami none"
+  },
+  "tabsOpen": [
+   "JF probe 5f164a2f whoami none",
+   "JF probe 5f164a2f signin"
+  ],
+  "tabsClear": {
+   "rc": 0,
+   "stdout": "cleared: sign-ins + site data of pages opened in the Job Finder window",
+   "stderr": "",
+   "ms": 1622
+  },
+  "tabsAfter": {
+   "said": "opened in the Job Finder window",
+   "cookieSent": null,
+   "kept": false,
+   "tab": "JF probe 5f164a2f whoami none"
+  },
+  "closedClear": {
+   "rc": 1,
+   "stdout": "",
+   "stderr": "not cleared: the Job Finder window isn't open - open CEZ Job Finder, then run this again",
+   "ms": 349
+  },
+  "relaunched": {
+   "said": "opened in the Job Finder window",
+   "cookieSent": null,
+   "kept": false,
+   "tab": "JF probe 5f164a2f whoami none"
+  },
+  "whereEnd": [
+   {
+    "path": "$D/data/User/workspaceStorage/b138c63153dbacd80649c533426a77f3/browserStorage",
+    "workspaceJson": {
+     "folder": "file://$D/f"
+    },
+    "files": 55,
+    "bytes": 2038259,
+    "cookieRows": []
+   }
+  ]
+ },
+ "launch": {
+  "rc": 0,
+  "ms": 20878,
+  "holdUp": true
+ },
+ "launchQuit": {
+  "killed": false
+ },
+ "cold": {
+  "rc": 0,
+  "ms": 4715,
+  "holdUp": true
+ },
+ "coldQuit": {
+  "killed": false
+ },
+ "relaunch": {
+  "rc": 0,
+  "ms": 5546,
+  "holdUp": true
+ },
+ "relaunchQuit": {
+  "killed": false
+ },
+ "serverLog": [
+  {
+   "t": 1791178525.241,
+   "path": "/signin?n=1",
+   "cookie": null
+  },
+  {
+   "t": 1791178525.748,
+   "path": "/favicon.ico",
+   "cookie": "jf_signin=5f164a2f"
+  },
+  {
+   "t": 1791178527.217,
+   "path": "/whoami?n=1",
+   "cookie": "jf_signin=5f164a2f"
+  },
+  {
+   "t": 1791178527.469,
+   "path": "/favicon.ico",
+   "cookie": "jf_signin=5f164a2f"
+  },
+  {
+   "t": 1791178547.889,
+   "path": "/whoami?n=2",
+   "cookie": null
+  },
+  {
+   "t": 1791178548.217,
+   "path": "/favicon.ico",
+   "cookie": null
+  },
+  {
+   "t": 1791178549.633,
+   "path": "/signin?n=2",
+   "cookie": null
+  },
+  {
+   "t": 1791178550.084,
+   "path": "/favicon.ico",
+   "cookie": "jf_signin=5f164a2f"
+  },
+  {
+   "t": 1791178552.497,
+   "path": "/whoami?n=3",
+   "cookie": "jf_signin=5f164a2f"
+  },
+  {
+   "t": 1791178552.961,
+   "path": "/favicon.ico",
+   "cookie": "jf_signin=5f164a2f"
+  },
+  {
+   "t": 1791178556.153,
+   "path": "/whoami?n=4",
+   "cookie": null
+  },
+  {
+   "t": 1791178556.67,
+   "path": "/favicon.ico",
+   "cookie": null
+  },
+  {
+   "t": 1791178566.9,
+   "path": "/whoami?n=4",
+   "cookie": null
+  },
+  {
+   "t": 1791178567.525,
+   "path": "/favicon.ico",
+   "cookie": null
+  },
+  {
+   "t": 1791178575.686,
+   "path": "/whoami?n=5",
+   "cookie": null
+  },
+  {
+   "t": 1791178576.468,
+   "path": "/favicon.ico",
+   "cookie": null
+  }
+ ]
+}

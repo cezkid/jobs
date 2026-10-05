@@ -162,16 +162,24 @@ vscode-usage-data:
     contains: vscode-ours
 privacy-delete:
   page: privacy.html
-  text: 'Ask the chat to turn off the daily check. Sign-ins from pages you opened in the app’s window are kept by VS Code, outside the folder: in that window press Ctrl+Shift+P (Mac: Cmd+Shift+P) and pick Browser: Clear Storage (Workspace). Then delete the CEZ Job Finder folder.'
-  why: window sign-ins live in VS Code's storage for the folder, not in it; the palette command clears them (probe s)
+  text: 'Ask the chat to turn off the daily check and clear the sign-ins from pages you opened in the app’s window – VS Code keeps them outside the folder. Then delete the CEZ Job Finder folder.'
+  why: window sign-ins live in VS Code's storage for the folder, not in it (probe s); the chat clears them w/ jobs.py clear-signins, the extension running VS Code's own clear (probe t)
   rests_on: &window-signins
   - file: app/workspace.py
     contains: '"workbench.browser.dataStorage": "workspace",'
   - file: app/docs/app-window.md
     contains: 'Clear (Workspace): 0 errors, next `/whoami` sent no cookie; after a restart still none.'
+  - file: app/jobs.py
+    contains: '"clear-signins": (None,'
+  - file: app/vscode/extension.js
+    contains: const CLEAR_STORAGE = "workbench.action.browser.clearWorkspaceStorage";
+  - file: AGENTS.md
+    contains: '`uv run app/jobs.py autorun off`, then `uv run app/jobs.py clear-signins`'
+  - file: app/docs/app-window.md
+    contains: '"cleared", exit 0, 1.1 s => next `/whoami` sent no cookie, 0 cookie rows left.'
 home-remove:
   page: index.html
-  text: 'Ask the chat to turn off the daily check. Clear sign-ins from pages opened in the app’s window – VS Code keeps them outside the folder: in that window press Ctrl+Shift+P (Mac: Cmd+Shift+P) and pick Browser: Clear Storage (Workspace). Then delete the CEZ Job Finder folder. More'
+  text: 'Ask the chat to turn off the daily check and clear the sign-ins from pages opened in the app’s window – VS Code keeps them outside the folder. Then delete the CEZ Job Finder folder. More'
   why: same as privacy-delete, short
   rests_on: *window-signins
 privacy-delete-later:

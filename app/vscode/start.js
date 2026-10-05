@@ -34,6 +34,8 @@ const LINK_DIR = path.join(".data", "open-link");
 const LINK_GLOB = "*.json";
 // jobs.py takes a request back after ~2 s and opens the browser itself => older = a leftover
 const LINK_MAX_AGE_MS = 10 * 1000;
+// `jobs.py clear-signins`: same folder, {do: this} instead of a url; answered in <id>.done
+const CLEAR_REQUEST = "clear-signins";
 
 // Job Finder's own folder: private folders the launcher makes; any other folder in this profile
 // is left alone
@@ -67,23 +69,32 @@ function isLinkFile(name) {
   return typeof name === "string" && /^[0-9a-f]{32}\.json$/.test(name);
 }
 
-// a request's text => its link, or null: unreadable, not http(s), or a leftover. The link goes on
-// as the same string (a rebuilt link 404s)
-function linkRequest(text, now) {
+// a request's text => {url} (a link to open) or {clear: true} (empty the window's sign-ins), or
+// null: unreadable, not http(s), unknown, or a leftover. The link goes on as the same string (a
+// rebuilt link 404s)
+function windowRequest(text, now) {
   let req;
   try {
     req = JSON.parse(text);
   } catch {
     return null;
   }
-  if (!req || typeof req.url !== "string" || typeof req.t !== "number" || !(Math.abs(now - req.t) <= LINK_MAX_AGE_MS)) return null;
+  if (!req || typeof req.t !== "number" || !(Math.abs(now - req.t) <= LINK_MAX_AGE_MS)) return null;
+  if (req.do === CLEAR_REQUEST) return { clear: true };
+  if (req.do !== undefined || typeof req.url !== "string") return null;
   let scheme;
   try {
     scheme = new URL(req.url).protocol;
   } catch {
     return null;
   }
-  return scheme === "https:" || scheme === "http:" ? req.url : null;
+  return scheme === "https:" || scheme === "http:" ? { url: req.url } : null;
+}
+
+// <id>.json => where the window answers a clear request: <id>.done, written whole
+function clearAnswer(file, answer) {
+  const done = file.replace(/\.json$/, ".done");
+  return { temp: `${done}.tmp`, done, text: JSON.stringify(answer) };
 }
 
 // Desktop icon + Dock carry a short PATH => uv's install spots first, PATH last
@@ -137,6 +148,7 @@ function warmUpPlan(ai) {
 module.exports = {
   PROFILE_PENDING, PROFILE_PENDING_LINE, UNTRUSTED_LINE, UNTRUSTED_BUTTON, UNTRUSTED_COMMAND,
   TODAY, START_HERE, MARKER, STAMP, READY, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
-  LINK_DIR, LINK_GLOB, LINK_MAX_AGE_MS,
-  isJobFinder, choosePage, needsRefresh, readyFile, isLinkFile, linkRequest, uvCandidates, runJobs, pageTabs, warmUpPlan,
+  LINK_DIR, LINK_GLOB, LINK_MAX_AGE_MS, CLEAR_REQUEST,
+  isJobFinder, choosePage, needsRefresh, readyFile, isLinkFile, windowRequest, clearAnswer, uvCandidates, runJobs, pageTabs,
+  warmUpPlan,
 };
