@@ -55,6 +55,16 @@ Plain HTML form - no framework ids; every box found by `name` (stable, same both
 Submit: `button[data-qa=btn-submit]`, plus a hidden `#hcaptchaSubmitBtn` - hCaptcha runs at
 Submit, 4 of 4. Never clicked.
 
+## Read back
+
+`holds` (2026-10-05, saved tenant pages A-D in headless Chrome - not yet on a live page, plan-nko.12):
+`form.recheck` waits 2.5 s, reads each `ok` answer off the page, fills a dropped one once more, else
+FAILs it for the user. Shown value only: text by `input_value` (phone by digits), dropdown by the
+option it shows, radios + checkboxes by each option's own checked state (an extra tick = not this
+answer), place = `#selected-location` set AND the box starts w/ the answer's town (typed but never
+picked = dropped). Box gone or unreadable = dropped. Refill clicks only a tick that differs, so
+fill twice = same page (4 of 4 saved tenants).
+
 ## Pages
 
 One page, 4 of 4: every box on `/apply`, no Next.

@@ -38,8 +38,7 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-NO_HOLDS_YET = pytest.mark.xfail(strict=True, reason="plan-nko.11: Lever has no holds yet")
-IN_SCOPE = [greenhouse, ashby, pytest.param(lever, marks=NO_HOLDS_YET)]
+IN_SCOPE = [greenhouse, ashby, lever]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])

@@ -238,6 +238,44 @@ def put_location(page, field, value: str) -> str:
     return "ok" if chosen else f"FAIL '{texts[hit]}' not selected"
 
 
+def box_type(field) -> str:
+    return field.first.evaluate("e => e.tagName === 'SELECT' ? 'select' : e.type")
+
+
+def wanted(q: dict) -> list[str]:
+    """The option texts an answer picks: a yes / no as the page words it."""
+    value = q["answer"]
+    if isinstance(value, list):
+        return [str(v).strip() for v in value]
+    return [("Yes" if dom.yes(value) else "No") if q["kind"] == "yesno" else str(value).strip()]
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck): a
+    tick by each option's own checked state, a dropdown by the option it shows, a place by Lever's own
+    pick plus the town in the box - never the filler's word. A box gone = not shown."""
+    kind, value = q["kind"], q["answer"]
+    field = boxes(page, q["id"])
+    if not field.count():
+        return False
+    type = box_type(field)
+    if type in ("radio", "checkbox"):
+        want = wanted(q)
+        return all((m.get_attribute("value").strip() in want) == m.evaluate("e => e.checked") for m in field.all())
+    field = field.first
+    if type == "file":
+        return bool(field.evaluate("e => e.files[0] ? e.files[0].name : ''"))
+    if type == "select":
+        return sorted(field.evaluate("e => [...e.selectedOptions].map(o => o.text.replace(/\\s+/g, ' ').trim())")) \
+            == sorted(wanted(q))
+    got = field.input_value()
+    if kind == "location":
+        # the box keeps what was typed even when no place was picked: Lever's own pick must be there too
+        town = str(value).split(",")[0].strip().casefold()
+        return bool(town and page.locator("#selected-location").input_value()) and dom.norm(got).casefold().startswith(town)
+    return dom.digits(got) == dom.digits(str(value)) if kind == "phone" else got == str(value)
+
+
 def fill(page, q: dict, resume_file: str | None) -> str:
     kind, value, name = q["kind"], q["answer"], q["id"]
     if signs(q["title"]) or q.get("native") in ("consent", "eeo:signature"):
@@ -250,17 +288,16 @@ def fill(page, q: dict, resume_file: str | None) -> str:
         if q.get("key") != "resume":
             return f"ASK not the resume box ({q['title']}) - the user uploads their own file there"
         return put_file(page, field.first, resume_file) if value is True and resume_file else "skipped - upload not approved"
-    type = field.first.evaluate("e => e.tagName === 'SELECT' ? 'select' : e.type")
+    type = box_type(field)
     if type in ("radio", "checkbox"):
         # options are radios / ticks whose value is the option text, often under a styled label
         members = field.all()
         names = [m.get_attribute("value").strip() for m in members]
-        want = value if isinstance(value, list) else [("Yes" if dom.yes(value) else "No") if kind == "yesno" else str(value).strip()]
-        return dom.put_ticks(members, names, want, role=False, single=type == "radio")
+        return dom.put_ticks(members, names, wanted(q), role=False, single=type == "radio")
     field = field.first
     field.scroll_into_view_if_needed()
     if type == "select":
-        return dom.put_select(field, ("Yes" if dom.yes(value) else "No") if kind == "yesno" else value)
+        return dom.put_select(field, wanted(q))
     if kind == "location":
         return put_location(page, field, value)
     return dom.put_text(field, value, kind, editable=False)
