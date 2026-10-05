@@ -1502,3 +1502,151 @@
   evidence: lab/LLM audit
   sample: 2,245 real resumes; 9 AI models compared each person's own summary with AI-written versions; hiring simulated for 24 jobs
   checked: 2026-10-03
+
+- id: agan-starr-2018
+  type: article
+  authors: ["Agan, Amanda", "Starr, Sonja"]
+  year: 2018
+  title: "Ban the Box, Criminal Records, and Racial Discrimination: A Field Experiment"
+  venue: Quarterly Journal of Economics 133(1), 191-235 (full text paywalled; published abstract read in the Crossref record)
+  doi: 10.1093/qje/qjx028
+  evidence: large field experiment
+  sample: about 15,000 made-up online applications from young men to employers in New Jersey and New York City, before and after each place stopped employers asking about records on the form; figures are the published abstract's
+  checked: 2026-10-04
+
+- id: behaghel-2015
+  type: article
+  authors: ["Behaghel, Luc", "Crépon, Bruno", "Le Barbanchon, Thomas"]
+  year: 2015
+  title: Unintended Effects of Anonymous Résumés
+  venue: "American Economic Journal: Applied Economics 7(3), 1-27 (open copy read, IZA discussion paper 8517)"
+  doi: 10.1257/app.20140185
+  url: https://docs.iza.org/dp8517.pdf
+  evidence: field experiment
+  sample: 1,268 real job seekers applying to 598 job openings through the French public employment service, November 2009 to September 2010; firms chose to join; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: braun-2026
+  type: article
+  authors: ["Braun, Sharon", "Bushnell, Jonathan", "Cowell, Zachary", "Dowling, David", "Goldstein, Samuel", "Johnson, Andrew", "Miller, George", "Nunley, John M.", "Seals, R. Alan", "Wang, Mingzhou"]
+  year: 2026
+  title: "Hiring Discrimination and the Task Content of Jobs: Evidence from a Large-Scale Résumé Audit"
+  venue: arXiv preprint (version 2, July 2026)
+  url: https://arxiv.org/abs/2604.01933
+  evidence: large field experiment
+  sample: 36,880 made-up applications to 9,220 US job ads for new college graduates
+  preprint: true
+  checked: 2026-10-04
+
+- id: ca-labor-432-7
+  type: law
+  org: California Labor Code
+  year: 2026
+  title: "Section 432.7: questions about arrests and sealed or dismissed convictions"
+  url: https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=LAB&sectionNum=432.7
+  evidence: law
+  sample: subdivision (a)(1), read on the legislature's own site
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: hiscox-2017
+  type: report
+  org: Behavioural Economics Team of the Australian Government (BETA)
+  year: 2017
+  title: "Going blind to see more clearly: unconscious bias in Australian Public Service shortlisting processes"
+  url: https://www.pmc.gov.au/sites/default/files/2025-06/unconscious-bias.docx
+  evidence: lab/LLM audit
+  sample: over 2,100 Australian public servants from 14 agencies each shortlisted 5 of 16 made-up candidates for a made-up senior job; a rating exercise, not real hiring
+  checked: 2026-10-04
+
+- id: kang-2016
+  type: article
+  authors: ["Kang, Sonia K.", "DeCelles, Katherine A.", "Tilcsik, András", "Jun, Sora"]
+  year: 2016
+  title: "Whitened Résumés: Race and Self-Presentation in the Labor Market"
+  venue: Administrative Science Quarterly 61(3), 469-502 (open copy read, the authors' accepted manuscript of January 2016)
+  doi: 10.1177/0001839216639577
+  url: https://www-2.rotman.utoronto.ca/facbios/file/Whitening%20MS%20R2%20Accepted.pdf
+  evidence: field experiment
+  sample: 1,600 made-up applications to entry-level jobs in 16 US metro areas, 200 per version, 2015; plus 59 interviews with university students, 2013; page numbers are the manuscript's
+  checked: 2026-10-04
+
+- id: kline-2022
+  type: article
+  authors: ["Kline, Patrick", "Rose, Evan K.", "Walters, Christopher R."]
+  year: 2022
+  title: Systemic Discrimination Among Large U.S. Employers
+  venue: Quarterly Journal of Economics 137(4), 1963-2036 (open copy read, NBER working paper 29053, revised May 2022)
+  doi: 10.1093/qje/qjac024
+  url: https://www.nber.org/system/files/working_papers/w29053/w29053.pdf
+  evidence: large field experiment
+  sample: more than 83,000 made-up applications to entry-level jobs at 108 of the largest US employers; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: kline-2024
+  type: article
+  authors: ["Kline, Patrick", "Rose, Evan K.", "Walters, Christopher R."]
+  year: 2024
+  title: A Discrimination Report Card
+  venue: American Economic Review 114(8), 2472-2525 (abstract read on the NBER working paper page, w32313)
+  url: https://www.nber.org/papers/w32313
+  evidence: large field experiment
+  sample: the same experiment as the authors' 2022 paper; grades for 97 US employers
+  checked: 2026-10-04
+
+- id: leasure-2016
+  type: article
+  authors: ["Leasure, Peter", "Stevens Andersen, Tia"]
+  year: 2016
+  title: "The Effectiveness of Certificates of Relief as Collateral Consequence Relief Mechanisms: An Experimental Study"
+  venue: Yale Law & Policy Review Inter Alia 35 (the journal's page would not open; abstract read as reprinted by the Collateral Consequences Resource Center)
+  url: https://ccresourcecenter.org/how-effective-are-judicial-certificates-in-relieving-collateral-consequences/
+  evidence: field experiment
+  sample: made-up applications to entry-level jobs in Ohio; only the abstract was read, so the sample size is not given here
+  checked: 2026-10-04
+
+- id: nelp-2021
+  type: report
+  authors: ["Avery, Beth", "Lu, Han"]
+  year: 2021
+  title: "Ban the Box: U.S. Cities, Counties, and States Adopt Fair Hiring Policies"
+  venue: National Employment Law Project
+  url: https://www.nelp.org/insights-research/ban-the-box-fair-chance-hiring-state-and-local-guide/
+  evidence: law
+  sample: a worker-advocacy group's count of state and local laws, dated October 1, 2021; not the laws themselves
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: quillian-2017
+  type: article
+  authors: ["Quillian, Lincoln", "Pager, Devah", "Hexel, Ole", "Midtbøen, Arnfinn H."]
+  year: 2017
+  title: Meta-analysis of field experiments shows no change in racial discrimination in hiring over time
+  venue: Proceedings of the National Academy of Sciences 114(41), 10870-10875 (open copy on PubMed Central)
+  doi: 10.1073/pnas.1706255114
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5642692/
+  evidence: meta-analysis
+  sample: 28 US field experiments since 1989, 55,842 applications to 26,326 jobs; resume tests and in-person tests
+  checked: 2026-10-04
+
+- id: quillian-2020
+  type: article
+  authors: ["Quillian, Lincoln", "Lee, John J.", "Oliver, Mariana"]
+  year: 2020
+  title: Evidence from Field Experiments in Hiring Shows Substantial Additional Racial Discrimination after the Callback
+  venue: Social Forces 99(2), 732-759 (full text paywalled; published abstract read in the Crossref record)
+  doi: 10.1093/sf/soaa026
+  evidence: meta-analysis
+  sample: 12 field experiments that followed applicants to the job offer, more than 13,000 applications; figures are the published abstract's
+  checked: 2026-10-04
+
+- id: usc-41-4714
+  type: law
+  org: United States Code
+  year: 2019
+  title: "41 U.S.C. 4714: Prohibition on criminal history inquiries by contractors prior to conditional offer"
+  url: https://www.law.cornell.edu/uscode/text/41/4714
+  evidence: law
+  sample: the Fair Chance to Compete for Jobs Act's rule for federal contractors, read on Cornell's Legal Information Institute copy
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
