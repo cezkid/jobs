@@ -215,7 +215,7 @@ def fill(slug: str, in_window: bool = False) -> None:
         sys.exit(f"this form can't be filled here - write the answers to paste: uv run app/jobs.py apply-form paste {slug}")
     refuse(data["questions"])
     system = system_for(data["url"])
-    # trial, off by default (apply/window.py): one system until it is checked live
+    # trial, off by default (apply/window.py): only systems checked in the window's tab
     opener = browser.page_at
     if in_window:
         from apply import window
@@ -375,7 +375,7 @@ def main() -> None:
     p.add_argument("url")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
-    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse only, off by default) fill in a tab "
+    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse + Ashby, off by default) fill in a tab "
                    "of the Job Finder window instead of Chrome")
     t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
     t.add_argument("slug")

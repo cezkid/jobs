@@ -1,7 +1,8 @@
-"""Trial: fill a Greenhouse form in a tab of the Job Finder window (apply/window.py, `apply-form fill
+"""Trial: fill a Greenhouse or Ashby form in a tab of the Job Finder window (apply/window.py, `apply-form fill
 --in-window`), off by default. The Page/Locator adapter runs in real headless Chrome over raw CDP - the
-same protocol the window's debugger proxy speaks - on a local Greenhouse-like page; the window's side
-(open the holding page, attach, detach) is a fake extension answering as extension.js does."""
+same protocol the window's debugger proxy speaks - on local Greenhouse- and Ashby-like pages; Ashby's
+filler runs through Playwright too, same read-back asked of both. The window's side (open the holding
+page, attach, detach) is a fake extension answering as extension.js does."""
 import contextlib
 import json
 import os
@@ -21,9 +22,11 @@ import cfg
 import launch
 from apply import browser, form, questions, window
 from apply.cdp import CDP
-from apply.systems import greenhouse
+from apply.systems import ashby, greenhouse
 
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
+ASHBY_FORM = FORM.with_name("ashby-form.html")
+ASHBY_PATH = "/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/application"
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
 
 
@@ -69,7 +72,8 @@ def site():
                 time.sleep(PRESIGNED["after"])
                 body, kind = b'{"resume": {}}', "application/json"
             else:
-                body, kind = (FORM.read_bytes() if self.path == "/acme/jobs/1" else None), "text/html; charset=utf-8"
+                page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM}.get(self.path)
+                body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
             with contextlib.suppress(OSError):  # the tab moved on while it waited
                 self.send_response(200 if body else 404)
                 self.send_header("Content-Type", kind)
@@ -128,6 +132,123 @@ def test_in_window_page_fills_greenhouse_in_a_tab_over_cdp(tab, site, tmp_path, 
         assert page.run("document.getElementById('resume').files[0].name") == resume.name
     finally:
         cdp.close()
+
+
+@pytest.fixture(scope="module")
+def playwright_chrome():
+    """Playwright's own headless Chrome: the Chrome path the window's adapter must match."""
+    pw = pytest.importorskip("playwright.sync_api")
+    try:
+        exe = browser.chrome()
+    except SystemExit:
+        pytest.skip("Chrome not installed")
+    with pw.sync_playwright() as p:
+        b = p.chromium.launch(executable_path=exe, headless=True)
+        yield b
+        b.close()
+
+
+@contextlib.contextmanager
+def both(tab, playwright_chrome, url):
+    """The same page twice -> {"playwright": page, "window": window.Page}, each loaded."""
+    context = playwright_chrome.new_context()
+    cdp = CDP(**tab)
+    try:
+        pw = context.new_page()
+        pw.goto(url)
+        cdp.send("Debugger.enable")  # attached as js-debug is
+        page = window.Page(cdp)
+        page.goto(url)
+        yield {"playwright": pw, "window": page}
+    finally:
+        cdp.close()
+        context.close()
+
+
+def ashby_url(site):
+    return site.replace("/acme/jobs/1", ASHBY_PATH)
+
+
+ASHBY_ANSWERS = [asked("_systemfield_name", "Name", "text", "Ada Lovelace", key="name"),
+                 asked("_systemfield_email", "Email", "email", "ada@example.com", key="email"),
+                 asked("q_phone", "Phone", "phone", "555-0100"),
+                 asked("q_why", "Why Acme?", "longtext", "Their own words."),
+                 # pressed 200 ms after the click; a second click clears
+                 asked("q_sponsor", "Will you require sponsorship?", "yesno", "No", options=["Yes", "No"]),
+                 # ticked 200 ms after the label's click; a second click clears
+                 asked("q_years", "Years of experience", "choice", "8+", options=["0-2", "3-5", "8+"]),
+                 asked("q_stack", "Which do you use?", "multichoice", ["Python", "SQL"]),
+                 asked("q_country", "Country", "choice", "United States"),
+                 # the page empties every pick 800 ms later: never an ok the page doesn't show
+                 asked("q_region", "Region", "choice", "West"),
+                 asked("q_city", "Location", "location", "Austin, Texas"),
+                 asked("_systemfield_resume", "Resume", "file", True, key="resume")]
+# each box's value or tick, pressed buttons, the file name shown - read off the page, never the filler's word
+ASHBY_SHOWN = ("es => es.map(e => e.matches('input[type=radio], input[type=checkbox]') ? e.checked"
+               " : e.matches('button') ? e.getAttribute('aria-pressed') : e.matches('input[type=file]') ? e.files.length"
+               " : 'value' in e ? e.value : e.innerText)")
+
+
+def test_in_window_fills_ashby_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # ashby.fill + holds + form.fill_page through each: same report, same page after, and a second
+    # fill changes nothing (a chosen Yes / No or radio clicked again would clear)
+    monkeypatch.setattr(form, "SETTLE_MS", 1200)  # past the page's 800 ms drop
+    monkeypatch.setattr(ashby, "ERROR_WAIT_MS", 500)
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, ashby_url(site)) as tabs:
+        for name, page in tabs.items():
+            page.locator(ashby.READY).first.wait_for(timeout=5000)
+            assert form.closed(page, ashby) is None
+            report, extra = form.fill_page(page, ashby, ASHBY_ANSWERS, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == []
+            page.wait_for_timeout(300)
+            once = page.eval_on_selector_all("form input, form textarea, form button, form .name", ASHBY_SHOWN)
+            assert [ashby.fill(page, q, None) for q in ASHBY_ANSWERS if q["kind"] != "file" and q["id"] != "q_region"] == ["ok"] * 9
+            page.wait_for_timeout(300)
+            assert page.eval_on_selector_all("form input, form textarea, form button, form .name", ASHBY_SHOWN) == once
+            pages[name] = once
+            assert [q["id"] for q in ASHBY_ANSWERS if q["kind"] != "file" and not ashby.holds(page, q)] == ["q_region"]
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {q["id"]: "ok" for q in ASHBY_ANSWERS} | {"q_region": "FAIL answer dropped after filling - fill it by hand"}
+    assert pages["window"] == pages["playwright"]
+    assert pages["window"] == ["Ada Lovelace", "ada@example.com", "555-0100", "Their own words.", "false", "true",
+                               False, False, True, True, True, False, "United States", "", "Austin, TX, United States",
+                               f"{resume.name} Replace", 1]
+
+
+@pytest.mark.parametrize("ask", [
+    lambda p: p.get_by_role("button", name="Yes", exact=True),  # the one hidden from a screen reader left out
+    lambda p: p.get_by_role("button", name="yes"),
+    lambda p: p.get_by_role("button", name="No", exact=True),
+    lambda p: p.get_by_role("button", name="no"),  # aria-label "No thanks" too, never its text "Close"
+    lambda p: p.get_by_role("button", name="Close"),
+    lambda p: p.get_by_role("button"),
+    lambda p: p.locator('[data-field-path="q_years"]').get_by_role("button", name="No", exact=True),
+    lambda p: p.locator("label", has_text=re.compile(r"^\s*8\+\s*$")),
+    lambda p: p.locator("label", has_text=re.compile(r"^\s*8\+\s*$", re.IGNORECASE)),
+    lambda p: p.locator("label", has_text=re.compile("^python$")),
+    lambda p: p.locator("label", has_text="  PYTHON "),
+    lambda p: p.locator("label", has_text="sponsor"),
+    lambda p: p.locator("div", has_text=re.compile("Which do you use")),
+])
+def test_in_window_role_and_text_lookups_find_what_playwright_finds(tab, site, playwright_chrome, ask):
+    with both(tab, playwright_chrome, ashby_url(site)) as tabs:
+        counts = {name: ask(page).count() for name, page in tabs.items()}
+        texts = {name: ask(page).all_inner_texts() for name, page in tabs.items()}
+    assert counts["window"] == counts["playwright"] and texts["window"] == texts["playwright"]
+
+
+def test_in_window_is_checked_reads_the_tick_as_playwright_does(tab, site, playwright_chrome):
+    with both(tab, playwright_chrome, ashby_url(site)) as tabs:
+        for page in tabs.values():
+            page.locator("#stack-1").click()
+        assert {n: [p.locator(f"#stack-{i}").is_checked() for i in range(3)] for n, p in tabs.items()} == \
+            {"playwright": [False, True, False], "window": [False, True, False]}
+        with pytest.raises(Exception, match="Not a checkbox or radio button"):
+            tabs["window"].locator("#name").is_checked()
 
 
 def test_in_window_upload_waits_for_the_page_to_ready_its_file_box(tab, site, tmp_path):
@@ -317,8 +438,9 @@ def test_in_window_off_by_default_fill_stays_in_chrome(tmp_path, monkeypatch, ca
     assert capsys.readouterr().out.endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
 
 
-def test_in_window_fills_greenhouse_in_the_window_tab(tmp_path, monkeypatch, capsys):
-    opened = fill_setup(tmp_path, monkeypatch, "Greenhouse")
+@pytest.mark.parametrize("name", ["Greenhouse", "Ashby"])
+def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, capsys, name):
+    opened = fill_setup(tmp_path, monkeypatch, name)
     monkeypatch.setattr(form.sys, "argv", ["form.py", "fill", "7", "--in-window"])
     form.main()
     out = capsys.readouterr().out
@@ -327,8 +449,9 @@ def test_in_window_fills_greenhouse_in_the_window_tab(tmp_path, monkeypatch, cap
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
-    opened = fill_setup(tmp_path, monkeypatch, "Ashby")
+    assert window.SYSTEMS == ("Greenhouse", "Ashby")
+    opened = fill_setup(tmp_path, monkeypatch, "Lever")
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
-    assert str(stop.value) == "in the window: Greenhouse only for now - run fill without --in-window"
+    assert str(stop.value) == "in the window: Greenhouse, Ashby only for now - run fill without --in-window"
     assert opened == []

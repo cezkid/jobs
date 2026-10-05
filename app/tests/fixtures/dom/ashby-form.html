@@ -4,9 +4,11 @@ div[data-field-path], widgets as app/docs/apply/ashby.md records them. Radio cho
 second click clears it (tenant B, 2026-09-29) - and the page marks it 200 ms after the click. Yes / No: buttons w/
 aria-pressed; whether a second click clears is unmeasured, so this page clears (the stricter case). Long list
 (15 options, tenant D, 2026-10-05): one search box whose value is the pick, no radios; q_region's page empties the
-pick 800 ms later - a drop holds() must read. File: the name + "Replace" show for any file; a name with "bad"
+pick 800 ms later - a drop holds() must read. A list filters on the words before the first comma, so a
+place box takes "Austin, Texas" as Ashby's place search does (q_city). File: the name + "Replace" show for any file; a name with "bad"
 in it then gets "ERROR" + "<file> failed to upload" 300 ms later, as a blocked upload did (ashby.md "Upload
-errors"). -->
+errors"). Past the form: buttons for role lookups only (test_apply_in_window.py parity) - one hidden from a
+screen reader, one named by aria-label. -->
 <html><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form>
 <div data-field-path="_systemfield_name"><label for="name">Name</label><input type="text" id="name"></div>
 <div data-field-path="_systemfield_email"><label for="email">Email</label><input type="email" id="email"></div>
@@ -26,9 +28,13 @@ errors"). -->
   <label>Country</label><input type="text" role="combobox"></div>
 <div data-field-path="q_region" class="combo" data-drop="800" data-options='["East", "North", "West"]'>
   <label>Region</label><input type="text" role="combobox"></div>
+<div data-field-path="q_city" class="combo" data-options='["Austin, TX, United States", "Boston, MA, United States"]'>
+  <label>Location</label><input type="text" role="combobox"></div>
 <div data-field-path="_systemfield_resume" class="upload"><label>Resume</label><span class="name"></span>
   <input type="file" accept=".pdf,.doc,.docx"></div>
 </form>
+<div aria-hidden="true"><button type="button">Yes</button></div>
+<button type="button" aria-label="No thanks">Close</button>
 <script>
 for (const box of document.querySelectorAll(".yesno")) {
   const buttons = box.querySelectorAll("button");
@@ -50,7 +56,7 @@ for (const box of document.querySelectorAll(".combo")) {
     box.querySelector(".menu")?.remove();
     const menu = document.createElement("div");
     menu.className = "menu";
-    for (const o of JSON.parse(box.dataset.options).filter((o) => o.toLowerCase().includes(input.value.toLowerCase()))) {
+    for (const o of JSON.parse(box.dataset.options).filter((o) => o.toLowerCase().includes(input.value.split(",")[0].trim().toLowerCase()))) {
       const d = document.createElement("div");
       d.setAttribute("role", "option");
       d.textContent = o;
