@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 import pytest
 
-from apply import browser, dom
+from apply import browser, dom, form
 from apply.systems import greenhouse
 
 FIXTURES = Path(__file__).parent / "fixtures" / "dom"
@@ -230,3 +230,18 @@ def test_greenhouse_select_all_that_apply_drawn_as_checkboxes(page):
     assert greenhouse.fill(page, q | {"answer": "Contract"}, None) == "ok"
     assert page.eval_on_selector_all('[name="question_100[]"]:checked', "bs => bs.map(b => b.value)") == ["204"]
     assert greenhouse.fill(page, q | {"answer": ["Seasonal"]}, None).startswith("ASK no option 'Seasonal'; offered: Full Time")
+
+
+def test_greenhouse_dropdown_the_page_empties_is_filled_again_or_flagged(page, monkeypatch):
+    """Chrome path, same fixture as the window's: a pick the page shows, then empties (every dropdown
+    empty after an ok fill, plan-29g.20) - read back off the page, filled again; still empty -> FAIL."""
+    monkeypatch.setattr(form, "SETTLE_MS", 1500)
+    page.goto("https://acme.example/greenhouse-form.html")
+    qs = [{"id": "question_5", "title": "Country of residence", "kind": "choice", "answer": "Canada"},
+          {"id": "question_6", "title": "Sponsorship", "kind": "yesno", "answer": "No"},
+          {"id": "question_7", "title": "How did you hear about this job?", "kind": "choice", "answer": "Referral"}]
+    report, _ = form.fill_page(page, greenhouse, qs, None, None)
+    assert report[:2] == [("question_5", "ok"), ("question_6", "ok")]
+    assert report[2][0] == "question_7" and report[2][1].startswith("FAIL ")  # never ok, whichever read-back saw it
+    shown = [greenhouse.picked(greenhouse.by_id(page, f"question_{n}")) for n in (5, 6, 7)]
+    assert shown == [["Canada"], ["No"], []]

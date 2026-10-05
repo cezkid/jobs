@@ -149,6 +149,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    page - read the wording back, never draft, tick or pick for them.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
    any banner (application limits), and that nothing is sent until they click **Submit**.
+   Greenhouse (Chrome or `--in-window`): also say after Submit it may email them a security code -
+   they paste it on the page, then it goes through; the employer's spam setting decides
+   (`app/docs/apply/greenhouse.md` #Email security code after Submit).
 6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).
 
 ## Did you send it?

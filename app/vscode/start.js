@@ -19,6 +19,13 @@ const PROFILE_PENDING_LINE = {
   darwin: "One more step: quit VS Code (Code > Quit, or Cmd+Q), then open CEZ Job Finder again.",
   other: "One more step: close every VS Code window (File > Exit), then open CEZ Job Finder again.",
 };
+// update shipped a newer copy of this extension while the window ran: the window keeps the one it
+// started with until it closes; the next window loads the new one (app/docs/app-window.md #u). We
+// write RUNNING as we start; the launcher writes INSTALLED (one line, version) once the new copy
+// is in the profile (app/launch.py RUNNING_RECORD, INSTALLED_RECORD). Same words: RESTART_LINE
+const RUNNING = path.join(".data", "window-running.json");
+const INSTALLED = path.join(".data", "window-installed");
+const RESTART_LINE = "Restart CEZ Job Finder to finish the update: close its window, then open it again from the Desktop icon.";
 // folder not trusted (opened w/o the Desktop icon before the launcher marked it trusted) =>
 // Restricted Mode: AI panel + PDF viewer don't run. One line + one button, no VS Code words
 const UNTRUSTED_LINE = "The AI panel can't run in this window yet. Close it and open CEZ Job Finder from its Desktop icon - after that it runs however you open it.";
@@ -68,6 +75,31 @@ function needsRefresh({ marker, settingsExist, todayMtime, stampMtime, now }) {
 // person looking into .data
 function readyFile(root, now) {
   return { file: path.join(root, READY), text: `${new Date(now).toISOString()}\n` };
+}
+
+// what this window runs, for jobs.py (app/launch.py window_behind): pid = extension host, gone
+// once the window closes
+function runningRecord(root, { version, pid, now }) {
+  return { file: path.join(root, RUNNING), text: `${JSON.stringify({ version, pid, at: new Date(now).toISOString() })}\n` };
+}
+
+// "0.25.1" => [0, 25, 1]; anything else => null
+function versionParts(text) {
+  const parts = String(text == null ? "" : text).trim().split(".");
+  return parts.every((p) => /^\d+$/.test(p)) ? parts.map(Number) : null;
+}
+
+// newer copy installed than the one running => the line Today shows; else null (never a reload:
+// it would cut off a chat mid-answer)
+function restartLine({ own, installed }) {
+  const a = versionParts(own);
+  const b = versionParts(installed);
+  if (!a || !b) return null;
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const d = (b[i] || 0) - (a[i] || 0);
+    if (d) return d > 0 ? RESTART_LINE : null;
+  }
+  return null;
 }
 
 // request file jobs.py writes: <32 hex>.json, nothing else in the folder
@@ -155,6 +187,7 @@ function warmUpPlan(ai) {
 }
 
 module.exports = {
+  RUNNING, INSTALLED, RESTART_LINE, runningRecord, versionParts, restartLine,
   PROFILE_PENDING, PROFILE_PENDING_LINE, UNTRUSTED_LINE, UNTRUSTED_BUTTON, UNTRUSTED_COMMAND,
   TODAY, START_HERE, MARKER, STAMP, READY, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
   LINK_DIR, LINK_GLOB, LINK_MAX_AGE_MS, CLEAR_REQUEST, ATTACH_REQUEST, DETACH_REQUEST,

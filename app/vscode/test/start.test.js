@@ -182,3 +182,26 @@ test("in_window attach-form: only jobs.py's holding page, detach-form: only a se
     assert.equal(start.windowRequest(ask({ do: "detach-form", session }), NOW), null, String(session));
   }
 });
+
+// update installed a newer copy while the window ran => one quiet line; same or older => none
+test("restart line only when a newer copy is installed than the one running", () => {
+  assert.equal(start.restartLine({ own: "0.25.0", installed: "0.25.1\n" }), start.RESTART_LINE);
+  assert.equal(start.restartLine({ own: "0.24.0", installed: "0.25.0" }), start.RESTART_LINE);
+  assert.equal(start.restartLine({ own: "0.9.0", installed: "0.10.0" }), start.RESTART_LINE);
+  assert.equal(start.restartLine({ own: "0.25.0", installed: "0.25.0\n" }), null);
+  assert.equal(start.restartLine({ own: "0.25.1", installed: "0.25.0" }), null);
+  assert.equal(start.restartLine({ own: "0.25.0", installed: "" }), null);
+  assert.equal(start.restartLine({ own: null, installed: "0.25.0" }), null);
+  assert.match(start.RESTART_LINE, /close its window/);
+  assert.deepEqual(start.versionParts("1.2.3"), [1, 2, 3]);
+  assert.equal(start.versionParts("1.x"), null);
+});
+
+// jobs.py reads it (app/launch.py window_behind): version + extension host pid, in the folder's .data
+test("running record names this window's version + extension host", () => {
+  const path = require("path");
+  const { file, text } = start.runningRecord(path.join("/Users", "Your Name", "jobs"), { version: "0.25.0", pid: 4242, now: NOW });
+  assert.equal(file, path.join("/Users", "Your Name", "jobs", ".data", "window-running.json"));
+  assert.deepEqual(JSON.parse(text), { version: "0.25.0", pid: 4242, at: "2026-10-03T12:00:00.000Z" });
+  assert.equal(start.INSTALLED, path.join(".data", "window-installed"));
+});

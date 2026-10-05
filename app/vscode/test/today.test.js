@@ -865,3 +865,13 @@ test("labels: Help me apply; more-row named plainly; heading jump target shows f
   assert.doesNotMatch(page, /aria-label="Show more jobs: /);
   assert.match(page, /\[tabindex="-1"\]:focus \{ outline: 3px solid var\(--text\)/);
 });
+
+// newer window extension installed while this one runs => one quiet line under the date, no button
+test("restart line shows under the date only when given, never as a task", () => {
+  const m = today.model(RAW, say);
+  const line = "Restart CEZ Job Finder to finish the update: quit VS Code.";
+  const page = today.render(m, { mode: "copy", nonce: "abc123", restart: line });
+  assert.match(page, /<p class="sub">[^<]*<\/p><p class="note restart">Restart CEZ Job Finder to finish the update: quit VS Code\.<\/p>/);
+  assert.doesNotMatch(html(m), /class="note restart"/);
+  assert.doesNotMatch(page, /data-a="[^"]*restart/i);
+});

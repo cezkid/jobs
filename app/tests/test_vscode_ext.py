@@ -75,7 +75,7 @@ def test_extension_never_reads_files_from_the_program_folder():
         # files read: launcher's start-page marker, the dashboard's data, the look, which AI, a
         # link jobs.py hands over (taken = renamed in start.LINK_DIR) - all under .data/, never app/;
         # a scratch probe driver's request (reqFile, JOBS_VSCODE_PROBE_HOLD's folder)
-        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root", "taken", "reqFile"] if name == "extension.js" else []
+        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root", "path.join(root", "taken", "reqFile"] if name == "extension.js" else []
         assert re.findall(r"readFile\w*\(([^,)]+)", source) == reads
     starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
     assert 'MARKER = path.join(".data", ' in starts and 'AI_FILE = path.join(".data", ' in starts
@@ -102,6 +102,20 @@ def test_open_link_watcher_starts_with_every_window_not_only_a_measured_one():
     assert body.count("watchLinks(context);") == 1 and body.index("watchLinks(context);") < body.index("if (!out) return;")
     watch = source.split("function watchLinks(context) {", 1)[1].split("\n}\n", 1)[0]
     assert "path.join(root, start.LINK_DIR)" in watch and "start.LINK_GLOB" in watch
+
+
+def test_update_records_and_restart_line_alike_on_both_sides():
+    # names out of step => Today never says restart, or jobs.py reads a record nobody writes
+    import launch
+    starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
+    assert f'RUNNING = path.join(".data", "{launch.RUNNING_RECORD}")' in starts
+    assert f'INSTALLED = path.join(".data", "{launch.INSTALLED_RECORD}")' in starts
+    assert f"const RESTART_LINE = {json.dumps(launch.RESTART_LINE)};" in starts
+    source = (vscode_ext.SOURCE / "extension.js").read_text(encoding="utf-8")
+    body = source.split("function activate(context) {", 1)[1].split("\n}\n", 1)[0]
+    assert body.index("noteRunning(context);") < body.index("if (!out) return;")
+    # never reloads the window itself: a chat mid-answer would be cut off
+    assert "workbench.action.reloadWindow" not in source
 
 
 def test_open_link_folder_and_names_alike_on_both_sides():

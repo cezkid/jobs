@@ -1,0 +1,347 @@
+{
+ "stage": "score",
+ "at": "2026-10-05T08:26:43Z",
+ "uniq": "5a6243",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "window": [
+  {
+   "plainShot": {
+    "path": "<checkout>/.data/probe-shots/form/score-window-plain-0.png",
+    "bytes": 581904
+   },
+   "attach": {
+    "ok": true,
+    "error": null,
+    "reached": true
+   },
+   "attached": {
+    "action": "examples/v3scores",
+    "apk_package_name": null,
+    "challenge_ts": "2026-10-05T08:27:12Z",
+    "error-codes": [],
+    "hostname": "recaptcha-demo.appspot.com",
+    "score": 0.9,
+    "success": true
+   },
+   "signals": {
+    "brands": [
+     "Not;A=Brand 8",
+     "Chromium 150"
+    ],
+    "focus": true,
+    "helpers": "object",
+    "languages": [
+     "en-US",
+     "en",
+     "fr",
+     "de",
+     "zh-Hans",
+     "zh-Hant",
+     "ja",
+     "es",
+     "it",
+     "nl",
+     "ko",
+     "pt-BR",
+     "pt-PT",
+     "da",
+     "fi",
+     "nb",
+     "sv",
+     "ru",
+     "pl",
+     "tr",
+     "ar",
+     "th",
+     "cs",
+     "hu",
+     "ca",
+     "hr",
+     "el",
+     "he",
+     "ro",
+     "sk",
+     "uk",
+     "id",
+     "ms",
+     "vi",
+     "es-419"
+    ],
+    "plugins": 5,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36",
+    "webdriver": false
+   },
+   "attachedShot": {
+    "path": "<checkout>/.data/probe-shots/form/score-window-attached-0.png",
+    "bytes": 583751
+   },
+   "plainScore": {
+    "score": 0.9,
+    "challenge_ts": "2026-10-05T08:26:49Z",
+    "readFrom": "plainShot (window-only screenshot, read by eye)"
+   }
+  },
+  {
+   "plainShot": {
+    "path": "<checkout>/.data/probe-shots/form/score-window-plain-1.png",
+    "bytes": 581948
+   },
+   "attach": {
+    "ok": true,
+    "error": null,
+    "reached": true
+   },
+   "attached": {
+    "action": "examples/v3scores",
+    "apk_package_name": null,
+    "challenge_ts": "2026-10-05T08:27:41Z",
+    "error-codes": [],
+    "hostname": "recaptcha-demo.appspot.com",
+    "score": 0.9,
+    "success": true
+   },
+   "signals": {
+    "brands": [
+     "Not;A=Brand 8",
+     "Chromium 150"
+    ],
+    "focus": false,
+    "helpers": "object",
+    "languages": [
+     "en-US",
+     "en",
+     "fr",
+     "de",
+     "zh-Hans",
+     "zh-Hant",
+     "ja",
+     "es",
+     "it",
+     "nl",
+     "ko",
+     "pt-BR",
+     "pt-PT",
+     "da",
+     "fi",
+     "nb",
+     "sv",
+     "ru",
+     "pl",
+     "tr",
+     "ar",
+     "th",
+     "cs",
+     "hu",
+     "ca",
+     "hr",
+     "el",
+     "he",
+     "ro",
+     "sk",
+     "uk",
+     "id",
+     "ms",
+     "vi",
+     "es-419"
+    ],
+    "plugins": 5,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36",
+    "webdriver": false
+   },
+   "attachedShot": {
+    "path": "<checkout>/.data/probe-shots/form/score-window-attached-1.png",
+    "bytes": 589744
+   },
+   "plainScore": {
+    "score": 0.9,
+    "challenge_ts": "2026-10-05T08:27:18Z",
+    "readFrom": "plainShot (window-only screenshot, read by eye)"
+   }
+  },
+  {
+   "plainShot": {
+    "path": "<checkout>/.data/probe-shots/form/score-window-plain-2.png",
+    "bytes": 582390
+   },
+   "attach": {
+    "ok": true,
+    "error": null,
+    "reached": true
+   },
+   "attached": {
+    "action": "examples/v3scores",
+    "apk_package_name": null,
+    "challenge_ts": "2026-10-05T08:28:11Z",
+    "error-codes": [],
+    "hostname": "recaptcha-demo.appspot.com",
+    "score": 0.9,
+    "success": true
+   },
+   "signals": {
+    "brands": [
+     "Not;A=Brand 8",
+     "Chromium 150"
+    ],
+    "focus": false,
+    "helpers": "object",
+    "languages": [
+     "en-US",
+     "en",
+     "fr",
+     "de",
+     "zh-Hans",
+     "zh-Hant",
+     "ja",
+     "es",
+     "it",
+     "nl",
+     "ko",
+     "pt-BR",
+     "pt-PT",
+     "da",
+     "fi",
+     "nb",
+     "sv",
+     "ru",
+     "pl",
+     "tr",
+     "ar",
+     "th",
+     "cs",
+     "hu",
+     "ca",
+     "hr",
+     "el",
+     "he",
+     "ro",
+     "sk",
+     "uk",
+     "id",
+     "ms",
+     "vi",
+     "es-419"
+    ],
+    "plugins": 5,
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36",
+    "webdriver": false
+   },
+   "attachedShot": {
+    "path": "<checkout>/.data/probe-shots/form/score-window-attached-2.png",
+    "bytes": 589213
+   },
+   "plainScore": {
+    "score": 0.9,
+    "challenge_ts": "2026-10-05T08:27:47Z",
+    "readFrom": "plainShot (window-only screenshot, read by eye)"
+   }
+  }
+ ],
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 4912,
+  "upInfo": {
+   "t": 1791188808527,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "quit": {
+  "killed": false
+ },
+ "chrome": [
+  {
+   "opened": {
+    "success": true,
+    "hostname": "recaptcha-demo.appspot.com",
+    "challenge_ts": "2026-10-05T08:28:19Z",
+    "apk_package_name": null,
+    "score": 0.9,
+    "action": "examples/v3scores",
+    "error-codes": []
+   },
+   "signals": {
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "webdriver": false,
+    "helpers": "undefined",
+    "brands": [
+     "Chromium 154",
+     "Google Chrome 154",
+     "Not A(Brand 99"
+    ],
+    "plugins": 5,
+    "languages": [
+     "en-US",
+     "en"
+    ],
+    "focus": true
+   }
+  },
+  {
+   "opened": {
+    "success": true,
+    "hostname": "recaptcha-demo.appspot.com",
+    "challenge_ts": "2026-10-05T08:28:30Z",
+    "apk_package_name": null,
+    "score": 0.9,
+    "action": "examples/v3scores",
+    "error-codes": []
+   },
+   "signals": {
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "webdriver": false,
+    "helpers": "undefined",
+    "brands": [
+     "Chromium 154",
+     "Google Chrome 154",
+     "Not A(Brand 99"
+    ],
+    "plugins": 5,
+    "languages": [
+     "en-US",
+     "en"
+    ],
+    "focus": true
+   }
+  },
+  {
+   "opened": {
+    "success": true,
+    "hostname": "recaptcha-demo.appspot.com",
+    "challenge_ts": "2026-10-05T08:28:42Z",
+    "apk_package_name": null,
+    "score": 0.9,
+    "action": "examples/v3scores",
+    "error-codes": []
+   },
+   "signals": {
+    "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+    "webdriver": false,
+    "helpers": "undefined",
+    "brands": [
+     "Chromium 154",
+     "Google Chrome 154",
+     "Not A(Brand 99"
+    ],
+    "plugins": 5,
+    "languages": [
+     "en-US",
+     "en"
+    ],
+    "focus": true
+   }
+  }
+ ],
+ "note": "Google's v3 demo key, not Greenhouse's Enterprise key; demo says its score reflects nothing - relative hint only. No input on either side, no Submit."
+}

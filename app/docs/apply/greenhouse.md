@@ -31,14 +31,30 @@ multichoice, `input_hidden` skipped.
 | text | `input.input__single-line` | focus, wait 400 ms, `fill`, read back, once more on mismatch. Signed in to MyGreenhouse in that Chrome, first focus on First/Last Name drops the saved name in a moment later: typed at once, the two ran together ("JaneAda") |
 | choice / yesno / multichoice / Country | react-select: `input[role=combobox]`, list `.select__menu [role=option]` | type, click option w/ exact text - never the first offered; nothing matches -> clear + ASK. Read back from `single-value` / `multi-value__label`. Always scope to `.select__menu`: the phone box's own hidden country list is also `[role=option]` |
 | Country | options read "United States +1"; chosen it shows flag + "+1" only | match w/o the code, read back the code |
+| every box, after all are filled | an owner's real run in the window (tenant G, 2026-10-05) reported every dropdown ok; the owner then said "some fields were not filled" and picked Dropdowns (which ones unknown). Never reproduced: 3 blocked runs (headless Chrome, headful Chrome unfocused, the window) + 5 more (plan-29g.24: upload succeeding, signed in to MyGreenhouse, its autofill landing mid-fill, clicking + Tab around for 30 s) - all held ([gh-dropdown-variants.json](vscode-browser/gh-dropdown-variants.json)). Page code (job board bundle, 2026-10-05): a custom question's dropdown keeps its own choice (react-select, no value passed in), so only a clear (Backspace / Delete in an empty box, the x) or a redraw of the form empties it; EEOC dropdowns show the form's saved answer. Upload success only adds the file; MyGreenhouse autofill fills names, email, phone, city, links, EEOC + its saved resume, never a custom dropdown - cause unfound | `holds`: wait 2.5 s (`form.recheck`), read each back off the page (dropdown = the choice it shows, never the filler's word); gone -> filled again once, still gone -> `FAIL answer dropped after filling - fill it by hand` |
 | multichoice drawn as checkboxes (some questions, 2026-10-05: one form had one of each) | `fieldset#question_<n>[]` of `input[type=checkbox][name="question_<n>[]"]`, id `question_<n>[]_<value>`, each named by its `label[for]`; the job board's list says nothing of which | checkboxes w/ that name on the page -> tick each answer by its label, untick the rest, read each back; else react-select. Counted as one question on the page |
 | Location (City) | combobox `candidate-location`, places after typing (e.g. "Springfield, Illinois, United States") | type city only, pick option starting w/ the full answer |
-| Resume/CV, Cover Letter | hidden `input[type=file]#resume` / `#cover_letter`; after upload `[aria-labelledby=upload-label-<id>] .file-upload__filename` shows the file name | upload first, confirm by name. Choosing it sends the file at once - see below |
+| Resume/CV, Cover Letter | hidden `input[type=file]#resume` / `#cover_letter`; after upload `[aria-labelledby=upload-label-<id>] .file-upload__filename` shows the file name | upload first, confirm by name. Choosing it sends the file at once - see below. Signed in to MyGreenhouse + a name box focused before the upload: the page puts the saved resume in, the file box is gone -> `FAIL question not on page` (measured, plan-29g.24); the fill's own order (resume first) keeps theirs |
 | Race | shown only after Hispanic/Latino = No | not shown -> skipped |
 | Education (School, Degree ...) | `school--0` ...; optional; not in the job board's list | left alone; MyGreenhouse may fill it |
 
 `navigator.webdriver` false in Job Finder's Chrome (2026-10-02). Submit button `button[type=submit]` -
 never clicked. After Submit the address ends `/confirmation`.
+
+## Email security code after Submit
+
+Greenhouse's help page [Invisible reCAPTCHA](https://support.greenhouse.io/hc/en-us/articles/115005448066)
+(updated 2026-03-02; vendor doc): every job board runs invisible reCAPTCHA, scoring "mouse movements
+and typing patterns" on the posting; "depending on your spam sensitivity setting and the user's score,
+a user may be asked to verify their email before submitting their application". The employer picks
+that setting per job board - stricter needs a higher score. So any Greenhouse application, Chrome or
+window, may end in a code emailed to the applicant, pasted on the page before it goes through.
+
+Seen: owner's application filled in the window (tenant G, 2026-10-05) asked for a code; their
+Chrome-filled one the day before (another employer) didn't - one each, two employers, so the
+employer's setting alone can explain it. Window vs Chrome on Google's v3 demo: 0.9 every sample
+both ways (`vscode-browser.md` #Email code after Submit). `job-apply` step 5 tells the user before
+Submit.
 
 ## What leaves the computer, when
 
@@ -69,6 +85,7 @@ name never shows ("upload not confirmed").
 | tenant C | 26 questions: work permit + sponsorship, start date, salary, own demographic survey (gender identity, orientation, transgender, disability) + EEOC; all but the resume filled with the upload blocked |
 | tenant D | 12 questions, resume + cover letter boxes; both files POST to storage when chosen |
 | tenant E | employer's own page (`?gh_jid=`); 30 questions; 2 "select all that apply" questions are checkboxes, not react-select (4 and 14 options) - FAILed, ticked since 2026-10-05; work history entries on the page, not in the job board's list; a required "not generated ... by AI tools" confirm - filled with a test Yes, left to the applicant since 2026-10-05 (`answers.md`) |
+| tenant G | job board; phone country, 2 lists, state, Yes/No, own demographic survey (3 tag lists, 2 Yes/No) + EEOC: owner's run in the window: dropdowns reported ok, owner said some were not filled (plan-29g.20); blocked re-runs all held ([gh-fill-tenant-g.json](vscode-browser/gh-fill-tenant-g.json), [gh-dropdown-variants.json](vscode-browser/gh-dropdown-variants.json)). Page has MyGreenhouse quick apply + autofill on: first focus on a name/email/phone/city box asks my.greenhouse.io for the signed-in profile (signed out: 401, nothing) |
 | tenant F | job board; 2 multi-selects on one form: the required one checkboxes, the optional one react-select - both filled (try, 2026-10-05) |
 
 ## Board that sends its job page to the employer's own site (2026-10)
