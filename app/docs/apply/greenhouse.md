@@ -45,6 +45,8 @@ never clicked. After Submit the address ends `/confirmation`.
 `apply-form try`, every write blocked, 3 postings, 3 employers (tenants C-E), 2026-10-05: 2 on
 `job-boards.greenhouse.io`, 1 on the employer's own page (`?gh_jid=`, embed form opened by
 `recover`). Same in the Job Finder window's own tab (tenant B, `vscode-browser.md`).
+Trial, off by default: `apply-form fill <job> --in-window` fills it in that tab instead of Chrome
+(`vscode-browser.md` #Trial).
 
 | When | What goes out (blocked here) |
 |---|---|

@@ -10,13 +10,14 @@
 | Which job from your list you make a resume for or ask about (not your resume) | freehire.me, to get the whole posting, what its application asks, or if it's still open |
 | Your resume + jobs you ask about, what you say in interview practice, and the jobs on your Today page when a Claude chat opens | Your own AI chat account (Claude, ChatGPT or GitHub Copilot - Copilot's may be shared with Microsoft) |
 | Pages Claude reads in your Chrome browser while it fills a Workday application (the page's words and pictures of it) | Your own Claude account, each time it reads the page |
+| Pages GitHub Copilot reads inside the CEZ Job Finder window - ones it opens itself, or ones you agree to share when VS Code asks (the page's words and pictures of it) | Your own GitHub account (may be shared with Microsoft), each time it reads the page |
 | What you apply with | That employer, when you click Submit - many sites get your resume as soon as you choose it, a few get other parts as they're filled, and on some your email (on some also your name and phone) goes when you click Continue or Next on their first box, before the form; the AI tells you first |
 | Which companies are on your job list (just their names on the job search, nothing about you) | freehire.me, each morning, to find each company's website |
 | A follow-up email you send | The person you send it to, from your own email |
 
 **Removing CEZ Job Finder:** sign-ins from pages opened in its window stay in VS Code after the
-folder is deleted. Clear them first: press Ctrl+Shift+P (Mac: Cmd+Shift+P), pick Browser: Clear
-Storage (Workspace). Then delete the folder.
+folder is deleted. Say "Remove CEZ Job Finder" in the chat first: it turns off the daily check
+and clears them. Then delete the folder.
 
 **VS Code's own usage reports to Microsoft:** switched off when CEZ Job Finder installed VS Code for you.
 

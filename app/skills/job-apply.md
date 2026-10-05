@@ -134,6 +134,7 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
    quirk in that system's doc.
+   `--in-window` (Greenhouse only, a trial): only when the owner asks for it; hard limits the same.
    Form over several pages (`this page: X of Y required answered` + "question(s) on other
    pages"): tell the user to check this page and click Next / Continue themselves - never us.
    Once they say they're on the next page: `prepare` again if `fill` printed it (that system

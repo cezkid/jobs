@@ -449,6 +449,10 @@ async function act(root, at, page, m, msg, panel, retry, keeper) {
 // would be re-navigated, wiping a half-filled form (app/docs/app-window.md)
 const BROWSER_OPEN = "workbench.action.browser.open";
 
+// palette "Browser: Clear Storage (Workspace)": empties this folder's sign-ins + site data, kept
+// by VS Code outside the folder (app/docs/app-window.md #s); no dialog, no tab needed (#t)
+const CLEAR_STORAGE = "workbench.action.browser.clearWorkspaceStorage";
+
 async function hasBrowser() {
   return (await vscode.commands.getCommands(true)).includes(BROWSER_OPEN);
 }
@@ -463,7 +467,9 @@ function openLink(url) {
   });
 }
 
-// `jobs.py open "<link>"` (every AI shows a link with it) => a tab here. Job Finder's folder only.
+// `jobs.py open "<link>"` (every AI shows a link with it) => a tab here; `jobs.py clear-signins` =>
+// this window's sign-ins emptied; `apply-form fill --in-window` (trial) => attach / detach. Job
+// Finder's folder only.
 // Requests already waiting as the window starts: fresh ones opened, leftovers deleted unseen
 function watchLinks(context) {
   const folder = (vscode.workspace.workspaceFolders || [])[0];
@@ -479,7 +485,9 @@ function watchLinks(context) {
   // plain pattern on the folder itself: a non-recursive watcher, never cut by files.watcherExclude
   const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(dir), start.LINK_GLOB));
   const take = (uri) => takeLink(uri.fsPath).catch(() => {});
-  context.subscriptions.push(watcher, watcher.onDidCreate(take), watcher.onDidChange(take));
+  context.subscriptions.push(watcher, watcher.onDidCreate(take), watcher.onDidChange(take),
+    vscode.debug.onDidStartDebugSession((s) => debugSessions.set(s.id, s)),
+    vscode.debug.onDidTerminateDebugSession((s) => debugSessions.delete(s.id)));
   let names = [];
   try {
     names = fs.readdirSync(dir);
@@ -504,14 +512,108 @@ async function takeLink(file) {
       await new Promise((ok) => setTimeout(ok, 50));
     }
   }
-  let url = null;
+  let req = null;
   try {
-    url = start.linkRequest(fs.readFileSync(taken, "utf8"), Date.now());
+    req = start.windowRequest(fs.readFileSync(taken, "utf8"), Date.now());
   } catch {}
   try {
     fs.unlinkSync(taken);
   } catch {}
+  if (req && req.clear) return clearSignins(file);
+  if (req && req.attach) return answer(file, await attachForm(req.attach));
+  if (req && req.detach) return answer(file, await detachForm(req.detach));
+  const url = req && req.url;
   if (url) await openLink(url);
+}
+
+// `jobs.py clear-signins` (before removing the app): only this window can empty them; jobs.py
+// waits for the answer so the AI never says cleared when it wasn't
+async function clearSignins(file) {
+  let result;
+  try {
+    await vscode.commands.executeCommand(CLEAR_STORAGE);
+    result = { ok: true };
+  } catch (e) {
+    result = { error: String((e && e.message) || e) };
+  }
+  return answer(file, result);
+}
+
+// <id>.done written whole: jobs.py reads it the moment the name appears
+function answer(file, result) {
+  const { temp, done, text } = start.answerFor(file, result);
+  try {
+    fs.writeFileSync(temp, text);
+    fs.renameSync(temp, done);
+  } catch {}
+}
+
+// in-window fill trial (app/apply/window.py, app/docs/apply/vscode-browser.md "Trial"): js-debug's
+// "attach to an Integrated Browser tab" on jobs.py's holding page, then its CDP proxy for that tab.
+// Measured route 2: a tab matched by urlFilter (query kept, #hash dropped) attaches at once; none
+// or two => js-debug's own picker, which startDebugging waits on - closed after ATTACH_PICKER_MS
+const debugSessions = new Map();
+const ATTACH_PICKER_MS = 15000;
+const ATTACH_CHILD_MS = 10000;
+// the parent session has no target: js-debug never answers for it (measured) => the child's
+const PROXY_MS = 5000;
+const DETACH_SETTLE_MS = 2000;
+const FORM_SESSION = "Job Finder form";
+
+function late(ms, value) {
+  return new Promise((ok) => setTimeout(() => ok(value), ms));
+}
+
+async function attachForm(url) {
+  // Restricted Mode: js-debug won't start (measured, restricted.json)
+  if (!vscode.workspace.isTrusted) return { error: "untrusted" };
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  const config = { type: "pwa-editor-browser", request: "attach", name: FORM_SESSION, urlFilter: url, internalConsoleOptions: "neverOpen" };
+  const ours = (s) => !s.parentSession && s.configuration && s.configuration.urlFilter === url;
+  try {
+    const started = await Promise.race([vscode.debug.startDebugging(folder, config,
+      { suppressDebugToolbar: true, suppressDebugStatusbar: true, suppressDebugView: true }), late(ATTACH_PICKER_MS, "picker")]);
+    if (started === "picker") {
+      await vscode.commands.executeCommand("workbench.action.closeQuickOpen");
+      return { error: "picker" };
+    }
+    if (!started) return { error: "not started" };
+  } catch (e) {
+    return { error: String((e && e.message) || e) };
+  }
+  for (const end = Date.now() + ATTACH_CHILD_MS; Date.now() < end; await late(100)) {
+    const parent = [...debugSessions.values()].find(ours);
+    const child = parent && [...debugSessions.values()].find((s) => s.parentSession === parent);
+    if (!child) continue;
+    let proxy;
+    try {
+      proxy = await Promise.race([vscode.commands.executeCommand("extension.js-debug.requestCDPProxy", child.id), late(PROXY_MS)]);
+    } catch (e) {
+      proxy = null;
+    }
+    if (!proxy || !proxy.port) {
+      await detachForm(child.id);
+      return { error: "no proxy" };
+    }
+    return { ok: true, session: child.id, proxy: { host: proxy.host, port: proxy.port, path: proxy.path } };
+  }
+  return { error: "no tab session" };
+}
+
+// let the tab go, never close it: stop on an attach = disconnect w/ terminateDebuggee (closes the
+// tab, measured), and stopDebugging() w/o a session ends every one - so disconnect each of ours
+// w/ terminateDebuggee false, child first
+async function detachForm(id) {
+  const child = debugSessions.get(id);
+  if (!child) return { ok: true, left: 0 };
+  const mine = [child, child.parentSession].filter(Boolean);
+  for (const s of mine) {
+    try {
+      await Promise.race([s.customRequest("disconnect", { terminateDebuggee: false }), late(PROXY_MS)]);
+    } catch {}
+  }
+  await late(DETACH_SETTLE_MS);
+  return { ok: true, left: mine.filter((s) => debugSessions.has(s.id)).length };
 }
 
 // one action of today.model's list, from the dashboard or the Jobs panel: the only place a click

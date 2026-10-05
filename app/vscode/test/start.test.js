@@ -126,21 +126,59 @@ test("untrusted window line: plain words, says the Desktop icon, one button", ()
 test("open-link request: http(s) link from a fresh request file only", () => {
   const path = require("path");
   assert.equal(start.LINK_DIR, path.join(".data", "open-link"));
+  const link = (text, now) => (start.windowRequest(text, now) || {}).url || null;
   const req = (over) => JSON.stringify({ url: "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b", t: NOW, ...over });
-  assert.equal(start.linkRequest(req(), NOW), "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b");
-  assert.equal(start.linkRequest(req({ url: "http://example.com/about" }), NOW + 9000), "http://example.com/about");
-  assert.equal(start.linkRequest(req(), NOW + start.LINK_MAX_AGE_MS + 1), null);
+  assert.deepEqual(start.windowRequest(req(), NOW), { url: "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b" });
+  assert.equal(link(req({ url: "http://example.com/about" }), NOW + 9000), "http://example.com/about");
+  assert.equal(start.windowRequest(req(), NOW + start.LINK_MAX_AGE_MS + 1), null);
   for (const url of ["javascript:alert(1)", "vscode://anthropic.claude-code/open", "file:///etc/passwd", "mailto:a@b.example",
     "not a link", "", 42, null]) {
-    assert.equal(start.linkRequest(req({ url }), NOW), null, String(url));
+    assert.equal(start.windowRequest(req({ url }), NOW), null, String(url));
   }
   for (const text of ["{half", "null", "[]", "\"https://example.com\"", JSON.stringify({ url: "https://example.com" }),
-    JSON.stringify({ url: "https://example.com", t: "now" })]) {
-    assert.equal(start.linkRequest(text, NOW), null, text);
+    JSON.stringify({ url: "https://example.com", t: "now" }), req({ do: "open" })]) {
+    assert.equal(start.windowRequest(text, NOW), null, text);
   }
   assert.equal(start.isLinkFile("0123456789abcdef0123456789abcdef.json"), true);
   for (const name of ["0123456789abcdef0123456789abcdef.tmp", "0123456789abcdef0123456789abcdef.json.taken", "x.json",
-    "../0123456789abcdef0123456789abcdef.json", null]) {
+    "0123456789abcdef0123456789abcdef.done", "../0123456789abcdef0123456789abcdef.json", null]) {
     assert.equal(start.isLinkFile(name), false, String(name));
+  }
+});
+
+// jobs.py clear-signins (before removing the app): same folder, fresh requests only, answered in
+// <id>.done written whole (jobs.py reads it the moment the name appears)
+test("clear-signins request: fresh only, answered beside it", () => {
+  const clear = (over) => JSON.stringify({ do: start.CLEAR_REQUEST, t: NOW, ...over });
+  assert.equal(start.CLEAR_REQUEST, "clear-signins");
+  assert.deepEqual(start.windowRequest(clear(), NOW), { clear: true });
+  assert.deepEqual(start.windowRequest(clear({ url: "https://example.com" }), NOW), { clear: true });
+  assert.equal(start.windowRequest(clear(), NOW + start.LINK_MAX_AGE_MS + 1), null);
+  assert.equal(start.windowRequest(clear({ t: "now" }), NOW), null);
+  const file = "/f/.data/open-link/0123456789abcdef0123456789abcdef.json";
+  assert.deepEqual(start.answerFor(file, { ok: true }), {
+    temp: "/f/.data/open-link/0123456789abcdef0123456789abcdef.done.tmp",
+    done: "/f/.data/open-link/0123456789abcdef0123456789abcdef.done",
+    text: "{\"ok\":true}",
+  });
+});
+
+// in-window fill trial (app/apply/window.py): attach only to jobs.py's own loopback holding page -
+// a request naming any site's tab is dropped; detach only by a session id's shape
+test("in_window attach-form: only jobs.py's holding page, detach-form: only a session id", () => {
+  const ask = (over) => JSON.stringify({ t: NOW, ...over });
+  const page = "http://127.0.0.1:52817/jf-0123456789abcdef0123456789abcdef";
+  assert.equal(start.ATTACH_REQUEST, "attach-form");
+  assert.equal(start.DETACH_REQUEST, "detach-form");
+  assert.deepEqual(start.windowRequest(ask({ do: "attach-form", url: page }), NOW), { attach: page });
+  for (const url of ["https://job-boards.greenhouse.io/acme/jobs/123", "http://localhost:52817/jf-0123456789abcdef0123456789abcdef",
+    "http://127.0.0.1:52817/jf-0123456789abcdef0123456789abcdef/x", "http://127.0.0.1:52817/jf-0123", `${page}?a=1`,
+    "http://127.0.0.1.evil.com:52817/jf-0123456789abcdef0123456789abcdef", undefined, 5]) {
+    assert.equal(start.windowRequest(ask({ do: "attach-form", url }), NOW), null, String(url));
+  }
+  assert.equal(start.windowRequest(ask({ do: "attach-form", url: page, t: NOW - start.LINK_MAX_AGE_MS - 1 }), NOW), null);
+  assert.deepEqual(start.windowRequest(ask({ do: "detach-form", session: "a1b2-c3_d4" }), NOW), { detach: "a1b2-c3_d4" });
+  for (const session of ["", "a b", "../x", "x".repeat(65), undefined, 7]) {
+    assert.equal(start.windowRequest(ask({ do: "detach-form", session }), NOW), null, String(session));
   }
 });

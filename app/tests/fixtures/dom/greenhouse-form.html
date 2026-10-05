@@ -1,0 +1,61 @@
+<!doctype html>
+<!-- A Greenhouse-like form for the in-window fill (apply/window.py): its widgets as greenhouse.py meets them
+(dropdown = react-select markup, checkbox list, file box w/ its filename line), plus what the window made
+costly when measured: smooth scrolling and a site's own `debugger;` line. Local only, no requests. -->
+<html style="scroll-behavior: smooth"><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form>
+<label for="first_name">First Name</label><input type="text" id="first_name" value="Jane">
+<label for="email">Email</label><input type="email" id="email">
+<div style="height: 2000px"></div>
+<div class="select__container"><label id="question_5-label" for="question_5">Country of residence</label>
+  <div class="select-shell"><div class="select__control"><div class="select__value-container">
+    <div class="select__input-container"><input class="select__input" id="question_5" role="combobox" aria-expanded="false"
+      type="text" value="" data-options='["Canada", "Cameroon", "United States", "United Kingdom"]'></div>
+  </div></div></div></div>
+<div style="height: 2000px"></div>
+<fieldset class="checkbox" id="question_100[]">
+  <legend>Employment Preference</legend>
+  <div><input type="checkbox" id="question_100[]_201" name="question_100[]" value="201" checked><label for="question_100[]_201">Full Time</label></div>
+  <div><input type="checkbox" id="question_100[]_202" name="question_100[]" value="202"><label for="question_100[]_202">Part Time</label></div>
+  <div><input type="checkbox" id="question_100[]_204" name="question_100[]" value="204"><label for="question_100[]_204">Contract</label></div>
+</fieldset>
+<div id="upload-label-resume">Resume/CV</div>
+<input type="file" id="resume" style="position: absolute; opacity: 0; width: 1px; height: 1px">
+<div aria-labelledby="upload-label-resume"><span class="file-upload__filename"></span></div>
+</form>
+<script>
+// a site's own breakpoint: with the debugger attached it would stop the page under the fill
+document.getElementById("email").addEventListener("input", () => { debugger; });
+document.getElementById("resume").addEventListener("change", (ev) => {
+  document.querySelector('[aria-labelledby="upload-label-resume"] .file-upload__filename').textContent = ev.target.files[0].name;
+});
+for (const input of document.querySelectorAll("input[role=combobox]")) {
+  const control = input.closest(".select__control"), shell = control.parentElement;
+  const options = JSON.parse(input.dataset.options);
+  const close = () => { shell.querySelector(".select__menu")?.remove(); input.setAttribute("aria-expanded", "false"); };
+  const open = () => {
+    close();
+    const menu = document.createElement("div");
+    menu.className = "select__menu";
+    for (const o of options.filter((o) => o.toLowerCase().includes(input.value.toLowerCase()))) {
+      const d = document.createElement("div");
+      d.setAttribute("role", "option");
+      d.textContent = o;
+      d.addEventListener("mousedown", (ev) => ev.preventDefault());
+      d.addEventListener("click", () => {
+        control.querySelector(".select__single-value")?.remove();
+        const v = document.createElement("div");
+        v.className = "select__single-value";
+        v.textContent = o;
+        control.querySelector(".select__value-container").prepend(v);
+        input.value = "";
+        close();
+      });
+      menu.append(d);
+    }
+    if (menu.children.length) shell.append(menu);
+    input.setAttribute("aria-expanded", "true");
+  };
+  input.addEventListener("input", open);
+  input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") close(); });
+}
+</script></body></html>

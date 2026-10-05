@@ -36,13 +36,14 @@ COMMANDS = {
     "interview": ("interview", "interview practice or debrief for one job: requirements, backing lines, pay: JOB"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
     "answers": ("apply.answers", "the user's saved answers from application forms: list | forget N"),
-    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill; measure | try LINK (developers)"),
+    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse only); measure | try LINK (developers)"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "ai": ("ai", "which AI the user chats with: prints it; ai claude | chatgpt | copilot saves it"),
     "look": ("look", "window look: prints it; look auto | light | dark saves it + switches the open window"),
     "update": ("update", "get latest Job Finder program; never touches My folders"),
     "launch": ("launch", "open VS Code on Today (START HERE before setup), chat in right sidebar (Desktop launcher)"),
     "open": (None, "open file or link for user: VS Code tab (PDF too); link as a tab in the Job Finder window, browser when it's closed; --outside: browser always"),
+    "clear-signins": (None, "empty sign-ins + site data of pages opened in the Job Finder window (VS Code keeps them outside this folder) - before removing the app"),
     "window-setup": (None, "installer step: Job Finder's VS Code profile + its extensions, plain progress lines"),
     "tui": ("tui", "terminal job browser (developers)"),
 }
@@ -94,9 +95,14 @@ def retry_busy(step, tries: int = 20, pause: float = 0.05):
 
 def send_to_window(url: str, root: Path, wait: float = LINK_WAIT) -> bool:
     """Hand the link to Job Finder's window; True once its extension took it."""
+    return send_request({"url": url}, root, wait) is not None
+
+
+def send_request(request: dict, root: Path, wait: float = LINK_WAIT) -> str | None:
+    """Hand a request to Job Finder's window; its name once the extension took it, else None."""
     folder = root / LINK_DIR
     name = uuid.uuid4().hex
-    temp, request = folder / f"{name}.tmp", folder / f"{name}.json"
+    temp, request_file = folder / f"{name}.tmp", folder / f"{name}.json"
     try:
         folder.mkdir(parents=True, exist_ok=True)
         stale = time.time() - LINK_MAX_AGE
@@ -107,23 +113,66 @@ def send_to_window(url: str, root: Path, wait: float = LINK_WAIT) -> bool:
             except OSError:
                 pass
         # whole file in place before the watcher sees the name
-        temp.write_text(json.dumps({"url": url, "t": int(time.time() * 1000)}), encoding="utf-8")
-        retry_busy(lambda: os.replace(temp, request))
+        temp.write_text(json.dumps({**request, "t": int(time.time() * 1000)}), encoding="utf-8")
+        retry_busy(lambda: os.replace(temp, request_file))
     except OSError:
         temp.unlink(missing_ok=True)
-        return False
+        return None
     deadline = time.monotonic() + wait
-    while request.exists():
+    while request_file.exists():
         if time.monotonic() >= deadline:
             try:
-                retry_busy(request.unlink)  # taken back: the extension's rename now finds nothing
+                retry_busy(request_file.unlink)  # taken back: the extension's rename now finds nothing
             except FileNotFoundError:
-                return True  # it took it in the same moment
+                return name  # it took it in the same moment
             except OSError:
                 pass  # still held after the retries: browser anyway - a missed link is worse than two
-            return False
+            return None
         time.sleep(0.05)
-    return True
+    return name
+
+
+def window_answer(name: str, root: Path, wait: float):
+    """What the window answered request `name` in <name>.done (None: unreadable); TimeoutError when
+    it took the request but said nothing in time."""
+    done = root / LINK_DIR / f"{name}.done"
+    deadline = time.monotonic() + wait
+    while not done.exists():
+        if time.monotonic() >= deadline:
+            raise TimeoutError(name)
+        time.sleep(0.05)
+    try:
+        answer = json.loads(done.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        answer = None
+    done.unlink(missing_ok=True)
+    return answer
+
+
+# the window's sign-ins live in VS Code's storage for this folder, outside it (app/docs/app-window.md
+# #s, #t): deleting the folder leaves them, and only the open window can empty them => asked through
+# the link folder; extension.js answers in <name>.done once VS Code's own clear has run
+CLEAR_REQUEST = "clear-signins"
+# VS Code's clear took 186 ms (#s); past this the window took it but never said
+CLEAR_WAIT = 10.0
+CLEARED = "cleared: sign-ins + site data of pages opened in the Job Finder window"
+
+
+def clear_signins(wait: float = LINK_WAIT, answer_wait: float = CLEAR_WAIT) -> None:
+    import cfg
+    import launch
+    name = launch.vscode_running() and send_request({"do": CLEAR_REQUEST}, cfg.ROOT, wait)
+    if not name:
+        # also a VS Code w/o its browser (before 1.109): nothing kept there
+        sys.exit("not cleared: the Job Finder window isn't open - open CEZ Job Finder, then run this again")
+    try:
+        answer = window_answer(name, cfg.ROOT, answer_wait)
+    except TimeoutError:
+        sys.exit("not sure it cleared: the window took the request but never answered - run this again")
+    if not isinstance(answer, dict) or answer.get("ok") is not True:
+        error = answer.get("error") if isinstance(answer, dict) else None
+        sys.exit(f"not cleared: VS Code's clear failed ({error or 'no reason given'})")
+    print(CLEARED)
 
 
 def open_for_user(target: str, outside: bool = False, wait: float = LINK_WAIT) -> None:
@@ -175,6 +224,8 @@ def main() -> None:
         check_settings()
     elif name == "open":
         open_for_user(" ".join(a for a in args if a != "--outside"), outside="--outside" in args)
+    elif name == "clear-signins":
+        clear_signins()
     elif name == "window-setup":
         import launch
         launch.window_setup()
