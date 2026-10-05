@@ -62,7 +62,7 @@ def key(q: dict) -> str | None:
     title = q["title"]
     if (q.get("kind") == "file" or q.get("key") or NEVER.search(title.casefold())
             or questions.sensitive(q, {}) or topic(title) == "current pay"
-            or questions.never_draft(title) in (questions.SIGNING, "where you live", questions.VOLUNTARY)):
+            or questions.signs(title) or questions.never_draft(title) in ("where you live", questions.VOLUNTARY)):
         return None
     if len([n for n, p in TOPICS if re.search(p, title, re.I)]) > 1:
         return None  # two topics in one question: asked, never guessed

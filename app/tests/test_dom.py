@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, dom
+from apply.systems import greenhouse
 
 FIXTURES = Path(__file__).parent / "fixtures" / "dom"
 HOME = "https://acme.example/form.html"
@@ -215,3 +216,17 @@ def test_fill_never_types_password_or_consent(page):
     terms = {"id": '[id="adult"]', "title": "I agree to the terms and conditions", "kind": "yesno", "answer": "Yes"}
     assert dom.fill(page, terms, None).startswith("ASK yours to do on the page")
     assert page.input_value("#pw") == "" and not page.is_checked("#adult")
+
+
+def test_greenhouse_select_all_that_apply_drawn_as_checkboxes(page):
+    """Greenhouse's multi-select is a dropdown on some forms, a checkbox set on others: ticked by label,
+    the rest unticked, one question on the page (FAILed as 'not an <input>' before, 2026-10-05)."""
+    page.goto("https://acme.example/greenhouse.html")
+    q = {"id": "question_100[]", "title": "Employment Preference", "kind": "multichoice"}
+    assert greenhouse.ids_on_page(page) == ["first_name", "question_100[]"]
+    assert greenhouse.fill(page, q | {"answer": ["Part Time", "Temporary"]}, None) == "ok"
+    ticked = page.eval_on_selector_all('[name="question_100[]"]', "bs => bs.map(b => b.checked)")
+    assert ticked == [False, True, True, False]
+    assert greenhouse.fill(page, q | {"answer": "Contract"}, None) == "ok"
+    assert page.eval_on_selector_all('[name="question_100[]"]:checked', "bs => bs.map(b => b.value)") == ["204"]
+    assert greenhouse.fill(page, q | {"answer": ["Seasonal"]}, None).startswith("ASK no option 'Seasonal'; offered: Full Time")

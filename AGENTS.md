@@ -28,7 +28,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Today page buttons put their words in the chat, never send them: Copilot fills its chat box;
   Claude: one fresh sidebar chat w/ them typed in; ChatGPT: copy + open, user pastes + presses Enter.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
-  tab, link in browser.
+  tab, link as a tab in the Job Finder window (their browser when the window is closed; it prints
+  which - say that). Add `--outside` for their own browser: a site that won't work inside (Google
+  sign-in) or they ask. Today's job + company links open in the window too.
 - Need file from user (resume PDF): ask them to drag it onto My Resume in the file list, then
   use the PDF just added there (not the made `First_Last_Resume.pdf`). Copilot gets a PDF dropped in chat as data, no path. A path that
   arrives w/ a chat drop still works.
@@ -52,6 +54,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   make tailored resumes - never offer it).
   Switch: `uv run app/jobs.py ai <claude|chatgpt|copilot>`, then they close + reopen CEZ Job
   Finder.
+- Jobs under their lowest pay are hidden on every list unless few came in that week (then the
+  closest come back, marked); no-pay-listed stays unless they choose. Changing it = narrowing:
+  `rank --pay-floor N` counts first. `app/docs/jobs/pay-filter.md`.
 - "Dark mode" / "light mode" / "match my computer" -> `uv run app/jobs.py look dark|light|auto`
   (switches at once), confirm in one line. Today has the same switch at the top.
 
@@ -203,14 +208,17 @@ when asked, at setup, and before any step sending something new off computer.
 |---|---|---|
 | Resume, job folders, search settings, saved form answers, Today page | `My Resume/`, `My Jobs/`, `My Settings/`, `Today.md` | Private - only this computer |
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
+| Sign-ins + site data of pages opened in the Job Finder window | the window's own browser storage, kept by VS Code outside the folder (this folder only, not their usual browser or other VS Code windows; palette "Browser: Clear Storage (Workspace)" empties it, `app/docs/app-window.md`) | Private - only this computer; the page's own site sees the visit, as in any browser |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
 | Resume + answers you paste | that employer's site (Recruitee ...) | That employer, once you click Submit |
 | Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User's own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |
+| Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User's own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
-| Contact details, answers, resume you apply with | that employer's Greenhouse site | That employer, once you click Submit |
+| Resume (and cover letter) you apply with | that employer's Greenhouse site | That employer, as soon as you choose the file (it goes to Greenhouse's storage then) |
+| Contact details, answers you apply with | that employer's Greenhouse site | That employer, once you click Submit |
 | Resume you apply with | that employer's Lever site | That employer, as soon as you choose the file (Lever reads it to fill the form) |
 | Contact details, answers you apply with | that employer's Lever site | That employer, once you click Submit |
 | Resume you apply with | that employer's Workable site | That employer, as soon as you choose the file (it goes to Workable's storage then) |
@@ -243,8 +251,8 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 
 - `START HERE.md` - first-run steps only ("type set me up"); launcher opens it until search
   settings exist, then `Today.md`, and hides it from the file list. Plain words only.
-- `Today.md` - generated (`today`): waiting on you, follow up, new since last check, not
-  finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
+- `Today.md` - generated (`today`): waiting on you, follow up, best to apply next (`app/docs/jobs/best-next.md`;
+  same order in brief + email), not finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
   w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each morning check.
   Private, gitignored; never edit by hand. A new Claude chat gets it in a few lines (`today
   --brief`, session-start hook in `.claude/settings.json`) => a plain "hi" gets what's next;
@@ -263,14 +271,14 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `today.json` (Today as data for the window), `start-page`
-  (launcher -> extension: page to open, then deleted), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
+  (launcher -> extension: page to open, then deleted), `splash-start` (loading splash began), `window-ready` (page up: splash closes), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
-  `profiles/` (example search), `skills/`, `install/`, `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.
+  `profiles/` (example search), `skills/`, `install/` (installers, start scripts + loading splash), `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, `pages.py`, see
   `app/docs/site.md`), GitHub Pages (`https://jobs.enrriquez.com`, `docs/CNAME`; DNS: Cloudflare CNAME `jobs` -> `cezkid.github.io`, DNS only).
   Not in the app download (`.gitattributes` export-ignore) - nothing at runtime reads it.

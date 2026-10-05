@@ -2,6 +2,8 @@
 each of its SOURCES, matched live. A system whose questions() is a plain HTTP read
 (QUESTIONS_OVER_HTTP) reads one open posting's form, contact boxes found. Hits freehire.me + the
 system's own job board (a read; only the listing id goes out)."""
+from urllib.parse import urlsplit
+
 import httpx
 import pytest
 
@@ -38,3 +40,23 @@ def test_newest_postings_match_and_forms_read(system):
             break
         else:
             pytest.fail(f"every {source} posting tried was closed")
+
+
+# employer's own careers page w/ the form embedded (?gh_jid=): 10-17 of the newest 50 Greenhouse links
+# (2026-10) - board looked up, the form read like any other
+def test_greenhouse_employer_site_links_read():
+    from apply.systems import greenhouse
+    # greenhouse.io links carry gh_jid too - only the employer's own host counts
+    links = [u for u in newest("greenhouse") if greenhouse.EMPLOYER_URL.match(u)
+             and not (urlsplit(u).hostname or "").endswith("greenhouse.io")]
+    print(f"coverage Greenhouse employer-site links: {len(links)} of 50 newest US links")
+    if not links:
+        pytest.skip("no employer-site link among the newest 50 today")
+    for link in links:
+        try:
+            got = greenhouse.questions(link)
+        except ValueError:  # closed since freehire last looked
+            continue
+        assert CONTACT & {q["key"] for q in got}, "no contact box read off an employer-site Greenhouse form"
+        return
+    pytest.fail("every employer-site Greenhouse posting tried was closed")

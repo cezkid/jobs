@@ -8,6 +8,7 @@ import pytest
 
 import cfg
 import launch
+import vscode_ext
 import notify
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -46,12 +47,92 @@ def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
     monkeypatch.setattr(launch.sys, "platform", "darwin")
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "ensure_profile", lambda: True)
+    monkeypatch.setattr(launch, "ensure_folder_trusted", lambda: None)
     monkeypatch.setattr(launch, "vscode_running", lambda: running)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
     monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(("sleep", s)))
     monkeypatch.setattr(launch, "first_page", lambda: tmp_path / "Today.md")
     launch.main()
     return calls
+
+
+def ready_after_launch(tmp_path, monkeypatch, running=False, current=True, code=lambda args, quiet=False: 0) -> bool:
+    """main() w/ every machine step stubbed; True = the launcher wrote the splash's ready signal."""
+    for name in ("ensure_claude_trust", "ensure_chat_sidebar", "ensure_yaml_checker", "ensure_mac_icon",
+                 "ensure_folder_trusted", "keep_out_of_sync", "ensure_quiet_vscode"):
+        monkeypatch.setattr(launch, name, lambda: None)
+    monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "has_claude", lambda: True)
+    monkeypatch.setattr(launch, "chosen_ai", lambda: "claude")
+    monkeypatch.setattr(launch, "write_workspace", lambda choice: None)
+    monkeypatch.setattr(launch, "ensure_extensions", lambda choice: True)
+    monkeypatch.setattr(launch.sys, "platform", "darwin")
+    monkeypatch.setattr(launch, "ensure_profile", lambda: True)
+    monkeypatch.setattr(launch, "vscode_running", lambda: running)
+    monkeypatch.setattr(launch, "window_extension_current", lambda: current)
+    monkeypatch.setattr(launch, "code", code)
+    monkeypatch.setattr(launch, "first_page", lambda: tmp_path / "Today.md")
+    launch.main()
+    return (tmp_path / ".data" / launch.READY_MARKER).exists()
+
+
+def test_cold_launch_leaves_the_ready_signal_to_the_window(tmp_path, monkeypatch):
+    # a cold start returns as VS Code starts: written here, the loading splash would close seconds
+    # before the window is up => blank screen again
+    assert not ready_after_launch(tmp_path, monkeypatch)
+
+
+def test_launch_with_window_open_signals_ready_after_both_calls(tmp_path, monkeypatch):
+    # extension already started => it writes nothing more; w/o this the splash sits over the open
+    # window until its cap
+    seen = []
+    real = cfg.ROOT / ".data" / launch.READY_MARKER
+    before = real.stat().st_mtime_ns if real.exists() else None
+
+    def code(args, quiet=False):
+        seen.append((len(args), (tmp_path / ".data" / launch.READY_MARKER).exists()))
+        return 0
+    assert ready_after_launch(tmp_path, monkeypatch, running=True, code=code)
+    # path read per call from cfg.ROOT: the install's own .data untouched
+    assert (real.stat().st_mtime_ns if real.exists() else None) == before
+    assert seen == [(2, False), (3, False)]  # folder, then folder + page: signal only after both
+
+
+def test_cold_launch_signals_ready_when_the_window_lacks_this_release(tmp_path, monkeypatch):
+    # install failed or an older copy stayed => nothing in the window writes the signal
+    assert ready_after_launch(tmp_path, monkeypatch, current=False)
+
+
+def test_cold_launch_signals_ready_when_vscode_fails_to_open(tmp_path, monkeypatch):
+    assert ready_after_launch(tmp_path, monkeypatch, code=lambda args, quiet=False: 1)
+
+
+@pytest.mark.parametrize("error", [RuntimeError("boom"), SystemExit("VS Code not found"), KeyboardInterrupt()])
+def test_failed_launch_signals_ready_and_still_fails(tmp_path, monkeypatch, error):
+    # VS Code not found is a SystemExit: caught as Exception only, the splash would stay 45 s
+    # over the error the user has to read
+    def code(args, quiet=False):
+        raise error
+    with pytest.raises(type(error)):
+        ready_after_launch(tmp_path, monkeypatch, code=code)
+    assert (tmp_path / ".data" / launch.READY_MARKER).exists()
+
+
+def test_ready_signal_never_written_on_every_exit():
+    # a `finally` would cover the cold start too (see test_cold_launch_leaves_the_ready_signal_to_the_window)
+    source = Path(launch.__file__).read_text(encoding="utf-8")
+    assert not re.search(r"finally:\s*(#[^\n]*\s*)*mark_ready", source)
+    assert source.count("mark_ready()") == 3  # failed launch, no window / old extension, window already open
+
+
+def test_window_extension_current_reads_the_profiles_copy(monkeypatch):
+    version = vscode_ext.manifest()["version"]
+    monkeypatch.setattr(launch, "installed_version", lambda name: version)
+    assert launch.window_extension_current()
+    monkeypatch.setattr(launch, "installed_version", lambda name: "0.0.1")
+    assert not launch.window_extension_current()
+    monkeypatch.setattr(launch, "installed_version", lambda name: None)
+    assert not launch.window_extension_current()
 
 
 def test_cold_launch_opens_folder_once_and_leaves_the_page_to_the_window(tmp_path, monkeypatch):
@@ -515,6 +596,7 @@ def test_scratch_vscode_keeps_every_path_and_call_off_the_owners(tmp_path, monke
     monkeypatch.setattr(launch.subprocess, "run", lambda args, **kw: runs.append(args) or DONE)
     launch.code(["--install-extension", launch.PDF_EXTENSION])
     assert runs == [["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
+                     "--shared-data-dir", str(paths.shared),
                      "--install-extension", launch.PDF_EXTENSION]]
     launch.ensure_claude_trust(tmp_path / "jobs")
     assert paths.claude_state.exists()
@@ -565,6 +647,145 @@ def test_open_names_job_finders_folder_with_the_file(tmp_path, monkeypatch):
     monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: runs.append(args))
     jobs.open_for_user(str(page))
     assert runs[0][-2:] == [str(cfg.ROOT), str(page.resolve())] and "-r" not in runs[0]
+
+
+POSTING = "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b"
+
+
+class FakeWindow:
+    """Job Finder's window as jobs.py sees it: claims each request by renaming it, as extension.js does."""
+
+    def __init__(self, root):
+        import jobs
+        self.dir, self.opened, self.done = root / jobs.LINK_DIR, [], None
+
+    def watch(self):
+        while not self.done.is_set():
+            for request in sorted(self.dir.glob("*.json")) if self.dir.exists() else []:
+                taken = request.with_name(request.name + ".taken")
+                try:
+                    request.rename(taken)
+                except OSError:
+                    continue
+                self.opened.append(json.loads(taken.read_text(encoding="utf-8"))["url"])
+                taken.unlink()
+            self.done.wait(0.01)
+
+    def __enter__(self):
+        import threading
+        self.done = threading.Event()
+        self.thread = threading.Thread(target=self.watch, daemon=True)
+        self.thread.start()
+        return self
+
+    def __exit__(self, *exc):
+        self.done.set()
+        self.thread.join(5)
+
+
+def link_setup(tmp_path, monkeypatch, running=True):
+    # temp folder: a request in the dev checkout's .data would open in the developer's own window
+    import jobs
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: running)
+    browser = []
+    monkeypatch.setattr(jobs.webbrowser, "open", lambda url: browser.append(url) or True)
+    return jobs, browser
+
+
+def test_open_link_lands_in_the_window_never_also_the_browser(tmp_path, monkeypatch, capsys):
+    # owner 2026-10-04: "open browser within vscode instead of another window"
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    with FakeWindow(tmp_path) as window:
+        jobs.open_for_user(POSTING, wait=5)
+    assert window.opened == [POSTING] and browser == []  # same string: a rebuilt link 404s
+    assert capsys.readouterr().out == f"{jobs.IN_WINDOW}\n"
+    assert list((tmp_path / jobs.LINK_DIR).iterdir()) == []
+
+
+def test_open_link_nobody_takes_opens_the_browser_once(tmp_path, monkeypatch, capsys):
+    # VS Code open on another folder, or a window w/o its browser: the link still opens, once,
+    # and a late claim finds nothing (taken back) => never a second tab later
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    jobs.open_for_user(POSTING, wait=0.2)
+    assert browser == [POSTING] and capsys.readouterr().out == f"{jobs.IN_BROWSER}\n"
+    assert list((tmp_path / jobs.LINK_DIR).iterdir()) == []
+    with FakeWindow(tmp_path) as window:
+        pass
+    assert window.opened == []
+
+
+def test_open_link_with_vscode_closed_goes_straight_to_the_browser(tmp_path, monkeypatch, capsys):
+    jobs, browser = link_setup(tmp_path, monkeypatch, running=False)
+    jobs.open_for_user(POSTING, wait=5)
+    assert browser == [POSTING] and capsys.readouterr().out == f"{jobs.IN_BROWSER}\n"
+    assert not (tmp_path / jobs.LINK_DIR).exists()
+
+
+def test_open_two_links_at_once_both_reach_the_window(tmp_path, monkeypatch):
+    # two chats side by side, each showing a link
+    import threading
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    links = [POSTING, "https://jobs.ashbyhq.com/acme/9f1c"]
+    results = {}
+    with FakeWindow(tmp_path) as window:
+        senders = [threading.Thread(target=lambda u=u: results.__setitem__(u, jobs.send_to_window(u, tmp_path, wait=5)))
+                   for u in links]
+        for s in senders:
+            s.start()
+        for s in senders:
+            s.join(10)
+    assert results == {u: True for u in links} and sorted(window.opened) == sorted(links) and browser == []
+
+
+def test_open_refuses_what_is_not_a_file_or_web_link(tmp_path, monkeypatch):
+    # a posting's hidden text can ask the AI to open a link to another program
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    for bad in ("javascript:alert(1)", "vscode://anthropic.claude-code/open", "file:///etc/passwd", "mailto:a@b.example",
+                "ftp://example.com/x", "https://", "My Jobs/no such file.md"):
+        with pytest.raises(SystemExit) as stop:
+            jobs.open_for_user(bad, wait=5)
+        assert str(stop.value).startswith("not opened: "), bad
+    assert browser == [] and not (tmp_path / jobs.LINK_DIR).exists()
+
+
+def test_open_outside_always_uses_the_browser(tmp_path, monkeypatch, capsys):
+    # a site that fails inside the window (Google sign-in) => `open --outside`
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(jobs.sys, "argv", ["jobs.py", "open", "--outside", POSTING])
+    with FakeWindow(tmp_path) as window:
+        jobs.main()
+    assert browser == [POSTING] and window.opened == [] and capsys.readouterr().out == f"{jobs.IN_BROWSER}\n"
+    assert not (tmp_path / jobs.LINK_DIR).exists()
+
+
+def test_open_link_leftovers_cleared_and_busy_file_retried(tmp_path, monkeypatch):
+    # a run killed mid-wait leaves its request; Windows refuses a rename while a scan holds the file
+    import errno
+    import os
+    import time
+    jobs, _ = link_setup(tmp_path, monkeypatch)
+    folder = tmp_path / jobs.LINK_DIR
+    folder.mkdir(parents=True)
+    old, new = folder / f"{'a' * 32}.json", folder / f"{'b' * 32}.json"
+    old.write_text("{}", encoding="utf-8")
+    new.write_text("{}", encoding="utf-8")
+    long_ago = time.time() - jobs.LINK_MAX_AGE - 5
+    os.utime(old, (long_ago, long_ago))
+    assert not jobs.send_to_window(POSTING, tmp_path, wait=0)
+    assert sorted(folder.iterdir()) == [new]
+    monkeypatch.setattr(jobs.time, "sleep", lambda s: None)
+    calls = []
+
+    def busy():
+        calls.append(1)
+        if len(calls) < 3:
+            raise PermissionError(errno.EACCES, "in use") if len(calls) == 1 else OSError(errno.EBUSY, "busy")
+        return "done"
+    assert jobs.retry_busy(busy) == "done" and len(calls) == 3
+    with pytest.raises(FileNotFoundError):
+        jobs.retry_busy(lambda: calls.append(1) or (_ for _ in ()).throw(FileNotFoundError()))
+    assert len(calls) == 4  # gone = an answer, never retried
 
 
 def profile_paths(tmp_path, monkeypatch):
@@ -736,7 +957,8 @@ def test_every_code_call_lands_in_job_finders_profile_once_made(tmp_path, monkey
     import jobs
     paths = profile_paths(tmp_path, monkeypatch)
     monkeypatch.setattr(launch.shutil, "which", lambda name: "/bin/code")
-    scratch = ["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions)]
+    scratch = ["/bin/code", "--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
+               "--shared-data-dir", str(paths.shared)]
     assert launch.code_command(["x"]) == [*scratch, "x"]  # not made yet: an unknown name fails the call
     assert launch.ensure_profile(tmp_path / "jobs", paths)
     assert launch.code_command(["x"]) == [*scratch, "--profile", "CEZ Job Finder", "x"]
@@ -746,7 +968,7 @@ def test_every_code_call_lands_in_job_finders_profile_once_made(tmp_path, monkey
     page = tmp_path / "Job posting.md"
     page.write_text("x", encoding="utf-8")
     jobs.open_for_user(str(page))
-    assert [r[5:7] for r in runs] == [["--profile", "CEZ Job Finder"]] * 2
+    assert [r[7:9] for r in runs] == [["--profile", "CEZ Job Finder"]] * 2
 
 
 def test_code_calls_built_in_one_place():
@@ -764,7 +986,7 @@ def test_code_calls_built_in_one_place():
                 if callee == "shutil.which" and ast.unparse(call.args[0]) in ("'code'", '"code"'):
                     sites.setdefault(name, set()).add(f"which:{func.name}")
     assert sites == {"jobs.py": {"open_for_user"},
-                     "launch.py": {"which:code_command", "code", "ensure_extensions", "main"}}
+                     "launch.py": {"which:code_command", "code", "ensure_extensions", "open_window"}}
 
 
 def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_path, monkeypatch, capsys):
@@ -793,7 +1015,7 @@ def test_window_setup_says_what_it_does_and_falls_back_while_vscode_runs(tmp_pat
     result.returncode = 0
     runs.clear()
     launch.window_setup()
-    assert "own space" in capsys.readouterr().out and runs[0][5:7] == ["--profile", "CEZ Job Finder"]
+    assert "own space" in capsys.readouterr().out and runs[0][7:9] == ["--profile", "CEZ Job Finder"]
 
 
 def state_db(path, rows):
@@ -933,6 +1155,175 @@ def test_profile_waiting_on_a_cold_start_is_flagged_for_the_window(tmp_path):
     flag = tmp_path / "profile-pending"
     launch.mark_profile_pending(flag)
     assert "quit VS Code" in flag.read_text(encoding="utf-8")
+
+
+def views_state(paths):
+    return paths.data / "User" / "profiles" / "cez-job-finder" / "globalStorage" / "state.vscdb"
+
+
+def test_outline_and_timeline_hidden_under_the_file_list_once(tmp_path, monkeypatch):
+    # Outline + Timeline under the file list made the window read as a code editor
+    paths = profile_paths(tmp_path, monkeypatch)
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    launch.hide_side_views(paths)
+    views = json.loads(state_rows(views_state(paths))[launch.VIEWS_KEY])
+    assert views == [{"id": "outline", "isHidden": True}, {"id": "timeline", "isHidden": True}]
+    assert "workbench.explorer.fileView" not in str(views)  # file list never hidden
+    # user shows Outline again later => next cold start leaves it shown
+    state_db(views_state(paths), [(launch.VIEWS_KEY, '[{"id":"outline","isHidden":false}]')])
+    launch.hide_side_views(paths)
+    assert json.loads(state_rows(views_state(paths))[launch.VIEWS_KEY]) == [{"id": "outline", "isHidden": False}]
+
+
+def test_hiding_views_keeps_what_vscode_wrote(tmp_path, monkeypatch):
+    # rewriting VS Code's own list lost the file list's place or another view the user hid
+    paths = profile_paths(tmp_path, monkeypatch)
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    written = [{"id": "workbench.explorer.fileView", "isHidden": False, "order": 0},
+               {"id": "outline", "isHidden": False, "order": 2}, "npm"]
+    state_db(views_state(paths), [(launch.VIEWS_KEY, json.dumps(written)), (MODEL, "copilot/claude-sonnet")])
+    launch.hide_side_views(paths)
+    rows = state_rows(views_state(paths))
+    assert json.loads(rows[launch.VIEWS_KEY]) == [written[0], "npm", {"id": "outline", "isHidden": True, "order": 2},
+                                                  {"id": "timeline", "isHidden": True}]
+    assert rows[MODEL] == "copilot/claude-sonnet"
+
+
+def test_jobs_panel_placed_above_the_file_list_once(tmp_path, monkeypatch):
+    # an extension's view lands under the file list + Outline, out of sight; moved by the user => stays
+    paths = profile_paths(tmp_path, monkeypatch)
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    launch.hide_side_views(paths)
+    launch.place_jobs_view(paths)
+    views = json.loads(state_rows(views_state(paths))[launch.VIEWS_KEY])
+    assert views[-1] == {"id": "cezJobFinder.jobs", "isHidden": False, "order": -1}
+    assert {"id": "outline", "isHidden": True} in views  # the other step's change kept
+    moved = [{"id": "cezJobFinder.jobs", "isHidden": True, "order": 3}]
+    state_db(views_state(paths), [(launch.VIEWS_KEY, json.dumps(moved))])
+    launch.place_jobs_view(paths)
+    assert json.loads(state_rows(views_state(paths))[launch.VIEWS_KEY]) == moved
+    # id the extension contributes (package.json) = the one placed
+    assert launch.JOBS_VIEW == vscode_ext.manifest()["contributes"]["views"]["explorer"][0]["id"]
+
+
+def test_hiding_views_never_touches_a_running_or_unreadable_state(tmp_path, monkeypatch):
+    # VS Code running holds the db open; a value it wrote we can't read must never be replaced
+    paths = profile_paths(tmp_path, monkeypatch)
+    launch.hide_side_views(paths)  # no profile yet: nothing, no error
+    assert launch.ensure_profile(tmp_path / "jobs", paths)
+    state_db(views_state(paths), [(launch.VIEWS_KEY, "not json")])
+    launch.hide_side_views(paths)
+    assert state_rows(views_state(paths)) == {launch.VIEWS_KEY: "not json"}
+    views_state(paths).unlink()
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    launch.hide_side_views(paths)
+    assert not views_state(paths).exists()
+    views_state(paths).write_bytes(b"not a database")
+    (paths.data / "code.lock").unlink()
+    launch.hide_side_views(paths)  # broken db: launch carries on
+
+
+def trust_list(state):
+    return json.loads(state_rows(state)[launch.TRUST_KEY])["uriTrustInfo"]
+
+
+def shared_state(paths):
+    return paths.shared / "sharedStorage" / "state.vscdb"
+
+
+def test_folder_trusted_so_a_dock_open_still_runs_the_ai_panel(tmp_path, monkeypatch):
+    # opened from the Dock / recent folders => Restricted Mode: Claude + PDF viewer never ran
+    paths = profile_paths(tmp_path, monkeypatch)
+    root = tmp_path / "jobs"
+    launch.ensure_folder_trusted(root, paths)
+    # VS Code never started: default db, VS Code moves it to its shared store on first read
+    default = paths.global_storage / "state.vscdb"
+    assert trust_list(default) == [{"uri": {"$mid": 1, "path": str(root), "scheme": "file"}, "trusted": True}]
+    launch.ensure_folder_trusted(root, paths)  # once only
+    assert len(trust_list(default)) == 1
+    # VS Code already moved the key into the shared store => written there, other folders kept
+    other = {"uri": {"$mid": 1, "path": "/Users/Your Name/code", "scheme": "file"}, "trusted": True}
+    state_db(shared_state(paths), [(launch.MIGRATED_KEY, json.dumps([launch.TRUST_KEY])),
+                                   (launch.TRUST_KEY, json.dumps({"uriTrustInfo": [other]}))])
+    launch.ensure_folder_trusted(root, paths)
+    assert trust_list(shared_state(paths)) == [other, {"uri": {"$mid": 1, "path": str(root), "scheme": "file"}, "trusted": True}]
+
+
+def test_trust_written_where_vscode_reads_it(tmp_path, monkeypatch):
+    # written to the default db after VS Code moved the key => ignored, folder stayed untrusted
+    paths = profile_paths(tmp_path, monkeypatch)
+    root = tmp_path / "jobs"
+    state_db(shared_state(paths), [(launch.MIGRATED_KEY, json.dumps([launch.TRUST_KEY]))])
+    launch.ensure_folder_trusted(root, paths)
+    assert trust_list(shared_state(paths))[0]["uri"]["path"] == str(root)
+    assert not (paths.global_storage / "state.vscdb").exists()
+    # shared store there but key not moved yet => default db, so the folders it holds move together
+    shared_state(paths).unlink()
+    state_db(shared_state(paths), [(launch.MIGRATED_KEY, "[]")])
+    launch.ensure_folder_trusted(root, paths)
+    assert launch.TRUST_KEY not in state_rows(shared_state(paths))
+    assert trust_list(paths.global_storage / "state.vscdb")[0]["uri"]["path"] == str(root)
+
+
+def test_trust_never_touches_a_running_or_unreadable_store(tmp_path, monkeypatch):
+    # VS Code running writes its own copy back on quit; a value we can't read must never be replaced
+    paths = profile_paths(tmp_path, monkeypatch)
+    root = tmp_path / "jobs"
+    state_db(shared_state(paths), [(launch.TRUST_KEY, "not json")])
+    launch.ensure_folder_trusted(root, paths)
+    assert state_rows(shared_state(paths)) == {launch.TRUST_KEY: "not json"}
+    shared_state(paths).unlink()
+    paths.data.mkdir(parents=True, exist_ok=True)
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    launch.ensure_folder_trusted(root, paths)
+    assert not (paths.global_storage / "state.vscdb").exists()
+    (paths.data / "code.lock").unlink()
+    shared_state(paths).write_bytes(b"not a database")
+    launch.ensure_folder_trusted(root, paths)  # broken store: launch carries on
+
+
+def test_trust_uri_matches_vscode_on_windows():
+    # backslash path never matched the open folder => untrusted on Windows
+    assert launch.trust_uri("C:\\Users\\Your Name\\jobs", windows=True) == {
+        "$mid": 1, "path": "/C:/Users/Your Name/jobs", "scheme": "file"}
+    assert launch.trust_uri("/Users/Your Name/jobs/", windows=False)["path"] == "/Users/Your Name/jobs"
+
+
+def test_start_shortcut_reads_back_target_icon_and_app_id():
+    # wrong bytes => Windows ignores the shortcut => toast still says "Windows PowerShell"
+    import shortcut
+    target = r"C:\Users\Your Name\jobs\app\install\start-windows.bat"
+    data = shortcut.build(target, r"C:\Users\Your Name\jobs\app\install\icon.ico",
+                          r"C:\Users\Your Name\jobs\app\install", notify.APP_ID)
+    back = shortcut.parse(data)
+    assert back["target"] == target
+    assert back["icon"].endswith(r"\icon.ico")
+    assert back["working_dir"].endswith(r"\install")
+    assert back["app_id"] == "CEZ.JobFinder"
+    assert back["show"] == shortcut.SHOW_MINIMIZED
+    assert data[:4] == b"\x4c\0\0\0" and data[-4:] == b"\0\0\0\0"
+
+
+def test_start_shortcut_written_once_and_rewritten_when_moved(tmp_path, monkeypatch):
+    # stale target after the folder moved => Start Menu entry + toast id point at nothing
+    import shortcut
+    link = tmp_path / "Programs" / "CEZ Job Finder.lnk"
+    launch.ensure_start_shortcut(link)
+    assert shortcut.parse(link.read_bytes())["target"] == str(launch.WINDOWS_LAUNCHER)
+    link.write_bytes(b"old")
+    launch.ensure_start_shortcut(link)
+    assert shortcut.parse(link.read_bytes())["app_id"] == notify.APP_ID
+
+
+def test_toast_uses_our_name_only_when_shortcut_exists(tmp_path):
+    # our id w/o its shortcut => Windows has no such app => no notification at all
+    link = tmp_path / "CEZ Job Finder.lnk"
+    assert notify.app_id(link) == notify.POWERSHELL_APP_ID
+    link.write_bytes(b"x")
+    assert notify.app_id(link) == notify.APP_ID
+    script = notify.windows_script("t", "b", notify.APP_ID)
+    assert script.index(f"'{notify.APP_ID}'") < script.index(f"'{notify.POWERSHELL_APP_ID}'")
+    assert "catch" in script
 
 
 def test_ai_still_found_when_the_new_profile_has_no_extensions_yet(tmp_path, monkeypatch):

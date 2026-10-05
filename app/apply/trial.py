@@ -56,7 +56,7 @@ def synthetic(q: dict, today: date | None = None) -> tuple[object, str | None]:
     """(answer, None), or (None, why it is left) - by the question's key and kind, never anyone's facts."""
     kind, key, options = q["kind"], q.get("key"), q.get("options") or []
     if questions.signs(q["title"]):
-        return None, f"agreeing, consenting or signing - {APPLICANT}"
+        return None, f"{questions.never_draft(q['title'])} - {APPLICANT}"
     if kind == "file":
         return (True, None) if key in ("resume", "cover_letter") else (None, f"not the resume box - {APPLICANT}")
     if key == "state":

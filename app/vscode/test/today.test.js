@@ -68,21 +68,14 @@ test("paper look: no card fill, jobs split by rules, one frame for Next up", () 
   assert.match(css, /\.num, \.figures b, \.rows h3 b \{ font-variant-numeric: lining-nums tabular-nums/);
 });
 
-// "added to your list today" under "New since last check" says the same thing twice
-test("new jobs drop 'added to your list today', keep older days + the posting's age", () => {
-  const raw = structuredClone(RAW);
-  const fresh = raw.sections.find((s) => s.id === "new") || (raw.sections.push({ id: "new", title: "New since last check", cards: [] }), raw.sections.at(-1));
-  fresh.cards = [
-    { num: 31, title: "A", company: "Example Co", detail: "remote · pay not listed · added to your list today", say: ["resume for job 31"] },
-    { num: 32, title: "B", company: "Example Co", detail: "added to your list today · posting first seen 66 days ago", say: ["resume for job 32"] },
-    { num: 33, title: "C", company: "Example Co", detail: "remote · added to your list 3 days ago", say: ["resume for job 33"] },
-  ];
-  const m = today.model(raw, say);
-  const all = [...(m.next && m.next.card ? [m.next.card] : []), ...m.sections.flatMap((s) => s.cards)];
-  const detail = Object.fromEntries(all.map((c) => [c.num, c.detail]));
-  assert.equal(detail[31], "remote · pay not listed");
-  assert.equal(detail[32], "posting first seen 66 days ago");
-  assert.equal(detail[33], "remote · added to your list 3 days ago");
+// "3 more" when 20 are scored: the user thinks the list is nearly done
+test("best jobs: more-line counts from the section's own total, not the new-since tile", () => {
+  const raw = structuredClone(FULL);
+  raw.sections = [{ ...raw.sections.find((s) => s.id === "best"), total: 40 }];
+  raw.todo = [];
+  const page = html(today.model(raw, say), "new");
+  // 40 scored - 1 in Next up - 5 shown
+  assert.match(page.split('aria-labelledby="s-best"')[1], /34 more jobs to apply to\.<\/span>/);
 });
 
 // a posting title is employer text: markup in it must show as words, never run or link
@@ -145,6 +138,30 @@ test("title opens the posting; company opens its website, none on record => plai
     assert.match(p, /<h3 id="j-12"><span class="num">Job 12<\/span> Financial Analyst<\/h3><p>Example Co<\/p>/);
   }
   assert.equal(today.cleanSite("http://example.com/about"), "http://example.com/about");
+});
+
+// owner 2026-10-04: "open browser within vscode instead of another window"; a VS Code w/o its own
+// browser (before 1.109), or one that fails to open it, still opens the link - in the system browser
+test("links open as a tab in the window, system browser when VS Code has no browser; http(s) only", async () => {
+  const run = async (url, { has = true, failsIn = false, hasThrows = false } = {}) => {
+    const calls = [];
+    const where = await today.openLink(url, {
+      hasBrowser: () => { if (hasThrows) throw new Error("no commands"); return has; },
+      inWindow: async (u) => { calls.push(["window", u]); if (failsIn) throw new Error("no browser"); },
+      external: async (u) => { calls.push(["external", u]); },
+    });
+    return { where, calls };
+  };
+  const url = RAW.sections[0].cards[0].url;
+  assert.deepEqual(await run(url), { where: "window", calls: [["window", url]] });
+  assert.deepEqual(await run("http://example.com/about"), { where: "window", calls: [["window", "http://example.com/about"]] });
+  assert.deepEqual(await run(url, { has: false }), { where: "external", calls: [["external", url]] });
+  assert.deepEqual(await run(url, { hasThrows: true }), { where: "external", calls: [["external", url]] });
+  assert.deepEqual(await run(url, { failsIn: true }), { where: "external", calls: [["window", url], ["external", url]] });
+  for (const bad of ["javascript:alert(1)", "vscode://anthropic.claude-code/open", "file:///etc/passwd", "mailto:a@b.example",
+    "not a link", "", null, 42]) {
+    assert.deepEqual(await run(bad), { where: null, calls: [] }, String(bad));
+  }
 });
 
 // a path from the data file opening something outside the user's folders
@@ -239,14 +256,14 @@ const job = (num, words) => ({ num, title: `Role ${num}`, company: "Example Co",
 const sec = (id, cards, more = null) => ({ id, title: id, note: null, cards, more });
 const FULL = {
   ...RAW,
-  tiles: [{ label: "New since last check", value: 12, section: "new" }, { label: "Sent so far", value: 4, section: null },
+  tiles: [{ label: "New since last check", value: 12, section: "best" }, { label: "Sent so far", value: 4, section: null },
     { label: "Interviews", value: 1, section: "interviews" }],
   sections: [
     sec("waiting", [3, 5].map((n) => job(n, [`apply to job ${n}`, `I sent job ${n}`]))),
     sec("interviews", [job(46, ["practise my interview for job 46", "I had the interview for job 46"])]),
     sec("follow_up", [job(13, ["write a follow-up for job 13", "I heard back from job 13", "job 13 is closed"])]),
-    sec("new", Array.from({ length: 10 }, (_, i) => job(100 + i, [`resume for job ${100 + i}`])),
-      { text: "2 more - ask the chat.", say: "show me more new jobs" }),
+    { ...sec("best", Array.from({ length: 10 }, (_, i) => job(100 + i, [`resume for job ${100 + i}`])),
+      { text: "2 more - ask the chat.", say: "show me more jobs to apply to" }), total: 12 },
   ],
   todo: [{ text: "Your resume isn't in yet.", say: "import my resume" },
     { text: "Your resume lines could carry more of your own numbers.", say: "ask me about my resume numbers" }],
@@ -255,22 +272,22 @@ const pick = (raw) => { const n = today.model(raw, say).next; return n.card ? n.
 const drop = (raw, ...ids) => ({ ...raw, sections: raw.sections.filter((s) => !ids.includes(s.id)) });
 
 // a page where everything shouts leaves a stressed user not knowing where to start (critique P1)
-test("Next up: interview, else oldest ready resume, else no resume yet, else top new job, else morning check", () => {
+test("Next up: interview, else oldest ready resume, else no resume yet, else best job to apply to, else morning check", () => {
   assert.equal(pick(FULL), 46);
   assert.equal(pick(drop(FULL, "interviews")), 3);
   assert.equal(pick(drop(FULL, "interviews", "waiting")), "import my resume");
   const resumeIn = { ...drop(FULL, "interviews", "waiting"), todo: [{ text: "The morning job check is off.", say: "turn on the morning job check" }] };
   assert.equal(pick(resumeIn), 100);
-  assert.equal(pick(drop(resumeIn, "new", "follow_up")), "turn on the morning job check");
+  assert.equal(pick(drop(resumeIn, "best", "follow_up")), "turn on the morning job check");
   assert.equal(today.model({ ...resumeIn, sections: [], todo: [] }, say).next, null);
   // shown once: out of its own section, an emptied section gone
   const m = today.model(FULL, say);
-  assert.deepEqual(m.sections.map((s) => s.id), ["waiting", "follow_up", "new"]);
-  // tiles follow what they tell about: Next up's interview, then new jobs, then progress
+  assert.deepEqual(m.sections.map((s) => s.id), ["waiting", "follow_up", "best"]);
+  // tiles follow what they tell about: Next up's interview, then best jobs (the new-since figure), then progress
   assert.deepEqual(m.tiles.map((t) => t.label), ["Interviews", "New since last check", "Sent so far"]);
 });
 
-// 11 yellow buttons, 5 stacked under New: yellow didn't lead (re-critique P1) => yellow only on
+// 11 yellow buttons, 5 stacked under New (now Best to apply next): yellow didn't lead (re-critique P1) => yellow only on
 // Next up's main button + each Waiting on you job's; new jobs + follow-ups are options, outlined
 test("yellow only on Next up + Waiting on you; status changes outline, closing quietest; posting + folder are links", () => {
   const page = html(today.model(FULL, say), "new");
@@ -278,7 +295,7 @@ test("yellow only on Next up + Waiting on you; status changes outline, closing q
   const yellow = (x) => (x.match(/class="go"/g) || []).length;
   assert.equal(yellow(part("s-next")), 1);
   for (const c of part("s-waiting").match(/<article class="card"[^>]*>[\s\S]*?<\/article>/g)) assert.equal(yellow(c), 1, c);
-  for (const id of ["s-follow_up", "s-new", "s-setup", "s-later", "s-say"]) assert.equal(yellow(part(id)), 0, id);
+  for (const id of ["s-follow_up", "s-best", "s-setup", "s-later", "s-say"]) assert.equal(yellow(part(id)), 0, id);
   const waiting = FULL.sections.find((s) => s.id === "waiting").cards.length;
   // Next up's interview + one per waiting job, nothing else
   assert.equal(yellow(page), 1 + waiting);
@@ -291,31 +308,31 @@ test("yellow only on Next up + Waiting on you; status changes outline, closing q
 });
 
 // 10 new-job cards at 240 px each pushed setup to the bottom of a 3,750 px page (critique P1)
-test("new jobs: one-line rows, 5 shown, the rest in the chat", () => {
+test("best jobs: one-line rows, 5 shown, the rest in the chat", () => {
   const page = html(today.model(FULL, say), "new");
-  const rows = page.split('aria-labelledby="s-new"')[1].split("</section>")[0];
+  const rows = page.split('aria-labelledby="s-best"')[1].split("</section>")[0];
   assert.equal((rows.match(/<li><div class="what">/g) || []).length, 5);
   assert.match(rows, /<h3 id="j-100"><b>Job 100<\/b> - <button[^>]*>Role 100<\/button>, Example Co<\/h3> <span class="detail">- remote<\/span>/);
   // a decision needs its facts: every new row has its posting (re-critique P2)
   assert.equal((rows.match(/class="link named" title="Open the posting" aria-label="Open the posting for Job 1\d\d: Role 1\d\d">/g) || []).length, 5);
-  assert.match(rows, /7 more new jobs\.<\/span><button[^>]*>Show more new jobs</);
+  assert.match(rows, /7 more jobs to apply to\.<\/span><button[^>]*>Show more jobs</);
   // fewer than 5 + nothing beyond => no "more" line
   const few = { ...drop(FULL, "interviews", "waiting", "follow_up"), todo: [], tiles: [] };
   few.sections = few.sections.map((s) => ({ ...s, cards: s.cards.slice(0, 3), more: null }));
-  assert.doesNotMatch(html(today.model(few, say), "new"), /more new job/);
+  assert.doesNotMatch(html(today.model(few, say), "new"), /more jobs? to apply/);
 });
 
 // "Make my resume" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
-test("new jobs carry their why; follow-up note one line + its guide; figures under the date; job number bold body size", () => {
+test("best jobs carry their why; follow-up note one line + its guide; figures under the date; job number bold body size", () => {
   const raw = structuredClone(FULL);
-  const fresh = raw.sections.find((s) => s.id === "new");
-  fresh.cards = fresh.cards.map((c) => ({ ...c, detail: "", why: "remote · $150k-190k (meets your pay) · added to your list today" }));
+  const best = raw.sections.find((s) => s.id === "best");
+  best.cards = best.cards.map((c) => ({ ...c, detail: "", why: "Matches 8 of 10 asks · $150k-190k (meets your pay) · remote · posted 2 days ago" }));
   Object.assign(raw.sections.find((s) => s.id === "follow_up"), { note: "No reply for a while. Many employers never write back.",
     guide: { title: "When to follow up", path: "Guides/Following up.md" } });
   const m = today.model(raw, say);
   const page = html(m, "new");
-  const rows = page.split('aria-labelledby="s-new"')[1].split("</section>")[0];
-  assert.match(rows, /<b>Job 100<\/b> - <button[^>]*>Role 100<\/button>, Example Co<\/h3> <span class="detail">- remote · \$150k-190k \(meets your pay\)<\/span>/);
+  const rows = page.split('aria-labelledby="s-best"')[1].split("</section>")[0];
+  assert.match(rows, /<b>Job 100<\/b> - <button[^>]*>Role 100<\/button>, Example Co<\/h3> <span class="detail">- Matches 8 of 10 asks · \$150k-190k \(meets your pay\) · remote · posted 2 days ago<\/span>/);
   const note = page.split('aria-labelledby="s-follow_up"')[1].split("</p>")[0];
   assert.match(note, /<p class="note">[^<]+ <button[^>]*class="link" aria-label="Open the guide When to follow up">When to follow up<\/button>$/);
   assert.equal(m.actions[m.sections.find((s) => s.id === "follow_up").guide.open.action].path, "Guides/Following up.md");
@@ -685,7 +702,7 @@ test("skip links first: Skip to Next up, then each section, each a heading that 
   const jumps = [...nav.matchAll(/data-jump="([^"]+)">([^<]+)</g)].map((x) => [x[1], x[2]]);
   assert.deepEqual(jumps[0], ["s-next", "Skip to Next up"]);
   for (const [id] of jumps) assert.match(page, new RegExp(`<h2 id="${id}" tabindex="-1">`));
-  assert.deepEqual(jumps.map((j) => j[0]), ["s-next", "s-setup", "s-waiting", "s-follow_up", "s-new", "s-later", "s-say"]);
+  assert.deepEqual(jumps.map((j) => j[0]), ["s-next", "s-setup", "s-waiting", "s-follow_up", "s-best", "s-later", "s-say"]);
 });
 
 // controls 1.6:1 against the page vanish for low vision (WCAG 1.4.11 asks 3:1)
@@ -840,11 +857,11 @@ test("busy label + starting line honest: Starting Claude only while it isn't run
   assert.equal(today.STILL_OPENING, "One moment - the last one is still opening.");
 });
 
-// "Show more new jobs: New since last check" read twice the same thing; Help me apply says what it does
+// "Show more new jobs: New since last check" (now "Show more jobs") read twice the same thing; Help me apply says what it does
 test("labels: Help me apply; more-row named plainly; heading jump target shows focus", () => {
   assert.equal(say.templates.find((t) => t.id === "apply").label, "Help me apply");
   const page = html(today.model(FULL, say), "new");
-  assert.match(page, />Show more new jobs</);
-  assert.doesNotMatch(page, /aria-label="Show more new jobs: /);
+  assert.match(page, />Show more jobs</);
+  assert.doesNotMatch(page, /aria-label="Show more jobs: /);
   assert.match(page, /\[tabindex="-1"\]:focus \{ outline: 3px solid var\(--text\)/);
 });

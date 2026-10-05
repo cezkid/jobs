@@ -19,7 +19,7 @@
 <meta property="og:description" content="Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.">
 <meta property="article:published_time" content="2026-10-04">
 <meta property="article:modified_time" content="2026-10-05">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png">
+<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=2">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/cover-letters-after-ai/#article","headline":"Do cover letters still matter now that AI writes them?","description":"Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.","url":"https://jobs.enrriquez.com/research/cover-letters-after-ai/","mainEntityOfPage":"https://jobs.enrriquez.com/research/cover-letters-after-ai/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do cover letters still matter now that AI writes them?","item":"https://jobs.enrriquez.com/research/cover-letters-after-ai/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/cover-letters-after-ai/#article","headline":"Do cover letters still matter now that AI writes them?","description":"Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.","url":"https://jobs.enrriquez.com/research/cover-letters-after-ai/","mainEntityOfPage":"https://jobs.enrriquez.com/research/cover-letters-after-ai/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=2","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do cover letters still matter now that AI writes them?","item":"https://jobs.enrriquez.com/research/cover-letters-after-ai/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -67,7 +67,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -78,6 +78,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -110,6 +113,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -127,7 +132,13 @@
   .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  .brand img { width: 34px; height: 34px; margin: -3px; } /* icon tile 26/32 of the file: 28px tile in a 28px box */
+  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg): ink = the text colour => the page's
+     tone, black in print, CanvasText in forced colours. 32px = the cut's own size; margins keep the row's
+     height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
+  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: currentColor; }
+  .bird :is(.beak, .eye) { fill: var(--mark); }
+  /* pale bird on the dark desk: its eye is a hole to the page */
+  @media screen and (prefers-color-scheme: dark) { .brand .eye { fill: var(--desk); } }
   .links { display: flex; gap: 28px; white-space: nowrap; }
   /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
   :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
@@ -271,7 +282,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -295,10 +306,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -323,7 +342,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -332,10 +351,26 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#do-employers-still-ask-for-cover-letters">Do employers still ask for cover letters?</a></li>
+<li><a href="#does-a-cover-letter-get-you-more-interviews">Does a cover letter get you more interviews?</a></li>
+<li><a href="#do-recruiters-actually-read-cover-letters">Do recruiters actually read cover letters?</a></li>
+<li><a href="#does-ai-change-what-a-cover-letter-tells-employers">Does AI change what a cover letter tells employers?</a></li>
+<li><a href="#can-employers-tell-an-ai-written-cover-letter">Can employers tell an AI-written cover letter?</a></li>
+<li><a href="#what-do-the-studies-show-side-by-side">What do the studies show, side by side?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Do cover letters still matter now that AI writes them?</li></ol></nav>
 <h1>Do cover letters still matter now that AI writes them?</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">4 October 2026</time>. Updated <time datetime="2026-10-05">5 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -349,7 +384,7 @@
 <li><a href="#what-do-the-studies-show-side-by-side">What do the studies show, side by side?</a></li>
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
 <li><a href="#changes">Changes</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
@@ -512,31 +547,31 @@
 <li>Keep it to one page. That is convention (<a href="#src-mit-capd-cover-letters">MIT Career Advising &amp; Professional Development 2026c</a>).</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. What else makes a resume work: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a>.</p>
-<h2 id="how-cez-job-finder-uses-this">How CEZ Job Finder uses this</h2>
+<h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
 <ul>
-<li>CEZ Job Finder offers a cover letter only when the application form has a box for one.</li>
+<li><span translate="no">CEZ Job Finder</span> offers a cover letter only when the application form has a box for one.</li>
 <li>Your reason for wanting the job goes in as you wrote it; AI never writes your motive.</li>
 <li>Every fact comes from your own resume details, and you confirm each paragraph.</li>
 <li>Letters stay at 250 to 400 words, one page; the rules are in the program’s <a href="https://github.com/cezkid/jobs/blob/main/app/docs/resume/cover-letter.md">cover letter notes</a>.</li>
 </ul>
-<p>CEZ Job Finder is a free job-search app for Windows and Mac: <a href="/">see how CEZ Job Finder works</a>.</p>
+<p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="changes">Changes</h2>
 <ul>
 <li>October 2026 – ResumeGo’s test is now labelled a small study by a resume company, matching our evidence scale. The AI letter gain now reads “may have raised”, since it was too uncertain to rule out chance. Two survey samples now name who was asked. The 54% line now reads as a share of everyone asked (<a href="#src-insight-global-2025">Insight Global 2025</a>). The model’s extreme case now says applications, as the paper does, not letters. The numbers are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-cui-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Cui, Jingyi, Dias, Gabriel and Ye, Justin (2025). Signaling in the Age of AI: Evidence from Cover Letters. <i>arXiv preprint.</i> 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://arxiv.org/abs/2509.25054">Open copy</a></li>
-<li id="src-freehire-letter-count"><b class="evidence">The maker’s own description of its product</b> freehire (2026). Cover letter generation (internal notes, internal/candidate/coverletter/AGENTS.md). The job search maker’s own count in its code notes – 209,297 of 402,117 open postings whose apply form it captured ask for a letter; no method or date given; file last changed September 8, 2026. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://github.com/strelov1/freehire/blob/20d8a4cf9fe0f1031ec716fd07805ecc6b60abcd/internal/candidate/coverletter/AGENTS.md">Publisher</a></li>
-<li id="src-galdin-silbert-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Galdin, Anaïs and Silbert, Jesse (2025). Making Talk Cheap: Generative AI and Labor Market Signaling. <i>arXiv preprint.</i> About 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://arxiv.org/abs/2511.08785">Open copy</a></li>
-<li id="src-insight-global-2025"><b class="evidence">Survey by a company that sells the service</b> Insight Global (2025). AI in Hiring 2025 Survey Report. 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17–22, 2024; a staffing firm’s survey; question wording not published. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf">Publisher</a></li>
-<li id="src-kleine-allekotte-2024"><b class="evidence">Lab test (not real hiring)</b> Kleine-Allekotte, Aleydis (2024). Spot the difference! Recruiter reaction to ChatGPT in cover letters (MSc thesis, Tilburg University). 86 raters (recruited on LinkedIn, by word of mouth and SurveyCircle; screened only by two self-report questions on English and familiarity with cover letters) each rated six made-up letters – self-written, ChatGPT-improved or ChatGPT-written, by a native or non-native writer – before and after being told AI may have been used; an unpublished student thesis, hypothetical decisions. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://arno.uvt.nl/show.cgi?fid=176589">Publisher</a></li>
-<li id="src-mit-capd-ai-cover-letters"><b class="evidence">Convention (no study)</b> MIT Career Advising &amp; Professional Development (2026). Using AI for cover letters. A university career office’s guide for students; page undated. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://capd.mit.edu/resources/using-ai-for-cover-letters/">Publisher</a></li>
-<li id="src-mit-capd-cover-letters"><b class="evidence">Convention (no study)</b> MIT Career Advising &amp; Professional Development (2026). How to write an effective cover letter (with samples). A university career office’s guide for students; page undated. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://capd.mit.edu/resources/how-to-write-an-effective-cover-letter/">Publisher</a></li>
-<li id="src-resumelab-2020"><b class="evidence">Survey by a company that sells the service</b> ResumeLab (2020). Is a Cover Letter Necessary in 2026? Do I Need a Cover Letter? 200 US recruiters, HR staff and hiring managers, online survey by OnePoll for a company that sells a cover letter builder; dates not given, and the page says some questions and answers were rephrased; the page is dated December 2025, but an Internet Archive copy of February 27, 2020 already holds the same survey and figures (a December 6, 2019 copy does not), so it ran about December 2019 – February 2020, before chat AI; read in an Internet Archive copy of March 11, 2026 (live page timed out). Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://web.archive.org/web/20260311155744/https://resumelab.com/cover-letter/are-cover-letters-necessary">Publisher</a></li>
-<li id="src-wiles-2025"><b class="evidence">Big study (thousands of real applications)</b> Wiles, Emma, Munyikwa, Zanele and Horton, John J. (2025). Algorithmic Writing Assistance on Jobseekers’ Resumes Increases Hires. <i>Management Science 71(12), 10144–10164 (a 2023 working-paper version is free on arXiv, 2301.08083).</i> 480,948 new jobseekers on one online freelance platform, June-July 2021; half got spelling and grammar suggestions on their profile text (not generative AI). Checked <time datetime="2026-10-03">3 October 2026</time>. <a href="https://doi.org/10.1287/mnsc.2024.04528">DOI</a></li>
-<li id="src-resumego-2020"><b class="evidence">Small study (real applications)</b> Yang, Peter (2020). Cover Letters: Just How Important Are They? 7,287 made-up applications on ZipRecruiter, Glassdoor and Indeed, July 2019 to January 2020, in three groups (no letter, generic letter, tailored letter); run by a resume-writing company, not peer-reviewed; group sizes, job types and a test for chance not given. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.resumego.net/research/cover-letters/">Publisher</a></li>
-<li id="src-resumego-2020-survey"><b class="evidence">Survey by a company that sells the service</b> Yang, Peter (2020). Cover Letters: Just How Important Are They? (recruiter survey). 236 recruiters and hiring managers, yes/no questions on the same page as the experiment; run by a resume-writing company; how they were found and the survey dates not given. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.resumego.net/research/cover-letters/">Publisher</a></li>
+<li id="src-cui-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Cui, Jingyi, Dias, Gabriel and Ye, Justin (2025). Signaling in the Age of AI: Evidence from Cover Letters. <i>arXiv preprint.</i> 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arxiv.org/abs/2509.25054">Open copy</a></li>
+<li id="src-freehire-letter-count"><b class="evidence">The maker’s own description of its product</b> freehire (2026). Cover letter generation (internal notes, internal/candidate/coverletter/AGENTS.md). The job search maker’s own count in its code notes – 209,297 of 402,117 open postings whose apply form it captured ask for a letter; no method or date given; file last changed September 8, 2026. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://github.com/strelov1/freehire/blob/20d8a4cf9fe0f1031ec716fd07805ecc6b60abcd/internal/candidate/coverletter/AGENTS.md">Publisher</a></li>
+<li id="src-galdin-silbert-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Galdin, Anaïs and Silbert, Jesse (2025). Making Talk Cheap: Generative AI and Labor Market Signaling. <i>arXiv preprint.</i> About 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arxiv.org/abs/2511.08785">Open copy</a></li>
+<li id="src-insight-global-2025"><b class="evidence">Survey by a company that sells the service</b> Insight Global (2025). AI in Hiring 2025 Survey Report. 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17–22, 2024; a staffing firm’s survey; question wording not published. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf">Publisher</a></li>
+<li id="src-kleine-allekotte-2024"><b class="evidence">Lab test (not real hiring)</b> Kleine-Allekotte, Aleydis (2024). Spot the difference! Recruiter reaction to ChatGPT in cover letters (MSc thesis, Tilburg University). 86 raters (recruited on LinkedIn, by word of mouth and SurveyCircle; screened only by two self-report questions on English and familiarity with cover letters) each rated six made-up letters – self-written, ChatGPT-improved or ChatGPT-written, by a native or non-native writer – before and after being told AI may have been used; an unpublished student thesis, hypothetical decisions. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arno.uvt.nl/show.cgi?fid=176589">Publisher</a></li>
+<li id="src-mit-capd-ai-cover-letters"><b class="evidence">Convention (no study)</b> MIT Career Advising &amp; Professional Development (2026). Using AI for cover letters. A university career office’s guide for students; page undated. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://capd.mit.edu/resources/using-ai-for-cover-letters/">Publisher</a></li>
+<li id="src-mit-capd-cover-letters"><b class="evidence">Convention (no study)</b> MIT Career Advising &amp; Professional Development (2026). How to write an effective cover letter (with samples). A university career office’s guide for students; page undated. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://capd.mit.edu/resources/how-to-write-an-effective-cover-letter/">Publisher</a></li>
+<li id="src-resumelab-2020"><b class="evidence">Survey by a company that sells the service</b> ResumeLab (2020). Is a Cover Letter Necessary in 2026? Do I Need a Cover Letter? 200 US recruiters, HR staff and hiring managers, online survey by OnePoll for a company that sells a cover letter builder; dates not given, and the page says some questions and answers were rephrased; the page is dated December 2025, but an Internet Archive copy of February 27, 2020 already holds the same survey and figures (a December 6, 2019 copy does not), so it ran about December 2019 – February 2020, before chat AI; read in an Internet Archive copy of March 11, 2026 (live page timed out). Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://web.archive.org/web/20260311155744/https://resumelab.com/cover-letter/are-cover-letters-necessary">Publisher</a></li>
+<li id="src-wiles-2025"><b class="evidence">Big study (thousands of real applications)</b> Wiles, Emma, Munyikwa, Zanele and Horton, John J. (2025). Algorithmic Writing Assistance on Jobseekers’ Resumes Increases Hires. <i>Management Science 71(12), 10144–10164 (a 2023 working-paper version is free on arXiv, 2301.08083).</i> 480,948 new jobseekers on one online freelance platform, June-July 2021; half got spelling and grammar suggestions on their profile text (not generative AI). Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1287/mnsc.2024.04528">DOI</a></li>
+<li id="src-resumego-2020"><b class="evidence">Small study (real applications)</b> Yang, Peter (2020). Cover Letters: Just How Important Are They? 7,287 made-up applications on ZipRecruiter, Glassdoor and Indeed, July 2019 to January 2020, in three groups (no letter, generic letter, tailored letter); run by a resume-writing company, not peer-reviewed; group sizes, job types and a test for chance not given. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.resumego.net/research/cover-letters/">Publisher</a></li>
+<li id="src-resumego-2020-survey"><b class="evidence">Survey by a company that sells the service</b> Yang, Peter (2020). Cover Letters: Just How Important Are They? (recruiter survey). 236 recruiters and hiring managers, yes/no questions on the same page as the experiment; run by a resume-writing company; how they were found and the survey dates not given. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.resumego.net/research/cover-letters/">Publisher</a></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
@@ -545,26 +580,10 @@
 <li><a href="/research/hiring-bias-what-helps/">Hiring discrimination: what studies show, what helps</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#do-employers-still-ask-for-cover-letters">Do employers still ask for cover letters?</a></li>
-<li><a href="#does-a-cover-letter-get-you-more-interviews">Does a cover letter get you more interviews?</a></li>
-<li><a href="#do-recruiters-actually-read-cover-letters">Do recruiters actually read cover letters?</a></li>
-<li><a href="#does-ai-change-what-a-cover-letter-tells-employers">Does AI change what a cover letter tells employers?</a></li>
-<li><a href="#can-employers-tell-an-ai-written-cover-letter">Can employers tell an AI-written cover letter?</a></li>
-<li><a href="#what-do-the-studies-show-side-by-side">What do the studies show, side by side?</a></li>
-<li><a href="#what-we-dont-know">What we don’t know</a></li>
-<li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
-<li><a href="#changes">Changes</a></li>
-<li><a href="#sources">Sources</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">

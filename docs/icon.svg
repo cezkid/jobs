@@ -1,11 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-<rect id="tile" x="3" y="3" width="26" height="26" rx="6" fill="#1c1c1e"/>
-<style>.edge{display:none}@media (prefers-color-scheme:dark){.edge{display:inline}}</style>
-<rect class="edge" x="3.5" y="3.5" width="25" height="25" rx="5.5" fill="none" stroke="#636366"/>
-<g shape-rendering="crispEdges">
-<path d="M10 7 H19 L22 10 V25 H10 Z" fill="#ffffff" shape-rendering="auto"/>
-<path d="M19 7 V10 H22 Z" fill="#d9d4c7" shape-rendering="auto"/>
-<rect x="12" y="11" width="6" height="2" fill="#2a2a2c"/>
-<rect x="11" y="15" width="14" height="3" fill="#ffe433"/>
-<rect x="12" y="21" width="5" height="2" fill="#2a2a2c"/>
-</g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+<style>@media (prefers-color-scheme:dark){.ink{fill:#f2f2f2}.eye{fill:#1c1c1e}}</style>
+<path class="ink" fill="#000000" d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/>
+<path class="ink" fill="#000000" d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/>
+<path class="beak" fill="#ffe433" d="M22 6 H26 L31 8 L26 10 H22 Z"/>
+<circle class="eye" cx="19" cy="5" r="1.1" fill="#ffe433"/>
+</svg>

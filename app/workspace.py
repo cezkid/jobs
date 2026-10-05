@@ -81,6 +81,11 @@ COMMON = {
     "editor.minimap.enabled": False,
     # right-hand sidebar shown on open => START HERE / Today in the middle, chat beside it
     "workbench.secondarySideBar.defaultVisibility": "visible",
+    # job links open as a tab in this window (VS Code's own browser): its sign-ins + cookies kept for
+    # this folder only - the default shares them w/ every VS Code window + profile, kept after uninstall
+    "workbench.browser.dataStorage": "workspace",
+    # no globe button in the title bar (an experiment can turn it on); links open from the pages
+    "workbench.browser.showInTitleBar": False,
     "extensions.ignoreRecommendations": True,
     "workbench.editorAssociations": {
         "*.md": "vscode.markdown.preview.editor",

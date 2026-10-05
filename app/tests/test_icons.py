@@ -92,15 +92,15 @@ def test_windows_icon_has_every_size():
 
 
 def test_icon_art_sources_kept():
-    # master or hand-tuned small art missing => next redraw can't rebuild the same icon
-    for name in ("icon.svg", "icon-32.svg", "icon-16.svg"):
+    # master, hand-tuned small art or the bare bird (site, share cards) missing => next redraw can't rebuild the same icon
+    for name in ("icon.svg", "icon-32.svg", "icon-16.svg", "mark.svg", "mark-32.svg"):
         assert (INSTALL / name).read_text(encoding="utf-8").lstrip().startswith("<svg")
 
 
 def test_mac_icon_is_dark_tile_with_highlighter():
     # light or flat tile => icon lost among the light third-party tiles on the Desktop
     w, rows = pixels(icns_png(ICNS.read_bytes(), 512))
-    # tile left of the page, below its rounded corner (512 px: tile 50..462, r 92)
+    # tile left of the bird, below its rounded corner (512 px: tile 50..462, r 92); yellow = the beak
     corner = [p for row in rows[100:160] for p in row[75:135]]
     assert all(p[3] == 255 for p in corner)
     assert sum(0.299 * r + 0.587 * g + 0.114 * b for r, g, b, _ in corner) / len(corner) < 60

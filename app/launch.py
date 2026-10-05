@@ -31,6 +31,10 @@ TODAY_PAGE = cfg.ROOT / "Today.md"
 START_MARKER = "start-page"
 # when the launcher last ran: the extension opened from the Dock rebuilds a Today older than this
 LAUNCH_STAMP = "launched"
+# loading splash (started by the Desktop launcher, outside VS Code) closes once this file is newer
+# than its own start. The window extension writes it as the page shows (app/vscode/start.js
+# readyFile); the launcher only where the extension won't (`mark_ready`)
+READY_MARKER = "window-ready"
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
 MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
 MAC_ICON = cfg.APP / "install" / "icon.icns"
@@ -50,6 +54,7 @@ class VSCodePaths(NamedTuple):
     global_storage: Path
     claude_state: Path
     desktop: Path
+    shared: Path  # VS Code's app-wide store shared by its windows (1.140: trusted folders)
 
 
 def scratch_dir() -> Path | None:
@@ -72,8 +77,10 @@ def vscode_paths() -> VSCodePaths:
             data = home / ".config" / "Code"
         extensions, claude_state = home / ".vscode" / "extensions", home / ".claude.json"
     user = data / "User"
+    # VS Code's appSharedDataHome: ~/.vscode-shared (product.json sharedDataFolderName), every OS
+    shared = scratch / "shared" if scratch else home / ".vscode-shared"
     return VSCodePaths(home, data, extensions, user / "settings.json", user / "workspaceStorage",
-                       user / "globalStorage", claude_state, home / "Desktop")
+                       user / "globalStorage", claude_state, home / "Desktop", shared)
 
 
 def scratch_args() -> list[str]:
@@ -81,7 +88,9 @@ def scratch_args() -> list[str]:
     if not scratch_dir():
         return []
     paths = vscode_paths()
-    return ["--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions)]
+    # w/o --shared-data-dir a scratch VS Code reads + writes the owner's ~/.vscode-shared
+    return ["--user-data-dir", str(paths.data), "--extensions-dir", str(paths.extensions),
+            "--shared-data-dir", str(paths.shared)]
 
 
 def has_claude(extensions: Path | None = None) -> bool:
@@ -334,6 +343,151 @@ def copy_model_pick(source: Path, target: Path) -> bool:
     except (sqlite3.Error, OSError):
         return False
     return True
+
+
+# Outline + Timeline under the file list = code-editor tells. No setting hides a view: VS Code keeps
+# the Explorer's hidden views in the profile's state db, this key (app/docs/app-window.md #m)
+VIEWS_KEY = "workbench.explorer.views.state.hidden"
+HIDDEN_VIEWS = ("outline", "timeline")
+# our own row in the same db: once per profile => a view the user shows again stays shown
+VIEWS_DONE_KEY = "cez-job-finder.views-hidden"
+
+
+def hide_side_views(paths: VSCodePaths | None = None) -> None:
+    """Cold start, once per profile: Outline + Timeline hidden in Job Finder's profile. Never the
+    file list; every other view's entry kept as VS Code wrote it."""
+    def change(views: list) -> list:
+        # VS Code reads a bare id as hidden too; ours become objects (order kept), the rest as is
+        ours = {v["id"]: v for v in views if isinstance(v, dict) and v.get("id") in HIDDEN_VIEWS}
+        views = [v for v in views if (v.get("id") if isinstance(v, dict) else v) not in HIDDEN_VIEWS]
+        return views + [{**ours.get(view, {"id": view}), "isHidden": True} for view in HIDDEN_VIEWS]
+    _change_views_once(paths, VIEWS_DONE_KEY, change)
+
+
+# Jobs panel (app/vscode/jobs.js) above the file list: an extension's Explorer view lands below
+# VS Code's own (no order => last); a stored order beats the file list's 1 (app-window.md #o)
+JOBS_VIEW = "cezJobFinder.jobs"
+JOBS_VIEW_ORDER = -1
+JOBS_VIEW_DONE_KEY = "cez-job-finder.jobs-view-placed"
+
+
+def place_jobs_view(paths: VSCodePaths | None = None) -> None:
+    """Cold start, once per profile: Jobs panel first in the Explorer, shown. Moved or hidden by the
+    user later => stays so."""
+    def change(views: list) -> list:
+        rest = [v for v in views if (v.get("id") if isinstance(v, dict) else v) != JOBS_VIEW]
+        return rest + [{"id": JOBS_VIEW, "isHidden": False, "order": JOBS_VIEW_ORDER}]
+    _change_views_once(paths, JOBS_VIEW_DONE_KEY, change)
+
+
+def _change_views_once(paths: VSCodePaths | None, done_key: str, change) -> None:
+    """Explorer's view list in the profile's state db, changed by change(list) -> list, once per
+    profile (own row done_key). VS Code running, no profile or a value we can't read => untouched."""
+    paths = paths or vscode_paths()
+    location = profile_location(paths)
+    if not location or vscode_running(paths):
+        return
+    state = paths.data / "User" / "profiles" / location / "globalStorage" / "state.vscdb"
+    try:
+        state.parent.mkdir(parents=True, exist_ok=True)
+        db = sqlite3.connect(state, timeout=2)
+        try:
+            with db:
+                db.execute(ITEM_TABLE)
+                rows = dict(db.execute("SELECT key, value FROM ItemTable WHERE key IN (?, ?)", (VIEWS_KEY, done_key)).fetchall())
+                if done_key in rows:
+                    return
+                try:
+                    views = json.loads(rows.get(VIEWS_KEY) or "[]")
+                except ValueError:
+                    return  # VS Code's own value unreadable: never overwrite it
+                if not isinstance(views, list):
+                    return
+                db.executemany("INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)",
+                               [(VIEWS_KEY, json.dumps(change(views), separators=(",", ":"))), (done_key, "1")])
+        finally:
+            db.close()
+    except (sqlite3.Error, OSError):
+        pass
+
+
+# trusted folders: VS Code 1.140 keeps them app-wide in the shared store, under this key; older
+# ones (+ 1.140 before its first read) in the default state db, moved over on first read
+# (app/docs/app-window.md #n)
+TRUST_KEY = "content.trust.model.key"
+# shared store's list of keys already moved over: listed => the default db's copy is ignored
+MIGRATED_KEY = "__$__migratedStorageMarker"
+
+
+def trust_uri(folder: str, windows: bool | None = None) -> dict:
+    """Folder as VS Code saves a URI in JSON ($mid 1 = URI; revived from scheme + path)."""
+    windows = sys.platform == "win32" if windows is None else windows
+    path = str(folder).replace("\\", "/") if windows else str(folder)
+    path = path.rstrip("/") or "/"
+    if not path.startswith("/"):
+        path = "/" + path
+    return {"$mid": 1, "path": path, "scheme": "file"}
+
+
+def ensure_folder_trusted(root: Path | None = None, paths: VSCodePaths | None = None) -> None:
+    """Cold start: Job Finder's folder on VS Code's trusted list => opened from the Dock, recent
+    folders or File > Open it still runs the AI panel + PDF viewer (no Restricted Mode). This
+    folder only, never `security.workspace.trust.enabled`; every other entry kept."""
+    paths, root = paths or vscode_paths(), root or cfg.ROOT
+    if vscode_running(paths):
+        return  # VS Code holds the store + writes its own copy back on quit
+    shared = paths.shared / "sharedStorage" / "state.vscdb"
+    try:
+        target = paths.global_storage / "state.vscdb"
+        if shared.exists():
+            rows = state_values(shared, (TRUST_KEY, MIGRATED_KEY))
+            try:
+                moved = TRUST_KEY in json.loads(rows.get(MIGRATED_KEY) or "[]")
+            except (ValueError, TypeError):
+                return  # VS Code's own value unreadable: never guess where it reads trust
+            if TRUST_KEY in rows or moved:
+                target = shared
+        add_trusted(target, trust_uri(str(root)))
+    except (sqlite3.Error, OSError):
+        pass
+
+
+def state_values(state: Path, keys: tuple[str, ...]) -> dict:
+    db = sqlite3.connect(f"{state.as_uri()}?mode=ro", uri=True, timeout=2)
+    try:
+        marks = ",".join("?" * len(keys))
+        return dict(db.execute(f"SELECT key, value FROM ItemTable WHERE key IN ({marks})", keys).fetchall())
+    finally:
+        db.close()
+
+
+def add_trusted(state: Path, uri: dict) -> None:
+    windows = re.match(r"^/[A-Za-z]:", uri["path"]) is not None
+    norm = (lambda p: p.lower()) if windows else (lambda p: p)
+    state.parent.mkdir(parents=True, exist_ok=True)
+    db = sqlite3.connect(state, timeout=2)
+    try:
+        with db:
+            db.execute(ITEM_TABLE)
+            row = db.execute("SELECT value FROM ItemTable WHERE key = ?", (TRUST_KEY,)).fetchone()
+            try:
+                info = json.loads(row[0]) if row else {}
+            except (ValueError, TypeError):
+                return  # VS Code's own value unreadable: never overwrite it
+            entries = info.get("uriTrustInfo") if isinstance(info, dict) else None
+            if row and not isinstance(entries, list):
+                return
+            entries = entries or []
+            for entry in entries:
+                seen = entry.get("uri") if isinstance(entry, dict) else None
+                if (isinstance(seen, dict) and seen.get("scheme") == "file" and entry.get("trusted")
+                        and norm(str(seen.get("path", "")).rstrip("/")) == norm(uri["path"])):
+                    return
+            info = {**(info if isinstance(info, dict) else {}), "uriTrustInfo": [*entries, {"uri": uri, "trusted": True}]}
+            db.execute("INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)",
+                       (TRUST_KEY, json.dumps(info, separators=(",", ":"))))
+    finally:
+        db.close()
 
 
 def copy_settings(source: Path, target: Path) -> None:
@@ -640,6 +794,23 @@ def ensure_windows_icon(done: Path = WINDOWS_ICON_DONE, run=autorun.powershell) 
         done.write_text("")
 
 
+def ensure_start_shortcut(path: Path | None = None) -> None:
+    # Start Menu shortcut carrying our app id => morning toast says CEZ Job Finder w/ its icon,
+    # not "Windows PowerShell". Bytes from Python (shortcut.py): no compiled code. Rewritten when
+    # the install moved; any failure => no shortcut => toast keeps PowerShell's id
+    import shortcut
+    path = path or notify.start_shortcut()
+    try:
+        data = shortcut.build(str(WINDOWS_LAUNCHER), str(WINDOWS_ICON), str(WINDOWS_LAUNCHER.parent),
+                              notify.APP_ID)
+        if path.is_file() and path.read_bytes() == data:
+            return
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+    except (OSError, ValueError):
+        pass
+
+
 def claude_project_keys(folder: Path) -> list[str]:
     # Claude looks folder up by forward-slash path, drive letter case-sensitive; VS Code starts it
     # on `c:/...`, terminal on `C:/...` (measured 2026-09-28: backslash or other-case key => untrusted)
@@ -790,6 +961,8 @@ def window_setup() -> None:
     cfg.ensure_private_dirs()
     if ensure_profile():
         migrate_profile()
+        hide_side_views()
+        place_jobs_view()
         print(f"{cfg.NAME} has its own space in VS Code, apart from anything else you use it for.")
     else:
         print(f"VS Code is open, so {cfg.NAME} gets its own space the next time it starts.")
@@ -830,10 +1003,43 @@ def mark_start_page(page: Path | None, data: Path | None = None) -> None:
         pass  # no marker => the extension still opens a page, just its own pick
 
 
+def mark_ready(data: Path | None = None) -> None:
+    """Ready signal for the loading splash, from the launcher: only where the window extension
+    won't write it (window already open, extension not at this release, no window, launch failed).
+    Read per call (cfg.ROOT) like `mark_start_page`."""
+    data = data or cfg.ROOT / ".data"
+    try:
+        data.mkdir(parents=True, exist_ok=True)
+        (data / READY_MARKER).write_text(time.strftime("%Y-%m-%dT%H:%M:%S%z") + "\n", encoding="utf-8")
+    except OSError:
+        pass  # splash closes at its own cap
+
+
+def window_extension_current() -> bool:
+    """Our extension at this release's version in the window's profile => it writes the ready signal."""
+    import vscode_ext
+    try:
+        return installed_version(vscode_ext.extension_id()) == vscode_ext.manifest()["version"]
+    except (OSError, ValueError, KeyError):
+        return False
+
+
 def main() -> None:
+    try:
+        open_window()
+    except BaseException:
+        # failed launch (VS Code not found = SystemExit) => splash closes now, not at its cap.
+        # Only here + the paths below, never on every exit: a cold start returns as VS Code
+        # starts => the splash would close before the window is up
+        mark_ready()
+        raise
+
+
+def open_window() -> None:
     if sys.platform == "win32":
         register_protocol()
         ensure_windows_icon()
+        ensure_start_shortcut()
     if sys.platform == "darwin":
         ensure_mac_icon()
     # before VS Code opens => file list shows the private folders even on a brand-new install
@@ -843,10 +1049,15 @@ def main() -> None:
     if ensure_profile():
         # their model pick, zoom + text size come along, once
         migrate_profile()
+        # no Outline + Timeline under the file list (code-editor tells), Jobs panel above it, once
+        hide_side_views()
+        place_jobs_view()
         PROFILE_PENDING.unlink(missing_ok=True)
     elif not profile_location():
         # VS Code left open => no profile yet; the window extension says how to finish (quit once)
         mark_profile_pending()
+    # opened later w/o the Desktop icon (Dock, recent folders) => still trusted: AI panel runs
+    ensure_folder_trusted()
     choice = chosen_ai()
     # before VS Code opens, into its profile once made => the window comes up with the chat panel,
     # the first click on a resume shows the page, a typo in the resume facts is underlined
@@ -877,13 +1088,18 @@ def main() -> None:
     if cold:
         # ONE call, folder only: the window extension opens the page formatted as it starts
         mark_start_page(page)
-        code(window)
+        # the extension signals ready once the page shows; no window, or no extension of this
+        # release in it (failed install) => nobody would
+        if code(window) or not window_extension_current():
+            mark_ready()
         return
     mark_start_page(None)
     code(window)
     # window already up => the page lands formatted at once, no wait; double-click on the Desktop
     # icon brings it forward. Folder again => lands in this window, not the last used
     code([*window, str(page)])
+    # extension already started => it signals nothing more
+    mark_ready()
 
 
 if __name__ == "__main__":

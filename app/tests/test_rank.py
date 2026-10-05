@@ -41,7 +41,9 @@ def test_rank_order_tier_trust_floor_pay_collections_recency():
         make_job("f500-low", collections=["fortune500"], **usd(30000)),
         make_job("ghost", reality={"repost_count": 6}, **usd(500000)),
     ]
-    assert slugs(rank.rank(jobs, CONFIG, NOW)) == [
+    # pay filter off: the order a below-floor job keeps when it is let back
+    shown = cfg.merge(CONFIG, {"rank": {"pay_filter": {"hide_below_floor": False}}})
+    assert slugs(rank.rank(jobs, shown, NOW)) == [
         "priced-high", "priced-low", "f500-low", "f500", "plain-new", "plain-old", "ghost", "local-top",
     ]
 
@@ -255,3 +257,60 @@ def test_max_age_days_hides_older_first_seen_keeps_unknown():
     ]
     assert sorted(slugs(rank.rank(jobs, config, NOW))) == ["fresh", "unknown"]
     assert len(rank.rank(jobs, CONFIG, NOW)) == 4
+
+
+def week_job(slug, days_ago, **over):
+    """Reached their list days_ago days before NOW."""
+    return make_job(slug, first_fetched_at=f"2026-09-{15 - days_ago:02d}T10:00:00Z", **over)
+
+
+def pay_config(**pf):
+    return cfg.merge(CONFIG, {"rank": {"salary_floor_usd": 100000, "pay_filter": pf}})
+
+
+# a job under their lowest pay showed on every list (owner: "we shouldn't be showing jobs if below desired pay")
+def test_below_floor_hidden_unlisted_kept_by_default():
+    jobs = [make_job("meets", **usd(90000, 120000)), make_job("below", **usd(60000, 80000)), make_job("none")]
+    config = pay_config(relax_under_new_per_week=0)
+    assert slugs(rank.rank(jobs, config, NOW)) == ["meets", "none"]
+    assert slugs(rank.rank(jobs, pay_config(hide_unlisted=True, relax_under_new_per_week=0), NOW)) == ["meets"]
+    # no floor set: nothing hidden, whatever the switches say
+    no_floor = cfg.merge(config, {"rank": {"salary_floor_usd": 0, "pay_filter": {"hide_unlisted": True}}})
+    assert len(rank.rank(jobs, no_floor, NOW)) == 3
+    # switched off: shown again, below-floor sorted under the ones that meet it
+    assert slugs(rank.rank(jobs, pay_config(hide_below_floor=False), NOW)) == ["meets", "below", "none"]
+
+
+# a thin week left the user with almost nothing to apply to while near-floor jobs sat hidden
+def test_thin_week_brings_back_closest_first_marked():
+    jobs = [week_job("meets", 1, **usd(110000)),
+            week_job("near", 2, **usd(90000, 95000)), week_job("far", 1, **usd(50000)),
+            week_job("none-new", 1), week_job("none-old", 5),
+            week_job("last-week", 9, **usd(99000))]  # outside the 7 days: stays hidden
+    config = pay_config(hide_unlisted=True, relax_under_new_per_week=4)
+    shown = rank.rank(jobs, config, NOW)
+    assert sorted(slugs(shown)) == ["far", "meets", "near", "none-new"]
+    by = {j["public_slug"]: j for j in shown}
+    assert "below your pay: $90k-95k (few new jobs this week)" in rank.reasons(by["near"], config, NOW)
+    assert "pay not listed (few new jobs this week)" in rank.reasons(by["none-new"], config, NOW)
+    assert "few new jobs" not in rank.reasons(by["meets"], config, NOW)
+    # enough this week: none brought back
+    assert slugs(rank.rank(jobs, pay_config(hide_unlisted=True, relax_under_new_per_week=1), NOW)) == ["meets"]
+
+
+# a stale (likely filled) job counted as this week's supply and kept the closest ones hidden
+def test_relax_counts_only_live_jobs_this_week():
+    jobs = [week_job("gone", 1, fetched_at="2026-08-01T00:00:00Z", **usd(120000)),
+            week_job("near", 1, **usd(95000))]
+    assert "near" in slugs(rank.rank(jobs, pay_config(relax_under_new_per_week=1), NOW))
+
+
+# setup saved a pay floor without telling the user how many jobs it would hide
+def test_pay_probe_counts_before_saving():
+    jobs = [week_job("meets", 1, **usd(120000)), week_job("below", 2, **usd(60000)),
+            week_job("none", 1), make_job("old-below", **usd(50000))]
+    out = rank.pay_probe(jobs, CONFIG, 100000, False, NOW).splitlines()
+    assert out[0] == "open: 4 - keeps 2, hides 2 below $100,000 (no pay listed, kept: 1)"
+    assert out[1] == "reached your list in the last 7 days: 3 - keeps 2, hides 1 below $100,000 (no pay listed, kept: 1)"
+    assert rank.pay_probe(jobs, CONFIG, 100000, True, NOW).startswith(
+        "open: 4 - keeps 1, hides 2 below $100,000 + 1 with no pay listed")

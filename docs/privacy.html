@@ -16,7 +16,7 @@
 <meta property="og:url" content="https://jobs.enrriquez.com/privacy.html">
 <meta property="og:title" content="What CEZ Job Finder keeps and sends">
 <meta property="og:description" content="What CEZ Job Finder keeps on your computer and what it sends, to whom.">
-<meta property="og:image" content="https://jobs.enrriquez.com/og.png?v=4">
+<meta property="og:image" content="https://jobs.enrriquez.com/og.png?v=5">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -63,7 +63,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -74,6 +74,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -106,6 +109,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -123,7 +128,13 @@
   .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  .brand img { width: 34px; height: 34px; margin: -3px; } /* icon tile 26/32 of the file: 28px tile in a 28px box */
+  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg): ink = the text colour => the page's
+     tone, black in print, CanvasText in forced colours. 32px = the cut's own size; margins keep the row's
+     height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
+  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: currentColor; }
+  .bird :is(.beak, .eye) { fill: var(--mark); }
+  /* pale bird on the dark desk: its eye is a hole to the page */
+  @media screen and (prefers-color-scheme: dark) { .brand .eye { fill: var(--desk); } }
   .links { display: flex; gap: 28px; white-space: nowrap; }
   /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
   :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
@@ -228,7 +239,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -240,7 +251,7 @@
 <div class="page">
   <div class="head">
   <h1>Privacy</h1>
-  <p class="meta">Updated 4 October 2026</p>
+  <p class="meta">Updated <time datetime="2026-10-04">October 4, 2026</time></p>
   </div>
 
   <section class="summary" aria-labelledby="short">
@@ -260,8 +271,8 @@
     </thead>
     <tbody>
       <tr data-claim="privacy-freehire"><th scope="row">freehire.me</th><td>Your search words; the company names on your job list; which job from your list you make a resume for or ask about. Not your resume.</td><td class="when">To find jobs, get the whole posting, or see if it’s still open. Each morning, to find each listed company’s website.</td></tr>
-      <tr data-claim="privacy-ai"><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume, the postings you work on and what you tell it, on your own account. Claude also gets your Today page’s job titles and companies as a chat opens.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</td></tr>
-      <tr data-claim="privacy-employers"><th scope="row">Employers</th><td>What you apply with.</td><td class="when">When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</td></tr>
+      <tr data-claim="privacy-ai"><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume, the postings you work on and what you tell it, on your own account. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</td></tr>
+      <tr data-claim="privacy-employers"><th scope="row">Employers</th><td>What you apply with.</td><td class="when">When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</td></tr>
       <tr data-claim="privacy-email"><th scope="row">Your email provider</th><td>The morning email, sent to yourself.</td><td class="when">Only if you turn on email alerts.</td></tr>
       <tr data-claim="privacy-maintainer"><th scope="row">The maintainer</th><td>A fix to the program’s code. Never your files.</td><td class="when">Only if you say yes.</td></tr>
     </tbody>
@@ -276,8 +287,10 @@
     <li><strong>This site</strong> is hosted by GitHub, which logs visits. We add no cookies, analytics or files from other sites.</li>
   </ul>
 
-  <h2>Delete everything</h2>
-  <p>Ask the chat to turn off the daily check, then delete the CEZ Job Finder folder. Chats live in your AI account – delete them there.</p>
+  <h2 id="delete">Delete everything</h2>
+  <p data-claim="privacy-delete">Ask the chat to turn off the daily check. Sign-ins from pages you opened in the app’s window are kept by VS Code, outside the folder: in that window press Ctrl+Shift+P (Mac: Cmd+Shift+P) and pick <span translate="no">Browser: Clear Storage (Workspace)</span>. Then delete the <span translate="no">CEZ Job Finder</span> folder.</p>
+  <p data-claim="privacy-delete-later">Folder already gone? Paste <code translate="no">%APPDATA%\Code\User\workspaceStorage</code> into File Explorer’s address bar (Mac: <code translate="no">~/Library/Application Support/Code/User/workspaceStorage</code> into Finder’s Go to Folder, Shift-Cmd-G). Delete the folder in it whose <span translate="no">workspace.json</span> names your <span translate="no">CEZ Job Finder</span> folder.</p>
+  <p>Chats live in your AI account – delete them there.</p>
 
   <h2>Questions</h2>
   <p><a href="https://github.com/cezkid/jobs/issues">Ask on GitHub</a>. The code is public, so anyone can check this.</p>

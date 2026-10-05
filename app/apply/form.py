@@ -79,6 +79,22 @@ def line(a: dict) -> str:
     return f"  [{state}] {a['kind']}: {a['title']}{opts}{tag}"
 
 
+def upload_note(system, answers: list[dict]) -> str:
+    """A system that sends a file the moment it is chosen: the yes for the named file says so."""
+    if getattr(system, "FILE_ON_CHOICE", False) and any(a["kind"] == "file" for a in answers):
+        return (f"{system.NAME}: a file goes to the employer's site as soon as it is chosen, before Submit - "
+                "say so in the question asking the user's yes to the named file")
+    return ""
+
+
+def ai_note(answers: list[dict]) -> str:
+    """A form asking the applicant to say whether AI helped: the AI names it and how the resume was made."""
+    if any(questions.never_draft(a["title"]) == questions.AI_USE for a in answers):
+        return (f"name it to the user: the form asks them to say whether AI helped ({questions.AI_USE}) - their "
+                "resume was tailored with AI help in this chat; only they answer it, on the page, never drafted or ticked")
+    return ""
+
+
 def prepare(slug: str, url: str) -> None:
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
@@ -108,6 +124,10 @@ def prepare(slug: str, url: str) -> None:
     print(f"{where} -> {out}: {len(answers)} questions, {len(questions.missing(answers))} required still blank")
     for a in answers:
         print(line(a))
+    if note := upload_note(system, answers):
+        print(note)
+    if note := ai_note(answers):
+        print(note)
     selfid = config.get("self_identification") or {}
     if questions.asks_voluntary(answers) and selfid and selfid.get("fill_on_forms") is None:
         print("ask once: fill the user's saved voluntary answers (gender, race, veteran) on forms, named before "

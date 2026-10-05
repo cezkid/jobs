@@ -46,7 +46,7 @@ def test_vsix_holds_a_manifest_vscode_accepts(tmp_path):
     pkg = vscode_ext.manifest()
     assert path.name == f"cez-job-finder.window-{pkg['version']}.vsix"
     with zipfile.ZipFile(path) as z:
-        assert sorted(z.namelist()) == ["[Content_Types].xml", "extension.vsixmanifest", "extension/extension.js",
+        assert sorted(z.namelist()) == ["[Content_Types].xml", "extension.vsixmanifest", "extension/extension.js", "extension/jobs.js",
                                         "extension/media/fonts/OFL.txt", "extension/media/fonts/caladea-bold.woff2",
                                         "extension/media/fonts/caladea-regular.woff2", "extension/package.json",
                                         "extension/say.json", "extension/start.js", "extension/today.js"]
@@ -72,11 +72,14 @@ def test_extension_never_reads_files_from_the_program_folder():
         # extension's own folder (installed copy, never app/) only as the Today page's font folder
         uses = re.findall(r"[^\n]*extensionUri[^\n]*", source)
         assert all("joinPath(context.extensionUri, ...today.FONT_DIR)" in u for u in uses), uses
-        # files read: launcher's start-page marker, the dashboard's data, the look, which AI - all under .data/, never app/
-        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root"] if name == "extension.js" else []
+        # files read: launcher's start-page marker, the dashboard's data, the look, which AI, a
+        # link jobs.py hands over (taken = renamed in start.LINK_DIR) - all under .data/, never app/;
+        # a scratch probe driver's request (reqFile, JOBS_VSCODE_PROBE_HOLD's folder)
+        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root", "taken", "reqFile"] if name == "extension.js" else []
         assert re.findall(r"readFile\w*\(([^,)]+)", source) == reads
     starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
     assert 'MARKER = path.join(".data", ' in starts and 'AI_FILE = path.join(".data", ' in starts
+    assert 'LINK_DIR = path.join(".data", ' in starts
     todays = (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8")
     assert 'DATA = path.join(".data", ' in todays and 'LOOK_FILE = path.join(".data", ' in todays
 
@@ -90,6 +93,28 @@ def test_extension_probe_runs_only_when_a_measurement_asks():
     assert "const out = process.env[PROBE_ENV];" in body
     assert body.index("if (!out) return;") < body.index("PROBE_EDITOR_ENV") < body.index("probe(context, out, opened, warmed)")
     assert body.count("probe(") == 1
+
+
+def test_open_link_watcher_starts_with_every_window_not_only_a_measured_one():
+    # registered after the probe's return => `jobs.py open` links never reach a user's window
+    source = (vscode_ext.SOURCE / "extension.js").read_text(encoding="utf-8")
+    body = source.split("function activate(context) {", 1)[1].split("\n}\n", 1)[0]
+    assert body.count("watchLinks(context);") == 1 and body.index("watchLinks(context);") < body.index("if (!out) return;")
+    watch = source.split("function watchLinks(context) {", 1)[1].split("\n}\n", 1)[0]
+    assert "path.join(root, start.LINK_DIR)" in watch and "start.LINK_GLOB" in watch
+
+
+def test_open_link_folder_and_names_alike_on_both_sides():
+    # names out of step => every link waits 2 s, then opens in the browser
+    import jobs
+    starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
+    parts = re.search(r'LINK_DIR = path\.join\(([^)]*)\)', starts)[1]
+    assert Path(*json.loads(f"[{parts}]")) == jobs.LINK_DIR
+    assert 'LINK_GLOB = "*.json"' in starts
+    assert re.search(r"LINK_MAX_AGE_MS = (\d+) \* 1000", starts)[1] == str(int(jobs.LINK_MAX_AGE))
+    # temp name outside the pattern: the watcher never sees a half-written request
+    source = (vscode_ext.cfg.APP / "jobs.py").read_text(encoding="utf-8")
+    assert 'folder / f"{name}.tmp", folder / f"{name}.json"' in source and "uuid.uuid4().hex" in source
 
 
 @pytest.mark.skipif(not shutil.which("node"), reason="node not installed")
@@ -108,6 +133,23 @@ def test_extension_has_no_link_handler():
     for name in (n for n in vscode_ext.SHIPPED if n.endswith(".js")):
         assert "registerUriHandler" not in (vscode_ext.SOURCE / name).read_text(encoding="utf-8")
     assert "uriHandler" not in json.dumps(pkg)
+
+
+def test_extension_starts_with_the_folder_not_everywhere():
+    # onStartupFinished alone = ~1 s later page on a profile's first start (app-window.md #p); `*`
+    # would run it in every folder while it still lives in the default profile
+    events = vscode_ext.manifest()["activationEvents"]
+    assert "workspaceContains:app/jobs.py" in events and "onStartupFinished" in events
+    assert "*" not in events and (vscode_ext.SOURCE.parent / "jobs.py").exists()
+
+
+def test_extension_signals_ready_on_every_way_the_page_comes_up():
+    # start page step (shown or failed) + Today restored w/ the window; a missed one = splash up to its cap
+    source = (vscode_ext.SOURCE / "extension.js").read_text(encoding="utf-8")
+    assert len(re.findall(r"finally \{\s*markReady\(root\);", source)) == 2
+    assert 'READY = path.join(".data", "window-ready")' in (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
+    import launch
+    assert launch.READY_MARKER == "window-ready"
 
 
 def test_today_dashboard_takes_today_md_only_in_job_finder_folder():

@@ -20,8 +20,8 @@ form over, fix the program after.
 - User signs in / creates the account themselves. Never type a password.
 - Never click **Save and Continue**, **Submit**, or anything irreversible. Fill, then tell them
   to check the page and click it. They say "click it for me" -> still ask once per click.
-- Upload the resume PDF only after they say yes (name the file). BambooHR sends the file to the employer the moment it is chosen,
-  before Submit - say so in that same question.
+- Upload the resume PDF only after they say yes (name the file). Greenhouse, Lever, Workable, BambooHR, Paylocity and
+  SmartRecruiters send the file to the employer the moment it is chosen, before Submit (`prepare` says so) - say so in that same question.
 - Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
   race, veteran, disability), how-did-you-hear - except their own saved answers
   (`app/docs/apply/answers.md` #Saved answers): how you heard, 18 or older, notice period and the
@@ -143,6 +143,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    the check and click Continue yourself; I fill the boxes I know". A consent, terms or
    signature question: clickable choices, the user's own words - they tick or sign it on the
    page. Which sites work this way: `app/docs/apply/apply-systems.md`.
+   A question asking them to confirm no AI helped (`prepare`: "saying whether AI helped"): say
+   plainly their resume was tailored with AI help in this chat, so the answer is theirs, on the
+   page - read the wording back, never draft, tick or pick for them.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
    any banner (application limits), and that nothing is sent until they click **Submit**.
 6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).

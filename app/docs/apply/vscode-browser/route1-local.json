@@ -1,0 +1,295 @@
+{
+ "stage": "route1",
+ "at": "2026-10-05T04:28:58Z",
+ "uniq": "7e094b",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--remote-debugging-port=51643",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 5714,
+  "upInfo": {
+   "t": 1791174544350,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "listen": [
+  "127.0.0.1:51643"
+ ],
+ "version": {
+  "Browser": "Chrome/150.0.7871.250",
+  "Protocol-Version": "1.3",
+  "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+ },
+ "targets": [
+  {
+   "type": "page",
+   "title": "JF form 7e094b",
+   "url": "http://127.0.0.1:51648/form"
+  },
+  {
+   "type": "iframe",
+   "title": "http://localhost:51649/frame-form",
+   "url": "http://localhost:51649/frame-form"
+  },
+  {
+   "type": "page",
+   "title": "CEZ Job Finder",
+   "url": "vscode-file://vscode-app/Applications/Visual%20Studio%20Code.app/Contents/Resources/app/out/vs/code/electron-browser/wor"
+  }
+ ],
+ "workbenchEval": {
+  "hasRequire": "undefined",
+  "vscodeGlobal": "object",
+  "title": "CEZ Job Finder"
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "connectMs": 174,
+  "contexts": 1,
+  "pages": [
+   "http://127.0.0.1:51648/form",
+   "vscode-file://vscode-app/Applications/Visual%20Studio%20Code.app/Contents/Resources/app/out/vs/code/"
+  ],
+  "steps": {
+   "text": {
+    "ok": true,
+    "ms": 91
+   },
+   "email": {
+    "ok": true,
+    "ms": 11
+   },
+   "textarea": {
+    "ok": true,
+    "ms": 11
+   },
+   "select": {
+    "ok": true,
+    "ms": 12
+   },
+   "combo": {
+    "ok": true,
+    "ms": 340
+   },
+   "check": {
+    "ok": true,
+    "ms": 69
+   },
+   "radio": {
+    "ok": true,
+    "ms": 50
+   },
+   "upload": {
+    "ok": true,
+    "ms": 23
+   },
+   "frameText": {
+    "ok": true,
+    "ms": 80
+   },
+   "frameUpload": {
+    "ok": true,
+    "ms": 17
+   }
+  },
+  "state": {
+   "first_name": "Test",
+   "email": "test.person@example.com",
+   "why": "Dummy answer for a measurement.",
+   "country": "United States",
+   "combo": "Springfield, Illinois, United States",
+   "agree": true,
+   "auth": "yes",
+   "resume": {
+    "name": "Test_Resume.pdf",
+    "size": 100,
+    "head": "%PDF-1.4\n% JF dummy resume - Test Person",
+    "trusted": false
+   },
+   "seen": {
+    "input": {
+     "first_name": true,
+     "first_name:change": true,
+     "email": true,
+     "email:change": true,
+     "why": true,
+     "country": false,
+     "country:change": false,
+     "why:change": true,
+     "combo": true,
+     "combo:change": true,
+     "agree": true,
+     "agree:change": true,
+     "auth_yes": true,
+     "auth_yes:change": true,
+     "resume": false,
+     "resume:change": false
+    },
+    "keys": [
+     true,
+     true,
+     true,
+     true,
+     true,
+     true
+    ],
+    "clicks": [
+     [
+      "combo",
+      true
+     ],
+     [
+      "Springfield, Illinoi",
+      true
+     ],
+     [
+      "agree",
+      true
+     ],
+     [
+      "auth_yes",
+      true
+     ]
+    ],
+    "files": {
+     "resume": {
+      "name": "Test_Resume.pdf",
+      "size": 100,
+      "head": "%PDF-1.4\n% JF dummy resume - Test Person",
+      "trusted": false
+     }
+    },
+    "combo": {
+     "value": "Springfield, Illinois, United States",
+     "trusted": true
+    }
+   }
+  },
+  "frameState": null,
+  "frames": [
+   "http://127.0.0.1:51648/form",
+   ""
+  ],
+  "frameStateViaLocator": {
+   "ok": true,
+   "ms": 48,
+   "value": {
+    "name": "Frame Test",
+    "file": {
+     "name": "Test_Resume.pdf",
+     "size": 100,
+     "head": "%PDF-1.4\n% JF dummy resume - Test Person"
+    },
+    "seen": {
+     "input": {
+      "frame_name": true,
+      "frame_resume": false
+     },
+     "file": {
+      "name": "Test_Resume.pdf",
+      "size": 100,
+      "head": "%PDF-1.4\n% JF dummy resume - Test Person"
+     }
+    }
+   }
+  },
+  "shot": {
+   "path": "<checkout>/.data/probe-shots/form/route1-local-filled.png",
+   "bytes": 375475
+  }
+ },
+ "claudeOpen": "ok",
+ "targetsWithClaude": [
+  {
+   "type": "page",
+   "title": "JF form 7e094b",
+   "url": "http://127.0.0.1:51648/form"
+  },
+  {
+   "type": "iframe",
+   "title": "http://localhost:51649/frame-form",
+   "url": "http://localhost:51649/frame-form"
+  },
+  {
+   "type": "page",
+   "title": "CEZ Job Finder",
+   "url": "vscode-file://vscode-app/Applications/Visual%20Studio%20Code.app/Contents/Resources/app/out/vs/code/electron-browser/wor"
+  },
+  {
+   "type": "iframe",
+   "title": "vscode-webview://0ehivv0gdra30jo599grv1o1c5jih8f2152thsgjnl32bmmt3s14/index.html",
+   "url": "vscode-webview://0ehivv0gdra30jo599grv1o1c5jih8f2152thsgjnl32bmmt3s14/index.html?id=39cb444b-9073-4ad4-9141-cd2fb58c7bba"
+  },
+  {
+   "type": "service_worker",
+   "title": "Service Worker vscode-webview://0ehivv0gdra30jo599grv1o1c5jih8f2152thsgjnl32bmmt",
+   "url": "vscode-webview://0ehivv0gdra30jo599grv1o1c5jih8f2152thsgjnl32bmmt3s14/service-worker.js?v=6&vscode-resource-base-authori"
+  },
+  {
+   "type": "worker",
+   "title": "",
+   "url": ""
+  }
+ ],
+ "shotClaude": {
+  "path": "<checkout>/.data/probe-shots/form/route1-claude-open.png",
+  "bytes": 479150
+ },
+ "quit": {
+  "killed": false
+ },
+ "siteLog": [
+  {
+   "t": 1791174544.719,
+   "host": "127.0.0.1:51648",
+   "method": "GET",
+   "path": "/form",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174545.075,
+   "host": "localhost:51649",
+   "method": "GET",
+   "path": "/frame-form",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174545.521,
+   "host": "127.0.0.1:51648",
+   "method": "GET",
+   "path": "/favicon.ico",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174549.639,
+   "host": "127.0.0.1:51648",
+   "method": "GET",
+   "path": "/beacon?k=file&name=Test_Resume.pdf&size=100",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  }
+ ]
+}

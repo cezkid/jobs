@@ -7,7 +7,7 @@ import re
 import httpx
 
 from apply import dom
-from apply.questions import question, signs
+from apply.questions import left_on_page, question, signs
 
 NAME = "Workable"
 # freehire serves the short /j/<code>?utm_source=freehire.me; the page itself moves to /<account>/j/<code>/
@@ -22,6 +22,8 @@ EXAMPLES = ("https://apply.workable.com/acme/j/1A2B3C4D5E/",
 QUESTIONS_OVER_HTTP = True
 FORM = "https://apply.workable.com/api/v1/jobs/{code}/form"
 READY = "input[name=firstname]"
+# a chosen resume POSTs to Workable's storage at once, before Submit (workable.md)
+FILE_ON_CHOICE = True
 # employer question type -> shared kind (123 fields, 17 forms, 2026-10-03); a type missing here is asked as text
 KIND = {"boolean": "yesno", "paragraph": "longtext", "text": "text", "number": "number", "date": "date",
         "dropdown": "choice", "file": "file"}
@@ -215,7 +217,7 @@ def put_ticks(page, q: dict, value) -> str:
 def fill(page, q: dict, resume_file: str | None) -> str:
     kind, value, id = q["kind"], q["answer"], q["id"]
     if signs(q["title"]):
-        return "ASK yours to do on the page - agreeing, consenting or signing"
+        return left_on_page(q)
     if kind == "file":
         if q.get("key") != "resume":
             return f"ASK not the resume box ({q['title']}) - the user uploads their own file there"

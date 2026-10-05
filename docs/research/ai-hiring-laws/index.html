@@ -19,7 +19,7 @@
 <meta property="og:description" content="In 2026, New York City and the EU make employers tell you about AI screening; Illinois, Colorado, California and Connecticut follow. Few let you ask why.">
 <meta property="article:published_time" content="2026-10-04">
 <meta property="article:modified_time" content="2026-10-05">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png">
+<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=2">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-hiring-laws/#article","headline":"AI hiring laws in 2026: what employers must tell you","description":"In 2026, New York City and the EU make employers tell you about AI screening; Illinois, Colorado, California and Connecticut follow. Few let you ask why.","url":"https://jobs.enrriquez.com/research/ai-hiring-laws/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-hiring-laws/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"AI hiring laws in 2026: what employers must tell you","item":"https://jobs.enrriquez.com/research/ai-hiring-laws/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-hiring-laws/#article","headline":"AI hiring laws in 2026: what employers must tell you","description":"In 2026, New York City and the EU make employers tell you about AI screening; Illinois, Colorado, California and Connecticut follow. Few let you ask why.","url":"https://jobs.enrriquez.com/research/ai-hiring-laws/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-hiring-laws/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=2","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"AI hiring laws in 2026: what employers must tell you","item":"https://jobs.enrriquez.com/research/ai-hiring-laws/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -67,7 +67,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -78,6 +78,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -110,6 +113,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -127,7 +132,13 @@
   .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  .brand img { width: 34px; height: 34px; margin: -3px; } /* icon tile 26/32 of the file: 28px tile in a 28px box */
+  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg): ink = the text colour => the page's
+     tone, black in print, CanvasText in forced colours. 32px = the cut's own size; margins keep the row's
+     height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
+  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: currentColor; }
+  .bird :is(.beak, .eye) { fill: var(--mark); }
+  /* pale bird on the dark desk: its eye is a hole to the page */
+  @media screen and (prefers-color-scheme: dark) { .brand .eye { fill: var(--desk); } }
   .links { display: flex; gap: 28px; white-space: nowrap; }
   /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
   :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
@@ -271,7 +282,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -295,10 +306,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -323,7 +342,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -332,10 +351,27 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#is-it-legal-for-employers-to-use-ai-to-screen-resumes">Is it legal for employers to use AI to screen resumes?</a></li>
+<li><a href="#which-laws-make-employers-tell-you-they-use-ai">Which laws make employers tell you they use AI?</a></li>
+<li><a href="#which-laws-limit-how-ai-may-judge-you">Which laws limit how AI may judge you?</a></li>
+<li><a href="#what-is-the-federal-government-doing-about-ai-hiring-laws">What is the federal government doing about AI hiring laws?</a></li>
+<li><a href="#are-ai-hiring-laws-enforced">Are AI hiring laws enforced?</a></li>
+<li><a href="#what-about-the-workday-lawsuit">What about the Workday lawsuit?</a></li>
+<li><a href="#which-ai-hiring-laws-apply-where">Which AI hiring laws apply where?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">AI hiring laws in 2026: what employers must tell you</li></ol></nav>
 <h1>AI hiring laws in 2026: <span class="deck">what employers must tell you</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">4 October 2026</time>. Updated <time datetime="2026-10-05">5 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -350,7 +386,7 @@
 <li><a href="#which-ai-hiring-laws-apply-where">Which AI hiring laws apply where?</a></li>
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
 <li><a href="#changes">Changes</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
@@ -561,44 +597,44 @@
 <li>Remember bias in a screener is the employer’s problem, not a flaw in you.</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. What studies show about bias in AI screeners: <a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a>. Whether software rejects most resumes: <a href="/research/ats-rejection-myth/">Do hiring systems reject most resumes?</a>. More articles: <a href="/research/">Research</a>.</p>
-<h2 id="how-cez-job-finder-uses-this">How CEZ Job Finder uses this</h2>
+<h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
 <ul>
 <li>Ranks jobs by the posting and your search settings, never by your name, age, gender or background.</li>
 <li>Never invents or changes a fact on your resume to get past a screener.</li>
 <li>Checks for new jobs from your search every day, so you can apply widely.</li>
 </ul>
-<p>CEZ Job Finder is a free job-search app for Windows and Mac: <a href="/">see how CEZ Job Finder works</a>.</p>
+<p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="changes">Changes</h2>
 <ul>
 <li>October 2026 – Colorado’s start date now reads “not settled” in every line, matching the Colorado section. The summary table’s heading is now a question.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-ca-crc-ads-2025"><b class="evidence">Law</b> California Civil Rights Council (2025). Employment Regulations Regarding Automated-Decision Systems (California Code of Regulations, title 2). The Council’s announcement of June 30, 2025 (the adopted text, Attachment B, not re-opened in October 2026); in force October 1, 2025. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://calcivilrights.ca.gov/2025/06/30/civil-rights-council-secures-approval-for-regulations-to-protect-against-employment-discrimination-related-to-artificial-intelligence/">Publisher</a></li>
-<li id="src-ca-sb947-2026"><b class="evidence">Law</b> California Legislature (2026). SB 947 (Chapter 859, Statutes of 2026): Employment: automated decision systems. Chaptered text, signed September 30, 2026; Labor Code sections 1520–1526.7; from July 1, 2027; limits employer use of automated systems on employees (incl. discipline, firing, inferring protected status), not applicants. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://leginfo.legislature.ca.gov/faces/billTextClient.xhtml?bill_id=202520260SB947">Publisher</a></li>
-<li id="src-ca-cppa-admt-2025"><b class="evidence">Law</b> California Privacy Protection Agency (2025). Text of Regulations: CCPA Updates, Cybersecurity Audits, Risk Assessments, Automated Decisionmaking Technology (California Code of Regulations, title 11). Final rule text; Article 11, sections 7200–7222 (p. 112–120), and section 7001 definitions; businesses using automated tools that replace human decisions on jobs comply from January 1, 2027. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf">Publisher</a></li>
-<li id="src-clearinghouse-mobley"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> Civil Rights Litigation Clearinghouse, University of Michigan (2025). Mobley v. Workday, Inc. 3:23-cv-00770 (N.D. Cal.). Case summary (updated December 2025) and list of court filings through June 2026; events only. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://clearinghouse.net/case/44074/">Publisher</a></li>
-<li id="src-co-sb23-058"><b class="evidence">Law</b> Colorado General Assembly (2023). SB23-058: Job Application Fairness Act. Bill page and official summary; act effective August 7, 2023; no age, birth date or school dates on a first application from July 1, 2024. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://leg.colorado.gov/bills/sb23-058">Publisher</a></li>
-<li id="src-co-sb26-189"><b class="evidence">Law</b> Colorado General Assembly (2026). SB26-189: Automated Decision-Making Technology. Bill page and official summary; signed May 14, 2026; start of each duty not settled (see co-sb26-189-fiscal). Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://leg.colorado.gov/bills/sb26-189">Publisher</a></li>
-<li id="src-co-sb26-189-fiscal"><b class="evidence">Law</b> Colorado Legislative Council Staff (2026). SB 26–189 Fiscal Note (First Revised Note). Nonpartisan staff note of May 6, 2026, on the bill as amended in two Senate committees (not the signed act); summary says disclosure duties begin January 1, 2027; its Effective Date section says deployer disclosure, consumer-rights and enforcement sections take effect on signature. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://leg.colorado.gov/bill_files/115880/download">Publisher</a></li>
-<li id="src-ct-pa26-15"><b class="evidence">Law</b> Connecticut General Assembly (2026). Public Act 26–15 (SB 5): An Act Concerning Online Safety. Public act as signed May 27, 2026; sections 7 to 13 on automated employment decisions. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.cga.ct.gov/2026/ACT/PA/PDF/2026PA-00015-R00SB-00005-PA.PDF">Publisher</a></li>
-<li id="src-eu-omnibus-2026"><b class="evidence">Law</b> European Commission (2026). AI Omnibus enters into force. Commission notice, July 27, 2026; Annex III high-risk rules apply from December 2, 2027. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://digital-strategy.ec.europa.eu/en/news/ai-omnibus-enters-force">Publisher</a></li>
-<li id="src-eu-gdpr"><b class="evidence">Law</b> European Union (2016). Regulation (EU) 2016/679 (General Data Protection Regulation), Articles 13, 14 and 22. Official text, read in the gdpr-info.eu reproduction (EUR-Lex blocks scripts); in force since May 25, 2018; Article 22 covers decisions based solely on automated processing. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng">Publisher</a></li>
-<li id="src-eu-ai-act"><b class="evidence">Law</b> European Union (2024). Regulation (EU) 2024/1689 (Artificial Intelligence Act), Annex III. Official text, read in the artificialintelligenceact.eu reproduction (EUR-Lex blocks scripts); Annex III point 4 lists AI used to filter job applications and evaluate candidates as high-risk; Articles 26 and 86 on telling people and explaining decisions. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689">Publisher</a></li>
-<li id="src-eo-14281"><b class="evidence">Law</b> Executive Office of the President (2025). Executive Order 14281: Restoring Equality of Opportunity and Meritocracy. Executive order of April 23, 2025, as published in the Federal Register (govinfo copy). Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.govinfo.gov/content/pkg/FR-2025-04-28/html/2025-07378.htm">Publisher</a></li>
-<li id="src-eo-14365"><b class="evidence">Law</b> Executive Office of the President (2025). Executive Order 14365: Ensuring a National Policy Framework for Artificial Intelligence. Executive order of December 11, 2025, as published in the Federal Register; sets up a federal task force to challenge state AI laws and names Colorado’s law. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.govinfo.gov/content/pkg/FR-2025-12-16/html/2025-23092.htm">Publisher</a></li>
-<li id="src-il-hb3773"><b class="evidence">Law</b> Illinois General Assembly (2024). HB 3773 (Public Act 103-0804): Human Rights Act, artificial intelligence. Bill status page and synopsis, read in an Internet Archive copy of August 28, 2026 (the site blocks scripts); in force January 1, 2026. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.ilga.gov/ftp/legislation/103/BillStatus/HTML/10300HB3773.html">Publisher</a></li>
-<li id="src-il-pa-103-0804"><b class="evidence">Law</b> Illinois General Assembly (2024). Public Act 103-0804 (HB 3773 enrolled): Illinois Human Rights Act, sections 2–101 and 2–102(L). Enrolled act text, 21 pages; section 2–102(L) on page 20; takes effect January 1, 2026. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.ilga.gov/legislation/publicacts/103/PDF/103-0804.pdf">Publisher</a></li>
-<li id="src-lawyer-monthly-2026"><b class="evidence">News report (used for the event only)</b> Lawyer Monthly (2026). Workday AI Hiring Bias Case Seeks Class Status. News report of a filing, September 2026; used for the event only. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/">Publisher</a></li>
-<li id="src-nj-dcr-2025"><b class="evidence">Law</b> New Jersey Office of the Attorney General, Division on Civil Rights (2025). Division on Civil Rights Adopts Rules on Disparate Impact Discrimination Under New Jersey Law. The agency’s announcement of December 17, 2025, of rules N.J.A.C. 13:16 published December 15, 2025. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.njoag.gov/ag-platkin-announces-division-on-civil-rights-adopts-landmark-rules-on-disparate-impact-discrimination-under-new-jersey-law/">Publisher</a></li>
-<li id="src-nyc-aedt-rule"><b class="evidence">Law</b> NYC Department of Consumer and Worker Protection (2023). Notice of Adoption of Final Rule: Use of Automated Employment Decision Tools (6 RCNY 5–300). The city’s final rule for Local Law 144, adopted April 2023; sections 5–303 and 5–304 on posting results and notice. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://rules.cityofnewyork.us/wp-content/uploads/2023/04/DCWP-NOA-for-Use-of-Automated-Employment-Decisionmaking-Tools-2.pdf">Publisher</a></li>
-<li id="src-nyc-ll144"><b class="evidence">Law</b> NYC Department of Consumer and Worker Protection (2023). Automated Employment Decision Tools (AEDT). The enforcing agency’s page on Local Law 144 of 2021; enforced from July 5, 2023. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.nyc.gov/site/dca/about/automated-employment-decision-tools.page">Publisher</a></li>
-<li id="src-nys-comptroller-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Office of the New York State Comptroller (2025). Enforcement of Local Law 144 – Automated Employment Decision Tools (2024-N-6). State audit of New York City’s enforcement, July 2023 to June 2025, including a review of the same 32 companies the city checked. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.osc.ny.gov/state-agencies/audits/2025/12/02/enforcement-local-law-144-automated-employment-decision-tools">Publisher</a></li>
-<li id="src-doj-xai-2026"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US Department of Justice (2026). Justice Department Intervenes in xAI Lawsuit Challenging Colorado’s Algorithmic Discrimination Law. Agency press release on a court filing, April 24, 2026; what the department asked the court, nothing decided. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.justice.gov/opa/pr/justice-department-intervenes-xai-lawsuit-challenging-colorados-algorithmic-discrimination">Publisher</a></li>
-<li id="src-xai-weiser-stay"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the District of Colorado (2026). X. AI LLC v. Weiser, No. 1:26-cv-01515: Minute Order (ECF 24) granting joint motion to stay enforcement. Docket entries through October 2, 2026; minute order of April 27, 2026 (ECF 24); procedure only, nothing decided on the merits. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.courtlistener.com/docket/73171074/x-ai-llc-v-weiser/">Publisher</a></li>
-<li id="src-mobley-2026-order"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the Northern District of California (2026). Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting in Part and Denying in Part Motion to Dismiss. Court order of June 22, 2026 (ECF 360); decides which claims go on, nothing on the facts. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://clearinghouse.net/doc/171886/">Publisher</a></li>
-<li id="src-eeoc-ada-preemployment"><b class="evidence">Law</b> US Equal Employment Opportunity Commission (1995). Enforcement Guidance: Preemployment Disability-Related Questions and Medical Examinations. The agency’s guidance on the Americans with Disabilities Act before a job offer. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.eeoc.gov/laws/guidance/enforcement-guidance-preemployment-disability-related-questions-and-medical">Publisher</a></li>
-<li id="src-wright-2024"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Wright, Lucas, Muenster, Roxana Mika, Vecchione, Briana, Qu, Tianyao, Cai, Pika, Smith, Alan, Metcalf, Jacob and Matias, J. Nathan (2024). Null Compliance: NYC Local Law 144 and the challenges of algorithm accountability. <i>FAccT ’24, ACM Conference on Fairness, Accountability, and Transparency.</i> 155 student investigators checked the websites of 391 employers for posted bias audits and notices. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1145/3630106.3658998">DOI</a> <a href="https://facctconference.org/static/papers24/facct24-113.pdf">Publisher</a></li>
+<li id="src-ca-crc-ads-2025"><b class="evidence">Law</b> California Civil Rights Council (2025). Employment Regulations Regarding Automated-Decision Systems (California Code of Regulations, title 2). The Council’s announcement of June 30, 2025 (the adopted text, Attachment B, not re-opened in October 2026); in force October 1, 2025. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://calcivilrights.ca.gov/2025/06/30/civil-rights-council-secures-approval-for-regulations-to-protect-against-employment-discrimination-related-to-artificial-intelligence/">Publisher</a></li>
+<li id="src-ca-sb947-2026"><b class="evidence">Law</b> California Legislature (2026). SB 947 (Chapter 859, Statutes of 2026): Employment: automated decision systems. Chaptered text, signed September 30, 2026; Labor Code sections 1520–1526.7; from July 1, 2027; limits employer use of automated systems on employees (incl. discipline, firing, inferring protected status), not applicants. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://leginfo.legislature.ca.gov/faces/billTextClient.xhtml?bill_id=202520260SB947">Publisher</a></li>
+<li id="src-ca-cppa-admt-2025"><b class="evidence">Law</b> California Privacy Protection Agency (2025). Text of Regulations: CCPA Updates, Cybersecurity Audits, Risk Assessments, Automated Decisionmaking Technology (California Code of Regulations, title 11). Final rule text; Article 11, sections 7200–7222 (p. 112–120), and section 7001 definitions; businesses using automated tools that replace human decisions on jobs comply from January 1, 2027. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf">Publisher</a></li>
+<li id="src-clearinghouse-mobley"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> Civil Rights Litigation Clearinghouse, University of Michigan (2025). Mobley v. Workday, Inc. 3:23-cv-00770 (N.D. Cal.). Case summary (updated December 2025) and list of court filings through June 2026; events only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://clearinghouse.net/case/44074/">Publisher</a></li>
+<li id="src-co-sb23-058"><b class="evidence">Law</b> Colorado General Assembly (2023). SB23-058: Job Application Fairness Act. Bill page and official summary; act effective August 7, 2023; no age, birth date or school dates on a first application from July 1, 2024. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://leg.colorado.gov/bills/sb23-058">Publisher</a></li>
+<li id="src-co-sb26-189"><b class="evidence">Law</b> Colorado General Assembly (2026). SB26-189: Automated Decision-Making Technology. Bill page and official summary; signed May 14, 2026; start of each duty not settled (see co-sb26-189-fiscal). Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://leg.colorado.gov/bills/sb26-189">Publisher</a></li>
+<li id="src-co-sb26-189-fiscal"><b class="evidence">Law</b> Colorado Legislative Council Staff (2026). SB 26–189 Fiscal Note (First Revised Note). Nonpartisan staff note of May 6, 2026, on the bill as amended in two Senate committees (not the signed act); summary says disclosure duties begin January 1, 2027; its Effective Date section says deployer disclosure, consumer-rights and enforcement sections take effect on signature. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://leg.colorado.gov/bill_files/115880/download">Publisher</a></li>
+<li id="src-ct-pa26-15"><b class="evidence">Law</b> Connecticut General Assembly (2026). Public Act 26–15 (SB 5): An Act Concerning Online Safety. Public act as signed May 27, 2026; sections 7 to 13 on automated employment decisions. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.cga.ct.gov/2026/ACT/PA/PDF/2026PA-00015-R00SB-00005-PA.PDF">Publisher</a></li>
+<li id="src-eu-omnibus-2026"><b class="evidence">Law</b> European Commission (2026). AI Omnibus enters into force. Commission notice, July 27, 2026; Annex III high-risk rules apply from December 2, 2027. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://digital-strategy.ec.europa.eu/en/news/ai-omnibus-enters-force">Publisher</a></li>
+<li id="src-eu-gdpr"><b class="evidence">Law</b> European Union (2016). Regulation (EU) 2016/679 (General Data Protection Regulation), Articles 13, 14 and 22. Official text, read in the gdpr-info.eu reproduction (EUR-Lex blocks scripts); in force since May 25, 2018; Article 22 covers decisions based solely on automated processing. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng">Publisher</a></li>
+<li id="src-eu-ai-act"><b class="evidence">Law</b> European Union (2024). Regulation (EU) 2024/1689 (Artificial Intelligence Act), Annex III. Official text, read in the artificialintelligenceact.eu reproduction (EUR-Lex blocks scripts); Annex III point 4 lists AI used to filter job applications and evaluate candidates as high-risk; Articles 26 and 86 on telling people and explaining decisions. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689">Publisher</a></li>
+<li id="src-eo-14281"><b class="evidence">Law</b> Executive Office of the President (2025). Executive Order 14281: Restoring Equality of Opportunity and Meritocracy. Executive order of April 23, 2025, as published in the Federal Register (govinfo copy). Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.govinfo.gov/content/pkg/FR-2025-04-28/html/2025-07378.htm">Publisher</a></li>
+<li id="src-eo-14365"><b class="evidence">Law</b> Executive Office of the President (2025). Executive Order 14365: Ensuring a National Policy Framework for Artificial Intelligence. Executive order of December 11, 2025, as published in the Federal Register; sets up a federal task force to challenge state AI laws and names Colorado’s law. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.govinfo.gov/content/pkg/FR-2025-12-16/html/2025-23092.htm">Publisher</a></li>
+<li id="src-il-hb3773"><b class="evidence">Law</b> Illinois General Assembly (2024). HB 3773 (Public Act 103-0804): Human Rights Act, artificial intelligence. Bill status page and synopsis, read in an Internet Archive copy of August 28, 2026 (the site blocks scripts); in force January 1, 2026. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.ilga.gov/ftp/legislation/103/BillStatus/HTML/10300HB3773.html">Publisher</a></li>
+<li id="src-il-pa-103-0804"><b class="evidence">Law</b> Illinois General Assembly (2024). Public Act 103-0804 (HB 3773 enrolled): Illinois Human Rights Act, sections 2–101 and 2–102(L). Enrolled act text, 21 pages; section 2–102(L) on page 20; takes effect January 1, 2026. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.ilga.gov/legislation/publicacts/103/PDF/103-0804.pdf">Publisher</a></li>
+<li id="src-lawyer-monthly-2026"><b class="evidence">News report (used for the event only)</b> Lawyer Monthly (2026). Workday AI Hiring Bias Case Seeks Class Status. News report of a filing, September 2026; used for the event only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/">Publisher</a></li>
+<li id="src-nj-dcr-2025"><b class="evidence">Law</b> New Jersey Office of the Attorney General, Division on Civil Rights (2025). Division on Civil Rights Adopts Rules on Disparate Impact Discrimination Under New Jersey Law. The agency’s announcement of December 17, 2025, of rules N.J.A.C. 13:16 published December 15, 2025. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.njoag.gov/ag-platkin-announces-division-on-civil-rights-adopts-landmark-rules-on-disparate-impact-discrimination-under-new-jersey-law/">Publisher</a></li>
+<li id="src-nyc-aedt-rule"><b class="evidence">Law</b> NYC Department of Consumer and Worker Protection (2023). Notice of Adoption of Final Rule: Use of Automated Employment Decision Tools (6 RCNY 5–300). The city’s final rule for Local Law 144, adopted April 2023; sections 5–303 and 5–304 on posting results and notice. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://rules.cityofnewyork.us/wp-content/uploads/2023/04/DCWP-NOA-for-Use-of-Automated-Employment-Decisionmaking-Tools-2.pdf">Publisher</a></li>
+<li id="src-nyc-ll144"><b class="evidence">Law</b> NYC Department of Consumer and Worker Protection (2023). Automated Employment Decision Tools (AEDT). The enforcing agency’s page on Local Law 144 of 2021; enforced from July 5, 2023. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.nyc.gov/site/dca/about/automated-employment-decision-tools.page">Publisher</a></li>
+<li id="src-nys-comptroller-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Office of the New York State Comptroller (2025). Enforcement of Local Law 144 – Automated Employment Decision Tools (2024-N-6). State audit of New York City’s enforcement, July 2023 to June 2025, including a review of the same 32 companies the city checked. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.osc.ny.gov/state-agencies/audits/2025/12/02/enforcement-local-law-144-automated-employment-decision-tools">Publisher</a></li>
+<li id="src-doj-xai-2026"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US Department of Justice (2026). Justice Department Intervenes in xAI Lawsuit Challenging Colorado’s Algorithmic Discrimination Law. Agency press release on a court filing, April 24, 2026; what the department asked the court, nothing decided. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.justice.gov/opa/pr/justice-department-intervenes-xai-lawsuit-challenging-colorados-algorithmic-discrimination">Publisher</a></li>
+<li id="src-xai-weiser-stay"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the District of Colorado (2026). X. AI LLC v. Weiser, No. 1:26-cv-01515: Minute Order (ECF 24) granting joint motion to stay enforcement. Docket entries through October 2, 2026; minute order of April 27, 2026 (ECF 24); procedure only, nothing decided on the merits. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.courtlistener.com/docket/73171074/x-ai-llc-v-weiser/">Publisher</a></li>
+<li id="src-mobley-2026-order"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the Northern District of California (2026). Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting in Part and Denying in Part Motion to Dismiss. Court order of June 22, 2026 (ECF 360); decides which claims go on, nothing on the facts. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://clearinghouse.net/doc/171886/">Publisher</a></li>
+<li id="src-eeoc-ada-preemployment"><b class="evidence">Law</b> US Equal Employment Opportunity Commission (1995). Enforcement Guidance: Preemployment Disability-Related Questions and Medical Examinations. The agency’s guidance on the Americans with Disabilities Act before a job offer. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.eeoc.gov/laws/guidance/enforcement-guidance-preemployment-disability-related-questions-and-medical">Publisher</a></li>
+<li id="src-wright-2024"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Wright, Lucas, Muenster, Roxana Mika, Vecchione, Briana, Qu, Tianyao, Cai, Pika, Smith, Alan, Metcalf, Jacob and Matias, J. Nathan (2024). Null Compliance: NYC Local Law 144 and the challenges of algorithm accountability. <i>FAccT ’24, ACM Conference on Fairness, Accountability, and Transparency.</i> 155 student investigators checked the websites of 391 employers for posted bias audits and notices. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1145/3630106.3658998">DOI</a> <a href="https://facctconference.org/static/papers24/facct24-113.pdf">Publisher</a></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
@@ -607,27 +643,10 @@
 <li><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#is-it-legal-for-employers-to-use-ai-to-screen-resumes">Is it legal for employers to use AI to screen resumes?</a></li>
-<li><a href="#which-laws-make-employers-tell-you-they-use-ai">Which laws make employers tell you they use AI?</a></li>
-<li><a href="#which-laws-limit-how-ai-may-judge-you">Which laws limit how AI may judge you?</a></li>
-<li><a href="#what-is-the-federal-government-doing-about-ai-hiring-laws">What is the federal government doing about AI hiring laws?</a></li>
-<li><a href="#are-ai-hiring-laws-enforced">Are AI hiring laws enforced?</a></li>
-<li><a href="#what-about-the-workday-lawsuit">What about the Workday lawsuit?</a></li>
-<li><a href="#which-ai-hiring-laws-apply-where">Which AI hiring laws apply where?</a></li>
-<li><a href="#what-we-dont-know">What we don’t know</a></li>
-<li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
-<li><a href="#changes">Changes</a></li>
-<li><a href="#sources">Sources</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">

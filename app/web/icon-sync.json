@@ -1,17 +1,19 @@
 {
   "source": {
-    "app/install/icon-16.svg": "ad8e43ed38dda34054c14eac2f3b2bad859637aac4957b99ff4116bc98e3f4bf",
-    "app/install/icon-32.svg": "4904d8a60af83d42293a6d2aa1b7fc0504386840372831491b9983c5614f2aeb",
-    "app/install/icon.svg": "f8cb7cfd741569220655dafc1f853caa6413bd52bcb0801d3d3142def17d461f"
+    "app/install/icon-16.svg": "10feceba1b6dec26506935fa4b19406fe683f0e6d5de837bf3eed80d1ae7cd00",
+    "app/install/icon-32.svg": "45a1aafc388851cf33cd5228ce1bedb688bf0d7212b0e51d51f5b0c17adc5108",
+    "app/install/icon.svg": "e77ff92a23c2dd78d297d6893b734128653c79a4524f4457a4d8c688245f3a19",
+    "app/install/mark-32.svg": "636dc99c31b44bf65067ffc170372d66236588404cad4cc0b85a70d348b7df4f",
+    "app/install/mark.svg": "4291701a384b35e187c42c32a8cf522183a5ff5568c2ce3f2e5c169607da5049"
   },
   "made": {
-    "docs/apple-touch-icon.png": "7dce3f9f3e27762866861f33f210cb0bb0d75bbe95a02806abface059f4df488",
-    "docs/favicon.ico": "1beeaf0a9474f018dd7eb940be5b4fafbeb16367510e198431fa45a32c8aebfd",
-    "docs/icon-192.png": "30663cf3a5e35c8ab77299824705c89c4bba179c9002f8d9bb829f5af5cb363b",
-    "docs/icon-512.png": "ff278e07fb4cf7c9aa3199327435c816f49fa956d07ebae10120a1b6455436a0",
-    "docs/icon-maskable-512.png": "837f9511382a98bcf0061482103c247178fa76b1ec888cbc2eb62c080ceb8291",
-    "docs/icon.svg": "a8510958e94bbd95e371b0fd44a16f73eab5bedbb1fc8d31122f4afe962828fb",
-    "docs/og-research.png": "bf05142056b1cfea00de06a785dabaaa75d4b2a5098db506c581af219c1f591f",
-    "docs/og.png": "7bb475baebe2040200053dd0a677cf02748f7a14efb11712129fbbf1090afaa8"
+    "docs/apple-touch-icon.png": "9ba72165dc9796b33ae590d305d686b9772ef74292b86c7115777d4d51077b6a",
+    "docs/favicon.ico": "c49696e574c42f9c8c650fb8c469aaeaae1e00dc646107d7256f1343d4a770ad",
+    "docs/icon-192.png": "145f060be02cc49b0dc381d4ebf2bd4c1ed80e0bc19303f67de3846798797fad",
+    "docs/icon-512.png": "2ae0e8b704019050e87bce16e8f0f19256985c801a7db285e5e1203ed189cce7",
+    "docs/icon-maskable-512.png": "38fb116ea0bf7c28d6e7572a951db2d7b240a2ec779852d7f43a2122c2b7a358",
+    "docs/icon.svg": "11fc385587847013698253deb0455cf4e7c82b27184637ffdcfd1f0076d842ee",
+    "docs/og-research.png": "23bbdb363cddfe0e65ed12acc82d5a2fbf2a9f65f7d1f86dcb096233fa5e5faa",
+    "docs/og.png": "b23983fbea3d8743bc7f0cabdef74a21f0cf131d9336ced556d930b71550469c"
   }
 }

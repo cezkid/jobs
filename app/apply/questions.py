@@ -87,10 +87,21 @@ SIGNING_PATTERN = (r"terms (?:and|&) conditions|terms of (?:use|service)|privacy
                    r"\b(?:may|can) we (?:text|sms) you\b|\bpermission to (?:text|sms|message) you\b|(?<!digital )\bsignature\b|\be-?sign|"
                    r"\bsign (?:here|below|electronically)\b|\btype (?:your )?(?:full |legal )?name to sign\b")
 SIGN_ON_PAGE = "yours to do on the page"
+# "I confirm that my application materials ... were not generated, edited, or supplemented by AI
+# tools" (2026-10-05, one Greenhouse tenant): a resume tailored here is AI help, so a drafted Yes is a
+# false statement - left on the page like a signature, and prepare tells the AI to say how the resume
+# was made. Needs AI words + making words + their own application: "experience with AI tools", "used
+# AI to draft replies to customers" are skill questions.
+AI_USE_PATTERN = (r"(?=[\s\S]*\b(?:AI|artificial intelligence|ChatGPT|GPT|LLMs?|large language models?|Gemini|Claude|"
+                  r"Copilot)\b)"
+                  r"(?=[\s\S]*\b(?:generat|writ|wrote|edit|supplement|assist|help|creat|produc|draft|us(?:e|ed|ing)\b))"
+                  r"(?=[\s\S]*\b(?:my|your|this|these) (?:\w+ ){0,2}?(?:application|resume|résumé|cv|cover letter|"
+                  r"responses|answers|materials|submission)s?\b)")
 
 
 # what a question is about, in the user's words - the never-drafted ones first
 TOPICS = (
+    ("saying whether AI helped", AI_USE_PATTERN),
     ("agreeing, consenting or signing", SIGNING_PATTERN),
     ("the pay you expect", r"salary|compensation|pay (?:expectation|range|requirement)|desired (?:pay|rate)"),
     ("permission to work", r"authori[sz]ed to work|right to work|work authori[sz]ation|legally (?:able|eligible|permitted)"),
@@ -106,8 +117,12 @@ TOPICS = (
 )
 # asked only of the user, never drafted - not even from a setting that seems to fit
 VOLUNTARY = "voluntary questions about you"
-NEVER_DRAFT = ("agreeing, consenting or signing", "the pay you expect", "where you live", VOLUNTARY)
+NEVER_DRAFT = ("saying whether AI helped", "agreeing, consenting or signing", "the pay you expect", "where you live",
+               VOLUNTARY)
 SIGNING = "agreeing, consenting or signing"
+AI_USE = "saying whether AI helped"
+# the applicant's own act on the page: never drafted, kept or filled, not even from "you said"
+ON_PAGE = (AI_USE, SIGNING)
 # a voluntary question filled from the user's saved self-identification, after their yes to it
 VOLUNTARY_SAVED = "your saved voluntary answer"
 
@@ -329,7 +344,12 @@ def blank(answer) -> bool:
 
 
 def signs(text: str) -> bool:
-    return never_draft(text) == SIGNING
+    return never_draft(text) in ON_PAGE
+
+
+def left_on_page(q: dict) -> str:
+    """A filler's result for a question the user ticks or signs on the page themselves."""
+    return f"ASK {SIGN_ON_PAGE} - {never_draft(q['title']) or SIGNING}"
 
 
 def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
@@ -337,14 +357,15 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
     """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept -
     same id and same question only; on a sensitive question only the user's own, never one the
     program filled. The one sensitive kind the program fills: a work break, from words the user
-    saved for it (`breaks`). Agreeing, consenting, signing: always left for the user on the page."""
+    saved for it (`breaks`). Agreeing, consenting, signing, saying whether AI helped: always left
+    for the user on the page."""
     from apply import answers  # it reads this module's lists: imported at call time
     # generated page ids (rc_select_4, :r3:) can name another question on the next load: id + title
     kept = {(a["id"], answers.fold(a.get("title") or "")): a for a in old or [] if not blank(a.get("answer"))}
     out = []
     for q in qs:
         if signs(q["title"]):
-            out.append({**q, "answer": None, "source": f"{ASK} - {SIGN_ON_PAGE}: {SIGNING}"})
+            out.append({**q, "answer": None, "source": f"{ASK} - {SIGN_ON_PAGE}: {never_draft(q['title'])}"})
             continue
         tag = sensitive(q, contact)
         was = kept.get((q["id"], answers.fold(q["title"])))
@@ -424,8 +445,8 @@ def unvouched(answers: list[dict]) -> list[dict]:
 
 
 def on_page(answers: list[dict]) -> list[dict]:
-    """Agreeing, consenting or signing questions carrying an answer: never typed or ticked by the
-    program, whoever wrote it - the user does it on the page."""
+    """Agreeing, consenting, signing or AI-use questions carrying an answer: never typed or ticked
+    by the program, whoever wrote it - the user does it on the page."""
     return [a for a in answers if not blank(a.get("answer")) and signs(a["title"])]
 
 

@@ -6,6 +6,8 @@ first.) You never type commands or edit files.
 ## Just ask
 
 - **Jobs:** "Any new jobs?" · "Why is job 3 on my list?" · "Stop showing jobs from Acme Staffing"
+- **Pay:** jobs paying less than your lowest pay are hidden, unless few new jobs come in that week -
+  then the closest come back, marked. "Change my lowest pay" · "Hide jobs with no pay listed"
 - **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number"
 - **One job:** "Make my resume for job 3" · "What does job 3's application ask?" · "Write a cover letter for job 3" · "Why did you change that?" ·
   "Help me apply to job 3"
@@ -41,7 +43,8 @@ and job boards. Each job links to the real posting. New ones checked every morni
 Double-click **CEZ Job Finder** on your Desktop (on Windows, clicking the morning notification
 works too). The **Today** page opens: what's waiting on you and the newest jobs. Each one shows
 a button with the words to say. Click a job's title to read the posting, its company to see the
-company's website (when it's known). Click a
+company's website (when it's known) - each opens as a tab in this window. A page that won't work
+there (some sign-ins): ask in the chat, such as "Open job 3's posting in my browser". Click a
 button and its words go into the chat (with Claude, a new chat opens beside the page with them
 typed in; with ChatGPT: click the chat box, paste, press Enter). Nothing is sent until you press
 Enter.

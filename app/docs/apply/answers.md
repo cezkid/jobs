@@ -41,6 +41,15 @@ A signature box is never a name box (no resume name typed into "Signature (type 
 Measured 2026-10-03 (one tenant each): a start-page SMS consent Yes/No, a terms box + e-signature in
 one system's apply flow, consent checkboxes on another. Near misses left alone: "informed consent"
 (clinical), "signed off", a certification held, "digital signature" (crypto skills).
+Saying whether AI helped - "I confirm that my application materials and interview responses ...
+were not generated, edited, or supplemented by AI tools" (required, one Greenhouse tenant,
+2026-10-05; `apply-form try` had filled it with a test Yes): a resume tailored here is AI help, so
+a drafted Yes is a false statement. Same handling as signing, tagged `saying whether AI helped`;
+`prepare` also prints "name it to the user" - the AI says their resume was tailored with AI help
+and the answer is theirs, on the page. Caught: AI words + making words (generated, written,
+edited, used...) + their own application (my / your / this ... application, resume, answers,
+materials). Near misses left alone: "experience with AI tools", "used AI in your work", "used AI
+to draft responses to customers".
 Voluntary questions: one exception, the user's consent first - with `self_identification` saved,
 `prepare` asks once whether to fill it on forms (`fill_on_forms`); yes -> filled when exactly one
 option matches, named before Submit; no or unasked -> asked on each form as before.

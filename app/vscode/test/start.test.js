@@ -13,6 +13,15 @@ test("only Job Finder's own folder gets a start page", () => {
   assert.equal(start.isJobFinder(() => false), false);
 });
 
+// wrong path or name => the loading splash never sees the signal and stays up to its cap
+test("ready signal lands in the folder's .data, named as the launcher names it", () => {
+  const path = require("path");
+  const { file, text } = start.readyFile(path.join("/Users", "Your Name", "jobs"), NOW);
+  assert.equal(file, path.join("/Users", "Your Name", "jobs", ".data", "window-ready"));
+  assert.equal(text, "2026-10-03T12:00:00.000Z\n");
+  assert.equal(start.READY, path.join(".data", "window-ready"));
+});
+
 // launcher picked + rebuilt the page => the window shows that one, not a guess
 test("launcher's marker names the page", () => {
   assert.equal(start.choosePage({ marker: "Today.md\n", settingsExist: true, todayExists: true }), "Today.md");
@@ -100,4 +109,38 @@ test("runJobs: uv run app/jobs.py + args in the folder; rejects on a failed run"
   assert.equal(await start.runJobs({ execFile: exec(false), uv: "/bin/uv", root: "/jf", args: ["status", "set", "12", "applied"] }), "ok\n");
   assert.deepEqual(calls[0], ["/bin/uv", ["run", "app/jobs.py", "status", "set", "12", "applied"], "/jf"]);
   await assert.rejects(start.runJobs({ execFile: exec(true), uv: "/bin/uv", root: "/jf", args: ["status"] }));
+});
+
+// opened w/o the Desktop icon: a VS Code word ("Restricted Mode", "workspace") the user can't act on
+test("untrusted window line: plain words, says the Desktop icon, one button", () => {
+  for (const word of ["restricted", "workspace", "trust", "extension", "vs code"]) {
+    assert.ok(!start.UNTRUSTED_LINE.toLowerCase().includes(word), word);
+    assert.ok(!start.UNTRUSTED_BUTTON.toLowerCase().includes(word), word);
+  }
+  assert.match(start.UNTRUSTED_LINE, /Desktop icon/);
+  assert.strictEqual(start.UNTRUSTED_COMMAND, "workbench.trust.manage");
+});
+
+// jobs.py open "<link>" => a tab in the window (app/jobs.py send_to_window): only its own request
+// files, only http(s), never a leftover from a run that already opened the browser
+test("open-link request: http(s) link from a fresh request file only", () => {
+  const path = require("path");
+  assert.equal(start.LINK_DIR, path.join(".data", "open-link"));
+  const req = (over) => JSON.stringify({ url: "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b", t: NOW, ...over });
+  assert.equal(start.linkRequest(req(), NOW), "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b");
+  assert.equal(start.linkRequest(req({ url: "http://example.com/about" }), NOW + 9000), "http://example.com/about");
+  assert.equal(start.linkRequest(req(), NOW + start.LINK_MAX_AGE_MS + 1), null);
+  for (const url of ["javascript:alert(1)", "vscode://anthropic.claude-code/open", "file:///etc/passwd", "mailto:a@b.example",
+    "not a link", "", 42, null]) {
+    assert.equal(start.linkRequest(req({ url }), NOW), null, String(url));
+  }
+  for (const text of ["{half", "null", "[]", "\"https://example.com\"", JSON.stringify({ url: "https://example.com" }),
+    JSON.stringify({ url: "https://example.com", t: "now" })]) {
+    assert.equal(start.linkRequest(text, NOW), null, text);
+  }
+  assert.equal(start.isLinkFile("0123456789abcdef0123456789abcdef.json"), true);
+  for (const name of ["0123456789abcdef0123456789abcdef.tmp", "0123456789abcdef0123456789abcdef.json.taken", "x.json",
+    "../0123456789abcdef0123456789abcdef.json", null]) {
+    assert.equal(start.isLinkFile(name), false, String(name));
+  }
 });

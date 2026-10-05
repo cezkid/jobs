@@ -18,4 +18,4 @@ AI tools help find sources and write drafts. A fresh AI session checks every cla
 
 ## Contact and code
 
-To reach Cesar, use the contact page at www.enrriquez.com. The app's code is public on GitHub: github.com/cezkid/jobs. To report a mistake in any article, see [how mistakes are corrected](methods.md#how-are-mistakes-corrected).
+To reach Cesar, use the [contact details on www.enrriquez.com](https://www.enrriquez.com/#contact). The app's code is public on GitHub: [github.com/cezkid/jobs](https://github.com/cezkid/jobs). To report a mistake in any article, see [how mistakes are corrected](methods.md#how-are-mistakes-corrected).

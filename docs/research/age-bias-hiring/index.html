@@ -19,7 +19,7 @@
 <meta property="og:description" content="US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.">
 <meta property="article:published_time" content="2026-10-04">
 <meta property="article:modified_time" content="2026-10-05">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png">
+<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=2">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/age-bias-hiring/#article","headline":"Age discrimination in hiring: when it starts, what helps","description":"US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.","url":"https://jobs.enrriquez.com/research/age-bias-hiring/","mainEntityOfPage":"https://jobs.enrriquez.com/research/age-bias-hiring/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Age discrimination in hiring: when it starts, what helps","item":"https://jobs.enrriquez.com/research/age-bias-hiring/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/age-bias-hiring/#article","headline":"Age discrimination in hiring: when it starts, what helps","description":"US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.","url":"https://jobs.enrriquez.com/research/age-bias-hiring/","mainEntityOfPage":"https://jobs.enrriquez.com/research/age-bias-hiring/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=2","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Age discrimination in hiring: when it starts, what helps","item":"https://jobs.enrriquez.com/research/age-bias-hiring/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -67,7 +67,7 @@
     :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
   }
   @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #bdbdbd; --line: #48484a; }
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
   }
   *, *::before, *::after { box-sizing: border-box; }
   html { -webkit-text-size-adjust: 100%; }
@@ -78,6 +78,9 @@
   h1, h2, h3 { text-wrap: balance; }
   p, li { text-wrap: pretty; }
   a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
   /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
   :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
   mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
@@ -110,6 +113,8 @@
   }
   @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
   @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
   /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
      .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
   .grid {
@@ -127,7 +132,13 @@
   .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
   .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  .brand img { width: 34px; height: 34px; margin: -3px; } /* icon tile 26/32 of the file: 28px tile in a 28px box */
+  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg): ink = the text colour => the page's
+     tone, black in print, CanvasText in forced colours. 32px = the cut's own size; margins keep the row's
+     height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
+  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: currentColor; }
+  .bird :is(.beak, .eye) { fill: var(--mark); }
+  /* pale bird on the dark desk: its eye is a hole to the page */
+  @media screen and (prefers-color-scheme: dark) { .brand .eye { fill: var(--desk); } }
   .links { display: flex; gap: 28px; white-space: nowrap; }
   /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
   :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
@@ -271,7 +282,7 @@
     .side > h2:first-child { margin-top: 0; }
     /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
     .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > p:first-child { padding-bottom: 8px; font-weight: 700; font-size: var(--step-0); border-bottom: 2px solid var(--text); }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
     .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
     .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
     .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
@@ -295,10 +306,18 @@
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */
   .list { list-style: none; margin: 32px 0 0; padding: 0; }
   .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
   .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
@@ -323,7 +342,7 @@
 <header class="masthead">
   <a class="skip" href="#main">Skip to content</a>
   <div class="wrap top">
-    <a class="brand" href="/"><img src="/icon.svg" alt="" width="28" height="28">CEZ Job Finder</a>
+    <a class="brand" href="/" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>CEZ Job Finder</a>
     <nav class="links" aria-label="Site">
       <a href="/research/">Research</a>
       <a href="/#install">Install</a>
@@ -332,10 +351,27 @@
   </div>
 </header>
 <main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#is-there-age-discrimination-in-hiring">Is there age discrimination in hiring?</a></li>
+<li><a href="#at-what-age-does-the-hiring-penalty-start">At what age does the hiring penalty start?</a></li>
+<li><a href="#should-you-remove-your-graduation-year-from-your-resume">Should you remove your graduation year from your resume?</a></li>
+<li><a href="#why-do-employers-pass-over-older-applicants">Why do employers pass over older applicants?</a></li>
+<li><a href="#does-ai-screening-read-age-too">Does AI screening read age too?</a></li>
+<li><a href="#can-an-employer-ask-your-age-or-graduation-year">Can an employer ask your age or graduation year?</a></li>
+<li><a href="#should-you-change-a-date-to-look-younger">Should you change a date to look younger?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#what-helps">What helps</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Age discrimination in hiring: when it starts, what helps</li></ol></nav>
 <h1>Age discrimination in hiring: <span class="deck">when it starts, what helps</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">4 October 2026</time>. Updated <time datetime="2026-10-05">5 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -350,7 +386,7 @@
 <li><a href="#should-you-change-a-date-to-look-younger">Should you change a date to look younger?</a></li>
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
 <li><a href="#changes">Changes</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
@@ -580,50 +616,50 @@
 <li>Apply widely. That is common advice, not a study finding.</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. What else makes a resume work: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a>. Gaps in work history are covered in <a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a> Bias over names, records and more, in one place: <a href="/research/hiring-bias-what-helps/">Hiring discrimination: what studies show, what helps</a>.</p>
-<h2 id="how-cez-job-finder-uses-this">How CEZ Job Finder uses this</h2>
+<h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
 <ul>
-<li>CEZ Job Finder offers to hide a graduation or certificate year once it is 15 or more years old. Once your degree is 20 or more years old, it recommends all the date changes above, as our judgment. It goes only by the dates in your own file and uses the same words for everyone.</li>
+<li><span translate="no">CEZ Job Finder</span> offers to hide a graduation or certificate year once it is 15 or more years old. Once your degree is 20 or more years old, it recommends all the date changes above, as our judgment. It goes only by the dates in your own file and uses the same words for everyone.</li>
 <li>It says “this year lets a reader guess age” and says leaving it off may have a small cost that no US test has measured. Then it does what you pick.</li>
 <li>It never guesses anyone’s age from a name, a school or a photo.</li>
 <li>It never writes a false date, and required form boxes get your true answers.</li>
 <li>The rules and their sources are in the program’s <a href="https://github.com/cezkid/jobs/blob/main/app/docs/resume/fair-screening.md">fair screening notes</a>.</li>
 </ul>
-<p>CEZ Job Finder is a free job-search app for Windows and Mac: <a href="/">see how CEZ Job Finder works</a>.</p>
+<p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="changes">Changes</h2>
 <ul>
 <li>October 2026 – added a US test of more than 83,000 applications at 108 large employers. Applicants over 40, counted together, got slightly fewer replies (<a href="#src-kline-2022">Kline et al. 2022</a>). So the short answer, the description and one body sentence no longer say US tests found no drop at 40. Neumark 2019 is now called the largest US test built to study age, not the largest US test. The other findings are unchanged.</li>
-<li>October 2026 – the background-check survey line now says the share is of the businesses asked, over the past 12 months. The 2026 model test is now described as it ran: each prompt asked a model to pick one of two applicants (<a href="#src-bone-2026">Bone et al. 2026</a>). CEZ Job Finder’s age offer is now described as it works: it offers at 15 years, recommends at 20. The findings are unchanged.</li>
+<li>October 2026 – the background-check survey line now says the share is of the businesses asked, over the past 12 months. The 2026 model test is now described as it ran: each prompt asked a model to pick one of two applicants (<a href="#src-bone-2026">Bone et al. 2026</a>). <span translate="no">CEZ Job Finder</span>’s age offer is now described as it works: it offers at 15 years, recommends at 20. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-bone-2026"><b class="evidence">Lab test (not real hiring)</b> Bone, Matthew, Stephany, Fabian and del Rio-Chanona, Maria (2026). Monocultural Biases: Correlated biases in large language models lead to unequal systemic exclusion rates in hiring. <i>COLM 2026, Conference on Language Modeling.</i> Open copy on arXiv. 10 open AI models, each in a base and a trained version, choosing which of two made-up applicants to call back; age shown by graduation year, older = 45 to 58. Checked <time datetime="2026-10-05">5 October 2026</time>. <a href="https://arxiv.org/abs/2609.22169">Open copy</a></li>
-<li id="src-ca-2ccr-11079"><b class="evidence">Law</b> California Civil Rights Council (2020). California Code of Regulations, title 2, section 11079: Pre-Employment Inquiries, Interviews and Applications. State regulation as amended in 2020, read on Cornell’s Legal Information Institute copy. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.law.cornell.edu/regulations/california/2-CCR-11079">Publisher</a></li>
-<li id="src-carlsson-eriksson-2019"><b class="evidence">Big study (thousands of real applications)</b> Carlsson, Magnus and Eriksson, Stefan (2019). Age discrimination in hiring decisions: Evidence from a field experiment in the labor market. <i>Labour Economics 59, 173–183.</i> Open copy read, IFAU working paper 2017:8, “The effect of age and gender on labor demand”. 6,066 made-up applications in Sweden, ages 35 to 70, age stated in the letter and on the resume; page numbers are the working paper’s. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1016/j.labeco.2019.03.002">DOI</a> <a href="https://www.ifau.se/globalassets/pdf/se/2017/wp2017-08-the-effect-of-age-and-gender-on-labor-demand.pdf">Publisher</a></li>
-<li id="src-co-sb23-058"><b class="evidence">Law</b> Colorado General Assembly (2023). SB23-058: Job Application Fairness Act. Bill page and official summary; act effective August 7, 2023; no age, birth date or school dates on a first application from July 1, 2024. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://leg.colorado.gov/bills/sb23-058">Publisher</a></li>
-<li id="src-ct-pa21-69"><b class="evidence">Law</b> Connecticut General Assembly (2021). Public Act 21–69: An Act Deterring Age Discrimination in Employment Applications. The act’s text; effective October 1, 2021. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.cga.ct.gov/2021/ACT/PA/PDF/2021PA-00069-R00SB-00056-PA.PDF">Publisher</a></li>
-<li id="src-dalle-2025"><b class="evidence">Small study (real applications)</b> Dalle, Axana, Lippens, Louis and Baert, Stijn (2025). Nothing Really Matters: Evaluating Demand-Side Moderators of Age Discrimination in Hiring. <i>Socio-Economic Review 23(3), 1253–1285 (authors’ open copy read).</i> Pairs of made-up applicants aged 38 to 56 sent to 712 job openings in Flanders, Belgium; authors’ open copy (submitted version) read on Ghent University’s library site, page numbers are that copy’s; the journal page blocks scripts. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1093/ser/mwae070">DOI</a> <a href="https://biblio.ugent.be/publication/01JH3FY6BJB2FM7PKB8WY96X0Z/file/01JJ1KNE3W1TZW2QSSY5N1G8S9.pdf">Publisher</a></li>
-<li id="src-de-19-711"><b class="evidence">Law</b> Delaware General Assembly (2022). Delaware Code, title 19, chapter 7, subchapter II: Discrimination in Employment (sections 710 and 711). State code online; section 711(m) on first applications, section 710 for who counts as an employer; session law 83 Del. Laws c. 421: signed September 8, 2022. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://delcode.delaware.gov/title19/c007/sc02/index.html">Publisher</a></li>
-<li id="src-derous-2017"><b class="evidence">Lab test (not real hiring)</b> Derous, Eva and Decoster, Jeroen (2017). Implicit Age Cues in Resumes: Subtle Effects on Hiring Discrimination. <i>Frontiers in Psychology 8, 1321.</i> 610 HR professionals in Belgium rating made-up resumes; birth date shown or left off. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.3389/fpsyg.2017.01321">DOI</a></li>
-<li id="src-farber-2017"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Silverman, Dan and von Wachter, Till M. (2017). Factors Determining Callbacks to Job Applications by the Unemployed: An Audit Study. <i>RSF: The Russell Sage Foundation Journal of the Social Sciences 3(3), 168–201.</i> 12,224 made-up applications to 4,594 postings (Table 4), from college-educated women to US office support jobs. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.7758/RSF.2017.3.3.08">DOI</a></li>
-<li id="src-farber-2019"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Herbst, Chris M., Silverman, Dan and von Wachter, Till (2019). Whom Do Employers Want? The Role of Recent Employment and Unemployment Status and Age. <i>Journal of Labor Economics 37(2), 323–349.</i> Open copy, NBER working paper 24605. 8,488 made-up applications to 2,122 US job postings. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1086/700184">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w24605/w24605.pdf">Open copy</a></li>
-<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></li>
-<li id="src-kline-2022"><b class="evidence">Big study (thousands of real applications)</b> Kline, Patrick, Rose, Evan K. and Walters, Christopher R. (2022). Systemic Discrimination Among Large U.S. Employers. <i>Quarterly Journal of Economics 137(4), 1963–2036.</i> Open copy read, NBER working paper 29053, revised May 2022. More than 83,000 made-up applications to entry-level jobs at 108 of the largest US employers; page numbers are the working paper’s. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1093/qje/qjac024">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w29053/w29053.pdf">Open copy</a></li>
-<li id="src-lahey-2008"><b class="evidence">Big study (thousands of real applications)</b> Lahey, Joanna N. (2008). Age, Women, and Hiring: An Experimental Study. <i>Journal of Human Resources 43(1), 30–56.</i> Open copy read, NBER working paper 11435. Pairs of made-up resumes from women aged 35 to 62 sent to 3,996 firms in Boston and St. Petersburg, Florida; page numbers are the working paper’s. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.3368/jhr.43.1.30">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w11435/w11435.pdf">Open copy</a></li>
-<li id="src-lippens-2023"><b class="evidence">Big study (many studies combined)</b> Lippens, Louis, Vermeiren, Siel and Baert, Stijn (2023). The state of hiring discrimination: A meta-analysis of (almost) all recent correspondence experiments. <i>European Economic Review 151, 104315.</i> Open copy read, IZA discussion paper 14966. 306 field experiments published 2005–2020, 17 of them on older age; figures and page numbers are the working paper’s. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1016/j.euroecorev.2022.104315">DOI</a> <a href="https://docs.iza.org/dp14966.pdf">Publisher</a></li>
-<li id="src-mn-363a-08"><b class="evidence">Law</b> Minnesota Legislature, Office of the Revisor of Statutes (2026). Minnesota Statutes, section 363A.08: Unfair discriminatory practices relating to employment. State statute online; subdivision 4(a)(1): before a person is employed, no requiring or requesting information that pertains to age, unless a real job requirement. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.revisor.mn.gov/statutes/cite/363A.08">Publisher</a></li>
-<li id="src-nsc-about"><b class="evidence">The maker’s own description of its product</b> National Student Clearinghouse (2026). About the Clearinghouse. The organisation’s own description of its coverage. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.studentclearinghouse.org/about/">Publisher</a></li>
-<li id="src-nsc-verify"><b class="evidence">The maker’s own description of its product</b> National Student Clearinghouse (2026). Verify Degrees and Enrollment. The organisation’s own description of its service for confirming degrees and attendance. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.studentclearinghouse.org/verify/">Publisher</a></li>
-<li id="src-neumark-2024"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Neumark, David (2024). Age Discrimination in Hiring: Evidence from Age-Blind vs. Non-Age-Blind Hiring Procedures. <i>Journal of Human Resources 59(1), 1–34.</i> Open copy read, NBER working paper 26623. Hiring records of one US restaurant chain, from an age-discrimination lawsuit; about 48,000 online applications used; page numbers are the working paper’s. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.3368/jhr.0420-10831R1">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w26623/w26623.pdf">Open copy</a></li>
-<li id="src-neumark-2019"><b class="evidence">Big study (thousands of real applications)</b> Neumark, David, Burn, Ian and Button, Patrick (2019). Is It Harder for Older Workers to Find Jobs? New and Improved Evidence from a Field Experiment. <i>Journal of Political Economy 127(2), 922–970.</i> Open copy read, NBER working paper 21669, revised November 2017. 40,223 made-up applications to US jobs, ages 29–31, 49–51 and 64–66; page numbers are the working paper’s. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1086/701029">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w21669/w21669.pdf">Open copy</a></li>
-<li id="src-or-hb3187"><b class="evidence">Law</b> Oregon Legislative Assembly (2025). House Bill 3187 (2025 Regular Session), Enrolled. Bill page and enrolled text; Oregon Laws 2025 chapter 125: signed May 22, 2025, effective September 26, 2025. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://olis.oregonlegislature.gov/liz/2025R1/Measures/Overview/HB3187">Publisher</a></li>
-<li id="src-pa-phra-955"><b class="evidence">Law</b> Pennsylvania General Assembly (1955). Pennsylvania Human Relations Act (Act of 1955, P.L. 744, No. 222), section 5: Unlawful discriminatory practices. The legislature’s current copy of the act; section 5(b)(1), also cited as 43 P.S. 955(b)(1): before employment, no questions or form entries about age; the act’s age definition was not read. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.palegis.us/statutes/unconsolidated/law-information/view-statute?txtType=PDF&amp;SessYr=1955&amp;SessInd=0&amp;ActNum=0222.&amp;chpt=000.&amp;subchpt=000.&amp;sctn=5&amp;subsctn=000.">Publisher</a></li>
-<li id="src-qvist-larsen-2025"><b class="evidence">Lab test (not real hiring)</b> Qvist, Jeevitha Yogachandiran and Larsen, Christian Albrekt (2025). Age discrimination in hiring: Relative importance and additive and multiplicative effects. <i>Social Science Research 126, 103135.</i> 5,017 Danish employers rating 20,068 made-up applicant descriptions, ages 45 to 75; plan registered in advance. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1016/j.ssresearch.2024.103135">DOI</a></li>
-<li id="src-resumebuilder-2022"><b class="evidence">Survey by a company that sells the service</b> ResumeBuilder.com (2022). 4 in 10 Hiring Managers Admit to Age Bias. 800 US hiring managers, online, February 1–2, 2022; run for a resume-writing company; read in the Internet Archive copy of January 16, 2025 (the live page now redirects). Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://web.archive.org/web/20250116054658/https://www.resumebuilder.com/4-in-10-hiring-managers-admit-to-age-bias/">Publisher</a></li>
-<li id="src-tamkin-2023"><b class="evidence">Lab test (not real hiring)</b> Tamkin, Alex, Askell, Amanda, Lovitt, Liane, Durmus, Esin, Joseph, Nicholas, Kravec, Shauna, Nguyen, Karina, Kaplan, Jared and Ganguli, Deep (2023). Evaluating and Mitigating Discrimination in Language Model Decisions. <i>arXiv preprint (Anthropic).</i> One AI model (Claude 2.0), 70 made-up decision questions including job offers, with age, race and gender varied. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://arxiv.org/abs/2312.03689">Open copy</a></li>
-<li id="src-adea-631"><b class="evidence">Law</b> United States Code (1967). 29 U.S.C. 631: Age limits (Age Discrimination in Employment Act). The federal age-discrimination law’s age line, read on Cornell’s Legal Information Institute copy. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.law.cornell.edu/uscode/text/29/631">Publisher</a></li>
-<li id="src-mobley-2025-order"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the Northern District of California (2025). Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting Preliminary Collective Certification. Court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf">Publisher</a></li>
-<li id="src-cfr-1625-5"><b class="evidence">Law</b> US Equal Employment Opportunity Commission (2007). 29 CFR 1625.5: Employment applications. Federal regulation under the Age Discrimination in Employment Act, last amended 2007. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://www.ecfr.gov/current/title-29/section-1625.5">Publisher</a></li>
-<li id="src-van-borm-2021"><b class="evidence">Lab test (not real hiring)</b> Van Borm, Hannah, Burn, Ian and Baert, Stijn (2021). What Does a Job Candidate’s Age Signal to Employers? <i>Labour Economics 71, 102003.</i> Open copy read, IZA discussion paper 12849. 400 people with hiring experience rating made-up candidates; page numbers are the working paper’s. Checked <time datetime="2026-10-04">4 October 2026</time>. <a href="https://doi.org/10.1016/j.labeco.2021.102003">DOI</a> <a href="https://docs.iza.org/dp12849.pdf">Publisher</a></li>
+<li id="src-bone-2026"><b class="evidence">Lab test (not real hiring)</b> Bone, Matthew, Stephany, Fabian and del Rio-Chanona, Maria (2026). Monocultural Biases: Correlated biases in large language models lead to unequal systemic exclusion rates in hiring. <i>COLM 2026, Conference on Language Modeling.</i> Open copy on arXiv. 10 open AI models, each in a base and a trained version, choosing which of two made-up applicants to call back; age shown by graduation year, older = 45 to 58. Checked <time datetime="2026-10-05">October 5, 2026</time>. <a href="https://arxiv.org/abs/2609.22169">Open copy</a></li>
+<li id="src-ca-2ccr-11079"><b class="evidence">Law</b> California Civil Rights Council (2020). California Code of Regulations, title 2, section 11079: Pre-Employment Inquiries, Interviews and Applications. State regulation as amended in 2020, read on Cornell’s Legal Information Institute copy. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.law.cornell.edu/regulations/california/2-CCR-11079">Publisher</a></li>
+<li id="src-carlsson-eriksson-2019"><b class="evidence">Big study (thousands of real applications)</b> Carlsson, Magnus and Eriksson, Stefan (2019). Age discrimination in hiring decisions: Evidence from a field experiment in the labor market. <i>Labour Economics 59, 173–183.</i> Open copy read, IFAU working paper 2017:8, “The effect of age and gender on labor demand”. 6,066 made-up applications in Sweden, ages 35 to 70, age stated in the letter and on the resume; page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1016/j.labeco.2019.03.002">DOI</a> <a href="https://www.ifau.se/globalassets/pdf/se/2017/wp2017-08-the-effect-of-age-and-gender-on-labor-demand.pdf">Publisher</a></li>
+<li id="src-co-sb23-058"><b class="evidence">Law</b> Colorado General Assembly (2023). SB23-058: Job Application Fairness Act. Bill page and official summary; act effective August 7, 2023; no age, birth date or school dates on a first application from July 1, 2024. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://leg.colorado.gov/bills/sb23-058">Publisher</a></li>
+<li id="src-ct-pa21-69"><b class="evidence">Law</b> Connecticut General Assembly (2021). Public Act 21–69: An Act Deterring Age Discrimination in Employment Applications. The act’s text; effective October 1, 2021. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.cga.ct.gov/2021/ACT/PA/PDF/2021PA-00069-R00SB-00056-PA.PDF">Publisher</a></li>
+<li id="src-dalle-2025"><b class="evidence">Small study (real applications)</b> Dalle, Axana, Lippens, Louis and Baert, Stijn (2025). Nothing Really Matters: Evaluating Demand-Side Moderators of Age Discrimination in Hiring. <i>Socio-Economic Review 23(3), 1253–1285 (authors’ open copy read).</i> Pairs of made-up applicants aged 38 to 56 sent to 712 job openings in Flanders, Belgium; authors’ open copy (submitted version) read on Ghent University’s library site, page numbers are that copy’s; the journal page blocks scripts. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/ser/mwae070">DOI</a> <a href="https://biblio.ugent.be/publication/01JH3FY6BJB2FM7PKB8WY96X0Z/file/01JJ1KNE3W1TZW2QSSY5N1G8S9.pdf">Publisher</a></li>
+<li id="src-de-19-711"><b class="evidence">Law</b> Delaware General Assembly (2022). Delaware Code, title 19, chapter 7, subchapter II: Discrimination in Employment (sections 710 and 711). State code online; section 711(m) on first applications, section 710 for who counts as an employer; session law 83 Del. Laws c. 421: signed September 8, 2022. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://delcode.delaware.gov/title19/c007/sc02/index.html">Publisher</a></li>
+<li id="src-derous-2017"><b class="evidence">Lab test (not real hiring)</b> Derous, Eva and Decoster, Jeroen (2017). Implicit Age Cues in Resumes: Subtle Effects on Hiring Discrimination. <i>Frontiers in Psychology 8, 1321.</i> 610 HR professionals in Belgium rating made-up resumes; birth date shown or left off. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.3389/fpsyg.2017.01321">DOI</a></li>
+<li id="src-farber-2017"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Silverman, Dan and von Wachter, Till M. (2017). Factors Determining Callbacks to Job Applications by the Unemployed: An Audit Study. <i>RSF: The Russell Sage Foundation Journal of the Social Sciences 3(3), 168–201.</i> 12,224 made-up applications to 4,594 postings (Table 4), from college-educated women to US office support jobs. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.7758/RSF.2017.3.3.08">DOI</a></li>
+<li id="src-farber-2019"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Herbst, Chris M., Silverman, Dan and von Wachter, Till (2019). Whom Do Employers Want? The Role of Recent Employment and Unemployment Status and Age. <i>Journal of Labor Economics 37(2), 323–349.</i> Open copy, NBER working paper 24605. 8,488 made-up applications to 2,122 US job postings. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1086/700184">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w24605/w24605.pdf">Open copy</a></li>
+<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></li>
+<li id="src-kline-2022"><b class="evidence">Big study (thousands of real applications)</b> Kline, Patrick, Rose, Evan K. and Walters, Christopher R. (2022). Systemic Discrimination Among Large U.S. Employers. <i>Quarterly Journal of Economics 137(4), 1963–2036.</i> Open copy read, NBER working paper 29053, revised May 2022. More than 83,000 made-up applications to entry-level jobs at 108 of the largest US employers; page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/qje/qjac024">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w29053/w29053.pdf">Open copy</a></li>
+<li id="src-lahey-2008"><b class="evidence">Big study (thousands of real applications)</b> Lahey, Joanna N. (2008). Age, Women, and Hiring: An Experimental Study. <i>Journal of Human Resources 43(1), 30–56.</i> Open copy read, NBER working paper 11435. Pairs of made-up resumes from women aged 35 to 62 sent to 3,996 firms in Boston and St. Petersburg, Florida; page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.3368/jhr.43.1.30">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w11435/w11435.pdf">Open copy</a></li>
+<li id="src-lippens-2023"><b class="evidence">Big study (many studies combined)</b> Lippens, Louis, Vermeiren, Siel and Baert, Stijn (2023). The state of hiring discrimination: A meta-analysis of (almost) all recent correspondence experiments. <i>European Economic Review 151, 104315.</i> Open copy read, IZA discussion paper 14966. 306 field experiments published 2005–2020, 17 of them on older age; figures and page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1016/j.euroecorev.2022.104315">DOI</a> <a href="https://docs.iza.org/dp14966.pdf">Publisher</a></li>
+<li id="src-mn-363a-08"><b class="evidence">Law</b> Minnesota Legislature, Office of the Revisor of Statutes (2026). Minnesota Statutes, section 363A.08: Unfair discriminatory practices relating to employment. State statute online; subdivision 4(a)(1): before a person is employed, no requiring or requesting information that pertains to age, unless a real job requirement. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.revisor.mn.gov/statutes/cite/363A.08">Publisher</a></li>
+<li id="src-nsc-about"><b class="evidence">The maker’s own description of its product</b> National Student Clearinghouse (2026). About the Clearinghouse. The organisation’s own description of its coverage. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.studentclearinghouse.org/about/">Publisher</a></li>
+<li id="src-nsc-verify"><b class="evidence">The maker’s own description of its product</b> National Student Clearinghouse (2026). Verify Degrees and Enrollment. The organisation’s own description of its service for confirming degrees and attendance. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.studentclearinghouse.org/verify/">Publisher</a></li>
+<li id="src-neumark-2024"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Neumark, David (2024). Age Discrimination in Hiring: Evidence from Age-Blind vs. Non-Age-Blind Hiring Procedures. <i>Journal of Human Resources 59(1), 1–34.</i> Open copy read, NBER working paper 26623. Hiring records of one US restaurant chain, from an age-discrimination lawsuit; about 48,000 online applications used; page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.3368/jhr.0420-10831R1">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w26623/w26623.pdf">Open copy</a></li>
+<li id="src-neumark-2019"><b class="evidence">Big study (thousands of real applications)</b> Neumark, David, Burn, Ian and Button, Patrick (2019). Is It Harder for Older Workers to Find Jobs? New and Improved Evidence from a Field Experiment. <i>Journal of Political Economy 127(2), 922–970.</i> Open copy read, NBER working paper 21669, revised November 2017. 40,223 made-up applications to US jobs, ages 29–31, 49–51 and 64–66; page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1086/701029">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w21669/w21669.pdf">Open copy</a></li>
+<li id="src-or-hb3187"><b class="evidence">Law</b> Oregon Legislative Assembly (2025). House Bill 3187 (2025 Regular Session), Enrolled. Bill page and enrolled text; Oregon Laws 2025 chapter 125: signed May 22, 2025, effective September 26, 2025. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://olis.oregonlegislature.gov/liz/2025R1/Measures/Overview/HB3187">Publisher</a></li>
+<li id="src-pa-phra-955"><b class="evidence">Law</b> Pennsylvania General Assembly (1955). Pennsylvania Human Relations Act (Act of 1955, P.L. 744, No. 222), section 5: Unlawful discriminatory practices. The legislature’s current copy of the act; section 5(b)(1), also cited as 43 P.S. 955(b)(1): before employment, no questions or form entries about age; the act’s age definition was not read. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.palegis.us/statutes/unconsolidated/law-information/view-statute?txtType=PDF&amp;SessYr=1955&amp;SessInd=0&amp;ActNum=0222.&amp;chpt=000.&amp;subchpt=000.&amp;sctn=5&amp;subsctn=000.">Publisher</a></li>
+<li id="src-qvist-larsen-2025"><b class="evidence">Lab test (not real hiring)</b> Qvist, Jeevitha Yogachandiran and Larsen, Christian Albrekt (2025). Age discrimination in hiring: Relative importance and additive and multiplicative effects. <i>Social Science Research 126, 103135.</i> 5,017 Danish employers rating 20,068 made-up applicant descriptions, ages 45 to 75; plan registered in advance. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1016/j.ssresearch.2024.103135">DOI</a></li>
+<li id="src-resumebuilder-2022"><b class="evidence">Survey by a company that sells the service</b> ResumeBuilder.com (2022). 4 in 10 Hiring Managers Admit to Age Bias. 800 US hiring managers, online, February 1–2, 2022; run for a resume-writing company; read in the Internet Archive copy of January 16, 2025 (the live page now redirects). Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://web.archive.org/web/20250116054658/https://www.resumebuilder.com/4-in-10-hiring-managers-admit-to-age-bias/">Publisher</a></li>
+<li id="src-tamkin-2023"><b class="evidence">Lab test (not real hiring)</b> Tamkin, Alex, Askell, Amanda, Lovitt, Liane, Durmus, Esin, Joseph, Nicholas, Kravec, Shauna, Nguyen, Karina, Kaplan, Jared and Ganguli, Deep (2023). Evaluating and Mitigating Discrimination in Language Model Decisions. <i>arXiv preprint (Anthropic).</i> One AI model (Claude 2.0), 70 made-up decision questions including job offers, with age, race and gender varied. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arxiv.org/abs/2312.03689">Open copy</a></li>
+<li id="src-adea-631"><b class="evidence">Law</b> United States Code (1967). 29 U.S.C. 631: Age limits (Age Discrimination in Employment Act). The federal age-discrimination law’s age line, read on Cornell’s Legal Information Institute copy. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.law.cornell.edu/uscode/text/29/631">Publisher</a></li>
+<li id="src-mobley-2025-order"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the Northern District of California (2025). Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting Preliminary Collective Certification. Court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf">Publisher</a></li>
+<li id="src-cfr-1625-5"><b class="evidence">Law</b> US Equal Employment Opportunity Commission (2007). 29 CFR 1625.5: Employment applications. Federal regulation under the Age Discrimination in Employment Act, last amended 2007. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.ecfr.gov/current/title-29/section-1625.5">Publisher</a></li>
+<li id="src-van-borm-2021"><b class="evidence">Lab test (not real hiring)</b> Van Borm, Hannah, Burn, Ian and Baert, Stijn (2021). What Does a Job Candidate’s Age Signal to Employers? <i>Labour Economics 71, 102003.</i> Open copy read, IZA discussion paper 12849. 400 people with hiring experience rating made-up candidates; page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1016/j.labeco.2021.102003">DOI</a> <a href="https://docs.iza.org/dp12849.pdf">Publisher</a></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
@@ -632,27 +668,10 @@
 <li><a href="/research/cover-letters-after-ai/">Do cover letters still matter now that AI writes them?</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
-<p class="try">Try it: <a href="/#install">install CEZ Job Finder on Windows or Mac</a></p>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
 <p><a href="#main">Back to top</a></p>
 </nav>
 </article>
-<nav class="toc" aria-label="On this page">
-<p>On this page</p>
-<ol>
-<li><a href="#is-there-age-discrimination-in-hiring">Is there age discrimination in hiring?</a></li>
-<li><a href="#at-what-age-does-the-hiring-penalty-start">At what age does the hiring penalty start?</a></li>
-<li><a href="#should-you-remove-your-graduation-year-from-your-resume">Should you remove your graduation year from your resume?</a></li>
-<li><a href="#why-do-employers-pass-over-older-applicants">Why do employers pass over older applicants?</a></li>
-<li><a href="#does-ai-screening-read-age-too">Does AI screening read age too?</a></li>
-<li><a href="#can-an-employer-ask-your-age-or-graduation-year">Can an employer ask your age or graduation year?</a></li>
-<li><a href="#should-you-change-a-date-to-look-younger">Should you change a date to look younger?</a></li>
-<li><a href="#what-we-dont-know">What we don’t know</a></li>
-<li><a href="#what-helps">What helps</a></li>
-<li><a href="#how-cez-job-finder-uses-this">How CEZ Job Finder uses this</a></li>
-<li><a href="#changes">Changes</a></li>
-<li><a href="#sources">Sources</a></li>
-</ol>
-</nav>
 </main>
 <footer>
   <div class="wrap row">

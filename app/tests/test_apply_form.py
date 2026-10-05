@@ -248,6 +248,40 @@ def test_consent_near_misses_not_tagged(title):
     assert questions.never_draft(title) != questions.SIGNING
 
 
+# measured 2026-10-05, Greenhouse tenant E (employer's own page), a required question
+AI_ATTESTATION = ("I confirm that my application materials and interview responses reflect my own work and were not "
+                  "generated, edited, or supplemented by AI tools (e.g., ChatGPT, Gemini, Claude, etc.).")
+AI_USE = [AI_ATTESTATION, "Did you use AI tools such as ChatGPT to write or edit your resume or cover letter?",
+          "I certify that my responses to this application were not written by artificial intelligence.",
+          "Was any part of your application generated using AI?"]
+AI_NEAR_MISSES = ["Do you have experience with AI tools such as ChatGPT or Copilot?",
+                  "Describe how you have used generative AI in your work.",
+                  "Tell us about a time you used AI to draft responses to customers.",
+                  "How would you use LLMs to help our recruiting team review applications?",
+                  "Please confirm your email address"]
+
+
+@pytest.mark.parametrize("title", AI_USE)
+def test_ai_use_attestation_left_for_the_user_on_the_page(title):
+    (a,) = questions.draft([q(title, "yesno")], CONTACT)
+    assert questions.never_draft(title) == questions.AI_USE and questions.signs(title)
+    assert a["answer"] is None and a["source"] == f"{questions.ASK} - {questions.SIGN_ON_PAGE}: {questions.AI_USE}"
+    assert "(yours to do on the page: saying whether AI helped)" in form.line(a)
+    # a Yes the AI wrote, or the user's own "you said": never kept, never typed, not counted missing
+    said = {**a, "answer": "Yes", "source": questions.USER_SAID}
+    assert questions.draft([q(title, "yesno")], CONTACT, [said])[0]["answer"] is None
+    assert questions.missing([a]) == [] and questions.on_page([said])
+    with pytest.raises(SystemExit, match="ticks or signs these on the page"):
+        form.refuse([said])
+    assert questions.left_on_page(a) == "ASK yours to do on the page - saying whether AI helped"
+    assert "tailored with AI help" in form.ai_note([a]) and form.ai_note([q("Why us?", "longtext")]) == ""
+
+
+@pytest.mark.parametrize("title", AI_NEAR_MISSES)
+def test_ai_use_near_misses_not_tagged(title):
+    assert questions.never_draft(title) != questions.AI_USE and not questions.signs(title)
+
+
 def test_signature_box_never_answered_from_the_resume():
     for title in ("Signature (type your full name)", "Electronic signature - legal name", "Full name (signature)"):
         assert questions.key_from_title(title, "text") is None, title
@@ -744,6 +778,25 @@ def test_resume_goes_in_the_resume_box_only():
     assert ashby.fill(Page(), other, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")
 
 
+# --- a file that leaves when chosen ---
+
+def test_file_on_choice_systems_say_so_in_prepare_and_the_privacy_table():
+    """Greenhouse's resume POSTs to its storage on choosing it (3 of 3 employers, 2026-10-05): prepare
+    tells the AI to say so in the upload yes, and AGENTS.md's row says "as soon as" - only for
+    systems measured so, never "once you click Submit" for a file that leaves sooner."""
+    import re
+
+    import cfg
+    asked = [q("Resume/CV", "file", "resume"), q("First Name")]
+    assert "as soon as it is chosen" in form.upload_note(greenhouse, asked)
+    assert form.upload_note(greenhouse, asked[1:]) == "" and form.upload_note(ashby, asked) == ""
+    table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
+    for system in systems.SYSTEMS:
+        rows = [r for r in table if f"that employer's {system.NAME} site" in r]
+        early = any(re.search(r"\b(?:choose|chosen|pick)", r.split("|")[3]) for r in rows)
+        assert early == getattr(system, "FILE_ON_CHOICE", False), system.NAME
+
+
 # --- Greenhouse ---
 
 def test_greenhouse_link_plain_eu_embed_or_tracking_tail():
@@ -753,7 +806,27 @@ def test_greenhouse_link_plain_eu_embed_or_tracking_tail():
                 "https://job-boards.greenhouse.io/embed/job_app?token=1234567&for=acme"):
         assert greenhouse.matches(url) and greenhouse.application_url(url) == base
     assert greenhouse.application_url("https://job-boards.eu.greenhouse.io/acme/jobs/7") == "https://job-boards.eu.greenhouse.io/acme/jobs/7"
-    assert not greenhouse.matches("https://www.example.com/careers?gh_jid=7654321")  # board unknown from an employer's own page
+
+
+# employer's own careers page w/ the form embedded (?gh_jid=) - "not supported" for 1 in 5 Greenhouse links (2026-10)
+def test_greenhouse_employer_site_link_finds_its_board(monkeypatch):
+    class Reply:
+        def __init__(self, to): self.is_redirect, self.headers = bool(to), {"location": to}
+    asked = []
+    def get(url, **kw):
+        asked.append(url)
+        return Reply("https://job-boards.greenhouse.io/embed/job_app?for=acme&token=7654321" if "7654321" in url else "")
+    monkeypatch.setattr(greenhouse.httpx, "get", get)
+    greenhouse.board_for.cache_clear()
+    for url in ("https://www.example.com/careers?gh_jid=7654321",
+                "https://careers.example.com/jobs/7654321?gh_jid=7654321&utm_source=freehire.me",
+                "https://example.com/careers/?utm_source=x&gh_jid=7654321"):
+        assert systems.for_url(url) is greenhouse
+        assert greenhouse.application_url(url) == "https://job-boards.greenhouse.io/acme/jobs/7654321"
+    assert asked == ["https://boards.greenhouse.io/embed/job_app?token=7654321"]  # listing id only, once
+    assert not greenhouse.matches("https://www.example.com/careers?jid=7654321")
+    with pytest.raises(ValueError, match="may have closed"):
+        greenhouse.parse_url("https://www.example.com/careers?gh_jid=1")
 
 
 # job board answer, anonymised from a live posting (2026-10-02)
