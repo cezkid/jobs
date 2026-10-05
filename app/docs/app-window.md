@@ -79,8 +79,8 @@ only on buttons (owner rule).
 |---|---|---|---|---|
 | Say words ("Make my resume", "Help me apply", ...) | `workbench.action.chat.open {query, isPartialQuery: true}`: words in the chat box, not sent | new chat in the sidebar, words typed in, not sent: `claude-vscode.editor.open(undefined, words, undefined, undefined, false, {programmatic: "honor-preferred-location"})`; chat shown before moves to Claude's session history; title "Opens a new chat with these words typed in - press Enter to start", then "New chat ready - press Enter" on the page + status bar (owner 2026-10-03, measured: [j](app-window/probes/j-claude-new-chat.json)). Pressed: button reads "Starting Claude…" (others "Opening the chat…"), greyed until done; still waiting after 400 ms => "Starting Claude - the first time takes a few seconds"; chat view opened at window start so it rarely shows (k). Only Claude 2.1.288 up to 2.2 w/ `claudeCode.preferredLocation: sidebar`; else copy words + `claude-vscode.sidebar.open` + line "Copied - click the chat box, paste (Cmd+V, or Ctrl+V off Mac), press Enter."; button reads "Copy: <words>" | copy + `chatgpt.openSidebar` + same line | copy + same line |
 | I sent it / I heard back / It's closed | no chat: `jobs.py status set N applied\|heard_back\|closed` run by the extension (user's click = their own record), folder moves; line "Job N marked as sent." + Undo for 10 s => `status undo N --from STATE` (takes back only that state, log row dropped, folder back); fail => plain line + the chat words (owner 2026-10-04) | same | same | same |
-| Job title (opens the posting) | `vscode.env.openExternal` - https only, the stored link as is | same | same | same |
-| Company name | `vscode.env.openExternal` - http(s) website from the job search's company record (`app/companies.py`, cached 30 d); none on record => plain name, no link, no web search (owner 2026-10-03) | same | same | same |
+| Job title (opens the posting) | a tab in this window: `workbench.action.browser.open` w/ the stored link as is, a plain string (http(s) only, no `reuseUrlFilter`); VS Code w/o that command (before 1.109) or the open fails => `vscode.env.openExternal` (system browser). [Links inside the window](#links-inside-the-window---what--why) | same | same | same |
+| Company name | same as job title - http(s) website from the job search's company record (`app/companies.py`, cached 30 d); none on record => plain name, no link, no web search (owner 2026-10-03) | same | same | same |
 | Open resume / Open folder | `vscode.open` / `revealInExplorer` - only paths under `My Jobs/`, `My Resume/`, `Guides/` that exist under the folder's real path | same | same | same |
 
 Why a new chat for Claude, copy for ChatGPT: rows d, e (no command fills the chat shown w/o a new
@@ -121,7 +121,7 @@ Still stock VS Code, on the user's own install + subscriptions; only settings + 
   minimap; terminal hidden on startup (Copilot's agent runs steps there). YAML schema underline
   + hover kept: a mistyped resume fact shows at once, not hours later at render.
 - `jobs.py open`: `code <folder> <file>` like the launcher, no `-r` => opens in the Job Finder
-  window, not the last-used one.
+  window, not the last-used one. Links: [Links inside the window](#links-inside-the-window---what--why).
 - Employer text inert (`text.inert_md`): posting, Check before sending, Application answers,
   Follow-up, Today - no links, images or HTML from the employer. A hidden image can't tell them
   when the user looked; a link can't run a VS Code command. Our own posting link line kept.
@@ -216,6 +216,53 @@ Owner checks still open (beyond the button checks above):
       no splash, nothing printed, start unchanged. Say which.
   Also note: does the splash take the keyboard from the app in use (Mac one never does)?
 
+## Links inside the window - what + why
+
+Owner 2026-10-04 (plan-29g): "open browser within vscode instead of another window" => job links
+open as a tab in the Job Finder window. Filling an application there: measured first (plan-29g.7),
+owner decides (plan-29g.8).
+
+VS Code's Integrated Browser (1.109+): any http(s) site, sign-ins, uploads. Bundle read, VS Code
+1.140, adversarial review 2026-10-04; live probe: plan-29g.4.
+- `workbench.action.browser.open` takes a url string or `{url, openToSide, reuseUrlFilter}`. Ours
+  passes the string only: w/ `reuseUrlFilter` a matching tab is re-navigated => a half-filled form
+  wiped.
+- `workbench.action.browser.openExternal` sends the page shown to the system browser - an item in
+  the tab toolbar's overflow menu (never call it a button).
+- Only localhost links route there by themselves; `vscode.env.openExternal` still goes to the system
+  browser => ours calls the command.
+- `workbench.browser.dataStorage` default `global` = partition `persist:vscode-browser`, shared by
+  every VS Code window + profile, kept after uninstall => `workspace` (window scope, so
+  `app/workspace.py` COMMON): sign-ins + cookies for this folder only. Untrusted folder forces
+  ephemeral (nothing kept). `workbench.browser.showInTitleBar: false`: its globe button is
+  experiment-controlled.
+- Tabs sandboxed + context-isolated; links to other programs (`vscode://`) refused. Chromium 150
+  (Electron 43) vs Chrome 154; pages see `window.__vscode_helpers` + "Code/ Electron/" in the user
+  agent (captcha scores may drop); popups only within 1 s of a click; `mailto:` does nothing.
+  Navigation telemetry carries no URL.
+- Google blocks Google-account sign-in in embedded browsers (since 2021) - untested here =>
+  `jobs.py open --outside`.
+
+How links get there:
+- Today + Jobs panel (plan-29g.1): job title + company => `today.openLink` (`app/vscode/today.js`):
+  http(s) only; command present => tab; missing or the open fails => system browser.
+- `jobs.py open "<link>"` (plan-29g.2), how every AI shows a link: window running => one request
+  `.data/open-link/<32 hex>.json` (`{url, t}`, written as `.tmp`, renamed in); extension's watcher
+  claims it by rename (`.taken`) + opens a tab; jobs.py takes it back after 2 s + opens the system
+  browser => whoever moves it first opens it, never twice. Requests over 10 s old deleted unseen,
+  both sides. Prints "opened in the Job Finder window" / "opened in your browser" => the AI says
+  where. `--outside` = system browser always. Not a file here + not http(s) => refused: a
+  `vscode://` or script link from a posting's text never runs. No other local way in: VS Code's
+  CLI server is remote-only, the start-page marker is read once, `vscode://` refused (+ any page
+  could call it).
+- Workday stays in Chrome (Claude-in-Chrome extension); other fillers keep their own Chrome profile
+  (`app/apply/browser.py`).
+- Privacy: sign-ins + site data stay on this computer, in this folder's browser storage (AGENTS.md
+  table, `Guides/Who sees what.md`); the site itself sees the visit, as in any browser.
+
+Owner checks still open: links live in a scratch window (plan-29g.4); a posting open inside the
+window looks + works right (plan-29g.5).
+
 ## Rejected
 
 - Own Electron / Tauri shell: Claude, ChatGPT + Copilot chats exist only as VS Code extensions
@@ -245,5 +292,11 @@ Owner checks still open (beyond the button checks above):
 - Notification at the double-click: fades after a few seconds, doesn't track loading.
 - tkinter splash: Python's icon shows in the Dock next to ours.
 - AppleScript applet progress window: frozen while the applet's `do shell script` blocks.
+- Simple Browser (`simpleBrowser.show`) for job links: an iframe - sites that refuse framing (sign-in
+  pages, many job sites) stay blank.
+- `vscode://` handler for `jobs.py open`: any web page or posting could call it, not just the AI.
+- Browser data `global` (VS Code's default): sign-ins shared w/ every VS Code window + profile, kept
+  after uninstall. `workspace` instead.
+- `reuseUrlFilter` on open: re-navigates a matching tab => a half-filled form wiped.
 - `*` activation (start w/ every window): while the profile is pending ours lives in the default
   profile => would run in every folder they open. `workspaceContains:app/jobs.py` instead (#p).

@@ -5,6 +5,7 @@
 | What | Who sees it |
 |---|---|
 | Your resume, jobs, settings, Today page | Only you - this computer |
+| Sign-ins and pages you open inside the CEZ Job Finder window | Only you - this computer, kept for this window alone (not your usual browser). The website itself sees your visit, as in any browser |
 | What you're searching for (not your resume) | freehire.me, to find jobs |
 | Which job from your list you make a resume for or ask about (not your resume) | freehire.me, to get the whole posting, what its application asks, or if it's still open |
 | Your resume + jobs you ask about, what you say in interview practice, and the jobs on your Today page when a Claude chat opens | Your own AI chat account (Claude, ChatGPT or GitHub Copilot - Copilot's may be shared with Microsoft) |

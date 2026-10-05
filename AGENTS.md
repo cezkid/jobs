@@ -28,7 +28,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Today page buttons put their words in the chat, never send them: Copilot fills its chat box;
   Claude: one fresh sidebar chat w/ them typed in; ChatGPT: copy + open, user pastes + presses Enter.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
-  tab, link in browser.
+  tab, link as a tab in the Job Finder window (their browser when the window is closed; it prints
+  which - say that). Add `--outside` for their own browser: a site that won't work inside (Google
+  sign-in) or they ask. Today's job + company links open in the window too.
 - Need file from user (resume PDF): ask them to drag it onto My Resume in the file list, then
   use the PDF just added there (not the made `First_Last_Resume.pdf`). Copilot gets a PDF dropped in chat as data, no path. A path that
   arrives w/ a chat drop still works.
@@ -206,6 +208,7 @@ when asked, at setup, and before any step sending something new off computer.
 |---|---|---|
 | Resume, job folders, search settings, saved form answers, Today page | `My Resume/`, `My Jobs/`, `My Settings/`, `Today.md` | Private - only this computer |
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
+| Sign-ins + site data of pages opened in the Job Finder window | the window's own browser storage (this folder only, not their usual browser or other VS Code windows) | Private - only this computer; the page's own site sees the visit, as in any browser |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
