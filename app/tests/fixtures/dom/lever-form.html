@@ -1,0 +1,15 @@
+<!doctype html>
+<!-- A Lever-like form for the read-back contract (test_apply_form.py): boxes found by name under #application-form,
+as lever.py meets them (fixtures/lever/ holds whole anonymised tenant pages): text, textarea, select, a card's
+radios + checkboxes whose value is the option text. -->
+<html><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form id="application-form">
+<input type="text" name="name">
+<input type="text" name="phone">
+<textarea name="cards[acme][field0]"></textarea>
+<select name="cards[acme][field1]"><option value="">Select...</option><option>Yes</option><option>No</option></select>
+<label><input type="radio" name="cards[acme][field2]" value="0-2"> 0-2</label>
+<label><input type="radio" name="cards[acme][field2]" value="3-5"> 3-5</label>
+<label><input type="checkbox" name="cards[acme][field3]" value="Python"> Python</label>
+<label><input type="checkbox" name="cards[acme][field3]" value="SQL"> SQL</label>
+<label><input type="checkbox" name="cards[acme][field3]" value="Excel"> Excel</label>
+</form></body></html>

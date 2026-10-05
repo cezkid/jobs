@@ -2,11 +2,13 @@ import importlib
 import inspect
 import pkgutil
 from datetime import date
+from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 
-from apply import form, questions, systems
-from apply.systems import ashby, greenhouse, ukg
+from apply import browser, form, questions, systems
+from apply.systems import ashby, greenhouse, lever, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -32,6 +34,17 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
             # a defaulted parameter is the system's own extra (Greenhouse: questions(url, schools=1))
             assert sum(p.default is p.empty for p in inspect.signature(got).parameters.values()) == want, name
     assert system.SOURCES and system.EXAMPLES and all(isinstance(x, str) for x in system.SOURCES + system.EXAMPLES)
+
+
+# systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
+# the other systems are left as filled until they join this list
+NO_HOLDS_YET = pytest.mark.xfail(strict=True, reason="plan-nko.11: Lever has no holds yet")
+IN_SCOPE = [greenhouse, ashby, pytest.param(lever, marks=NO_HOLDS_YET)]
+
+
+@pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
+def test_read_back_systems_define_holds(system):
+    assert sum(p.default is p.empty for p in inspect.signature(system.holds).parameters.values()) == 2
 
 
 def test_systems_found_in_name_order_no_hand_list():
@@ -1276,3 +1289,102 @@ def test_website_box_gets_the_resumes_own_site_never_a_profile():
     assert questions.from_resume(q, contact) == "https://www.example.com"
     assert questions.from_resume(q, {"links": ["https://portfolio.example.org/work"]}) == "https://portfolio.example.org/work"
     assert questions.from_resume(q, {"links": ["linkedin.com/in/your-name"]}) == ""
+
+
+# --- fill twice = same state: recheck refills a dropped answer once, so a refill must never untick ---
+
+FIXTURES = Path(__file__).parent / "fixtures" / "dom"
+
+
+@pytest.fixture(scope="module")
+def chrome():
+    pw = pytest.importorskip("playwright.sync_api")
+    try:
+        exe = browser.chrome()
+    except SystemExit:
+        pytest.skip("Chrome not installed")
+    with pw.sync_playwright() as p:
+        b = p.chromium.launch(executable_path=exe, headless=True)
+        yield b
+        b.close()
+
+
+@pytest.fixture
+def fixture_page(chrome):
+    """A page from fixtures/dom/ in real headless Chrome; every other request refused."""
+    context = chrome.new_context()
+    asked = []
+
+    def serve(route):
+        u = urlsplit(route.request.url)
+        asked.append(route.request.url)
+        file = FIXTURES / u.path.lstrip("/")
+        if u.hostname != "acme.example" or not file.is_file():
+            return route.fulfill(status=404, body="")
+        return route.fulfill(path=str(file))
+
+    context.route("**/*", serve)
+    pg = context.new_page()
+
+    def at(name):
+        pg.goto(f"https://acme.example/{name}")
+        pg.wait_for_load_state("load")
+        return pg
+    yield at
+    assert all(urlsplit(u).hostname == "acme.example" for u in asked), asked
+    context.close()
+
+
+def shown(page) -> list:
+    """Everything the form shows: each box's value or tick, pressed buttons, chosen dropdown values."""
+    return page.eval_on_selector_all(
+        "form input, form textarea, form select, form button, form [class*=single-value], form [class*=multi-value__label]",
+        "es => es.map(e => e.matches('input[type=radio], input[type=checkbox]') ? e.checked"
+        " : e.matches('button') ? e.getAttribute('aria-pressed') : 'value' in e ? e.value : e.innerText)")
+
+
+def answered(id, kind, answer, options=(), title="Question"):
+    return questions.question(id, title, kind, True, options) | {"answer": answer}
+
+
+READ_BACK_FORMS = {
+    "greenhouse": ("greenhouse-form.html", [
+        answered("first_name", "text", "Ada"), answered("email", "email", "ada@example.com"),
+        answered("question_5", "choice", "United States"),
+        answered("question_100[]", "multichoice", ["Part Time", "Contract"])]),
+    "ashby": ("ashby-form.html", [
+        answered("_systemfield_name", "text", "Ada Lovelace"), answered("_systemfield_email", "email", "ada@example.com"),
+        answered("q_phone", "phone", "555-0100"), answered("q_why", "longtext", "Their own words."),
+        answered("q_sponsor", "yesno", "No"), answered("q_years", "choice", "8+"),
+        answered("q_stack", "multichoice", ["Python", "SQL"])]),
+    "lever": ("lever-form.html", [
+        answered("name", "text", "Ada Lovelace"), answered("phone", "phone", "555-0100"),
+        answered("cards[acme][field0]", "longtext", "Their own words."),
+        answered("cards[acme][field1]", "yesno", "Yes"), answered("cards[acme][field2]", "choice", "3-5"),
+        answered("cards[acme][field3]", "multichoice", ["Python", "Excel"])]),
+}
+
+
+@pytest.mark.parametrize("name", list(READ_BACK_FORMS))
+def test_fill_twice_leaves_every_kind_as_the_first_fill_did(fixture_page, name):
+    system = importlib.import_module(f"apply.systems.{name}")
+    file, qs = READ_BACK_FORMS[name]
+    page = fixture_page(file)
+    assert [system.fill(page, q, None) for q in qs] == ["ok"] * len(qs)
+    page.wait_for_timeout(300)  # the page marks a click a moment later
+    once = shown(page)
+    assert [system.fill(page, q, None) for q in qs] == ["ok"] * len(qs)
+    page.wait_for_timeout(300)
+    assert shown(page) == once
+    if hasattr(system, "holds"):
+        assert [q["id"] for q in qs if not system.holds(page, q)] == []
+
+
+@pytest.mark.xfail(strict=True, reason="plan-nko.5: Ashby holds can't read a long-list (search box) choice yet")
+def test_ashby_long_list_choice_the_page_empties_reads_as_dropped(fixture_page):
+    page = fixture_page("ashby-form.html")
+    country = answered("q_country", "choice", "United States")
+    assert ashby.fill(page, country, None) == "ok"
+    page.wait_for_timeout(1200)  # the page empties the pick after 800 ms
+    assert page.locator('[data-field-path="q_country"] .value').inner_text() == ""
+    assert not ashby.holds(page, country)

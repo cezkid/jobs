@@ -1,0 +1,62 @@
+<!doctype html>
+<!-- An Ashby-like form for the read-back contract (test_apply_form.py): each question in its
+div[data-field-path], widgets as app/docs/apply/ashby.md records them. Radio choice: a label click toggles it - a
+second click clears it (tenant B, 2026-09-29) - and the page marks it 200 ms after the click. Yes / No: buttons w/
+aria-pressed; whether a second click clears is unmeasured, so this page clears (the stricter case). Long list: a
+search box whose pick shows beside it, then the page empties it 800 ms later - the drop holds() can't read yet
+(plan-nko.5). -->
+<html><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form>
+<div data-field-path="_systemfield_name"><label for="name">Name</label><input type="text" id="name"></div>
+<div data-field-path="_systemfield_email"><label for="email">Email</label><input type="email" id="email"></div>
+<div data-field-path="q_phone"><label for="phone">Phone</label><input type="tel" id="phone"></div>
+<div data-field-path="q_why"><label for="why">Why Acme?</label><textarea id="why"></textarea></div>
+<div data-field-path="q_sponsor" class="yesno"><label>Will you require sponsorship?</label>
+  <button type="button" aria-pressed="false">Yes</button><button type="button" aria-pressed="false">No</button></div>
+<div data-field-path="q_years" class="radios"><label>Years of experience</label>
+  <input type="radio" id="years-0" name="q_years"><label for="years-0">0-2</label>
+  <input type="radio" id="years-1" name="q_years"><label for="years-1">3-5</label>
+  <input type="radio" id="years-2" name="q_years"><label for="years-2">8+</label></div>
+<div data-field-path="q_stack"><label>Which do you use?</label>
+  <input type="checkbox" id="stack-0"><label for="stack-0">Python</label>
+  <input type="checkbox" id="stack-1"><label for="stack-1">SQL</label>
+  <input type="checkbox" id="stack-2"><label for="stack-2">Excel</label></div>
+<div data-field-path="q_country" class="combo" data-options='["Canada", "United Kingdom", "United States"]'>
+  <label>Country</label><input type="text" role="combobox"><div class="value"></div></div>
+</form>
+<script>
+for (const box of document.querySelectorAll(".yesno")) {
+  const buttons = box.querySelectorAll("button");
+  for (const b of buttons) b.addEventListener("click", () => {
+    const on = b.getAttribute("aria-pressed") !== "true";
+    setTimeout(() => { for (const o of buttons) o.setAttribute("aria-pressed", String(on && o === b)); }, 200);
+  });
+}
+for (const box of document.querySelectorAll(".radios")) {
+  for (const label of box.querySelectorAll("label[for]")) label.addEventListener("click", (ev) => {
+    ev.preventDefault();
+    const radio = document.getElementById(label.htmlFor), on = !radio.checked;
+    setTimeout(() => { for (const r of box.querySelectorAll("input")) r.checked = on && r === radio; }, 200);
+  });
+}
+for (const box of document.querySelectorAll(".combo")) {
+  const input = box.querySelector("input"), value = box.querySelector(".value");
+  input.addEventListener("input", () => {
+    box.querySelector(".menu")?.remove();
+    const menu = document.createElement("div");
+    menu.className = "menu";
+    for (const o of JSON.parse(box.dataset.options).filter((o) => o.toLowerCase().includes(input.value.toLowerCase()))) {
+      const d = document.createElement("div");
+      d.setAttribute("role", "option");
+      d.textContent = o;
+      d.addEventListener("click", () => {
+        value.textContent = o;
+        input.value = "";
+        menu.remove();
+        setTimeout(() => { value.textContent = ""; }, 800);
+      });
+      menu.append(d);
+    }
+    box.append(menu);
+  });
+}
+</script></body></html>
