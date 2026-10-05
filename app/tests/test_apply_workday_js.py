@@ -143,3 +143,57 @@ def test_closed_posting_read_closed(posting, name):
                                   "posting-open-says-closed.html"])
 def test_open_posting_never_read_closed(posting, name):
     assert posting(name) is False
+
+
+@pytest.fixture(scope="module")
+def upload(chrome):
+    """uploaded() on the Resume/CV box model: choose a file (as the extension's upload does), then wait."""
+    context = chrome.new_context()
+
+    def serve(route):
+        u = urlsplit(route.request.url)
+        file = FIXTURES / u.path.lstrip("/")
+        if u.hostname != urlsplit(HOME).hostname or not file.is_file():
+            return route.abort()
+        return route.fulfill(path=str(file))
+
+    context.route("**/*", serve)
+
+    def run(name, box="#resume", page_name="upload.html", ms=5000):
+        page = context.new_page()
+        page.goto(f"https://{urlsplit(HOME).hostname}/{page_name}")
+        page.evaluate(profile.FILLER.read_text(encoding="utf-8") + "\n0")
+        try:
+            if box:
+                page.set_input_files(box, files=[{"name": name, "mimeType": "application/pdf", "buffer": b"%PDF-1.4"}])
+            return page.evaluate(f"window.__jf.uploaded({json.dumps(name)}, {ms})")
+        finally:
+            page.close()
+
+    yield run
+    context.close()
+
+
+def test_upload_name_shown_is_ok(upload):
+    # the Job Title "required" error elsewhere on the step is not the upload's
+    assert upload("First_Last_Resume.pdf") == "ok"
+
+
+def test_upload_error_is_workdays_own_words(upload):
+    assert upload("First_Last_Resume.docx") == "This file type is not allowed."
+
+
+def test_upload_error_after_name_wins(upload):
+    assert upload("late.pdf") == "This file could not be read."
+
+
+def test_upload_nothing_shown_is_not_confirmed(upload):
+    assert upload("silent.pdf", ms=2000) == "not confirmed"
+
+
+def test_upload_to_cover_letter_box_is_not_the_resume(upload):
+    assert upload("First_Last_Resume.pdf", box="#letter", ms=2000) == "not confirmed"
+
+
+def test_upload_step_without_resume_box(upload):
+    assert upload("First_Last_Resume.pdf", box=None, page_name="form.html", ms=500) == "no Resume/CV box on this page"

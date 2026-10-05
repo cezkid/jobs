@@ -103,10 +103,14 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
    via `read_page`/`find`, fix by hand once, record the new label in `app/docs/apply/workday.md`.
    `answer dropped` = verify found it cleared after filling: FAIL = refilled once, still empty -> fill
    that box by hand; ASK on a skill or field of study -> pick it again by hand, never rerun.
-6. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
-   item, what is left (resume upload, website, questions), and that nothing is saved until they
+6. Resume/CV box: after their yes (hard limits; name the file), the extension's file upload puts
+   the tailored PDF in the box, then `window.__jf.uploaded("<file name>")` (waits up to 20 s):
+   `'ok'` = name shows in the box; other words = Workday's own error -> tell the user plainly;
+   `'not confirmed'` -> ask them to look at the box, choose the file by hand if empty.
+7. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
+   item, what is left (website, questions), and that nothing is saved until they
    click **Save and Continue**. Later steps (questions, disclosures, review) = ask, never guess.
-7. Last, once they're done on the page: `AGENTS.md` #Where each job stands - one clickable
+8. Last, once they're done on the page: `AGENTS.md` #Where each job stands - one clickable
    "Did you send it?" (below).
 
 Token care: poll with the short status call only; no screenshots while the window is hidden

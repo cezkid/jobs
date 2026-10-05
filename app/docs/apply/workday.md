@@ -49,6 +49,17 @@ Same words + hooks on every closed page seen; another wording -> false (not clos
 the page. Wording from other systems (`form.CLOSED`) also in the pattern, unmeasured on Workday.
 Saved pages (anonymised): `app/tests/fixtures/workday/posting-*.html`.
 
+## Resume upload
+
+Resume/CV box on My Experience: the extension's file upload puts the PDF in its file input, then
+`window.__jf.uploaded("<file name>")` polls (MessageChannel sleep, up to 20 s) the box only = smallest
+block holding a file input + a "Resume" / "CV" heading or label (Cover Letter box, errors on other
+fields not read). Returns `ok` (file name shows in the box), the box's `errorMessage` text (an error
+wins, also one appearing within 1 s after the name), `not confirmed` (neither), or `no Resume/CV box
+on this page`. Modelled only (`fixtures/workday/upload.html`, 2026-10-05): live widget markup,
+wording + whether Workday sends the file on choosing unmeasured (no account) - recorded on the
+next real application (plan-nko.22); until then the privacy table has no Workday upload row.
+
 ## Resume autofill ("Autofill with Resume")
 
 Workday parses the uploaded PDF once, at start. Tenant A, before education fix (PR #18): school

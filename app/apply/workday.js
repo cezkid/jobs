@@ -229,6 +229,27 @@ window.__jf = (() => {
   // tool call times out at 45s => run() in background, poll status()
   const status = () => JSON.stringify({ step: S.step, done: S.done, problems: S.report.filter((r) => !r.startsWith('OK')), ok: S.report.filter((r) => r.startsWith('OK')).length });
   const errors = () => [...new Set([...document.querySelectorAll('[data-automation-id="errorMessage"]')].filter(shown).map(txt))];
+  // Resume/CV box = smallest block holding a file input + a "Resume" / "CV" heading or label
+  function resumeBox() {
+    const has = (el) => [...el.querySelectorAll('h2, h3, h4, legend, label, [data-automation-id="formLabel"]')].some((h) => /resume|\bcv\b/i.test(txt(h)));
+    const found = [...document.querySelectorAll('input[type="file"]')].map((f) => {
+      let el = f.parentElement;
+      while (el && el !== document.body && !has(el)) el = el.parentElement;
+      return el !== document.body && el;
+    }).filter(Boolean);
+    return found.sort((a, b) => a.querySelectorAll('*').length - b.querySelectorAll('*').length)[0] || null;
+  }
+  // after the extension's file upload: wait for the box to show the file's name or Workday's own
+  // error under it (an error wins). 'ok' / the page's words / 'not confirmed'. Fixture-modelled; live
+  // widget + whether the file leaves on choosing unmeasured (workday.md #Resume upload)
+  async function uploaded(name, ms = 20000) {
+    if (!resumeBox()) return 'no Resume/CV box on this page';
+    const err = () => { const b = resumeBox(); return b ? [...new Set([...b.querySelectorAll('[data-automation-id="errorMessage"]')].filter(shown).map(txt))].join(' ') : ''; };
+    const named = () => !!norm(name) && norm(txt(resumeBox())).includes(norm(name));
+    if (!await until(() => err() || named(), ms)) return 'not confirmed';
+    await sleep(1000); // an error can follow the name (file checked after it shows)
+    return err() || (named() ? 'ok' : 'not confirmed');
+  }
   // posting page, before Apply + sign-in: closed only when no Apply button shows AND the page says
   // so. The page draws itself seconds after load (blank before) - wait for either. Workday wording
   // measured 2026-10-05 (workday.md #Closed posting); the rest is form.CLOSED's, unmeasured here
@@ -238,5 +259,5 @@ window.__jf = (() => {
     await until(() => shown(apply()) || shown(document.querySelector('[data-automation-id="errorContainer"]')) || CLOSED.test(txt(document.body)), ms);
     return !shown(apply()) && CLOSED.test(document.body.innerText || '');
   }
-  return { run, status, errors, closed, S };
+  return { run, status, errors, uploaded, closed, S };
 })();
