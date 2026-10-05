@@ -203,6 +203,18 @@ def link(contact: dict, host: str) -> str:
     return ""
 
 
+# profile sites a form asks for by name; any other link on the resume is the user's own website
+PROFILE_HOSTS = ("linkedin.", "github.", "gitlab.", "twitter.", "x.com", "behance.", "dribbble.", "medium.")
+
+
+def website(contact: dict) -> str:
+    """The resume's own site (enrriquez.com -> https://www.enrriquez.com), never a profile link."""
+    for url in contact.get("links") or []:
+        if not any(h in url.casefold() for h in PROFILE_HOSTS):
+            return link(contact, url.casefold())
+    return ""
+
+
 def same_name(a: str, b: str) -> bool:
     """José / JOSE / jose are one name: accents, case and spacing never make a mismatch."""
     def fold(s: str) -> str:
@@ -257,6 +269,7 @@ def from_resume(q: dict, contact: dict) -> str:
         "phone": contact.get("phone", ""),
         "linkedin": link(contact, "linkedin."),
         "github": link(contact, "github."),
+        "website": website(contact),
     }
     if q["key"] in by_key:
         return by_key[q["key"]]
