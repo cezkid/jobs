@@ -10,7 +10,7 @@ import re
 from pathlib import Path
 
 from apply import browser
-from apply.questions import asks_complete_history, form_roles, question
+from apply.questions import asks_complete_history, form_roles, major_option, question
 from resume import schema
 
 NAME = "UKG"
@@ -254,14 +254,6 @@ def degree_word(degree: str) -> str | None:
     if d.startswith("ph"):
         return "Doctor"
     return DEGREES.get(d[:1])
-
-
-def major_option(field: str, options: list[str]) -> str | None:
-    """Exact major, or the longest option the field starts with ('Art Education in School and
-    Community' -> 'Art Education'); none -> left blank, the field goes in the description."""
-    f = field.casefold().strip()
-    fits = [o for o in options if f == o.casefold() or f.startswith(o.casefold() + " ")]
-    return max(fits, key=len) if fits else None
 
 
 def panel(page, name: str):

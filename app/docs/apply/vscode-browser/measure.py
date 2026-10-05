@@ -15,6 +15,9 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
   gh       route 2 on ONE public Greenhouse posting: block + canary first, dummy data, never Submit
   ghfill   the trial's own filler (window.Page + form.fill_page) on every question of one posting, same
            block + canary, synthetic answers; each dropdown read back off the page now + JF_LATE s later
+  ghupload when the resume box is ready (plan-29g.25): the page's own storage-form request vs load vs idle;
+           a choice before it answers (held JF_HOLD s), a second choice after; the shipped put_file on a
+           fresh load. Same block + canary; the dummy PDF's POST to storage answered in the tab, never sent
   score    reCAPTCHA v3 demo score: window tab (opened plain, then reloaded w/ the debugger on) vs a
            Chrome started as Job Finder's own - relative hint only, never Submit
   restricted  untrusted folder (Restricted Mode): does the attach start?
@@ -850,6 +853,160 @@ def ghfill(result):
         close()
 
 
+# ---------------------------------------------------------------- resume box ready? (plan-29g.25)
+class Stub(Block):
+    """Block (level 3) + both ends of Greenhouse's upload kept in this tab: its own request for the storage
+    form (presigned_fields, a read) held `hold` s - a choice made before it answers = the owner's case; the
+    file's POST to storage (and its CORS preflight) answered here - nothing leaves, the page sees a 2xx."""
+
+    def __init__(self, c, hold=0):
+        super().__init__(c, 3)
+        self.hold, self.held, self.stored = hold, [], []
+
+    def paused(self, p, msg):
+        import threading
+        r = p["request"]
+        if "/uncacheable_attributes/presigned_fields" in r["url"] and self.hold:
+            self.held.append({"after": self.step, "s": self.hold})
+            self.reads += 1
+            go = lambda: quietly(lambda: self.c.post("Fetch.continueRequest", {"requestId": p["requestId"]}))
+            return threading.Timer(self.hold, go).start()
+        if (urlsplit(r["url"]).hostname or "").endswith(".amazonaws.com") and r["method"] in ("POST", "OPTIONS"):
+            origin = next((v for k, v in r.get("headers", {}).items() if k.lower() == "origin"), "*")
+            self.stored.append({"method": r["method"], "after": self.step, "body": r.get("hasPostData", False)})
+            cors = [{"name": "Access-Control-Allow-Origin", "value": origin}, {"name": "Access-Control-Allow-Methods", "value": "POST"},
+                    {"name": "Access-Control-Allow-Headers", "value": "*"}]
+            return self.c.post("Fetch.fulfillRequest", {"requestId": p["requestId"], "responseCode": 204 if r["method"] == "POST" else 200,
+                                                        "responseHeaders": cors})
+        return super().paused(p, msg)
+
+
+# a real upload reports progress as it goes; one answered at request stage never does, so the page's own
+# "progress at 100 -> show the name" never runs: report it once the stubbed POST loads, as a real one would
+XHR_PROGRESS = """(() => { const send = XMLHttpRequest.prototype.send, open = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (m, u) { this.__jfUrl = String(u); return open.apply(this, arguments); };
+  XMLHttpRequest.prototype.send = function () {
+    if (/amazonaws[.]com/.test(this.__jfUrl || '')) this.addEventListener('load', () => {
+      (window.__jfXhr = window.__jfXhr || []).push(this.status);
+      this.upload.onprogress && this.upload.onprogress({loaded: 1, total: 1, lengthComputable: true}); });
+    return send.apply(this, arguments); }; })()"""
+
+RESUME_BOX = """(() => ({name: (document.querySelector('[aria-labelledby="upload-label-resume"] .file-upload__filename') || {}).innerText || '',
+  error: (document.getElementById('resume-error') || {}).innerText || '',
+  progress: !!document.querySelector('[aria-labelledby="upload-label-resume"] [role=progressbar]')}))()"""
+
+
+def ghupload(result):
+    """Two loads of one posting in the window tab, block + canary first, dummy PDF, never Submit:
+    1 storage-form request held JF_HOLD s, file chosen once it is out (the page hydrated, its box not ready),
+    then again after idle (as a person attaching by hand): the same file, then a copy under another name;
+    2 plain load: when it goes out + ends vs load vs
+    idle, what is still out at load, then the shipped greenhouse.put_file."""
+    import threading
+    from apply import form, window
+    from apply.systems import greenhouse
+    if not GH_URL or "greenhouse.io/" not in GH_URL:
+        sys.exit("ghupload needs a job-boards.greenhouse.io posting link")
+    eu, board, job = greenhouse.parse_url(GH_URL)
+    anon = lambda u: u.replace(board, "<board>").replace(job, "<id>")
+    hold = float(os.environ.get("JF_HOLD", "5"))
+    proc, result["launch"] = launch()
+    home, other, close = formsite.serve(TITLE)
+    make_resume()
+    second = D / "Test_Resume_2.pdf"
+    second.write_bytes(RESUME.read_bytes())
+    try:
+        ask({"do": "open", "url": f"{home}/blank"})
+        time.sleep(2)
+        res, found, conns = attach(f"{home}/blank*", QUIET)
+        result["attach"] = {k: res.get(k) for k in ("ok", "error", "ms", "sessions")}
+        c = pick(conns, f"{home}/blank")
+        if not c:
+            result["error"] = "no CDP proxy reached the tab"
+            return
+        block = Stub(c, hold)
+        result["install"] = attempt(block.install)
+        result["canary"] = canary(c, block, "canary")
+        if result["canary"]["received"] or not result["canary"]["loaded"]:
+            result["refused"] = "canary received writes (or never loaded): posting not opened"
+            return
+        result["xhrProgress"] = attempt(lambda: c.send("Page.addScriptToEvaluateOnNewDocument", {"source": XHR_PROGRESS})["identifier"])
+        page = window.Page(c)
+        page.quiet()
+        lock, urls, marks = threading.Lock(), {}, []
+        t0 = [time.monotonic()]
+
+        def mark(what, **extra):
+            marks.append({"ms": round((time.monotonic() - t0[0]) * 1000), "what": what, **extra})
+
+        def watch(p, msg):
+            with lock:
+                if msg["method"] == "Network.requestWillBeSent":
+                    urls[p["requestId"]] = p["request"]["url"]
+                url = urls.get(p.get("requestId"), "")
+            if "presigned_fields" in url:
+                mark(msg["method"].split(".")[1] + " presigned")
+        for name in window.NETWORK:
+            c.on(name, watch)
+
+        def out_now():
+            with page.lock, lock:
+                return sorted(anon(urls.get(i, "?"))[:120] for i in page.inflight)
+
+        def load(step):
+            block.step, t0[0] = step, time.monotonic()
+            marks.clear()
+            page.goto(GH_URL)
+            mark("readyState complete", inflight=out_now())
+            form.open_form(page, greenhouse, GH_URL)
+            mark("READY #first_name")
+
+        # 1 the owner's case: box shown, page hydrated, its storage form not back yet
+        load("held")
+        seen = wait_for(lambda: block.held or any(m["what"] == "requestWillBeSent presigned" for m in marks), 20, 0.05)
+        early = result["early"] = {"presignedOut": bool(seen)}
+        block.step = "early choice"
+        early["choose"] = attempt(lambda: page.locator("#resume").set_input_files(str(RESUME)))
+        mark("chosen early")
+        time.sleep(2)
+        early["box"] = quietly(lambda: c.evaluate(RESUME_BOX))
+        early["tabShot"] = tab_shot(c, "gh-upload-early")
+        early["idle"] = attempt(lambda: page.wait_for_load_state("networkidle", timeout=30000))
+        mark("idle")
+        block.step = "same file again"
+        early["same"] = attempt(lambda: page.locator("#resume").set_input_files(str(RESUME)))
+        mark("same file chosen again")
+        time.sleep(3)
+        early["boxSame"] = quietly(lambda: c.evaluate(RESUME_BOX))
+        block.step = "second choice"
+        early["again"] = attempt(lambda: page.locator("#resume").set_input_files(str(second)))
+        mark("other name chosen")
+        early["shownAgain"] = bool(wait_for(lambda: (quietly(lambda: c.evaluate(RESUME_BOX)) or {}).get("name"), 15, 0.25))
+        mark("name shown" if early["shownAgain"] else "no name after 15 s")
+        early["boxAgain"] = quietly(lambda: c.evaluate(RESUME_BOX))
+        early["tabShotAgain"] = tab_shot(c, "gh-upload-again")
+        early["marks"] = marks[:]
+        # 2 a plain load, the shipped path
+        block.hold = 0
+        load("plain")
+        block.step = "put_file"
+        t = time.monotonic()
+        plain = result["plain"] = {"putFile": attempt(lambda: greenhouse.put_file(page, {"id": "resume"}, str(RESUME)))}
+        plain["putFileMs"] = round((time.monotonic() - t) * 1000)
+        mark("put_file returned")
+        plain["box"] = quietly(lambda: c.evaluate(RESUME_BOX))
+        plain["marks"] = marks[:]
+        plain["tabShot"] = tab_shot(c, "gh-upload-plain")
+        result["xhr"] = quietly(lambda: c.evaluate("window.__jfXhr || []"))
+        result["stored"] = block.stored
+        result["held"] = block.held
+        result["submitClicked"] = False
+        result["block"] = {"reads": block.reads, "failed": [(b["method"], anon(b["url"])[:80], b["after"]) for b in block.log]}
+    finally:
+        result["quit"] = quit_(proc)
+        close()
+
+
 # ---------------------------------------------------------------- reCAPTCHA score signal (plan-29g.21)
 # Google's public v3 demo: scores the page on load, shows its own backend's verdict. Another site key than
 # Greenhouse's Enterprise one, a demo that says its score means nothing - a relative hint only, no Submit.
@@ -966,7 +1123,7 @@ if __name__ == "__main__":
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "score": score, "restricted": restricted}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

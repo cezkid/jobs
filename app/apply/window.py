@@ -33,6 +33,8 @@ TIMEOUT_MS = 30000
 POLL = 0.1
 # no network for this long = settled, as Playwright's "networkidle"
 IDLE_MS = 500
+# a request leaves, then ends either way
+NETWORK = ("Network.requestWillBeSent", "Network.loadingFinished", "Network.loadingFailed")
 FALLBACK = "run fill without --in-window to fill it in Chrome"
 WHY = {"untrusted": "the Job Finder window is in Restricted Mode (opened without its Desktop icon)",
        "picker": "the window couldn't tell which tab to use",
@@ -60,6 +62,21 @@ VISIBLE = "(e) => !!e && e.getClientRects().length > 0 && getComputedStyle(e).vi
 class Page:
     def __init__(self, cdp: CDP):
         self.cdp = cdp
+        # requests in flight, as the tab reports them: idle = none for IDLE_MS (Greenhouse readies its
+        # upload with a request after the page has loaded, plan-29g.25)
+        self.inflight, self.moved, self.lock = set(), time.monotonic(), threading.Lock()
+        for name in NETWORK:
+            cdp.on(name, self._network)
+        # js-debug's proxy passes a domain's events on only when asked (adds to what Block asked for);
+        # a tab's own CDP (the tests) has no such command and sends them anyway
+        for method, params in (("JsDebug.subscribe", {"events": list(NETWORK)}), ("Network.enable", {})):
+            with contextlib.suppress(RuntimeError, TimeoutError, Closed):
+                cdp.send(method, params, 5)
+
+    def _network(self, params: dict, msg: dict) -> None:
+        with self.lock:
+            (self.inflight.add if msg["method"] == "Network.requestWillBeSent" else self.inflight.discard)(params.get("requestId"))
+            self.moved = time.monotonic()
 
     def quiet(self) -> None:
         """No breakpoint or `debugger;` line in the site's code pauses the page under us - again after
@@ -95,6 +112,8 @@ class Page:
         # the old page marked: done = a page without the mark, loaded
         with contextlib.suppress(RuntimeError, TimeoutError):
             self.run("window.__jfLeaving = true", 5)
+        with self.lock:  # the old page's requests end with it, unreported
+            self.inflight.clear()
         r = self.cdp.send("Page.navigate", {"url": url}, timeout / 1000)
         if r.get("errorText"):
             raise RuntimeError(f"couldn't open the form: {r['errorText']}")
@@ -106,15 +125,17 @@ class Page:
             return self.until("document.readyState !== 'loading'", timeout, state)
         self.until("document.readyState === 'complete'", timeout, state)
         if state == "networkidle":
-            deadline, last, since = time.monotonic() + timeout / 1000, None, time.monotonic()
-            while time.monotonic() < deadline:
-                n = self.run("performance.getEntriesByType('resource').length", 5)
-                if n != last:
-                    last, since = n, time.monotonic()
-                elif time.monotonic() - since >= IDLE_MS / 1000:
+            # requests seen leaving and ending, never the page's own list of finished ones (it misses
+            # the one still out, and stops counting at 250)
+            deadline = time.monotonic() + timeout / 1000
+            while True:
+                with self.lock:
+                    busy, quiet = bool(self.inflight), time.monotonic() - self.moved
+                if not busy and quiet >= IDLE_MS / 1000:
                     return
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(f"networkidle: not after {timeout} ms")
                 time.sleep(POLL)
-            raise TimeoutError(f"networkidle: not after {timeout} ms")
 
     def wait_for_timeout(self, ms: float) -> None:
         time.sleep(ms / 1000)

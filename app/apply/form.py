@@ -87,6 +87,15 @@ def upload_note(system, answers: list[dict]) -> str:
     return ""
 
 
+def typed_note(system, answers: list[dict]) -> str:
+    """A system whose boxes search its own list as they're typed: those words leave before Submit."""
+    typed = [k for k in getattr(system, "SEARCHED_AS_TYPED", ()) if any(a.get("key") == k for a in answers)]
+    if typed:
+        return (f"{system.NAME}: the {', '.join(typed)} boxes search {system.NAME}'s own list as they're typed - "
+                "those words reach its site during the fill, before Submit; say so when naming them")
+    return ""
+
+
 def ai_note(answers: list[dict]) -> str:
     """A form asking the applicant to say whether AI helped: the AI names it and how the resume was made."""
     if any(questions.never_draft(a["title"]) == questions.AI_USE for a in answers):
@@ -109,14 +118,17 @@ def prepare(slug: str, url: str) -> None:
     same_form = old and old.get("url") == app_url
     before = old["questions"] if same_form else []
     reads = hasattr(system, "read")
+    schools = master.get("education") or []
     if reads:  # a form read page by page, off the tab the user is on
         with browser.page_at(app_url, match=systems.tab_match(system, url)) as page:
             asked = system.read(page)
-    else:
-        asked = system.questions(url) if system else readahead.as_questions(form)
+    elif system is None:
+        asked = readahead.as_questions(form)
+    else:  # one set of Education boxes per school on the resume (Greenhouse's Add another)
+        asked = system.questions(url, len(schools)) if getattr(system, "EDUCATION_ENTRIES", False) else system.questions(url)
     keeping = config.get("saved_answers")
     answers = questions.draft(asked, master["contact"], before, config,
-                              master.get("career_break"), saved_answers.load() if keeping else [])
+                              master.get("career_break"), saved_answers.load() if keeping else [], schools)
     if reads:
         answers = questions.merge(before, answers)
     questions.save(out, {"system": name, "url": app_url, "questions": answers})
@@ -126,11 +138,14 @@ def prepare(slug: str, url: str) -> None:
         print(line(a))
     if note := upload_note(system, answers):
         print(note)
+    if note := typed_note(system, answers):
+        print(note)
     if note := ai_note(answers):
         print(note)
     selfid = config.get("self_identification") or {}
     if questions.asks_voluntary(answers) and selfid and selfid.get("fill_on_forms") is None:
-        print("ask once: fill the user's saved voluntary answers (gender, race, veteran) on forms, named before "
+        print("ask once: fill the user's saved voluntary answers (gender, race, veteran, orientation, transgender, "
+              "disability, armed forces) on forms, named before "
               "Submit? Yes -> self_identification.fill_on_forms: true in search settings, then prepare again; "
               "No -> false (asked on each form as now)")
     if keeping is None:

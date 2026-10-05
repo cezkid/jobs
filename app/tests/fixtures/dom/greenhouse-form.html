@@ -2,7 +2,9 @@
 <!-- A Greenhouse-like form for the in-window fill (apply/window.py) and Chrome (test_dom.py): its widgets as
 greenhouse.py meets them (dropdown = react-select markup as measured live 2026-10-05, ids anonymised, css class
 hashes + icons left out; checkbox list; file box w/ its filename line), plus what the window made costly when
-measured: smooth scrolling and a site's own `debugger;` line. Local only, no requests.
+measured: smooth scrolling and a site's own `debugger;` line. One request, to the page's own server: the file box is
+ready only once it answers (Greenhouse asks its storage form after load) - a file chosen before that gets the page's own
+"reading 'uploadFile'" error line, never the name, and the line stays after a later choice works (plan-29g.25).
 `data-options` / `data-drops` are this page's own (React holds the live list): drops = the page shows a pick,
 then empties the box 800 ms later - "once" (the first pick only) or "always" - as a live form showed every
 dropdown empty that fill had reported ok (plan-29g.20); the screen-reader log keeps saying it was selected. -->
@@ -47,12 +49,19 @@ dropdown empty that fill had reported ok (plan-29g.20); the screen-reader log ke
 <div id="upload-label-resume">Resume/CV</div>
 <input type="file" id="resume" style="position: absolute; opacity: 0; width: 1px; height: 1px">
 <div aria-labelledby="upload-label-resume"><span class="file-upload__filename"></span></div>
+<p id="resume-error" class="helper-text helper-text--error" aria-live="polite"></p>
 </form>
 <script>
 // a site's own breakpoint: with the debugger attached it would stop the page under the fill
 document.getElementById("email").addEventListener("input", () => { debugger; });
-document.getElementById("resume").addEventListener("change", (ev) => {
-  document.querySelector('[aria-labelledby="upload-label-resume"] .file-upload__filename').textContent = ev.target.files[0].name;
+const uploaders = {};
+fetch("/uncacheable_attributes/presigned_fields?fields[]=resume").then((r) => r.ok && r.json())
+  .then((a) => { if (a) uploaders.resume = {uploadFile: async () => {}}; }, () => {});
+document.getElementById("resume").addEventListener("change", async (ev) => {
+  const file = ev.target.files[0];
+  try { await uploaders.resume.uploadFile(file); }
+  catch (e) { document.getElementById("resume-error").textContent = " " + e.message; return; }
+  document.querySelector('[aria-labelledby="upload-label-resume"] .file-upload__filename').textContent = file.name;
 });
 for (const input of document.querySelectorAll("input[role=combobox]")) {
   const select = input.closest(".select"), shell = select.querySelector(".select-shell");
