@@ -162,6 +162,21 @@ the user's own install + subscriptions.
   over `today.model`, shared `doAction`), plus Applied from `My Jobs/2 Applied`. Opened once per
   folder (VS Code starts it collapsed); redraws on `.data/today.json` + `My Jobs/**` changes.
   Squeeze on the file list: owner visual check (plan-ejf.12.6).
+- Loading splash (#p, #q, owner 2026-10-04): double-click showed nothing until Today drew - update +
+  launch invisible, then VS Code's empty window until its extension host is up (3.9-7.1 s, #p).
+  Nothing of ours paints inside VS Code before that => small native window outside it, started by
+  the start script BEFORE update: Mac `app/install/splash-mac.js` (JXA via `osascript`, no deps; on
+  screen in 0.5 s, #q), Windows `splash-windows.ps1` (PowerShell 5.1 + WinForms, run from a copy in
+  `.data\` so update can swap `app\`). Icon, name, "Opening...", first-start hint, spinner; brand
+  paper / desk colours by `.data/look`, else the computer's mode; floats above VS Code's window, no
+  Dock / taskbar entry; Mac one never takes the keyboard (Windows: owner check). Closes on the
+  ready signal `.data/window-ready`
+  (newer than the splash's start): extension writes it once the start page is shown (or failed) +
+  at Today's first draw; launcher only where the extension won't (VS Code already running, ours not
+  installed at this version, `code` failed, any exception - never a `finally`: a cold launch returns
+  before the window exists); start script when launch fails. Also closes on a click or after 45 s.
+  No pid file / single instance: a reused pid would hide it for good. Extension also starts on
+  `workspaceContains:app/jobs.py` (#p): page ~0.3 s sooner where the Jobs panel isn't drawn at start.
 - Buttons put words in the chat, never send: Copilot fills its box; Claude + ChatGPT can't be
   filled w/o a new chat (#d, #e) => copy + open + one paste line. No `vscode://` handler.
 
@@ -218,3 +233,10 @@ Owner checks still open (beyond the button checks above):
   every folder they open, not just Job Finder's; folder settings can't set it (1.140: application scope).
 - Extension on the Marketplace: a public listing for a local-only helper; sync would pull it in
   everywhere. Local vsix, pinned, out of sync instead.
+- Loading text inside VS Code before its extension host: every view that renders is an extension
+  => nothing of ours can paint there. Splash lives outside VS Code instead.
+- Notification at the double-click: fades after a few seconds, doesn't track loading.
+- tkinter splash: Python's icon shows in the Dock next to ours.
+- AppleScript applet progress window: frozen while the applet's `do shell script` blocks.
+- `*` activation (start w/ every window): while the profile is pending ours lives in the default
+  profile => would run in every folder they open. `workspaceContains:app/jobs.py` instead (#p).
