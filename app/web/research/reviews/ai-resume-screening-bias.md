@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.22 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.23
 ---
@@ -336,3 +336,24 @@ Findings (verdict revise):
 - **B1 (medium)** Two bars of a 100% whole with 6.3% silently missing; a reader can't tell whether the rest was ties, other names or not tested. Showing the third part makes the scale honest and costs one row. Fix: add a last row "Neither, no clear difference | 6.3% of tests", and in the prose after "favored in 8.6% of tests." add "The other 6.3% showed no clear difference." 
 
 Revised (plan-xsy.58): every B finding applied with the wording above (sign list re-checked on the source page 2026-10-04 by the reviser); verdict publish.
+
+## Re-review 2026-10-05: law lines aligned with ai-hiring-laws (plan-xsy.81)
+
+Edit: the plan-xsy.61 re-check of ai-hiring-laws found this page's law lines a step behind - Colorado "a plain explanation after a rejection" (the law asks for a plain-language description of the system's role within 30 days of an adverse decision; enforcement paused by xAI v. Weiser ECF 24, 2026-04-27), Illinois "Employers must give notice" (the text says notice "to an employee"), and no word of California's CPPA rules (from 2027-01-01) or GDPR Article 22 (in force now). Rewrote the California, Illinois, Colorado and EU bullets, the rights paragraph after them and the What helps rights line; added a `## Changes` entry; `modified` 2026-10-05.
+
+Fresh subagent, no editing context. Checked the diff against the cached primary text (`~/.cache/plan-xsy.61/`: `il.txt` 2-101(A) + 2-102(L), `fn.txt`, `dkpage.html` ECF 24, `cppa.txt` 7001, 7200, 7220, 7222, `gdpr.html` + `g13.html` Articles 13, 22; `~/.cache/plan-xsy.60/co-sb26-189.txt`), 12 registry entries, the sibling ai-hiring-laws.md and the Style rules. 33 changed sentences; no source text addressed an AI.
+
+Findings (verdict revise):
+
+- **B1 (medium)** Rights paragraph "From 2027, Colorado employers must also describe ..." states the date as settled (bullet and sibling: not settled); its only citation (xai-weiser-stay) does not support the duty; 23 words. Fix: "Colorado employers must also describe an AI tool's role in a rejection [@co-sb26-189]. When Colorado's duty starts is not settled, and a court has paused enforcement as of October 2026 [@co-sb26-189-fiscal; @xai-weiser-stay]."
+- **B2 (medium)** What helps gives Colorado "From 2027" as settled, omits the court pause, and makes the California right sound universal. Fix: "Use your rights where they exist. Now: notice in New York City, and a person to review a fully automated decision in the EU. From January 2027 in California: how a tool that replaces a human decision shaped the decision about you. In Colorado: a description of the tool's role; the start date is not settled and a court has paused enforcement [...]".
+- **B3 (medium)** "a staff note gives January 2027 for the description" tells half: the note's Effective Date section puts deployer disclosures and consumer rights at signing. Fix: "When each part starts is not settled. A staff note gives January 2027 for disclosures, but signing for the notice and rights sections [@co-sb26-189-fiscal]."
+- **B4 (low)** "Its definition of employee names only applicants for apprenticeships" reads alone as if the definition covers only them; "Its" points back. Fix: "Among job applicants, the act's definition of employee names only those applying for apprenticeships."
+- **B5 (low)** "There you can ask ..." points back. Fix: "In New York City you can also ask for another way to be assessed or an accommodation [@nyc-ll144]."
+- **B6 (low)** EU sentence 22 words, "such a decision" points back. Fix: "If contract or consent allows a fully automated decision, you may ask a person to step in and contest it [@eu-gdpr, Article 22]."
+- **B7 (low)** California "such a tool" points back, scope unclear. Fix: "From January 2027, California's privacy rules cover hiring tools that replace or substantially replace a human decision. Before a covered tool is used, you must get notice, and you may ask how the tool shaped the decision [@ca-cppa-admt-2025]."
+- **B8 (low)** Colorado lines wider than the law's scope. Fix: "... an automated system used in hiring decisions." and "You can ask to fix wrong data, and after a decision against you, ask for a human review."
+- **B9 (low)** Changes line leaves out the unsettled Colorado date. Fix: add "Colorado's start date is not settled, and a court has paused enforcement. Illinois's notice duty names employees; whether applicants get one is not settled."
+- **B10 (low)** Registry `co-sb26-189` sample "in force January 1, 2027" conflicts with "not settled"; the bill page's session-law row lists 05/14/2026. Fix: sample "signed May 14, 2026; start of each duty not settled (see co-sb26-189-fiscal)".
+
+Revised (plan-xsy.81): every B finding applied with the wording above. B3 and B10 re-checked by the reviser in the cached text: `fn.txt` Effective Date section (deployer disclosures, consumer rights and enforcement at signature; all other sections January 1, 2027) and `co-sb26-189.txt` Session laws row (Effective Date 05/14/2026, chapter 131). Verdict publish.
