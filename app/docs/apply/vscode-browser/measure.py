@@ -13,6 +13,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            same form via Runtime.evaluate, Input.*, DOM.setFileInputFiles; frames; debugger trap;
            what the user sees (screenshots, window only); write block + canary (lab.py rules)
   gh       route 2 on ONE public Greenhouse posting: block + canary first, dummy data, never Submit
+  ghfill   the trial's own filler (window.Page + form.fill_page) on every question of one posting, same
+           block + canary, synthetic answers; each dropdown read back off the page now + JF_LATE s later
   restricted  untrusted folder (Restricted Mode): does the attach start?
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [greenhouse url]
@@ -782,6 +784,70 @@ def gh(result):
         close()
 
 
+# ---------------------------------------------------------------- the shipped filler, every question (plan-29g.20)
+# each dropdown's shown choice (react-select single-value / multi-value tags), straight off the page
+SHOWN = """Object.fromEntries([...document.querySelectorAll('input[role=combobox]')].map((e) => {
+  const box = e.closest('.select__container') || e.closest('.select-shell') || e.parentElement;
+  return [e.id, [...box.querySelectorAll('[class*=single-value], [class*=multi-value__label]')].map((v) => v.innerText.trim())]; }))"""
+
+
+def ghfill(result):
+    """The trial's own filler (window.Page + form.fill_page, as `fill --in-window`) on every question of one
+    posting, synthetic answers (trial.synthetic): block + canary first, never Submit. Each dropdown read
+    back off the page at once and again after LATE s - what the filler said vs what the page shows."""
+    from apply import form, trial, window
+    from apply.systems import greenhouse
+    if not GH_URL or "greenhouse.io/" not in GH_URL:
+        sys.exit("ghfill needs a job-boards.greenhouse.io posting link")
+    late = int(os.environ.get("JF_LATE", "8"))
+    proc, result["launch"] = launch()
+    home, other, close = formsite.serve(TITLE)
+    try:
+        ask({"do": "open", "url": f"{home}/blank"})
+        time.sleep(2)
+        res, found, conns = attach(f"{home}/blank*", QUIET)
+        result["attach"] = {k: res.get(k) for k in ("ok", "error", "ms", "sessions")}
+        c = pick(conns, f"{home}/blank")
+        if not c:
+            result["error"] = "no CDP proxy reached the tab"
+            return
+        block = Block(c, 3)
+        result["install"] = attempt(block.install)
+        result["canary"] = canary(c, block, "canary")
+        if result["canary"]["received"] or not result["canary"]["loaded"]:
+            result["refused"] = "canary received writes (or never loaded): posting not opened"
+            return
+        page = window.Page(c)
+        page.quiet()
+        block.step = "load"
+        page.goto(GH_URL)
+        form.open_form(page, greenhouse, GH_URL)
+        page.wait_for_load_state("networkidle")
+        result["focus"] = quietly(lambda: c.evaluate("[document.hasFocus(), document.visibilityState, devicePixelRatio, innerWidth]"))
+        qs = greenhouse.questions(GH_URL)
+        for q in qs:
+            q["answer"], why = trial.synthetic(q)
+        asked = [q for q in qs if q["answer"] is not None]
+        resume, letter = trial.files(D)
+
+        def before(q):
+            block.step = f"fill {q['id']}" if q else "done"
+        report, extra = form.fill_page(page, greenhouse, asked, resume, letter, before)
+        now_, then = c.evaluate(SHOWN), (time.sleep(late), c.evaluate(SHOWN))[1]
+        kinds = {q["id"]: q["kind"] for q in asked}
+        result["fill"] = [{"id": id, "kind": kinds[id], "answer": next(q["answer"] for q in asked if q["id"] == id),
+                           "said": said, "shown": now_.get(id), f"shownAfter{late}s": then.get(id)}
+                          for id, said in report if id in now_]
+        result["other"] = [(id, said) for id, said in report if id not in now_]
+        result["tabShot"] = tab_shot(c, "gh-fill-tab")
+        result["shot"] = screenshot("gh-fill", proc)
+        result["submitClicked"] = False
+        result["block"] = {"reads": block.reads, "failed": [(b["method"], b["url"][:80], b["after"]) for b in block.log]}
+    finally:
+        result["quit"] = quit_(proc)
+        close()
+
+
 # ---------------------------------------------------------------- Restricted Mode (untrusted folder)
 def restricted(result):
     """User setting startupPrompt never -> the folder opens untrusted w/o a dialog: does the attach start?"""
@@ -814,7 +880,7 @@ if __name__ == "__main__":
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "restricted": restricted}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "restricted": restricted}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

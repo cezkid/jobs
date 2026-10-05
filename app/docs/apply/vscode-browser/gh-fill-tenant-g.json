@@ -1,0 +1,443 @@
+{
+ "stage": "ghfill",
+ "at": "2026-10-05T07:59:05Z",
+ "uniq": "447aa4",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 11630,
+  "upInfo": {
+   "t": 1791187162753,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 8269,
+  "sessions": [
+   {
+    "id": "8c604f44-4e06-4883-8f52-3b3ab202a73b",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "e44c53e2-67d2-44c6-a0a9-65eb26590adc",
+    "type": "pwa-editor-browser",
+    "name": "JF form 447aa4 blank \u00ab Job Finder form",
+    "parent": "8c604f44-4e06-4883-8f52-3b3ab202a73b"
+   }
+  ]
+ },
+ "install": {
+  "ok": true,
+  "ms": 27,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:58823/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:58823/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:58823/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:58823/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:58824/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:58823/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "focus": [
+  false,
+  "visible",
+  2,
+  828
+ ],
+ "fill": [
+  {
+   "id": "country",
+   "kind": "choice",
+   "answer": "United States",
+   "said": "ok",
+   "shown": [
+    "+1"
+   ],
+   "shownAfter8s": [
+    "+1"
+   ]
+  },
+  {
+   "id": "question_32890951003",
+   "kind": "choice",
+   "answer": "Career Fair",
+   "said": "ok",
+   "shown": [
+    "Career Fair"
+   ],
+   "shownAfter8s": [
+    "Career Fair"
+   ]
+  },
+  {
+   "id": "question_32890953003",
+   "kind": "choice",
+   "answer": "Alabama",
+   "said": "ok",
+   "shown": [
+    "Alabama"
+   ],
+   "shownAfter8s": [
+    "Alabama"
+   ]
+  },
+  {
+   "id": "question_32890954003",
+   "kind": "yesno",
+   "answer": "No",
+   "said": "ok",
+   "shown": [
+    "No"
+   ],
+   "shownAfter8s": [
+    "No"
+   ]
+  },
+  {
+   "id": "candidate-location",
+   "kind": "location",
+   "answer": "New York",
+   "said": "ok",
+   "shown": [
+    "New York, New York, United States"
+   ],
+   "shownAfter8s": [
+    "New York, New York, United States"
+   ]
+  },
+  {
+   "id": "4006636003",
+   "kind": "multichoice",
+   "answer": [
+    "Man"
+   ],
+   "said": "ok",
+   "shown": [
+    "Man"
+   ],
+   "shownAfter8s": [
+    "Man"
+   ]
+  },
+  {
+   "id": "4006633003",
+   "kind": "multichoice",
+   "answer": [
+    "Black or of African descent"
+   ],
+   "said": "ok",
+   "shown": [
+    "Black or of African descent"
+   ],
+   "shownAfter8s": [
+    "Black or of African descent"
+   ]
+  },
+  {
+   "id": "4006631003",
+   "kind": "multichoice",
+   "answer": [
+    "Asexual"
+   ],
+   "said": "ok",
+   "shown": [
+    "Asexual"
+   ],
+   "shownAfter8s": [
+    "Asexual"
+   ]
+  },
+  {
+   "id": "4006630003",
+   "kind": "choice",
+   "answer": "Yes",
+   "said": "ok",
+   "shown": [
+    "Yes"
+   ],
+   "shownAfter8s": [
+    "Yes"
+   ]
+  },
+  {
+   "id": "4006628003",
+   "kind": "choice",
+   "answer": "Yes",
+   "said": "ok",
+   "shown": [
+    "Yes"
+   ],
+   "shownAfter8s": [
+    "Yes"
+   ]
+  },
+  {
+   "id": "4006627003",
+   "kind": "choice",
+   "answer": "Yes, I am a veteran or active member",
+   "said": "ok",
+   "shown": [
+    "Yes, I am a veteran or active member"
+   ],
+   "shownAfter8s": [
+    "Yes, I am a veteran or active member"
+   ]
+  },
+  {
+   "id": "veteran_status",
+   "kind": "choice",
+   "answer": "I identify as one or more of the classifications of a protected veteran",
+   "said": "ok",
+   "shown": [
+    "I identify as one or more of the classifications of a protected veteran"
+   ],
+   "shownAfter8s": [
+    "I identify as one or more of the classifications of a protected veteran"
+   ]
+  },
+  {
+   "id": "hispanic_ethnicity",
+   "kind": "choice",
+   "answer": "Yes",
+   "said": "ok",
+   "shown": [
+    "Yes"
+   ],
+   "shownAfter8s": [
+    "Yes"
+   ]
+  },
+  {
+   "id": "gender",
+   "kind": "choice",
+   "answer": "Female",
+   "said": "ok",
+   "shown": [
+    "Female"
+   ],
+   "shownAfter8s": [
+    "Female"
+   ]
+  }
+ ],
+ "other": [
+  [
+   "resume",
+   "ASK upload not confirmed on page - check the box"
+  ],
+  [
+   "cover_letter",
+   "ASK upload not confirmed on page - check the box"
+  ],
+  [
+   "first_name",
+   "ok"
+  ],
+  [
+   "last_name",
+   "ok"
+  ],
+  [
+   "email",
+   "ok"
+  ],
+  [
+   "phone",
+   "ok"
+  ],
+  [
+   "question_32890945003",
+   "ok"
+  ],
+  [
+   "question_32890946003",
+   "ok"
+  ],
+  [
+   "question_32890947003",
+   "ok"
+  ],
+  [
+   "question_32890948003[]",
+   "ok"
+  ],
+  [
+   "question_32890949003[]",
+   "ok"
+  ],
+  [
+   "question_32890950003",
+   "ok"
+  ],
+  [
+   "question_32906919003",
+   "ok"
+  ],
+  [
+   "question_32890952003",
+   "ok"
+  ],
+  [
+   "question_32890957003",
+   "ok"
+  ],
+  [
+   "race",
+   "skipped - not shown for the other answers"
+  ]
+ ],
+ "tabShot": {
+  "path": "<shots>/gh-fill-tab.png",
+  "bytes": 102719
+ },
+ "shot": {
+  "path": "<shots>/gh-fill.png",
+  "bytes": 668870
+ },
+ "submitClicked": false,
+ "block": {
+  "reads": 30,
+  "failed": [
+   [
+    "POST",
+    "http://127.0.0.1:58823/w/xhr",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://localhost:58824/w/cross",
+    "canary"
+   ],
+   [
+    "GET",
+    "http://localhost:58824/frame.html",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:58823/w/keepalive",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:58823/w/beacon",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:58823/w/form",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:58823/w/worker",
+    "canary"
+   ],
+   [
+    "POST",
+    "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2",
+    "load"
+   ],
+   [
+    "GET",
+    "https://content.googleapis.com/static/proxy.html?usegapi=1&jsh=m%3B%2F_%2Fscs%2F",
+    "load"
+   ],
+   [
+    "GET",
+    "https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LfmcbcpAAAAAChNTbh",
+    "load"
+   ],
+   [
+    "POST",
+    "https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/",
+    "fill resume"
+   ],
+   [
+    "POST",
+    "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2",
+    "fill resume"
+   ],
+   [
+    "GET",
+    "https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LfmcbcpAAAAAChNTbh",
+    "fill resume"
+   ],
+   [
+    "POST",
+    "https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/",
+    "fill cover_letter"
+   ]
+  ]
+ },
+ "quit": {
+  "killed": false
+ }
+}

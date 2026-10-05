@@ -84,12 +84,17 @@ def asked(id, title, kind, answer, key=None, options=(), native=None):
 ANSWERS = [asked("first_name", "First Name", "text", "Ada", key="first_name"),
            asked("email", "Email", "email", "ada@example.com", key="email"),
            asked("question_5", "Country of residence", "choice", "Canada", options=["Canada", "Cameroon"]),
+           # the page empties it once, 800 ms after the pick: read back, filled again, it holds
+           asked("question_6", "Sponsorship", "yesno", "No", options=["Yes", "No"]),
+           # the page empties every pick: never an ok the page doesn't show (plan-29g.20)
+           asked("question_7", "How did you hear about this job?", "choice", "Referral", options=["Career Fair", "Referral"]),
            asked("question_100[]", "Employment Preference", "multichoice", ["Part Time", "Contract"]),
            asked("resume", "Resume/CV", "file", True, key="resume")]
 
 
-def test_in_window_page_fills_greenhouse_in_a_tab_over_cdp(tab, site, tmp_path):
+def test_in_window_page_fills_greenhouse_in_a_tab_over_cdp(tab, site, tmp_path, monkeypatch):
     # what form.fill does on the page, through the adapter: every box Greenhouse's filler types into
+    monkeypatch.setattr(form, "SETTLE_MS", 1500)  # past the page's 800 ms drop, quicker than live
     resume = tmp_path / "Ada_Lovelace_Resume.pdf"
     resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
     cdp = CDP(**tab)
@@ -100,11 +105,15 @@ def test_in_window_page_fills_greenhouse_in_a_tab_over_cdp(tab, site, tmp_path):
         assert page.url == site and form.closed(page) is None
         page.locator(greenhouse.READY).first.wait_for(timeout=5000)
         report, extra = form.fill_page(page, greenhouse, ANSWERS, str(resume), None)
-        assert dict(report) == {q["id"]: "ok" for q in ANSWERS} and extra == []
+        got = dict(report)
+        # a slow run sees it empty at the pick's own read-back ("not selected"), else at recheck: FAIL either way
+        assert got.pop("question_7").startswith("FAIL ")
+        assert got == {q["id"]: "ok" for q in ANSWERS if q["id"] != "question_7"} and extra == []
         # read back off the page itself, not the filler's word: the old name replaced, not added to
         assert page.run("document.getElementById('first_name').value") == "Ada"
         assert page.run("document.getElementById('email').value") == "ada@example.com"
-        assert greenhouse.picked(greenhouse.by_id(page, "question_5")) == ["Canada"]
+        shown = "id => document.getElementById(id).closest('.select__control').querySelector('.select__single-value')?.innerText"
+        assert [page.run(f"({shown})('question_{n}')") for n in (5, 6, 7)] == ["Canada", "No", None]
         assert page.run("[...document.querySelectorAll('[name=\"question_100[]\"]')].map(b => b.checked)") == [False, True, True]
         assert page.run("document.getElementById('resume').files[0].name") == resume.name
     finally:

@@ -1,15 +1,41 @@
 <!doctype html>
-<!-- A Greenhouse-like form for the in-window fill (apply/window.py): its widgets as greenhouse.py meets them
-(dropdown = react-select markup, checkbox list, file box w/ its filename line), plus what the window made
-costly when measured: smooth scrolling and a site's own `debugger;` line. Local only, no requests. -->
+<!-- A Greenhouse-like form for the in-window fill (apply/window.py) and Chrome (test_dom.py): its widgets as
+greenhouse.py meets them (dropdown = react-select markup as measured live 2026-10-05, ids anonymised, css class
+hashes + icons left out; checkbox list; file box w/ its filename line), plus what the window made costly when
+measured: smooth scrolling and a site's own `debugger;` line. Local only, no requests.
+`data-options` / `data-drops` are this page's own (React holds the live list): drops = the page shows a pick,
+then empties the box 800 ms later - "once" (the first pick only) or "always" - as a live form showed every
+dropdown empty that fill had reported ok (plan-29g.20); the screen-reader log keeps saying it was selected. -->
 <html style="scroll-behavior: smooth"><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form>
 <label for="first_name">First Name</label><input type="text" id="first_name" value="Jane">
 <label for="email">Email</label><input type="email" id="email">
 <div style="height: 2000px"></div>
-<div class="select__container"><label id="question_5-label" for="question_5">Country of residence</label>
-  <div class="select-shell"><div class="select__control"><div class="select__value-container">
-    <div class="select__input-container"><input class="select__input" id="question_5" role="combobox" aria-expanded="false"
-      type="text" value="" data-options='["Canada", "Cameroon", "United States", "United Kingdom"]'></div>
+<div class="field-wrapper"><div class="select" data-options='["Canada", "Cameroon", "United States", "United Kingdom"]'><div class="select__container">
+  <label id="question_5-label" for="question_5" class="label select__label">Country of residence<span aria-hidden="true">*</span></label>
+  <div class="select-shell"><span id="react-select-question_5-live-region" class="a11yText"></span><span aria-live="polite" aria-atomic="false" aria-relevant="additions text" role="log" class="a11yText"></span>
+    <div><div class="select__control"><div class="select__value-container">
+      <div class="select__placeholder" id="react-select-question_5-placeholder">Select...</div>
+      <div class="select__input-container" data-value=""><input class="select__input" autocapitalize="none" autocomplete="off" autocorrect="off" id="question_5" spellcheck="false" tabindex="0" type="text" aria-autocomplete="list" aria-expanded="false" aria-haspopup="true" aria-labelledby="question_5-label" aria-required="true" role="combobox" enterkeyhint="done" value=""></div>
+    </div><div class="select__indicators"><button type="button" class="icon-button icon-button--sm" aria-label="Toggle flyout" tabindex="-1"></button></div></div></div>
+    <input required="" tabindex="-1" aria-hidden="true" class="requiredInput" value="">
+  </div></div></div></div>
+<div class="field-wrapper"><div class="select" data-options='["Yes", "No"]' data-drops="once"><div class="select__container">
+  <label id="question_6-label" for="question_6" class="label select__label">Will you now or in the future require sponsorship for employment visa status?<span aria-hidden="true">*</span></label>
+  <div class="select-shell"><span id="react-select-question_6-live-region" class="a11yText"></span><span aria-live="polite" aria-atomic="false" aria-relevant="additions text" role="log" class="a11yText"></span>
+    <div><div class="select__control"><div class="select__value-container">
+      <div class="select__placeholder" id="react-select-question_6-placeholder">Select...</div>
+      <div class="select__input-container" data-value=""><input class="select__input" autocapitalize="none" autocomplete="off" autocorrect="off" id="question_6" spellcheck="false" tabindex="0" type="text" aria-autocomplete="list" aria-expanded="false" aria-haspopup="true" aria-labelledby="question_6-label" aria-required="true" role="combobox" enterkeyhint="done" value=""></div>
+    </div><div class="select__indicators"><button type="button" class="icon-button icon-button--sm" aria-label="Toggle flyout" tabindex="-1"></button></div></div></div>
+    <input required="" tabindex="-1" aria-hidden="true" class="requiredInput" value="">
+  </div></div></div></div>
+<div class="field-wrapper"><div class="select" data-options='["Career Fair", "LinkedIn", "Referral"]' data-drops="always"><div class="select__container">
+  <label id="question_7-label" for="question_7" class="label select__label">How did you hear about this job?<span aria-hidden="true">*</span></label>
+  <div class="select-shell"><span id="react-select-question_7-live-region" class="a11yText"></span><span aria-live="polite" aria-atomic="false" aria-relevant="additions text" role="log" class="a11yText"></span>
+    <div><div class="select__control"><div class="select__value-container">
+      <div class="select__placeholder" id="react-select-question_7-placeholder">Select...</div>
+      <div class="select__input-container" data-value=""><input class="select__input" autocapitalize="none" autocomplete="off" autocorrect="off" id="question_7" spellcheck="false" tabindex="0" type="text" aria-autocomplete="list" aria-expanded="false" aria-haspopup="true" aria-labelledby="question_7-label" aria-required="true" role="combobox" enterkeyhint="done" value=""></div>
+    </div><div class="select__indicators"><button type="button" class="icon-button icon-button--sm" aria-label="Toggle flyout" tabindex="-1"></button></div></div></div>
+    <input required="" tabindex="-1" aria-hidden="true" class="requiredInput" value="">
   </div></div></div></div>
 <div style="height: 2000px"></div>
 <fieldset class="checkbox" id="question_100[]">
@@ -29,9 +55,21 @@ document.getElementById("resume").addEventListener("change", (ev) => {
   document.querySelector('[aria-labelledby="upload-label-resume"] .file-upload__filename').textContent = ev.target.files[0].name;
 });
 for (const input of document.querySelectorAll("input[role=combobox]")) {
-  const control = input.closest(".select__control"), shell = control.parentElement;
-  const options = JSON.parse(input.dataset.options);
+  const select = input.closest(".select"), shell = select.querySelector(".select-shell");
+  const values = shell.querySelector(".select__value-container"), log = shell.querySelector("[role=log]");
+  const options = JSON.parse(select.dataset.options);
+  let picks = 0;
   const close = () => { shell.querySelector(".select__menu")?.remove(); input.setAttribute("aria-expanded", "false"); };
+  const show = (o) => {
+    values.querySelector(".select__single-value, .select__placeholder")?.remove();
+    const v = document.createElement("div");
+    v.className = o ? "select__single-value" : "select__placeholder";
+    v.textContent = o || "Select...";
+    values.prepend(v);
+    values.classList.toggle("select__value-container--has-value", !!o);
+    shell.querySelector(".requiredInput")?.remove();
+    if (!o) shell.insertAdjacentHTML("beforeend", '<input required="" tabindex="-1" aria-hidden="true" class="requiredInput" value="">');
+  };
   const open = () => {
     close();
     const menu = document.createElement("div");
@@ -42,13 +80,12 @@ for (const input of document.querySelectorAll("input[role=combobox]")) {
       d.textContent = o;
       d.addEventListener("mousedown", (ev) => ev.preventDefault());
       d.addEventListener("click", () => {
-        control.querySelector(".select__single-value")?.remove();
-        const v = document.createElement("div");
-        v.className = "select__single-value";
-        v.textContent = o;
-        control.querySelector(".select__value-container").prepend(v);
+        show(o);
+        log.textContent = `option ${o}, selected.`;
         input.value = "";
         close();
+        picks += 1;
+        if (select.dataset.drops === "always" || (select.dataset.drops === "once" && picks === 1)) setTimeout(() => show(""), 800);
       });
       menu.append(d);
     }

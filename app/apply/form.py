@@ -252,6 +252,14 @@ def open_form(page, system, url: str) -> None:
     page.locator(system.READY).first.wait_for(timeout=30000)
 
 
+def put(page, system, q: dict, file: str | None) -> str:
+    """One answer into its box -> what took; one stuck box never stops the rest."""
+    try:
+        return system.fill(page, q, file)
+    except Exception as e:
+        return f"FAIL {type(e).__name__}: {str(e).splitlines()[0][:120]}"
+
+
 def fill_page(page, system, qs: list[dict], resume: str | None, letter: str | None, before=None) -> tuple[list, list]:
     """Every answered question typed into the page as it stands -> (report [(id, result)], ids on
     the page the file lacks). One path for fill and try (lab): what try proves is what fill does.
@@ -263,11 +271,7 @@ def fill_page(page, system, qs: list[dict], resume: str | None, letter: str | No
             continue
         if before:
             before(q)
-        try:
-            result = system.fill(page, q, letter if q.get("key") == "cover_letter" else resume)
-        except Exception as e:  # one stuck box never stops the rest
-            result = f"FAIL {type(e).__name__}: {str(e).splitlines()[0][:120]}"
-        report.append((q["id"], result))
+        report.append((q["id"], put(page, system, q, letter if q.get("key") == "cover_letter" else resume)))
     if before:
         before(None)
     report = recheck(page, system, qs, report, resume)
@@ -296,22 +300,33 @@ def page_report(qs: list[dict], report: list[tuple], shown: set, per_page: bool)
 
 def recheck(page, system, qs: list[dict], report: list[tuple], resume: str | None) -> list[tuple]:
     """Answers that showed then dropped before Submit (a user saw two flagged empty on Ashby,
-    2026-10): once the form has had time to save, read each back; one gone is filled again once,
-    still gone -> FAIL so the user fills it by hand. Systems without `holds` are left as filled."""
+    2026-10; every Greenhouse dropdown empty though filled ok, plan-29g.20): once the form has had
+    time to save, read each back off the page; the ones gone are filled again once, one wait for
+    all, still gone -> FAIL so the user fills it by hand. Systems without `holds` are left as filled."""
     if not hasattr(system, "holds"):
         return report
-    page.wait_for_timeout(SETTLE_MS)
     by_id = {q["id"]: q for q in qs}
-    out = []
-    for id, result in report:
-        q = by_id[id]
-        if result == "ok" and q["kind"] != "file" and not system.holds(page, q):
-            result = system.fill(page, q, resume)
-            page.wait_for_timeout(SETTLE_MS)
-            if result == "ok" and not system.holds(page, q):
-                result = "FAIL answer dropped after filling - fill it by hand"
-        out.append((id, result))
-    return out
+
+    def gone(rows):
+        out = set()
+        for id, result in rows:
+            if result != "ok" or by_id[id]["kind"] == "file":
+                continue
+            try:
+                held = system.holds(page, by_id[id])
+            except Exception:  # unreadable = not shown: never an ok the page doesn't back
+                held = False
+            if not held:
+                out.add(id)
+        return out
+
+    page.wait_for_timeout(SETTLE_MS)
+    if not (dropped := gone(report)):
+        return report
+    report = [(id, put(page, system, by_id[id], resume) if id in dropped else result) for id, result in report]
+    page.wait_for_timeout(SETTLE_MS)
+    still = gone([(id, result) for id, result in report if id in dropped])
+    return [(id, "FAIL answer dropped after filling - fill it by hand" if id in still else result) for id, result in report]
 
 
 def remember(config: dict, folder: Path, data: dict) -> None:

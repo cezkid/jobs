@@ -207,12 +207,19 @@ def put_select(page, field, value, starts: bool = False) -> str:
     return "ok"
 
 
+def box_names(boxes) -> list[str]:
+    return boxes.evaluate_all("bs => bs.map(b => [...b.labels].map(l => l.innerText).join(' ').replace(/\\s+/g, ' ').trim())")
+
+
+def wanted(value) -> list[str]:
+    return [dom.norm(str(v)) for v in (value if isinstance(value, list) else [value])]
+
+
 def put_boxes(boxes, value) -> str:
     """A mark-all-that-apply list drawn as checkboxes (`fieldset` of `input[name="question_<n>[]"]`, each
     named by its own label): tick each answer by its label, untick the rest, read every box back."""
-    names = boxes.evaluate_all("bs => bs.map(b => [...b.labels].map(l => l.innerText).join(' ').replace(/\\s+/g, ' ').trim())")
-    want = [dom.norm(str(v)) for v in (value if isinstance(value, list) else [value])]
-    return dom.put_ticks([boxes.nth(i) for i in range(len(names))], names, want, role=False, single=False)
+    names = box_names(boxes)
+    return dom.put_ticks([boxes.nth(i) for i in range(len(names))], names, wanted(value), role=False, single=False)
 
 
 def put_file(page, q: dict, path: str) -> str:
@@ -223,6 +230,30 @@ def put_file(page, q: dict, path: str) -> str:
     except Exception:
         return "ASK upload not confirmed on page - check the box"
     return "ok"
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck): a
+    dropdown by the choice it shows (single value / tags), never the filler's word - a live form showed
+    every dropdown empty that fill had reported ok (plan-29g.20)."""
+    kind, value = q["kind"], q["answer"]
+    boxes = page.locator(f'input[type=checkbox][name="{q["id"]}"]')
+    if boxes.count():
+        want = wanted(value)
+        return all((n in want) == t for n, t in zip(box_names(boxes), boxes.evaluate_all("bs => bs.map(b => b.checked)")))
+    field = by_id(page, q["id"])
+    if not field.count():
+        return False
+    if field.get_attribute("role") == "combobox":
+        shown = [p.casefold() for p in picked(field)]
+        if q["id"] == COUNTRY:  # shows the dialing code only ("+1")
+            return bool(shown)
+        if kind == "yesno":
+            value = "Yes" if str(value).casefold() in ("yes", "true") else "No"
+        return all(any(p.startswith(str(v).strip().casefold()) for p in shown)
+                   for v in (value if isinstance(value, list) else [value]))
+    got = field.input_value()
+    return digits(got) == digits(str(value)) if kind == "phone" else got == str(value)
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:

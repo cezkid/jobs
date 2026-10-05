@@ -131,7 +131,14 @@ limits unchanged: never Submit, a file only after the user's yes (`form.fill` de
 Tests (`uv run pytest -k in_window`): the adapter fills `app/tests/fixtures/dom/greenhouse-form.html`
 (smooth scrolling, a `debugger;` line on input, react-select dropdown, checkbox list, file box) in
 real headless Chrome over CDP, every answer read back off the page; w/o pause skipping the same
-test hangs (checked). Window side = fake extension: holding page, attach, detach, each refusal.
+test hangs (checked). Two of its dropdowns empty themselves 800 ms after a pick (once / always): refilled + held, and
+`FAIL ... fill it by hand` - w/o `greenhouse.holds` the second reads ok while the page shows it empty. Window side = fake extension: holding page, attach, detach, each refusal.
+
+Owner's real run (plan-29g.18, tenant G): every dropdown reported ok, all empty on the page. Not
+reproduced (plan-29g.20): `measure.py ghfill` = the shipped filler in a scratch window, writes
+blocked, canary 0 - all 14 dropdowns ok, shown + still shown 8 s later ([gh-fill-tenant-g.json](vscode-browser/gh-fill-tenant-g.json));
+same in headless + unfocused headful Chrome. Guard since: each answer read back off the page
+2.5 s after filling (`form.recheck` + `greenhouse.holds`, Chrome path too), refilled once, else FAIL.
 
 Unmeasured live, left to plan-29g.18 (one real application in the window): detach keeps the tab +
 leaves no session; whether `internalConsoleOptions: "neverOpen"` + the suppress options now hide the
