@@ -1100,10 +1100,12 @@ PAGE_CSS = """
     .toc li { margin: 0; border-bottom: 1px solid var(--line); }
     .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
   }
-  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
-     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits (18 rows
+     at 30px; at 32px the 18th hid 25px + its link took no hover), a list of 19+ scrolls with the page, and so
+     do the hub's labels - a sticky column taller than the window hid its end (qa STICKY_FIT) */
   @media (min-width: 1280px) and (max-height: 819px) {
-    .toc a { padding: 4px 0 5px; }
+    .toc a { padding: 3px 0 4px; }
+    .toc:has(li:nth-child(19)) { position: static; max-height: none; overflow: visible; }
     .labels { position: static; max-height: none; overflow: visible; }
   }
   /* hub: each article a clipping under a thick rule, like the home page's research picks */

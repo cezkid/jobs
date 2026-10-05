@@ -290,6 +290,7 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
   A sticky column never hides part of itself: at 1280x720, 1366x641, 1440x780 + 1440x900 each fits the
   window or scrolls w/ the page (qa STICKY_FIT) - the longest On this page hid 88px at 1366x641 (on a Mac
   the last entries just weren't there; Windows drew a 2nd scrollbar). Under 820px tall its rows tighten.
+  18 rows fit at 1366x641 (30px each); a list of 19+ scrolls w/ the page there (`.toc:has(li:nth-child(19))`).
 - On this page sits before the article in the source (grid places it): after the article, the wide-screen
   list was the 85th Tab stop on the longest page, behind every citation link. The h1 is still main's
   first heading (the list's label is a `<p>`); below 1280px the closed list under the byline is the one shown.
