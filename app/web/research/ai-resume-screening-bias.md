@@ -2,7 +2,7 @@
 title: "Is AI resume screening biased? What the studies show"
 description: AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.
 published: 2026-10-03
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 og_title: "Is AI resume screening biased? What the studies show"
 uncited:
@@ -104,13 +104,13 @@ Mobley v. Workday is a US lawsuit still in progress. The plaintiffs allege Workd
 As of October 2026, a few places set rules, and some may change. This is general information, not legal advice.
 
 - **New York City**: employers using these tools need a yearly bias audit, a public summary and notice to applicants. Enforced since July 2023 [@nyc-ll144]. A 2024 check of 391 employers found only 18 posted audits [@wright-2024]. The state comptroller called the city's enforcement ineffective in December 2025 [@nys-comptroller-2025].
-- **California**: since October 2025, state rules say an automated hiring tool can break anti-discrimination law if it harms people by race, gender, disability or another protected trait. Employers must keep the tool's data for four years. Whether an employer tested its tool for bias can count in a claim [@ca-crc-ads-2025].
-- **Illinois**: since January 2026, using AI that has a discriminatory effect in hiring is a civil-rights violation. Employers must give notice [@il-hb3773].
-- **Colorado**: from January 2027, applicants get notice and a plain explanation after a rejection. They can correct wrong data and ask for a human review. The state attorney general enforces it and still has to write the detailed rules [@co-sb26-189]. A December 2025 executive order set up a federal task force to challenge state AI laws, and it names Colorado's [@eo-14365].
-- **European Union**: AI that filters applications is high-risk under the AI Act [@eu-ai-act]. Those rules now start in December 2027 [@eu-omnibus-2026].
+- **California**: since October 2025, state rules say an automated hiring tool can break anti-discrimination law if it harms people by race, gender, disability or another protected trait. Employers must keep the tool's data for four years. Whether an employer tested its tool for bias can count in a claim [@ca-crc-ads-2025]. From January 2027, California's privacy rules cover hiring tools that replace or substantially replace a human decision. Before a covered tool is used, you must get notice, and you may ask how the tool shaped the decision [@ca-cppa-admt-2025].
+- **Illinois**: since January 2026, using AI that has a discriminatory effect in hiring is a civil-rights violation [@il-hb3773]. The law also requires notice "to an employee" that AI is used. Among job applicants, the act's definition of employee names only those applying for apprenticeships. The details are left to state rules, and we found no final rule as of October 2026 [@il-pa-103-0804].
+- **Colorado**: employers must give notice when you deal with an automated system used in hiring decisions. After a decision against you, they must describe the system's role in plain words within 30 days. You can ask to fix wrong data, and after a decision against you, ask for a human review. The state attorney general enforces the law and must write rules on the description by January 2027 [@co-sb26-189]. When each part starts is not settled. A staff note gives January 2027 for disclosures, but signing for the notice and rights sections [@co-sb26-189-fiscal]. A federal court has paused enforcement as of October 2026 [@xai-weiser-stay]. A December 2025 executive order set up a federal task force to challenge state AI laws, and it names Colorado's [@eo-14365].
+- **European Union**: data protection law already covers decisions made only by software that significantly affect you. If contract or consent allows a fully automated decision, you may ask a person to step in and contest it [@eu-gdpr, Article 22]. AI that filters applications is high-risk under the AI Act [@eu-ai-act]. Those rules now start in December 2027 [@eu-omnibus-2026].
 - **US federal**: a 2025 executive order tells agencies to move away from "disparate impact" cases [@eo-14281]. Those are cases about unequal results without intent. Private lawsuits like Mobley v. Workday still use that idea [@mobley-2026-order, p. 2].
 
-In New York City and Illinois, employers must tell you when they use these tools. From 2027, Colorado employers must also describe an AI tool's role in a rejection; a court has paused enforcement as of October 2026 [@xai-weiser-stay]. In New York City you can ask for another way to be assessed or an accommodation [@nyc-ll144]. Every law, its status and what you can ask for: [AI hiring laws in 2026](ai-hiring-laws.md).
+In New York City, employers must tell you when they use these tools. In New York City you can also ask for another way to be assessed or an accommodation [@nyc-ll144]. Illinois requires notice to employees; whether job applicants get one is not settled [@il-pa-103-0804]. In the EU you can already ask a person to review a fully automated decision [@eu-gdpr]. Colorado employers must also describe an AI tool's role in a rejection [@co-sb26-189]. When Colorado's duty starts is not settled, and a court has paused enforcement as of October 2026 [@co-sb26-189-fiscal; @xai-weiser-stay]. Every law, its status and what you can ask for: [AI hiring laws in 2026](ai-hiring-laws.md).
 
 ## Which studies found what?
 
@@ -146,7 +146,7 @@ Only one row, one job at one company with an older algorithm, shows a real emplo
 
 - Apply widely. When many employers use one tool, one "no" can repeat everywhere [@bommasani-2026].
 - Keep your resume accurate, relevant and easy to read. We found no study showing a resume change that beats a biased screener.
-- Use your rights where they exist: notice in New York City and Illinois, an explanation in Colorado from 2027 [@nyc-ll144; @il-hb3773; @co-sb26-189].
+- Use your rights where they exist. Now: notice in New York City, and a person to review a fully automated decision in the EU. From January 2027 in California: how a tool that replaces a human decision shaped the decision about you. In Colorado: a description of the tool's role; the start date is not settled and a court has paused enforcement [@nyc-ll144; @eu-gdpr; @ca-cppa-admt-2025; @co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay].
 - Remember bias in a screener is the employer's problem, not a flaw in you.
 
 How we grade evidence: [How we research](methods.md). More articles: [Research](index.md). Whether an AI-written resume hurts: [Can employers tell if AI wrote your resume?](ai-written-resumes.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md). Bias over names, records and more, in one place: [Hiring discrimination: what studies show, what helps](hiring-bias-what-helps.md).
@@ -158,3 +158,7 @@ How we grade evidence: [How we research](methods.md). More articles: [Research](
 - Checks for new jobs from your search every day, so you can apply widely.
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - corrected the law lines to match the laws' text. Colorado employers must describe a system's role after a rejection, not explain the rejection. Colorado's start date is not settled, and a court has paused enforcement. Illinois's notice duty names employees; whether applicants get one is not settled. Added California's 2027 privacy rules and the EU's existing rule on fully automated decisions.
