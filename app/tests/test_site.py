@@ -250,12 +250,16 @@ def ico_frames(path) -> list[tuple[int, int]]:
     return frames
 
 
+ART = ("icon*.svg", "mark*.svg")  # as assets.ART
+
+
 def stale_icons(root) -> list[str]:
-    """Faults vs app/web/icon-sync.json (written by assets.py): an app icon file changed or added /
-    removed since the site's icons were made, or a made file changed since (hand edit)."""
+    """Faults vs app/web/icon-sync.json (written by assets.py): an art file (Desktop icon*.svg, bare
+    bird mark*.svg) changed or added / removed since the site's icons were made, or a made file
+    changed since (hand edit)."""
     sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()
     sync = json.loads((root / "app/web/icon-sync.json").read_text(encoding="utf-8"))
-    now = {f"app/install/{p.name}": sha(p) for p in sorted((root / "app/install").glob("icon*.svg"))}
+    now = {f"app/install/{p.name}": sha(p) for pattern in ART for p in sorted((root / "app/install").glob(pattern))}
     faults = [f"{f}: app icon changed - rerun uv run app/web/assets.py --only icons + og" for f in sorted(now.keys() | sync["source"].keys()) if now.get(f) != sync["source"].get(f)]
     faults += [f"{f}: differs from what assets.py made" for f, h in sync["made"].items() if not (root / f).exists() or sha(root / f) != h]
     return faults
@@ -270,18 +274,104 @@ def test_site_icons_follow_the_app_icon():
                                                          "icon-maskable-512.png", "favicon.ico", "og.png", "og-research.png"))
 
 
-# a guard that can't fail guards nothing: one byte of the app icon changed => the test above fails
+# a guard that can't fail guards nothing: one byte of the app icon or the bare bird changed => the test above fails
 def test_stale_icon_check_trips_on_a_changed_app_icon(tmp_path):
     for f in ["app/web/icon-sync.json", *json.loads((cfg.ROOT / "app/web/icon-sync.json").read_text())["made"]]:
         (tmp_path / f).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / f).write_bytes((cfg.ROOT / f).read_bytes())
     (tmp_path / "app/install").mkdir(parents=True, exist_ok=True)
-    for src in (cfg.ROOT / "app/install").glob("icon*.svg"):
-        (tmp_path / "app/install" / src.name).write_bytes(src.read_bytes())
+    for pattern in ART:
+        for src in (cfg.ROOT / "app/install").glob(pattern):
+            (tmp_path / "app/install" / src.name).write_bytes(src.read_bytes())
     assert stale_icons(tmp_path) == []
-    svg = tmp_path / "app/install/icon.svg"
-    svg.write_bytes(svg.read_bytes().replace(b"#ffe433", b"#ffe434", 1))
-    assert stale_icons(tmp_path) == ["app/install/icon.svg: app icon changed - rerun uv run app/web/assets.py --only icons + og"]
+    for name in "icon.svg", "mark.svg", "mark-32.svg":
+        svg = tmp_path / "app/install" / name
+        was = svg.read_bytes()
+        svg.write_bytes(was.replace(b"#ffe433", b"#ffe434", 1))
+        assert stale_icons(tmp_path) == [f"app/install/{name}: app icon changed - rerun uv run app/web/assets.py --only icons + og"]
+        svg.write_bytes(was)
+
+
+def assets():
+    spec = importlib.util.spec_from_file_location("site_assets", cfg.ROOT / "app/web/assets.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def birds(name: str) -> list[str]:
+    return re.findall(r'<svg class="bird".*?</svg>', (DOCS / name).read_text(encoding="utf-8"), re.S)
+
+
+def test_every_page_draws_the_bird_inline_as_the_mark_file_has_it():
+    # the bird redrawn but a page keeps the old one, or a page's header bird differs from the home page's
+    bird = assets().inline_bird()
+    assert birds("index.html") == [bird, bird]  # header + hero title bar
+    for name in PAGES:
+        assert birds(name)[:1] == [bird], name
+        header = re.search(r"<header\b.*?</header>", (DOCS / name).read_text(encoding="utf-8"), re.S).group(0)
+        assert header.count('<svg class="bird"') == 1, name
+
+
+def test_no_page_shows_the_mark_as_an_img():
+    # an <img> bird switching by its own colour scheme prints pale on white paper from a dark-mode machine;
+    # icon.svg stays the tab's file only
+    for name in PAGES:
+        raw = (DOCS / name).read_text(encoding="utf-8")
+        assert not re.search(r"<img\b[^>]*\bsrc=\"/(?:icon|favicon|apple-touch-icon)[^\"]*\"", raw), name
+        assert "<img" not in re.search(r"<header\b.*?</header>", raw, re.S).group(0), name
+
+
+def test_inline_bird_follows_the_text_colour_and_keeps_a_yellow_beak():
+    # hard-coded black => no bird on the dark page; currentColor also gives black in print + CanvasText in forced colours
+    css = shared((DOCS / "index.html").read_text(encoding="utf-8"))
+    assert re.search(r"\.bird \{[^}]*fill: currentColor", css)
+    assert re.search(r"\.bird :is\(\.beak, \.eye\) \{ fill: var\(--mark\); \}", css)
+    # pale bird: a yellow eye is lost on it => a hole to the page, on screen only (print is ink on white)
+    assert "@media screen and (prefers-color-scheme: dark) { .brand .eye { fill: var(--desk); } }" in css
+    assert "fill=" not in assets().inline_bird()
+
+
+def test_tab_icon_is_the_bare_bird_in_both_schemes():
+    # black bird on a dark tab strip = no tab icon; a tile here = the site no longer shows the bare mark
+    svg = (DOCS / "icon.svg").read_text(encoding="utf-8")
+    assert "<rect" not in svg and "<desc" not in svg
+    assert svg.count('class="ink" fill="#000000"') >= 1 and 'class="beak" fill="#ffe433"' in svg
+    dark = re.search(r"@media \(prefers-color-scheme:dark\)\{(.*)\}</style>", svg).group(1)
+    assert ".ink{fill:#f2f2f2}" in dark and ".eye{fill:#1c1c1e}" in dark and "beak" not in dark
+    # the dark tones are the page's own dark --text + --desk
+    root = (DOCS / "index.html").read_text(encoding="utf-8")
+    assert "--desk: #1c1c1e; --text: #f2f2f2;" in root
+
+
+def test_small_tab_frames_keep_a_full_yellow_beak():
+    # a bird scaled into the 16 px tile instead of drawn on whole pixels: beak blurs to beige, the frame reads as a grey blob
+    data = (DOCS / "favicon.ico").read_bytes()
+    for i, side in enumerate((16, 32)):
+        size, offset = struct.unpack("<II", data[14 + 16 * i:22 + 16 * i])
+        pix = pymupdf.Pixmap(data[offset:offset + size])
+        assert pix.width == side
+        dots = {pix.pixel(x, y)[:3] for x in range(side) for y in range(side)}
+        assert any(r >= 250 and g >= 223 and b <= 60 for r, g, b in dots), side  # #ffe433
+
+
+@pytest.mark.parametrize("was, now", [
+    ('d="M22 6', 'transform="scale(2)" d="M22 6'),  # the inline bird + dark cut assume the 32 grid as drawn
+    ('class="beak" fill="#ffe433"', 'class="beak" fill="#FFE433"'),
+    ('class="ink" fill="#000000"', 'class="ink" fill="#111111"'),  # page draws currentColor: tab + share card would differ
+    ("<circle", '<circle id="eye"'),  # header is copied to every page: ids would repeat
+    ("</svg>", '<line class="ink" fill="#000000" x1="0" y1="0" x2="1" y2="1"/>\n</svg>'),
+])
+def test_mark_file_off_its_contract_stops_the_icon_step(tmp_path, was, now):
+    # final art is delivered to the contract in desktop-icon.md: what it says fails must fail, not draw wrong
+    module = assets()
+    module.mark_shapes()
+    svg = module.MARK_SMALL.read_text(encoding="utf-8")
+    assert was in svg
+    module.MARK_SMALL = tmp_path / "mark-32.svg"
+    module.MARK_SMALL.write_text(svg.replace(was, now, 1), encoding="utf-8")
+    with pytest.raises(SystemExit, match="contract"):
+        module.mark_shapes()
 
 
 def opaque(path) -> bool:

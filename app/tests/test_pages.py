@@ -293,7 +293,7 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
         assert len(head.text["title"][0]) <= 60 and len(head.meta("description")) <= 155, name
         for rel in "icon", "apple-touch-icon", "manifest", "preload":
             assert head.links(rel) == home.links(rel), (name, rel)
-        assert head.meta("og:image") == "https://jobs.enrriquez.com/og-research.png" and head.meta("twitter:card") == "summary_large_image"
+        assert head.meta("og:image") == f"https://jobs.enrriquez.com/{pages.CARD}?v={pages.CARD_V}" and head.meta("twitter:card") == "summary_large_image"
         assert head.meta("og:image:alt") == head.meta("twitter:image:alt") == pages.CARD_ALT, name
         assert shared in text, name
         for tag in "header", "footer":

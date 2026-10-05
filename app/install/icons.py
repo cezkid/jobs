@@ -1,7 +1,7 @@
-"""Desktop icon files from the brand art: icon.icns (Mac app), icon.ico (Windows shortcut).
-icon.svg = master (64 px up), icon-32.svg + icon-16.svg = hand-tuned small rungs (master blurs
-there). Rendered by headless Chrome, packed by Pillow. Dev-only, output committed - Pillow +
-Chrome are never runtime dependencies.
+"""Desktop icon files from the brand art (blackbird on the dark tile): icon.icns (Mac app),
+icon.ico (Windows shortcut). icon.svg = master (64 px up), icon-32.svg + icon-16.svg =
+hand-tuned small rungs (master blurs there). Rendered by headless Chrome, packed by Pillow.
+Dev-only, output committed - Pillow + Chrome are never runtime dependencies.
 
     uv run --with pillow python app/install/icons.py
 """
@@ -28,7 +28,7 @@ CHROME = [
 ]
 # icns type per pixel size; 2x types share a size w/ the 1x one so each size is listed once.
 # 64 (32@2x) = master: compared side by side, 32 rung doubled is sharper but flat; master keeps
-# tilt + depth => matches the 128+ rungs on Retina
+# depth => matches the 128+ rungs on Retina
 ICNS_TYPES = {16: [b"icp4"], 32: [b"icp5", b"ic11"], 64: [b"ic12"], 128: [b"ic07"],
               256: [b"ic08", b"ic13"], 512: [b"ic09", b"ic14"], 1024: [b"ic10"]}
 ICO_SIZES = [16, 24, 32, 48, 64, 128, 256]
@@ -83,7 +83,7 @@ def kill(proc: subprocess.Popen) -> None:
 
 
 def windows_small(svg: str, size: int) -> str:
-    # small rung's tile grown to 1 px from the edge (Windows: no Mac margin), page stays centred
+    # small rung's tile grown to 1 px from the edge (Windows: no Mac margin), bird stays centred
     r = round((size - 2) * 0.23)
     return re.sub(r'<rect id="tile"[^>]*/>',
                   f'<rect id="tile" x="1" y="1" width="{size - 2}" height="{size - 2}" rx="{r}" '
