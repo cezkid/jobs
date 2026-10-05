@@ -208,7 +208,7 @@ PROFILE_HOSTS = ("linkedin.", "github.", "gitlab.", "twitter.", "x.com", "behanc
 
 
 def website(contact: dict) -> str:
-    """The resume's own site (enrriquez.com -> https://www.enrriquez.com), never a profile link."""
+    """The resume's own site (example.com -> https://www.example.com), never a profile link."""
     for url in contact.get("links") or []:
         if not any(h in url.casefold() for h in PROFILE_HOSTS):
             return link(contact, url.casefold())
