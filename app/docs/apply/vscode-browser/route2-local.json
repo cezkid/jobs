@@ -1,0 +1,795 @@
+{
+ "stage": "route2",
+ "at": "2026-10-05T04:19:07Z",
+ "uniq": "edcf67",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 6556,
+  "upInfo": {
+   "t": 1791173953266,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "shotBefore": {
+  "path": "<checkout>/.data/probe-shots/form/route2-local-before.png",
+  "bytes": 438308
+ },
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 8450,
+  "sessions": [
+   {
+    "id": "08f5f8d5-2100-44ef-a507-79d19380f1c7",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "2852b486-d16e-4afe-b483-21bd90b4464d",
+    "type": "pwa-editor-browser",
+    "name": "JF form edcf67 \u00ab Job Finder form",
+    "parent": "08f5f8d5-2100-44ef-a507-79d19380f1c7"
+   }
+  ],
+  "events": [
+   {
+    "t": 1791173960323,
+    "started": {
+     "id": "08f5f8d5-2100-44ef-a507-79d19380f1c7",
+     "type": "pwa-editor-browser",
+     "name": "Job Finder form",
+     "parent": null
+    }
+   },
+   {
+    "t": 1791173960546,
+    "started": {
+     "id": "2852b486-d16e-4afe-b483-21bd90b4464d",
+     "type": "pwa-editor-browser",
+     "name": "JF form edcf67 \u00ab Job Finder form",
+     "parent": "08f5f8d5-2100-44ef-a507-79d19380f1c7"
+    }
+   }
+  ],
+  "tabs": [
+   {
+    "viewColumn": 1,
+    "active": true,
+    "tabs": [
+     {
+      "label": "JF form edcf67",
+      "active": true,
+      "input": null
+     }
+    ]
+   }
+  ],
+  "found": {
+   "2852b486-d16e-4afe-b483-21bd90b4464d": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53887,
+     "path": "/b1e577781939c52ebf5a372b5595a7611825b94f"
+    },
+    "href": "http://127.0.0.1:50763/form"
+   },
+   "08f5f8d5-2100-44ef-a507-79d19380f1c7": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "shotAttached": {
+  "path": "<checkout>/.data/probe-shots/form/route2-local-attached.png",
+  "bytes": 399654
+ },
+ "later": {},
+ "frameVia": null,
+ "frameAttach": {
+  "ok": true,
+  "ms": 131,
+  "targetFound": true
+ },
+ "frameHref": {
+  "ok": true,
+  "ms": 268,
+  "value": "http://127.0.0.1:50763/form"
+ },
+ "subscribe": {
+  "ok": true,
+  "ms": 12,
+  "value": {}
+ },
+ "frameTree": {
+  "ok": true,
+  "ms": 1430,
+  "value": []
+ },
+ "targets": {
+  "ok": true,
+  "ms": 823,
+  "value": [
+   [
+    "page",
+    "http://127.0.0.1:50763/form"
+   ],
+   [
+    "iframe",
+    "http://localhost:50764/frame-form"
+   ]
+  ]
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "text: click + Input.insertText": {
+   "ok": true,
+   "ms": 11617,
+   "value": {}
+  },
+  "email: script sets value": {
+   "ok": true,
+   "ms": 214,
+   "value": "test.person@example.com"
+  },
+  "textarea: click + key events": {
+   "ok": true,
+   "ms": 13105
+  },
+  "select: script sets value": {
+   "ok": true,
+   "ms": 91,
+   "value": "United States"
+  },
+  "combo: click, type, click option": {
+   "ok": true,
+   "ms": 3917
+  },
+  "check: mouse click": {
+   "ok": true,
+   "ms": 347
+  },
+  "radio: script click()": {
+   "ok": true,
+   "ms": 8
+  },
+  "upload: DOM.setFileInputFiles": {
+   "ok": true,
+   "ms": 121
+  },
+  "frame text: Tab into it + type": {
+   "ok": true,
+   "ms": 852,
+   "value": "other"
+  },
+  "state": {
+   "ok": true,
+   "ms": 220,
+   "value": {
+    "agree": true,
+    "auth": "yes",
+    "combo": "Springfield, Illinois, United States",
+    "country": "United States",
+    "email": "test.person@example.com",
+    "first_name": "Test",
+    "resume": {
+     "head": "%PDF-1.4\n% JF dummy resume - Test Person",
+     "name": "Test_Resume.pdf",
+     "size": 100,
+     "trusted": true
+    },
+    "seen": {
+     "clicks": [
+      [
+       "first_name",
+       true
+      ],
+      [
+       "why",
+       true
+      ],
+      [
+       "combo",
+       true
+      ],
+      [
+       "Springfield, Illinoi",
+       true
+      ],
+      [
+       "agree",
+       true
+      ]
+     ],
+     "combo": {
+      "trusted": true,
+      "value": "Springfield, Illinois, United States"
+     },
+     "files": {
+      "resume": {
+       "head": "%PDF-1.4\n% JF dummy resume - Test Person",
+       "name": "Test_Resume.pdf",
+       "size": 100,
+       "trusted": true
+      }
+     },
+     "input": {
+      "agree": true,
+      "agree:change": true,
+      "auth_yes": true,
+      "auth_yes:change": true,
+      "combo": true,
+      "combo:change": true,
+      "country": false,
+      "country:change": false,
+      "email": false,
+      "email:change": false,
+      "first_name": true,
+      "first_name:change": true,
+      "resume": true,
+      "resume:change": true,
+      "why": true,
+      "why:change": true
+     },
+     "keys": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+     ]
+    },
+    "why": "Dummy answer for a measurement."
+   }
+  },
+  "frameState": {
+   "ok": false,
+   "error": "no frame session"
+  },
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/route2-local-tab.png",
+   "bytes": 85924
+  }
+ },
+ "shotFilled": {
+  "path": "<checkout>/.data/probe-shots/form/route2-local-filled.png",
+  "bytes": 448312
+ },
+ "trap": {
+  "default": {
+   "passed": false,
+   "pausedEvent": true
+  },
+  "shotPaused": {
+   "path": "<checkout>/.data/probe-shots/form/route2-trap-paused.png",
+   "bytes": 619468
+  },
+  "resume": {
+   "ok": true,
+   "ms": 192,
+   "value": {}
+  },
+  "afterResume": true,
+  "skipAllPauses": {
+   "ok": true,
+   "ms": 91,
+   "value": {}
+  },
+  "skipped": {
+   "passed": true,
+   "pausedEvent": false
+  }
+ },
+ "stop": {
+  "tabs": [
+   "form\ua78925:9"
+  ],
+  "events": [
+   {
+    "t": 1791174021901,
+    "ended": {
+     "id": "2852b486-d16e-4afe-b483-21bd90b4464d",
+     "type": "pwa-editor-browser",
+     "name": "JF form edcf67 \u00ab Job Finder form",
+     "parent": "08f5f8d5-2100-44ef-a507-79d19380f1c7"
+    }
+   },
+   {
+    "t": 1791174046756,
+    "ended": {
+     "id": "08f5f8d5-2100-44ef-a507-79d19380f1c7",
+     "type": "pwa-editor-browser",
+     "name": "Job Finder form",
+     "parent": null
+    }
+   }
+  ]
+ },
+ "shotStopped": {
+  "path": "<checkout>/.data/probe-shots/form/route2-local-stopped.png",
+  "bytes": 654115
+ },
+ "attachQuiet": {
+  "ok": true,
+  "error": null,
+  "ms": 8418,
+  "sessions": [
+   {
+    "id": "d1ef85e5-46b0-48a6-b8f1-99e78e723e15",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "a40daad5-eef1-46a7-9149-b9400bcd37b5",
+    "type": "pwa-editor-browser",
+    "name": "JF form edcf67 \u00ab Job Finder form",
+    "parent": "d1ef85e5-46b0-48a6-b8f1-99e78e723e15"
+   }
+  ],
+  "found": {
+   "a40daad5-eef1-46a7-9149-b9400bcd37b5": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53856,
+     "path": "/2b679ba4b6ea52afe9c96d2fe4d943ee4d817a05"
+    },
+    "href": "http://127.0.0.1:50763/form?again"
+   },
+   "d1ef85e5-46b0-48a6-b8f1-99e78e723e15": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "shotQuiet": {
+  "path": "<checkout>/.data/probe-shots/form/route2-local-attached-quiet.png",
+  "bytes": 654115
+ },
+ "trapQuiet": {
+  "passed": false,
+  "pausedEvent": true,
+  "resume": {
+   "ok": true,
+   "ms": 44,
+   "value": {}
+  }
+ },
+ "shotQuietPaused": {
+  "path": "<checkout>/.data/probe-shots/form/route2-trap-paused-quiet.png",
+  "bytes": 673590
+ },
+ "canary": {
+  "off": {
+   "loaded": true,
+   "fired": true,
+   "received": [
+    "beacon",
+    "cross",
+    "form",
+    "frame",
+    "frame-ws",
+    "keepalive",
+    "worker",
+    "ws",
+    "xhr"
+   ],
+   "blocked": [],
+   "wsStubbed": [],
+   "neither": [],
+   "seen": []
+  },
+  "level1": {
+   "install": {
+    "ok": true,
+    "ms": 24,
+    "value": {
+     "level": 1,
+     "blockedUrls": "urlPatterns"
+    }
+   },
+   "loaded": true,
+   "fired": true,
+   "received": [
+    "frame",
+    "frame-ws",
+    "ws"
+   ],
+   "blocked": [
+    "beacon",
+    "cross",
+    "form",
+    "keepalive",
+    "worker",
+    "xhr"
+   ],
+   "wsStubbed": [],
+   "neither": [],
+   "seen": [
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50930/w/xhr",
+     "type": "XHR",
+     "after": "level1"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50930/w/keepalive",
+     "type": "Fetch",
+     "after": "level1"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50930/w/beacon",
+     "type": "Ping",
+     "after": "level1"
+    },
+    {
+     "method": "POST",
+     "url": "http://localhost:50931/w/cross",
+     "type": "Fetch",
+     "after": "level1"
+    },
+    {
+     "ws": "ws://127.0.0.1:50930/w/ws",
+     "after": "level1"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50930/w/form",
+     "type": "Document",
+     "after": "level1"
+    }
+   ],
+   "end": {
+    "how": "stopDebugging(page session)",
+    "error": null,
+    "sessionsLeft": 3,
+    "tabsAfter": [
+     "form?again=\ua78925:9",
+     "canary"
+    ]
+   }
+  },
+  "level2": {
+   "install": {
+    "ok": true,
+    "ms": 16,
+    "value": {
+     "level": 2,
+     "blockedUrls": "urlPatterns"
+    }
+   },
+   "loaded": true,
+   "fired": true,
+   "received": [
+    "ws"
+   ],
+   "blocked": [
+    "/frame.html",
+    "beacon",
+    "cross",
+    "form",
+    "keepalive",
+    "worker",
+    "xhr"
+   ],
+   "wsStubbed": [],
+   "neither": [
+    "frame",
+    "frame-ws"
+   ],
+   "seen": [
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50958/w/xhr",
+     "type": "XHR",
+     "after": "level2"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50958/w/keepalive",
+     "type": "Fetch",
+     "after": "level2"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50958/w/beacon",
+     "type": "Ping",
+     "after": "level2"
+    },
+    {
+     "method": "POST",
+     "url": "http://localhost:50959/w/cross",
+     "type": "Fetch",
+     "after": "level2"
+    },
+    {
+     "ws": "ws://127.0.0.1:50958/w/ws",
+     "after": "level2"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50958/w/form",
+     "type": "Document",
+     "after": "level2"
+    }
+   ],
+   "end": {
+    "how": "stopDebugging() all",
+    "error": null,
+    "sessionsLeft": 0,
+    "tabsAfter": [
+     "form?again=\ua78925:9"
+    ]
+   }
+  },
+  "level3": {
+   "install": {
+    "ok": true,
+    "ms": 21,
+    "value": {
+     "level": 3,
+     "blockedUrls": "urlPatterns"
+    }
+   },
+   "loaded": true,
+   "fired": true,
+   "received": [],
+   "blocked": [
+    "/frame.html",
+    "beacon",
+    "cross",
+    "form",
+    "keepalive",
+    "worker",
+    "xhr"
+   ],
+   "wsStubbed": [
+    "ws://127.0.0.1:50998/w/ws"
+   ],
+   "neither": [
+    "frame",
+    "frame-ws",
+    "ws"
+   ],
+   "seen": [
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50998/w/xhr",
+     "type": "XHR",
+     "after": "level3"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50998/w/keepalive",
+     "type": "Fetch",
+     "after": "level3"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50998/w/beacon",
+     "type": "Ping",
+     "after": "level3"
+    },
+    {
+     "method": "POST",
+     "url": "http://localhost:50999/w/cross",
+     "type": "Fetch",
+     "after": "level3"
+    },
+    {
+     "method": "POST",
+     "url": "http://127.0.0.1:50998/w/form",
+     "type": "Document",
+     "after": "level3"
+    }
+   ],
+   "end": {
+    "how": "command workbench.action.debug.disconnect",
+    "error": null,
+    "sessionsLeft": 2,
+    "tabsAfter": [
+     "form?again=\ua78925:9",
+     "canary"
+    ]
+   }
+  }
+ },
+ "siteWrites": [],
+ "quit": {
+  "killed": false
+ },
+ "siteLog": [
+  {
+   "t": 1791173954.134,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/form",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791173954.565,
+   "host": "localhost:50764",
+   "method": "GET",
+   "path": "/frame-form",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791173954.905,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/favicon.ico",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174007.92,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/beacon?k=file&name=Test_Resume.pdf&size=100",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174021.182,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/beacon?k=trap-passed&ms=7294",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174021.667,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/beacon?k=trap-passed&ms=45",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174055.705,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/form?again",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174057.037,
+   "host": "localhost:50764",
+   "method": "GET",
+   "path": "/frame-form",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174057.349,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/favicon.ico",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174080.409,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/beacon?k=trap-passed&ms=8048",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174088.426,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/blank1",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174088.903,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/favicon.ico",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174110.247,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/blank2",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174110.638,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/favicon.ico",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174126.965,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/blank3",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  },
+  {
+   "t": 1791174127.276,
+   "host": "127.0.0.1:50763",
+   "method": "GET",
+   "path": "/favicon.ico",
+   "write": false,
+   "ws": false,
+   "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3 Safari/537.36"
+  }
+ ]
+}

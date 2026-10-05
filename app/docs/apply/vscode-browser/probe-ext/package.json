@@ -1,0 +1,11 @@
+{
+ "name": "form-probe",
+ "publisher": "cez-job-finder-scratch",
+ "version": "0.0.1",
+ "displayName": "Job Finder form probe (scratch only)",
+ "description": "plan-29g.7 measuring extension - never shipped",
+ "engines": {"vscode": "^1.109.0"},
+ "main": "./extension.js",
+ "activationEvents": ["onStartupFinished"],
+ "capabilities": {"untrustedWorkspaces": {"supported": true}}
+}

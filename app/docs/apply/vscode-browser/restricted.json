@@ -1,0 +1,41 @@
+{
+ "stage": "restricted",
+ "at": "2026-10-05T04:28:08Z",
+ "uniq": "5a6e87",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 5566,
+  "upInfo": {
+   "t": 1791174493826,
+   "trusted": false,
+   "folder": "$D/f"
+  }
+ },
+ "trust": false,
+ "attach": {
+  "ok": "picker",
+  "error": null,
+  "ms": 21553,
+  "sessions": [],
+  "proxies": {}
+ },
+ "shot": {
+  "path": "<checkout>/.data/probe-shots/form/route2-restricted.png",
+  "bytes": 645284
+ },
+ "quit": {
+  "killed": false
+ }
+}

@@ -1,0 +1,454 @@
+{
+ "stage": "gh",
+ "at": "2026-10-05T04:27:11Z",
+ "uniq": "f5d974",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 7213,
+  "upInfo": {
+   "t": 1791174438244,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 8675,
+  "sessions": [
+   {
+    "id": "df372f91-149e-48f7-8d21-101fc3767e90",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "3bdd45af-83dd-4d5d-b752-e1774ec3746b",
+    "type": "pwa-editor-browser",
+    "name": "JF form f5d974 blank \u00ab Job Finder form",
+    "parent": "df372f91-149e-48f7-8d21-101fc3767e90"
+   }
+  ],
+  "found": {
+   "3bdd45af-83dd-4d5d-b752-e1774ec3746b": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53439,
+     "path": "/ee26612467a53014ddb41523066123497ee1c897"
+    },
+    "href": "http://127.0.0.1:51551/blank"
+   },
+   "df372f91-149e-48f7-8d21-101fc3767e90": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "shotAttached": {
+  "path": "<checkout>/.data/probe-shots/form/gh-route2-attached-quiet.png",
+  "bytes": 346016
+ },
+ "install": {
+  "ok": true,
+  "ms": 21,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:51580/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:51581/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "loaded": true,
+ "loadMs": 882,
+ "url": "job-boards.greenhouse.io/<tenant B>/jobs/<id>",
+ "fields": [
+  {
+   "id": "first_name",
+   "label": "First Name*",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "last_name",
+   "label": "Last Name*",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "email",
+   "label": "Email*",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "country",
+   "label": "Country",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "iti-0__search-input",
+   "label": "Search",
+   "role": "combobox",
+   "type": "search"
+  },
+  {
+   "id": "phone",
+   "label": "Phone",
+   "role": "",
+   "type": "tel"
+  },
+  {
+   "id": "resume",
+   "label": "Attach",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "cover_letter",
+   "label": "Attach",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "question_38624168002",
+   "label": "LinkedIn Profile",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "question_38624169002",
+   "label": "What's the name you'd prefer us to use throughout the interv",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "question_38624170002",
+   "label": "Are you subject to any employment agreements and/or post-emp",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "label": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "question_38624171002",
+   "label": "It is important to us to create an accessible and inclusive ",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "question_38624172002",
+   "label": "Will you now or in the future require sponsorship for a visa",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "label": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "question_38624173002",
+   "label": "Have you previously worked at or consulted for <employer>?*",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "label": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "question_38624174002",
+   "label": "What is your current country of residence?*",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "label": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "gender",
+   "label": "Gender",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "hispanic_ethnicity",
+   "label": "Are you Hispanic/Latino?",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "veteran_status",
+   "label": "Veteran Status",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "g-recaptcha-response-100000",
+   "label": "",
+   "role": "",
+   "type": "textarea"
+  }
+ ],
+ "scrollBehavior": "smooth",
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "first_name": {
+   "ok": true,
+   "ms": 477,
+   "value": {
+    "focused": "first_name"
+   },
+   "readBack": "Test"
+  },
+  "last_name": {
+   "ok": true,
+   "ms": 13,
+   "value": "Person",
+   "readBack": "Person"
+  },
+  "email": {
+   "ok": true,
+   "ms": 13,
+   "value": "test.person@example.com",
+   "readBack": "test.person@example.com"
+  },
+  "phone": {
+   "ok": true,
+   "ms": 574,
+   "value": {
+    "focused": "phone"
+   },
+   "readBack": "5555550100"
+  },
+  "resume upload": {
+   "ok": true,
+   "ms": 19
+  },
+  "resume shown": false,
+  "resume box": null,
+  "choice id": "question_38624173002",
+  "choice: click, type, click option": {
+   "ok": true,
+   "ms": 1087,
+   "value": "No"
+  },
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/gh-route2-filled-tab.png",
+   "bytes": 73030
+  }
+ },
+ "shotFilled": {
+  "path": "<checkout>/.data/probe-shots/form/gh-route2-filled.png",
+  "bytes": 634543
+ },
+ "submitClicked": false,
+ "block": {
+  "reads": 24,
+  "failed": [
+   {
+    "method": "POST",
+    "url": "http://localhost:51581/w/cross",
+    "type": "XHR",
+    "after": "canary",
+    "contentType": "text/plain;charset=UTF-8",
+    "body": true
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/xhr",
+    "type": "XHR",
+    "after": "canary",
+    "contentType": "text/plain;charset=UTF-8",
+    "body": true
+   },
+   {
+    "method": "GET",
+    "url": "http://localhost:51581/frame.html",
+    "type": "other-site frame",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/keepalive",
+    "type": "XHR",
+    "after": "canary",
+    "contentType": "text/plain;charset=UTF-8",
+    "body": true
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/beacon",
+    "type": "Ping",
+    "after": "canary",
+    "contentType": "text/plain;charset=UTF-8",
+    "body": true
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/form",
+    "type": "Document",
+    "after": "canary",
+    "contentType": "application/x-www-form-urlencoded",
+    "body": true
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/worker",
+    "type": "XHR",
+    "after": "canary",
+    "contentType": "text/plain;charset=UTF-8",
+    "body": true
+   },
+   {
+    "method": "POST",
+    "url": "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2",
+    "type": "XHR",
+    "after": "load",
+    "contentType": "application/json; charset=UTF-8",
+    "body": true
+   },
+   {
+    "method": "GET",
+    "url": "https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LfmcbcpAAAAAChNTbhUShzUOAMj_wY9LQIvLFX0&co=aHR0cHM6Ly9qb2ItYm9hcmRzLmdyZWVuaG91c2UuaW86NDQz&hl=en&v=guXhH0v-XMxlzmbTwqkaT4i5&size=invisible&anchor-ms=20000&execute-ms=30000&cb=uyvpdfev03sz",
+    "type": "other-site frame",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/",
+    "type": "XHR",
+    "after": "fill resume",
+    "contentType": "multipart/form-data; boundary=----WebKitFormBoundary3JyjzHko",
+    "body": true
+   }
+  ],
+  "seenWrites": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:51581/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:51580/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2",
+    "type": "Fetch",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/",
+    "type": "XHR",
+    "after": "fill resume"
+   }
+  ]
+ },
+ "quit": {
+  "killed": false
+ }
+}
