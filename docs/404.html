@@ -194,11 +194,6 @@
   .cut .head { stroke: var(--ink); }
   /* the cut runs over paper only (sheet edge to sheet edge): ink, never --text, which turns white in dark mode */
   .cut .dash { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 6 5; }
-  /* the blackbird stands on the desk beside the cut piece: desk ink, so pale on the dark desk */
-  .cut .perch { fill: var(--text); }
-  .cut .perch .beak { fill: var(--mark); }
-  /* two-tone bill: the orange half carries its edge on the white desk + against the pale bird on the dark one */
-  .cut .perch .beak-low { fill: var(--beak-low); }
   @media (min-width: 720px) {
     .lost { grid-template-columns: minmax(0, 1fr) auto; }
   }
@@ -214,7 +209,6 @@
   @media (forced-colors: active) {
     .cut .sheet { fill: Canvas; stroke: CanvasText; }
     .cut .line, .cut .head, .cut .dash { stroke: CanvasText; }
-    .cut .perch { fill: CanvasText; }
   }
   @media print { .cut { display: none; } }
 </style>
@@ -251,14 +245,6 @@
       <g transform="rotate(7 90 180)">
         <path class="sheet" d="M14 136H164V230H14Z"/>
         <path class="line" d="M32 154H144M32 170H126M32 186H144M32 202H98"/>
-      </g>
-      <!-- the mark's master (app/install/mark.svg), mirrored: it looks at the piece that fell; drawn under 70px, so a solid eye (no pupil) -->
-      <g class="perch" transform="translate(222 205.4) scale(-0.18 0.18)">
-        <path d="M99.23 74.26 L8 165.49 L17.04 190.39 L38.53 168.9 A24 24 0 0 1 75.27 172.27 A64 64 0 0 0 190.59 122.64 A48 48 0 0 1 198.77 84.31 A48 48 0 1 0 112.64 48.16 A48 48 0 0 1 99.23 74.26 Z"/>
-        <path d="M116 180 H132 V248 H116 Z M148 180 H164 V248 H148 Z"/>
-        <path class="beak" d="M185.37 40.34 L237.33 53.33 A2.75 2.75 0 0 1 237.33 58.67 L185.37 71.66 A48 48 0 0 0 185.37 40.34 Z"/>
-        <path class="beak-low" d="M188 56 H239.42 A2.75 2.75 0 0 1 237.33 58.67 L185.37 71.66 A48 48 0 0 0 188 56 Z"/>
-        <circle class="beak" cx="156" cy="36" r="11"/>
       </g>
     </svg>
   </div>

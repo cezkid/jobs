@@ -17,7 +17,7 @@ What the user double-clicks to open Job Finder. Art = `app/install/icon.svg` (ma
   px tall or less (16 px uses, the 16 + 32 px icon rungs) => one colour, the orange: a 1 px yellow
   row is lost on white. Eye ring (5.5 units of 256) clears a 1.5 px stroke only w/ the bird at 70 px
   or more; smaller => pupil dropped, a solid yellow eye (`icons.py` below the 128 px icon,
-  `assets.card_art` on the 48 px share-card bird, the 404 perch).
+  `assets.card_art` on the 48 px share-card bird).
 - Bare bird: `app/install/mark.svg` (master, 256 grid) + `mark-32.svg` (small cut, whole pixels
   at 32 + 16 px). One home w/ the tile art => `icon-sync.json` guards both.
 - Art contract (generators read it; each file's `<desc>` repeats its part):

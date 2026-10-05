@@ -284,7 +284,7 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
   text - at the window's edge it sat 297 px off at 1440; `pages.py`), the
   hub an "Evidence labels" column (sticky, read from the methods page's label table, >= 1280 px only) and
   About its h2 sections beside its opening (stacked below 1280 px), privacy its Short version (sticky,
-  >= 1280 px only), the 404 its drawing in the right half (>= 1024 px; the mark's bird stands beside the cut piece - the one decorative bird on the site, owner 2026-10-04). qa.py checks the band (home per
+  >= 1280 px only), the 404 its drawing in the right half (>= 1024 px). qa.py checks the band (home per
   row; hub, about, methods, privacy + 404 with main as one row, a sticky column counted to its parent's
   bottom) + the article column (TOC_BESIDE: <= 120 px from the text, <= 400 px empty right of it). Privacy: no two rules stacked within 60 px w/o text between (RULES_STACKED).
   A sticky column never hides part of itself: at 1280x720, 1366x641, 1440x780 + 1440x900 each fits the
