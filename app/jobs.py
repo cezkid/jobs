@@ -36,7 +36,7 @@ COMMANDS = {
     "interview": ("interview", "interview practice or debrief for one job: requirements, backing lines, pay: JOB"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
     "answers": ("apply.answers", "the user's saved answers from application forms: list | forget N"),
-    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse, Ashby, Lever); measure | try LINK (developers)"),
+    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse, Ashby, Lever); measure | try LINK, workday-fixture FILE (developers)"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "ai": ("ai", "which AI the user chats with: prints it; ai claude | chatgpt | copilot saves it"),
     "look": ("look", "window look: prints it; look auto | light | dark saves it + switches the open window"),

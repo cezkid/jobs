@@ -70,7 +70,7 @@ TEXT_KEEP = 4096
 # host labels + path parts every tenant shares: not a tenant name, would hit the anonymity grep
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
-           "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday",
+           "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday", "workday",
            "ultipro", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
            "en-us", "en_us", "en", "us", "com", "net", "org", "io", "co"}
 # page chrome, not a name: iCIMS start box titles "Login", its submit input's value is "Next" (2026-10-03)

@@ -259,5 +259,51 @@ window.__jf = (() => {
     await until(() => shown(apply()) || shown(document.querySelector('[data-automation-id="errorContainer"]')) || CLOSED.test(txt(document.body)), ms);
     return !shown(apply()) && CLOSED.test(document.body.innerText || '');
   }
-  return { run, status, errors, uploaded, closed, S };
+  // read-only picture of the step for test fixtures: label, widget kind, data-automation-id, required
+  // mark, option list per shown field. Never an answer: no value, checked state, picked pill or a
+  // menu's shown choice; no search-popup options (they echo what was typed). `page` (host, title,
+  // site name) only tells `apply-form workday-fixture` what to strip - it drops it (workday.md #Fixtures)
+  function snapshot() {
+    const aid = (el) => el?.getAttribute('data-automation-id') || '';
+    const opt = (el) => txt(el.labels?.[0] || el.closest('label')) || el.getAttribute('aria-label') || '';
+    const controls = [...document.querySelectorAll('input:not([type="hidden"]), textarea, select, button')]
+      .filter((c) => shown(c) || c.type === 'file');
+    const boxes = [...new Set(controls.map((c) => c.closest('[data-automation-id^="formField"], fieldset')).filter(Boolean))];
+    const kind = (b, cs) => {
+      const has = (sel) => cs.filter((c) => c.matches(sel));
+      if (has('[type="file"]').length) return 'file';
+      if (has('[data-automation-id*="dateSection"]').length) return 'date';
+      if (has('[type="radio"]').length) return 'radio';
+      if (has('[type="checkbox"]').length) return has('[type="checkbox"]').length > 1 ? 'checkboxes' : 'checkbox';
+      if (has('select').length) return 'select';
+      if (has('textarea').length) return 'textarea';
+      if (b.querySelector('[data-automation-id="selectedItem"], [data-automation-id*="multiselect" i]') || has('[aria-haspopup]:not(button)').length) return 'search-pick';
+      if (has('input').length) return has('input')[0].type === 'text' ? 'text' : has('input')[0].type;
+      return has('button').length ? 'menu' : 'other';
+    };
+    const fields = boxes.map((b) => {
+      // a pill's own delete button is the applicant's pick, not the field
+      const cs = controls.filter((c) => b.contains(c) && !c.closest('[data-automation-id="selectedItem"]'));
+      const l = labels(b)[0], k = kind(b, cs);
+      const f = { label: l ? said(l) : cs.map((c) => c.getAttribute('aria-label')).find(Boolean) || '', kind: k, id: aid(b),
+        controls: [...new Set(cs.map(aid).filter(Boolean))],
+        required: (!!l && /\*\s*$/.test(txt(l))) || cs.some((c) => c.required || c.getAttribute('aria-required') === 'true') };
+      if (k === 'radio' || k === 'checkboxes') f.options = cs.filter((c) => /radio|checkbox/.test(c.type)).map(opt);
+      if (k === 'select') f.options = [...cs.find((c) => c.tagName === 'SELECT').options].map(txt);
+      return f;
+    });
+    // a menu's options exist only while it is open: whichever listbox is in the page now
+    const listboxes = [...document.querySelectorAll('[role="listbox"]')].filter((x) => !x.querySelector('[data-automation-id="promptOption"]'))
+      .map((x) => ({ id: aid(x), options: [...x.querySelectorAll('[role="option"]')].map(txt) })).filter((x) => x.options.length);
+    const site = document.querySelector('meta[property="og:site_name"]')?.content || '';
+    return JSON.stringify({
+      step: txt(document.querySelector('[data-automation-id="progressBarActiveStep"]')),
+      headings: [...document.querySelectorAll('h1, h2, h3, h4, legend')].filter(shown).map(txt).filter(Boolean),
+      fields, listboxes,
+      buttons: controls.filter((c) => c.tagName === 'BUTTON' && !c.closest('[data-automation-id^="formField"], fieldset'))
+        .map((c) => ({ text: txt(c), id: aid(c) })),
+      page: { host: location.hostname, title: document.title, site },
+    });
+  }
+  return { run, status, errors, uploaded, closed, snapshot, S };
 })();

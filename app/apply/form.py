@@ -13,6 +13,7 @@ and `fill` again.
 `measure <link>` (developers): a safe look at a live form - apply/lab.py; `try <link> [--next] [--no-upload]`: a
 system's filler on it with synthetic answers - apply/trial.py.
 `survey <links file>` (developers): question kinds on many Ashby + Lever forms, plain reads - apply/survey.py.
+`workday-fixture <json>` (developers): a Workday step's snapshot() -> anonymised fixture - apply/workday_fixture.py.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
 import argparse
@@ -396,7 +397,13 @@ def main() -> None:
     sv = sub.add_parser("survey", help="(developers) question kinds on many Ashby + Lever forms: one plain read per "
                         "link, paced, counts only -> .data/measure/")
     sv.add_argument("links", type=Path, help="file of posting links, one per line")
+    wf = sub.add_parser("workday-fixture", help="(developers) a Workday step's window.__jf.snapshot() -> anonymised "
+                        "app/tests/fixtures/workday/<step>.json, employer names -> .data/measure/tenants.txt")
+    wf.add_argument("json", type=Path, help="file holding what snapshot() returned")
     args = ap.parse_args()
+    if args.step == "workday-fixture":
+        from apply import workday_fixture
+        return workday_fixture.fixture(args.json)
     if args.step == "survey":
         from apply import survey
         return survey.survey(args.links)

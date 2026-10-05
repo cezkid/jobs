@@ -60,6 +60,21 @@ on this page`. Modelled only (`fixtures/workday/upload.html`, 2026-10-05): live 
 wording + whether Workday sends the file on choosing unmeasured (no account) - recorded on the
 next real application (plan-nko.22); until then the privacy table has no Workday upload row.
 
+## Fixtures
+
+`window.__jf.snapshot()` (send `workday.js` + that call in one tool call): read-only picture of the
+step shown - per shown field its label, kind (text, textarea, date, checkbox, checkboxes, radio,
+select, menu, search-pick, file), `formField-*` hook + its controls' hooks, required mark (`*` or
+required attribute), option list (radio, checkbox, select; a menu's options only while its listbox
+is open); headings, buttons outside fields, active step. Never an answer: no value, checked state,
+picked pill, menu's shown choice; search-popup options left out (they echo what was typed). Save
+what it returns to a file, then `uv run app/jobs.py apply-form workday-fixture <file>`: drops the
+page block (host, title, site name), names from it (site name, "at X" in the title, the host's
+tenant part) -> `.data/measure/tenants.txt` + "Acme" everywhere in the fixture, an email or phone
+number anywhere refuses the file, writes `app/tests/fixtures/workday/<step>.json`. Run the
+anonymity grep before committing one. Modelled on `form.html` only (2026-10-05): kind detection on
+live widgets (date, search-pick, radio groups) unmeasured - first real run: plan-nko.22.
+
 ## Resume autofill ("Autofill with Resume")
 
 Workday parses the uploaded PDF once, at start. Tenant A, before education fix (PR #18): school
