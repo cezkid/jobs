@@ -34,8 +34,9 @@ never id -> one filler, every tenant. Each fact names its tenant by letter, neve
 Checked on the posting page, before Apply + sign-in: `window.__jf.closed()` (send `workday.js` + that
 call in one tool call; awaits up to 10 s). Closed only when no Apply button (`adventureButton`) shows
 AND the page says so (`CLOSED` in `workday.js`). Page is blank at load, drawn seconds later - read
-before that, it is neither (`apply-form measure` read 0 words, 0 buttons on both kinds: it reads too
-early for Workday). Measured 2026-10-05, posting link GET only, cookie notice left alone:
+before that, it is neither (`apply-form measure` read 0 words, 0 buttons on both kinds at network idle;
+it now waits for the page's words to show + settle, `lab.drawn`: same open page 545 words + Apply,
+2026-10-05). Measured 2026-10-05, posting link GET only, cookie notice left alone:
 
 | Tenant | Job search said | Apply button | Page says | `closed()` on its saved page |
 |---|---|---|---|---|

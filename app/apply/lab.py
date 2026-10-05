@@ -41,6 +41,9 @@ NAMED_PATH = re.compile(r"^/[^/]+/non-user-graphql$|^/api/non-user-graphql$")
 # "Apply", "Apply without an Account" only navigate to the form
 REFUSE_CLICK = re.compile(r"\b(?:submit|send|save|finish|complete|sign)", re.I)
 IDLE_MS = 20000
+DRAW_MS = 10000
+SETTLE_MS = 6000
+SETTLE_STEP_MS = 500
 JSON_KEEP = 2048
 DATA_KEEP = 500_000
 # a form defined in the page itself, not fetched: `window.pageData = {...}` in an inline script
@@ -349,6 +352,22 @@ def seen_text(page) -> dict:
 def idle(page) -> None:
     with contextlib.suppress(Exception):  # a page that polls never goes idle: read what's there
         page.wait_for_load_state("networkidle", timeout=IDLE_MS)
+    drawn(page)
+
+
+def drawn(page) -> None:
+    """Wait for the page's own words, then for them to stop growing: Workday's posting page is
+    blank at network idle, draws seconds later (0 words read at idle, 7388 + Apply 4 s after,
+    2026-10-05). A page w/ no words at all costs DRAW_MS once."""
+    with contextlib.suppress(Exception):  # navigating away mid-wait: read what's there
+        page.wait_for_function("() => document.body && document.body.innerText.trim().length > 0", timeout=DRAW_MS)
+        last, end = -1, time.monotonic() + SETTLE_MS / 1000
+        while time.monotonic() < end:
+            n = page.evaluate("() => document.body.innerText.length")
+            if n == last:
+                return
+            last = n
+            page.wait_for_timeout(SETTLE_STEP_MS)
 
 
 def response(r) -> dict:
