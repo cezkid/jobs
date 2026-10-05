@@ -58,12 +58,12 @@ that isn't asking for your legal name.
 ## Work breaks
 
 - **Length matters.** Across 7 countries, replies from employers dropped by a fifth to over a quarter
-  after a year away; US studies saw drops sooner. *Big study.*
+  after a year away; US studies disagree on how soon it starts. *Big studies.*
 - **Some hiring software filters breaks over 6 months** - about half the executives whose
   software sorts applicants said so. *Survey (2020).*
-- **Over 6 months: a one-line reason can help.** In one small US study it did a little better than
+- **Over 6 months: a one-line reason can help.** In one US study a health reason did better than
   no reason. In one big UK study a childcare line made no difference. Your call.
-  *Small study (US); big study (UK).*
+  *Big study (US); big study (UK).*
 - **Lines to use, if you add one:** "Family care" · "A health matter, now resolved or well managed" - never
   name a condition · "Full-time study" · "Role cut in a company-wide layoff", under your last job,
   when it's true.

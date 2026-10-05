@@ -289,3 +289,7 @@ Edit in plan-xsy.69: added one "What we don't know" bullet linking cover-letters
 ## Edit after review (2026-10-04, plan-xsy.69)
 
 Added one link sentence to the same bullet, to the cover letter data page (cover-letter-boxes-2026-10), so that page is two clicks from the home page. Navigation only; the "143 forms" in the link text is that page's title, checked in its own review. No claim or source changed here.
+
+## Re-review (2026-10-04, fresh AI session, plan-xsy.72)
+
+Edits in plan-xsy.72: the gap review is now cited in its 2026 journal version (dhert-2026, pages given; "not yet peer-reviewed" wording dropped); the Namingit wording follows the published summary ("significantly higher"); "72% of respondents" for the background-check release; one link sentence to employment-gaps; a Changes line. Checked against the sources by a fresh AI session that did not make the edits; its findings and their fixes are in [the employment-gaps review](employment-gaps.md) ("Re-review" section; R13 applies here: the 16 experiments are on p. 1362, cite now "pp. 1357, 1362"). No open finding.

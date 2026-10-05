@@ -349,3 +349,7 @@ Findings (verdict publish):
 - **B1 (low)** The trailing sentence is narrower than the rule on the data page: a question asking only "where are you located" is not counted either, and the row is "on-site work, moving or living nearby", not just on-site. Fix: "A plain address box, or a question asking only where you live, is not counted in the on-site row."
 
 Revised (plan-xsy.58): every B finding applied with the wording above (sign list re-checked on the source page 2026-10-04 by the reviser); verdict publish.
+
+## Edit after review (2026-10-04, plan-xsy.72)
+
+Added one link sentence after the Hidden Workers caveat, to employment-gaps (what the same executives said about breaks in work history). Navigation only; no claim, number or source changed here. The 48% figure it points to is checked in the employment-gaps review.

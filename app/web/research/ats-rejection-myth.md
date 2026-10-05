@@ -109,7 +109,7 @@ Yes, by executives' own account. The Hidden Workers survey asked 2,275 executive
 
 Most of those executives said their system filters out qualified people at least sometimes. 88% said so for high-skills jobs and 94% for middle-skills jobs. "Always" or "often" was the answer of 62% and 63%. The question asked about candidates who could do the job but did not match exact criteria [@fuller-2021, p. 26].
 
-The Hidden Workers numbers are what executives said, not a measurement of what the software did. The survey ran in early 2020, before today's AI screening tools were common [@fuller-2021].
+The Hidden Workers numbers are what executives said, not a measurement of what the software did. The survey ran in early 2020, before today's AI screening tools were common [@fuller-2021]. What the same executives said about breaks in work history is in [Does an employment gap on your resume hurt?](employment-gaps.md).
 
 Gaps between your experience and the exact wording of a posting can matter. The fix is the posting's words for skills you really have, not words you lack.
 

@@ -17,7 +17,7 @@ uncited:
 
 - True first: employer, title, dates match records. Firms that check find mismatches (Vendor survey) [@hireright-2025].
 - Typos: 2 errors, rated interview chance 7 points lower out of 100 (Lab study) [@sterkens-2023].
-- Long time out of work costs callbacks. Short spells: studies disagree (Big study) [@dhert-2024; @kroft-2013].
+- Long time out of work costs callbacks. Short spells: studies disagree (Big studies) [@dhert-2026; @kroft-2013].
 - Results over duties, one page early on: career-guide advice, no study (Convention) [@mit-capd-resumes]. Last 10-15 years in detail: one career guide (Convention) [@indeed-experience-2025]. No photo: one field experiment found photos help some, hurt others (Big study) [@ruffle-2015].
 
 ## What matters most on a resume?
@@ -36,9 +36,9 @@ The table sums up each rule, the strongest evidence we found for it, and what th
 |---|---|---|
 | Employer, title and dates match your records | Vendor survey | More than three-quarters of firms that run checks found a mismatch in the past year [@hireright-2025] |
 | Proofread for typos | Lab study | Two spelling errors lowered recruiters' rated interview chance by 7.3 points out of 100 [@sterkens-2023] |
-| Long time out of work costs callbacks | Big study, not yet peer-reviewed | 13-18 months out of work cut positive replies by about 21% [@dhert-2024, p. 15] |
-| Short spells out of work | Big study (the review not yet peer-reviewed); studies disagree | A 2024 review found no clear cost for 1-6 months; a US experiment found callbacks fell over the first 8 months [@dhert-2024; @kroft-2013] |
-| A reason for a gap helps | Small study and Big study; they disagree | One US study's early summary found slightly more replies with an illness reason, without saying if that could be chance; a UK study found none for a childcare reason [@namingit-2021; @kristal-2023] |
+| Long time out of work costs callbacks | Big study | 13-18 months out of work cut positive replies by about 21% [@dhert-2026, p. 1382] |
+| Short spells out of work | Big studies; they disagree | A 2026 review found no clear cost for 1-6 months; a US experiment found callbacks fell over the first 8 months [@dhert-2026; @kroft-2013] |
+| A reason for a gap helps | Big studies; they disagree | One US study's published summary says an illness reason got significantly more replies than no reason; a UK study found no gain for a childcare reason [@namingit-2021; @kristal-2023] |
 | Results over duties | Convention | Career offices agree; no study found [@mit-capd-resumes; @harvard-ocs-resume] |
 | Use the posting's words for skills you have | Maker's docs | Recruiters can search stored resumes by word; no large study of interviews found [@greenhouse-search] |
 | Last 10-15 years in detail | Convention | One job-site guide says so for senior candidates; no study cited [@indeed-experience-2025] |
@@ -50,7 +50,7 @@ Most rules in the table rest on convention or a company's own survey, test or he
 
 ## Does your resume have to match your records?
 
-Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of firms in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].
+Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of respondents in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].
 
 HireRight sells background checks, and the people it asked work at firms that run checks. The survey's question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.
 
@@ -86,11 +86,11 @@ In practice, keep jobs newest first, give recent, relevant work the most room, a
 
 Long time out of work costs callbacks. For short spells, the two main studies disagree.
 
-A 2024 review combined field experiments with about 67,000 made-up applicants [@dhert-2024, p. 8]. The studies came from 7 countries [@dhert-2024, p. 4]. Compared with people in work, 1-6 months out of work showed no clear effect on positive replies. Being out of work 13-18 months cut positive replies by about 21%. Being out 19-36 months cut them by about 27% [@dhert-2024, p. 15]. The review is a discussion paper, not yet peer-reviewed.
+A 2026 review combined 16 field experiments with almost 67,000 made-up applicants in 7 countries [@dhert-2026, pp. 1357, 1362]. Compared with people in work, 1-6 months out of work showed no clear effect on positive replies. Being out of work 13-18 months cut positive replies by about 21%. Being out 19-36 months cut them by about 27% [@dhert-2026, p. 1382]. Each study and its limits: [Does an employment gap on your resume hurt?](employment-gaps.md).
 
 A US field experiment found something different for short spells. It sent about 12,000 made-up resumes for sales and office jobs in 2011. Callbacks fell sharply over the first 8 months out of work, then stayed flat. At 8 months, callbacks were about 45% lower than at 1 month [@kroft-2013]. That study compared people recently out of work with people out longer, not with people in work.
 
-Most of these studies tested people out of work now, not a past break between jobs. The review found only 7 studies on a past break. Time out of the job market for other reasons was tested less often, and cost more [@dhert-2024].
+Most of these studies tested people out of work now, not a past break between jobs. The review found only 7 studies on a past break [@dhert-2026, p. 1367]. It found four studies of people who had left the workforce. All four found a penalty, and two found it larger than for job loss [@dhert-2026, p. 1380].
 
 Some screening software also filters gaps. In a 2020 survey, 48% of executives said their software filtered middle-skills applicants on gaps over 6 months [@fuller-2021, p. 22-23]. Only executives whose software ranks or filters applicants were asked. Those are their answers, not a measurement.
 
@@ -98,11 +98,11 @@ Longer time out of work is worth handling with care. Shorter spells may matter t
 
 ## Does explaining a gap help?
 
-The studies disagree. In one US field experiment, a resume and cover letter saying the gap was an illness, now recovered, did a little better than no reason. An early summary of that study reports replies of 25.6% with the reason and 23.3% without [@namingit-2021]. That summary does not say whether the difference could be chance.
+The studies disagree. In one US field experiment, a resume and cover letter saying the gap was an illness, now recovered, did better than no reason. An early summary of that study reports replies of 25.6% with the reason and 23.3% without. The study's published summary calls replies with the reason "significantly higher" [@namingit-2021].
 
 A larger UK experiment found no gain from a childcare reason. Mothers' resumes with a 2.5-year gap explained as full-time childcare did no better than an unexplained gap. The same study tried listing years worked per job instead of dates, which hides the gap. Listing years raised replies by about 8% over resumes with no gap at all [@kristal-2023].
 
-For you, a one-line reason is a cheap, honest step, but no study shows it reliably helps. Bias against gaps is the employer's, not a flaw in you. Application forms such as Workday's ask for start and end dates anyway.
+For you, a one-line reason is a cheap, honest step. It helped for one health reason in one test and did nothing for childcare in another. Bias against gaps is the employer's, not a flaw in you. Application forms such as Workday's ask for start and end dates anyway.
 
 ## Do typos really matter?
 
@@ -160,7 +160,7 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 - Whether a short spell out of work costs callbacks. One review says no clear cost; one US experiment says yes.
 - How a past break between jobs is treated, as opposed to being out of work now. Few studies test it.
 - Whether typos cost interviews in real hiring. Every study found asked raters, not employers.
-- Whether a gap reason helps: one US study says a little, one larger UK study says no.
+- Whether a gap reason helps: one US study says yes for an illness reason, one larger UK study says no for childcare.
 - Whether one page or two works better for experienced people. The only test found is a vendor's simulation.
 - How AI screening tools treat any of these rules. See [Can employers tell if AI wrote your resume?](ai-written-resumes.md).
 - Whether a cover letter still helps now that AI can write one. See [Do cover letters still matter now that AI writes them?](cover-letters-after-ai.md). Our count of letter boxes is on its own page: [cover letter boxes on 143 job application forms](cover-letter-boxes-2026-10.md).
@@ -169,7 +169,7 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 
 - Make every employer, title and date match your records [@hireright-2025].
 - Proofread, and have someone else proofread too [@sterkens-2023].
-- After a long gap, a short, honest reason costs little. The bias grows with time out of work, and it is the employer's [@dhert-2024].
+- After a long gap, a short, honest reason costs little. The bias grows with time out of work, and it is the employer's [@dhert-2026].
 - Leave off a photo and personal details [@mit-capd-resumes].
 - Use a plain, one-column page with clear headings [@ladders-2018].
 
@@ -184,3 +184,7 @@ How we grade evidence: [How we research](methods.md). More articles: [Research](
 - Asks you for real numbers; never makes one up.
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - the review of time out of work now cites its 2026 journal version, not the 2024 draft; its figures are unchanged. The US health-reason study now cites its published summary, which calls the gain significant.

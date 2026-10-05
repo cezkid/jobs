@@ -158,8 +158,9 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   privacy line first: "A few words is enough - no diagnosis or case details. What you type here
   goes to your AI account." Then raise it kindly, never as a fault, in `gap_note`'s words (6+
   months: a line; 12+: a line + recent work, study or volunteering really done; never penalty
-  numbers). Their call, said plainly: "a line saves the reader guessing - small help for health
-  and layoffs, no difference for childcare in one trial". ONE clickable question: Family care /
+  numbers). Their call, said plainly: "a line saves the reader guessing - it helped for one
+  health reason, made no difference for childcare in one trial; a layoff line was never tested
+  against saying nothing". ONE clickable question: Family care /
   Health matter, now resolved or managed / Study or training / Something else - I'll say ("Leave
   it off" under Other). Answer -> `career_break` entry (dates + their reason; on the page, closes
   the gap); work, study or volunteering they really did -> its own entry. Never suggest paying for

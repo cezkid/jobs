@@ -1,6 +1,17 @@
 # Research sources registry - every work a research page cites. Field rules: app/docs/site.md#research-pages;
 # what to cite + how to label it: app/docs/research.md. Sorted by id.
 
+- id: ada-title-i
+  type: law
+  org: US Equal Employment Opportunity Commission
+  year: 1990
+  title: "Titles I and V of the Americans with Disabilities Act of 1990 (ADA)"
+  url: https://www.eeoc.gov/statutes/titles-i-and-v-americans-disabilities-act-1990-ada
+  evidence: law
+  sample: the statute text; Title I covers employers with 15 or more employees
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: al-ali-2026
   type: article
   authors: ["Al Ali, Adnan", "Helcl, Jindřich", "Libovický, Jindřich"]
@@ -307,19 +318,6 @@
   sample: news report based on five unnamed people familiar with the project; Amazon declined to comment
   checked: 2026-10-03
 
-- id: dhert-2024
-  type: report
-  authors: ["D'hert, Liam", "Baert, Stijn", "Lippens, Louis"]
-  year: 2024
-  title: "Unemployment, Inactivity, and Hiring Chances: A Systematic Review and Meta-Analysis"
-  venue: IZA Discussion Paper 17141, July 2024
-  doi: 10.2139/ssrn.4898321
-  url: https://docs.iza.org/dp17141.pdf
-  evidence: meta-analysis
-  sample: field experiments with about 67,000 made-up applicants in 7 countries, combined
-  preprint: true
-  checked: 2026-10-04
-
 - id: dhert-2026
   type: article
   authors: ["D'hert, Liam", "Baert, Stijn", "Lippens, Louis"]
@@ -460,7 +458,7 @@
   doi: 10.1257/aer.p20161010
   url: https://www.nber.org/system/files/working_papers/w21689/w21689.pdf
   evidence: large field experiment
-  sample: about 12,000 made-up applications from college-educated women to office support jobs in 8 US cities, 2012-2014
+  sample: about 12,000 made-up applications (by our count of its four rounds) from college-educated women to office support jobs in 8 US cities, 2012-2014
   checked: 2026-10-04
 
 - id: farber-2019
@@ -906,11 +904,11 @@
   authors: ["Namingit, Sheryll", "Blankenau, William", "Schwab, Benjamin"]
   year: 2021
   title: "Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate"
-  venue: Journal of Economic Behavior & Organization 2021 (paywalled; numbers from the authors' open 2018 conference abstract)
+  venue: Journal of Economic Behavior & Organization 185, 865-882 (full text paywalled; published abstract read on RePEc)
   doi: 10.1016/j.jebo.2020.09.033
-  url: https://ashecon.confex.com/ashecon/2018/webprogram/Paper5280.html
-  evidence: field experiment
-  sample: 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs
+  url: https://ideas.repec.org/a/eee/jeborg/v185y2021icp865-882.html
+  evidence: large field experiment
+  sample: 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs; the three rates are from the authors' open 2018 conference abstract, gap length from the AEA trial registry
   checked: 2026-10-04
 
 - id: nasr-2023
@@ -923,6 +921,18 @@
   evidence: lab/LLM audit
   sample: researchers pulled gigabytes of exact training text from open AI models and thousands of training examples from ChatGPT (GPT-3.5) with a new trick; training text came from the web, not users' chats
   checked: 2026-10-03
+
+- id: nunley-2017
+  type: article
+  authors: ["Nunley, John M.", "Pugh, Adam", "Romero, Nicholas", "Seals, R. Alan"]
+  year: 2017
+  title: "The Effects of Unemployment and Underemployment on Employment Opportunities: Results from a Correspondence Audit of the Labor Market for College Graduates"
+  venue: ILR Review 70(3), 642-669 (open copy, Auburn University working paper AUWP 2014-04)
+  doi: 10.1177/0019793916654686
+  url: https://cla.auburn.edu/econwp/Archives/2014/2014-04.pdf
+  evidence: large field experiment
+  sample: about 9,400 made-up resumes from recent college graduates to business jobs in 7 US cities, January-July 2013; figures read in the 2014 working-paper copy; underemployment figure matches the published abstract (30%)
+  checked: 2026-10-04
 
 - id: nj-dcr-2025
   type: law

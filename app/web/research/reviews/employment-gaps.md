@@ -1,11 +1,11 @@
 ---
 reviewed: 2026-10-04
-verdict: revise
+verdict: publish
 reviewer: fresh AI session, bead plan-xsy.71 (no drafting context; sources opened before the draft was read)
 ---
 # Review: Does an employment gap on your resume hurt? (`employment-gaps.md`)
 
-Verdict **revise**: 1 high, 10 medium, 12 low findings, all open. Every number the draft takes
+Verdict at review **revise**: 1 high, 10 medium, 12 low findings. All answered in plan-xsy.72 (22 fixed, 1 rebutted; see "Revision" below), so the header verdict is now publish. Every number the draft takes
 from its 17 sources matches the source. The problems are what it leaves out or reads too
 kindly. The published summary of the one US reason-line test is open and says the gain was
 significant, while the draft says three times that nobody can tell if it was chance. The
@@ -166,23 +166,23 @@ weisshaar-2021 (17 of 17).
   pages + the RePEc URL. Also say the illness was cancer, the gap was seven months or more
   (trial registry), and the resume listed a cancer recovery support group besides the letter.
   Same stale wording in `what-makes-a-good-resume.md` lines 41, 101, 163 - revise bead fixes
-  both. status: open
+  both. status: fixed
 - **M1 (medium) - Length table mixes two kinds of estimate.** Lines 14, 21, 25, 35-37. The
   1-6 month figure (+8.23%) is unadjusted; the 13-18 and 19-36 figures are covariate-adjusted
   (all p. 1382). The authors' adjusted figure for 1-6 months, outliers removed, is +16.73%
   [8.91, 25.10], and their abstract says short spells "positively affect" chances. The draft's
   reading is the cautious one and can stay. Fix: one sentence ("After the authors adjusted for
   study differences, short spells showed a small plus") and a table note naming which figures
-  are adjusted. status: open
+  are adjusted. status: fixed
 - **M2 (medium) - No 7-12 month row.** Lines 25, 33-37. The advice line sits at six months;
   the table jumps from 6 to 13. The journal's main text gives no figure. Fix: open supplement
   Table A3 and add the row, or add "7-12 months: no figure in the article's main text". Do not
-  publish the 2024 preprint's figure as the journal's. status: open
+  publish the 2024 preprint's figure as the journal's. status: fixed
 - **M3 (medium) - The review's overall result is missing.** Line 25. Overall effect -7.31%
   [-14.40, 0.36] unadjusted, -7.89% [-14.67, -0.56] adjusted; with outliers removed the
   interval spans zero (p. 1380). Each extra month: -1.71% (p. 1383). Without these the reader
   sees only the largest numbers. Fix: one sentence with the overall figure and "borderline".
-  status: open
+  status: fixed
 - **M4 (medium) - A US field test of past gaps and stop-gap jobs is missing.** Lines 31, 95,
   126. Nunley and others 2017 (ILR Review 70(3), 642-669, doi 10.1177/0019793916654686): US
   college graduates, no link between unemployment spells and callbacks, former unemployment no
@@ -190,80 +190,80 @@ weisshaar-2021 (17 of 17).
   Swedish" is wrong, "three large US tests" is short by one, and the stop-gap section misses
   its closest study. Only the abstract was opened here. Fix: open the paper, register it, add
   a table row and a stop-gap sentence, reword line 126 to what is still unknown (past gaps for
-  older or non-graduate US workers). status: open
+  older or non-graduate US workers). status: fixed
 - **M5 (medium) - Stop-gap section reports men only.** Line 95. Pedulla's women: full-time
   10.4%, below-skill job 5.2% (significant), a year out of work not significantly lower. Temp
   agency work was not clearly penalized for either. Fix: add "For women in the same test, a
   below-level job also cut callbacks, but a year out of work showed no clear cost. Temp agency
-  work showed no clear cost for men or women." status: open
+  work showed no clear cost for men or women." status: fixed
 - **M6 (medium) - "A layoff did best" and "say so in one line" outrun the test.** Lines 105,
   134. Weisshaar compared two stated reasons; no arm said nothing, and illness was never tested
   beside layoff. The section's own source (Gibbons and Katz) hints a layoff reads worse than a
   closing. Fix: line 105 "In the one test that compared them, laid-off parents got more
   interview requests than parents who left to give care. No test compared naming a layoff with
   saying nothing." Line 134: make it their call, same sentence. Optional: Norlander 2020 lab
-  result on outside causes (M10), labelled Lab study, after opening it. status: open
+  result on outside causes (M10), labelled Lab study, after opening it. status: fixed
 - **M7 (medium) - Unsourced: "US application forms usually ask for a month and year anyway."**
   Line 70. No source, no count. Fix: cut, or replace with the tool-box fact the program can
   back ("application forms still ask for dates" is already at line 97 in softer form), or run
-  and commit a count. status: open
+  and commit a count. status: fixed
 - **M8 (medium) - "Employers check" is wider than a vendor survey.** Lines 17, 115, 117, 135.
   The survey shows what HireRight's respondents found, not that employers in general verify
   dates. "72% of firms" is "72% of respondents" in the release. "Can cost the offer" has no
   source. Fix: "Many employers check"; "background checks can compare them"; "of respondents";
   line 117 "A false date found in a check is a mismatch on record" or cite a source for
-  withdrawn offers. status: open
+  withdrawn offers. status: fixed
 - **M9 (medium) - Health-question law stated without its scope.** Lines 109, 133. The ADA
   covers employers with 15 or more employees (42 USC 12111(5), not in the guidance page, so
   cite the statute or the EEOC's coverage page after opening it). The bar ends at a
   *conditional* offer. State laws differ. Line 133 "may not ask for more" should be "may not
   ask about the condition". Fix: add "at employers with 15 or more staff; state rules vary"
-  and reword 133. status: open
+  and reword 133. status: fixed
 - **M10 (medium) - Contrary evidence on short spells is absent.** Lines 21, 51, 130. Norlander
   and others 2020 (US; five studies, one in the field) report discrimination "nearly
   instantaneously" after job loss, at one month. Kroft's employed arm points the other way.
   The pooled result still supports "no clear cost", but single tests go both ways. Fix: one
   sentence after line 25 or 47 saying so, after opening the paper (abstract only opened here).
-  status: open
+  status: fixed
 - **L1 (low)** Labels: Namingit (3,771 resumes, about 1,257 per arm) is "Small study";
   Weisshaar 2018 (3,407, about 570 per cell) is "Big study". `research.md`: large = thousands
   of applications. Make both `large field experiment`, or state the rule that splits them.
-  status: open
+  status: fixed
 - **L2 (low)** Line 23 "differed only in time out of work": say "differed in whether the
-  applicant was out of work, and for how long". status: open
+  applicant was out of work, and for how long". status: fixed
 - **L3 (low)** Line 39 "About 12,000 applications": the paper gives no total; 12,224 is our
   sum of four rounds. Say "about 12,000 by our count of its four rounds" in the registry
   sample. Kroft, Farber, Gibbons and Eriksson numbers were read in NBER working-paper copies;
-  the registry says "open copy" - keep that. status: open
+  the registry says "open copy" - keep that. status: fixed
 - **L4 (low)** Line 43: Kroft also sent employed resumes, called back less often than the
   newly unemployed. Reword to "The 45% compares people newly out of work with people out
-  longer". status: open
+  longer". status: fixed
 - **L5 (low)** Line 47 "Nobody has shown why": authors point to different designs, groups and
   years (Nunley 2017, per dhert-2026 p. 1382; Farber 2019). Say "Authors suggest ...; none
-  tested it". status: open
+  tested it". status: fixed
 - **L6 (low)** Line 59 "The reason given seems to matter more than giving one": the tests
   differ in country, gap length and job, so this is a guess. Say "The two tests differ in more
-  than the reason, so we can't tell which mattered". status: open
+  than the reason, so we can't tell which mattered". status: fixed
 - **L7 (low)** Line 87 "Proof of good past performance": the study gave "information on past
-  job performance and social skills". Use those words. status: open
+  job performance and social skills". Use those words. status: fixed
 - **L8 (low)** Line 122 says reasons tested were illness and childcare only; the table above
   lists layoff and pandemic reasons. Say "Whether a reason beats no reason, for anything
-  other than illness and childcare". status: open
+  other than illness and childcare". status: fixed
 - **L9 (low)** The vendor figure readers meet elsewhere ("explaining a gap adds about 60%",
   ResumeGo 2019) is not mentioned. One labelled sentence would answer it: vendor test, no
   check for chance, not peer-reviewed. Owner's call; needs a registry entry if used.
-  status: open
+  status: rebutted
 - **L10 (low)** Line 130 "A search under way is not a gap to explain" beside studies that are
   all about current spells. Keep the framing (no penalty number at someone searching) but add
   "for the first months" or drop the citation to avoid implying current spells are exempt.
-  status: open
+  status: fixed
 - **L11 (low)** The six-month line (128-131, tool box) comes from the executive survey and the
   program's convention; the review puts harm at about twelve months and Namingit's gap was
-  seven months or more. Say where six comes from. status: open
+  seven months or more. Say where six comes from. status: fixed
 - **L12 (low)** Reading level: "replies", "positive replies", "callbacks", "interview
   requests", "invitations" are used as one thing. Define once ("a callback: the employer
   answers and asks for an interview or more details") and keep each study's own measure in its
-  row. status: open
+  row. status: fixed
 
 ## Checked and fine
 
@@ -288,3 +288,176 @@ checker: drafter's run, 0 broken for these 17 (not rerun; no source changed).
   "mostly 7-12 month gaps" for Namingit vs the registry's "seven months or more".
 - New registry entries needed if used: Nunley 2017, Norlander 2020, the ADA statute or EEOC
   coverage page, ResumeGo 2019 (vendor).
+
+## Revision (plan-xsy.72, 2026-10-04)
+
+Sources opened for the revision (raw copies in `~/.cache/plan-xsy.72/`): Namingit's published
+abstract on RePEc; Nunley and others 2017 in the open working-paper copy (Auburn AUWP 2014-04,
+full text); the ADA statute on the EEOC site (Sec. 101(5)). No source held text addressing an AI.
+Norlander 2020 has no open full text (publisher, university page and CORE tried), so it is not
+registered or cited.
+
+- **H1 fixed.** Significance cited from the published abstract ("significantly higher"); both
+  chance sentences dropped; the text says the three rates come from the 2018 summary and may
+  differ in print, the illness was cancer, the gap seven months or more (trial registration),
+  and the resume listed a cancer support group. Registry: volume + pages, RePEc URL.
+  `what-makes-a-good-resume.md` rows and body moved to the same wording.
+- **M1 fixed.** Text and table say which figures are adjusted; the adjusted plus of about 17%
+  is given; Short answer adds "its authors read a small plus".
+- **M2 fixed.** The review's chart (Figure 2 Panel B, p. 1381) was read after the re-review: table
+  row, one sentence and a "What we don't know" bullet say 7-12 months is a little lower in the
+  chart, could be chance, no number in the text. Supplement not opened; the preprint's figure
+  is not used.
+- **M3 fixed.** New paragraph: about 7% fewer replies overall, borderline (unadjusted it could be chance,
+  adjusted for study differences it could not, p. 1380); about 1.7% per extra month (p. 1383).
+- **M4 fixed.** `nunley-2017` registered after reading the full working-paper copy; table row,
+  a sentence on length, one on past gaps, one on stop-gap jobs ("three US tests"); the "past
+  gap" unknown reworded to older workers and non-graduates.
+- **M5 fixed.** Women's and temp-agency results added with the reviewer's sentences.
+- **M6 fixed.** "In the one test that compared them ..."; "We found no field test that compared
+  naming a layoff with saying nothing"; the advice line is now their call. Norlander's lab
+  result not added (not opened).
+- **M7 fixed.** Sentence cut.
+- **M8 fixed.** "Many employers check"; "of the businesses it asked"; "72% of respondents";
+  "background checks can compare them"; "a mismatch on record". "72% of firms" also fixed in
+  `what-makes-a-good-resume.md`, both Guides files that had it, `fair-screening.md`, `bullets.md`.
+- **M9 fixed.** "conditional job offer"; 15 or more employees cited to the statute
+  (`ada-title-i`, new entry); "State rules vary"; advice line reworded.
+- **M10 fixed.** One paragraph from the review's own Table 3 row (p. 1373): a US study found a
+  cost at one month, except for causes outside the applicant's control; the page says only that
+  study's summary could be opened and gives no number. Kroft's employed arm added. "For you"
+  line now says "most of these tests".
+- **L1 fixed.** `namingit-2021` is `large field experiment`; Short answer label "Big studies".
+- **L2, L4, L7, L8 fixed** with the reviewer's words.
+- **L3 fixed.** Table "by our count"; registry sample "by our count of its four rounds".
+- **L5 fixed.** "Authors point to different designs, applicants, years and job markets"; the
+  passage is on p. 1380 of dhert-2026 (the finding says p. 1382).
+- **L6 fixed.** Lead reworded: the two tests differ in more than the reason.
+- **L9 rebutted.** ResumeGo 2019 is on the "did not survive" list in
+  `app/docs/resume/fair-screening.md`; `app/docs/research.md` says a figure listed there never
+  reaches a page as fact. Left out; the owner can decide at the ship bead.
+- **L10 fixed.** "In the largest review, the first six months out of work showed no clear cost."
+- **L11 fixed.** What helps says where six months comes from (the executive survey).
+- **L12 fixed.** A callback is defined once, after the review is introduced.
+
+Also: "Apply widely" added to What helps (the brief asked for it; no number). The superseded
+preprint entry `dhert-2024` is gone from the registry; no page cites it now.
+
+## Re-review (2026-10-04, fresh AI session, plan-xsy.72)
+
+A fresh AI session that made none of the edits read the cached sources first, then the revised
+article, the registry entries, the sibling edits, the program notes and both Guides. It rendered
+p. 1381 of dhert-2026 (Figure 2; the text copy drops the chart). No source text addressed an AI.
+Findings: 1 high, 6 medium, 11 low. Lines = `employment-gaps.md` as revised.
+
+- **R1 (high) - "No figure for 7 to 12 months" is wrong: the review charts it (M2 not fixed).**
+  Lines 25, 38, 130. Figure 2 Panel B, p. 1381, has a "7 to 12 months" block: four estimates,
+  all grey (not different from zero at 5%), all below zero, roughly -7% to -11% off the axis.
+  Only the prose (p. 1382) skips the span. Fix l.25: "The review's text gives no number for 7 to
+  12 months. Its chart shows replies a little lower for that span, and that difference could be
+  chance [@dhert-2026, p. 1381]." Table cell: "A little lower in the review's chart; could be
+  chance; no number in the text", cite p. 1381. l.130: "How much 7 to 12 months out of work
+  costs. The largest review charts a small drop that could be chance and prints no number
+  [@dhert-2026, p. 1381]." Same in `fair-screening.md` Length row -> "7-12 n.s. (Fig. 2, p. 1381;
+  no number in the text)"; `bullets.md` -> "1-6 and 7-12 months n.s.".
+- **R2 (medium) - Nunley "15% to 30%" is the working paper's range; the journal abstract says
+  30%.** Line 103 (also 27 words). Published abstract: underemployed graduates "have callback
+  rates that are 30% lower than those of applicants who are adequately employed". Working paper:
+  about 29-30% for those in the below-level job now, about 15% for those who held one earlier
+  and are now out of work. Fix: "In the third, graduates working in a job that needs no degree
+  got about 30% fewer interview requests. The comparison group held jobs that fit their degree
+  [@nunley-2017]." Registry sample: add "underemployment figure matches the published abstract (30%)".
+- **R3 (medium) - "chance in two of the review's three versions" does not match the chart.**
+  Line 27. Text p. 1380 gives three intervals; Figure 2 Panel A shows four versions: unadjusted
+  and outlier-adjusted grey, covariate-adjusted and dual-adjusted significant. Fix: "That overall
+  result is borderline. Unadjusted, it could be chance; adjusted for differences between studies,
+  it could not [@dhert-2026, p. 1380]."
+- **R4 (medium) - Old wording left in the setup skill.** `app/skills/job-setup.md` l.161-162
+  "small help for health and layoffs, no difference for childcare in one trial". Fix: "a line
+  saves the reader guessing - it helped for one health reason, made no difference for childcare
+  in one trial; a layoff line was never tested against saying nothing".
+- **R5 (medium) - Guide still says US studies saw drops sooner.** `Guides/Unfair hiring - what's
+  known, what helps.md` l.60-61. Fix: "after a year away; US studies disagree on how soon it
+  starts. *Big studies.*" Same in `app/resume/schema.py` l.24 comment -> "one US field study
+  (Kroft 2013) shows callbacks falling by ~8 months; two show no link".
+- **R6 (medium) - Past gaps: the quote keeps half of the review's sentence.** Lines 57, 59.
+  p. 1380: seven studies "yield mixed evidence"; lab studies all found a penalty for a past gap,
+  field experiments "report null findings"; lab participants presumably knew the focus. Add
+  after the quote: "Lab studies in that review all found a penalty for a past gap. The review
+  notes lab raters probably knew what was being tested [@dhert-2026, p. 1380]." l.59: "... showed
+  no clear cost in most of these field tests."
+- **R7 (medium) - Per-month number with no range, beside "first six months no clear cost".**
+  Line 27. p. 1383: -1.71% [-2.86, -0.55] is one straight line fitted over 1 to 36 months. Fix:
+  "Averaged over spells of 1 to 36 months, each extra month was linked with about 1.7% fewer
+  positive replies. That average hides the first six months, which showed no clear cost
+  [@dhert-2026, p. 1383]."
+- **R8 (low)** l.53: p. 1380 attributes the reasons to Nunley and others 2017. Fix: "Why do the
+  US tests differ? One team of study authors points to different designs, applicants, years and
+  labor-market rules, the 2026 review reports [@dhert-2026, p. 1380]."
+- **R9 (low)** l.14 "a small plus": "small" is ours. Fix: "its authors read a plus".
+- **R10 (low)** l.55: fix "In that study, people one month out of work were less likely to get
+  offers than applicants with a job. The review notes one exception: a cause outside the
+  applicant's control [@dhert-2026, p. 1373]."
+- **R11 (low)** l.51 "made no difference to" -> "showed no clear effect on" (differences were
+  negative, not significant).
+- **R12 (low)** l.95 -> "Positive information on past job performance and social skills wiped
+  out the penalty for being out of work."
+- **R13 (low)** "16 field experiments" is on p. 1362, not p. 1357: cite "[@dhert-2026, pp. 1357,
+  1362]" in `employment-gaps.md` l.23 and `what-makes-a-good-resume.md`.
+- **R14 (low)** Leftovers: `fair-screening.md` row title "6+ months: a one-line reason is worth
+  adding" and `bullets.md` "So: 6-12 months, a one-line reason is worth adding" -> "a one-line
+  reason is their call (helped for one health reason, not for childcare)"; `schema.py`
+  `gap_note` text "A one-line reason is worth adding." is user-facing and test-pinned - owner's
+  call, flag only; `schema.py` l.26 comment "2024" -> 2026; reference lists `bullets.md` l.334
+  and `fair-screening.md` l.222 "IZA DP 17141" -> "Socio-Economic Review 24(3), 2026", add Nunley
+  2017; `fair-screening.md` stop-gap row add "women: below-skill 5.2% vs 10.4%; temp work n.s.
+  for both; Nunley 2017: about 30% fewer".
+- **R15 (low)** Namingit table cell: the letter said physical illness; cancer shows only through
+  the support group. Fix: "Illness with full recovery, said in the cover letter; the resume
+  listed a cancer support group; gap of seven months or more".
+- **R16 (low)** l.25 "outlier results set aside" -> "With that adjustment, and the most extreme
+  studies set aside, short spells showed a plus of about 17%".
+- **R17 (low)** Long or not standalone: l.119 -> "The one field test of a health reason used a
+  letter naming a physical illness with full recovery. The resume pointed to cancer
+  [@namingit-2021]."; l.123 -> "A background-check company ran a survey in 2025. More than
+  three-quarters of the businesses it asked had found mismatches in applicants' details in 12
+  months."; l.47 -> "The resumes from people with a job got fewer callbacks than resumes from
+  people newly out of work. The authors call that result suggestive [@kroft-2013]."; l.57 ->
+  "The US test of recent graduates also found no effect of a past spell [@nunley-2017]."; l.113
+  -> "In the one test that compared a layoff with caregiving, laid-off parents got more
+  interview requests [@weisshaar-2018]."
+- **R18 (low)** No change needed: Changes line in `what-makes-a-good-resume.md` is true for the
+  figures that page cites. Stage the new `docs/research/employment-gaps/` before the gate.
+
+Checked and fine: every other number in items (a)-(g) of the brief - dhert-2026 pp. 1357, 1360,
+1367, 1373, 1380, 1382, 1383, 1388; Kroft's 2,818 employed resumes and "suggestive"; Nunley's
+sample, cities, months, registry fields; Pedulla's women and temp results; Namingit's published
+abstract, registry gap length, support group and the "about half" arithmetic; ADA Sec. 101(5)
+and the EEOC "conditional job offer"; HireRight "businesses" and "72% of respondents". H1, M1,
+M3-M10, L1-L8, L10-L12 fixed as claimed; L9 rebuttal consistent with `research.md`. Old figures
+("of firms" for the 72%, "mostly 7-12", "small US study", the 2024 preprint) are gone from the
+articles, both Guides, `fair-screening.md` and `bullets.md`. No quote over 15 words.
+
+### Re-review resolution (plan-xsy.72, 2026-10-04)
+
+The reviser checked R1 and R3 on the rendered chart (p. 1381) and R2 in the published abstract
+before applying them. Every fix uses the re-review's own wording, so no third round.
+
+- **R1 fixed.** Text, table row and the "What we don't know" bullet now say the chart shows 7 to
+  12 months a little lower, could be chance, no number in the text (p. 1381); `fair-screening.md`
+  and `bullets.md` say "7-12 n.s."; the M2 line above says the chart was read.
+- **R2 fixed.** "about 30% fewer interview requests", comparison group in its own sentence;
+  registry sample notes the match with the published abstract.
+- **R3 fixed.** "Unadjusted, it could be chance; adjusted for differences between studies, it
+  could not"; the M3 line above no longer says "two of three".
+- **R4 fixed.** `app/skills/job-setup.md` wording replaced.
+- **R5 fixed.** Guide line and the `schema.py` comment replaced.
+- **R6 fixed.** Lab-study sentences added after the quote; "most of these field tests".
+- **R7 fixed.** Per-month figure framed as an average over 1 to 36 months that hides the first six.
+- **R8-R13, R15-R17 fixed** with the wording given.
+- **R14 fixed**, except the `gap_note` text in `schema.py` ("A one-line reason is worth adding."):
+  shown to users and pinned by a test, so it is the owner's call - left as is, noted for the
+  ship bead.
+- **R18 no change.**
+
+No open finding. Verdict: publish.

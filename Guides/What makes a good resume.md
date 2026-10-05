@@ -14,7 +14,7 @@ Rules clash? This order wins: **true > real results > fits the job > easy to rea
 
 - **Employer, title, dates match the employer's records.** Over 3 in 4 employers found a mismatch
   last year. Most common: undisclosed criminal records, education and work history. Work history
-  checks turned up mismatches most often in every region (72% of firms in Asia-Pacific, 64% in
+  checks turned up mismatches most often in every region (72% of respondents in Asia-Pacific, 64% in
   Europe, the Middle East and Africa). *Vendor survey (HireRight 2025, a background-check company).*
 - **Every number one you can explain.** Interviews ask about anything on the page. Nothing
   added you didn't give. *Convention.*
@@ -38,10 +38,11 @@ More: [evidence](../app/docs/resume/bullets.md#tier-2---substance)
   to know, never a word to add. *Convention + hiring software's help pages.*
 - **Most relevant first.** First line under each job always gets read. *Convention.*
 - **Last 10-15 years.** Shorten older jobs; no hole in the middle. *Convention.*
-- **Breaks over 6 months: add a one-line reason.** Over a year: that line, plus any recent work,
+- **Breaks over 6 months: a one-line reason is your call.** Over a year: that line, plus any recent work,
   study or volunteering you really did. In one survey, about half the executives whose
   software sorts applicants said it filters out breaks over 6 months. Longer breaks cost more.
-  Does the reason help? Studies disagree: one small US study, a little; one big UK study, no gain.
+  Does the reason help? Studies disagree: one US study, yes for a health reason; one big UK study, no
+  gain for childcare.
   *Survey (2020) + big study across 7 countries; the reason's effect is mixed.*
 
 More: [fitting the job](../app/docs/resume/bullets.md#tier-3---relevance)
