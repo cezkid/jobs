@@ -744,6 +744,25 @@ def test_resume_goes_in_the_resume_box_only():
     assert ashby.fill(Page(), other, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")
 
 
+# --- a file that leaves when chosen ---
+
+def test_file_on_choice_systems_say_so_in_prepare_and_the_privacy_table():
+    """Greenhouse's resume POSTs to its storage on choosing it (3 of 3 employers, 2026-10-05): prepare
+    tells the AI to say so in the upload yes, and AGENTS.md's row says "as soon as" - only for
+    systems measured so, never "once you click Submit" for a file that leaves sooner."""
+    import re
+
+    import cfg
+    asked = [q("Resume/CV", "file", "resume"), q("First Name")]
+    assert "as soon as it is chosen" in form.upload_note(greenhouse, asked)
+    assert form.upload_note(greenhouse, asked[1:]) == "" and form.upload_note(ashby, asked) == ""
+    table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
+    for system in systems.SYSTEMS:
+        rows = [r for r in table if f"that employer's {system.NAME} site" in r]
+        early = any(re.search(r"\b(?:choose|chosen|pick)", r.split("|")[3]) for r in rows)
+        assert early == getattr(system, "FILE_ON_CHOICE", False), system.NAME
+
+
 # --- Greenhouse ---
 
 def test_greenhouse_link_plain_eu_embed_or_tracking_tail():

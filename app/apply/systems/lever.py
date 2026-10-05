@@ -24,6 +24,8 @@ EXAMPLES = ("https://jobs.lever.co/acme/1b2c3d4e-5f60-4718-9a0b-1c2d3e4f5a6b",
 # questions() is one plain GET of the /apply page, no browser: the live test runs it
 QUESTIONS_OVER_HTTP = True
 READY = "#application-form input[name=name]"
+# a chosen resume goes to Lever at once to be read, before Submit (lever.md)
+FILE_ON_CHOICE = True
 # card field type -> shared kind (51 fields, 4 tenants, 2026-10-03); a type missing here is asked as text
 KIND = {"text": "text", "textarea": "longtext", "multiple-choice": "choice", "dropdown": "choice",
         "multiple-select": "multichoice"}

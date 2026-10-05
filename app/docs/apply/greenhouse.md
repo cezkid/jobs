@@ -32,18 +32,40 @@ multichoice, `input_hidden` skipped.
 | choice / yesno / multichoice / Country | react-select: `input[role=combobox]`, list `.select__menu [role=option]` | type, click option w/ exact text - never the first offered; nothing matches -> clear + ASK. Read back from `single-value` / `multi-value__label`. Always scope to `.select__menu`: the phone box's own hidden country list is also `[role=option]` |
 | Country | options read "United States +1"; chosen it shows flag + "+1" only | match w/o the code, read back the code |
 | Location (City) | combobox `candidate-location`, places after typing (e.g. "Springfield, Illinois, United States") | type city only, pick option starting w/ the full answer |
-| Resume/CV, Cover Letter | hidden `input[type=file]#resume` / `#cover_letter`; after upload `[aria-labelledby=upload-label-<id>] .file-upload__filename` shows the file name | upload first, confirm by name |
+| Resume/CV, Cover Letter | hidden `input[type=file]#resume` / `#cover_letter`; after upload `[aria-labelledby=upload-label-<id>] .file-upload__filename` shows the file name | upload first, confirm by name. Choosing it sends the file at once - see below |
 | Race | shown only after Hispanic/Latino = No | not shown -> skipped |
 | Education (School, Degree ...) | `school--0` ...; optional; not in the job board's list | left alone; MyGreenhouse may fill it |
 
 `navigator.webdriver` false in Job Finder's Chrome (2026-10-02). Submit button `button[type=submit]` -
 never clicked. After Submit the address ends `/confirmation`.
 
+## What leaves the computer, when
+
+`apply-form try`, every write blocked, 3 postings, 3 employers (tenants C-E), 2026-10-05: 2 on
+`job-boards.greenhouse.io`, 1 on the employer's own page (`?gh_jid=`, embed form opened by
+`recover`). Same in the Job Finder window's own tab (tenant B, `vscode-browser.md`).
+
+| When | What goes out (blocked here) |
+|---|---|
+| Load | analytics POST `c.spl.greenhouse.io` (3 of 3); employer page: its own analytics + cookie-consent POSTs |
+| Typing, choices, ticks | nothing (0 blocked while filling, 3 of 3) |
+| Resume chosen | the file: POST `multipart/form-data` to `grnhse-prod-jben-us-east-1.s3.amazonaws.com` = Greenhouse's storage, before Submit (3 of 3) |
+| Cover letter chosen | same POST, same storage (2 of 2 that had the box) |
+| Contact details + answers | only on Submit (never clicked - unmeasured past it) |
+
+So the resume (and a cover letter) reaches the employer's Greenhouse as soon as it is chosen -
+`FILE_ON_CHOICE`: `prepare` tells the AI to say so in the upload yes. Upload blocked, the rest of
+the form still fills (3 of 3, unlike Workable) - `try` needs no `--no-upload` here; only the file
+name never shows ("upload not confirmed").
+
 ## Tenant notes
 
 | Tenant | Measured |
 |---|---|
 | tenant A | EEOC + own demographic survey both on one form - two separate sets of voluntary questions |
+| tenant C | 26 questions: work permit + sponsorship, start date, salary, own demographic survey (gender identity, orientation, transgender, disability) + EEOC; all but the resume filled with the upload blocked |
+| tenant D | 12 questions, resume + cover letter boxes; both files POST to storage when chosen |
+| tenant E | employer's own page (`?gh_jid=`); 30 questions; 2 "select all that apply" questions are checkboxes, not react-select - the filler FAILs them (plan-29g.16); work history entries on the page, not in the job board's list |
 
 ## Board that sends its job page to the employer's own site (2026-10)
 

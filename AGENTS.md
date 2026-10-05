@@ -217,7 +217,8 @@ when asked, at setup, and before any step sending something new off computer.
 | Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User's own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
-| Contact details, answers, resume you apply with | that employer's Greenhouse site | That employer, once you click Submit |
+| Resume (and cover letter) you apply with | that employer's Greenhouse site | That employer, as soon as you choose the file (it goes to Greenhouse's storage then) |
+| Contact details, answers you apply with | that employer's Greenhouse site | That employer, once you click Submit |
 | Resume you apply with | that employer's Lever site | That employer, as soon as you choose the file (Lever reads it to fill the form) |
 | Contact details, answers you apply with | that employer's Lever site | That employer, once you click Submit |
 | Resume you apply with | that employer's Workable site | That employer, as soon as you choose the file (it goes to Workable's storage then) |

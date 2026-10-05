@@ -29,6 +29,8 @@ EXAMPLES = ("https://job-boards.greenhouse.io/acme/jobs/4001234005",
 # questions() is a plain HTTP read, no browser: the live test runs it
 QUESTIONS_OVER_HTTP = True
 READY = "#first_name"
+# a chosen file POSTs to Greenhouse's storage at once, before Submit (3 of 3 employers, 2026-10-05)
+FILE_ON_CHOICE = True
 # Greenhouse type -> shared kind; a type missing here is asked as text
 KIND = {"input_text": "text", "textarea": "longtext", "input_file": "file",
         "multi_value_single_select": "choice", "multi_value_multi_select": "multichoice"}

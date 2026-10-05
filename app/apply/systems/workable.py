@@ -22,6 +22,8 @@ EXAMPLES = ("https://apply.workable.com/acme/j/1A2B3C4D5E/",
 QUESTIONS_OVER_HTTP = True
 FORM = "https://apply.workable.com/api/v1/jobs/{code}/form"
 READY = "input[name=firstname]"
+# a chosen resume POSTs to Workable's storage at once, before Submit (workable.md)
+FILE_ON_CHOICE = True
 # employer question type -> shared kind (123 fields, 17 forms, 2026-10-03); a type missing here is asked as text
 KIND = {"boolean": "yesno", "paragraph": "longtext", "text": "text", "number": "number", "date": "date",
         "dropdown": "choice", "file": "file"}

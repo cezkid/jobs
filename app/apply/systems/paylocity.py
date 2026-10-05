@@ -27,6 +27,8 @@ QUESTIONS_OVER_HTTP = True
 PER_PAGE = True
 # on every step (labelled boxes sit in .form-group); the first step's name box comes with it
 READY = ".form-group"
+# a picked file POSTs to Paylocity at once, before Submit (paylocity.md)
+FILE_ON_CHOICE = True
 PAGE_DATA = re.compile(r"window\.pageData\s*=\s*")
 # info field -> (page id, kind, key, widget); widgets: text box, react-widgets dropdown (combo),
 # native radios, tag box, file input. Definition `type` is null on every field (7 of 7): the name decides

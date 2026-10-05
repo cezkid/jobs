@@ -102,7 +102,7 @@ privacy-ai:
     - '| Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User''s own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |'
 privacy-employers:
   page: privacy.html
-  text: EmployersWhat you apply with.When you click Save or Submit. Some sites get parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.
+  text: EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled, or your email (some also name and phone) at their first Continue or Next. The AI tells you first.
   why: 'privacy table: what employers get, per system'
   rests_on:
   - file: AGENTS.md
@@ -111,7 +111,8 @@ privacy-employers:
     - '| Resume + answers you paste | that employer''s site (Recruitee ...) | That employer, once you click Submit |'
     - '| Work history, education, skills, work-permit answers you apply with | that employer''s Workday site | That employer, once you click Save |'
     - '| Contact details, answers, resume you apply with | that employer''s Ashby site | That employer, once you click Submit |'
-    - '| Contact details, answers, resume you apply with | that employer''s Greenhouse site | That employer, once you click Submit |'
+    - '| Resume (and cover letter) you apply with | that employer''s Greenhouse site | That employer, as soon as you choose the file (it goes to Greenhouse''s storage then) |'
+    - '| Contact details, answers you apply with | that employer''s Greenhouse site | That employer, once you click Submit |'
     - '| Resume you apply with | that employer''s Lever site | That employer, as soon as you choose the file (Lever reads it to fill the form) |'
     - '| Contact details, answers you apply with | that employer''s Lever site | That employer, once you click Submit |'
     - '| Resume you apply with | that employer''s Workable site | That employer, as soon as you choose the file (it goes to Workable''s storage then) |'

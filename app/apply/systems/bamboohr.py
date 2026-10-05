@@ -19,6 +19,8 @@ EXAMPLES = ("https://acme.bamboohr.com/careers/101",
 # GET /careers/<id>/detail = every box the form shows, plain JSON, no key (12 of 12 tenants, 2026-10-03)
 QUESTIONS_OVER_HTTP = True
 READY = "#firstName"
+# a chosen file POSTs to the employer's BambooHR at once, before Submit (bamboohr.md)
+FILE_ON_CHOICE = True
 # the form opens on the same URL only after this button (4 of 4)
 APPLY = "Apply for This Job"
 # definition key -> (shared kind, shared key)
