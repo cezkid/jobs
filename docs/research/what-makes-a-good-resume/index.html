@@ -18,7 +18,7 @@
 <meta property="og:title" content="What makes a good resume? Each rule and the evidence behind it">
 <meta property="og:description" content="Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.">
 <meta property="article:published_time" content="2026-10-03">
-<meta property="article:modified_time" content="2026-10-04">
+<meta property="article:modified_time" content="2026-10-05">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/#article","headline":"What makes a good resume? The evidence, rule by rule","description":"Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.","url":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/","mainEntityOfPage":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/","datePublished":"2026-10-03","dateModified":"2026-10-04","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"What makes a good resume? The evidence, rule by rule","item":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/#article","headline":"What makes a good resume? The evidence, rule by rule","description":"Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.","url":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/","mainEntityOfPage":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/","datePublished":"2026-10-03","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"What makes a good resume? The evidence, rule by rule","item":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -234,6 +234,8 @@
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
   thead th { border-bottom: 2px solid var(--text); }
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+  /* a table right before a heading: the heading's rule closes it (two hairlines 49px apart read as a double rule) */
+  :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
   /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
@@ -370,13 +372,14 @@
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
 <li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
 </nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">What makes a good resume? The evidence, rule by rule</li></ol></nav>
 <h1>What makes a good resume? <span class="deck">The evidence, rule by rule</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-04">October 4, 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -398,6 +401,7 @@
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
 <li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
 </details>
@@ -405,9 +409,9 @@
 <p><strong>Short answer</strong></p>
 <ul>
 <li>True first: employer, title, dates match records. Firms that check find mismatches (Vendor survey; <a href="#src-hireright-2025">HireRight 2025a</a>).</li>
-<li>Typos: 2 errors, rated interview chance 7 points lower out of 100 (Lab study; <a href="#src-sterkens-2023">Sterkens et al. 2023</a>).</li>
-<li>Long time out of work costs callbacks. Short spells: studies disagree (Big study; <a href="#src-dhert-2024">D’hert et al. 2024</a>; <a href="#src-kroft-2013">Kroft et al. 2013</a>).</li>
-<li>Results over duties, one page early on: career-guide advice, no study (Convention; <a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026</a>). Last 10–15 years in detail: one career guide (Convention; <a href="#src-indeed-experience-2025">Indeed Editorial Team 2025</a>). No photo: one field experiment found photos help some, hurt others (Big study; <a href="#src-ruffle-2015">Ruffle and Shtudiner 2015</a>).</li>
+<li>Typos: 2 errors, rated interview chance 7.3 points lower out of 100 (Lab study; <a href="#src-sterkens-2023">Sterkens et al. 2023</a>).</li>
+<li>Long time out of work costs callbacks. Short spells: studies disagree (Big studies; <a href="#src-dhert-2026">D’hert et al. 2026</a>; <a href="#src-kroft-2013">Kroft et al. 2013</a>).</li>
+<li>Results over duties, one page early on: career-guide advice, no study (Convention; <a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>). Last 10–15 years in detail: one career guide (Convention; <a href="#src-indeed-experience-2025">Indeed Editorial Team 2025</a>). No photo: one field experiment found photos help some, hurt others (Big study; <a href="#src-ruffle-2015">Ruffle and Shtudiner 2015</a>).</li>
 </ul>
 <h2 id="what-matters-most-on-a-resume">What matters most on a resume?</h2>
 <p>A resume has four jobs, in this order: be true, show real results, fit the job, read easily. The order is our rule, not a study’s finding. When two rules clash, the earlier one wins. A strong line that is not true fails the first job.</p>
@@ -428,7 +432,7 @@
 <tr>
 <td>Employer, title and dates match your records</td>
 <td>Vendor survey</td>
-<td>More than three-quarters of firms that run checks found a mismatch in the past year (<a href="#src-hireright-2025">HireRight 2025a</a>)</td>
+<td>More than three-quarters of businesses a background-check company asked found a mismatch in the past 12 months (<a href="#src-hireright-2025">HireRight 2025a</a>)</td>
 </tr>
 <tr>
 <td>Proofread for typos</td>
@@ -437,23 +441,23 @@
 </tr>
 <tr>
 <td>Long time out of work costs callbacks</td>
-<td>Big study, not yet peer-reviewed</td>
-<td>13–18 months out of work cut positive replies by about 21% (<a href="#src-dhert-2024">D’hert et al. 2024</a>, p. 15)</td>
+<td>Big study</td>
+<td>13–18 months out of work cut positive replies by about 21% (<a href="#src-dhert-2026">D’hert et al. 2026</a>, p. 1382)</td>
 </tr>
 <tr>
 <td>Short spells out of work</td>
-<td>Big study (the review not yet peer-reviewed); studies disagree</td>
-<td>A 2024 review found no clear cost for 1–6 months; a US experiment found callbacks fell over the first 8 months (<a href="#src-dhert-2024">D’hert et al. 2024</a>; <a href="#src-kroft-2013">Kroft et al. 2013</a>)</td>
+<td>Big studies; they disagree</td>
+<td>A 2026 review found no clear cost for 1–6 months; a US experiment found callbacks fell over the first 8 months (<a href="#src-dhert-2026">D’hert et al. 2026</a>; <a href="#src-kroft-2013">Kroft et al. 2013</a>)</td>
 </tr>
 <tr>
 <td>A reason for a gap helps</td>
-<td>Small study and Big study; they disagree</td>
-<td>One US study’s early summary found slightly more replies with an illness reason, without saying if that could be chance; a UK study found none for a childcare reason (<a href="#src-namingit-2021">Namingit et al. 2021</a>; <a href="#src-kristal-2023">Kristal et al. 2023</a>)</td>
+<td>Big studies; they disagree</td>
+<td>One US study’s published summary says an illness reason got significantly more replies than no reason; a UK study found no gain for a childcare reason (<a href="#src-namingit-2021">Namingit et al. 2021</a>; <a href="#src-kristal-2023">Kristal et al. 2023</a>)</td>
 </tr>
 <tr>
 <td>Results over duties</td>
 <td>Convention</td>
-<td>Career offices agree; no study found (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026</a>; <a href="#src-harvard-ocs-resume">Harvard College Office of Career Services 2026</a>)</td>
+<td>Career offices agree; no study found (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>; <a href="#src-harvard-ocs-resume">Harvard College Office of Career Services 2026</a>)</td>
 </tr>
 <tr>
 <td>Use the posting’s words for skills you have</td>
@@ -468,7 +472,7 @@
 <tr>
 <td>One page early on</td>
 <td>Convention</td>
-<td>Career offices say one page unless you have extensive experience (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026</a>)</td>
+<td>Career offices say one page unless you have extensive experience (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>)</td>
 </tr>
 <tr>
 <td>No photo</td>
@@ -485,13 +489,13 @@
 </div>
 <p>Most rules in the table rest on convention or a company’s own survey, test or help page. Only a few have studies of real hiring behind them.</p>
 <h2 id="does-your-resume-have-to-match-your-records">Does your resume have to match your records?</h2>
-<p>Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year. The most common were undisclosed criminal records, education and work history (<a href="#src-hireright-2025">HireRight 2025a</a>). A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of firms in Asia-Pacific and 64% in Europe, the Middle East and Africa (<a href="#src-hireright-2025-sept">HireRight 2025b</a>).</p>
+<p>Yes. Many employers check work history, and mismatches turn up. HireRight, a background-check company, ran a survey in 2025. More than three-quarters of the businesses it asked found a mismatch in the past 12 months. The most common were undisclosed criminal records, education and work history (<a href="#src-hireright-2025">HireRight 2025a</a>). A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of respondents in Asia-Pacific and 64% in Europe, the Middle East and Africa (<a href="#src-hireright-2025-sept">HireRight 2025b</a>).</p>
 <p>HireRight sells background checks, and the people it asked work at firms that run checks. The survey’s question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.</p>
 <p>Each employer name, job title and dates should match what a past employer would confirm. Anything on the page can also come up in an interview.</p>
 <h2 id="should-a-resume-list-results-or-duties">Should a resume list results or duties?</h2>
-<p>Career guides agree: show what you achieved, not only what the job asked of you. MIT’s career office says to record “accomplishments and contributions, not just responsibilities” (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026</a>). Harvard’s career office lists “not demonstrating results” among common resume mistakes (<a href="#src-harvard-ocs-resume">Harvard College Office of Career Services 2026</a>).</p>
+<p>Career guides agree: show what you achieved, not only what the job asked of you. MIT’s career office says to record “accomplishments and contributions, not just responsibilities” (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>). Harvard’s career office lists “not demonstrating results” among common resume mistakes (<a href="#src-harvard-ocs-resume">Harvard College Office of Career Services 2026</a>).</p>
 <p>The rule is convention. We searched for a study that tested results lines against duty lines in real hiring and found none.</p>
-<p>A result does not need a number. A line can say what changed, for whom, or how big the work was. MIT says to add numbers where you can (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026</a>). Our view: a number you cannot explain in an interview hurts more than no number.</p>
+<p>A result does not need a number. A line can say what changed, for whom, or how big the work was. MIT says to add numbers where you can (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>). Our view: a number you cannot explain in an interview hurts more than no number.</p>
 <p>So rewrite duty lines into what you did and what came of it, using only facts you can back up.</p>
 <h2 id="should-you-use-the-words-in-the-job-posting">Should you use the words in the job posting?</h2>
 <p>Use the posting’s words for skills you really have. Recruiters can search stored resumes for words, much like a web search (<a href="#src-greenhouse-search">Greenhouse 2022</a>). Our reading: a skill you have but name differently may not come up in that search.</p>
@@ -500,35 +504,36 @@
 <h2 id="how-far-back-should-a-resume-go">How far back should a resume go?</h2>
 <p>One job-site guide tells senior candidates to list work “up to the last 10–15 years”. It also says to keep newest jobs first and give older jobs less detail (<a href="#src-indeed-experience-2025">Indeed Editorial Team 2025</a>).</p>
 <p>The rule is convention, with no study behind it. Older jobs can stay as short lines, so the page shows no false hole in the middle.</p>
-<p>In practice, keep jobs newest first, give recent, relevant work the most room, and shorten older roles rather than hiding them.</p>
+<p>In practice, keep jobs newest first, give recent, relevant work the most room, and shorten older roles rather than hiding them. How dates on a resume let a reader guess age is covered in <a href="/research/age-bias-hiring/">Age discrimination in hiring</a>.</p>
 <h2 id="does-a-gap-in-your-resume-hurt">Does a gap in your resume hurt?</h2>
 <p>Long time out of work costs callbacks. For short spells, the two main studies disagree.</p>
-<p>A 2024 review combined field experiments with about 67,000 made-up applicants (<a href="#src-dhert-2024">D’hert et al. 2024</a>, p. 8). The studies came from 7 countries (<a href="#src-dhert-2024">D’hert et al. 2024</a>, p. 4). Compared with people in work, 1–6 months out of work showed no clear effect on positive replies. Being out of work 13–18 months cut positive replies by about 21%. Being out 19–36 months cut them by about 27% (<a href="#src-dhert-2024">D’hert et al. 2024</a>, p. 15). The review is a discussion paper, not yet peer-reviewed.</p>
+<p>A 2026 review combined 16 field experiments with almost 67,000 made-up applicants in 7 countries (<a href="#src-dhert-2026">D’hert et al. 2026</a>, pp. 1357, 1362). Compared with people in work, 1–6 months out of work showed no clear effect on positive replies. Being out of work 13–18 months cut positive replies by about 21%. Being out 19–36 months cut them by about 27% (<a href="#src-dhert-2026">D’hert et al. 2026</a>, p. 1382). Each study and its limits: <a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a>.</p>
 <p>A US field experiment found something different for short spells. It sent about 12,000 made-up resumes for sales and office jobs in 2011. Callbacks fell sharply over the first 8 months out of work, then stayed flat. At 8 months, callbacks were about 45% lower than at 1 month (<a href="#src-kroft-2013">Kroft et al. 2013</a>). That study compared people recently out of work with people out longer, not with people in work.</p>
-<p>Most of these studies tested people out of work now, not a past break between jobs. The review found only 7 studies on a past break. Time out of the job market for other reasons was tested less often, and cost more (<a href="#src-dhert-2024">D’hert et al. 2024</a>).</p>
+<p>Most of these studies tested people out of work now, not a past break between jobs. The review found only 7 studies on a past break (<a href="#src-dhert-2026">D’hert et al. 2026</a>, p. 1367). It found four studies of people who had left the workforce. All four found a penalty, and two found it larger than for job loss (<a href="#src-dhert-2026">D’hert et al. 2026</a>, p. 1380).</p>
 <p>Some screening software also filters gaps. In a 2020 survey, 48% of executives said their software filtered middle-skills applicants on gaps over 6 months (<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 22–23). Only executives whose software ranks or filters applicants were asked. Those are their answers, not a measurement.</p>
 <p>Longer time out of work is worth handling with care. Shorter spells may matter too; the evidence is mixed.</p>
 <h2 id="does-explaining-a-gap-help">Does explaining a gap help?</h2>
-<p>The studies disagree. In one US field experiment, a resume and cover letter saying the gap was an illness, now recovered, did a little better than no reason. An early summary of that study reports replies of 25.6% with the reason and 23.3% without (<a href="#src-namingit-2021">Namingit et al. 2021</a>). That summary does not say whether the difference could be chance.</p>
+<p>The studies disagree. In one US field experiment, a resume and cover letter saying the gap was an illness, now recovered, did better than no reason. An early summary of that study reports replies of 25.6% with the reason and 23.3% without. The study’s published summary calls replies with the reason “significantly higher” (<a href="#src-namingit-2021">Namingit et al. 2021</a>).</p>
 <p>A larger UK experiment found no gain from a childcare reason. Mothers’ resumes with a 2.5-year gap explained as full-time childcare did no better than an unexplained gap. The same study tried listing years worked per job instead of dates, which hides the gap. Listing years raised replies by about 8% over resumes with no gap at all (<a href="#src-kristal-2023">Kristal et al. 2023</a>).</p>
-<p>For you, a one-line reason is a cheap, honest step, but no study shows it reliably helps. Bias against gaps is the employer’s, not a flaw in you. Application forms such as Workday’s ask for start and end dates anyway.</p>
+<p>For you, a one-line reason is your call, and the evidence is mixed. It helped for one health reason in one test and did nothing for childcare in another. Bias against gaps is the employer’s, not a flaw in you. Application forms such as Workday’s ask for start and end dates anyway.</p>
 <h2 id="do-typos-really-matter">Do typos really matter?</h2>
 <p>Probably, though no study has tested them in real hiring. Every typo study we found asked people to rate resumes. In a 2023 study, 445 recruiters in Belgium rated made-up graduate resumes. Two spelling errors lowered the rated chance of an interview by 7.3 points out of 100 (<a href="#src-sterkens-2023">Sterkens et al. 2023</a>). Five errors lowered it by 18.5 points (<a href="#src-sterkens-2023">Sterkens et al. 2023</a>, p. 10).</p>
 <p>About half of that penalty came from recruiters judging the applicant as less careful, less able or worse with people (<a href="#src-sterkens-2023">Sterkens et al. 2023</a>). The study asked recruiters to rate resumes, not to hire, so it is a lab study. The resumes were in Dutch, for recent graduates, so US results may differ.</p>
 <p>A careful proofread, by you and someone else, is one of the cheapest fixes there is.</p>
 <h2 id="how-long-should-a-resume-be">How long should a resume be?</h2>
-<p>One page is the student rule; two pages is common with more experience. MIT’s career office says to stick to one page “unless you have extensive experience or an advanced degree” (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026</a>). That is convention.</p>
+<p>One page is the student rule; two pages is common with more experience. MIT’s career office says to stick to one page “unless you have extensive experience or an advanced degree” (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>). That is convention.</p>
 <p>The test most often quoted for two pages is weak. ResumeGo, a resume-writing company, ran a hiring simulation with 482 recruiters and managers. Two-page resumes were picked 5,375 times out of 7,712 (<a href="#src-resumego-2018">ResumeGo 2018</a>). The company says both versions showed similar experience, but the two-page ones held more detail. It is a seller’s own test, not peer-reviewed, and not real hiring.</p>
 <p>Typeface changes page count more than people expect. Our measurement, September 2026: the same resume ran 2 pages in a font fitting 98 characters per line. A wider font fitting 91 characters per line ran 3 pages, with 19 lines with a few words alone. Nothing else changed.</p>
 <p>So use the length your relevant experience fills, and pick a narrow, plain font before cutting true content.</p>
 <h2 id="what-should-a-resume-leave-off">What should a resume leave off?</h2>
-<p>US career guides say to leave off a photo and personal details. MIT’s career office says not to include age, religion, health or marital status. MIT also says photos “are generally not preferred” on US resumes (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026</a>).</p>
+<p>US career guides say to leave off a photo and personal details. MIT’s career office says not to include age, religion, health or marital status. MIT also says photos “are generally not preferred” on US resumes (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>).</p>
 <p>A photo invites judgments about looks. In an Israeli field experiment, 5,312 resumes went to 2,656 real job ads, some with a photo. Attractive men got more replies with a photo. Women without a photo got the most replies of all women (<a href="#src-ruffle-2015">Ruffle and Shtudiner 2015</a>). Photos are optional in Israel, and US results may differ.</p>
 <p>A full street address adds little a US employer needs before an interview. Leaving it off is our rule; city and state are enough to show where you live.</p>
 <p>Leave off the photo, birth date, marital status and street address.</p>
 <h2 id="does-layout-matter">Does layout matter?</h2>
 <p>A plain, one-column page is the safe choice. In a 2018 eye-tracking test by Ladders, a job site, resumes that held recruiters’ attention longest had simple layouts and clear headings. The worst had clutter, several columns and missing headings (<a href="#src-ladders-2018">Ladders 2018</a>). It is a vendor’s test, and the press release does not say how many recruiters took part.</p>
 <p>Our measurement, September 2026, shows how layout trips up software. A heading with letters spaced apart came back as “EXP E R I ENC E” from one PDF-to-web-page converter. Three other PDF text readers read it whole. Dates set at the right edge of a line were read after the job’s bullet points by pdftotext, a common PDF text reader. A degree and school on one line filled Workday’s school box wrongly and left its degree box empty.</p>
+<p>In our October 2026 layout test, wider spacing split the headings in every reader. That test read one resume in 7 layouts: <a href="/research/resume-parser-test/">Are two-column resumes ATS friendly?</a> The data is on its own page: <a href="/research/resume-parser-test-2026-10/">seven resume layouts, three PDF text readers</a>.</p>
 <p>In practice, use one column, plain headings, normal letter spacing and black text, and put each item on its own line.</p>
 <h2 id="which-resume-advice-is-not-backed-by-evidence">Which resume advice is not backed by evidence?</h2>
 <ul>
@@ -548,16 +553,17 @@
 <li>Whether a short spell out of work costs callbacks. One review says no clear cost; one US experiment says yes.</li>
 <li>How a past break between jobs is treated, as opposed to being out of work now. Few studies test it.</li>
 <li>Whether typos cost interviews in real hiring. Every study found asked raters, not employers.</li>
-<li>Whether a gap reason helps: one US study says a little, one larger UK study says no.</li>
+<li>Whether a gap reason helps: one US study says yes for an illness reason, one larger UK study says no for childcare.</li>
 <li>Whether one page or two works better for experienced people. The only test found is a vendor’s simulation.</li>
 <li>How AI screening tools treat any of these rules. See <a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a>.</li>
+<li>Whether a cover letter still helps now that AI can write one. See <a href="/research/cover-letters-after-ai/">Do cover letters still matter now that AI writes them?</a>. Our count of letter boxes is on its own page: <a href="/research/cover-letter-boxes-2026-10/">cover letter boxes on 143 job application forms</a>.</li>
 </ul>
 <h2 id="what-helps">What helps</h2>
 <ul>
 <li>Make every employer, title and date match your records (<a href="#src-hireright-2025">HireRight 2025a</a>).</li>
 <li>Proofread, and have someone else proofread too (<a href="#src-sterkens-2023">Sterkens et al. 2023</a>).</li>
-<li>After a long gap, a short, honest reason costs little. The bias grows with time out of work, and it is the employer’s (<a href="#src-dhert-2024">D’hert et al. 2024</a>).</li>
-<li>Leave off a photo and personal details (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026</a>).</li>
+<li>After a long gap, a short, honest reason is your call; studies disagree on whether it helps (<a href="#src-namingit-2021">Namingit et al. 2021</a>; <a href="#src-kristal-2023">Kristal et al. 2023</a>). The bias grows with time out of work, and it is the employer’s (<a href="#src-dhert-2026">D’hert et al. 2026</a>).</li>
+<li>Leave off a photo and personal details (<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>).</li>
 <li>Use a plain, one-column page with clear headings (<a href="#src-ladders-2018">Ladders 2018</a>).</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. More articles: <a href="/research/">Research</a>.</p>
@@ -570,21 +576,26 @@
 <li>Asks you for real numbers; never makes one up.</li>
 </ul>
 <p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
+<h2 id="changes">Changes</h2>
+<ul>
+<li>October 2026 – the review of time out of work now cites its 2026 journal version, not the 2024 draft; its figures are unchanged. The US health-reason study now cites its published summary, which calls the gain significant.</li>
+<li>October 2026 – a one-line gap reason is now “your call”, since studies disagree on whether it helps. The typo figure now reads 7.3 points in every line (<a href="#src-sterkens-2023">Sterkens et al. 2023</a>). The background-check survey lines now say the share is of the businesses asked, over the past 12 months.</li>
+</ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-dhert-2024"><b class="evidence">Big study (many studies combined)</b> D’hert, Louis, Baert, Stijn and Lippens, Louis (2024). Unemployment, Inactivity, and Hiring Chances: A Systematic Review and Meta-Analysis. <i>IZA Discussion Paper 17141, July 2024.</i> Field experiments with about 67,000 made-up applicants in 7 countries, combined. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.2139/ssrn.4898321">DOI</a> <a href="https://docs.iza.org/dp17141.pdf">Publisher</a></li>
-<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></li>
+<li id="src-dhert-2026"><b class="evidence">Big study (many studies combined)</b> D’hert, Liam, Baert, Stijn and Lippens, Louis (2026). Unemployment, inactivity, and hiring chances: A systematic review and meta-analysis. <i>Socio-Economic Review 24(3), 1355–1393.</i> Open copy, Ghent University library. 28 studies reviewed; 16 field experiments with almost 67,000 made-up applicants in 7 countries combined. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/ser/mwag023">DOI</a> <a href="https://biblio.ugent.be/publication/01KRK8YTYRYHA7486FX045Y7Z8/file/01M0A5AWFGQ1RCZS17ER8A70C8.pdf">Publisher</a></li>
+<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></li>
 <li id="src-greenhouse-search"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2022). Search resumes for keywords. The maker’s own help page, updated June 2022. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords">Publisher</a></li>
 <li id="src-harvard-ocs-resume"><b class="evidence">Convention (no study)</b> Harvard College Office of Career Services (2026). Harvard College Guide to Creating a Strong Resume. A university career office’s guide for students. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://careerservices.fas.harvard.edu/resources/create-a-strong-resume/">Publisher</a></li>
-<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></li>
-<li id="src-hireright-2025-sept"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). Identity Fraud and Candidate Discrepancies Remain Key Concerns for Employers, Finds HireRight’s 2025 Global Benchmark Report. September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers">Publisher</a></li>
+<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></li>
+<li id="src-hireright-2025-sept"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). Identity Fraud and Candidate Discrepancies Remain Key Concerns for Employers, Finds HireRight’s 2025 Global Benchmark Report. September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers">Publisher</a></li>
 <li id="src-indeed-experience-2025"><b class="evidence">Convention (no study)</b> Indeed Editorial Team (2025). Listing Professional Experience on Your Resume. A job site’s advice article, updated December 2025, republished by the University of Wyoming’s business career office. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://haubcareers.uwyo.edu/resources/listing-professional-experience-on-your-resume-2/">Publisher</a></li>
-<li id="src-kristal-2023"><b class="evidence">Big study (thousands of real applications)</b> Kristal, Ariella S., Nicks, Leanne, Gloor, Jamie L. and Hauser, Oliver P. (2023). Reducing discrimination against job seekers with and without employment gaps. <i>Nature Human Behaviour 7, 211–218.</i> Open copy on PubMed Central. 9,022 made-up applications to real UK job ads, plan registered in advance. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1038/s41562-022-01485-6">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/">Open copy</a></li>
-<li id="src-kroft-2013"><b class="evidence">Big study (thousands of real applications)</b> Kroft, Kory, Lange, Fabian and Notowidigdo, Matthew J. (2013). Duration Dependence and Labor Market Conditions: Evidence from a Field Experiment. <i>Quarterly Journal of Economics 128(3), 1123–1167.</i> Open copy, NBER working paper 18387. About 12,000 made-up resumes sent to job ads in 100 US cities. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1093/qje/qjt015">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w18387/w18387.pdf">Open copy</a></li>
+<li id="src-kristal-2023"><b class="evidence">Big study (thousands of real applications)</b> Kristal, Ariella S., Nicks, Leanne, Gloor, Jamie L. and Hauser, Oliver P. (2023). Reducing discrimination against job seekers with and without employment gaps. <i>Nature Human Behaviour 7, 211–218.</i> Open copy on PubMed Central. 9,022 made-up applications to real UK job ads, plan registered in advance. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1038/s41562-022-01485-6">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/">Open copy</a></li>
+<li id="src-kroft-2013"><b class="evidence">Big study (thousands of real applications)</b> Kroft, Kory, Lange, Fabian and Notowidigdo, Matthew J. (2013). Duration Dependence and Labor Market Conditions: Evidence from a Field Experiment. <i>Quarterly Journal of Economics 128(3), 1123–1167.</i> Open copy, NBER working paper 18387. About 12,000 made-up resumes sent to job ads in 100 US cities. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/qje/qjt015">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w18387/w18387.pdf">Open copy</a></li>
 <li id="src-ladders-2018"><b class="evidence">Survey by a company that sells the service</b> Ladders (2018). Ladders updates popular recruiter eye-tracking study with new key insights on how job seekers can improve their resumes. A job site’s press release, November 2018, reposted by Onrec; number of recruiters not stated. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://onrec.com/news/news-archive/ladders-updates-popular-recruiter-eye-tracking-study-with-new-key-insights-how-job">Publisher</a></li>
 <li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012.</i> Open copy on Computerworld. Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></li>
 <li id="src-mit-capd-resumes"><b class="evidence">Convention (no study)</b> MIT Career Advising &amp; Professional Development (2026). Resumes. A university career office’s guide. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://capd.mit.edu/resources/resumes/">Publisher</a></li>
-<li id="src-namingit-2021"><b class="evidence">Small study (real applications)</b> Namingit, Sheryll, Blankenau, William and Schwab, Benjamin (2021). Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate. <i>Journal of Economic Behavior &amp; Organization 2021 (paywalled; numbers from the authors’ open 2018 conference abstract).</i> 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1016/j.jebo.2020.09.033">DOI</a> <a href="https://ashecon.confex.com/ashecon/2018/webprogram/Paper5280.html">Publisher</a></li>
+<li id="src-namingit-2021"><b class="evidence">Big study (thousands of real applications)</b> Namingit, Sheryll, Blankenau, William and Schwab, Benjamin (2021). Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate. <i>Journal of Economic Behavior &amp; Organization 185, 865–882 (full text paywalled; published abstract read on RePEc).</i> 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs; the three rates are from the authors’ open 2018 conference abstract, gap length from the AEA trial registry. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1016/j.jebo.2020.09.033">DOI</a> <a href="https://ideas.repec.org/a/eee/jeborg/v185y2021icp865-882.html">Publisher</a></li>
 <li id="src-resumego-2018"><b class="evidence">Survey by a company that sells the service</b> ResumeGo (2018). Settling the Debate: One or Two Page Resumes. 482 recruiters, HR staff and managers in a hiring simulation with made-up resumes; run by a resume-writing company. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.resumego.net/research/one-or-two-page-resumes/">Publisher</a></li>
 <li id="src-ruffle-2015"><b class="evidence">Big study (thousands of real applications)</b> Ruffle, Bradley J. and Shtudiner, Ze’ev (2015). Are Good-Looking People More Employable? <i>Management Science 61(8), 1760–1776 (paywalled; read in the authors’ open 2011 working paper on SSRN).</i> 5,312 made-up resumes sent in pairs to 2,656 real job ads in Israel, with and without a photo. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1287/mnsc.2014.1927">DOI</a> <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1705244">Open copy</a></li>
 <li id="src-sterkens-2023"><b class="evidence">Lab test (not real hiring)</b> Sterkens, Philippe, Caers, Ralf, De Couck, Marijke, Van Driessche, Victor, Geamanu, Michel and Baert, Stijn (2023). Costly mistakes: Why and when spelling errors in resumes jeopardise interview chances. <i>PLOS ONE 18(4), e0283280.</i> 445 recruiters in Flanders, Belgium, rating made-up graduate resumes (1,335 ratings); not real hiring. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1371/journal.pone.0283280">DOI</a></li>
@@ -593,8 +604,8 @@
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a></li>
-<li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a></li>
+<li><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a></li>
+<li><a href="/research/ai-hiring-laws/">AI hiring laws in 2026: what employers must tell you</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
@@ -615,6 +626,6 @@
     </nav>
   </div>
 </footer>
-<script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.3)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -70% 0px"});h.forEach(x=>o.observe(x))})()</script>
+<script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
 </body>
 </html>

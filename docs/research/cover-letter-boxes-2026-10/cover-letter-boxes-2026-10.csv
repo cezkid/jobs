@@ -1,0 +1,144 @@
+form,employer,job_field,form_system,letter_box,letter_required
+1,A,Healthcare,Greenhouse,1,0
+2,B,Finance,Workable,0,
+3,C,Sales,Greenhouse,1,0
+4,C,Sales,Greenhouse,1,0
+5,C,Sales,Greenhouse,1,0
+6,C,Sales,Greenhouse,1,0
+7,C,Sales,Greenhouse,1,0
+8,D,Sales,Greenhouse,1,0
+9,C,Sales,Greenhouse,1,0
+10,E,Sales,Greenhouse,0,
+11,F,Sales,Greenhouse,1,0
+12,G,Sales,Workable,0,
+13,H,Sales,Ashby,0,
+14,I,Sales,Greenhouse,1,0
+15,J,Sales,Greenhouse,1,0
+16,K,Sales,Greenhouse,1,0
+17,L,Sales,Greenhouse,1,0
+18,M,Sales,Greenhouse,1,0
+19,M,Sales,Greenhouse,1,0
+20,N,Sales,Greenhouse,0,
+21,O,Sales,Greenhouse,1,0
+22,O,Sales,Greenhouse,1,0
+23,O,Sales,Greenhouse,0,
+24,O,Sales,Greenhouse,1,0
+25,I,Sales,Greenhouse,1,0
+26,P,Sales,Greenhouse,1,0
+27,P,Sales,Greenhouse,1,0
+28,Q,Sales,Greenhouse,1,0
+29,R,Sales,Greenhouse,1,0
+30,R,Sales,Greenhouse,1,0
+31,S,Sales,Greenhouse,1,0
+32,S,Sales,Greenhouse,1,0
+33,S,Sales,Greenhouse,1,0
+34,S,Sales,Greenhouse,1,0
+35,S,Sales,Greenhouse,1,0
+36,T,Hospitality,Lever,0,
+37,U,Hospitality,Greenhouse,0,
+38,V,Hospitality,Greenhouse,1,0
+39,V,Hospitality,Greenhouse,1,0
+40,V,Hospitality,Greenhouse,1,0
+41,W,Education,Workable,0,
+42,W,Education,Workable,0,
+43,X,HR,Greenhouse,0,
+44,Y,HR,Greenhouse,1,0
+45,Z,HR,Greenhouse,1,0
+46,AA,HR,Ashby,0,
+47,AB,HR,Greenhouse,1,0
+48,AC,HR,Greenhouse,1,0
+49,AD,HR,Lever,0,
+50,AE,HR,Greenhouse,1,0
+51,AF,HR,Ashby,0,
+52,AG,HR,Greenhouse,1,0
+53,AH,HR,Greenhouse,0,
+54,AI,HR,Greenhouse,1,0
+55,AJ,HR,Greenhouse,1,0
+56,AK,HR,Recruitee,1,1
+57,AL,HR,Greenhouse,1,0
+58,AM,HR,Ashby,1,0
+59,AN,HR,Greenhouse,1,0
+60,AO,Administration,Lever,0,
+61,AP,Administration,Greenhouse,0,
+62,AQ,Administration,Greenhouse,1,0
+63,AR,Administration,Greenhouse,1,0
+64,AS,Administration,Greenhouse,1,0
+65,AT,Customer success,Ashby,0,
+66,AU,Customer success,Ashby,0,
+67,AV,Customer success,Greenhouse,1,0
+68,AW,Customer success,Lever,0,
+69,AX,Customer success,Lever,0,
+70,AX,Customer success,Lever,0,
+71,AX,Customer success,Lever,0,
+72,AY,Customer success,Greenhouse,1,1
+73,AX,Customer success,Lever,0,
+74,AZ,Customer success,Greenhouse,1,0
+75,BA,Customer success,Lever,0,
+76,BA,Customer success,Lever,0,
+77,BB,Customer success,Greenhouse,1,0
+78,BC,Customer success,Greenhouse,1,0
+79,BD,Customer success,Ashby,1,0
+80,BE,Customer success,Ashby,0,
+81,BF,Customer success,Greenhouse,1,0
+82,BG,Customer success,Workable,0,
+83,BH,Customer success,Workable,1,0
+84,BI,Customer success,Workable,1,0
+85,BJ,Customer success,Workable,1,
+86,BK,Customer success,Ashby,0,
+87,AX,Customer success,Lever,0,
+88,AX,Customer success,Lever,0,
+89,AX,Customer success,Lever,0,
+90,AX,Customer success,Lever,0,
+91,BL,Data analytics,Greenhouse,1,0
+92,BM,Data analytics,Greenhouse,0,
+93,BN,Data analytics,Ashby,1,0
+94,BO,Data analytics,Greenhouse,1,0
+95,BP,Data analytics,Greenhouse,1,0
+96,BQ,Data analytics,Greenhouse,1,0
+97,BR,Data analytics,Greenhouse,0,
+98,BS,Data analytics,Greenhouse,1,0
+99,BT,Data analytics,Greenhouse,1,
+100,BU,Data analytics,Ashby,0,
+101,BV,Data analytics,Greenhouse,1,0
+102,BA,Backend software,Lever,0,
+103,AI,Backend software,Greenhouse,1,0
+104,AJ,Backend software,Greenhouse,1,0
+105,BW,Backend software,Ashby,0,
+106,BX,Backend software,Greenhouse,1,0
+107,BY,Backend software,Greenhouse,1,0
+108,BY,Backend software,Greenhouse,1,0
+109,BY,Backend software,Greenhouse,1,0
+110,BY,Backend software,Greenhouse,1,0
+111,BZ,Backend software,Greenhouse,0,
+112,CA,Backend software,Greenhouse,1,0
+113,CB,Backend software,Greenhouse,1,0
+114,CC,Backend software,Greenhouse,0,
+115,CD,Backend software,Greenhouse,1,0
+116,CE,Backend software,Greenhouse,1,0
+117,CF,Backend software,Ashby,0,
+118,CG,Law,Workable,1,0
+119,CG,Law,Workable,1,
+120,CH,Law,Greenhouse,1,0
+121,CI,Law,Greenhouse,1,0
+122,CJ,Law,Greenhouse,1,0
+123,CK,Law,Greenhouse,1,0
+124,CL,Law,Greenhouse,1,0
+125,CM,Law,Greenhouse,1,0
+126,CN,Law,Ashby,0,
+127,R,Marketing,Greenhouse,1,0
+128,CO,Marketing,Lever,0,
+129,CP,Marketing,Greenhouse,1,0
+130,CQ,Marketing,Workable,1,0
+131,CR,Marketing,Workable,1,0
+132,CS,DevOps,Greenhouse,1,0
+133,CT,DevOps,Greenhouse,1,0
+134,CU,DevOps,Greenhouse,1,0
+135,CV,DevOps,Greenhouse,1,0
+136,CW,DevOps,Greenhouse,1,0
+137,CS,DevOps,Greenhouse,1,0
+138,CX,DevOps,Greenhouse,1,0
+139,CY,DevOps,Ashby,0,
+140,BA,DevOps,Lever,0,
+141,BA,DevOps,Lever,0,
+142,BA,DevOps,Lever,0,
+143,CZ,DevOps,Greenhouse,1,0

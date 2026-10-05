@@ -90,9 +90,11 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
   they hid 99px of themselves at 1280x720 (qa STICKY_FIT).
 - Render: markdown-it-py `js-default` (raw HTML shown as text, tables on). Heading id = the
   `test_docs.anchors()` rule, so `x.md#h` lands in VS Code, on GitHub and on the site. Table
-  wrapped in a focusable, labelled scroll box (wide table scrolls, not the page). Code (inline +
-  blocks) carries `translate="no"`, and so does the app's name in page text (`<span translate="no">`,
-  `pages.BRAND`): a browser translating the page (a reader's own language) left commands + names mangled.
+  wrapped in a focusable, labelled scroll box (wide table scrolls, not the page). A table or bar figure
+  right before an h2 drops its last row's rule: the heading's rule closes it (two hairlines 49px apart, qa
+  RULES_STACKED). Code (inline + blocks) carries `translate="no"`, and so does the app's name in page
+  text (`<span translate="no">`, `pages.BRAND`): a browser translating the page (a reader's own
+  language) left commands + names mangled.
 - Bar figure (A15): a ```` ```bars ```` fence = line 1 caption (Markdown: citation, evidence label, links), line 2
   `Label | Value` column heads, then `label | value` rows -> `<figure class="bars">` w/ `<figcaption>` + a real
   table (row heads `scope="row"`, no scroll box), an ink bar under each value (a border: prints, forced colours

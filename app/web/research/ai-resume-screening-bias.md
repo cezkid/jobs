@@ -2,7 +2,7 @@
 title: "Is AI resume screening biased? What the studies show"
 description: AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.
 published: 2026-10-03
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 og_title: "Is AI resume screening biased? What the studies show"
 uncited:
@@ -12,7 +12,7 @@ uncited:
 ---
 **Short answer**
 
-- AI models judge identical resumes differently by name, gender, age or disability (Lab study, many tests) [@wilson-caliskan-2024; @an-2025; @rozado-2026; @bone-2026; @glazko-2024].
+- AI models judge the same applicant differently by name, gender, age or disability (Lab study, many tests) [@wilson-caliskan-2024; @an-2025; @rozado-2026; @bone-2026; @tamkin-2023; @glazko-2024].
 - Who gets favored flips between models, versions and test designs (Lab study, preprints) [@gao-2026; @chen-xiao-2026].
 - One large real-hiring data set: one vendor's game tests, not resumes; some jobs' tests passed fewer Black applicants (Real records) [@bommasani-2026].
 - No study found showing a resume change protects you from a biased screener. Apply widely.
@@ -65,13 +65,13 @@ In practice, leaving your name off may not hide your background if other lines p
 
 ## Are other groups affected - age, disability?
 
-Lab tests say yes. A 2026 conference paper tested 10 openly released AI models, each before and after extra training. That extra training is how makers turn a raw model into a chat assistant. Age showed through the graduation year. After training, the models were 3.6% less likely to call back older applicants than before. Older meant over 45 in that test. The drop held in 8 of the 10 models [@bone-2026].
+Lab tests say yes. A 2026 conference paper tested 10 openly released AI models, each before and after extra training. That extra training is how makers turn a raw model into a chat assistant. Age showed through the graduation year. After training, the models were 3.6% less likely to call back older applicants than before. Older meant 45 to 58 in that test. The drop held in 8 of the 10 models [@bone-2026].
 
 A small 2024 test gave GPT-4 one resume and the same resume plus disability-related awards. The version with awards was the stronger resume, so it should have come first. GPT-4 ranked the disability version first in only 15 of 60 trials. An autism-related version came first in none of 10 trials. A custom GPT-4 given disability-justice instructions did better, at 37 of 60 [@glazko-2024]. Each disability got only 10 trials, on a GPT-4 version from early 2024.
 
 Anthropic's own 2023 preprint tested its Claude 2.0 model on made-up decisions, including job offers. The model favored women and non-white people, and was less positive about people over 60. Those gaps were much smaller when the model had to infer the person from a name. Telling the model that discrimination is illegal cut the gaps [@tamkin-2023].
 
-Age and disability can count against you in some models' choices. Those tests use made-up applicants, not real hiring.
+Age and disability can count against you in some models' choices. Those tests use made-up applicants, not real hiring. What field tests with real employers show about age is in [Age discrimination in hiring](age-bias-hiring.md).
 
 ## What happens with real applicants?
 
@@ -97,20 +97,20 @@ In 2018, Reuters reported Amazon dropped a resume-ranking tool it had built. The
 
 In 2023, iTutorGroup settled a US agency lawsuit for $365,000. The agency alleged its software rejected women 55 and over and men 60 and over [@eeoc-itutorgroup-2023]. That was a fixed age rule, not AI.
 
-Mobley v. Workday is a US lawsuit still in progress. The plaintiffs allege Workday's screening tools discriminated by race, age and disability [@mobley-2026-order, p. 1]. In May 2025 the court let the age claim go forward for a wider group of applicants, at a preliminary stage [@mobley-2025-order]. In June 2026 the court let California state-law claims and a disability claim go on. The same order dismissed a newly added race claim by one plaintiff [@mobley-2026-order, p. 11]. In September 2026 the plaintiffs asked to add four groups to the case, with a hearing set for March 2027. Workday denies the claims, and nothing has been proven as of October 2026 [@lawyer-monthly-2026]. More on that case: [Do hiring systems reject most resumes?](ats-rejection-myth.md).
+Mobley v. Workday is a US lawsuit still in progress. The plaintiffs allege Workday's screening tools discriminated by race, age and disability [@mobley-2026-order, p. 1]. In May 2025 the court let the age claim go forward for a wider group of applicants, at a preliminary stage [@mobley-2025-order]. After a June 2026 order, the claims going on include race, age and disability under federal law, plus California state-law claims [@mobley-2026-order, p. 1-2, 11]. The same order dismissed a newly added race claim by one plaintiff [@mobley-2026-order, p. 11]. In September 2026 the plaintiffs asked to add four groups to the case, with a hearing set for March 2027. Workday denies the claims, and nothing has been proven as of October 2026 [@lawyer-monthly-2026]. More on that case: [Do hiring systems reject most resumes?](ats-rejection-myth.md).
 
 ## What do the laws say?
 
 As of October 2026, a few places set rules, and some may change. This is general information, not legal advice.
 
-- **New York City**: employers using these tools need a yearly bias audit, a public summary and notice to applicants. Enforced since July 2023 [@nyc-ll144]. A 2024 check of 391 employers found only 18 posted audits [@wright-2024]. The state comptroller called the city's enforcement ineffective in December 2025 [@nys-comptroller-2025].
-- **California**: since October 2025, state rules say an automated hiring tool can break anti-discrimination law if it harms people by race, gender, disability or another protected trait. Employers must keep the tool's data for four years. Whether an employer tested its tool for bias can count in a claim [@ca-crc-ads-2025].
-- **Illinois**: since January 2026, using AI that has a discriminatory effect in hiring is a civil-rights violation. Employers must give notice [@il-hb3773].
-- **Colorado**: from January 2027, applicants get notice and a plain explanation after a rejection. They can correct wrong data and ask for a human review. The state attorney general enforces it and still has to write the detailed rules [@co-sb26-189]. A December 2025 executive order set up a federal task force to challenge state AI laws, and it names Colorado's [@eo-14365].
-- **European Union**: AI that filters applications is high-risk under the AI Act [@eu-ai-act]. Those rules now start in December 2027 [@eu-omnibus-2026].
+- **New York City**: employers using these tools need a yearly bias audit, a public summary and notice to applicants. Enforced since July 2023 [@nyc-ll144]. A check of 391 employers in late 2023, published 2024, found only 18 posted audits [@wright-2024]. In December 2025, the state comptroller called the city's complaint process "ineffective" [@nys-comptroller-2025].
+- **California**: since October 2025, state rules say an automated hiring tool can break anti-discrimination law if it harms people by race, gender, disability or another protected trait. Employers must keep the tool's data for four years. Whether an employer tested its tool for bias can count in a claim [@ca-crc-ads-2025]. From January 2027, California's privacy rules cover hiring tools that replace or substantially replace a human decision. Before a covered tool is used, you must get notice, and you may ask how the tool shaped the decision [@ca-cppa-admt-2025].
+- **Illinois**: since January 2026, using AI that has a discriminatory effect in hiring is a civil-rights violation [@il-hb3773]. The law also requires notice "to an employee" that AI is used. Among job applicants, the act's definition of employee names only those applying for apprenticeships. The details are left to state rules, and we found no final rule as of October 2026 [@il-pa-103-0804].
+- **Colorado**: employers must give notice when you deal with an automated system used in hiring decisions. After a decision against you, they must describe the system's role in plain words within 30 days. You can ask to fix wrong data, and after a decision against you, ask for a human review. The state attorney general enforces the law and must write rules on the description by January 2027 [@co-sb26-189]. When each part starts is not settled. A staff note gives January 2027 for disclosures, but signing for the notice and rights sections [@co-sb26-189-fiscal]. A federal court has paused enforcement as of October 2026 [@xai-weiser-stay]. A December 2025 executive order set up a federal task force to challenge state AI laws, and it names Colorado's [@eo-14365].
+- **European Union**: data protection law already covers decisions made only by software that significantly affect you. If contract or consent allows a fully automated decision, you may ask a person to step in and contest it [@eu-gdpr, Article 22]. AI that filters applications is high-risk under the AI Act [@eu-ai-act]. Those rules now start in December 2027 [@eu-omnibus-2026].
 - **US federal**: a 2025 executive order tells agencies to move away from "disparate impact" cases [@eo-14281]. Those are cases about unequal results without intent. Private lawsuits like Mobley v. Workday still use that idea [@mobley-2026-order, p. 2].
 
-In New York City and Illinois, employers must tell you when they use these tools. From 2027, Colorado employers must also explain a rejection. In New York City you can ask for another way to be assessed or an accommodation [@nyc-ll144].
+In New York City, employers must tell you when they use these tools. The New York City notice must say how to ask for another way to be assessed, if one is available. The city's rule does not make the employer offer one [@nyc-ll144; @nyc-aedt-rule]. Illinois requires notice to employees; whether job applicants get one is not settled [@il-pa-103-0804]. In the EU you can already ask a person to review a fully automated decision [@eu-gdpr]. Colorado employers must also describe an AI tool's role in a rejection [@co-sb26-189]. When Colorado's duty starts is not settled, and a court has paused enforcement as of October 2026 [@co-sb26-189-fiscal; @xai-weiser-stay]. Every law, its status and what you can ask for: [AI hiring laws in 2026](ai-hiring-laws.md).
 
 ## Which studies found what?
 
@@ -126,7 +126,7 @@ The table sums up the main AI studies in this article. Most rows are lab tests: 
 | Rozado | 2026 | 22 models | Female names won 56.9% of picks; the first resume listed won 63.5% [@rozado-2026] | Lab study |
 | Gao and others | 2026 | 14 models | GPT-3.5 favored white names; models from 2024 on showed no race gap or favored Black names [@gao-2026] | Lab study, not yet peer-reviewed |
 | Chen and Xiao | 2026 | 9 open models | Forced to choose, models looked biased; allowed a tie, most tied in at least 94% of cases [@chen-xiao-2026] | Lab study, not yet peer-reviewed |
-| Bone and others | 2026 | 10 open models | After extra training, 3.6% less likely than before to call back applicants over 45, in 8 of 10 models [@bone-2026] | Lab study |
+| Bone and others | 2026 | 10 open models | After extra training, 3.6% less likely than before to call back applicants aged 45 to 58, in 8 of 10 models [@bone-2026] | Lab study |
 | Cowgill | 2020 | An older screening algorithm, one company | Picked more women and minorities than human screeners did, for one job [@cowgill-2020] | Small study, not yet peer-reviewed |
 | Bommasani and others | 2026 | One vendor's game tests, not resumes | In 10.62% of jobs, Black applicants were recommended below the four-fifths benchmark [@bommasani-2026] | Real records |
 
@@ -146,10 +146,10 @@ Only one row, one job at one company with an older algorithm, shows a real emplo
 
 - Apply widely. When many employers use one tool, one "no" can repeat everywhere [@bommasani-2026].
 - Keep your resume accurate, relevant and easy to read. We found no study showing a resume change that beats a biased screener.
-- Use your rights where they exist: notice in New York City and Illinois, an explanation in Colorado from 2027 [@nyc-ll144; @il-hb3773; @co-sb26-189].
+- Use your rights where they exist. As of October 2026: notice in New York City, and a person to review a fully automated decision in the EU. From January 2027 in California: how a tool that replaces a human decision shaped the decision about you. In Colorado: a description of the tool's role; the start date is not settled and a court has paused enforcement [@nyc-ll144; @eu-gdpr; @ca-cppa-admt-2025; @co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay].
 - Remember bias in a screener is the employer's problem, not a flaw in you.
 
-How we grade evidence: [How we research](methods.md). More articles: [Research](index.md). Whether an AI-written resume hurts: [Can employers tell if AI wrote your resume?](ai-written-resumes.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md).
+How we grade evidence: [How we research](methods.md). More articles: [Research](index.md). Whether an AI-written resume hurts: [Can employers tell if AI wrote your resume?](ai-written-resumes.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md). Bias over names, records and more, in one place: [Hiring discrimination: what studies show, what helps](hiring-bias-what-helps.md).
 
 ## How CEZ Job Finder uses this
 
@@ -158,3 +158,8 @@ How we grade evidence: [How we research](methods.md). More articles: [Research](
 - Checks for new jobs from your search every day, so you can apply widely.
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - corrected the law lines to match the laws' text. Colorado employers must describe a system's role after a rejection, not explain the rejection. Colorado's start date is not settled, and a court has paused enforcement. Illinois's notice duty names employees; whether applicants get one is not settled. Added California's 2027 privacy rules and the EU's existing rule on fully automated decisions.
+- October 2026 - updated the Workday lawsuit after its June 2026 order: race, age and disability claims under federal law are among those going on. The New York City notice must say how to ask for another way to be assessed; the rule does not make employers offer one. Older applicants in the 2026 model test are now given as aged 45 to 58. The New York City audit line now dates the 391-employer check to late 2023. It now says the state comptroller called the complaint process ineffective. The short answer now says the same applicant, not identical resumes, and also cites the 2023 model test. The other findings are unchanged.

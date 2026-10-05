@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.19 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.20
 ---
@@ -349,3 +349,32 @@ Findings (verdict publish):
 - **B1 (low)** The trailing sentence is narrower than the rule on the data page: a question asking only "where are you located" is not counted either, and the row is "on-site work, moving or living nearby", not just on-site. Fix: "A plain address box, or a question asking only where you live, is not counted in the on-site row."
 
 Revised (plan-xsy.58): every B finding applied with the wording above (sign list re-checked on the source page 2026-10-04 by the reviser); verdict publish.
+
+## Edit after review (2026-10-04, plan-xsy.72)
+
+Added one link sentence after the Hidden Workers caveat, to employment-gaps (what the same executives said about breaks in work history). Navigation only; no claim, number or source changed here. The 48% figure it points to is checked in the employment-gaps review.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Subagent with no editing context. Read the diff, the whole section around it and the sources below; edited no article.
+
+Changed: spaced-heading paragraph now "Three common PDF readers read that lightly spaced heading whole. With wider spacing, every reader in our October 2026 test split the headings into single letters", linking resume-parser-test.md. Form I-9 line now "as of October 2026". `modified` 2026-10-05; new Changes line.
+
+Sources opened (2026-10-05):
+- `app/docs/resume/page-format.md` `split-words` row: headings at +0.08em came back "EXP E R I ENC E" in a PDF-to-HTML conversion; PyMuPDF, pdfminer and pypdf read them whole. Supports "three readers read that lightly spaced heading whole".
+- resume-parser-test.md, data page resume-parser-test-2026-10.md, `resume-parser-test-2026-10/METHOD.md` and `layouts/spaced-headings.typ`: headings at +0.25em; "every reader split all four headings into single letters", 5 of 5 readings, 3 readers. Supports the new sentence. Linked page is published, verdict publish.
+- uscis-i9 (agency page): "All U.S. employers must properly complete Form I-9 for every individual they hire". Supports the line.
+- No source text addressed an AI.
+
+Findings (verdict revise):
+- **M1 (medium; made by this edit)** "Our own tests found that widely spaced heading letters came back as "EXP E R I ENC E" in one PDF-to-web conversion" now clashes with the next two sentences ("that lightly spaced heading", "With wider spacing"). The same heading is called wide, then light. Source: +0.08em (page-format.md) vs +0.25em (METHOD.md). Fix: "Our own tests found that lightly spaced heading letters came back as "EXP E R I ENC E" in one PDF-to-web conversion" (linked to `page-format.md`).
+
+Changes line: accurate, plain, short.
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current paragraph, its diff, `page-format.md` and `resume-parser-test-2026-10/METHOD.md`.
+
+- M1: fixed. "Our own tests found that lightly spaced heading letters came back as "EXP E R I ENC E" in one PDF-to-web conversion". The paragraph now goes from light spacing (+0.08em, `page-format.md`) to wider spacing (+0.25em, METHOD.md). Both tests used the same three readers (PyMuPDF, pdfminer, pypdf: the `page-format.md` row and the METHOD.md Readers table), so "every reader in our October 2026 test" holds.
+- Changes line: accurate.
+- No new finding. Verdict: publish.

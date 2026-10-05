@@ -21,6 +21,11 @@ exactly these three fail.
 Also measured on old template: pypdf merged LANGUAGES heading into the education line above.
 Unspaced heading reads clean in all three extractors.
 
+Parser study 2026-10 (`app/web/research/resume-parser-test-2026-10/`, article `resume-parser-test`):
+headings at +0.25em -> single letters ("E X P E R I E N C E") in all 5 readings (PyMuPDF x2,
+pdfminer, pypdf x2); plain one column 0 of 5 broke; sidebar + placed text boxes broke readers that
+sort by position, text boxes also file-order readers; table split job dates from title in 2.
+
 ## The headline
 
 Optional one-line `headline` in Resume details, bold under contact line, above summary: user's

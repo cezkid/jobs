@@ -18,7 +18,7 @@
 <meta property="og:title" content="Can employers tell if AI wrote your resume? What studies show">
 <meta property="og:description" content="Mostly no, in tests – most people can’t spot AI writing. About half of hiring managers say they’d care. What studies show, and what to do.">
 <meta property="article:published_time" content="2026-10-03">
-<meta property="article:modified_time" content="2026-10-04">
+<meta property="article:modified_time" content="2026-10-05">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-written-resumes/#article","headline":"Can employers tell if AI wrote your resume?","description":"Mostly no, in tests – most people can’t spot AI writing. About half of hiring managers say they’d care. What studies show, and what to do.","url":"https://jobs.enrriquez.com/research/ai-written-resumes/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-written-resumes/","datePublished":"2026-10-03","dateModified":"2026-10-04","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Can employers tell if AI wrote your resume?","item":"https://jobs.enrriquez.com/research/ai-written-resumes/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-written-resumes/#article","headline":"Can employers tell if AI wrote your resume?","description":"Mostly no, in tests – most people can’t spot AI writing. About half of hiring managers say they’d care. What studies show, and what to do.","url":"https://jobs.enrriquez.com/research/ai-written-resumes/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-written-resumes/","datePublished":"2026-10-03","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Can employers tell if AI wrote your resume?","item":"https://jobs.enrriquez.com/research/ai-written-resumes/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -234,6 +234,8 @@
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
   thead th { border-bottom: 2px solid var(--text); }
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+  /* a table right before a heading: the heading's rule closes it (two hairlines 49px apart read as a double rule) */
+  :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
   /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
@@ -363,13 +365,14 @@
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
 <li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
 </nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Can employers tell if AI wrote your resume?</li></ol></nav>
 <h1>Can employers tell if AI wrote your resume?</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-04">October 4, 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -384,6 +387,7 @@
 <li><a href="#what-we-dont-know">What we don’t know</a></li>
 <li><a href="#what-helps">What helps</a></li>
 <li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
 <li><a href="#sources">Sources</a></li>
 </ol>
 </details>
@@ -409,7 +413,7 @@
 <p>A detector’s “AI” label is untested on resumes. Older detectors were tripped by plain, simple English (<a href="#src-liang-2023">Liang et al. 2023</a>).</p>
 <h2 id="what-do-hiring-managers-say-about-ai-written-resumes">What do hiring managers say about AI-written resumes?</h2>
 <p>They say they can tell, and about half say they care. Both surveys below are vendor surveys, run for companies in the hiring or resume business.</p>
-<p>In an October 2024 survey of 1,005 US HR and hiring leaders, 88% said they can tell when applicants use AI. Of those leaders, 54% said they would care if a resume or cover letter was written by AI. The other 46% said they would not care (<a href="#src-insight-global-2025">Insight Global 2025</a>).</p>
+<p>In an October 2024 survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI. The other 46% said they would not care (<a href="#src-insight-global-2025">Insight Global 2025</a>).</p>
 <p>A 2026 survey of 1,000 US hiring managers was run for a resume-builder company. In it, 80% said they can often tell when AI wrote a resume. Most, 76%, said AI-written resumes make it harder to see what a person actually did. And 72% said heavy reliance on AI makes applicants seem less skilled. Asked about disclosure, 79% said applicants should say when AI helped (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
 <p>Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%), and vague or inflated descriptions and buzzword-heavy writing (41% each). Formatting habits such as long dashes were named by 32% (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
 <figure class="bars">
@@ -459,9 +463,9 @@
 <p>Writing help raised hiring in the largest real test. That test used spelling and grammar help, not today’s chat AI (<a href="#src-wiles-2025">Wiles et al. 2025</a>).</p>
 <p>In 2021, an online freelance platform ran an experiment with 480,948 new job seekers. Half got automatic suggestions on spelling, grammar and wording for their profile. Those who got the help were hired about 8% more often, within a range of 3% to 13%. They got 10% higher pay, too. Employers rated the people they hired just as highly afterward. The authors’ reading: clearer writing helped employers see what people could do. The platform funded the authors’ work (<a href="#src-wiles-2025">Wiles et al. 2025</a>).</p>
 <p>Chat AI that writes the whole text is different. Two 2025 studies looked at one freelance platform after it added an AI letter writer in April 2023 (<a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>). Both are preprints, not yet peer-reviewed.</p>
-<p>The first studied 5 million cover letters to over 100,000 jobs. Having the tool raised callbacks by 0.43 per 100 letters. For people who chose to use it, the estimate was 3.56 more callbacks per 100 letters. That larger estimate was not certain enough to rule out chance, and it faded after two months. The study found no change in overall hiring (<a href="#src-cui-2025">Cui et al. 2025</a>).</p>
+<p>The first studied 5 million cover letters to over 100,000 jobs. Having the tool raised callbacks by 0.43 per 100 letters. For people who chose to use it, the estimate was 3.56 more callbacks per 100 letters. Neither estimate was certain enough to rule out chance, and the gain faded after two months. The authors found no evidence of a change in overall hiring (<a href="#src-cui-2025">Cui et al. 2025</a>).</p>
 <p>Before the tool, a letter that closely matched the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker’s past reviews on the platform. Longer editing of the AI draft went with a higher chance of a job offer. Most AI letters were sent with little or no editing (<a href="#src-cui-2025">Cui et al. 2025</a>).</p>
-<p>The second studied about 2.7 million applications to coding jobs. Before chat AI, employers paid more for workers whose applications fit the job closely. After chat AI, that premium mostly disappeared. The authors then used a model of the market to ask what happens with no such signal. In that model, the most able workers were hired 19% less often. The least able were hired 14% more often. Those two numbers come from the model, not from counting real hires (<a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>).</p>
+<p>The second studied about 2.7 million applications to coding jobs. Before chat AI, employers were willing to pay more for workers whose applications fit the job closely. After chat AI, that premium mostly disappeared. The authors then used a model of the market to test an extreme case: applications that tell employers nothing about how able a worker is. In that case, the top fifth of workers were hired 19% less often. The bottom fifth were hired 14% more often. Those two numbers come from the model, not from counting real hires (<a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>). What this means for cover letters: <a href="/research/cover-letters-after-ai/">Do cover letters still matter now that AI writes them?</a></p>
 <p>For you, fixing errors in your own wording helped in a large test. A letter that only echoes the job post now tells employers less.</p>
 <h2 id="does-ai-wording-help-with-ai-screeners">Does AI wording help with AI screeners?</h2>
 <p>In one lab test, it did, when the screener was the same AI. A 2025 study took 2,245 real resumes and had AI models rewrite each summary section. Each AI model then picked between the person’s own summary and one the same model wrote. In the updated June 2026 version, eight of the nine models picked their own version more often. In simulated hiring for 24 jobs, applicants using the screener’s own AI were 23% to 60% more likely to be shortlisted. Simple changes to the screener’s instructions cut this preference by more than half (<a href="#src-xu-2025">Xu et al. 2025</a>). That is a lab test, not a real employer’s system.</p>
@@ -496,13 +500,18 @@
 <li>A posting term goes in only where your experience backs it.</li>
 </ul>
 <p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
+<h2 id="changes">Changes</h2>
+<ul>
+<li>October 2026 – reworded the two cover letter studies. The hiring shifts by ability come from an extreme case in the authors’ model, and both callback estimates were too weak to rule out chance; the numbers are unchanged.</li>
+<li>October 2026 – the hiring survey now names its sample as HR and talent leaders, as its method section does. The 54% line now reads as a share of everyone asked (<a href="#src-insight-global-2025">Insight Global 2025</a>). The numbers are unchanged.</li>
+</ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
 <li id="src-al-ali-2026"><b class="evidence">Lab test (not real hiring)</b> Al Ali, Adnan, Helcl, Jindřich and Libovický, Jindřich (2026). Different Time, Different Language: Revisiting the Bias Against Non-Native Speakers in GPT Detectors. <i>arXiv preprint.</i> Essays in Czech by non-native students (AKCES 3 corpus) and native peers, plus other text types; three kinds of AI detectors of 2025, one of them commercial; not English, not resumes. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://arxiv.org/abs/2602.05769">Open copy</a></li>
 <li id="src-resume-genius-2026"><b class="evidence">Survey by a company that sells the service</b> Chan, Eva (2026). 2026 Hiring Insights Report. 1,000 US hiring managers, online panel; survey dates not given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://resumegenius.com/blog/job-hunting/hiring-insights-report">Publisher</a></li>
-<li id="src-cui-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Cui, Jingyi, Dias, Gabriel and Ye, Justin (2025). Signaling in the Age of AI: Evidence from Cover Letters. <i>arXiv preprint.</i> 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://arxiv.org/abs/2509.25054">Open copy</a></li>
-<li id="src-galdin-silbert-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Galdin, Anaïs and Silbert, Jesse (2025). Making Talk Cheap: Generative AI and Labor Market Signaling. <i>arXiv preprint.</i> About 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data. Preprint, not peer-reviewed. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://arxiv.org/abs/2511.08785">Open copy</a></li>
-<li id="src-insight-global-2025"><b class="evidence">Survey by a company that sells the service</b> Insight Global (2025). AI in Hiring 2025 Survey Report. 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17–22, 2024; a staffing firm’s survey; question wording not published. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf">Publisher</a></li>
+<li id="src-cui-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Cui, Jingyi, Dias, Gabriel and Ye, Justin (2025). Signaling in the Age of AI: Evidence from Cover Letters. <i>arXiv preprint.</i> 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arxiv.org/abs/2509.25054">Open copy</a></li>
+<li id="src-galdin-silbert-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Galdin, Anaïs and Silbert, Jesse (2025). Making Talk Cheap: Generative AI and Labor Market Signaling. <i>arXiv preprint.</i> About 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arxiv.org/abs/2511.08785">Open copy</a></li>
+<li id="src-insight-global-2025"><b class="evidence">Survey by a company that sells the service</b> Insight Global (2025). AI in Hiring 2025 Survey Report. 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17–22, 2024; a staffing firm’s survey; question wording not published. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf">Publisher</a></li>
 <li id="src-jakesch-2023"><b class="evidence">Lab test (not real hiring)</b> Jakesch, Maurice, Hancock, Jeffrey T. and Naaman, Mor (2023). Human heuristics for AI-generated language are flawed. <i>PNAS 120(11), e2208839120.</i> 4,600 people in six experiments judged 7,600 short self-descriptions (job, rental host and dating profiles), half written by older AI models (GPT-2, GPT-3). Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1073/pnas.2208839120">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10089155/">Open copy</a></li>
 <li id="src-kobak-2025"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Kobak, Dmitry, González-Márquez, Rita, Horvát, Emőke-Ágnes and Lause, Jan (2025). Delving into LLM-assisted writing in biomedical publications through excess vocabulary. <i>Science Advances 11(27).</i> Open copy on arXiv. Word counts in over 15 million science paper summaries (PubMed), 2010–2024; not resumes. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1126/sciadv.adt3813">DOI</a> <a href="https://arxiv.org/abs/2406.07016">Open copy</a></li>
 <li id="src-liang-2023"><b class="evidence">Lab test (not real hiring)</b> Liang, Weixin, Yuksekgonul, Mert, Mao, Yining, Wu, Eric and Zou, James (2023). GPT detectors are biased against non-native English writers. <i>Patterns 4(7), 100779.</i> Open copy on arXiv. 7 AI detectors run on 91 essays by non-native English writers (TOEFL) and 88 essays by US eighth graders, all written by people. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://doi.org/10.1016/j.patter.2023.100779">DOI</a> <a href="https://arxiv.org/abs/2304.02819">Open copy</a></li>
@@ -536,6 +545,6 @@
     </nav>
   </div>
 </footer>
-<script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.3)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -70% 0px"});h.forEach(x=>o.observe(x))})()</script>
+<script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
 </body>
 </html>

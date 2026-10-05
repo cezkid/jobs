@@ -21,9 +21,10 @@ LEGAL_IDENTIFIER = re.compile(
 )
 # Gap past this gets flagged. Hidden Workers (HBS/Accenture 2021, Fig 7): 48% of execs whose
 # software ranks or filters said it filtered middle-skill candidates on gaps over 6 months
-# (US/UK/DE pooled, self-reported, 2020). US field studies show callbacks falling by ~8 months.
+# (US/UK/DE pooled, self-reported, 2020). One US field study
+# (Kroft 2013) shows callbacks falling by ~8 months; two show no link.
 MAX_GAP_MONTHS = 6
-# Past this the penalty grows: 7-country meta-analysis (D'hert/Baert/Lippens 2024) 13-18 months
+# Past this the penalty grows: 7-country meta-analysis (D'hert/Baert/Lippens 2026) 13-18 months
 # -21%, 19-36 months -27% callbacks. Explaining recovered ~55% of the penalty in one US study.
 LONG_GAP_MONTHS = 12
 NON_SLUG = re.compile(r"[^a-z0-9]+")

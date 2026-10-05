@@ -5,17 +5,65 @@
   <link rel="self" type="application/atom+xml" href="https://jobs.enrriquez.com/research/feed.xml" />
   <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/" />
   <id>https://jobs.enrriquez.com/research/feed.xml</id>
-  <updated>2026-10-04T00:00:00Z</updated>
+  <updated>2026-10-05T00:00:00Z</updated>
   <author>
     <name>Cesar Enrriquez-Zuniga</name>
     <uri>https://jobs.enrriquez.com/about/</uri>
   </author>
   <entry>
+    <title>Age discrimination in hiring: when it starts, what helps</title>
+    <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/age-bias-hiring/" />
+    <id>https://jobs.enrriquez.com/research/age-bias-hiring/</id>
+    <published>2026-10-04T00:00:00Z</published>
+    <updated>2026-10-05T00:00:00Z</updated>
+    <summary>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</summary>
+  </entry>
+  <entry>
+    <title>AI hiring laws in 2026: what employers must tell you</title>
+    <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/ai-hiring-laws/" />
+    <id>https://jobs.enrriquez.com/research/ai-hiring-laws/</id>
+    <published>2026-10-04T00:00:00Z</published>
+    <updated>2026-10-05T00:00:00Z</updated>
+    <summary>In 2026, New York City and the EU make employers tell you about AI screening; Illinois, Colorado, California and Connecticut follow. Few let you ask why.</summary>
+  </entry>
+  <entry>
+    <title>Do cover letters still matter now that AI writes them?</title>
+    <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/cover-letters-after-ai/" />
+    <id>https://jobs.enrriquez.com/research/cover-letters-after-ai/</id>
+    <published>2026-10-04T00:00:00Z</published>
+    <updated>2026-10-05T00:00:00Z</updated>
+    <summary>Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.</summary>
+  </entry>
+  <entry>
+    <title>Does an employment gap on your resume hurt?</title>
+    <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/employment-gaps/" />
+    <id>https://jobs.enrriquez.com/research/employment-gaps/</id>
+    <published>2026-10-04T00:00:00Z</published>
+    <updated>2026-10-05T00:00:00Z</updated>
+    <summary>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</summary>
+  </entry>
+  <entry>
+    <title>Hiring discrimination: what studies show, what helps</title>
+    <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/hiring-bias-what-helps/" />
+    <id>https://jobs.enrriquez.com/research/hiring-bias-what-helps/</id>
+    <published>2026-10-04T00:00:00Z</published>
+    <updated>2026-10-05T00:00:00Z</updated>
+    <summary>Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it.</summary>
+  </entry>
+  <entry>
+    <title>Are two-column resumes ATS friendly? A 7-layout PDF test</title>
+    <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/resume-parser-test/" />
+    <id>https://jobs.enrriquez.com/research/resume-parser-test/</id>
+    <published>2026-10-04T00:00:00Z</published>
+    <updated>2026-10-04T00:00:00Z</updated>
+    <summary>We read one resume in 7 layouts with 3 free PDF readers, not an employer’s system. Our plain page never broke; spaced-out headings always did.</summary>
+  </entry>
+  <entry>
     <title>Is AI resume screening biased? What the studies show</title>
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/ai-resume-screening-bias/" />
     <id>https://jobs.enrriquez.com/research/ai-resume-screening-bias/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-04T00:00:00Z</updated>
+    <updated>2026-10-05T00:00:00Z</updated>
     <summary>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</summary>
   </entry>
   <entry>
@@ -23,7 +71,7 @@
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/ai-written-resumes/" />
     <id>https://jobs.enrriquez.com/research/ai-written-resumes/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-04T00:00:00Z</updated>
+    <updated>2026-10-05T00:00:00Z</updated>
     <summary>Mostly no, in tests – most people can’t spot AI writing. About half of hiring managers say they’d care. What studies show, and what to do.</summary>
   </entry>
   <entry>
@@ -31,7 +79,7 @@
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/ats-rejection-myth/" />
     <id>https://jobs.enrriquez.com/research/ats-rejection-myth/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-04T00:00:00Z</updated>
+    <updated>2026-10-05T00:00:00Z</updated>
     <summary>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</summary>
   </entry>
   <entry>
@@ -47,7 +95,7 @@
     <link rel="alternate" type="text/html" href="https://jobs.enrriquez.com/research/what-makes-a-good-resume/" />
     <id>https://jobs.enrriquez.com/research/what-makes-a-good-resume/</id>
     <published>2026-10-03T00:00:00Z</published>
-    <updated>2026-10-04T00:00:00Z</updated>
+    <updated>2026-10-05T00:00:00Z</updated>
     <summary>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</summary>
   </entry>
 </feed>

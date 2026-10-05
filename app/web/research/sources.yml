@@ -1,6 +1,28 @@
 # Research sources registry - every work a research page cites. Field rules: app/docs/site.md#research-pages;
 # what to cite + how to label it: app/docs/research.md. Sorted by id.
 
+- id: ada-title-i
+  type: law
+  org: US Equal Employment Opportunity Commission
+  year: 1990
+  title: "Titles I and V of the Americans with Disabilities Act of 1990 (ADA)"
+  url: https://www.eeoc.gov/statutes/titles-i-and-v-americans-disabilities-act-1990-ada
+  evidence: law
+  sample: the statute text; Title I covers employers with 15 or more employees
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: adea-631
+  type: law
+  org: United States Code
+  year: 1967
+  title: "29 U.S.C. 631: Age limits (Age Discrimination in Employment Act)"
+  url: https://www.law.cornell.edu/uscode/text/29/631
+  evidence: law
+  sample: the federal age-discrimination law's age line, read on Cornell's Legal Information Institute copy
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: al-ali-2026
   type: article
   authors: ["Al Ali, Adnan", "Helcl, Jindřich", "Libovický, Jindřich"]
@@ -91,6 +113,42 @@
   checked: 2026-10-03
   recheck_by: 2027-04-03
 
+- id: baert-vujic-2018
+  type: article
+  authors: ["Baert, Stijn", "Vujić, Sunčica"]
+  year: 2018
+  title: "Does it pay to care? Volunteering and employment opportunities"
+  venue: Journal of Population Economics 31(3), 819-836 (open copy, IZA Discussion Paper 9649)
+  doi: 10.1007/s00148-017-0682-8
+  url: https://docs.iza.org/dp9649.pdf
+  evidence: field experiment
+  sample: 576 made-up applications sent in pairs to 288 job openings in Flanders, Belgium, December 2014-April 2015; tests volunteering on a resume, not during a gap
+  checked: 2026-10-04
+
+- id: bast-2017
+  type: article
+  authors: ["Bast, Hannah", "Korzen, Claudius"]
+  year: 2017
+  title: "A Benchmark and Evaluation for Text Extraction from PDF"
+  venue: Proceedings of the 2017 ACM/IEEE Joint Conference on Digital Libraries (JCDL)
+  doi: 10.1109/JCDL.2017.7991564
+  url: https://ad-publications.informatik.uni-freiburg.de/benchmark.pdf
+  evidence: lab/LLM audit
+  sample: 14 PDF text readers tested on 12,098 scientific articles from arXiv; peer-reviewed conference paper; not resumes
+  checked: 2026-10-04
+
+- id: bateson-2023
+  type: article
+  authors: ["Bateson, Regina"]
+  year: 2023
+  title: "Perceptions of pandemic resume gaps: Survey experimental evidence from the United States"
+  venue: PLOS ONE 18(3), e0281449 (open copy on PubMed Central)
+  doi: 10.1371/journal.pone.0281449
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC10019729/
+  evidence: lab/LLM audit
+  sample: 974 US adults choosing between made-up hotel and restaurant job applicants, July 2021; not hiring staff
+  checked: 2026-10-04
+
 - id: bloomberg-2024
   type: article
   authors: ["Yin, Leon", "Alba, Davey", "Nicoletti, Leonardo"]
@@ -122,8 +180,30 @@
   venue: COLM 2026, Conference on Language Modeling (open copy on arXiv)
   url: https://arxiv.org/abs/2609.22169
   evidence: lab/LLM audit
-  sample: 10 open AI models, each in a base and a trained version, choosing between pairs of made-up applicants; age shown by graduation year
-  checked: 2026-10-03
+  sample: 10 open AI models, each in a base and a trained version, choosing which of two made-up applicants to call back; age shown by graduation year, older = 45 to 58
+  checked: 2026-10-05
+
+- id: ca-2ccr-11079
+  type: law
+  org: California Civil Rights Council
+  year: 2020
+  title: "California Code of Regulations, title 2, section 11079: Pre-Employment Inquiries, Interviews and Applications"
+  url: https://www.law.cornell.edu/regulations/california/2-CCR-11079
+  evidence: law
+  sample: state regulation as amended in 2020, read on Cornell's Legal Information Institute copy
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: ca-cppa-admt-2025
+  type: law
+  org: California Privacy Protection Agency
+  year: 2025
+  title: "Text of Regulations: CCPA Updates, Cybersecurity Audits, Risk Assessments, Automated Decisionmaking Technology (California Code of Regulations, title 11)"
+  url: https://cppa.ca.gov/regulations/pdf/ccpa_updates_cyber_risk_admt_appr_text.pdf
+  evidence: law
+  sample: final rule text; Article 11, sections 7200-7222 (p. 112-120), and section 7001 definitions; businesses using automated tools that replace human decisions on jobs comply from January 1, 2027
+  checked: 2026-10-04
+  recheck_by: 2027-01-03
 
 - id: ca-crc-ads-2025
   type: law
@@ -132,9 +212,20 @@
   title: Employment Regulations Regarding Automated-Decision Systems (California Code of Regulations, title 2)
   url: https://calcivilrights.ca.gov/2025/06/30/civil-rights-council-secures-approval-for-regulations-to-protect-against-employment-discrimination-related-to-artificial-intelligence/
   evidence: law
-  sample: the Council's announcement and the adopted text (Attachment B, version of March 17, 2025); in force October 1, 2025
-  checked: 2026-10-03
+  sample: the Council's announcement of June 30, 2025 (the adopted text, Attachment B, not re-opened in October 2026); in force October 1, 2025
+  checked: 2026-10-04
   recheck_by: 2027-01-03
+
+- id: ca-sb947-2026
+  type: law
+  org: California Legislature
+  year: 2026
+  title: "SB 947 (Chapter 859, Statutes of 2026): Employment: automated decision systems"
+  url: https://leginfo.legislature.ca.gov/faces/billTextClient.xhtml?bill_id=202520260SB947
+  evidence: law
+  sample: chaptered text, signed September 30, 2026; Labor Code sections 1520-1526.7; from July 1, 2027; limits employer use of automated systems on employees (incl. discipline, firing, inferring protected status), not applicants
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: carlini-2021
   type: article
@@ -147,6 +238,29 @@
   sample: researchers queried GPT-2, an older AI model trained on public web pages, and pulled out hundreds of exact passages from its training text; not chat data
   checked: 2026-10-03
 
+- id: carlsson-eriksson-2019
+  type: article
+  authors: ["Carlsson, Magnus", "Eriksson, Stefan"]
+  year: 2019
+  title: "Age discrimination in hiring decisions: Evidence from a field experiment in the labor market"
+  venue: Labour Economics 59, 173-183 (open copy read, IFAU working paper 2017:8, "The effect of age and gender on labor demand")
+  doi: 10.1016/j.labeco.2019.03.002
+  url: https://www.ifau.se/globalassets/pdf/se/2017/wp2017-08-the-effect-of-age-and-gender-on-labor-demand.pdf
+  evidence: large field experiment
+  sample: 6,066 made-up applications in Sweden, ages 35 to 70, age stated in the letter and on the resume; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: cfr-1625-5
+  type: law
+  org: US Equal Employment Opportunity Commission
+  year: 2007
+  title: "29 CFR 1625.5: Employment applications"
+  url: https://www.ecfr.gov/current/title-29/section-1625.5
+  evidence: law
+  sample: federal regulation under the Age Discrimination in Employment Act, last amended 2007
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: chen-xiao-2026
   type: article
   authors: ["Chen, Qiangju", "Xiao, Yang"]
@@ -157,7 +271,7 @@
   evidence: lab/LLM audit
   sample: 9 openly released AI models, 620 made-up resumes without names, with background clues (community, activities, interests) added at three strengths; 5 groups, Australian setting
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: clearinghouse-mobley
   type: web
@@ -167,8 +281,19 @@
   url: https://clearinghouse.net/case/44074/
   evidence: court record
   sample: case summary (updated December 2025) and list of court filings through June 2026; events only
-  checked: 2026-10-03
+  checked: 2026-10-04
   recheck_by: 2027-01-03
+
+- id: co-sb23-058
+  type: law
+  org: Colorado General Assembly
+  year: 2023
+  title: "SB23-058: Job Application Fairness Act"
+  url: https://leg.colorado.gov/bills/sb23-058
+  evidence: law
+  sample: bill page and official summary; act effective August 7, 2023; no age, birth date or school dates on a first application from July 1, 2024
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: co-sb26-189
   type: law
@@ -177,8 +302,19 @@
   title: "SB26-189: Automated Decision-Making Technology"
   url: https://leg.colorado.gov/bills/sb26-189
   evidence: law
-  sample: bill page and official summary; signed May 14, 2026, in force January 1, 2027
-  checked: 2026-10-03
+  sample: bill page and official summary; signed May 14, 2026; start of each duty not settled (see co-sb26-189-fiscal)
+  checked: 2026-10-04
+  recheck_by: 2027-01-03
+
+- id: co-sb26-189-fiscal
+  type: report
+  org: Colorado Legislative Council Staff
+  year: 2026
+  title: "SB 26-189 Fiscal Note (First Revised Note)"
+  url: https://leg.colorado.gov/bill_files/115880/download
+  evidence: law
+  sample: nonpartisan staff note of May 6, 2026, on the bill as amended in two Senate committees (not the signed act); summary says disclosure duties begin January 1, 2027; its Effective Date section says deployer disclosure, consumer-rights and enforcement sections take effect on signature
+  checked: 2026-10-04
   recheck_by: 2027-01-03
 
 - id: cowgill-2020
@@ -193,6 +329,28 @@
   preprint: true
   checked: 2026-10-03
 
+- id: ct-pa21-69
+  type: law
+  org: Connecticut General Assembly
+  year: 2021
+  title: "Public Act 21-69: An Act Deterring Age Discrimination in Employment Applications"
+  url: https://www.cga.ct.gov/2021/ACT/PA/PDF/2021PA-00069-R00SB-00056-PA.PDF
+  evidence: law
+  sample: the act's text; effective October 1, 2021
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: ct-pa26-15
+  type: law
+  org: Connecticut General Assembly
+  year: 2026
+  title: "Public Act 26-15 (SB 5): An Act Concerning Online Safety"
+  url: https://www.cga.ct.gov/2026/ACT/PA/PDF/2026PA-00015-R00SB-00005-PA.PDF
+  evidence: law
+  sample: public act as signed May 27, 2026; sections 7 to 13 on automated employment decisions
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: cui-2025
   type: article
   authors: ["Cui, Jingyi", "Dias, Gabriel", "Ye, Justin"]
@@ -203,7 +361,19 @@
   evidence: observational
   sample: 5 million cover letters to over 100,000 jobs on one freelance platform (Freelancer.com), two job types, eight months around the April 2023 launch of its AI letter writer
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
+
+- id: dalle-2025
+  type: article
+  authors: ["Dalle, Axana", "Lippens, Louis", "Baert, Stijn"]
+  year: 2025
+  title: "Nothing Really Matters: Evaluating Demand-Side Moderators of Age Discrimination in Hiring"
+  venue: "Socio-Economic Review 23(3), 1253-1285 (authors' open copy read)"
+  doi: 10.1093/ser/mwae070
+  url: https://biblio.ugent.be/publication/01JH3FY6BJB2FM7PKB8WY96X0Z/file/01JJ1KNE3W1TZW2QSSY5N1G8S9.pdf
+  evidence: field experiment
+  sample: pairs of made-up applicants aged 38 to 56 sent to 712 job openings in Flanders, Belgium; authors' open copy (submitted version) read on Ghent University's library site, page numbers are that copy's; the journal page blocks scripts
+  checked: 2026-10-04
 
 - id: dastin-2018
   type: article
@@ -216,18 +386,61 @@
   sample: news report based on five unnamed people familiar with the project; Amazon declined to comment
   checked: 2026-10-03
 
-- id: dhert-2024
-  type: report
-  authors: ["D'hert, Louis", "Baert, Stijn", "Lippens, Louis"]
-  year: 2024
-  title: "Unemployment, Inactivity, and Hiring Chances: A Systematic Review and Meta-Analysis"
-  venue: IZA Discussion Paper 17141, July 2024
-  doi: 10.2139/ssrn.4898321
-  url: https://docs.iza.org/dp17141.pdf
+- id: de-19-711
+  type: law
+  org: Delaware General Assembly
+  year: 2022
+  title: "Delaware Code, title 19, chapter 7, subchapter II: Discrimination in Employment (sections 710 and 711)"
+  url: https://delcode.delaware.gov/title19/c007/sc02/index.html
+  evidence: law
+  sample: "state code online; section 711(m) on first applications, section 710 for who counts as an employer; session law 83 Del. Laws c. 421: signed September 8, 2022"
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: derous-2017
+  type: article
+  authors: ["Derous, Eva", "Decoster, Jeroen"]
+  year: 2017
+  title: "Implicit Age Cues in Resumes: Subtle Effects on Hiring Discrimination"
+  venue: Frontiers in Psychology 8, 1321
+  doi: 10.3389/fpsyg.2017.01321
+  evidence: lab/LLM audit
+  sample: 610 HR professionals in Belgium rating made-up resumes; birth date shown or left off
+  checked: 2026-10-04
+
+- id: dhert-2026
+  type: article
+  authors: ["D'hert, Liam", "Baert, Stijn", "Lippens, Louis"]
+  year: 2026
+  title: "Unemployment, inactivity, and hiring chances: A systematic review and meta-analysis"
+  venue: Socio-Economic Review 24(3), 1355-1393 (open copy, Ghent University library)
+  doi: 10.1093/ser/mwag023
+  url: https://biblio.ugent.be/publication/01KRK8YTYRYHA7486FX045Y7Z8/file/01M0A5AWFGQ1RCZS17ER8A70C8.pdf
   evidence: meta-analysis
-  sample: field experiments with about 67,000 made-up applicants in 7 countries, combined
-  preprint: true
-  checked: 2026-10-03
+  sample: 28 studies reviewed; 16 field experiments with almost 67,000 made-up applicants in 7 countries combined
+  checked: 2026-10-04
+
+- id: doj-xai-2026
+  type: web
+  org: US Department of Justice
+  year: 2026
+  title: Justice Department Intervenes in xAI Lawsuit Challenging Colorado's Algorithmic Discrimination Law
+  url: https://www.justice.gov/opa/pr/justice-department-intervenes-xai-lawsuit-challenging-colorados-algorithmic-discrimination
+  evidence: court record
+  sample: agency press release on a court filing, April 24, 2026; what the department asked the court, nothing decided
+  checked: 2026-10-04
+  recheck_by: 2027-01-04
+
+- id: eeoc-ada-preemployment
+  type: law
+  org: US Equal Employment Opportunity Commission
+  year: 1995
+  title: "Enforcement Guidance: Preemployment Disability-Related Questions and Medical Examinations"
+  url: https://www.eeoc.gov/laws/guidance/enforcement-guidance-preemployment-disability-related-questions-and-medical
+  evidence: law
+  sample: the agency's guidance on the Americans with Disabilities Act before a job offer
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: eeoc-itutorgroup-2023
   type: web
@@ -238,6 +451,7 @@
   evidence: court record
   sample: agency press release on a settled lawsuit, September 2023; what the agency alleged and the settlement terms
   checked: 2026-10-03
+  recheck_by: 2027-04-05
 
 - id: enhancv-2025
   type: web
@@ -249,15 +463,25 @@
   sample: 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published
   checked: 2026-10-03
 
+- id: enhancv-2026
+  type: web
+  authors: ["Vasileva, Doroteya"]
+  year: 2026
+  title: "What Happens to a Two-Column Resume When a Machine Reads It"
+  url: https://enhancv.com/blog/two-column-resume-ats-test/
+  evidence: vendor survey
+  sample: 3 resumes (one made-up, 3-role and 6-role ones) in 17 of the company's own templates, read by 7 free PDF text reader settings (pdftotext, PyMuPDF, pdfminer.six, pypdf), 357 readings; plus 10 customer resumes read by 4 AI models; by a resume builder that sells two-column templates, published August 24, 2026, updated September 30, 2026; not peer-reviewed
+  checked: 2026-10-04
+
 - id: eo-14281
   type: law
   org: Executive Office of the President
   year: 2025
   title: "Executive Order 14281: Restoring Equality of Opportunity and Meritocracy"
-  url: https://www.federalregister.gov/documents/2025/04/28/2025-07378/restoring-equality-of-opportunity-and-meritocracy
+  url: https://www.govinfo.gov/content/pkg/FR-2025-04-28/html/2025-07378.htm
   evidence: law
-  sample: executive order as published in the Federal Register, April 2025
-  checked: 2026-10-03
+  sample: executive order of April 23, 2025, as published in the Federal Register (govinfo copy)
+  checked: 2026-10-04
   recheck_by: 2027-04-03
 
 - id: eo-14365
@@ -268,8 +492,20 @@
   url: https://www.govinfo.gov/content/pkg/FR-2025-12-16/html/2025-23092.htm
   evidence: law
   sample: executive order of December 11, 2025, as published in the Federal Register; sets up a federal task force to challenge state AI laws and names Colorado's law
-  checked: 2026-10-03
+  checked: 2026-10-04
   recheck_by: 2027-04-03
+
+- id: eriksson-rooth-2014
+  type: article
+  authors: ["Eriksson, Stefan", "Rooth, Dan-Olof"]
+  year: 2014
+  title: "Do Employers Use Unemployment as a Sorting Criterion When Hiring? Evidence from a Field Experiment"
+  venue: American Economic Review 104(3), 1014-1039 (open copy, IZA Discussion Paper 6235)
+  doi: 10.1257/aer.104.3.1014
+  url: https://docs.iza.org/dp6235.pdf
+  evidence: large field experiment
+  sample: 8,466 made-up applications to 3,786 employers in Sweden, 13 kinds of job
+  checked: 2026-10-04
 
 - id: eu-ai-act
   type: law
@@ -278,9 +514,20 @@
   title: "Regulation (EU) 2024/1689 (Artificial Intelligence Act), Annex III"
   url: https://eur-lex.europa.eu/legal-content/EN/TXT/HTML/?uri=OJ:L_202401689
   evidence: law
-  sample: official text; Annex III point 4 lists AI used to filter job applications and evaluate candidates as high-risk
-  checked: 2026-10-03
+  sample: official text, read in the artificialintelligenceact.eu reproduction (EUR-Lex blocks scripts); Annex III point 4 lists AI used to filter job applications and evaluate candidates as high-risk; Articles 26 and 86 on telling people and explaining decisions
+  checked: 2026-10-04
   recheck_by: 2027-04-03
+
+- id: eu-gdpr
+  type: law
+  org: European Union
+  year: 2016
+  title: "Regulation (EU) 2016/679 (General Data Protection Regulation), Articles 13, 14 and 22"
+  url: https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng
+  evidence: law
+  sample: official text, read in the gdpr-info.eu reproduction (EUR-Lex blocks scripts); in force since May 25, 2018; Article 22 covers decisions based solely on automated processing
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: eu-omnibus-2026
   type: law
@@ -290,8 +537,53 @@
   url: https://digital-strategy.ec.europa.eu/en/news/ai-omnibus-enters-force
   evidence: law
   sample: Commission notice, July 27, 2026; Annex III high-risk rules apply from December 2, 2027
-  checked: 2026-10-03
+  checked: 2026-10-04
   recheck_by: 2027-04-03
+
+- id: farber-2016
+  type: article
+  authors: ["Farber, Henry S.", "Silverman, Dan", "von Wachter, Till"]
+  year: 2016
+  title: "Determinants of Callbacks to Job Applications: An Audit Study"
+  venue: American Economic Review 106(5), 314-318 (open copy, NBER working paper 21689)
+  doi: 10.1257/aer.p20161010
+  url: https://www.nber.org/system/files/working_papers/w21689/w21689.pdf
+  evidence: large field experiment
+  sample: about 12,000 made-up applications (by our count of its four rounds) from college-educated women to office support jobs in 8 US cities, 2012-2014
+  checked: 2026-10-04
+
+- id: farber-2017
+  type: article
+  authors: ["Farber, Henry S.", "Silverman, Dan", "von Wachter, Till M."]
+  year: 2017
+  title: "Factors Determining Callbacks to Job Applications by the Unemployed: An Audit Study"
+  venue: "RSF: The Russell Sage Foundation Journal of the Social Sciences 3(3), 168-201"
+  doi: 10.7758/RSF.2017.3.3.08
+  evidence: large field experiment
+  sample: 12,224 made-up applications to 4,594 postings (Table 4), from college-educated women to US office support jobs
+  checked: 2026-10-04
+
+- id: farber-2019
+  type: article
+  authors: ["Farber, Henry S.", "Herbst, Chris M.", "Silverman, Dan", "von Wachter, Till"]
+  year: 2019
+  title: "Whom Do Employers Want? The Role of Recent Employment and Unemployment Status and Age"
+  venue: Journal of Labor Economics 37(2), 323-349 (open copy, NBER working paper 24605)
+  doi: 10.1086/700184
+  url: https://www.nber.org/system/files/working_papers/w24605/w24605.pdf
+  evidence: large field experiment
+  sample: 8,488 made-up applications to 2,122 US job postings
+  checked: 2026-10-04
+
+- id: freehire-letter-count
+  type: web
+  org: freehire
+  year: 2026
+  title: "Cover letter generation (internal notes, internal/candidate/coverletter/AGENTS.md)"
+  url: https://github.com/strelov1/freehire/blob/20d8a4cf9fe0f1031ec716fd07805ecc6b60abcd/internal/candidate/coverletter/AGENTS.md
+  evidence: vendor docs
+  sample: the job search maker's own count in its code notes - 209,297 of 402,117 open postings whose apply form it captured ask for a letter; no method or date given; file last changed September 8, 2026
+  checked: 2026-10-04
 
 - id: fuller-2021
   type: report
@@ -302,7 +594,7 @@
   url: https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf
   evidence: survey
   sample: 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: galdin-silbert-2025
   type: article
@@ -314,7 +606,7 @@
   evidence: observational
   sample: about 2.7 million applications to 61,000 coding jobs on one freelance platform (Freelancer.com), January 2021 to July 2024; the hiring shifts by ability come from a model fitted to the data
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: gao-2026
   type: article
@@ -326,7 +618,19 @@
   evidence: lab/LLM audit
   sample: 14 AI models released 2023-2026, 24,024 resume pairs each that differ only by name, built from 6,007 real US job ads; yes/no to a phone screen
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
+
+- id: gibbons-katz-1991
+  type: article
+  authors: ["Gibbons, Robert", "Katz, Lawrence F."]
+  year: 1991
+  title: Layoffs and Lemons
+  venue: Journal of Labor Economics 9(4), 351-380 (open copy, NBER working paper 2968)
+  doi: 10.1086/298273
+  url: https://www.nber.org/system/files/working_papers/w2968/w2968.pdf
+  evidence: observational
+  sample: US government survey of workers who lost jobs, January 1984 and 1986; men aged 20-61 who lost full-time jobs
+  checked: 2026-10-04
 
 - id: github-copilot-2026
   type: web
@@ -395,6 +699,17 @@
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
+- id: greenhouse-parse
+  type: web
+  org: Greenhouse
+  year: 2026
+  title: Unsuccessful resume parse
+  url: https://support.greenhouse.io/hc/en-us/articles/200989175-Unsuccessful-resume-parse
+  evidence: vendor docs
+  sample: the maker's help page for employers using Greenhouse Recruiting, last updated March 2, 2026
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: greenhouse-rules
   type: web
   org: Greenhouse
@@ -435,7 +750,7 @@
   url: https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report
   evidence: vendor survey
   sample: over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: hireright-2025-sept
   type: web
@@ -445,7 +760,7 @@
   url: https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers
   evidence: vendor survey
   sample: September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: il-hb3773
   type: law
@@ -454,8 +769,19 @@
   title: "HB 3773 (Public Act 103-0804): Human Rights Act, artificial intelligence"
   url: https://www.ilga.gov/ftp/legislation/103/BillStatus/HTML/10300HB3773.html
   evidence: law
-  sample: bill status page and synopsis; in force January 1, 2026
-  checked: 2026-10-03
+  sample: bill status page and synopsis, read in an Internet Archive copy of August 28, 2026 (the site blocks scripts); in force January 1, 2026
+  checked: 2026-10-04
+  recheck_by: 2027-01-03
+
+- id: il-pa-103-0804
+  type: law
+  org: Illinois General Assembly
+  year: 2024
+  title: "Public Act 103-0804 (HB 3773 enrolled): Illinois Human Rights Act, sections 2-101 and 2-102(L)"
+  url: https://www.ilga.gov/legislation/publicacts/103/PDF/103-0804.pdf
+  evidence: law
+  sample: enrolled act text, 21 pages; section 2-102(L) on page 20; takes effect January 1, 2026
+  checked: 2026-10-04
   recheck_by: 2027-01-03
 
 - id: indeed-experience-2025
@@ -476,7 +802,7 @@
   url: https://lp.insightglobal.com/hubfs/IG24-AI-Survey-Report.pdf
   evidence: vendor survey
   sample: 1,005 US HR and talent leaders at firms with 100+ staff, online panel (Atomik Research), October 17-22, 2024; a staffing firm's survey; question wording not published
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: jakesch-2023
   type: article
@@ -500,6 +826,16 @@
   sample: career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026
   checked: 2026-10-03
 
+- id: kleine-allekotte-2024
+  type: report
+  authors: ["Kleine-Allekotte, Aleydis"]
+  year: 2024
+  title: "Spot the difference! Recruiter reaction to ChatGPT in cover letters (MSc thesis, Tilburg University)"
+  url: https://arno.uvt.nl/show.cgi?fid=176589
+  evidence: lab/LLM audit
+  sample: 86 raters (recruited on LinkedIn, by word of mouth and SurveyCircle; screened only by two self-report questions on English and familiarity with cover letters) each rated six made-up letters - self-written, ChatGPT-improved or ChatGPT-written, by a native or non-native writer - before and after being told AI may have been used; an unpublished student thesis, hypothetical decisions
+  checked: 2026-10-04
+
 - id: kobak-2025
   type: article
   authors: ["Kobak, Dmitry", "González-Márquez, Rita", "Horvát, Emőke-Ágnes", "Lause, Jan"]
@@ -522,7 +858,7 @@
   url: https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/
   evidence: large field experiment
   sample: 9,022 made-up applications to real UK job ads, plan registered in advance
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: kroft-2013
   type: article
@@ -534,7 +870,7 @@
   url: https://www.nber.org/system/files/working_papers/w18387/w18387.pdf
   evidence: large field experiment
   sample: about 12,000 made-up resumes sent to job ads in 100 US cities
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: ladders-2012
   type: report
@@ -556,6 +892,18 @@
   sample: a job site's press release, November 2018, reposted by Onrec; number of recruiters not stated
   checked: 2026-10-03
 
+- id: lahey-2008
+  type: article
+  authors: ["Lahey, Joanna N."]
+  year: 2008
+  title: "Age, Women, and Hiring: An Experimental Study"
+  venue: Journal of Human Resources 43(1), 30-56 (open copy read, NBER working paper 11435)
+  doi: 10.3368/jhr.43.1.30
+  url: https://www.nber.org/system/files/working_papers/w11435/w11435.pdf
+  evidence: large field experiment
+  sample: pairs of made-up resumes from women aged 35 to 62 sent to 3,996 firms in Boston and St. Petersburg, Florida; page numbers are the working paper's
+  checked: 2026-10-04
+
 - id: lawyer-monthly-2026
   type: web
   org: Lawyer Monthly
@@ -564,7 +912,7 @@
   url: https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/
   evidence: news report
   sample: news report of a filing, September 2026; used for the event only
-  checked: 2026-10-03
+  checked: 2026-10-04
   recheck_by: 2027-01-03
 
 - id: levinson-2012-cio
@@ -589,7 +937,51 @@
   sample: news story about Preptel's paid service
   checked: 2026-10-03
 
+- id: lippens-2023
+  type: article
+  authors: ["Lippens, Louis", "Vermeiren, Siel", "Baert, Stijn"]
+  year: 2023
+  title: "The state of hiring discrimination: A meta-analysis of (almost) all recent correspondence experiments"
+  venue: European Economic Review 151, 104315 (open copy read, IZA discussion paper 14966)
+  doi: 10.1016/j.euroecorev.2022.104315
+  url: https://docs.iza.org/dp14966.pdf
+  evidence: meta-analysis
+  sample: 306 field experiments published 2005-2020, 17 of them on older age; figures and page numbers are the working paper's
+  checked: 2026-10-04
+
 # Court order: allegations, not findings
+
+- id: mit-capd-ai-cover-letters
+  type: web
+  org: MIT Career Advising & Professional Development
+  year: 2026
+  title: Using AI for cover letters
+  url: https://capd.mit.edu/resources/using-ai-for-cover-letters/
+  evidence: convention
+  sample: a university career office's guide for students; page undated
+  checked: 2026-10-04
+
+- id: mit-capd-ats
+  type: web
+  org: MIT Career Advising & Professional Development
+  year: 2026
+  title: Make your resume ATS-friendly
+  url: https://capd.mit.edu/resources/make-your-resume-ats-friendly/
+  evidence: convention
+  sample: a university career office's guide, updated April 2026
+  checked: 2026-10-04
+
+- id: mn-363a-08
+  type: law
+  org: Minnesota Legislature, Office of the Revisor of Statutes
+  year: 2026
+  title: "Minnesota Statutes, section 363A.08: Unfair discriminatory practices relating to employment"
+  url: https://www.revisor.mn.gov/statutes/cite/363A.08
+  evidence: law
+  sample: "state statute online; subdivision 4(a)(1): before a person is employed, no requiring or requesting information that pertains to age, unless a real job requirement"
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: mobley-2025-order
   type: law
   org: US District Court for the Northern District of California
@@ -598,10 +990,11 @@
   url: https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf
   evidence: court record
   sample: court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts
-  checked: 2026-10-03
+  checked: 2026-10-04
   recheck_by: 2027-01-03
 
 # Court order: allegations, not findings
+
 - id: mobley-2026-order
   type: law
   org: US District Court for the Northern District of California
@@ -625,6 +1018,16 @@
   sample: 7 AI detectors run on 91 essays by non-native English writers (TOEFL) and 88 essays by US eighth graders, all written by people
   checked: 2026-10-03
 
+- id: mit-capd-cover-letters
+  type: web
+  org: MIT Career Advising & Professional Development
+  year: 2026
+  title: How to write an effective cover letter (with samples)
+  url: https://capd.mit.edu/resources/how-to-write-an-effective-cover-letter/
+  evidence: convention
+  sample: a university career office's guide for students; page undated
+  checked: 2026-10-04
+
 - id: mit-capd-resumes
   type: web
   org: MIT Career Advising & Professional Development
@@ -640,12 +1043,12 @@
   authors: ["Namingit, Sheryll", "Blankenau, William", "Schwab, Benjamin"]
   year: 2021
   title: "Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate"
-  venue: Journal of Economic Behavior & Organization 2021 (paywalled; numbers from the authors' open 2018 conference abstract)
+  venue: Journal of Economic Behavior & Organization 185, 865-882 (full text paywalled; published abstract read on RePEc)
   doi: 10.1016/j.jebo.2020.09.033
-  url: https://ashecon.confex.com/ashecon/2018/webprogram/Paper5280.html
-  evidence: field experiment
-  sample: 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs
-  checked: 2026-10-03
+  url: https://ideas.repec.org/a/eee/jeborg/v185y2021icp865-882.html
+  evidence: large field experiment
+  sample: 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs; the three rates are from the authors' open 2018 conference abstract, gap length from the AEA trial registry
+  checked: 2026-10-04
 
 - id: nasr-2023
   type: article
@@ -658,6 +1061,84 @@
   sample: researchers pulled gigabytes of exact training text from open AI models and thousands of training examples from ChatGPT (GPT-3.5) with a new trick; training text came from the web, not users' chats
   checked: 2026-10-03
 
+- id: neumark-2019
+  type: article
+  authors: ["Neumark, David", "Burn, Ian", "Button, Patrick"]
+  year: 2019
+  title: "Is It Harder for Older Workers to Find Jobs? New and Improved Evidence from a Field Experiment"
+  venue: Journal of Political Economy 127(2), 922-970 (open copy read, NBER working paper 21669, revised November 2017)
+  doi: 10.1086/701029
+  url: https://www.nber.org/system/files/working_papers/w21669/w21669.pdf
+  evidence: large field experiment
+  sample: 40,223 made-up applications to US jobs, ages 29-31, 49-51 and 64-66; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: neumark-2024
+  type: article
+  authors: ["Neumark, David"]
+  year: 2024
+  title: "Age Discrimination in Hiring: Evidence from Age-Blind vs. Non-Age-Blind Hiring Procedures"
+  venue: Journal of Human Resources 59(1), 1-34 (open copy read, NBER working paper 26623)
+  doi: 10.3368/jhr.0420-10831R1
+  url: https://www.nber.org/system/files/working_papers/w26623/w26623.pdf
+  evidence: observational
+  sample: hiring records of one US restaurant chain, from an age-discrimination lawsuit; about 48,000 online applications used; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: nsc-about
+  type: web
+  org: National Student Clearinghouse
+  year: 2026
+  title: About the Clearinghouse
+  url: https://www.studentclearinghouse.org/about/
+  evidence: vendor docs
+  sample: the organisation's own description of its coverage
+  checked: 2026-10-04
+
+- id: nsc-verify
+  type: web
+  org: National Student Clearinghouse
+  year: 2026
+  title: Verify Degrees and Enrollment
+  url: https://www.studentclearinghouse.org/verify/
+  evidence: vendor docs
+  sample: the organisation's own description of its service for confirming degrees and attendance
+  checked: 2026-10-04
+
+- id: nunley-2017
+  type: article
+  authors: ["Nunley, John M.", "Pugh, Adam", "Romero, Nicholas", "Seals, R. Alan"]
+  year: 2017
+  title: "The Effects of Unemployment and Underemployment on Employment Opportunities: Results from a Correspondence Audit of the Labor Market for College Graduates"
+  venue: ILR Review 70(3), 642-669 (open copy, Auburn University working paper AUWP 2014-04)
+  doi: 10.1177/0019793916654686
+  url: https://cla.auburn.edu/econwp/Archives/2014/2014-04.pdf
+  evidence: large field experiment
+  sample: about 9,400 made-up resumes from recent college graduates to business jobs in 7 US cities, January-July 2013; figures read in the 2014 working-paper copy; underemployment figure matches the published abstract (30%)
+  checked: 2026-10-04
+
+- id: nj-dcr-2025
+  type: law
+  org: New Jersey Office of the Attorney General, Division on Civil Rights
+  year: 2025
+  title: Division on Civil Rights Adopts Rules on Disparate Impact Discrimination Under New Jersey Law
+  url: https://www.njoag.gov/ag-platkin-announces-division-on-civil-rights-adopts-landmark-rules-on-disparate-impact-discrimination-under-new-jersey-law/
+  evidence: law
+  sample: the agency's announcement of December 17, 2025, of rules N.J.A.C. 13:16 published December 15, 2025
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: nyc-aedt-rule
+  type: law
+  org: NYC Department of Consumer and Worker Protection
+  year: 2023
+  title: "Notice of Adoption of Final Rule: Use of Automated Employment Decision Tools (6 RCNY 5-300)"
+  url: https://rules.cityofnewyork.us/wp-content/uploads/2023/04/DCWP-NOA-for-Use-of-Automated-Employment-Decisionmaking-Tools-2.pdf
+  evidence: law
+  sample: the city's final rule for Local Law 144, adopted April 2023; sections 5-303 and 5-304 on posting results and notice
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
 - id: nyc-ll144
   type: law
   org: NYC Department of Consumer and Worker Protection
@@ -666,7 +1147,7 @@
   url: https://www.nyc.gov/site/dca/about/automated-employment-decision-tools.page
   evidence: law
   sample: the enforcing agency's page on Local Law 144 of 2021; enforced from July 5, 2023
-  checked: 2026-10-03
+  checked: 2026-10-04
   recheck_by: 2027-01-03
 
 - id: nys-comptroller-2025
@@ -677,7 +1158,7 @@
   url: https://www.osc.ny.gov/state-agencies/audits/2025/12/02/enforcement-local-law-144-automated-employment-decision-tools
   evidence: observational
   sample: state audit of New York City's enforcement, July 2023 to June 2025, including a review of the same 32 companies the city checked
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: openai-2023
   type: web
@@ -711,6 +1192,40 @@
   checked: 2026-10-03
   recheck_by: 2027-01-03
 
+- id: or-hb3187
+  type: law
+  org: Oregon Legislative Assembly
+  year: 2025
+  title: "House Bill 3187 (2025 Regular Session), Enrolled"
+  url: https://olis.oregonlegislature.gov/liz/2025R1/Measures/Overview/HB3187
+  evidence: law
+  sample: "bill page and enrolled text; Oregon Laws 2025 chapter 125: signed May 22, 2025, effective September 26, 2025"
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: pa-phra-955
+  type: law
+  org: Pennsylvania General Assembly
+  year: 1955
+  title: "Pennsylvania Human Relations Act (Act of 1955, P.L. 744, No. 222), section 5: Unlawful discriminatory practices"
+  url: "https://www.palegis.us/statutes/unconsolidated/law-information/view-statute?txtType=PDF&SessYr=1955&SessInd=0&ActNum=0222.&chpt=000.&subchpt=000.&sctn=5&subsctn=000."
+  evidence: law
+  sample: "the legislature's current copy of the act; section 5(b)(1), also cited as 43 P.S. 955(b)(1): before employment, no questions or form entries about age; the act's age definition was not read"
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: pedulla-2016
+  type: article
+  authors: ["Pedulla, David S."]
+  year: 2016
+  title: "Penalized or Protected? Gender and the Consequences of Nonstandard and Mismatched Employment Histories"
+  venue: American Sociological Review 81(2), 262-289 (open copy on PubMed Central)
+  doi: 10.1177/0003122416630982
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC4864988/
+  evidence: field experiment
+  sample: 2,420 made-up applications to 1,210 job openings in five US cities, November 2012-June 2013
+  checked: 2026-10-04
+
 - id: preptel-2012
   type: web
   org: Preptel
@@ -720,6 +1235,27 @@
   evidence: vendor survey
   sample: the company's own news page, archived December 2012; no method given
   checked: 2026-10-03
+
+- id: qvist-larsen-2025
+  type: article
+  authors: ["Qvist, Jeevitha Yogachandiran", "Larsen, Christian Albrekt"]
+  year: 2025
+  title: "Age discrimination in hiring: Relative importance and additive and multiplicative effects"
+  venue: Social Science Research 126, 103135
+  doi: 10.1016/j.ssresearch.2024.103135
+  evidence: lab/LLM audit
+  sample: 5,017 Danish employers rating 20,068 made-up applicant descriptions, ages 45 to 75; plan registered in advance
+  checked: 2026-10-04
+
+- id: resumap-2026
+  type: web
+  org: Resumap
+  year: 2026
+  title: "We ran the same resume through 4 real ATS parsers in 36 layouts: same text, different parses"
+  url: https://dev.to/resumap/we-ran-the-same-resume-through-4-real-ats-parsers-in-36-layouts-same-text-different-parses-3mfc
+  evidence: vendor survey
+  sample: one made-up resume in 36 templates, read by 4 commercial hiring systems or resume readers (Zoho Recruit, Manatal, Workable, Textkernel); a test by the company that makes the templates, posted July 28, 2026; not peer-reviewed
+  checked: 2026-10-04
 
 - id: resume-genius-2026
   type: web
@@ -731,6 +1267,16 @@
   sample: 1,000 US hiring managers, online panel; survey dates not given
   checked: 2026-10-03
 
+- id: resumebuilder-2022
+  type: web
+  org: ResumeBuilder.com
+  year: 2022
+  title: 4 in 10 Hiring Managers Admit to Age Bias
+  url: https://web.archive.org/web/20250116054658/https://www.resumebuilder.com/4-in-10-hiring-managers-admit-to-age-bias/
+  evidence: vendor survey
+  sample: 800 US hiring managers, online, February 1-2, 2022; run for a resume-writing company; read in the Internet Archive copy of January 16, 2025 (the live page now redirects)
+  checked: 2026-10-04
+
 - id: resumego-2018
   type: web
   org: ResumeGo
@@ -740,6 +1286,36 @@
   evidence: vendor survey
   sample: 482 recruiters, HR staff and managers in a hiring simulation with made-up resumes; run by a resume-writing company
   checked: 2026-10-03
+
+- id: resumego-2020
+  type: web
+  authors: ["Yang, Peter"]
+  year: 2020
+  title: "Cover Letters: Just How Important Are They?"
+  url: https://www.resumego.net/research/cover-letters/
+  evidence: field experiment
+  sample: 7,287 made-up applications on ZipRecruiter, Glassdoor and Indeed, July 2019 to January 2020, in three groups (no letter, generic letter, tailored letter); run by a resume-writing company, not peer-reviewed; group sizes, job types and a test for chance not given
+  checked: 2026-10-04
+
+- id: resumego-2020-survey
+  type: web
+  authors: ["Yang, Peter"]
+  year: 2020
+  title: "Cover Letters: Just How Important Are They? (recruiter survey)"
+  url: https://www.resumego.net/research/cover-letters/
+  evidence: vendor survey
+  sample: 236 recruiters and hiring managers, yes/no questions on the same page as the experiment; run by a resume-writing company; how they were found and the survey dates not given
+  checked: 2026-10-04
+
+- id: resumelab-2020
+  type: web
+  org: ResumeLab
+  year: 2020
+  title: "Is a Cover Letter Necessary in 2026? Do I Need a Cover Letter?"
+  url: https://web.archive.org/web/20260311155744/https://resumelab.com/cover-letter/are-cover-letters-necessary
+  evidence: vendor survey
+  sample: 200 US recruiters, HR staff and hiring managers, online survey by OnePoll for a company that sells a cover letter builder; dates not given, and the page says some questions and answers were rephrased; the page is dated December 2025, but an Internet Archive copy of February 27, 2020 already holds the same survey and figures (a December 6, 2019 copy does not), so it ran about December 2019 - February 2020, before chat AI; read in an Internet Archive copy of March 11, 2026 (live page timed out)
+  checked: 2026-10-04
 
 - id: rozado-2026
   type: article
@@ -798,7 +1374,18 @@
   evidence: lab/LLM audit
   sample: one AI model (Claude 2.0), 70 made-up decision questions including job offers, with age, race and gender varied
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
+
+- id: textkernel-2023
+  type: web
+  org: Textkernel
+  year: 2023
+  title: Improving extraction from column resumes
+  url: https://textkernel.com/learn-support/blog/improving-extraction-from-column-resumes
+  evidence: vendor docs
+  sample: the maker's own blog post, October 18, 2023, on its resume reader; its tests on its own files, method in outline only
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
 
 - id: uscis-i9
   type: law
@@ -810,6 +1397,42 @@
   sample: agency page, last reviewed June 2026
   checked: 2026-10-03
   recheck_by: 2027-04-03
+
+- id: van-borm-2021
+  type: article
+  authors: ["Van Borm, Hannah", "Burn, Ian", "Baert, Stijn"]
+  year: 2021
+  title: "What Does a Job Candidate's Age Signal to Employers?"
+  venue: Labour Economics 71, 102003 (open copy read, IZA discussion paper 12849)
+  doi: 10.1016/j.labeco.2021.102003
+  url: https://docs.iza.org/dp12849.pdf
+  evidence: lab/LLM audit
+  sample: 400 people with hiring experience rating made-up candidates; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: weisshaar-2018
+  type: article
+  authors: ["Weisshaar, Katherine"]
+  year: 2018
+  title: "From Opt Out to Blocked Out: The Challenges for Labor Market Re-entry after Family-Related Employment Lapses"
+  venue: American Sociological Review 83(1), 34-60 (read in an Internet Archive copy of the journal page)
+  doi: 10.1177/0003122417752355
+  url: https://web.archive.org/web/20210803042055/https://journals.sagepub.com/doi/full/10.1177/0003122417752355
+  evidence: large field experiment
+  sample: 3,407 made-up applications from parents to professional and managerial jobs in 50 US metro areas, August 2015-January 2016; archive snapshot of August 2021
+  checked: 2026-10-04
+
+- id: weisshaar-2021
+  type: article
+  authors: ["Weisshaar, Katherine"]
+  year: 2021
+  title: "Employment Lapses and Subsequent Hiring Disadvantages: An Experimental Approach Examining Types of Discrimination and Mechanisms"
+  venue: Socius 7 (open copy, University of North Carolina library)
+  doi: 10.1177/23780231211019861
+  url: https://doi.org/10.17615/bj2t-yr59
+  evidence: lab/LLM audit
+  sample: 2,000 US adults choosing between made-up job applicants, March and June 2015; not hiring staff
+  checked: 2026-10-04
 
 - id: wiles-2025
   type: article
@@ -856,7 +1479,18 @@
   url: https://facctconference.org/static/papers24/facct24-113.pdf
   evidence: observational
   sample: 155 student investigators checked the websites of 391 employers for posted bias audits and notices
-  checked: 2026-10-03
+  checked: 2026-10-04
+
+- id: xai-weiser-stay
+  type: law
+  org: US District Court for the District of Colorado
+  year: 2026
+  title: "X. AI LLC v. Weiser, No. 1:26-cv-01515: Minute Order (ECF 24) granting joint motion to stay enforcement"
+  url: https://www.courtlistener.com/docket/73171074/x-ai-llc-v-weiser/
+  evidence: court record
+  sample: docket entries through October 2, 2026; minute order of April 27, 2026 (ECF 24); procedure only, nothing decided on the merits
+  checked: 2026-10-04
+  recheck_by: 2027-01-03
 
 - id: xu-2025
   type: article
@@ -869,3 +1503,174 @@
   evidence: lab/LLM audit
   sample: 2,245 real resumes; 9 AI models compared each person's own summary with AI-written versions; hiring simulated for 24 jobs
   checked: 2026-10-03
+
+- id: agan-starr-2018
+  type: article
+  authors: ["Agan, Amanda", "Starr, Sonja"]
+  year: 2018
+  title: "Ban the Box, Criminal Records, and Racial Discrimination: A Field Experiment"
+  venue: Quarterly Journal of Economics 133(1), 191-235 (full text paywalled; published abstract read in the Crossref record; methods read in the authors' August 2016 working paper)
+  doi: 10.1093/qje/qjx028
+  evidence: large field experiment
+  sample: 15,220 made-up online applications sent (14,640 analysed; 6,401 New Jersey, 8,239 New York City) from men about 21-22 years old to 4,292 stores in 296 chains, before and after each place stopped employers asking about records on the form; figures are the published abstract's
+  checked: 2026-10-04
+
+- id: aslund-skans-2012
+  type: article
+  authors: ["Åslund, Olof", "Nordström Skans, Oskar"]
+  year: 2012
+  title: Do Anonymous Job Application Procedures Level the Playing Field?
+  venue: "ILR Review 65(1), 82-107 (open copy read, IFAU working paper 2007:31; page numbers are the working paper's)"
+  doi: 10.1177/001979391206500105
+  url: https://www.ifau.se/globalassets/pdf/se/2007/wp07-31.pdf
+  evidence: observational
+  sample: 3,529 applicants to 109 jobs in Gothenburg city districts, 2004-2006; 2 districts used anonymous applications, 1 comparison district did not; districts not picked at random
+  checked: 2026-10-04
+
+- id: behaghel-2015
+  type: article
+  authors: ["Behaghel, Luc", "Crépon, Bruno", "Le Barbanchon, Thomas"]
+  year: 2015
+  title: Unintended Effects of Anonymous Résumés
+  venue: "American Economic Journal: Applied Economics 7(3), 1-27 (open copy read, IZA discussion paper 8517)"
+  doi: 10.1257/app.20140185
+  url: https://docs.iza.org/dp8517.pdf
+  evidence: field experiment
+  sample: 1,268 real job seekers applying to 598 job openings through the French public employment service, November 2009 to September 2010; firms chose to join; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: braun-2026
+  type: article
+  authors: ["Braun, Sharon", "Bushnell, Jonathan", "Cowell, Zachary", "Dowling, David", "Goldstein, Samuel", "Johnson, Andrew", "Miller, George", "Nunley, John M.", "Seals, R. Alan", "Wang, Mingzhou"]
+  year: 2026
+  title: "Hiring Discrimination and the Task Content of Jobs: Evidence from a Large-Scale Résumé Audit"
+  venue: arXiv preprint (version 2, July 2026)
+  url: https://arxiv.org/abs/2604.01933
+  evidence: large field experiment
+  sample: 36,880 made-up applications to 9,220 US job ads for new college graduates
+  preprint: true
+  checked: 2026-10-04
+
+- id: ca-labor-432-7
+  type: law
+  org: California Labor Code
+  year: 2026
+  title: "Section 432.7: questions about arrests and sealed or dismissed convictions"
+  url: https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=LAB&sectionNum=432.7
+  evidence: law
+  sample: subdivision (a)(1), read on the legislature's own site
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: hiscox-2017
+  type: report
+  org: Behavioural Economics Team of the Australian Government (BETA)
+  year: 2017
+  title: "Going blind to see more clearly: unconscious bias in Australian Public Service shortlisting processes"
+  url: https://www.pmc.gov.au/sites/default/files/2025-06/unconscious-bias.docx
+  evidence: lab/LLM audit
+  sample: over 2,100 Australian public servants from 14 agencies each shortlisted 5 of 16 made-up candidates for a made-up senior job; a rating exercise, not real hiring
+  checked: 2026-10-04
+
+- id: kang-2016
+  type: article
+  authors: ["Kang, Sonia K.", "DeCelles, Katherine A.", "Tilcsik, András", "Jun, Sora"]
+  year: 2016
+  title: "Whitened Résumés: Race and Self-Presentation in the Labor Market"
+  venue: Administrative Science Quarterly 61(3), 469-502 (open copy read, the authors' accepted manuscript of January 2016)
+  doi: 10.1177/0001839216639577
+  url: https://www-2.rotman.utoronto.ca/facbios/file/Whitening%20MS%20R2%20Accepted.pdf
+  evidence: field experiment
+  sample: 1,600 made-up applications to entry-level jobs in 16 US metro areas, 200 per version, 2015; plus 59 interviews with university students, 2013; page numbers are the manuscript's
+  checked: 2026-10-04
+
+- id: kline-2022
+  type: article
+  authors: ["Kline, Patrick", "Rose, Evan K.", "Walters, Christopher R."]
+  year: 2022
+  title: Systemic Discrimination Among Large U.S. Employers
+  venue: Quarterly Journal of Economics 137(4), 1963-2036 (open copy read, NBER working paper 29053, revised May 2022)
+  doi: 10.1093/qje/qjac024
+  url: https://www.nber.org/system/files/working_papers/w29053/w29053.pdf
+  evidence: large field experiment
+  sample: more than 83,000 made-up applications to entry-level jobs at 108 of the largest US employers; page numbers are the working paper's
+  checked: 2026-10-04
+
+- id: kline-2024
+  type: article
+  authors: ["Kline, Patrick", "Rose, Evan K.", "Walters, Christopher R."]
+  year: 2024
+  title: A Discrimination Report Card
+  venue: American Economic Review 114(8), 2472-2525 (abstract read on the NBER working paper page, w32313)
+  url: https://www.nber.org/papers/w32313
+  evidence: large field experiment
+  sample: the same experiment as the authors' 2022 paper; grades for 97 US employers
+  checked: 2026-10-04
+
+- id: leasure-2016
+  type: article
+  authors: ["Leasure, Peter", "Stevens Andersen, Tia"]
+  year: 2016
+  title: "The Effectiveness of Certificates of Relief as Collateral Consequence Relief Mechanisms: An Experimental Study"
+  venue: Yale Law & Policy Review Inter Alia 35 (the journal's page would not open; abstract read as reprinted by the Collateral Consequences Resource Center)
+  url: https://ccresourcecenter.org/how-effective-are-judicial-certificates-in-relieving-collateral-consequences/
+  evidence: field experiment
+  sample: the first test, called preliminary by its authors; made-up applications to entry-level jobs in Ohio; only the abstract was read, so the sample size is not given here
+  checked: 2026-10-04
+
+- id: leasure-kaminski-2021
+  type: article
+  authors: ["Leasure, Peter", "Kaminski, Robert J."]
+  year: 2021
+  title: "The Effectiveness of Certificates of Relief: A Correspondence Audit of Hiring Outcomes"
+  venue: Journal of Empirical Legal Studies 18(4), 849-875 (full text paywalled; published abstract read in the Crossref record)
+  doi: 10.1111/jels.12297
+  evidence: field experiment
+  sample: two field tests with made-up men convicted of felony theft, felony drug possession and a misdemeanor drug paraphernalia conviction, with and without the same Ohio certificate; the abstract gives no sample size
+  checked: 2026-10-04
+
+- id: nelp-2021
+  type: report
+  authors: ["Avery, Beth", "Lu, Han"]
+  year: 2021
+  title: "Ban the Box: U.S. Cities, Counties, and States Adopt Fair Hiring Policies"
+  venue: National Employment Law Project
+  url: https://www.nelp.org/insights-research/ban-the-box-fair-chance-hiring-state-and-local-guide/
+  evidence: law
+  sample: a worker-advocacy group's count of state and local laws, dated October 1, 2021; not the laws themselves
+  checked: 2026-10-04
+  recheck_by: 2027-04-04
+
+- id: quillian-2017
+  type: article
+  authors: ["Quillian, Lincoln", "Pager, Devah", "Hexel, Ole", "Midtbøen, Arnfinn H."]
+  year: 2017
+  title: Meta-analysis of field experiments shows no change in racial discrimination in hiring over time
+  venue: Proceedings of the National Academy of Sciences 114(41), 10870-10875 (open copy on PubMed Central)
+  doi: 10.1073/pnas.1706255114
+  url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5642692/
+  evidence: meta-analysis
+  sample: 28 US field experiments, 55,842 applications to 26,326 jobs (24 since 1989, 54,318 applications; the main results use these); resume tests and in-person tests
+  checked: 2026-10-04
+
+- id: quillian-2020
+  type: article
+  authors: ["Quillian, Lincoln", "Lee, John J.", "Oliver, Mariana"]
+  year: 2020
+  title: Evidence from Field Experiments in Hiring Shows Substantial Additional Racial Discrimination after the Callback
+  venue: Social Forces 99(2), 732-759 (full text paywalled; published abstract read in the Crossref record)
+  doi: 10.1093/sf/soaa026
+  evidence: meta-analysis
+  sample: 12 field experiments that followed applicants to the job offer, more than 13,000 applications; figures are the published abstract's
+  checked: 2026-10-04
+
+- id: usc-41-4714
+  type: law
+  org: United States Code
+  year: 2019
+  title: "41 U.S.C. 4714: Prohibition on criminal history inquiries by contractors prior to conditional offer"
+  url: https://www.law.cornell.edu/uscode/text/41/4714
+  evidence: law
+  sample: the Fair Chance to Compete for Jobs Act's rule for federal contractors, read on Cornell's Legal Information Institute copy
+  checked: 2026-10-04
+  recheck_by: 2027-04-04

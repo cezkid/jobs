@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.16 (no drafting context)
 ---
@@ -167,3 +167,35 @@ times." with nothing after it - those stay with the review. Claim 9 line now lis
 flags: percentages, "N in M", fractions ("a third", "3/4"), "half of", "twice as likely" / "N times
 more", large counts ("83,000", "2 million"). Supported as worded; "the review checks every other
 number by hand" unchanged. No other text changed. Verdict stays publish.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Reviewer: fresh Claude session that made none of the edits.
+
+What changed: "How is each claim checked?" first paragraph. Was: "Every source cited was opened and read, including its methods and tables, not just its summary." Now: opened and read; for a study, methods and tables where they open; where only the published summary would open, "the article says so in the sentence". `modified` 2026-10-05.
+
+Checked:
+- `research.md` Sources rule (same change): "Only the published summary opens -> the sentence says so ..., and the methods page says such lines are marked." Consistent.
+- The old sentence was untrue: `sources.yml` lists namingit-2021, quillian-2020, kline-2024, leasure-2016 and leasure-kaminski-2021 as summary-only reads. So the edit corrects a false claim.
+- Grep of every article for those ids. Marked: employment-gaps (Namingit table + body), what-makes-a-good-resume (Namingit table + body), hiring-bias-what-helps (Quillian, the Agan-Starr paragraph, both Leasure studies).
+- Not marked: hiring-bias-what-helps "In 2024 the same authors published grades for 97 of the employers, by name [@kline-2024]." (registry: abstract read on the NBER page only). hiring-bias-what-helps "Employers that asked about records were 63% more likely to call back young men who had none [@agan-starr-2018]." and its table row (registry: "figures are the published abstract's"; the marker sits in a different section).
+- Restating lines with no marker: employment-gaps short answer, health section, What helps; what-makes-a-good-resume What helps; hiring-bias-what-helps table rows, gap paragraph, What we don't know, What helps.
+
+Findings:
+- **M1 (medium) - the new promise is not yet kept on one page.** Sentence: "Where only a study's published summary would open, the article says so in the sentence." Two lines with numbers from summary-only reads carry no marker (above). Fix in hiring-bias-what-helps, not here: after the Kline 2024 sentence add "We read that paper's published summary only."; after the 63% sentence add "That figure is from the published summary." Then this page's sentence holds and the verdict can go to publish.
+- **M2 (low) - restating lines.** Short answers, tables and What helps bullets repeat a summary-only finding with no marker. Either say in `research.md` that restating lines with no new number are covered by the body line, or reword here: "the article says so where it gives that study's findings".
+- **M3 (low) - no Changes list.** The old sentence was a false claim, and this page's own correction rule asks for a dated line. Fix: add "## Changes" with "- October 2026 - the checking section now says some studies were read in their published summary only, and that articles say so. It had said every study's methods and tables were read."
+
+Verdict: revise (M1).
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article, its diff, the research.md diff, `sources.yml` and every article citing a summary-only source.
+
+- M1: fixed. hiring-bias-what-helps now marks Kline 2024 ("We read that paper's published summary only.") and the Agan-Starr 63% ("That figure is from the published summary."). All six summary-only registry entries are marked at their body lines: namingit-2021, quillian-2020, kline-2024, agan-starr-2018, leasure-2016, leasure-kaminski-2021.
+- M2: fixed in research.md: "A short answer, table row or "What helps" line repeating that finding w/o a new number is covered by the body line's marker."
+- M3: fixed. A Changes list is added, and it is accurate.
+- **M4 (low, new)**: "Where only a study's published summary would open, the article says so in the sentence." Most markers sit in the next sentence, not the same one (Quillian, Kline 2024, Agan-Starr, Leasure, the Namingit rates). Fix: "Where only a study's published summary would open, the article says so next to that finding." Does not block; research.md uses the same "sentence" wording.
+- No medium or high open. Verdict: publish.
+
+Editor, after the resolution check (2026-10-05): M4 fixed by editor (next to that finding; research.md same).

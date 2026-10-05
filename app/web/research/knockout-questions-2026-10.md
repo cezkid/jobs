@@ -36,7 +36,7 @@ This page holds the data behind the measurement in [our article on where the res
 
 ## What is in the file?
 
-The file has 143 rows, one per application form we could read. Each row says which kinds of screening question the form asks. Employers appear as letters only, and the same letter means the same employer. Our measurement covered 104 employers. The file holds no job titles, links or answers.
+The file has 143 rows, one per application form we could read. Each row says which kinds of screening question the form asks. Employers appear as letters only, and the same letter means the same employer. Our measurement covered 104 employers. The file holds no job titles, links or answers. The same forms, counted for cover letter boxes: [cover letter boxes on 143 forms](cover-letter-boxes-2026-10.md).
 
 | Column | What it holds |
 |---|---|

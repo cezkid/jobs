@@ -1,0 +1,123 @@
+{
+ "blocks": [
+  {
+   "section": "name",
+   "text": "Your Name"
+  },
+  {
+   "section": "contact",
+   "text": "your.name@example.com"
+  },
+  {
+   "section": "contact",
+   "text": "(555) 010-0199"
+  },
+  {
+   "section": "contact",
+   "text": "City, State"
+  },
+  {
+   "section": "summary",
+   "text": "Summary"
+  },
+  {
+   "section": "summary",
+   "text": "Operations analyst with eight years of reporting, scheduling and process work in warehouse and retail settings. Builds weekly reports that managers use to plan staff and stock."
+  },
+  {
+   "section": "experience",
+   "text": "Experience"
+  },
+  {
+   "section": "experience",
+   "text": "Operations Analyst | Company A | Mar 2021 – Present",
+   "key": "Operations Analyst | Company A"
+  },
+  {
+   "section": "experience",
+   "text": "Built a weekly staffing report used by 12 store managers to plan shifts."
+  },
+  {
+   "section": "experience",
+   "text": "Cut late deliveries from 9% to 4% by changing the order of morning loading."
+  },
+  {
+   "section": "experience",
+   "text": "Trained 6 new analysts on the reporting tools and the monthly close."
+  },
+  {
+   "section": "experience",
+   "text": "Inventory Coordinator | Company B | Jun 2018 – Feb 2021",
+   "key": "Inventory Coordinator | Company B"
+  },
+  {
+   "section": "experience",
+   "text": "Counted and reconciled stock for two warehouses holding 3,000 product lines."
+  },
+  {
+   "section": "experience",
+   "text": "Set up a cycle count schedule that ended the yearly full shutdown."
+  },
+  {
+   "section": "experience",
+   "text": "Answered supplier questions on short shipments within one working day."
+  },
+  {
+   "section": "experience",
+   "text": "Sales Associate | Company C | Aug 2016 – May 2018",
+   "key": "Sales Associate | Company C"
+  },
+  {
+   "section": "experience",
+   "text": "Served about 80 customers a day at a busy downtown counter."
+  },
+  {
+   "section": "experience",
+   "text": "Kept the returns log that the store manager used for weekly orders."
+  },
+  {
+   "section": "experience",
+   "text": "Opened and closed the store alone on weekends."
+  },
+  {
+   "section": "education",
+   "text": "Education"
+  },
+  {
+   "section": "education",
+   "text": "Bachelor of Science in Business Administration | University A | 2016"
+  },
+  {
+   "section": "skills",
+   "text": "Skills"
+  },
+  {
+   "section": "skills",
+   "text": "Tools: Excel, SQL, Power BI, inventory systems"
+  },
+  {
+   "section": "skills",
+   "text": "Languages: English, Spanish"
+  }
+ ],
+ "name": "Your Name",
+ "email": "your.name@example.com",
+ "phone": "(555) 010-0199",
+ "jobs": [
+  {
+   "title": "Operations Analyst",
+   "employer": "Company A",
+   "dates": "Mar 2021 – Present"
+  },
+  {
+   "title": "Inventory Coordinator",
+   "employer": "Company B",
+   "dates": "Jun 2018 – Feb 2021"
+  },
+  {
+   "title": "Sales Associate",
+   "employer": "Company C",
+   "dates": "Aug 2016 – May 2018"
+  }
+ ]
+}

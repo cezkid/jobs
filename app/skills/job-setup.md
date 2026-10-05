@@ -164,8 +164,9 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   privacy line first: "A few words is enough - no diagnosis or case details. What you type here
   goes to your AI account." Then raise it kindly, never as a fault, in `gap_note`'s words (6+
   months: a line; 12+: a line + recent work, study or volunteering really done; never penalty
-  numbers). Their call, said plainly: "a line saves the reader guessing - small help for health
-  and layoffs, no difference for childcare in one trial". ONE clickable question: Family care /
+  numbers). Their call, said plainly: "a line saves the reader guessing - it helped for one
+  health reason, made no difference for childcare in one trial; a layoff line was never tested
+  against saying nothing". ONE clickable question: Family care /
   Health matter, now resolved or managed / Study or training / Something else - I'll say ("Leave
   it off" under Other). Answer -> `career_break` entry (dates + their reason; on the page, closes
   the gap); work, study or volunteering they really did -> its own entry. Never suggest paying for
@@ -176,8 +177,8 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 - Lint warns `street-address`, `personal-details` -> the push back above. `old-graduation-year`
   / `old-certification-year` (15+ years) -> offer `hide_year`, their call; degree 20+ years
   (detail says so) -> recommend the one bundle - graduation + certificate years, jobs that ended
-  15+ years ago, long year counts ("25 years") - and name its small cost (some hiring managers
-  like to see the year; vendor survey). Words: "this year lets a reader guess age", never
+  15+ years ago, long year counts ("25 years") - and name its possible small cost (some hiring
+  managers want the full history - vendor survey; not measured in the US). Words: "this year lets a reader guess age", never
   "because you're older". `abbreviated-school` -> ask the full name (forms say "Do not use
   abbreviations").
 - Languages, every user, once (a fact in their file, same question for all): "Do you speak any

@@ -17,7 +17,7 @@
 <meta property="og:title" content="How the Research articles are made and checked">
 <meta property="og:description" content="How these articles find sources, grade evidence, use AI, get checked and get corrected – and what we gain from the answers.">
 <meta property="article:published_time" content="2026-10-03">
-<meta property="article:modified_time" content="2026-10-04">
+<meta property="article:modified_time" content="2026-10-05">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -233,6 +233,8 @@
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
   thead th { border-bottom: 2px solid var(--text); }
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+  /* a table right before a heading: the heading's rule closes it (two hairlines 49px apart read as a double rule) */
+  :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
   /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
@@ -363,12 +365,13 @@
 <li><a href="#how-often-are-articles-updated">How often are articles updated?</a></li>
 <li><a href="#what-do-we-gain-from-the-answers">What do we gain from the answers?</a></li>
 <li><a href="#is-this-legal-advice">Is this legal advice?</a></li>
+<li><a href="#changes">Changes</a></li>
 </ol>
 </nav>
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">How the Research articles are made and checked</li></ol></nav>
 <h1>How the Research articles are made and checked</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-04">October 4, 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -384,6 +387,7 @@
 <li><a href="#how-often-are-articles-updated">How often are articles updated?</a></li>
 <li><a href="#what-do-we-gain-from-the-answers">What do we gain from the answers?</a></li>
 <li><a href="#is-this-legal-advice">Is this legal advice?</a></li>
+<li><a href="#changes">Changes</a></li>
 </ol>
 </details>
 </nav>
@@ -487,7 +491,7 @@
 <p>A claim is never stated more strongly than its label. A lab study shows what AI models did in a test, not what employers do. A survey shows what people say, not what they do. A link between two things stays a link, never a cause.</p>
 <p>Some studies have not yet been checked by other researchers. The Sources list marks them “Preprint, not peer-reviewed”, and the sentence says so when a claim leans on one.</p>
 <h2 id="how-is-each-claim-checked">How is each claim checked?</h2>
-<p>Every source cited was opened and read, including its methods and tables, not just its summary. A source we could not open is not cited. A number we only found secondhand is not cited either.</p>
+<p>Every source cited was opened and read. For a study, that means its methods and tables where they open, not just its summary. Where only a study’s published summary would open, the article says so next to that finding. A source we could not open is not cited. A number we only found secondhand is not cited either.</p>
 <p>Every source is listed in one shared list with the date it was last opened and checked. Each article ends with its Sources list: authors, year, title, label, and links.</p>
 <p>Before an article goes up, a program checks every DOI, the permanent ID a journal gives a paper. It asks the official DOI registry whether the paper exists, then compares the title and year. The same check runs for papers on arXiv, a public library of research papers. A source with neither ID, such as a book or a report, is opened by hand.</p>
 <p>Every number in an article must name its source in the same sentence. A program flags numbers that lack a source: percentages, “N in M”, fractions such as “a third” or “3/4”, “half of”, “twice as likely” or “N times more”, and large counts such as “83,000” or “2 million”. The review checks every other number by hand.</p>
@@ -512,11 +516,15 @@
 <p>Each article has a separate box, after the evidence, on how the app uses its findings. That box comes after the evidence and is kept apart from it. The evidence is never bent to fit the app.</p>
 <h2 id="is-this-legal-advice">Is this legal advice?</h2>
 <p>These articles are not legal advice or career counselling. A page that describes a law says so and gives the date it was checked. For your own situation, ask a lawyer or a career adviser.</p>
+<h2 id="changes">Changes</h2>
+<ul>
+<li>October 2026 – the checking section now says some studies were read in their published summary only, and that articles say so. It had said every study’s methods and tables were read.</li>
+</ul>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a></li>
-<li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a></li>
+<li><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a></li>
+<li><a href="/research/ai-hiring-laws/">AI hiring laws in 2026: what employers must tell you</a></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
@@ -537,6 +545,6 @@
     </nav>
   </div>
 </footer>
-<script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.3)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -70% 0px"});h.forEach(x=>o.observe(x))})()</script>
+<script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
 </body>
 </html>

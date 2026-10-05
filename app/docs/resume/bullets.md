@@ -25,9 +25,9 @@ Can cost the offer, not just the interview. Claims a third party checks.
 
 | Rule | Basis | |
 |---|---|---|
-| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of employers found discrepancies in prior year; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of firms APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a seniority word (Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor) |
+| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of businesses asked found discrepancies in the past 12 months; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of respondents APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a seniority word (Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor) |
 | Overlap fine; **unlabelled** overlap isn't | National Resume Writers' Association: "concurrent roles are not frowned upon." Same employer -> stacked titles; different -> marker (part-time, freelance, contract), else reads as date mistake. | enforce: `role-dates-overlap`, incl. same-employer case |
-| Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US hiring managers): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
+| Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US HR + talent leaders, Oct 2024): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
 | Year in a bullet inside the role's dates | No external source; internal consistency. Jobscan 2026 runs against it (dates on header, not bullets). | **report only** - see [Considered, not mechanised](#considered-not-mechanised) |
 | No uncheckable grade | Berkeley: "minimize the use of adjectives and adverbs"; Arizona: "better to be clear than be complicated". *Advanced, best-in-class, world-class, industry-leading* carry nothing; the fact behind them does. Word-ban lists = resume-product blogs; defensible core is substitution. **Grade word inside a term isn't a grade** (*Advanced Cardiac Life Support*, *advanced practice nurse*). | enforce: `unmeasurable-grade`, skipped when facts or posting use the word |
 
@@ -101,20 +101,21 @@ standard scale (ILR US government, CEFR Europe). "English and Spanish - fluent i
 and speaking" pairs level w/ one or neither. Vendor docs + convention, unmeasured.
 `language-level` warns; level asked, never guessed.
 
-**Gap length matters; a reason helps, doesn't erase it.** `schema.MAX_GAP_MONTHS` = 6 flags,
+**Gap length matters; a reason line is their call (evidence mixed), never erases it.** `schema.MAX_GAP_MONTHS` = 6 flags,
 `LONG_GAP_MONTHS` = 12 raises the note (`gap_note`):
 - Filters: Hidden Workers (HBS/Accenture 2021) Fig 7 - 48% of execs whose software ranks or
   filters said it filtered middle-skill candidates on gaps over 6 months. US/UK/DE pooled,
   self-reported, 2020. *One big survey, self-report.* Not "half of all employers".
-- Length: D'hert/Baert/Lippens 2024 meta-analysis (~67k applicants, 7 countries pooled) - 7-12
-  months n.s., 13-18 months -21% callbacks, 19-36 months -27%. US studies see the fall by ~8
-  months (Kroft 2013). *Strong, pooled; onset earlier in US.*
-- Reason: Namingit 2021 (US, 3,771 applications, mostly 7-12 month gaps) - callbacks 27.4% no
+- Length: D'hert/Baert/Lippens 2026 meta-analysis (~67k applicants, 7 countries pooled) - 1-6
+  and 7-12 months n.s., 13-18 months -21% callbacks, 19-36 months -27%. US studies disagree: fall by ~8
+  months (Kroft 2013), no link (Farber 2016, Nunley 2017). *Strong, pooled; onset mixed in US.*
+- Reason: Namingit 2021 (US, 3,771 applications, gap of seven months or more) - callbacks 27.4% no
   gap, 25.6% explained, 23.3% unexplained: explaining recovered ~55% of the penalty. Reason was an
-  illness + full recovery, in the cover letter. *One US field study.* Kristal 2023 (UK, n=9,022,
+  illness (cancer) + full recovery, in the cover letter. *One US field study (large).* Kristal 2023 (UK, n=9,022,
   2.5-yr gap): childcare line no effect vs silence - but that trial found no clear gap penalty
   either. *One UK field experiment (large).*
-- So: 6-12 months, a one-line reason is worth adding. 12+, a line plus recent work, study or
+- So: 6-12 months, a one-line reason is their call (helped for one health reason, not for
+  childcare). 12+, a line plus recent work, study or
   volunteering really done. Search still running = no penalty talk, never numbers at the user.
 - Vendor surveys (LiveCareer, MyPerfectResume 2025) dropped: no method, contradicted on length.
 
@@ -331,7 +332,7 @@ Ladders eye-tracking study, 2018 press release + HR Dive (sample not stated); it
 guidance 2026. Greenhouse Boolean search docs. Career centres: Harvard FAS Mignone Center, MIT
 CAPD, Emory CPD, UC Berkeley, University of Arizona, UConn. National Resume Writers' Association.
 Indeed Career Guide; Indeed Hiring Lab 2025. HBS/Accenture, *Hidden Workers: Untapped Talent*,
-2021, Fig 7 (cited by `schema.py`). D'hert, Baert, Lippens, IZA DP 17141, 2024 (gap meta-analysis).
+2021, Fig 7 (cited by `schema.py`). D'hert, Baert, Lippens, Socio-Economic Review 24(3), 2026 (gap meta-analysis). Nunley, Pugh, Romero, Seals, ILR Review 2017.
 Kroft, Lange, Notowidigdo, QJE 2013. Namingit, Blankenau & Schwab, "Sick and tell", JEBO 2021. Kristal,
 Nicks, Gloor & Hauser, Nature Human Behaviour 2023 (trial run w/ the Behavioural Insights Team). Textkernel.
 Jobscan, Lever ATS guide 2026 (acronyms not matched). Sources cited only in code: Kobak et al., Science

@@ -1,0 +1,622 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hiring discrimination: what studies show, what helps</title>
+<meta name="description" content="Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it.">
+<link rel="canonical" href="https://jobs.enrriquez.com/research/hiring-bias-what-helps/">
+<link rel="alternate" type="application/atom+xml" title="CEZ Job Finder Research" href="/research/feed.xml">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="CEZ Job Finder">
+<meta property="og:locale" content="en_US">
+<meta property="og:url" content="https://jobs.enrriquez.com/research/hiring-bias-what-helps/">
+<meta property="og:title" content="Hiring discrimination: what studies show, what helps">
+<meta property="og:description" content="Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it.">
+<meta property="article:published_time" content="2026-10-04">
+<meta property="article:modified_time" content="2026-10-05">
+<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/#article","headline":"Hiring discrimination: what studies show, what helps","description":"Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it.","url":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/","mainEntityOfPage":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Hiring discrimination: what studies show, what helps","item":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/"}]}]}</script>
+<style>
+  /* shared */
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+  /* Cambria = metric twin of Caladea; Georgia needs overrides (app/web/assets.py prints them) */
+  @font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
+  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
+  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia"); font-weight: 400;
+    size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
+    size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Italic"), local("Cambria-Italic"); font-weight: 400; font-style: italic; }
+  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
+    size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
+  :root {
+    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --beak-low: #e57a00; --rule: #c8c8c8;
+    --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
+    --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+    --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
+    --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
+    --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
+    --track-display: -0.016em; --lead-display: 1.06;
+    --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
+  }
+  /* desktop: the gaps grow with the display type (owner, plan-dxn.37: 107px headings over 32px gutters
+     read cramped). 768px up, continuous with the phone values: gap 22 -> 56 -> 72px, side margin
+     32 -> 83 -> 103px at 768x1024 / 1440x900 / 1920x1080 (past 1576px the --max centring margin is wider
+     anyway); capped by height like the display type (11vh - 16px: 54px at 1366x641 keeps Copy on screen) */
+  @media (min-width: 768px) {
+    :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
+  }
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--desk); color: var(--text);
+    font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
+  }
+  h1, h2, h3 { text-wrap: balance; }
+  p, li { text-wrap: pretty; }
+  a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
+     browser's default grey box vanished on the dark desk */
+  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
+  /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
+  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
+  mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
+  /* selection in ink, never yellow: the highlighter means "marked by the app" */
+  ::selection { background: var(--text); color: var(--desk); }
+  /* on the white sheets (app window, resume) the desk's selection vanishes in dark mode: ink on paper */
+  .window ::selection, .proof ::selection { background: var(--ink); color: var(--paper); }
+  /* forced colours drop the gradient: system mark colours keep the words marked */
+  @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
+  /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */
+  summary { list-style: none; position: relative; padding-right: 40px; cursor: pointer; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before, summary::after {
+    content: ""; position: absolute; right: 6px; top: 50%; width: 16px; margin-top: -1px; border-top: 2px solid currentColor;
+  }
+  summary::after { transform: rotate(90deg); }
+  details[open] > summary::after { transform: none; }
+  /* hover in ink, never yellow (audit A5): underline 1 -> 2px, instant; (hover: hover) = no hover left
+     stuck after a tap. The current Research link (3px) goes to 4px so it still answers the pointer */
+  @media (hover: hover) {
+    a:hover, summary:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; }
+    :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
+  }
+  /* research picks (home) + hub list: hovering an item thickens its top rule left to right (a ::before
+     scaleX: transform only, eased in full motion, instant in reduced) */
+  :is(.picks, .list) > li { position: relative; }
+  :is(.picks, .list) > li::before {
+    content: ""; position: absolute; left: 0; right: 0; top: -2px; border-top: 4px solid var(--text);
+    transform: scaleX(0); transform-origin: 0 0;
+  }
+  @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
+  @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
+  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
+  /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
+     .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
+  .grid {
+    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
+    padding: 0 max(var(--side), (100% - var(--max)) / 2);
+  }
+  .wrap { max-width: calc(var(--max) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
+  .skip {
+    position: absolute; z-index: 1; left: var(--side); top: 8px; padding: 6px 12px;
+    background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
+  }
+  .skip:focus { transform: none; }
+  /* full-bleed double rule: thick + thin, like a newspaper masthead */
+  .masthead { position: relative; border-bottom: 3px solid var(--text); }
+  .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg) on its paper disc: a black bird on every
+     ground (a pale one read as a white bird, its yellow lost on it); the disc vanishes on the white desk + paper.
+     Two-tone bill: the orange lower half carries its edge on white. 32px = the cut's own size; margins keep the
+     row's height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
+  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: var(--ink); }
+  .bird .disc { fill: var(--paper); }
+  .bird :is(.beak, .eye) { fill: var(--mark); }
+  .bird .beak-low { fill: var(--beak-low); }
+  @media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }
+  .links { display: flex; gap: 28px; white-space: nowrap; }
+  /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
+  :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
+  footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
+  footer .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
+  footer p { margin: 0 auto 0 0; }
+  /* the links wrap as one group: under the credit, never one link alone on a row */
+  footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+  /* a short page (404) keeps its footer at the window's bottom: main grows, no blank band under it;
+     width 100%: .wrap's auto margins would shrink main to its content in a flex column */
+  @media screen {
+    body { display: flex; flex-direction: column; min-height: 100svh; }
+    main { flex: 1 0 auto; width: 100%; }
+  }
+  /* phones: brand + 3 links don't fit 360px => Source code only in the footer; footer = credit, then
+     its 6 links as 2 even rows of 3 */
+  @media (max-width: 600px) {
+    .top { gap: 12px; }
+    .links { gap: 14px; font-size: 1.0625rem; }
+    .links .code { display: none; }
+    footer nav { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px 28px; }
+  }
+  /* touch: link hit boxes >= 44px tall (Apple HIG 44pt) - padding grows the box, an equal negative
+     margin keeps layout + look unchanged (an inline link's padding never moves its line). 1.1em ~ an
+     inline link's own box (Caladea ascent + descent); a flex-item link's (1lh) is taller => also >= 44 */
+  @media (pointer: coarse) {
+    .brand, :is(nav, footer) a, .tap { padding-block: calc((45px - 1.1em) / 2); margin-block: calc((1.1em - 45px) / 2); }
+    /* footer links are grid/flex items (box 1lh): exactly 45px each, rows 45px apart - overlapping boxes
+       read as covered (Lighthouse target-size) */
+    footer nav { row-gap: calc(45px - 1lh); }
+    footer nav a { padding-block: calc((45px - 1lh) / 2); margin-block: calc((1lh - 45px) / 2); }
+  }
+  /* under 360px (320px phones) the links may drop below the brand */
+  @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
+  /* print: ink on white in either scheme (body, not :root: the token table reads :root), no nav */
+  @media print {
+    body { --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule); font-size: 11pt; }
+    .skip, .links { display: none; }
+    mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    h1, h2, h3, summary { break-after: avoid; }
+    figure, li, details, pre { break-inside: avoid; }
+    footer .row { padding-bottom: 0; }
+  }
+  /* page change (PICK P-d2, page laid down): the old sheet lifts off, the new one is set down from below,
+     transform + opacity only, done by 380 ms; the masthead holds still; reduced motion = instant */
+  @media (prefers-reduced-motion: no-preference) {
+    @view-transition { navigation: auto; }
+    .masthead { view-transition-name: masthead; }
+    main { view-transition-name: sheet; }
+    @keyframes sheet-off { to { opacity: 0; transform: translateY(-8px); } }
+    @keyframes sheet-on { from { opacity: 0; transform: translateY(12px); } }
+    ::view-transition-old(sheet) { animation: sheet-off 300ms var(--ease-mark) both; }
+    ::view-transition-new(sheet) { animation: sheet-on 340ms var(--ease-mark) 40ms both; }
+  }
+  /* /shared */
+
+  /* main.wrap: .wrap's own padding shorthand would otherwise win and zero the top + bottom */
+  main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
+  /* editorial measure: one column of reading text, never wider than 68ch */
+  .page { max-width: 68ch; }
+  .crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
+  .crumbs li { margin: 0; }
+  .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
+  /* display scale, like the home page's section heads (>= 72px at 1440 wide); a two-part title's deck on its own line */
+  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
+  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
+  .list .deck { margin-top: 2px; font-size: 0.8em; }
+  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+  h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
+  h2, h3 { scroll-margin-top: 16px; }
+  .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
+  .meta:has(+ .ai-note) { margin-bottom: 4px; }
+  p { margin: 0 0 16px; }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin: 0 0 8px; }
+  li::marker { color: var(--text-2); }
+  /* real italics: the Caladea Italic face, never a slanted roman */
+  i, em, cite { font-style: italic; font-synthesis: none; }
+  strong, b { font-weight: 700; }
+  blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
+  code { font-family: var(--mono); font-size: 0.85em; }
+  pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
+  /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
+  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
+  /* the heading after it: no hairline of its own right under the note's rule (A19) */
+  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* tables: lining, tabular figures so columns of numbers line up */
+  .table { overflow-x: auto; margin: 24px 0; }
+  table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
+  thead th { border-bottom: 2px solid var(--text); }
+  th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+  /* a table right before a heading: the heading's rule closes it (two hairlines 49px apart read as a double rule) */
+  :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
+  /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
+  .table td:first-child { font-weight: 700; }
+  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
+     print + forced colours paint it); no motion */
+  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .bars table { width: 100%; }
+  .bars tbody th { width: 42%; font-weight: 400; }
+  .bars td { font-weight: 700; }
+  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
+  /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
+  #sources { margin-top: 64px; border-top: 3px solid var(--text); }
+  .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
+  .sources li { position: relative; margin: 0; padding: 10px 0 10px 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: 16px; }
+  .sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
+  .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
+  .sources a { text-decoration-color: var(--text-2); }
+  .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
+  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
+  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
+  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
+  .toc-mini li { margin: 0; }
+  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+  /* the section in view (TOC_JS marks it): bold, underlined in ink; without JS nothing is marked */
+  :is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration-color: var(--text); }
+  /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
+  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
+  /* Keep reading: the article's way on, under a thick rule like Sources */
+  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
+  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
+  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
+  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .more p { margin: 0 0 8px; }
+  /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
+  .toc, .labels { display: none; }
+  .labels dl { margin: 0 0 12px; }
+  .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
+  .labels dd { margin: 0 0 8px; color: var(--text-2); }
+  .labels p { margin: 0; }
+  @media (min-width: 1280px) {
+    main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
+    main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
+    /* hub + about: the second column holds real content (evidence labels; About's later sections) */
+    main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
+    .side > h2:first-child { margin-top: 0; }
+    /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
+    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
+    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
+    .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
+    .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
+    .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
+    main.wrap > .list { grid-column: 1; grid-row: 2; }
+    /* hub (A16): the method lines beside the h1, the labels beside the list, the articles as 2-column clippings,
+       so 4 titles show in a 1440x900 first screen */
+    main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
+    .intro p:last-child { margin-bottom: 0; }
+    main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
+    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
+    .toc-mini { display: none; }
+    .toc {
+      /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
+      display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
+      position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
+      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
+    }
+    .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
+    .toc ol { list-style: none; margin: 0; padding: 0; }
+    .toc li { margin: 0; border-bottom: 1px solid var(--line); }
+    .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
+  }
+  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits, and the
+     hub's labels scroll with the page - a sticky column taller than the window hid its end (qa STICKY_FIT) */
+  @media (min-width: 1280px) and (max-height: 819px) {
+    .toc a { padding: 4px 0 5px; }
+    .labels { position: static; max-height: none; overflow: visible; }
+  }
+  /* hub: each article a clipping under a thick rule, like the home page's research picks */
+  .list { list-style: none; margin: 32px 0 0; padding: 0; }
+  .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
+  .list li:last-child { border-bottom: 1px solid var(--line); }
+  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
+  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
+  .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
+  .list p { margin: 8px 0 0; color: var(--text-2); }
+  .list .date { margin-top: 6px; }
+  .date { color: var(--text-2); font-size: var(--step--1); }
+  @media (max-width: 600px) {
+    main.wrap { padding-top: 22px; }
+    h2 { margin-top: 36px; }
+    .sources li { padding-left: 2.2em; }
+    .sources li::before { width: 1.7em; }
+    /* an article's current crumb repeats the h1 just below: hidden (screen readers keep it) so the crumbs fit one line */
+    article .crumbs [aria-current] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  }
+  @media print {
+    main.wrap { padding-top: 0; padding-bottom: 0; }
+    .crumbs, .toc, .toc-mini, .more { display: none !important; }
+    .page { max-width: none; }
+    .sources li { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="wrap top">
+    <a class="brand" href="/" translate="no"><svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false"><circle class="disc" cx="16" cy="16" r="16"/><path d="M13.46 8.54 L0 22 L3 25 L6.11 21.89 A2 2 0 0 1 9.22 22.24 A8 8 0 0 0 23.67 15.74 A4 4 0 0 1 24.51 11.96 A6 6 0 1 0 14.04 7.34 A2 2 0 0 1 13.46 8.54 Z"/><path d="M14 22 H16 V32 H14 Z M18 22 H20 V32 H18 Z"/><path class="beak" d="M22 6 H26 L31 8 L26 10 H22 Z"/><path class="beak-low" d="M22 8 H31 L26 10 H22 Z"/><circle class="eye" cx="19" cy="5" r="1.1"/></svg>CEZ Job Finder</a>
+    <nav class="links" aria-label="Site">
+      <a href="/research/">Research</a>
+      <a href="/#install">Install</a>
+      <a class="code" href="https://github.com/cezkid/jobs">Source code</a>
+    </nav>
+  </div>
+</header>
+<main id="main" class="wrap">
+<nav class="toc" aria-label="On this page">
+<p>On this page</p>
+<ol>
+<li><a href="#what-do-the-statistics-on-hiring-discrimination-show">What do the statistics on hiring discrimination show?</a></li>
+<li><a href="#is-there-name-discrimination-on-resumes">Is there name discrimination on resumes?</a></li>
+<li><a href="#is-the-bias-spread-evenly-across-employers">Is the bias spread evenly across employers?</a></li>
+<li><a href="#does-whitening-a-resume-get-more-callbacks">Does “whitening” a resume get more callbacks?</a></li>
+<li><a href="#do-anonymous-resumes-fix-it">Do anonymous resumes fix it?</a></li>
+<li><a href="#does-age-or-a-break-in-work-count-against-you">Does age or a break in work count against you?</a></li>
+<li><a href="#what-about-a-criminal-record">What about a criminal record?</a></li>
+<li><a href="#is-ai-resume-screening-biased">Is AI resume screening biased?</a></li>
+<li><a href="#what-can-employers-do">What can employers do?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#can-you-avoid-bias-in-job-applications">Can you avoid bias in job applications?</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</nav>
+<article class="page">
+<nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Hiring discrimination: what studies show, what helps</li></ol></nav>
+<h1>Hiring discrimination: <span class="deck">what studies show, what helps</span></h1>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
+<p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<nav class="toc-mini" aria-label="Contents">
+<details>
+<summary>On this page</summary>
+<ol>
+<li><a href="#what-do-the-statistics-on-hiring-discrimination-show">What do the statistics on hiring discrimination show?</a></li>
+<li><a href="#is-there-name-discrimination-on-resumes">Is there name discrimination on resumes?</a></li>
+<li><a href="#is-the-bias-spread-evenly-across-employers">Is the bias spread evenly across employers?</a></li>
+<li><a href="#does-whitening-a-resume-get-more-callbacks">Does “whitening” a resume get more callbacks?</a></li>
+<li><a href="#do-anonymous-resumes-fix-it">Do anonymous resumes fix it?</a></li>
+<li><a href="#does-age-or-a-break-in-work-count-against-you">Does age or a break in work count against you?</a></li>
+<li><a href="#what-about-a-criminal-record">What about a criminal record?</a></li>
+<li><a href="#is-ai-resume-screening-biased">Is AI resume screening biased?</a></li>
+<li><a href="#what-can-employers-do">What can employers do?</a></li>
+<li><a href="#what-we-dont-know">What we don’t know</a></li>
+<li><a href="#can-you-avoid-bias-in-job-applications">Can you avoid bias in job applications?</a></li>
+<li><a href="#how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</a></li>
+<li><a href="#changes">Changes</a></li>
+<li><a href="#sources">Sources</a></li>
+</ol>
+</details>
+</nav>
+<p><strong>Short answer</strong></p>
+<ul>
+<li>Names: across 24 US field tests from 1989 to 2015, white applicants got about 36% more callbacks than equally qualified Black applicants, with no change over time (Big study; <a href="#src-quillian-2017">Quillian et al. 2017</a>). The largest single test, at 108 big employers, found about 9% (Big study; <a href="#src-kline-2022">Kline et al. 2022</a>).</li>
+<li>Employers differ: in that test, the worst fifth of firms caused nearly half of the lost replies; most firms showed mild bias (Big study; <a href="#src-kline-2022">Kline et al. 2022</a>).</li>
+<li>What helps: no resume change has been shown to remove bias. Hiding names backfired in two trials and went with more interviews in one Swedish city (Small study, Lab study, Real records; <a href="#src-behaghel-2015">Behaghel et al. 2015</a>; <a href="#src-hiscox-2017">Behavioural Economics Team of the Australian Government (BETA) 2017</a>; <a href="#src-aslund-skans-2012">Åslund and Nordström Skans 2012</a>). Applying widely is our reading, not a tested tactic.</li>
+<li>Never change a fact to dodge bias. The bias is the employer’s, not a flaw in you.</li>
+</ul>
+<h2 id="what-do-the-statistics-on-hiring-discrimination-show">What do the statistics on hiring discrimination show?</h2>
+<p>Hiring discrimination is common, and field tests have measured it for decades.</p>
+<p>A field test sends employers made-up applications that differ in one detail, such as the name. A callback means the employer answers and asks for an interview or more details. A gap of one point means one reply fewer per 100 applications. The table shows the strongest study we found for each kind of bias. Strength grades the study, not the advice. Advice marked “our reading” or “convention” has no test behind it.</p>
+<div class="table" role="region" aria-label="Table: What do the statistics on hiring discrimination show?" tabindex="0">
+<table>
+<thead>
+<tr>
+<th>Bias</th>
+<th>Strongest study</th>
+<th>Size of the effect</th>
+<th>What helps the applicant</th>
+<th>Strength</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Name read as Black or Latino</td>
+<td>24 US field tests, 1989 to 2015 (<a href="#src-quillian-2017">Quillian et al. 2017</a>); the largest single test (<a href="#src-kline-2022">Kline et al. 2022</a>)</td>
+<td>White applicants got 36% more callbacks than Black applicants and 24% more than Latino applicants; about 9% more than Black applicants in the largest test</td>
+<td>Apply widely (our reading, not tested); initials or a name you go by are your call (convention)</td>
+<td>Big study</td>
+</tr>
+<tr>
+<td>Age</td>
+<td>17 field tests of older age (<a href="#src-lippens-2023">Lippens et al. 2023</a>)</td>
+<td>About 42% fewer positive replies for older applicants</td>
+<td>Leaving off old dates is your call; never a false date (convention)</td>
+<td>Big study</td>
+</tr>
+<tr>
+<td>Break in work</td>
+<td>16 field tests in 7 countries (<a href="#src-dhert-2026">D’hert et al. 2026</a>)</td>
+<td>Breaks of 13 months or more cut replies by about a fifth or more</td>
+<td>A short true reason line may help; mixed evidence (<a href="#src-namingit-2021">Namingit et al. 2021</a>; <a href="#src-kristal-2023">Kristal et al. 2023</a>)</td>
+<td>Big study</td>
+</tr>
+<tr>
+<td>Criminal record</td>
+<td>About 15,000 applications in New Jersey and New York City (<a href="#src-agan-starr-2018">Agan and Starr 2018</a>)</td>
+<td>Employers that asked were 63% more likely to call young men with no record</td>
+<td>Know what the question may ask (convention); court certificates: mixed evidence (<a href="#src-leasure-2016">Leasure and Stevens Andersen 2016</a>; <a href="#src-leasure-kaminski-2021">Leasure and Kaminski 2021</a>)</td>
+<td>Big study</td>
+</tr>
+<tr>
+<td>AI screening</td>
+<td>14 AI models, 24,024 resume pairs each (<a href="#src-gao-2026">Gao et al. 2026</a>)</td>
+<td>Who is favored changes by model and version</td>
+<td>No resume change shown to help</td>
+<td>Lab study, preprint</td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>The sections below give each study’s limits, and what we could not check.</p>
+<h2 id="is-there-name-discrimination-on-resumes">Is there name discrimination on resumes?</h2>
+<p>Yes. Many field tests have found it, and the gap has not shrunk for Black applicants.</p>
+<p>A 2017 review combined 24 US field tests run from 1989 to 2015, with 54,318 applications. Some tests sent resumes; others sent matched pairs of trained testers in person. White applicants got 36% more callbacks than equally qualified Black applicants. They got 24% more than Latino applicants. The gap for Black applicants did not change over 25 years, and the gap for Latino applicants may have shrunk a little (<a href="#src-quillian-2017">Quillian et al. 2017</a>).</p>
+<p>The largest single test sent more than 83,000 made-up applications for entry-level jobs to 108 of the largest US employers. About 24% of applications got a reply within 30 days. Names read as Black got 2.1 points fewer replies. Put the other way, names read as white got about 9% more (<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 2–3).</p>
+<p>That gap is smaller than most past tests found, and the authors give two possible reasons. The very large employers they tested may be less biased. Their test also got many replies overall, which makes the same gap a smaller share (<a href="#src-kline-2022">Kline et al. 2022</a>, p. 3).</p>
+<p>The bias does not stop at the callback. A 2020 review found 12 field tests that followed applicants through to the job offer. Majority applicants got 53% more callbacks than minority applicants, and 145% more job offers (<a href="#src-quillian-2020">Quillian et al. 2020</a>). We read that review’s published summary only.</p>
+<p>A preprint posted in 2026 adds detail on where the gaps sit. A preprint has not yet been checked by other researchers. Its authors sent 36,880 made-up applications from new college graduates to 9,220 US job ads in 2016 and 2017. In management jobs, Black men, Black women, white women and Hispanic men got 18% to 28% fewer callbacks than white men. Hispanic women showed no clear gap in the main results (<a href="#src-braun-2026">Braun et al. 2026</a>, pp. 1, 20).</p>
+<h2 id="is-the-bias-spread-evenly-across-employers">Is the bias spread evenly across employers?</h2>
+<p>No. In the largest US test, bias varied a lot between employers.</p>
+<p>The fifth of firms with the widest gaps caused nearly half of the replies lost by applicants with names read as Black. Most firms showed mild bias, and a few showed very large bias (<a href="#src-kline-2022">Kline et al. 2022</a>, p. 3). The authors could single out 23 of the 108 firms as discriminating against those applicants (<a href="#src-kline-2022">Kline et al. 2022</a>, p. 5). In 2024 the same authors published grades for 97 of the employers, by name (<a href="#src-kline-2024">Kline et al. 2024</a>). We read that paper’s published summary only.</p>
+<p>For you, this is one reason to apply widely. The other four fifths of firms shared the other half of the lost replies (<a href="#src-kline-2022">Kline et al. 2022</a>, p. 3). Each added application is another chance to reach an employer with less bias. No field test we found has measured applying widely as a tactic, so this advice is our reading of the finding.</p>
+<p>The 2026 preprint estimated what the gaps cost. Applicants who were not white men had to send about 15% more applications to get the same number of callbacks (<a href="#src-braun-2026">Braun et al. 2026</a>, p. 1).</p>
+<h2 id="does-whitening-a-resume-get-more-callbacks">Does “whitening” a resume get more callbacks?</h2>
+<p>In one small US test, yes. The change has a cost, and part of the method was not honest. This article does not recommend it or argue against it; the choice is yours.</p>
+<p>A 2016 study sent 1,600 made-up applications to entry-level jobs in 16 US metro areas. Each group had one made-up male graduate, and no white applicant was sent to compare with. Some resumes changed the first name, some removed clues in the experience, and some did both. Here are the results for the Black applicant, 200 applications per version (<a href="#src-kang-2016">Kang et al. 2016</a>, pp. 27–28).</p>
+<figure class="bars">
+<figcaption>Callbacks for Black applicants by resume version (Small study, 800 made-up applications; <a href="#src-kang-2016">Kang et al. 2016</a>, pp. 28–33)</figcaption>
+<table>
+<thead>
+<tr>
+<th scope="col">Version</th>
+<th scope="col">Callbacks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Nothing changed</th>
+<td>10%<span class="bar" style="width:10%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">First name changed</th>
+<td>13%<span class="bar" style="width:13%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Experience changed</th>
+<td>18%<span class="bar" style="width:18%" aria-hidden="true"></span></td>
+</tr>
+<tr>
+<th scope="row">Both changed</th>
+<td>25.5%<span class="bar" style="width:25.5%" aria-hidden="true"></span></td>
+</tr>
+</tbody>
+</table>
+</figure>
+<p>For the Black applicant, the name version turned “Lamar J. Smith” into “L. James Smith” (<a href="#src-kang-2016">Kang et al. 2016</a>, pp. 27–28). That is the closest any test here comes to using initials. The name change alone was not a clear gain; the gap could be chance. For the Asian applicant, callbacks rose from 11.5% with nothing changed to 21% with both changed. Half of the job ads said the employer valued diversity. The gaps were about as large at those employers (<a href="#src-kang-2016">Kang et al. 2016</a>, pp. 28–33).</p>
+<p>That last finding matters because applicants act on those words. In a lab study in the same paper, job seekers whitened less for employers that said they valued diversity (<a href="#src-kang-2016">Kang et al. 2016</a>, p. 4).</p>
+<p>The test changed experience by renaming organizations so that words naming a group were gone. On a real resume, a renamed organization is a false fact. The honest version is to leave an item off or describe it in general words.</p>
+<p>The study also interviewed 59 Black and Asian university students. Of those students, 36% said they had changed their own resumes this way. The authors warn the practice may take a toll. One student said parts of an identity “need to be squashed or held back” (<a href="#src-kang-2016">Kang et al. 2016</a>, pp. 7–9, 13, 35–36).</p>
+<h2 id="do-anonymous-resumes-fix-it">Do anonymous resumes fix it?</h2>
+<p>Sometimes. It depends on the bias the employer started with.</p>
+<p>France tested anonymous resumes through its public employment service from November 2009 to September 2010. Firms chose whether to join. Minority here meant people living in deprived neighborhoods, immigrants and children of immigrants. The anonymous form hid the name, address, gender, nationality, photo, age, marital status and number of children. With standard resumes, 9.3% of minority candidates got an interview. With anonymous resumes, 4.7% did. The gap between minority and majority candidates widened by about 10.7 points. The hiring gap moved the same way, but that result was less certain. The firms that joined already interviewed minority candidates about as often as others, so those firms had the least bias to remove (<a href="#src-behaghel-2015">Behaghel et al. 2015</a>, pp. 7, 10, 13–14, 19).</p>
+<p>An Australian government team reported a lab trial in 2017. More than 2,100 public servants from 14 agencies each shortlisted made-up candidates for a senior job. With names shown, reviewers were 2.9% more likely to shortlist women and 3.2% less likely to shortlist men. Most minority candidates also did better with names shown, though only one of those differences was clear. The report says reviewers knew they were in a study, and real hiring may differ. The report calls the evidence on hiding names “limited and mixed” (<a href="#src-hiscox-2017">Behavioural Economics Team of the Australian Government (BETA) 2017</a>).</p>
+<p>Hiding names does not always backfire. Two districts of Gothenburg, Sweden, used anonymous applications from 2004 to 2006, and a third district did not. The districts were not picked at random, so this is a link, not proof. With names hidden, women and applicants of non-Western origin were each about 8 points more likely to get an interview. Women also got more job offers; applicants of non-Western origin did not (<a href="#src-aslund-skans-2012">Åslund and Nordström Skans 2012</a>, pp. 1, 4, 21, 23–24).</p>
+<p>Removing a question can backfire too. New Jersey and New York City stopped employers asking about criminal records on application forms. A test sent about 15,000 online applications from made-up young men, before and after the change. Before it, white applicants got 7% more callbacks than Black applicants at employers that asked. After it, the gap was 43% (<a href="#src-agan-starr-2018">Agan and Starr 2018</a>). The authors think employers guessed at records from race once the form could not ask. These figures are from the published summary; we read the methods in a 2016 working-paper version.</p>
+<h2 id="does-age-or-a-break-in-work-count-against-you">Does age or a break in work count against you?</h2>
+<p>Yes to both, with limits. Each has its own article here.</p>
+<p>Older applicants were about 42% less likely to get a positive reply across 17 field tests (<a href="#src-lippens-2023">Lippens et al. 2023</a>). One US test found women of 40 to 42 got callbacks as often as women of 35 to 37 (<a href="#src-farber-2017">Farber et al. 2017</a>). The largest US name test found a small drop, 0.6 points, when graduation dates implied an age over 40. One of its checks found a gap about as large, but it could be chance (<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 4, 13). The ages, the dates that show age and the state rules are in <a href="/research/age-bias-hiring/">Age discrimination in hiring</a>.</p>
+<p>Breaks of 13 months or more cut employer replies by about a fifth or more in a 2026 review of 16 field tests (<a href="#src-dhert-2026">D’hert et al. 2026</a>). A health reason did better than no reason in one US test, and a childcare reason changed nothing in a UK test (<a href="#src-namingit-2021">Namingit et al. 2021</a>; <a href="#src-kristal-2023">Kristal et al. 2023</a>). The details are in <a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a></p>
+<h2 id="what-about-a-criminal-record">What about a criminal record?</h2>
+<p>A record cuts callbacks sharply, and in the US, as of October 2026, the law limits what employers may ask. This is general information, not legal advice.</p>
+<p>Employers that asked about records were 63% more likely to call back young men who had none (<a href="#src-agan-starr-2018">Agan and Starr 2018</a>). That figure is from the published summary.</p>
+<p>As of October 2026, federal contractors may not ask about criminal history for a job under a federal contract before a conditional offer. The statute has exceptions (<a href="#src-usc-41-4714">United States Code 2019</a>). The National Employment Law Project, a worker-advocacy group, counted 15 states and 22 cities and counties that stopped private employers asking on the form. Washington, DC, is among the 22. The count is from October 2021, and it is not the laws themselves (<a href="#src-nelp-2021">Avery and Lu 2021</a>).</p>
+<p>Some states also limit what may be asked at all. As of October 2026, California bars employers from asking about an arrest that did not lead to a conviction. The same law covers a conviction that a court dismissed or sealed. The California law has exceptions for some employers and jobs (<a href="#src-ca-labor-432-7">California Labor Code 2026</a>).</p>
+<p>Court certificates have mixed evidence. A 2016 Ohio test, which its authors called preliminary, found a certificate more than tripled the chance of an interview invitation or job offer (<a href="#src-leasure-2016">Leasure and Stevens Andersen 2016</a>). A later test of the same certificate, published in 2021, used made-up men. Holders did no better than men with the same record and no certificate, and got fewer callbacks than men with no record (<a href="#src-leasure-kaminski-2021">Leasure and Kaminski 2021</a>). We read both studies’ published summaries only.</p>
+<h2 id="is-ai-resume-screening-biased">Is AI resume screening biased?</h2>
+<p>In lab tests, often, and the direction changes. A 2026 preprint tested 14 AI models on 24,024 resume pairs each that differed only by name. The one model from 2023 favored white names; the models from 2024 on were neutral or favored Black names (<a href="#src-gao-2026">Gao et al. 2026</a>). Another 2026 preprint found models picked up background clues from resumes with no name on them (<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>). Lab tests show what models do in a test, not what employers do. The tests are in <a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a> The rules on notice are in <a href="/research/ai-hiring-laws/">AI hiring laws</a>.</p>
+<h2 id="what-can-employers-do">What can employers do?</h2>
+<p>The studies here point to hiring steps that are the same for everyone and can be checked. The evidence is thin.</p>
+<ul>
+<li>In the largest US test, firms that handled applicant contact centrally had smaller gaps. Federal contractors did too. Both are links, not proof of cause (<a href="#src-kline-2022">Kline et al. 2022</a>, p. 4).</li>
+<li>In the preprint with applications from 2016 and 2017, gaps were narrower in kinds of jobs whose ads more often mentioned tests, certifications or background checks. That is a link, not proof of cause (<a href="#src-braun-2026">Braun et al. 2026</a>, pp. 1, 25).</li>
+<li>Diversity wording in a job ad did not predict fairer screening in the 2016 test (<a href="#src-kang-2016">Kang et al. 2016</a>, pp. 28–33).</li>
+</ul>
+<h2 id="what-we-dont-know">What we don’t know</h2>
+<ul>
+<li>Whether applying to more employers raises one person’s chance of a fair reader. We found no field test of it. We searched the web and arXiv in October 2026.</li>
+<li>Whether leaving an item off works as well as the renamed organizations in the 2016 test. No field test we found compared them.</li>
+<li>Whether court certificates help. The 2016 pilot and the 2021 test disagree (<a href="#src-leasure-2016">Leasure and Stevens Andersen 2016</a>; <a href="#src-leasure-kaminski-2021">Leasure and Kaminski 2021</a>).</li>
+<li>What laws that delay the record question do to employment overall. This article looks at callbacks only.</li>
+<li>Whether structured interviews cut bias in real hiring. They are often advised, but we did not open a study of them for this article.</li>
+<li>How many states limit record questions today. The count used here is from 2021 (<a href="#src-nelp-2021">Avery and Lu 2021</a>).</li>
+<li>Whether older tests still hold. The tests in the 2017 review ran in 2015 or earlier (<a href="#src-quillian-2017">Quillian et al. 2017</a>).</li>
+<li>How bias over disability, language or accent plays out. This article does not cover them.</li>
+</ul>
+<h2 id="can-you-avoid-bias-in-job-applications">Can you avoid bias in job applications?</h2>
+<p>Not fully, because the bias is the employer’s. These steps fit the evidence or follow convention.</p>
+<ul>
+<li>Apply widely. Bias varied a lot between employers in the largest test (<a href="#src-kline-2022">Kline et al. 2022</a>). That is our reading of the finding, not a tested tactic.</li>
+<li>Keep facts true. A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants’ details in the past 12 months (<a href="#src-hireright-2025">HireRight 2025a</a>). That company sells those checks.</li>
+<li>Your name and the groups on your page are your call (convention). Initials or a name you go by are honest; a legal-name box needs your legal name. Never rename a group.</li>
+<li>With a record, read the exact question and answer only what it asks (convention). Check your state’s rules with free legal aid.</li>
+<li>Prepare for the interview as well as the resume. Bias went on after the callback: the gap in job offers was wider than the gap in callbacks (<a href="#src-quillian-2020">Quillian et al. 2020</a>).</li>
+</ul>
+<p>How we grade evidence: <a href="/research/methods/">How we research</a>. What else makes a resume work: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a></p>
+<h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
+<ul>
+<li><span translate="no">CEZ Job Finder</span> never guesses anyone’s race, ethnicity, gender or age from a name, a school or a photo.</li>
+<li>It uses the same words for everyone and makes offers only from facts in your own file, such as dates.</li>
+<li>Your name, groups that show your background, a break reason and what you disclose are your choices. It gives the evidence both ways and then does what you pick.</li>
+<li>It never renames an organization, changes a date or writes a false answer about a record.</li>
+<li>The rules and their sources are in the program’s <a href="https://github.com/cezkid/jobs/blob/main/app/docs/resume/fair-screening.md">fair screening notes</a>.</li>
+</ul>
+<p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
+<h2 id="changes">Changes</h2>
+<ul>
+<li>October 2026 – the background-check survey line now says the share is of the businesses asked, over the past 12 months. The record section now says its law lines are for the US, as of October 2026. Two lines now say they come from a published summary only. The age line now says a second check found a gap about as large, which could be chance (<a href="#src-kline-2022">Kline et al. 2022</a>, p. 13). The findings are unchanged.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<ol class="sources">
+<li id="src-agan-starr-2018"><b class="evidence">Big study (thousands of real applications)</b> Agan, Amanda and Starr, Sonja (2018). Ban the Box, Criminal Records, and Racial Discrimination: A Field Experiment. <i>Quarterly Journal of Economics 133(1), 191–235 (full text paywalled; published abstract read in the Crossref record; methods read in the authors’ August 2016 working paper).</i> 15,220 made-up online applications sent (14,640 analysed; 6,401 New Jersey, 8,239 New York City) from men about 21–22 years old to 4,292 stores in 296 chains, before and after each place stopped employers asking about records on the form; figures are the published abstract’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/qje/qjx028">DOI</a></li>
+<li id="src-nelp-2021"><b class="evidence">Law</b> Avery, Beth and Lu, Han (2021). Ban the Box: U.S. Cities, Counties, and States Adopt Fair Hiring Policies. <i>National Employment Law Project.</i> A worker-advocacy group’s count of state and local laws, dated October 1, 2021; not the laws themselves. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.nelp.org/insights-research/ban-the-box-fair-chance-hiring-state-and-local-guide/">Publisher</a></li>
+<li id="src-behaghel-2015"><b class="evidence">Small study (real applications)</b> Behaghel, Luc, Crépon, Bruno and Le Barbanchon, Thomas (2015). Unintended Effects of Anonymous Résumés. <i>American Economic Journal: Applied Economics 7(3), 1–27.</i> Open copy read, IZA discussion paper 8517. 1,268 real job seekers applying to 598 job openings through the French public employment service, November 2009 to September 2010; firms chose to join; page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1257/app.20140185">DOI</a> <a href="https://docs.iza.org/dp8517.pdf">Publisher</a></li>
+<li id="src-hiscox-2017"><b class="evidence">Lab test (not real hiring)</b> Behavioural Economics Team of the Australian Government (BETA) (2017). Going blind to see more clearly: unconscious bias in Australian Public Service shortlisting processes. Over 2,100 Australian public servants from 14 agencies each shortlisted 5 of 16 made-up candidates for a made-up senior job; a rating exercise, not real hiring. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.pmc.gov.au/sites/default/files/2025-06/unconscious-bias.docx">Publisher</a></li>
+<li id="src-braun-2026"><b class="evidence">Big study (thousands of real applications)</b> Braun, Sharon, Bushnell, Jonathan, Cowell, Zachary, Dowling, David, Goldstein, Samuel, Johnson, Andrew, Miller, George, Nunley, John M., Seals, R. Alan and Wang, Mingzhou (2026). Hiring Discrimination and the Task Content of Jobs: Evidence from a Large-Scale Résumé Audit. <i>arXiv preprint (version 2, July 2026).</i> 36,880 made-up applications to 9,220 US job ads for new college graduates. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arxiv.org/abs/2604.01933">Open copy</a></li>
+<li id="src-ca-labor-432-7"><b class="evidence">Law</b> California Labor Code (2026). Section 432.7: questions about arrests and sealed or dismissed convictions. Subdivision (a)(1), read on the legislature’s own site. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=LAB&amp;sectionNum=432.7">Publisher</a></li>
+<li id="src-chen-xiao-2026"><b class="evidence">Lab test (not real hiring)</b> Chen, Qiangju and Xiao, Yang (2026). Beyond the Name: Demographic Leakage in De-Identified Résumés and Evaluation Artifacts in LLM Bias Audits. <i>arXiv preprint.</i> 9 openly released AI models, 620 made-up resumes without names, with background clues (community, activities, interests) added at three strengths; 5 groups, Australian setting. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arxiv.org/abs/2609.16501">Open copy</a></li>
+<li id="src-dhert-2026"><b class="evidence">Big study (many studies combined)</b> D’hert, Liam, Baert, Stijn and Lippens, Louis (2026). Unemployment, inactivity, and hiring chances: A systematic review and meta-analysis. <i>Socio-Economic Review 24(3), 1355–1393.</i> Open copy, Ghent University library. 28 studies reviewed; 16 field experiments with almost 67,000 made-up applicants in 7 countries combined. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/ser/mwag023">DOI</a> <a href="https://biblio.ugent.be/publication/01KRK8YTYRYHA7486FX045Y7Z8/file/01M0A5AWFGQ1RCZS17ER8A70C8.pdf">Publisher</a></li>
+<li id="src-farber-2017"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Silverman, Dan and von Wachter, Till M. (2017). Factors Determining Callbacks to Job Applications by the Unemployed: An Audit Study. <i>RSF: The Russell Sage Foundation Journal of the Social Sciences 3(3), 168–201.</i> 12,224 made-up applications to 4,594 postings (Table 4), from college-educated women to US office support jobs. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.7758/RSF.2017.3.3.08">DOI</a></li>
+<li id="src-gao-2026"><b class="evidence">Lab test (not real hiring)</b> Gao, Zhenyu, Jiang, Wenxi and Yan, Yutong (2026). Can LLMs Hire Fairly? Racial Bias in Resume Screening. <i>arXiv preprint.</i> 14 AI models released 2023–2026, 24,024 resume pairs each that differ only by name, built from 6,007 real US job ads; yes/no to a phone screen. Preprint, not peer-reviewed. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://arxiv.org/abs/2606.28978">Open copy</a></li>
+<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></li>
+<li id="src-kang-2016"><b class="evidence">Small study (real applications)</b> Kang, Sonia K., DeCelles, Katherine A., Tilcsik, András and Jun, Sora (2016). Whitened Résumés: Race and Self-Presentation in the Labor Market. <i>Administrative Science Quarterly 61(3), 469–502.</i> Open copy read, the authors’ accepted manuscript of January 2016. 1,600 made-up applications to entry-level jobs in 16 US metro areas, 200 per version, 2015; plus 59 interviews with university students, 2013; page numbers are the manuscript’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1177/0001839216639577">DOI</a> <a href="https://www-2.rotman.utoronto.ca/facbios/file/Whitening%20MS%20R2%20Accepted.pdf">Publisher</a></li>
+<li id="src-kline-2022"><b class="evidence">Big study (thousands of real applications)</b> Kline, Patrick, Rose, Evan K. and Walters, Christopher R. (2022). Systemic Discrimination Among Large U.S. Employers. <i>Quarterly Journal of Economics 137(4), 1963–2036.</i> Open copy read, NBER working paper 29053, revised May 2022. More than 83,000 made-up applications to entry-level jobs at 108 of the largest US employers; page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/qje/qjac024">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w29053/w29053.pdf">Open copy</a></li>
+<li id="src-kline-2024"><b class="evidence">Big study (thousands of real applications)</b> Kline, Patrick, Rose, Evan K. and Walters, Christopher R. (2024). A Discrimination Report Card. <i>American Economic Review 114(8), 2472–2525 (abstract read on the NBER working paper page, w32313).</i> The same experiment as the authors’ 2022 paper; grades for 97 US employers. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.nber.org/papers/w32313">Open copy</a></li>
+<li id="src-kristal-2023"><b class="evidence">Big study (thousands of real applications)</b> Kristal, Ariella S., Nicks, Leanne, Gloor, Jamie L. and Hauser, Oliver P. (2023). Reducing discrimination against job seekers with and without employment gaps. <i>Nature Human Behaviour 7, 211–218.</i> Open copy on PubMed Central. 9,022 made-up applications to real UK job ads, plan registered in advance. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1038/s41562-022-01485-6">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/">Open copy</a></li>
+<li id="src-leasure-kaminski-2021"><b class="evidence">Small study (real applications)</b> Leasure, Peter and Kaminski, Robert J. (2021). The Effectiveness of Certificates of Relief: A Correspondence Audit of Hiring Outcomes. <i>Journal of Empirical Legal Studies 18(4), 849–875 (full text paywalled; published abstract read in the Crossref record).</i> Two field tests with made-up men convicted of felony theft, felony drug possession and a misdemeanor drug paraphernalia conviction, with and without the same Ohio certificate; the abstract gives no sample size. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1111/jels.12297">DOI</a></li>
+<li id="src-leasure-2016"><b class="evidence">Small study (real applications)</b> Leasure, Peter and Stevens Andersen, Tia (2016). The Effectiveness of Certificates of Relief as Collateral Consequence Relief Mechanisms: An Experimental Study. <i>Yale Law &amp; Policy Review Inter Alia 35 (the journal’s page would not open; abstract read as reprinted by the Collateral Consequences Resource Center).</i> The first test, called preliminary by its authors; made-up applications to entry-level jobs in Ohio; only the abstract was read, so the sample size is not given here. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://ccresourcecenter.org/how-effective-are-judicial-certificates-in-relieving-collateral-consequences/">Publisher</a></li>
+<li id="src-lippens-2023"><b class="evidence">Big study (many studies combined)</b> Lippens, Louis, Vermeiren, Siel and Baert, Stijn (2023). The state of hiring discrimination: A meta-analysis of (almost) all recent correspondence experiments. <i>European Economic Review 151, 104315.</i> Open copy read, IZA discussion paper 14966. 306 field experiments published 2005–2020, 17 of them on older age; figures and page numbers are the working paper’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1016/j.euroecorev.2022.104315">DOI</a> <a href="https://docs.iza.org/dp14966.pdf">Publisher</a></li>
+<li id="src-namingit-2021"><b class="evidence">Big study (thousands of real applications)</b> Namingit, Sheryll, Blankenau, William and Schwab, Benjamin (2021). Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate. <i>Journal of Economic Behavior &amp; Organization 185, 865–882 (full text paywalled; published abstract read on RePEc).</i> 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs; the three rates are from the authors’ open 2018 conference abstract, gap length from the AEA trial registry. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1016/j.jebo.2020.09.033">DOI</a> <a href="https://ideas.repec.org/a/eee/jeborg/v185y2021icp865-882.html">Publisher</a></li>
+<li id="src-quillian-2017"><b class="evidence">Big study (many studies combined)</b> Quillian, Lincoln, Pager, Devah, Hexel, Ole and Midtbøen, Arnfinn H. (2017). Meta-analysis of field experiments shows no change in racial discrimination in hiring over time. <i>Proceedings of the National Academy of Sciences 114(41), 10870–10875.</i> Open copy on PubMed Central. 28 US field experiments, 55,842 applications to 26,326 jobs (24 since 1989, 54,318 applications; the main results use these); resume tests and in-person tests. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1073/pnas.1706255114">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC5642692/">Open copy</a></li>
+<li id="src-quillian-2020"><b class="evidence">Big study (many studies combined)</b> Quillian, Lincoln, Lee, John J. and Oliver, Mariana (2020). Evidence from Field Experiments in Hiring Shows Substantial Additional Racial Discrimination after the Callback. <i>Social Forces 99(2), 732–759 (full text paywalled; published abstract read in the Crossref record).</i> 12 field experiments that followed applicants to the job offer, more than 13,000 applications; figures are the published abstract’s. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/sf/soaa026">DOI</a></li>
+<li id="src-usc-41-4714"><b class="evidence">Law</b> United States Code (2019). 41 U.S.C. 4714: Prohibition on criminal history inquiries by contractors prior to conditional offer. The Fair Chance to Compete for Jobs Act’s rule for federal contractors, read on Cornell’s Legal Information Institute copy. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.law.cornell.edu/uscode/text/41/4714">Publisher</a></li>
+<li id="src-aslund-skans-2012"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Åslund, Olof and Nordström Skans, Oskar (2012). Do Anonymous Job Application Procedures Level the Playing Field? <i>ILR Review 65(1), 82–107.</i> Open copy read, IFAU working paper 2007:31; page numbers are the working paper’s. 3,529 applicants to 109 jobs in Gothenburg city districts, 2004–2006; 2 districts used anonymous applications, 1 comparison district did not; districts not picked at random. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1177/001979391206500105">DOI</a> <a href="https://www.ifau.se/globalassets/pdf/se/2007/wp07-31.pdf">Publisher</a></li>
+</ol>
+<nav class="more" aria-label="Keep reading">
+<p>Keep reading</p>
+<ul>
+<li><a href="/research/resume-parser-test/">Are two-column resumes ATS friendly? A 7-layout PDF test</a></li>
+<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a></li>
+<li><a href="/research/">All research</a></li>
+</ul>
+<p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
+<p><a href="#main">Back to top</a></p>
+</nav>
+</article>
+</main>
+<footer>
+  <div class="wrap row">
+    <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
+    <nav aria-label="Footer">
+      <a href="/">Home</a>
+      <a href="/research/">Research</a>
+      <a href="/#install">Install</a>
+      <a href="/about/">About</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="https://github.com/cezkid/jobs">Source code</a>
+    </nav>
+  </div>
+</footer>
+<script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
+</body>
+</html>

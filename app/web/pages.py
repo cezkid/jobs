@@ -1026,6 +1026,8 @@ PAGE_CSS = """
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
   thead th { border-bottom: 2px solid var(--text); }
   th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+  /* a table right before a heading: the heading's rule closes it (two hairlines 49px apart read as a double rule) */
+  :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
   /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
   .table td:first-child { font-weight: 700; }
   /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
@@ -1131,13 +1133,15 @@ PAGE_CSS = """
 """
 
 
-# On this page: marks the link of the last h2 above the line 30% down the window (aria-current="true", both
+# On this page: marks the link of the last h2 above the line 15% down the window (aria-current="true", both
 # lists). The observed band runs from far above the window to that line, so a heading crossing it either way
-# (a fast scroll included) calls back; budget 400 B (test_pages)
+# (a fast scroll included) calls back; budget 400 B (test_pages). Line at 30% marked the next heading after a
+# jump to a short section (heading at the top, the next one 208px below it at 1440x900; 17 of 954 jumps, qa
+# TOC_CURRENT)
 TOC_JS = ('(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)'
-          'if(x.getBoundingClientRect().top<innerHeight*.3)c=x;for(const a of document.querySelectorAll('
+          'if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll('
           '".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute('
-          '"aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -70% 0px"});h.forEach(x=>o.observe(x))})()')
+          '"aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()')
 
 
 def jsonld(graph: list[dict]) -> str:

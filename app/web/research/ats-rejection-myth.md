@@ -2,7 +2,7 @@
 title: "Do ATS reject 75% of resumes? Where the number came from"
 description: No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.
 published: 2026-10-03
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 og_title: "Do hiring systems reject 75% of resumes? Where the claim came from"
 uncited:
@@ -93,11 +93,13 @@ We found no study showing that a formatting slip alone causes automatic rejectio
 
 Formatting can still hurt in a quieter way: through ranking and search. In a test reported by CIO in 2012, one ideal resume was misread by the Taleo hiring system and scored only 43% relevant [@levinson-2012-cio]. That was one resume in one system, so it shows what can happen, not how often.
 
-Our own tests found that widely spaced heading letters came back as "EXP E R I ENC E" in one PDF-to-web conversion ([page-format.md](../../docs/resume/page-format.md)). Three common PDF readers read the same heading whole. We don't know whether any ATS reads a page the way that conversion did. If one did, the garbled word would not match a recruiter's search.
+Our own tests found that lightly spaced heading letters came back as "EXP E R I ENC E" in one PDF-to-web conversion ([page-format.md](../../docs/resume/page-format.md)). Three common PDF readers read that lightly spaced heading whole. With wider spacing, every reader in our October 2026 test split the headings into single letters ([Are two-column resumes ATS friendly?](resume-parser-test.md)). We don't know whether any ATS reads a page the way that conversion did. If one did, the garbled word would not match a recruiter's search.
 
 In one Workday test, a school and degree written on one line landed in the wrong boxes ([page-format.md](../../docs/resume/page-format.md)).
 
 Blank questions are not rejections either. Ashby's "Autofill from resume" filled only contact boxes in our test, leaving the employer's questions empty ([ashby.md](../../docs/apply/ashby.md)). Applicants can read the empty boxes as the system rejecting their resume. The autofill did not reject anyone.
+
+Our own layout test read one resume in 7 layouts with free PDF readers: [Are two-column resumes ATS friendly?](resume-parser-test.md)
 
 In practice, a plain one-column page that reads back cleanly is the safe choice. Fancy layouts are a risk to being found, not a sure rejection.
 
@@ -107,7 +109,7 @@ Yes, by executives' own account. The Hidden Workers survey asked 2,275 executive
 
 Most of those executives said their system filters out qualified people at least sometimes. 88% said so for high-skills jobs and 94% for middle-skills jobs. "Always" or "often" was the answer of 62% and 63%. The question asked about candidates who could do the job but did not match exact criteria [@fuller-2021, p. 26].
 
-The Hidden Workers numbers are what executives said, not a measurement of what the software did. The survey ran in early 2020, before today's AI screening tools were common [@fuller-2021].
+The Hidden Workers numbers are what executives said, not a measurement of what the software did. The survey ran in early 2020, before today's AI screening tools were common [@fuller-2021]. What the same executives said about breaks in work history is in [Does an employment gap on your resume hurt?](employment-gaps.md).
 
 Gaps between your experience and the exact wording of a posting can matter. The fix is the posting's words for skills you really have, not words you lack.
 
@@ -123,7 +125,7 @@ A US lawsuit alleges otherwise for one vendor. In Mobley v. Workday, the plainti
 
 In May 2025 a federal court in California let the age claim go forward as a collective action, at a preliminary stage. Workday can still ask the court to undo that step later [@mobley-2025-order]. Workday told the court 1.1 billion applications were rejected using its software. The court said that estimate ignores the limits of who is in the case [@mobley-2025-order, p. 19].
 
-In July 2025 the court ruled that applicants screened with Workday's HiredScore AI features also belong in the case. In June 2026 the court granted part of Workday's motion to dismiss the amended complaint and denied the rest [@clearinghouse-mobley]. As of October 2026, the plaintiffs are asking to widen the case to more groups of applicants. A hearing is set for March 2027, and Workday denies the claims [@lawyer-monthly-2026]. Nothing has been proven. Not legal advice.
+In July 2025 the court ruled that applicants screened with Workday's HiredScore AI features also belong in the case. In June 2026 the court granted part of Workday's motion to dismiss the amended complaint and denied the rest [@clearinghouse-mobley]. As of October 2026, the plaintiffs are asking the court to certify four groups of applicants as a class action. A hearing is set for March 2027 [@lawyer-monthly-2026]. Workday denies the claims [@clearinghouse-mobley]. Nothing has been proven. Not legal advice. What the laws require of employers: [AI hiring laws in 2026](ai-hiring-laws.md).
 
 AI scores are in use, but most managers in that survey said a person still makes the call [@resume-genius-2026].
 
@@ -137,7 +139,7 @@ AI scores are in use, but most managers in that survey said a person still makes
 
 ## What helps
 
-- Answer yes/no questions truthfully. In the US, every new hire proves their right to work on Form I-9 [@uscis-i9]. A false "no" to sponsorship shows up when a visa is needed.
+- Answer yes/no questions truthfully. In the US, as of October 2026, every new hire proves their right to work on Form I-9 [@uscis-i9]. A false "no" to sponsorship shows up when a visa is needed.
 - Use the posting's own words for skills you really have. Recruiters can search resumes for them [@greenhouse-search].
 - Use a plain one-column page that a computer reads back correctly.
 - Fill every question yourself; autofill can leave them blank (our Ashby test did).
@@ -157,3 +159,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - recounted our measurement. Some forms list the employer's questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.
+- October 2026 - the spaced-heading line now says three readers read a lightly spaced heading whole, and wider spacing split it in our parser test. The Form I-9 line now carries its date. The finding is unchanged.
