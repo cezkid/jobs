@@ -4,6 +4,7 @@ public job board, answers typed into its widgets.
 Measured facts and why each rule exists: app/docs/apply/greenhouse.md.
 """
 import contextlib
+import json
 import re
 import time
 from functools import lru_cache
@@ -13,7 +14,7 @@ from urllib.parse import quote, urlsplit
 import httpx
 
 from apply import dom
-from apply.questions import key_from_title, question
+from apply.questions import MONTHS, key_from_title, question
 
 NAME = "Greenhouse"
 # job-boards / boards, EU host too; the embed link carries the board + job as ?for=...&token=...
@@ -49,6 +50,27 @@ LOCATION = "candidate-location"
 COUNTRY = "country"
 # Hispanic/Latino shows on the page beside the government (EEOC) race list, not in the job board's list
 HISPANIC = ("hispanic_ethnicity", "Are you Hispanic/Latino?", ["Yes", "No", "Decline To Self Identify"])
+# Education: the job board says only whether the form has the section; which boxes show and which are
+# required come with the form page itself (6 of 6 boards differed, 2026-10-05) - only the board + job ids go out
+EMBED = "https://job-boards{}.greenhouse.io/embed/job_app"
+EDUCATION_CONFIG = re.compile(r'"education_config":(\{[^}]*\}|null)')
+# host of the degree / discipline / school lists (the page's own setting; its fallback below)
+LISTS_HOST = re.compile(r'"JBEN_URL":"([^"]+)"')
+# entry i's boxes (id <prefix>--i): page id prefix, form config name, title, shared key
+EDUCATION_BOXES = (("school", "school_name", "School", "school"), ("degree", "degree", "Degree", "degree"),
+                   ("discipline", "discipline", "Discipline", "discipline"),
+                   ("start-month", "start_month", "Start date month", "school_start_month"),
+                   ("start-year", "start_year", "Start date year", "school_start_year"),
+                   ("end-month", "end_month", "End date month", "school_end_month"),
+                   ("end-year", "end_year", "End date year", "school_end_year"))
+# questions(url, schools): one set of Education boxes per school on the resume (form.prepare)
+EDUCATION_ENTRIES = True
+# these boxes search Greenhouse's own list with each keystroke: the words typed reach it before Submit
+SEARCHED_AS_TYPED = ("school", "degree", "discipline")
+# the page's Add another for schools (the Employment section has its own)
+ADD_SCHOOL = ".education--container .add-another-button"
+# how long a list gets to show options; a searched one, to show the answer once the whole words are in
+LIST_WAIT_MS = 8000
 
 
 def matches(url: str) -> bool:
@@ -127,19 +149,71 @@ def from_board(job: dict) -> list[dict]:
     return out
 
 
-def questions(url: str) -> list[dict]:
+def education_list(host: str, board: str, kind: str) -> list[str]:
+    """Greenhouse's degree or discipline list as the form offers it, 100 a page; unreadable -> [] (the
+    AI asks). Only the board name goes out."""
+    out: list[str] = []
+    try:
+        for n in range(1, 20):
+            r = httpx.get(f"{host}/v1/boards/{board}/education/{kind}", params={"page": n}, timeout=30)
+            r.raise_for_status()
+            data = r.json()
+            out += [i["text"] for i in data.get("items") or []]
+            if not data.get("items") or len(out) >= (data.get("meta") or {}).get("total_count", 0):
+                break
+    except (httpx.HTTPError, ValueError, KeyError):
+        pass
+    return out
+
+
+def education(eu: str, board: str, job: str, said: str | None, schools: int) -> list[dict]:
+    """The Education section's boxes, one set per school on the resume (the page's Add another). Start
+    dates only when required: the resume has none."""
+    if said not in ("education_optional", "education_required"):
+        return []
+    config, host = None, f"https://boards{eu}.greenhouse.io"
+    try:
+        page = httpx.get(EMBED.format(eu), params={"for": board, "token": job}, timeout=30).text
+        if m := EDUCATION_CONFIG.search(page):
+            config = json.loads(m.group(1))
+        if m := LISTS_HOST.search(page):
+            host = m.group(1)
+    except (httpx.HTTPError, ValueError):
+        pass
+    if not config:  # unreadable: the boxes every board seen shows, school + degree required as the board says
+        level = "required" if said == "education_required" else "optional"
+        config = {"school_name": level, "degree": level, "discipline": "optional"}
+    lists = {f: education_list(host, board, f + "s") for f in ("degree", "discipline")
+             if config.get(f) in ("optional", "required")}
+    out = []
+    for i in range(max(1, schools)):
+        for prefix, name, title, key in EDUCATION_BOXES:
+            level = config.get(name)
+            if level not in ("optional", "required") or (key.startswith("school_start") and level != "required"):
+                continue
+            kind = "number" if name.endswith("_year") else "choice"
+            options = MONTHS if name.endswith("_month") else lists.get(name, [])
+            # no school name in the title: it would read as the question's topic (questions.TOPICS)
+            out.append(question(f"{prefix}--{i}", f"Education {i + 1}: {title}", kind, level == "required", options,
+                                key, "education", entry=i))
+    return out
+
+
+def questions(url: str, schools: int = 1) -> list[dict]:
     eu, board, job = parse_url(url)
     r = httpx.get(f"https://boards-api{eu}.greenhouse.io/v1/boards/{board}/jobs/{job}", params={"questions": "true"},
                   timeout=30)
     if r.status_code == 404:
         raise ValueError("posting not found - it may have closed")
     r.raise_for_status()
-    return from_board(r.json())
+    data = r.json()
+    return from_board(data) + education(eu, board, job, data.get("education"), schools)
 
 
 def ids_on_page(page) -> list[str]:
-    # education rows (school--0 ...) are optional extras; iti-* is the phone box's own country search;
-    # a mark-all-that-apply list drawn as checkboxes is one question, named by the boxes' shared name
+    # Education boxes (school--0 ...) are in the file once per school on the resume, never extras; iti-* is
+    # the phone box's own country search; a mark-all-that-apply list drawn as checkboxes is one question,
+    # named by the boxes' shared name
     return page.eval_on_selector_all(
         "form input[id], form textarea[id]",
         "es => [...new Set(es.filter(e => e.type !== 'hidden' && !e.id.includes('--') && !e.id.startsWith('iti-'))"
@@ -153,6 +227,11 @@ def by_id(page, id: str):
 
 def digits(s: str) -> str:
     return re.sub(r"\D", "", s)
+
+
+def fold(s: str) -> str:
+    """Words only: "University of California - Berkeley" reads the same as "..., Berkeley"."""
+    return " ".join(re.findall(r"\w+", str(s).casefold()))
 
 
 def put_text(field, value: str, kind: str) -> str:
@@ -176,29 +255,36 @@ def picked(field) -> list[str]:
       return c ? [...c.querySelectorAll('[class*=single-value], [class*=multi-value__label]')].map(v => v.innerText.trim()) : []; }""")
 
 
-def put_select(page, field, value, starts: bool = False) -> str:
+def put_select(page, field, value, starts: bool = False, searched: bool = False) -> str:
     """Type to filter, then click the option whose text is the answer - never the first one offered.
-    `starts`: the option only has to start with the answer (Location: "Springfield, Illinois, United States")."""
+    `starts`: the option only has to start with the answer (Location: "Springfield, Illinois, United States").
+    `searched`: the list is Greenhouse's own, fetched as typed (school, degree, discipline) - the words up
+    to a comma go in (a comma finds nothing), and the options are read until the answer shows."""
     for v in value if isinstance(value, list) else [value]:
         v = str(v).strip()
-        if v in picked(field):
+        if fold(v) in map(fold, picked(field)):
             continue
         field.click()
         field.fill("")
-        field.press_sequentially(v.split(",")[0] if starts else v[:40], delay=50)
+        field.press_sequentially(v.split(",")[0] if starts or searched else v[:40], delay=50)
         options = page.locator(".select__menu [role=option]")
         try:
-            options.first.wait_for(timeout=8000)
+            options.first.wait_for(timeout=LIST_WAIT_MS)
         except Exception:
             field.press("Escape")
             return f"ASK nothing on the list matches '{v}'"
-        # Country options carry the dialing code ("United States +1"); once chosen it shows the code only
-        raw = [t.strip() for t in options.all_inner_texts()]
-        texts = [re.sub(r"\s\+\d+$", "", t) for t in raw]
-        want = v.casefold()
-        hit = next((i for i, t in enumerate(texts) if t.casefold() == want), None)
-        if hit is None and starts:
-            hit = next((i for i, t in enumerate(texts) if t.casefold().startswith(want)), None)
+        want = fold(v)
+        deadline = time.monotonic() + (LIST_WAIT_MS / 1000 if searched else 0)
+        while True:
+            # Country options carry the dialing code ("United States +1"); once chosen it shows the code only
+            raw = [t.strip() for t in options.all_inner_texts()]
+            texts = [re.sub(r"\s\+\d+$", "", t) for t in raw]
+            hit = next((i for i, t in enumerate(texts) if fold(t) == want), None)
+            if hit is None and starts:
+                hit = next((i for i, t in enumerate(texts) if fold(t).startswith(want)), None)
+            if hit is not None or time.monotonic() >= deadline:
+                break
+            page.wait_for_timeout(250)
         if hit is None:
             field.fill("")
             field.press("Escape")
@@ -206,7 +292,7 @@ def put_select(page, field, value, starts: bool = False) -> str:
         options.nth(hit).click()
         page.wait_for_timeout(300)
         code = re.search(r"\+\d+$", raw[hit])
-        if not any(p.casefold().startswith(want) or (code and p == code.group()) for p in picked(field)):
+        if not any(fold(p).startswith(want) or (code and p == code.group()) for p in picked(field)):
             return f"FAIL '{v}' not selected"
     return "ok"
 
@@ -258,15 +344,34 @@ def holds(page, q: dict) -> bool:
     if not field.count():
         return False
     if field.get_attribute("role") == "combobox":
-        shown = [p.casefold() for p in picked(field)]
+        shown = [fold(p) for p in picked(field)]
         if q["id"] == COUNTRY:  # shows the dialing code only ("+1")
             return bool(shown)
         if kind == "yesno":
             value = "Yes" if str(value).casefold() in ("yes", "true") else "No"
-        return all(any(p.startswith(str(v).strip().casefold()) for p in shown)
+        return all(any(p.startswith(fold(v)) for p in shown)
                    for v in (value if isinstance(value, list) else [value]))
     got = field.input_value()
     return digits(got) == digits(str(value)) if kind == "phone" else got == str(value)
+
+
+def add_school(page, entry: int) -> None:
+    """School `entry`'s boxes come with the Education section's own Add another, one entry a click."""
+    more = page.locator(ADD_SCHOOL).first
+    for _ in range(entry):
+        if page.locator(".education--container .education--form").count() > entry or not more.count():
+            return
+        more.click()
+        page.wait_for_timeout(300)
+
+
+def put_school(page, field, q: dict) -> str:
+    """School, degree, discipline: Greenhouse's own lists, searched as typed. A school not on the list is
+    the user's to pick (theirs spelled another way, or Other) - never a near name."""
+    got = put_select(page, field, q["answer"], searched=True)
+    if q["key"] == "school" and got.startswith("ASK"):
+        return f"ASK school '{q['answer']}' not on the form's list - the user picks theirs (or Other) on the page"
+    return got
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:
@@ -281,6 +386,8 @@ def fill(page, q: dict, resume_file: str | None) -> str:
             return "FAIL question not on page"
         return put_file(page, q, resume_file) if value is True and resume_file else "skipped - upload not approved"
     field = by_id(page, q["id"])
+    if not field.count() and q.get("native") == "education" and q.get("entry"):
+        add_school(page, q["entry"])
     if not field.count():
         # Race shows only after Hispanic/Latino = No; others only for some answers
         return "skipped - not shown for the other answers" if q.get("native") == "self-id" else "FAIL question not on page"
@@ -290,6 +397,8 @@ def fill(page, q: dict, resume_file: str | None) -> str:
         return put_boxes(boxes, value)
     field.scroll_into_view_if_needed()
     if field.get_attribute("role") == "combobox":
+        if q.get("key") in SEARCHED_AS_TYPED:
+            return put_school(page, field, q)
         if kind == "yesno":
             value = "Yes" if str(value).casefold() in ("yes", "true") else "No"
         return put_select(page, field, value, starts=kind == "location")

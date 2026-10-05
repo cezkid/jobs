@@ -1,0 +1,107 @@
+<!doctype html>
+<!-- A Greenhouse-like Education section for the fill in Chrome (test_dom.py) and the window (same greenhouse.fill):
+its markup as measured live 2026-10-05 (job-boards page, a board w/ every box optional; ids as the page names them,
+css class hashes + icons left out): .education--container > .education--form per school (School, Degree, Discipline
+dropdowns, End date month dropdown, End date year number box), then its own "Add another", which adds the next
+school's boxes (school--1 ...). The Employment section below has an "Add another" of its own - never the one to click.
+`data-searched` = this page's stand-in for Greenhouse's own lists, fetched as typed (react-select's async list): each
+keystroke's answer arrives 600 ms later, at most that many options; one for letters typed over since is dropped, and
+the menu keeps showing the last one that arrived. data-options holds the list (React / Greenhouse hold it live). -->
+<html><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form>
+<label for="first_name">First Name</label><input type="text" id="first_name" value="Jane">
+<div class="education--container">
+<div class="education--forms"><div class="education--form" data-entry="0"><hr><div class="education--header">Education</div>
+<div class="field-wrapper"><div class="select" data-options='["Massachusetts Institute of Technology", "University of Cambridge", "University of Canberra", "University of Cape Town", "University of Central Florida", "University of Chicago", "University of Calgary", "University of California - Davis", "University of California - Berkeley", "Ohio State University", "Other"]' data-searched="5"><div class="select__container">
+  <label id="school--0-label" for="school--0" class="label select__label">School</label>
+  <div class="select-shell"><span id="react-select-school--0-live-region" class="a11yText"></span><span aria-live="polite" aria-atomic="false" aria-relevant="additions text" role="log" class="a11yText"></span>
+    <div><div class="select__control"><div class="select__value-container">
+      <div class="select__placeholder" id="react-select-school--0-placeholder">Select...</div>
+      <div class="select__input-container" data-value=""><input class="select__input" autocapitalize="none" autocomplete="off" autocorrect="off" id="school--0" spellcheck="false" tabindex="0" type="text" aria-autocomplete="list" aria-expanded="false" aria-haspopup="true" aria-labelledby="school--0-label" aria-required="false" role="combobox" enterkeyhint="done" value=""></div>
+    </div><div class="select__indicators"><button type="button" class="icon-button icon-button--sm" aria-label="Toggle flyout" tabindex="-1"></button></div></div></div>
+  </div></div></div></div>
+<div class="field-wrapper"><div class="select" data-options='["Associate&#39;s Degree", "Bachelor&#39;s Degree", "Doctor of Medicine (M.D.)", "Doctor of Philosophy (Ph.D.)", "Engineer&#39;s Degree", "High School", "Juris Doctor (J.D.)", "Master of Business Administration (M.B.A.)", "Master&#39;s Degree", "Other"]' data-searched="5"><div class="select__container">
+  <label id="degree--0-label" for="degree--0" class="label select__label">Degree</label>
+  <div class="select-shell"><span id="react-select-degree--0-live-region" class="a11yText"></span><span aria-live="polite" aria-atomic="false" aria-relevant="additions text" role="log" class="a11yText"></span>
+    <div><div class="select__control"><div class="select__value-container">
+      <div class="select__placeholder" id="react-select-degree--0-placeholder">Select...</div>
+      <div class="select__input-container" data-value=""><input class="select__input" autocapitalize="none" autocomplete="off" autocorrect="off" id="degree--0" spellcheck="false" tabindex="0" type="text" aria-autocomplete="list" aria-expanded="false" aria-haspopup="true" aria-labelledby="degree--0-label" aria-required="false" role="combobox" enterkeyhint="done" value=""></div>
+    </div><div class="select__indicators"><button type="button" class="icon-button icon-button--sm" aria-label="Toggle flyout" tabindex="-1"></button></div></div></div>
+  </div></div></div></div>
+<div class="field-wrapper"><div class="select" data-options='["Business Administration", "Computer Science", "Economics", "Electrical Engineering", "Mathematics", "Other", "Discipline Unknown"]' data-searched="5"><div class="select__container">
+  <label id="discipline--0-label" for="discipline--0" class="label select__label">Discipline</label>
+  <div class="select-shell"><span id="react-select-discipline--0-live-region" class="a11yText"></span><span aria-live="polite" aria-atomic="false" aria-relevant="additions text" role="log" class="a11yText"></span>
+    <div><div class="select__control"><div class="select__value-container">
+      <div class="select__placeholder" id="react-select-discipline--0-placeholder">Select...</div>
+      <div class="select__input-container" data-value=""><input class="select__input" autocapitalize="none" autocomplete="off" autocorrect="off" id="discipline--0" spellcheck="false" tabindex="0" type="text" aria-autocomplete="list" aria-expanded="false" aria-haspopup="true" aria-labelledby="discipline--0-label" aria-required="false" role="combobox" enterkeyhint="done" value=""></div>
+    </div><div class="select__indicators"><button type="button" class="icon-button icon-button--sm" aria-label="Toggle flyout" tabindex="-1"></button></div></div></div>
+  </div></div></div></div>
+<div class="field-wrapper"><div class="select" data-options='["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]'><div class="select__container">
+  <label id="end-month--0-label" for="end-month--0" class="label select__label">End date month</label>
+  <div class="select-shell"><span id="react-select-end-month--0-live-region" class="a11yText"></span><span aria-live="polite" aria-atomic="false" aria-relevant="additions text" role="log" class="a11yText"></span>
+    <div><div class="select__control"><div class="select__value-container">
+      <div class="select__placeholder" id="react-select-end-month--0-placeholder">Select...</div>
+      <div class="select__input-container" data-value=""><input class="select__input" autocapitalize="none" autocomplete="off" autocorrect="off" id="end-month--0" spellcheck="false" tabindex="0" type="text" aria-autocomplete="list" aria-expanded="false" aria-haspopup="true" aria-labelledby="end-month--0-label" aria-required="false" role="combobox" enterkeyhint="done" value=""></div>
+    </div><div class="select__indicators"><button type="button" class="icon-button icon-button--sm" aria-label="Toggle flyout" tabindex="-1"></button></div></div></div>
+  </div></div></div></div>
+<div class="field-wrapper"><label for="end-year--0" class="label">End date year</label><input id="end-year--0" class="input input__single-line" type="number" aria-required="false" value=""></div>
+</div></div>
+<button class="add-another-button" type="button">Add another</button>
+</div>
+<div class="employment--container">
+<div class="employment--forms"><div class="employment--form"><label for="company-name--0">Company name</label><input id="company-name--0" class="input input__single-line" type="text"></div></div>
+<button class="add-another-button" type="button">Add another</button>
+</div>
+</form>
+<script>
+const wire = (input) => {
+  const select = input.closest(".select"), shell = select.querySelector(".select-shell");
+  const values = shell.querySelector(".select__value-container"), log = shell.querySelector("[role=log]");
+  const options = JSON.parse(select.dataset.options), cap = Number(select.dataset.searched || 0);
+  const close = () => { shell.querySelector(".select__menu")?.remove(); input.setAttribute("aria-expanded", "false"); };
+  const show = (o) => {
+    values.querySelector(".select__single-value, .select__placeholder")?.remove();
+    const v = document.createElement("div");
+    v.className = "select__single-value";
+    v.textContent = o;
+    values.prepend(v);
+  };
+  const render = (term) => {
+    close();
+    const menu = document.createElement("div");
+    menu.className = "select__menu";
+    let hits = options.filter((o) => o.toLowerCase().includes(term.toLowerCase()));
+    if (cap) hits = hits.slice(0, cap);
+    for (const o of hits) {
+      const d = document.createElement("div");
+      d.setAttribute("role", "option");
+      d.textContent = o;
+      d.addEventListener("mousedown", (ev) => ev.preventDefault());
+      d.addEventListener("click", () => { show(o); log.textContent = `option ${o}, selected.`; input.value = ""; close(); });
+      menu.append(d);
+    }
+    if (!hits.length) menu.innerHTML = '<div class="select__menu-notice">No options</div>';
+    shell.append(menu);
+    input.setAttribute("aria-expanded", "true");
+  };
+  let latest = 0;
+  input.addEventListener("input", () => {
+    const term = input.value, ask = ++latest;
+    if (!cap) return render(term);
+    setTimeout(() => { if (ask === latest && input.value === term) render(term); }, 600);
+  });
+  input.addEventListener("keydown", (ev) => { if (ev.key === "Escape") close(); });
+  input.addEventListener("blur", close);
+};
+const add = (section, make) => {
+  const forms = section.querySelector('[class$="--forms"]'), first = forms.firstElementChild.outerHTML;
+  section.querySelector(":scope > .add-another-button").addEventListener("click", () => {
+    const n = forms.children.length;
+    forms.insertAdjacentHTML("beforeend", first.replace(/--0\b/g, `--${n}`).replace('data-entry="0"', `data-entry="${n}"`));
+    forms.lastElementChild.querySelectorAll("[class*=single-value]").forEach((v) => v.remove());
+    if (make) forms.lastElementChild.querySelectorAll("input[role=combobox]").forEach(make);
+  });
+};
+add(document.querySelector(".education--container"), wire);
+add(document.querySelector(".employment--container"), null);
+document.querySelectorAll("input[role=combobox]").forEach(wire);
+</script></body></html>

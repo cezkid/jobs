@@ -29,7 +29,8 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
         if isinstance(want, type):
             assert isinstance(got, want), name
         else:
-            assert len(inspect.signature(got).parameters) == want, name
+            # a defaulted parameter is the system's own extra (Greenhouse: questions(url, schools=1))
+            assert sum(p.default is p.empty for p in inspect.signature(got).parameters.values()) == want, name
     assert system.SOURCES and system.EXAMPLES and all(isinstance(x, str) for x in system.SOURCES + system.EXAMPLES)
 
 
@@ -891,6 +892,125 @@ def test_greenhouse_board_without_a_survey():
     # "demographic_questions": null on a live posting (2026-10-03) crashed the read
     got = greenhouse.from_board(GH_JOB | {"demographic_questions": None, "compliance": None})
     assert "first_name" in {x["id"] for x in got} and "401" not in {x["id"] for x in got}
+
+
+# the Education section as Greenhouse gives it (anonymised from live answers, 2026-10-05): the job board says only
+# whether there is one; the form page carries which boxes show (+ the lists' host), the lists come 100 a page
+GH_EMBED = ('<script>window.ENV = {"JBEN_URL":"https://boards.example"};</script><script>window.__remixContext = '
+            '{"jobPost":{"education_config":{"id":7,"school_name":"optional","degree":"required","discipline":"optional",'
+            '"start_month":"hidden","start_year":"required","end_month":"optional","end_year":"optional"},"x":1}};</script>')
+GH_LISTS = {"degrees": ["Associate's Degree", "Bachelor's Degree", "Doctor of Philosophy (Ph.D.)", "High School",
+                        "Juris Doctor (J.D.)", "Master of Business Administration (M.B.A.)", "Master's Degree", "Other"],
+            "disciplines": ["Business Administration", "Computer Science", "Economics", "Other", "Discipline Unknown"]}
+
+
+def gh_get(asked, embed=GH_EMBED, education="education_optional", per_page=100):
+    class Reply:
+        def __init__(self, data=None, text=""):
+            self.data, self.text, self.status_code = data, text, 200
+
+        def json(self):
+            return self.data
+
+        def raise_for_status(self):
+            pass
+
+    def get(url, params=None, **kw):
+        asked.append((url, params))
+        if "/jobs/" in url:
+            return Reply({"questions": GH_JOB["questions"][:1], "education": education})
+        if "/embed/job_app" in url:
+            if embed is None:
+                raise greenhouse.httpx.ConnectError("down")
+            return Reply(text=embed)
+        kind = url.rsplit("/", 1)[1]
+        page = GH_LISTS[kind][(params["page"] - 1) * per_page:params["page"] * per_page]
+        return Reply({"items": [{"id": i, "text": t} for i, t in enumerate(page)],
+                      "meta": {"total_count": len(GH_LISTS[kind]), "per_page": per_page}})
+    return get
+
+
+def test_greenhouse_education_boxes_per_school_as_the_form_page_sets_them(monkeypatch):
+    """The job board says only "education_optional"; which boxes show and which are required come with the
+    form page (6 of 6 boards differed, plan-29g.26): one set per school on the resume, start dates only when
+    required (the resume has none), the degree + discipline lists from the host the page names. Only the
+    board + job ids go out."""
+    asked = []
+    monkeypatch.setattr(greenhouse.httpx, "get", gh_get(asked, per_page=3))
+    got = greenhouse.questions("https://job-boards.greenhouse.io/acme/jobs/4001234005", 2)
+    edu = [x for x in got if x["native"] == "education"]
+    assert [x["id"] for x in edu] == [f"{b}--{i}" for i in (0, 1)
+                                      for b in ("school", "degree", "discipline", "start-year", "end-month", "end-year")]
+    by = {x["id"]: x for x in edu}
+    assert by["degree--1"]["required"] and by["start-year--0"]["required"] and not by["school--0"]["required"]
+    assert by["degree--0"]["options"] == GH_LISTS["degrees"]  # 3 a page here: every page read
+    assert by["end-month--0"]["options"][0] == "January" and by["end-year--1"]["kind"] == "number"
+    assert (by["school--1"]["title"], by["school--1"]["entry"], by["school--1"]["options"]) == ("Education 2: School", 1, [])
+    assert ("https://job-boards.greenhouse.io/embed/job_app", {"for": "acme", "token": "4001234005"}) in asked
+    assert all(u.startswith("https://boards.example/v1/boards/acme/education/") for u, _ in asked
+               if "/education/" in u)
+    # no Education section on the form: nothing more fetched; one school by default
+    asked.clear()
+    monkeypatch.setattr(greenhouse.httpx, "get", gh_get(asked, education=None))
+    assert all(x["native"] != "education" for x in greenhouse.questions("https://job-boards.greenhouse.io/acme/jobs/1"))
+    assert len(asked) == 1
+    # form page unreadable: the boxes every board seen shows, required as the job board says
+    monkeypatch.setattr(greenhouse.httpx, "get", gh_get([], embed=None, education="education_required"))
+    got = {x["id"]: x["required"] for x in greenhouse.questions("https://job-boards.greenhouse.io/acme/jobs/1")
+           if x["native"] == "education"}
+    assert got == {"school--0": True, "degree--0": True, "discipline--0": False}
+
+
+def test_education_answers_from_resume_details_in_the_forms_words():
+    """Each school's boxes from Resume details: degree as the list words it (BA -> Bachelor's Degree, named to
+    the user), discipline exact or the longest option it starts with, the graduation date only as the page
+    shows it - hidden by the user's choice -> blank, or asked as sensitive when required. Not on the resume ->
+    blank, asked when required."""
+    edu = lambda key, entry=0, required=False, options=(): questions.question(
+        f"{key}--{entry}", f"Education {entry + 1}: {key}", "number" if key.endswith("year") else "choice",
+        required, options or (GH_LISTS["degrees"] if key == "degree" else GH_LISTS["disciplines"]
+                              if key == "discipline" else questions.MONTHS if key.endswith("month") else []),
+        key, "education", entry=entry)
+    schools = [{"institution": "University of California, Berkeley", "degree": "BA", "field": "Economics in Asia",
+                "end": "2016-05"},
+               {"institution": "Acme Institute", "degree": "PhD", "field": "Astrophysics", "end": "2004", "hide_year": True},
+               {"institution": "Acme Law School", "degree": "J.D.", "end": "2021"}]
+    asked = [edu(k, i) for i in range(3) for k in ("school", "degree", "discipline", "school_end_month", "school_end_year")]
+    asked += [edu("school_end_year", 1, required=True) | {"id": "x"}, edu("school_start_year", 0, required=True),
+              edu("school", 3, required=True), edu("degree", 3)]
+    got = [(a["answer"], a["source"]) for a in questions.draft(asked, CONTACT, schools=schools)]
+    named = "as the form's nearest option - name it to the user"
+    assert got[:5] == [("University of California, Berkeley", "resume"),
+                       ("Bachelor's Degree", f"resume - 'BA' {named}"), ("Economics", f"resume - 'Economics in Asia' {named}"),
+                       ("May", "resume"), ("2016", "resume")]
+    assert got[5:10] == [("Acme Institute", "resume"), ("Doctor of Philosophy (Ph.D.)", f"resume - 'PhD' {named}"),
+                         (None, f"{questions.ASK} - 'Astrophysics' isn't on the form's list: the nearest option is theirs to pick"),
+                         (None, "left off your resume (your choice) - left blank"),
+                         (None, "left off your resume (your choice) - left blank")]
+    assert got[10:15] == [("Acme Law School", "resume"), ("Juris Doctor (J.D.)", f"resume - 'J.D.' {named}"),
+                          (None, "not on your resume - left blank"), (None, "not on your resume - left blank"),
+                          ("2021", "resume")]
+    assert got[15:] == [(None, f"{questions.ASK} - sensitive: graduation date"), (None, f"{questions.ASK} - not on your resume"),
+                        (None, f"{questions.ASK} - not on your resume"), (None, "not on your resume - left blank")]
+    degrees = GH_LISTS["degrees"]
+    assert [questions.degree_option(d, degrees) for d in ("MBA", "AA", "MS", "Bachelor's degree", "High School Diploma",
+                                                           "EdD", "Master of Science in Nursing")] == \
+        ["Master of Business Administration (M.B.A.)", "Associate's Degree", "Master's Degree", "Bachelor's Degree",
+         "High School", None, "Master's Degree"]
+    assert questions.major_option("Discipline", GH_LISTS["disciplines"]) is None  # never a catch-all by a shared word
+
+
+def test_greenhouse_says_school_boxes_search_its_list_as_typed():
+    """School, degree, discipline search Greenhouse's own list with each keystroke (measured, plan-29g.26): those
+    words reach its site before Submit - prepare tells the AI, AGENTS.md's privacy table has the row."""
+    import cfg
+    asked = [q("Education 1: School", "choice", "school"), q("Education 1: Degree", "choice", "degree"), q("First Name")]
+    assert "school, degree boxes search Greenhouse's own list as they're typed" in form.typed_note(greenhouse, asked)
+    assert form.typed_note(greenhouse, asked[2:]) == "" and form.typed_note(ashby, asked) == ""
+    table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
+    for system in systems.SYSTEMS:
+        typed = any("typed" in r.split("|")[3] for r in table if f"that employer's {system.NAME} site" in r)
+        assert typed == bool(getattr(system, "SEARCHED_AS_TYPED", ())), system.NAME
 
 
 class GhPage:

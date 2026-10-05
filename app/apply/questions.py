@@ -19,6 +19,12 @@ KINDS = {"text", "longtext", "email", "phone", "url", "number", "date", "locatio
 KEYS = {"name", "first_name", "middle_name", "last_name", "legal_name", "legal_first", "legal_middle",
         "legal_last", "preferred_name", "preferred_first", "other_names", "email", "phone", "location",
         "resume", "cover_letter", "linkedin", "github", "website", "street", "city", "state", "zip", None}
+# an Education section's boxes, answered from one school in Resume details (question entry = which one)
+EDUCATION = {"school", "degree", "discipline", "school_start_month", "school_start_year", "school_end_month",
+             "school_end_year"}
+KEYS |= EDUCATION
+MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+          "November", "December")
 # home address boxes, answered from `home_address` in search settings (never on the resume)
 ADDRESS = {"street", "city", "state", "zip"}
 # questions that are the user's to answer, never guessed (job-apply hard limits)
@@ -138,15 +144,17 @@ def never_draft(text: str) -> str | None:
 
 
 def question(id: str, title: str, kind: str, required: bool, options=(), key=None, native=None,
-             page: str | None = None) -> dict:
+             page: str | None = None, entry: int | None = None) -> dict:
     """One form question in the shared shape. `native` = the system's own type name, for its filler.
     `page` = which page of a multi-page form shows it: a section name the form's definition gives, or
-    what identifies the page a system read it off (its step heading)."""
+    what identifies the page a system read it off (its step heading). `entry` = which school on the
+    resume an Education box is for (0 = the first)."""
     assert kind in KINDS, kind
     assert key in KEYS, key
     out = {"id": id, "title": title, "kind": kind, "key": key, "native": native,
            "required": required, "options": list(options)}
-    return out | {"page": page} if page else out
+    out |= {"page": page} if page else {}
+    return out | {"entry": entry} if entry is not None else out
 
 
 def name_key(title: str) -> str | None:
@@ -340,6 +348,63 @@ def break_answer(q: dict, breaks: list[dict], today: date | None = None) -> str 
     return sep.join(f"{render.span_label(b)}: {b['explain'].strip()}" for b in asked)
 
 
+def degree_option(written: str, options: list[str]) -> str | None:
+    """The resume's degree as the form's list words it: its own wording or spelled out ("BA" ->
+    "Bachelor of Arts"), the one option naming it with its letters ("PhD" -> "Doctor of Philosophy
+    (Ph.D.)"), the longest option it starts with ("High School Diploma" -> "High School"), else its
+    family ("BA" -> "Bachelor's Degree"); none -> None, the user picks."""
+    from apply import profile  # it imports this module: imported at call time
+    full = render.degree_name(written)
+    folded = {o.casefold(): o for o in options}
+    if hit := folded.get(written.casefold()) or folded.get(full.casefold()):
+        return hit
+    lettered = [o for o in options if o.casefold().startswith(full.casefold() + " (")]
+    if len(lettered) == 1:
+        return lettered[0]
+    if hit := major_option(full, options):
+        return hit
+    return next((folded[f.casefold()] for f in profile.DEGREE_FAMILY.get(full.split()[0] if full else "", [])
+                 if f.casefold() in folded), None)
+
+
+def major_option(field: str, options: list[str]) -> str | None:
+    """Exact major, or the longest option the field starts with ('Art Education in School and
+    Community' -> 'Art Education'); none -> None, never a partial word or a catch-all."""
+    f = field.casefold().strip()
+    fits = [o for o in options if f == o.casefold() or f.startswith(o.casefold() + " ")]
+    return max(fits, key=len) if fits else None
+
+
+def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
+    """One Education box from school q["entry"] on the resume -> (answer, source). Degree and
+    discipline as the form's list words them; the graduation date only as the page shows it (hidden
+    by the user's choice -> left blank, or asked as sensitive when required); start dates aren't on
+    the resume."""
+    entry = q.get("entry") or 0
+    school = schools[entry] if entry < len(schools) else {}
+    unsaid = (None, f"{ASK} - not on your resume") if q["required"] else (None, "not on your resume - left blank")
+    key = q["key"]
+    if key == "school":
+        return (school["institution"], "resume") if school.get("institution") else unsaid
+    if key in ("degree", "discipline"):
+        written = (school.get("degree" if key == "degree" else "field") or "").strip()
+        if not written:
+            return unsaid
+        pick = (degree_option if key == "degree" else major_option)(written, q["options"])
+        if pick is None:
+            return None, f"{ASK} - '{written}' isn't on the form's list: the nearest option is theirs to pick"
+        return pick, "resume" if pick.casefold() == written.casefold() else \
+            f"resume - '{written}' as the form's nearest option - name it to the user"
+    if key in ("school_end_month", "school_end_year"):
+        if school.get("hide_year") and school.get("end"):
+            return (None, f"{ASK} - sensitive: graduation date") if q["required"] else \
+                (None, "left off your resume (your choice) - left blank")
+        year, _, month = schema.shown_end(school).partition("-")
+        value = year if key == "school_end_year" else MONTHS[int(month) - 1] if month.isdigit() else None
+        return (value, "resume") if year.isdigit() and value else unsaid
+    return unsaid
+
+
 def blank(answer) -> bool:
     return answer in (None, "", [])
 
@@ -354,12 +419,13 @@ def left_on_page(q: dict) -> str:
 
 
 def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
-          breaks: list[dict] | None = None, saved: list[dict] | None = None) -> list[dict]:
+          breaks: list[dict] | None = None, saved: list[dict] | None = None,
+          schools: list[dict] | None = None) -> list[dict]:
     """Questions + answers. Answers already written (an earlier prepare, or the AI) are kept -
     same id and same question only; on a sensitive question only the user's own, never one the
     program filled. The one sensitive kind the program fills: a work break, from words the user
     saved for it (`breaks`). Agreeing, consenting, signing, saying whether AI helped: always left
-    for the user on the page."""
+    for the user on the page. Education boxes: from `schools` (Resume details education)."""
     from apply import answers  # it reads this module's lists: imported at call time
     # generated page ids (rc_select_4, :r3:) can name another question on the next load: id + title
     kept = {(a["id"], answers.fold(a.get("title") or "")): a for a in old or [] if not blank(a.get("answer"))}
@@ -372,6 +438,10 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         was = kept.get((q["id"], answers.fold(q["title"])))
         if was and not (tag and was.get("source", "").startswith(AUTO)):
             out.append({**q, "answer": was["answer"], "source": was.get("source", "")})
+            continue
+        if q["key"] in EDUCATION:
+            answer, source = school_answer(q, schools or [])
+            out.append({**q, "answer": answer, "source": source})
             continue
         if tag == "work break" and (saved := break_answer(q, breaks or [])):
             out.append({**q, "answer": saved, "source": f"resume - sensitive: {tag} - {READ_FIRST}"})

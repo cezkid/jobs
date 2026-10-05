@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 import pytest
 
-from apply import browser, dom, form
+from apply import browser, dom, form, questions
 from apply.systems import greenhouse
 
 FIXTURES = Path(__file__).parent / "fixtures" / "dom"
@@ -245,3 +245,38 @@ def test_greenhouse_dropdown_the_page_empties_is_filled_again_or_flagged(page, m
     assert report[2][0] == "question_7" and report[2][1].startswith("FAIL ")  # never ok, whichever read-back saw it
     shown = [greenhouse.picked(greenhouse.by_id(page, f"question_{n}")) for n in (5, 6, 7)]
     assert shown == [["Canada"], ["No"], []]
+
+
+def test_greenhouse_education_filled_per_school_from_resume_details(page, monkeypatch):
+    """Education boxes drafted from Resume details, filled in Chrome (the window runs the same greenhouse.fill,
+    plan-29g.26): the school picked off Greenhouse's searched list by its words ("..., Berkeley" = "... -
+    Berkeley"), degree + discipline as the list words them, the second school's boxes through the section's own
+    Add another (never Employment's); a school not on the list -> the user picks theirs on the page."""
+    monkeypatch.setattr(form, "SETTLE_MS", 500)
+    page.goto("https://acme.example/greenhouse-education.html")
+    lists = {"degree": ["Associate's Degree", "Bachelor's Degree", "Doctor of Philosophy (Ph.D.)", "Master's Degree"],
+             "discipline": ["Computer Science", "Economics", "Other"]}
+    asked = [questions.question(f"{box}--{i}", f"Education {i + 1}: {title}", "number" if key.endswith("year") else "choice",
+                                False, questions.MONTHS if key.endswith("month") else lists.get(key, []), key, "education",
+                                entry=i)
+             for i in (0, 1) for box, _, title, key in greenhouse.EDUCATION_BOXES if "start" not in box]
+    schools = [{"institution": "University of California, Berkeley", "degree": "BA", "field": "Economics", "end": "2016-05"},
+               {"institution": "Massachusetts Institute of Technology", "degree": "PhD", "field": "Computer Science",
+                "end": "2021"}]
+    drafted = questions.draft(asked, {}, schools=schools)
+    report, extra = form.fill_page(page, greenhouse, drafted, None, None)
+    assert report == [(q["id"], "ok") for q in drafted if q["answer"]] and len(report) == 9
+    assert extra == ["first_name"]  # Education boxes never counted as questions the file lacks
+    shown = {f"{b}--{i}": greenhouse.picked(greenhouse.by_id(page, f"{b}--{i}")) for i in (0, 1)
+             for b in ("school", "degree", "discipline", "end-month")}
+    assert shown == {"school--0": ["University of California - Berkeley"], "degree--0": ["Bachelor's Degree"],
+                     "discipline--0": ["Economics"], "end-month--0": ["May"],
+                     "school--1": ["Massachusetts Institute of Technology"], "degree--1": ["Doctor of Philosophy (Ph.D.)"],
+                     "discipline--1": ["Computer Science"], "end-month--1": []}  # a year alone: no month typed
+    assert [page.input_value(f"#end-year--{i}") for i in (0, 1)] == ["2016", "2021"]
+    assert page.locator(".education--form").count() == 2 and page.locator('[id="company-name--1"]').count() == 0
+    monkeypatch.setattr(greenhouse, "LIST_WAIT_MS", 1500)
+    school = next(q for q in drafted if q["id"] == "school--0")
+    assert greenhouse.fill(page, school | {"answer": "Springfield Community College"}, None) == \
+        "ASK school 'Springfield Community College' not on the form's list - the user picks theirs (or Other) on the page"
+

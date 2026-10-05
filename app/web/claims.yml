@@ -115,6 +115,7 @@ privacy-employers:
     - '| Contact details, answers, resume you apply with | that employer''s Ashby site | That employer, once you click Submit |'
     - '| Resume (and cover letter) you apply with | that employer''s Greenhouse site | That employer, as soon as you choose the file (it goes to Greenhouse''s storage then) |'
     - '| Contact details, answers you apply with | that employer''s Greenhouse site | That employer, once you click Submit |'
+    - '| School, degree, discipline you apply with | that employer''s Greenhouse site | That employer, as each is typed in its box (the box searches Greenhouse''s own list) - before Submit |'
     - '| Resume you apply with | that employer''s Lever site | That employer, as soon as you choose the file (Lever reads it to fill the form) |'
     - '| Contact details, answers you apply with | that employer''s Lever site | That employer, once you click Submit |'
     - '| Resume you apply with | that employer''s Workable site | That employer, as soon as you choose the file (it goes to Workable''s storage then) |'

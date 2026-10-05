@@ -25,6 +25,13 @@ Optional, what leaves when:
 
     FILE_ON_CHOICE = True        a chosen file goes to the employer's site at once, before Submit
                                  (measured): prepare tells the AI to say so in the upload yes
+    SEARCHED_AS_TYPED = (keys)   boxes that search the system's own list with each keystroke
+                                 (measured): prepare tells the AI those words go out before Submit
+
+Optional, an Education section filled per school on the resume:
+
+    EDUCATION_ENTRIES = True     questions(url, schools) takes how many schools the resume lists
+                                 (default 1) and gives each its own boxes, with entry= (questions.question)
 
 Optional, for the live test:
 

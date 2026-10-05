@@ -18,6 +18,10 @@ employer; add yours as a new line.
 | `demographic_questions.questions[]` | employer's own optional survey: `id`, `type`, `answer_options[]` | page id = the numeric id; `free_form` options (self-describe) are a separate box, left off |
 | `compliance[]` (`eeoc`) | government self-ID: Gender, Race, Veteran Status (sometimes Disability) | choice questions, never required; Hispanic/Latino shows on the page but not here - added before Race |
 | not listed | Country (phone dialing code) - required on the page | added after Phone |
+| `education` (top level) | `education_optional` / `education_required` / absent (no section). 48 jobs, 24 boards (2026-10-05): absent 36, required 6, optional 6 | absent -> no Education boxes |
+| form page `/embed/job_app?for=<board>&token=<id>` (plain GET, 200 even where the job page redirects) | `"education_config":{school_name, degree, discipline, start_month, start_year, end_month, end_year}` each `optional` / `required` / `hidden` - 6 of 6 boards differed (one all optional; school + degree required, rest hidden; months hidden ...); `window.ENV.JBEN_URL` = the lists' host | one set of boxes per school in Resume details (`education(...)`), hidden ones left out, start dates only when required (the resume has none); unreadable -> school + degree (required as the job board says) + discipline optional |
+| `<JBEN_URL>/v1/boards/<board>/education/degrees`, `/disciplines` (`?page=N`, 100 a page, `meta.total_count`) | degrees: 10 on 3 boards ("Bachelor's Degree", "Doctor of Philosophy (Ph.D.)", "Master of Business Administration (M.B.A.)", "Other" ...); disciplines 72-73 | the options of Degree / Discipline: the resume's degree as the list words it (`questions.degree_option`: BA -> Bachelor's Degree, named to the user), discipline exact or longest option it starts with, else asked |
+| `/education/schools?term=` | search only, no full list: a comma in the term finds nothing ("University of California, Berkeley" -> 0, "University of California" -> "... - Berkeley"); unknown -> `[]`; "Other" is a school | typed up to the first comma, picked by its words (punctuation aside), never Other or a near name |
 
 Types: `input_text` -> text (email/phone by name), `textarea` -> longtext, `input_file` -> file,
 `multi_value_single_select` -> choice (Yes/No only -> yesno), `multi_value_multi_select` ->
@@ -36,7 +40,7 @@ multichoice, `input_hidden` skipped.
 | Location (City) | combobox `candidate-location`, places after typing (e.g. "Springfield, Illinois, United States") | type city only, pick option starting w/ the full answer |
 | Resume/CV, Cover Letter | hidden `input[type=file]#resume` / `#cover_letter`; after upload `[aria-labelledby=upload-label-<id>] .file-upload__filename` shows the file name | upload first, confirm by name. Choosing it sends the file at once - see below. Box ready only once the page's own storage-form request answers (after load): chosen before -> its own `uploadFile` error line, no name; same file again does nothing -> `put_file` waits network idle first, that line = `FAIL` (plan-29g.25, [vscode-browser.md](vscode-browser.md#upload-wait-plan-29g25)). Signed in to MyGreenhouse + a name box focused before the upload: the page puts the saved resume in, the file box is gone -> `FAIL question not on page` (measured, plan-29g.24); the fill's own order (resume first) keeps theirs |
 | Race | shown only after Hispanic/Latino = No | not shown -> skipped |
-| Education (School, Degree ...) | `school--0` ...; optional; not in the job board's list | left alone; MyGreenhouse may fill it |
+| Education (School, Degree ...) | `.education--container > .education--form` per school: react-selects `school--<i>`, `degree--<i>`, `discipline--<i>`, `start-month--<i>`, `end-month--<i>`, number boxes `start-year--<i>`, `end-year--<i>`; its own `button.add-another-button` adds school i+1 (Employment has one too). School, Degree, Discipline search Greenhouse's list with each keystroke (react-select async: the last answer stays shown while the next loads) | from Resume details (plan-29g.26); school i>0: click `.education--container .add-another-button` until its boxes show; searched boxes read until the answer shows (8 s), school not on the list -> ASK, the user picks theirs (or Other); end date only as the page shows it (`hide_year` -> blank). Never counted as extra questions. MyGreenhouse may fill it |
 
 `navigator.webdriver` false in Job Finder's Chrome (2026-10-02). Submit button `button[type=submit]` -
 never clicked. After Submit the address ends `/confirmation`.
@@ -68,6 +72,7 @@ Trial, off by default: `apply-form fill <job> --in-window` fills it in that tab 
 |---|---|
 | Load | analytics POST `c.spl.greenhouse.io` (3 of 3); employer page: its own analytics + cookie-consent POSTs |
 | Typing, choices, ticks | nothing (0 blocked while filling, 3 of 3) |
+| School, Degree, Discipline typed (Education) | each keystroke: GET `boards.greenhouse.io/v1/boards/<board>/education/<schools\|degrees\|disciplines>?term=<typed>` - the words typed, before Submit (page code, 2026-10-05); prepare says so (`SEARCHED_AS_TYPED`) |
 | Resume chosen | the file: POST `multipart/form-data` to `grnhse-prod-jben-us-east-1.s3.amazonaws.com` = Greenhouse's storage, before Submit (3 of 3) |
 | Cover letter chosen | same POST, same storage (2 of 2 that had the box) |
 | Contact details + answers | only on Submit (never clicked - unmeasured past it) |
