@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.77 (two contexts, no drafting context; sources opened before the draft was read)
 ---
@@ -510,3 +510,33 @@ study's limits, and what we could not check."), as in the sibling articles. The 
 "no drop at 40" sentence that disagrees with Kline is plan-xsy.84. Not re-read: sources whose
 claims the revision did not touch (lippens-2023, dhert-2026, namingit-2021, kristal-2023,
 farber-2017 beyond its review); the published ILR version of Åslund (working paper read).
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Subagent with no editing context. Read the diff, the whole article, the Guide and app-doc diffs and the sources below; edited no article.
+
+Changed: record section opener now "in the US, as of October 2026, the law limits what employers may ask". What-helps HireRight line now "more than three-quarters of the businesses it asked ... in the past 12 months". `modified` 2026-10-05; new Changes section.
+
+Sources opened (2026-10-05):
+- hireright-2025 (newsroom release): "More than three-quarters of businesses have found candidate discrepancies during the screening process in the last 12 months"; over 1,000 HR, risk and talent staff, February 11 - March 9, 2025. Supports the line.
+- Record-section law lines (usc-41-4714, ca-labor-432-7, nelp-2021) are all US; the new "in the US" tag is right. Statutes not re-opened: the change adds a place and date only.
+- kline-2022 (cached NBER w29053, p. 13), for the consistency check below: over-40 gap 0.6 points; "The estimate for the balanced sample is similar in magnitude but statistically insignificant."
+- No source text addressed an AI.
+
+HireRight wording now matches age-bias-hiring, employment-gaps, what-makes-a-good-resume, the Guide, bullets.md and fair-screening.md.
+
+Findings (verdict revise):
+- **M1 (medium; consistency, unchanged line)** "One of its checks did not confirm that drop [@kline-2022, pp. 4, 13]." Reads as no drop. Kline p. 13: the check found a gap "similar in magnitude" that could be chance. The same statistic now reads "could not rule out chance" in age-bias-hiring and "couldn't rule out chance" in the Guide (this diff). The age-bias re-review (plan-xsy.84, R2) rated this wording medium. Fix: "One of its checks found a gap about as large, but it could be chance [@kline-2022, pp. 4, 13]."
+- **L1 (low)** What-helps HireRight sentence grew to 27 words. Fix: "Keep facts true. A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants' details in the past 12 months [@hireright-2025]. That company sells those checks."
+- **L2 (low)** Changes line: "it counted the businesses asked". The survey reports a share, not a count. Fix: "the background-check survey line now says the share is of the businesses asked, over the past 12 months."
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article, its diff, `sources.yml` and the sources named below.
+
+- M1: fixed. "One of its checks found a gap about as large, but it could be chance [@kline-2022, pp. 4, 13]." Kline NBER w29053, printed p. 13: "a statistically significant gap of 0.6 percentage points ... The estimate for the balanced sample is similar in magnitude but statistically insignificant." Printed p. 4: 0.6-point penalty for graduation dates implying over 40. Supported. Matches age-bias-hiring and the Guide.
+- L1: fixed. Three sentences now: "A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants' details in the past 12 months [@hireright-2025]. That company sells those checks."
+- L2: fixed. Changes line: "the share is of the businesses asked".
+- methods M1, carried here: fixed. After the Kline 2024 sentence: "We read that paper's published summary only." After the 63% sentence: "That figure is from the published summary." NBER w32313 page re-opened: abstract only, "97 U.S. employers, the identities of which we disclose for the first time". Crossref abstract of 10.1093/qje/qjx028 re-opened: "employers that asked about criminal records were 63% more likely to call applicants with no record". Both match `sources.yml` (kline-2024 venue "abstract read on the NBER working paper page"; agan-starr-2018 sample "figures are the published abstract's") and the source rows above. Table row 33 repeats the 63% with no new number. The new research.md rule covers it.
+- Changes line: accurate (HireRight share, US + date tag, two summary markers, the age check).
+- No new finding. Verdict: publish.

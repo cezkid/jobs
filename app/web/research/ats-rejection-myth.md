@@ -2,7 +2,7 @@
 title: "Do ATS reject 75% of resumes? Where the number came from"
 description: No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.
 published: 2026-10-03
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 og_title: "Do hiring systems reject 75% of resumes? Where the claim came from"
 uncited:
@@ -93,7 +93,7 @@ We found no study showing that a formatting slip alone causes automatic rejectio
 
 Formatting can still hurt in a quieter way: through ranking and search. In a test reported by CIO in 2012, one ideal resume was misread by the Taleo hiring system and scored only 43% relevant [@levinson-2012-cio]. That was one resume in one system, so it shows what can happen, not how often.
 
-Our own tests found that widely spaced heading letters came back as "EXP E R I ENC E" in one PDF-to-web conversion ([page-format.md](../../docs/resume/page-format.md)). Three common PDF readers read the same heading whole. We don't know whether any ATS reads a page the way that conversion did. If one did, the garbled word would not match a recruiter's search.
+Our own tests found that lightly spaced heading letters came back as "EXP E R I ENC E" in one PDF-to-web conversion ([page-format.md](../../docs/resume/page-format.md)). Three common PDF readers read that lightly spaced heading whole. With wider spacing, every reader in our October 2026 test split the headings into single letters ([Are two-column resumes ATS friendly?](resume-parser-test.md)). We don't know whether any ATS reads a page the way that conversion did. If one did, the garbled word would not match a recruiter's search.
 
 In one Workday test, a school and degree written on one line landed in the wrong boxes ([page-format.md](../../docs/resume/page-format.md)).
 
@@ -139,7 +139,7 @@ AI scores are in use, but most managers in that survey said a person still makes
 
 ## What helps
 
-- Answer yes/no questions truthfully. In the US, every new hire proves their right to work on Form I-9 [@uscis-i9]. A false "no" to sponsorship shows up when a visa is needed.
+- Answer yes/no questions truthfully. In the US, as of October 2026, every new hire proves their right to work on Form I-9 [@uscis-i9]. A false "no" to sponsorship shows up when a visa is needed.
 - Use the posting's own words for skills you really have. Recruiters can search resumes for them [@greenhouse-search].
 - Use a plain one-column page that a computer reads back correctly.
 - Fill every question yourself; autofill can leave them blank (our Ashby test did).
@@ -159,3 +159,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - recounted our measurement. Some forms list the employer's questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.
+- October 2026 - the spaced-heading line now says three readers read a lightly spaced heading whole, and wider spacing split it in our parser test. The Form I-9 line now carries its date. The finding is unchanged.

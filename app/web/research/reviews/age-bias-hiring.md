@@ -425,3 +425,36 @@ source text addressed an AI.
   age" in the onset section, "the largest US age test" in the two later mentions)
 
 Not re-read: sentences and sources this change did not touch.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Subagent with no editing context. Read the diff, the whole article, the Guide and app-doc diffs and the sources below; edited no article.
+
+Changed: HireRight line now "more than three-quarters of the businesses it asked ... in the past 12 months". Tool box: "offers to hide a graduation or certificate year once it is 15 or more years old. Once your degree is 20 or more years old, it recommends all the date changes above, as our judgement." New Changes line.
+
+Sources opened (2026-10-05):
+- hireright-2025 (newsroom release): "More than three-quarters of businesses have found candidate discrepancies ... in the last 12 months"; over 1,000 staff, February-March 2025. Supports the line.
+- Tool box checked against the program: `app/resume/lint.py` `OLD_GRADUATION_YEARS = 15` drives `old-graduation-year` and `old-certification-year` (offer to leave the year off); `AGE_BUNDLE_YEARS = 20`, `age_bundle_due` reads education end dates only. `app/resume/feedback.py` BUNDLE note: graduation year, certificate years 15+, old jobs, "25 years" wording, small cost. `fair-screening.md` rows "Recommend the bundle once degree is 20+ years old" + "Old dates offered, not forced"; AGENTS.md "keeping age dates once degree is 20+ yrs old - recommend the bundle". "All the date changes above" = What-helps bullet 1. Supported.
+- bone-2026 (arXiv v1, only version), for the consistency check below: pp. 2, 4-5, Appendix A.3, A.9.
+- No source text addressed an AI.
+
+Findings (verdict revise):
+- **M1 (medium; unchanged line, outside this diff)** "A 2026 conference paper tested 10 openly released AI models on made-up applicants, one at a time." Wrong design. Bone gives two profiles per prompt; "The LLM is tasked with choosing who to callback for an interview" (p. 2); prompt "Which applicant should be interviewed for this vacancy? Respond with applicant name only." (Appendix A.3). One applicant alone is only a robustness check (Appendix A.9). The earlier source row here ("No applicant is compared with another in one prompt") was wrong; claim row 44 ("choosing between") was right. Fix: "A 2026 conference paper had 10 openly released AI models pick which of two made-up applicants to call back." Same error in the `sources.yml` bone-2026 `sample` (printed in the Sources list here and on ai-resume-screening-bias). Fix: "10 open AI models, each in a base and a trained version, choosing which of two made-up applicants to call back; age shown by graduation year, older = 45 to 58". Also `fair-screening.md` age table "one applicant per prompt" -> "two applicants per prompt".
+- **L1 (low)** HireRight sentence grew to 27 words. Fix: "A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants' details in the past 12 months [@hireright-2025]. That company sells those checks."
+- **L2 (low)** Changes line: "it counted the businesses asked". The survey reports a share, not a count. Fix: "the background-check survey line now says the share is of the businesses asked, over the past 12 months."
+
+Changes line otherwise accurate ("offers at 15 years, recommends at 20"), plain, short.
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article, its diff, `sources.yml`, the docs diff and the paper below.
+
+- M1: fixed in all three places. Article: "A 2026 conference paper had 10 openly released AI models pick which of two made-up applicants to call back." (19 words). `sources.yml` sample: "choosing which of two made-up applicants to call back". `fair-screening.md` age table: "two applicants per prompt". arXiv v1 re-read: p. 2 "Each base prompt starts with an occupation-specific job vacancy and two worker profiles"; p. 6 a callback is scored "if the perturbed applicant is selected over the unperturbed baseline profile"; p. 4 the single-applicant 1-10 rating is the robustness test (Appendix A.9). No "one at a time" is left on any page or doc.
+- L1: fixed. Three sentences now.
+- L2: fixed. Changes line: "the share is of the businesses asked".
+- Changes line: accurate (HireRight, the Bone design, the 15/20-year offer).
+- **L3 (low, new; outside the article)**: the `fair-screening.md` Unverified list still has "Bone 2026: ... a range of -10.0 to +1.7 - not in the abstract." Both ends are in the paper body, p. 8: Granite 4 went from 0.0% to -10.0%, Qwen 3.5 +1.7%. Fix: drop the line, or move the range into the age table as read. No page uses it. Does not block.
+- **L4 (low, new, optional)**: Tool box "as our judgement" (also in What-helps lines 129-130). research.md asks for US English, where "judgment" is the usual spelling. Does not block.
+- No medium or high open. Verdict: publish.
+
+Editor, after the resolution check (2026-10-05): L3 fixed by editor (Bone range line dropped from fair-screening Unverified); L4 fixed (judgment, US spelling).

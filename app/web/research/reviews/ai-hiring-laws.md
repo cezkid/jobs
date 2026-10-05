@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.60 (no drafting context; sources opened before the draft was read)
 ---
@@ -214,3 +214,35 @@ All F and R findings are closed. Notes where the fix is partial or a finding is 
 ## Edit after review (2026-10-04, plan-xsy.63)
 
 Added one line under the "at a glance" table: "Each row's last column links to the law or rule it summarizes." And one line under the New York City bar figure: "Even among employers listing city jobs, few had posted either one." (restates the figure's 14 and 12 of 267). Layout only: the site check failed on a table or figure rule stacked on the next heading's rule; no number or source changed.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Subagent with no editing context. Read the diff, the whole article and the sources below; edited no article.
+
+Changed: Short answer "Notice now" -> "Notice as of October 2026"; "EU now" -> "EU since 2018"; Colorado human review "from 2027" -> "once in force (start not settled)". Table heading "AI hiring laws at a glance" -> "Which AI hiring laws apply where?". Colorado table status -> "Start not settled: January 2027 or at signing, per a staff note; enforcement paused by a court". What-helps Colorado line -> "once the law applies ... start date is not settled", plus the staff-note cite. `modified` 2026-10-05; new Changes section.
+
+Sources opened (2026-10-05):
+- co-sb26-189-fiscal (PDF, May 6, 2026): Summary "Beginning on January 1, 2027 ... disclosures"; Effective Date section: deployer disclosures, consumer rights, AG enforcement "upon signature", all else January 1, 2027. Supports "January 2027 or at signing".
+- co-sb26-189: bill page returns 406 to scripts; read the cached copy (`~/.cache/plan-xsy.60/co-sb26-189.txt`): 30-day plain-language description, AG rules by January 1, 2027, signed act. Supports the table row.
+- xai-weiser-stay (docket, entries through October 2, 2026): ECF 24 minute order, April 27, 2026, bars enforcement of SB24-205 "or any legislation replacing" it until 14 days after a PI ruling. Supports "paused".
+- eu-gdpr (gdpr-info.eu Article 99): "It shall apply from 25 May 2018." Supports "since 2018".
+- For consistency with the sibling page: mobley-2026-order (ECF 360, pp. 1-2, 11), nyc-aedt-rule section 5-304(a), nys-comptroller-2025 ("complaint process is ineffective"), wright-2024 (391 employers, 18 audits, October 24 - November 9, 2023). All match this page's lines.
+- No source text addressed an AI.
+
+Changes line: accurate. Plain, short.
+
+Findings (low only):
+- **L1 (low)** Short answer: "From 2027: Colorado (date not settled), California, Connecticut". Files Colorado under 2027, but the staff note puts the notice sections at signing (May 2026). Fix: "Notice as of October 2026: New York City, EU (fully automated decisions). Illinois: notice to employees, rules not final. Colorado: start not settled. From 2027: California, Connecticut (Law) [...same cites]".
+- **L2 (low)** What helps: "Its start date is not settled, and the court pause may delay it." "Its" points back across sentences. Fix: "Colorado's start date is not settled, and the court pause may delay it [@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay]."
+
+Verdict: publish.
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article, its diff and the Changes line.
+
+- L1: fixed. Short answer: "Notice as of October 2026: New York City, EU (fully automated decisions). Illinois: notice to employees, rules not final. Colorado: start not settled. From 2027: California, Connecticut (Law)", staff note cited.
+- L2: fixed. "Colorado's start date is not settled, and the court pause may delay it [@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay]."
+- Changes line: accurate. Every Colorado start line (Short answer x2, Colorado section, table, What helps) now says not settled. The "as of October 2026" / "since 2018" tags are not listed: clarifications, not corrections.
+- No new finding. `pages.py --check`: no error for this page.
+- Verdict: publish (unchanged).

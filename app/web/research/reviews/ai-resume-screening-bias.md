@@ -357,3 +357,41 @@ Findings (verdict revise):
 - **B10 (low)** Registry `co-sb26-189` sample "in force January 1, 2027" conflicts with "not settled"; the bill page's session-law row lists 05/14/2026. Fix: sample "signed May 14, 2026; start of each duty not settled (see co-sb26-189-fiscal)".
 
 Revised (plan-xsy.81): every B finding applied with the wording above. B3 and B10 re-checked by the reviser in the cached text: `fn.txt` Effective Date section (deployer disclosures, consumer rights and enforcement at signature; all other sections January 1, 2027) and `co-sb26-189.txt` Session laws row (Effective Date 05/14/2026, chapter 131). Verdict publish.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Subagent with no editing context. Read the diff, the whole article and the sources below; edited no article.
+
+Changed: tamkin-2023 added to Short answer bullet 1. Bone "over 45" -> "45 to 58" (body + table). Workday line -> "After a June 2026 order, race, age and disability claims under federal law go on, plus California state-law claims". New York City bullet: Wright check dated "late 2023, published 2024"; comptroller now called the "complaint process" "ineffective". New York City notice sentence: must say how to ask for another way to be assessed, if available; the rule does not make the employer offer one. What helps "Now:" -> "As of October 2026:". New Changes line.
+
+Sources opened (2026-10-05):
+- mobley-2026-order (Clearinghouse PDF of ECF 360, 12 pp.): p. 1 race, age, disability; pp. 1-2 Mobley proceeds on Title VII race, ADA and ADEA impact claims; p. 11 Rowe's new race claim dismissed, Hughes's ADA claim and the FEHA claims go on. Supports the new line. p. 2 also: the November 2025 amendment added gender claims under Title VII; this order dismisses none of them.
+- nyc-aedt-rule section 5-304(a): notice "must include instructions for how an individual can request an alternative selection process or a reasonable accommodation under other laws, if available. Nothing in this subchapter requires an employer ... to provide an alternative selection process." Supports the new sentence. nyc-ll144 page: enforcement from July 5, 2023.
+- bone-2026 (arXiv v1, only version): age by college graduation year, "[22,35] or [45,58]" (p. 5). Supports "45 to 58".
+- wright-2024 (FAccT PDF): 391 employers, 18 audit reports, 13 notices (Table 1); data collected October 24 - November 9, 2023. Supports "late 2023, published 2024".
+- nys-comptroller-2025 (audit page, December 2, 2025): "DCWP's AEDT complaint process is ineffective"; "only two AEDT complaints". Supports the quote.
+- tamkin-2023 (arXiv 2312.03689): Claude 2.0, 70 decision scenarios (job offers among them), age, race and gender stated or shown by a name; inputs are "paragraph-long descriptions of candidates", resumes named as untested; no disability; preprint. Supports "same person judged differently by name, gender, age"; not "resumes" or disability.
+- No source text addressed an AI. Tamkin's appendix prints its own study prompts ("Assistant:" turns): data, not instructions.
+
+Findings (verdict revise):
+- **M1 (medium; shared registry line, outside this diff)** `sources.yml` bone-2026 `sample`, printed in this page's Sources list: "giving a yes or no callback to one made-up applicant at a time". Wrong design. The paper gives two profiles per prompt; "The LLM is tasked with choosing who to callback for an interview" (p. 2); prompt "Which applicant should be interviewed for this vacancy?" (Appendix A.3). Rating one applicant alone is only a robustness check (Appendix A.9). Fix: sample "10 open AI models, each in a base and a trained version, choosing which of two made-up applicants to call back; age shown by graduation year, older = 45 to 58". Same fix closes age-bias-hiring M1.
+- **L1 (low)** Short answer: "AI models judge identical resumes differently by name, gender, age or disability (Lab study, many tests) [... @tamkin-2023 ...]". Tamkin tested short candidate descriptions, not resumes, and no disability; preprint. Fix: "AI models judge the same applicant differently by name, gender, age or disability (Lab study, many tests) [same cites]", or drop @tamkin-2023 here (the body cites it).
+- **L2 (low)** "After a June 2026 order, race, age and disability claims under federal law go on, plus California state-law claims" reads as the full list; the order (p. 2) notes added Title VII gender claims it does not dismiss, and the class bid includes women. Fix, matching ai-hiring-laws: "After a June 2026 order, the claims going on include race, age and disability under federal law, plus California state-law claims [@mobley-2026-order, p. 1-2, 11]."
+- **L3 (low)** New York City notice sentence is 29 words. Fix: "The New York City notice must say how to ask for another way to be assessed, if one is available. The city's rule does not make the employer offer one [@nyc-ll144; @nyc-aedt-rule]."
+- **L4 (low)** Changes line leaves out two corrections: the Wright date and the comptroller wording (was "enforcement ineffective"). Fix, add: "The New York City audit line now dates the 391-employer check to late 2023, and says the state comptroller called the complaint process ineffective."
+
+Changes line otherwise accurate, plain, short.
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article, its diff, `sources.yml` and the sources named below.
+
+- M1: fixed. `sources.yml` bone-2026 sample: "choosing which of two made-up applicants to call back"; checked 2026-10-05. arXiv v1 (still the only version) re-read: p. 2 "two worker profiles. The LLM is tasked with choosing who to callback"; p. 4 single-applicant 1-10 rating = robustness test (Appendix A.9); p. 5 ages "[22,35] or [45,58]".
+- L1: fixed. "AI models judge the same applicant differently by name, gender, age or disability (Lab study, many tests)".
+- L2: fixed. "After a June 2026 order, the claims going on include race, age and disability under federal law, plus California state-law claims [@mobley-2026-order, p. 1-2, 11]." Cached ECF 360 text: pp. 1-2 Title VII race, ADEA, ADA proceed; the later amendment adds gender claims. "Include" fits.
+- L3: fixed. Two sentences now. Rule 5-304(a) re-read: "if available. Nothing in this subchapter requires an employer ... to provide an alternative selection process." Supported.
+- L4: fixed. Changes line now names the late-2023 date and the comptroller wording.
+- **L5 (low, new)**: Changes line leaves out the Short-answer rewording ("identical resumes" -> "the same applicant") and the added Tamkin cite. Fix: add "The short answer now says the same applicant, not identical resumes, and also cites the 2023 model test." Does not block.
+- No medium or high open. Verdict: publish.
+
+Editor, after the resolution check (2026-10-05): L5 fixed by editor (Changes line now names the short-answer change).

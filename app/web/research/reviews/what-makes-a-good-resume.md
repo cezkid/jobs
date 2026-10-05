@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.28 (no drafting context; sources opened before the draft was read)
 ---
@@ -293,3 +293,33 @@ Added one link sentence to the same bullet, to the cover letter data page (cover
 ## Re-review (2026-10-04, fresh AI session, plan-xsy.72)
 
 Edits in plan-xsy.72: the gap review is now cited in its 2026 journal version (dhert-2026, pages given; "not yet peer-reviewed" wording dropped); the Namingit wording follows the published summary ("significantly higher"); "72% of respondents" for the background-check release; one link sentence to employment-gaps; a Changes line. Checked against the sources by a fresh AI session that did not make the edits; its findings and their fixes are in [the employment-gaps review](employment-gaps.md) ("Re-review" section; R13 applies here: the 16 experiments are on p. 1362, cite now "pp. 1357, 1362"). No open finding.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Reviewer: fresh Claude session that made none of the edits. No text in any source opened addressed an AI.
+
+What changed: typo short answer 7 -> 7.3 points. HireRight table row + body: "businesses it asked ... in the past 12 months". Gap reason "a cheap, honest step" -> "your call, and the evidence is mixed". What helps gap bullet "costs little" -> "your call; studies disagree", with Namingit + Kristal cited. One `## Changes` line.
+
+Sources opened:
+- sterkens-2023 (PLOS ONE PDF): abstract 18.5 and 7.3 percentage points; p. 10 two errors beta = -0.730, five errors "18.5 percent points lower"; p. 16 "two errors receive 7.3 percent points lower". Supported; p. 10 cite right for 18.5.
+- hireright-2025 + hireright-2025-sept: as in the employment-gaps re-review. Supported.
+- namingit-2021 (RePEc abstract) + kristal-2023 (PMC): support "helped for one health reason in one test and did nothing for childcare in another" and "studies disagree".
+- Consistency: gap-reason wording matches Guides/What makes a good resume ("your call ... Studies disagree") and `bullets.md` ("their call (evidence mixed)"). HireRight wording matches every other page and doc. Changes line matches the diff.
+
+Findings (low):
+- **W1 (low) - one long sentence.** "In a 2025 survey by HireRight, a background-check company, more than three-quarters of the businesses it asked found a mismatch in the past 12 months." (26 words). Fix: "HireRight, a background-check company, ran a survey in 2025. More than three-quarters of the businesses it asked found a mismatch in the past 12 months." Keep the one cite at the end of the run.
+- **W2 (low, outside the article) - the Guide labels typos Convention.** `Guides/What makes a good resume.md`: "**US spelling, no typos, no filler** ... *Convention.*" This page gives typos a Lab study (Sterkens). Fix in the Guide: "*Convention; typos: lab study - 2 errors cost 7.3 points out of 100 in recruiter ratings.*"
+
+Verdict: publish.
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article, its diff and the Guide diff.
+
+- W1: fixed. "HireRight, a background-check company, ran a survey in 2025. More than three-quarters of the businesses it asked found a mismatch in the past 12 months."
+- W2: fixed. The Guide now says "*Convention; typos: lab study.*"
+- 7.3 now appears in the Short answer, the table and the body, so "in every line" holds.
+- **W3 (low, new)**: Changes line "The background-check survey lines now say they counted the businesses asked, over 12 months." This is the flaw age-bias-hiring L2 and hiring-bias-what-helps L2 fixed: the survey gives a share, not a count. Fix: "The background-check survey lines now say the share is of the businesses asked, over the past 12 months."
+- No medium or high open. Verdict: publish (unchanged).
+
+Editor, after the resolution check (2026-10-05): W3 fixed by editor (share, not count).

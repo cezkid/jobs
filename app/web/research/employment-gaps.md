@@ -2,7 +2,7 @@
 title: "Does an employment gap on your resume hurt?"
 description: "Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer's."
 published: 2026-10-04
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 uncited:
   - "We found no field test"
@@ -120,7 +120,7 @@ A line such as "a health matter, now resolved or well managed" names no conditio
 
 ## Should you change dates to hide a gap?
 
-No. Many employers check. A background-check company ran a survey in 2025. More than three-quarters of the businesses it asked had found mismatches in applicants' details in 12 months. Work history was one of the most common kinds [@hireright-2025]. A later release said work history checks found mismatches most often in every region, named by 72% of respondents in Asia-Pacific [@hireright-2025-sept]. The company sells those checks, so read its numbers with care.
+No. Many employers check. A background-check company ran a survey in 2025. More than three-quarters of the businesses it asked had found mismatches in applicants' details in the past 12 months. Work history was one of the most common kinds [@hireright-2025]. A later release said work history checks found mismatches most often in every region, named by 72% of respondents in Asia-Pacific [@hireright-2025-sept]. The company sells those checks, so read its numbers with care.
 
 A gap costs some replies at some employers. A false date found in a check is a mismatch on record.
 
@@ -137,7 +137,7 @@ A gap costs some replies at some employers. A false date found in a check is a m
 ## What helps
 
 - Still searching? A search under way is not a gap to explain. In the largest review, the first six months out of work showed no clear cost [@dhert-2026].
-- Gap of six months or more: a one-line reason is your call. It helped for one health reason and did nothing for childcare [@namingit-2021; @kristal-2023]. The six-month line is a convention: it is where executives said software filters start [@fuller-2021].
+- Gap of six months or more: a one-line reason is your call. It helped for one health reason and did nothing for childcare [@namingit-2021; @kristal-2023]. The six-month line comes from a survey. Of executives whose software ranks or filters applicants, 48% said it filters middle-skill applicants on gaps over six months [@fuller-2021].
 - Gap of a year or more: list real work, study or volunteering you did. Volunteering on a resume raised invitations in one test [@baert-vujic-2018].
 - Keep health reasons to a few words. Covered US employers may not ask about the condition before a conditional offer, as of October 2026 [@eeoc-ada-preemployment].
 - Laid off: naming it in one line is your call. It did better than a caregiving reason in one US test, but no test compared it with saying nothing [@weisshaar-2018].
@@ -155,3 +155,7 @@ How we grade evidence: [How we research](methods.md). What else makes a resume w
 - The rules and their sources are in the program's [fair screening notes](../../docs/resume/fair-screening.md).
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - the six-month line is now credited to the survey it comes from, with its 48% figure, not called a convention [@fuller-2021]. The background-check survey line now says "in the past 12 months". The findings are unchanged.

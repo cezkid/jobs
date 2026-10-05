@@ -12,8 +12,8 @@ Rules clash? This order wins: **true > real results > fits the job > easy to rea
 
 ## 1. Every word true
 
-- **Employer, title, dates match the employer's records.** Over 3 in 4 employers found a mismatch
-  last year. Most common: undisclosed criminal records, education and work history. Work history
+- **Employer, title, dates match the employer's records.** Over 3 in 4 businesses asked found a
+  mismatch in the past 12 months. Most common: undisclosed criminal records, education and work history. Work history
   checks turned up mismatches most often in every region (72% of respondents in Asia-Pacific, 64% in
   Europe, the Middle East and Africa). *Vendor survey (HireRight 2025, a background-check company).*
 - **Every number one you can explain.** Interviews ask about anything on the page. Nothing
@@ -39,8 +39,8 @@ More: [evidence](../app/docs/resume/bullets.md#tier-2---substance)
 - **Most relevant first.** First line under each job always gets read. *Convention.*
 - **Last 10-15 years.** Shorten older jobs; no hole in the middle. *Convention.*
 - **Breaks over 6 months: a one-line reason is your call.** Over a year: that line, plus any recent work,
-  study or volunteering you really did. In one survey, about half the executives whose
-  software sorts applicants said it filters out breaks over 6 months. Longer breaks cost more.
+  study or volunteering you really did. In one survey, 48% of executives whose software
+  ranks or filters applicants said it filters out breaks over 6 months, for middle-skill jobs. Longer breaks cost more.
   Does the reason help? Studies disagree: one US study, yes for a health reason; one big UK study, no
   gain for childcare.
   *Survey (2020) + big study across 7 countries; the reason's effect is mixed.*
@@ -51,7 +51,7 @@ More: [fitting the job](../app/docs/resume/bullets.md#tier-3---relevance)
 
 - **One idea per line; one full line or two.** A few words alone on a row waste space.
   *Convention; our measurement.*
-- **US spelling, no typos, no filler** ("successfully", "I"). *Convention.*
+- **US spelling, no typos, no filler** ("successfully", "I"). *Convention; typos: lab study.*
 - **Plain page:** one column, black text, no tables or pictures. Checked on every resume.
   *Hiring software's help pages.*
 - **1-2 pages.** *Convention.*

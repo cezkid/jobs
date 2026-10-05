@@ -18,7 +18,7 @@
 <meta property="og:title" content="Do hiring systems reject 75% of resumes? Where the claim came from">
 <meta property="og:description" content="No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.">
 <meta property="article:published_time" content="2026-10-03">
-<meta property="article:modified_time" content="2026-10-04">
+<meta property="article:modified_time" content="2026-10-05">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ats-rejection-myth/#article","headline":"Do ATS reject 75% of resumes? Where the number came from","description":"No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.","url":"https://jobs.enrriquez.com/research/ats-rejection-myth/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ats-rejection-myth/","datePublished":"2026-10-03","dateModified":"2026-10-04","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do ATS reject 75% of resumes? Where the number came from","item":"https://jobs.enrriquez.com/research/ats-rejection-myth/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ats-rejection-myth/#article","headline":"Do ATS reject 75% of resumes? Where the number came from","description":"No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.","url":"https://jobs.enrriquez.com/research/ats-rejection-myth/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ats-rejection-myth/","datePublished":"2026-10-03","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do ATS reject 75% of resumes? Where the number came from","item":"https://jobs.enrriquez.com/research/ats-rejection-myth/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -335,7 +335,7 @@
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Do ATS reject 75% of resumes? Where the number came from</li></ol></nav>
 <h1>Do ATS reject 75% of resumes? <span class="deck">Where the number came from</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>. Updated <time datetime="2026-10-04">4 October 2026</time>.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">3 October 2026</time>. Updated <time datetime="2026-10-05">5 October 2026</time>.</p>
 <p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
@@ -421,7 +421,7 @@
 <h2 id="do-formatting-errors-get-resumes-rejected">Do formatting errors get resumes rejected?</h2>
 <p>We found no study showing that a formatting slip alone causes automatic rejection. Recruiters in the Enhancv interviews mostly said formatting did not trigger rejection (<a href="#src-enhancv-2025">Vasileva 2025</a>). That evidence is a vendor survey of 25 people, so it is weak in both directions.</p>
 <p>Formatting can still hurt in a quieter way: through ranking and search. In a test reported by CIO in 2012, one ideal resume was misread by the Taleo hiring system and scored only 43% relevant (<a href="#src-levinson-2012-cio">Levinson 2012a</a>). That was one resume in one system, so it shows what can happen, not how often.</p>
-<p>Our own tests found that widely spaced heading letters came back as “EXP E R I ENC E” in one PDF-to-web conversion (<a href="https://github.com/cezkid/jobs/blob/main/app/docs/resume/page-format.md">page-format.md</a>). Three common PDF readers read the same heading whole. We don’t know whether any ATS reads a page the way that conversion did. If one did, the garbled word would not match a recruiter’s search.</p>
+<p>Our own tests found that lightly spaced heading letters came back as “EXP E R I ENC E” in one PDF-to-web conversion (<a href="https://github.com/cezkid/jobs/blob/main/app/docs/resume/page-format.md">page-format.md</a>). Three common PDF readers read that lightly spaced heading whole. With wider spacing, every reader in our October 2026 test split the headings into single letters (<a href="/research/resume-parser-test/">Are two-column resumes ATS friendly?</a>). We don’t know whether any ATS reads a page the way that conversion did. If one did, the garbled word would not match a recruiter’s search.</p>
 <p>In one Workday test, a school and degree written on one line landed in the wrong boxes (<a href="https://github.com/cezkid/jobs/blob/main/app/docs/resume/page-format.md">page-format.md</a>).</p>
 <p>Blank questions are not rejections either. Ashby’s “Autofill from resume” filled only contact boxes in our test, leaving the employer’s questions empty (<a href="https://github.com/cezkid/jobs/blob/main/app/docs/apply/ashby.md">ashby.md</a>). Applicants can read the empty boxes as the system rejecting their resume. The autofill did not reject anyone.</p>
 <p>Our own layout test read one resume in 7 layouts with free PDF readers: <a href="/research/resume-parser-test/">Are two-column resumes ATS friendly?</a></p>
@@ -449,7 +449,7 @@
 </ul>
 <h2 id="what-helps">What helps</h2>
 <ul>
-<li>Answer yes/no questions truthfully. In the US, every new hire proves their right to work on Form I-9 (<a href="#src-uscis-i9">US Citizenship and Immigration Services 2026</a>). A false “no” to sponsorship shows up when a visa is needed.</li>
+<li>Answer yes/no questions truthfully. In the US, as of October 2026, every new hire proves their right to work on Form I-9 (<a href="#src-uscis-i9">US Citizenship and Immigration Services 2026</a>). A false “no” to sponsorship shows up when a visa is needed.</li>
 <li>Use the posting’s own words for skills you really have. Recruiters can search resumes for them (<a href="#src-greenhouse-search">Greenhouse 2022</a>).</li>
 <li>Use a plain one-column page that a computer reads back correctly.</li>
 <li>Fill every question yourself; autofill can leave them blank (our Ashby test did).</li>
@@ -467,6 +467,7 @@
 <h2 id="changes">Changes</h2>
 <ul>
 <li>October 2026 – recounted our measurement. Some forms list the employer’s questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.</li>
+<li>October 2026 – the spaced-heading line now says three readers read a lightly spaced heading whole, and wider spacing split it in our parser test. The Form I-9 line now carries its date. The finding is unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">

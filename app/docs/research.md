@@ -26,7 +26,10 @@ Hierarchy, strongest first - cite the highest one that exists, never a weaker on
 - Open every source you cite. Read the part you cite (methods + the table, not the abstract only).
   Never cite one not opened; never cite a number from a secondary source as if read in the primary.
 - A number from a source that won't open (paywall, dead link): find an open copy (author page,
-  SSRN, arXiv, PubMed Central) or drop it.
+  SSRN, arXiv, PubMed Central) or drop it. Only the published summary opens -> the article says
+  so next to that finding ("We read the published summary only"), and the methods page says such lines are marked. A short
+  answer, table row or "What helps" line repeating that finding w/o a new number is covered by the
+  body line's marker.
 - Check before adding: [fair-screening.md](resume/fair-screening.md#advice-we-dont-follow) "did not
   survive" + "Unverified" lists, [bullets.md](resume/bullets.md). A figure listed there never
   reaches a page as fact.
@@ -62,7 +65,7 @@ prints in the Sources list.
   employers do; a Survey shows what people say.
 - Correlation stays correlation ("linked with", never "causes").
 - Absence of evidence is no source: say "no study found" in the text, list what was searched in
-  the page's `uncited:` list. Big + observational (Bommasani 2026, 3M applicants) stays Real
+  the page's `uncited:` list. Big + observational (Bommasani 2026, 3.4M applicants) stays Real
   records - `sample` carries the size.
 
 ## Registry + citations

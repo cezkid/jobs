@@ -2,7 +2,7 @@
 title: "What makes a good resume? The evidence, rule by rule"
 description: Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.
 published: 2026-10-03
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 og_title: "What makes a good resume? Each rule and the evidence behind it"
 uncited:
@@ -16,7 +16,7 @@ uncited:
 **Short answer**
 
 - True first: employer, title, dates match records. Firms that check find mismatches (Vendor survey) [@hireright-2025].
-- Typos: 2 errors, rated interview chance 7 points lower out of 100 (Lab study) [@sterkens-2023].
+- Typos: 2 errors, rated interview chance 7.3 points lower out of 100 (Lab study) [@sterkens-2023].
 - Long time out of work costs callbacks. Short spells: studies disagree (Big studies) [@dhert-2026; @kroft-2013].
 - Results over duties, one page early on: career-guide advice, no study (Convention) [@mit-capd-resumes]. Last 10-15 years in detail: one career guide (Convention) [@indeed-experience-2025]. No photo: one field experiment found photos help some, hurt others (Big study) [@ruffle-2015].
 
@@ -34,7 +34,7 @@ The table sums up each rule, the strongest evidence we found for it, and what th
 
 | Rule | Evidence | What it shows |
 |---|---|---|
-| Employer, title and dates match your records | Vendor survey | More than three-quarters of firms that run checks found a mismatch in the past year [@hireright-2025] |
+| Employer, title and dates match your records | Vendor survey | More than three-quarters of businesses a background-check company asked found a mismatch in the past 12 months [@hireright-2025] |
 | Proofread for typos | Lab study | Two spelling errors lowered recruiters' rated interview chance by 7.3 points out of 100 [@sterkens-2023] |
 | Long time out of work costs callbacks | Big study | 13-18 months out of work cut positive replies by about 21% [@dhert-2026, p. 1382] |
 | Short spells out of work | Big studies; they disagree | A 2026 review found no clear cost for 1-6 months; a US experiment found callbacks fell over the first 8 months [@dhert-2026; @kroft-2013] |
@@ -50,7 +50,7 @@ Most rules in the table rest on convention or a company's own survey, test or he
 
 ## Does your resume have to match your records?
 
-Yes. Many employers check work history, and mismatches turn up. In a 2025 survey by HireRight, a background-check company, more than three-quarters of employers found a mismatch in the past year. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of respondents in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].
+Yes. Many employers check work history, and mismatches turn up. HireRight, a background-check company, ran a survey in 2025. More than three-quarters of the businesses it asked found a mismatch in the past 12 months. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of respondents in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].
 
 HireRight sells background checks, and the people it asked work at firms that run checks. The survey's question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.
 
@@ -102,7 +102,7 @@ The studies disagree. In one US field experiment, a resume and cover letter sayi
 
 A larger UK experiment found no gain from a childcare reason. Mothers' resumes with a 2.5-year gap explained as full-time childcare did no better than an unexplained gap. The same study tried listing years worked per job instead of dates, which hides the gap. Listing years raised replies by about 8% over resumes with no gap at all [@kristal-2023].
 
-For you, a one-line reason is a cheap, honest step. It helped for one health reason in one test and did nothing for childcare in another. Bias against gaps is the employer's, not a flaw in you. Application forms such as Workday's ask for start and end dates anyway.
+For you, a one-line reason is your call, and the evidence is mixed. It helped for one health reason in one test and did nothing for childcare in another. Bias against gaps is the employer's, not a flaw in you. Application forms such as Workday's ask for start and end dates anyway.
 
 ## Do typos really matter?
 
@@ -169,7 +169,7 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 
 - Make every employer, title and date match your records [@hireright-2025].
 - Proofread, and have someone else proofread too [@sterkens-2023].
-- After a long gap, a short, honest reason costs little. The bias grows with time out of work, and it is the employer's [@dhert-2026].
+- After a long gap, a short, honest reason is your call; studies disagree on whether it helps [@namingit-2021; @kristal-2023]. The bias grows with time out of work, and it is the employer's [@dhert-2026].
 - Leave off a photo and personal details [@mit-capd-resumes].
 - Use a plain, one-column page with clear headings [@ladders-2018].
 
@@ -188,3 +188,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - the review of time out of work now cites its 2026 journal version, not the 2024 draft; its figures are unchanged. The US health-reason study now cites its published summary, which calls the gain significant.
+- October 2026 - a one-line gap reason is now "your call", since studies disagree on whether it helps. The typo figure now reads 7.3 points in every line [@sterkens-2023]. The background-check survey lines now say the share is of the businesses asked, over the past 12 months.

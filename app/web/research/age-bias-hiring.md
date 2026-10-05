@@ -84,7 +84,7 @@ These are beliefs about a group. They say nothing about how well one person will
 
 ## Does AI screening read age too?
 
-In lab tests, yes. A 2026 conference paper tested 10 openly released AI models on made-up applicants, one at a time. Age showed through the college graduation year; older meant 45 to 58. The makers' extra training moved callbacks for older applicants down by 3.6% against the same models before that training. Eight of the ten moved that way [@bone-2026]. A 2023 preprint from an AI maker tested one older model on 70 made-up decisions, with the age stated. The decisions covered loans and visas as well as jobs. Its answers were less favorable for people over 60 [@tamkin-2023]. Lab tests show what models do in a test, not what employers do. More tests are in [Is AI resume screening biased?](ai-resume-screening-bias.md)
+In lab tests, yes. A 2026 conference paper had 10 openly released AI models pick which of two made-up applicants to call back. Age showed through the college graduation year; older meant 45 to 58. The makers' extra training moved callbacks for older applicants down by 3.6% against the same models before that training. Eight of the ten moved that way [@bone-2026]. A 2023 preprint from an AI maker tested one older model on 70 made-up decisions, with the age stated. The decisions covered loans and visas as well as jobs. Its answers were less favorable for people over 60 [@tamkin-2023]. Lab tests show what models do in a test, not what employers do. More tests are in [Is AI resume screening biased?](ai-resume-screening-bias.md)
 
 One US lawsuit puts the question to a court. In May 2025, a federal court let an age claim over Workday's screening tools go forward for a wider group. The group is applicants aged 40 and over since September 2020. The order describes what the plaintiffs allege and decides nothing on the facts [@mobley-2025-order]. As of October 2026, we found no ruling on the facts in the case. The case and the laws around it are in [AI hiring laws](ai-hiring-laws.md).
 
@@ -109,7 +109,7 @@ Each state rule has exceptions, such as a real job requirement or another law th
 
 No. Leaving a date off is honest; a false date is not.
 
-Degrees are easy to check. The National Student Clearinghouse says its member schools enroll 97% of students at US public and private colleges [@nsc-about]. The Clearinghouse runs a service that confirms degrees and attendance [@nsc-verify]. In a 2025 survey by a background-check company, more than three-quarters of businesses had found mismatches in applicants' details [@hireright-2025]. That company sells those checks.
+Degrees are easy to check. The National Student Clearinghouse says its member schools enroll 97% of students at US public and private colleges [@nsc-about]. The Clearinghouse runs a service that confirms degrees and attendance [@nsc-verify]. A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants' details in the past 12 months [@hireright-2025]. That company sells those checks.
 
 A missing year is not a false statement. A false year found in a check is a mismatch on record.
 
@@ -126,8 +126,8 @@ A missing year is not a false statement. A false year found in a check is a mism
 
 ## What helps
 
-- Degree 20 or more years old: consider taking off graduation and certificate years, shortening the oldest jobs, and dropping phrases like "25 years of experience". A year lets a reader guess age. The 20-year line is our judgement from the tests above, not a tested threshold.
-- If you take the year off, shorten the oldest jobs too. A long history lets a reader guess age as well. That is our judgement; no test compared the two.
+- Degree 20 or more years old: consider taking off graduation and certificate years, shortening the oldest jobs, and dropping phrases like "25 years of experience". A year lets a reader guess age. The 20-year line is our judgment from the tests above, not a tested threshold.
+- If you take the year off, shorten the oldest jobs too. A long history lets a reader guess age as well. That is our judgment; no test compared the two.
 - Early in your career, keep the year. Career guides expect it, and that is convention, not a study.
 - Name the current tools you really use. Raters' doubts about technology skills explained part of the age gap in a lab study [@van-borm-2021].
 - On an application form, answer a required date box truthfully. An optional one can stay empty.
@@ -138,7 +138,7 @@ How we grade evidence: [How we research](methods.md). What else makes a resume w
 
 ## How CEZ Job Finder uses this
 
-- CEZ Job Finder offers the date changes above only when the dates in your own file show a degree 20 or more years old. The offer uses the same words for everyone.
+- CEZ Job Finder offers to hide a graduation or certificate year once it is 15 or more years old. Once your degree is 20 or more years old, it recommends all the date changes above, as our judgment. It goes only by the dates in your own file and uses the same words for everyone.
 - It says "this year lets a reader guess age" and says leaving it off may have a small cost that no US test has measured. Then it does what you pick.
 - It never guesses anyone's age from a name, a school or a photo.
 - It never writes a false date, and required form boxes get your true answers.
@@ -149,3 +149,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - added a US test of more than 83,000 applications at 108 large employers. Applicants over 40, counted together, got slightly fewer replies [@kline-2022]. So the short answer, the description and one body sentence no longer say US tests found no drop at 40. Neumark 2019 is now called the largest US test built to study age, not the largest US test. The other findings are unchanged.
+- October 2026 - the background-check survey line now says the share is of the businesses asked, over the past 12 months. The 2026 model test is now described as it ran: each prompt asked a model to pick one of two applicants [@bone-2026]. CEZ Job Finder's age offer is now described as it works: it offers at 15 years, recommends at 20. The findings are unchanged.

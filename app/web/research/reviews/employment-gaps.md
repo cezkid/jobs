@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.71 (no drafting context; sources opened before the draft was read)
 ---
@@ -461,3 +461,32 @@ before applying them. Every fix uses the re-review's own wording, so no third ro
 - **R18 no change.**
 
 No open finding. Verdict: publish.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Reviewer: fresh Claude session that made none of the edits. No text in any source opened addressed an AI.
+
+What changed: background-check line "in 12 months" -> "in the past 12 months". What helps: the six-month line "is a convention: it is where executives said software filters start" -> "comes from a survey: it is where executives said their software filters start". `## Changes` added.
+
+Sources opened:
+- hireright-2025 (release): "More than three-quarters of businesses have found candidate discrepancies during the screening process in the last 12 months"; criminal convictions, education and employment most common; 1,000+ HR, risk and talent staff, February 11 - March 9, 2025. Supported.
+- hireright-2025-sept: employment verifications most likely to reveal discrepancies "across all regions", "72% of respondents in APAC and 64% in EMEA". Supported.
+- fuller-2021 (Archive PDF): p. 22 "48% of employers filtered middle-skills candidates based on employment gaps of more than six months". Figure 7 (p. 23) was shown only to those whose system ranks or filters. Its item reads "Employment gaps in resume (e.g., 7-month period without work)". Executives ticked whether their system uses gaps; they named no cutoff.
+- namingit-2021 (RePEc abstract) + kristal-2023 (PMC), for "helped for one health reason and did nothing for childcare": "significantly higher than those whose employment gap is unexplained"; Kristal "no empirical support that this strategy works any better than an unexplained gap". Supported.
+- Consistency: HireRight wording matches what-makes-a-good-resume, hiring-bias-what-helps, age-bias-hiring, both Guides, `bullets.md`, `fair-screening.md`, AGENTS.md.
+
+Finding:
+- **E1 (medium) - the six-month line overstates what executives said.** Sentence: "The six-month line comes from a survey: it is where executives said their software filters start [@fuller-2021]." Problems: only 48% of executives whose software ranks or filters said so, for middle-skills jobs, but "executives" reads as all of them. And no executive named a start point: the item's example was a 7-month gap; "more than six months" is the report's own framing. Body line 63 and both Guides already say it right. Fix: "The six-month line comes from a survey: 48% of executives with screening software said it filters gaps over six months [@fuller-2021]." The Changes line ("credited to the survey it comes from") still fits after the fix.
+
+Verdict: revise (E1).
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article, its diff and the source below.
+
+- E1: fixed. "The six-month line comes from a survey. Of executives whose software ranks or filters applicants, 48% said it filters gaps over six months [@fuller-2021]." Hidden Workers (cached Archive PDF), printed p. 22: "48% of employers filtered middle-skills candidates based on employment gaps of more than six months. (See Figure 7.)". The Fig 7 note (p. 23) says the question went only to those whose system ranks or filters; its item reads "Employment gaps in resume (e.g., 7-month period without work)". The scope fix is in. "Over six months" is the report's own framing, and E1's proposed fix kept it too.
+- **E2 (low, new)**: the What-helps line drops "middle-skills". Body line 63, both Guides, AGENTS.md and `bullets.md` all carry it. Fix: "Of executives whose software ranks or filters applicants, 48% said it filters middle-skill applicants on gaps over six months [@fuller-2021]." Does not block: line 63 gives the scope.
+- Changes line: accurate.
+- No medium or high open. Verdict: publish.
+
+Editor, after the resolution check (2026-10-05): E2 fixed by editor (middle-skill applicants).

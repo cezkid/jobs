@@ -2,7 +2,7 @@
 title: "Can employers tell if AI wrote your resume?"
 description: Mostly no, in tests - most people can't spot AI writing. About half of hiring managers say they'd care. What studies show, and what to do.
 published: 2026-10-03
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 og_title: "Can employers tell if AI wrote your resume? What studies show"
 uncited:
@@ -45,7 +45,7 @@ A detector's "AI" label is untested on resumes. Older detectors were tripped by 
 
 They say they can tell, and about half say they care. Both surveys below are vendor surveys, run for companies in the hiring or resume business.
 
-In an October 2024 survey of 1,005 US HR and hiring leaders, 88% said they can tell when applicants use AI. Of those leaders, 54% said they would care if a resume or cover letter was written by AI. The other 46% said they would not care [@insight-global-2025].
+In an October 2024 survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI. The other 46% said they would not care [@insight-global-2025].
 
 A 2026 survey of 1,000 US hiring managers was run for a resume-builder company. In it, 80% said they can often tell when AI wrote a resume. Most, 76%, said AI-written resumes make it harder to see what a person actually did. And 72% said heavy reliance on AI makes applicants seem less skilled. Asked about disclosure, 79% said applicants should say when AI helped [@resume-genius-2026].
 
@@ -127,3 +127,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - reworded the two cover letter studies. The hiring shifts by ability come from an extreme case in the authors' model, and both callback estimates were too weak to rule out chance; the numbers are unchanged.
+- October 2026 - the hiring survey now names its sample as HR and talent leaders, as its method section does. The 54% line now reads as a share of everyone asked [@insight-global-2025]. The numbers are unchanged.

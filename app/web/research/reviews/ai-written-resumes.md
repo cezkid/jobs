@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.25 (no drafting context; sources opened before the draft was read)
 ---
@@ -270,3 +270,29 @@ Revised (plan-xsy.58): every B finding applied with the wording above (sign list
 ## Re-review (2026-10-04, fresh AI session, plan-xsy.69)
 
 Edit in plan-xsy.69: reworded the Cui and Galdin-Silbert paragraphs (both estimates too weak to rule out chance; the 19%/14% as an extreme model case, top/bottom fifth; "no evidence of a change in overall hiring"; "willing to pay more"), added a `## Changes` line and a link to cover-letters-after-ai. Checked against the sources by a fresh AI session that did not make the edit; its findings and their fixes are in [the cover-letters-after-ai review](cover-letters-after-ai.md) ("Re-review" section, R3, R5, R6). No open finding.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Reviewer: fresh Claude session that made none of the edits. No text in the source addressed an AI.
+
+What changed: Insight Global sample "HR and hiring leaders" -> "HR and talent leaders"; `modified`; one `## Changes` line.
+
+Sources opened:
+- insight-global-2025 (PDF p. 14): sample = "full-time human resources or talent acquisition executives", orgs 100+ staff, October 17-22, 2024; p. 9: 88% can tell, 54% would care, 46% would not. Supported.
+- Description + short answer keep "hiring managers": the report's own label (pp. 2, 14). Still supported.
+- Cui paragraph (unchanged): "Neither estimate was certain enough to rule out chance" matches cover-letters-after-ai's new "too uncertain to rule out chance" and Cui p. 3. Consistent.
+- Same sample wording in cover-letters-after-ai body + table and `bullets.md` ("n=1,005 US HR + talent leaders, Oct 2024").
+
+Findings (low):
+- **A1 (low) - "Of those leaders" can read as 54% of the 88%.** Sentence: "Of those leaders, 54% said they would care if a resume or cover letter was written by AI." Fix: "In the same survey, 54% said they would care if a resume or cover letter was written by AI."
+- **A2 (low) - Changes line says "as the survey does".** The report says "hiring managers" in its text and HR or talent acquisition executives in its method. Fix: "the hiring survey now names its sample as HR and talent leaders, as its method section does; the numbers are unchanged."
+
+Verdict: publish.
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article and its diff.
+
+- A1: fixed. "In the same survey, 54% said they would care if a resume or cover letter was written by AI."
+- A2: fixed. Changes line: "names its sample as HR and talent leaders, as its method section does. The 54% line now reads as a share of everyone asked".
+- No new finding. Verdict: publish (unchanged).

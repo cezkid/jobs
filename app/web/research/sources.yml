@@ -180,8 +180,8 @@
   venue: COLM 2026, Conference on Language Modeling (open copy on arXiv)
   url: https://arxiv.org/abs/2609.22169
   evidence: lab/LLM audit
-  sample: 10 open AI models, each in a base and a trained version, giving a yes or no callback to one made-up applicant at a time; age shown by graduation year, older = 45 to 58
-  checked: 2026-10-04
+  sample: 10 open AI models, each in a base and a trained version, choosing which of two made-up applicants to call back; age shown by graduation year, older = 45 to 58
+  checked: 2026-10-05
 
 - id: ca-2ccr-11079
   type: law
@@ -451,6 +451,7 @@
   evidence: court record
   sample: agency press release on a settled lawsuit, September 2023; what the agency alleged and the settlement terms
   checked: 2026-10-03
+  recheck_by: 2027-04-05
 
 - id: enhancv-2025
   type: web

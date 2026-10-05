@@ -25,9 +25,9 @@ Can cost the offer, not just the interview. Claims a third party checks.
 
 | Rule | Basis | |
 |---|---|---|
-| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of employers found discrepancies in prior year; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of respondents APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a seniority word (Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor) |
+| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of businesses asked found discrepancies in the past 12 months; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of respondents APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a seniority word (Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor) |
 | Overlap fine; **unlabelled** overlap isn't | National Resume Writers' Association: "concurrent roles are not frowned upon." Same employer -> stacked titles; different -> marker (part-time, freelance, contract), else reads as date mistake. | enforce: `role-dates-overlap`, incl. same-employer case |
-| Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US hiring managers): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
+| Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US HR + talent leaders, Oct 2024): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
 | Year in a bullet inside the role's dates | No external source; internal consistency. Jobscan 2026 runs against it (dates on header, not bullets). | **report only** - see [Considered, not mechanised](#considered-not-mechanised) |
 | No uncheckable grade | Berkeley: "minimize the use of adjectives and adverbs"; Arizona: "better to be clear than be complicated". *Advanced, best-in-class, world-class, industry-leading* carry nothing; the fact behind them does. Word-ban lists = resume-product blogs; defensible core is substitution. **Grade word inside a term isn't a grade** (*Advanced Cardiac Life Support*, *advanced practice nurse*). | enforce: `unmeasurable-grade`, skipped when facts or posting use the word |
 
@@ -101,7 +101,7 @@ standard scale (ILR US government, CEFR Europe). "English and Spanish - fluent i
 and speaking" pairs level w/ one or neither. Vendor docs + convention, unmeasured.
 `language-level` warns; level asked, never guessed.
 
-**Gap length matters; a reason helps, doesn't erase it.** `schema.MAX_GAP_MONTHS` = 6 flags,
+**Gap length matters; a reason line is their call (evidence mixed), never erases it.** `schema.MAX_GAP_MONTHS` = 6 flags,
 `LONG_GAP_MONTHS` = 12 raises the note (`gap_note`):
 - Filters: Hidden Workers (HBS/Accenture 2021) Fig 7 - 48% of execs whose software ranks or
   filters said it filtered middle-skill candidates on gaps over 6 months. US/UK/DE pooled,

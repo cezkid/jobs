@@ -2,7 +2,7 @@
 title: "AI hiring laws in 2026: what employers must tell you"
 description: In 2026, New York City and the EU make employers tell you about AI screening; Illinois, Colorado, California and Connecticut follow. Few let you ask why.
 published: 2026-10-04
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 og_title: "AI hiring laws in 2026: what employers must tell you"
 uncited:
@@ -14,8 +14,8 @@ uncited:
 **Short answer**
 
 - Legal in the US: we found no federal law banning AI resume screening, as of October 2026. Discrimination claims over it still go to court (Court record) [@mobley-2026-order].
-- Notice now: New York City, EU (fully automated decisions). Illinois: notice to employees, rules not final. From 2027: Colorado (date not settled), California, Connecticut (Law) [@nyc-ll144; @il-pa-103-0804; @eu-gdpr; @co-sb26-189-fiscal; @ca-cppa-admt-2025; @ct-pa26-15].
-- Ask a person to look again: EU now, for fully automated decisions; California from 2027, for some tools; Colorado from 2027, enforcement paused by a court (Law, Court record) [@eu-gdpr; @ca-cppa-admt-2025; @co-sb26-189; @xai-weiser-stay].
+- Notice as of October 2026: New York City, EU (fully automated decisions). Illinois: notice to employees, rules not final. Colorado: start not settled. From 2027: California, Connecticut (Law) [@nyc-ll144; @il-pa-103-0804; @eu-gdpr; @co-sb26-189-fiscal; @ca-cppa-admt-2025; @ct-pa26-15].
+- Ask a person to look again: EU since 2018, for fully automated decisions; California from 2027, for some tools; Colorado once in force (start not settled), enforcement paused by a court (Law, Court record) [@eu-gdpr; @ca-cppa-admt-2025; @co-sb26-189; @xai-weiser-stay].
 - Little checking: New York City got 2 complaints in 2 years (Real records) [@nys-comptroller-2025].
 
 This page describes laws as of October 2026. It is general information, not legal advice. Which law covers a job depends on where it is and who the employer is.
@@ -111,13 +111,13 @@ Even among employers listing city jobs, few had posted either one.
 
 Mobley v. Workday is a US lawsuit still in progress, as of October 2026. The plaintiffs allege Workday's screening tools discriminated by race, age and disability [@mobley-2026-order, p. 1]. In May 2025 the court let the age claim go forward for a wider group of applicants, at a preliminary stage. Workday denies the claims, and nothing has been proven [@clearinghouse-mobley]. In September 2026 the plaintiffs asked the court to certify four groups as a class action: African American applicants, women, people over 40 and people with disabilities. A hearing is set for March 9, 2027 [@lawyer-monthly-2026].
 
-## AI hiring laws at a glance
+## Which AI hiring laws apply where?
 
 | Law | Where | What the employer must do | What you can ask for | Status as of October 2026 | Source |
 |---|---|---|---|---|---|
 | Local Law 144 | New York City | Yearly bias audit, public summary, notice 10 business days before use | Data used and its source, answered within 30 days; how to ask for another process | Enforced since July 2023 | [@nyc-ll144; @nyc-aedt-rule] |
 | Public Act 103-0804 | Illinois | Notice to employees that AI is used; no AI with discriminating effects; no ZIP code stand-ins | No request right in the text | In force since January 2026; notice rules not final | [@il-pa-103-0804] |
-| SB26-189 | Colorado | Notice; plain description of the system's role within 30 days after a decision against you | Your data; fix wrong data; human review and reconsideration | January 2027 per a staff note; enforcement paused by a court | [@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay] |
+| SB26-189 | Colorado | Notice; plain description of the system's role within 30 days after a decision against you | Your data; fix wrong data; human review and reconsideration | Start not settled: January 2027 or at signing, per a staff note; enforcement paused by a court | [@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay] |
 | Privacy rules on automated decisions | California | Notice before use; opt-out or human appeal, except some hiring tools | How the tool worked and shaped the decision | Starts January 2027 | [@ca-cppa-admt-2025] |
 | Public Act 26-15 | Connecticut | Plain-words notice; written notice before a decision | No explanation or correction right in the text | Notice starts October 2027 | [@ct-pa26-15] |
 | GDPR Article 22 | European Union | Tell you about fully automated decisions and their logic | A person to step in; give your view; contest it | In force since 2018 | [@eu-gdpr] |
@@ -145,7 +145,7 @@ Each row's last column links to the law or rule it summarizes.
 - If an AI test or game does not work for you because of a disability, ask for an accommodation [@eeoc-ada-preemployment].
 - In the EU, ask for a person to review a fully automated rejection [@eu-gdpr].
 - In California from January 2027, ask how a tool used your data in the decision. Opt out, or appeal to a person, where offered [@ca-cppa-admt-2025].
-- In Colorado from January 2027, ask for the description, your data and a human review. The court pause may delay this [@co-sb26-189; @xai-weiser-stay].
+- In Colorado, once the law applies, ask for the description, your data and a human review. Colorado's start date is not settled, and the court pause may delay it [@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay].
 - Keep a copy of each notice and what you sent. The rights above run on dates: 10 business days, 30 days.
 - Remember bias in a screener is the employer's problem, not a flaw in you.
 
@@ -158,3 +158,7 @@ How we grade evidence: [How we research](methods.md). What studies show about bi
 - Checks for new jobs from your search every day, so you can apply widely.
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - Colorado's start date now reads "not settled" in every line, matching the Colorado section. The summary table's heading is now a question.

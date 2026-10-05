@@ -30,7 +30,7 @@ before adding a claim; a figure listed there never reaches a user as fact.
 | Apply widely - our reading, untested | Kline/Rose/Walters, QJE 2022 (83k applications, 108 of the largest US employers): Black names 2.1 pts fewer contacts on a 24% base (white names ~9% more); worst fifth of firms = nearly half of lost Black contacts, most firms mild bias. No test of applying widely as a tactic. Federal contractor + centralised HR *correlated* with smaller gaps, not proven causes. | large field experiment |
 | Bias goes on after the callback | Quillian/Lee/Oliver 2020: majority applicants 53% more callbacks, 145% more job offers. Name tweaks at the first screen can't reach the interview. | meta-analysis |
 | Pro-diversity statements don't predict fairer screening | Kang 2016: postings w/ them discriminated just as much. | field experiment |
-| Initials: **their call, never recommended** | Direct evidence thin and mixed: 2 small tests of an English first name + ethnic surname disagree (Canada 2008 no significant gain; US 2015 borderline gain). No test of bare initials. Detail: Oreopoulos 2011 "Allen Wang" 12.5% - below English 16.0%, not significantly above Chinese 11.3%. Kang 2016 "Lei -> Luke Zhang" (surname kept) 11.5% -> 18.0%, p<.10, 200 applications per cell. Black "Lamar J. -> L. James Smith" 10.0% -> 13.0%, not significant at that size - a test too small to tell, not a null. | 2 field experiments, small cells |
+| Initials: **their call, never recommended** | Direct evidence thin and mixed: 2 small tests of an English first name + ethnic surname disagree (Canada, Oreopoulos 2011: no significant gain; US, Kang 2016: borderline gain). No test of bare initials. Detail: Oreopoulos 2011 "Allen Wang" 12.5% - below English 16.0%, not significantly above Chinese 11.3%. Kang 2016 "Lei -> Luke Zhang" (surname kept) 11.5% -> 18.0%, p<.10, 200 applications per cell. Black "Lamar J. -> L. James Smith" 10.0% -> 13.0%, not significant at that size - a test too small to tell, not a null. | 2 field experiments, small cells |
 | Say what initials hide + don't | Hide the first name on the page only. Not the surname, the email address, or any form box asking the legal name. AI recovers ethnicity from redacted prose (below). | follows from the above |
 | Affinity items: their call, same info for all | Kang 2016: whitening activities alone lifted Black callbacks 10% -> 18%, more than the name. But Kang *renamed* organisations - in real life a false name. Omit, or describe generally ("Treasurer, 40-member student group"); never rename (Hold). Removing loses real leadership; value lost unmeasured. | field experiment; trade-off unmeasured |
 | Languages: ask every user | Oreopoulos 2011 (Canada): several languages lifted callbacks +5.8 pts for foreign-educated applicants only (French counted); no effect for locally educated ethnic names. | large field experiment, Canada |
@@ -56,7 +56,7 @@ before adding a claim; a figure listed there never reaches a user as fact.
 |---|---|---|
 | Direction varies by model - say so, promise nothing | Gao 2026 *preprint* (14 models): 2023 model +2.12 pts pro-white; 2024+ models null or pro-Black up to 3.01; same for gender. An 2025 (~361k resumes, 5 models): Black men scored lower, women higher. Wilson & Caliskan 2024 (embedding search): white names favoured in 85.1% of tests. | lab/LLM audit |
 | Order effects as big as names | Rozado 2026 (PeerJ CS; preprint 2025; 22 models): first-listed candidate won 63.5%; names -> "Candidate A/B" + swapped order gave parity. | lab/LLM audit |
-| Real vendor data leans against Black + Asian applicants | Bommasani 2026 *preprint* (3M applicants, one vendor): 25.87% of Black + 14.74% of Asian applicants' applications went to positions w/ adverse impact against their group; 4% of people applying to 10 jobs were recommended for rejection by all 10. | large observational, preprint |
+| Real vendor data leans against Black + Asian applicants | Bommasani 2026 (FAccT '26; 3.4M applicants, 4.2M applications, one vendor's game tests): 25.87% of Black + 14.74% of Asian applicants' applications went to positions w/ adverse impact against their group; 4% of people applying to 10 jobs were recommended for rejection by all 10. | large observational |
 | Removing the name doesn't hide ethnicity from AI | Chen & Xiao 2026 *preprint* (9 models, 620 resumes): ethnicity recovered from redacted prose 76% on average, 100% when cues strong. | lab/LLM audit, preprint |
 | Humans copy AI bias | Wilson 2025 (528 people): followed a biased AI's race preference up to 90% of the time. | lab/LLM audit |
 | No candidate trick has evidence | Nothing tested shows an applicant-side wording beats a screener. Program advice stays: accurate, relevant, readable. | absence of evidence |
@@ -72,7 +72,7 @@ before adding a claim; a figure listed there never reaches a user as fact.
 | Hiding may have a small cost - name it, say it is not measured in the US | ResumeBuilder 2022 (800 US hiring managers, self-report): 41% say a grad year makes age bias more likely, nearly one in four would never recommend listing it, largest group (26%) says always list all relevant experience. Derous 2017 (610 Belgian HR raters): leaving out birth date lowered ratings slightly (η²=0.02) - birth date, where customary, not grad year. No US test of a missing grad year. | vendor survey; lab/LLM audit |
 | Keep the year early in career | Students + within ~10 years of graduating keep it ("Expected May 2027"); new-grad programmes screen on it. Farber 2019: ages 22-23 at 9.4% was mostly missing experience. | convention + field experiment |
 | Dated tools read as age | Van Borm 2021: perceived tech skill, flexibility, trainability explain ~41% of the age effect. Show current tools really used; no test shows recent training closes the gap. | lab/LLM audit |
-| AI reads grad year too | Bone 2026 (COLM 2026 conference paper, 10 open-model families, one applicant per prompt, older = 45-58): post-trained models 3.6% less likely to call back older applicants than their own base models, 8 of 10 moved that way - a shift between model versions, not an older-vs-younger gap. Tamkin 2023 *preprint* (Claude 2.0, explicit age, loans + visas + jobs): negative over 60. | lab/LLM audit |
+| AI reads grad year too | Bone 2026 (COLM 2026 conference paper, 10 open-model families, two applicants per prompt, older = 45-58): post-trained models 3.6% less likely to call back older applicants than their own base models, 8 of 10 moved that way - a shift between model versions, not an older-vs-younger gap. Tamkin 2023 *preprint* (Claude 2.0, explicit age, loans + visas + jobs): negative over 60. | lab/LLM audit |
 | Never a false date | Leaving a date off = fine; a false one = Hold. National Student Clearinghouse: member schools enroll ~97% of US college students (its About page); it runs a degree + attendance verification service (its Verify page). Required form field -> answer truthfully; optional -> blank is fine. | vendor docs; law |
 | Wording | "This year lets a reader guess age" - never "because you're older". Offer fires on dates in the file, same for everyone. | convention (policy) |
 
@@ -89,8 +89,8 @@ before adding a claim; a figure listed there never reaches a user as fact.
 | Health: "a health matter, now resolved or well managed" | Never "recovered" as the only option (false for ongoing conditions); never name a condition. ADA (employers w/ 15+ employees): no disability-related questions before a conditional offer; state rules vary. | law; large field experiment |
 | Layoff: one line under the last job when true | "Role cut in company-wide layoff" - Gibbons & Katz 1991: discretionary layoffs read worse than plant closings. No audit compares layoff vs firing. | observational |
 | Stop-gap job below skill: their call on the page, full history on forms | Pedulla 2016, men: below-skill job 4.7% ~ unemployed 4.2% vs full-time 10.4%. Farber 2016: interim lower-level job 9.8% -> 8.5%. Pedulla women: below-skill 5.2% vs 10.4%; temp work n.s. for both; Nunley 2017: about 30% fewer. | field experiment |
-| Dates on forms match employer records | HireRight 2025: over 3/4 of employers found discrepancies in 12 months; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of respondents APAC, 64% EMEA; Sept 2025 release). Background checks can compare the form. | vendor survey |
-| Years-worked format ("3 years"): not recommended, not a Hold | Kristal 2023 UK: +4.8 pts (+14.6%) vs unexplained gap. UK only, untested in US; US forms still ask month + year. | large field experiment, UK |
+| Dates on forms match employer records | HireRight 2025: over 3/4 of businesses asked found discrepancies in 12 months; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of respondents APAC, 64% EMEA; Sept 2025 release). Background checks can compare the form. | vendor survey |
+| Years-worked format ("3 years"): not recommended, not a Hold | Kristal 2023 UK: +4.9 pts vs unexplained gap, +2.9 pts vs no gap (abstract: ~8%). UK only, untested in US; US forms still ask month + year. | large field experiment, UK |
 
 ## Criminal-record questions
 
@@ -135,7 +135,7 @@ required box, or that any employer broke the law.
 | Sealed / expunged records (CA example) | Many states bar employers from asking about sealed, dismissed or juvenile records; CA Labor Code 432.7 is one. Rules differ by state. | In force | [CA Labor Code 432.7](https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=LAB&sectionNum=432.7) |
 | EU AI Act | Hiring AI = high-risk; those duties moved to 2027-12-02. | Omnibus in force 2026-07-27 | [European Commission](https://digital-strategy.ec.europa.eu/en/news/ai-omnibus-enters-force) |
 | EU GDPR Art 22 + 13-14 | Right not to be subject to a decision based solely on automated processing with significant effects; where allowed (contract, consent), at least human intervention, own view, contest; must be told of such a decision + meaningful information about its logic. | In force since 2018-05-25 | [GDPR Art 22 (gdpr-info.eu copy)](https://gdpr-info.eu/art-22-gdpr/) |
-| Mobley v. Workday (N.D. Cal.) | 2026-03-06: court held federal age law covers applicants' impact claims. 2026-06-22 (ECF 360): California FEHA claims + one ADA claim go on; a new race claim by one plaintiff dismissed. Allegations only, no merits finding; class-certification hearing set 2027-03-09. | Pending | [HR Dive report](https://www.hrdive.com/news/workday-partial-loss-judge-refuses-claims-dismissal/814227/) (news, not official); [docket](https://www.courtlistener.com/docket/66831340/), [Duane Morris 2026-09-25](https://blogs.duanemorris.com/classactiondefense/2026/09/25/the-class-action-weekly-wire-episode-166-job-applicants-seek-class-certification-in-mobley-v-workday-ai-bias-suit/) (hearing date) |
+| Mobley v. Workday (N.D. Cal.) | 2026-03-06: court held federal age law covers applicants' impact claims. 2026-06-22 (ECF 360): earlier federal race (Title VII), age (ADEA) + disability (ADA) impact claims carry on (p. 1-2); California FEHA claims + one ADA claim go on; a new race claim by one plaintiff dismissed (p. 11). Allegations only, no merits finding; class-certification hearing set 2027-03-09. | Pending | [HR Dive report](https://www.hrdive.com/news/workday-partial-loss-judge-refuses-claims-dismissal/814227/) (news, not official); [docket](https://www.courtlistener.com/docket/66831340/), [Duane Morris 2026-09-25](https://blogs.duanemorris.com/classactiondefense/2026/09/25/the-class-action-weekly-wire-episode-166-job-applicants-seek-class-certification-in-mobley-v-workday-ai-bias-suit/) (hearing date) |
 
 Federal enforcement context: EEOC AI guidance removed Jan 2025; Executive Order 14281 (Apr 2025)
 deprioritised disparate-impact enforcement; Title VII, ADA, ADEA unchanged, private suits remain.
@@ -161,7 +161,7 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 - **"Initials hide your ethnicity."** Surname, email, form name + prose still signal it, to humans
   and AI (76% recovery, preprint). Only direct tests: small + mixed.
 - **"Blind hiring fixes it."** France: anonymous CVs -> fewer minority interviews + hires
-  (Behaghel 2015). Australia: de-identifying removed a pro-minority lift (Hiscox 2017). Germany:
+  (Behaghel 2015). Australia (lab trial, public servants): names shown lifted women's shortlisting; most minority groups also did better w/ names, only one difference clear (Hiscox 2017). Germany:
   helped first contact. Sweden: more interviews for women + non-Western applicants, more offers for
   women only (Åslund & Nordström Skans 2012; districts not random). Bias returns at interview (Neumark 2024).
 - **"Gaps don't matter anymore."** 13-18 months -21%, 19-36 months -27% (meta-analysis); US
@@ -172,7 +172,7 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 - **"An AOL or Hotmail address costs interviews."** No hiring study. Only test found: unpublished,
   n=400, no significant difference. Informal addresses without the name do rate lower - so name-
   based address, any provider.
-- **"Age bias starts at 40."** US audits: none at 35-43. Kline/Rose/Walters 2022: 0.6 pts fewer
+- **"Age bias starts at 40."** US audits: little or none at 35-43. Kline/Rose/Walters 2022: 0.6 pts fewer
   contacts for grad dates implying over 40 (all over-40 ages pooled; not significant in their
   balanced sample). 40 is the federal legal line.
 - **Judging an employer by the Discrimination Report Card.** Kline/Rose/Walters 2024 grade 97
@@ -190,7 +190,6 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 Never stated to a user as fact.
 
 - Workday: what recruiters see for a candidate - preferred or legal name.
-- Bone 2026: a separate grad-year signal figure + a range of -10.0 to +1.7 - not in the abstract.
 - Kristal 2023 lab replication, n=2,650.
 - Quillian & Midtbøen 2026 exact figures (foreign-education penalty reported as both 35% + 42%).
 - Any field test of bare initials, or initials w/ an ethnic surname.
@@ -198,7 +197,8 @@ Never stated to a user as fact.
 - NYC grad-date questions "illegal" (contradicts the city's 2020 guidance).
 - "Resumes implying 50+ get 29% fewer callbacks (41% in tech)" - no source traced.
 - Hiring-manager shares for age cues (82% / 79% / 46%) - secondary sources only.
-- Mobley complaint naming grad year as the proxy; "1.1 billion rejections".
+- Mobley complaint naming grad year as the proxy. ("1.1 billion applications rejected" = Workday's own
+  estimate told to the court, 2025 order p. 19 - attribute it to Workday, never a count of rejections.)
 - Lever: typed-in details override parsed names (search snippet only).
 - How widely any blind-review feature is used.
 - Ghayad 2013 sample size; ResumeGo per-reason rates; LinkedIn break-type counts + "61% see gaps
@@ -215,7 +215,7 @@ AEJ: Policy 2011. Ge & Wu, AEJ: Policy 2024. Phillips, JHR 2020. Ameri et al., I
 Behaghel, Crépon & Le Barbanchon, AEJ: Applied 2015. Hiscox et al., BETA 2017. Krause, Rinne &
 Zimmermann 2012. Åslund & Nordström Skans, ILR Review 2012. Biernat, Zhao & Watkins 2024.
 Greenhouse support docs (preferred name, blurring). Checkr docs.
-Gao, Jiang & Yan, arXiv 2606.28978 (preprint). Bommasani et al., arXiv 2605.27371 (preprint).
+Gao, Jiang & Yan, arXiv 2606.28978 (preprint). Bommasani et al., FAccT '26 (arXiv 2605.27371).
 Chen & Xiao, arXiv 2609.16501 (preprint). Bone, Stephany & del Rio-Chanona, arXiv 2609.22169
 (COLM 2026). Rozado, PeerJ CS 2026. An et al., PNAS Nexus 2025. Wilson & Caliskan,
 AIES 2024. Wilson et al., AIES 2025. Glazko et al., FAccT 2024. Tamkin et al. 2023.

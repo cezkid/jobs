@@ -2,7 +2,7 @@
 title: "Do cover letters still matter now that AI writes them?"
 description: "Often yes - many forms we checked had a letter box, and a 2019-20 test found more callbacks with one. AI-written letters now tell employers less."
 published: 2026-10-04
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 uncited:
   - "143 application forms"
@@ -24,7 +24,7 @@ uncited:
 **Short answer**
 
 - Many forms have a box: 96 of 143 US forms we read, mostly Greenhouse; nearly all optional (Our measurement, October 2026).
-- A tailored letter beat no letter on callbacks in a 2019-20 test of 7,287 applications (vendor study, not peer-reviewed) [@resumego-2020].
+- A tailored letter beat no letter on callbacks in a 2019-20 test of 7,287 applications (Small study by a resume company, not peer-reviewed) [@resumego-2020].
 - After an AI letter tool arrived, the link between a letter matching the job post and callbacks fell 51% (Real records, preprint) [@cui-2025].
 - What still counts: your own reasons and facts only you know; edit any AI draft (Real records; convention) [@cui-2025; @mit-capd-ai-cover-letters].
 
@@ -45,7 +45,7 @@ For you, a cover letter box is common, and it is almost always optional.
 In the one field test we found, a tailored letter got more callbacks than none. ResumeGo, a resume-writing company, sent 7,287 made-up applications from July 2019 to January 2020. The applications went to jobs on ZipRecruiter, Glassdoor and Indeed. Each went out with no letter, a generic letter or a letter tailored to the job. Within 30 days, 10.7% of applications with no letter got a callback. Generic letters got 12.5%, and tailored letters got 16.4%, about half again as many as no letter [@resumego-2020].
 
 ```bars
-Callbacks within 30 days, by cover letter, 2019-2020 (vendor study, 7,287 made-up applications, not peer-reviewed) [@resumego-2020]
+Callbacks within 30 days, by cover letter, 2019-2020 (Small study by a resume company, 7,287 made-up applications, not peer-reviewed) [@resumego-2020]
 Application sent with | Callback rate
 No cover letter | 10.7%
 Generic cover letter | 12.5%
@@ -60,19 +60,19 @@ No peer-reviewed field test of letter against no letter turned up in our search.
 
 Recruiters say they do, in surveys run by companies that sell resume or letter help. In ResumeGo's survey of 236 recruiters and hiring managers, 87% said they read cover letters. A smaller share, 65%, said letters had real weight in who gets an interview or a job. Most readers were quick: 32% said they spend under 10 seconds, and 52% said 10 seconds to a minute. Only 26% said they hold a missing optional letter against an applicant [@resumego-2020-survey].
 
-A survey of 200 US recruiters and hiring managers was run for ResumeLab, which sells a letter builder. Its page is dated 2025, but the same survey was on it by February 2020, before chat AI. In it, 77% said they read cover letters even when not required. Oddly, fewer, 74%, said they read them when required. Also 77% said they prefer applicants who sent an optional letter. Only 13% said they would still consider an application missing a required letter. The page gives no survey dates and says some answers were rephrased [@resumelab-2020].
+A survey of 200 US recruiters, HR staff and hiring managers was run for ResumeLab, which sells a letter builder. Its page is dated 2025, but the same survey was on it by February 2020, before chat AI. In it, 77% said they read cover letters even when not required. Oddly, fewer, 74%, said they read them when required. Also 77% said they prefer applicants who sent an optional letter. Only 13% said they would still consider an application missing a required letter. The page gives no survey dates and says some answers were rephrased [@resumelab-2020].
 
 Both surveys come from sellers of the thing they ask about. Both report what recruiters say, not what they do. A recruiter who says letters matter may still skip most of them.
 
 ## Does AI change what a cover letter tells employers?
 
-AI letters raised callbacks a little for a short time, but letters now tell employers less. The best evidence comes from one freelance job platform that added an AI letter writer in April 2023 [@cui-2025].
+AI letters may have raised callbacks a little for a short time, but letters now tell employers less. The best evidence comes from one freelance job platform that added an AI letter writer in April 2023 [@cui-2025].
 
-Researchers studied 5 million cover letters on that platform. Among those who could use the tool, 62% used it at least once. Having the tool raised callbacks by 0.43 per 100 letters, from a base of about 7 per 100. That gain was statistically weak, and it faded after about two months. Before the tool, a letter that shared many words with the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker's past reviews instead. The authors found no evidence of a change in overall hiring, and call that result early [@cui-2025].
+Researchers studied 5 million cover letters on that platform. Among those who could use the tool, 62% used it at least once. Having the tool raised callbacks by 0.43 per 100 letters, from a base of about 7 per 100. That gain was too uncertain to rule out chance, and it faded after about two months. Before the tool, a letter that shared many words with the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker's past reviews instead. The authors found no evidence of a change in overall hiring, and call that result early [@cui-2025].
 
 Most AI letters got little or no editing. Over three in four AI letters were sent within a minute of being made. Only about 5% were sent after five minutes or more. Workers who spent longer editing their AI draft got more job offers. That link is not proof that editing caused the offers [@cui-2025]. The study is a preprint, not yet peer-reviewed.
 
-A second team studied about 2.7 million applications to coding jobs on the same platform. Before chat AI, employers were willing to pay more for workers whose written applications fit the job closely. After chat AI, that premium mostly disappeared, and a close fit no longer predicted finishing the job well. The authors then used a model of the market to test an extreme case: letters that tell employers nothing about how able a worker is. In that case, the top fifth of workers were hired 19% less often and the bottom fifth 14% more often. Those numbers come from the model, not from counting real hires [@galdin-silbert-2025].
+A second team studied about 2.7 million applications to coding jobs on the same platform. Before chat AI, employers were willing to pay more for workers whose written applications fit the job closely. After chat AI, that premium mostly disappeared, and a close fit no longer predicted finishing the job well. The authors then used a model of the market to test an extreme case: applications that tell employers nothing about how able a worker is. In that case, the top fifth of workers were hired 19% less often and the bottom fifth 14% more often. Those numbers come from the model, not from counting real hires [@galdin-silbert-2025].
 
 Both studies use the same platform's data, so they are not two independent tests. Neither covers regular jobs with a recruiter. Both point the same way: a letter anyone could have made with AI tells employers little.
 
@@ -80,7 +80,7 @@ For you, a letter that only echoes the job post now carries less weight. What yo
 
 ## Can employers tell an AI-written cover letter?
 
-Hiring managers say they can, and about half say they would mind. In a 2024 vendor survey of 1,005 US hiring leaders, 88% said they can tell when applicants use AI. Of those leaders, 54% said they would care if a resume or cover letter was written by AI [@insight-global-2025].
+Hiring managers say they can, and about half say they would mind. In an October 2024 vendor survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI [@insight-global-2025].
 
 One small lab test points the other way. In a 2024 student thesis, 86 raters each scored six made-up cover letters. Letters written by ChatGPT got the highest hiring scores, above letters people wrote themselves. The scores barely moved after raters were told AI may have been used. The raters were screened only by two questions about themselves, and no one was really hired [@kleine-allekotte-2024].
 
@@ -92,17 +92,17 @@ Each study answers a different question. Only the first tests whether a letter h
 
 | Study | Design | Sample | Can show | Can't show |
 |---|---|---|---|---|
-| ResumeGo 2019-20 [@resumego-2020] | Vendor field test | 7,287 made-up applications | Tailored letter vs. none, on callbacks | Group sizes, job types, whether the gap is chance, AI-era effect |
+| ResumeGo 2019-20 [@resumego-2020] | Small study, by a resume company | 7,287 made-up applications | Tailored letter vs. none, on callbacks | Group sizes, job types, whether the gap is chance, AI-era effect |
 | ResumeGo 2019-20 survey [@resumego-2020-survey] | Vendor survey | 236 recruiters and hiring managers | What readers say they do | What they actually do |
-| ResumeLab, about 2020 [@resumelab-2020] | Vendor survey | 200 US recruiters and HR staff | Stated reading of optional letters | Dates, wording, real behavior, anything after chat AI |
-| Insight Global 2025 [@insight-global-2025] | Vendor survey | 1,005 US hiring leaders | Stated attitudes to AI-written letters | Whether they can spot one |
+| ResumeLab, about 2020 [@resumelab-2020] | Vendor survey | 200 US recruiters, HR staff and hiring managers | Stated reading of optional letters | Dates, wording, real behavior, anything after chat AI |
+| Insight Global 2025 [@insight-global-2025] | Vendor survey | 1,005 US HR and talent leaders | Stated attitudes to AI-written letters | Whether they can spot one |
 | Kleine-Allekotte 2024 [@kleine-allekotte-2024] | Lab study, student thesis | 86 raters, six letters each | How raters score AI-written letters | Real hiring; who the raters were |
 | Cui and others 2025 [@cui-2025] | Real records, preprint | 5 million letters, one freelance platform | What an AI letter tool changed | Regular jobs; editing as a cause |
 | Galdin and Silbert 2025 [@galdin-silbert-2025] | Real records plus a model, preprint | 2.7 million applications, coding jobs, same platform | Lost value of a close fit after chat AI | Real hiring shifts by ability (model only) |
 | freehire.me count [@freehire-letter-count] | Maker's docs | 402,117 postings | The maker's own count, unchecked | Method, date; not independent of ours |
 | Our count, October 2026 | Our measurement | 143 forms, 104 employers | How often forms have a box, required or optional | Whether anyone reads the letter |
 
-The table shows a gap. The only test of letter against no letter is a vendor study from before chat AI.
+The table shows a gap. The only test of letter against no letter is a small study by a resume company, from before chat AI.
 
 ## What we don't know
 
@@ -132,3 +132,7 @@ How we grade evidence: [How we research](methods.md). What else makes a resume w
 - Letters stay at 250 to 400 words, one page; the rules are in the program's [cover letter notes](../../docs/resume/cover-letter.md).
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - ResumeGo's test is now labelled a small study by a resume company, matching our evidence scale. The AI letter gain now reads "may have raised", since it was too uncertain to rule out chance. Two survey samples now name who was asked. The 54% line now reads as a share of everyone asked [@insight-global-2025]. The model's extreme case now says applications, as the paper does, not letters. The numbers are unchanged.

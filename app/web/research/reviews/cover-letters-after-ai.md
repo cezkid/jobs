@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-05
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.68 (no drafting context; sources opened and the count rerun before the draft was read)
 ---
@@ -279,3 +279,39 @@ against its source. No new high or medium finding. The six lows above are open.
 - D2 wording carried into the article: "3 we could not check because the hiring system no longer showed the posting".
 
 The R fixes are word-level and follow the re-reviewer's own suggested text; no claim moved beyond them.
+
+## Re-review (2026-10-05, fresh AI session, plan-xsy.79)
+
+Reviewer: fresh Claude session that made none of the edits. Read `research.md`, the diff, then each source. No text in any source opened addressed an AI.
+
+What changed: ResumeGo label "vendor study" -> "Small study by a resume company" (short answer, bars caption, table). Cui gain "raised" -> "may have raised"; "statistically weak" -> "too uncertain to rule out chance". Galdin extreme case "letters" -> "applications". ResumeLab sample adds hiring managers. Insight Global sample "hiring leaders" -> "HR and talent leaders", run October 2024. `## Changes` added.
+
+Sources opened:
+- resumego-2020 (live page): "a company that offers resume writing services"; 7,287 fictitious applications, July 15 2019 - January 10 2020; three groups; no group sizes. Registry `field experiment` prints "Small study", so text, table and Sources list now agree. "Vendor study" is not on the scale; right to drop.
+- resumelab-2020 (Archive copy 2026-03-11): "200 recruiters, HR specialists and hiring managers"; "US hiring decision-makers". Supported.
+- insight-global-2025 (PDF pp. 9, 14): Atomik Research, "1,005 hiring managers", sample = "full-time human resources or talent acquisition executives", orgs 100+ staff, fieldwork October 17-22, 2024; 88% / 54% / 46%. Supported. The report's own label is "hiring managers", so the lead "Hiring managers say they can" stays supported.
+- cui-2025 (arXiv v2 PDF): p. 3 "significant at the 10% level but not at the 5% level", "tapered off after two months"; Table 4 col. 3 ITT 0.0043* on a 7.02% base. "Too uncertain to rule out chance" = fair plain reading of "not at the 5% level"; "may have raised ... a little for a short time" fits. Note only: the rounded coefficient/SE (0.0043/0.0020; 0.0356/0.0170) look like t of about 2.1, yet the authors star 10% only. The article follows the authors' explicit text; no change asked.
+- galdin-silbert-2025 (arXiv abstract; v1 still the only version): "LLMs render written applications useless in signaling workers' ability"; top quintile 19% less, bottom 14% more. "Applications" is the paper's word; matches ai-written-resumes.
+- `uv run app/web/pages.py --check`: no citation, lint or link error; only the review-date errors this pass clears.
+
+Findings (all low; none high or medium):
+- **C1 (low) - leftover "vendor study".** Sentence (What do the studies show): "The only test of letter against no letter is a vendor study from before chat AI." The same test is now labelled a small study by a resume company. Fix: "The only test of letter against no letter is a small study by a resume company, from before chat AI."
+- **C2 (low) - "Of those leaders" can read as 54% of the 88%.** Report p. 9: 54% of all respondents. Sentence: "Of those leaders, 54% said they would care if a resume or cover letter was written by AI." Fix: "In the same survey, 54% said they would care if a resume or cover letter was written by AI." Same sentence in ai-written-resumes (A1).
+- **C3 (low) - Changes line misses the Galdin rewording.** Fix: add "The model's extreme case now says applications, as the paper does, not letters."
+- **C4 (low) - Small vs Big by the scale's size column.** research.md: Big study = thousands of real applications; the site labels Weisshaar (3,407) and Namingit (3,771) Big, ResumeGo (7,287) Small. Small understates, never overstates, and the limits paragraph says why, but "label = design, not how sure we feel". Fix: keep Small; add the reason to the registry `sample` ("labelled a small study: group sizes, random assignment and a test for chance not given").
+
+Verdict: publish.
+
+### Resolution check (2026-10-05, fresh AI session, plan-xsy.79)
+
+Fresh subagent; made none of the edits. Read the current article, its diff and `sources.yml`.
+
+- C1: fixed. "The only test of letter against no letter is a small study by a resume company, from before chat AI." No "vendor study" is left on any page.
+- C2: fixed. "In the same survey, 54% said they would care if a resume or cover letter was written by AI."
+- C3: fixed. The Changes line names the Galdin rewording.
+- C4: answered. The `sources.yml` resumego-2020 sample already says "run by a resume-writing company, not peer-reviewed; group sizes, job types and a test for chance not given", so the reason for Small is on record. What is left is a scale question for research.md (size column vs design). Does not block.
+- **C5 (low, new)**: Changes line leaves out C2 ("Of those leaders" -> "In the same survey"). Fix: add "The 54% line now reads as a share of everyone asked." (the wording ai-written-resumes uses).
+- **C6 (low, new)**: "In a vendor survey of 1,005 US HR and talent leaders, run in October 2024, 88% said they can tell when applicants use AI." (23 words). Fix: "In an October 2024 vendor survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI." (21 words; matches ai-written-resumes).
+- No medium or high open. Verdict: publish (unchanged).
+
+Editor, after the resolution check (2026-10-05): C5 + C6 fixed by editor as proposed.

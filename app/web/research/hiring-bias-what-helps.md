@@ -2,7 +2,7 @@
 title: "Hiring discrimination: what studies show, what helps"
 description: "Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it."
 published: 2026-10-04
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 uncited:
   - "No field test we found"
@@ -53,7 +53,7 @@ A preprint posted in 2026 adds detail on where the gaps sit. A preprint has not 
 
 No. In the largest US test, bias varied a lot between employers.
 
-The fifth of firms with the widest gaps caused nearly half of the replies lost by applicants with names read as Black. Most firms showed mild bias, and a few showed very large bias [@kline-2022, p. 3]. The authors could single out 23 of the 108 firms as discriminating against those applicants [@kline-2022, p. 5]. In 2024 the same authors published grades for 97 of the employers, by name [@kline-2024].
+The fifth of firms with the widest gaps caused nearly half of the replies lost by applicants with names read as Black. Most firms showed mild bias, and a few showed very large bias [@kline-2022, p. 3]. The authors could single out 23 of the 108 firms as discriminating against those applicants [@kline-2022, p. 5]. In 2024 the same authors published grades for 97 of the employers, by name [@kline-2024]. We read that paper's published summary only.
 
 For you, this is one reason to apply widely. The other four fifths of firms shared the other half of the lost replies [@kline-2022, p. 3]. Each added application is another chance to reach an employer with less bias. No field test we found has measured applying widely as a tactic, so this advice is our reading of the finding.
 
@@ -98,15 +98,15 @@ Removing a question can backfire too. New Jersey and New York City stopped emplo
 
 Yes to both, with limits. Each has its own article here.
 
-Older applicants were about 42% less likely to get a positive reply across 17 field tests [@lippens-2023]. One US test found women of 40 to 42 got callbacks as often as women of 35 to 37 [@farber-2017]. The largest US name test found a small drop, 0.6 points, when graduation dates implied an age over 40. One of its checks did not confirm that drop [@kline-2022, pp. 4, 13]. The ages, the dates that show age and the state rules are in [Age discrimination in hiring](age-bias-hiring.md).
+Older applicants were about 42% less likely to get a positive reply across 17 field tests [@lippens-2023]. One US test found women of 40 to 42 got callbacks as often as women of 35 to 37 [@farber-2017]. The largest US name test found a small drop, 0.6 points, when graduation dates implied an age over 40. One of its checks found a gap about as large, but it could be chance [@kline-2022, pp. 4, 13]. The ages, the dates that show age and the state rules are in [Age discrimination in hiring](age-bias-hiring.md).
 
 Breaks of 13 months or more cut employer replies by about a fifth or more in a 2026 review of 16 field tests [@dhert-2026]. A health reason did better than no reason in one US test, and a childcare reason changed nothing in a UK test [@namingit-2021; @kristal-2023]. The details are in [Does an employment gap on your resume hurt?](employment-gaps.md)
 
 ## What about a criminal record?
 
-A record cuts callbacks sharply, and the law limits what employers may ask. This is general information, not legal advice.
+A record cuts callbacks sharply, and in the US, as of October 2026, the law limits what employers may ask. This is general information, not legal advice.
 
-Employers that asked about records were 63% more likely to call back young men who had none [@agan-starr-2018].
+Employers that asked about records were 63% more likely to call back young men who had none [@agan-starr-2018]. That figure is from the published summary.
 
 As of October 2026, federal contractors may not ask about criminal history for a job under a federal contract before a conditional offer. The statute has exceptions [@usc-41-4714]. The National Employment Law Project, a worker-advocacy group, counted 15 states and 22 cities and counties that stopped private employers asking on the form. Washington, DC, is among the 22. The count is from October 2021, and it is not the laws themselves [@nelp-2021].
 
@@ -142,7 +142,7 @@ The studies here point to hiring steps that are the same for everyone and can be
 Not fully, because the bias is the employer's. These steps fit the evidence or follow convention.
 
 - Apply widely. Bias varied a lot between employers in the largest test [@kline-2022]. That is our reading of the finding, not a tested tactic.
-- Keep facts true. In a 2025 survey by a background-check company, more than three-quarters of businesses had found mismatches in applicants' details [@hireright-2025]. That company sells those checks.
+- Keep facts true. A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants' details in the past 12 months [@hireright-2025]. That company sells those checks.
 - Your name and the groups on your page are your call (convention). Initials or a name you go by are honest; a legal-name box needs your legal name. Never rename a group.
 - With a record, read the exact question and answer only what it asks (convention). Check your state's rules with free legal aid.
 - Prepare for the interview as well as the resume. Bias went on after the callback: the gap in job offers was wider than the gap in callbacks [@quillian-2020].
@@ -158,3 +158,7 @@ How we grade evidence: [How we research](methods.md). What else makes a resume w
 - The rules and their sources are in the program's [fair screening notes](../../docs/resume/fair-screening.md).
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - the background-check survey line now says the share is of the businesses asked, over the past 12 months. The record section now says its law lines are for the US, as of October 2026. Two lines now say they come from a published summary only. The age line now says a second check found a gap about as large, which could be chance [@kline-2022, p. 13]. The findings are unchanged.

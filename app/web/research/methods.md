@@ -2,7 +2,7 @@
 title: How the Research articles are made and checked
 description: How these articles find sources, grade evidence, use AI, get checked and get corrected - and what we gain from the answers.
 published: 2026-10-03
-modified: 2026-10-04
+modified: 2026-10-05
 status: published
 uncited:
   - "A program flags numbers that lack a source"
@@ -59,7 +59,7 @@ Some studies have not yet been checked by other researchers. The Sources list ma
 
 ## How is each claim checked?
 
-Every source cited was opened and read, including its methods and tables, not just its summary. A source we could not open is not cited. A number we only found secondhand is not cited either.
+Every source cited was opened and read. For a study, that means its methods and tables where they open, not just its summary. Where only a study's published summary would open, the article says so next to that finding. A source we could not open is not cited. A number we only found secondhand is not cited either.
 
 Every source is listed in one shared list with the date it was last opened and checked. Each article ends with its Sources list: authors, year, title, label, and links.
 
@@ -101,3 +101,7 @@ Each article has a separate box, after the evidence, on how the app uses its fin
 ## Is this legal advice?
 
 These articles are not legal advice or career counselling. A page that describes a law says so and gives the date it was checked. For your own situation, ask a lawyer or a career adviser.
+
+## Changes
+
+- October 2026 - the checking section now says some studies were read in their published summary only, and that articles say so. It had said every study's methods and tables were read.
