@@ -266,14 +266,14 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
 - `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `today.json` (Today as data for the window), `start-page`
-  (launcher -> extension: page to open, then deleted), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
+  (launcher -> extension: page to open, then deleted), `splash-start` (loading splash began), `window-ready` (page up: splash closes), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window
   extension: start page + Today dashboard, plain JS; packed by `vscode_ext.py`), `window/` (look, page css), `update.py`
   (program-only update: zip, or `git pull` in developer checkout), `cfg.py`, `ingest/`,
   `rank.py`, `ai.py` (which AI: `.data/ai`, `jobs.py ai`), `status.py` (where each job stands: saved ... applied ... offer; files job folders by it), `today.py` (Today page), `alert.py`,
   `notify.py`, `daily.py`, `autorun.py`, `locks.py` (chats side by side), `attribution.py` (Claude credit on fixes), `resume/`, `apply/` (application fillers),
-  `profiles/` (example search), `skills/`, `install/`, `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.
+  `profiles/` (example search), `skills/`, `install/` (installers, start scripts + loading splash), `deploy/`, `web/` (site generators: `assets.py` files, `pages.py` pages + sitemap), `docs/`, `tests/`.
 - `docs/` - install site: pages + generated assets (`uv run app/web/assets.py`, `pages.py`, see
   `app/docs/site.md`), GitHub Pages (`https://jobs.enrriquez.com`, `docs/CNAME`; DNS: Cloudflare CNAME `jobs` -> `cezkid.github.io`, DNS only).
   Not in the app download (`.gitattributes` export-ignore) - nothing at runtime reads it.

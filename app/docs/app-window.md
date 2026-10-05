@@ -64,6 +64,8 @@ Scripts: [measure/5-*.sh](app-window/measure/); results: [probes/](app-window/pr
 | m | Outline + Timeline hidden under the file list (`launch.hide_side_views`) | bundle read: no setting; `outline.removeView` / `timeline.removeView` act only while the Explorer is the shown sidebar (no-op otherwise), `toggleVisibility` flips; hidden views = profile state db key `workbench.explorer.views.state.hidden` (JSON list, `{id, isHidden}` or bare id = hidden). Scratch cold `jobs.py launch` on the demo folder, ai = claude, probe 8 s, list read after quit ([5-m-views.sh](app-window/measure/5-m-views.sh)) | Launcher writes `outline` + `timeline` hidden into the CEZ profile's db before the window, once (own row `cez-job-finder.views-hidden` => a view the user shows again stays shown). After the run VS Code re-saved its whole list: visible = `workbench.explorer.fileView` only; hidden = outline, timeline, openEditorsView (its default) ([m](app-window/probes/m-views-hidden.json)). Only tab Today.md dashboard. Profile-wide = only Job Finder's folder. |
 | n | Opened w/o the Desktop icon (Dock, recent folders, File > Open) | bundle read: trusted folders = key `content.trust.model.key` (`{"uriTrustInfo": [{uri: {$mid 1, scheme, path}, trusted}]}`), storage scope -2 = app-wide shared store `~/.vscode-shared/sharedStorage/state.vscdb` (`--shared-data-dir`), falls back once to the default `User/globalStorage/state.vscdb` (key moved over on first read, listed in `__$__migratedStorageMarker`; listed => default copy ignored). Scratch cold `jobs.py launch` on the demo folder (ai = claude), then Today aged 3 h + `code <folder>` alone, 12 s settle ([5-n-trust.sh](app-window/measure/5-n-trust.sh)) | Before (launcher w/o trust step): Restricted Mode, only ours active, Claude off; ours shows the plain line ([n before](app-window/probes/n-before-untrusted.json)). After (`launch.ensure_folder_trusted`, cold start): folder trusted, Claude active, no line; key written to the default db, VS Code moved it to the shared store itself ([n after](app-window/probes/n-after-trusted.json)). Today rebuilt by ours both times (stale > 1 h). Scratch runs before this one passed no `--shared-data-dir` => read the owner's `~/.vscode-shared`; `scratch_args` carries it now. |
 | o | Jobs panel above the file list (`jobs.js` model, `extension.showJobs` / `openJobs`, `launch.place_jobs_view`) | contributed view `cezJobFinder.jobs` in `views.explorer`; launcher writes it `order -1` into `workbench.explorer.views.state.hidden` once (row `cez-job-finder.jobs-view-placed`). Scratch cold `jobs.py launch` on the demo folder, ai = claude, probe 8 s, list read after quit ([5-o-jobs-view.sh](app-window/measure/5-o-jobs-view.sh)) | Order kept: after quit VS Code's list has `cezJobFinder.jobs` order -1 above `fileView`. Run 1: view registered, groups drawn, but `visible` false - bundle `showCollapsed`: an extension view contributed into the Explorer starts collapsed whatever package.json says. Fix: ours runs `cezJobFinder.jobs.focus` once per folder (workspaceState `cez-job-finder.jobs-shown`), then `focusActiveEditorGroup`. Run 2: `visible` true, groups Next up / Waiting on you / Follow up / Best to apply next, only tab Today.md dashboard, still active ([o](app-window/probes/o-jobs-view.json)). User's later collapse holds (VS Code keeps it per folder). |
+| p | Start earlier: `workspaceContains:app/jobs.py` added to `activationEvents` (plan-ejf.13.1) | two scratch builds of 0.18.0 (`vscode_ext.build(out, package=...)`): a = as shipped (`onStartupFinished`, `onCustomEditor`, `onView:cezJobFinder.jobs`), b = + `workspaceContains:app/jobs.py`; one scratch VS Code each, CEZ profile w/ Claude 2.1.289 + yaml + pdf, look-alike folder (demo Today, launcher's workspace settings, marker `.data/start-page`, trust off), 5 start cases x 3 runs, builds in turn. Ours active = `_doActivateExtension cez-job-finder.window` line in `exthost.log` (+ its event), page shown = `openStartPage` resolved (probe), tabs read 4 s later ([5-p-activation.sh](app-window/measure/5-p-activation.sh)). VS Code 1.140.0 darwin-x64, 2026-10-04 | Medians, ms from the `code` call, active / page shown, a vs b ([p](app-window/probes/p-activation.json)). Today restored active: 4583 / 5060 vs 4939 / 5953. Today restored behind `Resume details.yml`: 5420 / 6204 vs 5297 / 6218. START HERE restored (no search settings): 4640 / 5771 vs 4558 / 6593. First start of a fresh profile (START HERE): 6898 / 7874 vs 6504 / 7750. Today opened the first time after setup: 4439 / 4936 vs 4531 / 5133. Extension host itself up 3.9-7.1 s after the call, run to run => read from host start: every case but the fresh profile, both builds start on `onView:cezJobFinder.jobs` (Jobs panel drawn) 0.5 s after the host (1.1 s behind the yml tab), page 1.0-2.5 s after it - b no faster, differences inside the run-to-run spread; `onCustomEditor` never came first. Fresh profile (Jobs panel still collapsed): a `onStartupFinished` 1.2-1.6 s after the host, page 2.2-2.5 s; b `workspaceContains` 0.5-0.7 s, page 1.8-2.1 s => page ~0.3 s sooner (3 runs). All 30 runs: one Today / START HERE tab, active, no duplicate. Verdict: adopt `workspaceContains:app/jobs.py` - no harm measured, gains only where the Jobs panel isn't drawn at start (first start; panel collapsed or file list hidden: same path, not measured); the wait left is VS Code reaching its extension host => the splash. |
+| q | Mac loading splash live (`app/install/splash-mac.js`, plan-ejf.13.4) | scratch root (`mktemp -d /tmp/jfv.XXXX`), started like `start-mac.sh` (`.data/splash-start` written, then `osascript -l JavaScript splash-mac.js <root>`), shown on the owner's screen; script's own clock via `--log=<json>` (started = after the ObjC import, shown = after `orderFrontRegardless`, closed, why). 5 runs w/ `.data/window-ready` written 1.5 s in; one run w/ a left click posted at its middle (CGEvent); one run w/ neither. Renders: `--render=<png>` - content view drawn by `cacheDisplayInRect:toBitmapImageRep:` over the window's background colour, window never shown, no screenshot ([5-q-splash.py](app-window/measure/5-q-splash.py)). macOS 26.4.1 x86_64, 2026-10-04 | On screen (`visible` true) after the `osascript` start: median 479 ms, max 485 (469-485; 282-291 of it after the ObjC import, the rest = osascript starting) => inside the ~1 s goal, before `update` has run. Ready file written -> window closed: median 34 ms, max 93 (24-93; poll 0.1 s), all 5 closed by `ready`. Neither: closed by `cap` 44.8 s after it showed = 45.1 s after its start. Click: NOT measured - a posted click needs the Accessibility permission, not granted to the terminal (`AXIsProcessTrusted` false) => never delivered, splash stayed up; owner: pending - click it by hand. Also owner: pending (no screenshot here): spinner turning, keyboard staying w/ the app in use. Renders: `/tmp/jfv-splash-renders/splash-light.png` + `splash-dark.png` (760 x 500 px = 380 x 250 pt @2x): icon, CEZ Job Finder, spinner, Opening..., hint line, all readable in both; spinner draws dim grey in the dark render (the off-screen draw may not carry the window's dark appearance to it - look at it live). Numbers: [q](app-window/probes/q-splash.json). |
 
 ### Today dashboard - what a click does
 
@@ -160,6 +162,21 @@ the user's own install + subscriptions.
   over `today.model`, shared `doAction`), plus Applied from `My Jobs/2 Applied`. Opened once per
   folder (VS Code starts it collapsed); redraws on `.data/today.json` + `My Jobs/**` changes.
   Squeeze on the file list: owner visual check (plan-ejf.12.6).
+- Loading splash (#p, #q, owner 2026-10-04): double-click showed nothing until Today drew - update +
+  launch invisible, then VS Code's empty window until its extension host is up (3.9-7.1 s, #p).
+  Nothing of ours paints inside VS Code before that => small native window outside it, started by
+  the start script BEFORE update: Mac `app/install/splash-mac.js` (JXA via `osascript`, no deps; on
+  screen in 0.5 s, #q), Windows `splash-windows.ps1` (PowerShell 5.1 + WinForms, run from a copy in
+  `.data\` so update can swap `app\`). Icon, name, "Opening...", first-start hint, spinner; brand
+  paper / desk colours by `.data/look`, else the computer's mode; floats above VS Code's window, no
+  Dock / taskbar entry; Mac one never takes the keyboard (Windows: owner check). Closes on the
+  ready signal `.data/window-ready`
+  (newer than the splash's start): extension writes it once the start page is shown (or failed) +
+  at Today's first draw; launcher only where the extension won't (VS Code already running, ours not
+  installed at this version, `code` failed, any exception - never a `finally`: a cold launch returns
+  before the window exists); start script when launch fails. Also closes on a click or after 45 s.
+  No pid file / single instance: a reused pid would hide it for good. Extension also starts on
+  `workspaceContains:app/jobs.py` (#p): page ~0.3 s sooner where the Jobs panel isn't drawn at start.
 - Buttons put words in the chat, never send: Copilot fills its box; Claude + ChatGPT can't be
   filled w/o a new chat (#d, #e) => copy + open + one paste line. No `vscode://` handler.
 
@@ -170,6 +187,27 @@ Owner checks still open (beyond the button checks above):
   dashboard opens. owner: pending (plan-ejf.1.17).
 - ChatGPT: chat on the right at first start (#e: secondary sidebar) - START HERE + What you can
   ask still say "click its icon on the left". owner: pending.
+- Windows loading splash (`app/install/splash-windows.ps1`, plan-ejf.13.5): written on a Mac, never
+  run - source checks only (`test_splash_windows.py`). owner: pending (plan-ejf.13.8), on a real
+  Windows install, VS Code closed first:
+  1. Double-click the Desktop icon: splash on screen within ~1 s, in front, centred on the screen
+     the pointer is on - icon, "CEZ Job Finder", moving bar, "Opening...", the hint line. Not
+     minimized w/ the console (shortcut `WindowStyle` 7), no taskbar button of its own.
+  2. It closes when Today / START HERE shows - not before the VS Code window, not seconds after.
+  3. Start again w/ CEZ Job Finder already open: splash closes within a second or two.
+  4. Click the splash while it waits: it closes; VS Code still opens.
+  5. Look: `uv run app/jobs.py look dark`, start -> dark splash; `look light` -> paper; `look auto`
+     -> follows Windows' app mode (Settings > Personalization > Colors).
+  6. Cap: rename `uv.exe` away (launch fails) -> splash closes at once (the bat's ready signal);
+     w/ VS Code never showing a page it closes itself after 45 s.
+  7. Update day (a new `app/` comes down): start still works, no "file in use" - the splash runs
+     from its copy `.data\splash-windows.ps1`.
+  8. Installer's own PowerShell window (`install-windows.ps1` runs the bat at its end): window
+     stays, nothing printed into it by the splash, prompt usable after.
+  9. Console in the taskbar: gone once the splash closes (it shares the launcher's console).
+  10. Smart App Control on (PowerShell in Constrained Language Mode): WinForms may be refused =>
+      no splash, nothing printed, start unchanged. Say which.
+  Also note: does the splash take the keyboard from the app in use (Mac one never does)?
 
 ## Rejected
 
@@ -195,3 +233,10 @@ Owner checks still open (beyond the button checks above):
   every folder they open, not just Job Finder's; folder settings can't set it (1.140: application scope).
 - Extension on the Marketplace: a public listing for a local-only helper; sync would pull it in
   everywhere. Local vsix, pinned, out of sync instead.
+- Loading text inside VS Code before its extension host: every view that renders is an extension
+  => nothing of ours can paint there. Splash lives outside VS Code instead.
+- Notification at the double-click: fades after a few seconds, doesn't track loading.
+- tkinter splash: Python's icon shows in the Dock next to ours.
+- AppleScript applet progress window: frozen while the applet's `do shell script` blocks.
+- `*` activation (start w/ every window): while the profile is pending ours lives in the default
+  profile => would run in every folder they open. `workspaceContains:app/jobs.py` instead (#p).

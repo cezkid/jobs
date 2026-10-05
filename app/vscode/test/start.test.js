@@ -13,6 +13,15 @@ test("only Job Finder's own folder gets a start page", () => {
   assert.equal(start.isJobFinder(() => false), false);
 });
 
+// wrong path or name => the loading splash never sees the signal and stays up to its cap
+test("ready signal lands in the folder's .data, named as the launcher names it", () => {
+  const path = require("path");
+  const { file, text } = start.readyFile(path.join("/Users", "Your Name", "jobs"), NOW);
+  assert.equal(file, path.join("/Users", "Your Name", "jobs", ".data", "window-ready"));
+  assert.equal(text, "2026-10-03T12:00:00.000Z\n");
+  assert.equal(start.READY, path.join(".data", "window-ready"));
+});
+
 // launcher picked + rebuilt the page => the window shows that one, not a guess
 test("launcher's marker names the page", () => {
   assert.equal(start.choosePage({ marker: "Today.md\n", settingsExist: true, todayExists: true }), "Today.md");

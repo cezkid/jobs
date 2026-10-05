@@ -1,0 +1,113 @@
+{
+ "what": "q: Mac loading splash live - ms from the osascript start to on screen, from window-ready written to closed; click; cap; renders",
+ "at": "2026-10-04T23:55:47Z",
+ "mac": "macOS 26.4.1 x86_64",
+ "showMs": {
+  "median": 479,
+  "max": 485,
+  "all": [
+   485,
+   485,
+   479,
+   469,
+   478
+  ]
+ },
+ "importToShowMs": {
+  "median": 290,
+  "max": 291,
+  "all": [
+   291,
+   290,
+   287,
+   282,
+   290
+  ]
+ },
+ "readyToClosedMs": {
+  "median": 34,
+  "max": 93,
+  "all": [
+   93,
+   46,
+   28,
+   24,
+   34
+  ]
+ },
+ "closedBy": [
+  "ready"
+ ],
+ "click": {
+  "why": "killed - still up after 10 s",
+  "clickAt": 1791158090.977783,
+  "clicker": {
+   "clicked": {
+    "x": 896,
+    "y": 530
+   },
+   "trusted": false
+  }
+ },
+ "cap": {
+  "why": "cap",
+  "onScreen": true,
+  "showMs": 478,
+  "importToShowMs": 286,
+  "upMs": 44784
+ },
+ "renders": {
+  "light": {
+   "png": "/tmp/jfv-splash-renders/splash-light.png",
+   "bytes": 40202,
+   "said": "{\"rendered\":true,\"look\":\"light\",\"to\":\"/tmp/jfv-splash-renders/splash-light.png\"}"
+  },
+  "dark": {
+   "png": "/tmp/jfv-splash-renders/splash-dark.png",
+   "bytes": 41053,
+   "said": "{\"rendered\":true,\"look\":\"dark\",\"to\":\"/tmp/jfv-splash-renders/splash-dark.png\"}"
+  }
+ },
+ "runs": [
+  {
+   "why": "ready",
+   "onScreen": true,
+   "showMs": 485,
+   "importToShowMs": 291,
+   "upMs": 1116,
+   "readyToClosedMs": 93
+  },
+  {
+   "why": "ready",
+   "onScreen": true,
+   "showMs": 485,
+   "importToShowMs": 290,
+   "upMs": 1068,
+   "readyToClosedMs": 46
+  },
+  {
+   "why": "ready",
+   "onScreen": true,
+   "showMs": 479,
+   "importToShowMs": 287,
+   "upMs": 1058,
+   "readyToClosedMs": 28
+  },
+  {
+   "why": "ready",
+   "onScreen": true,
+   "showMs": 469,
+   "importToShowMs": 282,
+   "upMs": 1059,
+   "readyToClosedMs": 24
+  },
+  {
+   "why": "ready",
+   "onScreen": true,
+   "showMs": 478,
+   "importToShowMs": 290,
+   "upMs": 1061,
+   "readyToClosedMs": 34
+  }
+ ]
+}

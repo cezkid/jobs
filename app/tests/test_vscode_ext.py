@@ -110,6 +110,23 @@ def test_extension_has_no_link_handler():
     assert "uriHandler" not in json.dumps(pkg)
 
 
+def test_extension_starts_with_the_folder_not_everywhere():
+    # onStartupFinished alone = ~1 s later page on a profile's first start (app-window.md #p); `*`
+    # would run it in every folder while it still lives in the default profile
+    events = vscode_ext.manifest()["activationEvents"]
+    assert "workspaceContains:app/jobs.py" in events and "onStartupFinished" in events
+    assert "*" not in events and (vscode_ext.SOURCE.parent / "jobs.py").exists()
+
+
+def test_extension_signals_ready_on_every_way_the_page_comes_up():
+    # start page step (shown or failed) + Today restored w/ the window; a missed one = splash up to its cap
+    source = (vscode_ext.SOURCE / "extension.js").read_text(encoding="utf-8")
+    assert len(re.findall(r"finally \{\s*markReady\(root\);", source)) == 2
+    assert 'READY = path.join(".data", "window-ready")' in (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
+    import launch
+    assert launch.READY_MARKER == "window-ready"
+
+
 def test_today_dashboard_takes_today_md_only_in_job_finder_folder():
     # names out of step => Today.md opens as the plain page; association w/o the extension => same, by VS Code
     import workspace

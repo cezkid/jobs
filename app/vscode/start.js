@@ -7,6 +7,9 @@ const START_HERE = "START HERE.md";
 // launcher writes both (app/launch.py mark_start_page); marker = page name, deleted once opened
 const MARKER = path.join(".data", "start-page");
 const STAMP = path.join(".data", "launched");
+// loading splash (launcher-started, outside VS Code) closes once this file is newer than its own
+// start: written when the start page shows; app/launch.py mark_ready writes it where we never run
+const READY = path.join(".data", "window-ready");
 const SETTINGS = path.join("My Settings", "Search settings.yml");
 // which AI the user picked (app/ai.py): claude | chatgpt | copilot
 const AI_FILE = path.join(".data", "ai");
@@ -45,6 +48,12 @@ function needsRefresh({ marker, settingsExist, todayMtime, stampMtime, now }) {
   if (todayMtime == null) return true;
   if (stampMtime != null && todayMtime < stampMtime) return true;
   return now - todayMtime > STALE_MS;
+}
+
+// ready signal: where + what to write. The splash reads only the file's time; the text is for a
+// person looking into .data
+function readyFile(root, now) {
+  return { file: path.join(root, READY), text: `${new Date(now).toISOString()}\n` };
 }
 
 // Desktop icon + Dock carry a short PATH => uv's install spots first, PATH last
@@ -97,6 +106,6 @@ function warmUpPlan(ai) {
 
 module.exports = {
   PROFILE_PENDING, PROFILE_PENDING_LINE, UNTRUSTED_LINE, UNTRUSTED_BUTTON, UNTRUSTED_COMMAND,
-  TODAY, START_HERE, MARKER, STAMP, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
-  isJobFinder, choosePage, needsRefresh, uvCandidates, runJobs, pageTabs, warmUpPlan,
+  TODAY, START_HERE, MARKER, STAMP, READY, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
+  isJobFinder, choosePage, needsRefresh, readyFile, uvCandidates, runJobs, pageTabs, warmUpPlan,
 };

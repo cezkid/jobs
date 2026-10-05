@@ -76,6 +76,23 @@ async function openStartPage() {
   const root = folder.uri.fsPath;
   const at = (rel) => path.join(root, rel);
   if (!start.isJobFinder((rel) => fs.existsSync(at(rel)))) return;
+  try {
+    return await openPage(root, at);
+  } finally {
+    markReady(root);  // page up, or it failed: either way the loading splash has nothing left to wait for
+  }
+}
+
+// loading splash closes on this file (start.readyFile). Job Finder's folder only; never throws
+function markReady(root) {
+  try {
+    if (!start.isJobFinder((rel) => fs.existsSync(path.join(root, rel)))) return;
+    const { file, text } = start.readyFile(root, Date.now());
+    fs.writeFileSync(file, text);
+  } catch {}
+}
+
+async function openPage(root, at) {
   // launcher found VS Code running => its own profile waits for one cold start; say how, once a window
   if (fs.existsSync(at(start.PROFILE_PENDING))) {
     vscode.window.showInformationMessage(start.PROFILE_PENDING_LINE[process.platform === "darwin" ? "darwin" : "other"]);
@@ -233,7 +250,11 @@ function showToday(document, panel, fontDir) {
     draw();
     if (!started && !refreshing && !m) tell(panel, "Still not ready - it's made again at the next start.");
   };
-  draw();
+  try {
+    draw();
+  } finally {
+    markReady(root);  // Today restored w/ the window draws before the start page step ends
+  }
   const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(root), start.TODAY));
   const subs = [
     watcher, watcher.onDidChange(draw), watcher.onDidCreate(draw),

@@ -1,0 +1,763 @@
+{
+ "what": "p: our extension's activation + start page shown, ms from the code call (medians); build a = activationEvents as shipped, b = + workspaceContains:app/jobs.py",
+ "at": "2026-10-04T23:41:04Z",
+ "vscode": "1.140.0",
+ "extensions": [
+  "Anthropic.claude-code@2.1.289",
+  "cez-job-finder.window@0.18.0",
+  "redhat.vscode-yaml@1.24.0",
+  "tomoki1207.pdf@1.2.2"
+ ],
+ "builds": {
+  "version": "0.18.0",
+  "a": [
+   "onStartupFinished",
+   "onCustomEditor:cezJobFinder.today",
+   "onView:cezJobFinder.jobs"
+  ],
+  "b": [
+   "onStartupFinished",
+   "onCustomEditor:cezJobFinder.today",
+   "onView:cezJobFinder.jobs",
+   "workspaceContains:app/jobs.py"
+  ]
+ },
+ "summary": [
+  {
+   "case": "0-today-first",
+   "build": "a",
+   "runs": 3,
+   "events": [
+    "onView:cezJobFinder.jobs"
+   ],
+   "hostMs": 3959,
+   "activeMs": 4439,
+   "pageMs": 4936,
+   "pageMsAll": [
+    5839,
+    4866,
+    4936
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "0-today-first",
+   "build": "b",
+   "runs": 3,
+   "events": [
+    "onView:cezJobFinder.jobs"
+   ],
+   "hostMs": 4019,
+   "activeMs": 4531,
+   "pageMs": 5133,
+   "pageMsAll": [
+    4956,
+    5133,
+    6237
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "1-today-active",
+   "build": "a",
+   "runs": 3,
+   "events": [
+    "onView:cezJobFinder.jobs"
+   ],
+   "hostMs": 4105,
+   "activeMs": 4583,
+   "pageMs": 5060,
+   "pageMsAll": [
+    5461,
+    5002,
+    5060
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "1-today-active",
+   "build": "b",
+   "runs": 3,
+   "events": [
+    "onView:cezJobFinder.jobs"
+   ],
+   "hostMs": 4427,
+   "activeMs": 4939,
+   "pageMs": 5953,
+   "pageMsAll": [
+    5002,
+    6163,
+    5953
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "2-today-behind",
+   "build": "a",
+   "runs": 3,
+   "events": [
+    "onView:cezJobFinder.jobs"
+   ],
+   "hostMs": 4312,
+   "activeMs": 5420,
+   "pageMs": 6204,
+   "pageMsAll": [
+    6411,
+    6124,
+    6204
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "2-today-behind",
+   "build": "b",
+   "runs": 3,
+   "events": [
+    "onView:cezJobFinder.jobs"
+   ],
+   "hostMs": 4176,
+   "activeMs": 5297,
+   "pageMs": 6218,
+   "pageMsAll": [
+    5868,
+    6218,
+    7320
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "3-start-here",
+   "build": "a",
+   "runs": 3,
+   "events": [
+    "onView:cezJobFinder.jobs"
+   ],
+   "hostMs": 4144,
+   "activeMs": 4640,
+   "pageMs": 5771,
+   "pageMsAll": [
+    6299,
+    5519,
+    5771
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "3-start-here",
+   "build": "b",
+   "runs": 3,
+   "events": [
+    "onView:cezJobFinder.jobs"
+   ],
+   "hostMs": 4100,
+   "activeMs": 4558,
+   "pageMs": 6593,
+   "pageMsAll": [
+    6593,
+    6185,
+    8688
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "4-fresh",
+   "build": "a",
+   "runs": 3,
+   "events": [
+    "onStartupFinished"
+   ],
+   "hostMs": 5348,
+   "activeMs": 6898,
+   "pageMs": 7874,
+   "pageMsAll": [
+    9293,
+    7874,
+    7342
+   ],
+   "onePageTab": true
+  },
+  {
+   "case": "4-fresh",
+   "build": "b",
+   "runs": 3,
+   "events": [
+    "workspaceContains:app/jobs.py"
+   ],
+   "hostMs": 5915,
+   "activeMs": 6504,
+   "pageMs": 7750,
+   "pageMsAll": [
+    7196,
+    7750,
+    8064
+   ],
+   "onePageTab": true
+  }
+ ],
+ "runs": [
+  {
+   "build": "a",
+   "case": "4-fresh",
+   "rep": 1,
+   "event": "onStartupFinished",
+   "startup": "false",
+   "hostMs": 7062,
+   "activeMs": 8454,
+   "pageMs": 9293,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "3-start-here",
+   "rep": 1,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4301,
+   "activeMs": 4802,
+   "pageMs": 6299,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "0-today-first",
+   "rep": 1,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4758,
+   "activeMs": 5243,
+   "pageMs": 5839,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "1-today-active",
+   "rep": 1,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4260,
+   "activeMs": 4790,
+   "pageMs": 5461,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "2-today-behind",
+   "rep": 1,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4251,
+   "activeMs": 5420,
+   "pageMs": 6411,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*",
+    "Resume details.yml"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "4-fresh",
+   "rep": 1,
+   "event": "workspaceContains:app/jobs.py",
+   "startup": "true",
+   "hostMs": 5187,
+   "activeMs": 5647,
+   "pageMs": 7196,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "3-start-here",
+   "rep": 1,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4100,
+   "activeMs": 4558,
+   "pageMs": 6593,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "0-today-first",
+   "rep": 1,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 3972,
+   "activeMs": 4434,
+   "pageMs": 4956,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "1-today-active",
+   "rep": 1,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 3954,
+   "activeMs": 4422,
+   "pageMs": 5002,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "2-today-behind",
+   "rep": 1,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4091,
+   "activeMs": 5155,
+   "pageMs": 5868,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*",
+    "Resume details.yml"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "4-fresh",
+   "rep": 2,
+   "event": "onStartupFinished",
+   "startup": "false",
+   "hostMs": 5348,
+   "activeMs": 6898,
+   "pageMs": 7874,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "3-start-here",
+   "rep": 2,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 3930,
+   "activeMs": 4411,
+   "pageMs": 5519,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "0-today-first",
+   "rep": 2,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 3939,
+   "activeMs": 4425,
+   "pageMs": 4866,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "1-today-active",
+   "rep": 2,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4105,
+   "activeMs": 4583,
+   "pageMs": 5002,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "2-today-behind",
+   "rep": 2,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4345,
+   "activeMs": 5449,
+   "pageMs": 6124,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*",
+    "Resume details.yml"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "4-fresh",
+   "rep": 2,
+   "event": "workspaceContains:app/jobs.py",
+   "startup": "true",
+   "hostMs": 5915,
+   "activeMs": 6504,
+   "pageMs": 7750,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "3-start-here",
+   "rep": 2,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 3989,
+   "activeMs": 4456,
+   "pageMs": 6185,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "0-today-first",
+   "rep": 2,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4019,
+   "activeMs": 4531,
+   "pageMs": 5133,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "1-today-active",
+   "rep": 2,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4427,
+   "activeMs": 4939,
+   "pageMs": 6163,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "2-today-behind",
+   "rep": 2,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4176,
+   "activeMs": 5297,
+   "pageMs": 6218,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*",
+    "Resume details.yml"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "4-fresh",
+   "rep": 3,
+   "event": "onStartupFinished",
+   "startup": "false",
+   "hostMs": 5096,
+   "activeMs": 6320,
+   "pageMs": 7342,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "3-start-here",
+   "rep": 3,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4144,
+   "activeMs": 4640,
+   "pageMs": 5771,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "0-today-first",
+   "rep": 3,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 3959,
+   "activeMs": 4439,
+   "pageMs": 4936,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "1-today-active",
+   "rep": 3,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4020,
+   "activeMs": 4508,
+   "pageMs": 5060,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "a",
+   "case": "2-today-behind",
+   "rep": 3,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4312,
+   "activeMs": 5406,
+   "pageMs": 6204,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*",
+    "Resume details.yml"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "4-fresh",
+   "rep": 3,
+   "event": "workspaceContains:app/jobs.py",
+   "startup": "true",
+   "hostMs": 5980,
+   "activeMs": 6643,
+   "pageMs": 8064,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "3-start-here",
+   "rep": 3,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4993,
+   "activeMs": 5809,
+   "pageMs": 8688,
+   "tabs": [
+    "START HERE.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 0,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "0-today-first",
+   "rep": 3,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4641,
+   "activeMs": 5475,
+   "pageMs": 6237,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "1-today-active",
+   "rep": 3,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 4885,
+   "activeMs": 5386,
+   "pageMs": 5953,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  },
+  {
+   "build": "b",
+   "case": "2-today-behind",
+   "rep": 3,
+   "event": "onView:cezJobFinder.jobs",
+   "startup": "false",
+   "hostMs": 5037,
+   "activeMs": 6335,
+   "pageMs": 7320,
+   "tabs": [
+    "START HERE.md",
+    "Today.md*",
+    "Resume details.yml"
+   ],
+   "pageTabs": {
+    "Today.md": 1,
+    "START HERE.md": 1
+   },
+   "onePageTab": true
+  }
+ ]
+}

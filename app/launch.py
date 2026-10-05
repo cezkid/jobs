@@ -31,6 +31,10 @@ TODAY_PAGE = cfg.ROOT / "Today.md"
 START_MARKER = "start-page"
 # when the launcher last ran: the extension opened from the Dock rebuilds a Today older than this
 LAUNCH_STAMP = "launched"
+# loading splash (started by the Desktop launcher, outside VS Code) closes once this file is newer
+# than its own start. The window extension writes it as the page shows (app/vscode/start.js
+# readyFile); the launcher only where the extension won't (`mark_ready`)
+READY_MARKER = "window-ready"
 WINDOWS_LAUNCHER = cfg.APP / "install" / "start-windows.bat"
 MAC_ICON_MAKER = cfg.APP / "install" / "make-icon-mac.sh"
 MAC_ICON = cfg.APP / "install" / "icon.icns"
@@ -999,7 +1003,39 @@ def mark_start_page(page: Path | None, data: Path | None = None) -> None:
         pass  # no marker => the extension still opens a page, just its own pick
 
 
+def mark_ready(data: Path | None = None) -> None:
+    """Ready signal for the loading splash, from the launcher: only where the window extension
+    won't write it (window already open, extension not at this release, no window, launch failed).
+    Read per call (cfg.ROOT) like `mark_start_page`."""
+    data = data or cfg.ROOT / ".data"
+    try:
+        data.mkdir(parents=True, exist_ok=True)
+        (data / READY_MARKER).write_text(time.strftime("%Y-%m-%dT%H:%M:%S%z") + "\n", encoding="utf-8")
+    except OSError:
+        pass  # splash closes at its own cap
+
+
+def window_extension_current() -> bool:
+    """Our extension at this release's version in the window's profile => it writes the ready signal."""
+    import vscode_ext
+    try:
+        return installed_version(vscode_ext.extension_id()) == vscode_ext.manifest()["version"]
+    except (OSError, ValueError, KeyError):
+        return False
+
+
 def main() -> None:
+    try:
+        open_window()
+    except BaseException:
+        # failed launch (VS Code not found = SystemExit) => splash closes now, not at its cap.
+        # Only here + the paths below, never on every exit: a cold start returns as VS Code
+        # starts => the splash would close before the window is up
+        mark_ready()
+        raise
+
+
+def open_window() -> None:
     if sys.platform == "win32":
         register_protocol()
         ensure_windows_icon()
@@ -1052,13 +1088,18 @@ def main() -> None:
     if cold:
         # ONE call, folder only: the window extension opens the page formatted as it starts
         mark_start_page(page)
-        code(window)
+        # the extension signals ready once the page shows; no window, or no extension of this
+        # release in it (failed install) => nobody would
+        if code(window) or not window_extension_current():
+            mark_ready()
         return
     mark_start_page(None)
     code(window)
     # window already up => the page lands formatted at once, no wait; double-click on the Desktop
     # icon brings it forward. Folder again => lands in this window, not the last used
     code([*window, str(page)])
+    # extension already started => it signals nothing more
+    mark_ready()
 
 
 if __name__ == "__main__":
