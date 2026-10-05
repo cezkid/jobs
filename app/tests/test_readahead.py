@@ -89,6 +89,27 @@ def test_unsupported_form_read_ahead_becomes_a_page_to_paste(tmp_path, monkeypat
     ("The position has been filled. Thank you for your interest.", True),
     ("This job post is closed", True),
     ("Apply for this job. We are accepting applications on a rolling basis.", False),
+    # privacy notice under an open form (2026-10-05)
+    ("Your application data will be deleted no later than 6 months after the position has been filled.", False),
+    ("We keep it until the role is filled or you ask us to delete it.", False),
 ])
 def test_closed_posting_page_is_recognised(page, closed):
     assert bool(form.CLOSED.search(page)) is closed
+
+
+def test_form_on_the_page_means_open_whatever_the_text_says(monkeypatch):
+    class Loc:
+        def __init__(self, shown): self.shown = shown
+        @property
+        def first(self): return self
+        def wait_for(self, timeout=None):
+            if not self.shown:
+                raise TimeoutError
+    class Page:
+        def __init__(self, shown): self.shown = shown
+        def locator(self, sel): return Loc(self.shown)
+    class System:
+        READY = "#first_name"
+    monkeypatch.setattr(form, "page_text", lambda page: "Sorry, this job is no longer accepting applications.")
+    assert form.closed(Page(True), System) is None
+    assert form.closed(Page(False), System) == "no longer accepting applications"

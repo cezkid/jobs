@@ -1268,3 +1268,11 @@ def test_no_message_piece_prints_its_placeholder_raw():
               and getattr(call.func, "id", None) in ("print", "exit")
               for s in ast.walk(call) if isinstance(s, ast.Constant) and isinstance(s.value, str)]
     assert not [s.value for s in pieces if "{slug}" in s.value or "{'fill'" in s.value]
+
+
+def test_website_box_gets_the_resumes_own_site_never_a_profile():
+    q = {"key": "website", "kind": "text"}
+    contact = {"links": ["linkedin.com/in/your-name", "github.com/your-name", "example.com"]}
+    assert questions.from_resume(q, contact) == "https://www.example.com"
+    assert questions.from_resume(q, {"links": ["https://portfolio.example.org/work"]}) == "https://portfolio.example.org/work"
+    assert questions.from_resume(q, {"links": ["linkedin.com/in/your-name"]}) == ""
