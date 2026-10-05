@@ -6,7 +6,8 @@ $D (mktemp -d /tmp/jfv.XXXX), folder = copy of the program + demo + the window's
 (`workspace.write`), throwaway browser storage (dies w/ $D). Scratch extension probe-ext/ (opens
 tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
 
-  route1   --remote-debugging-port on 127.0.0.1 (CAN'T SHIP: comparison only): targets listed,
+  route1   --remote-debugging-port on 127.0.0.1 (CAN'T SHIP: comparison only; refused unless
+           JF_ALLOW_ROUTE1=1 - the open port hands the whole window to any program): targets listed,
            Playwright connect_over_cdp fills the local form (text, select, check, radio, upload,
            cross-site frame)
   route2   js-debug CDP proxy -> raw CDP from Python on 127.0.0.1 (the only shippable route):
@@ -21,8 +22,13 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
   score    reCAPTCHA v3 demo score: window tab (opened plain, then reloaded w/ the debugger on) vs a
            Chrome started as Job Finder's own - relative hint only, never Submit
   restricted  untrusted folder (Restricted Mode): does the attach start?
+  raw      route 2 on ONE public posting of any system `systems.for_url` knows (plan-nko.6, Ashby first):
+           level-3 block (+ lab.NAMED_READS, the owner's one exception) + canary first in the same tab;
+           the page's `debugger;` pauses counted (skip off once, resumed in the handler, cap 20, then
+           skip on), other-site frames listed + what each is, Input.insertText into one text box + read
+           back, the dummy PDF chosen + what the page then tries to send (blocked). Never Submit
 
-usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [greenhouse url]
+usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
 """
 import datetime
@@ -38,6 +44,9 @@ import time
 import urllib.request
 
 STAGE = sys.argv[1]
+if STAGE == "route1" and os.environ.get("JF_ALLOW_ROUTE1") != "1":
+    sys.exit("route1 refused: --remote-debugging-port opens the whole window (workbench, terminal, Claude's chat) "
+             "to any program on this computer. Comparison only - set JF_ALLOW_ROUTE1=1 to run it anyway")
 D, SRC, OUT, SHOTS = (pathlib.Path(a).resolve() for a in sys.argv[2:6])
 GH_URL = sys.argv[6] if len(sys.argv) > 6 else None
 F, HOLD = D / "f", D / "hold"
@@ -52,6 +61,7 @@ UNIQ = secrets.token_hex(3)
 TITLE = f"JF form {UNIQ}"
 RESUME = D / "Test_Resume.pdf"
 READS = ("GET", "HEAD", "OPTIONS")
+SCRUB: list[tuple[str, str]] = []  # (tenant text, placeholder): raw adds the posting's org + id
 
 
 def now():
@@ -156,7 +166,7 @@ def make_resume():
 
 def save(result):
     text = json.dumps(result, indent=1, default=str)
-    for a, b in ((str(D), "$D"), (str(SRC), "<checkout>"), (str(SHOTS), "<shots>")):
+    for a, b in ((str(D), "$D"), (str(SRC), "<checkout>"), (str(SHOTS), "<shots>"), *SCRUB):
         text = text.replace(a, b)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(text + "\n")
@@ -463,9 +473,9 @@ class Block:
     fails another site's frame before it loads (it would be its own target, out of this Fetch's
     reach); level 3 also swaps in an inert WebSocket before the page's scripts run."""
 
-    def __init__(self, c, level):
+    def __init__(self, c, level, named=False):
         self.c, self.level, self.log, self.seen, self.step, self.reads = c, level, [], [], "start", 0
-        self.main = None
+        self.main, self.named, self.passed = None, named, []
 
     def install(self):
         c = self.c
@@ -500,6 +510,10 @@ class Block:
         if r["method"] in READS:
             self.reads += 1
             return self.c.post("Fetch.continueRequest", {"requestId": p["requestId"]})
+        op = self.named and named_read(r)
+        if op:  # lab.NAMED_READS, exactly as lab.Block lets it through (owner OK 2026-10-05)
+            self.passed.append({"method": r["method"], "url": r["url"][:300], "op": op, "after": self.step})
+            return self.c.post("Fetch.continueRequest", {"requestId": p["requestId"]})
         self.log.append({"method": r["method"], "url": r["url"][:300], "type": p.get("resourceType"), "after": self.step,
                          "contentType": next((v for k, v in r.get("headers", {}).items() if k.lower() == "content-type"), "")[:60],
                          "body": r.get("hasPostData", False)})
@@ -511,6 +525,19 @@ class Block:
         r = p["request"]
         if r["method"] not in READS:
             self.seen.append({"method": r["method"], "url": r["url"][:200], "type": p.get("type"), "after": self.step})
+
+
+def named_read(r):
+    """lab.named_read on a Fetch.requestPaused request: the body from postData, else its entries."""
+    import base64
+    from apply import lab
+    body = r.get("postData")
+    if body is None and r.get("postDataEntries"):
+        try:
+            body = b"".join(base64.b64decode(e.get("bytes", "")) for e in r["postDataEntries"]).decode()
+        except (ValueError, UnicodeDecodeError):
+            return None
+    return lab.named_read(r["method"], r["url"], body)
 
 
 def canary(c, block, label):
@@ -1091,6 +1118,135 @@ def score(result):
         subprocess.run(["pkill", "-f", str(prof)])
 
 
+# ---------------------------------------------------------------- one public posting, any system, route 2 (plan-nko.6)
+# another site's frame -> what it is, by its host
+FRAME_KIND = (("recaptcha", r"recaptcha\.net|google\.com/recaptcha|gstatic\.com/recaptcha"), ("hcaptcha", r"hcaptcha\.com"),
+              ("turnstile", r"challenges\.cloudflare\.com"), ("linkedin", r"linkedin\.com"), ("google sign-in", r"accounts\.google\.com"))
+FRAMES = """(() => [...document.querySelectorAll('iframe')].map((f) => ({src: (f.src || '').slice(0, 300),
+  title: (f.title || '').slice(0, 60), shown: !!f.getClientRects().length, w: f.offsetWidth, h: f.offsetHeight})))()"""
+
+
+def frame_kind(url):
+    import re
+    return next((k for k, rx in FRAME_KIND if re.search(rx, url)), "other")
+
+
+def short(url):
+    """scheme + host + path: a query can carry the tenant; a GraphQL op name (?op=) is kept."""
+    from urllib.parse import parse_qs
+    u = urlsplit(url)
+    op = parse_qs(u.query).get("op")
+    return f"{u.scheme}://{u.hostname or ''}{u.path}"[:160] + (f"?op={op[0][:60]}" if op else "")
+
+
+def raw(result):
+    """Canary first in the same tab, then the posting's form: pauses, frames, one typed box, the dummy PDF."""
+    from apply import systems
+    system = systems.for_url(GH_URL or "")
+    if not system:
+        sys.exit("raw needs a posting link systems.for_url knows")
+    if hasattr(system, "parse_url"):
+        org, pid = system.parse_url(GH_URL)
+        SCRUB.extend([(pid, "<id>"), (org, "<org>")])
+    app_url = system.application_url(GH_URL)
+    cap, level = int(os.environ.get("JF_PAUSE_CAP", "20")), int(os.environ.get("JF_BLOCK_LEVEL", "3"))
+    result |= {"system": system.NAME, "ready": system.READY, "url": app_url, "level": level, "pauseCap": cap}
+    proc, result["launch"] = launch()
+    home, other, close = formsite.serve(TITLE)
+    dummy = make_resume()
+    pauses = result["pauses"] = []
+    try:
+        ask({"do": "open", "url": f"{home}/blank"})
+        time.sleep(2)
+        res, found, conns = attach(f"{home}/blank*", QUIET)
+        result["attach"] = {k: res.get(k) for k in ("ok", "error", "ms", "sessions")} | {"found": found}
+        c = pick(conns, f"{home}/blank")
+        if not c:
+            result["error"] = "no CDP proxy reached the tab"
+            return
+        block = Block(c, level, named=True)
+        result["install"] = attempt(block.install)
+
+        def paused(p, msg):
+            top = (p.get("callFrames") or [{}])[0]
+            loc = top.get("location", {})
+            pauses.append({"n": len(pauses) + 1, "reason": p.get("reason"), "after": block.step,
+                           "script": short(top.get("url") or ""), "fn": (top.get("functionName") or "")[:40],
+                           "line": loc.get("lineNumber"), "col": loc.get("columnNumber")})
+            if len(pauses) >= cap:  # enough counted: let the page run
+                c.post("Debugger.setSkipAllPauses", {"skip": True})
+            c.post("Debugger.resume", {})
+        c.on("Debugger.paused", paused)
+        result["subscribe"] = attempt(lambda: c.send("JsDebug.subscribe", {"events": ["Debugger.paused", "Debugger.resumed"]}))
+        result["skipOff"] = attempt(lambda: c.send("Debugger.setSkipAllPauses", {"skip": False}, 5))
+        result["canary"] = canary(c, block, "canary")
+        if result["canary"]["received"] or not result["canary"]["loaded"]:
+            result["refused"] = "canary received writes (or never loaded): posting not opened"
+            return
+        block.step = "load"
+        t = time.time()
+        c.send("Page.navigate", {"url": app_url})
+        ready = f"document.readyState === 'complete' && !!document.querySelector({json.dumps(system.READY)})"
+        result["loaded"] = bool(wait_for(lambda: quietly(lambda: c.evaluate(ready, timeout=3)), 40, 0.5))
+        result["readyMs"] = round((time.time() - t) * 1000)
+        time.sleep(4)  # its own scripts settle
+        result["pausesOnLoad"] = len(pauses)
+        result["at"] = quietly(lambda: c.evaluate("location.host + location.pathname"))
+        result["fields"] = quietly(lambda: c.evaluate(f"document.querySelectorAll({json.dumps(system.READY)}).length"))
+        result["boxes"] = quietly(lambda: c.evaluate(GH_FIELDS.replace("label: ", "_: ").replace("type: e.type,", "type: e.type, name: e.name,")))
+        if isinstance(result["boxes"], list):  # labels are the employer's words: kinds only
+            import re  # question ids are the employer's: "<field>"
+            uuid = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
+            result["boxes"] = [{k: uuid.sub("<field>", v) if isinstance(v, str) else v for k, v in b.items() if k != "_"}
+                               for b in result["boxes"]]
+        frames = result["frames"] = {}
+        frames["iframes"] = [f | {"kind": frame_kind(f["src"]), "src": short(f["src"])} for f in quietly(lambda: c.evaluate(FRAMES)) or []]
+        frames["blockedOtherSite"] = [{"url": short(b["url"]), "kind": frame_kind(b["url"]), "after": b["after"]}
+                                     for b in block.log if b["type"] == "other-site frame"]
+        frames["targets"] = attempt(lambda: [{"type": t["type"], "url": short(t["url"]), "kind": frame_kind(t["url"])}
+                                             for t in c.send("Target.getTargets")["targetInfos"] if t["type"] == "iframe"])
+        fill = result["fill"] = {"resume": dummy}
+        box = next((s for s in ('[id="_systemfield_name"]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        fill["box"] = box
+        if box:
+            block.step = "type"
+
+            def typed():
+                click(c, q(box))
+                time.sleep(0.4)
+                focused = c.evaluate(f"document.activeElement === {q(box)}")
+                c.send("Input.insertText", {"text": "Test Applicant"})
+                time.sleep(0.5)
+                return {"focused": focused}
+            fill["type: click + Input.insertText"] = attempt(typed)
+            fill["readBack"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
+        fbox = next((s for s in ('[id="_systemfield_resume"]', 'input[type=file]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        fill["fileBox"] = fbox
+        if fbox:
+            block.step = "upload"
+            fill["upload: DOM.setFileInputFiles"] = attempt(lambda: upload(c, fbox, RESUME))
+            time.sleep(6)
+            fill["nameShown"] = quietly(lambda: c.evaluate(f"document.body.innerText.includes({json.dumps(RESUME.name)})"))
+            fill["failedLine"] = quietly(lambda: c.evaluate("/failed to upload/i.test(document.body.innerText)"))
+            fill["sentOnChoice"] = [{"method": b["method"], "url": short(b["url"]), "type": b["type"],
+                                     "contentType": b.get("contentType"), "body": b.get("body")}
+                                    for b in block.log if b["after"] == "upload"]
+        block.step = "end"
+        fill["tabShot"] = tab_shot(c, "ashby-route2-tab")
+        result["shot"] = screenshot("ashby-route2-window", proc)
+        result["pausesTotal"] = len(pauses)
+        result["skipOnAfterCap"] = len(pauses) >= cap
+        result["submitClicked"] = False
+        result["block"] = {"reads": block.reads, "namedReads": [{"op": b["op"], "url": short(b["url"]), "after": b["after"]} for b in block.passed],
+                           "failed": [{"method": b["method"], "url": short(b["url"]), "type": b["type"], "after": b["after"]} for b in block.log],
+                           "seenWrites": [s | ({"url": short(s["url"])} if "url" in s else {}) for s in block.seen]}
+        result["pageLoads"] = 1
+        result["handlerErrors"] = [e for e in c.events if "handlerError" in e][:5]
+    finally:
+        result["quit"] = quit_(proc)
+        close()
+
+
 # ---------------------------------------------------------------- Restricted Mode (untrusted folder)
 def restricted(result):
     """User setting startupPrompt never -> the folder opens untrusted w/o a dialog: does the attach start?"""
@@ -1123,7 +1279,7 @@ if __name__ == "__main__":
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

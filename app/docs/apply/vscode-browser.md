@@ -9,8 +9,8 @@ macOS 26.4.1 x86_64. Binary started directly (never `launch.py`, never `~/.vscod
 `--user-data-dir` / `--extensions-dir` / `--shared-data-dir` under `$D = mktemp -d /tmp/jfv.XXXX`,
 folder = program copy + demo + the window's own settings, throwaway browser storage. Dummy data
 only (Test Person, `test.person@example.com`, 100-byte dummy PDF), never the user's; Submit never
-clicked. Scripts: [measure.py](vscode-browser/measure.py) (stages setup, ext, route1, route2, gh, ghfill, score,
-restricted), [cdp.py](../../apply/cdp.py) (stdlib CDP client, now shipped for the trial), [formsite.py](vscode-browser/formsite.py)
+clicked. Scripts: [measure.py](vscode-browser/measure.py) (stages setup, ext, route1 - refused unless
+`JF_ALLOW_ROUTE1=1`, route2, gh, ghfill, ghupload, score, restricted, raw), [cdp.py](../../apply/cdp.py) (stdlib CDP client, now shipped for the trial), [formsite.py](vscode-browser/formsite.py)
 (local test form, logs every request), [probe-ext/](vscode-browser/probe-ext/extension.js) (scratch
 extension: opens tabs, starts the attach, asks for proxies). Screenshots (window only, ignored):
 `.data/probe-shots/form/`.
@@ -78,6 +78,35 @@ scrubbed).
 | Blocked on load | analytics POST (`c.spl.greenhouse.io`), reCAPTCHA Enterprise frame (`recaptcha.net`, other site, level 2). Form filled anyway; whether Submit passes the captcha w/ the frame blocked - unmeasured (never Submit) |
 | Gotcha | page has `scroll-behavior: smooth`: coordinates read right after `scrollIntoView` miss the box (first run: first name, phone, Yes/No all empty). `behavior: 'instant'` fixes it |
 | What the user sees | `gh-route2-filled.png`: form in the tab, debug toolbar on top, Debug Console below; Claude panel's "Browser connected" is Claude in Chrome, not this tab (`app-window.md`) |
+
+## Ashby - route 2 (plan-nko.6)
+
+`measure.py raw <link>`: any system `systems.for_url` knows; READY from it (Ashby `[data-field-path]`). Level 3 +
+`lab.NAMED_READS` (`ApiJobPosting` query only, the owner's one exception - else no form, plan-nko.2). Canary in
+the same tab first, then the application page. `debugger;` pauses: skip off once, each resumed in the handler,
+cap 20, then skip on. One text box: click + `Input.insertText`. Dummy PDF by `DOM.setFileInputFiles`. Never Submit.
+2 employers (tenants A + B), 2026-10-05, 3 page loads on `jobs.ashbyhq.com`. Numbers:
+[ashby-tenant-a.json](vscode-browser/ashby-tenant-a.json), [ashby-tenant-b.json](vscode-browser/ashby-tenant-b.json)
+(org, posting + question ids scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | received none |
+| `READY` from navigate | 1.4-1.5 s (2 runs) | 1.6 s |
+| Form | 9 fields (`[data-field-path]`) | 11 (incl. Education History, phone, consent radios) |
+| Question read | `ApiJobPosting` passed (named read) | same |
+| Blocked on load | `ApiOrganizationFromHostedJobsPageName` x2 | same + `ApiSetFormValue` x1 |
+| `debugger;` pauses | 0 | 0 |
+| Other-site frames | none (no iframe, no frame target, none blocked) - no captcha on the form before Submit | none |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant" | same |
+| Sent on typing | `ApiSetFormValue` (blocked) - answers leave box by box, as in Chrome (`ashby.md`) | same |
+| Dummy PDF chosen | `ApiCreateFileUploadHandle` POST at once (blocked); page shows the name + its own "failed to upload" toast | same |
+| What the user sees | debug toolbar, Debug Console (red source-map line from Ashby's CDN), Run badge 1 - as Greenhouse | - |
+
+Reading: Ashby has none of Greenhouse's frame or pause costs - no other-site frame to Tab into, no
+`debugger;`, no captcha frame before Submit (2 of 2; captcha at Submit unmeasured). Same route-2 costs
+otherwise (debug chrome, stop only the page session, trusted folder, one-tab urlFilter). Answers + file
+leave before Submit, window or Chrome alike - privacy rows already say so. Owner decides (plan-nko.7).
 
 ## Recommendation
 
