@@ -1,0 +1,355 @@
+{
+ "stage": "ghupload",
+ "at": "2026-10-05T14:43:29Z",
+ "uniq": "7ed197",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 8386,
+  "upInfo": {
+   "t": 1791211419604,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 8351,
+  "sessions": [
+   {
+    "id": "8e26bf7d-a56a-47d9-a613-6de64446eabb",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "9566bf45-bd85-47f5-ba88-91ce3da1acbf",
+    "type": "pwa-editor-browser",
+    "name": "JF form 7ed197 blank \u00ab Job Finder form",
+    "parent": "8e26bf7d-a56a-47d9-a613-6de64446eabb"
+   }
+  ]
+ },
+ "install": {
+  "ok": true,
+  "ms": 26,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:54984/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:54984/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:54984/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:54984/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:54985/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:54984/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "xhrProgress": {
+  "ok": true,
+  "ms": 3,
+  "value": "2"
+ },
+ "early": {
+  "presignedOut": true,
+  "choose": {
+   "ok": true,
+   "ms": 240
+  },
+  "box": {
+   "error": "Cannot read properties of undefined (reading 'uploadFile')",
+   "name": "",
+   "progress": false
+  },
+  "tabShot": {
+   "path": "<shots>/gh-upload-early.png",
+   "bytes": 135098
+  },
+  "idle": {
+   "ok": true,
+   "ms": 3205
+  },
+  "same": {
+   "ok": true,
+   "ms": 14
+  },
+  "boxSame": {
+   "error": "Cannot read properties of undefined (reading 'uploadFile')",
+   "name": "",
+   "progress": false
+  },
+  "again": {
+   "ok": true,
+   "ms": 20
+  },
+  "shownAgain": true,
+  "boxAgain": {
+   "error": "Cannot read properties of undefined (reading 'uploadFile')",
+   "name": "Test_Resume_2.pdf",
+   "progress": false
+  },
+  "tabShotAgain": {
+   "path": "<shots>/gh-upload-again.png",
+   "bytes": 135098
+  },
+  "marks": [
+   {
+    "ms": 639,
+    "what": "readyState complete",
+    "inflight": []
+   },
+   {
+    "ms": 708,
+    "what": "READY #first_name"
+   },
+   {
+    "ms": 848,
+    "what": "requestWillBeSent presigned"
+   },
+   {
+    "ms": 848,
+    "what": "requestWillBeSent presigned"
+   },
+   {
+    "ms": 1128,
+    "what": "chosen early"
+   },
+   {
+    "ms": 5896,
+    "what": "loadingFinished presigned"
+   },
+   {
+    "ms": 6454,
+    "what": "idle"
+   },
+   {
+    "ms": 6468,
+    "what": "same file chosen again"
+   },
+   {
+    "ms": 9492,
+    "what": "other name chosen"
+   },
+   {
+    "ms": 9755,
+    "what": "name shown"
+   }
+  ]
+ },
+ "plain": {
+  "putFile": {
+   "ok": true,
+   "ms": 988,
+   "value": "ok"
+  },
+  "putFileMs": 988,
+  "box": {
+   "error": "",
+   "name": "Test_Resume.pdf",
+   "progress": false
+  },
+  "marks": [
+   {
+    "ms": 374,
+    "what": "readyState complete",
+    "inflight": [
+     "https://job-boards.cdn.greenhouse.io/locales/en/common.JhgW1MtlxQMWLxqjNtT6nMMubUGRVw8hHuLsUmHD0-8.json"
+    ]
+   },
+   {
+    "ms": 406,
+    "what": "READY #first_name"
+   },
+   {
+    "ms": 487,
+    "what": "requestWillBeSent presigned"
+   },
+   {
+    "ms": 489,
+    "what": "requestWillBeSent presigned"
+   },
+   {
+    "ms": 647,
+    "what": "loadingFinished presigned"
+   },
+   {
+    "ms": 1394,
+    "what": "put_file returned"
+   }
+  ],
+  "tabShot": {
+   "path": "<shots>/gh-upload-plain.png",
+   "bytes": 135098
+  }
+ },
+ "xhr": [
+  204
+ ],
+ "stored": [
+  {
+   "method": "OPTIONS",
+   "after": "second choice",
+   "body": false
+  },
+  {
+   "method": "POST",
+   "after": "second choice",
+   "body": true
+  },
+  {
+   "method": "POST",
+   "after": "put_file",
+   "body": true
+  }
+ ],
+ "held": [
+  {
+   "after": "held",
+   "s": 5.0
+  }
+ ],
+ "submitClicked": false,
+ "block": {
+  "reads": 33,
+  "failed": [
+   [
+    "POST",
+    "http://localhost:54985/w/cross",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:54984/w/xhr",
+    "canary"
+   ],
+   [
+    "GET",
+    "http://localhost:54985/frame.html",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:54984/w/keepalive",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:54984/w/beacon",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:54984/w/form",
+    "canary"
+   ],
+   [
+    "POST",
+    "http://127.0.0.1:54984/w/worker",
+    "canary"
+   ],
+   [
+    "POST",
+    "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2",
+    "early choice"
+   ],
+   [
+    "GET",
+    "https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LfmcbcpAAAAAChNTbh",
+    "early choice"
+   ],
+   [
+    "GET",
+    "https://content.googleapis.com/static/proxy.html?usegapi=1&jsh=m%3B%2F_%2Fscs%2F",
+    "early choice"
+   ],
+   [
+    "POST",
+    "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2",
+    "plain"
+   ],
+   [
+    "POST",
+    "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2",
+    "plain"
+   ],
+   [
+    "POST",
+    "https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2",
+    "put_file"
+   ],
+   [
+    "GET",
+    "https://www.recaptcha.net/recaptcha/enterprise/anchor?ar=1&k=6LfmcbcpAAAAAChNTbh",
+    "put_file"
+   ],
+   [
+    "GET",
+    "https://content.googleapis.com/static/proxy.html?usegapi=1&jsh=m%3B%2F_%2Fscs%2F",
+    "put_file"
+   ]
+  ]
+ },
+ "quit": {
+  "killed": false
+ }
+}

@@ -180,3 +180,56 @@ Reading: the window's browser is not shown to lower the score; the employer's ow
 explains a code at one employer. Roll-out cost: any Greenhouse application may ask for a code,
 window or Chrome - one paste from their email, not a failure. `job-apply` step 5 says so before
 Submit. plan-29g.23 records whether the next window application asks again.
+
+## Upload wait (plan-29g.25)
+
+Owner's application (plan-29g.23, `fill --in-window`, job board link): resume `ASK upload not
+confirmed on page`, the page's own red line "Cannot read properties of undefined (reading 'uploadFile')"
+under Resume. Their own attach after it: name shown, red line stayed.
+
+Cause (Greenhouse's public job-board script, read 2026-10-05): the file box uploads through
+`uploaders[<box>]`, filled only when the page's own request for the storage form answers (`GET
+boards.greenhouse.io/uncacheable_attributes/presigned_fields`, sent after the page hydrates). File
+chosen before that = that error, choice cleared. Name shown only after the POST to storage returns 2xx
+=> name = file stored. A later upload never clears the error line.
+
+Old wait: `networkidle` counted the page's list of finished requests (misses one still out, stops at
+250) + ran only on a redirected board (`recover`); a plain job-board link chose the file right at `READY`.
+
+Fix: `window.Page` tracks requests in flight off the tab's own Network events (js-debug passes them on
+once `JsDebug.subscribe` asks; adds to what the block asked for); idle = loaded + none out + 500 ms quiet.
+`greenhouse.put_file` (both paths; Chrome = Playwright's own networkidle) waits for it (15 s cap - a page
+that keeps polling goes on, the read-back decides), chooses, reads back: name -> `ok`; the page's
+`uploadFile` line -> `FAIL ... fill again (it reloads the page), or reload it and attach the file by hand`;
+neither in 20 s -> `ASK`.
+
+Measured: `measure.py ghupload`, one public posting (tenant H), level-3 block + canary (0 received),
+dummy PDF, storage POST + its preflight answered inside the tab - nothing left the computer, never Submit.
+2 runs, 2026-10-05, macOS 26.4.1; run 2 = [gh-upload-tenant-h.json](vscode-browser/gh-upload-tenant-h.json).
+ms from navigate:
+
+| Plain load | Run 1 | Run 2 |
+|---|---|---|
+| page loaded (`readyState` complete; 1 locale file still out) | 749 | 374 |
+| `READY` (`#first_name`) | 826 | 406 |
+| storage-form request out / answered | 990 / 1051 | 487 / 647 |
+| shipped `put_file` | chose after it answered, no error; stub answered POST, no name (below) | `ok` in 988 ms, name, no error |
+
+Storage-form request held 5 s (the owner's case made certain):
+
+| Step | Result |
+|---|---|
+| chosen 0.1-0.3 s after the request went out | page's own `uploadFile` line, no name (2 of 2) |
+| idle wait | returned 0.5 s after the request answered (2 of 2) |
+| same file chosen again (as a person re-picking it) | nothing: no request, no progress, line stays (2 of 2) - Chrome fires no change for an identical choice |
+| copy under another name chosen | stored, name in 263 ms, red line stays (run 2) |
+
+Gotcha: a POST answered by `Fetch.fulfillRequest` at request stage sends no upload progress; the page
+shows the name only at progress 100 -> run 1 stuck on its progress bar (`ASK`). Run 2 reports progress
+once the answered POST loads, as a real upload does (`XHR_PROGRESS`).
+
+Reading: the request goes out 0.1-0.2 s after `READY` -> files first at `READY` (the fill's order)
+raced it; the wait costs ~1 s. After the error, re-picking the same PDF does nothing and the red line
+stays for the tab -> reload is the clean way; a fresh fill reloads the page and now waits.
+Owner's Submit check (blank Last Name on a live posting): not run - the loop's permission check refused
+clicking Submit on a live employer page; owner decides (plan-29g.25.1).

@@ -55,22 +55,32 @@ def tab(tmp_path_factory):
         proc.wait(10)
 
 
+# the form's own request that readies its file box: answered after this many seconds (Greenhouse asks
+# its storage form once the page has loaded, plan-29g.25)
+PRESIGNED = {"after": 1.5}
+
+
 @pytest.fixture(scope="module")
 def site():
     """The form on this computer -> its link."""
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
-            ok = self.path == "/acme/jobs/1"
-            self.send_response(200 if ok else 404)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            if ok:
-                self.wfile.write(FORM.read_bytes())
+            if self.path.startswith("/uncacheable_attributes/presigned_fields?"):
+                time.sleep(PRESIGNED["after"])
+                body, kind = b'{"resume": {}}', "application/json"
+            else:
+                body, kind = (FORM.read_bytes() if self.path == "/acme/jobs/1" else None), "text/html; charset=utf-8"
+            with contextlib.suppress(OSError):  # the tab moved on while it waited
+                self.send_response(200 if body else 404)
+                self.send_header("Content-Type", kind)
+                self.end_headers()
+                self.wfile.write(body or b"")
 
         def log_message(self, *args):
             pass
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server.daemon_threads = True
     threading.Thread(target=server.serve_forever, daemon=True).start()
     yield f"http://127.0.0.1:{server.server_address[1]}/acme/jobs/1"
     server.shutdown()
@@ -116,6 +126,46 @@ def test_in_window_page_fills_greenhouse_in_a_tab_over_cdp(tab, site, tmp_path, 
         assert [page.run(f"({shown})('question_{n}')") for n in (5, 6, 7)] == ["Canada", "No", None]
         assert page.run("[...document.querySelectorAll('[name=\"question_100[]\"]')].map(b => b.checked)") == [False, True, True]
         assert page.run("document.getElementById('resume').files[0].name") == resume.name
+    finally:
+        cdp.close()
+
+
+def test_in_window_upload_waits_for_the_page_to_ready_its_file_box(tab, site, tmp_path):
+    # owner's run: a file chosen as the form showed got the page's own error, the name never came
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    q = asked("resume", "Resume/CV", "file", True, key="resume")
+    error, name = "document.getElementById('resume-error').innerText", "document.querySelector('.file-upload__filename').innerText"
+    cdp = CDP(**tab)
+    try:
+        page = window.Page(cdp)
+        page.goto(site)
+        page.locator("#resume").set_input_files(str(resume))  # as the fill did: no wait
+        page.until(f"{error}.includes('uploadFile')", 3000, "the page's own error")
+        assert "Cannot read properties of undefined (reading 'uploadFile')" in page.run(error) and page.run(name) == ""
+        page.goto(site)
+        start = time.monotonic()
+        assert greenhouse.put_file(page, q, str(resume)) == "ok"
+        assert time.monotonic() - start >= PRESIGNED["after"] - 0.2  # waited for the page's own request
+        assert page.run(name) == resume.name and page.run(error) == ""
+    finally:
+        cdp.close()
+
+
+def test_in_window_upload_the_page_never_readies_is_a_fail_to_do_by_hand(tab, site, tmp_path, monkeypatch):
+    # its request still out when the wait gives up: chosen anyway, the page's error read back -> never ok
+    monkeypatch.setitem(PRESIGNED, "after", 10)
+    monkeypatch.setattr(greenhouse, "IDLE_WAIT_MS", 1000)
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    cdp = CDP(**tab)
+    try:
+        page = window.Page(cdp)
+        page.goto(site)
+        with pytest.raises(TimeoutError):
+            page.wait_for_load_state("networkidle", timeout=1000)
+        assert greenhouse.put_file(page, asked("resume", "Resume/CV", "file", True, key="resume"), str(resume)) == greenhouse.NOT_READY
+        assert page.run("document.querySelector('.file-upload__filename').innerText") == ""
     finally:
         cdp.close()
 

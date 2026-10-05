@@ -3,7 +3,9 @@ public job board, answers typed into its widgets.
 
 Measured facts and why each rule exists: app/docs/apply/greenhouse.md.
 """
+import contextlib
 import re
+import time
 from functools import lru_cache
 from pathlib import Path
 from urllib.parse import quote, urlsplit
@@ -32,6 +34,10 @@ QUESTIONS_OVER_HTTP = True
 READY = "#first_name"
 # a chosen file POSTs to Greenhouse's storage at once, before Submit (3 of 3 employers, 2026-10-05)
 FILE_ON_CHOICE = True
+IDLE_WAIT_MS, SHOWN_WAIT_MS = 15000, 20000
+# the same file chosen again changes nothing on the page; a fill reloads it (plan-29g.25, measured)
+NOT_READY = ("FAIL the page wasn't ready for the file (its own 'uploadFile' error; the same file chosen again does "
+             "nothing) - fill again (it reloads the page), or reload it and attach the file by hand")
 # Greenhouse type -> shared kind; a type missing here is asked as text
 KIND = {"input_text": "text", "textarea": "longtext", "input_file": "file",
         "multi_value_single_select": "choice", "multi_value_multi_select": "multichoice"}
@@ -88,8 +94,6 @@ def recover(page, url: str) -> None:
     here = urlsplit(page.url)
     if here.hostname and not here.hostname.endswith("greenhouse.io"):
         page.goto(embed_url(url, f"{here.scheme}://{here.hostname}"))
-        # upload before its scripts settle -> the page's own "reading 'uploadFile'" error (2026-10)
-        page.wait_for_load_state("networkidle")
 
 
 def from_board(job: dict) -> list[dict]:
@@ -223,13 +227,22 @@ def put_boxes(boxes, value) -> str:
 
 
 def put_file(page, q: dict, path: str) -> str:
+    # the page readies its upload with a request of its own once loaded: a file chosen before that
+    # gets "Cannot read properties of undefined (reading 'uploadFile')" (owner's run, plan-29g.25)
+    with contextlib.suppress(Exception):  # a page that keeps polling never goes idle: the read-back decides
+        page.wait_for_load_state("networkidle", timeout=IDLE_WAIT_MS)
     page.locator(f'input[type=file][id="{q["id"]}"]').set_input_files(path)
-    shown = page.locator(f'[aria-labelledby="upload-label-{q["id"]}"] .file-upload__filename')
-    try:
-        shown.get_by_text(Path(path).name).first.wait_for(timeout=20000)
-    except Exception:
-        return "ASK upload not confirmed on page - check the box"
-    return "ok"
+    # the name shows only once the file reached Greenhouse's storage
+    shown = page.locator(f'[aria-labelledby="upload-label-{q["id"]}"] .file-upload__filename').get_by_text(Path(path).name)
+    said = page.locator(f'[id="{q["id"]}-error"]')
+    deadline = time.monotonic() + SHOWN_WAIT_MS / 1000
+    while time.monotonic() < deadline:
+        if "uploadfile" in " ".join(said.all_inner_texts()).casefold():
+            return NOT_READY
+        if shown.count():
+            return "ok"
+        page.wait_for_timeout(250)
+    return "ASK upload not confirmed on page - check the box"
 
 
 def holds(page, q: dict) -> bool:

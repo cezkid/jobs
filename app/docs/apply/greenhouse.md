@@ -34,7 +34,7 @@ multichoice, `input_hidden` skipped.
 | every box, after all are filled | an owner's real run in the window (tenant G, 2026-10-05) reported every dropdown ok; the owner then said "some fields were not filled" and picked Dropdowns (which ones unknown). Never reproduced: 3 blocked runs (headless Chrome, headful Chrome unfocused, the window) + 5 more (plan-29g.24: upload succeeding, signed in to MyGreenhouse, its autofill landing mid-fill, clicking + Tab around for 30 s) - all held ([gh-dropdown-variants.json](vscode-browser/gh-dropdown-variants.json)). Page code (job board bundle, 2026-10-05): a custom question's dropdown keeps its own choice (react-select, no value passed in), so only a clear (Backspace / Delete in an empty box, the x) or a redraw of the form empties it; EEOC dropdowns show the form's saved answer. Upload success only adds the file; MyGreenhouse autofill fills names, email, phone, city, links, EEOC + its saved resume, never a custom dropdown - cause unfound | `holds`: wait 2.5 s (`form.recheck`), read each back off the page (dropdown = the choice it shows, never the filler's word); gone -> filled again once, still gone -> `FAIL answer dropped after filling - fill it by hand` |
 | multichoice drawn as checkboxes (some questions, 2026-10-05: one form had one of each) | `fieldset#question_<n>[]` of `input[type=checkbox][name="question_<n>[]"]`, id `question_<n>[]_<value>`, each named by its `label[for]`; the job board's list says nothing of which | checkboxes w/ that name on the page -> tick each answer by its label, untick the rest, read each back; else react-select. Counted as one question on the page |
 | Location (City) | combobox `candidate-location`, places after typing (e.g. "Springfield, Illinois, United States") | type city only, pick option starting w/ the full answer |
-| Resume/CV, Cover Letter | hidden `input[type=file]#resume` / `#cover_letter`; after upload `[aria-labelledby=upload-label-<id>] .file-upload__filename` shows the file name | upload first, confirm by name. Choosing it sends the file at once - see below. Signed in to MyGreenhouse + a name box focused before the upload: the page puts the saved resume in, the file box is gone -> `FAIL question not on page` (measured, plan-29g.24); the fill's own order (resume first) keeps theirs |
+| Resume/CV, Cover Letter | hidden `input[type=file]#resume` / `#cover_letter`; after upload `[aria-labelledby=upload-label-<id>] .file-upload__filename` shows the file name | upload first, confirm by name. Choosing it sends the file at once - see below. Box ready only once the page's own storage-form request answers (after load): chosen before -> its own `uploadFile` error line, no name; same file again does nothing -> `put_file` waits network idle first, that line = `FAIL` (plan-29g.25, [vscode-browser.md](vscode-browser.md#upload-wait-plan-29g25)). Signed in to MyGreenhouse + a name box focused before the upload: the page puts the saved resume in, the file box is gone -> `FAIL question not on page` (measured, plan-29g.24); the fill's own order (resume first) keeps theirs |
 | Race | shown only after Hispanic/Latino = No | not shown -> skipped |
 | Education (School, Degree ...) | `school--0` ...; optional; not in the job board's list | left alone; MyGreenhouse may fill it |
 
@@ -92,8 +92,9 @@ name never shows ("upload not confirmed").
 
 `job-boards.greenhouse.io/<co>/jobs/<id>` 302s to the employer's careers page (seen: its own form, other
 field names - no `#first_name`). `recover` opens `embed/job_app?for=<co>&token=<id>&b=<site>`
-instead: `b=` stops the redirect, same form ids. Wait for network idle before the upload - too
-early, the page shows its own "Cannot read properties of undefined (reading 'uploadFile')".
+instead: `b=` stops the redirect, same form ids. Upload too early -> the page's own "Cannot read
+properties of undefined (reading 'uploadFile')": `put_file` waits for network idle on every link, not
+only here (plan-29g.25).
 
 ## Employer's own page w/ `?gh_jid=` (2026-10-04)
 
