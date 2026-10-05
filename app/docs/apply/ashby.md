@@ -114,8 +114,13 @@ How each widget shows its answer, read after `fill` + the 2.5 s settle (`try` re
   list: skipped when the box already shows the pick, waits up to 8 s for the option, then the pick shown.
 - Phone (C): an SMS-updates Yes / No consent sits inside the Phone wrapper (2 radios) - not a question
   in the form definition.
-- Consent w/ empty title (D): a MultiValueSelect "I agree" whose words are in its description, title "";
-  `try` ticked it (synthetic answers check the title) - follow-up filed.
+- Consent w/ empty title (D): a MultiValueSelect "I agree" (survey form, path `_systemfield_data_consent_ack`),
+  title ""; its words ("I consent to my data being retained beyond one year ...") are the form entry's
+  `descriptionHtml` - not on the field (keys read 2026-10-05: no description there). `try` ticked it.
+  Now (plan-nko.26): the question read asks for each entry's `descriptionHtml`; an empty title takes its
+  text, so the consent words name the box -> left for the applicant by `try`, `prepare` and `fill`.
+  A box still w/o words = the applicant's own step on every system (`questions.signs`): what it agrees
+  to is unknown.
 
 ## Closed posting (2026-10-05)
 

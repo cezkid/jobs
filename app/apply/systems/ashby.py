@@ -10,13 +10,14 @@ from pathlib import Path
 import httpx
 
 from apply.questions import key_from_title, question
+from text import html_to_text
 
 NAME = "Ashby"
 GRAPHQL = "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiJobPosting"
 QUERY = """query ApiJobPosting($organizationHostedJobsPageName: String!, $jobPostingId: String!) {
   jobPosting(organizationHostedJobsPageName: $organizationHostedJobsPageName, jobPostingId: $jobPostingId) {
-    title applicationForm { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } }
-    surveyForms { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } } } }"""
+    title applicationForm { sections { fieldEntries { ... on FormFieldEntry { isRequired descriptionHtml field } } } }
+    surveyForms { sections { fieldEntries { ... on FormFieldEntry { isRequired descriptionHtml field } } } } } }"""
 # the employer's public job list: says whether a posting the question read can't find was taken down
 BOARD = "https://api.ashbyhq.com/posting-api/job-board/{org}"
 POSTING_URL = re.compile(r"https?://jobs\.ashbyhq\.com/([^/?#]+)/([0-9a-f-]{36})", re.I)
@@ -72,10 +73,12 @@ def from_form(job: dict) -> list[dict]:
             if not f or f.get("isDeactivated"):
                 continue
             kind = KIND.get(f["type"], "text")
+            # untitled box (a consent tick, ashby.md): its words are the entry's description - the page shows them
+            title = f["title"].strip() or " ".join(html_to_text(entry.get("descriptionHtml")).split())
             out.append(question(
-                f["path"], f["title"], kind, bool(entry.get("isRequired")),
+                f["path"], title, kind, bool(entry.get("isRequired")),
                 [v["label"] for v in f.get("selectableValues") or [] if not v.get("isArchived")],
-                SYSTEM_KEY.get(f["path"]) or key_from_title(f["title"], kind), f["type"]))
+                SYSTEM_KEY.get(f["path"]) or key_from_title(title, kind), f["type"]))
     return out
 
 

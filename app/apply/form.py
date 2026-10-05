@@ -192,7 +192,7 @@ def refuse(qs: list[dict]) -> None:
     """Answers nothing may type: the AI's on the user's own questions, any on agreeing or signing."""
     if bad := questions.on_page(qs):
         sys.exit("the user ticks or signs these on the page themselves - clear the answer: "
-                 + "; ".join(a["title"] for a in bad))
+                 + "; ".join(a["title"] or questions.UNTITLED for a in bad))
     if bad := questions.unvouched(qs):
         sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
 

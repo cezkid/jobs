@@ -1125,6 +1125,26 @@ def test_ashby_voluntary_survey_listed_beside_the_form():
     assert [q["id"] for q in ashby.from_form(job)] == ["q", "_systemfield_eeoc_gender"]
 
 
+def test_ashby_untitled_consent_left_for_the_applicant():
+    """Measured 2026-10-05 (tenant D): an "I agree" tick, title "", its consent words in the entry's
+    description - the try run ticked it. Read as its title; a box with no words at all is theirs too."""
+    job = json.loads((Path(__file__).parent / "fixtures" / "ashby" / "consent-untitled.json").read_text())
+    got = {q["id"]: q for q in ashby.from_form(job)}
+    assert got["_systemfield_name"]["title"] == "Name"  # a titled box keeps its title, not its hint
+    consent, blank = got["_systemfield_data_consent_ack"], got["untitled"]
+    assert consent["title"].startswith("I consent to my data being retained beyond one year")
+    assert blank["title"] == "" and all(questions.signs(q["title"]) for q in (consent, blank))
+    drafted = {a["id"]: a for a in questions.draft(list(got.values()), CONTACT)}  # prepare
+    for id, why in (("_systemfield_data_consent_ack", questions.SIGNING), ("untitled", questions.UNTITLED)):
+        assert drafted[id]["answer"] is None
+        assert drafted[id]["source"] == f"{questions.ASK} - {questions.SIGN_ON_PAGE}: {why}"
+    assert drafted["_systemfield_name"]["answer"] == CONTACT["name"]
+    assert questions.missing(list(drafted.values())) == []  # required, but theirs on the page: not asked for
+    for id in ("_systemfield_data_consent_ack", "untitled"):  # fill: an answer there is refused, never ticked
+        with pytest.raises(SystemExit, match="ticks or signs"):
+            form.refuse([{**drafted[id], "answer": ["I agree"], "source": questions.USER_SAID}])
+
+
 VETERAN = ["I identify as one or more of the classifications of protected veteran listed above",
            "I am not a protected veteran", "I decline to self-identify for protected veteran status"]
 RACE = ["Hispanic or Latino", "White (Not Hispanic or Latino)", "Decline to self-identify"]

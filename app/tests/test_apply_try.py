@@ -3,12 +3,14 @@
 canary on. Own file: a headless Chrome holds Playwright's loop for its whole module."""
 import json
 from datetime import date
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 import cfg
 from apply import browser, dom, lab, questions, systems, trial
+from apply.systems import ashby
 
 
 def q(title, kind="text", key=None, options=(), native=None):
@@ -54,6 +56,15 @@ def test_consent_and_other_files_left_for_the_applicant(no_settings):
     answer, why = trial.synthetic(q("Transcript", "file"))
     assert answer is None and trial.APPLICANT in why
     assert trial.synthetic(q("Gender", "choice", options=["Decline", "Prefer not to say"]))[0] is None
+
+
+def test_untitled_consent_box_left_for_the_applicant(no_settings):
+    """Measured 2026-10-05 (Ashby tenant D): try ticked an untitled "I agree" - words in its description."""
+    job = json.loads((Path(__file__).parent / "fixtures" / "ashby" / "consent-untitled.json").read_text())
+    got = {x["id"]: trial.synthetic(x) for x in ashby.from_form(job)}
+    assert got["_systemfield_data_consent_ack"] == (None, f"{questions.SIGNING} - {trial.APPLICANT}")
+    assert got["untitled"] == (None, f"{questions.UNTITLED} - {trial.APPLICANT}")
+    assert got["_systemfield_name"] == ("Test Applicant", None)
 
 
 def test_next_presses_only_next_or_continue():
