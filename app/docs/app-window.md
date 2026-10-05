@@ -270,7 +270,8 @@ VS Code's Integrated Browser (1.109+): any http(s) site, sign-ins, uploads. Bund
   - VS Code's own chat (Copilot) is the one that can read window tabs: `workbench.browser.enableChatTools`
     (default on) gives its agent `read_page`, `list_browser_pages` + page actions ("open and interact
     with pages") => page text to the GitHub account when it uses them; off => VS Code's open tool
-    tells the agent it can't see the page. Privacy table says "postings you work on" only - plan-29g.8.
+    tells the agent it can't see the page. Privacy table names Claude in Chrome page text (plan-29g.12);
+    Copilot's line waits on the chat tools pick (plan-29g.8).
 
 How links get there:
 - Today + Jobs panel (plan-29g.1): job title + company => `today.openLink` (`app/vscode/today.js`):

@@ -214,6 +214,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
 | Resume + answers you paste | that employer's site (Recruitee ...) | That employer, once you click Submit |
 | Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User's own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |
+| Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User's own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Contact details, answers, resume you apply with | that employer's Greenhouse site | That employer, once you click Submit |
