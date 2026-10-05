@@ -6,6 +6,7 @@ import contextlib
 import re
 import time
 from pathlib import Path
+from urllib.parse import quote, unquote
 
 import httpx
 
@@ -67,15 +68,17 @@ def matches(url: str) -> bool:
 
 
 def parse_url(url: str) -> tuple[str, str]:
+    """(org, posting); org as Ashby names it - a link spells a space in it %20, and the question read
+    finds nothing under the %20 spelling (ashby.md "Closed posting")."""
     m = POSTING_URL.match(url.strip())
     if not m:
         raise ValueError(f"not a jobs.ashbyhq.com posting link: {url}")
-    return m.group(1), m.group(2)
+    return unquote(m.group(1)), m.group(2)
 
 
 def application_url(url: str) -> str:
     org, posting = parse_url(url)
-    return f"https://jobs.ashbyhq.com/{org}/{posting}/application"
+    return f"https://jobs.ashbyhq.com/{quote(org, safe='')}/{posting}/application"
 
 
 def education(f: dict, required: bool, schools: int) -> list[dict]:
@@ -127,7 +130,7 @@ def job_posting(org: str, posting: str) -> dict | None:
 def board_says(org: str, posting: str) -> str:
     """The question read gives null for a closed posting and a wrong link alike (ashby.md "Closed
     posting"): the employer's public job list, read once, tells which - never a guess."""
-    r = httpx.get(BOARD.format(org=org), timeout=30)
+    r = httpx.get(BOARD.format(org=quote(org, safe="")), timeout=30)
     if r.status_code == 404:
         return "can't tell if the posting is open - the employer's Ashby board wasn't found (board moved?)"
     r.raise_for_status()

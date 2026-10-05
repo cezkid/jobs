@@ -441,6 +441,15 @@ def test_ashby_link_with_or_without_application_or_tracking_tail():
         ashby.parse_url("https://acme.myworkdayjobs.com/x")
 
 
+def test_ashby_org_with_a_space_read_as_ashby_names_it():
+    """Measured 2026-10-05: a link spelling the org "acme%20corp" - question read null under that
+    spelling, the posting's 9 questions under "acme corp"; prepare stopped on an open posting."""
+    url = "https://jobs.ashbyhq.com/acme%20corp/45bdb7e5-14a8-494f-8fcb-30e42f0be67a?utm_source=freehire.me"
+    assert ashby.parse_url(url) == ("acme corp", "45bdb7e5-14a8-494f-8fcb-30e42f0be67a")
+    assert ashby.application_url(url) == \
+        "https://jobs.ashbyhq.com/acme%20corp/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/application"
+
+
 def test_ashby_form_becomes_shared_questions():
     def entry(path, title, kind, required=True, values=None, off=False):
         f = {"path": path, "title": title, "type": kind, "isDeactivated": off}
@@ -1145,6 +1154,9 @@ def test_ashby_closed_reads_the_employers_board_once_never_guesses(monkeypatch):
     state["posting"] = {"title": "Engineer"}
     boards.clear()
     assert ashby.closed(url) is None and boards == []
+    state["posting"] = None
+    ashby.closed("https://jobs.ashbyhq.com/acme%20corp/45bdb7e5-14a8-494f-8fcb-30e42f0be67a")
+    assert boards == ["https://api.ashbyhq.com/posting-api/job-board/acme%20corp"]
 
 
 def test_ashby_voluntary_survey_listed_beside_the_form():

@@ -177,9 +177,9 @@ the question read after ~150 calls):
 
 - Open read as closed: 0. All 35 "may have closed": page's own `__appData.posting` + `.organization`
   null too = taken down since the list was made.
-- The 1 "can't tell": question read null (no errors, minimal query + slug case too), yet on the board
-  (listed) and its page carries the posting. Cause unknown; `prepare` can't read its questions
-  (follow-up filed). Null alone is never "closed".
+- The 1 "can't tell": org name w/ a space, spelled `%20` in the link. Question read under the `%20`
+  spelling = null; under the space = the form (9 questions). Board + page take either. Fix
+  (plan-nko.27): `parse_url` decodes the org, re-encodes it into links. Null alone is never "closed".
 - 18 "closed" links still open per Ashby: the list's closed mark is older or from elsewhere.
 
 ## Widgets (tenant A)
