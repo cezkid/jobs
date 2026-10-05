@@ -1,0 +1,164 @@
+{
+ "stage": "gh-dropdown-variants",
+ "bead": "plan-29g.24",
+ "at": "2026-10-05",
+ "where": "headless Google Chrome 154, macOS, raw CDP + the shipped in-window adapter (apply/window.Page, form.fill_page); tenant G's public posting",
+ "level": 3,
+ "answers": "trial.synthetic test answers; never Submit",
+ "faking": {
+  "upload-ok": "S3 POST answered 204 inside the browser (never left) + upload progress told 100% (a fulfilled POST sends no bytes)",
+  "signed-in": "GET my.greenhouse.io/users/self answered with a made-up MyGreenhouse profile inside the browser",
+  "slow=6": "that answer held 6 s: the page's own autofill lands mid-fill",
+  "probe": "first name clicked before the fill: autofill runs before the resume upload",
+  "poke": "after the fill: 3 page clicks, each dropdown clicked + Escape + Tab, 30 s wait"
+ },
+ "runs": [
+  {
+   "faked": [],
+   "canaryReceived": [],
+   "report": {
+    "ok": 27,
+    "notOk": [
+     "ASK upload not confirmed on page - check the box",
+     "ASK upload not confirmed on page - check the box",
+     "skipped - not shown for the other answers"
+    ]
+   },
+   "dropdownsAnswered": 14,
+   "dropdownsShown_after": 14,
+   "dropdownsShown_late": 14,
+   "filesShown": [],
+   "textsHeld": true,
+   "requests": [
+    "GET https://content.googleapis.com/static/proxy.html -> frame",
+    "GET https://www.recaptcha.net/recaptcha/enterprise/anchor -> frame",
+    "POST https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2 -> XHR",
+    "POST https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/ -> XHR"
+   ]
+  },
+  {
+   "faked": [
+    "upload-ok"
+   ],
+   "canaryReceived": [],
+   "report": {
+    "ok": 29,
+    "notOk": [
+     "skipped - not shown for the other answers"
+    ]
+   },
+   "dropdownsAnswered": 14,
+   "dropdownsShown_after": 14,
+   "dropdownsShown_late": 14,
+   "filesShown": [
+    "Test_Applicant_Resume.pdf",
+    "Test_Applicant_Cover_Letter.pdf"
+   ],
+   "textsHeld": true,
+   "requests": [
+    "GET https://content.googleapis.com/static/proxy.html -> frame",
+    "GET https://www.recaptcha.net/recaptcha/enterprise/anchor -> frame",
+    "POST https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2 -> XHR",
+    "POST https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/ -> upload-faked"
+   ]
+  },
+  {
+   "faked": [
+    "upload-ok",
+    "signed-in"
+   ],
+   "canaryReceived": [],
+   "report": {
+    "ok": 29,
+    "notOk": [
+     "skipped - not shown for the other answers"
+    ]
+   },
+   "dropdownsAnswered": 14,
+   "dropdownsShown_after": 14,
+   "dropdownsShown_late": 14,
+   "filesShown": [
+    "Test_Applicant_Resume.pdf",
+    "Test_Applicant_Cover_Letter.pdf"
+   ],
+   "textsHeld": true,
+   "requests": [
+    "GET https://content.googleapis.com/static/proxy.html -> frame",
+    "GET https://my.greenhouse.io/users/self?job_post_id=<id> -> profile-faked",
+    "GET https://www.recaptcha.net/recaptcha/enterprise/anchor -> frame",
+    "POST https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2 -> XHR",
+    "POST https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/ -> upload-faked"
+   ]
+  },
+  {
+   "faked": [
+    "upload-ok",
+    "signed-in",
+    "probe"
+   ],
+   "canaryReceived": [],
+   "report": {
+    "ok": 28,
+    "notOk": [
+     "FAIL question not on page",
+     "skipped - not shown for the other answers"
+    ]
+   },
+   "dropdownsAnswered": 14,
+   "dropdownsShown_after": 14,
+   "dropdownsShown_late": 14,
+   "filesShown": [
+    "Profile_Resume.pdf",
+    "Test_Applicant_Cover_Letter.pdf"
+   ],
+   "textsHeld": true,
+   "requests": [
+    "GET https://content.googleapis.com/static/proxy.html -> frame",
+    "GET https://my.greenhouse.io/users/self?job_post_id=<id> -> profile-faked",
+    "GET https://www.recaptcha.net/recaptcha/enterprise/anchor -> frame",
+    "POST https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2 -> XHR",
+    "POST https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/ -> upload-faked"
+   ],
+   "autofillOnFirstFocus": {
+    "fields": [
+     "Ada",
+     "Profileperson",
+     "ada.profile@example.com",
+     "5555550111"
+    ],
+    "flash": "Autofilled from MyGreenhouse"
+   }
+  },
+  {
+   "faked": [
+    "upload-ok",
+    "signed-in",
+    "slow=6",
+    "poke"
+   ],
+   "canaryReceived": [],
+   "report": {
+    "ok": 29,
+    "notOk": [
+     "skipped - not shown for the other answers"
+    ]
+   },
+   "dropdownsAnswered": 14,
+   "dropdownsShown_after": 14,
+   "dropdownsShown_late": 14,
+   "dropdownsShown_poked": 14,
+   "filesShown": [
+    "Test_Applicant_Resume.pdf",
+    "Test_Applicant_Cover_Letter.pdf"
+   ],
+   "textsHeld": true,
+   "requests": [
+    "GET https://content.googleapis.com/static/proxy.html -> frame",
+    "GET https://my.greenhouse.io/users/self?job_post_id=<id> -> profile-faked",
+    "GET https://www.recaptcha.net/recaptcha/enterprise/anchor -> frame",
+    "POST https://c.spl.greenhouse.io/com.snowplowanalytics.snowplow/tp2 -> XHR",
+    "POST https://grnhse-prod-jben-us-east-1.s3.amazonaws.com/ -> upload-faked"
+   ]
+  }
+ ]
+}
