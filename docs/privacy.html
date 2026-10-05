@@ -204,6 +204,8 @@
   ul { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
   li::marker { color: var(--text-2); }
+  /* folder paths break anywhere: unbroken, the longest made a phone page 448px wide (qa: scrolls sideways) */
+  code { font-family: var(--mono); font-size: 0.85em; overflow-wrap: anywhere; }
   /* Short version: a ruled note (thick rule over), like an article's Short answer */
   .short { margin: 0 0 8px; padding: 10px 0 6px 1.3em; border-top: 3px solid var(--text); font-size: var(--step-1); }
   .short li::marker { color: var(--text); }
