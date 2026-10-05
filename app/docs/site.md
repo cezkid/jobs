@@ -20,17 +20,21 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   bird on the dark tile, `desktop-icon.md`). Bare bird: `mark-32.svg` (small cut, whole pixels at
   32 + 16px) + `mark.svg` (master, share cards). Pages carry it inline (`<svg class="bird">`:
   header brand 32px, hero title bar 16px), never an `<img>` - an img switching by its own colour
-  scheme prints pale on white paper from a dark-mode machine. Shared CSS colours it: ink =
-  `currentColor` (page text tone, black in print, CanvasText in forced colours), beak + eye
-  `--mark`; dark screen: the brand's eye = `--desk` (a hole; yellow is lost on the pale bird).
-  `assets.py --only icons` rewrites the inline bird in the 3 hand-written pages from
-  `mark-32.svg` (fills cut), then `pages.py` copies the header on. `icon.svg` (tab only, 565 B)
-  = `mark-32.svg` w/ `<desc>` cut + a dark-scheme `<style>`: ink #f2f2f2, eye #1c1c1e (the page's
-  dark `--text` + `--desk`). `favicon.ico`, PNGs = the Desktop tile icon (an .ico can't follow a
+  scheme prints pale on white paper from a dark-mode machine. The bird sits on a paper disc (the
+  Desktop icon's, `<circle class="disc">` inscribed in the 32 grid): black bird on every ground,
+  the disc vanishes on the white desk + paper and shows on the dark desk (owner 2026-10-05: a pale
+  bird read as a white one, its yellow lost on it). Shared CSS colours it: ink = `--ink`, disc =
+  `--paper` (CanvasText + Canvas in forced colours), beak + eye `--mark`, lower beak `--beak-low`;
+  the 16px title-bar bird's whole beak `--beak-low` (`desktop-icon.md`). `assets.py --only
+  icons` rewrites the inline bird in the 3 hand-written pages from `mark-32.svg` (fills cut, disc
+  added), then `pages.py` copies the header on. `icon.svg` (tab only) = `mark-32.svg` w/ `<desc>`
+  cut, on the white disc, whole beak orange (a tab draws 16 px); one drawing for light + dark tab
+  strips. `favicon.ico`, PNGs = the Desktop tile icon (an .ico can't follow a
   dark tab strip; the tile works on any ground): 16/32 from the 16/32 rungs, 48 + PNGs from the
   1024 master; apple-touch + maskable on its ink (#0c0c0e), tile full-bleed, bird 0.363 of the
   side from centre (safe circle 0.40; `icons()` measures `<g id="bird">`, fails past it). Share
-  cards `<img src="/app/install/mark*.svg">`, inlined at render. `app/web/icon-sync.json`
+  cards `<img src="/app/install/mark*.svg">`, inlined at render as drawn for their size
+  (`card_art`: 48px bird w/o pupil, 16px bird's beak all orange). `app/web/icon-sync.json`
   = art hashes (`icon*.svg`, `mark*.svg`) + every made file's;
   `test_site_icons_follow_the_app_icon` fails when the art moved and the site didn't follow.
   Art changed => `uv run --with pillow python app/install/icons.py`, `uv run app/web/assets.py
@@ -172,7 +176,7 @@ morning (hero app window, the resume corrected, applications filled, who sees wh
 questions, install). Real behaviour only: employers, titles, dates never change; you approve every line.
 
 - Ink on paper, like the resume it makes. Highlighter yellow only on marks, the Copy button (the
-  one filled yellow control) + the bird's beak and eye. No shadows: depth = an offset second sheet. Dark mode changes the
+  one filled yellow control) + the bird's upper beak and eye (its lower beak is `--beak-low`). No shadows: depth = an offset second sheet. Dark mode changes the
   desk; sheets stay white paper, marks keep black text.
 - Tokens: one `:root` block in the shared CSS (+ one dark-scheme override); this table = that
   block (`test_site_md_tokens_table_is_the_shared_root`). Desk tokens (`--desk`, `--text*`,
@@ -184,7 +188,8 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--ink` | `#000000` | same | text + rules on paper, text on marks |
 | `--ink-2` | `#3a3a3a` | same | secondary text on paper |
 | `--rule` | `#c8c8c8` | same | hairlines on paper (sheets, the app window) |
-| `--mark` | `#ffe433` | same | highlighter: marks, Copy, the bird's beak + eye |
+| `--mark` | `#ffe433` | same | highlighter: marks, Copy, the bird's upper beak + eye |
+| `--beak-low` | `#e57a00` | same | the bird's lower beak (two-tone bill: 3.0:1 on white, its edge) |
 | `--desk` | `#ffffff` | `#1c1c1e` | page background |
 | `--text` | `#000000` | `#f2f2f2` | text, links, control borders, focus ring on the desk |
 | `--text-2` | `#3a3a3a` | `#cfcfcf` | secondary text on the desk (APCA Lc 96 light, 76 dark) |

@@ -8,24 +8,31 @@ What the user double-clicks to open Job Finder. Art = `app/install/icon.svg` (ma
   the tile the pale cut (#f2f2f2). Dark tile w/ depth, Apple 1024 grid. Chrome, Figma, VS Code sit
   on light tiles on macOS 26 (measured) => dark tile found at a glance.
 - Crop system, one mark everywhere (owner 2026-10-04): Desktop = bird on the dark tile; site =
-  bare bird beside the name, no tile (header, browser tab, share cards); dark page: bird in the
-  page's text tone (#f2f2f2), yellow beak. Site side: `site.md`.
+  bare bird beside the name, no tile (header, browser tab, share cards); dark page: the bird stays
+  black on a paper disc, the Desktop icon's (owner 2026-10-05; the pale cut read as a white bird and
+  its yellow beak was lost on it). Site side: `site.md`.
+- Bill + eye (owner 2026-10-05): two-tone bill - upper `#ffe433` (the highlighter), lower half
+  `#e57a00`, as Duolingo's owl + Tux do it; the yellow alone is 1.2:1 on white and vanished, the
+  orange half is 3.0:1 and carries the edge. No outline (an ink keyline looked cheap, owner). Beak 2
+  px tall or less (16 px uses, the 16 + 32 px icon rungs) => one colour, the orange: a 1 px yellow
+  row is lost on white. Eye ring (5.5 units of 256) clears a 1.5 px stroke only w/ the bird at 70 px
+  or more; smaller => pupil dropped, a solid yellow eye (`icons.py` below the 128 px icon,
+  `assets.card_art` on the 48 px share-card bird, the 404 perch).
 - Bare bird: `app/install/mark.svg` (master, 256 grid) + `mark-32.svg` (small cut, whole pixels
   at 32 + 16 px). One home w/ the tile art => `icon-sync.json` guards both.
 - Art contract (generators read it; each file's `<desc>` repeats its part):
   - `mark-32.svg`: `viewBox="0 0 32 32"`; shapes (`path`, `circle`, `rect`, `ellipse` or
     `polygon`) direct children of the `<svg>`, one a line, each w/ `class` first - `ink`, `beak`,
-    `eye`, all three used - + its `fill` as an attribute, lowercase: ink `#000000`, beak + eye
-    `#ffe433`; no id, style, transform, defs, group. `assets.mark_shapes()` fails otherwise.
-    Dark cut never drawn: derived (ink => text tone, eye => page colour, beak stays) => same
-    outline both schemes.
+    `beak-low`, `eye`, all four used - + its `fill` as an attribute, lowercase: ink `#000000`, beak +
+    eye `#ffe433`, beak-low `#e57a00`; no id, style, transform, defs, group. `assets.mark_shapes()`
+    fails otherwise. No dark cut: on a dark ground the disc (r16 at 16,16) is derived, never drawn.
   - `mark.svg`: `viewBox="0 0 256 256"`, same classes (+ `pupil`), used as is (share cards, light).
   - `icon.svg`: 1024 grid, tile 824 at 100; bird in one `<g id="bird">` (assets.py measures it:
     farthest point <= 0.40 of the side from centre at 1024 / 824, else the maskable icon fails).
   - `icon-32.svg`, `icon-16.svg`: `<rect id="tile" .../>` on one line (`icons.py` regrows it for
     Windows), bird on whole pixels - 16 px redrawn by hand (head 3 px, legs 1 px, beak 2 x 1 px,
-    no eye): the small cut scaled to 8 px = grey blob, no yellow left (measured). Test holds a
-    full-yellow beak pixel in both small favicon frames.
+    no eye): the small cut scaled to 8 px = grey blob, no colour left (measured). Beak one colour
+    (orange) on both. Test holds a full-orange beak pixel in both small favicon frames.
 - Was (2026-10-03): route B "Page on ink" - white page, yellow highlight off its edge, same tile.
   Killed 2026-10-04, owner: disliked as the site's logo - a generic file icon in an app tile.
   Before it: flat black mark, read cheap.

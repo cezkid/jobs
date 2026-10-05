@@ -71,7 +71,7 @@ AI_NOTE = 'How this was made: <a href="/research/methods/#how-is-ai-used">How we
 # every generated page's share card: docs/og-research.png from app/web/og-research.html
 # (uv run app/web/assets.py --only og); changed => bump CARD_V (LinkedIn caches a preview ~7 days,
 # keyed by URL). Per-article cards: later.
-CARD, CARD_V = "og-research.png", 2
+CARD, CARD_V = "og-research.png", 3
 FEED = "research/feed.xml"  # Atom: published articles, linked (autodiscovery) from the hub + every article
 FEED_TITLE = "CEZ Job Finder Research"
 CARD_ALT = ("CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim"
