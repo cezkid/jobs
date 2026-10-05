@@ -69,8 +69,9 @@ TAGS_BUT_BRAND = re.compile(r'<(?!span translate="no">|/span>)[^>]+>')
 # a label + one link, never "approved" (owner decision 5); the label text makes the link running text (qa HIT_BOXES)
 AI_NOTE = 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>'
 # every generated page's share card: docs/og-research.png from app/web/og-research.html
-# (uv run app/web/assets.py --only og); changed => bump ?v=N here. Per-article cards: later.
-CARD = "og-research.png"
+# (uv run app/web/assets.py --only og); changed => bump CARD_V (LinkedIn caches a preview ~7 days,
+# keyed by URL). Per-article cards: later.
+CARD, CARD_V = "og-research.png", 2
 FEED = "research/feed.xml"  # Atom: published articles, linked (autodiscovery) from the hub + every article
 FEED_TITLE = "CEZ Job Finder Research"
 CARD_ALT = ("CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim"
@@ -975,7 +976,7 @@ def home_parts(root: Path) -> dict[str, str]:
     text = (root / "docs" / "index.html").read_text(encoding="utf-8")
     links = re.findall(r'^<link rel="(?:icon|apple-touch-icon|manifest|preload)".*$', text, re.M)
     alt = escape(CARD_ALT)
-    og = re.sub(r'^(<meta property="og:image" content=")[^"]*', rf"\g<1>{site(root)}{CARD}", text, flags=re.M)
+    og = re.sub(r'^(<meta property="og:image" content=")[^"]*', rf"\g<1>{site(root)}{CARD}?v={CARD_V}", text, flags=re.M)
     og = re.sub(r'^(<meta (?:property="og|name="twitter):image:alt" content=")[^"]*', rf"\g<1>{alt}", og, flags=re.M)
     return {
         "css": re.search(r"  /\* shared \*/.*?/\* /shared \*/", text, re.S).group(0),
