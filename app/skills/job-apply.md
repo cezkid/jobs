@@ -20,8 +20,9 @@ form over, fix the program after.
 - User signs in / creates the account themselves. Never type a password.
 - Never click **Save and Continue**, **Submit**, or anything irreversible. Fill, then tell them
   to check the page and click it. They say "click it for me" -> still ask once per click.
-- Upload the resume PDF only after they say yes (name the file). Greenhouse, Lever, Workable, BambooHR, Paylocity and
+- Upload the resume PDF only after they say yes (name the file). Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity and
   SmartRecruiters send the file to the employer the moment it is chosen, before Submit (`prepare` says so) - say so in that same question.
+  Ashby also takes each answer as its box is filled, and the town letter by letter in its location box - say so before `fill`.
 - Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
   race, veteran, disability), how-did-you-hear - except their own saved answers
   (`app/docs/apply/answers.md` #Saved answers): how you heard, 18 or older, notice period and the

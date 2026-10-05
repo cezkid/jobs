@@ -92,8 +92,9 @@ def upload_note(system, answers: list[dict]) -> str:
 
 
 def typed_note(system, answers: list[dict]) -> str:
-    """A system whose boxes search its own list as they're typed: those words leave before Submit."""
-    typed = [k for k in getattr(system, "SEARCHED_AS_TYPED", ()) if any(a.get("key") == k for a in answers)]
+    """A system whose boxes search its own list as they're typed: those words leave before Submit.
+    By key or kind: an Ashby Location box of the employer's own has no key."""
+    typed = [k for k in getattr(system, "SEARCHED_AS_TYPED", ()) if any(k in (a.get("key"), a["kind"]) for a in answers)]
     if typed:
         return (f"{system.NAME}: the {', '.join(typed)} boxes search {system.NAME}'s own list as they're typed - "
                 "those words reach its site during the fill, before Submit; say so when naming them")
@@ -234,9 +235,8 @@ def fill(slug: str, in_window: bool = False) -> None:
     match = systems.tab_match(system, data["url"]) if per_page else None
     with opener(data["url"], match=match) as page:
         # a closed posting never shows its form: say so instead of timing out on it
-        if said := closed(page, system):
-            sys.exit(f"the posting says it's closed (\"{said}\") - nothing filled; ask the user, "
-                     "then status set <job> closed")
+        if said := closed(page, system, data["url"]):
+            sys.exit(f"{said} - nothing filled; ask the user, then status set <job> closed if it is")
         open_form(page, system, data["url"])
         shown = set(system.ids_on_page(page)) if per_page else set()
         if per_page:  # blank on this page blocks it; blank on another page waits for that page
@@ -259,17 +259,21 @@ def fill(slug: str, in_window: bool = False) -> None:
           "Nothing is sent until the user clicks Submit.")
 
 
-def closed(page, system=None) -> str | None:
-    """What a closed posting says where its form would be, else None. Its form on the page => open,
-    whatever the text says (privacy notices talk about filled positions too)."""
+def closed(page, system=None, url: str | None = None) -> str | None:
+    """Why the form isn't there - a closed posting's own words, else the system's own record
+    (optional `closed(url)`: Ashby's closed page says only "Page not found") - or None. Its form on
+    the page => open, whatever the text says (privacy notices talk about filled positions too)."""
     if system is not None:
         try:
             page.locator(system.READY).first.wait_for(timeout=10000)
             return None
         except Exception:
             pass  # no form came up: the page's own words decide
-    said = CLOSED.search(page_text(page))
-    return said.group() if said else None
+    if said := CLOSED.search(page_text(page)):
+        return f"the posting says it's closed (\"{said.group()}\")"
+    if url and hasattr(system, "closed"):
+        return system.closed(url)
+    return None
 
 
 def open_form(page, system, url: str) -> None:

@@ -2,9 +2,11 @@
 <!-- An Ashby-like form for the read-back contract (test_apply_form.py): each question in its
 div[data-field-path], widgets as app/docs/apply/ashby.md records them. Radio choice: a label click toggles it - a
 second click clears it (tenant B, 2026-09-29) - and the page marks it 200 ms after the click. Yes / No: buttons w/
-aria-pressed; whether a second click clears is unmeasured, so this page clears (the stricter case). Long list: a
-search box whose pick shows beside it, then the page empties it 800 ms later - the drop holds() can't read yet
-(plan-nko.5). -->
+aria-pressed; whether a second click clears is unmeasured, so this page clears (the stricter case). Long list
+(15 options, tenant D, 2026-10-05): one search box whose value is the pick, no radios; q_region's page empties the
+pick 800 ms later - a drop holds() must read. File: the name + "Replace" show for any file; a name with "bad"
+in it then gets "ERROR" + "<file> failed to upload" 300 ms later, as a blocked upload did (ashby.md "Upload
+errors"). -->
 <html><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form>
 <div data-field-path="_systemfield_name"><label for="name">Name</label><input type="text" id="name"></div>
 <div data-field-path="_systemfield_email"><label for="email">Email</label><input type="email" id="email"></div>
@@ -21,7 +23,11 @@ search box whose pick shows beside it, then the page empties it 800 ms later - t
   <input type="checkbox" id="stack-1"><label for="stack-1">SQL</label>
   <input type="checkbox" id="stack-2"><label for="stack-2">Excel</label></div>
 <div data-field-path="q_country" class="combo" data-options='["Canada", "United Kingdom", "United States"]'>
-  <label>Country</label><input type="text" role="combobox"><div class="value"></div></div>
+  <label>Country</label><input type="text" role="combobox"></div>
+<div data-field-path="q_region" class="combo" data-drop="800" data-options='["East", "North", "West"]'>
+  <label>Region</label><input type="text" role="combobox"></div>
+<div data-field-path="_systemfield_resume" class="upload"><label>Resume</label><span class="name"></span>
+  <input type="file" accept=".pdf,.doc,.docx"></div>
 </form>
 <script>
 for (const box of document.querySelectorAll(".yesno")) {
@@ -39,7 +45,7 @@ for (const box of document.querySelectorAll(".radios")) {
   });
 }
 for (const box of document.querySelectorAll(".combo")) {
-  const input = box.querySelector("input"), value = box.querySelector(".value");
+  const input = box.querySelector("input");
   input.addEventListener("input", () => {
     box.querySelector(".menu")?.remove();
     const menu = document.createElement("div");
@@ -49,14 +55,27 @@ for (const box of document.querySelectorAll(".combo")) {
       d.setAttribute("role", "option");
       d.textContent = o;
       d.addEventListener("click", () => {
-        value.textContent = o;
-        input.value = "";
+        input.value = o;
         menu.remove();
-        setTimeout(() => { value.textContent = ""; }, 800);
+        if (box.dataset.drop) setTimeout(() => { input.value = ""; }, Number(box.dataset.drop));
       });
       menu.append(d);
     }
     box.append(menu);
+  });
+}
+for (const box of document.querySelectorAll(".upload")) {
+  const input = box.querySelector("input"), name = box.querySelector(".name");
+  input.addEventListener("change", () => {
+    const file = input.files[0].name;
+    name.textContent = file + " Replace";
+    box.querySelector(".error")?.remove();
+    if (file.includes("bad")) setTimeout(() => {
+      const err = document.createElement("div");
+      err.className = "error";
+      err.innerText = "ERROR\n" + file + " failed to upload";
+      document.body.append(err);
+    }, 300);
   });
 }
 </script></body></html>

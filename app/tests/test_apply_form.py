@@ -825,7 +825,8 @@ def test_file_on_choice_systems_say_so_in_prepare_and_the_privacy_table():
     import cfg
     asked = [q("Resume/CV", "file", "resume"), q("First Name")]
     assert "as soon as it is chosen" in form.upload_note(greenhouse, asked)
-    assert form.upload_note(greenhouse, asked[1:]) == "" and form.upload_note(ashby, asked) == ""
+    assert form.upload_note(greenhouse, asked[1:]) == "" and form.upload_note(ukg, asked) == ""
+    assert "Ashby: a file goes to the employer's site as soon as it is chosen" in form.upload_note(ashby, asked)
     table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
     for system in systems.SYSTEMS:
         rows = [r for r in table if f"that employer's {system.NAME} site" in r]
@@ -1042,6 +1043,8 @@ def test_greenhouse_says_school_boxes_search_its_list_as_typed():
     asked = [q("Education 1: School", "choice", "school"), q("Education 1: Degree", "choice", "degree"), q("First Name")]
     assert "school, degree boxes search Greenhouse's own list as they're typed" in form.typed_note(greenhouse, asked)
     assert form.typed_note(greenhouse, asked[2:]) == "" and form.typed_note(ashby, asked) == ""
+    where = questions.question("q9", "Where are you based?", "location", True)  # an employer's own Location box: no key
+    assert where["key"] is None and "location boxes search Ashby's own list" in form.typed_note(ashby, [where])
     table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
     for system in systems.SYSTEMS:
         typed = any("typed" in r.split("|")[3] for r in table if f"that employer's {system.NAME} site" in r)
@@ -1084,6 +1087,32 @@ def test_greenhouse_text_waits_out_the_pages_own_name_fill():
     field = GhField(GhPage(), autofill="Jane")
     assert greenhouse.put_text(field, "Ada", "text") == "ok" and field.input_value() == "Ada"
     assert greenhouse.put_text(GhField(GhPage()), "(555) 010-0100", "phone") == "ok"
+
+
+def test_ashby_closed_reads_the_employers_board_once_never_guesses(monkeypatch):
+    """jobPosting null = closed or a wrong link (ashby.md "Closed posting"): the public board tells which."""
+    import httpx
+    url = "https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a"
+    boards = []
+
+    def board(where, timeout):
+        boards.append(where)
+        return httpx.Response(state["board"], json={"jobs": [{"id": state["listed"]}]},
+                              request=httpx.Request("GET", where))
+    state = {"posting": None, "board": 200, "listed": "11111111-2222-3333-4444-555555555555"}
+    monkeypatch.setattr(ashby, "job_posting", lambda org, posting: state["posting"])
+    monkeypatch.setattr(ashby.httpx, "get", board)
+    assert ashby.closed(url).endswith("no longer on the employer's Ashby board - it may have closed")
+    assert boards == ["https://api.ashbyhq.com/posting-api/job-board/acme"]
+    state["board"] = 404
+    assert ashby.closed(url).startswith("can't tell") and "board moved?" in ashby.closed(url)
+    state.update(board=200, listed="45bdb7e5-14a8-494f-8fcb-30e42f0be67a")
+    assert ashby.closed(url).startswith("can't tell")
+    with pytest.raises(ValueError, match="can't tell"):
+        ashby.questions(url)
+    state["posting"] = {"title": "Engineer"}
+    boards.clear()
+    assert ashby.closed(url) is None and boards == []
 
 
 def test_ashby_voluntary_survey_listed_beside_the_form():
@@ -1378,7 +1407,7 @@ READ_BACK_FORMS = {
         answered("_systemfield_name", "text", "Ada Lovelace"), answered("_systemfield_email", "email", "ada@example.com"),
         answered("q_phone", "phone", "555-0100"), answered("q_why", "longtext", "Their own words."),
         answered("q_sponsor", "yesno", "No"), answered("q_years", "choice", "8+"),
-        answered("q_stack", "multichoice", ["Python", "SQL"])]),
+        answered("q_stack", "multichoice", ["Python", "SQL"]), answered("q_country", "choice", "United States")]),
     "lever": ("lever-form.html", [
         answered("name", "text", "Ada Lovelace"), answered("phone", "phone", "555-0100"),
         answered("cards[acme][field0]", "longtext", "Their own words."),
@@ -1402,14 +1431,40 @@ def test_fill_twice_leaves_every_kind_as_the_first_fill_did(fixture_page, name):
         assert [q["id"] for q in qs if not system.holds(page, q)] == []
 
 
-@pytest.mark.xfail(strict=True, reason="plan-nko.5: Ashby holds can't read a long-list (search box) choice yet")
 def test_ashby_long_list_choice_the_page_empties_reads_as_dropped(fixture_page):
     page = fixture_page("ashby-form.html")
-    country = answered("q_country", "choice", "United States")
-    assert ashby.fill(page, country, None) == "ok"
+    region = answered("q_region", "choice", "West")
+    assert ashby.fill(page, region, None) == "ok"
+    assert ashby.holds(page, region)
     page.wait_for_timeout(1200)  # the page empties the pick after 800 ms
-    assert page.locator('[data-field-path="q_country"] .value').inner_text() == ""
-    assert not ashby.holds(page, country)
+    assert page.locator('[data-field-path="q_region"] input').input_value() == ""
+    assert not ashby.holds(page, region)
+    assert ashby.fill(page, answered("q_region", "choice", "South"), None) == "FAIL no option 'South'"
+
+
+def test_ashby_holds_reads_what_shows_never_the_answer(fixture_page):
+    """An option the box doesn't have, a box not on the page, a place with no pick: nothing shows = not held."""
+    page = fixture_page("ashby-form.html")
+    assert not ashby.holds(page, answered("q_years", "choice", "10+"))
+    assert not ashby.holds(page, answered("q_gone", "text", "x"))
+    assert not ashby.holds(page, answered("q_stack", "multichoice", ["Python"]))
+    page.locator('[data-field-path="q_country"] input').fill("Austin, TX, United States")
+    assert ashby.holds(page, answered("q_country", "location", "Austin, Texas"))
+    assert not ashby.holds(page, answered("q_country", "location", "Boston, MA"))
+
+
+def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_page, monkeypatch, tmp_path):
+    """A failed upload still shows the file name + Replace (3 of 3 employers, 2026-10-05): ok only once
+    the page has said nothing failed for a while after the name; its own error words otherwise."""
+    monkeypatch.setattr(ashby, "ERROR_WAIT_MS", 1000)
+    page = fixture_page("ashby-form.html")
+    resume = answered("_systemfield_resume", "file", True, title="Resume") | {"key": "resume"}
+    good, bad = tmp_path / "Ada_Lovelace_Resume.pdf", tmp_path / "bad_Resume.pdf"
+    for f in (good, bad):
+        f.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    assert ashby.fill(page, resume, str(bad)) == \
+        "FAIL the page says 'bad_Resume.pdf failed to upload' - choose the file again on the page, or check the resume box"
+    assert ashby.fill(page, resume, str(good)) == "ok"
 
 
 def test_survey_tally_is_counts_only():

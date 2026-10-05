@@ -68,8 +68,9 @@ got an answer back). Request bodies not kept: what each carries is read off its 
 | each key typed in Location | `ApiAutocompleteGeoLocation` - typed letters, as typed | - | - | 26 |
 | any GET while filling | none | 0 | 0 | 0 |
 
-- So Ashby takes answers box by box, not at Submit: the privacy table (AGENTS.md, Guides, site claim)
-  says "once you click Submit" - wrong for Ashby (follow-up filed).
+- So Ashby takes answers box by box, not at Submit: privacy table (AGENTS.md + site claim rows) says so
+  since plan-nko.5 - resume as soon as chosen (`FILE_ON_CHOICE`), answers as each box is filled, town
+  letter by letter (`SEARCHED_AS_TYPED = ("location",)`); `prepare` names the upload + location ones.
 - Location: blocked search = no places offered -> `fill` ASKs (tenant E) - never a guess.
 - Files: `.data/measure/jobs.ashbyhq.com-try-20261005-14{0423,0516,0607}.json`.
 
@@ -82,8 +83,10 @@ and an empty PDF.
 - Then "ERROR" + "<file> failed to upload" (C, D; E's words not caught - 10-line diff filled by
   text the page drew late). With the send blocked these are the block's errors, not a verdict on the
   file: Ashby's own type / empty-file wording unmeasured (needs an unblocked send = a real application).
-- Failed upload still shows the file name + "Replace" in the box (C, D, E): `put_file` waiting for the
-  name says ok on an upload that failed - plan-nko.5.
+- Failed upload still shows the file name + "Replace" in the box (C, D, E): the name is no verdict.
+  `put_file` (plan-nko.5): page idle first (as Greenhouse), then "<file> failed to upload" anywhere on
+  the page -> FAIL w/ the page's words; ok = name shown + no error for 3 s after it. Success wording +
+  how long a real upload takes: unmeasured (needs an unblocked send).
 
 ## Read back (2026-10)
 
@@ -105,8 +108,10 @@ How each widget shows its answer, read after `fill` + the 2.5 s settle (`try` re
 | Location | `input[role=combobox]`; empty here (search blocked, nothing picked) | E |
 | File | box text "<file name> Replace or drag and drop here"; `input[type=file]` value = fake path | C, D, E |
 
-- `holds()` on a long ValueSelect: no label matches, so nothing is checked and it says held -
-  reads nothing; plan-nko.5.
+- `holds()` reads each kind as above (plan-nko.5): ticks by their own `checked` (an answer w/ no such
+  option = not held), long ValueSelect by the search box `value`, Location by the answer's town inside
+  the box `value`, Yes / No by `aria-pressed`; box or widget missing = not held. `put_choice` on a long
+  list: skipped when the box already shows the pick, waits up to 8 s for the option, then the pick shown.
 - Phone (C): an SMS-updates Yes / No consent sits inside the Phone wrapper (2 radios) - not a question
   in the form definition.
 - Consent w/ empty title (D): a MultiValueSelect "I agree" whose words are in its description, title "";
@@ -118,8 +123,27 @@ How each widget shows its answer, read after `fill` + the 2.5 s settle (`try` re
   no errors. Null = closed or never existed; can't tell which.
 - Page (tenant F, measure, 2 loads): lands on `jobs.ashbyhq.com/<org>/`, heading "Page not found",
   "The page you requested was not found"; `window.__appData.posting` + `.organization` null (an open
-  posting's page: both objects). No "closed" wording - `form.CLOSED` misses it; plan-nko.5.
+  posting's page: both objects). No "closed" wording - `form.CLOSED` misses it.
 - File: `.data/measure/jobs.ashbyhq.com-20261005-140653.json`.
+- Check (plan-nko.5, `ashby.closed`, asked by `form.closed` when no form shows): question read; null ->
+  the employer's public list `api.ashbyhq.com/posting-api/job-board/<org>` once: 404 (unknown org) =
+  "can't tell (board moved?)"; list w/o the posting = "may have closed"; posting listed = "can't tell".
+  `questions()` raises the same words. Ashby errors / 429 = "can't tell".
+
+Check run over the links files (2026-10-05, plain HTTP, 1.5 s apart; first run at 0.3 s got 429 from
+the question read after ~150 calls):
+
+| List | Links | Form there | May have closed | Can't tell |
+|---|---|---|---|---|
+| open | 177 | 154 | 22 | 1 |
+| closed | 31 | 18 | 13 | 0 |
+
+- Open read as closed: 0. All 35 "may have closed": page's own `__appData.posting` + `.organization`
+  null too = taken down since the list was made.
+- The 1 "can't tell": question read null (no errors, minimal query + slug case too), yet on the board
+  (listed) and its page carries the posting. Cause unknown; `prepare` can't read its questions
+  (follow-up filed). Null alone is never "closed".
+- 18 "closed" links still open per Ashby: the list's closed mark is older or from elsewhere.
 
 ## Widgets (tenant A)
 

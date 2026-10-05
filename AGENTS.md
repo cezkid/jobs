@@ -220,7 +220,9 @@ when asked, at setup, and before any step sending something new off computer.
 | Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User's own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |
 | Text + screenshots of Job Finder window pages Copilot reads (VS Code's browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User's own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
-| Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
+| Resume (and cover letter) you apply with | that employer's Ashby site | That employer, as soon as the file is chosen - before Submit |
+| Contact details, answers you apply with | that employer's Ashby site | That employer, as each box is filled - before Submit |
+| Town or city you type in the location box | that employer's Ashby site | That employer, letter by letter as it's typed (the box searches Ashby's place list) - before Submit |
 | Resume (and cover letter) you apply with | that employer's Greenhouse site | That employer, as soon as you choose the file (it goes to Greenhouse's storage then) |
 | Contact details, answers you apply with | that employer's Greenhouse site | That employer, once you click Submit |
 | School, degree, discipline you apply with | that employer's Greenhouse site | That employer, as each is typed in its box (the box searches Greenhouse's own list) - before Submit |

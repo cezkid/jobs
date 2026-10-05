@@ -2,7 +2,9 @@
 
 Measured facts and why each rule exists: app/docs/apply/ashby.md.
 """
+import contextlib
 import re
+import time
 from pathlib import Path
 
 import httpx
@@ -15,6 +17,8 @@ QUERY = """query ApiJobPosting($organizationHostedJobsPageName: String!, $jobPos
   jobPosting(organizationHostedJobsPageName: $organizationHostedJobsPageName, jobPostingId: $jobPostingId) {
     title applicationForm { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } }
     surveyForms { sections { fieldEntries { ... on FormFieldEntry { isRequired field } } } } } }"""
+# the employer's public job list: says whether a posting the question read can't find was taken down
+BOARD = "https://api.ashbyhq.com/posting-api/job-board/{org}"
 POSTING_URL = re.compile(r"https?://jobs\.ashbyhq\.com/([^/?#]+)/([0-9a-f-]{36})", re.I)
 # freehire `source` whose links land here (test_systems_live.py); link shapes, anonymised
 SOURCES = ("ashby",)
@@ -30,6 +34,14 @@ KIND = {"String": "text", "LongText": "longtext", "Email": "email", "Phone": "ph
         "MultiValueSelect": "multichoice", "File": "file", "Url": "url", "EducationHistory": "text"}
 # one block of boxes per school (school, degree, major, dates; repeatable): never typed as one answer
 ON_PAGE = {"EducationHistory": "ASK Education History - add each school in its own boxes on the page"}
+# what leaves when (ashby.md "What leaves the computer, when", 3 employers, 2026-10-05): the resume's
+# upload starts the moment it is chosen; Location searches Ashby's place list with each key typed
+FILE_ON_CHOICE = True
+SEARCHED_AS_TYPED = ("location",)
+# page quiet before the file is chosen (as Greenhouse); how long the name gets to show; a failed upload
+# shows its name too, so the page gets this long after the name to say it failed (ashby.md "Upload errors")
+IDLE_WAIT_MS, SHOWN_WAIT_MS, ERROR_WAIT_MS = 15000, 20000, 3000
+UPLOAD_FAILED = re.compile(r"failed to upload", re.I)
 SYSTEM_KEY = {"_systemfield_name": "name", "_systemfield_email": "email",
               "_systemfield_location": "location", "_systemfield_resume": "resume"}
 
@@ -67,15 +79,40 @@ def from_form(job: dict) -> list[dict]:
     return out
 
 
-def questions(url: str) -> list[dict]:
-    org, posting = parse_url(url)
+def job_posting(org: str, posting: str) -> dict | None:
     r = httpx.post(GRAPHQL, timeout=30, json={
         "operationName": "ApiJobPosting", "query": QUERY,
         "variables": {"organizationHostedJobsPageName": org, "jobPostingId": posting}})
     r.raise_for_status()
-    job = (r.json().get("data") or {}).get("jobPosting")
+    return (r.json().get("data") or {}).get("jobPosting")
+
+
+def board_says(org: str, posting: str) -> str:
+    """The question read gives null for a closed posting and a wrong link alike (ashby.md "Closed
+    posting"): the employer's public job list, read once, tells which - never a guess."""
+    r = httpx.get(BOARD.format(org=org), timeout=30)
+    if r.status_code == 404:
+        return "can't tell if the posting is open - the employer's Ashby board wasn't found (board moved?)"
+    r.raise_for_status()
+    if any(j.get("id") == posting for j in r.json().get("jobs") or []):
+        return "can't tell if the posting is open - it is on the employer's Ashby board, but its form didn't load"
+    return "the posting is no longer on the employer's Ashby board - it may have closed"
+
+
+def closed(url: str) -> str | None:
+    """Why the form isn't there (form.closed, when the page shows no form): None = Ashby still has it."""
+    org, posting = parse_url(url)
+    try:
+        return None if job_posting(org, posting) else board_says(org, posting)
+    except httpx.HTTPError as e:
+        return f"can't tell if the posting is open - Ashby didn't answer ({type(e).__name__})"
+
+
+def questions(url: str) -> list[dict]:
+    org, posting = parse_url(url)
+    job = job_posting(org, posting)
     if not job:
-        raise ValueError("posting not found - it may have closed")
+        raise ValueError(board_says(org, posting))
     return from_form(job)
 
 
@@ -90,6 +127,22 @@ def box_of(page, q: dict):
 
 def digits(s: str) -> str:
     return re.sub(r"\D", "", s)
+
+
+def fold(s: str) -> str:
+    return " ".join(str(s).split()).casefold()
+
+
+def wanted(value) -> list[str]:
+    return [str(v) for v in (value if isinstance(value, list) else [value])]
+
+
+def shown_soon(field, value: str) -> bool:
+    for _ in range(30):  # the page shows the pick a moment after the click
+        if fold(field.input_value()) == fold(value):
+            return True
+        field.page.wait_for_timeout(100)
+    return False
 
 
 def put_text(box, value: str, kind: str) -> str:
@@ -154,44 +207,82 @@ def put_choice(box, value) -> str:
             if not checked_soon(target.first):
                 return f"FAIL '{v}' not selected"
             continue
-        combo = box.locator("input[role=combobox]")  # long lists show as a search box
+        # a long list (15 options, tenant D) is one search box whose value is the pick, no radios
+        combo = box.locator("input[role=combobox]")
         if not combo.count():
             return f"FAIL no option '{v}'; offered: {', '.join(box.locator('label').all_inner_texts()[1:6])}"
-        combo.first.fill(str(v))
+        field = combo.first
+        if fold(field.input_value()) == fold(v):  # never pick a chosen one again
+            continue
+        field.fill(str(v))
         option = box.page.get_by_role("option", name=str(v), exact=True)
-        if not option.count():
+        try:  # the list filters a moment after typing
+            option.first.wait_for(timeout=8000)
+        except Exception:
+            field.fill("")
             return f"FAIL no option '{v}'"
         option.first.click()
+        if not shown_soon(field, v):
+            return f"FAIL '{v}' not selected"
     return "ok"
+
+
+def upload_error(page, name: str) -> str:
+    """The page's own words for a failed upload ("<file> failed to upload"), else ''."""
+    try:
+        text = page.locator("body").inner_text(timeout=2000)
+    except Exception:
+        return ""
+    return next((t for t in (" ".join(x.split()) for x in text.splitlines()) if name in t and UPLOAD_FAILED.search(t)), "")
 
 
 def put_file(box, path: str) -> str:
+    """A failed upload still shows the file name + "Replace" (3 of 3 employers): the name is no
+    verdict. Ok = the name shows and the page says nothing failed for ERROR_WAIT_MS after it."""
+    page, name = box.page, Path(path).name
+    with contextlib.suppress(Exception):  # a page that keeps polling never goes idle: the read decides
+        page.wait_for_load_state("networkidle", timeout=IDLE_WAIT_MS)
     box.locator("input[type=file]").first.set_input_files(path)
-    try:
-        box.get_by_text(Path(path).name).first.wait_for(timeout=20000)
-    except Exception:
-        return "ASK upload not confirmed on page - check the resume box"
-    return "ok"
+    shown = box.get_by_text(name)
+    since = None
+    deadline = time.monotonic() + SHOWN_WAIT_MS / 1000
+    while time.monotonic() < deadline:
+        if said := upload_error(page, name):
+            return f"FAIL the page says '{said}' - choose the file again on the page, or check the resume box"
+        if since is None and shown.count():
+            since = time.monotonic()
+        if since is not None and time.monotonic() - since >= ERROR_WAIT_MS / 1000:
+            return "ok"
+        page.wait_for_timeout(250)
+    return "ASK upload not confirmed on page - check the resume box"
 
 
 def holds(page, q: dict) -> bool:
-    """The answer still shows, read back after the form had time to save it."""
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck),
+    each kind as ashby.md "Read back" records it shows: a tick by its own checked state, a long list's
+    pick + a place by the search box's value, Yes / No by the pressed button. Nothing to read = False."""
     box = box_of(page, q)
+    if not box.count():
+        return False
     kind, value = q["kind"], q["answer"]
     if kind == "yesno":
-        word = "Yes" if str(value).casefold() in ("yes", "true") else "No"
-        return box.get_by_role("button", name=word, exact=True).get_attribute("aria-pressed") == "true"
+        button = box.get_by_role("button", name="Yes" if str(value).casefold() in ("yes", "true") else "No", exact=True)
+        return bool(button.count()) and button.first.get_attribute("aria-pressed") == "true"
     if kind in ("choice", "multichoice"):
-        for v in value if isinstance(value, list) else [value]:
-            label = box.locator("label", has_text=re.compile(rf"^\s*{re.escape(str(v))}\s*$"))
-            target = box.locator(f'input[id="{label.first.get_attribute("for")}"]') if label.count() else None
-            if target is not None and target.count() and not target.first.is_checked():
-                return False
-        return True
-    field = box.locator("textarea, input:not([type=file]):not([type=checkbox]):not([type=radio])").first
-    got = field.input_value()
-    if kind == "location":
-        return bool(got.strip())
+        ticks = dict(box.locator("input[type=radio], input[type=checkbox]").evaluate_all(
+            "es => es.map(e => [e.labels && e.labels[0] ? e.labels[0].innerText : '', e.checked])"))
+        ticks = {fold(t): on for t, on in ticks.items()}
+        if ticks:
+            return all(ticks.get(fold(v)) is True for v in wanted(value))
+        combo = box.locator("input[role=combobox]")
+        return kind == "choice" and bool(combo.count()) and fold(combo.first.input_value()) == fold(value)
+    field = box.locator("textarea, input:not([type=file]):not([type=checkbox]):not([type=radio])")
+    if not field.count():
+        return False
+    got = field.first.input_value()
+    if kind == "location":  # shows Ashby's own "City, State, Country" for the pick
+        town = fold(str(value).split(",")[0])
+        return bool(town) and town in fold(got)
     return digits(got) == digits(str(value)) if kind == "phone" else got == str(value)
 
 
