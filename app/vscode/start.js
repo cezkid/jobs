@@ -28,6 +28,12 @@ const UNTRUSTED_COMMAND = "workbench.trust.manage";
 // Today older than this, window opened w/o the launcher (Dock, recent folders) => rebuilt
 const STALE_MS = 60 * 60 * 1000;
 const PREVIEW_EDITOR = "vscode.markdown.preview.editor";
+// `jobs.py open "<link>"` while this window runs (app/jobs.py send_to_window): one <id>.json per
+// link, renamed in whole; whoever renames or deletes it first opens it, so never twice
+const LINK_DIR = path.join(".data", "open-link");
+const LINK_GLOB = "*.json";
+// jobs.py takes a request back after ~2 s and opens the browser itself => older = a leftover
+const LINK_MAX_AGE_MS = 10 * 1000;
 
 // Job Finder's own folder: private folders the launcher makes; any other folder in this profile
 // is left alone
@@ -54,6 +60,30 @@ function needsRefresh({ marker, settingsExist, todayMtime, stampMtime, now }) {
 // person looking into .data
 function readyFile(root, now) {
   return { file: path.join(root, READY), text: `${new Date(now).toISOString()}\n` };
+}
+
+// request file jobs.py writes: <32 hex>.json, nothing else in the folder
+function isLinkFile(name) {
+  return typeof name === "string" && /^[0-9a-f]{32}\.json$/.test(name);
+}
+
+// a request's text => its link, or null: unreadable, not http(s), or a leftover. The link goes on
+// as the same string (a rebuilt link 404s)
+function linkRequest(text, now) {
+  let req;
+  try {
+    req = JSON.parse(text);
+  } catch {
+    return null;
+  }
+  if (!req || typeof req.url !== "string" || typeof req.t !== "number" || !(Math.abs(now - req.t) <= LINK_MAX_AGE_MS)) return null;
+  let scheme;
+  try {
+    scheme = new URL(req.url).protocol;
+  } catch {
+    return null;
+  }
+  return scheme === "https:" || scheme === "http:" ? req.url : null;
 }
 
 // Desktop icon + Dock carry a short PATH => uv's install spots first, PATH last
@@ -107,5 +137,6 @@ function warmUpPlan(ai) {
 module.exports = {
   PROFILE_PENDING, PROFILE_PENDING_LINE, UNTRUSTED_LINE, UNTRUSTED_BUTTON, UNTRUSTED_COMMAND,
   TODAY, START_HERE, MARKER, STAMP, READY, SETTINGS, AI_FILE, STALE_MS, PREVIEW_EDITOR, WARM,
-  isJobFinder, choosePage, needsRefresh, readyFile, uvCandidates, runJobs, pageTabs, warmUpPlan,
+  LINK_DIR, LINK_GLOB, LINK_MAX_AGE_MS,
+  isJobFinder, choosePage, needsRefresh, readyFile, isLinkFile, linkRequest, uvCandidates, runJobs, pageTabs, warmUpPlan,
 };

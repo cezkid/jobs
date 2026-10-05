@@ -44,6 +44,7 @@ function activate(context) {
     showToday(document, panel, vscode.Uri.joinPath(context.extensionUri, ...today.FONT_DIR)) },
     { webviewOptions: { enableFindWidget: true }, supportsMultipleEditorsPerDocument: false }));
   jobsTree = showJobs(context);
+  watchLinks(context);
   const out = process.env[PROBE_ENV];
   // probe told which pages to open => measures that alone, not the start page
   const opened = out && process.env[PROBE_OPEN_ENV] ? Promise.resolve() : openStartPage().catch(() => {});
@@ -444,14 +445,69 @@ async function act(root, at, page, m, msg, panel, retry, keeper) {
 // would be re-navigated, wiping a half-filled form (app/docs/app-window.md)
 const BROWSER_OPEN = "workbench.action.browser.open";
 
+async function hasBrowser() {
+  return (await vscode.commands.getCommands(true)).includes(BROWSER_OPEN);
+}
+
 // posting / company link => a tab in this window, system browser when VS Code has no browser.
 // A string, not a Uri: passed on exactly as written (a Uri re-encodes it; a rebuilt link 404s)
 function openLink(url) {
   return today.openLink(url, {
-    hasBrowser: async () => (await vscode.commands.getCommands(true)).includes(BROWSER_OPEN),
+    hasBrowser,
     inWindow: (link) => vscode.commands.executeCommand(BROWSER_OPEN, link),
     external: (link) => vscode.env.openExternal(link),
   });
+}
+
+// `jobs.py open "<link>"` (every AI shows a link with it) => a tab here. Job Finder's folder only.
+// Requests already waiting as the window starts: fresh ones opened, leftovers deleted unseen
+function watchLinks(context) {
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  if (!folder || folder.uri.scheme !== "file") return;
+  const root = folder.uri.fsPath;
+  if (!start.isJobFinder((rel) => fs.existsSync(path.join(root, rel)))) return;
+  const dir = path.join(root, start.LINK_DIR);
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+  } catch {
+    return;
+  }
+  // plain pattern on the folder itself: a non-recursive watcher, never cut by files.watcherExclude
+  const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(dir), start.LINK_GLOB));
+  const take = (uri) => takeLink(uri.fsPath).catch(() => {});
+  context.subscriptions.push(watcher, watcher.onDidCreate(take), watcher.onDidChange(take));
+  let names = [];
+  try {
+    names = fs.readdirSync(dir);
+  } catch {}
+  for (const name of names) if (start.isLinkFile(name)) takeLink(path.join(dir, name)).catch(() => {});
+}
+
+// claim by rename: jobs.py deletes the same name when its wait ends => only one side opens it
+async function takeLink(file) {
+  if (!start.isLinkFile(path.basename(file))) return;
+  // no browser in this VS Code (before 1.109) => left alone: jobs.py opens the system browser
+  // after its wait and says so
+  if (!(await hasBrowser().catch(() => false))) return;
+  const taken = `${file}.taken`;
+  for (let tries = 5; ; tries--) {
+    try {
+      fs.renameSync(file, taken);
+      break;
+    } catch (e) {
+      // gone = jobs.py took it back, or another event of ours already has it
+      if (!tries || !["EBUSY", "EPERM", "EACCES"].includes(e && e.code)) return;
+      await new Promise((ok) => setTimeout(ok, 50));
+    }
+  }
+  let url = null;
+  try {
+    url = start.linkRequest(fs.readFileSync(taken, "utf8"), Date.now());
+  } catch {}
+  try {
+    fs.unlinkSync(taken);
+  } catch {}
+  if (url) await openLink(url);
 }
 
 // one action of today.model's list, from the dashboard or the Jobs panel: the only place a click

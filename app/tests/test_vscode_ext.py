@@ -72,11 +72,13 @@ def test_extension_never_reads_files_from_the_program_folder():
         # extension's own folder (installed copy, never app/) only as the Today page's font folder
         uses = re.findall(r"[^\n]*extensionUri[^\n]*", source)
         assert all("joinPath(context.extensionUri, ...today.FONT_DIR)" in u for u in uses), uses
-        # files read: launcher's start-page marker, the dashboard's data, the look, which AI - all under .data/, never app/
-        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root"] if name == "extension.js" else []
+        # files read: launcher's start-page marker, the dashboard's data, the look, which AI, a
+        # link jobs.py hands over (taken = renamed in start.LINK_DIR) - all under .data/, never app/
+        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root", "taken"] if name == "extension.js" else []
         assert re.findall(r"readFile\w*\(([^,)]+)", source) == reads
     starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
     assert 'MARKER = path.join(".data", ' in starts and 'AI_FILE = path.join(".data", ' in starts
+    assert 'LINK_DIR = path.join(".data", ' in starts
     todays = (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8")
     assert 'DATA = path.join(".data", ' in todays and 'LOOK_FILE = path.join(".data", ' in todays
 
@@ -90,6 +92,28 @@ def test_extension_probe_runs_only_when_a_measurement_asks():
     assert "const out = process.env[PROBE_ENV];" in body
     assert body.index("if (!out) return;") < body.index("PROBE_EDITOR_ENV") < body.index("probe(context, out, opened, warmed)")
     assert body.count("probe(") == 1
+
+
+def test_open_link_watcher_starts_with_every_window_not_only_a_measured_one():
+    # registered after the probe's return => `jobs.py open` links never reach a user's window
+    source = (vscode_ext.SOURCE / "extension.js").read_text(encoding="utf-8")
+    body = source.split("function activate(context) {", 1)[1].split("\n}\n", 1)[0]
+    assert body.count("watchLinks(context);") == 1 and body.index("watchLinks(context);") < body.index("if (!out) return;")
+    watch = source.split("function watchLinks(context) {", 1)[1].split("\n}\n", 1)[0]
+    assert "path.join(root, start.LINK_DIR)" in watch and "start.LINK_GLOB" in watch
+
+
+def test_open_link_folder_and_names_alike_on_both_sides():
+    # names out of step => every link waits 2 s, then opens in the browser
+    import jobs
+    starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
+    parts = re.search(r'LINK_DIR = path\.join\(([^)]*)\)', starts)[1]
+    assert Path(*json.loads(f"[{parts}]")) == jobs.LINK_DIR
+    assert 'LINK_GLOB = "*.json"' in starts
+    assert re.search(r"LINK_MAX_AGE_MS = (\d+) \* 1000", starts)[1] == str(int(jobs.LINK_MAX_AGE))
+    # temp name outside the pattern: the watcher never sees a half-written request
+    source = (vscode_ext.cfg.APP / "jobs.py").read_text(encoding="utf-8")
+    assert 'folder / f"{name}.tmp", folder / f"{name}.json"' in source and "uuid.uuid4().hex" in source
 
 
 @pytest.mark.skipif(not shutil.which("node"), reason="node not installed")
