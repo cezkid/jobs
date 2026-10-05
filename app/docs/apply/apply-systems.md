@@ -95,8 +95,16 @@ A live form must never get an applicant record, anything typed, or the user's wi
   fetch, sendBeacon, native form POST, worker fetch, cross-site frame POST, WebSocket send (main
   page + frame). Any reaching the listener, or any not seen blocked -> run stops, nothing measured.
   Measured 2026-10-03, Chrome attached over its debugging port + headless: all 9 blocked.
-- **No allow-lists, ever.** A page that won't render or advance while blocked = "not
-  measurable while blocked", recorded as a fact. Never loosen the block to get further.
+- **No allow-lists, ever** - one named exception below. A page that won't render or advance
+  while blocked = "not measurable while blocked", recorded as a fact. Never loosen the block to
+  get further.
+- **The one exception (owner OK 2026-10-05)**: Ashby's page reads its questions by POST; blocked,
+  it shows "Application submission is unavailable" instead of the form (measured 2026-10-05).
+  `lab.NAMED_READS` lets through only `ApiJobPosting` to `jobs.ashbyhq.com/.../non-user-graphql`:
+  a query (never mutation / subscription anywhere in the text), exactly its two string variables
+  (org + posting id), no other key - the same read `prepare` already sends. Anything else w/ that
+  name is blocked (tests). Each one passed is listed in measure's `named_reads` + try's last line.
+  Another entry = owner's OK first, never added to get a page further.
 - **Clicks**: `--click` takes exact visible text; refused if it says submit / send / save /
   finish / complete / sign. No account, password, captcha, terms / consent / SMS box, signature.
 - **Synthetic only**: "Test Applicant", `test@example.com`, 555-0100, a generated test PDF.

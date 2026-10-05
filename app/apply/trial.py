@@ -257,6 +257,8 @@ def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool 
             press_next(page, block)
         log = [b for b in block.log if b["after"] != "canary"]
         print("\n".join([f"blocked: {len(log)}", *blocked_lines(log)]))
-        print(f"sent: 0 writes - every non-read request blocked at the browser ({len(log)})")
+        passed = ", ".join(sorted({p["op"] for p in block.passed}))
+        print(f"sent: 0 writes - every non-read request blocked at the browser ({len(log)})"
+              + (f"; named reads let through: {len(block.passed)} ({passed})" if passed else ""))
     # throwaway closes Chrome itself (Browser.close: no leave-page prompt); a page.close() of our own
     # here left Chrome running with no tab and the run hung (2026-10-03, a live form, headed)
