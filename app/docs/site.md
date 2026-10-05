@@ -72,7 +72,9 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
   in a 1440x900 first screen, qa HUB_FOLD).
 - Render: markdown-it-py `js-default` (raw HTML shown as text, tables on). Heading id = the
   `test_docs.anchors()` rule, so `x.md#h` lands in VS Code, on GitHub and on the site. Table
-  wrapped in a focusable, labelled scroll box (wide table scrolls, not the page).
+  wrapped in a focusable, labelled scroll box (wide table scrolls, not the page). A table or bar figure
+  right before an h2 drops its last row's rule: the heading's rule closes it (two hairlines 49px apart, qa
+  RULES_STACKED).
 - Bar figure (A15): a ```` ```bars ```` fence = line 1 caption (Markdown: citation, evidence label, links), line 2
   `Label | Value` column heads, then `label | value` rows -> `<figure class="bars">` w/ `<figcaption>` + a real
   table (row heads `scope="row"`, no scroll box), an ink bar under each value (a border: prints, forced colours
