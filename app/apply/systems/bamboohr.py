@@ -8,7 +8,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from apply.questions import key_from_title, question, signs
+from apply.questions import key_from_title, left_on_page, question, signs
 
 NAME = "BambooHR"
 # freehire adds ?utm_source=freehire.me (10 of 10 newest US links, 2026-10-03)
@@ -19,6 +19,8 @@ EXAMPLES = ("https://acme.bamboohr.com/careers/101",
 # GET /careers/<id>/detail = every box the form shows, plain JSON, no key (12 of 12 tenants, 2026-10-03)
 QUESTIONS_OVER_HTTP = True
 READY = "#firstName"
+# a chosen file POSTs to the employer's BambooHR at once, before Submit (bamboohr.md)
+FILE_ON_CHOICE = True
 # the form opens on the same URL only after this button (4 of 4)
 APPLY = "Apply for This Job"
 # definition key -> (shared kind, shared key)
@@ -260,7 +262,7 @@ def put_file(page, q: dict, path: str) -> str:
 
 def fill(page, q: dict, resume_file: str | None) -> str:
     if signs(q["title"]):
-        return "ASK yours to do on the page - agreeing, consenting or signing"
+        return left_on_page(q)
     kind, value = q["kind"], q["answer"]
     if kind == "file":
         if q.get("key") not in ("resume", "cover_letter"):

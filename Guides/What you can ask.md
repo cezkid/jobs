@@ -43,7 +43,8 @@ and job boards. Each job links to the real posting. New ones checked every morni
 Double-click **CEZ Job Finder** on your Desktop (on Windows, clicking the morning notification
 works too). The **Today** page opens: what's waiting on you and the newest jobs. Each one shows
 a button with the words to say. Click a job's title to read the posting, its company to see the
-company's website (when it's known). Click a
+company's website (when it's known) - each opens as a tab in this window. A page that won't work
+there (some sign-ins): ask in the chat, such as "Open job 3's posting in my browser". Click a
 button and its words go into the chat (with Claude, a new chat opens beside the page with them
 typed in; with ChatGPT: click the chat box, paste, press Enter). Nothing is sent until you press
 Enter.

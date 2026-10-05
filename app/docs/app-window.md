@@ -44,7 +44,7 @@ Job Finder's own extension: `app/vscode/` (plain JS, no build, no npm), packed b
 never from `app/`). Content change => new version + `releases.txt` line (tested). Probe = same
 extension w/ `JOBS_VSCODE_PROBE=<out.json>` set (cold scratch start passes env to the extension
 host): after a settle delay writes tabs, theme, extensions, filtered commands, key settings, then
-quits the window. VS Code 1.140.0 darwin-x64, Claude Code 2.1.288, ChatGPT 26.930.31730, 2026-10-03.
+quits the window; `JOBS_VSCODE_PROBE_HOLD=<dir>` keeps it up first, serving a driver's requests (#r). VS Code 1.140.0 darwin-x64, Claude Code 2.1.288, ChatGPT 26.930.31730, 2026-10-03.
 Scripts: [measure/5-*.sh](app-window/measure/); results: [probes/](app-window/probes/).
 
 | # | What | Method | Result |
@@ -66,6 +66,8 @@ Scripts: [measure/5-*.sh](app-window/measure/); results: [probes/](app-window/pr
 | o | Jobs panel above the file list (`jobs.js` model, `extension.showJobs` / `openJobs`, `launch.place_jobs_view`) | contributed view `cezJobFinder.jobs` in `views.explorer`; launcher writes it `order -1` into `workbench.explorer.views.state.hidden` once (row `cez-job-finder.jobs-view-placed`). Scratch cold `jobs.py launch` on the demo folder, ai = claude, probe 8 s, list read after quit ([5-o-jobs-view.sh](app-window/measure/5-o-jobs-view.sh)) | Order kept: after quit VS Code's list has `cezJobFinder.jobs` order -1 above `fileView`. Run 1: view registered, groups drawn, but `visible` false - bundle `showCollapsed`: an extension view contributed into the Explorer starts collapsed whatever package.json says. Fix: ours runs `cezJobFinder.jobs.focus` once per folder (workspaceState `cez-job-finder.jobs-shown`), then `focusActiveEditorGroup`. Run 2: `visible` true, groups Next up / Waiting on you / Follow up / Best to apply next, only tab Today.md dashboard, still active ([o](app-window/probes/o-jobs-view.json)). User's later collapse holds (VS Code keeps it per folder). |
 | p | Start earlier: `workspaceContains:app/jobs.py` added to `activationEvents` (plan-ejf.13.1) | two scratch builds of 0.18.0 (`vscode_ext.build(out, package=...)`): a = as shipped (`onStartupFinished`, `onCustomEditor`, `onView:cezJobFinder.jobs`), b = + `workspaceContains:app/jobs.py`; one scratch VS Code each, CEZ profile w/ Claude 2.1.289 + yaml + pdf, look-alike folder (demo Today, launcher's workspace settings, marker `.data/start-page`, trust off), 5 start cases x 3 runs, builds in turn. Ours active = `_doActivateExtension cez-job-finder.window` line in `exthost.log` (+ its event), page shown = `openStartPage` resolved (probe), tabs read 4 s later ([5-p-activation.sh](app-window/measure/5-p-activation.sh)). VS Code 1.140.0 darwin-x64, 2026-10-04 | Medians, ms from the `code` call, active / page shown, a vs b ([p](app-window/probes/p-activation.json)). Today restored active: 4583 / 5060 vs 4939 / 5953. Today restored behind `Resume details.yml`: 5420 / 6204 vs 5297 / 6218. START HERE restored (no search settings): 4640 / 5771 vs 4558 / 6593. First start of a fresh profile (START HERE): 6898 / 7874 vs 6504 / 7750. Today opened the first time after setup: 4439 / 4936 vs 4531 / 5133. Extension host itself up 3.9-7.1 s after the call, run to run => read from host start: every case but the fresh profile, both builds start on `onView:cezJobFinder.jobs` (Jobs panel drawn) 0.5 s after the host (1.1 s behind the yml tab), page 1.0-2.5 s after it - b no faster, differences inside the run-to-run spread; `onCustomEditor` never came first. Fresh profile (Jobs panel still collapsed): a `onStartupFinished` 1.2-1.6 s after the host, page 2.2-2.5 s; b `workspaceContains` 0.5-0.7 s, page 1.8-2.1 s => page ~0.3 s sooner (3 runs). All 30 runs: one Today / START HERE tab, active, no duplicate. Verdict: adopt `workspaceContains:app/jobs.py` - no harm measured, gains only where the Jobs panel isn't drawn at start (first start; panel collapsed or file list hidden: same path, not measured); the wait left is VS Code reaching its extension host => the splash. |
 | q | Mac loading splash live (`app/install/splash-mac.js`, plan-ejf.13.4) | scratch root (`mktemp -d /tmp/jfv.XXXX`), started like `start-mac.sh` (`.data/splash-start` written, then `osascript -l JavaScript splash-mac.js <root>`), shown on the owner's screen; script's own clock via `--log=<json>` (started = after the ObjC import, shown = after `orderFrontRegardless`, closed, why). 5 runs w/ `.data/window-ready` written 1.5 s in; one run w/ a left click posted at its middle (CGEvent); one run w/ neither. Renders: `--render=<png>` - content view drawn by `cacheDisplayInRect:toBitmapImageRep:` over the window's background colour, window never shown, no screenshot ([5-q-splash.py](app-window/measure/5-q-splash.py)). macOS 26.4.1 x86_64, 2026-10-04 | On screen (`visible` true) after the `osascript` start: median 479 ms, max 485 (469-485; 282-291 of it after the ObjC import, the rest = osascript starting) => inside the ~1 s goal, before `update` has run. Ready file written -> window closed: median 34 ms, max 93 (24-93; poll 0.1 s), all 5 closed by `ready`. Neither: closed by `cap` 44.8 s after it showed = 45.1 s after its start. Click: NOT measured - a posted click needs the Accessibility permission, not granted to the terminal (`AXIsProcessTrusted` false) => never delivered, splash stayed up; owner: pending - click it by hand. Also owner: pending (no screenshot here): spinner turning, keyboard staying w/ the app in use. Renders: `/tmp/jfv-splash-renders/splash-light.png` + `splash-dark.png` (760 x 500 px = 380 x 250 pt @2x): icon, CEZ Job Finder, spinner, Opening..., hint line, all readable in both; spinner draws dim grey in the dark render (the off-screen draw may not carry the window's dark appearance to it - look at it live). Numbers: [q](app-window/probes/q-splash.json). |
+| r | Links open as a tab in a scratch window (plan-29g.4) | scratch `mktemp -d /tmp/jfv.XXXX`, folder = program copy + demo (`app/tests/demo.py`), ai = claude, extension 0.22.0 w/ probe hold (`JOBS_VSCODE_PROBE_HOLD`: driver drops requests, extension runs a Today click's own path `doAction` + reads tabs). Local test site on 127.0.0.1 logs every request (path, cookie, user agent); each page titled "JF probe <uniq> <name>" => its tab told by label. Cold `jobs.py launch` (trust step + `--disable-workspace-trust`); window quit + `jobs.open_for_user` w/ `webbrowser.open` stubbed; `code <folder>` alone (Dock); same after the folder's trust entry removed. Other-program leg: scratch applet owning `cezprobe-r://` calls the site back = stand-in for `vscode://` (an escape there lands in the owner's own VS Code); ad-hoc signed under the checkout's ignored `.data/` (LaunchServices won't bind a scheme to an app under `/tmp`: kLSApplicationNotFoundErr), control `open cezprobe-r://control` reached it ([5-r-links.py](app-window/measure/5-r-links.py)). VS Code 1.140.0 (Electron 43.7.3, Chromium 150), Claude Code 2.1.289, macOS 26.4.1 x86_64, 2026-10-04 | Today click (company link: http as stored; posting links are https only) => tab labelled w/ the page title. `jobs.py open` => "opened in the Job Finder window" (0.7 s) + tab. Two `jobs.py open` at once: both "window", 2 tabs; one Today action w/ 2 links: 2 tabs. Each tab up within 0.9 s (poll 0.5 s). Tab `type` unknown: `tab.input` undefined => the tab API tells a browser tab by its label only, never its URL. Hostile page: `file://` img + fetch of files in the folder both miss; `file://` iframe, `window.open`, navigation never ran (0 beacons), page stayed - even under `--disable-workspace-trust` (bundle: every file trusted then => Chromium's own http -> file block is what holds). `cezprobe-r://` by iframe, `window.open`, link click, navigation: 0 reached the applet (`window.open` left an empty tab labelled "scheme-open"). Popups w/o a click: `window.open` + a scripted `target=_blank` click both opened as more tabs INSIDE the window (Code user agent), 0 in the system browser => bundle: new tabs always allowed, only a separate window needs a click within 1 s. Window closed: "opened in your browser", stub got the link, 0 site requests, no request file left. Dock (launcher's trust entry): trusted, 1-year cookie from `/signin` sent back. Trust entry removed: untrusted, cookie NOT sent (ephemeral). Browser storage: `<data>/User/workspaceStorage/<id>/browserStorage`. Screenshot of a posting-like page in the tab: `.data/probe-shots/r-posting-in-window.png` (window only, ignored; owner check plan-29g.5). Claude panel's "Browser connected" = Claude in Chrome on the owner's own Chrome, not this tab (#Links inside the window, plan-29g.11). Numbers: [r](app-window/probes/r-links.json). |
+| s | Where a window tab's sign-ins live + how to remove them (plan-29g.10) | as #r (scratch, program copy + demo, ai = claude, extension 0.22.0 probe hold, local site logging the Cookie header). Cold `jobs.py launch` (profile CEZ Job Finder), `jobs.py open /signin` (1-year cookie) -> `/whoami`; every `browserStorage` dir under the scratch data + its `workspace.json`; command palette filtered to "Clear Storage" (screenshot, window only); `workbench.action.browser.clearWorkspaceStorage` w/ the sign-in tab still open -> `/whoami`; quit, `jobs.py launch` again -> `/whoami` ([5-s-clear.py](app-window/measure/5-s-clear.py)). VS Code 1.140.0, macOS 26.4.1 x86_64, 2026-10-05 | One dir: `<data>/User/workspaceStorage/<id>/browserStorage` - not under `User/profiles/` even w/ the profile; its `workspace.json` = `{"folder": "file:///<the folder>"}` => outside the folder, deleting the folder leaves it. Palette in the Job Finder window lists Browser: Clear Storage (Global) + (Workspace) (`.data/probe-shots/s-palette.png`, ignored). Before: cookie sent. Clear (Workspace): 0 errors, next `/whoami` sent no cookie; after a restart still none. Dir + 51 files (2 MB: cache, prefs) stay after it - `clearData` empties cookies + site storage, not the dir. Numbers: [s](app-window/probes/s-clear.json). |
 
 ### Today dashboard - what a click does
 
@@ -79,12 +81,19 @@ only on buttons (owner rule).
 |---|---|---|---|---|
 | Say words ("Make my resume", "Help me apply", ...) | `workbench.action.chat.open {query, isPartialQuery: true}`: words in the chat box, not sent | new chat in the sidebar, words typed in, not sent: `claude-vscode.editor.open(undefined, words, undefined, undefined, false, {programmatic: "honor-preferred-location"})`; chat shown before moves to Claude's session history; title "Opens a new chat with these words typed in - press Enter to start", then "New chat ready - press Enter" on the page + status bar (owner 2026-10-03, measured: [j](app-window/probes/j-claude-new-chat.json)). Pressed: button reads "Starting Claude…" (others "Opening the chat…"), greyed until done; still waiting after 400 ms => "Starting Claude - the first time takes a few seconds"; chat view opened at window start so it rarely shows (k). Only Claude 2.1.288 up to 2.2 w/ `claudeCode.preferredLocation: sidebar`; else copy words + `claude-vscode.sidebar.open` + line "Copied - click the chat box, paste (Cmd+V, or Ctrl+V off Mac), press Enter."; button reads "Copy: <words>" | copy + `chatgpt.openSidebar` + same line | copy + same line |
 | I sent it / I heard back / It's closed | no chat: `jobs.py status set N applied\|heard_back\|closed` run by the extension (user's click = their own record), folder moves; line "Job N marked as sent." + Undo for 10 s => `status undo N --from STATE` (takes back only that state, log row dropped, folder back); fail => plain line + the chat words (owner 2026-10-04) | same | same | same |
-| Job title (opens the posting) | `vscode.env.openExternal` - https only, the stored link as is | same | same | same |
-| Company name | `vscode.env.openExternal` - http(s) website from the job search's company record (`app/companies.py`, cached 30 d); none on record => plain name, no link, no web search (owner 2026-10-03) | same | same | same |
+| Job title (opens the posting) | a tab in this window: `workbench.action.browser.open` w/ the stored link as is, a plain string (http(s) only, no `reuseUrlFilter`); VS Code w/o that command (before 1.109) or the open fails => `vscode.env.openExternal` (system browser). [Links inside the window](#links-inside-the-window---what--why) | same | same | same |
+| Company name | same as job title - http(s) website from the job search's company record (`app/companies.py`, cached 30 d); none on record => plain name, no link, no web search (owner 2026-10-03) | same | same | same |
 | Open resume / Open folder | `vscode.open` / `revealInExplorer` - only paths under `My Jobs/`, `My Resume/`, `Guides/` that exist under the folder's real path | same | same | same |
 
 Why a new chat for Claude, copy for ChatGPT: rows d, e (no command fills the chat shown w/o a new
 one); owner 2026-10-03 picked a fresh Claude chat over copy-paste (row j).
+
+Integrated Browser chat tools (`workbench.browser.enableChatTools`, plan-29g.1): left at VS Code's
+default (on). Its own words (1.140): "chat agents can use browser tools to open and interact with
+pages in the Integrated Browser". Reaches VS Code's own chat only = Copilot users (Claude +
+ChatGPT windows run w/ `chat.disableAIFeatures` on). Off now would settle "fill applications
+inside the window" before it's measured (plan-29g.7) + owner decides (plan-29g.8); page text stays
+data either way (AGENTS.md). Revisit there.
 
 Owner checks by hand (scratch has no sign-ins):
 - Copilot: click "Make my resume" => words sit in the chat box, nothing sent. owner: pending.
@@ -114,7 +123,7 @@ Still stock VS Code, on the user's own install + subscriptions; only settings + 
   minimap; terminal hidden on startup (Copilot's agent runs steps there). YAML schema underline
   + hover kept: a mistyped resume fact shows at once, not hours later at render.
 - `jobs.py open`: `code <folder> <file>` like the launcher, no `-r` => opens in the Job Finder
-  window, not the last-used one.
+  window, not the last-used one. Links: [Links inside the window](#links-inside-the-window---what--why).
 - Employer text inert (`text.inert_md`): posting, Check before sending, Application answers,
   Follow-up, Today - no links, images or HTML from the employer. A hidden image can't tell them
   when the user looked; a link can't run a VS Code command. Our own posting link line kept.
@@ -209,6 +218,88 @@ Owner checks still open (beyond the button checks above):
       no splash, nothing printed, start unchanged. Say which.
   Also note: does the splash take the keyboard from the app in use (Mac one never does)?
 
+## Links inside the window - what + why
+
+Owner 2026-10-04 (plan-29g): "open browser within vscode instead of another window" => job links
+open as a tab in the Job Finder window. Filling an application there: measured first (plan-29g.7),
+owner decides (plan-29g.8).
+
+VS Code's Integrated Browser (1.109+): any http(s) site, sign-ins, uploads. Bundle read, VS Code
+1.140, adversarial review 2026-10-04; live probes #r (plan-29g.4), #s (plan-29g.10).
+- `workbench.action.browser.open` takes a url string or `{url, openToSide, reuseUrlFilter}`. Ours
+  passes the string only: w/ `reuseUrlFilter` a matching tab is re-navigated => a half-filled form
+  wiped.
+- `workbench.action.browser.openExternal` sends the page shown to the system browser - an item in
+  the tab toolbar's overflow menu (never call it a button).
+- Only localhost links route there by themselves; `vscode.env.openExternal` still goes to the system
+  browser => ours calls the command.
+- `workbench.browser.dataStorage` default `global` = partition `persist:vscode-browser`, shared by
+  every VS Code window + profile, kept after uninstall => `workspace` (window scope, so
+  `app/workspace.py` COMMON): sign-ins + cookies for this folder only. Untrusted folder forces
+  ephemeral (nothing kept; #r: cookie gone once the trust entry is removed). Kept at
+  `<data>/User/workspaceStorage/<workspace id>/browserStorage`, profile or not (#s) - OUTSIDE the
+  folder: deleting it leaves the sign-ins. `<data>` = `launch.vscode_paths`: Mac `~/Library/Application
+  Support/Code`, Windows `%APPDATA%\Code` (Windows unmeasured). Removed by palette "Browser: Clear
+  Storage (Workspace)" (`workbench.action.browser.clearWorkspaceStorage`; tab toolbar item hidden by
+  default) - cookie gone, stays gone after a restart; dir + cache files stay (#s). Or delete
+  `workspaceStorage/<id>` whose `workspace.json` names the folder. Site: privacy.html "Delete
+  everything" + home "How do I remove it?". `workbench.browser.showInTitleBar:
+  false`: its globe button is experiment-controlled.
+- `file://` in a tab: VS Code serves files under trusted roots only (Copilot dirs, workspace folders
+  when trusted) - but `--disable-workspace-trust` (launcher + `jobs.py` pass it) trusts every file.
+  A web page still can't load, fetch or open one (#r): Chromium's http -> file block holds.
+- Tab API: a browser tab's `input` is undefined => found by its label (page title), URL unreadable.
+- Tabs sandboxed + context-isolated; links to other programs (`vscode://`) refused (permission
+  `openExternal` has no category => false; #r: 0 of 4 ways reached a stand-in program). Chromium 150
+  (Electron 43) vs Chrome 154; pages see `window.__vscode_helpers` + "Code/ Electron/" in the user
+  agent (captcha scores may drop); a page can open more tabs in the window w/o a click (#r) - only a
+  separate window needs a click within 1 s; `mailto:` does nothing.
+  Navigation telemetry carries no URL.
+- Google blocks Google-account sign-in in embedded browsers (since 2021) - untested here =>
+  `jobs.py open --outside`.
+- Claude's chat vs the window's tabs (bundle read: Claude Code extension 2.1.289 + its CLI, VS Code
+  1.140; plan-29g.11). "Browser connected" over Claude's chat box = Claude in Chrome (Anthropic's
+  Chrome extension) joined to that chat: it drives the user's own Google Chrome, never a tab here.
+  Shows once its server is added to the chat, before Chrome answers; its x = "Disconnect browser".
+  - Window tabs never reach Claude: the extension has no code for VS Code's browser (0 refs to
+    `workbench.action.browser*`; tab `input` undefined anyway), its IDE tools = diagnostics only
+    (+ Jupyter when connected), `@browser` lists Chrome's tabs (`tabs_context_mcp`).
+  - Connects at chat start when Claude in Chrome "Enabled by default" is on
+    (`claudeInChromeDefaultEnabled` in `~/.claude.json`, CLI default off; per computer user = every
+    window, scratch included) + claude.ai subscription sign-in; or when the user types `@browser` /
+    `/chrome`. Owner's is on => a scratch window's chat (owner's account) joins the owner's Chrome:
+    probes never send a chat there.
+  - Page data reaches the AI account only when Claude calls a Claude in Chrome tool (page text,
+    screenshots, tab list, console): the result enters the chat. Joined at start: each tool asks
+    first; after `@browser`: no asking for the rest of that chat. `@browser` itself sends the tab's
+    address + title + a one-time instructions block, no page text. Workday filling (`job-apply`)
+    is this route.
+  - VS Code's own chat (Copilot) is the one that can read window tabs: `workbench.browser.enableChatTools`
+    (default on) gives its agent `read_page`, `list_browser_pages` + page actions ("open and interact
+    with pages") => page text to the GitHub account when it uses them; off => VS Code's open tool
+    tells the agent it can't see the page. Privacy table names Claude in Chrome page text (plan-29g.12);
+    Copilot's line waits on the chat tools pick (plan-29g.8).
+
+How links get there:
+- Today + Jobs panel (plan-29g.1): job title + company => `today.openLink` (`app/vscode/today.js`):
+  http(s) only; command present => tab; missing or the open fails => system browser.
+- `jobs.py open "<link>"` (plan-29g.2), how every AI shows a link: window running => one request
+  `.data/open-link/<32 hex>.json` (`{url, t}`, written as `.tmp`, renamed in); extension's watcher
+  claims it by rename (`.taken`) + opens a tab; jobs.py takes it back after 2 s + opens the system
+  browser => whoever moves it first opens it, never twice. Requests over 10 s old deleted unseen,
+  both sides. Prints "opened in the Job Finder window" / "opened in your browser" => the AI says
+  where. `--outside` = system browser always. Not a file here + not http(s) => refused: a
+  `vscode://` or script link from a posting's text never runs. No other local way in: VS Code's
+  CLI server is remote-only, the start-page marker is read once, `vscode://` refused (+ any page
+  could call it).
+- Workday stays in Chrome (Claude-in-Chrome extension); other fillers keep their own Chrome profile
+  (`app/apply/browser.py`).
+- Privacy: sign-ins + site data stay on this computer, in this folder's browser storage (AGENTS.md
+  table, `Guides/Who sees what.md`); the site itself sees the visit, as in any browser.
+
+Owner checks still open: a posting open inside the window looks + works right (plan-29g.5;
+scratch screenshot from #r: `.data/probe-shots/r-posting-in-window.png`).
+
 ## Rejected
 
 - Own Electron / Tauri shell: Claude, ChatGPT + Copilot chats exist only as VS Code extensions
@@ -238,5 +329,11 @@ Owner checks still open (beyond the button checks above):
 - Notification at the double-click: fades after a few seconds, doesn't track loading.
 - tkinter splash: Python's icon shows in the Dock next to ours.
 - AppleScript applet progress window: frozen while the applet's `do shell script` blocks.
+- Simple Browser (`simpleBrowser.show`) for job links: an iframe - sites that refuse framing (sign-in
+  pages, many job sites) stay blank.
+- `vscode://` handler for `jobs.py open`: any web page or posting could call it, not just the AI.
+- Browser data `global` (VS Code's default): sign-ins shared w/ every VS Code window + profile, kept
+  after uninstall. `workspace` instead.
+- `reuseUrlFilter` on open: re-navigates a matching tab => a half-filled form wiped.
 - `*` activation (start w/ every window): while the profile is pending ours lives in the default
   profile => would run in every folder they open. `workspaceContains:app/jobs.py` instead (#p).

@@ -1,0 +1,168 @@
+{
+ "what": "s: where window sign-ins live + Browser: Clear Storage (Workspace) removes them",
+ "uniq": "8944a3dd",
+ "at": "2026-10-05T03:32:48Z",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "setup": [
+  {
+   "cmd": [
+    "uv",
+    "run",
+    "python",
+    "app/tests/demo.py"
+   ],
+   "rc": 0,
+   "ms": 7510
+  },
+  {
+   "cmd": [
+    "uv",
+    "run",
+    "app/jobs.py",
+    "today"
+   ],
+   "rc": 0,
+   "ms": 2013
+  }
+ ],
+ "launch": {
+  "rc": 0,
+  "ms": 12613,
+  "holdUp": true
+ },
+ "steps": {
+  "signin": {
+   "said": "opened in the Job Finder window",
+   "tab": "JF probe 8944a3dd signin"
+  },
+  "before": {
+   "said": "opened in the Job Finder window",
+   "cookieSent": "jf_signin=8944a3dd",
+   "kept": true,
+   "tab": "JF probe 8944a3dd whoami kept"
+  },
+  "where": [
+   {
+    "path": "$D/data/User/workspaceStorage/ef167ac22e31af6c676f1d14e661d0c1/browserStorage",
+    "workspaceJson": {
+     "folder": "file://$D/f"
+    },
+    "files": 44,
+    "bytes": 1835668,
+    "cookieRows": []
+   }
+  ],
+  "palette": {
+   "error": null,
+   "screenshot": {
+    "path": "<checkout>/.data/probe-shots/s-palette.png",
+    "bytes": 367771
+   }
+  },
+  "clear": {
+   "ms": 186,
+   "error": null
+  },
+  "after": {
+   "said": "opened in the Job Finder window",
+   "cookieSent": null,
+   "kept": false,
+   "tab": "JF probe 8944a3dd whoami kept"
+  },
+  "whereAfter": [
+   {
+    "path": "$D/data/User/workspaceStorage/ef167ac22e31af6c676f1d14e661d0c1/browserStorage",
+    "workspaceJson": {
+     "folder": "file://$D/f"
+    },
+    "files": 53,
+    "bytes": 2140844,
+    "cookieRows": []
+   }
+  ],
+  "whereQuit": [
+   {
+    "path": "$D/data/User/workspaceStorage/ef167ac22e31af6c676f1d14e661d0c1/browserStorage",
+    "workspaceJson": {
+     "folder": "file://$D/f"
+    },
+    "files": 51,
+    "bytes": 2016143,
+    "cookieRows": []
+   }
+  ],
+  "relaunched": {
+   "said": "opened in the Job Finder window",
+   "cookieSent": null,
+   "kept": false,
+   "tab": "JF probe 8944a3dd whoami kept"
+  }
+ },
+ "launchQuit": {
+  "killed": false
+ },
+ "relaunch": {
+  "rc": 0,
+  "ms": 3685,
+  "holdUp": true
+ },
+ "relaunchQuit": {
+  "killed": false
+ },
+ "profiles": [
+  "cez-job-finder"
+ ],
+ "serverLog": [
+  {
+   "t": 1791171208.526,
+   "path": "/signin",
+   "cookie": null
+  },
+  {
+   "t": 1791171208.93,
+   "path": "/favicon.ico",
+   "cookie": "jf_signin=8944a3dd"
+  },
+  {
+   "t": 1791171209.702,
+   "path": "/whoami?n=1",
+   "cookie": "jf_signin=8944a3dd"
+  },
+  {
+   "t": 1791171209.906,
+   "path": "/favicon.ico",
+   "cookie": "jf_signin=8944a3dd"
+  },
+  {
+   "t": 1791171217.032,
+   "path": "/whoami?n=2",
+   "cookie": null
+  },
+  {
+   "t": 1791171217.304,
+   "path": "/favicon.ico",
+   "cookie": null
+  },
+  {
+   "t": 1791171223.544,
+   "path": "/whoami?n=2",
+   "cookie": null
+  },
+  {
+   "t": 1791171223.947,
+   "path": "/favicon.ico",
+   "cookie": null
+  },
+  {
+   "t": 1791171229.513,
+   "path": "/whoami?n=3",
+   "cookie": null
+  },
+  {
+   "t": 1791171229.917,
+   "path": "/favicon.ico",
+   "cookie": null
+  }
+ ]
+}

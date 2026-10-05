@@ -8,7 +8,7 @@ from pathlib import Path
 
 import httpx
 
-from apply.questions import key_from_title, question, signs
+from apply.questions import key_from_title, left_on_page, question, signs
 
 NAME = "JazzHR"
 # /apply/<id>/<slug>; freehire adds ?utm_source=freehire.me. /apply/job/<id>/stage-one is a form's POST target
@@ -244,7 +244,7 @@ def put_file(page, field, path: str) -> str:
 
 def fill(page, q: dict, resume_file: str | None) -> str:
     if signs(q["title"]):
-        return "ASK yours to do on the page - agreeing, consenting or signing"
+        return left_on_page(q)
     kind, value = q["kind"], q["answer"]
     field = by_id(page, q["id"])
     if not field.count():

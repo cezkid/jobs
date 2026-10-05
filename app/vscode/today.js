@@ -104,6 +104,28 @@ function cleanSite(url) {
   }
 }
 
+// a link from the page: a tab in this window's own browser when VS Code has one (1.109+), else the
+// system browser. http(s) only, anything else does nothing. hasBrowser() / inWindow(url) /
+// external(url) = vscode calls; the url goes on as the same string (a rebuilt link 404s).
+// Returns where it went: "window" | "external" | null
+async function openLink(url, { hasBrowser, inWindow, external }) {
+  let scheme;
+  try {
+    scheme = typeof url === "string" ? new URL(url).protocol : null;
+  } catch {
+    return null;
+  }
+  if (scheme !== "https:" && scheme !== "http:") return null;
+  if (await Promise.resolve().then(hasBrowser).catch(() => false)) {
+    try {
+      await inWindow(url);
+      return "window";
+    } catch {}
+  }
+  await external(url);
+  return "external";
+}
+
 // relative path under one of OPENABLE, `/` between parts, no way out of the folder
 function cleanPath(rel) {
   if (typeof rel !== "string" || !rel || rel.length > 500 || rel.includes("\\") || rel.includes("\0")) return null;
@@ -788,7 +810,7 @@ const TRY_AGAIN = -2;
 
 module.exports = {
   VIEW_TYPE, DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, BEST_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
-  escapeHtml, templates, templateFor, cleanUrl, cleanSite, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
+  escapeHtml, templates, templateFor, cleanUrl, cleanSite, openLink, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say, STILL_OPENING, STILL_SAVING,
   STATUS_SET, UNDO_MS, statusLine, undoneLine, statusFailed, UNDO_FAILED, statusKeeper,
   LOOKS, LOOK_FILE, lookOf, lookDone, lookSwitch, csp, page, render, FALLBACK, SHOW_PAGE, TRY_AGAIN, fallback,

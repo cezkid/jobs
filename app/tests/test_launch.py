@@ -649,6 +649,145 @@ def test_open_names_job_finders_folder_with_the_file(tmp_path, monkeypatch):
     assert runs[0][-2:] == [str(cfg.ROOT), str(page.resolve())] and "-r" not in runs[0]
 
 
+POSTING = "https://boards.greenhouse.io/acme/jobs/123?gh_src=a%20b"
+
+
+class FakeWindow:
+    """Job Finder's window as jobs.py sees it: claims each request by renaming it, as extension.js does."""
+
+    def __init__(self, root):
+        import jobs
+        self.dir, self.opened, self.done = root / jobs.LINK_DIR, [], None
+
+    def watch(self):
+        while not self.done.is_set():
+            for request in sorted(self.dir.glob("*.json")) if self.dir.exists() else []:
+                taken = request.with_name(request.name + ".taken")
+                try:
+                    request.rename(taken)
+                except OSError:
+                    continue
+                self.opened.append(json.loads(taken.read_text(encoding="utf-8"))["url"])
+                taken.unlink()
+            self.done.wait(0.01)
+
+    def __enter__(self):
+        import threading
+        self.done = threading.Event()
+        self.thread = threading.Thread(target=self.watch, daemon=True)
+        self.thread.start()
+        return self
+
+    def __exit__(self, *exc):
+        self.done.set()
+        self.thread.join(5)
+
+
+def link_setup(tmp_path, monkeypatch, running=True):
+    # temp folder: a request in the dev checkout's .data would open in the developer's own window
+    import jobs
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    monkeypatch.setattr(launch, "vscode_running", lambda paths=None: running)
+    browser = []
+    monkeypatch.setattr(jobs.webbrowser, "open", lambda url: browser.append(url) or True)
+    return jobs, browser
+
+
+def test_open_link_lands_in_the_window_never_also_the_browser(tmp_path, monkeypatch, capsys):
+    # owner 2026-10-04: "open browser within vscode instead of another window"
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    with FakeWindow(tmp_path) as window:
+        jobs.open_for_user(POSTING, wait=5)
+    assert window.opened == [POSTING] and browser == []  # same string: a rebuilt link 404s
+    assert capsys.readouterr().out == f"{jobs.IN_WINDOW}\n"
+    assert list((tmp_path / jobs.LINK_DIR).iterdir()) == []
+
+
+def test_open_link_nobody_takes_opens_the_browser_once(tmp_path, monkeypatch, capsys):
+    # VS Code open on another folder, or a window w/o its browser: the link still opens, once,
+    # and a late claim finds nothing (taken back) => never a second tab later
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    jobs.open_for_user(POSTING, wait=0.2)
+    assert browser == [POSTING] and capsys.readouterr().out == f"{jobs.IN_BROWSER}\n"
+    assert list((tmp_path / jobs.LINK_DIR).iterdir()) == []
+    with FakeWindow(tmp_path) as window:
+        pass
+    assert window.opened == []
+
+
+def test_open_link_with_vscode_closed_goes_straight_to_the_browser(tmp_path, monkeypatch, capsys):
+    jobs, browser = link_setup(tmp_path, monkeypatch, running=False)
+    jobs.open_for_user(POSTING, wait=5)
+    assert browser == [POSTING] and capsys.readouterr().out == f"{jobs.IN_BROWSER}\n"
+    assert not (tmp_path / jobs.LINK_DIR).exists()
+
+
+def test_open_two_links_at_once_both_reach_the_window(tmp_path, monkeypatch):
+    # two chats side by side, each showing a link
+    import threading
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    links = [POSTING, "https://jobs.ashbyhq.com/acme/9f1c"]
+    results = {}
+    with FakeWindow(tmp_path) as window:
+        senders = [threading.Thread(target=lambda u=u: results.__setitem__(u, jobs.send_to_window(u, tmp_path, wait=5)))
+                   for u in links]
+        for s in senders:
+            s.start()
+        for s in senders:
+            s.join(10)
+    assert results == {u: True for u in links} and sorted(window.opened) == sorted(links) and browser == []
+
+
+def test_open_refuses_what_is_not_a_file_or_web_link(tmp_path, monkeypatch):
+    # a posting's hidden text can ask the AI to open a link to another program
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    for bad in ("javascript:alert(1)", "vscode://anthropic.claude-code/open", "file:///etc/passwd", "mailto:a@b.example",
+                "ftp://example.com/x", "https://", "My Jobs/no such file.md"):
+        with pytest.raises(SystemExit) as stop:
+            jobs.open_for_user(bad, wait=5)
+        assert str(stop.value).startswith("not opened: "), bad
+    assert browser == [] and not (tmp_path / jobs.LINK_DIR).exists()
+
+
+def test_open_outside_always_uses_the_browser(tmp_path, monkeypatch, capsys):
+    # a site that fails inside the window (Google sign-in) => `open --outside`
+    jobs, browser = link_setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(jobs.sys, "argv", ["jobs.py", "open", "--outside", POSTING])
+    with FakeWindow(tmp_path) as window:
+        jobs.main()
+    assert browser == [POSTING] and window.opened == [] and capsys.readouterr().out == f"{jobs.IN_BROWSER}\n"
+    assert not (tmp_path / jobs.LINK_DIR).exists()
+
+
+def test_open_link_leftovers_cleared_and_busy_file_retried(tmp_path, monkeypatch):
+    # a run killed mid-wait leaves its request; Windows refuses a rename while a scan holds the file
+    import errno
+    import os
+    import time
+    jobs, _ = link_setup(tmp_path, monkeypatch)
+    folder = tmp_path / jobs.LINK_DIR
+    folder.mkdir(parents=True)
+    old, new = folder / f"{'a' * 32}.json", folder / f"{'b' * 32}.json"
+    old.write_text("{}", encoding="utf-8")
+    new.write_text("{}", encoding="utf-8")
+    long_ago = time.time() - jobs.LINK_MAX_AGE - 5
+    os.utime(old, (long_ago, long_ago))
+    assert not jobs.send_to_window(POSTING, tmp_path, wait=0)
+    assert sorted(folder.iterdir()) == [new]
+    monkeypatch.setattr(jobs.time, "sleep", lambda s: None)
+    calls = []
+
+    def busy():
+        calls.append(1)
+        if len(calls) < 3:
+            raise PermissionError(errno.EACCES, "in use") if len(calls) == 1 else OSError(errno.EBUSY, "busy")
+        return "done"
+    assert jobs.retry_busy(busy) == "done" and len(calls) == 3
+    with pytest.raises(FileNotFoundError):
+        jobs.retry_busy(lambda: calls.append(1) or (_ for _ in ()).throw(FileNotFoundError()))
+    assert len(calls) == 4  # gone = an answer, never retried
+
+
 def profile_paths(tmp_path, monkeypatch):
     monkeypatch.setenv(launch.SCRATCH_ENV, str(tmp_path / "scratch"))
     return launch.vscode_paths()

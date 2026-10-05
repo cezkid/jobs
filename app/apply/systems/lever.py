@@ -10,7 +10,7 @@ from html.parser import HTMLParser
 import httpx
 
 from apply import dom
-from apply.questions import key_from_title, question, signs
+from apply.questions import key_from_title, left_on_page, question, signs
 
 NAME = "Lever"
 # EU host too; freehire's links carry ?utm_source=freehire.me, the form is the same link + /apply
@@ -24,6 +24,8 @@ EXAMPLES = ("https://jobs.lever.co/acme/1b2c3d4e-5f60-4718-9a0b-1c2d3e4f5a6b",
 # questions() is one plain GET of the /apply page, no browser: the live test runs it
 QUESTIONS_OVER_HTTP = True
 READY = "#application-form input[name=name]"
+# a chosen resume goes to Lever at once to be read, before Submit (lever.md)
+FILE_ON_CHOICE = True
 # card field type -> shared kind (51 fields, 4 tenants, 2026-10-03); a type missing here is asked as text
 KIND = {"text": "text", "textarea": "longtext", "multiple-choice": "choice", "dropdown": "choice",
         "multiple-select": "multichoice"}
@@ -239,7 +241,7 @@ def put_location(page, field, value: str) -> str:
 def fill(page, q: dict, resume_file: str | None) -> str:
     kind, value, name = q["kind"], q["answer"], q["id"]
     if signs(q["title"]) or q.get("native") in ("consent", "eeo:signature"):
-        return "ASK yours to do on the page - agreeing, consenting or signing"
+        return left_on_page(q)
     field = boxes(page, name)
     if not field.count():
         # the disability signature shows only once Disability status is chosen

@@ -140,6 +140,30 @@ test("title opens the posting; company opens its website, none on record => plai
   assert.equal(today.cleanSite("http://example.com/about"), "http://example.com/about");
 });
 
+// owner 2026-10-04: "open browser within vscode instead of another window"; a VS Code w/o its own
+// browser (before 1.109), or one that fails to open it, still opens the link - in the system browser
+test("links open as a tab in the window, system browser when VS Code has no browser; http(s) only", async () => {
+  const run = async (url, { has = true, failsIn = false, hasThrows = false } = {}) => {
+    const calls = [];
+    const where = await today.openLink(url, {
+      hasBrowser: () => { if (hasThrows) throw new Error("no commands"); return has; },
+      inWindow: async (u) => { calls.push(["window", u]); if (failsIn) throw new Error("no browser"); },
+      external: async (u) => { calls.push(["external", u]); },
+    });
+    return { where, calls };
+  };
+  const url = RAW.sections[0].cards[0].url;
+  assert.deepEqual(await run(url), { where: "window", calls: [["window", url]] });
+  assert.deepEqual(await run("http://example.com/about"), { where: "window", calls: [["window", "http://example.com/about"]] });
+  assert.deepEqual(await run(url, { has: false }), { where: "external", calls: [["external", url]] });
+  assert.deepEqual(await run(url, { hasThrows: true }), { where: "external", calls: [["external", url]] });
+  assert.deepEqual(await run(url, { failsIn: true }), { where: "external", calls: [["window", url], ["external", url]] });
+  for (const bad of ["javascript:alert(1)", "vscode://anthropic.claude-code/open", "file:///etc/passwd", "mailto:a@b.example",
+    "not a link", "", null, 42]) {
+    assert.deepEqual(await run(bad), { where: null, calls: [] }, String(bad));
+  }
+});
+
 // a path from the data file opening something outside the user's folders
 test("open buttons only for paths under My Jobs, My Resume, Guides", () => {
   for (const bad of ["../.ssh/id_rsa", "My Jobs/../../x", "/etc/passwd", "C:/Windows/x", "My Jobs\\..\\x", ".data/jobs.db",

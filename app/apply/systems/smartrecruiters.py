@@ -27,6 +27,8 @@ EXAMPLES = ("https://jobs.smartrecruiters.com/acme/744000000000001-example-job?u
 # one form app, its pages swapped in place: fill works on the user's tab (a fresh one is page 1)
 PER_PAGE = True
 READY = "#first-name-input"
+# a chosen resume POSTs to SmartRecruiters at once, before Submit (smartrecruiters.md)
+FILE_ON_CHOICE = True
 POSTINGS = "https://api.smartrecruiters.com/v1/companies/{company}/postings/{posting}"
 # page names in the answers file: page 1 is always the same contact + resume form (4 of 4 tenants)
 PAGE_ONE = "Contact and resume"

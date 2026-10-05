@@ -248,6 +248,40 @@ def test_consent_near_misses_not_tagged(title):
     assert questions.never_draft(title) != questions.SIGNING
 
 
+# measured 2026-10-05, Greenhouse tenant E (employer's own page), a required question
+AI_ATTESTATION = ("I confirm that my application materials and interview responses reflect my own work and were not "
+                  "generated, edited, or supplemented by AI tools (e.g., ChatGPT, Gemini, Claude, etc.).")
+AI_USE = [AI_ATTESTATION, "Did you use AI tools such as ChatGPT to write or edit your resume or cover letter?",
+          "I certify that my responses to this application were not written by artificial intelligence.",
+          "Was any part of your application generated using AI?"]
+AI_NEAR_MISSES = ["Do you have experience with AI tools such as ChatGPT or Copilot?",
+                  "Describe how you have used generative AI in your work.",
+                  "Tell us about a time you used AI to draft responses to customers.",
+                  "How would you use LLMs to help our recruiting team review applications?",
+                  "Please confirm your email address"]
+
+
+@pytest.mark.parametrize("title", AI_USE)
+def test_ai_use_attestation_left_for_the_user_on_the_page(title):
+    (a,) = questions.draft([q(title, "yesno")], CONTACT)
+    assert questions.never_draft(title) == questions.AI_USE and questions.signs(title)
+    assert a["answer"] is None and a["source"] == f"{questions.ASK} - {questions.SIGN_ON_PAGE}: {questions.AI_USE}"
+    assert "(yours to do on the page: saying whether AI helped)" in form.line(a)
+    # a Yes the AI wrote, or the user's own "you said": never kept, never typed, not counted missing
+    said = {**a, "answer": "Yes", "source": questions.USER_SAID}
+    assert questions.draft([q(title, "yesno")], CONTACT, [said])[0]["answer"] is None
+    assert questions.missing([a]) == [] and questions.on_page([said])
+    with pytest.raises(SystemExit, match="ticks or signs these on the page"):
+        form.refuse([said])
+    assert questions.left_on_page(a) == "ASK yours to do on the page - saying whether AI helped"
+    assert "tailored with AI help" in form.ai_note([a]) and form.ai_note([q("Why us?", "longtext")]) == ""
+
+
+@pytest.mark.parametrize("title", AI_NEAR_MISSES)
+def test_ai_use_near_misses_not_tagged(title):
+    assert questions.never_draft(title) != questions.AI_USE and not questions.signs(title)
+
+
 def test_signature_box_never_answered_from_the_resume():
     for title in ("Signature (type your full name)", "Electronic signature - legal name", "Full name (signature)"):
         assert questions.key_from_title(title, "text") is None, title
@@ -742,6 +776,25 @@ def test_resume_goes_in_the_resume_box_only():
     assert ashby.fill(Page(), letter, None).startswith("ASK cover letter box - no letter made")
     other = {**letter, "title": "Portfolio", "key": None}
     assert ashby.fill(Page(), other, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")
+
+
+# --- a file that leaves when chosen ---
+
+def test_file_on_choice_systems_say_so_in_prepare_and_the_privacy_table():
+    """Greenhouse's resume POSTs to its storage on choosing it (3 of 3 employers, 2026-10-05): prepare
+    tells the AI to say so in the upload yes, and AGENTS.md's row says "as soon as" - only for
+    systems measured so, never "once you click Submit" for a file that leaves sooner."""
+    import re
+
+    import cfg
+    asked = [q("Resume/CV", "file", "resume"), q("First Name")]
+    assert "as soon as it is chosen" in form.upload_note(greenhouse, asked)
+    assert form.upload_note(greenhouse, asked[1:]) == "" and form.upload_note(ashby, asked) == ""
+    table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
+    for system in systems.SYSTEMS:
+        rows = [r for r in table if f"that employer's {system.NAME} site" in r]
+        early = any(re.search(r"\b(?:choose|chosen|pick)", r.split("|")[3]) for r in rows)
+        assert early == getattr(system, "FILE_ON_CHOICE", False), system.NAME
 
 
 # --- Greenhouse ---

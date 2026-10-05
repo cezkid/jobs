@@ -31,6 +31,10 @@ const PROBE_LOOK_ENV = "JOBS_VSCODE_PROBE_LOOK";
 const PROBE_WARM_ENV = "JOBS_VSCODE_PROBE_WARM";
 // probe only: epoch ms the window was launched, so times read from window start
 const PROBE_T0_ENV = "JOBS_VSCODE_PROBE_T0";
+// probe only: a folder the driver drops <name>.req JSON into while the window stays up, answered in
+// <name>.res: {do: "today-link", urls} = a Today click's own path, all at once; {do: "command", id,
+// args}; {do: "tabs"}; {do: "quit"}. 10 min cap
+const PROBE_HOLD_ENV = "JOBS_VSCODE_PROBE_HOLD";
 const PROBE_COMMANDS = [/^cezJobFinder\./, /^claude-vscode\./, /^chatgpt\./, /^workbench\.action\.chat\./, /outline/i, /timeline/i, /^vscode\.moveViews$/, /^markdown\.showPreview/];
 const PROBE_SETTINGS = [
   "workbench.colorTheme", "window.autoDetectColorScheme", "workbench.startupEditor",
@@ -44,6 +48,7 @@ function activate(context) {
     showToday(document, panel, vscode.Uri.joinPath(context.extensionUri, ...today.FONT_DIR)) },
     { webviewOptions: { enableFindWidget: true }, supportsMultipleEditorsPerDocument: false }));
   jobsTree = showJobs(context);
+  watchLinks(context);
   const out = process.env[PROBE_ENV];
   // probe told which pages to open => measures that alone, not the start page
   const opened = out && process.env[PROBE_OPEN_ENV] ? Promise.resolve() : openStartPage().catch(() => {});
@@ -440,19 +445,87 @@ async function act(root, at, page, m, msg, panel, retry, keeper) {
   });
 }
 
+// VS Code's Integrated Browser (1.109+): a url string, never { reuseUrlFilter } - a matching tab
+// would be re-navigated, wiping a half-filled form (app/docs/app-window.md)
+const BROWSER_OPEN = "workbench.action.browser.open";
+
+async function hasBrowser() {
+  return (await vscode.commands.getCommands(true)).includes(BROWSER_OPEN);
+}
+
+// posting / company link => a tab in this window, system browser when VS Code has no browser.
+// A string, not a Uri: passed on exactly as written (a Uri re-encodes it; a rebuilt link 404s)
+function openLink(url) {
+  return today.openLink(url, {
+    hasBrowser,
+    inWindow: (link) => vscode.commands.executeCommand(BROWSER_OPEN, link),
+    external: (link) => vscode.env.openExternal(link),
+  });
+}
+
+// `jobs.py open "<link>"` (every AI shows a link with it) => a tab here. Job Finder's folder only.
+// Requests already waiting as the window starts: fresh ones opened, leftovers deleted unseen
+function watchLinks(context) {
+  const folder = (vscode.workspace.workspaceFolders || [])[0];
+  if (!folder || folder.uri.scheme !== "file") return;
+  const root = folder.uri.fsPath;
+  if (!start.isJobFinder((rel) => fs.existsSync(path.join(root, rel)))) return;
+  const dir = path.join(root, start.LINK_DIR);
+  try {
+    fs.mkdirSync(dir, { recursive: true });
+  } catch {
+    return;
+  }
+  // plain pattern on the folder itself: a non-recursive watcher, never cut by files.watcherExclude
+  const watcher = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(dir), start.LINK_GLOB));
+  const take = (uri) => takeLink(uri.fsPath).catch(() => {});
+  context.subscriptions.push(watcher, watcher.onDidCreate(take), watcher.onDidChange(take));
+  let names = [];
+  try {
+    names = fs.readdirSync(dir);
+  } catch {}
+  for (const name of names) if (start.isLinkFile(name)) takeLink(path.join(dir, name)).catch(() => {});
+}
+
+// claim by rename: jobs.py deletes the same name when its wait ends => only one side opens it
+async function takeLink(file) {
+  if (!start.isLinkFile(path.basename(file))) return;
+  // no browser in this VS Code (before 1.109) => left alone: jobs.py opens the system browser
+  // after its wait and says so
+  if (!(await hasBrowser().catch(() => false))) return;
+  const taken = `${file}.taken`;
+  for (let tries = 5; ; tries--) {
+    try {
+      fs.renameSync(file, taken);
+      break;
+    } catch (e) {
+      // gone = jobs.py took it back, or another event of ours already has it
+      if (!tries || !["EBUSY", "EPERM", "EACCES"].includes(e && e.code)) return;
+      await new Promise((ok) => setTimeout(ok, 50));
+    }
+  }
+  let url = null;
+  try {
+    url = start.linkRequest(fs.readFileSync(taken, "utf8"), Date.now());
+  } catch {}
+  try {
+    fs.unlinkSync(taken);
+  } catch {}
+  if (url) await openLink(url);
+}
+
 // one action of today.model's list, from the dashboard or the Jobs panel: the only place a click
 // opens a link or file, records a status or puts words in the chat. ui = { tell(text, how),
 // busy(on, label), keeper (today.statusKeeper) } of the surface clicked
 async function doAction(root, at, action, ui) {
   if (action.type === "posting") {
     const url = today.cleanUrl(action.url);
-    // a string, not a Uri: passed on exactly as written (a Uri re-encodes it; a rebuilt link 404s)
-    if (url) await vscode.env.openExternal(url);
+    if (url) await openLink(url);
     return;
   }
   if (action.type === "company") {
     const url = today.cleanSite(action.url);
-    if (url) await vscode.env.openExternal(url);
+    if (url) await openLink(url);
     return;
   }
   if (action.type === "open") {
@@ -656,8 +729,44 @@ async function probe(context, out, opened, warmed) {
     report.look.after = theme();
     report.look.tabsAfter = readWindow();  // same extension host still running => no window reload
   }
+  const hold = process.env[PROBE_HOLD_ENV];
+  if (hold && folder) report.hold = await holdFor(hold, folder.uri.fsPath);
   fs.writeFileSync(out, redact(JSON.stringify(report, null, 1)) + "\n");
   await vscode.commands.executeCommand("workbench.action.quit");
+}
+
+// probe only: serves the driver's requests (PROBE_HOLD_ENV) until {do: "quit"} or 10 min
+async function holdFor(dir, root) {
+  const log = [];
+  const at = (rel) => path.join(root, rel);
+  const ui = { tell() {}, busy() {} };
+  for (const end = Date.now() + 600000; Date.now() < end; await new Promise((ok) => setTimeout(ok, 100))) {
+    let names = [];
+    try {
+      names = fs.readdirSync(dir).filter((name) => name.endsWith(".req")).sort();
+    } catch {}
+    for (const name of names) {
+      const reqFile = path.join(dir, name);
+      const begun = Date.now();
+      let req = null;
+      let res;
+      try {
+        req = JSON.parse(fs.readFileSync(reqFile, "utf8"));
+        fs.unlinkSync(reqFile);
+        // company link = http(s) as stored (cleanSite) => a local http test page takes this path
+        if (req.do === "today-link") await Promise.all(req.urls.map((url) => doAction(root, at, { type: "company", url }, ui)));
+        else if (req.do === "command") await vscode.commands.executeCommand(req.id, ...(req.args || []));
+        res = { req, ms: Date.now() - begun, tabs: readWindow() };
+      } catch (err) {
+        res = { req, ms: Date.now() - begun, error: String(err), tabs: readWindow() };
+      }
+      log.push(res);
+      fs.writeFileSync(path.join(dir, name.replace(/\.req$/, ".res")), JSON.stringify(res));
+      if (req && req.do === "quit") return log;
+    }
+  }
+  log.push({ capped: true });
+  return log;
 }
 
 module.exports = { activate, deactivate };

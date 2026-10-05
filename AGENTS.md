@@ -28,7 +28,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - Today page buttons put their words in the chat, never send them: Copilot fills its chat box;
   Claude: one fresh sidebar chat w/ them typed in; ChatGPT: copy + open, user pastes + presses Enter.
 - Show file or link: `uv run app/jobs.py open "<path or https url>"` - file opens as VS Code
-  tab, link in browser.
+  tab, link as a tab in the Job Finder window (their browser when the window is closed; it prints
+  which - say that). Add `--outside` for their own browser: a site that won't work inside (Google
+  sign-in) or they ask. Today's job + company links open in the window too.
 - Need file from user (resume PDF): ask them to drag it onto My Resume in the file list, then
   use the PDF just added there (not the made `First_Last_Resume.pdf`). Copilot gets a PDF dropped in chat as data, no path. A path that
   arrives w/ a chat drop still works.
@@ -206,14 +208,17 @@ when asked, at setup, and before any step sending something new off computer.
 |---|---|---|
 | Resume, job folders, search settings, saved form answers, Today page | `My Resume/`, `My Jobs/`, `My Settings/`, `Today.md` | Private - only this computer |
 | Job list, logs, email password (email optional) | `.data/` (hidden) | Private - only this computer |
+| Sign-ins + site data of pages opened in the Job Finder window | the window's own browser storage, kept by VS Code outside the folder (this folder only, not their usual browser or other VS Code windows; palette "Browser: Clear Storage (Workspace)" empties it, `app/docs/app-window.md`) | Private - only this computer; the page's own site sees the visit, as in any browser |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
 | Resume + answers you paste | that employer's site (Recruitee ...) | That employer, once you click Submit |
 | Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User's own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |
+| Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User's own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
-| Contact details, answers, resume you apply with | that employer's Greenhouse site | That employer, once you click Submit |
+| Resume (and cover letter) you apply with | that employer's Greenhouse site | That employer, as soon as you choose the file (it goes to Greenhouse's storage then) |
+| Contact details, answers you apply with | that employer's Greenhouse site | That employer, once you click Submit |
 | Resume you apply with | that employer's Lever site | That employer, as soon as you choose the file (Lever reads it to fill the form) |
 | Contact details, answers you apply with | that employer's Lever site | That employer, once you click Submit |
 | Resume you apply with | that employer's Workable site | That employer, as soon as you choose the file (it goes to Workable's storage then) |

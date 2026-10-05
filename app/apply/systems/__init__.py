@@ -21,6 +21,11 @@ Optional, for forms spread over pages (start box, then the form; "Step 1 of 5"):
                                  the answers file page by page (questions.merge)
     on_tab(url, tab_url) -> bool this application's tab; default below
 
+Optional, what leaves when:
+
+    FILE_ON_CHOICE = True        a chosen file goes to the employer's site at once, before Submit
+                                 (measured): prepare tells the AI to say so in the upload yes
+
 Optional, for the live test:
 
     QUESTIONS_OVER_HTTP = True   questions(url) is a plain HTTP read (no browser): the live test runs it

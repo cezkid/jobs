@@ -10,6 +10,7 @@ from urllib.parse import quote, urlsplit
 
 import httpx
 
+from apply import dom
 from apply.questions import key_from_title, question
 
 NAME = "Greenhouse"
@@ -29,6 +30,8 @@ EXAMPLES = ("https://job-boards.greenhouse.io/acme/jobs/4001234005",
 # questions() is a plain HTTP read, no browser: the live test runs it
 QUESTIONS_OVER_HTTP = True
 READY = "#first_name"
+# a chosen file POSTs to Greenhouse's storage at once, before Submit (3 of 3 employers, 2026-10-05)
+FILE_ON_CHOICE = True
 # Greenhouse type -> shared kind; a type missing here is asked as text
 KIND = {"input_text": "text", "textarea": "longtext", "input_file": "file",
         "multi_value_single_select": "choice", "multi_value_multi_select": "multichoice"}
@@ -131,11 +134,13 @@ def questions(url: str) -> list[dict]:
 
 
 def ids_on_page(page) -> list[str]:
-    # education rows (school--0 ...) are optional extras; iti-* is the phone box's own country search
+    # education rows (school--0 ...) are optional extras; iti-* is the phone box's own country search;
+    # a mark-all-that-apply list drawn as checkboxes is one question, named by the boxes' shared name
     return page.eval_on_selector_all(
         "form input[id], form textarea[id]",
-        "es => es.filter(e => e.type !== 'hidden' && !e.id.includes('--') && !e.id.startsWith('iti-'))"
-        ".map(e => e.id === 'cover_letter_text' || e.id === 'resume_text' ? null : e.id).filter(Boolean)")
+        "es => [...new Set(es.filter(e => e.type !== 'hidden' && !e.id.includes('--') && !e.id.startsWith('iti-'))"
+        ".map(e => e.id === 'cover_letter_text' || e.id === 'resume_text' ? null"
+        " : e.type === 'checkbox' && e.name.endsWith('[]') ? e.name : e.id).filter(Boolean))]")
 
 
 def by_id(page, id: str):
@@ -202,6 +207,14 @@ def put_select(page, field, value, starts: bool = False) -> str:
     return "ok"
 
 
+def put_boxes(boxes, value) -> str:
+    """A mark-all-that-apply list drawn as checkboxes (`fieldset` of `input[name="question_<n>[]"]`, each
+    named by its own label): tick each answer by its label, untick the rest, read every box back."""
+    names = boxes.evaluate_all("bs => bs.map(b => [...b.labels].map(l => l.innerText).join(' ').replace(/\\s+/g, ' ').trim())")
+    want = [dom.norm(str(v)) for v in (value if isinstance(value, list) else [value])]
+    return dom.put_ticks([boxes.nth(i) for i in range(len(names))], names, want, role=False, single=False)
+
+
 def put_file(page, q: dict, path: str) -> str:
     page.locator(f'input[type=file][id="{q["id"]}"]').set_input_files(path)
     shown = page.locator(f'[aria-labelledby="upload-label-{q["id"]}"] .file-upload__filename')
@@ -227,6 +240,10 @@ def fill(page, q: dict, resume_file: str | None) -> str:
     if not field.count():
         # Race shows only after Hispanic/Latino = No; others only for some answers
         return "skipped - not shown for the other answers" if q.get("native") == "self-id" else "FAIL question not on page"
+    # the same kind of question is a dropdown on one form, checkboxes on another (both on one form, 2026-10-05)
+    boxes = page.locator(f'input[type=checkbox][name="{q["id"]}"]')
+    if boxes.count():
+        return put_boxes(boxes, value)
     field.scroll_into_view_if_needed()
     if field.get_attribute("role") == "combobox":
         if kind == "yesno":
