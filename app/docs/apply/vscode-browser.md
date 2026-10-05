@@ -159,7 +159,7 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse + Ashby only, off by default (plan-29g.9, Ashby plan-nko.8).
+window, Greenhouse, Ashby + Lever only, off by default (plan-29g.9, Ashby plan-nko.8, Lever plan-nko.15).
 
 ## Owner decision (plan-29g.8)
 
@@ -171,8 +171,8 @@ exactly one tab, trusted folder required, embed forms opened top-level. Default 
 
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse + Ashby only (owner's yes for Ashby
-2026-10-05, plan-nko.7; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby + Lever only (owner's yes for Ashby
+2026-10-05, plan-nko.7, Lever plan-nko.14; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 
 - Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
@@ -185,7 +185,7 @@ limits unchanged: never Submit, a file only after the user's yes (`form.fill` de
   page session, asks `requestCDPProxy` for it, answers {session, proxy}.
 - Python drives the tab over raw CDP ([cdp.py](../../apply/cdp.py), moved from the measure
   scripts): Playwright can't use the proxy (one page, no browser). `apply/window.py` `Page` +
-  `Locator` cover only what `greenhouse.py`, `ashby.py` + `form.fill` call: click = instant scroll to the box's
+  `Locator` cover only what `greenhouse.py`, `ashby.py`, `lever.py` + `form.fill` call: click = instant scroll to the box's
   middle + real mouse events, typing = `Input.insertText`, file = `DOM.setFileInputFiles`.
   `Debugger.setSkipAllPauses` on attach + after each navigation.
 - Done: `detach-form` => `disconnect {terminateDebuggee: false}` on the page session, then its
@@ -205,6 +205,16 @@ changes nothing; the dropping list = `FAIL ... fill it by hand` in both. Added t
 text; a file box is a button, as Playwright), `locator(sel, has_text=)` (pattern = Python's source
 + i/s/m as a JS RegExp, tested on the element's whole text), `is_checked`; each lookup's count +
 texts checked against Playwright's on that page. Unmeasured: Ashby filled live in the window tab.
+Lever (plan-nko.15, 2026-10-05): `lever.fill` + `holds` + `form.fill_page` on `fixtures/lever/tenant-a.html`
+(saved live form) + a stand-in for Lever's own scripts (place search answers 300 ms after typing, pick =
+town in the box + `#selected-location`; resume verdict 500 ms after choosing) through Playwright AND
+`window.Page`: same report, same read-back (radios, ticks, lists, text, place + Lever's record, file + verdict),
+a second fill changes nothing, signature left to the applicant in both. Before: `ids_on_page` passes a 3rd
+arg => TypeError at the end of every fill. Added: `eval_on_selector_all(sel, fn, arg)`, `Locator.all()`,
+`filter(visible=)`, `select_option(label=)` (by `option.label`, input + change, as Playwright); shown =
+Playwright's rule (style visible + a box with width and height; was any rect, 0x0 counted), each checked
+against Playwright's on that page. The fill says hCaptcha at Submit is untested in the window (`AT_SUBMIT`).
+Unmeasured: Lever filled live in the window tab; hCaptcha at Submit there.
 
 Owner's real run (plan-29g.18, tenant G): every dropdown reported ok; owner: "some fields were not filled", picked Dropdowns. Not
 reproduced (plan-29g.20; plan-29g.24 adds upload success, MyGreenhouse sign-in + clicking around, `greenhouse.md` #Widgets): `measure.py ghfill` = the shipped filler in a scratch window, writes

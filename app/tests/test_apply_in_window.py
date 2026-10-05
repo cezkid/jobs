@@ -1,7 +1,7 @@
-"""Trial: fill a Greenhouse or Ashby form in a tab of the Job Finder window (apply/window.py, `apply-form fill
+"""Trial: fill a Greenhouse, Ashby or Lever form in a tab of the Job Finder window (apply/window.py, `apply-form fill
 --in-window`), off by default. The Page/Locator adapter runs in real headless Chrome over raw CDP - the
-same protocol the window's debugger proxy speaks - on local Greenhouse- and Ashby-like pages; Ashby's
-filler runs through Playwright too, same read-back asked of both. The window's side (open the holding
+same protocol the window's debugger proxy speaks - on local Greenhouse- and Ashby-like pages + Lever's saved
+form; Ashby's and Lever's fillers run through Playwright too, same read-back asked of both. The window's side (open the holding
 page, attach, detach) is a fake extension answering as extension.js does."""
 import contextlib
 import json
@@ -22,11 +22,34 @@ import cfg
 import launch
 from apply import browser, form, questions, window
 from apply.cdp import CDP
-from apply.systems import ashby, greenhouse
+from apply.systems import ashby, greenhouse, lever
 
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
 ASHBY_FORM = FORM.with_name("ashby-form.html")
 ASHBY_PATH = "/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/application"
+LEVER_FORM = FORM.parent.parent / "lever" / "tenant-a.html"
+LEVER_PATH = "/acme/1b2c3d4e-5f60-4718-9a0b-1c2d3e4f5a6b/apply"
+# what Lever's own scripts do that its saved form lacks: the place search offers towns 300 ms after
+# typing stops (a pick = the town in the box + Lever's own record; typing again drops the record), a
+# chosen resume shows its verdict 500 ms later; the verdicts + search notes hidden until then
+LEVER_BEHAVES = """<style>.resume-upload-failure, .resume-upload-working, .resume-upload-success, .resume-upload-oversize,
+  .dropdown-no-results, .dropdown-loading-results {display: none}</style>
+<script>
+const box = document.getElementById("location-input"), pick = document.getElementById("selected-location"),
+  results = document.querySelector(".dropdown-results"), file = document.getElementById("resume-upload-input");
+const PLACES = ["Austin, Texas, United States", "Austin, Minnesota, United States", "Boston, Massachusetts, United States"];
+let typing;
+box.addEventListener("input", () => {
+  pick.value = ""; results.replaceChildren(); clearTimeout(typing);
+  typing = setTimeout(() => { const t = box.value.trim().toLowerCase();
+    for (const p of PLACES.filter((p) => t && p.toLowerCase().startsWith(t))) {
+      const d = document.createElement("div"); d.textContent = p; results.append(d); } }, 300); });
+results.addEventListener("click", (ev) => { const d = ev.target.closest(".dropdown-results > div");
+  if (d) { box.value = d.textContent; pick.value = JSON.stringify({name: d.textContent}); results.replaceChildren(); } });
+file.addEventListener("change", () => setTimeout(() => {
+  document.querySelector(".visible-resume-upload .filename").textContent = file.files[0] ? file.files[0].name : "";
+  document.querySelector(".resume-upload-success").style.display = "inline"; }, 500));
+</script>"""
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
 
 
@@ -74,6 +97,9 @@ def site():
             else:
                 page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM}.get(self.path)
                 body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
+                if self.path == LEVER_PATH:
+                    body = ("<!doctype html><html><head><meta charset=utf-8><title>Apply - Acme</title></head><body>"
+                            f"{LEVER_FORM.read_text()}{LEVER_BEHAVES}</body></html>").encode()
             with contextlib.suppress(OSError):  # the tab moved on while it waited
                 self.send_response(200 if body else 404)
                 self.send_header("Content-Type", kind)
@@ -217,6 +243,113 @@ def test_in_window_fills_ashby_as_playwright_does(tab, site, playwright_chrome, 
     assert pages["window"] == ["Ada Lovelace", "ada@example.com", "555-0100", "Their own words.", "false", "true",
                                False, False, True, True, True, False, "United States", "", "Austin, TX, United States",
                                f"{resume.name} Replace", 1]
+
+
+def lever_url(site):
+    return site.replace("/acme/jobs/1", LEVER_PATH)
+
+
+# tenant A's own questions, each kind answered once: radios, a dropdown, ticks, text, a place, the resume;
+# the rest left blank (skipped, as an unanswered one is)
+LEVER_GIVEN = {"resume": True, "name": "Ada Lovelace", "email": "ada@example.com", "phone": "555-0100",
+               "location": "Austin, Texas", "urls[LinkedIn]": "https://www.linkedin.com/in/ada",
+               "Are you authorized to work in the United States?": "Yes",
+               "Will you require sponsorship for employment now or": "No",
+               "If yes, what type of sponsorship?": "None needed.",
+               "Acme provides technology": "Other", "How did you hear about us?": "LinkedIn Post",
+               "Please state your full legal name:": "Ada King Lovelace",
+               "Are you local to or willing to relocate?": "Yes",
+               "What office(s) would you be willing to relocate to": ["Boston, MA", "International"],
+               "eeo[gender]": "Decline to self-identify", "eeo[race]": "Asian (Not Hispanic or Latino)",
+               "eeo[disability]": "I do not want to answer", "eeo[disabilitySignature]": "Ada Lovelace"}
+
+
+def lever_answers() -> list[dict]:
+    out = []
+    for q in lever.from_page(LEVER_FORM.read_text()):
+        given = [v for k, v in LEVER_GIVEN.items() if k == q["id"] or q["title"].startswith(k)]
+        out.append(q | {"answer": given[0] if given else ""})
+    assert sum(1 for q in out if q["answer"] != "") == len(LEVER_GIVEN)
+    return out
+
+
+# each box's value or tick, each list's picked texts, Lever's own place record + the resume verdict shown -
+# read off the page, never the filler's word
+LEVER_SHOWN = ("es => es.map(e => e.matches('input[type=radio], input[type=checkbox]') ? e.checked"
+               " : e.matches('select') ? [...e.selectedOptions].map(o => o.text.trim()).join('|')"
+               " : e.matches('input[type=file]') ? e.files.length : e.value)"
+               ".concat([document.getElementById('selected-location').value,"
+               " document.querySelector('.visible-resume-upload .filename').textContent])")
+LEVER_BOXES = "#application-form input:not([type=hidden]), #application-form select, #application-form textarea"
+
+
+def test_in_window_fills_lever_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # lever.fill + holds + form.fill_page through each on tenant A's saved form: same report, same page
+    # after, every answer read back, a second fill changes nothing (a tick clicked again would clear)
+    monkeypatch.setattr(form, "SETTLE_MS", 1000)
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    qs = lever_answers()
+    answered = [q for q in qs if q["answer"] != ""]
+    again = [q for q in answered if q["kind"] != "file" and q.get("native") != "eeo:signature"]
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, lever_url(site)) as tabs:
+        for name, page in tabs.items():
+            assert form.closed(page, lever) is None
+            report, extra = form.fill_page(page, lever, qs, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == []
+            page.wait_for_timeout(300)
+            once = page.eval_on_selector_all(LEVER_BOXES, LEVER_SHOWN)
+            assert [lever.fill(page, q, None) for q in again] == ["ok"] * len(again)
+            page.wait_for_timeout(500)  # past the place search's own wait
+            assert page.eval_on_selector_all(LEVER_BOXES, LEVER_SHOWN) == once
+            pages[name] = once
+            assert [q["id"] for q in again if not lever.holds(page, q)] == []
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {q["id"]: "ok" for q in answered} | {"eeo[disabilitySignature]": questions.left_on_page(
+        next(q for q in qs if q["id"] == "eeo[disabilitySignature]"))}
+    assert pages["window"] == pages["playwright"]
+    # what shows, empty boxes + clear ticks left out: the file, text boxes, ticks (Yes, No, Other, LinkedIn Post,
+    # Boston, International, Asian), lists (veteran left at its own "Select ..."), Lever's place record, its verdict
+    assert [v for v in pages["window"] if v not in ("", False, 0)] == [
+        1, "Ada Lovelace", "ada@example.com", "555-0100", "Austin, Texas, United States", "https://www.linkedin.com/in/ada",
+        True, True, "None needed.", True, True, "Ada King Lovelace", "Yes", True, True, "Decline to self-identify", True,
+        "Select ...", "I do not want to answer", '{"name":"Austin, Texas, United States"}', resume.name]
+
+
+@pytest.mark.parametrize("selector", ["#application-form .resume-upload-success, #application-form .resume-upload-failure",
+                                      "#application-form .application-label", "#application-form input",
+                                      "#application-form .dropdown-results > div", "#application-form .filename"])
+def test_in_window_visible_filter_and_all_find_what_playwright_finds(tab, site, playwright_chrome, tmp_path, selector):
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    got = {}
+    with both(tab, playwright_chrome, lever_url(site)) as tabs:
+        for name, page in tabs.items():
+            before = [page.locator(selector).filter(visible=True).count(), len(page.locator(selector).all())]
+            page.locator("#resume-upload-input").set_input_files(str(resume))
+            page.locator("#location-input").press_sequentially("Aus")
+            page.wait_for_timeout(800)
+            shown = page.locator(selector).filter(visible=True)
+            got[name] = before + [shown.count(), [m.inner_text() for m in shown.all()]]
+    assert got["window"] == got["playwright"]
+
+
+def test_in_window_select_option_picks_by_label_as_playwright_does(tab, site, playwright_chrome):
+    got = {}
+    with both(tab, playwright_chrome, lever_url(site)) as tabs:
+        for name, page in tabs.items():
+            run = page.run if name == "window" else page.evaluate
+            run("window.told = []; document.addEventListener('change', (e) => told.push(e.target.name))")
+            box = page.locator('[name="eeo[gender]"]')
+            got[name] = [box.select_option(label="Female"), box.select_option(label=["Male"]),
+                         box.evaluate("e => e.selectedOptions[0].text"), run("told")]
+        with pytest.raises(Exception, match="Non-multiple select element"):
+            tabs["window"].locator('[name="eeo[gender]"]').select_option(label=["Male", "Female"])
+        with pytest.raises(TimeoutError):
+            tabs["window"].locator('[name="eeo[gender]"]').select_option(label="Nobody", timeout=300)
+    assert got["window"] == got["playwright"]
 
 
 @pytest.mark.parametrize("ask", [
@@ -438,20 +571,21 @@ def test_in_window_off_by_default_fill_stays_in_chrome(tmp_path, monkeypatch, ca
     assert capsys.readouterr().out.endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
 
 
-@pytest.mark.parametrize("name", ["Greenhouse", "Ashby"])
+@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever"])
 def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, capsys, name):
     opened = fill_setup(tmp_path, monkeypatch, name)
     monkeypatch.setattr(form.sys, "argv", ["form.py", "fill", "7", "--in-window"])
     form.main()
     out = capsys.readouterr().out
     assert opened == ["window"] and "  [ok] First Name\n" in out
-    assert out.endswith("The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n")
+    said = "The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
+    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name == "Lever" else ""))
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
-    assert window.SYSTEMS == ("Greenhouse", "Ashby")
-    opened = fill_setup(tmp_path, monkeypatch, "Lever")
+    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever")
+    opened = fill_setup(tmp_path, monkeypatch, "Workable")
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
-    assert str(stop.value) == "in the window: Greenhouse, Ashby only for now - run fill without --in-window"
+    assert str(stop.value) == "in the window: Greenhouse, Ashby, Lever only for now - run fill without --in-window"
     assert opened == []

@@ -1,8 +1,9 @@
 """Trial, off by default (plan-29g.9): fill a form in a tab of the Job Finder window instead of Chrome -
-`apply-form fill <job> --in-window`, Greenhouse + Ashby (owner's yes for Ashby 2026-10-05, plan-nko.7). Route 2 of app/docs/apply/vscode-browser.md: the
+`apply-form fill <job> --in-window`, Greenhouse, Ashby + Lever (owner's yes for Ashby + Lever 2026-10-05, plan-nko.7,
+plan-nko.14). Route 2 of app/docs/apply/vscode-browser.md: the
 window's extension attaches VS Code's JavaScript debugger to the tab and hands back its CDP proxy;
 Playwright can't use that proxy (one page, no browser), so Page + Locator below speak CDP and cover
-only what greenhouse.py, ashby.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
+only what greenhouse.py, ashby.py, lever.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
 a file chosen only after the user's yes (form.fill decides that, not this file).
 
 Measured costs this follows (vscode-browser.md): skip every pause on attach (a site's own `debugger;`
@@ -23,7 +24,7 @@ from pathlib import Path
 
 from apply.cdp import CDP, Closed, ScriptError
 
-SYSTEMS = ("Greenhouse", "Ashby")
+SYSTEMS = ("Greenhouse", "Ashby", "Lever")
 ATTACH, DETACH = "attach-form", "detach-form"
 # holding page: the window's open-link wait + the tab's first request
 OPEN_WAIT = 20
@@ -37,6 +38,9 @@ IDLE_MS = 500
 # a request leaves, then ends either way
 NETWORK = ("Network.requestWillBeSent", "Network.loadingFinished", "Network.loadingFailed")
 FALLBACK = "run fill without --in-window to fill it in Chrome"
+# said after the fill: what Submit in the tab is not yet checked for (never Submit while measuring)
+AT_SUBMIT = {"Lever": "Lever's hCaptcha check at Submit is untested in the window - if Submit doesn't go through, "
+                      "fill it again without --in-window (Chrome)"}
 WHY = {"untrusted": "the Job Finder window is in Restricted Mode (opened without its Desktop icon)",
        "picker": "the window couldn't tell which tab to use",
        "no proxy": "the window's debugger didn't hand over the tab",
@@ -50,10 +54,17 @@ HOLDING = ("<!doctype html><meta charset=utf-8><title>Opening the application fo
 # only the roles the fillers ask for
 ROLES = {"button": "button, input[type=button], input[type=submit], input[type=reset], input[type=image], input[type=file]",
          "option": "option"}
+# shown, as Playwright's: a box with width + height, not hidden by style (display: contents = any child shown)
+VISIBLE = """function visible(e) { if (!e) return false; const s = getComputedStyle(e);
+  if (s.display === "contents") return [...e.childNodes].some((c) => c.nodeType === 1 ? visible(c)
+    : c.nodeType === 3 && (() => { const r = document.createRange(); r.selectNode(c); const b = r.getBoundingClientRect();
+      return b.width > 0 && b.height > 0; })());
+  if (!e.checkVisibility() || s.visibility !== "visible") return false;
+  const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0; }"""
 # steps -> matching elements, in the page: css (querySelectorAll under each), nth, text (the smallest
 # elements whose text holds it, case and spacing ignored - as Playwright's get_by_text), has (the
 # elements themselves, kept when their text holds a string as `text` does, or a pattern matches their
-# whole text as written - as Playwright's has_text), role (as get_by_role: shown to a screen reader,
+# whole text as written - as Playwright's has_text), visible (kept when shown or not, as VISIBLE), role (as get_by_role: shown to a screen reader,
 # accessible name = aria-labelledby, aria-label, a button input's value, else its text; exact = the
 # whole name w/ case, else part of it w/o)
 RESOLVE = """(steps) => { let els = [document];
@@ -71,6 +82,7 @@ RESOLVE = """(steps) => { let els = [document];
   for (const [k, v] of steps) {
     if (k === "css") els = under(v);
     else if (k === "nth") els = els.slice(v, v + 1);
+    else if (k === "visible") els = els.filter((e) => (VISIBLE)(e) === v);
     else if (k === "has") { const re = typeof v === "string" ? null : new RegExp(v.source, v.flags);
       els = els.filter((e) => re ? re.test(text(e)) : low(text(e)).includes(low(v))); }
     else if (k === "role") { const [role, name, exact] = v, extra = ROLES[role];
@@ -80,8 +92,7 @@ RESOLVE = """(steps) => { let els = [document];
     else { const want = low(v), has = (e) => low(e.textContent).includes(want);
       els = [...new Set(els.flatMap((e) => [e, ...e.querySelectorAll("*")]))]
         .filter((e) => e.nodeType === 1 && has(e) && ![...e.children].some(has)); } }
-  return els; }""".replace("ROLES", json.dumps(ROLES))
-VISIBLE = "(e) => !!e && e.getClientRects().length > 0 && getComputedStyle(e).visibility !== 'hidden'"
+  return els; }""".replace("ROLES", json.dumps(ROLES)).replace("VISIBLE", VISIBLE)
 
 
 class Page:
@@ -168,8 +179,8 @@ class Page:
     def wait_for_timeout(self, ms: float) -> None:
         time.sleep(ms / 1000)
 
-    def eval_on_selector_all(self, selector: str, fn: str):
-        return self.locator(selector).evaluate_all(fn)
+    def eval_on_selector_all(self, selector: str, fn: str, arg=None):
+        return self.locator(selector).evaluate_all(fn, arg)
 
     def bring_to_front(self) -> None:
         pass  # the tab is the one the window just opened
@@ -218,6 +229,13 @@ class Locator:
         flags = "".join(f for f, bit in (("i", re.IGNORECASE), ("s", re.DOTALL), ("m", re.MULTILINE)) if has_text.flags & bit)
         return found._with(("has", {"source": has_text.pattern, "flags": flags}))
 
+    def filter(self, visible: bool) -> "Locator":
+        return self._with(("visible", visible))
+
+    def all(self) -> list["Locator"]:
+        """One locator per element there now - no wait, as Playwright's."""
+        return [self.nth(i) for i in range(self.count())]
+
     def get_by_text(self, text: str) -> "Locator":
         return self._with(("text", text))
 
@@ -251,8 +269,8 @@ class Locator:
     def all_inner_texts(self) -> list[str]:
         return self._all("(els) => els.map((e) => e.innerText)")
 
-    def evaluate_all(self, fn: str):
-        return self._all(f"(els) => ({fn})(els)")
+    def evaluate_all(self, fn: str, arg=None):
+        return self._all(f"(els, arg) => ({fn})(els, arg)", arg)
 
     def evaluate(self, fn: str, arg=None):
         return self._one(f"(e, arg) => ({fn})(e, arg)", arg)
@@ -295,6 +313,27 @@ class Locator:
             self.page.cdp.send("Input.insertText", {"text": value})
         else:
             self.page.key("Delete")
+
+    def select_option(self, label: "str | list[str]", timeout: float | None = None) -> list[str]:
+        """Options picked by label, as Playwright's: waits for the box shown and each option there, then
+        sets them and tells the page (input + change) -> their values."""
+        labels = [label] if isinstance(label, str) else list(label)
+        deadline = time.monotonic() + (TIMEOUT_MS if timeout is None else timeout) / 1000
+        while True:
+            picked = self._one("""(e, labels) => { if (e.nodeName !== "SELECT") throw new Error("Element is not a <select> element");
+              const pick = labels.map((l) => [...e.options].find((o) => o.label === l));
+              if (pick.some((o) => !o)) return null;
+              if (pick.length > 1 && !e.multiple) throw new Error("Non-multiple select element");
+              e.value = undefined; pick.forEach((o) => { o.selected = true; });
+              e.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
+              e.dispatchEvent(new Event("change", {bubbles: true}));
+              return pick.map((o) => o.value); }""", labels, visible=True,
+                               timeout=max(0.0, (deadline - time.monotonic()) * 1000))
+            if picked is not None:
+                return picked
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"{self.steps}: no option {labels} after {timeout} ms")
+            time.sleep(POLL)
 
     def press(self, key: str, timeout: float | None = None) -> None:
         self.focus(timeout)
@@ -366,7 +405,7 @@ def let_go(session: str) -> None:
 @contextlib.contextmanager
 def page_at(url: str, match=None, before_load=None):
     """A tab on `url` in the Job Finder window, as browser.page_at gives one in Chrome. `match` is
-    unused (Greenhouse + Ashby are one page each); `before_load(cdp)` runs before the form opens (measuring)."""
+    unused (Greenhouse, Ashby + Lever are one page each); `before_load(cdp)` runs before the form opens (measuring)."""
     import cfg
     import jobs
     import launch

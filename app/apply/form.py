@@ -257,6 +257,8 @@ def fill(slug: str, in_window: bool = False) -> None:
     remember(config, folder, data)
     print(f"{'The Job Finder window shows' if in_window else 'Chrome is open on'} the filled form. "
           "Nothing is sent until the user clicks Submit.")
+    if in_window and (note := window.AT_SUBMIT.get(system.NAME)):
+        print(f"note: {note}")
 
 
 def closed(page, system=None, url: str | None = None) -> str | None:
@@ -375,7 +377,7 @@ def main() -> None:
     p.add_argument("url")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
-    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse + Ashby, off by default) fill in a tab "
+    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby + Lever, off by default) fill in a tab "
                    "of the Job Finder window instead of Chrome")
     t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
     t.add_argument("slug")
