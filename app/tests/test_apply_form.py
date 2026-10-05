@@ -1106,12 +1106,12 @@ SURVEY = [questions.question("o", "How would you describe your sexual orientatio
                               "I don't wish to answer"]),
           questions.question("v", "Veteran Status", "choice", False, VETERAN)]
 SELF_ID = {"gender": "Male", "hispanic_latino": True, "protected_veteran": False, "disability": False,
-           "sexual_orientation": "Heterosexual", "transgender": False, "armed_forces": False}
+           "sexual_orientation": "Queer", "transgender": False, "armed_forces": False}
 
 
 def test_saved_orientation_transgender_disability_armed_forces_fill_the_survey():
     got = questions.draft(SURVEY, {}, config={"self_identification": {**SELF_ID, "fill_on_forms": True}})
-    assert [a["answer"] for a in got] == [["Heterosexual"], "No", "No", "No, I am not a veteran or active member",
+    assert [a["answer"] for a in got] == [["Queer"], "No", "No", "No, I am not a veteran or active member",
                                           "I am not a protected veteran"]
     assert all(questions.VOLUNTARY_SAVED in a["source"] for a in got) and not questions.unvouched(got)
     # disability stays a sensitive kind: named as one, its wording read back before Submit
@@ -1171,11 +1171,14 @@ def test_saved_voluntary_answers_match_other_survey_wordings():
           ["I am a veteran or active member", "No, I am not a veteran or active member", "I don't wish to answer"])]
     got = questions.draft(asked, {}, config=config)
     assert [a["answer"] for a in got] == [
-        "Heterosexual", "No", "No, I do not have a disability, or have a history/record of having a disability",
+        "Queer", "No", "No, I do not have a disability, or have a history/record of having a disability",
         "No, I don't have a disability", "No, I do not have a disability and have not had one in the past",
         "I have never served in the military", "No military service", "No, I am not a veteran or active member"]
+    straight = {"self_identification": {"sexual_orientation": "Straight", "fill_on_forms": True}}
     assert questions.voluntary_answer(q("o", "Sexual Orientation", "choice", False, ["Gay", "Straight/Heterosexual"]),
-                                      config) == "Straight/Heterosexual"
+                                      straight) == "Straight/Heterosexual"
+    assert questions.voluntary_answer(q("o", "Sexual Orientation", "choice", False, ["Gay", "Heterosexual"]),
+                                      straight) == "Heterosexual"
 
 
 def test_saved_voluntary_answers_never_stretched_to_another_question():
