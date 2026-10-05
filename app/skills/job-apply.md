@@ -92,10 +92,13 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
 4. On **My Experience**: read `apply.js`, send its whole text in ONE `javascript_tool` call - it
    starts the fill in the background and returns `'started'`. Poll every ~30s with
    `await new Promise(r => setTimeout(r, 25000)); window.__jf.status()` until `done: true`.
+   The run ends with `verify` (`step: 'verify'`, 2.5-5 s): every answer read again once the page settles.
    Never send it twice: rerun only parts with `window.__jf.run(<data>, ['skills'])` if needed.
 5. `problems` from status: `ASK` = nearest choice picked or none on the form's list -> tell the
    user plainly with the choices, fix per their answer. `FAIL` = field not found -> read labels
    via `read_page`/`find`, fix by hand once, record the new label in `app/docs/apply/workday.md`.
+   `answer dropped` = verify found it cleared after filling: FAIL = refilled once, still empty -> fill
+   that box by hand; ASK on a skill or field of study -> pick it again by hand, never rerun.
 6. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
    item, what is left (resume upload, website, questions), and that nothing is saved until they
    click **Save and Continue**. Later steps (questions, disclosures, review) = ask, never guess.

@@ -17,6 +17,7 @@ never id -> one filler, every tenant. Each fact names its tenant by letter, neve
 | Repeating sections (Work Experience, Education) | "Add" when empty, "Add Another" after | click last matching button in section, wait for new entry |
 | Page in a hidden window | `setTimeout` throttled to ~once a minute; screenshots black | wait w/ `MessageChannel`, read state w/ `status()` not screenshots |
 | Extension tool call | times out at 45s | fill runs in background; poll `window.__jf.status()` |
+| Re-render after a fill | can clear an answer that showed when filled (modelled in `test_apply_workday_js.py`; not yet seen live) | `verify()` at the end of the same background run: 2.5 s settle (MessageChannel sleep), every filled box read again - text, month/year, Degree shown text, "I currently work here". Dropped -> refilled once (`put` + `out`; checkbox and menu compare before clicking), still dropped -> FAIL "answer dropped". Skills + Field of Study pills never refilled (`pick` presses Enter - could move the step) -> ASK. Limit: `put` sets the value through the native setter, so a box can show a value Workday did not keep; verify catches values a re-render cleared, not every unkept one (2026-10-05) |
 | cxs API URL (`/wday/cxs/.../jobapplication/...`) opened directly | `HTTP_400 "You are not authorized to this job application"` | not a page - ignore; real session expiry shows same text on Save -> sign out and in |
 
 ## Tenant lists

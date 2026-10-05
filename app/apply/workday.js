@@ -47,7 +47,7 @@ window.__jf = (() => {
     return (l.htmlFor && document.getElementById(l.htmlFor)) || box(l)?.querySelector('input:not([type="hidden"]), textarea, button') || null;
   }
   const fieldBox = (root, re) => { const l = labels(root).find((x) => re.test(said(x))); return l ? box(l) : null; };
-  const pills = (ctrl) => [...(box(ctrl)?.querySelectorAll('[data-automation-id="selectedItem"]') || [])];
+  const pills = (ctrl) => [...((ctrl && box(ctrl))?.querySelectorAll('[data-automation-id="selectedItem"]') || [])];
   // entry = nearest ancestor of its anchor label holding no other anchor
   function entries(anchor) {
     return labels(document).filter((l) => anchor.test(said(l))).map((l) => {
@@ -56,6 +56,8 @@ window.__jf = (() => {
       return el;
     });
   }
+  // finder for a box inside entry i, run again at verify (a re-render may swap the element)
+  const within = (anchor, i, find, re) => () => { const e = entries(anchor)[i]; return e ? find(e, re) : null; };
   function section(heading) {
     let el = [...document.querySelectorAll('h2, h3, h4, legend')].find((h) => heading.test(txt(h)))?.parentElement;
     while (el && ![...el.querySelectorAll('button')].some((b) => /^add( another)?$/i.test(txt(b)))) el = el.parentElement;
@@ -73,46 +75,70 @@ window.__jf = (() => {
     if (extra > 0) note(area, 'entries', 'WARN', `${extra} more on the form than on the resume - delete by hand if duplicated`);
   }
 
-  async function text(area, name, el, v) {
+  // every answer that showed once filled, for verify(): ok() reads it again, redo() refills it once
+  // (none for pills: pick() presses Enter, which could move the step)
+  const kept = [];
+  const keep = (area, name, ok, redo = null) => kept.push({ area, name, ok, redo });
+
+  async function text(area, name, find, v) {
     if (!v) return;
+    const el = find();
     if (!el) return note(area, name, 'FAIL', 'field not found');
     put(el, v); out(el); await sleep(80);
-    if (el.value !== v) note(area, name, 'WARN', `shows "${el.value.slice(0, 40)}"`);
+    if (el.value !== v) return note(area, name, 'WARN', `shows "${el.value.slice(0, 40)}"`);
+    keep(area, name, () => find()?.value === v, () => { const e = find(); if (e) { put(e, v); out(e); } });
   }
-  async function check(area, name, b, want) {
-    const cb = b?.querySelector('input[type="checkbox"]');
-    if (!cb) return want && note(area, name, 'FAIL', 'checkbox not found');
-    if (cb.checked !== want) { click(cb); await sleep(300); }
-    if (cb.checked !== want) note(area, name, 'WARN', `checked=${cb.checked}`);
+  async function check(area, name, find, want) {
+    const cb = () => find()?.querySelector('input[type="checkbox"]');
+    const el = cb();
+    if (!el) return want && note(area, name, 'FAIL', 'checkbox not found');
+    if (el.checked !== want) { click(el); await sleep(300); }
+    if (el.checked !== want) return note(area, name, 'WARN', `checked=${el.checked}`);
+    keep(area, name, () => cb()?.checked === want, () => { const e = cb(); if (e && e.checked !== want) click(e); });
   }
-  async function date(area, name, b, ym) {
+  async function date(area, name, find, ym) {
     if (!ym) return;
-    if (!b) return note(area, name, 'FAIL', 'field not found');
+    if (!find()) return note(area, name, 'FAIL', 'field not found');
     const [y, m] = ym.split('-');
     for (const [sel, v] of [['Month', m], ['Year', y]]) {
-      const el = b.querySelector(`input[data-automation-id*="${sel}" i]`);
+      const get = () => find()?.querySelector(`input[data-automation-id*="${sel}" i]`);
+      const same = (el) => !!el && norm(el.value).replace(/^0/, '') === v.replace(/^0/, '');
+      const fill = (el) => { put(el, v); if (!same(el)) for (const ch of v) key(el, ch, ch.charCodeAt(0)); out(el); };
+      const el = get();
       if (!el || !v) continue;
-      put(el, v);
-      if (norm(el.value).replace(/^0/, '') !== v.replace(/^0/, '')) for (const ch of v) key(el, ch, ch.charCodeAt(0));
-      out(el); await sleep(80);
+      fill(el); await sleep(80);
+      if (same(el)) keep(area, `${name} ${sel}`, () => same(get()), () => { const e = get(); if (e) fill(e); });
     }
   }
   // single-choice menu (Degree): options live in a listbox popup, not in the field
-  async function menu(area, name, btn, wanted) {
-    if (!btn) return note(area, name, 'FAIL', 'field not found');
-    if (wanted.some((w) => norm(txt(btn)).includes(norm(w)))) return;
+  async function choose(btn, wanted) {
     click(btn);
     const opts = await until(() => [...document.querySelectorAll('[role="listbox"] [role="option"]')].filter(shown), 3000);
-    if (!opts) return note(area, name, 'FAIL', 'menu did not open');
+    if (!opts) return { why: 'menu did not open' };
     const hit = best(opts, wanted);
-    if (!hit) { key(btn, 'Escape', 27); return note(area, name, 'ASK', `no match for ${wanted[0]}; choices: ${opts.map(txt).join(' | ')}`); }
+    if (!hit) { key(btn, 'Escape', 27); return { ask: `no match for ${wanted[0]}; choices: ${opts.map(txt).join(' | ')}` }; }
     click(hit); await sleep(400);
-    note(area, name, 'OK', txt(hit));
+    return { got: txt(hit) };
+  }
+  async function menu(area, name, find, wanted) {
+    const btn = find();
+    if (!btn) return note(area, name, 'FAIL', 'field not found');
+    const shows = (w) => { const b = find(); return !!b && norm(txt(b)).includes(norm(w)); };
+    const already = wanted.find(shows);
+    if (already) return keep(area, name, () => shows(already), async () => { const b = find(); if (b) await choose(b, [already]); });
+    const { why, ask, got } = await choose(btn, wanted);
+    if (why) return note(area, name, 'FAIL', why);
+    if (ask) return note(area, name, 'ASK', ask);
+    note(area, name, 'OK', got);
+    keep(area, name, () => shows(got), async () => { const b = find(); if (b) await choose(b, [got]); });
   }
   // search-and-pick (Field of Study, Skills): type, Enter, pick a popup option outside the field's own pills
-  async function pick(area, name, input, wanted, exact = false) {
+  async function pick(area, name, find, wanted, exact = false) {
+    const input = find();
     if (!input) return note(area, name, 'FAIL', 'field not found');
-    if (pills(input).some((p) => wanted.some((w) => norm(txt(p)) === norm(w)))) return;
+    const has = (w) => pills(find()).some((p) => norm(txt(p)) === norm(w));
+    const already = wanted.find(has);
+    if (already) return keep(area, name, () => has(already));
     const tried = [];
     for (const w of wanted) {
       const at = where();
@@ -126,6 +152,7 @@ window.__jf = (() => {
       put(input, ''); key(input, 'Escape', 27); out(input);
       const got = txt(hit);
       if (pills(input).length <= before) return note(area, name, 'WARN', `"${got}" click did not register`);
+      keep(area, name, () => has(got));
       return note(area, name, norm(got) === norm(wanted[0]) ? 'OK' : 'ASK', `picked "${got}"`);
     }
     put(input, ''); key(input, 'Escape', 27); out(input);
@@ -141,14 +168,15 @@ window.__jf = (() => {
     for (const [i, w] of list.entries()) {
       const e = entries(anchor)[i], a = `Work ${i + 1}`;
       if (!e) break;
-      await text(a, 'Job Title', field(e, anchor), w.title);
-      await text(a, 'Company', field(e, /^company/i), w.company);
-      await text(a, 'Location', field(e, /^location/i), w.location);
-      await check(a, 'I currently work here', fieldBox(e, /currently work here/i), w.current);
+      const f = (re) => within(anchor, i, field, re), fb = (re) => within(anchor, i, fieldBox, re);
+      await text(a, 'Job Title', f(anchor), w.title);
+      await text(a, 'Company', f(/^company/i), w.company);
+      await text(a, 'Location', f(/^location/i), w.location);
+      await check(a, 'I currently work here', fb(/currently work here/i), w.current);
       await sleep(300); // To box appears or goes after the checkbox
-      await date(a, 'From', fieldBox(e, /^from/i), w.start);
-      if (!w.current) await date(a, 'To', fieldBox(e, /^to\b/i), w.end);
-      await text(a, 'Role Description', field(e, /description/i), w.description);
+      await date(a, 'From', fb(/^from/i), w.start);
+      if (!w.current) await date(a, 'To', fb(/^to\b/i), w.end);
+      await text(a, 'Role Description', f(/description/i), w.description);
     }
   }
   async function education(list) {
@@ -157,30 +185,44 @@ window.__jf = (() => {
     for (const [i, d] of list.entries()) {
       const e = entries(anchor)[i], a = `Education ${i + 1}`;
       if (!e) break;
-      await text(a, 'School', field(e, anchor), d.school);
-      await menu(a, 'Degree', field(e, /^degree/i), d.degree);
-      if (d.field.length) await pick(a, 'Field of Study', field(e, /^field of study/i), d.field);
-      if (d.end) await date(a, 'To', fieldBox(e, /^to\b/i), d.end);
+      const f = (re) => within(anchor, i, field, re);
+      await text(a, 'School', f(anchor), d.school);
+      await menu(a, 'Degree', f(/^degree/i), d.degree);
+      if (d.field.length) await pick(a, 'Field of Study', f(/^field of study/i), d.field);
+      if (d.end) await date(a, 'To', within(anchor, i, fieldBox, /^to\b/i), d.end);
     }
   }
   async function skills(list, languages) {
-    const l = labels(document).find((x) => /skills/i.test(said(x)));
-    const input = l && ((l.htmlFor && document.getElementById(l.htmlFor)) || box(l)?.querySelector('input'));
+    const find = () => { const l = labels(document).find((x) => /skills/i.test(said(x))); return l && ((l.htmlFor && document.getElementById(l.htmlFor)) || box(l)?.querySelector('input')); };
+    const input = find();
     if (!input) return note('Skills', 'field', 'FAIL', 'not found on this step');
     // some tenants (tenant A) take languages in the Skills box as "Spanish - Fluent", listed levels only
     if (!section(/^languages$/i)) for (const g of languages) {
       await unpick(input, new RegExp(`^${g.name} - `, 'i'));
-      await pick('Languages', g.name, input, g.levels.map((lv) => `${g.name} - ${lv}`), true);
+      await pick('Languages', g.name, find, g.levels.map((lv) => `${g.name} - ${lv}`), true);
     } else note('Languages', 'section', 'ASK', 'separate Languages section - not handled yet, fill by hand');
-    for (const s of list) await pick('Skills', s, input, [s]);
+    for (const s of list) await pick('Skills', s, find, [s]);
+  }
+  // after the page settles, read every answer again: a re-render can clear one that showed when
+  // filled. Refill once, still gone -> FAIL. Catches cleared values only, not every unkept one (workday.md)
+  async function verify(settle = 2500) {
+    await sleep(settle);
+    const dropped = kept.filter((k) => !k.ok());
+    for (const k of dropped) if (k.redo) await k.redo(); else note(k.area, k.name, 'ASK', 'answer dropped after the page settled - pick it again by hand');
+    const redone = dropped.filter((k) => k.redo);
+    if (redone.length) await sleep(settle);
+    for (const k of redone) note(k.area, k.name, k.ok() ? 'OK' : 'FAIL', k.ok() ? 'dropped after the page settled, refilled once - kept' : 'answer dropped - refilled once, still not kept; fill by hand');
+    note('Verify', 'answers', 'OK', `${kept.length} read again after the page settled, ${dropped.length} dropped`);
   }
 
   async function run(data, only = ['work', 'education', 'skills']) {
     Object.assign(S, { done: false, report: [] });
+    kept.length = 0;
     try {
       if (only.includes('work')) { S.step = 'work'; await work(data.work); }
       if (only.includes('education')) { S.step = 'education'; await education(data.education); }
       if (only.includes('skills')) { S.step = 'skills'; await skills(data.skills, data.languages); }
+      S.step = 'verify'; await verify();
     } catch (err) { note(S.step, 'error', 'FAIL', String(err)); }
     S.step = 'done'; S.done = true;
   }

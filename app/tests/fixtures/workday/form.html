@@ -1,0 +1,89 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>My Experience</title></head>
+<body>
+<!-- Workday "My Experience" model for workday.js: a value counts only once focus leaves its box
+     (kept-on-focus-out), and a re-render 500 ms after the last focus-out or click rewrites every box
+     from what was kept. drops = how many re-renders wipe a kept answer: one re-render that clears a
+     box (Company, Degree, checkbox, the Excel pill) and one that always does (Location). -->
+<div data-automation-id="progressBarActiveStep">My Experience</div>
+<section>
+  <h3>Work Experience</h3>
+  <div class="entry">
+    <div data-automation-id="formField-jobTitle"><label for="title">Job Title*</label><input id="title" data-key="title"></div>
+    <div data-automation-id="formField-company"><label for="company">Company*</label><input id="company" data-key="company"></div>
+    <div data-automation-id="formField-location"><label for="location">Location</label><input id="location" data-key="location"></div>
+    <div data-automation-id="formField-current"><label>I currently work here</label><input type="checkbox" data-key="current"></div>
+    <div data-automation-id="formField-startDate"><label>From*</label>
+      <input data-automation-id="dateSectionMonth-input" data-key="fromMonth">
+      <input data-automation-id="dateSectionYear-input" data-key="fromYear"></div>
+    <div data-automation-id="formField-roleDescription"><label for="desc">Role Description</label><textarea id="desc" data-key="desc"></textarea></div>
+  </div>
+  <button>Add Another</button>
+</section>
+<section>
+  <h3>Education</h3>
+  <div class="entry">
+    <div data-automation-id="formField-school"><label for="school">School or University*</label><input id="school" data-key="school"></div>
+    <div data-automation-id="formField-degree"><label for="degree">Degree*</label><button id="degree" data-key="degree">Select One</button></div>
+  </div>
+  <button>Add Another</button>
+</section>
+<section>
+  <h3>Skills</h3>
+  <div data-automation-id="formField-skills"><label for="skills">Type to Add Skills</label><input id="skills"></div>
+</section>
+<div id="listbox" role="listbox" hidden>
+  <div role="option">H.S. - High School</div><div role="option">B.A. - Bachelor of Arts</div><div role="option">B.S. - Bachelor of Science</div>
+</div>
+<div id="prompt" hidden></div>
+<script>
+  const state = {}, drops = { company: 1, location: Infinity, current: 1, degree: 1, 'pill:Excel': 1 };
+  const catalog = ['Excel', 'SQL', 'Python'];
+  window.enters = {}; window.renders = 0;
+  let timer;
+  const later = () => { clearTimeout(timer); timer = setTimeout(rerender, 500); };
+  function rerender() {
+    for (const k of Object.keys(state)) if (state[k] && drops[k] > 0) { delete state[k]; drops[k]--; }
+    document.querySelectorAll('[data-key]').forEach((el) => {
+      const v = state[el.dataset.key];
+      if (el.type === 'checkbox') el.checked = !!v;
+      else if (el.tagName === 'BUTTON') el.textContent = v || 'Select One';
+      else { const fresh = el.cloneNode(); el.replaceWith(fresh); fresh.value = v || ''; }
+    });
+    document.querySelectorAll('[data-automation-id="selectedItem"]').forEach((p) => { if (!state['pill:' + p.dataset.item]) p.remove(); });
+    window.renders++;
+  }
+  document.addEventListener('focusout', (e) => {
+    const el = e.target;
+    if (el.matches?.('input[data-key]:not([type=checkbox]), textarea[data-key]')) state[el.dataset.key] = el.value;
+    later();
+  });
+  document.addEventListener('click', (e) => {
+    const el = e.target;
+    if (el.matches('input[type=checkbox][data-key]')) state[el.dataset.key] = el.checked;
+    if (el.id === 'degree') document.getElementById('listbox').hidden = false;
+    if (el.matches('[role=option]')) {
+      state.degree = el.textContent; document.getElementById('degree').textContent = el.textContent;
+      document.getElementById('listbox').hidden = true;
+    }
+    if (el.matches('[data-automation-id=promptOption]')) {
+      const item = el.textContent, pill = document.createElement('div');
+      pill.dataset.automationId = 'selectedItem'; pill.dataset.item = item; pill.textContent = item;
+      pill.innerHTML += '<span data-automation-id="DELETE_charm" aria-label="remove"></span>';
+      document.querySelector('[data-automation-id=formField-skills]').append(pill);
+      state['pill:' + item] = true;
+      document.getElementById('prompt').hidden = true;
+    }
+    later();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.target.id !== 'skills' || e.key !== 'Enter') return;
+    const typed = e.target.value;
+    window.enters[typed] = (window.enters[typed] || 0) + 1;
+    const prompt = document.getElementById('prompt');
+    prompt.innerHTML = catalog.filter((c) => c.toLowerCase().includes(typed.toLowerCase()))
+      .map((c) => `<div data-automation-id="promptOption">${c}</div>`).join('');
+    prompt.hidden = false;
+  });
+</script>
+</body></html>
