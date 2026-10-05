@@ -222,7 +222,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Resume (and cover letter) you apply with | that employer's Ashby site | That employer, as soon as the file is chosen - before Submit |
 | Contact details, answers you apply with | that employer's Ashby site | That employer, as each box is filled - before Submit |
-| Town or city you type in the location box | that employer's Ashby site | That employer, letter by letter as it's typed (the box searches Ashby's place list) - before Submit |
+| Town or city you type in the location box, school you type in the school box | that employer's Ashby site | That employer, letter by letter as it's typed (each box searches Ashby's own list) - before Submit |
 | Resume (and cover letter) you apply with | that employer's Greenhouse site | That employer, as soon as you choose the file (it goes to Greenhouse's storage then) |
 | Contact details, answers you apply with | that employer's Greenhouse site | That employer, once you click Submit |
 | School, degree, discipline you apply with | that employer's Greenhouse site | That employer, as each is typed in its box (the box searches Greenhouse's own list) - before Submit |

@@ -468,19 +468,49 @@ def test_ashby_types_from_real_forms_url_and_education_history():
     assert (got["LinkedIn Profile"]["kind"], got["LinkedIn Profile"]["key"]) == ("url", "linkedin")
     samples = next(q for t, q in got.items() if t.startswith("Please provide relevant work samples"))
     assert (samples["kind"], samples["key"], samples["required"]) == ("url", None, False)
-    school = got["Education History"]
-    assert school["required"] and school["native"] == "EducationHistory"
+    # one block of boxes per school, never one answer: school required, start dates left out (not on a resume)
+    boxes = [(q["id"], q["kind"], q["required"]) for q in ashby.from_form(job, 2) if q["native"] == "EducationHistory"]
+    path = ashby.EDUCATION_PATH
+    assert boxes == [(f"{path}--{key}--{i}", kind, key == "school") for i in (0, 1)
+                     for key, kind in (("school", "choice"), ("degree", "text"), ("discipline", "text"),
+                                       ("school_end_month", "choice"), ("school_end_year", "number"))]
+    assert "Education History" not in got and got["Education 1: School"]["entry"] == 0
 
-    class Box:
-        first = property(lambda self: self)
-        count = lambda self: 1
-        scroll_into_view_if_needed = lambda self: None
 
-    class Page:
-        locator = lambda self, selector: Box()
-    # a block of boxes per school: never one answer typed into its first box
-    assert ashby.fill(Page(), school | {"answer": "State University"}, None).startswith("ASK Education History")
-
+def test_ashby_education_filled_per_school_from_resume_details(fixture_page, monkeypatch):
+    """Education History (2 employers, 2026-10-05) drafted from Resume details: the school picked off the
+    search by its exact words, degree spelled out + field as written in the free-text boxes, graduation
+    month + year in the end date's selects; school 2 through the page's own "+ Add Education" (same ids
+    in each block); holds() reads each back. A school the list doesn't offer -> the user picks theirs."""
+    job = json.loads((Path(__file__).parent / "fixtures" / "ashby" / "survey-kinds.json").read_text())
+    asked = [q for q in ashby.from_form(job, 2) if q["native"] == "EducationHistory"]
+    schools = [{"institution": "University of California, Berkeley", "degree": "BA", "field": "Economics", "end": "2016-05"},
+               {"institution": "Massachusetts Institute of Technology", "degree": "PhD", "field": "Computer Science",
+                "end": "2021"}]
+    drafted = questions.draft(asked, {}, schools=schools)
+    monkeypatch.setattr(form, "SETTLE_MS", 500)
+    page = fixture_page("ashby-education.html")
+    report, extra = form.fill_page(page, ashby, drafted, None, None)
+    assert report == [(q["id"], "ok") for q in drafted if q["answer"]] and len(report) == 9
+    assert extra == ["_systemfield_name"]  # the Education History wrapper is never a question the file lacks
+    assert all(ashby.holds(page, q) for q in drafted if q["answer"])
+    assert page.locator('[id="_systemfield_education_history-degree"]').evaluate_all("es => es.map(e => e.value)") == \
+        ["Bachelor of Arts", "Doctor of Philosophy"]
+    assert page.locator("input[role=combobox]").evaluate_all("es => es.map(e => e.value)") == \
+        ["University of California, Berkeley", "Massachusetts Institute of Technology"]
+    ends = page.locator('[id="_systemfield_education_history-endDate"] select').evaluate_all(
+        "es => es.map(e => e.value ? e.selectedOptions[0].text : '')")
+    assert ends == ["May", "2016", "", "2021"]  # a year alone: no month chosen
+    assert page.locator(".block").count() == 2
+    assert [ashby.fill(page, q, None) for q in drafted if q["answer"]] == ["ok"] * 9  # again: nothing changes
+    assert page.locator(".block").count() == 2
+    monkeypatch.setattr(ashby, "LIST_WAIT_MS", 1000)
+    school = drafted[0] | {"answer": "Springfield Community College"}
+    assert ashby.fill(page, school, None) == \
+        "ASK school 'Springfield Community College' not on the form's list - the user picks theirs on the page"
+    assert not ashby.holds(page, school)
+    month = next(q for q in drafted if q["key"] == "school_end_month") | {"answer": "Smarch"}
+    assert ashby.fill(page, month, None) == "ASK no option 'Smarch' - the user picks it on the page"
 
 
 # --- UKG Pro Recruiting ---
@@ -1042,7 +1072,9 @@ def test_greenhouse_says_school_boxes_search_its_list_as_typed():
     import cfg
     asked = [q("Education 1: School", "choice", "school"), q("Education 1: Degree", "choice", "degree"), q("First Name")]
     assert "school, degree boxes search Greenhouse's own list as they're typed" in form.typed_note(greenhouse, asked)
-    assert form.typed_note(greenhouse, asked[2:]) == "" and form.typed_note(ashby, asked) == ""
+    assert form.typed_note(greenhouse, asked[2:]) == "" and form.typed_note(ashby, asked[2:]) == ""
+    # Ashby's school box searches its school list as typed too (plan-nko.24); its degree is a plain box
+    assert "Ashby: the school boxes search Ashby's own list as they're typed" in form.typed_note(ashby, asked)
     where = questions.question("q9", "Where are you based?", "location", True)  # an employer's own Location box: no key
     assert where["key"] is None and "location boxes search Ashby's own list" in form.typed_note(ashby, [where])
     table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()

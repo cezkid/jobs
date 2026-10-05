@@ -30,6 +30,9 @@ BY_KEY = {"name": "Test Applicant", "legal_name": "Test Applicant", "preferred_n
           "email": "test@example.com", "phone": "555-0100", "location": "New York",
           "linkedin": "https://www.linkedin.com/in/test", "github": "https://example.com", "website": "https://example.com",
           "street": "1 Test St", "city": "New York", "zip": "10001"}
+EDUCATION = {"school": "New York University", "degree": "Bachelor of Science", "discipline": "Economics",
+             "school_start_month": "September", "school_start_year": "2016", "school_end_month": "May",
+             "school_end_year": "2020"}
 BY_KIND = {"email": "test@example.com", "phone": "555-0100", "url": "https://example.com", "location": "New York",
            "number": "1", "text": "Test answer", "longtext": "Test answer", "yesno": "No"}
 # a choice's first option that says something: not a decline, a prefer-not or a self-describe box
@@ -76,6 +79,8 @@ def synthetic(q: dict, today: date | None = None) -> tuple[object, str | None]:
         return None, f"{questions.why_on_page(q['title'])} - {APPLICANT}"
     if kind == "file":
         return (True, None) if key in ("resume", "cover_letter") else (None, f"not the resume box - {APPLICANT}")
+    if key in EDUCATION:  # before choices: a school search has no options to read
+        return EDUCATION[key], None
     if key == "state":
         return next((s for s in ("New York", "NY") if s in options), None if options else "New York"), \
             None if not options or {"New York", "NY"} & set(options) else "no New York / NY option"

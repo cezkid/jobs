@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Ashby's Education History as measured on two employers' forms (app/docs/apply/ashby.md "Education History",
+2026-10-05): one block per school, every block with the SAME ids and label-for; "+ Add Education" adds a block.
+School = a search box (input[role=combobox], placeholder "Search schools...") right after its label, the list
+filtered as typed, the pick shown as its value (the live list's source + how it shows a pick: unmeasured);
+Degree, Field of Study = plain text boxes; start / end = a div holding a month select (hidden "Month..." first)
+and a year select. Here the school list is local. -->
+<html><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form>
+<div data-field-path="_systemfield_name"><label for="name">Name</label><input type="text" id="name"></div>
+<div data-field-path="_systemfield_education_history"><label>Education History</label>
+  <div class="blocks"></div>
+  <button type="button" class="add">+ Add Education</button>
+</div>
+</form>
+<template id="block"><div class="block">
+  <div><label for="_systemfield_education_history-school">School</label><div class="combo">
+    <input placeholder="Search schools..." role="combobox" aria-autocomplete="list" value=""></div></div>
+  <div class="row">
+    <div><label for="_systemfield_education_history-degree">Degree</label>
+      <input id="_systemfield_education_history-degree" placeholder="e.g. Bachelor of Science" type="text"></div>
+    <div><label for="_systemfield_education_history-major">Field of Study</label>
+      <input id="_systemfield_education_history-major" placeholder="e.g. Computer Science" type="text"></div>
+  </div>
+  <div id="_systemfield_education_history-startDate"><select class="month"></select><select class="year"></select></div>
+  <div id="_systemfield_education_history-endDate"><select class="month"></select><select class="year"></select></div>
+  <div><input type="checkbox" id="_systemfield_education_history-isCurrent">Still Student?</div>
+</div></template>
+<script>
+const SCHOOLS = ["Massachusetts Institute of Technology", "New York University", "New York Institute of Technology",
+                 "University of California, Berkeley"];
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October",
+                "November", "December"];
+function options(select, first, labels) {
+  select.innerHTML = `<option disabled hidden value="" selected>${first}</option>`;
+  labels.forEach((l, i) => select.add(new Option(l, first === "Month..." ? String(i + 1) : l)));
+}
+function addBlock() {
+  const block = document.getElementById("block").content.firstElementChild.cloneNode(true);
+  for (const s of block.querySelectorAll("select.month")) options(s, "Month...", MONTHS);
+  for (const s of block.querySelectorAll("select.year")) options(s, "Year...", Array.from({length: 120}, (_, i) => String(2027 - i)));
+  const combo = block.querySelector(".combo"), input = combo.querySelector("input");
+  input.addEventListener("input", () => {
+    combo.querySelector(".menu")?.remove();
+    const menu = document.createElement("div");
+    menu.className = "menu";
+    for (const o of SCHOOLS.filter((o) => o.toLowerCase().includes(input.value.trim().toLowerCase()))) {
+      const d = document.createElement("div");
+      d.setAttribute("role", "option");
+      d.textContent = o;
+      d.addEventListener("click", () => { input.value = o; menu.remove(); });
+      menu.append(d);
+    }
+    combo.append(menu);
+  });
+  document.querySelector(".blocks").append(block);
+}
+addBlock();
+document.querySelector(".add").addEventListener("click", addBlock);
+</script>
+</body></html>

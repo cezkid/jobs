@@ -393,7 +393,7 @@ def major_option(field: str, options: list[str]) -> str | None:
 
 def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
     """One Education box from school q["entry"] on the resume -> (answer, source). Degree and
-    discipline as the form's list words them; the graduation date only as the page shows it (hidden
+    discipline as the form's list words them (a free-text box: as written); the graduation date only as the page shows it (hidden
     by the user's choice -> left blank, or asked as sensitive when required); start dates aren't on
     the resume."""
     entry = q.get("entry") or 0
@@ -406,7 +406,9 @@ def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
         written = (school.get("degree" if key == "degree" else "field") or "").strip()
         if not written:
             return unsaid
-        pick = (degree_option if key == "degree" else major_option)(written, q["options"])
+        if q["kind"] == "text":  # a free-text box (Ashby): the resume's words, its degree spelled out
+            return (render.degree_name(written) if key == "degree" else written), "resume"
+        pick =(degree_option if key == "degree" else major_option)(written, q["options"])
         if pick is None:
             return None, f"{ASK} - '{written}' isn't on the form's list: the nearest option is theirs to pick"
         return pick, "resume" if pick.casefold() == written.casefold() else \

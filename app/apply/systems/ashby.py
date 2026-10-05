@@ -9,7 +9,7 @@ from pathlib import Path
 
 import httpx
 
-from apply.questions import key_from_title, question
+from apply.questions import MONTHS, key_from_title, question
 from text import html_to_text
 
 NAME = "Ashby"
@@ -33,12 +33,27 @@ READY = "[data-field-path]"
 KIND = {"String": "text", "LongText": "longtext", "Email": "email", "Phone": "phone", "Number": "number",
         "Date": "date", "Location": "location", "Boolean": "yesno", "ValueSelect": "choice",
         "MultiValueSelect": "multichoice", "File": "file", "Url": "url", "EducationHistory": "text"}
-# one block of boxes per school (school, degree, major, dates; repeatable): never typed as one answer
-ON_PAGE = {"EducationHistory": "ASK Education History - add each school in its own boxes on the page"}
+# Education History (ashby.md "Education History"): one block of boxes per school, the same ids in each
+# block (block i = the i-th match on the page); the definition says which boxes show and which are required.
+# Per box: definition name, page id suffix, title, shared key, kind
+EDUCATION_PATH = "_systemfield_education_history"
+EDUCATION_BOXES = (("schoolName", "school", "School", "school", "choice"),
+                   ("degree", "degree", "Degree", "degree", "text"),
+                   ("major", "major", "Field of Study", "discipline", "text"),
+                   ("startDate", "startDate", "Start date month", "school_start_month", "choice"),
+                   ("startDate", "startDate", "Start date year", "school_start_year", "number"),
+                   ("endDate", "endDate", "End date month", "school_end_month", "choice"),
+                   ("endDate", "endDate", "End date year", "school_end_year", "number"))
+# questions(url, schools): one block per school on the resume, through the page's own "+ Add Education"
+EDUCATION_ENTRIES = True
+ADD_SCHOOL = re.compile(r"add education", re.I)
+# how long the school search gets to offer its list
+LIST_WAIT_MS = 8000
 # what leaves when (ashby.md "What leaves the computer, when", 3 employers, 2026-10-05): the resume's
-# upload starts the moment it is chosen; Location searches Ashby's place list with each key typed
+# upload starts the moment it is chosen; Location searches Ashby's place list with each key typed, the
+# Education History school box its school list (ashby.md "Education History")
 FILE_ON_CHOICE = True
-SEARCHED_AS_TYPED = ("location",)
+SEARCHED_AS_TYPED = ("location", "school")
 # page quiet before the file is chosen (as Greenhouse); how long the name gets to show; a failed upload
 # shows its name too, so the page gets this long after the name to say it failed (ashby.md "Upload errors")
 IDLE_WAIT_MS, SHOWN_WAIT_MS, ERROR_WAIT_MS = 15000, 20000, 3000
@@ -63,7 +78,23 @@ def application_url(url: str) -> str:
     return f"https://jobs.ashbyhq.com/{org}/{posting}/application"
 
 
-def from_form(job: dict) -> list[dict]:
+def education(f: dict, required: bool, schools: int) -> list[dict]:
+    """Education History's boxes, one block per school on the resume. Start dates only when required:
+    the resume has none."""
+    out = []
+    for i in range(max(1, schools)):
+        for name, suffix, title, key, kind in EDUCATION_BOXES:
+            level = f.get(name)
+            if level not in ("optional", "required") or (key.startswith("school_start") and level != "required"):
+                continue
+            # no school name in the title: it would read as the question's topic (questions.TOPICS)
+            out.append(question(f"{f['path']}--{key}--{i}", f"Education {i + 1}: {title}", kind,
+                                required and level == "required", MONTHS if key.endswith("_month") else [],
+                                key, f["type"], entry=i))
+    return out
+
+
+def from_form(job: dict, schools: int = 1) -> list[dict]:
     out = []
     # voluntary disclosure (gender, race, veteran) comes as surveyForms beside the application form
     forms = [job["applicationForm"], *(job.get("surveyForms") or [])]
@@ -71,6 +102,9 @@ def from_form(job: dict) -> list[dict]:
         for entry in section["fieldEntries"]:
             f = entry.get("field")
             if not f or f.get("isDeactivated"):
+                continue
+            if f["type"] == "EducationHistory":
+                out += education(f, bool(entry.get("isRequired")), schools)
                 continue
             kind = KIND.get(f["type"], "text")
             # untitled box (a consent tick, ashby.md): its words are the entry's description - the page shows them
@@ -111,20 +145,33 @@ def closed(url: str) -> str | None:
         return f"can't tell if the posting is open - Ashby didn't answer ({type(e).__name__})"
 
 
-def questions(url: str) -> list[dict]:
+def questions(url: str, schools: int = 1) -> list[dict]:
     org, posting = parse_url(url)
     job = job_posting(org, posting)
     if not job:
         raise ValueError(board_says(org, posting))
-    return from_form(job)
+    return from_form(job, schools)
 
 
 def ids_on_page(page) -> list[str]:
-    return page.eval_on_selector_all(READY, "es => es.map(e => e.dataset.fieldPath)")
+    # Education History's boxes are in the file once per school (path--key--i), never an extra
+    return [i for i in page.eval_on_selector_all(READY, "es => es.map(e => e.dataset.fieldPath)") if i != EDUCATION_PATH]
+
+
+def school_box(page, q: dict):
+    """One Education History box's own wrapper in block q["entry"]: the school search's container, a text
+    box's label + input, a date's month + year selects."""
+    suffix = next(s for _, s, _, key, _ in EDUCATION_BOXES if key == q["key"])
+    css = {"school": f'label[for="{EDUCATION_PATH}-school"] + div',
+           "degree": f'div:has(> [id="{EDUCATION_PATH}-degree"])',
+           "major": f'div:has(> [id="{EDUCATION_PATH}-major"])'}.get(suffix, f'[id="{EDUCATION_PATH}-{suffix}"]')
+    return page.locator(css).nth(q.get("entry") or 0)
 
 
 def box_of(page, q: dict):
     """The question's wrapper: one per form-definition path (try reads how each shows its answer)."""
+    if q.get("native") == "EducationHistory":
+        return school_box(page, q)
     return page.locator(f'[data-field-path="{q["id"]}"]').first
 
 
@@ -230,6 +277,73 @@ def put_choice(box, value) -> str:
     return "ok"
 
 
+def add_school(page, entry: int) -> None:
+    """School `entry`'s block comes with the page's own "+ Add Education", one block a click (block 0 shows)."""
+    more = page.locator("button", has_text=ADD_SCHOOL)
+    for _ in range(entry):
+        if page.locator(f'label[for="{EDUCATION_PATH}-school"]').count() > entry or not more.count():
+            return
+        more.first.click()
+        page.wait_for_timeout(300)
+
+
+def put_school(box, value: str) -> str:
+    """The school search: picked only when the list offers the school by its exact words - never a near
+    name; none offered -> the user picks theirs on the page."""
+    field = box.locator("input[role=combobox]").first
+    if fold(field.input_value()) == fold(value):  # never pick a chosen one again
+        return "ok"
+    ask = f"ASK school '{value}' not on the form's list - the user picks theirs on the page"
+    field.fill("")
+    field.press_sequentially(value, delay=60)
+    options = box.page.locator("[role=option]")
+    try:  # the list filters a moment after typing
+        options.first.wait_for(timeout=LIST_WAIT_MS)
+    except Exception:
+        field.fill("")
+        return ask
+    pick = next((i for i, t in enumerate(options.all_inner_texts()) if fold(t) == fold(value)), None)
+    if pick is None:
+        field.fill("")
+        return ask
+    options.nth(pick).click()
+    return "ok" if shown_soon(field, value) else f"FAIL '{value}' not selected"
+
+
+def chosen(select) -> str:
+    return select.evaluate("s => s.selectedOptions[0] && s.value ? s.selectedOptions[0].text : ''")
+
+
+def date_select(box, key: str):
+    """A date's month (first) or year (second) select."""
+    return box.locator("select").nth(0 if key.endswith("_month") else 1)
+
+
+def put_date_part(select, value: str) -> str:
+    labels = [t.strip() for t in select.locator("option").all_inner_texts()]
+    label = next((t for t in labels if fold(t) == fold(value)), None)
+    if label is None:
+        return f"ASK no option '{value}' - the user picks it on the page"
+    if fold(chosen(select)) != fold(label):  # never choose a chosen one again
+        select.select_option(label=label)
+    return "ok" if fold(chosen(select)) == fold(label) else f"FAIL '{value}' not selected"
+
+
+def put_education(page, q: dict) -> str:
+    entry = q.get("entry") or 0
+    add_school(page, entry)
+    box = school_box(page, q)
+    if not box.count():
+        return "FAIL question not on page"
+    box.scroll_into_view_if_needed()
+    key, value = q["key"], str(q["answer"])
+    if key == "school":
+        return put_school(box, value)
+    if key in ("degree", "discipline"):
+        return put_text(box, value, "text")
+    return put_date_part(date_select(box, key), value)
+
+
 def upload_error(page, name: str) -> str:
     """The page's own words for a failed upload ("<file> failed to upload"), else ''."""
     try:
@@ -268,6 +382,11 @@ def holds(page, q: dict) -> bool:
     if not box.count():
         return False
     kind, value = q["kind"], q["answer"]
+    if q.get("native") == "EducationHistory":
+        if q["key"] == "school":
+            return fold(box.locator("input[role=combobox]").first.input_value()) == fold(value)
+        if q["key"] not in ("degree", "discipline"):
+            return fold(chosen(date_select(box, q["key"]))) == fold(value)
     if kind == "yesno":
         button = box.get_by_role("button", name="Yes" if str(value).casefold() in ("yes", "true") else "No", exact=True)
         return bool(button.count()) and button.first.get_attribute("aria-pressed") == "true"
@@ -290,13 +409,13 @@ def holds(page, q: dict) -> bool:
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:
+    if q.get("native") == "EducationHistory":  # school 2's boxes show once its block is added
+        return put_education(page, q)
     box = box_of(page, q)
     if not box.count():
         return "FAIL question not on page"
     box.scroll_into_view_if_needed()
     kind, value = q["kind"], q["answer"]
-    if q.get("native") in ON_PAGE:
-        return ON_PAGE[q["native"]]
     if kind == "file":
         # the resume goes in the resume box only; a cover letter box gets the letter made for this job
         if q.get("key") not in ("resume", "cover_letter"):

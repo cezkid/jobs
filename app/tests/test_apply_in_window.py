@@ -27,6 +27,7 @@ from apply.systems import ashby, greenhouse, lever
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
 ASHBY_FORM = FORM.with_name("ashby-form.html")
 ASHBY_PATH = "/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/application"
+ASHBY_EDUCATION_PATH = "/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/education"
 LEVER_FORM = FORM.parent.parent / "lever" / "tenant-a.html"
 LEVER_PATH = "/acme/1b2c3d4e-5f60-4718-9a0b-1c2d3e4f5a6b/apply"
 # what Lever's own scripts do that its saved form lacks: the place search offers towns 300 ms after
@@ -95,7 +96,8 @@ def site():
                 time.sleep(PRESIGNED["after"])
                 body, kind = b'{"resume": {}}', "application/json"
             else:
-                page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM}.get(self.path)
+                page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM,
+                        ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html")}.get(self.path)
                 body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
                 if self.path == LEVER_PATH:
                     body = ("<!doctype html><html><head><meta charset=utf-8><title>Apply - Acme</title></head><body>"
@@ -243,6 +245,32 @@ def test_in_window_fills_ashby_as_playwright_does(tab, site, playwright_chrome, 
     assert pages["window"] == ["Ada Lovelace", "ada@example.com", "555-0100", "Their own words.", "false", "true",
                                False, False, True, True, True, False, "United States", "", "Austin, TX, United States",
                                f"{resume.name} Replace", 1]
+
+
+def test_in_window_fills_ashby_education_as_playwright_does(tab, site, playwright_chrome, monkeypatch):
+    # two schools' blocks (same ids in each, school 2 through "+ Add Education"): same report + page through each
+    monkeypatch.setattr(form, "SETTLE_MS", 300)
+    job = {"applicationForm": {"sections": [{"fieldEntries": [{"isRequired": True, "field": {
+        "path": ashby.EDUCATION_PATH, "title": "Education History", "type": "EducationHistory", "schoolName": "required",
+        "degree": "optional", "major": "optional", "startDate": "optional", "endDate": "optional"}}]}]}}
+    schools = [{"institution": "New York University", "degree": "BS", "field": "Economics", "end": "2020-05"},
+               {"institution": "Massachusetts Institute of Technology", "degree": "MS", "field": "Computer Science",
+                "end": "2022-06"}]
+    drafted = questions.draft(ashby.from_form(job, 2), {}, schools=schools)
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, site.replace("/acme/jobs/1", ASHBY_EDUCATION_PATH)) as tabs:
+        for name, page in tabs.items():
+            page.locator(ashby.READY).first.wait_for(timeout=5000)
+            report, extra = form.fill_page(page, ashby, drafted, None, None)
+            reports[name] = dict(report)
+            assert extra == ["_systemfield_name"]
+            pages[name] = page.eval_on_selector_all(
+                "form input, form select", "es => es.map(e => e.tagName === 'SELECT' ? (e.value ? e.selectedOptions[0].text"
+                " : '') : e.type === 'checkbox' ? e.checked : e.value)")
+    assert reports["window"] == reports["playwright"] == {q["id"]: "ok" for q in drafted}
+    assert pages["window"] == pages["playwright"] == [
+        "", "New York University", "Bachelor of Science", "Economics", "", "", "May", "2020", False,
+        "Massachusetts Institute of Technology", "Master of Science", "Computer Science", "", "", "June", "2022", False]
 
 
 def lever_url(site):

@@ -42,14 +42,14 @@ Counts only. Required = `isRequired`.
 | MultiValueSelect | multichoice | 45 | 9 | 25 |
 | Url | url (new: was typed as text) | 42 | 23 | 31 |
 | Number | number | 12 | 10 | 11 |
-| EducationHistory | text, filler ASKs (new) | 2 | 2 | 2 |
+| EducationHistory | one block per school, filled (Education History below) | 2 | 2 | 2 |
 | Date | date | 2 | 2 | 2 |
 
 - Url: link boxes (LinkedIn, GitHub, website, work samples) - keyed by title like a String; fixture
   `app/tests/fixtures/ashby/survey-kinds.json`.
 - EducationHistory (`_systemfield_education_history`): one block per school - school (required),
-  degree, major, start, end (optional), repeatable, min 1. Not filled: `fill` ASKs, user adds schools on
-  the page. Widget unmeasured.
+  degree, major, start, end (optional), repeatable, min 1. Filled from Resume details since plan-nko.24:
+  Education History below.
 - Survey forms (voluntary EEO): 37 of 111.
 - File boxes other than the resume: 19, on 19 employers (titles not kept; cover letter vs other unmeasured).
 
@@ -70,9 +70,41 @@ got an answer back). Request bodies not kept: what each carries is read off its 
 
 - So Ashby takes answers box by box, not at Submit: privacy table (AGENTS.md + site claim rows) says so
   since plan-nko.5 - resume as soon as chosen (`FILE_ON_CHOICE`), answers as each box is filled, town
-  letter by letter (`SEARCHED_AS_TYPED = ("location",)`); `prepare` names the upload + location ones.
+  letter by letter (`SEARCHED_AS_TYPED = ("location", "school")`, school since plan-nko.24); `prepare`
+  names the upload + location + school ones.
 - Location: blocked search = no places offered -> `fill` ASKs (tenant E) - never a guess.
 - Files: `.data/measure/jobs.ashbyhq.com-try-20261005-14{0423,0516,0607}.json`.
+
+## Education History (2026-10-05)
+
+Tenants G (measure: form + after one "+ Add Education" click, 2 loads) and H (survey only); then
+`apply-form try` on G (1 load, canary ok). Definition (both): `schoolName` required, `degree`, `major`,
+`startDate`, `endDate` optional, `isRepeatable`, `minRepeat` 1 - read off the field itself, so `from_form`
+asks each box the definition shows, required only when the entry and the box both are.
+
+| Box | Widget | Read back | Seen |
+|---|---|---|---|
+| School | `input[role=combobox]` "Search schools...", right after `label[for=..-school]`; no id | its `value` (blocked search: empty) | G |
+| Degree | `input#_systemfield_education_history-degree`, plain text | `value` | G |
+| Field of Study | `input#..-major`, plain text | `value` | G |
+| Start / End date | `div#..-startDate` / `#..-endDate`: month `<select>` (hidden "Month...", January..December, values 1-12), year `<select>` (2027 down to 1908) | chosen option's text | G |
+| Still Student? | checkbox `#..-isCurrent` | - (never ticked: the resume says when they finished) | G |
+
+- Block 0 shows on load; "+ Add Education" adds one, every block w/ the SAME ids + label-for: block i =
+  the i-th match on the page (`school_box`). The click itself sent `ApiSetFormValue` (G).
+- Requests (G): School typing -> `ApiSearchSchoolByCanonicalName` (Ashby's school list, the typed words,
+  as typed, once more a moment later) + `ApiSetFormValue` x5; Degree, Field of Study -> `ApiSetFormValue`
+  each; month / year -> none of their own (one `ApiSetFormValue` after filling). So school leaves letter by
+  letter like Location: `SEARCHED_AS_TYPED`, privacy table row (AGENTS.md + site claim).
+- Filler (plan-nko.24): one block per school in Resume details (`questions(url, schools)`), the page's own
+  "+ Add Education" for school 2+. School picked only when the list offers its exact words, else cleared +
+  ASK (search blocked in try -> ASK, as Location). Degree spelled out (`BA` -> "Bachelor of Arts") + field
+  as written: free-text boxes, no list. End month + year from the graduation date as the page shows it
+  (hidden year -> left blank); start dates only when required (not on a resume). Option missing -> ASK.
+- Unmeasured (needs the search let through = a real application): the live school list's words (an exact
+  match may be rarer than on Greenhouse), whether the box shows the pick as its value, a school not on the
+  list (free text kept or not), Still Student. Fixture `app/tests/fixtures/dom/ashby-education.html`.
+- Files: `.data/measure/jobs.ashbyhq.com-20261005-17{1243,1321}.json`, `-try-20261005-172210.json`.
 
 ## Upload errors (2026-10-05)
 
