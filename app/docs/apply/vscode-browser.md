@@ -9,7 +9,7 @@ macOS 26.4.1 x86_64. Binary started directly (never `launch.py`, never `~/.vscod
 `--user-data-dir` / `--extensions-dir` / `--shared-data-dir` under `$D = mktemp -d /tmp/jfv.XXXX`,
 folder = program copy + demo + the window's own settings, throwaway browser storage. Dummy data
 only (Test Person, `test.person@example.com`, 100-byte dummy PDF), never the user's; Submit never
-clicked. Scripts: [measure.py](vscode-browser/measure.py) (stages setup, ext, route1, route2, gh,
+clicked. Scripts: [measure.py](vscode-browser/measure.py) (stages setup, ext, route1, route2, gh, ghfill, score,
 restricted), [cdp.py](../../apply/cdp.py) (stdlib CDP client, now shipped for the trial), [formsite.py](vscode-browser/formsite.py)
 (local test form, logs every request), [probe-ext/](vscode-browser/probe-ext/extension.js) (scratch
 extension: opens tabs, starts the attach, asks for proxies). Screenshots (window only, ignored):
@@ -142,4 +142,41 @@ same in headless + unfocused headful Chrome. Guard since: each answer read back 
 
 Unmeasured live, left to plan-29g.18 (one real application in the window): detach keeps the tab +
 leaves no session; whether `internalConsoleOptions: "neverOpen"` + the suppress options now hide the
-Debug Console + toolbar (above: options didn't); reCAPTCHA w/ the window's frame at Submit.
+Debug Console + toolbar (above: options didn't). reCAPTCHA at Submit: passed, after an email code (below).
+
+## Email code after Submit (plan-29g.21)
+
+Owner's run (plan-29g.18, job 72, tenant G): after Submit, Greenhouse emailed a security code; the
+application went through once it was pasted. Owner's Chrome-filled Greenhouse application the day
+before (job 1069, another employer): no code. One sample each way, two employers - hint only.
+
+When Greenhouse asks - its help page [Invisible reCAPTCHA](https://support.greenhouse.io/hc/en-us/articles/115005448066)
+(updated 2026-03-02; vendor doc): invisible reCAPTCHA on every job board (careers page options 1-4)
+scores "activity on a job post, like mouse movements and typing patterns"; "depending on your spam
+sensitivity setting and the user's score, a user may be asked to verify their email before submitting
+their application". Setting = per job board, picked by the employer; stricter = higher score needed.
+=> same person, same browser: code at one employer, none at another. Not published: levels, cutoffs,
+what else feeds the score.
+
+Score signal w/o Submit (`measure.py score`, [recaptcha-score.json](vscode-browser/recaptcha-score.json),
+2026-10-05): Google's public v3 demo page (`recaptcha-demo.appspot.com`), no input, 3 samples each.
+
+| Where | Score |
+|---|---|
+| Window tab opened plain (no debugger) | 0.9, 0.9, 0.9 (read off window-only screenshots) |
+| Window tab w/ debugger on, as `fill --in-window` (holding page, attach, skip pauses, navigate) | 0.9, 0.9, 0.9 |
+| Chrome started as Job Finder's own (fixed port, fresh profile) | 0.9, 0.9, 0.9 |
+
+Window page sees: user agent `Code/1.140.0 Chrome/150.0.7871.250 Electron/43.7.3`, brands
+`Chromium 150` only (no "Google Chrome"), `navigator.languages` 35 entries (Chrome: 2),
+`window.__vscode_helpers`, webdriver false. None lowered the demo score. Limits: demo key, not
+Greenhouse's Enterprise key (per-site model); the demo says its score reflects nothing; no filling
+scored - the real form also scores the fill's own input (window: `Input.insertText`, no key events,
+clicks jump to the box; Chrome path's Playwright `fill` sends no key events either); fresh profiles,
+no Google sign-in. Gotcha: attached to the demo's https tab directly, js-debug made no page session
+(3 of 3, exact link + glob) - the trial attaches to its loopback holding page, unaffected.
+
+Reading: the window's browser is not shown to lower the score; the employer's own setting alone
+explains a code at one employer. Roll-out cost: any Greenhouse application may ask for a code,
+window or Chrome - one paste from their email, not a failure. `job-apply` step 5 says so before
+Submit. plan-29g.23 records whether the next window application asks again.

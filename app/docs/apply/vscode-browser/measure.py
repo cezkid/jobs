@@ -15,6 +15,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
   gh       route 2 on ONE public Greenhouse posting: block + canary first, dummy data, never Submit
   ghfill   the trial's own filler (window.Page + form.fill_page) on every question of one posting, same
            block + canary, synthetic answers; each dropdown read back off the page now + JF_LATE s later
+  score    reCAPTCHA v3 demo score: window tab (opened plain, then reloaded w/ the debugger on) vs a
+           Chrome started as Job Finder's own - relative hint only, never Submit
   restricted  untrusted folder (Restricted Mode): does the attach start?
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [greenhouse url]
@@ -848,6 +850,90 @@ def ghfill(result):
         close()
 
 
+# ---------------------------------------------------------------- reCAPTCHA score signal (plan-29g.21)
+# Google's public v3 demo: scores the page on load, shows its own backend's verdict. Another site key than
+# Greenhouse's Enterprise one, a demo that says its score means nothing - a relative hint only, no Submit.
+SCORE_URL = "https://recaptcha-demo.appspot.com/recaptcha-v3-request-scores.php"
+SCORE = """(() => { try { const d = JSON.parse(document.querySelector('.response').innerText);
+  return 'success' in d ? d : null; } catch (e) { return null; } })()"""
+SIGNALS = """({ua: navigator.userAgent, webdriver: navigator.webdriver, helpers: typeof window.__vscode_helpers,
+  brands: navigator.userAgentData && navigator.userAgentData.brands.map((b) => b.brand + ' ' + b.version),
+  plugins: navigator.plugins.length, languages: navigator.languages, focus: document.hasFocus()})"""
+CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
+
+def read_score(c, secs=30):
+    got = wait_for(lambda: quietly(lambda: c.evaluate(SCORE, timeout=3)), secs, 0.5)
+    return got if isinstance(got, dict) else None
+
+
+def score(result):
+    """Window tab, two ways per sample: opened plain (no debugger; its verdict read off a window-only
+    screenshot) and opened w/ the debugger on the way `fill --in-window` does it (loopback holding page,
+    attach, skip pauses, navigate). Chrome: as Job Finder's own (fixed port, fresh throwaway profile
+    under $D, tab opened by Chrome itself). Same page, same samples, no input either side."""
+    samples = int(os.environ.get("JF_SAMPLES", "3"))
+    rows = result["window"] = []
+    proc, result["launch"] = launch()
+    home, other, close = formsite.serve(TITLE)
+    try:
+        for i in range(samples):
+            row = {}
+            ask({"do": "open", "url": f"{SCORE_URL}?jf={UNIQ}{i}"})
+            ask({"do": "command", "id": "workbench.action.closePanel"})  # last attach's Debug Console hides the verdict
+            time.sleep(12)
+            row["plainShot"] = screenshot(f"score-window-plain-{i}", proc)
+            # the demo tab itself gave js-debug no page session (3 of 3, exact link + glob): the trial's way instead
+            ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+            ask({"do": "open", "url": f"{home}/blank?s={i}"})
+            time.sleep(2)
+            res, found, conns = attach(f"{home}/blank?s={i}", QUIET)
+            c = pick(conns, f"{home}/blank")
+            if not c:
+                row["later"] = later(found, conns)
+                c = pick(conns, f"{home}/blank")
+            row["attach"] = {k: res.get(k) for k in ("ok", "error")} | {"reached": bool(c)}
+            if c:
+                quietly(lambda: c.send("Debugger.setSkipAllPauses", {"skip": True}, 5))
+                c.send("Page.navigate", {"url": f"{SCORE_URL}?jf={UNIQ}a{i}"})
+                time.sleep(2)
+                quietly(lambda: c.send("Debugger.setSkipAllPauses", {"skip": True}, 5))  # other site, other process
+                row["attached"] = read_score(c)
+                row["signals"] = quietly(lambda: c.evaluate(SIGNALS))
+                row["attachedShot"] = screenshot(f"score-window-attached-{i}", proc)
+            rows.append(row)
+            ask({"do": "stop"})  # stop all: closes the tab - wanted here, next sample opens its own
+            ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+            time.sleep(2)
+    finally:
+        result["quit"] = quit_(proc)
+        close()
+    rows = result["chrome"] = []
+    prof, port = D / "chrome-score", free_port()
+    p = subprocess.Popen([CHROME, f"--remote-debugging-port={port}", f"--user-data-dir={prof}", "--no-first-run",
+                          "--no-default-browser-check", f"{SCORE_URL}?jf={UNIQ}c0"],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        for i in range(samples):
+            url = f"{SCORE_URL}?jf={UNIQ}c{i}"
+            if i:
+                req = urllib.request.Request(f"http://127.0.0.1:{port}/json/new?{url}", method="PUT")
+                urllib.request.urlopen(req, timeout=10).read()
+            time.sleep(12)
+            tabs = json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/json", timeout=10).read())
+            tab = next((t for t in tabs if t.get("type") == "page" and t.get("url") == url), None)
+            if not tab:
+                rows.append({"error": "tab not found", "urls": [t.get("url") for t in tabs]})
+                continue
+            c = CDP("127.0.0.1", port, urlsplit(tab["webSocketDebuggerUrl"]).path)
+            rows.append({"opened": read_score(c), "signals": quietly(lambda: c.evaluate(SIGNALS))})
+            c.close()
+    finally:
+        p.terminate()
+        time.sleep(2)
+        subprocess.run(["pkill", "-f", str(prof)])
+
+
 # ---------------------------------------------------------------- Restricted Mode (untrusted folder)
 def restricted(result):
     """User setting startupPrompt never -> the folder opens untrusted w/o a dialog: does the attach start?"""
@@ -880,7 +966,7 @@ if __name__ == "__main__":
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "restricted": restricted}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "score": score, "restricted": restricted}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

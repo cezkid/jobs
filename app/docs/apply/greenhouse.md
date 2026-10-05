@@ -41,6 +41,21 @@ multichoice, `input_hidden` skipped.
 `navigator.webdriver` false in Job Finder's Chrome (2026-10-02). Submit button `button[type=submit]` -
 never clicked. After Submit the address ends `/confirmation`.
 
+## Email security code after Submit
+
+Greenhouse's help page [Invisible reCAPTCHA](https://support.greenhouse.io/hc/en-us/articles/115005448066)
+(updated 2026-03-02; vendor doc): every job board runs invisible reCAPTCHA, scoring "mouse movements
+and typing patterns" on the posting; "depending on your spam sensitivity setting and the user's score,
+a user may be asked to verify their email before submitting their application". The employer picks
+that setting per job board - stricter needs a higher score. So any Greenhouse application, Chrome or
+window, may end in a code emailed to the applicant, pasted on the page before it goes through.
+
+Seen: owner's application filled in the window (tenant G, 2026-10-05) asked for a code; their
+Chrome-filled one the day before (another employer) didn't - one each, two employers, so the
+employer's setting alone can explain it. Window vs Chrome on Google's v3 demo: 0.9 every sample
+both ways (`vscode-browser.md` #Email code after Submit). `job-apply` step 5 tells the user before
+Submit.
+
 ## What leaves the computer, when
 
 `apply-form try`, every write blocked, 3 postings, 3 employers (tenants C-E), 2026-10-05: 2 on
