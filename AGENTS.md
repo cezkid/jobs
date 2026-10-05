@@ -218,6 +218,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Resume + answers you paste | that employer's site (Recruitee ...) | That employer, once you click Submit |
 | Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User's own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |
 | Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User's own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |
+| Text + screenshots of Job Finder window pages Copilot reads (VS Code's browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User's own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
 | Contact details, answers, resume you apply with | that employer's Ashby site | That employer, once you click Submit |
 | Resume (and cover letter) you apply with | that employer's Greenhouse site | That employer, as soon as you choose the file (it goes to Greenhouse's storage then) |

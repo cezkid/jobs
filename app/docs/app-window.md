@@ -92,9 +92,10 @@ one); owner 2026-10-03 picked a fresh Claude chat over copy-paste (row j).
 Integrated Browser chat tools (`workbench.browser.enableChatTools`, plan-29g.1): left at VS Code's
 default (on). Its own words (1.140): "chat agents can use browser tools to open and interact with
 pages in the Integrated Browser". Reaches VS Code's own chat only = Copilot users (Claude +
-ChatGPT windows run w/ `chat.disableAIFeatures` on). Off now would settle "fill applications
-inside the window" before it's measured (plan-29g.7) + owner decides (plan-29g.8); page text stays
-data either way (AGENTS.md). Revisit there.
+ChatGPT windows run w/ `chat.disableAIFeatures` on). Kept on: the owner's pick (plan-29g.8) was to
+fill applications inside the window, not to turn these off; turning them off stays the owner's call.
+Copilot reads only tabs shared w/ it - what that sends is a privacy table row (plan-29g.13). Page
+text stays data either way (AGENTS.md).
 
 Owner checks by hand (scratch has no sign-ins):
 - Copilot: click "Make my resume" => words sit in the chat box, nothing sent. owner: pending.
@@ -281,8 +282,14 @@ VS Code's Integrated Browser (1.109+): any http(s) site, sign-ins, uploads. Bund
   - VS Code's own chat (Copilot) is the one that can read window tabs: `workbench.browser.enableChatTools`
     (default on) gives its agent `read_page`, `list_browser_pages` + page actions ("open and interact
     with pages") => page text to the GitHub account when it uses them; off => VS Code's open tool
-    tells the agent it can't see the page. Privacy table names Claude in Chrome page text (plan-29g.12);
-    Copilot's line waits on the chat tools pick (plan-29g.8).
+    tells the agent it can't see the page. Only tabs shared w/ the agent (bundle read 1.140): a page
+    it opens itself (`open_browser_page`: "Open Browser Page? ... The agent will be able to read and
+    interact with its contents", auto-approvable; new tab, `session: {scope: "agent"}`) or a tab the
+    user opened (Today links, `jobs.py open`) once they pick it in the chat's "Share Browser Tab"
+    question + allow VS Code's "Share with Agent?" ("read and modify browser content and saved data,
+    including cookies"; Allow / Deny / Don't ask again). Tools then: `read_page` (snapshot),
+    `screenshot_page`, click / type / hover / drag, `navigate_page`. Privacy table names Claude in
+    Chrome page text (plan-29g.12) + Copilot's window pages (plan-29g.13).
 
 How links get there:
 - Today + Jobs panel (plan-29g.1): job title + company => `today.openLink` (`app/vscode/today.js`):
