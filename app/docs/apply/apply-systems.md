@@ -75,7 +75,11 @@ In order - each step's output feeds the next:
    step. Prints the per-question report, `this page: X of Y`, LATER count, every blocked request
    w/ the question being filled when it fired. `--next` presses the one Next / Continue / Next
    Step button (never "Save and Continue"; anything saying submit / send / save / finish /
-   complete / apply / sign refused); page unchanged -> "not measurable while blocked".
+   complete / apply / sign refused); page unchanged -> "not measurable while blocked". Kept as
+   `.data/measure/<host>-try-<time>.json`: every request the page made while each box was filled
+   (reads too; GraphQL `op` named), how each box shows its answer after the settle (systems w/
+   `box_of(page, q)`). `--upload-errors`: a `.png` + an empty PDF in the resume box first, the
+   page's new words kept - a send error then is the block's, not the page's.
 6. **Shared rows**: a row in the table above, and the `AGENTS.md` privacy row for the system,
    from try's blocked log (what leaves the computer, when).
 
@@ -95,8 +99,16 @@ A live form must never get an applicant record, anything typed, or the user's wi
   fetch, sendBeacon, native form POST, worker fetch, cross-site frame POST, WebSocket send (main
   page + frame). Any reaching the listener, or any not seen blocked -> run stops, nothing measured.
   Measured 2026-10-03, Chrome attached over its debugging port + headless: all 9 blocked.
-- **No allow-lists, ever.** A page that won't render or advance while blocked = "not
-  measurable while blocked", recorded as a fact. Never loosen the block to get further.
+- **No allow-lists, ever** - one named exception below. A page that won't render or advance
+  while blocked = "not measurable while blocked", recorded as a fact. Never loosen the block to
+  get further.
+- **The one exception (owner OK 2026-10-05)**: Ashby's page reads its questions by POST; blocked,
+  it shows "Application submission is unavailable" instead of the form (measured 2026-10-05).
+  `lab.NAMED_READS` lets through only `ApiJobPosting` to `jobs.ashbyhq.com/.../non-user-graphql`:
+  a query (never mutation / subscription anywhere in the text), exactly its two string variables
+  (org + posting id), no other key - the same read `prepare` already sends. Anything else w/ that
+  name is blocked (tests). Each one passed is listed in measure's `named_reads` + try's last line.
+  Another entry = owner's OK first, never added to get a page further.
 - **Clicks**: `--click` takes exact visible text; refused if it says submit / send / save /
   finish / complete / sign. No account, password, captcha, terms / consent / SMS box, signature.
 - **Synthetic only**: "Test Applicant", `test@example.com`, 555-0100, a generated test PDF.

@@ -112,4 +112,4 @@ def test_form_on_the_page_means_open_whatever_the_text_says(monkeypatch):
         READY = "#first_name"
     monkeypatch.setattr(form, "page_text", lambda page: "Sorry, this job is no longer accepting applications.")
     assert form.closed(Page(True), System) is None
-    assert form.closed(Page(False), System) == "no longer accepting applications"
+    assert form.closed(Page(False), System) == "the posting says it's closed (\"no longer accepting applications\")"

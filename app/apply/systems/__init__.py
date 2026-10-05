@@ -25,8 +25,14 @@ Optional, what leaves when:
 
     FILE_ON_CHOICE = True        a chosen file goes to the employer's site at once, before Submit
                                  (measured): prepare tells the AI to say so in the upload yes
-    SEARCHED_AS_TYPED = (keys)   boxes that search the system's own list with each keystroke
+    SEARCHED_AS_TYPED = (keys)   boxes (by key or kind) that search the system's own list with each keystroke
                                  (measured): prepare tells the AI those words go out before Submit
+
+Optional, a closed posting whose page says nothing closed:
+
+    closed(url) -> str | None    why the form isn't there, from the system's own records (None =
+                                 still open); form.closed asks it when the page shows no form and
+                                 no closed wording (Ashby: "Page not found")
 
 Optional, an Education section filled per school on the resume:
 

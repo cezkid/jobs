@@ -1,0 +1,31 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Acme Careers</title></head>
+<body>
+<!-- Workday posting page, open (tenant E, measured 2026-10-05, names + text anonymised): cookie
+     notice first, blank at load, drawn ~1.5 s later; Apply = adventureButton link under the title. -->
+<a data-automation-id="accessibilitySkipToMainContent" href="#mainContent">Skip to main content</a>
+<template id="page">
+<div data-automation-id="legalNotice"><p>We use cookies to make the safest and most effective website possible.</p>
+  <button data-automation-id="legalNoticeDeclineButton">Decline</button>
+  <button data-automation-id="legalNoticeAcceptButton">Accept Cookies</button></div>
+<div data-automation-id="header"><a data-automation-id="logoLink" href="/acme">Acme Careers</a>
+  <div data-automation-id="utilityButtonBar"><button data-automation-id="utilityButtonSignIn">Sign In</button></div>
+  <nav data-automation-id="navigationContainer"><a data-automation-id="navigationItem-Search for Jobs" href="/acme">Search for Jobs</a></nav></div>
+<div data-automation-id="banner"></div>
+<div id="mainContent" data-automation-id="jobPostingPage">
+  <span role="alert">Software Engineer page is loaded</span>
+  <h2 data-automation-id="jobPostingHeader">Software Engineer</h2>
+  <a data-automation-id="adventureButton" role="button" href="/acme/job/Springfield/Software-Engineer_R2/apply">Apply</a>
+  <div data-automation-id="job-posting-details">
+    <div data-automation-id="locations">locations Springfield</div>
+    <div data-automation-id="time">time type Full time</div>
+    <div data-automation-id="postedOn">posted on Posted Today</div>
+    <div data-automation-id="requisitionId">job requisition id R2</div></div>
+  <div data-automation-id="jobPostingDescription"><p>Job Description: Acme is seeking a full stack software engineer.</p></div>
+  <h3 data-automation-id="similar-jobs-heading">Similar Jobs</h3>
+  <div data-automation-id="similarJobsCard"><a href="/acme/job/Springfield/Software-Engineering-Associate_R3">Software Engineering Associate</a></div>
+  <button data-automation-id="readMore">Read More</button></div>
+<div data-automation-id="footerContainer"><span data-automation-id="followUs">Follow Us</span> © 2026 Workday, Inc. All rights reserved.</div>
+</template>
+<script>setTimeout(() => document.body.append(document.getElementById("page").content), 1500)</script>
+</body></html>

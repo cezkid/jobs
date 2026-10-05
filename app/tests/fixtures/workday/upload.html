@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>My Experience</title></head>
+<body>
+<!-- Resume/CV box model for workday.js uploaded(): the file's name or an error shows 1.2 s after the
+     file is chosen. Behaviour by file name: *.pdf shown; other types -> error; late.pdf shown, then an
+     error; silent.pdf -> nothing. Not Workday's markup or wording (unmeasured): hooks from the fill
+     model + errorMessage. A Cover Letter box and an unrelated required-field error sit beside it. -->
+<div data-automation-id="progressBarActiveStep">My Experience</div>
+<section>
+  <h3>Work Experience</h3>
+  <div data-automation-id="formField-jobTitle"><label for="title">Job Title*</label><input id="title">
+    <p data-automation-id="errorMessage">The field Job Title is required and must have a value.</p></div>
+</section>
+<section>
+  <h3>Resume/CV</h3>
+  <div data-automation-id="file-upload-drop-zone">Drop file here <input type="file" id="resume"></div>
+  <div id="resume-items"></div>
+</section>
+<section>
+  <h3>Cover Letter</h3>
+  <div data-automation-id="file-upload-drop-zone">Drop file here <input type="file" id="letter"></div>
+  <div id="letter-items"></div>
+</section>
+<script>
+  const show = (box, html) => { box.insertAdjacentHTML('beforeend', html); };
+  document.addEventListener('change', (e) => {
+    const f = e.target.files?.[0], items = document.getElementById(e.target.id + '-items');
+    if (!f) return;
+    setTimeout(() => {
+      if (f.name === 'silent.pdf') return;
+      if (!/\.pdf$/i.test(f.name)) return show(items, '<p data-automation-id="errorMessage">This file type is not allowed.</p>');
+      show(items, `<div data-automation-id="file-upload-item">${f.name} <button>Delete</button></div>`);
+      if (f.name === 'late.pdf') setTimeout(() => show(items, '<p data-automation-id="errorMessage">This file could not be read.</p>'), 300);
+    }, 1200);
+  });
+</script>
+</body></html>

@@ -9,8 +9,8 @@ macOS 26.4.1 x86_64. Binary started directly (never `launch.py`, never `~/.vscod
 `--user-data-dir` / `--extensions-dir` / `--shared-data-dir` under `$D = mktemp -d /tmp/jfv.XXXX`,
 folder = program copy + demo + the window's own settings, throwaway browser storage. Dummy data
 only (Test Person, `test.person@example.com`, 100-byte dummy PDF), never the user's; Submit never
-clicked. Scripts: [measure.py](vscode-browser/measure.py) (stages setup, ext, route1, route2, gh, ghfill, score,
-restricted), [cdp.py](../../apply/cdp.py) (stdlib CDP client, now shipped for the trial), [formsite.py](vscode-browser/formsite.py)
+clicked. Scripts: [measure.py](vscode-browser/measure.py) (stages setup, ext, route1 - refused unless
+`JF_ALLOW_ROUTE1=1`, route2, gh, ghfill, ghupload, score, restricted, raw), [cdp.py](../../apply/cdp.py) (stdlib CDP client, now shipped for the trial), [formsite.py](vscode-browser/formsite.py)
 (local test form, logs every request), [probe-ext/](vscode-browser/probe-ext/extension.js) (scratch
 extension: opens tabs, starts the attach, asks for proxies). Screenshots (window only, ignored):
 `.data/probe-shots/form/`.
@@ -79,6 +79,70 @@ scrubbed).
 | Gotcha | page has `scroll-behavior: smooth`: coordinates read right after `scrollIntoView` miss the box (first run: first name, phone, Yes/No all empty). `behavior: 'instant'` fixes it |
 | What the user sees | `gh-route2-filled.png`: form in the tab, debug toolbar on top, Debug Console below; Claude panel's "Browser connected" is Claude in Chrome, not this tab (`app-window.md`) |
 
+## Ashby - route 2 (plan-nko.6)
+
+`measure.py raw <link>`: any system `systems.for_url` knows; READY from it (Ashby `[data-field-path]`). Level 3 +
+`lab.NAMED_READS` (`ApiJobPosting` query only, the owner's one exception - else no form, plan-nko.2). Canary in
+the same tab first, then the application page. `debugger;` pauses: skip off once, each resumed in the handler,
+cap 20, then skip on. One text box: click + `Input.insertText`. Dummy PDF by `DOM.setFileInputFiles`. Never Submit.
+2 employers (tenants A + B), 2026-10-05, 3 page loads on `jobs.ashbyhq.com`. Numbers:
+[ashby-tenant-a.json](vscode-browser/ashby-tenant-a.json), [ashby-tenant-b.json](vscode-browser/ashby-tenant-b.json)
+(org, posting + question ids scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | received none |
+| `READY` from navigate | 1.4-1.5 s (2 runs) | 1.6 s |
+| Form | 9 fields (`[data-field-path]`) | 11 (incl. Education History, phone, consent radios) |
+| Question read | `ApiJobPosting` passed (named read) | same |
+| Blocked on load | `ApiOrganizationFromHostedJobsPageName` x2 | same + `ApiSetFormValue` x1 |
+| `debugger;` pauses | 0 | 0 |
+| Other-site frames | none (no iframe, no frame target, none blocked) - no captcha on the form before Submit | none |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant" | same |
+| Sent on typing | `ApiSetFormValue` (blocked) - answers leave box by box, as in Chrome (`ashby.md`) | same |
+| Dummy PDF chosen | `ApiCreateFileUploadHandle` POST at once (blocked); page shows the name + its own "failed to upload" toast | same |
+| What the user sees | debug toolbar, Debug Console (red source-map line from Ashby's CDN), Run badge 1 - as Greenhouse | - |
+
+Reading: Ashby has none of Greenhouse's frame or pause costs - no other-site frame to Tab into, no
+`debugger;`, no captcha frame before Submit (2 of 2; captcha at Submit unmeasured). Same route-2 costs
+otherwise (debug chrome, stop only the page session, trusted folder, one-tab urlFilter). Answers + file
+leave before Submit, window or Chrome alike - privacy rows already say so. Owner decides (plan-nko.7).
+
+## Lever - route 2 (plan-nko.13)
+
+Same `measure.py raw` as Ashby, level 3, no named read (Lever's form is in the page). Box = `input[name=name]`,
+file = hidden `#resume-upload-input`. 3 employers (tenants A-C; C picked for its Apply with LinkedIn row - plain
+GET of 2 apply pages, 1 had it), 2026-10-05; page loads on `jobs.lever.co`: 3 navigations + 2 plain GETs = 5.
+Numbers: [lever-tenant-a.json](vscode-browser/lever-tenant-a.json), [lever-tenant-b.json](vscode-browser/lever-tenant-b.json),
+[lever-tenant-c.json](vscode-browser/lever-tenant-c.json) (org, posting + card ids scrubbed).
+
+| Step | A | B | C |
+|---|---|---|---|
+| Canary first | received none | none | none |
+| `READY` from navigate | 2.0 s | 0.8 s | 1.4 s |
+| Boxes listed | 6 (standard boxes only) | 56 | 30 |
+| `debugger;` pauses | 0 | 0 | 0 |
+| hCaptcha on load | `js.hcaptcha.com/1/secure-api.js` + 2 enclave frames (`newassets.hcaptcha.com`, other site) - failed by the block before they loaded; 0 `checksiteconfig` (runs inside the frame; Chrome lab: ~10 POSTs/load, `lever.md`) | same | same |
+| Cloudflare challenge | `cdn-cgi/challenge-platform/.../jsd` POST, 1 (blocked) + an empty 1x1 frame | none | none |
+| Apply with LinkedIn | - | - | `platform.linkedin.com/in.js` + widget script load (reads); its frame = POST `linkedin.com/talentwidgets/apply-with-linkedin` (other site, failed). Row stays "Loading..." (`lever-route2-tab.png`) |
+| Frame targets | none | none | none - every other-site frame failed before it became one |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant" | same | same |
+| Dummy PDF chosen | `POST jobs.lever.co/parseResume` (multipart) at once (blocked); label "Couldn't auto-read resume." | same | same |
+| Other writes | none while typing | none | none |
+
+Readings:
+- No `debugger;`, no frame needed to fill: every box + the file box is in the page.
+- hCaptcha's frames load on the form, not only at Submit. Blocked here (level 3), the form still fills; the
+  hidden `#hcaptchaSubmitBtn` is there 3 of 3. Whether hCaptcha passes at Submit in the window tab
+  (frame unblocked, debugger attached) - unmeasured: never Submit. Greenhouse's reCAPTCHA frame same open question.
+- "Couldn't auto-read resume." here = the block's doing (send failed), not Lever's verdict - as in Chrome
+  (`lever.md` #Read back). File name shows in the file button (upper-case by CSS: `innerText` reads it upper).
+- Resume leaves on choosing, window or Chrome alike; privacy row already says so.
+- LinkedIn row: left alone either way (it signs in to LinkedIn); in the window it is one more other-site frame.
+
+Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
+urlFilter). Owner decides (plan-nko.14).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any
@@ -95,7 +159,7 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse only, off by default (plan-29g.9).
+window, Greenhouse, Ashby + Lever only, off by default (plan-29g.9, Ashby plan-nko.8, Lever plan-nko.15).
 
 ## Owner decision (plan-29g.8)
 
@@ -107,8 +171,8 @@ exactly one tab, trusted folder required, embed forms opened top-level. Default 
 
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse only (other systems refused in
-one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby + Lever only (owner's yes for Ashby
+2026-10-05, plan-nko.7, Lever plan-nko.14; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 
 - Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
@@ -121,7 +185,7 @@ limits unchanged: never Submit, a file only after the user's yes (`form.fill` de
   page session, asks `requestCDPProxy` for it, answers {session, proxy}.
 - Python drives the tab over raw CDP ([cdp.py](../../apply/cdp.py), moved from the measure
   scripts): Playwright can't use the proxy (one page, no browser). `apply/window.py` `Page` +
-  `Locator` cover only what `greenhouse.py` + `form.fill` call: click = instant scroll to the box's
+  `Locator` cover only what `greenhouse.py`, `ashby.py`, `lever.py` + `form.fill` call: click = instant scroll to the box's
   middle + real mouse events, typing = `Input.insertText`, file = `DOM.setFileInputFiles`.
   `Debugger.setSkipAllPauses` on attach + after each navigation.
 - Done: `detach-form` => `disconnect {terminateDebuggee: false}` on the page session, then its
@@ -133,6 +197,24 @@ Tests (`uv run pytest -k in_window`): the adapter fills `app/tests/fixtures/dom/
 real headless Chrome over CDP, every answer read back off the page; w/o pause skipping the same
 test hangs (checked). Two of its dropdowns empty themselves 800 ms after a pick (once / always): refilled + held, and
 `FAIL ... fill it by hand` - w/o `greenhouse.holds` the second reads ok while the page shows it empty. Window side = fake extension: holding page, attach, detach, each refusal.
+Ashby (plan-nko.8, 2026-10-05): `ashby.fill` + `holds` + `form.fill_page` on `fixtures/dom/ashby-form.html`
+through Playwright AND `window.Page` (same headless Chrome build): same report, same read-back (Yes / No
+pressed late, radios ticked late, second click clears, lists, place box, file name), a second fill
+changes nothing; the dropping list = `FAIL ... fill it by hand` in both. Added to the adapter:
+`get_by_role` (button / option + `[role=X]`, accessible name = aria-labelledby, aria-label, value,
+text; a file box is a button, as Playwright), `locator(sel, has_text=)` (pattern = Python's source
++ i/s/m as a JS RegExp, tested on the element's whole text), `is_checked`; each lookup's count +
+texts checked against Playwright's on that page. Unmeasured: Ashby filled live in the window tab.
+Lever (plan-nko.15, 2026-10-05): `lever.fill` + `holds` + `form.fill_page` on `fixtures/lever/tenant-a.html`
+(saved live form) + a stand-in for Lever's own scripts (place search answers 300 ms after typing, pick =
+town in the box + `#selected-location`; resume verdict 500 ms after choosing) through Playwright AND
+`window.Page`: same report, same read-back (radios, ticks, lists, text, place + Lever's record, file + verdict),
+a second fill changes nothing, signature left to the applicant in both. Before: `ids_on_page` passes a 3rd
+arg => TypeError at the end of every fill. Added: `eval_on_selector_all(sel, fn, arg)`, `Locator.all()`,
+`filter(visible=)`, `select_option(label=)` (by `option.label`, input + change, as Playwright); shown =
+Playwright's rule (style visible + a box with width and height; was any rect, 0x0 counted), each checked
+against Playwright's on that page. The fill says hCaptcha at Submit is untested in the window (`AT_SUBMIT`).
+Unmeasured: Lever filled live in the window tab; hCaptcha at Submit there.
 
 Owner's real run (plan-29g.18, tenant G): every dropdown reported ok; owner: "some fields were not filled", picked Dropdowns. Not
 reproduced (plan-29g.20; plan-29g.24 adds upload success, MyGreenhouse sign-in + clicking around, `greenhouse.md` #Widgets): `measure.py ghfill` = the shipped filler in a scratch window, writes

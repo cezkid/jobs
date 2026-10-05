@@ -1,13 +1,16 @@
 """apply-form try: synthetic answers by kind (never the user's), the applicant's own steps left,
 --next refuses anything that could send; end to end offline on a local form, headless, block +
 canary on. Own file: a headless Chrome holds Playwright's loop for its whole module."""
+import json
 from datetime import date
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 import cfg
 from apply import browser, dom, lab, questions, systems, trial
+from apply.systems import ashby
 
 
 def q(title, kind="text", key=None, options=(), native=None):
@@ -55,6 +58,15 @@ def test_consent_and_other_files_left_for_the_applicant(no_settings):
     assert trial.synthetic(q("Gender", "choice", options=["Decline", "Prefer not to say"]))[0] is None
 
 
+def test_untitled_consent_box_left_for_the_applicant(no_settings):
+    """Measured 2026-10-05 (Ashby tenant D): try ticked an untitled "I agree" - words in its description."""
+    job = json.loads((Path(__file__).parent / "fixtures" / "ashby" / "consent-untitled.json").read_text())
+    got = {x["id"]: trial.synthetic(x) for x in ashby.from_form(job)}
+    assert got["_systemfield_data_consent_ack"] == (None, f"{questions.SIGNING} - {trial.APPLICANT}")
+    assert got["untitled"] == (None, f"{questions.UNTITLED} - {trial.APPLICANT}")
+    assert got["_systemfield_name"] == ("Test Applicant", None)
+
+
 def test_next_presses_only_next_or_continue():
     assert all(trial.next_ok(t) for t in ("Next", "Continue", " next  step ", "CONTINUE"))
     assert not any(trial.next_ok(t) for t in ("Save and Continue", "Submit", "Submit Application", "Apply",
@@ -66,7 +78,7 @@ FORM = """<!doctype html><title>Job Application at Acme Test Co</title>
   <label for=first>First Name *</label><input id=first required>
   <label for=email>Email *</label><input id=email type=email required>
   <label for=pw>Create a password</label><input id=pw type=password>
-  <label for=cv>Resume</label><input id=cv type=file>
+  <label for=cv>Resume</label><input id=cv type=file><p id=err></p>
   <label for=auth>Are you authorized?</label>
   <select id=auth><option value="">Pick</option><option>Decline to answer</option><option>Yes</option><option>No</option></select>
   <label><input type=checkbox id=terms> I agree to the Terms and Conditions</label>
@@ -77,6 +89,8 @@ FORM = """<!doctype html><title>Job Application at Acme Test Co</title>
 <form id=p2 hidden><label for=why>Why us?</label><textarea id=why></textarea></form>
 <script>
 document.getElementById('email').addEventListener('change', () => fetch('/w/save', {method: 'POST', body: 'x'}).catch(() => {}));
+document.getElementById('cv').addEventListener('change', e => { const f = e.target.files[0];
+  document.getElementById('err').textContent = !f.size ? 'This file is empty' : f.name.endsWith('.pdf') ? '' : 'File type not supported'; });
 </script>"""
 
 
@@ -93,10 +107,11 @@ def test_try_end_to_end_offline(tmp_path, monkeypatch, capsys, no_settings):
     local = SimpleNamespace(NAME="Local", READY="#first", application_url=lambda u: u,
                             read=lambda page: dom.questions(dom.snapshot(page)),
                             fill=lambda page, q, f: dom.fill(page, q, f),
-                            ids_on_page=lambda page: [x["id"] for x in dom.questions(dom.snapshot(page))])
+                            ids_on_page=lambda page: [x["id"] for x in dom.questions(dom.snapshot(page))],
+                            box_of=lambda page, q: page.locator("#f"))
     monkeypatch.setattr(systems, "for_url", lambda u: local)
     try:
-        trial.trial(listener.home + "/apply.html", go_next=True, headless=True)
+        trial.trial(listener.home + "/apply.html", go_next=True, headless=True, probe=True)
     finally:
         listener.close()
     out = capsys.readouterr().out
@@ -109,6 +124,19 @@ def test_try_end_to_end_offline(tmp_path, monkeypatch, capsys, no_settings):
     assert "POST 127.0.0.1/w/save while filling 'Email'" in out
     assert "--next: new page" in out and "textarea 1" in out
     assert not (tmp_path / "measure-browser").exists() or not any((tmp_path / "measure-browser").iterdir())
+    # the page's own words for each mistaken file, then the real one clears them
+    assert "upload probe, wrong type (.png): [ok] page says: File type not supported" in out
+    assert "upload probe, empty file (0 bytes): [ok] page says: This file is empty" in out
+    kept, = (tmp_path / "measure").glob("127.0.0.1-try-*.json")
+    rec = json.loads(kept.read_text())
+    assert rec["canary"]["received"] == [] and rec["form_shown"] and rec["loads"] == 1
+    assert [p["said"] for p in rec["probes"]] == [["File type not supported"], ["This file is empty"]]
+    assert list(rec["report"].values()).count("ok") >= 4 and {q["title"] for q in rec["questions"]} >= {"First Name", "Resume"}
+    # every request the page made, named by the box being filled: the blocked save, and nothing at load
+    assert {"method": "POST", "url": "127.0.0.1/w/save", "type": "fetch", "op": "", "after": "filling 'Email'"} in rec["requests"]
+    shows = {r["title"]: r["shows"] for r in rec["readout"]}
+    assert "Yes" in [b["value"] for b in shows["Are you authorized?"]["boxes"] if b["tag"] == "select"]
+    assert rec["blocked"] and all(b["after"] != "canary" for b in rec["blocked"])
 
 
 def test_next_covered_says_what_covers_it(monkeypatch, capsys):

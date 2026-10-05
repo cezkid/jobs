@@ -1,0 +1,10 @@
+{"applicationForm": {"sections": [{"fieldEntries": [
+  {"isRequired": true, "descriptionHtml": "<p>First and Last</p>",
+   "field": {"path": "_systemfield_name", "title": "Name", "type": "String"}}]}]},
+ "surveyForms": [{"sections": [{"fieldEntries": [
+  {"isRequired": true,
+   "descriptionHtml": "<p><em>I consent to my data being retained beyond one year to be considered for future opportunities.</em> </p><p><em>Note: The consent period lasts for 1 year </em></p>",
+   "field": {"path": "_systemfield_data_consent_ack", "humanReadablePath": "Future Contact Consent", "title": "",
+             "type": "MultiValueSelect", "selectableValues": [{"label": "I agree", "value": "data_consent_ack"}]}},
+  {"isRequired": true, "descriptionHtml": "<p></p>",
+   "field": {"path": "untitled", "title": "", "type": "MultiValueSelect", "selectableValues": [{"label": "Yes"}]}}]}]}]}

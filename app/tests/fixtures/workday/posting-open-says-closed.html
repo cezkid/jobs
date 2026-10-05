@@ -1,0 +1,14 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Acme Careers</title></head>
+<body>
+<!-- model, not measured: an open posting whose own text uses closed-posting words. Apply shows =>
+     open, whatever the text says. -->
+<template id="page">
+<div id="mainContent" data-automation-id="jobPostingPage">
+  <h2 data-automation-id="jobPostingHeader">Recruiter</h2>
+  <a data-automation-id="adventureButton" role="button" href="/acme/job/Remote/Recruiter_R4/apply">Apply</a>
+  <div data-automation-id="jobPostingDescription"><p>Our last search for this team is closed; this job posting expired once and is open again.
+    We are no longer accepting applications from agencies.</p></div></div>
+</template>
+<script>setTimeout(() => document.body.append(document.getElementById("page").content), 1500)</script>
+</body></html>

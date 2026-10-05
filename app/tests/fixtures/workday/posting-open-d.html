@@ -1,0 +1,28 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Acme Careers</title></head>
+<body>
+<!-- Workday posting page, open (tenant D, measured 2026-10-05, names + text anonymised): blank at
+     load, drawn ~1.5 s later; Apply = adventureButton link under the title. -->
+<a data-automation-id="accessibilitySkipToMainContent" href="#mainContent">Skip to main content</a>
+<template id="page">
+<div data-automation-id="header"><a data-automation-id="logoLink" href="/acme">Acme</a>
+  <div data-automation-id="utilityButtonBar"><button data-automation-id="utilityButtonSignIn">Sign In</button></div>
+  <nav data-automation-id="navigationContainer"><a data-automation-id="navigationItem-Home" href="/">Home</a>
+    <a data-automation-id="navigationItem-Search for Jobs" href="/acme">Search for Jobs</a></nav></div>
+<div data-automation-id="banner"></div>
+<div id="mainContent" data-automation-id="jobPostingPage">
+  <span role="alert">Software Developer page is loaded</span>
+  <h2 data-automation-id="jobPostingHeader">Software Developer</h2>
+  <a data-automation-id="adventureButton" role="button" href="/acme/job/Remote/Software-Developer_R1/apply">Apply</a>
+  <div data-automation-id="job-posting-details">
+    <div data-automation-id="remoteType">remote type Remote</div>
+    <div data-automation-id="locations">locations Remote - Springfield</div>
+    <div data-automation-id="time">time type Full time</div>
+    <div data-automation-id="postedOn">posted on Posted 3 Days Ago</div>
+    <div data-automation-id="requisitionId">job requisition id R1</div></div>
+  <div data-automation-id="jobPostingDescription"><p>Acme builds software for small clinics. You will write and review code.</p></div>
+  <div data-automation-id="jobSidebar"><div data-automation-id="sidebar"><p>About Us</p></div></div></div>
+<div data-automation-id="footerContainer"><span data-automation-id="followUs">Follow Us</span> © 2026 Workday, Inc. All rights reserved.</div>
+</template>
+<script>setTimeout(() => document.body.append(document.getElementById("page").content), 1500)</script>
+</body></html>

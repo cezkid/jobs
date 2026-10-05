@@ -123,3 +123,92 @@ def test_measure_never_uses_the_application_window():
 def test_tenants_leave_out_platform_site_name():
     assert lab.tenants("https://acmetest.bamboohr.com/careers/1", ["BambooHR", "Acme Test Co"], {"controls": []}) \
         == ["Acme Test Co", "acmetest"]
+
+
+# the one named exception (owner OK 2026-10-05): Ashby's question read passes, nothing else does
+ASHBY = "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiJobPosting"
+READ_VARS = {"organizationHostedJobsPageName": "acme", "jobPostingId": "00000000-0000-0000-0000-000000000000"}
+
+
+def ashby_body(query="query ApiJobPosting($a: String!) { jobPosting { title } }", op="ApiJobPosting", variables=None, **extra):
+    import json
+    return json.dumps({"operationName": op, "query": query, "variables": READ_VARS if variables is None else variables} | extra)
+
+
+@pytest.mark.parametrize("url", [ASHBY, "https://jobs.ashbyhq.com/acme/non-user-graphql?op=ApiJobPosting",
+                                 "https://jobs.ashbyhq.com/api/non-user-graphql"])
+def test_named_read_passes(url):
+    assert lab.named_read("POST", url, ashby_body()) == "ApiJobPosting"
+    frag = "query ApiJobPosting { jobPosting { ...F } } fragment F on JobPosting { title }"
+    assert lab.named_read("POST", url, ashby_body(frag)) == "ApiJobPosting"
+
+
+@pytest.mark.parametrize("method, url, body", [
+    # a mutation carrying the read's name, or hiding beside it in the same text
+    ("POST", ASHBY, ashby_body("mutation ApiJobPosting { submit(x: 1) { ok } }")),
+    ("POST", ASHBY, ashby_body("query ApiJobPosting { a } mutation ApiJobPosting2 { submit { ok } }")),
+    ("POST", ASHBY, ashby_body("subscription ApiJobPosting { a }")),
+    ("POST", ASHBY, ashby_body(" { a }")),
+    # another operation, or the name in the link not the body's
+    ("POST", "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiApplicationFormSubmit",
+     ashby_body("query ApiApplicationFormSubmit { a }", op="ApiApplicationFormSubmit")),
+    ("POST", "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiOrganizationFromHostedJobsPageName", ashby_body()),
+    # typed text riding along: an extra variable, a non-string one, an extra top-level key
+    ("POST", ASHBY, ashby_body(variables=READ_VARS | {"email": "test@example.com"})),
+    ("POST", ASHBY, ashby_body(variables={**READ_VARS, "jobPostingId": {"x": 1}})),
+    ("POST", ASHBY, ashby_body(extensions={"x": 1})),
+    # batched, not JSON, no body
+    ("POST", ASHBY, "[" + ashby_body() + "]"),
+    ("POST", ASHBY, "operationName=ApiJobPosting"),
+    ("POST", ASHBY, None),
+    # another host, path, scheme or method
+    ("POST", "https://jobs.lever.co/api/non-user-graphql?op=ApiJobPosting", ashby_body()),
+    ("POST", "https://evil.example/api/non-user-graphql?op=ApiJobPosting", ashby_body()),
+    ("POST", "https://jobs.ashbyhq.com/api/graphql?op=ApiJobPosting", ashby_body()),
+    ("POST", "http://jobs.ashbyhq.com/api/non-user-graphql?op=ApiJobPosting", ashby_body()),
+    ("PUT", ASHBY, ashby_body()),
+])
+def test_named_read_refuses(method, url, body):
+    assert lab.named_read(method, url, body) is None
+
+
+class FakeRoute:
+    def __init__(self, method, url, body):
+        self.request = type("R", (), {"method": method, "url": url, "post_data": body, "resource_type": "fetch"})()
+        self.done = None
+
+    def continue_(self):
+        self.done = "continued"
+
+    def abort(self):
+        self.done = "aborted"
+
+
+def test_block_passes_named_read_and_aborts_its_mutation():
+    block = lab.Block()
+    read, write = FakeRoute("POST", ASHBY, ashby_body()), \
+        FakeRoute("POST", ASHBY, ashby_body("mutation ApiJobPosting { submit { ok } }"))
+    block.request(read)
+    block.request(write)
+    assert (read.done, write.done) == ("continued", "aborted")
+    assert [p["op"] for p in block.passed] == ["ApiJobPosting"]
+    assert [b["url"] for b in block.log] == [ASHBY]
+
+
+def test_block_aborts_binary_body():
+    # Ashby's closed page, 2026-10-05: a gzipped beacon - post_data raised inside the route handler
+    class Binary(FakeRoute):
+        def __init__(self):
+            super().__init__("POST", ASHBY, None)
+            type(self.request).post_data = property(lambda r: b"\x9c".decode())
+    block, route = lab.Block(), Binary()
+    block.request(route)
+    assert route.done == "aborted" and [b["url"] for b in block.log] == [ASHBY] and block.passed == []
+
+
+def test_canary_still_blocks_every_kind_with_named_reads(page):
+    # the exception never widens the block for anything the canary sends
+    block = lab.Block()
+    block.install(page)
+    got = lab.canary(page, block)
+    assert got["received"] == [] and set(got["blocked"]) == lab.KINDS and block.passed == []

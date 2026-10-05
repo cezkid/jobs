@@ -1,0 +1,556 @@
+{
+ "stage": "raw",
+ "at": "jobs.lever.co/<org>/<id>/apply",
+ "uniq": "a51c03",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "system": "Lever",
+ "ready": "#application-form input[name=name]",
+ "url": "https://jobs.lever.co/<org>/<id>/apply",
+ "level": 3,
+ "pauseCap": 20,
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 6469,
+  "upInfo": {
+   "t": 1791228942612,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "pauses": [],
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 7995,
+  "sessions": [
+   {
+    "id": "b91b4a76-41ae-4de3-83b0-141c846b172c",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "53484caf-46c9-4a6e-a10b-97d2ee4a970c",
+    "type": "pwa-editor-browser",
+    "name": "JF form a51c03 blank \u00ab Job Finder form",
+    "parent": "b91b4a76-41ae-4de3-83b0-141c846b172c"
+   }
+  ],
+  "found": {
+   "53484caf-46c9-4a6e-a10b-97d2ee4a970c": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53488,
+     "path": "/7294cfc2801dc803ed55db501c5b1e0ef98951b6"
+    },
+    "href": "http://127.0.0.1:62615/blank"
+   },
+   "b91b4a76-41ae-4de3-83b0-141c846b172c": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "install": {
+  "ok": true,
+  "ms": 32,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "subscribe": {
+  "ok": true,
+  "ms": 0,
+  "value": {}
+ },
+ "skipOff": {
+  "ok": true,
+  "ms": 2,
+  "value": {}
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:62651/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62651/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62651/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62651/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:62652/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62651/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "loaded": true,
+ "readyMs": 1427,
+ "pausesOnLoad": 0,
+ "fields": 1,
+ "boxes": [
+  {
+   "id": "resume-upload-input",
+   "name": "resume",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "",
+   "name": "name",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "email",
+   "role": "",
+   "type": "email"
+  },
+  {
+   "id": "",
+   "name": "phone",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "location-input",
+   "name": "location",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "org",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "urls[LinkedIn]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "urls[GitHub]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "urls[Stack Overflow]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "urls[Portfolio]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "urls[Twitter]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "urls[Other]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field1]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field1]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field2]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field2]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field3]",
+   "role": "",
+   "type": "textarea"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field4]",
+   "role": "",
+   "type": "textarea"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field5]",
+   "role": "",
+   "type": "textarea"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field6]",
+   "role": "",
+   "type": "textarea"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field0]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field1]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field2]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field3]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field4]",
+   "role": "",
+   "type": "textarea"
+  },
+  {
+   "id": "",
+   "name": "eeo[gender]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "eeo[race]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "eeo[veteran]",
+   "role": "",
+   "type": "select-one"
+  }
+ ],
+ "frames": {
+  "iframes": [
+   {
+    "h": 0,
+    "shown": true,
+    "src": "about://blank",
+    "title": "LinkedIn Embedded Content",
+    "w": 188,
+    "kind": "other"
+   },
+   {
+    "h": 465,
+    "shown": true,
+    "src": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "title": "Widget containing checkbox for hCaptcha security challenge",
+    "w": 828,
+    "kind": "hcaptcha"
+   },
+   {
+    "h": 465,
+    "shown": true,
+    "src": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "title": "Widget containing checkbox for hCaptcha security challenge",
+    "w": 828,
+    "kind": "hcaptcha"
+   }
+  ],
+  "blockedOtherSite": [
+   {
+    "url": "http://localhost/frame.html",
+    "kind": "other",
+    "after": "canary"
+   },
+   {
+    "url": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "kind": "hcaptcha",
+    "after": "load"
+   },
+   {
+    "url": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "kind": "hcaptcha",
+    "after": "load"
+   },
+   {
+    "url": "https://www.linkedin.com/talentwidgets/apply-with-linkedin",
+    "kind": "linkedin",
+    "after": "load"
+   }
+  ],
+  "targets": {
+   "ok": true,
+   "ms": 3,
+   "value": []
+  }
+ },
+ "marks": {
+  "grecaptchaApi": "object",
+  "hcaptchaApi": "object",
+  "hiddenCaptchaButton": true,
+  "linkedinWidget": false,
+  "scripts": [
+   "js.hcaptcha.com/1/secure-api.js",
+   "www.linkedin.com/talentwidgets/extensions/apply-with-linkedin-widget-v3",
+   "platform.linkedin.com/xdoor/scripts/in.js"
+  ],
+  "turnstileApi": "undefined"
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "box": "#application-form input[name=name]",
+  "type: click + Input.insertText": {
+   "ok": true,
+   "ms": 932,
+   "value": {
+    "focused": true
+   }
+  },
+  "readBack": "Test Applicant",
+  "fileBox": "#resume-upload-input",
+  "upload: DOM.setFileInputFiles": {
+   "ok": true,
+   "ms": 21
+  },
+  "nameShown": false,
+  "failedLine": false,
+  "verdict": "Couldn't auto-read resume.",
+  "sentOnChoice": [
+   {
+    "method": "POST",
+    "url": "https://jobs.lever.co/parseResume",
+    "type": "XHR",
+    "contentType": "multipart/form-data; boundary=----WebKitFormBoundaryewz5ONwo",
+    "body": true
+   }
+  ],
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/lever-route2-tab.png",
+   "bytes": 83510
+  }
+ },
+ "shot": {
+  "path": "<checkout>/.data/probe-shots/form/lever-route2-window.png",
+  "bytes": 450494
+ },
+ "pausesTotal": 0,
+ "skipOnAfterCap": false,
+ "submitClicked": false,
+ "block": {
+  "reads": 25,
+  "namedReads": [],
+  "failed": [
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "GET",
+    "url": "http://localhost/frame.html",
+    "type": "other-site frame",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/worker",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "GET",
+    "url": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "type": "other-site frame",
+    "after": "load"
+   },
+   {
+    "method": "GET",
+    "url": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "type": "other-site frame",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://www.linkedin.com/talentwidgets/apply-with-linkedin",
+    "type": "other-site frame",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.lever.co/parseResume",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ],
+  "seenWrites": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://www.linkedin.com/talentwidgets/apply-with-linkedin",
+    "type": "Document",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.lever.co/parseResume",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ]
+ },
+ "pageLoads": 1,
+ "handlerErrors": [],
+ "quit": {
+  "killed": false
+ }
+}

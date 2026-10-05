@@ -20,7 +20,7 @@ from collections import Counter
 from datetime import datetime
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlsplit
+from urllib.parse import parse_qs, urlsplit
 
 import cfg
 from apply import browser, dom
@@ -31,10 +31,19 @@ OUT = cfg.DATA / "measure"
 # pixel w/ typed text went through) - tolerated because measure types nothing, try types only
 # synthetic values
 READS = ("GET", "HEAD", "OPTIONS")
+# the one exception to "no allow-lists" (owner OK 2026-10-05): Ashby's page reads its questions by
+# POST - blocked, it shows "Application submission is unavailable" instead of the form (measured
+# 2026-10-05). Passes only a GraphQL query (never mutation / subscription) named here, to the
+# page's own graphql path, w/ exactly these variables, all strings - the read `prepare` sends
+NAMED_READS = {("jobs.ashbyhq.com", "ApiJobPosting"): {"organizationHostedJobsPageName", "jobPostingId"}}
+NAMED_PATH = re.compile(r"^/[^/]+/non-user-graphql$|^/api/non-user-graphql$")
 # a click that could send the application or sign something: the applicant's own act, never ours.
 # "Apply", "Apply without an Account" only navigate to the form
 REFUSE_CLICK = re.compile(r"\b(?:submit|send|save|finish|complete|sign)", re.I)
 IDLE_MS = 20000
+DRAW_MS = 10000
+SETTLE_MS = 6000
+SETTLE_STEP_MS = 500
 JSON_KEEP = 2048
 DATA_KEEP = 500_000
 # a form defined in the page itself, not fetched: `window.pageData = {...}` in an inline script
@@ -64,7 +73,7 @@ TEXT_KEEP = 4096
 # host labels + path parts every tenant shares: not a tenant name, would hit the anonymity grep
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
-           "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday",
+           "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday", "workday",
            "ultipro", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
            "en-us", "en_us", "en", "us", "com", "net", "org", "io", "co"}
 # page chrome, not a name: iCIMS start box titles "Login", its submit input's value is "Next" (2026-10-03)
@@ -72,15 +81,50 @@ GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board"
 CHROME = {"login", "log in", "sign in", "loading...", "loading", "next", "continue", "submit", "apply", "search"}
 
 
+def named_read(method: str, url: str, body: str | None) -> str | None:
+    """The operation name when this request is one of NAMED_READS, exactly; else None."""
+    u = urlsplit(url)
+    if method != "POST" or u.scheme != "https" or not NAMED_PATH.match(u.path):
+        return None
+    try:
+        j = json.loads(body or "")
+    except ValueError:
+        return None
+    if not isinstance(j, dict) or set(j) - {"operationName", "query", "variables"}:
+        return None
+    op, query, variables = j.get("operationName"), j.get("query"), j.get("variables")
+    keys = NAMED_READS.get((u.hostname, op))
+    if keys is None or parse_qs(u.query).get("op", [op]) != [op] or not isinstance(query, str):
+        return None
+    # opens w/ the named query; no mutation anywhere in it - a second operation in the same text
+    # could be picked by name. Fragments only shape a read
+    if not re.match(rf"\s*query\s+{op}\b", query) or re.search(r"\b(?:mutation|subscription)\b", query):
+        return None
+    if not isinstance(variables, dict) or set(variables) != keys or not all(isinstance(v, str) for v in variables.values()):
+        return None
+    return op
+
+
+def body(request) -> str | None:
+    """The request's body as text; a binary one (a gzipped analytics beacon on Ashby's closed page,
+    2026-10-05: Playwright's post_data raised, the block's handler crashed) is never a named read."""
+    try:
+        return request.post_data
+    except UnicodeDecodeError:
+        return None
+
+
 class Refused(Exception):
     """Page not measured: the block can't vouch for it."""
 
 
 class Block:
-    """Every non-read request + every WebSocket aborted and logged, w/ the step that set it off."""
+    """Every non-read request + every WebSocket aborted and logged, w/ the step that set it off.
+    A NAMED_READS request passes, logged in `passed`."""
 
     def __init__(self):
         self.log: list[dict] = []
+        self.passed: list[dict] = []
         self.step = "start"
 
     def install(self, page) -> None:
@@ -97,6 +141,9 @@ class Block:
     def request(self, route) -> None:
         r = route.request
         if r.method in READS:
+            return route.continue_()
+        if op := named_read(r.method, r.url, body(r)):
+            self.passed.append({"method": r.method, "url": r.url[:300], "op": op, "after": self.step})
             return route.continue_()
         self.log.append({"method": r.method, "url": r.url[:300], "type": r.resource_type, "after": self.step})
         route.abort()
@@ -285,7 +332,8 @@ def load(page, url: str, clicks: list[str], block: Block, n: int) -> tuple[dict,
         snap = dom.snapshot(page) | seen_text(page)
         snap["page_data"], snap["unlabelled"] = page.evaluate(PAGE_DATA), page.evaluate(AROUND)
         snap["outline"] = page.evaluate(OUTLINE)
-        return snap, [response(r) for r in got if r.request.method == "GET"]
+        return snap, [response(r) for r in got if r.request.method == "GET"
+                      or named_read(r.request.method, r.request.url, body(r.request))]
     finally:
         page.remove_listener("response", listen)
 
@@ -304,6 +352,22 @@ def seen_text(page) -> dict:
 def idle(page) -> None:
     with contextlib.suppress(Exception):  # a page that polls never goes idle: read what's there
         page.wait_for_load_state("networkidle", timeout=IDLE_MS)
+    drawn(page)
+
+
+def drawn(page) -> None:
+    """Wait for the page's own words, then for them to stop growing: Workday's posting page is
+    blank at network idle, draws seconds later (0 words read at idle, 7388 + Apply 4 s after,
+    2026-10-05). A page w/ no words at all costs DRAW_MS once."""
+    with contextlib.suppress(Exception):  # navigating away mid-wait: read what's there
+        page.wait_for_function("() => document.body && document.body.innerText.trim().length > 0", timeout=DRAW_MS)
+        last, end = -1, time.monotonic() + SETTLE_MS / 1000
+        while time.monotonic() < end:
+            n = page.evaluate("() => document.body.innerText.length")
+            if n == last:
+                return
+            last = n
+            page.wait_for_timeout(SETTLE_STEP_MS)
 
 
 def response(r) -> dict:
@@ -392,7 +456,7 @@ def measure(url: str, clicks: list[str], headless: bool = False) -> Path:
     page_data, unlabelled, outline = snap.pop("page_data"), snap.pop("unlabelled"), snap.pop("outline")
     data = {"url": url, "clicks": clicks, "canary": test, "snapshot": snap, "changed_ids": changed(snap, snaps[1][0]),
             "json": jsons, "page_data": page_data, "unlabelled": unlabelled, "outline": outline,
-            "blocked": [b for b in block.log if b["after"] != "canary"], "loads": 2}
+            "blocked": [b for b in block.log if b["after"] != "canary"], "named_reads": block.passed, "loads": 2}
     out.write_text(json.dumps(data, indent=1, ensure_ascii=False), encoding="utf-8")
     added = record_tenants(OUT / "tenants.txt", tenants(url, names, snap))
     summary(data, out, added)
@@ -423,5 +487,7 @@ def summary(data: dict, out: Path, added: int) -> None:
         u = urlsplit(r["url"])
         print(f"  {r['status']} {r['bytes']:>8} B  {u.hostname}{u.path}")
     print(f"blocked: {len(blocked)} ({', '.join(f'{k} {n}' for k, n in Counter(b['method'] for b in blocked).most_common()) or 'none'})")
+    if data["named_reads"]:
+        print(f"named reads let through: {len(data['named_reads'])} ({', '.join(sorted({p['op'] for p in data['named_reads']}))})")
     print(f"written: {out}")
     print(f"tenants.txt: {added} new line(s)")

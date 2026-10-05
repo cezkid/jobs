@@ -3,7 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from apply import form, systems
+from apply import browser, form, systems
+from apply.questions import left_on_page
 from apply.systems import lever
 
 FIXTURES = Path(__file__).parent / "fixtures" / "lever"
@@ -97,6 +98,18 @@ def test_lever_signature_and_consent_are_the_applicants():
         assert lever.fill(None, q | {"answer": "x"}, None).startswith("ASK yours to do on the page")
 
 
+def test_lever_file_upload_card_is_a_file_box_never_the_resume():
+    """1 of 21 open forms, 2026-10-05: lever.md "Kinds on real forms"."""
+    got = lever.from_page((FIXTURES / "card-file.html").read_text())
+    certs = next(q for q in got if q["native"] == "cards:file-upload")
+    assert (certs["kind"], certs["key"], certs["required"]) == ("file", None, False)
+    assert certs["id"].endswith("[field1]") and certs["title"].startswith("Please upload a copy of your certification")
+
+    class Page:
+        locator = lambda self, selector: type("Box", (), {"count": lambda self: 1, "first": None})()
+    assert lever.fill(Page(), certs | {"answer": True}, "/tmp/Jane_Doe_Resume.pdf").startswith("ASK not the resume box")
+
+
 def test_lever_broken_card_json_falls_back_to_the_page():
     page = (FIXTURES / "tenant-b.html").read_text().replace("Salary Expectations&quot;", "Salary Expectations")
     got = lever.from_page(page)
@@ -185,10 +198,12 @@ class Shown:
 
 
 class Page:
-    def __init__(self, boxes, upload="success"):
-        self.by_name, self.upload = boxes, upload
+    def __init__(self, boxes, upload="success", picked=""):
+        self.by_name, self.upload, self.picked = boxes, upload, picked
 
     def locator(self, css):
+        if css == "#selected-location":
+            return Box("hidden", self.picked)
         if "resume-upload-success" in css:
             return Shown(int(self.upload in ("success", "failure")))
         if "resume-upload-failure" in css:
@@ -242,3 +257,109 @@ def test_lever_box_missing_from_page():
     assert lever.fill(page, q("cards[x][field3]", "text", "a"), None) == "FAIL question not on page"
     # the disability signature shows only once Disability status is chosen
     assert lever.fill(page, q("eeo[veteran]", "choice", "a"), None).startswith("skipped")
+
+
+# --- read-back: the answer as the page shows it, never the filler's word ---
+
+def test_lever_holds_reads_each_kind_off_the_box():
+    name, phone, sel = Box(value="Test Applicant"), Box(value="(555) 010-0"), Box("select", value="Yes", options=["Yes", "No"])
+    page = Page({"name": [name], "phone": [phone], "s": [sel]})
+    assert lever.holds(page, q("name", "text", "Test Applicant"))
+    assert not lever.holds(page, q("name", "text", "Someone Else"))
+    assert lever.holds(page, q("phone", "phone", "555-0100"))  # by digits: the page may format it
+    assert lever.holds(page, q("s", "yesno", True)) and not lever.holds(page, q("s", "yesno", "No"))
+    assert not lever.holds(page, q("gone", "text", "a"))  # a box gone = not shown
+
+
+def test_lever_holds_ticks_by_each_options_checked_state():
+    group, ticks = radios("Yes", "No"), radios("Boston, MA", "Dallas, Texas", "International", type="checkbox")
+    page = Page({"r": group, "c": ticks})
+    assert not lever.holds(page, q("r", "choice", "No"))  # nothing ticked
+    group[1].checked = True
+    assert lever.holds(page, q("r", "choice", "No")) and not lever.holds(page, q("r", "choice", "Yes"))
+    ticks[0].checked = ticks[2].checked = True
+    assert lever.holds(page, q("c", "multichoice", ["Boston, MA", "International"]))
+    assert not lever.holds(page, q("c", "multichoice", ["Boston, MA"]))  # an extra tick is not this answer
+
+
+def test_lever_location_holds_only_with_lever_own_pick_and_the_town_shown():
+    box = Box(value="Springfield, Illinois, United States")
+    answer = q("location", "location", "Springfield, IL")
+    assert lever.holds(Page({"location": [box]}, picked='{"name": "Springfield"}'), answer)
+    assert not lever.holds(Page({"location": [box]}, picked=""), answer)  # typed, never picked
+    assert not lever.holds(Page({"location": [Box(value="Dallas, Texas")]}, picked="x"), answer)
+
+
+# --- fill twice on the saved pages in real Chrome: a refill never unticks, every answer reads back ---
+
+@pytest.fixture(scope="module")
+def chrome():
+    pw = pytest.importorskip("playwright.sync_api")
+    try:
+        exe = browser.chrome()
+    except SystemExit:
+        pytest.skip("Chrome not installed")
+    with pw.sync_playwright() as p:
+        b = p.chromium.launch(executable_path=exe, headless=True)
+        yield b
+        b.close()
+
+
+@pytest.fixture
+def saved_page(chrome):
+    """A saved tenant page in headless Chrome; every request it makes refused (the pages load nothing)."""
+    context = chrome.new_context()
+    context.route("**/*", lambda route: route.fulfill(status=404, body=""))
+    pg = context.new_page()
+    pg.set_default_timeout(3000)  # a box the filler can't reach fails fast
+
+    def at(tenant):
+        pg.set_content((FIXTURES / f"tenant-{tenant}.html").read_text())
+        return pg
+    yield at
+    context.close()
+
+
+def shown(page) -> list:
+    return page.eval_on_selector_all(
+        "#application-form input:not([type=hidden]), #application-form textarea, #application-form select",
+        "es => es.map(e => e.matches('input[type=radio], input[type=checkbox]') ? e.checked : e.value)")
+
+
+def synthetic(question: dict) -> dict:
+    o = question["options"]
+    answer = {"email": "test@example.com", "phone": "555-0100", "url": "https://example.com/test",
+              "longtext": "Their own words.", "yesno": "Yes", "choice": o[0] if o else None, "multichoice": o[:2]}
+    return question | {"answer": answer.get(question["kind"], "Test Applicant")}
+
+
+@pytest.mark.parametrize("tenant", "abcd")
+def test_lever_fill_twice_same_state_and_every_answer_reads_back(saved_page, tenant):
+    page = saved_page(tenant)
+    qs = [synthetic(x) for x in read(tenant).values() if x["kind"] not in ("file", "location")]
+    first = [lever.fill(page, x, None) for x in qs]
+    filled = [x for x, got in zip(qs, first) if got == "ok"]
+    assert [got for got in first if got != "ok"] == [left_on_page(x) for x, got in zip(qs, first) if got != "ok"]
+    assert {x["kind"] for x in filled} >= {"text", "yesno"}
+    once = shown(page)
+    assert [lever.fill(page, x, None) for x in qs] == first
+    assert shown(page) == once
+    assert [x["id"] for x in filled if not lever.holds(page, x)] == []
+
+
+def test_lever_dropped_answers_read_as_dropped_on_a_saved_page(saved_page):
+    page = saved_page("a")
+    qs = {x["kind"]: synthetic(x) for x in reversed(read("a").values()) if x["kind"] in ("text", "yesno", "multichoice")}
+    assert [lever.fill(page, x, None) for x in qs.values()] == ["ok"] * 3
+    page.evaluate("""() => document.querySelectorAll('#application-form input, #application-form select').forEach(e => {
+        if (e.type === 'checkbox' || e.type === 'radio') e.checked = false; else if (e.type !== 'hidden') e.value = ''; })""")
+    assert [x["kind"] for x in qs.values() if lever.holds(page, x)] == []
+
+
+def test_lever_location_on_a_saved_page_needs_lever_own_pick(saved_page):
+    page = saved_page("a")
+    answer = synthetic(read("a")["location"]) | {"answer": "Springfield, IL"}
+    page.fill("#location-input", "Springfield, Illinois, United States")
+    assert not lever.holds(page, answer)  # typed, no place picked from Lever's list
+    page.evaluate("() => { document.getElementById('selected-location').value = '{\"name\": \"Springfield\"}'; }")
+    assert lever.holds(page, answer)

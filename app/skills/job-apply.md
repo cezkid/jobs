@@ -20,8 +20,9 @@ form over, fix the program after.
 - User signs in / creates the account themselves. Never type a password.
 - Never click **Save and Continue**, **Submit**, or anything irreversible. Fill, then tell them
   to check the page and click it. They say "click it for me" -> still ask once per click.
-- Upload the resume PDF only after they say yes (name the file). Greenhouse, Lever, Workable, BambooHR, Paylocity and
+- Upload the resume PDF only after they say yes (name the file). Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity and
   SmartRecruiters send the file to the employer the moment it is chosen, before Submit (`prepare` says so) - say so in that same question.
+  Ashby also takes each answer as its box is filled, and the town or school letter by letter in its location and school boxes - say so before `fill`.
 - Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
   race, veteran, disability), how-did-you-hear - except their own saved answers
   (`app/docs/apply/answers.md` #Saved answers): how you heard, 18 or older, notice period and the
@@ -87,19 +88,29 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
    skill first, or ask whether to use their own resume as is.
 2. `uv run app/jobs.py apply <job number>` (none = own resume) -> writes `apply.js`, prints counts.
 3. Browser: `tabs_context_mcp` (createIfEmpty), new tab, navigate to the posting's apply link.
-   Sign-in page -> step aside (limits). "Autofill with Resume" / "Apply Manually" / "Use My Last
-   Application" -> ask which; autofill only pre-fills, our fill overwrites it anyway.
+   Posting page, before Apply or sign-in: send the text of `app/apply/workday.js` +
+   `\nwindow.__jf.closed()` in one `javascript_tool` call. `true` -> the posting is closed: tell the user in one line, no
+   sign-in, then `AGENTS.md` #Where each job stands (`status set <job> closed` after their yes).
+   `false` -> carry on. Sign-in page -> step aside (limits). "Autofill with Resume" / "Apply
+   Manually" / "Use My Last Application" -> ask which; autofill only pre-fills, our fill overwrites it anyway.
 4. On **My Experience**: read `apply.js`, send its whole text in ONE `javascript_tool` call - it
    starts the fill in the background and returns `'started'`. Poll every ~30s with
    `await new Promise(r => setTimeout(r, 25000)); window.__jf.status()` until `done: true`.
+   The run ends with `verify` (`step: 'verify'`, 2.5-5 s): every answer read again once the page settles.
    Never send it twice: rerun only parts with `window.__jf.run(<data>, ['skills'])` if needed.
 5. `problems` from status: `ASK` = nearest choice picked or none on the form's list -> tell the
    user plainly with the choices, fix per their answer. `FAIL` = field not found -> read labels
    via `read_page`/`find`, fix by hand once, record the new label in `app/docs/apply/workday.md`.
-6. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
-   item, what is left (resume upload, website, questions), and that nothing is saved until they
+   `answer dropped` = verify found it cleared after filling: FAIL = refilled once, still empty -> fill
+   that box by hand; ASK on a skill or field of study -> pick it again by hand, never rerun.
+6. Resume/CV box: after their yes (hard limits; name the file), the extension's file upload puts
+   the tailored PDF in the box, then `window.__jf.uploaded("<file name>")` (waits up to 20 s):
+   `'ok'` = name shows in the box; other words = Workday's own error -> tell the user plainly;
+   `'not confirmed'` -> ask them to look at the box, choose the file by hand if empty.
+7. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
+   item, what is left (website, questions), and that nothing is saved until they
    click **Save and Continue**. Later steps (questions, disclosures, review) = ask, never guess.
-7. Last, once they're done on the page: `AGENTS.md` #Where each job stands - one clickable
+8. Last, once they're done on the page: `AGENTS.md` #Where each job stands - one clickable
    "Did you send it?" (below).
 
 Token care: poll with the short status call only; no screenshots while the window is hidden
@@ -138,7 +149,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
    quirk in that system's doc.
-   `--in-window` (Greenhouse only, a trial): only when the owner asks for it; hard limits the same.
+   `--in-window` (Greenhouse, Ashby, Lever, a trial): only when the owner asks for it; hard limits the same.
+   Lever there: pass on its `note:` line - hCaptcha at Submit untested in the window; Submit balks ->
+   `fill` again without `--in-window` (Chrome).
    Form over several pages (`this page: X of Y required answered` + "question(s) on other
    pages"): tell the user to check this page and click Next / Continue themselves - never us.
    Once they say they're on the next page: `prepare` again if `fill` printed it (that system
@@ -152,7 +165,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    plainly their resume was tailored with AI help in this chat, so the answer is theirs, on the
    page - read the wording back, never draft, tick or pick for them.
 5. Tell the user: what was filled, any questions left on the page for them (voluntary disclosures),
-   any banner (application limits), and that nothing is sent until they click **Submit**.
+   any banner (application limits), and that nothing more is sent until they click **Submit** -
+   name what already went (resume on choosing; Ashby: each answer + the town as filled).
    Greenhouse (Chrome or `--in-window`): also say after Submit it may email them a security code -
    they paste it on the page, then it goes through; the employer's spam setting decides
    (`app/docs/apply/greenhouse.md` #Email security code after Submit).

@@ -1,0 +1,20 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Acme Careers</title></head>
+<body>
+<!-- Workday posting page, closed (tenant B, measured 2026-10-05, names anonymised): blank at load,
+     drawn ~1.5 s later; error page, no Apply button. -->
+<a data-automation-id="accessibilitySkipToMainContent" href="#mainContent">Skip to main content</a>
+<template id="page">
+<div data-automation-id="header"><a data-automation-id="logoLink" href="/acme">Acme</a>
+  <div data-automation-id="utilityButtonBar"><button data-automation-id="utilityButtonSignIn">Sign In</button></div>
+  <nav data-automation-id="navigationContainer"><a data-automation-id="navigationItem-Acme Home" href="/">Acme Home</a>
+    <a data-automation-id="navigationItem-Search for Jobs" href="/acme">Search for Jobs</a></nav></div>
+<div data-automation-id="banner"></div>
+<div id="mainContent"><div data-automation-id="errorContainer">
+  <h2 data-automation-id="errorMessage">The page you are looking for doesn't exist.</h2>
+  <a data-automation-id="searchForJobsButton" role="button" href="/acme">Search for Jobs</a></div></div>
+<div data-automation-id="footerContainer"><span data-automation-id="followUs">Follow Us</span>
+  <a data-automation-id="privacyLink" href="/privacy">Acme Privacy Policy</a> © 2026 Workday, Inc. All rights reserved.</div>
+</template>
+<script>setTimeout(() => document.body.append(document.getElementById("page").content), 1500)</script>
+</body></html>

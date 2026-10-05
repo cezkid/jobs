@@ -1,0 +1,685 @@
+{
+ "stage": "raw",
+ "at": "jobs.lever.co/<org>/<id>/apply",
+ "uniq": "69b19d",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "system": "Lever",
+ "ready": "#application-form input[name=name]",
+ "url": "https://jobs.lever.co/<org>/<id>/apply",
+ "level": 3,
+ "pauseCap": 20,
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 7260,
+  "upInfo": {
+   "t": 1791228869539,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "pauses": [],
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 8975,
+  "sessions": [
+   {
+    "id": "f9f9322e-cf84-4220-b0f7-93fba7bbc574",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "23343588-ede0-4809-998b-aa9228179302",
+    "type": "pwa-editor-browser",
+    "name": "JF form 69b19d blank \u00ab Job Finder form",
+    "parent": "f9f9322e-cf84-4220-b0f7-93fba7bbc574"
+   }
+  ],
+  "found": {
+   "23343588-ede0-4809-998b-aa9228179302": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53442,
+     "path": "/d58035b6ba8166e6fde5ee1c34eac30c7a8f5af9"
+    },
+    "href": "http://127.0.0.1:62446/blank"
+   },
+   "f9f9322e-cf84-4220-b0f7-93fba7bbc574": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "install": {
+  "ok": true,
+  "ms": 50,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "subscribe": {
+  "ok": true,
+  "ms": 1,
+  "value": {}
+ },
+ "skipOff": {
+  "ok": true,
+  "ms": 4,
+  "value": {}
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:62499/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62499/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62499/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62499/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:62500/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62499/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "loaded": true,
+ "readyMs": 815,
+ "pausesOnLoad": 0,
+ "fields": 1,
+ "boxes": [
+  {
+   "id": "resume-upload-input",
+   "name": "resume",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "",
+   "name": "name",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "email",
+   "role": "",
+   "type": "email"
+  },
+  {
+   "id": "",
+   "name": "phone",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "location-input",
+   "name": "location",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "org",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "urls[LinkedIn]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "urls[Portfolio]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field0]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field1]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field2]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field3]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field4]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field5]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field6]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field7]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field8]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field9]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field10]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field11]",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field0]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "cards[<field>][field0]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field0]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field1]",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field1]",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field1]",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field1]",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field1]",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field1]",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field1]",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field1]",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field2]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field2]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field2]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field2]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field3]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field3]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field3]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field3]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field4]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field4]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field4]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field4]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field5]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field5]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field5]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field6]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field6]",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "surveysResponses[<field>][responses][field6]",
+   "role": "",
+   "type": "radio"
+  }
+ ],
+ "frames": {
+  "iframes": [
+   {
+    "h": 465,
+    "shown": true,
+    "src": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "title": "Widget containing checkbox for hCaptcha security challenge",
+    "w": 828,
+    "kind": "hcaptcha"
+   },
+   {
+    "h": 465,
+    "shown": true,
+    "src": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "title": "Widget containing checkbox for hCaptcha security challenge",
+    "w": 828,
+    "kind": "hcaptcha"
+   }
+  ],
+  "blockedOtherSite": [
+   {
+    "url": "http://localhost/frame.html",
+    "kind": "other",
+    "after": "canary"
+   },
+   {
+    "url": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "kind": "hcaptcha",
+    "after": "load"
+   },
+   {
+    "url": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "kind": "hcaptcha",
+    "after": "load"
+   }
+  ],
+  "targets": {
+   "ok": true,
+   "ms": 2,
+   "value": []
+  }
+ },
+ "marks": {
+  "grecaptchaApi": "object",
+  "hcaptchaApi": "object",
+  "hiddenCaptchaButton": true,
+  "linkedinWidget": false,
+  "scripts": [
+   "js.hcaptcha.com/1/secure-api.js"
+  ],
+  "turnstileApi": "undefined"
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "box": "#application-form input[name=name]",
+  "type: click + Input.insertText": {
+   "ok": true,
+   "ms": 939,
+   "value": {
+    "focused": true
+   }
+  },
+  "readBack": "Test Applicant",
+  "fileBox": "#resume-upload-input",
+  "upload: DOM.setFileInputFiles": {
+   "ok": true,
+   "ms": 46
+  },
+  "nameShown": false,
+  "failedLine": false,
+  "verdict": "Couldn't auto-read resume.",
+  "sentOnChoice": [
+   {
+    "method": "POST",
+    "url": "https://jobs.lever.co/parseResume",
+    "type": "XHR",
+    "contentType": "multipart/form-data; boundary=----WebKitFormBoundarydfouhAQS",
+    "body": true
+   }
+  ],
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/lever-route2-tab.png",
+   "bytes": 69348
+  }
+ },
+ "shot": {
+  "path": "<checkout>/.data/probe-shots/form/lever-route2-window.png",
+  "bytes": 435004
+ },
+ "pausesTotal": 0,
+ "skipOnAfterCap": false,
+ "submitClicked": false,
+ "block": {
+  "reads": 23,
+  "namedReads": [],
+  "failed": [
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "GET",
+    "url": "http://localhost/frame.html",
+    "type": "other-site frame",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/worker",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "GET",
+    "url": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "type": "other-site frame",
+    "after": "load"
+   },
+   {
+    "method": "GET",
+    "url": "https://newassets.hcaptcha.com/captcha/v1/05219f0822161da4c4a6f3aed6bf6d6fae1ba8e1/static/hcaptcha-enclave.html",
+    "type": "other-site frame",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.lever.co/parseResume",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ],
+  "seenWrites": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.lever.co/parseResume",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ]
+ },
+ "pageLoads": 1,
+ "handlerErrors": [],
+ "quit": {
+  "killed": false
+ }
+}

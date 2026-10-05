@@ -1,12 +1,15 @@
 import importlib
 import inspect
+import json
 import pkgutil
 from datetime import date
+from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 
-from apply import form, questions, systems
-from apply.systems import ashby, greenhouse, ukg
+from apply import browser, form, questions, systems
+from apply.systems import ashby, greenhouse, lever, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -32,6 +35,16 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
             # a defaulted parameter is the system's own extra (Greenhouse: questions(url, schools=1))
             assert sum(p.default is p.empty for p in inspect.signature(got).parameters.values()) == want, name
     assert system.SOURCES and system.EXAMPLES and all(isinstance(x, str) for x in system.SOURCES + system.EXAMPLES)
+
+
+# systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
+# the other systems are left as filled until they join this list
+IN_SCOPE = [greenhouse, ashby, lever]
+
+
+@pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
+def test_read_back_systems_define_holds(system):
+    assert sum(p.default is p.empty for p in inspect.signature(system.holds).parameters.values()) == 2
 
 
 def test_systems_found_in_name_order_no_hand_list():
@@ -428,6 +441,15 @@ def test_ashby_link_with_or_without_application_or_tracking_tail():
         ashby.parse_url("https://acme.myworkdayjobs.com/x")
 
 
+def test_ashby_org_with_a_space_read_as_ashby_names_it():
+    """Measured 2026-10-05: a link spelling the org "acme%20corp" - question read null under that
+    spelling, the posting's 9 questions under "acme corp"; prepare stopped on an open posting."""
+    url = "https://jobs.ashbyhq.com/acme%20corp/45bdb7e5-14a8-494f-8fcb-30e42f0be67a?utm_source=freehire.me"
+    assert ashby.parse_url(url) == ("acme corp", "45bdb7e5-14a8-494f-8fcb-30e42f0be67a")
+    assert ashby.application_url(url) == \
+        "https://jobs.ashbyhq.com/acme%20corp/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/application"
+
+
 def test_ashby_form_becomes_shared_questions():
     def entry(path, title, kind, required=True, values=None, off=False):
         f = {"path": path, "title": title, "type": kind, "isDeactivated": off}
@@ -446,6 +468,58 @@ def test_ashby_form_becomes_shared_questions():
     assert got["abc"]["key"] == "linkedin" and got["def"]["options"] == ["10+"] and got["ghi"]["kind"] == "yesno"
     assert got["new"]["kind"] == "text" and got["new"]["native"] == "SomeNewType"  # unknown type: typed as text
 
+
+def test_ashby_types_from_real_forms_url_and_education_history():
+    """Url (31 of 111 open forms) + EducationHistory (2), 2026-10-05: ashby.md "Kinds on real forms"."""
+    job = json.loads((Path(__file__).parent / "fixtures" / "ashby" / "survey-kinds.json").read_text())
+    got = {q["title"]: q for q in ashby.from_form(job)}
+    assert {q["native"] for q in got.values()} <= set(ashby.KIND)
+    assert (got["LinkedIn Profile"]["kind"], got["LinkedIn Profile"]["key"]) == ("url", "linkedin")
+    samples = next(q for t, q in got.items() if t.startswith("Please provide relevant work samples"))
+    assert (samples["kind"], samples["key"], samples["required"]) == ("url", None, False)
+    # one block of boxes per school, never one answer: school required, start dates left out (not on a resume)
+    boxes = [(q["id"], q["kind"], q["required"]) for q in ashby.from_form(job, 2) if q["native"] == "EducationHistory"]
+    path = ashby.EDUCATION_PATH
+    assert boxes == [(f"{path}--{key}--{i}", kind, key == "school") for i in (0, 1)
+                     for key, kind in (("school", "choice"), ("degree", "text"), ("discipline", "text"),
+                                       ("school_end_month", "choice"), ("school_end_year", "number"))]
+    assert "Education History" not in got and got["Education 1: School"]["entry"] == 0
+
+
+def test_ashby_education_filled_per_school_from_resume_details(fixture_page, monkeypatch):
+    """Education History (2 employers, 2026-10-05) drafted from Resume details: the school picked off the
+    search by its exact words, degree spelled out + field as written in the free-text boxes, graduation
+    month + year in the end date's selects; school 2 through the page's own "+ Add Education" (same ids
+    in each block); holds() reads each back. A school the list doesn't offer -> the user picks theirs."""
+    job = json.loads((Path(__file__).parent / "fixtures" / "ashby" / "survey-kinds.json").read_text())
+    asked = [q for q in ashby.from_form(job, 2) if q["native"] == "EducationHistory"]
+    schools = [{"institution": "University of California, Berkeley", "degree": "BA", "field": "Economics", "end": "2016-05"},
+               {"institution": "Massachusetts Institute of Technology", "degree": "PhD", "field": "Computer Science",
+                "end": "2021"}]
+    drafted = questions.draft(asked, {}, schools=schools)
+    monkeypatch.setattr(form, "SETTLE_MS", 500)
+    page = fixture_page("ashby-education.html")
+    report, extra = form.fill_page(page, ashby, drafted, None, None)
+    assert report == [(q["id"], "ok") for q in drafted if q["answer"]] and len(report) == 9
+    assert extra == ["_systemfield_name"]  # the Education History wrapper is never a question the file lacks
+    assert all(ashby.holds(page, q) for q in drafted if q["answer"])
+    assert page.locator('[id="_systemfield_education_history-degree"]').evaluate_all("es => es.map(e => e.value)") == \
+        ["Bachelor of Arts", "Doctor of Philosophy"]
+    assert page.locator("input[role=combobox]").evaluate_all("es => es.map(e => e.value)") == \
+        ["University of California, Berkeley", "Massachusetts Institute of Technology"]
+    ends = page.locator('[id="_systemfield_education_history-endDate"] select').evaluate_all(
+        "es => es.map(e => e.value ? e.selectedOptions[0].text : '')")
+    assert ends == ["May", "2016", "", "2021"]  # a year alone: no month chosen
+    assert page.locator(".block").count() == 2
+    assert [ashby.fill(page, q, None) for q in drafted if q["answer"]] == ["ok"] * 9  # again: nothing changes
+    assert page.locator(".block").count() == 2
+    monkeypatch.setattr(ashby, "LIST_WAIT_MS", 1000)
+    school = drafted[0] | {"answer": "Springfield Community College"}
+    assert ashby.fill(page, school, None) == \
+        "ASK school 'Springfield Community College' not on the form's list - the user picks theirs on the page"
+    assert not ashby.holds(page, school)
+    month = next(q for q in drafted if q["key"] == "school_end_month") | {"answer": "Smarch"}
+    assert ashby.fill(page, month, None) == "ASK no option 'Smarch' - the user picks it on the page"
 
 
 # --- UKG Pro Recruiting ---
@@ -790,7 +864,8 @@ def test_file_on_choice_systems_say_so_in_prepare_and_the_privacy_table():
     import cfg
     asked = [q("Resume/CV", "file", "resume"), q("First Name")]
     assert "as soon as it is chosen" in form.upload_note(greenhouse, asked)
-    assert form.upload_note(greenhouse, asked[1:]) == "" and form.upload_note(ashby, asked) == ""
+    assert form.upload_note(greenhouse, asked[1:]) == "" and form.upload_note(ukg, asked) == ""
+    assert "Ashby: a file goes to the employer's site as soon as it is chosen" in form.upload_note(ashby, asked)
     table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
     for system in systems.SYSTEMS:
         rows = [r for r in table if f"that employer's {system.NAME} site" in r]
@@ -1006,7 +1081,11 @@ def test_greenhouse_says_school_boxes_search_its_list_as_typed():
     import cfg
     asked = [q("Education 1: School", "choice", "school"), q("Education 1: Degree", "choice", "degree"), q("First Name")]
     assert "school, degree boxes search Greenhouse's own list as they're typed" in form.typed_note(greenhouse, asked)
-    assert form.typed_note(greenhouse, asked[2:]) == "" and form.typed_note(ashby, asked) == ""
+    assert form.typed_note(greenhouse, asked[2:]) == "" and form.typed_note(ashby, asked[2:]) == ""
+    # Ashby's school box searches its school list as typed too (plan-nko.24); its degree is a plain box
+    assert "Ashby: the school boxes search Ashby's own list as they're typed" in form.typed_note(ashby, asked)
+    where = questions.question("q9", "Where are you based?", "location", True)  # an employer's own Location box: no key
+    assert where["key"] is None and "location boxes search Ashby's own list" in form.typed_note(ashby, [where])
     table = (cfg.ROOT / "AGENTS.md").read_text(encoding="utf-8").splitlines()
     for system in systems.SYSTEMS:
         typed = any("typed" in r.split("|")[3] for r in table if f"that employer's {system.NAME} site" in r)
@@ -1051,6 +1130,35 @@ def test_greenhouse_text_waits_out_the_pages_own_name_fill():
     assert greenhouse.put_text(GhField(GhPage()), "(555) 010-0100", "phone") == "ok"
 
 
+def test_ashby_closed_reads_the_employers_board_once_never_guesses(monkeypatch):
+    """jobPosting null = closed or a wrong link (ashby.md "Closed posting"): the public board tells which."""
+    import httpx
+    url = "https://jobs.ashbyhq.com/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a"
+    boards = []
+
+    def board(where, timeout):
+        boards.append(where)
+        return httpx.Response(state["board"], json={"jobs": [{"id": state["listed"]}]},
+                              request=httpx.Request("GET", where))
+    state = {"posting": None, "board": 200, "listed": "11111111-2222-3333-4444-555555555555"}
+    monkeypatch.setattr(ashby, "job_posting", lambda org, posting: state["posting"])
+    monkeypatch.setattr(ashby.httpx, "get", board)
+    assert ashby.closed(url).endswith("no longer on the employer's Ashby board - it may have closed")
+    assert boards == ["https://api.ashbyhq.com/posting-api/job-board/acme"]
+    state["board"] = 404
+    assert ashby.closed(url).startswith("can't tell") and "board moved?" in ashby.closed(url)
+    state.update(board=200, listed="45bdb7e5-14a8-494f-8fcb-30e42f0be67a")
+    assert ashby.closed(url).startswith("can't tell")
+    with pytest.raises(ValueError, match="can't tell"):
+        ashby.questions(url)
+    state["posting"] = {"title": "Engineer"}
+    boards.clear()
+    assert ashby.closed(url) is None and boards == []
+    state["posting"] = None
+    ashby.closed("https://jobs.ashbyhq.com/acme%20corp/45bdb7e5-14a8-494f-8fcb-30e42f0be67a")
+    assert boards == ["https://api.ashbyhq.com/posting-api/job-board/acme%20corp"]
+
+
 def test_ashby_voluntary_survey_listed_beside_the_form():
     """Gender, race, veteran come as surveyForms - left out, they sat blank on the page (2026-10)."""
     field = lambda path, title, values: {"isRequired": False, "field": {
@@ -1059,6 +1167,26 @@ def test_ashby_voluntary_survey_listed_beside_the_form():
            "surveyForms": [{"sections": [{"fieldEntries": [
                field("_systemfield_eeoc_gender", "Gender", ["Male", "Female", "Decline to self-identify"])]}]}]}
     assert [q["id"] for q in ashby.from_form(job)] == ["q", "_systemfield_eeoc_gender"]
+
+
+def test_ashby_untitled_consent_left_for_the_applicant():
+    """Measured 2026-10-05 (tenant D): an "I agree" tick, title "", its consent words in the entry's
+    description - the try run ticked it. Read as its title; a box with no words at all is theirs too."""
+    job = json.loads((Path(__file__).parent / "fixtures" / "ashby" / "consent-untitled.json").read_text())
+    got = {q["id"]: q for q in ashby.from_form(job)}
+    assert got["_systemfield_name"]["title"] == "Name"  # a titled box keeps its title, not its hint
+    consent, blank = got["_systemfield_data_consent_ack"], got["untitled"]
+    assert consent["title"].startswith("I consent to my data being retained beyond one year")
+    assert blank["title"] == "" and all(questions.signs(q["title"]) for q in (consent, blank))
+    drafted = {a["id"]: a for a in questions.draft(list(got.values()), CONTACT)}  # prepare
+    for id, why in (("_systemfield_data_consent_ack", questions.SIGNING), ("untitled", questions.UNTITLED)):
+        assert drafted[id]["answer"] is None
+        assert drafted[id]["source"] == f"{questions.ASK} - {questions.SIGN_ON_PAGE}: {why}"
+    assert drafted["_systemfield_name"]["answer"] == CONTACT["name"]
+    assert questions.missing(list(drafted.values())) == []  # required, but theirs on the page: not asked for
+    for id in ("_systemfield_data_consent_ack", "untitled"):  # fill: an answer there is refused, never ticked
+        with pytest.raises(SystemExit, match="ticks or signs"):
+            form.refuse([{**drafted[id], "answer": ["I agree"], "source": questions.USER_SAID}])
 
 
 VETERAN = ["I identify as one or more of the classifications of protected veteran listed above",
@@ -1276,3 +1404,141 @@ def test_website_box_gets_the_resumes_own_site_never_a_profile():
     assert questions.from_resume(q, contact) == "https://www.example.com"
     assert questions.from_resume(q, {"links": ["https://portfolio.example.org/work"]}) == "https://portfolio.example.org/work"
     assert questions.from_resume(q, {"links": ["linkedin.com/in/your-name"]}) == ""
+
+
+# --- fill twice = same state: recheck refills a dropped answer once, so a refill must never untick ---
+
+FIXTURES = Path(__file__).parent / "fixtures" / "dom"
+
+
+@pytest.fixture(scope="module")
+def chrome():
+    pw = pytest.importorskip("playwright.sync_api")
+    try:
+        exe = browser.chrome()
+    except SystemExit:
+        pytest.skip("Chrome not installed")
+    with pw.sync_playwright() as p:
+        b = p.chromium.launch(executable_path=exe, headless=True)
+        yield b
+        b.close()
+
+
+@pytest.fixture
+def fixture_page(chrome):
+    """A page from fixtures/dom/ in real headless Chrome; every other request refused."""
+    context = chrome.new_context()
+    asked = []
+
+    def serve(route):
+        u = urlsplit(route.request.url)
+        asked.append(route.request.url)
+        file = FIXTURES / u.path.lstrip("/")
+        if u.hostname != "acme.example" or not file.is_file():
+            return route.fulfill(status=404, body="")
+        return route.fulfill(path=str(file))
+
+    context.route("**/*", serve)
+    pg = context.new_page()
+
+    def at(name):
+        pg.goto(f"https://acme.example/{name}")
+        pg.wait_for_load_state("load")
+        return pg
+    yield at
+    assert all(urlsplit(u).hostname == "acme.example" for u in asked), asked
+    context.close()
+
+
+def shown(page) -> list:
+    """Everything the form shows: each box's value or tick, pressed buttons, chosen dropdown values."""
+    return page.eval_on_selector_all(
+        "form input, form textarea, form select, form button, form [class*=single-value], form [class*=multi-value__label]",
+        "es => es.map(e => e.matches('input[type=radio], input[type=checkbox]') ? e.checked"
+        " : e.matches('button') ? e.getAttribute('aria-pressed') : 'value' in e ? e.value : e.innerText)")
+
+
+def answered(id, kind, answer, options=(), title="Question"):
+    return questions.question(id, title, kind, True, options) | {"answer": answer}
+
+
+READ_BACK_FORMS = {
+    "greenhouse": ("greenhouse-form.html", [
+        answered("first_name", "text", "Ada"), answered("email", "email", "ada@example.com"),
+        answered("question_5", "choice", "United States"),
+        answered("question_100[]", "multichoice", ["Part Time", "Contract"])]),
+    "ashby": ("ashby-form.html", [
+        answered("_systemfield_name", "text", "Ada Lovelace"), answered("_systemfield_email", "email", "ada@example.com"),
+        answered("q_phone", "phone", "555-0100"), answered("q_why", "longtext", "Their own words."),
+        answered("q_sponsor", "yesno", "No"), answered("q_years", "choice", "8+"),
+        answered("q_stack", "multichoice", ["Python", "SQL"]), answered("q_country", "choice", "United States")]),
+    "lever": ("lever-form.html", [
+        answered("name", "text", "Ada Lovelace"), answered("phone", "phone", "555-0100"),
+        answered("cards[acme][field0]", "longtext", "Their own words."),
+        answered("cards[acme][field1]", "yesno", "Yes"), answered("cards[acme][field2]", "choice", "3-5"),
+        answered("cards[acme][field3]", "multichoice", ["Python", "Excel"])]),
+}
+
+
+@pytest.mark.parametrize("name", list(READ_BACK_FORMS))
+def test_fill_twice_leaves_every_kind_as_the_first_fill_did(fixture_page, name):
+    system = importlib.import_module(f"apply.systems.{name}")
+    file, qs = READ_BACK_FORMS[name]
+    page = fixture_page(file)
+    assert [system.fill(page, q, None) for q in qs] == ["ok"] * len(qs)
+    page.wait_for_timeout(300)  # the page marks a click a moment later
+    once = shown(page)
+    assert [system.fill(page, q, None) for q in qs] == ["ok"] * len(qs)
+    page.wait_for_timeout(300)
+    assert shown(page) == once
+    if hasattr(system, "holds"):
+        assert [q["id"] for q in qs if not system.holds(page, q)] == []
+
+
+def test_ashby_long_list_choice_the_page_empties_reads_as_dropped(fixture_page):
+    page = fixture_page("ashby-form.html")
+    region = answered("q_region", "choice", "West")
+    assert ashby.fill(page, region, None) == "ok"
+    assert ashby.holds(page, region)
+    page.wait_for_timeout(1200)  # the page empties the pick after 800 ms
+    assert page.locator('[data-field-path="q_region"] input').input_value() == ""
+    assert not ashby.holds(page, region)
+    assert ashby.fill(page, answered("q_region", "choice", "South"), None) == "FAIL no option 'South'"
+
+
+def test_ashby_holds_reads_what_shows_never_the_answer(fixture_page):
+    """An option the box doesn't have, a box not on the page, a place with no pick: nothing shows = not held."""
+    page = fixture_page("ashby-form.html")
+    assert not ashby.holds(page, answered("q_years", "choice", "10+"))
+    assert not ashby.holds(page, answered("q_gone", "text", "x"))
+    assert not ashby.holds(page, answered("q_stack", "multichoice", ["Python"]))
+    page.locator('[data-field-path="q_country"] input').fill("Austin, TX, United States")
+    assert ashby.holds(page, answered("q_country", "location", "Austin, Texas"))
+    assert not ashby.holds(page, answered("q_country", "location", "Boston, MA"))
+
+
+def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_page, monkeypatch, tmp_path):
+    """A failed upload still shows the file name + Replace (3 of 3 employers, 2026-10-05): ok only once
+    the page has said nothing failed for a while after the name; its own error words otherwise."""
+    monkeypatch.setattr(ashby, "ERROR_WAIT_MS", 1000)
+    page = fixture_page("ashby-form.html")
+    resume = answered("_systemfield_resume", "file", True, title="Resume") | {"key": "resume"}
+    good, bad = tmp_path / "Ada_Lovelace_Resume.pdf", tmp_path / "bad_Resume.pdf"
+    for f in (good, bad):
+        f.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    assert ashby.fill(page, resume, str(bad)) == \
+        "FAIL the page says 'bad_Resume.pdf failed to upload' - choose the file again on the page, or check the resume box"
+    assert ashby.fill(page, resume, str(good)) == "ok"
+
+
+def test_survey_tally_is_counts_only():
+    from apply import survey
+    f = lambda **k: {"type": "t", "required": False, "survey": False, "resume": False, "file": False, "known": True,
+                     "raw": {"title": "Why Acme?"}} | k
+    got = survey.tally([("Lever", [f(type="standard:resume:file", file=True, resume=True, required=True),
+                                   f(type="card:file-upload", file=True, known=False), f(survey=True)]),
+                        ("Lever", None)])["Lever"]
+    assert (got["employers"], got["closed"], got["survey_forms"]) == (2, 1, 1)
+    assert (got["other_file_boxes"], got["employers_with_other_file"], got["unknown"]) == (1, 1, ["card:file-upload"])
+    assert got["types"]["standard:resume:file"] == {"employers": 1, "fields": 1, "required": 1}
+    assert "Acme" not in json.dumps(got)  # question text never in the counts

@@ -1,7 +1,8 @@
-"""Trial: fill a Greenhouse form in a tab of the Job Finder window (apply/window.py, `apply-form fill
+"""Trial: fill a Greenhouse, Ashby or Lever form in a tab of the Job Finder window (apply/window.py, `apply-form fill
 --in-window`), off by default. The Page/Locator adapter runs in real headless Chrome over raw CDP - the
-same protocol the window's debugger proxy speaks - on a local Greenhouse-like page; the window's side
-(open the holding page, attach, detach) is a fake extension answering as extension.js does."""
+same protocol the window's debugger proxy speaks - on local Greenhouse- and Ashby-like pages + Lever's saved
+form; Ashby's and Lever's fillers run through Playwright too, same read-back asked of both. The window's side (open the holding
+page, attach, detach) is a fake extension answering as extension.js does."""
 import contextlib
 import json
 import os
@@ -21,9 +22,35 @@ import cfg
 import launch
 from apply import browser, form, questions, window
 from apply.cdp import CDP
-from apply.systems import greenhouse
+from apply.systems import ashby, greenhouse, lever
 
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
+ASHBY_FORM = FORM.with_name("ashby-form.html")
+ASHBY_PATH = "/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/application"
+ASHBY_EDUCATION_PATH = "/acme/45bdb7e5-14a8-494f-8fcb-30e42f0be67a/education"
+LEVER_FORM = FORM.parent.parent / "lever" / "tenant-a.html"
+LEVER_PATH = "/acme/1b2c3d4e-5f60-4718-9a0b-1c2d3e4f5a6b/apply"
+# what Lever's own scripts do that its saved form lacks: the place search offers towns 300 ms after
+# typing stops (a pick = the town in the box + Lever's own record; typing again drops the record), a
+# chosen resume shows its verdict 500 ms later; the verdicts + search notes hidden until then
+LEVER_BEHAVES = """<style>.resume-upload-failure, .resume-upload-working, .resume-upload-success, .resume-upload-oversize,
+  .dropdown-no-results, .dropdown-loading-results {display: none}</style>
+<script>
+const box = document.getElementById("location-input"), pick = document.getElementById("selected-location"),
+  results = document.querySelector(".dropdown-results"), file = document.getElementById("resume-upload-input");
+const PLACES = ["Austin, Texas, United States", "Austin, Minnesota, United States", "Boston, Massachusetts, United States"];
+let typing;
+box.addEventListener("input", () => {
+  pick.value = ""; results.replaceChildren(); clearTimeout(typing);
+  typing = setTimeout(() => { const t = box.value.trim().toLowerCase();
+    for (const p of PLACES.filter((p) => t && p.toLowerCase().startsWith(t))) {
+      const d = document.createElement("div"); d.textContent = p; results.append(d); } }, 300); });
+results.addEventListener("click", (ev) => { const d = ev.target.closest(".dropdown-results > div");
+  if (d) { box.value = d.textContent; pick.value = JSON.stringify({name: d.textContent}); results.replaceChildren(); } });
+file.addEventListener("change", () => setTimeout(() => {
+  document.querySelector(".visible-resume-upload .filename").textContent = file.files[0] ? file.files[0].name : "";
+  document.querySelector(".resume-upload-success").style.display = "inline"; }, 500));
+</script>"""
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
 
 
@@ -69,7 +96,12 @@ def site():
                 time.sleep(PRESIGNED["after"])
                 body, kind = b'{"resume": {}}', "application/json"
             else:
-                body, kind = (FORM.read_bytes() if self.path == "/acme/jobs/1" else None), "text/html; charset=utf-8"
+                page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM,
+                        ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html")}.get(self.path)
+                body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
+                if self.path == LEVER_PATH:
+                    body = ("<!doctype html><html><head><meta charset=utf-8><title>Apply - Acme</title></head><body>"
+                            f"{LEVER_FORM.read_text()}{LEVER_BEHAVES}</body></html>").encode()
             with contextlib.suppress(OSError):  # the tab moved on while it waited
                 self.send_response(200 if body else 404)
                 self.send_header("Content-Type", kind)
@@ -128,6 +160,256 @@ def test_in_window_page_fills_greenhouse_in_a_tab_over_cdp(tab, site, tmp_path, 
         assert page.run("document.getElementById('resume').files[0].name") == resume.name
     finally:
         cdp.close()
+
+
+@pytest.fixture(scope="module")
+def playwright_chrome():
+    """Playwright's own headless Chrome: the Chrome path the window's adapter must match."""
+    pw = pytest.importorskip("playwright.sync_api")
+    try:
+        exe = browser.chrome()
+    except SystemExit:
+        pytest.skip("Chrome not installed")
+    with pw.sync_playwright() as p:
+        b = p.chromium.launch(executable_path=exe, headless=True)
+        yield b
+        b.close()
+
+
+@contextlib.contextmanager
+def both(tab, playwright_chrome, url):
+    """The same page twice -> {"playwright": page, "window": window.Page}, each loaded."""
+    context = playwright_chrome.new_context()
+    cdp = CDP(**tab)
+    try:
+        pw = context.new_page()
+        pw.goto(url)
+        cdp.send("Debugger.enable")  # attached as js-debug is
+        page = window.Page(cdp)
+        page.goto(url)
+        yield {"playwright": pw, "window": page}
+    finally:
+        cdp.close()
+        context.close()
+
+
+def ashby_url(site):
+    return site.replace("/acme/jobs/1", ASHBY_PATH)
+
+
+ASHBY_ANSWERS = [asked("_systemfield_name", "Name", "text", "Ada Lovelace", key="name"),
+                 asked("_systemfield_email", "Email", "email", "ada@example.com", key="email"),
+                 asked("q_phone", "Phone", "phone", "555-0100"),
+                 asked("q_why", "Why Acme?", "longtext", "Their own words."),
+                 # pressed 200 ms after the click; a second click clears
+                 asked("q_sponsor", "Will you require sponsorship?", "yesno", "No", options=["Yes", "No"]),
+                 # ticked 200 ms after the label's click; a second click clears
+                 asked("q_years", "Years of experience", "choice", "8+", options=["0-2", "3-5", "8+"]),
+                 asked("q_stack", "Which do you use?", "multichoice", ["Python", "SQL"]),
+                 asked("q_country", "Country", "choice", "United States"),
+                 # the page empties every pick 800 ms later: never an ok the page doesn't show
+                 asked("q_region", "Region", "choice", "West"),
+                 asked("q_city", "Location", "location", "Austin, Texas"),
+                 asked("_systemfield_resume", "Resume", "file", True, key="resume")]
+# each box's value or tick, pressed buttons, the file name shown - read off the page, never the filler's word
+ASHBY_SHOWN = ("es => es.map(e => e.matches('input[type=radio], input[type=checkbox]') ? e.checked"
+               " : e.matches('button') ? e.getAttribute('aria-pressed') : e.matches('input[type=file]') ? e.files.length"
+               " : 'value' in e ? e.value : e.innerText)")
+
+
+def test_in_window_fills_ashby_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # ashby.fill + holds + form.fill_page through each: same report, same page after, and a second
+    # fill changes nothing (a chosen Yes / No or radio clicked again would clear)
+    monkeypatch.setattr(form, "SETTLE_MS", 1200)  # past the page's 800 ms drop
+    monkeypatch.setattr(ashby, "ERROR_WAIT_MS", 500)
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, ashby_url(site)) as tabs:
+        for name, page in tabs.items():
+            page.locator(ashby.READY).first.wait_for(timeout=5000)
+            assert form.closed(page, ashby) is None
+            report, extra = form.fill_page(page, ashby, ASHBY_ANSWERS, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == []
+            page.wait_for_timeout(300)
+            once = page.eval_on_selector_all("form input, form textarea, form button, form .name", ASHBY_SHOWN)
+            assert [ashby.fill(page, q, None) for q in ASHBY_ANSWERS if q["kind"] != "file" and q["id"] != "q_region"] == ["ok"] * 9
+            page.wait_for_timeout(300)
+            assert page.eval_on_selector_all("form input, form textarea, form button, form .name", ASHBY_SHOWN) == once
+            pages[name] = once
+            assert [q["id"] for q in ASHBY_ANSWERS if q["kind"] != "file" and not ashby.holds(page, q)] == ["q_region"]
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {q["id"]: "ok" for q in ASHBY_ANSWERS} | {"q_region": "FAIL answer dropped after filling - fill it by hand"}
+    assert pages["window"] == pages["playwright"]
+    assert pages["window"] == ["Ada Lovelace", "ada@example.com", "555-0100", "Their own words.", "false", "true",
+                               False, False, True, True, True, False, "United States", "", "Austin, TX, United States",
+                               f"{resume.name} Replace", 1]
+
+
+def test_in_window_fills_ashby_education_as_playwright_does(tab, site, playwright_chrome, monkeypatch):
+    # two schools' blocks (same ids in each, school 2 through "+ Add Education"): same report + page through each
+    monkeypatch.setattr(form, "SETTLE_MS", 300)
+    job = {"applicationForm": {"sections": [{"fieldEntries": [{"isRequired": True, "field": {
+        "path": ashby.EDUCATION_PATH, "title": "Education History", "type": "EducationHistory", "schoolName": "required",
+        "degree": "optional", "major": "optional", "startDate": "optional", "endDate": "optional"}}]}]}}
+    schools = [{"institution": "New York University", "degree": "BS", "field": "Economics", "end": "2020-05"},
+               {"institution": "Massachusetts Institute of Technology", "degree": "MS", "field": "Computer Science",
+                "end": "2022-06"}]
+    drafted = questions.draft(ashby.from_form(job, 2), {}, schools=schools)
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, site.replace("/acme/jobs/1", ASHBY_EDUCATION_PATH)) as tabs:
+        for name, page in tabs.items():
+            page.locator(ashby.READY).first.wait_for(timeout=5000)
+            report, extra = form.fill_page(page, ashby, drafted, None, None)
+            reports[name] = dict(report)
+            assert extra == ["_systemfield_name"]
+            pages[name] = page.eval_on_selector_all(
+                "form input, form select", "es => es.map(e => e.tagName === 'SELECT' ? (e.value ? e.selectedOptions[0].text"
+                " : '') : e.type === 'checkbox' ? e.checked : e.value)")
+    assert reports["window"] == reports["playwright"] == {q["id"]: "ok" for q in drafted}
+    assert pages["window"] == pages["playwright"] == [
+        "", "New York University", "Bachelor of Science", "Economics", "", "", "May", "2020", False,
+        "Massachusetts Institute of Technology", "Master of Science", "Computer Science", "", "", "June", "2022", False]
+
+
+def lever_url(site):
+    return site.replace("/acme/jobs/1", LEVER_PATH)
+
+
+# tenant A's own questions, each kind answered once: radios, a dropdown, ticks, text, a place, the resume;
+# the rest left blank (skipped, as an unanswered one is)
+LEVER_GIVEN = {"resume": True, "name": "Ada Lovelace", "email": "ada@example.com", "phone": "555-0100",
+               "location": "Austin, Texas", "urls[LinkedIn]": "https://www.linkedin.com/in/ada",
+               "Are you authorized to work in the United States?": "Yes",
+               "Will you require sponsorship for employment now or": "No",
+               "If yes, what type of sponsorship?": "None needed.",
+               "Acme provides technology": "Other", "How did you hear about us?": "LinkedIn Post",
+               "Please state your full legal name:": "Ada King Lovelace",
+               "Are you local to or willing to relocate?": "Yes",
+               "What office(s) would you be willing to relocate to": ["Boston, MA", "International"],
+               "eeo[gender]": "Decline to self-identify", "eeo[race]": "Asian (Not Hispanic or Latino)",
+               "eeo[disability]": "I do not want to answer", "eeo[disabilitySignature]": "Ada Lovelace"}
+
+
+def lever_answers() -> list[dict]:
+    out = []
+    for q in lever.from_page(LEVER_FORM.read_text()):
+        given = [v for k, v in LEVER_GIVEN.items() if k == q["id"] or q["title"].startswith(k)]
+        out.append(q | {"answer": given[0] if given else ""})
+    assert sum(1 for q in out if q["answer"] != "") == len(LEVER_GIVEN)
+    return out
+
+
+# each box's value or tick, each list's picked texts, Lever's own place record + the resume verdict shown -
+# read off the page, never the filler's word
+LEVER_SHOWN = ("es => es.map(e => e.matches('input[type=radio], input[type=checkbox]') ? e.checked"
+               " : e.matches('select') ? [...e.selectedOptions].map(o => o.text.trim()).join('|')"
+               " : e.matches('input[type=file]') ? e.files.length : e.value)"
+               ".concat([document.getElementById('selected-location').value,"
+               " document.querySelector('.visible-resume-upload .filename').textContent])")
+LEVER_BOXES = "#application-form input:not([type=hidden]), #application-form select, #application-form textarea"
+
+
+def test_in_window_fills_lever_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # lever.fill + holds + form.fill_page through each on tenant A's saved form: same report, same page
+    # after, every answer read back, a second fill changes nothing (a tick clicked again would clear)
+    monkeypatch.setattr(form, "SETTLE_MS", 1000)
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    qs = lever_answers()
+    answered = [q for q in qs if q["answer"] != ""]
+    again = [q for q in answered if q["kind"] != "file" and q.get("native") != "eeo:signature"]
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, lever_url(site)) as tabs:
+        for name, page in tabs.items():
+            assert form.closed(page, lever) is None
+            report, extra = form.fill_page(page, lever, qs, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == []
+            page.wait_for_timeout(300)
+            once = page.eval_on_selector_all(LEVER_BOXES, LEVER_SHOWN)
+            assert [lever.fill(page, q, None) for q in again] == ["ok"] * len(again)
+            page.wait_for_timeout(500)  # past the place search's own wait
+            assert page.eval_on_selector_all(LEVER_BOXES, LEVER_SHOWN) == once
+            pages[name] = once
+            assert [q["id"] for q in again if not lever.holds(page, q)] == []
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {q["id"]: "ok" for q in answered} | {"eeo[disabilitySignature]": questions.left_on_page(
+        next(q for q in qs if q["id"] == "eeo[disabilitySignature]"))}
+    assert pages["window"] == pages["playwright"]
+    # what shows, empty boxes + clear ticks left out: the file, text boxes, ticks (Yes, No, Other, LinkedIn Post,
+    # Boston, International, Asian), lists (veteran left at its own "Select ..."), Lever's place record, its verdict
+    assert [v for v in pages["window"] if v not in ("", False, 0)] == [
+        1, "Ada Lovelace", "ada@example.com", "555-0100", "Austin, Texas, United States", "https://www.linkedin.com/in/ada",
+        True, True, "None needed.", True, True, "Ada King Lovelace", "Yes", True, True, "Decline to self-identify", True,
+        "Select ...", "I do not want to answer", '{"name":"Austin, Texas, United States"}', resume.name]
+
+
+@pytest.mark.parametrize("selector", ["#application-form .resume-upload-success, #application-form .resume-upload-failure",
+                                      "#application-form .application-label", "#application-form input",
+                                      "#application-form .dropdown-results > div", "#application-form .filename"])
+def test_in_window_visible_filter_and_all_find_what_playwright_finds(tab, site, playwright_chrome, tmp_path, selector):
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    got = {}
+    with both(tab, playwright_chrome, lever_url(site)) as tabs:
+        for name, page in tabs.items():
+            before = [page.locator(selector).filter(visible=True).count(), len(page.locator(selector).all())]
+            page.locator("#resume-upload-input").set_input_files(str(resume))
+            page.locator("#location-input").press_sequentially("Aus")
+            page.wait_for_timeout(800)
+            shown = page.locator(selector).filter(visible=True)
+            got[name] = before + [shown.count(), [m.inner_text() for m in shown.all()]]
+    assert got["window"] == got["playwright"]
+
+
+def test_in_window_select_option_picks_by_label_as_playwright_does(tab, site, playwright_chrome):
+    got = {}
+    with both(tab, playwright_chrome, lever_url(site)) as tabs:
+        for name, page in tabs.items():
+            run = page.run if name == "window" else page.evaluate
+            run("window.told = []; document.addEventListener('change', (e) => told.push(e.target.name))")
+            box = page.locator('[name="eeo[gender]"]')
+            got[name] = [box.select_option(label="Female"), box.select_option(label=["Male"]),
+                         box.evaluate("e => e.selectedOptions[0].text"), run("told")]
+        with pytest.raises(Exception, match="Non-multiple select element"):
+            tabs["window"].locator('[name="eeo[gender]"]').select_option(label=["Male", "Female"])
+        with pytest.raises(TimeoutError):
+            tabs["window"].locator('[name="eeo[gender]"]').select_option(label="Nobody", timeout=300)
+    assert got["window"] == got["playwright"]
+
+
+@pytest.mark.parametrize("ask", [
+    lambda p: p.get_by_role("button", name="Yes", exact=True),  # the one hidden from a screen reader left out
+    lambda p: p.get_by_role("button", name="yes"),
+    lambda p: p.get_by_role("button", name="No", exact=True),
+    lambda p: p.get_by_role("button", name="no"),  # aria-label "No thanks" too, never its text "Close"
+    lambda p: p.get_by_role("button", name="Close"),
+    lambda p: p.get_by_role("button"),
+    lambda p: p.locator('[data-field-path="q_years"]').get_by_role("button", name="No", exact=True),
+    lambda p: p.locator("label", has_text=re.compile(r"^\s*8\+\s*$")),
+    lambda p: p.locator("label", has_text=re.compile(r"^\s*8\+\s*$", re.IGNORECASE)),
+    lambda p: p.locator("label", has_text=re.compile("^python$")),
+    lambda p: p.locator("label", has_text="  PYTHON "),
+    lambda p: p.locator("label", has_text="sponsor"),
+    lambda p: p.locator("div", has_text=re.compile("Which do you use")),
+])
+def test_in_window_role_and_text_lookups_find_what_playwright_finds(tab, site, playwright_chrome, ask):
+    with both(tab, playwright_chrome, ashby_url(site)) as tabs:
+        counts = {name: ask(page).count() for name, page in tabs.items()}
+        texts = {name: ask(page).all_inner_texts() for name, page in tabs.items()}
+    assert counts["window"] == counts["playwright"] and texts["window"] == texts["playwright"]
+
+
+def test_in_window_is_checked_reads_the_tick_as_playwright_does(tab, site, playwright_chrome):
+    with both(tab, playwright_chrome, ashby_url(site)) as tabs:
+        for page in tabs.values():
+            page.locator("#stack-1").click()
+        assert {n: [p.locator(f"#stack-{i}").is_checked() for i in range(3)] for n, p in tabs.items()} == \
+            {"playwright": [False, True, False], "window": [False, True, False]}
+        with pytest.raises(Exception, match="Not a checkbox or radio button"):
+            tabs["window"].locator("#name").is_checked()
 
 
 def test_in_window_upload_waits_for_the_page_to_ready_its_file_box(tab, site, tmp_path):
@@ -317,18 +599,21 @@ def test_in_window_off_by_default_fill_stays_in_chrome(tmp_path, monkeypatch, ca
     assert capsys.readouterr().out.endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
 
 
-def test_in_window_fills_greenhouse_in_the_window_tab(tmp_path, monkeypatch, capsys):
-    opened = fill_setup(tmp_path, monkeypatch, "Greenhouse")
+@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever"])
+def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, capsys, name):
+    opened = fill_setup(tmp_path, monkeypatch, name)
     monkeypatch.setattr(form.sys, "argv", ["form.py", "fill", "7", "--in-window"])
     form.main()
     out = capsys.readouterr().out
     assert opened == ["window"] and "  [ok] First Name\n" in out
-    assert out.endswith("The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n")
+    said = "The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
+    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name == "Lever" else ""))
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
-    opened = fill_setup(tmp_path, monkeypatch, "Ashby")
+    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever")
+    opened = fill_setup(tmp_path, monkeypatch, "Workable")
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
-    assert str(stop.value) == "in the window: Greenhouse only for now - run fill without --in-window"
+    assert str(stop.value) == "in the window: Greenhouse, Ashby, Lever only for now - run fill without --in-window"
     assert opened == []

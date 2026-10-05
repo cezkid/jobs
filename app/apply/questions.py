@@ -130,6 +130,9 @@ SIGNING = "agreeing, consenting or signing"
 AI_USE = "saying whether AI helped"
 # the applicant's own act on the page: never drafted, kept or filled, not even from "you said"
 ON_PAGE = (AI_USE, SIGNING)
+# a box whose question has no words (2026-10-05, one Ashby tenant: an untitled "I agree" tick whose
+# consent words sat elsewhere): what it agrees to is unknown, so it is the applicant's on the page too
+UNTITLED = "a box with no question words"
 # a voluntary question filled from the user's saved self-identification, after their yes to it
 VOLUNTARY_SAVED = "your saved voluntary answer"
 
@@ -390,7 +393,7 @@ def major_option(field: str, options: list[str]) -> str | None:
 
 def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
     """One Education box from school q["entry"] on the resume -> (answer, source). Degree and
-    discipline as the form's list words them; the graduation date only as the page shows it (hidden
+    discipline as the form's list words them (a free-text box: as written); the graduation date only as the page shows it (hidden
     by the user's choice -> left blank, or asked as sensitive when required); start dates aren't on
     the resume."""
     entry = q.get("entry") or 0
@@ -403,7 +406,9 @@ def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
         written = (school.get("degree" if key == "degree" else "field") or "").strip()
         if not written:
             return unsaid
-        pick = (degree_option if key == "degree" else major_option)(written, q["options"])
+        if q["kind"] == "text":  # a free-text box (Ashby): the resume's words, its degree spelled out
+            return (render.degree_name(written) if key == "degree" else written), "resume"
+        pick =(degree_option if key == "degree" else major_option)(written, q["options"])
         if pick is None:
             return None, f"{ASK} - '{written}' isn't on the form's list: the nearest option is theirs to pick"
         return pick, "resume" if pick.casefold() == written.casefold() else \
@@ -423,12 +428,19 @@ def blank(answer) -> bool:
 
 
 def signs(text: str) -> bool:
-    return never_draft(text) in ON_PAGE
+    """The applicant's own act on the page: agreeing, signing, saying whether AI helped - or a box
+    with no words on it, which nobody but the person reading the page can answer."""
+    return not text.strip() or never_draft(text) in ON_PAGE
+
+
+def why_on_page(text: str) -> str:
+    """What a box `signs` is, in the user's words."""
+    return never_draft(text) or (SIGNING if text.strip() else UNTITLED)
 
 
 def left_on_page(q: dict) -> str:
     """A filler's result for a question the user ticks or signs on the page themselves."""
-    return f"ASK {SIGN_ON_PAGE} - {never_draft(q['title']) or SIGNING}"
+    return f"ASK {SIGN_ON_PAGE} - {why_on_page(q['title'])}"
 
 
 def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: dict | None = None,
@@ -445,7 +457,7 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
     out = []
     for q in qs:
         if signs(q["title"]):
-            out.append({**q, "answer": None, "source": f"{ASK} - {SIGN_ON_PAGE}: {never_draft(q['title'])}"})
+            out.append({**q, "answer": None, "source": f"{ASK} - {SIGN_ON_PAGE}: {why_on_page(q['title'])}"})
             continue
         tag = sensitive(q, contact)
         was = kept.get((q["id"], answers.fold(q["title"])))

@@ -1,0 +1,431 @@
+{
+ "stage": "raw",
+ "at": "jobs.ashbyhq.com/<org>/<id>/application",
+ "uniq": "31f091",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "system": "Ashby",
+ "ready": "[data-field-path]",
+ "url": "https://jobs.ashbyhq.com/<org>/<id>/application",
+ "level": 3,
+ "pauseCap": 20,
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 6486,
+  "upInfo": {
+   "t": 1791226841607,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "pauses": [],
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 9615,
+  "sessions": [
+   {
+    "id": "4d9c5d2e-5e40-483c-919c-b92d3ac02008",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "7b05a14b-bd56-4208-9c88-5009c5a4a6fa",
+    "type": "pwa-editor-browser",
+    "name": "JF form 31f091 blank \u00ab Job Finder form",
+    "parent": "4d9c5d2e-5e40-483c-919c-b92d3ac02008"
+   }
+  ],
+  "found": {
+   "7b05a14b-bd56-4208-9c88-5009c5a4a6fa": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53819,
+     "path": "/e7b2dac038e8eb646d6ef318302f315f3f23d470"
+    },
+    "href": "http://127.0.0.1:54677/blank"
+   },
+   "4d9c5d2e-5e40-483c-919c-b92d3ac02008": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "install": {
+  "ok": true,
+  "ms": 17,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "subscribe": {
+  "ok": true,
+  "ms": 0,
+  "value": {}
+ },
+ "skipOff": {
+  "ok": true,
+  "ms": 2,
+  "value": {}
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:54700/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:54700/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:54700/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:54700/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:54701/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:54700/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "loaded": true,
+ "readyMs": 1483,
+ "pausesOnLoad": 0,
+ "fields": 9,
+ "boxes": [
+  {
+   "id": "",
+   "name": "",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "_systemfield_name",
+   "name": "_systemfield_name",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "_systemfield_email",
+   "name": "_systemfield_email",
+   "role": "",
+   "type": "email"
+  },
+  {
+   "id": "_systemfield_resume",
+   "name": "",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "textarea"
+  },
+  {
+   "id": "<field>_<field>-labeled-radio-0",
+   "name": "<field>_<field>",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "<field>_<field>-labeled-radio-1",
+   "name": "<field>_<field>",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "<field>_<field>-labeled-radio-2",
+   "name": "<field>_<field>",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "<field>_<field>-labeled-radio-3",
+   "name": "<field>_<field>",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "<field>_<field>-labeled-radio-4",
+   "name": "<field>_<field>",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "textarea"
+  }
+ ],
+ "frames": {
+  "iframes": [],
+  "blockedOtherSite": [
+   {
+    "url": "http://localhost/frame.html",
+    "kind": "other",
+    "after": "canary"
+   }
+  ],
+  "targets": {
+   "ok": true,
+   "ms": 18,
+   "value": []
+  }
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "box": "[id=\"_systemfield_name\"]",
+  "type: click + Input.insertText": {
+   "ok": true,
+   "ms": 939,
+   "value": {
+    "focused": true
+   }
+  },
+  "readBack": "Test Applicant",
+  "fileBox": "[id=\"_systemfield_resume\"]",
+  "upload: DOM.setFileInputFiles": {
+   "ok": true,
+   "ms": 18
+  },
+  "nameShown": true,
+  "failedLine": true,
+  "sentOnChoice": [
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiCreateFileUploadHandle",
+    "type": "XHR",
+    "contentType": "application/json",
+    "body": true
+   }
+  ],
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/ashby-route2-tab.png",
+   "bytes": 77574
+  }
+ },
+ "shot": {
+  "path": "<checkout>/.data/probe-shots/form/ashby-route2-window.png",
+  "bytes": 485066
+ },
+ "pausesTotal": 0,
+ "skipOnAfterCap": false,
+ "submitClicked": false,
+ "block": {
+  "reads": 12,
+  "namedReads": [
+   {
+    "op": "ApiJobPosting",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiJobPosting",
+    "after": "load"
+   }
+  ],
+  "failed": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "GET",
+    "url": "http://localhost/frame.html",
+    "type": "other-site frame",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/worker",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiOrganizationFromHostedJobsPageName",
+    "type": "XHR",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiOrganizationFromHostedJobsPageName",
+    "type": "XHR",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiSetFormValue",
+    "type": "XHR",
+    "after": "type"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiCreateFileUploadHandle",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ],
+  "seenWrites": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiJobPosting",
+    "type": "Fetch",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiOrganizationFromHostedJobsPageName",
+    "type": "Fetch",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiOrganizationFromHostedJobsPageName",
+    "type": "Fetch",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiSetFormValue",
+    "type": "Fetch",
+    "after": "type"
+   },
+   {
+    "method": "POST",
+    "url": "https://jobs.ashbyhq.com/api/non-user-graphql?op=ApiCreateFileUploadHandle",
+    "type": "Fetch",
+    "after": "upload"
+   }
+  ]
+ },
+ "pageLoads": 1,
+ "handlerErrors": [],
+ "quit": {
+  "killed": false
+ }
+}

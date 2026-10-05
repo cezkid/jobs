@@ -60,3 +60,27 @@ def test_measure_end_to_end_offline(tmp_path, monkeypatch):
     lines = (tmp_path / "measure" / "tenants.txt").read_text().splitlines()
     assert {"Acme Test Co", "Prefilled Acme Recruiter"} <= set(lines)
     assert not (tmp_path / "measure-browser").exists() or not any((tmp_path / "measure-browser").iterdir())
+
+
+# draws itself 1.5 s after load, as Workday's posting page does: blank at network idle
+LATE = """<!doctype html><title>Job posting</title><body><script>
+setTimeout(() => document.body.innerHTML = '<h1>Tester</h1><p>About the role</p><button>Apply</button>', 1500);
+</script>"""
+
+
+def test_measure_waits_for_a_page_that_draws_late(tmp_path, monkeypatch):
+    pytest.importorskip("playwright.sync_api")
+    try:
+        browser.chrome()
+    except SystemExit:
+        pytest.skip("Chrome not installed")
+    monkeypatch.setattr(lab, "RUNS", tmp_path / "measure-browser")
+    monkeypatch.setattr(lab, "OUT", tmp_path / "measure")
+    listener = lab.Listener({"/job.html": ("text/html", LATE)})
+    try:
+        out = lab.measure(listener.home + "/job.html", [], headless=True)
+    finally:
+        listener.close()
+    data = json.loads(out.read_text())
+    assert "About the role" in data["snapshot"]["text"] and "Apply" in data["snapshot"]["buttons"]
+    assert "Apply" in data["outline"]["buttons"] and data["outline"]["headings"] == ["Tester"]

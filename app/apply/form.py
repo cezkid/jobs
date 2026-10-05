@@ -12,6 +12,8 @@ reported LATER), the user clicks Next / Continue, then `prepare` again (systems 
 and `fill` again.
 `measure <link>` (developers): a safe look at a live form - apply/lab.py; `try <link> [--next] [--no-upload]`: a
 system's filler on it with synthetic answers - apply/trial.py.
+`survey <links file>` (developers): question kinds on many Ashby + Lever forms, plain reads - apply/survey.py.
+`workday-fixture <json>` (developers): a Workday step's snapshot() -> anonymised fixture - apply/workday_fixture.py.
 Systems + how to add one: app/docs/apply/apply-systems.md.
 """
 import argparse
@@ -91,8 +93,9 @@ def upload_note(system, answers: list[dict]) -> str:
 
 
 def typed_note(system, answers: list[dict]) -> str:
-    """A system whose boxes search its own list as they're typed: those words leave before Submit."""
-    typed = [k for k in getattr(system, "SEARCHED_AS_TYPED", ()) if any(a.get("key") == k for a in answers)]
+    """A system whose boxes search its own list as they're typed: those words leave before Submit.
+    By key or kind: an Ashby Location box of the employer's own has no key."""
+    typed = [k for k in getattr(system, "SEARCHED_AS_TYPED", ()) if any(k in (a.get("key"), a["kind"]) for a in answers)]
     if typed:
         return (f"{system.NAME}: the {', '.join(typed)} boxes search {system.NAME}'s own list as they're typed - "
                 "those words reach its site during the fill, before Submit; say so when naming them")
@@ -190,7 +193,7 @@ def refuse(qs: list[dict]) -> None:
     """Answers nothing may type: the AI's on the user's own questions, any on agreeing or signing."""
     if bad := questions.on_page(qs):
         sys.exit("the user ticks or signs these on the page themselves - clear the answer: "
-                 + "; ".join(a["title"] for a in bad))
+                 + "; ".join(a["title"] or questions.UNTITLED for a in bad))
     if bad := questions.unvouched(qs):
         sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
 
@@ -213,7 +216,7 @@ def fill(slug: str, in_window: bool = False) -> None:
         sys.exit(f"this form can't be filled here - write the answers to paste: uv run app/jobs.py apply-form paste {slug}")
     refuse(data["questions"])
     system = system_for(data["url"])
-    # trial, off by default (apply/window.py): one system until it is checked live
+    # trial, off by default (apply/window.py): only systems checked in the window's tab
     opener = browser.page_at
     if in_window:
         from apply import window
@@ -233,9 +236,8 @@ def fill(slug: str, in_window: bool = False) -> None:
     match = systems.tab_match(system, data["url"]) if per_page else None
     with opener(data["url"], match=match) as page:
         # a closed posting never shows its form: say so instead of timing out on it
-        if said := closed(page, system):
-            sys.exit(f"the posting says it's closed (\"{said}\") - nothing filled; ask the user, "
-                     "then status set <job> closed")
+        if said := closed(page, system, data["url"]):
+            sys.exit(f"{said} - nothing filled; ask the user, then status set <job> closed if it is")
         open_form(page, system, data["url"])
         shown = set(system.ids_on_page(page)) if per_page else set()
         if per_page:  # blank on this page blocks it; blank on another page waits for that page
@@ -256,19 +258,25 @@ def fill(slug: str, in_window: bool = False) -> None:
     remember(config, folder, data)
     print(f"{'The Job Finder window shows' if in_window else 'Chrome is open on'} the filled form. "
           "Nothing is sent until the user clicks Submit.")
+    if in_window and (note := window.AT_SUBMIT.get(system.NAME)):
+        print(f"note: {note}")
 
 
-def closed(page, system=None) -> str | None:
-    """What a closed posting says where its form would be, else None. Its form on the page => open,
-    whatever the text says (privacy notices talk about filled positions too)."""
+def closed(page, system=None, url: str | None = None) -> str | None:
+    """Why the form isn't there - a closed posting's own words, else the system's own record
+    (optional `closed(url)`: Ashby's closed page says only "Page not found") - or None. Its form on
+    the page => open, whatever the text says (privacy notices talk about filled positions too)."""
     if system is not None:
         try:
             page.locator(system.READY).first.wait_for(timeout=10000)
             return None
         except Exception:
             pass  # no form came up: the page's own words decide
-    said = CLOSED.search(page_text(page))
-    return said.group() if said else None
+    if said := CLOSED.search(page_text(page)):
+        return f"the posting says it's closed (\"{said.group()}\")"
+    if url and hasattr(system, "closed"):
+        return system.closed(url)
+    return None
 
 
 def open_form(page, system, url: str) -> None:
@@ -370,7 +378,7 @@ def main() -> None:
     p.add_argument("url")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
-    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse only, off by default) fill in a tab "
+    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby + Lever, off by default) fill in a tab "
                    "of the Job Finder window instead of Chrome")
     t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
     t.add_argument("slug")
@@ -384,13 +392,27 @@ def main() -> None:
     tr.add_argument("--next", action="store_true", help="then press the one Next / Continue button (block on)")
     tr.add_argument("--no-upload", action="store_true", help="leave file boxes: a page whose upload is blocked "
                     "can break the rest of the form (Workable)")
+    tr.add_argument("--upload-errors", action="store_true", help="first choose a wrong-type + an empty file in the "
+                    "resume box, keep what the page says")
+    sv = sub.add_parser("survey", help="(developers) question kinds on many Ashby + Lever forms: one plain read per "
+                        "link, paced, counts only -> .data/measure/")
+    sv.add_argument("links", type=Path, help="file of posting links, one per line")
+    wf = sub.add_parser("workday-fixture", help="(developers) a Workday step's window.__jf.snapshot() -> anonymised "
+                        "app/tests/fixtures/workday/<step>.json, employer names -> .data/measure/tenants.txt")
+    wf.add_argument("json", type=Path, help="file holding what snapshot() returned")
     args = ap.parse_args()
+    if args.step == "workday-fixture":
+        from apply import workday_fixture
+        return workday_fixture.fixture(args.json)
+    if args.step == "survey":
+        from apply import survey
+        return survey.survey(args.links)
     if args.step == "measure":
         from apply import lab
         return lab.measure(args.url, args.click)
     if args.step == "try":
         from apply import trial
-        return trial.trial(args.url, args.next, upload=not args.no_upload)
+        return trial.trial(args.url, args.next, upload=not args.no_upload, probe=args.upload_errors)
     {"prepare": lambda: prepare(args.slug, args.url), "fill": lambda: fill(args.slug, args.in_window),
      "paste": lambda: paste(args.slug)}[args.step]()
 
