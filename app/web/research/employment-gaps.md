@@ -144,7 +144,7 @@ A gap costs some replies at some employers. A false date found in a check is a m
 - Keep dates true on the resume and on every form. Background checks can compare them [@hireright-2025].
 - Apply widely. Employers differ, so one rejection says little about the next.
 
-How we grade evidence: [How we research](methods.md). What else makes a resume work: [What makes a good resume?](what-makes-a-good-resume.md).
+How we grade evidence: [How we research](methods.md). What else makes a resume work: [What makes a good resume?](what-makes-a-good-resume.md). Bias over names, records and more, in one place: [Hiring discrimination: what studies show, what helps](hiring-bias-what-helps.md).
 
 ## How CEZ Job Finder uses this
 

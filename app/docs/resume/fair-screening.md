@@ -26,9 +26,9 @@ before adding a claim; a figure listed there never reaches a user as fact.
 
 | Rule | Basis | Strength |
 |---|---|---|
-| Name bias is real + not shrinking | Quillian 2017 (28 US studies, 55,842 applications, incl. in-person audits): white applicants +36% callbacks vs Black (CI 25-47%), +24% vs Latino; no change vs Black since 1989. Lippens 2023 (mostly European studies): Arab -46%, East/South-East Asian -43% (wide prediction interval), Black -36%. Bertrand & Mullainathan 2004 (Boston, Chicago): 9.65% vs 6.45%. | meta-analysis |
-| Apply widely - the best-supported action | Kline/Rose/Walters, QJE 2022 (83k applications, 108 of the largest US employers): Black names 2.1 pts fewer contacts on a 24% base; worst fifth of firms = nearly half of lost Black contacts. Federal contractor + centralised HR *correlated* with smaller gaps, not proven causes. | large field experiment |
-| Bias grows after the callback | Quillian/Lee/Oliver 2020: majority applicants 53% more callbacks, 145% more job offers. Name tweaks at the first screen can't reach the interview. | meta-analysis |
+| Name bias is real + not shrinking | Quillian 2017 (24 US studies 1989-2015, 54,318 applications, incl. in-person audits; 28 / 55,842 with 4 pre-1989 studies): white applicants +36% callbacks vs Black (CI 25-47%), +24% vs Latino; no change vs Black since 1989. Lippens 2023 (mostly European studies): Arab -46%, East/South-East Asian -43% (wide prediction interval), Black -36%. Bertrand & Mullainathan 2004 (Boston, Chicago): 9.65% vs 6.45%. | meta-analysis |
+| Apply widely - our reading, untested | Kline/Rose/Walters, QJE 2022 (83k applications, 108 of the largest US employers): Black names 2.1 pts fewer contacts on a 24% base (white names ~9% more); worst fifth of firms = nearly half of lost Black contacts, most firms mild bias. No test of applying widely as a tactic. Federal contractor + centralised HR *correlated* with smaller gaps, not proven causes. | large field experiment |
+| Bias goes on after the callback | Quillian/Lee/Oliver 2020: majority applicants 53% more callbacks, 145% more job offers. Name tweaks at the first screen can't reach the interview. | meta-analysis |
 | Pro-diversity statements don't predict fairer screening | Kang 2016: postings w/ them discriminated just as much. | field experiment |
 | Initials: **their call, never recommended** | Direct evidence thin and mixed: 2 small tests of an English first name + ethnic surname disagree (Canada 2008 no significant gain; US 2015 borderline gain). No test of bare initials. Detail: Oreopoulos 2011 "Allen Wang" 12.5% - below English 16.0%, not significantly above Chinese 11.3%. Kang 2016 "Lei -> Luke Zhang" (surname kept) 11.5% -> 18.0%, p<.10, 200 applications per cell. Black "Lamar J. -> L. James Smith" 10.0% -> 13.0%, not significant at that size - a test too small to tell, not a null. | 2 field experiments, small cells |
 | Say what initials hide + don't | Hide the first name on the page only. Not the surname, the email address, or any form box asking the legal name. AI recovers ethnicity from redacted prose (below). | follows from the above |
@@ -65,7 +65,7 @@ before adding a claim; a figure listed there never reaches a user as fact.
 
 | Rule | Basis | Strength |
 |---|---|---|
-| Penalty onset: not 40; somewhere mid-40s to mid-50s | US audits: none at 35-43 (Farber 2017: 35-37 = 40-42, p=0.97; Farber 2019 peak 33-43, 12.6-12.9%, then 11.0% at 51-52, 9.7% at 60-61). Present at 49-51 for women, not for men in sales (Neumark 2019; authors: men's evidence not robust; nothing tested 32-48); large 55-66: women 64-66 admin 7.6% vs 14.4% (-47%), men in sales -30%. Europe, age stated outright: from early 40s (Carlsson 2019, Sweden). 40 = federal legal line (some states protect younger ages), not the measured onset. | large field experiment + field experiments |
+| Penalty onset: not 40; somewhere mid-40s to mid-50s | US audits: none at 35-43 (Farber 2017: 35-37 = 40-42, p=0.97; Kline/Rose/Walters 2022: 0.6 pts fewer contacts, all over-40 ages pooled, not significant in balanced sample, p. 13 - doesn't locate onset; Farber 2019 peak 33-43, 12.6-12.9%, then 11.0% at 51-52, 9.7% at 60-61). Present at 49-51 for women, not for men in sales (Neumark 2019; authors: men's evidence not robust; nothing tested 32-48); large 55-66: women 64-66 admin 7.6% vs 14.4% (-47%), men in sales -30%. Europe, age stated outright: from early 40s (Carlsson 2019, Sweden). 40 = federal legal line (some states protect younger ages), not the measured onset. | large field experiment + field experiments |
 | Graduation year = the cue | Every US age audit signals age this way (Lahey, Neumark, Farber) and it moves callbacks. | large field experiment |
 | Offer the age cues as one bundle (judgement) | No field test hid a cue: removing the grad year alone = untested. Neumark 2019: shorter job history, grad year still shown -> no significant change (janitors the exception, -9.4 pts; low-skill jobs only) - age stayed visible, so it says nothing on hiding. Neumark 2024 (one restaurant employer's records from a lawsuit; author discloses a financial relationship; 40+ = one group): online screening -> 40+ picked for interviews as often or more; offers after interview still 40% lower; its form still asked HS grad year. A long history lets a reader guess age too => bundle = our judgement, no test compared the parts. | derived from field experiments; observational |
 | Recommend the bundle once degree is 20+ years old | Bundle = grad + cert years, oldest roles, "25 years" wording. 20 years ~ implied age 42+: covers every band where a penalty was found, w/ margin. Threshold itself = judgement from the audits, not tested. | derived from field experiments |
@@ -101,7 +101,7 @@ before adding a claim; a figure listed there never reaches a user as fact.
 | Answer what the question legally covers - no more | Many states let sealed, expunged or juvenile records go unmentioned (e.g. CA Lab. Code 432.7) - varies by state; check the state's rules or free legal aid. A lawful "No" is not a Hold; a false answer is. | law |
 | Never auto-answer; read the exact wording back | Wording decides scope (conviction vs arrest, time window). The user picks; the program never does. | convention (policy) |
 | Page needn't name it | Break line optional; real work, training or education done in custody listed under its real name. "Personal leave" to cover incarceration -> push back once: dates show on a check. | convention; vendor docs |
-| Certificates of relief help | Leasure & Andersen 2016 (319 applications, Columbus OH): no record ~30%, felony ~10%, felony + certificate ~26%. Pager 2008: record cut callbacks 28% -> 15%; talking w/ the employer helped. | field experiment (small) |
+| Certificates of relief: mixed evidence | Leasure & Andersen 2016 ("preliminary", abstract read): certificate raised interview invitation or offer "more than threefold"; 319 applications, Columbus OH, ~30% / ~10% / ~26% = source not opened. Leasure & Kaminski 2021 (JELS, 2 field tests, same Ohio certificate, men; abstract read): holders no better than the same record w/o certificate, fewer callbacks than no record. Pager 2008: record cut callbacks 28% -> 15%; talking w/ the employer helped. | field experiment (small) |
 | Sensitive details stay short | Before break or record help, one line: "A few words is enough - no diagnosis or case details. What you type here goes to your AI account." | convention (policy) |
 
 ## Laws
@@ -161,8 +161,9 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 - **"Initials hide your ethnicity."** Surname, email, form name + prose still signal it, to humans
   and AI (76% recovery, preprint). Only direct tests: small + mixed.
 - **"Blind hiring fixes it."** France: anonymous CVs -> fewer minority interviews + hires
-  (Behaghel 2015). Australia: de-identifying removed a pro-minority lift (Hiscox 2017). Germany,
-  Sweden: helped first contact, not offers. Bias returns at interview (Neumark 2024).
+  (Behaghel 2015). Australia: de-identifying removed a pro-minority lift (Hiscox 2017). Germany:
+  helped first contact. Sweden: more interviews for women + non-Western applicants, more offers for
+  women only (Åslund & Nordström Skans 2012; districts not random). Bias returns at interview (Neumark 2024).
 - **"Gaps don't matter anymore."** 13-18 months -21%, 19-36 months -27% (meta-analysis); US
   studies earlier. Pandemic gaps ~20% in vignettes (Bateson 2023).
 - **"Explaining a gap adds 60%."** One vendor study (ResumeGo 2019, +58%, not peer-reviewed).
@@ -171,10 +172,12 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 - **"An AOL or Hotmail address costs interviews."** No hiring study. Only test found: unpublished,
   n=400, no significant difference. Informal addresses without the name do rate lower - so name-
   based address, any provider.
-- **"Age bias starts at 40."** US audits: none at 35-43. 40 is the federal legal line.
+- **"Age bias starts at 40."** US audits: none at 35-43. Kline/Rose/Walters 2022: 0.6 pts fewer
+  contacts for grad dates implying over 40 (all over-40 ages pooled; not significant in their
+  balanced sample). 40 is the federal legal line.
 - **Judging an employer by the Discrimination Report Card.** Kline/Rose/Walters 2024 grade 97
   named large firms (authors: grades mislead in under 4% of comparisons) - a sliver of the
-  employers in any search, one audit round each. Apply widely instead: works for every posting.
+  employers in any search, one audit round each. Apply widely instead (our reading, untested): covers every posting.
 - **"Only a full name change works."** Kang's name-only lift was borderline; recommending a new
   name has a well-being cost (Biernat 2024 review). Their call, never advice.
 - **"Remove every identity signal."** Loses real accomplishments; languages can help.
@@ -226,5 +229,5 @@ Nature Human Behaviour 2023 (w/ the Behavioural Insights Team). Weisshaar, ASR 2
 2016. Farber, Silverman & von Wachter, AER P&P 2016. Baert & Vujić 2018. Bateson 2023. Gibbons &
 Katz 1991. HireRight 2025 benchmark (June + Sept 15 2025 releases). ResumeGo 2019.
 Agan & Starr, QJE 2018. Burton & Wasser 2025. Pager 2008 (EEOC testimony). Leasure & Andersen
-2016. NELP fair-chance guide. Wright et al., FAccT 2024. Epstein Becker Green, Seyfarth, Littler,
+2016. Leasure & Kaminski, JELS 2021. Åslund & Nordström Skans, ILR Review 2012. NELP fair-chance guide. Wright et al., FAccT 2024. Epstein Becker Green, Seyfarth, Littler,
 HR Dive (law status).

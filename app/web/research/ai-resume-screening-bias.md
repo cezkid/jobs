@@ -149,7 +149,7 @@ Only one row, one job at one company with an older algorithm, shows a real emplo
 - Use your rights where they exist: notice in New York City and Illinois, an explanation in Colorado from 2027 [@nyc-ll144; @il-hb3773; @co-sb26-189].
 - Remember bias in a screener is the employer's problem, not a flaw in you.
 
-How we grade evidence: [How we research](methods.md). More articles: [Research](index.md). Whether an AI-written resume hurts: [Can employers tell if AI wrote your resume?](ai-written-resumes.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md).
+How we grade evidence: [How we research](methods.md). More articles: [Research](index.md). Whether an AI-written resume hurts: [Can employers tell if AI wrote your resume?](ai-written-resumes.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md). Bias over names, records and more, in one place: [Hiring discrimination: what studies show, what helps](hiring-bias-what-helps.md).
 
 ## How CEZ Job Finder uses this
 

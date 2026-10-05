@@ -8,13 +8,16 @@ How strong each point is: **big study** (thousands of real applications) · **sm
 hiring) · **convention** (career guides agree, no study) · **law** (as of September 2026 -
 general information, not legal advice).
 
+Full version, with every source: https://jobs.enrriquez.com/research/hiring-bias-what-helps/
+
 Every choice here is yours. Tell the chat once - your resume and forms follow it.
 
-## Apply widely - what helps most
+## Apply widely
 
-- **A few employers cause most of the harm.** Across 108 large US companies, one fifth of them
-  accounted for nearly half of the replies Black applicants lost to race bias. More applications
-  reach more fair employers. *Big study (Kline, Rose and Walters 2022).*
+- **Bias varies a lot by employer.** Across 108 large US companies, one fifth of them accounted
+  for nearly half of the replies Black applicants lost to race bias; most showed mild bias. More
+  applications reach more fair employers - our reading, not tested. *Big study (Kline, Rose and
+  Walters 2022).*
 - **Your own resume is fine for quick applications.** Make a tailored one for the jobs you want
   most.
 - **Bias also shows at interview and offer,** where resume changes can't reach. *Big study.*
@@ -22,8 +25,10 @@ Every choice here is yours. Tell the chat once - your resume and forms follow it
 
 ## Your name
 
-- **Name bias is real and hasn't shrunk since 1989.** Across 28 US studies, the same resume got
-  about a third more calls under some names than under others. *Big study (Quillian 2017).*
+- **Name bias is real and hasn't shrunk since 1989.** Across 24 US studies from 1989 to 2015, equally
+  qualified white applicants got over a third more calls than Black applicants. The largest test,
+  at 108 big employers, found a smaller gap: about 9%. *Big studies (Quillian 2017; Kline, Rose and
+  Walters 2022).*
 - **Initials ("L. Jones"): your call - both are honest.** Two small studies of an English
   first name disagree: one in Canada saw no gain, one in the US a small lift, too small to be
   sure. No study has tested initials alone. *Small study.*
@@ -40,7 +45,8 @@ that isn't asking for your legal name.
 
 ## Dates that show age
 
-- **Age bias does not start at 40.** US studies found none at 35 to 43. It shows somewhere between
+- **Age bias does not start at 40.** US studies found none at 35 to 43. One big test found a small
+  drop for all ages over 40 taken together; a second check didn't confirm it. It shows somewhere between
   the mid-40s and mid-50s and grows after 55, for the women and jobs tested. *Big study.*
 - **Your graduation year is the main clue.** *Big study.*
 - **No study has tested taking only the year off.** In one big study, a shorter job history
@@ -87,9 +93,11 @@ A few words is enough - never a diagnosis. What you type in the chat goes to you
   under its real name. Don't call the time "personal leave" - background checks show the dates.
 - **Fair-chance rules make employers ask later.** Federal agencies, and federal contractors for
   jobs tied to a federal contract: only after a conditional offer. Private employers in at least
-  15 states, DC and 21 cities or counties (a 2021 count): each place sets its own timing. *Law.*
-- **A certificate of rehabilitation (or relief) helps.** In one study it nearly closed the gap.
-  *Small study (Leasure and Andersen 2016).*
+  15 states and 22 cities or counties, DC among them (a 2021 count by a worker-advocacy group):
+  each place sets its own timing. *Law.*
+- **A certificate of rehabilitation (or relief): mixed evidence.** An early 2016 test in Ohio found it
+  helped; a 2021 test of the same certificate found no gain. *Small studies (Leasure and Andersen
+  2016; Leasure and Kaminski 2021).*
 
 No case details needed in the chat - what you type goes to your AI account.
 
@@ -97,7 +105,8 @@ No case details needed in the chat - what you type goes to your AI account.
 
 - **It can be biased, in either direction.** Studies disagree on which way, and it changes with
   each version. Leaving your name off doesn't hide your background from it. No resume trick has
-  been shown to beat it. What works: an accurate, relevant, readable resume - and applying widely.
+  been shown to beat it. What works: an accurate, relevant, readable resume - and applying widely (our reading, not
+  tested).
   *Lab studies, several not yet checked by other scientists (peer review), plus one study of a
   real hiring tool's records, also not yet peer-reviewed.*
 - **Your rights:** Colorado requires notice, and after an AI rejection a plain description of the

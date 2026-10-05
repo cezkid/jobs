@@ -1,6 +1,6 @@
 ---
 reviewed: 2026-10-04
-verdict: revise
+verdict: publish
 reviewer: fresh AI session, bead plan-xsy.77 (two contexts, no drafting context; sources opened before the draft was read)
 ---
 # Review: Hiring discrimination: what studies show, what helps (`hiring-bias-what-helps.md`)
@@ -206,13 +206,13 @@ Counts: 91 rows; the article has 40 citation brackets and 22 source ids, all 22 
   what the question may ask; certificates: mixed evidence". Move the question to "What we don't
   know" as well. The same claim stands in `Guides/Unfair hiring - what's known, what helps.md`
   line 91 ("helps ... nearly closed the gap") and `app/docs/resume/fair-screening.md` line 104
-  ("Certificates of relief help") - the revise bead brings both into line. status: open
+  ("Certificates of relief help") - the revise bead brings both into line. status: fixed
 
 ### Medium
 
 - **M1. The 9% is on the wrong base.** Line 40 (row 30). Kline, Rose and Walters: 2.1 points is
   "9% of the Black mean contact rate". Fix: "Names read as Black got 2.1 points fewer replies.
-  Put the other way, names read as white got about 9% more." status: open
+  Put the other way, names read as white got about 9% more." status: fixed
 - **M2. The lead figure is the larger, older one, and "the same resume" is not exact.** Lines
   15, 28 (rows 5, 13). The Short answer and the table give only 36%. The largest test, and the
   newest fieldwork cited, found about 9%; its authors say past work "typically found larger
@@ -223,7 +223,7 @@ Counts: 91 rows; the article has 40 citation brackets and 22 source ids, all 22 
   36% more callbacks than equally qualified Black applicants, with no change over time (Big
   study) [@quillian-2017]. The largest test, at 108 big employers, found about 9% (Big study)
   [@kline-2022]." Table: add the 9% to the effect cell with its cite. Body line 40: add one
-  sentence with the authors' two reasons. status: open
+  sentence with the authors' two reasons. status: fixed
 - **M3. "Apply widely" is carried further than its caveat.** Lines 3, 17, 28, 32, 48, 52, 127
   (rows 3, 4, 8, 14, 22, 35, 39, 86). Line 52 says honestly that no test measured it. But the
   description says it "fits the evidence best" with no caveat; the table puts it under "What
@@ -238,7 +238,7 @@ Counts: 91 rows; the article has 40 citation brackets and 22 source ids, all 22 
   between employers." Line 52: add "Most firms in that test still showed some bias." One number
   could carry the advice better than the inference does: braun-2026 says applicants who were not
   white men "must submit about 15 percent more applications" for the same number of callbacks
-  (preprint; fieldwork 2016-2017) - offer it as the measured cost, not as a tactic. status: open
+  (preprint; fieldwork 2016-2017) - offer it as the measured cost, not as a tactic. status: fixed
 - **M4. The anonymous-resume section is one-sided.** Lines 17, 77 (rows 10, 51). Both cited
   sources say the evidence is mixed: BETA calls it "limited and mixed" and says European studies
   "suggested de-identification could reduce bias"; Behaghel cites Aslund and Skans 2012. That
@@ -249,14 +249,14 @@ Counts: 91 rows; the article has 40 citation brackets and 22 source ids, all 22 
   for applicants of non-Western origin [@aslund-skans-2012]. The Australian report calls the
   evidence 'limited and mixed' [@hiscox-2017]." Short answer -> "hiding names backfired in two
   trials and helped in one". Section opener -> "Sometimes. It depends on the bias the employer
-  started with." status: open
+  started with." status: fixed
 - **M5. France: who "minority" was, and what was hidden.** Line 79 (row 53). The paper's
   minority group is residents of deprived neighbourhoods, immigrants and children of immigrants.
   The draft never says so, and a US reader will read "minority" as race. The anonymous form hid
   more than the name. Fix: "Minority here meant people living in deprived neighbourhoods,
   immigrants and their children. The form hid the name, address, nationality and photo." -
   re-check the list of hidden fields against the paper's text before printing it. Add that the
-  effect on hires was not clear. status: open
+  effect on hires was not clear. status: fixed
 - **M6. "US tests found no drop at 40" cites a test that could not see 40, and skips one that
   did.** Line 89 (row 64). neumark-2019 tested nothing between 31 and 49 (the same flaw the age
   review found, its M4 and row 60). And kline-2022, cited six times in this article, found a
@@ -267,7 +267,7 @@ Counts: 91 rows; the article has 40 citation brackets and 22 source ids, all 22 
   Check `age-bias-hiring.md` says nothing that the Kline figure contradicts ("No US test here
   found a drop at 40" is scoped to that article's table; a cross-link sentence may be needed
   there - file it, do not edit a published article in the revise bead without its re-review).
-  status: open
+  status: fixed
 - **M7. Three abstract-only sources carry headline claims.** Lines 31, 42, 83, 97, 103, 131
   (rows 19, 32, 61, 68). `research.md` asks for methods and tables to be read. agan-starr-2018
   (a table row labelled "Big study", two body paragraphs), quillian-2020 (a body paragraph and a
@@ -277,76 +277,76 @@ Counts: 91 rows; the article has 40 citation brackets and 22 source ids, all 22 
   Fix: try the open copies (Agan and Starr: the Princeton or Michigan working paper, noting its
   62% and 45% differ from the published 63% and 43%; Quillian, Lee and Oliver: the SocArXiv or
   author copy) and read methods and main table; if none opens, keep "summary only" and put it in
-  the table cell too. Also add "young men" to the Agan sample in the text. status: open
+  the table cell too. Also add "young men" to the Agan sample in the text. status: fixed
 - **M8. "Bias after the callback was larger than bias before it."** Line 131 (row 90). The 145%
   counts the whole path from application to offer. From callback to offer the extra gap is
   about 60% (2.45 / 1.53), next to 53% before it - not clearly larger, from an abstract, with
   no interval read. The abstract's own claim is "considerable additional discrimination". The
   12 studies are also majority versus minority in "all available" studies, not only US. Fix:
   "Bias went on after the callback: the gap in job offers was wider than the gap in callbacks
-  [@quillian-2020]." status: open
+  [@quillian-2020]." status: fixed
 - **M9. The record row's "What helps" has nothing behind it that helps.** Line 31 (row 20). Once
   H1 is fixed, the cell holds only "Know what the question may ask", which is convention. Say
   so, as line 127 does for applying widely, or the Strength column ("Big study") reads as
   backing the advice. Simplest: split the last two columns' meaning in the sentence above the
-  table - "Strength grades the study, not the advice." status: open
+  table - "Strength grades the study, not the advice." status: fixed
 
 ### Low
 
 - **L1** Lines 44, 114. braun-2026 sent its applications in 2016 and 2017; "A 2026 preprint"
   reads as new data. Fix: "A preprint posted in 2026, with applications sent in 2016 and 2017".
   Say once what a preprint is: "not yet checked by other researchers". Hispanic women were not
-  in the group with clear gaps - one clause. status: open
+  in the group with clear gaps - one clause. status: fixed
 - **L2** Lines 50, 113. Locators: the top fifth and the 23 firms are in the abstract and on
   printed p. 3; the central-contact and contractor links are in the abstract and printed p. 4,
   not p. 2. `sources.yml` says page numbers are the working paper's printed ones - recheck all
-  four Kline locators against the PDF. status: open
+  four Kline locators against the PDF. status: fixed
 - **L3** Lines 56-69. Kang and others: say the test used one made-up male graduate per group and
   had no white-name comparison. "First name changed" hides a useful fact: for the Black
   applicant it was a first initial and middle name ("L. James Smith"), which is honest and is
   the only test near the article's "initials" advice - and it showed no clear gain. The paper
   also reports that applicants whiten less for pro-diversity employers; one clause would explain
-  why line 115 matters. status: open
+  why line 115 matters. status: fixed
 - **L4** Line 73. The quoted word is "squash"; the source has "squashed". A quote is exact or it
-  is not a quote. Fix: said parts of an identity "need to be squashed or held back". status: open
+  is not a quote. Fix: said parts of an identity "need to be squashed or held back". status: fixed
 - **L5** Lines 99, 101, 122. nelp-2021 is an advocacy group's count; `sources.yml` labels it
   `law`, and `research.md` keeps that label for the statute itself. Name the counter in the
   sentence ("By the National Employment Law Project's count from October 2021"). The count is
   five years old; search results speak of about 17 states by 2025 (not opened). Either open a
   newer primary count or keep the line 122 unknown as it is. California 432.7 has exceptions
-  for some employers and jobs; add "with exceptions". status: open
+  for some employers and jobs; add "with exceptions". status: fixed
 - **L6** Line 83. Wider work on ban-the-box and employment is contested: a 2025 Census working
   paper (Burton and Wasser) re-ran the best-known study and found the result holds in one data
   set and not the other. It does not touch the callback test cited here. Optional one-line
-  "What we don't know": whether these laws raise or lower employment overall. status: open
+  "What we don't know": whether these laws raise or lower employment overall. status: fixed
 - **L7** Line 81. "Australia ran a lab trial in 2017": the report is dated June 2017; the text
   read does not give the trial's year. Fix: "An Australian government team reported a lab trial
-  in 2017." status: open
+  in 2017." status: fixed
 - **L8** Line 107. gao-2026 and chen-xiao-2026 carry `checked: 2026-10-03`: the drafter did not
   re-open them. Both arXiv pages were re-opened here (unchanged); the revise bead bumps
   `checked` only after reading them. The Gao sentence could say what the pattern was (the one
   2023 model favoured white names; 2024 and later models were neutral or favoured Black names) -
-  if `ai-resume-screening-bias.md` says it, the link is enough. status: open
+  if `ai-resume-screening-bias.md` says it, the link is enough. status: fixed
 - **L9** Lines 28-31, 129, 130. Advice with no study behind it (initials, the name you go by,
   leaving off old dates, reading the record question) is convention or the app's rule. Label it
   once ("convention, not a tested tactic"). The break row's "may help" should carry its two
-  cites. status: open
+  cites. status: fixed
 - **L10** Reading level and wording. "points" is never explained (first use line 40: "2.1
   points, that is 2.1 of every 100 applications"). Line 111 "checked, shared rules for hiring"
   is unclear; say "hiring steps that are the same for everyone and can be checked". "Lab study"
-  for the Australian trial matches the label table; fine. status: open
+  for the Australian trial matches the label table; fine. status: fixed
 - **L11** Title and headings. The title carries "hiring discrimination". No heading carries
   "name discrimination", "statistics" or "avoid bias", three of the searched wordings. Fix: H2
   "Do employers treat names differently?" -> "Is there name discrimination on resumes?"; H2 "How
-  common is hiring discrimination?" could add "the statistics". status: open
+  common is hiring discrimination?" could add "the statistics". status: fixed
 - **L12** Scope against the Guide. The Guide has disability and language sections the article
   lacks, says "A few employers cause most of the harm" where the article says "nearly half", and
   counts "15 states, DC and 21" where the article says "15 states and 22" (same count; the 22
   include DC). The revise bead makes the Guide agree, and either adds the two topics with
-  sources or says in the article that it does not cover them. status: open
+  sources or says in the article that it does not cover them. status: fixed
 - **L13** `uncited:` list. "No resume change has been shown to remove bias" (line 17) and "No
   resume change shown to help" (line 32) are search claims without a snippet in `uncited:`.
-  status: open
+  status: fixed
 
 Checked and fine: every figure in rows marked supported against the saved source text or, for
 the nine reused sources, against the three same-day reviews named above; the bars figure against
@@ -360,3 +360,153 @@ separate from the evidence; no owner data; no employer named (the 2024 report ca
 employers, the article does not); no own-measurement numbers; all six internal links point to
 files that exist. Not re-read by this review: the full texts of the nine reused sources, and the
 paywalled full texts behind the three abstracts.
+
+## Revision (plan-xsy.78, 2026-10-04)
+
+Every finding answered: 23 fixed, none rebutted. Line numbers above are the draft's. Sources
+opened for the fixes, all on 2026-10-04; none held text addressing an AI.
+
+- **H1** Leasure and Kaminski 2021 added to `sources.yml` (`leasure-kaminski-2021`, Crossref
+  record and abstract read; closed access, no open copy found; the abstract gives no sample size,
+  so the article does not call it "larger"). Text uses "mixed evidence": the 2016 pilot, then the
+  2021 test of the same certificate with made-up men, both "published summaries only". Table
+  cell, a new "What we don't know" line, the Guide ("mixed evidence", both studies) and
+  `fair-screening.md` (row now "Certificates of relief: mixed evidence") agree. "helps" and
+  "nearly closed the gap" are gone. `leasure-2016` sample now says "a pilot".
+- **M1** Reviewer's sentences used, locator pp. 2-3 (printed; PDF page - 1).
+- **M2** Short answer and table give both the 36% (28 tests, 1989 to 2015, "equally qualified")
+  and the about 9% of the largest test. New body paragraph gives the authors' two reasons
+  (very large employers may be less biased; high overall reply rate) [p. 3]. The review's
+  in-person testers are named in the 2017-review paragraph.
+- **M3** Description is the reviewer's wording (143 characters). Section opener "bias varied a
+  lot between employers"; "most firms showed mild bias, a few very large" [p. 3]; "the other four
+  fifths of firms shared the other half". Every "apply widely" carries "our reading, not tested";
+  the AI row now says only "No resume change shown to help". The braun-2026 figure (about 15%
+  more applications for the same callbacks, p. 1) is given as the measured cost, not as a tactic.
+- **M4** Åslund and Nordström Skans 2012 added (`aslund-skans-2012`): IFAU working paper 2007:31
+  read in full (printed page = PDF page - 2). Two Gothenburg districts used anonymous applications
+  2004-2006, one comparison district; 3,529 applicants, 109 jobs (p. 4); districts not random, so
+  labelled `observational` and worded "a link, not proof". Interview chance about 8 points higher
+  for women and for applicants of non-Western origin (p. 21); job offers rose for women, not for
+  non-Western applicants (pp. 23-24). BETA's "limited and mixed" quoted (report text read).
+  Section opener and Short answer use the reviewer's wording ("backfired in two trials and went
+  with more interviews in one Swedish city", label Real records). `fair-screening.md` "Sweden:
+  helped first contact, not offers" corrected.
+- **M5** Hidden fields re-checked in the IZA paper (p. 7): name, address, gender, nationality, ID
+  picture, age, marital status, number of children - all listed. Minority = residents of deprived
+  neighbourhoods or a foreign background, immigrants and children of immigrants (p. 10). "Names
+  shown/hidden" -> "standard/anonymous resumes". Hiring effect: minority 2.3% -> 1.7%, not
+  significant; text says "smaller and could be chance" (pp. 13-14).
+- **M6** Line replaced: Farber (women 40-42 vs 35-37) plus Kline's 0.6 points for dates implying
+  an age over 40, with "one of its checks did not confirm that drop" (balanced sample, p. 12).
+  `neumark-2019` no longer cited here. The Guide and `fair-screening.md` mention the Kline figure.
+  The published `age-bias-hiring.md` Short answer still says "US tests find no drop at 40": filed
+  as plan-xsy.84 (needs its own re-review), not edited here beyond a link.
+- **M7** agan-starr-2018: methods read in the authors' August 2016 working paper (all male, about
+  21-22 years old, p. 8; 15,220 sent, 14,640 analysed, 6,401 New Jersey + 8,239 New York City,
+  4,292 stores in 296 chains, p. 13). That copy's figures differ slightly from the published
+  abstract; the article keeps the published 63%, 7% and 43% and says so. `sources.yml` venue and
+  sample updated (S3 host not added as url: unstable-host rule). Table strength stays "Big study"
+  because the methods are now read. "Young men" in the table and text. quillian-2020: no open copy
+  (closed in OpenAlex, Project MUSE blocked scripts); kept "published summary only", now only in
+  one body paragraph and one bullet, neither a table row. leasure-2016: as H1.
+- **M8** Reviewer's sentence used ("Bias went on after the callback: the gap in job offers was
+  wider than the gap in callbacks"). `fair-screening.md` row "grows" -> "goes on".
+- **M9** Sentence above the table: "Strength grades the study, not the advice. Advice marked 'our
+  reading' or 'convention' has no test behind it." Record cell: "(convention)".
+- **L1** "A preprint posted in 2026 ... in 2016 and 2017"; preprint defined once; "Hispanic women
+  showed no clear gap in the main results" [pp. 1, 20]. Employers bullet: "the preprint with
+  applications from 2016 and 2017", ads mentioning "tests, certifications or background checks".
+- **L2** All Kline locators rechecked against the PDF (printed = PDF page - 1): 83,000/108 p. 2;
+  24%, 2.1 points, 9%, top fifth, mild vs very large p. 3; 0.6-point age, contractors,
+  centralised contact p. 4; 23 firms p. 5.
+- **L3** One made-up male graduate per group, no white applicant; "Lamar J. Smith" -> "L. James
+  Smith" [pp. 27-28], the closest test to initials, no clear gain; lab result (whiten less for
+  pro-diversity employers, p. 4) added after the diversity finding.
+- **L4** Exact quote: "need to be squashed or held back", attributed to one student [p. 13].
+- **L5** Counter named in the sentence: "The National Employment Law Project, a worker-advocacy
+  group"; "Washington, DC, is among the 22"; "not the laws themselves". The `law` label is kept:
+  no label in the site's evidence table fits an advocacy group's count of laws, and the sentence
+  now says what it is. California: "It has exceptions for some employers and jobs". The 2021-count
+  unknown stays.
+- **L6** Added to "What we don't know": what laws that delay the record question do to employment
+  overall; the article looks at callbacks only.
+- **L7** "An Australian government team reported a lab trial in 2017."
+- **L8** gao-2026 and chen-xiao-2026 arXiv pages re-opened (gao v1 June 27, chen-xiao v1
+  September 15, both unchanged); `checked` bumped to 2026-10-04. Gao pattern stated: the one 2023
+  model favored white names, 2024-on models neutral or favored Black names.
+- **L9** Convention labels on the name, age and record advice (table and bullets); break cell
+  carries "mixed evidence" and both cites.
+- **L10** "A gap of one point means one reply fewer per 100 applications." Employers opener: "hiring
+  steps that are the same for everyone and can be checked".
+- **L11** H2s now "What do the statistics on hiring discrimination show?", "Is there name
+  discrimination on resumes?", "Can you avoid bias in job applications?" (opener "Not fully,
+  because the bias is the employer's.").
+- **L12** Guide: "A few employers cause most of the harm" -> "Bias varies a lot by employer" with
+  nearly half and "our reading, not tested"; "15 states, DC and 21" -> "15 states and 22 cities or
+  counties, DC among them (a 2021 count by a worker-advocacy group)"; names line gives both 36%
+  ("over a third") and about 9%; "Full version, with every source" line added. Article: "What we
+  don't know" says it does not cover disability, language or accent.
+- **L13** "No resume change has been shown" and "No resume change shown" added to `uncited:`.
+
+Links: in from `age-bias-hiring.md`, `employment-gaps.md`, `ai-resume-screening-bias.md` (one
+added sentence each, no claim moved); out to those three plus `ai-hiring-laws.md`, `methods.md`,
+`what-makes-a-good-resume.md`.
+
+## Re-review (2026-10-04, fresh AI session, plan-xsy.78)
+
+A subagent that made none of the edits read the diff, the registry changes, the Guide, the app
+doc, the three sibling link lines and the saved source copies. It edited nothing. Verdict
+**revise**: no high, 1 medium, 9 low. All ten answered below, so the header verdict stays publish.
+
+Checked and supported against the saved copies: Kline 2022 (83,000 applications, 108 firms, 24%
+in 30 days, 2.1 points, "9% of the Black mean", the two reasons, top fifth nearly half, mild vs
+very large, contractors and central contact, 23 firms, 0.6 points over 40); Quillian 2017 36% and
+24%, in-person testers; Kang 2016 (one male per group, no white arm, "L. James Smith", the four
+bars, 11.5% to 21%, 36% of 59, the quote, the lab result); Behaghel 2015 hidden fields, minority
+definition, 9.3%, 4.7%, 10.7 points, joining firms; Hiscox 2017; Åslund 2012 (3,529 applicants,
+109 jobs, not random, about 8 points, offers for women only, Crossref fields); Agan and Starr 2018
+published figures and working-paper methods; Leasure and Kaminski 2021 and Quillian 2020
+abstracts; Braun 2026 counts, years, Hispanic women, about 15%; NELP count and date; California
+exceptions; Gao and Chen-Xiao. Labels match `sources.yml`; "For you," once; four Short answer
+bullets; quotes short; old wording gone from the Guide and the app doc. No source held text
+addressing an AI.
+
+- **R1 (medium)** "28 US field tests from 1989 to 2015, with 55,842 applications" mixed two
+  counts. Quillian's 28 tests (55,842 applications) include four before 1989; the trend and the
+  36% use the 24 since 1989 (54,318 applications). Review M2's proposed wording carried the
+  error. status: fixed (Short answer, table, body and Guide now 24 tests, 1989 to 2015, 54,318
+  applications; `sources.yml` sample gives both counts; `fair-screening.md` row too)
+- **R2 (low)** The balanced-sample check is on printed p. 13 of kline-2022, not p. 12. status:
+  fixed (pp. 4, 13; `fair-screening.md` age row cites p. 13)
+- **R3 (low)** Braun measures the test-and-certification link across occupations and calls it
+  "associated with" (p. 25). status: fixed ("in kinds of jobs whose ads more often mentioned
+  ...", "That is a link, not proof of cause", pp. 1, 25)
+- **R4 (low)** The 15% is an estimate the paper says the gaps "imply"; "That was the price ..."
+  did not stand alone. status: fixed ("estimated what the gaps cost"; one sentence)
+- **R5 (low)** France hiring effect: the gap moved the same way, significant at the 10% level
+  only (p. 14); "could be chance" undersold it. status: fixed ("The hiring gap moved the same
+  way, but that result was less certain.")
+- **R6 (low)** The 2016 abstract calls itself "the first empirical test" with "preliminary"
+  results, never a pilot; the app doc's unopened figures (~10% to ~26%) are 2.6 times, not
+  "more than threefold". status: fixed (article "which its authors called preliminary"; Guide
+  "An early 2016 test"; `sources.yml` sample; app doc quotes the abstract and marks the three
+  figures "source not opened")
+- **R7 (low)** "applicants trust those words" said more than Kang ("a false sense of security").
+  status: fixed ("applicants act on those words", which the lab result in the next sentence shows)
+- **R8 (low)** Four sentences opened with "It" and did not stand alone. status: fixed ("The name
+  change alone", "The report calls", "Hiding names does not always backfire", "The California law
+  has exceptions")
+- **R9 (low)** `fair-screening.md` age-onset row still said "US audits: none at 35-43" with no
+  qualifier. status: fixed (Kline 0.6 points pooled over 40, not significant in the balanced
+  sample, p. 13, does not locate onset)
+- **R10 (low)** leasure-kaminski-2021 `sample` said paraphernalia "charge"; the abstract says
+  convictions. status: fixed ("conviction"). Its note that Leasure's 2019 dissertation may give
+  the sample size: the PDF is behind a Cloudflare check, so the abstract stays the only text read.
+
+Also from this pass: the site check (`qa.py`) found the summary table's last rule sitting 49 px
+over the next heading's rule. A sentence now follows the table ("The sections below give each
+study's limits, and what we could not check."), as in the sibling articles. The age-bias-hiring
+"no drop at 40" sentence that disagrees with Kline is plan-xsy.84. Not re-read: sources whose
+claims the revision did not touch (lippens-2023, dhert-2026, namingit-2021, kristal-2023,
+farber-2017 beyond its review); the published ILR version of Åslund (working paper read).

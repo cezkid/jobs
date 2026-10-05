@@ -271,7 +271,7 @@
   evidence: lab/LLM audit
   sample: 9 openly released AI models, 620 made-up resumes without names, with background clues (community, activities, interests) added at three strengths; 5 groups, Australian setting
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: clearinghouse-mobley
   type: web
@@ -617,7 +617,7 @@
   evidence: lab/LLM audit
   sample: 14 AI models released 2023-2026, 24,024 resume pairs each that differ only by name, built from 6,007 real US job ads; yes/no to a phone screen
   preprint: true
-  checked: 2026-10-03
+  checked: 2026-10-04
 
 - id: gibbons-katz-1991
   type: article
@@ -1508,10 +1508,22 @@
   authors: ["Agan, Amanda", "Starr, Sonja"]
   year: 2018
   title: "Ban the Box, Criminal Records, and Racial Discrimination: A Field Experiment"
-  venue: Quarterly Journal of Economics 133(1), 191-235 (full text paywalled; published abstract read in the Crossref record)
+  venue: Quarterly Journal of Economics 133(1), 191-235 (full text paywalled; published abstract read in the Crossref record; methods read in the authors' August 2016 working paper)
   doi: 10.1093/qje/qjx028
   evidence: large field experiment
-  sample: about 15,000 made-up online applications from young men to employers in New Jersey and New York City, before and after each place stopped employers asking about records on the form; figures are the published abstract's
+  sample: 15,220 made-up online applications sent (14,640 analysed; 6,401 New Jersey, 8,239 New York City) from men about 21-22 years old to 4,292 stores in 296 chains, before and after each place stopped employers asking about records on the form; figures are the published abstract's
+  checked: 2026-10-04
+
+- id: aslund-skans-2012
+  type: article
+  authors: ["Åslund, Olof", "Nordström Skans, Oskar"]
+  year: 2012
+  title: Do Anonymous Job Application Procedures Level the Playing Field?
+  venue: "ILR Review 65(1), 82-107 (open copy read, IFAU working paper 2007:31; page numbers are the working paper's)"
+  doi: 10.1177/001979391206500105
+  url: https://www.ifau.se/globalassets/pdf/se/2007/wp07-31.pdf
+  evidence: observational
+  sample: 3,529 applicants to 109 jobs in Gothenburg city districts, 2004-2006; 2 districts used anonymous applications, 1 comparison district did not; districts not picked at random
   checked: 2026-10-04
 
 - id: behaghel-2015
@@ -1602,7 +1614,18 @@
   venue: Yale Law & Policy Review Inter Alia 35 (the journal's page would not open; abstract read as reprinted by the Collateral Consequences Resource Center)
   url: https://ccresourcecenter.org/how-effective-are-judicial-certificates-in-relieving-collateral-consequences/
   evidence: field experiment
-  sample: made-up applications to entry-level jobs in Ohio; only the abstract was read, so the sample size is not given here
+  sample: the first test, called preliminary by its authors; made-up applications to entry-level jobs in Ohio; only the abstract was read, so the sample size is not given here
+  checked: 2026-10-04
+
+- id: leasure-kaminski-2021
+  type: article
+  authors: ["Leasure, Peter", "Kaminski, Robert J."]
+  year: 2021
+  title: "The Effectiveness of Certificates of Relief: A Correspondence Audit of Hiring Outcomes"
+  venue: Journal of Empirical Legal Studies 18(4), 849-875 (full text paywalled; published abstract read in the Crossref record)
+  doi: 10.1111/jels.12297
+  evidence: field experiment
+  sample: two field tests with made-up men convicted of felony theft, felony drug possession and a misdemeanor drug paraphernalia conviction, with and without the same Ohio certificate; the abstract gives no sample size
   checked: 2026-10-04
 
 - id: nelp-2021
@@ -1626,7 +1649,7 @@
   doi: 10.1073/pnas.1706255114
   url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5642692/
   evidence: meta-analysis
-  sample: 28 US field experiments since 1989, 55,842 applications to 26,326 jobs; resume tests and in-person tests
+  sample: 28 US field experiments, 55,842 applications to 26,326 jobs (24 since 1989, 54,318 applications; the main results use these); resume tests and in-person tests
   checked: 2026-10-04
 
 - id: quillian-2020
