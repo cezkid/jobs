@@ -172,6 +172,27 @@ Owner checks still open (beyond the button checks above):
   dashboard opens. owner: pending (plan-ejf.1.17).
 - ChatGPT: chat on the right at first start (#e: secondary sidebar) - START HERE + What you can
   ask still say "click its icon on the left". owner: pending.
+- Windows loading splash (`app/install/splash-windows.ps1`, plan-ejf.13.5): written on a Mac, never
+  run - source checks only (`test_splash_windows.py`). owner: pending (plan-ejf.13.8), on a real
+  Windows install, VS Code closed first:
+  1. Double-click the Desktop icon: splash on screen within ~1 s, in front, centred on the screen
+     the pointer is on - icon, "CEZ Job Finder", moving bar, "Opening...", the hint line. Not
+     minimized w/ the console (shortcut `WindowStyle` 7), no taskbar button of its own.
+  2. It closes when Today / START HERE shows - not before the VS Code window, not seconds after.
+  3. Start again w/ CEZ Job Finder already open: splash closes within a second or two.
+  4. Click the splash while it waits: it closes; VS Code still opens.
+  5. Look: `uv run app/jobs.py look dark`, start -> dark splash; `look light` -> paper; `look auto`
+     -> follows Windows' app mode (Settings > Personalization > Colors).
+  6. Cap: rename `uv.exe` away (launch fails) -> splash closes at once (the bat's ready signal);
+     w/ VS Code never showing a page it closes itself after 45 s.
+  7. Update day (a new `app/` comes down): start still works, no "file in use" - the splash runs
+     from its copy `.data\splash-windows.ps1`.
+  8. Installer's own PowerShell window (`install-windows.ps1` runs the bat at its end): window
+     stays, nothing printed into it by the splash, prompt usable after.
+  9. Console in the taskbar: gone once the splash closes (it shares the launcher's console).
+  10. Smart App Control on (PowerShell in Constrained Language Mode): WinForms may be refused =>
+      no splash, nothing printed, start unchanged. Say which.
+  Also note: does the splash take the keyboard from the app in use (Mac one never does)?
 
 ## Rejected
 
