@@ -48,7 +48,11 @@ MARK_SMALL = APP_ICONS / "mark-32.svg"
 HAND_PAGES = ("index.html", "404.html", "privacy.html")
 # dark tab strip: the shared :root's dark --text + --desk (docs/index.html)
 PALE, DESK = "#f2f2f2", "#1c1c1e"
-MARK_FILL = {"ink": "#000000", "beak": "#ffe433", "eye": "#ffe433"}  # mark-32.svg as drawn (light cut)
+MARK_FILL = {"ink": "#000000", "beak": "#ffe433", "beak-low": "#e57a00", "eye": "#ffe433"}  # mark-32.svg as drawn
+# the paper disc a black bird sits on wherever the ground may be dark (the Desktop icon's, inscribed in the
+# 32 grid): white on a white page it vanishes; tail tip + leg ends past it fade into a dark one
+DISC = '<circle class="disc" cx="16" cy="16" r="16"/>'
+PUPIL = '<circle cx="156" cy="36" r="5.5" fill="#000000"/>\n'  # icon.svg's, dropped under the 128 px icon
 INK = "#0c0c0e"  # outer stop of the app tile's ink gradient: plate under full-bleed icons
 CARDS = [(WEB / "og.html", DOCS / "og.png"), (WEB / "og-research.html", DOCS / "og-research.png")]
 SUPPLEMENTAL = Path("/System/Library/Fonts/Supplemental")
@@ -140,37 +144,39 @@ def record_sync(made):
 
 def mark_shapes():
     """mark-32.svg's shapes as [(class, element)], per the contract in its <desc>: one shape a
-    line, each a direct child w/ class ink | beak | eye and its own fill; nothing else."""
+    line, each a direct child w/ class ink | beak | beak-low | eye and its own fill; nothing else."""
     svg = MARK_SMALL.read_text(encoding="utf-8")
     body = re.sub(r"<desc>.*?</desc>", "", svg, flags=re.S)
     lines = [ln.strip() for ln in body.splitlines()[1:] if ln.strip() and ln.strip() != "</svg>"]
-    shape = re.compile(r'<(?:path|circle|rect|ellipse|polygon) class="(ink|beak|eye)" [^<>]*\bfill="(#[0-9a-f]{6})"[^<>]*/>')
+    shape = re.compile(r'<(?:path|circle|rect|ellipse|polygon) class="(ink|beak-low|beak|eye)" [^<>]*\bfill="(#[0-9a-f]{6})"[^<>]*/>')
     shapes = [(m[1], ln) for ln in lines if (m := shape.fullmatch(ln)) and m[2] == MARK_FILL[m[1]]
               and not re.search(r"\s(?:id|style|transform)=", ln)]
     if 'viewBox="0 0 32 32"' not in svg.split(">", 1)[0] or len(shapes) != len(lines) or {c for c, _ in shapes} != set(MARK_FILL):
         raise SystemExit("icons: app/install/mark-32.svg breaks its contract (viewBox 0 0 32 32; one shape a line - path, "
-                         "circle, rect, ellipse or polygon - each w/ class ink | beak | eye first + its fill: ink "
-                         f"{MARK_FILL['ink']}, beak + eye {MARK_FILL['beak']}, lowercase; no id, style, transform, defs or group)")
+                         "circle, rect, ellipse or polygon - each w/ class ink | beak | beak-low | eye first + its fill: ink "
+                         f"{MARK_FILL['ink']}, beak + eye {MARK_FILL['beak']}, beak-low {MARK_FILL['beak-low']}, lowercase; "
+                         "no id, style, transform, defs or group)")
     return shapes
 
 
 def favicon_svg():
-    """docs/icon.svg = the bare bird's small cut (whole pixels: sharp in a tab), <desc> cut; on a
-    dark tab strip the ink turns the page's text tone and the eye the page colour (the dark cut),
-    the beak stays. Only the tab uses the file: the pages carry the bird inline (inline_bird)."""
+    """docs/icon.svg = the bare bird's small cut (whole pixels: sharp in a tab), <desc> cut, on the paper
+    disc: one drawing for light + dark tab strips (a pale dark cut read as a white bird, its yellow lost
+    on it). A tab draws it at 16 px, where the beak is 2 px tall: all orange (a 1 px yellow row is lost
+    on white). Only the tab uses the file: the pages carry the bird inline (inline_bird)."""
     svg = re.sub(r"<desc>.*?</desc>\n?", "", MARK_SMALL.read_text(encoding="utf-8"), flags=re.S)
     mark_shapes()
-    dark = f"<style>@media (prefers-color-scheme:dark){{.ink{{fill:{PALE}}}.eye{{fill:{DESK}}}}}</style>\n"
-    return re.sub(r"(<svg[^>]*>\n)", lambda m: m[1] + dark, svg, count=1)
+    svg = svg.replace(f'class="beak" fill="{MARK_FILL["beak"]}"', f'class="beak" fill="{MARK_FILL["beak-low"]}"', 1)
+    return re.sub(r"(<svg[^>]*>\n)", lambda m: m[1] + DISC.replace("/>", ' fill="#ffffff"/>') + "\n", svg, count=1)
 
 
 def inline_bird():
     """The bird as the pages carry it inline (header brand, hero title bar): mark-32.svg's shapes
-    w/ their fills cut - the shared CSS colours them (.bird: ink = currentColor, so the page's
-    text tone, black in print, CanvasText in forced colours; beak + eye = --mark). An <img> can't:
-    its own dark cut prints pale on white paper. No id (the header is copied to every page)."""
+    w/ their fills cut, on the paper disc - the shared CSS colours them (.bird: ink = --ink, black
+    on every ground, CanvasText in forced colours; disc = --paper; beak + eye = --mark, beak-low =
+    --beak-low). No id (the header is copied to every page)."""
     shapes = "".join(re.sub(r' fill="[^"]*"', "", el).replace(' class="ink"', "") for _, el in mark_shapes())
-    return f'<svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false">{shapes}</svg>'
+    return f'<svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false">{DISC}{shapes}</svg>'
 
 
 def inline_birds():
@@ -253,6 +259,11 @@ def icons(qa=None):
     print("docs/icon.svg (app/install/mark-32.svg)")
     inline_birds()
     master, s32, s16 = (_b64(APP_ICONS / f) for f in ("icon.svg", "icon-32.svg", "icon-16.svg"))
+    # under the 128 px icon the eye ring is below a 1.5 px stroke: the pupil goes, as icons.py does
+    tile = (APP_ICONS / "icon.svg").read_text(encoding="utf-8")
+    if tile.count(PUPIL) != 1:
+        raise SystemExit("icons: app/install/icon.svg's pupil moved - update PUPIL in assets.py")
+    solid_eye = base64.b64encode(tile.replace(PUPIL, "").encode()).decode()
     with sync_playwright() as p:
         browser = p.chromium.launch(channel="chrome")
         page = browser.new_page(device_scale_factor=1, color_scheme="light")
@@ -269,7 +280,7 @@ def icons(qa=None):
             "icon-maskable-512.png": _render(browser, master, 512, art=MASKABLE, bg=INK),
         }
         # hand-tuned rungs at their own sizes: sharper than the master scaled down
-        frames = {16: _render(browser, s16, 16), 32: _render(browser, s32, 32), 48: _render(browser, master, 48)}
+        frames = {16: _render(browser, s16, 16), 32: _render(browser, s32, 32), 48: _render(browser, solid_eye, 48)}
         browser.close()
     for name, png in made.items():
         (DOCS / name).write_bytes(png)
@@ -298,6 +309,22 @@ OVERFLOW_JS = """() => {
 }"""
 
 
+def card_art(name):
+    """An app art file as a share card draws it (base64). The cards draw the bare bird small - mark.svg
+    at 48 px, under the 70 px its eye ring needs => pupil dropped (a solid eye); mark-32.svg at 16 px
+    => whole beak orange, as the tab + the hero title bar draw it."""
+    svg = (APP_ICONS / name).read_text(encoding="utf-8")
+    if name == "mark.svg":
+        svg, n = re.subn(r'<circle class="pupil" [^>]*/>\n', "", svg)
+    elif name == "mark-32.svg":
+        svg, n = re.subn(r'class="beak" fill="#[0-9a-f]{6}"', f'class="beak" fill="{MARK_FILL["beak-low"]}"', svg)
+    else:
+        n = 1
+    if n != 1:
+        raise SystemExit(f"og: app/install/{name} - expected one shape to redraw for the card, found {n}")
+    return base64.b64encode(svg.encode()).decode()
+
+
 def render_card(template, out):
     """One share card: template (HTML, fonts + app art inlined - Chrome blocks file:// fonts) ->
     out PNG, 1200x630 exactly, clipped; fails on unloaded fonts or overflow (OVERFLOW_JS)."""
@@ -314,7 +341,7 @@ def render_card(template, out):
     # the app's own art files, never a copy of the mark: the card follows the desktop icon
     html, n = re.subn(
         r'src="/app/install/((?:icon|mark)[\w-]*\.svg)"',
-        lambda m: f'src="data:image/svg+xml;base64,{_b64(APP_ICONS / m[1])}"', html,
+        lambda m: f'src="data:image/svg+xml;base64,{card_art(m[1])}"', html,
     )
     if not n:
         raise SystemExit(f"og: no /app/install/ mark in {name} to inline")

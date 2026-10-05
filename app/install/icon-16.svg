@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
-<desc>CEZ Job Finder icon, route "disc", hand-tuned 16 px rung: whole pixels, flat ink tile 12 at 2 (Mac margin). Paper disc 9 px (r 4.5 at 7.5,7.5). Bird in whole pixels, 9 wide tail to beak: head 3 x 3, breast 4 wide, back one 45 degree stair from head to tail tip, the tip one row above the breast's underside as on the master and 1 px clear of the disc's edge, two 1 px legs 1 apart standing on the disc's lower edge, beak 1 px deep and 3 long - one on the paper, two on the dark tile. No eye.</desc>
+<desc>CEZ Job Finder icon, route "disc", hand-tuned 16 px rung: whole pixels, flat ink tile 12 at 2 (Mac margin). Paper disc 9 px (r 4.5 at 7.5,7.5). Bird in whole pixels, 9 wide tail to beak: head 3 x 3, breast 4 wide, back one 45 degree stair from head to tail tip, the tip one row above the breast's underside as on the master and 1 px clear of the disc's edge, two 1 px legs 1 apart standing on the disc's lower edge, beak 1 px deep and 3 long - one on the paper, two on the dark tile. No eye. Beak one colour, orange #e57a00: too short here for the two-tone bill (a 1 px yellow row is lost on the white disc).</desc>
 <rect id="tile" x="2" y="2" width="12" height="12" rx="3" fill="#1c1c1e"/>
 <circle cx="7.5" cy="7.5" r="4.5" fill="#ffffff"/>
 <g shape-rendering="crispEdges">
 <path fill="#000000" d="M7 4 H10 V7 H9 V10 H6 V9 H4 V8 H5 V7 H6 V6 H7 Z M6 10 H7 V12 H6 Z M8 10 H9 V12 H8 Z"/>
-<rect x="10" y="5" width="3" height="1" fill="#ffe433"/>
+<rect x="10" y="5" width="3" height="1" fill="#e57a00"/>
 </g></svg>

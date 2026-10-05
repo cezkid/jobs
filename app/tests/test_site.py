@@ -322,37 +322,40 @@ def test_no_page_shows_the_mark_as_an_img():
         assert "<img" not in re.search(r"<header\b.*?</header>", raw, re.S).group(0), name
 
 
-def test_inline_bird_follows_the_text_colour_and_keeps_a_yellow_beak():
-    # hard-coded black => no bird on the dark page; currentColor also gives black in print + CanvasText in forced colours
+def test_inline_bird_is_black_on_a_paper_disc_with_a_two_tone_beak():
+    # a pale bird on the dark desk read as a white one, its yellow lost on it (owner 2026-10-05): black on every
+    # ground, on a paper disc that vanishes on white; the orange lower beak carries its edge on white (yellow: 1.2:1)
     css = shared((DOCS / "index.html").read_text(encoding="utf-8"))
-    assert re.search(r"\.bird \{[^}]*fill: currentColor", css)
+    assert re.search(r"\.bird \{[^}]*fill: var\(--ink\)", css)
+    assert ".bird .disc { fill: var(--paper); }" in css
     assert re.search(r"\.bird :is\(\.beak, \.eye\) \{ fill: var\(--mark\); \}", css)
-    # pale bird: a yellow eye is lost on it => a hole to the page, on screen only (print is ink on white)
-    assert "@media screen and (prefers-color-scheme: dark) { .brand .eye { fill: var(--desk); } }" in css
-    assert "fill=" not in assets().inline_bird()
+    assert ".bird .beak-low { fill: var(--beak-low); }" in css
+    assert "@media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }" in css
+    assert ".brand .eye" not in css
+    bird = assets().inline_bird()
+    assert "fill=" not in bird and bird.count('class="disc"') == 1 and 'class="beak-low"' in bird
 
 
-def test_tab_icon_is_the_bare_bird_in_both_schemes():
-    # black bird on a dark tab strip = no tab icon; a tile here = the site no longer shows the bare mark
+def test_tab_icon_is_the_black_bird_on_its_disc():
+    # one drawing for light + dark tab strips: the black bird on the white disc (a pale dark cut read as a white
+    # bird); a tab draws 16 px, so the beak is one colour, the orange (a 1 px yellow row is lost on white)
     svg = (DOCS / "icon.svg").read_text(encoding="utf-8")
-    assert "<rect" not in svg and "<desc" not in svg
-    assert svg.count('class="ink" fill="#000000"') >= 1 and 'class="beak" fill="#ffe433"' in svg
-    dark = re.search(r"@media \(prefers-color-scheme:dark\)\{(.*)\}</style>", svg).group(1)
-    assert ".ink{fill:#f2f2f2}" in dark and ".eye{fill:#1c1c1e}" in dark and "beak" not in dark
-    # the dark tones are the page's own dark --text + --desk
-    root = (DOCS / "index.html").read_text(encoding="utf-8")
-    assert "--desk: #1c1c1e; --text: #f2f2f2;" in root
+    assert "<rect" not in svg and "<desc" not in svg and "<style" not in svg
+    assert '<circle class="disc" cx="16" cy="16" r="16" fill="#ffffff"/>' in svg
+    assert svg.count('class="ink" fill="#000000"') >= 1
+    assert 'class="beak" fill="#e57a00"' in svg and 'class="beak-low" fill="#e57a00"' in svg
 
 
-def test_small_tab_frames_keep_a_full_yellow_beak():
-    # a bird scaled into the 16 px tile instead of drawn on whole pixels: beak blurs to beige, the frame reads as a grey blob
+def test_small_tab_frames_keep_a_full_orange_beak():
+    # a bird scaled into the 16 px tile instead of drawn on whole pixels: beak blurs to beige, the frame reads as a grey blob;
+    # the beak is too short there for the two-tone bill, so all orange
     data = (DOCS / "favicon.ico").read_bytes()
     for i, side in enumerate((16, 32)):
         size, offset = struct.unpack("<II", data[14 + 16 * i:22 + 16 * i])
         pix = pymupdf.Pixmap(data[offset:offset + size])
         assert pix.width == side
         dots = {pix.pixel(x, y)[:3] for x in range(side) for y in range(side)}
-        assert any(r >= 250 and g >= 223 and b <= 60 for r, g, b in dots), side  # #ffe433
+        assert any(abs(r - 229) <= 12 and abs(g - 122) <= 14 and b <= 30 for r, g, b in dots), side  # #e57a00
 
 
 @pytest.mark.parametrize("was, now", [

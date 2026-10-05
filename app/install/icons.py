@@ -34,6 +34,17 @@ ICNS_TYPES = {16: [b"icp4"], 32: [b"icp5", b"ic11"], 64: [b"ic12"], 128: [b"ic07
 ICO_SIZES = [16, 24, 32, 48, 64, 128, 256]
 # Windows has no Mac safe margin => crop master to the tile + its shadow (tile ~93% of canvas)
 ICO_VIEWBOX = "70 70 884 884"
+# the eye ring (mark.svg's 5.5 units at scale 2.2) clears a 1.5 px stroke from the 128 px icon up
+# (bird ~70 px); below, the pupil goes and the eye is solid yellow, as on the 32 + 16 px rungs
+RING_FROM = 128
+PUPIL = '<circle cx="156" cy="36" r="5.5" fill="#000000"/>\n'
+
+
+def master(size: int) -> str:
+    svg = MASTER.read_text(encoding="utf-8")
+    if svg.count(PUPIL) != 1:
+        raise SystemExit("icons: icon.svg's pupil moved - update PUPIL in icons.py")
+    return svg if size >= RING_FROM else svg.replace(PUPIL, "")
 
 
 def chrome() -> str:
@@ -91,16 +102,15 @@ def windows_small(svg: str, size: int) -> str:
 
 
 def mac_rung(size: int, tmp: Path) -> Image.Image:
-    src = SMALL.get(size, MASTER).read_text(encoding="utf-8")
+    src = SMALL[size].read_text(encoding="utf-8") if size in SMALL else master(size)
     return render(src, size, tmp)
 
 
 def ico_rung(size: int, tmp: Path) -> Image.Image:
     if size in SMALL:
         return render(windows_small(SMALL[size].read_text(encoding="utf-8"), size), size, tmp)
-    master = MASTER.read_text(encoding="utf-8").replace('viewBox="0 0 1024 1024"',
-                                                         f'viewBox="{ICO_VIEWBOX}"', 1)
-    return render(master, size, tmp)
+    svg = master(size).replace('viewBox="0 0 1024 1024"', f'viewBox="{ICO_VIEWBOX}"', 1)
+    return render(svg, size, tmp)
 
 
 def png(im: Image.Image) -> bytes:
