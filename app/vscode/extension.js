@@ -31,6 +31,10 @@ const PROBE_LOOK_ENV = "JOBS_VSCODE_PROBE_LOOK";
 const PROBE_WARM_ENV = "JOBS_VSCODE_PROBE_WARM";
 // probe only: epoch ms the window was launched, so times read from window start
 const PROBE_T0_ENV = "JOBS_VSCODE_PROBE_T0";
+// probe only: a folder the driver drops <name>.req JSON into while the window stays up, answered in
+// <name>.res: {do: "today-link", urls} = a Today click's own path, all at once; {do: "command", id,
+// args}; {do: "tabs"}; {do: "quit"}. 10 min cap
+const PROBE_HOLD_ENV = "JOBS_VSCODE_PROBE_HOLD";
 const PROBE_COMMANDS = [/^cezJobFinder\./, /^claude-vscode\./, /^chatgpt\./, /^workbench\.action\.chat\./, /outline/i, /timeline/i, /^vscode\.moveViews$/, /^markdown\.showPreview/];
 const PROBE_SETTINGS = [
   "workbench.colorTheme", "window.autoDetectColorScheme", "workbench.startupEditor",
@@ -725,8 +729,44 @@ async function probe(context, out, opened, warmed) {
     report.look.after = theme();
     report.look.tabsAfter = readWindow();  // same extension host still running => no window reload
   }
+  const hold = process.env[PROBE_HOLD_ENV];
+  if (hold && folder) report.hold = await holdFor(hold, folder.uri.fsPath);
   fs.writeFileSync(out, redact(JSON.stringify(report, null, 1)) + "\n");
   await vscode.commands.executeCommand("workbench.action.quit");
+}
+
+// probe only: serves the driver's requests (PROBE_HOLD_ENV) until {do: "quit"} or 10 min
+async function holdFor(dir, root) {
+  const log = [];
+  const at = (rel) => path.join(root, rel);
+  const ui = { tell() {}, busy() {} };
+  for (const end = Date.now() + 600000; Date.now() < end; await new Promise((ok) => setTimeout(ok, 100))) {
+    let names = [];
+    try {
+      names = fs.readdirSync(dir).filter((name) => name.endsWith(".req")).sort();
+    } catch {}
+    for (const name of names) {
+      const reqFile = path.join(dir, name);
+      const begun = Date.now();
+      let req = null;
+      let res;
+      try {
+        req = JSON.parse(fs.readFileSync(reqFile, "utf8"));
+        fs.unlinkSync(reqFile);
+        // company link = http(s) as stored (cleanSite) => a local http test page takes this path
+        if (req.do === "today-link") await Promise.all(req.urls.map((url) => doAction(root, at, { type: "company", url }, ui)));
+        else if (req.do === "command") await vscode.commands.executeCommand(req.id, ...(req.args || []));
+        res = { req, ms: Date.now() - begun, tabs: readWindow() };
+      } catch (err) {
+        res = { req, ms: Date.now() - begun, error: String(err), tabs: readWindow() };
+      }
+      log.push(res);
+      fs.writeFileSync(path.join(dir, name.replace(/\.req$/, ".res")), JSON.stringify(res));
+      if (req && req.do === "quit") return log;
+    }
+  }
+  log.push({ capped: true });
+  return log;
 }
 
 module.exports = { activate, deactivate };

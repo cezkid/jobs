@@ -73,8 +73,9 @@ def test_extension_never_reads_files_from_the_program_folder():
         uses = re.findall(r"[^\n]*extensionUri[^\n]*", source)
         assert all("joinPath(context.extensionUri, ...today.FONT_DIR)" in u for u in uses), uses
         # files read: launcher's start-page marker, the dashboard's data, the look, which AI, a
-        # link jobs.py hands over (taken = renamed in start.LINK_DIR) - all under .data/, never app/
-        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root", "taken"] if name == "extension.js" else []
+        # link jobs.py hands over (taken = renamed in start.LINK_DIR) - all under .data/, never app/;
+        # a scratch probe driver's request (reqFile, JOBS_VSCODE_PROBE_HOLD's folder)
+        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root", "taken", "reqFile"] if name == "extension.js" else []
         assert re.findall(r"readFile\w*\(([^,)]+)", source) == reads
     starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
     assert 'MARKER = path.join(".data", ' in starts and 'AI_FILE = path.join(".data", ' in starts
