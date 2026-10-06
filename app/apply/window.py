@@ -1,6 +1,6 @@
 """Trial, off by default (plan-29g.9): fill a form in a tab of the Job Finder window instead of Chrome -
-`apply-form fill <job> --in-window`, Greenhouse, Ashby, Lever + JazzHR (owner's yes for Ashby + Lever 2026-10-05,
-plan-nko.7, plan-nko.14; JazzHR 2026-10-06, plan-k8n.5). Route 2 of app/docs/apply/vscode-browser.md: the
+`apply-form fill <job> --in-window`, Greenhouse, Ashby, Lever, JazzHR + Workable (owner's yes for Ashby + Lever
+2026-10-05, plan-nko.7, plan-nko.14; JazzHR + Workable 2026-10-06, plan-k8n.5, plan-k8n.8). Route 2 of app/docs/apply/vscode-browser.md: the
 window's extension attaches VS Code's JavaScript debugger to the tab and hands back its CDP proxy;
 Playwright can't use that proxy (one page, no browser), so Page + Locator below speak CDP and cover
 only what greenhouse.py, ashby.py, lever.py, jazzhr.py, workable.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
@@ -24,7 +24,7 @@ from pathlib import Path
 
 from apply.cdp import CDP, Closed, ScriptError
 
-SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR")
+SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR", "Workable")
 ATTACH, DETACH = "attach-form", "detach-form"
 # holding page: the window's open-link wait + the tab's first request
 OPEN_WAIT = 20
@@ -42,7 +42,9 @@ FALLBACK = "run fill without --in-window to fill it in Chrome"
 AT_SUBMIT = {"Lever": "Lever's hCaptcha check at Submit is untested in the window - if Submit doesn't go through, "
                       "fill it again without --in-window (Chrome)",
              "JazzHR": "JazzHR's Human Check at Submit is untested in the window - if it doesn't show or Submit doesn't "
-                       "go through, fill it again without --in-window (Chrome)"}
+                       "go through, fill it again without --in-window (Chrome)",
+             "Workable": "Workable's Turnstile check at Submit and the resume upload are untested in the window - if the "
+                         "resume doesn't show as attached or Submit doesn't go through, fill it again without --in-window (Chrome)"}
 WHY = {"untrusted": "the Job Finder window is in Restricted Mode (opened without its Desktop icon)",
        "picker": "the window couldn't tell which tab to use",
        "no proxy": "the window's debugger didn't hand over the tab",

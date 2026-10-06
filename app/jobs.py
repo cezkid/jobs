@@ -39,7 +39,7 @@ COMMANDS = {
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
     "about": ("about", "what Job Finder knows about the user + their notes beyond the resume: show | list | read KIND | add KIND WORDS | forget KIND N"),
     "answers": ("apply.answers", "the user's saved answers from application forms: list | forget N"),
-    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse, Ashby, Lever, JazzHR); measure | try LINK, workday-fixture FILE (developers)"),
+    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse, Ashby, Lever, JazzHR, Workable); measure | try LINK, workday-fixture FILE (developers)"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "ai": ("ai", "which AI the user chats with: prints it; ai claude | chatgpt | copilot saves it"),
     "look": ("look", "window look: prints it; look auto | light | dark saves it + switches the open window"),

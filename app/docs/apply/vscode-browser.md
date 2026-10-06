@@ -185,7 +185,7 @@ Readings:
 - Cookie banner: the employer's own, over the page bottom; name + file still filled + read back. User answers it.
 
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
-urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.5).
+urlFilter). In `window.SYSTEMS` since the owner's yes 2026-10-06 (plan-k8n.5).
 
 ## Workable - route 2 (plan-k8n.7)
 
@@ -223,7 +223,7 @@ Readings:
 - Cookie dialog = the employer's own; the user answers it.
 
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
-urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.8).
+urlFilter). In `window.SYSTEMS` since the owner's yes 2026-10-06 (plan-k8n.8).
 
 ## BambooHR - route 2 (plan-k8n.10)
 
@@ -341,8 +341,8 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse, Ashby, Lever + JazzHR only, off by default (plan-29g.9, Ashby plan-nko.8, Lever plan-nko.15,
-JazzHR plan-k8n.5).
+window, Greenhouse, Ashby, Lever, JazzHR + Workable only, off by default (plan-29g.9, Ashby plan-nko.8, Lever
+plan-nko.15, JazzHR plan-k8n.5, Workable plan-k8n.8).
 
 ## Owner decision (plan-29g.8)
 
@@ -356,10 +356,16 @@ exactly one tab, trusted folder required, embed forms opened top-level. Default 
 nothing, adapter parity passes (plan-k8n.4). Gap: Human Check at Submit unmeasured unblocked, as Lever's
 hCaptcha => `AT_SUBMIT` note + Chrome fallback. JazzHR = 27 open jobs / 13 employers on the owner's list.
 
+2026-10-06 (plan-k8n.8): Workable added - one page, no frames, no `debugger;` pauses, adapter parity passes
+(plan-k8n.7); the employer's cookie dialog covers the form, filler fills under it as in Chrome. Gaps: Turnstile at
+Submit + the resume upload in the tab unmeasured (upload goes to Workable's storage at once; checked on the owner's
+real application, plan-k8n.9) => `AT_SUBMIT` note + Chrome fallback. Workable = 46 open jobs / 28 employers on the
+owner's list.
+
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever + JazzHR only (owner's yes for Ashby
-2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR + Workable only (owner's yes
+for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5, Workable 2026-10-06 plan-k8n.8; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 Multi-page form (`PER_PAGE`, `form.fill` passes `match`) refused by `window.page_at` before any tab opens, one line
 ending in the Chrome way: a fresh tab is page 1 again, the user's place lost (plan-k8n.2, 2026-10-06; keep-place measured: "Multi-page (keep the user's place)" below, plan-k8n.12).
@@ -412,7 +418,7 @@ a second fill changes nothing, attestation tick left to the applicant in both. A
 (no wait, nothing there = False, Playwright's shown rule), `select_option(value=)` (Playwright's signature:
 value or `label=`), each checked against Playwright's on that page. The fill says the Human Check at Submit is
 untested in the window (`AT_SUBMIT`). Unmeasured: JazzHR filled live in the window tab; Human Check unblocked there.
-Workable (plan-k8n.7, 2026-10-06; not in `--in-window`, owner decides plan-k8n.8): `workable.fill` + `holds` +
+Workable (plan-k8n.7, 2026-10-06; in `--in-window` since the owner's yes, plan-k8n.8): `workable.fill` + `holds` +
 `form.fill_page` on `fixtures/dom/workable-form.html` (hand-built from measured widgets: radios, ticks, lists, the
 resume box + a storage stand-in) + the cookie dialog as measured over the whole form, through Playwright AND
 `window.Page`: same report, same read-back (boxes, `[role=radio]` picks, ticks, list picks, stored file's name), a
@@ -422,7 +428,8 @@ Added: `click(force=)` + Playwright's hit check (waits until nothing else sits o
 TimeoutError; force clicks whatever is on top - before, a covered click landed on the overlay silently),
 `dispatch_event` (MouseEvent etc., bubbles + cancelable + composed, as Playwright), `page.keyboard.press`,
 ArrowDown + Space by name, `page.evaluate` (a function called w/ its arg, else evaluated), `:visible` closing a
-selector part; each checked against Playwright's on that page. Unmeasured: Workable filled live in the window tab.
+selector part; each checked against Playwright's on that page. The fill says Turnstile at Submit + the resume upload
+are untested in the window (`AT_SUBMIT`). Unmeasured: Workable filled live in the window tab; its upload + Turnstile there.
 Generic reader + the rest of the fillers' calls (plan-k8n.14, 2026-10-06; `window.SYSTEMS` unchanged):
 `fixtures/dom/frames-shadow.html` (same-site frame w/ a list, another site's frame, open + closed shadow roots,
 `.form-group`, xpath shapes) through Playwright AND `window.Page` - `dom.snapshot` equal, `dom.fill` same reports +
