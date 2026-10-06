@@ -2,7 +2,10 @@
 
 Measured facts and why each rule exists: app/docs/apply/workable.md.
 """
+import contextlib
 import re
+import time
+from pathlib import Path
 
 import httpx
 
@@ -21,6 +24,9 @@ EXAMPLES = ("https://apply.workable.com/acme/j/1A2B3C4D5E/",
 # questions() is one plain GET of the form definition, no browser: the live test runs it
 QUESTIONS_OVER_HTTP = True
 FORM = "https://apply.workable.com/api/v1/jobs/{code}/form"
+# the employer's public job list (shortcodes of what it has open), by the account the short link 301s to
+SHORT = "https://apply.workable.com/j/{code}"
+BOARD = "https://apply.workable.com/api/v1/widget/accounts/{account}"
 READY = "input[name=firstname]"
 # a chosen resume POSTs to Workable's storage at once, before Submit (workable.md)
 FILE_ON_CHOICE = True
@@ -58,6 +64,17 @@ RESUME_INPUT = """() => [...document.querySelectorAll('input[type=file]')].findI
 # label isn't clickable (2026-10-03, every YES / NO on 1 page). The clickable part is the [role=radio]
 # beside it in the question's fieldset (role=radiogroup), its pick in aria-checked (measure, 4 of 4)
 OPTIONS = 'fieldset:has(input[name="{id}"]) [role=radio]'
+# the resume box's own wrapper: `data-ui` = the field id, as each dropdown's (Workable's form script,
+# 2026-10-06); its words, read off the page (not the file input - the box may draw a new one)
+RESUME_BOX = """() => { const w = document.querySelector('[data-ui="resume"]');
+  return w ? (w.innerText || '').replace(/\\s+/g, ' ').trim() : null; }"""
+# what Workable's form script writes in the resume box when a file isn't kept (2026-10-06): too big
+# (checked by the page before anything goes), the upload failed, a type it doesn't take
+UPLOAD_ERRORS = re.compile(r"File is too big\.?|Something went wrong\. We are working on this, please try again later\."
+                           r"|Please use a different file\.", re.I)
+# the file's name shows only once Workable's storage has it (its script sets name + url together)
+FILE_SHOWN = re.compile(r"\S\.(pdf|docx?|odt|rtf)\b", re.I)
+IDLE_WAIT_MS, SHOWN_WAIT_MS, ERROR_WAIT_MS = 15000, 20000, 2000
 # what a dropdown shows as its pick, read off its wrapper: a box's value or a line of text (which: unmeasured)
 SHOWN = """w => [...new Set([...w.querySelectorAll('input, span, div')].filter(c => !c.closest('[role=listbox]')
   && (c.tagName === 'INPUT' || !c.children.length)).map(c => (c.value || c.innerText || '').trim()).filter(Boolean))]"""
@@ -115,13 +132,44 @@ def from_definition(sections: list[dict]) -> list[dict]:
     return out
 
 
+def board_says(code: str) -> str:
+    """The form read gives 404 for a closed posting and an unknown link alike (workable.md "Closed
+    posting"): the short link still names the employer (301) or not (302 to /oops); the employer's own
+    job list, read once, tells the rest - never a guess."""
+    r = httpx.get(SHORT.format(code=code), timeout=30)
+    m = re.match(r"(?:https://apply\.workable\.com)?/([\w-]+)/j/", r.headers.get("location") or "")
+    if r.status_code not in (301, 302, 308) or not m:
+        return "Workable no longer knows this posting - it may have closed"
+    r = httpx.get(BOARD.format(account=m.group(1)), timeout=30)
+    if r.status_code != 200:
+        return f"can't tell if the posting is open - the employer's Workable job list answered {r.status_code}"
+    if any(str(j.get("shortcode")).upper() == code for j in r.json().get("jobs") or []):
+        return "can't tell if the posting is open - it is on the employer's Workable job list, but its form didn't load"
+    return "the posting is no longer on the employer's Workable job list - it may have closed"
+
+
 def questions(url: str) -> list[dict]:
-    r = httpx.get(FORM.format(code=parse_url(url)[1]), timeout=30)
-    # an unknown shortcode: 404 "Not Found" (2026-10-03); a closed one: unmeasured
+    code = parse_url(url)[1]
+    r = httpx.get(FORM.format(code=code), timeout=30)
+    # unknown or taken down: 404 "Not Found" either way (48 links, 2026-10-06): the job list says which
     if r.status_code == 404:
-        raise ValueError("posting not found - it may have closed")
+        raise ValueError(board_says(code))
     r.raise_for_status()
     return from_definition(r.json())
+
+
+def closed(url: str) -> str | None:
+    """Why the form isn't there (form.closed, when the page shows no form): None = Workable still has it."""
+    code = parse_url(url)[1]
+    try:
+        r = httpx.get(FORM.format(code=code), timeout=30)
+        if r.status_code == 200:
+            return None
+        if r.status_code != 404:
+            return f"can't tell if the posting is open - Workable answered {r.status_code}"
+        return board_says(code)
+    except httpx.HTTPError as e:
+        return f"can't tell if the posting is open - Workable didn't answer ({type(e).__name__})"
 
 
 def ids_on_page(page) -> list[str]:
@@ -136,11 +184,69 @@ def by_name(page, name: str):
     return page.locator(f'form [name="{name}"]:not([type=hidden])')
 
 
-def put_resume(page, path: str) -> str:
+def resume_says(page) -> tuple[str, str]:
+    """(the resume box's words, its error in Workable's own words or "")."""
+    words = page.evaluate(RESUME_BOX) or ""
+    said = UPLOAD_ERRORS.search(words)
+    return words, said.group() if said else ""
+
+
+def put_file(page, path: str) -> str:
+    """Page idle first (as Greenhouse, Ashby), then the file chosen - it goes to Workable's storage at
+    once (workable.md). Ok = its name shows in the resume box and the page says nothing failed for
+    ERROR_WAIT_MS after; the page's own error words -> FAIL; nothing either way -> ASK."""
+    with contextlib.suppress(Exception):  # a page that keeps polling never goes idle: the read decides
+        page.wait_for_load_state("networkidle", timeout=IDLE_WAIT_MS)
     i = page.evaluate(RESUME_INPUT)
     if i < 0:
         return "FAIL no resume box on page"
-    return dom.put_file(page.locator("input[type=file]").nth(i), path)
+    page.locator("input[type=file]").nth(i).set_input_files(path)
+    name, since = Path(path).name, None
+    deadline = time.monotonic() + SHOWN_WAIT_MS / 1000
+    while time.monotonic() < deadline:
+        words, said = resume_says(page)
+        if said:
+            return f"FAIL the page says '{said}' - choose the file again on the page, or check the resume box"
+        if since is None and name in words:
+            since = time.monotonic()
+        if since is not None and time.monotonic() - since >= ERROR_WAIT_MS / 1000:
+            return "ok"
+        page.wait_for_timeout(250)
+    return "ASK upload not confirmed on page - check the resume box"
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck), each
+    kind as workable.md "Read back (2026-10)" records it: a box by its value (phone by digits), a radio
+    question by the one [role=radio] ticked, ticks each by its own box, a dropdown by what its wrapper
+    shows, the resume by a file name in its box and no error. Nothing to read = False."""
+    kind, value, id = q["kind"], q["answer"], q["id"]
+    if kind == "file":
+        words, said = resume_says(page)
+        return bool(FILE_SHOWN.search(words)) and not said
+    if kind == "multichoice" and str(q.get("native")).count(":") >= 2:
+        ticks = [by_name(page, n) for n in q["native"].split(":", 2)[2].split(",")]
+        want = {dom.norm(str(v)).casefold() for v in (value if isinstance(value, list) else [value])}
+        return all(t.count() for t in ticks) and all(
+            (dom.norm(o).casefold() in want) == t.first.is_checked() for o, t in zip(q["options"], ticks))
+    field = by_name(page, id)
+    if not field.count():
+        return False
+    type = field.first.evaluate("e => e.tagName === 'SELECT' ? 'select' : e.getAttribute('role') === 'combobox' ? 'combobox' : e.type")
+    pick = ("Yes" if dom.yes(value) else "No") if kind == "yesno" else str(value).strip()
+    if type == "radio":
+        on = [m.evaluate(OPTION_TEXT) for m in page.locator(OPTIONS.format(id=id)).all()
+              if m.get_attribute("aria-checked") == "true"]
+        return [n.casefold() for n in on] == [pick.casefold()]
+    if type == "select":
+        return dom.norm(field.first.evaluate("e => e.selectedOptions[0] ? e.selectedOptions[0].text : ''")).casefold() == pick.casefold()
+    if type == "combobox" or kind in ("choice", "yesno"):
+        wrap = page.locator(f'[data-ui="{id}"]')
+        return bool(wrap.count()) and any(dom.norm(s).casefold() == pick.casefold() for s in wrap.first.evaluate(SHOWN))
+    got = field.first.input_value()
+    if kind == "phone":  # a dialling code the box adds in front is the page's, not a changed answer
+        return bool(dom.digits(str(value))) and dom.digits(got).endswith(dom.digits(str(value)))
+    return got == str(value)
 
 
 def put_options(page, q: dict, value) -> str:
@@ -221,7 +327,7 @@ def fill(page, q: dict, resume_file: str | None) -> str:
     if kind == "file":
         if q.get("key") != "resume":
             return f"ASK not the resume box ({q['title']}) - the user uploads their own file there"
-        return put_resume(page, resume_file) if value is True and resume_file else "skipped - upload not approved"
+        return put_file(page, resume_file) if value is True and resume_file else "skipped - upload not approved"
     if kind == "multichoice" and str(q.get("native")).count(":") >= 2:
         return put_ticks(page, q, value)
     field = by_name(page, id)
