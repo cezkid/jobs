@@ -12,6 +12,8 @@ from urllib.parse import urlsplit
 
 # VS Code reads PDFs only through a viewer extension (launch.py installs one) => else system app
 VIEWER_EXTENSION_SUFFIXES = {".pdf"}
+# no VS Code viewer at all: a tab would show "binary file" => always the computer's own app (Word, Pages)
+SYSTEM_APP_SUFFIXES = {".docx", ".docm", ".doc", ".rtf", ".odt", ".pages"}
 COMMANDS = {
     "find": (None, "check for new jobs, then list ranked matches (rank args pass through)"),
     "poll": ("ingest.freehire", "check for new jobs only"),
@@ -21,7 +23,7 @@ COMMANDS = {
     "email": ("alert", "email unseen matches; --dry-run prints instead"),
     "daily": ("daily", "poll + notify (or email if set up), as the daily schedule runs it"),
     "autorun": ("autorun", "daily schedule on | off | status"),
-    "resume-import": ("resume.import_pdf", "resume PDF -> resume details: prepare | finish"),
+    "resume-import": ("resume.import_pdf", "resume PDF or Word file -> resume details: prepare [--file F] | finish"),
     "resume-tidy": ("resume.tidy", "rewrite resume details as plain facts, notes out of sight"),
     "resume-render": ("resume.render", "render untailored resume PDF + checks"),
     "resume-lint": ("resume.lint", "wording + honesty lint on untailored resume"),
@@ -35,6 +37,7 @@ COMMANDS = {
     "follow-up": ("followup", "draft a follow-up email for one job into its folder - the user sends it: JOB [--name NAME]"),
     "interview": ("interview", "interview practice or debrief for one job: requirements, backing lines, pay: JOB"),
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
+    "about": ("about", "what Job Finder knows about the user + their notes beyond the resume: show | list | read KIND | add KIND WORDS | forget KIND N"),
     "answers": ("apply.answers", "the user's saved answers from application forms: list | forget N"),
     "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse, Ashby, Lever); measure | try LINK, workday-fixture FILE (developers)"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
@@ -56,6 +59,8 @@ def run_module(module: str, args: list[str]) -> None:
 
 
 def opens_as_tab(path: Path) -> bool:
+    if path.suffix.lower() in SYSTEM_APP_SUFFIXES:
+        return False
     if path.suffix.lower() not in VIEWER_EXTENSION_SUFFIXES:
         return True
     import launch
@@ -188,6 +193,8 @@ def open_for_user(target: str, outside: bool = False, wait: float = LINK_WAIT) -
             subprocess.run(command, check=False)
         else:
             webbrowser.open(path.resolve().as_uri())
+            if path.suffix.lower() in SYSTEM_APP_SUFFIXES:
+                print("opened in the computer's own app for this file (Word, Pages ...)")
         return
     # only a file here or a web page: a link to another program (vscode://, a script) from a
     # posting's text never runs

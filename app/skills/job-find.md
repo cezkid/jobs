@@ -17,6 +17,10 @@ missing -> `job-setup` skill instead.
 4. User says job is wrong ("that's staffing agency", "not my field") -> find cause, make
    smallest settings change, tell them in one plain sentence what you changed:
    - reposter / staffing agency -> `blocklist.companies`
+   - "does this company fit me / my values?" -> `AGENTS.md` #About me (fit question): posting
+     text + `about read workplace` / `values` / `personal`; never a company's stance from memory;
+     they decide -> `blocklist.companies`. A lasting preference they state -> offer to save it
+     as a note (one clickable Save / Don't save)
    - wrong field -> `blocklist.categories` (enrichment.category, local only)
    - misleading title -> `blocklist.title_phrases` (whole words, case-insensitive); first
      `uv run app/jobs.py rank --would-hide "<phrase>"`, tell user the count it hides; read

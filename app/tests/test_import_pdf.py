@@ -247,7 +247,7 @@ def test_dropped_credential_line_is_reported_and_other_section_traces_it(mapped)
 def test_every_left_out_line_is_printed_plainly(capsys):
     import_pdf.left_out(["Volunteer, Riverside Food Bank", "English and Spanish"])
     out = capsys.readouterr().out
-    assert "2 line(s) of the PDF are not fully in the resume details" in out
+    assert "2 line(s) of the resume file are not fully in the resume details" in out
     assert "  - Volunteer, Riverside Food Bank\n" in out and "  - English and Spanish\n" in out
     import_pdf.left_out([])
     assert "nothing" in capsys.readouterr().out
@@ -268,7 +268,7 @@ def test_roles_out_of_order_are_sorted_newest_first_and_said(mapped):
     master, assumptions = import_pdf.build(mapped, TODAY)
     assert [r["title"] for r in master["roles"]] == [
         "Senior Software Engineer", "Software Engineer", "Software Engineer Intern"]
-    assert "the PDF listed jobs out of date order - they are now newest first" in assumptions
+    assert "the resume file listed jobs out of date order - they are now newest first" in assumptions
     assert schema.validate(master) == []
 
 
@@ -401,3 +401,80 @@ def test_iso_and_word_endpoints_parse(text, start, end):
     assumptions = []
     got = import_pdf.parse_range(text, "roles[0]", date(2026, 10, 1), assumptions)
     assert (got, assumptions) == ({"start": start, "end": end}, [])
+
+
+def word_docx(path, header: list[str], body: list[str]):
+    """Made-up Word resume: contact lines in the page header, as Word templates put them."""
+    import zipfile
+    from xml.sax.saxutils import escape
+    ns = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"'
+
+    def paras(lines):
+        return "".join("<w:p>" + "<w:r><w:tab/></w:r>".join(
+            f'<w:r><w:t xml:space="preserve">{escape(cell)}</w:t></w:r>' for cell in line.split("\t")) + "</w:p>"
+            for line in lines)
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("word/document.xml", f"<w:document {ns}><w:body>{paras(body)}</w:body></w:document>")
+        z.writestr("word/header1.xml", f"<w:hdr {ns}>{paras(header)}</w:hdr>")
+    return path
+
+
+def test_word_docx_resume_imports_whole_and_dated(tmp_path):
+    lines = [line.lstrip("\xb7\xa7o \t") for line in WORD_SOURCE.splitlines()]
+    path = word_docx(tmp_path / "resume.docx", lines[:2], lines[2:])
+    source = import_pdf.extract(path)
+    assert source.splitlines()[:2] == ["Alex Rivera", "Riverton, OH | alex.rivera@example.com | (555) 010-0199"]
+    mapped = copy.deepcopy(WORD_MAPPED)
+    assert import_pdf.untraced(mapped, source) == []
+    ratio, dropped = import_pdf.recovery(mapped, source)
+    assert dropped == [] and ratio >= import_pdf.MIN_RECOVERY
+    master, assumptions = import_pdf.build(mapped, TODAY)
+    assert assumptions == [] and schema.validate(master) == []
+
+
+@pytest.fixture
+def resume_dir(tmp_path, monkeypatch):
+    config = {"resume": {"input_pdf": "My Resume/Original resume.pdf", "master": "My Resume/Resume details.yml"}}
+    monkeypatch.setattr(import_pdf.cfg, "resume_path", lambda c, key: tmp_path / c["resume"][key])
+    monkeypatch.setattr(import_pdf.cfg, "DATA", tmp_path / ".data")
+    monkeypatch.setattr(import_pdf, "TASK", tmp_path / ".data" / "resume-task.md")
+    monkeypatch.setattr(import_pdf, "ANSWER", tmp_path / ".data" / "resume-mapped.json")
+    return config, tmp_path
+
+
+def test_prepare_copies_word_file_and_finish_reads_that_same_file(resume_dir):
+    config, root = resume_dir
+    lines = [line.lstrip("\xb7\xa7o \t") for line in WORD_SOURCE.splitlines()]
+    dropped = word_docx(root / "Alex resume.docx", lines[:2], lines[2:])
+    # an older PDF stays where it is, untouched, and is not what finish reads
+    (root / "My Resume").mkdir()
+    (root / "My Resume" / "Original resume.pdf").write_bytes(b"old")
+    import_pdf.prepare(config, dropped, force=False)
+    kept = root / "My Resume" / "Original resume.docx"
+    assert kept.exists() and (root / "My Resume" / "Original resume.pdf").read_bytes() == b"old"
+    assert import_pdf.source_file(config) == kept
+    task = import_pdf.TASK.read_text(encoding="utf-8")
+    assert "Northwind Logistics" in task and "<w:" not in task
+    # finish checks against the text handed out, even once the file changes under it
+    kept.write_bytes(b"changed")
+    assert "Northwind Logistics" in import_pdf.recorded(config)[1]
+
+
+def test_prepare_refuses_old_word_file_in_plain_words(resume_dir, monkeypatch):
+    config, root = resume_dir
+    monkeypatch.setattr(import_pdf.word.shutil, "which", lambda name: None)
+    old = root / "Resume.doc"
+    old.write_bytes(b"\xd0\xcf\x11\xe0")
+    with pytest.raises(SystemExit) as stop:
+        import_pdf.prepare(config, old, force=False)
+    assert "older Word file" in str(stop.value) and "save a copy as Word Document (.docx) or PDF" in str(stop.value)
+    assert not (root / "My Resume").exists()
+
+
+def test_finish_without_a_record_reads_the_pdf(resume_dir):
+    config, root = resume_dir
+    assert import_pdf.source_file(config) == root / "My Resume" / "Original resume.pdf"
+
+
+def test_heading_cell_on_a_tab_joined_line_is_skipped_too():
+    assert import_pdf.content_lines("EXPERIENCE\tNorthwind Logistics\nSKILLS\n") == ["Northwind Logistics"]
