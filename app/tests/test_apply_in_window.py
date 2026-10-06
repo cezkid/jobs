@@ -72,6 +72,8 @@ WORKABLE_BEHAVES = """<div data-ui="cookie-consent" role="dialog" aria-modal="tr
     This website uses cookies to enhance your experience.
     <button type="button">Accept all</button><button type="button">Decline all</button>
     <button type="button">Cookies settings</button></div></div>"""
+BAMBOOHR_FORM = FORM.with_name("bamboohr-form.html")
+BAMBOOHR_PATH = "/careers/101"
 # a same-site frame, another site's frame (the same server by its other name), open + closed shadow roots
 FRAMES_PATH = "/dom/frames-shadow.html"
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
@@ -120,7 +122,7 @@ def site():
                 body, kind = b'{"resume": {}}', "application/json"
             else:
                 page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM,
-                        ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html"),
+                        ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html"), BAMBOOHR_PATH: BAMBOOHR_FORM,
                         FRAMES_PATH: FORM.with_name("frames-shadow.html"),
                         FRAMES_PATH.replace("shadow", "inner"): FORM.with_name("frames-inner.html")}.get(self.path)
                 body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
@@ -139,13 +141,14 @@ def site():
                 self.wfile.write(body or b"")
 
         def do_POST(self):
-            # Workable's storage stand-in: a chosen resume goes here at once
+            # Workable's storage + BambooHR's upload stand-ins: a chosen resume goes here at once
             self.rfile.read(int(self.headers.get("Content-Length") or 0))
-            ok = self.path == "/workable-upload.json"
-            self.send_response(200 if ok else 404)
+            body = {"/workable-upload.json": b'{"url": "/stored/resume"}',
+                    "/bamboohr-upload.json": BAMBOOHR_FORM.with_name("bamboohr-upload.json").read_bytes()}.get(self.path)
+            self.send_response(200 if body else 404)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(b'{"url": "/stored/resume"}' if ok else b"")
+            self.wfile.write(body or b"")
 
         def log_message(self, *args):
             pass

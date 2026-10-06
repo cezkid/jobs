@@ -32,7 +32,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            back, the dummy PDF chosen + what the page then tries to send (blocked). Never Submit.
            READY read as Playwright does, tenant parts scrubbed, tenants.txt appended: rawkit.py (plan-k8n.1)
            JF_NO_FILE=1: file box found, never chosen (Workable: its upload blocked breaks the form, plan-k8n.7);
-           WIDGETS: radios + lists as the page draws them, what sits on top at each list's middle - read only
+           WIDGETS: radios + lists as the page draws them, what sits on top at each list's middle - read only;
+           a system with APPLY (BambooHR): that button clicked once (real click) before READY is read (plan-k8n.10)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -1236,6 +1237,15 @@ def raw(result):
         t = time.time()
         c.send("Page.navigate", {"url": app_url})
         ready = rawkit.ready_js(system.READY)  # ':visible' + open shadow roots, as Playwright reads READY
+        if apply := getattr(system, "APPLY", None):  # the form opens only after this button (BambooHR, plan-k8n.10)
+            button = (f"[...document.querySelectorAll('button, a')].find(e => e.innerText.trim() === {json.dumps(apply)})")
+            result["applyButton"] = {"found": bool(wait_for(lambda: quietly(lambda: c.evaluate(f"!!{button}", timeout=3)), 40, 0.5)),
+                                     "ms": round((time.time() - t) * 1000)}
+            if result["applyButton"]["found"]:
+                block.step = "apply click"
+                time.sleep(2)  # its own scripts settle, as a person reads the posting first
+                result["applyButton"]["click"] = attempt(lambda: click(c, button))
+                block.step = "load"
         result["loaded"] = bool(wait_for(lambda: quietly(lambda: c.evaluate(ready, timeout=3)), 40, 0.5))
         result["readyMs"] = round((time.time() - t) * 1000)
         time.sleep(4)  # its own scripts settle
@@ -1265,7 +1275,7 @@ def raw(result):
                                              for t in c.send("Target.getTargets")["targetInfos"] if t["type"] == "iframe"])
         result["marks"] = quietly(lambda: c.evaluate(MARKS))
         fill = result["fill"] = {"resume": dummy}
-        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
             block.step = "type"

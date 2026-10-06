@@ -1,0 +1,132 @@
+<!doctype html>
+<!-- BambooHR's form as measured (bamboohr.md "Widgets", tenants A-D, 2026-10-03) + its upload block and error
+     banner as BambooHR's page script draws them (2026-10-06): no live page's markup. A chosen file goes to
+     /bamboohr-upload.json on this host - the test's stand-in for the employer's BambooHR. -->
+<html><head><meta charset="utf-8"><title>Acme - Analyst</title>
+<style>
+  .fab-Select { position: relative; display: inline-block; }
+  .fab-Select select { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  [role=menu] { border: 1px solid #999; }
+  [role=menu][hidden] { display: none; }
+  .radio { position: relative; display: inline-flex; gap: 4px; }
+  .radio input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+  .circle { width: 14px; height: 14px; border: 1px solid #333; border-radius: 50%; }
+  input:checked + .circle { background: #333; }
+  [data-fabric-component=FileUpload] input[type=file] { opacity: 0; position: absolute; width: 1px; height: 1px; }
+  [data-fabric-component=SlidedownPortal] { position: fixed; top: 0; width: 100%; }
+</style></head>
+<body>
+<form>
+  <input id="nickname_hpcsaf" name="nickname_hpcsaf" style="display:none" aria-label="Please leave this field blank">
+  <label for="firstName">First Name *</label><input id="firstName" name="firstName" type="text">
+  <label for="lastName">Last Name *</label><input id="lastName" name="lastName" type="text">
+  <label for="email">Email *</label><input id="email" name="email" type="text">
+  <label for="phone">Phone *</label><input id="phone" name="phone" type="text">
+
+  <label for="FabricTextField-1">Address *</label><input id="FabricTextField-1" name="streetAddress.value" type="text">
+  <label for="FabricTextField-2">City *</label><input id="FabricTextField-2" name="city.value" type="text">
+  <label>State *</label>
+  <div class="fab-Select">
+    <select name="state.value"><option value=""></option></select>
+    <button type="button" aria-haspopup="true" data-menu-id="fab-menu1"><span class="fab-SelectToggle__content">-Select-</span></button>
+  </div>
+  <label for="FabricTextField-3">ZIP *</label><input id="FabricTextField-3" name="zip.value" type="text">
+  <label>Country *</label>
+  <div class="fab-Select">
+    <select name="countryId.value"><option value=""></option></select>
+    <button type="button" aria-haspopup="true" data-menu-id="fab-menu2"><span class="fab-SelectToggle__content">United States</span></button>
+  </div>
+
+  <p>Cover Letter</p>
+  <div><div data-fabric-component="FileUpload"><div data-fabric-component="FileUploadList"></div>
+    <button type="button" class="choose">Choose File</button><input type="file" aria-label="file-input"></div></div>
+  <p>Resume*</p>
+  <div><div data-fabric-component="FileUpload"><div data-fabric-component="FileUploadList"></div>
+    <button type="button" class="choose">Choose File</button><input type="file" aria-label="file-input"></div></div>
+
+  <label for="FabricTextField-9">Date Available</label><input id="FabricTextField-9" type="text">
+  <label for="desiredPay">Desired Pay *</label><input id="desiredPay" type="text">
+  <label for="linkedinUrl">LinkedIn Profile URL</label><input id="linkedinUrl" type="text">
+  <label>Highest Education Obtained *</label>
+  <div class="fab-Select">
+    <select id="educationLevelId"><option value=""></option></select>
+    <button type="button" aria-haspopup="true" data-menu-id="fab-menu3"><span class="fab-SelectToggle__content">-Select-</span></button>
+  </div>
+  <label for="references">References</label><textarea id="references"></textarea><textarea aria-hidden="true" readonly tabindex="-1">x</textarea>
+
+  <label for="FabricTextField-5">Salary range *</label><input id="FabricTextField-5" name="customQuestionAnswers.short_1018" type="text">
+  <label for="FabricTextField-6">Why Acme? *</label><textarea id="FabricTextField-6" name="customQuestionAnswers.long_761"></textarea>
+  <p>Will you now or in the future require sponsorship? *</p>
+  <div role="radiogroup">
+    <label class="radio"><input type="radio" name="customQuestionAnswers.yes_no_1019" value="yes"><span class="circle"></span>Yes</label>
+    <label class="radio"><input type="radio" name="customQuestionAnswers.yes_no_1019" value="no"><span class="circle"></span>No</label>
+  </div>
+  <p>Veteran Status</p>
+  <div role="radiogroup">
+    <label class="radio"><input type="radio" name=":r5:" value="0"><span class="circle"></span>Decline to Answer</label>
+    <label class="radio"><input type="radio" name=":r5:" value="1"><span class="circle"></span>Not a Veteran</label>
+    <label class="radio"><input type="radio" name=":r5:" value="2"><span class="circle"></span>Veteran</label>
+  </div>
+  <button type="submit" disabled>Submit Application</button>
+</form>
+
+<!-- Fabric menus open in a portal outside the form -->
+<div id="fab-menu1" role="menu" hidden><div role="menuitem">Alabama</div><div role="menuitem">Alaska</div><div role="menuitem">New York</div></div>
+<div id="fab-menu2" role="menu" hidden><div role="menuitem">Canada</div><div role="menuitem">United States</div></div>
+<div id="fab-menu3" role="menu" hidden><div role="menuitem">High School</div><div role="menuitem">Bachelor's Degree</div><div role="menuitem">Master's Degree</div></div>
+
+<script>
+  for (const toggle of document.querySelectorAll('.fab-Select button')) {
+    const menu = document.getElementById(toggle.dataset.menuId);
+    toggle.addEventListener('click', () => { menu.hidden = !menu.hidden; });
+    toggle.addEventListener('keydown', e => { if (e.key === 'Escape') menu.hidden = true; });
+    for (const item of menu.querySelectorAll('[role=menuitem]'))
+      item.addEventListener('click', () => {
+        toggle.querySelector('.fab-SelectToggle__content').textContent = item.textContent;
+        menu.hidden = true;
+      });
+  }
+
+  // BambooHR's words per errorType (its page script, 2026-10-06); anything else: the error's own message
+  const SAYS = {
+    invalid_file_size: 'Whoa, this is a big file (a little too big). The maximum file size you can upload is 20 MB.',
+    invalid_file_type: 'Sorry, we can’t accept the ".exe" format. Make sure you’re selecting the right file and try again.',
+    unknown_error: 'Whoops, something on our side prevented your file from uploading. Please give it another try.',
+  };
+  function banner(words) {
+    const portal = document.createElement('div');
+    portal.dataset.fabricComponent = 'SlidedownPortal';
+    portal.innerHTML = '<div data-fabric-component="Slidedown" role="alert"><span class="icon"></span>'
+      + '<div class="message"></div><button type="button" aria-label="Close">x</button></div>';
+    portal.querySelector('.message').textContent = words;
+    document.body.appendChild(portal);
+  }
+  for (const input of document.querySelectorAll('[data-fabric-component=FileUpload] input[type=file]')) {
+    const list = input.closest('[data-fabric-component=FileUpload]').querySelector('[data-fabric-component=FileUploadList]');
+    input.addEventListener('change', async () => {
+      const file = input.files[0];
+      if (!file) return;
+      input.value = '';  // React empties the input once it has the file
+      list.innerHTML = '';
+      const item = document.createElement('div');
+      item.innerHTML = '<span class="name"></span><div role="progressbar" aria-label="file-upload-progress-bar"></div>';
+      item.querySelector('.name').textContent = file.name;
+      list.appendChild(item);
+      const body = new FormData();
+      body.append('upload', file);
+      let said = null;
+      try {
+        const r = await fetch('/bamboohr-upload.json', {method: 'POST', body});
+        if (!r.ok) said = `Request failed with status code ${r.status}`;
+        else {
+          const data = await r.json();
+          if (data.status !== 'OK') said = SAYS[data.errorType] || data.message || SAYS.unknown_error;
+        }
+      } catch (e) { said = 'Network Error'; }
+      await new Promise(done => setTimeout(done, 300));
+      if (said) { item.remove(); banner(said); }
+      else item.querySelector('[role=progressbar]').remove();
+    });
+  }
+</script>
+</body></html>

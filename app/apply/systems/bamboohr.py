@@ -2,7 +2,9 @@
 
 Measured facts and why each rule exists: app/docs/apply/bamboohr.md.
 """
+import contextlib
 import re
+import time
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -47,7 +49,26 @@ CUSTOM = {"yes_no": "yesno", "short": "text", "long": "longtext", "multi": "choi
 # then file questions (tenant B)
 FILES = ("coverLetterFileId", "resumeFileId")
 FILE_PLACE = re.compile(r"bamboohr:file (\d+) of (\d+)$")
+# a file name as the block lists it
+FILE_SHOWN = re.compile(r"\S\.(pdf|docx?|odt|rtf|txt)\b", re.I)
 OPEN = "Open"
+# the employer's own list of open postings, plain JSON `{result: [{id, ...}]}` (4 of 4 tenants, 2026-10-06)
+BOARD = "https://{co}.bamboohr.com/careers/list"
+# an upload box's own block: it lists each file by name, a progress bar while it goes (Fabric's FileUpload,
+# BambooHR's page script 2026-10-06)
+UPLOAD_BLOCK = "xpath=ancestor::*[@data-fabric-component='FileUpload'][1]"
+PROGRESS = "[role=progressbar]"
+# a failed upload: the file leaves the block and a banner slides down at the top of the page with
+# BambooHR's own words (page script, 2026-10-06; a live failure unmeasured - try blocks the upload)
+BANNER = "[data-fabric-component=Slidedown]:not([aria-hidden=true])"
+UPLOAD_ERRORS = re.compile(r"Upload failed|One or more files failed to upload|Whoops, something on our side prevented[^.]*\."
+                           r"|Something on our side prevented[^.]*\.|For some reason we are having trouble uploading files[^.]*\."
+                           r"|Whoa, this is a big file[^.]*\.[^.]*\d+ MB\.|Unable to upload an empty file\."
+                           r"|Sorry, we can.t accept the [^ ]+ (?:file )?format\.|Make sure you.re only trying to upload the file types specified\."
+                           r"|Encrypted PDFs are not allowed\.|You can't upload files on a backup\."
+                           r"|Uploading the file .* would cause you to exceed your plan's storage limit\."
+                           r"|Request failed with status code \d+|Network Error", re.I)
+IDLE_WAIT_MS, SHOWN_WAIT_MS, ERROR_WAIT_MS = 15000, 20000, 2000
 
 
 def matches(url: str) -> bool:
@@ -122,13 +143,39 @@ def from_detail(data: dict) -> list[dict]:
     return out
 
 
+def board_says(url: str) -> str:
+    """The definition gives 404 for a taken-down posting and an unknown id alike (bamboohr.md "Closed
+    posting"): the employer's own job list, read once, tells which - never a guess."""
+    co, id = parse_url(url)
+    r = httpx.get(BOARD.format(co=co), timeout=30, follow_redirects=True)
+    if r.status_code != 200:
+        return f"can't tell if the posting is open - the employer's BambooHR job list answered {r.status_code}"
+    if any(str(j.get("id")) == id for j in r.json().get("result") or []):
+        return "can't tell if the posting is open - it is on the employer's BambooHR job list, but its form didn't load"
+    return "the posting is no longer on the employer's BambooHR job list - it may have closed"
+
+
 def questions(url: str) -> list[dict]:
     r = httpx.get(application_url(url) + "/detail", timeout=30, follow_redirects=True)
-    # unknown posting id: 404 {"type": "not_found"} (2026-10-03)
+    # unknown or taken down: 404 {"type": "not_found"} either way (4 links, 2026-10-06): the job list says which
     if r.status_code == 404:
-        raise ValueError("posting not found - it may have closed")
+        raise ValueError(board_says(url))
     r.raise_for_status()
     return from_detail(r.json())
+
+
+def closed(url: str) -> str | None:
+    """Why the form isn't there (form.closed, when the page shows no form): None = BambooHR still has it open."""
+    try:
+        r = httpx.get(application_url(url) + "/detail", timeout=30, follow_redirects=True)
+        if r.status_code == 404:
+            return board_says(url)
+        if r.status_code != 200:
+            return f"can't tell if the posting is open - BambooHR answered {r.status_code}"
+        status = ((r.json().get("result") or {}).get("jobOpening") or {}).get("jobOpeningStatus", OPEN)
+        return None if status == OPEN else f"BambooHR lists the posting as '{status}' - it may have closed"
+    except (httpx.HTTPError, ValueError) as e:
+        return f"can't tell if the posting is open - BambooHR didn't answer ({type(e).__name__})"
 
 
 def ids_on_page(page) -> list[str]:
@@ -245,19 +292,80 @@ def file_box(page, q: dict):
     return boxes.nth(n - 1), None
 
 
+def banner_says(page) -> str:
+    """BambooHR's own words on a failed upload, from the newest banner at the top of the page, or ""."""
+    said = [m.group() for t in page.locator(BANNER).all_inner_texts() for m in UPLOAD_ERRORS.finditer(" ".join(t.split()))]
+    return said[-1] if said else ""
+
+
+def block_says(upload) -> tuple[str, bool]:
+    """(the upload block's words, still sending = a progress bar in it)."""
+    if not upload.count():
+        return "", False
+    return " ".join(" ".join(t.split()) for t in upload.all_inner_texts()), bool(upload.locator(PROGRESS).count())
+
+
 def put_file(page, q: dict, path: str) -> str:
+    """Page idle first (as Greenhouse, Ashby), then the file chosen - it goes to the employer's BambooHR at
+    once (bamboohr.md). Ok = its name shows in the box's block, sent (no progress bar), for ERROR_WAIT_MS
+    with no new error banner; BambooHR's own error words, or the file taken back off the block -> FAIL;
+    nothing either way -> ASK. A banner already up before the choice is an earlier upload's, not this one's."""
+    with contextlib.suppress(Exception):  # a page that keeps polling never goes idle: the read decides
+        page.wait_for_load_state("networkidle", timeout=IDLE_WAIT_MS)
     box, why = file_box(page, q)
     if box is None:
         return why
-    # choosing the file sends it at once (POST /ajax/files/attachTemporary.php, 2 tenants); the
-    # box then lists the file by name - read that back, not the input (React empties it)
+    upload, before = box.locator(UPLOAD_BLOCK), banner_says(page)
     box.set_input_files(path)
-    upload = box.locator("xpath=ancestor::*[@data-fabric-component='FileUpload'][1]")
-    try:
-        upload.get_by_text(Path(path).name).first.wait_for(timeout=20000)
-    except Exception:
-        return "ASK upload not confirmed on page - check the box"
-    return "ok"
+    name, seen, since = Path(path).name, False, None
+    deadline = time.monotonic() + SHOWN_WAIT_MS / 1000
+    while time.monotonic() < deadline:
+        said = banner_says(page)
+        if said and said != before:
+            return f"FAIL the page says '{said}' - choose the file again on the page, or check the {q['title']} box"
+        words, sending = block_says(upload)
+        if name in words:
+            seen = True
+        elif seen:  # a failed upload leaves the block (Fabric's FileUpload)
+            why = f"the page says '{said}'" if said else "the page took the file back off the box"
+            return f"FAIL {why} - choose the file again on the page, or check the {q['title']} box"
+        if name not in words or sending:
+            since = None
+        elif since is None:
+            since = time.monotonic()
+        elif time.monotonic() - since >= ERROR_WAIT_MS / 1000:
+            return "ok"
+        page.wait_for_timeout(250)
+    return f"ASK upload not confirmed on page - check the {q['title']} box"
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck), each
+    kind as bamboohr.md "Read back (2026-10)" records it: a box by its value (phone by digits), radios by
+    the one ticked and its label, a Fabric list by what its button shows, a file by a name in its block,
+    sent (a failed upload leaves the block). Nothing to read = False."""
+    kind, value, id = q["kind"], q["answer"], q["id"]
+    if kind == "file":
+        box, _ = file_box(page, q)
+        if box is None:
+            return False
+        words, sending = block_says(box.locator(UPLOAD_BLOCK))
+        return bool(FILE_SHOWN.search(words)) and not sending
+    pick = ("Yes" if str(value).casefold() in ("yes", "true") else "No") if kind == "yesno" else str(value).strip()
+    radios = VETERAN_RADIOS if id == VETERAN else f'input[type=radio][name="{id}"]'
+    if id == VETERAN or page.locator(radios).count():
+        ticked = [norm(t) for t, on in zip(radio_labels(page, radios), page.locator(radios).evaluate_all("es => es.map(e => e.checked)")) if on]
+        return ticked == [norm(pick)]
+    field = locate(page, q)
+    if not field.count():
+        return False
+    if field.evaluate("e => e.tagName") == "SELECT":
+        toggle = toggle_of(field)
+        return bool(toggle.count()) and norm(shows(toggle)) == norm(pick)
+    got = field.input_value()
+    if kind == "phone":  # a dialling code the box adds in front is the page's, not a changed answer
+        return bool(digits(pick)) and digits(got).endswith(digits(pick))
+    return got == pick
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:

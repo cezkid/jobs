@@ -1,0 +1,524 @@
+{
+ "stage": "raw",
+ "at": "<host>/careers/81",
+ "uniq": "1bc378",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "tenantsAdded": 2,
+ "system": "BambooHR",
+ "ready": "#firstName",
+ "url": "https://<host>/careers/81",
+ "level": 3,
+ "pauseCap": 20,
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 5787,
+  "upInfo": {
+   "t": 1791320506698,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "pauses": [],
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 8082,
+  "sessions": [
+   {
+    "id": "59d0eff9-a9f6-43f1-be88-3bb885c3a36b",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "27977938-f130-4eb7-8bbc-c78935985151",
+    "type": "pwa-editor-browser",
+    "name": "JF form 1bc378 blank \u00ab Job Finder form",
+    "parent": "59d0eff9-a9f6-43f1-be88-3bb885c3a36b"
+   }
+  ],
+  "found": {
+   "27977938-f130-4eb7-8bbc-c78935985151": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53735,
+     "path": "/22fc9d74063958093be8ab9b527489e1b5027339"
+    },
+    "href": "http://127.0.0.1:62754/blank"
+   },
+   "59d0eff9-a9f6-43f1-be88-3bb885c3a36b": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "install": {
+  "ok": true,
+  "ms": 49,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "subscribe": {
+  "ok": true,
+  "ms": 0,
+  "value": {}
+ },
+ "skipOff": {
+  "ok": true,
+  "ms": 2,
+  "value": {}
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:62778/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62778/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62778/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62778/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:62779/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:62778/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "applyButton": {
+  "found": true,
+  "ms": 7433,
+  "click": {
+   "ok": true,
+   "ms": 49
+  }
+ },
+ "loaded": true,
+ "readyMs": 10198,
+ "pausesOnLoad": 0,
+ "fields": 1,
+ "boxes": [
+  {
+   "id": "nickname_hpcsaf",
+   "name": "nickname_hpcsaf",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "firstName",
+   "name": "firstName",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "lastName",
+   "name": "lastName",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "email",
+   "name": "email",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "phone",
+   "name": "phone",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "FabricTextField-351",
+   "name": "streetAddress.value",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "FabricTextField-352",
+   "name": "city.value",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "fab-select353",
+   "name": "state.value",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "FabricTextField-354",
+   "name": "zip.value",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "fab-select355",
+   "name": "countryId.value",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "",
+   "name": "",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "FabricTextField-79",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "desiredPay",
+   "name": "desiredPay",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "websiteUrl",
+   "name": "websiteUrl",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "linkedinUrl",
+   "name": "linkedinUrl",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "customQuestionAnswers.yes_no_164",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "customQuestionAnswers.yes_no_164",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "customQuestionAnswers.yes_no_165",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "customQuestionAnswers.yes_no_165",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "genderId",
+   "name": "genderId",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "ethnicityId",
+   "name": "ethnicityId",
+   "role": "",
+   "type": "select-one"
+  },
+  {
+   "id": "declineToAnswer",
+   "name": ":r2:",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "notVeteran",
+   "name": ":r2:",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "veteran",
+   "name": ":r2:",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "g-recaptcha-response",
+   "name": "g-recaptcha-response",
+   "role": "",
+   "type": "textarea"
+  },
+  {
+   "id": "FabricTextField-70",
+   "name": "",
+   "role": "",
+   "type": "text"
+  }
+ ],
+ "frames": {
+  "iframes": [
+   {
+    "h": 78,
+    "shown": true,
+    "src": "https://www.google.com/recaptcha/api2/anchor",
+    "title": "reCAPTCHA",
+    "w": 304,
+    "kind": "recaptcha"
+   }
+  ],
+  "blockedOtherSite": [
+   {
+    "url": "http://localhost/frame.html",
+    "kind": "other",
+    "after": "canary"
+   },
+   {
+    "url": "https://www.google.com/recaptcha/api2/anchor",
+    "kind": "recaptcha",
+    "after": "load"
+   }
+  ],
+  "targets": {
+   "ok": true,
+   "ms": 2,
+   "value": []
+  }
+ },
+ "marks": {
+  "grecaptchaApi": "object",
+  "hcaptchaApi": "undefined",
+  "hiddenCaptchaButton": false,
+  "linkedinWidget": false,
+  "scripts": [
+   "www.gstatic.com/recaptcha/releases/guXhH0v-XMxlzmbTwqkaT4i5/recaptcha__en.js",
+   "www.google.com/recaptcha/api.js"
+  ],
+  "turnstileApi": "undefined"
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "box": "#firstName",
+  "type: click + Input.insertText": {
+   "ok": true,
+   "ms": 971,
+   "value": {
+    "focused": true
+   }
+  },
+  "readBack": "Test Applicant",
+  "fileBox": "input[type=file]",
+  "fileChosen": true,
+  "upload: DOM.setFileInputFiles": {
+   "ok": true,
+   "ms": 35
+  },
+  "nameShown": false,
+  "failedLine": false,
+  "verdict": null,
+  "fileHeld": false,
+  "sentOnChoice": [
+   {
+    "method": "POST",
+    "url": "https://<host>/ajax/files/attachTemporary.php",
+    "type": "XHR",
+    "contentType": "multipart/form-data; boundary=----WebKitFormBoundary5B1MwpFB",
+    "body": true
+   }
+  ],
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/bamboohr-route2-tab.png",
+   "bytes": 85033
+  }
+ },
+ "widgets": {
+  "checkboxes": 0,
+  "combobox": 0,
+  "comboboxInDataUi": 0,
+  "dialogs": [],
+  "fileInputs": 1,
+  "onTopAtListMiddle": [],
+  "options": 0,
+  "radioGroups": 3,
+  "radioInputs": 7,
+  "resumeWrapper": false,
+  "roleRadio": 0
+ },
+ "captchaBox": null,
+ "shot": {
+  "path": "<checkout>/.data/probe-shots/form/bamboohr-route2-window.png",
+  "bytes": 0
+ },
+ "pausesTotal": 0,
+ "skipOnAfterCap": false,
+ "submitClicked": false,
+ "block": {
+  "reads": 104,
+  "namedReads": [],
+  "failed": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "GET",
+    "url": "http://localhost/frame.html",
+    "type": "other-site frame",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/worker",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://api.rollbar.com/api/1/item/",
+    "type": "XHR",
+    "after": "load"
+   },
+   {
+    "method": "GET",
+    "url": "https://www.google.com/recaptcha/api2/anchor",
+    "type": "other-site frame",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://<host>/ajax/files/attachTemporary.php",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ],
+  "seenWrites": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://api.rollbar.com/api/1/item/",
+    "type": "XHR",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://<host>/ajax/files/attachTemporary.php",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ]
+ },
+ "pageLoads": 1,
+ "handlerErrors": [],
+ "quit": {
+  "killed": false
+ }
+}

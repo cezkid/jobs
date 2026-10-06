@@ -225,6 +225,46 @@ Readings:
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
 urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.8).
 
+## BambooHR - route 2 (plan-k8n.10)
+
+Same `measure.py raw`, level 3, no named read. The form opens only after "Apply for This Job": `raw` now clicks a
+system's `APPLY` button once (real click) before reading `READY`. Box = `#firstName`, file = `input[type=file]`
+(resume), dummy PDF chosen. 2 employers (tenants A, B; each its own host; B = another open posting of the employer
+on line 2 of the links, picked by 3 plain reads - its job list + 2 form definitions), 2026-10-06; page loads: 1
+per host = 2. Numbers: [bamboohr-tenant-a.json](vscode-browser/bamboohr-tenant-a.json),
+[bamboohr-tenant-b.json](vscode-browser/bamboohr-tenant-b.json) (host, ids + org scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| Apply button found, from navigate | 7.4 s, real click ok | 4.3 s, ok |
+| `READY` from navigate (incl. the 2 s before the click) | 10.2 s | 7.4 s |
+| Boxes listed | 26 (honeypot `nickname_hpcsaf` incl.) | 18 |
+| Widgets | 3 radio groups (7 native radios), Fabric lists as native `select` + toggle button, no `[role=combobox]` | no radios |
+| `debugger;` pauses | 0 | 0 |
+| reCAPTCHA | `google.com/recaptcha/api.js` + `gstatic` script (reads), `grecaptcha` object, `g-recaptcha-response` box; anchor frame 304x78 (v2 tick-box size) shown, its document failed by the block (other site) | same |
+| Frame targets | none | none |
+| Page load write | `POST api.rollbar.com/api/1/item/` (BambooHR's error report, as in Chrome) - failed | same |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant" | same |
+| Dummy PDF chosen | sent at once: `POST <host>/ajax/files/attachTemporary.php` (multipart) - failed; page: banner "Whoops, something on our side prevented your file from uploading. Please give it another try." + "Please try uploading again" in the resume block, "No file selected" (`bamboohr-route2-tab.png`) | same request, file not held |
+| Other writes | none while typing | none |
+
+Readings:
+- Every box + the file box is in the page; no `debugger;`, no frame needed to fill.
+- File leaves on choice, window as Chrome (`bamboohr.md`). Blocked here, so the page showed its own failure words -
+  the `unknown_error` banner `put_file` reads (FAIL with the page's words); an unblocked upload in the tab -
+  unmeasured (the owner's real application).
+- reCAPTCHA frame is tick-box sized but blank under the block; Chrome tries saw nothing to tick (`bamboohr.md`).
+  Whether it shows + takes a click unblocked, and what it checks at Submit - unmeasured (never Submit), same open
+  question as JazzHR, Greenhouse, Lever.
+- Adapter gaps: none. The parity test (`test_in_window_fills_bamboohr_as_playwright_does`, saved form fixture,
+  Playwright vs `window.Page` in one headless Chrome) passes: same report, same read-back, a second fill changes
+  nothing - every call `bamboohr.fill` + `holds` + `form.fill_page` make already exists in `window.py`
+  (`check(force=)`, xpath, `get_by_role`, `evaluate_all`).
+
+Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
+urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.11).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any

@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import ashby, greenhouse, jazzhr, lever, ukg, workable
+from apply.systems import ashby, bamboohr, greenhouse, jazzhr, lever, ukg, workable
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -39,7 +39,7 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable]
+IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
@@ -1495,6 +1495,16 @@ READ_BACK_FORMS = {
         | {"native": "CA:multiple:152176,152177,152178"},
         answered("CA_1", "choice", "Associate", ["High School/GED", "Associate", "Bachelor's"]),
         answered("CA_2", "yesno", "No", ["Yes", "No"])]),
+    "bamboohr": ("bamboohr-form.html", [
+        answered("firstName", "text", "Ada"), answered("email", "email", "ada@example.com"),
+        answered("phone", "phone", "555-0100"), answered("streetAddress", "text", "1 Main St"),
+        answered("state", "text", "New York"), answered("countryId", "choice", "United States"),
+        answered("dateAvailable", "date", "11/02/2026", title="Date Available"),
+        answered("educationLevelId", "choice", "Bachelor's Degree"),
+        answered("customQuestionAnswers.short_1018", "text", "90000"),
+        answered("customQuestionAnswers.long_761", "longtext", "Their own words."),
+        answered("customQuestionAnswers.yes_no_1019", "yesno", "No", ["Yes", "No"]) | {"native": "bamboohr:yes_no"},
+        answered("veteranStatusId", "choice", "Not a Veteran", bamboohr.VETERAN_OPTIONS)]),
 }
 
 
@@ -1621,6 +1631,51 @@ def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_pag
     assert ashby.fill(page, resume, str(bad)) == \
         "FAIL the page says 'bad_Resume.pdf failed to upload' - choose the file again on the page, or check the resume box"
     assert ashby.fill(page, resume, str(good)) == "ok"
+
+
+def test_bamboohr_holds_reads_what_shows_never_the_answer(fixture_page):
+    """Untouched list shows "-Select-", no radio ticked, another pick, a box not on the page, no file: not held."""
+    page = fixture_page("bamboohr-form.html")
+    state = answered("state", "text", "New York")
+    assert not bamboohr.holds(page, state)
+    assert bamboohr.fill(page, state | {"answer": "Alaska"}, None) == "ok" and not bamboohr.holds(page, state)
+    assert bamboohr.holds(page, answered("countryId", "choice", "United States"))  # preset by the page
+    vet = answered("veteranStatusId", "choice", "Veteran")
+    assert not bamboohr.holds(page, vet)
+    assert bamboohr.fill(page, vet | {"answer": "Not a Veteran"}, None) == "ok" and not bamboohr.holds(page, vet)
+    sponsor = answered("customQuestionAnswers.yes_no_1019", "yesno", "Yes") | {"native": "bamboohr:yes_no"}
+    assert not bamboohr.holds(page, sponsor)
+    assert bamboohr.fill(page, sponsor, None) == "ok" and bamboohr.holds(page, sponsor)
+    assert not bamboohr.holds(page, answered("customQuestionAnswers.short_9", "text", "x"))
+    page.locator("#phone").fill("+1 555-0100")  # a dialling code in front is the box's
+    assert bamboohr.holds(page, answered("phone", "phone", "555-0100"))
+    assert not bamboohr.holds(page, answered("phone", "phone", "555-0199"))
+    resume = answered("resumeFileId", "file", True, title="Resume") | {"key": "resume", "native": "bamboohr:file 2 of 2"}
+    assert not bamboohr.holds(page, resume)
+
+
+def test_bamboohr_upload_waits_for_the_block_and_says_the_pages_words(fixture_page, monkeypatch, tmp_path):
+    """Choosing the file sends it at once (stand-in endpoint on the fixture host): ok once the name shows,
+    sent, with no error after; BambooHR's own banner words when it refuses or the upload fails - a banner
+    left from an earlier try is not this one's. Never the cover letter box."""
+    monkeypatch.setattr(bamboohr, "ERROR_WAIT_MS", 500)
+    page = fixture_page("bamboohr-form.html")
+    resume = answered("resumeFileId", "file", True, title="Resume") | {"key": "resume", "native": "bamboohr:file 2 of 2"}
+    good = tmp_path / "Ada_Lovelace_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    assert bamboohr.fill(page, resume, str(good)) == "ok" and bamboohr.holds(page, resume)
+    letter = page.locator("[data-fabric-component=FileUploadList]").first
+    assert letter.inner_text() == ""  # never the cover letter box
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(
+        status=200, content_type="application/json", body='{"status": "ERROR", "errorType": "invalid_file_size"}'))
+    assert bamboohr.fill(page, resume, str(good)) == (
+        "FAIL the page says 'Whoa, this is a big file (a little too big). The maximum file size you can upload is 20 MB.'"
+        " - choose the file again on the page, or check the Resume box")
+    assert not bamboohr.holds(page, resume)
+    page.unroute("**/bamboohr-upload.json")
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(status=500, body=""))
+    assert bamboohr.fill(page, resume, str(good)) == \
+        "FAIL the page says 'Request failed with status code 500' - choose the file again on the page, or check the Resume box"
 
 
 def test_survey_tally_is_counts_only():
