@@ -34,6 +34,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            JF_NO_FILE=1: file box found, never chosen (Workable: its upload blocked breaks the form, plan-k8n.7);
            WIDGETS: radios + lists as the page draws them, what sits on top at each list's middle - read only;
            a system with APPLY (BambooHR): that button clicked once (real click) before READY is read (plan-k8n.10)
+           Oracle's email box by name (never the honeypot text box); no box in the page -> the email box in a
+           same-site frame (iCIMS ?in_iframe=1) through contentDocument, focused by script + Input.insertText (plan-k8n.16)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -1172,6 +1174,8 @@ WIDGETS = """(() => { const boxes = [...document.querySelectorAll('[role=combobo
     dialogs: [...document.querySelectorAll('[role=dialog]')].filter((d) => d.getClientRects().length).map((d) => ({ui: d.getAttribute('data-ui'),
       modal: d.getAttribute('aria-modal'), text: (d.innerText || '').replace(/\\s+/g, ' ').slice(0, 60)}))}; })()"""
 
+FRAME_BOX = ("[...document.querySelectorAll('iframe')].map((f) => { try { return f.contentDocument && "
+             "f.contentDocument.querySelector('input[name=css_loginName], input[type=email]') } catch (e) { return null } }).find(Boolean)")
 NAMES = """[document.title, (document.querySelector('meta[property="og:site_name"]') || {}).content || ''].map((s) => s.trim()).filter(Boolean)"""
 
 
@@ -1275,7 +1279,8 @@ def raw(result):
                                              for t in c.send("Target.getTargets")["targetInfos"] if t["type"] == "iframe"])
         result["marks"] = quietly(lambda: c.evaluate(MARKS))
         fill = result["fill"] = {"resume": dummy}
-        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
+                                'input[name^="primary-email"]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
             block.step = "type"
@@ -1298,6 +1303,23 @@ def raw(result):
                     return {"focused": c.evaluate(f"document.activeElement === {q(box)}")}
                 fill["type: focused by script + Input.insertText"] = attempt(focused_typed)
                 fill["readBackAfterFocus"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
+        if not box:  # the start box in the page's own same-site frame (iCIMS ?in_iframe=1, plan-k8n.16): reached through
+            # contentDocument from the top page's session, focused by script + Input.insertText (no click: frame offset)
+            fill["frameBox"] = quietly(lambda: c.evaluate(f"!!{FRAME_BOX}"))
+            if fill["frameBox"]:
+                block.step = "type"
+
+                def frame_typed():
+                    c.evaluate(f"{FRAME_BOX}.focus()")
+                    c.send("Input.insertText", {"text": "test@example.com"})
+                    time.sleep(0.5)
+                    return {"focused": c.evaluate(f"{FRAME_BOX}.ownerDocument.activeElement === {FRAME_BOX}")}
+                fill["frame: focused by script + Input.insertText"] = attempt(frame_typed)
+                fill["frameReadBack"] = quietly(lambda: c.evaluate(f"{FRAME_BOX}.value"))
+                fill["frameMarks"] = quietly(lambda: c.evaluate(f"(() => {{ const d = {FRAME_BOX}.ownerDocument; return {{"
+                                                                f"hcaptcha: !!d.querySelector('.h-captcha, [data-hcaptcha-widget-id]'), "
+                                                                f"tick: !!d.querySelector('#accept_gdpr'), "
+                                                                f"boxes: d.querySelectorAll('input:not([type=hidden]), select, textarea').length}} }})()"))
         fbox = next((s for s in ('[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["fileBox"] = fbox
         result["widgets"] = quietly(lambda: c.evaluate(WIDGETS))

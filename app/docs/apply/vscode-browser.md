@@ -265,6 +265,66 @@ Readings:
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
 urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.11).
 
+## Oracle - route 2 (plan-k8n.16)
+
+Same `measure.py raw`, level 3, no named read. Box = the start box's email box (`input[name^=primary-email]`, never
+the honeypot text box); no file box on the start box. 2 employers (tenants A, B; own hosts, posted records on the
+open list, none page-loaded earlier in the bead), 2026-10-06; page loads: 1 per host = 2. Numbers:
+[oracle-tenant-a.json](vscode-browser/oracle-tenant-a.json), [oracle-tenant-b.json](vscode-browser/oracle-tenant-b.json)
+(host, site, ids scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| `READY` from navigate | 3.8 s | 3.8 s |
+| Boxes in the page / shown (`READY`) | 4 (assistant box, email, honeypot, terms tick; email id number swaps with the trap's, as in Chrome) / 2 | 4 / 2 |
+| `debugger;` pauses | 0 | 0 |
+| Frames / frame targets | none / none | none / none |
+| Captcha | none on load (no hCaptcha / reCAPTCHA / Turnstile script or object) | none |
+| Cookie banner | "This website collects cookies ..." (no `aria-modal`) | "Cookie Policy ... ACCEPT" |
+| Email: click + `Input.insertText` | not focused, read back "" - what took the click: unmeasured (banner likely) | focused, read back ok |
+| Email: focused by script + `Input.insertText` | focused, read back ok | - |
+| Page writes | none failed after load (visit tracking seen on tenant B in Chrome, 2026-10-03: not here) | none |
+
+Readings:
+- Start box fills in the tab: typing = focus by script + `Input.insertText` (as `Locator.fill`), whatever sits over the
+  box. No frame, no pause, no captcha on these 2 (Chrome saw an invisible hCaptcha on 2 of 7, `oracle.md`).
+- Cookie banner = the employer's own; the user answers it.
+- Pages after Next: unmeasured (never Next) - the owner's real application (plan-6oq.6.6, .6.8). Oracle's flow is
+  multi-page, so whether it fills in the window waits on the multi-page decision (plan-k8n.20).
+
+## iCIMS - route 2 (plan-k8n.16)
+
+Same `measure.py raw`, level 3. The start box sits in the page's own same-site frame (`?in_iframe=1`): `raw` now
+reaches its email box through the top page's `contentDocument`, focused by script + `Input.insertText`. 2 employers
+(tenants A, B; `careers-<co>` hosts on the open list, none page-loaded earlier in the bead), 2026-10-06; page loads:
+3 (A x2: a shell slip loaded A's link again - rerun kept out of the numbers; B x1). Numbers: [icims-tenant-a.json](vscode-browser/icims-tenant-a.json),
+[icims-tenant-b.json](vscode-browser/icims-tenant-b.json) (host, slug, ids scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| `READY` from navigate (the frame) | 2.7 s | 0.9 s |
+| Same-site frame | 1, "iCIMS Content iFrame" 720x586, shown | 1, same title, 980x989, shown |
+| **Its own frame target?** | **no** - `Target.getTargets` lists no iframe; js-debug made no session for it | **no** |
+| Email box in the frame | found through `contentDocument` | found; frame holds 5 boxes, the privacy tick, an `h-captcha` mark |
+| Email: focused by script + `Input.insertText` | focused, read back ok | same |
+| `debugger;` pauses | 0 | 0 |
+| hCaptcha | 2 `newassets.hcaptcha.com/.../hcaptcha.html` frames (other site) - failed before load by the block | same |
+| Page writes on load (failed) | Google Analytics `g/collect` x2 + DoubleClick ping, Snowplow (`c.talentplatform.us`) | GA x2, Snowplow |
+
+Readings:
+- Frame target answered: the same-site `?in_iframe=1` frame runs in the page's own process, no target of its own, so
+  the page's proxy reaches it (unlike another site's frame, where fill + upload are impossible - Local form). The
+  start box fills in the tab. Privacy tick on B (A's frame marks unread: a script slip, fixed before B's run).
+- hCaptcha frames are another site's: blank under the block; unblocked, whether its check shows and what it asks at
+  Next - unmeasured (never Next), same open question as Oracle and BambooHR's reCAPTCHA.
+- Upload in the frame (`DOM.setFileInputFiles` on a frame element from the top session): unmeasured - no file box
+  on the start box; pages after Next unmeasured (the owner's real application, plan-6oq.6.6, .6.8).
+- `window.SYSTEMS` unchanged: iCIMS is multi-page (start box -> Next -> account), so it waits on plan-k8n.20.
+
+Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab urlFilter).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any

@@ -265,7 +265,11 @@ def fill(slug: str, in_window: bool = False) -> None:
 def closed(page, system=None, url: str | None = None) -> str | None:
     """Why the form isn't there - a closed posting's own words, else the system's own record
     (optional `closed(url)`: Ashby's closed page says only "Page not found") - or None. Its form on
-    the page => open, whatever the text says (privacy notices talk about filled positions too)."""
+    the page => open, whatever the text says (privacy notices talk about filled positions too) - unless
+    the system can tell its own gone page apart (optional `gone(page, url)`: iCIMS shows its job search,
+    boxes and all, in place of a closed posting's start box)."""
+    if system is not None and url and hasattr(system, "gone") and (said := system.gone(page, url)):
+        return said
     if system is not None:
         try:
             page.locator(system.READY).first.wait_for(timeout=10000)

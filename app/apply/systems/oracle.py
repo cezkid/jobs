@@ -4,10 +4,14 @@ start box are unmeasured.
 
 The start box ("Job application form", .../job/<id>/apply/email) asks for an email and a terms tick;
 the user's own click on Next sends the email and creates their candidate profile (the page's words).
-No public form definition. Measured facts, and what isn't measured: app/docs/apply/oracle.md.
+No public form definition; the posting's own record is public (closed). Measured facts, and what
+isn't measured: app/docs/apply/oracle.md.
 """
 import re
+from datetime import datetime, timezone
 from urllib.parse import urlsplit
+
+import httpx
 
 from apply import browser, dom
 from apply.questions import signs
@@ -31,6 +35,11 @@ UNMEASURED = "unmeasured system - check every box"
 TRAP = re.compile(r"honey-?pot", re.I)
 # the hidden digital-assistant box on every page (oda-work-summary-text-area, 4 of 4): not the form's
 ASSISTANT = re.compile(r'^\[id="oda-')
+# the posting's record, as the job page reads it (plain GET, no sign-in; 42 links, 2026-10-06): 200 with
+# items [] once Oracle drops it - but the start box still opened for 2 of 4 such links on the open
+# list (oracle.md "Closed"), so the page decides first and this only speaks when no box shows
+RECORD = ('https://{host}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails'
+          '?expand=all&onlyData=true&finder=ById;Id="{job}",siteNumber={site}')
 
 
 def parse_url(url: str) -> tuple[str, str, str]:
@@ -125,8 +134,46 @@ def questions(url: str) -> list[dict]:
         return read(page)
 
 
+def when(stamp: str) -> datetime:
+    t = datetime.fromisoformat(stamp.replace("Z", "+00:00"))
+    return t if t.tzinfo else t.replace(tzinfo=timezone.utc)
+
+
+def closed(url: str) -> str | None:
+    """Why no box shows (form.closed, after the page's own words): the posting's record. None = posted
+    and not ended. A record without a posted date (3 of 26 open, 2 of 16 closed; off the job list
+    either way) or any error = can't tell - never a guess."""
+    host, site, job = parse_url(url)
+    try:
+        r = httpx.get(RECORD.format(host=host, job=job, site=site), timeout=30)
+        if r.status_code != 200:
+            return f"can't tell if the posting is open - Oracle answered {r.status_code}"
+        items = r.json().get("items") or []
+        if not items:
+            return "Oracle no longer has the posting on record - it may have closed"
+        start, end = items[0].get("ExternalPostedStartDate"), items[0].get("ExternalPostedEndDate")
+        now = datetime.now(timezone.utc)
+        if end and when(end) <= now:
+            return f"Oracle's record says the posting ended on {when(end).date()} - it may have closed"
+        if not start or when(start) > now:
+            return "can't tell if the posting is open - Oracle has it on record, not posted on the employer's job list"
+        return None
+    except (httpx.HTTPError, ValueError, AttributeError) as e:
+        return f"can't tell if the posting is open - Oracle didn't answer ({type(e).__name__})"
+
+
 def ids_on_page(page) -> list[str]:
     return [c["hook"] for c in page_only(dom.snapshot(page))["controls"] if c["visible"] and not c["password"]]
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck),
+    as oracle.md "Read back (2026-10)" records it: dom.holds on the page without the bot trap - a
+    hook naming the trap reads as nothing (False), the email box by its exact value. The terms tick
+    is the applicant's (never filled, never read as ours)."""
+    if signs(q["title"]) or TRAP.search(q["id"]) or TRAP.search(q["title"]):
+        return False
+    return dom.holds(page, q, page_only(dom.snapshot(page)))
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:

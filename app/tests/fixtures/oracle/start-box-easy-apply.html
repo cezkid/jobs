@@ -1,0 +1,20 @@
+<!doctype html>
+<!-- Oracle Recruiting Cloud's Easy Apply start box (.../job/<id>/easy-apply/email, where .../apply/email
+     redirected on 1 tenant), rebuilt from what measure read (2026-10-06, writes blocked): its own label
+     and heading, the same ids and names, the bot trap, an invisible hCaptcha + reCAPTCHA response box
+     (2 of 7 start boxes measured). -->
+<html><body>
+<h1>Test Job</h1>
+<form aria-label="Job application form">
+  <h2>Authentication screen. Let's get started</h2>
+  <label for="primary-email-0">What's your email?</label>
+  <input id="primary-email-0" name="primary-email" type="email" autocomplete="email" required>
+  <div style="position:absolute;left:-5000px"><label for="honey-pot-1">honeypot</label>
+    <input id="honey-pot-1" name="honey-pot" type="text"></div>
+  <input type="checkbox" id="legal-disclaimer-checkbox" required>
+  <label for="legal-disclaimer-checkbox">I agree with the <a href="#">terms and conditions</a></label>
+  <textarea name="g-recaptcha-response" style="display:none"></textarea>
+  <textarea name="h-captcha-response" style="display:none"></textarea>
+  <button type="button">Next</button>
+</form>
+</body></html>

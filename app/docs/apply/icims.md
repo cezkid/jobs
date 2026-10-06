@@ -41,6 +41,50 @@ weren't captured - what Next does is described from what's measured only.
 `try`, 3 tenants (A, B, C): email ok, the privacy tick (B) + captcha + Next listed as the applicant's
 own steps, 0 writes sent (blocked: hCaptcha config, analytics, ad tags - all on page load).
 
+## Read back (2026-10)
+
+What `icims.holds` reads off the page once the form had time to keep it (`form.recheck`: refilled once,
+still gone -> FAIL to fill by hand) - what shows, never the answer it was given. `dom.holds` in the start
+box's own frame. Fixture `app/tests/fixtures/icims/start-box.html` (+ `-frame`, rebuilt from measure
+reads); Chrome tests in `test_apply_icims.py`.
+
+| Box | Read back |
+|---|---|
+| Email (`css_loginName`) | its value exactly as typed, shown + label unchanged; emptied -> not held |
+| privacy tick | never ours (`signs`) - not held, ticked or not |
+| box not on the page | not held |
+
+No upload on the start box; pages after Next unmeasured (their read back = `dom.holds`, untested live).
+
+## Closed posting (2026-10-06)
+
+Measured over `.data/links/icims-open.txt` + `-closed.txt` (19 links; plain GETs of each job page
+`.../job?in_iframe=1`, 2 s apart, 0 429; 8 page loads, 4 hosts, max 2 per host, canary ok each).
+Counts in `.data/measure/icims-closed-check-2026-10-06.json`.
+
+| List | Links | Job page 200 | Job page 410 |
+|---|---|---|---|
+| open | 16 | 14 | 2 |
+| closed | 3 | 2 | 1 |
+
+Start-box link loaded (4 links):
+
+| Job page | Links | What showed |
+|---|---|---|
+| 410 (closed list) | 1 | iCIMS's job search, `?ss=1&notFound=1` in the page + frame address, its search boxes showing, no email box |
+| 200 (closed list) | 2 | start box (1 with the privacy tick) - still open |
+| 410 (open list) | 1 | the employer's own careers site, all jobs (the 410 body's script sends the page there) |
+
+- 410 bodies: iCIMS's "The job that you were looking for either does not exist or is no longer open."
+  (1), a script sending the page to the employer's own site (1).
+- The gone page shows boxes (job search): `READY` alone reads it as the form. So `icims.gone` looks
+  first (`form.closed`, before the form wait; watched 3 s, the redirect comes after load): frame
+  address `notFound=1` -> closed (in iCIMS's words when the frame shows them); page off `*.icims.com`
+  -> "the posting's link now leads to the employer's own careers site - it may have closed". `read`
+  stops there, `recover` leaves the page as is.
+- `icims.closed(url)` (no box, no words): job page 410 -> "may have closed"; 200 -> None; anything
+  else -> "can't tell". Start box read as closed: 0 of 2.
+
 ## Pages after Next - unmeasured
 
 Sign in, a password, a new account with the employer, more boxes: per tenant, none measured. `read`
@@ -57,6 +101,7 @@ None public found: the questions come after Next, per employer - unmeasured.
 |---|---|
 | Listing id (job page, start box reads) | opening the start box |
 | Security check config (hCaptcha), analytics + ad tags (B, C), chat widget (C) | page load (blocked in every run) |
+| Listing id (job page read) | only when no box shows, to say why (`closed`) |
 | Email | the user's own click on Next - before the form |
 | Everything after | unmeasured - first real application |
 
