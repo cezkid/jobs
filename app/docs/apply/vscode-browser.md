@@ -152,6 +152,41 @@ Readings:
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
 urlFilter). Owner decides (plan-nko.14).
 
+## JazzHR - route 2 (plan-k8n.4)
+
+Same `measure.py raw`, level 3, no named read (JazzHR's form is one server-rendered page). Box =
+`input[type=text]`, file = `input[type=file]`. 2 employers (tenants A, B; B picked for its Apply with LinkedIn
+widget), 2026-10-06; page loads: 1 per host (each tenant its own host) = 2. Numbers:
+[jazzhr-tenant-a.json](vscode-browser/jazzhr-tenant-a.json), [jazzhr-tenant-b.json](vscode-browser/jazzhr-tenant-b.json)
+(host, ids + org scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| `READY` from navigate | 0.8 s | 0.9 s |
+| Boxes listed | 28 | 24 |
+| `debugger;` pauses | 0 | 0 |
+| reCAPTCHA v2 "Human Check" | `google.com/recaptcha/api.js` + `gstatic` script (reads), `grecaptcha` object; its anchor frame (other site) failed by the block | same |
+| Human Check box (`.g-recaptcha`, scrolled to) | 440x78, its 304x78 frame shown + on top at the box's middle, frame document blocked => blank space, nothing to click (`jazzhr-route2-captcha.png`) | same |
+| Apply with LinkedIn | - | `platform.linkedin.com` + `awliWidget` scripts (reads); its frame = POST `linkedin.com/talentwidgets/apply-with-linkedin` (other site, failed) |
+| Cookie banner | "This website uses cookies..." (Allow / Reject all) over the page bottom | none |
+| Frame targets | none | none - every other-site frame failed before it became one |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant" | same |
+| Dummy PDF chosen | held in the box (`files[0]` = it), 0 writes | same |
+| Other writes | none while typing | none |
+
+Readings:
+- No `debugger;`, no frame needed to fill: every box + the file box is in the page.
+- Choosing the file sends nothing, window as Chrome (`jazzhr.md`); answers + file leave at Submit only.
+- Human Check = the applicant's own click, never ours. With the block on (level 3) it is a blank space; whether it
+  renders + takes the click in the window tab unblocked (debugger attached) - unmeasured: never measured w/o
+  the block, never Submit. Greenhouse + Lever captchas same open question.
+- LinkedIn row: left alone either way (it signs in to LinkedIn), as Lever C.
+- Cookie banner: the employer's own, over the page bottom; name + file still filled + read back. User answers it.
+
+Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
+urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.5).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any
@@ -224,6 +259,13 @@ arg => TypeError at the end of every fill. Added: `eval_on_selector_all(sel, fn,
 Playwright's rule (style visible + a box with width and height; was any rect, 0x0 counted), each checked
 against Playwright's on that page. The fill says hCaptcha at Submit is untested in the window (`AT_SUBMIT`).
 Unmeasured: Lever filled live in the window tab; hCaptcha at Submit there.
+JazzHR (plan-k8n.4, 2026-10-06; not in `--in-window`, owner decides plan-k8n.5): `jazzhr.fill` + `holds` +
+`form.fill_page` on `fixtures/jazzhr/tenant-b.html` (saved live form: checkbox groups, upper-case YES / NO
+lists) + a stand-in for "Attach resume" (swaps paste / attach for the file box) through Playwright AND
+`window.Page`: same report, same read-back (boxes, lists as the page writes them, ticks, file, file box shown),
+a second fill changes nothing, attestation tick left to the applicant in both. Added: `Locator.is_visible()`
+(no wait, nothing there = False, Playwright's shown rule), `select_option(value=)` (Playwright's signature:
+value or `label=`), each checked against Playwright's on that page. Unmeasured: JazzHR filled live in the window tab.
 
 Owner's real run (plan-29g.18, tenant G): every dropdown reported ok; owner: "some fields were not filled", picked Dropdowns. Not
 reproduced (plan-29g.20; plan-29g.24 adds upload success, MyGreenhouse sign-in + clicking around, `greenhouse.md` #Widgets): `measure.py ghfill` = the shipped filler in a scratch window, writes

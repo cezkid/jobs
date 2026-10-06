@@ -3,7 +3,7 @@
 plan-nko.14). Route 2 of app/docs/apply/vscode-browser.md: the
 window's extension attaches VS Code's JavaScript debugger to the tab and hands back its CDP proxy;
 Playwright can't use that proxy (one page, no browser), so Page + Locator below speak CDP and cover
-only what greenhouse.py, ashby.py, lever.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
+only what greenhouse.py, ashby.py, lever.py, jazzhr.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
 a file chosen only after the user's yes (form.fill decides that, not this file).
 
 Measured costs this follows (vscode-browser.md): skip every pause on attach (a site's own `debugger;`
@@ -287,6 +287,10 @@ class Locator:
     def get_attribute(self, name: str, timeout: float | None = None):
         return self._one("(e, n) => e.getAttribute(n)", name, timeout=timeout)
 
+    def is_visible(self) -> bool:
+        """Shown now, as Playwright's: no wait, nothing there = False."""
+        return self._all(f"(els) => els.length > 0 && ({VISIBLE})(els[0])")
+
     def is_checked(self, timeout: float | None = None) -> bool:
         return self._one("""(e) => { if (e.matches("input[type=checkbox], input[type=radio]")) return e.checked;
           const on = e.getAttribute("aria-checked"); if (on === null) throw new Error("Not a checkbox or radio button");
@@ -314,25 +318,29 @@ class Locator:
         else:
             self.page.key("Delete")
 
-    def select_option(self, label: "str | list[str]", timeout: float | None = None) -> list[str]:
-        """Options picked by label, as Playwright's: waits for the box shown and each option there, then
-        sets them and tells the page (input + change) -> their values."""
-        labels = [label] if isinstance(label, str) else list(label)
+    def select_option(self, value: "str | list[str] | None" = None, *, label: "str | list[str] | None" = None,
+                      timeout: float | None = None) -> list[str]:
+        """Options picked by value or by label, as Playwright's: waits for the box shown and each option
+        there, then sets them and tells the page (input + change) -> their values."""
+        if (value is None) == (label is None):
+            raise ValueError("select_option: give value or label")
+        by, wants = ("value", value) if label is None else ("label", label)
+        wants = [wants] if isinstance(wants, str) else list(wants)
         deadline = time.monotonic() + (TIMEOUT_MS if timeout is None else timeout) / 1000
         while True:
-            picked = self._one("""(e, labels) => { if (e.nodeName !== "SELECT") throw new Error("Element is not a <select> element");
-              const pick = labels.map((l) => [...e.options].find((o) => o.label === l));
+            picked = self._one("""(e, [by, wants]) => { if (e.nodeName !== "SELECT") throw new Error("Element is not a <select> element");
+              const pick = wants.map((w) => [...e.options].find((o) => o[by] === w));
               if (pick.some((o) => !o)) return null;
               if (pick.length > 1 && !e.multiple) throw new Error("Non-multiple select element");
               e.value = undefined; pick.forEach((o) => { o.selected = true; });
               e.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
               e.dispatchEvent(new Event("change", {bubbles: true}));
-              return pick.map((o) => o.value); }""", labels, visible=True,
+              return pick.map((o) => o.value); }""", [by, wants], visible=True,
                                timeout=max(0.0, (deadline - time.monotonic()) * 1000))
             if picked is not None:
                 return picked
             if time.monotonic() >= deadline:
-                raise TimeoutError(f"{self.steps}: no option {labels} after {timeout} ms")
+                raise TimeoutError(f"{self.steps}: no option {by} {wants} after {timeout} ms")
             time.sleep(POLL)
 
     def press(self, key: str, timeout: float | None = None) -> None:

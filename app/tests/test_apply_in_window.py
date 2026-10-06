@@ -22,7 +22,7 @@ import cfg
 import launch
 from apply import browser, form, questions, window
 from apply.cdp import CDP
-from apply.systems import ashby, greenhouse, lever
+from apply.systems import ashby, greenhouse, jazzhr, lever
 
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
 ASHBY_FORM = FORM.with_name("ashby-form.html")
@@ -50,6 +50,16 @@ results.addEventListener("click", (ev) => { const d = ev.target.closest(".dropdo
 file.addEventListener("change", () => setTimeout(() => {
   document.querySelector(".visible-resume-upload .filename").textContent = file.files[0] ? file.files[0].name : "";
   document.querySelector(".resume-upload-success").style.display = "inline"; }, 500));
+</script>"""
+JAZZHR_FORM = FORM.parent.parent / "jazzhr" / "tenant-b.html"
+JAZZHR_PATH = "/apply/AbCdE00001/Test-Role"
+# what JazzHR's own page does that its saved form lacks: class none hides, "Attach resume" swaps the
+# paste / attach choice for the file box (its href="#" link)
+JAZZHR_BEHAVES = """<style>.none {display: none}</style>
+<script>
+document.getElementById("resumator-choose-upload").addEventListener("click", (e) => { e.preventDefault();
+  document.getElementById("resumator-resume-options").classList.add("none");
+  document.getElementById("resumator-resume-upload-wrapper").classList.remove("none"); });
 </script>"""
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
 
@@ -99,6 +109,9 @@ def site():
                 page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM,
                         ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html")}.get(self.path)
                 body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
+                if self.path == JAZZHR_PATH:
+                    body = ("<!doctype html><html><head><meta charset=utf-8><title>Test Role - Acme</title></head><body>"
+                            f"{JAZZHR_FORM.read_text()}{JAZZHR_BEHAVES}</body></html>").encode()
                 if self.path == LEVER_PATH:
                     body = ("<!doctype html><html><head><meta charset=utf-8><title>Apply - Acme</title></head><body>"
                             f"{LEVER_FORM.read_text()}{LEVER_BEHAVES}</body></html>").encode()
@@ -344,6 +357,92 @@ def test_in_window_fills_lever_as_playwright_does(tab, site, playwright_chrome, 
         1, "Ada Lovelace", "ada@example.com", "555-0100", "Austin, Texas, United States", "https://www.linkedin.com/in/ada",
         True, True, "None needed.", True, True, "Ada King Lovelace", "Yes", True, True, "Decline to self-identify", True,
         "Select ...", "I do not want to answer", '{"name":"Austin, Texas, United States"}', resume.name]
+
+
+def jazzhr_url(site):
+    return site.replace("/acme/jobs/1", JAZZHR_PATH)
+
+
+# tenant B's own questions, each kind answered once: contact + address boxes, upper-case YES / NO lists,
+# Yes / No as two ticks, the attestation tick (left to the applicant), a voluntary list, the resume
+JAZZHR_GIVEN = {"resume": True, "first_name": "Ada", "last_name": "Lovelace", "email": "ada@example.com",
+                "phone": "555-0100", "street": "1 Main St", "city": "Austin", "state": "TX", "zip": "78701",
+                "I understand": "Yes", "Desired/expected": "90000", "Are you currently, or have you ever": "No",
+                "Do you currently have a non-compete": "Yes", "Do you need, or will you need": "No",
+                "Do you live in the geographical": "Yes", "Race/Ethnicity": "Asian, not Hispanic or Latino"}
+
+
+def jazzhr_answers() -> list[dict]:
+    out = []
+    for q in jazzhr.from_html(JAZZHR_FORM.read_text()):
+        given = [v for k, v in JAZZHR_GIVEN.items() if k == q.get("key") or q["title"].startswith(k)]
+        out.append(q | {"answer": given[0] if given else ""})
+    assert sum(1 for q in out if q["answer"] != "") == len(JAZZHR_GIVEN)
+    return out
+
+
+# each box's value or tick, each list's shown text, the file's name, whether the file box shows - read off
+# the page, never the filler's word
+JAZZHR_SHOWN = ("es => es.map(e => e.type === 'checkbox' ? e.checked : e.matches('select') ? e.selectedOptions[0].text"
+                " : e.type === 'file' ? (e.files[0] || {}).name || '' : e.value)"
+                ".concat([!document.getElementById('resumator-resume-upload-wrapper').classList.contains('none')])")
+JAZZHR_BOXES = "#form_submit_new_resume input:not([type=hidden]), #form_submit_new_resume select, #form_submit_new_resume textarea"
+
+
+def test_in_window_fills_jazzhr_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # jazzhr.fill + holds + form.fill_page through each on tenant B's saved form: same report, same page
+    # after, every answer read back, a second fill changes nothing (a tick clicked again would clear)
+    monkeypatch.setattr(form, "SETTLE_MS", 300)
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    qs = jazzhr_answers()
+    answered = [q for q in qs if q["answer"] != ""]
+    attest = next(q for q in qs if q["title"].startswith("I understand"))
+    again = [q for q in answered if q["kind"] != "file" and q is not attest]
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, jazzhr_url(site)) as tabs:
+        for name, page in tabs.items():
+            assert form.closed(page, jazzhr) is None
+            report, extra = form.fill_page(page, jazzhr, qs, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == []
+            once = page.eval_on_selector_all(JAZZHR_BOXES, JAZZHR_SHOWN)
+            assert [jazzhr.fill(page, q, None) for q in again] == ["ok"] * len(again)
+            assert page.eval_on_selector_all(JAZZHR_BOXES, JAZZHR_SHOWN) == once
+            pages[name] = once
+            assert [q["id"] for q in again if not jazzhr.holds(page, q)] == []
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {q["id"]: "ok" for q in answered} | {attest["id"]: questions.left_on_page(attest)}
+    assert pages["window"] == pages["playwright"]
+    # what shows, empty boxes + clear ticks left out: contact + address, the file, the referral box left
+    # empty, salary, NO / YES as the page writes them, ticks (NO, YES), gender left at its own "Decline",
+    # race, the file box shown by "Attach resume"
+    assert [v for v in pages["window"] if v not in ("", False)] == [
+        "Ada", "Lovelace", "ada@example.com", "555-0100", "1 Main St", "Austin", "TX", "78701", resume.name,
+        "90000", "NO", "YES", True, True, "Decline to answer", "Asian, not Hispanic or Latino", True]
+
+
+def test_in_window_is_visible_and_select_by_value_as_playwright_does(tab, site, playwright_chrome):
+    # the two calls jazzhr.py makes that the adapter lacked (plan-k8n.4), each read on the same page
+    shown = ["#resumator-choose-upload", "#resumator-resume-value", "#resumator-resume-upload-wrapper",
+             "#form_submit_new_resume select", ".g-recaptcha", "#nobody"]
+    got = {}
+    with both(tab, playwright_chrome, jazzhr_url(site)) as tabs:
+        for name, page in tabs.items():
+            run = page.run if name == "window" else page.evaluate
+            run("window.told = []; document.addEventListener('change', (e) => told.push(e.target.id))")
+            before = [page.locator(s).first.is_visible() for s in shown]
+            page.locator("#resumator-choose-upload").click()
+            box = page.locator('[id="resumator-questionnaire-q1474074"]')
+            no = box.evaluate("e => [...e.options].find(o => o.text === 'NO').value")
+            got[name] = [before, [page.locator(s).first.is_visible() for s in shown], box.select_option(value=no),
+                         box.select_option(value=[no]), box.evaluate("e => e.selectedOptions[0].text"), run("told")]
+        with pytest.raises(TimeoutError):
+            tabs["window"].locator('[id="resumator-questionnaire-q1474074"]').select_option(value="nobody", timeout=300)
+        with pytest.raises(ValueError):
+            tabs["window"].locator('[id="resumator-questionnaire-q1474074"]').select_option()
+    assert got["window"] == got["playwright"]
+    assert got["window"][0][:3] == [True, False, False] and got["window"][1][:3] == [False, True, True]
 
 
 @pytest.mark.parametrize("selector", ["#application-form .resume-upload-success, #application-form .resume-upload-failure",

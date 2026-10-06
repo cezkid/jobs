@@ -1140,6 +1140,15 @@ FRAMES = """(() => [...document.querySelectorAll('iframe')].map((f) => ({src: (f
   title: (f.title || '').slice(0, 60), shown: !!f.getClientRects().length, w: f.offsetWidth, h: f.offsetHeight})))()"""
 
 
+# reCAPTCHA v2 checkbox (JazzHR's "Human Check", plan-k8n.4): scrolled to, then is its frame there + on top at the box's middle
+CAPTCHA_BOX = """(() => { const b = document.querySelector('.g-recaptcha'); if (!b) return null;
+  b.scrollIntoView({block: 'center', behavior: 'instant'}); const r = b.getBoundingClientRect(), f = b.querySelector('iframe');
+  const hit = document.elementFromPoint(r.x + Math.min(r.width, 300) / 2, r.y + Math.min(r.height, 74) / 2);
+  return {shown: !!b.getClientRects().length, w: Math.round(r.width), h: Math.round(r.height), frame: !!f,
+    frameShown: f ? !!f.getClientRects().length : false, frameW: f ? f.offsetWidth : 0, frameH: f ? f.offsetHeight : 0,
+    onTopAtMiddle: hit ? (hit === f ? 'its frame' : hit.nodeName.toLowerCase() + (hit.className ? '.' + String(hit.className).split(' ')[0] : '')) : null,
+    responseBox: !!document.querySelector('[name="g-recaptcha-response"]'), text: b.innerText.slice(0, 80)}; })()"""
+
 NAMES = """[document.title, (document.querySelector('meta[property="og:site_name"]') || {}).content || ''].map((s) => s.trim()).filter(Boolean)"""
 
 
@@ -1253,11 +1262,16 @@ def raw(result):
             fill["nameShown"] = quietly(lambda: c.evaluate(f"document.body.innerText.includes({json.dumps(RESUME.name)})"))
             fill["failedLine"] = quietly(lambda: c.evaluate("/failed to upload/i.test(document.body.innerText)"))
             fill["verdict"] = quietly(lambda: c.evaluate(VERDICT))
+            fill["fileHeld"] = quietly(lambda: c.evaluate(f"({q(fbox)}.files[0] || {{}}).name || ''") == RESUME.name)
             fill["sentOnChoice"] = [{"method": b["method"], "url": short(b["url"]), "type": b["type"],
                                      "contentType": b.get("contentType"), "body": b.get("body")}
                                     for b in block.log if b["after"] == "upload"]
         block.step = "end"
         fill["tabShot"] = tab_shot(c, f"{tag}-route2-tab")
+        result["captchaBox"] = quietly(lambda: c.evaluate(CAPTCHA_BOX))
+        if result["captchaBox"]:
+            time.sleep(1)
+            result["captchaShot"] = tab_shot(c, f"{tag}-route2-captcha")
         result["shot"] = screenshot(f"{tag}-route2-window", proc)
         result["pausesTotal"] = len(pauses)
         result["skipOnAfterCap"] = len(pauses) >= cap
