@@ -22,7 +22,7 @@ import cfg
 import launch
 from apply import browser, form, questions, window
 from apply.cdp import CDP
-from apply.systems import ashby, greenhouse, jazzhr, lever
+from apply.systems import ashby, greenhouse, jazzhr, lever, workable
 
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
 ASHBY_FORM = FORM.with_name("ashby-form.html")
@@ -61,6 +61,17 @@ document.getElementById("resumator-choose-upload").addEventListener("click", (e)
   document.getElementById("resumator-resume-options").classList.add("none");
   document.getElementById("resumator-resume-upload-wrapper").classList.remove("none"); });
 </script>"""
+WORKABLE_FORM = FORM.with_name("workable-form.html")
+WORKABLE_PATH = "/acme/j/1A2B3C4D5E/apply/"
+# what the live page has that the hand-built form lacks: Workable's cookie dialog over the whole form on load
+# (data-ui=cookie-consent, role=dialog, aria-modal, grey overlay - 2 tenants, plan-k8n.7); its buttons do
+# nothing here (the filler never clicks them)
+WORKABLE_BEHAVES = """<div data-ui="cookie-consent" role="dialog" aria-modal="true"
+  style="position: fixed; inset: 0; z-index: 10; background: rgba(0, 0, 0, .4)">
+  <div style="position: absolute; left: 0; right: 0; bottom: 0; background: #fff; padding: 12px">
+    This website uses cookies to enhance your experience.
+    <button type="button">Accept all</button><button type="button">Decline all</button>
+    <button type="button">Cookies settings</button></div></div>"""
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
 
 
@@ -112,6 +123,8 @@ def site():
                 if self.path == JAZZHR_PATH:
                     body = ("<!doctype html><html><head><meta charset=utf-8><title>Test Role - Acme</title></head><body>"
                             f"{JAZZHR_FORM.read_text()}{JAZZHR_BEHAVES}</body></html>").encode()
+                if self.path == WORKABLE_PATH:
+                    body = WORKABLE_FORM.read_text().replace("</body>", f"{WORKABLE_BEHAVES}</body>").encode()
                 if self.path == LEVER_PATH:
                     body = ("<!doctype html><html><head><meta charset=utf-8><title>Apply - Acme</title></head><body>"
                             f"{LEVER_FORM.read_text()}{LEVER_BEHAVES}</body></html>").encode()
@@ -120,6 +133,15 @@ def site():
                 self.send_header("Content-Type", kind)
                 self.end_headers()
                 self.wfile.write(body or b"")
+
+        def do_POST(self):
+            # Workable's storage stand-in: a chosen resume goes here at once
+            self.rfile.read(int(self.headers.get("Content-Length") or 0))
+            ok = self.path == "/workable-upload.json"
+            self.send_response(200 if ok else 404)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"url": "/stored/resume"}' if ok else b"")
 
         def log_message(self, *args):
             pass
@@ -420,6 +442,112 @@ def test_in_window_fills_jazzhr_as_playwright_does(tab, site, playwright_chrome,
     assert [v for v in pages["window"] if v not in ("", False)] == [
         "Ada", "Lovelace", "ada@example.com", "555-0100", "1 Main St", "Austin", "TX", "78701", resume.name,
         "90000", "NO", "YES", True, True, "Decline to answer", "Asian, not Hispanic or Latino", True]
+
+
+def workable_url(site):
+    return site.replace("/acme/jobs/1", WORKABLE_PATH)
+
+
+# the hand-built form's questions, each kind answered once: text boxes, YES / NO + single-choice radios, ticks,
+# both dropdowns, the resume
+WORKABLE_ANSWERS = [
+    asked("firstname", "First name", "text", "Ada", key="first_name", native="firstname"),
+    asked("lastname", "Last name", "text", "Lovelace", key="last_name", native="lastname"),
+    asked("email", "Email", "email", "ada@example.com", key="email", native="email"),
+    asked("phone", "Phone", "phone", "555-0100", key="phone", native="phone"),
+    # prefilled by the page, never the user's answer: left as it shows
+    asked("address", workable.PREFILLED, "location", "", key="location", native="address"),
+    asked("summary", "Summary", "longtext", "Built the monthly reports.", native="summary"),
+    asked("QA_1", "Why Acme?", "longtext", "Their own words.", native="QA:paragraph"),
+    asked("QA_2", "Expected salary", "number", "90000", native="QA:number"),
+    asked("QA_3", "Are you authorized to work in the US?", "yesno", "Yes", options=["Yes", "No"], native="QA:boolean"),
+    asked("QA_4", "Do you need adjustments?", "choice", "No", options=["Yes - please add details below", "No"],
+          native="QA:multiple"),
+    asked("CA_9", "Which shifts can you work?", "multichoice", ["Weekends", "Holiday"],
+          options=["Weekends", "Evenings", "Holiday"], native="CA:multiple:152176,152177,152178"),
+    asked("CA_1", "Highest degree", "choice", "Associate", options=["High School/GED", "Associate", "Bachelor's"],
+          native="CA:dropdown"),
+    asked("CA_2", "Are you 18 or older?", "yesno", "No", options=["Yes", "No"], native="CA:dropdown"),
+    asked("resume", "Resume", "file", True, key="resume", native="resume")]
+# each box's value or tick, each radio's aria-checked, each list's shown pick, the resume box's words - read off
+# the page, never the filler's word
+WORKABLE_SHOWN = ("es => es.map(e => ['checkbox', 'radio'].includes(e.type) ? e.checked : e.type === 'file' ? e.files.length : e.value)"
+                  ".concat([...document.querySelectorAll('[role=radio]')].map(r => r.getAttribute('aria-checked')),"
+                  " [document.querySelector('[data-ui=\"resume\"] .file').textContent])")
+WORKABLE_BOXES = "#application input:not([type=hidden]), #application textarea"
+
+
+def test_in_window_fills_workable_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # workable.fill + holds + form.fill_page through each, under the cookie dialog as measured: same report,
+    # same page after, every answer read back, a second fill changes nothing
+    monkeypatch.setattr(form, "SETTLE_MS", 300)
+    monkeypatch.setattr(workable, "ERROR_WAIT_MS", 500)
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    answered = [q for q in WORKABLE_ANSWERS if q["answer"] != ""]
+    again = [q for q in answered if q["kind"] != "file"]
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, workable_url(site)) as tabs:
+        for name, page in tabs.items():
+            assert form.closed(page, workable) is None
+            # the dialog is what a click at a list's middle meets, as on the live page
+            assert page.evaluate("""() => { const b = document.querySelector('[data-ui=CA_1] [role=combobox]');
+              b.scrollIntoView({block: 'center'}); const r = b.getBoundingClientRect();
+              return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2).closest('[role=dialog]') !== null; }""")
+            report, extra = form.fill_page(page, workable, WORKABLE_ANSWERS, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == []
+            once = page.eval_on_selector_all(WORKABLE_BOXES, WORKABLE_SHOWN)
+            assert [workable.fill(page, q, None) for q in again] == ["ok"] * len(again)
+            page.wait_for_timeout(300)
+            assert page.eval_on_selector_all(WORKABLE_BOXES, WORKABLE_SHOWN) == once
+            pages[name] = once
+            assert [q["id"] for q in answered if not workable.holds(page, q)] == []
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {q["id"]: "ok" for q in answered}
+    assert pages["window"] == pages["playwright"]
+    # what shows, empty boxes + clear ticks left out: contact, the page's own address, the resume chosen,
+    # summary, both answers, the inputs under YES + No, ticks (Weekends, Holiday), both picks, YES + No as
+    # Workable marks them, the stored file's name
+    assert [v for v in pages["window"] if v not in ("", False, 0, "false")] == [
+        "Ada", "Lovelace", "ada@example.com", "555-0100", "Example City", 1, "Built the monthly reports.",
+        "Their own words.", "90000", True, True, True, True, "Associate", "No", "true", "true", resume.name]
+
+
+def test_in_window_workable_click_force_dispatch_keys_and_evaluate_as_playwright_does(tab, site, playwright_chrome):
+    # the calls workable.py makes that the adapter lacked (plan-k8n.7), each on the same page: a covered click
+    # times out, forced it lands on what is on top, a dispatched click reaches the element itself, Down + Space
+    # by name, Escape wherever focus is, page.evaluate calls a function and evaluates the rest, ':visible'
+    got = {}
+    with both(tab, playwright_chrome, workable_url(site)) as tabs:
+        for name, page in tabs.items():
+            page.evaluate("""() => { window.told = []; document.addEventListener('click', (e) => told.push(
+              (e.target.closest('[data-ui]') || e.target).getAttribute('data-ui') || e.target.tagName), true); }""")
+            box, radio = page.locator("[data-ui=CA_1] [role=combobox]"), page.locator("fieldset [role=radio]").first
+            row = []
+            with pytest.raises(Exception, match="(?i)timeout|sits over"):
+                box.click(timeout=500)
+            box.click(force=True)
+            row.append([page.locator("[role=option]:visible").count(), page.evaluate("told.slice()")])
+            box.focus()
+            box.press("ArrowDown")
+            row.append(page.locator("[role=option]:visible, [data-ui=CA_2] [role=option]:visible").all_inner_texts())
+            page.keyboard.press("Escape")
+            row.append(page.locator("[role=option]:visible").count())
+            radio.focus()
+            radio.press("Space")
+            row.append(radio.get_attribute("aria-checked"))
+            box.press("ArrowDown")
+            page.locator("[role=option]:visible").nth(1).dispatch_event("click")
+            row.append([box.input_value(), page.evaluate("told.slice()")])
+            row.append([page.evaluate("document.title"), page.evaluate("(n) => n + 1", 41),
+                        page.evaluate("([a, b]) => a + b", ["x", "y"]), page.evaluate("function () { return 7; }")])
+            got[name] = row
+        with pytest.raises(ValueError):
+            tabs["window"].locator("div:visible > span")
+    assert got["window"] == got["playwright"]
+    assert got["window"][0][0] == 0 and got["window"][1] == ["High School/GED", "Associate", "Bachelor's"]
+    assert got["window"][3] == "true" and got["window"][4][0] == "Associate" and got["window"][5][1:] == [42, "xy", 7]
 
 
 def test_in_window_is_visible_and_select_by_value_as_playwright_does(tab, site, playwright_chrome):

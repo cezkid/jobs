@@ -68,6 +68,10 @@ the following page" - a page after Submit: unmeasured. Consent / attestation lin
 
 No captcha frame at load (0 of 4). Submit button: unmeasured (controls only). Never clicked.
 
+Cookie dialog (window, 2 tenants, 2026-10-06): `[data-ui=cookie-consent]` `role=dialog` `aria-modal` covers the
+whole form on load - a click at a list's middle meets it (3 of 3). Likely what "a plain click times out (covered)"
+above is; Chrome unmeasured. Typing focused by script still fills. `vscode-browser.md` "Workable - route 2".
+
 ## Pages
 
 One page, 7 of 7 (4 measured + 3 tried): every box on `/apply/`, no Next. Tenant C's "following page" for EEO: unmeasured.

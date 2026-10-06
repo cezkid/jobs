@@ -28,6 +28,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            skip on), other-site frames listed + what each is, Input.insertText into one text box + read
            back, the dummy PDF chosen + what the page then tries to send (blocked). Never Submit.
            READY read as Playwright does, tenant parts scrubbed, tenants.txt appended: rawkit.py (plan-k8n.1)
+           JF_NO_FILE=1: file box found, never chosen (Workable: its upload blocked breaks the form, plan-k8n.7);
+           WIDGETS: radios + lists as the page draws them, what sits on top at each list's middle - read only
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -1149,6 +1151,23 @@ CAPTCHA_BOX = """(() => { const b = document.querySelector('.g-recaptcha'); if (
     onTopAtMiddle: hit ? (hit === f ? 'its frame' : hit.nodeName.toLowerCase() + (hit.className ? '.' + String(hit.className).split(' ')[0] : '')) : null,
     responseBox: !!document.querySelector('[name="g-recaptcha-response"]'), text: b.innerText.slice(0, 80)}; })()"""
 
+# Workable's widgets (plan-k8n.7): the [role=radio] beside each radio input, the [role=combobox] in each
+# list's wrapper, and what takes a click at a list's middle (Chrome: plain clicks timed out, workable.md)
+WIDGETS = """(() => { const boxes = [...document.querySelectorAll('[role=combobox]')];
+  const top = (e) => { e.scrollIntoView({block: 'center', behavior: 'instant'}); const r = e.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    return hit === e ? 'itself' : !hit ? null : e.contains(hit) ? 'inside it' : hit.contains(e) ? 'its ancestor ' + hit.nodeName.toLowerCase()
+      : hit.nodeName.toLowerCase() + (hit.getAttribute('data-ui') ? '[data-ui]' : '') + (hit.getAttribute('role') ? '[role=' + hit.getAttribute('role') + ']' : ''); };
+  window.scrollTo(0, 0);
+  return {roleRadio: document.querySelectorAll('[role=radio]').length, radioInputs: document.querySelectorAll('input[type=radio]').length,
+    radioGroups: document.querySelectorAll('fieldset[role=radiogroup], [role=radiogroup]').length,
+    checkboxes: document.querySelectorAll('input[type=checkbox]').length, combobox: boxes.length,
+    comboboxInDataUi: boxes.filter((b) => b.closest('[data-ui]')).length, options: document.querySelectorAll('[role=option]').length,
+    fileInputs: document.querySelectorAll('input[type=file]').length, resumeWrapper: !!document.querySelector('[data-ui="resume"]'),
+    onTopAtListMiddle: boxes.slice(0, 8).map(top),
+    dialogs: [...document.querySelectorAll('[role=dialog]')].filter((d) => d.getClientRects().length).map((d) => ({ui: d.getAttribute('data-ui'),
+      modal: d.getAttribute('aria-modal'), text: (d.innerText || '').replace(/\\s+/g, ' ').slice(0, 60)}))}; })()"""
+
 NAMES = """[document.title, (document.querySelector('meta[property="og:site_name"]') || {}).content || ''].map((s) => s.trim()).filter(Boolean)"""
 
 
@@ -1218,6 +1237,10 @@ def raw(result):
         result["readyMs"] = round((time.time() - t) * 1000)
         time.sleep(4)  # its own scripts settle
         result["pausesOnLoad"] = len(pauses)
+        # where the page landed: a short link can move to the employer's own path (Workable /j/ -> /<account>/j/, plan-k8n.7)
+        landed = quietly(lambda: c.evaluate("location.href")) or ""
+        SCRUB.extend(rawkit.scrub_pairs(system, landed))
+        result["tenantsAdded"] += lab.record_tenants(TENANTS, rawkit.tenant_lines(system, [landed]))
         result["at"] = quietly(lambda: c.evaluate("location.host + location.pathname"))
         result["fields"] = quietly(lambda: c.evaluate(rawkit.count_js(system.READY)))
         names = quietly(lambda: c.evaluate(NAMES)) or []  # the employer's own names: tenants.txt + scrubbed
@@ -1239,7 +1262,7 @@ def raw(result):
                                              for t in c.send("Target.getTargets")["targetInfos"] if t["type"] == "iframe"])
         result["marks"] = quietly(lambda: c.evaluate(MARKS))
         fill = result["fill"] = {"resume": dummy}
-        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
             block.step = "type"
@@ -1253,9 +1276,20 @@ def raw(result):
                 return {"focused": focused}
             fill["type: click + Input.insertText"] = attempt(typed)
             fill["readBack"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
+            if not fill["readBack"]:  # the click landed on something over the box: focused by script, as Locator.fill does
+
+                def focused_typed():
+                    c.evaluate(f"{q(box)}.focus()")
+                    c.send("Input.insertText", {"text": "Test Applicant"})
+                    time.sleep(0.5)
+                    return {"focused": c.evaluate(f"document.activeElement === {q(box)}")}
+                fill["type: focused by script + Input.insertText"] = attempt(focused_typed)
+                fill["readBackAfterFocus"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
         fbox = next((s for s in ('[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["fileBox"] = fbox
-        if fbox:
+        result["widgets"] = quietly(lambda: c.evaluate(WIDGETS))
+        fill["fileChosen"] = bool(fbox) and os.environ.get("JF_NO_FILE") != "1"
+        if fill["fileChosen"]:
             block.step = "upload"
             fill["upload: DOM.setFileInputFiles"] = attempt(lambda: upload(c, fbox, RESUME))
             time.sleep(6)

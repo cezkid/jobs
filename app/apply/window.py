@@ -3,7 +3,7 @@
 plan-nko.14). Route 2 of app/docs/apply/vscode-browser.md: the
 window's extension attaches VS Code's JavaScript debugger to the tab and hands back its CDP proxy;
 Playwright can't use that proxy (one page, no browser), so Page + Locator below speak CDP and cover
-only what greenhouse.py, ashby.py, lever.py, jazzhr.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
+only what greenhouse.py, ashby.py, lever.py, jazzhr.py, workable.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
 a file chosen only after the user's yes (form.fill decides that, not this file).
 
 Measured costs this follows (vscode-browser.md): skip every pause on attach (a site's own `debugger;`
@@ -45,9 +45,28 @@ WHY = {"untrusted": "the Job Finder window is in Restricted Mode (opened without
        "picker": "the window couldn't tell which tab to use",
        "no proxy": "the window's debugger didn't hand over the tab",
        "no tab session": "the window's debugger didn't reach the tab"}
-# keys typed by name: (code, Windows key code); macOS edits only w/ its command named (Playwright does the same)
-KEYS = {"Escape": ("Escape", 27, None), "Delete": ("Delete", 46, "deleteForward"), "Enter": ("Enter", 13, None),
-        "Tab": ("Tab", 9, None)}
+# keys typed by name, as Playwright's: (key, code, Windows key code, text it types); macOS edits + moves only w/
+# its command named (Playwright does the same)
+KEYS = {"Escape": ("Escape", "Escape", 27, None, None), "Delete": ("Delete", "Delete", 46, None, "deleteForward"),
+        "Enter": ("Enter", "Enter", 13, None, None), "Tab": ("Tab", "Tab", 9, None, None),
+        "ArrowDown": ("ArrowDown", "ArrowDown", 40, None, "moveDown"), "Space": (" ", "Space", 32, " ", None)}
+# a script that is a function: page.evaluate calls it, as Playwright's (anything else is evaluated as written)
+FUNCTION = re.compile(r"^\s*(async\s+)?(function\b|(\([^)]*\)|[\w$]+)\s*=>)")
+# dispatch_event: the event each type makes, as Playwright's (bubbles, cancelable, composed unless told otherwise)
+DISPATCH = """(e, [type, init]) => { const kinds = {mouse: MouseEvent, key: KeyboardEvent, pointer: PointerEvent,
+    focus: FocusEvent, wheel: WheelEvent};
+  const kind = /^(aux|dbl)?click$|^mouse|^contextmenu$/.test(type) ? "mouse" : /^key|^textInput$/.test(type) ? "key"
+    : /^pointer|^(got|lost)pointercapture$/.test(type) ? "pointer" : /^(focus|blur|focusin|focusout)$/.test(type) ? "focus"
+    : type === "wheel" ? "wheel" : null;
+  e.dispatchEvent(new (kinds[kind] || Event)(type, {bubbles: true, cancelable: true, composed: true, ...(init || {})})); }"""
+# a click's point: the box's middle, scrolled into view -> [x, y]; null while nothing is there to click, or (unless
+# forced) something else sits on that point - Playwright's hit check, the target widened to the button or link
+# it sits in
+CLICK_POINT = """(e, force) => { e.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'});
+  const r = e.getBoundingClientRect(); if (!r.width || !r.height) return null;
+  const x = r.x + r.width / 2, y = r.y + r.height / 2; if (force) return [x, y];
+  const t = e.closest('button, [role=button], a, [role=link]') || e, hit = document.elementFromPoint(x, y);
+  return hit && t.contains(hit) ? [x, y] : null; }"""
 HOLDING = ("<!doctype html><meta charset=utf-8><title>Opening the application form</title>"
            "<body style=\"font:16px system-ui;margin:3em;color:#333\">Opening the application form...</body>").encode()
 # get_by_role: the elements each role takes besides [role=X], as Playwright's (a file box is a button);
@@ -61,7 +80,8 @@ VISIBLE = """function visible(e) { if (!e) return false; const s = getComputedSt
       return b.width > 0 && b.height > 0; })());
   if (!e.checkVisibility() || s.visibility !== "visible") return false;
   const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0; }"""
-# steps -> matching elements, in the page: css (querySelectorAll under each), nth, text (the smallest
+# steps -> matching elements, in the page: css (querySelectorAll under each), parts (a selector w/ ':visible', one
+# [css, shown only] per comma part, together in page order), nth, text (the smallest
 # elements whose text holds it, case and spacing ignored - as Playwright's get_by_text), has (the
 # elements themselves, kept when their text holds a string as `text` does, or a pattern matches their
 # whole text as written - as Playwright's has_text), visible (kept when shown or not, as VISIBLE), role (as get_by_role: shown to a screen reader,
@@ -83,6 +103,8 @@ RESOLVE = """(steps) => { let els = [document];
     if (k === "css") els = under(v);
     else if (k === "nth") els = els.slice(v, v + 1);
     else if (k === "visible") els = els.filter((e) => (VISIBLE)(e) === v);
+    else if (k === "parts") els = [...new Set(v.flatMap(([sel, vis]) => under(sel).filter((e) => !vis || (VISIBLE)(e))))]
+      .sort((a, b) => a === b ? 0 : a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
     else if (k === "has") { const re = typeof v === "string" ? null : new RegExp(v.source, v.flags);
       els = els.filter((e) => re ? re.test(text(e)) : low(text(e)).includes(low(v))); }
     else if (k === "role") { const [role, name, exact] = v, extra = ROLES[role];
@@ -93,6 +115,41 @@ RESOLVE = """(steps) => { let els = [document];
       els = [...new Set(els.flatMap((e) => [e, ...e.querySelectorAll("*")]))]
         .filter((e) => e.nodeType === 1 && has(e) && ![...e.children].some(has)); } }
   return els; }""".replace("ROLES", json.dumps(ROLES)).replace("VISIBLE", VISIBLE)
+
+
+def css_parts(selector: str) -> list[tuple[str, bool]]:
+    """Playwright selector -> [(plain CSS, must be shown)], one per top-level comma part. ':visible' must
+    close its part: on an ancestor it would test the wrong element."""
+    parts, depth, quote, start = [], 0, "", 0
+    for i, ch in enumerate(selector):
+        if quote:
+            quote = "" if ch == quote and selector[i - 1] != "\\" else quote
+        elif ch in "'\"":
+            quote = ch
+        elif ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth -= 1
+        elif ch == "," and not depth:
+            parts.append(selector[start:i])
+            start = i + 1
+    parts.append(selector[start:])
+    out = []
+    for part in (p.strip() for p in parts):
+        css = part.removesuffix(":visible")
+        if re.search(r":visible(?![\w-])", re.sub(r"'[^']*'|\"[^\"]*\"", "", css)):  # quoted text aside
+            raise ValueError(f"':visible' only at the end of a part: {part!r}")
+        out.append((css, css != part))
+    return out
+
+
+class Keyboard:
+    """page.keyboard, as Playwright's: a key pressed wherever focus is."""
+    def __init__(self, page: "Page"):
+        self.page = page
+
+    def press(self, key: str) -> None:
+        self.page.key(key)
 
 
 class Page:
@@ -140,6 +197,14 @@ class Page:
     @property
     def url(self) -> str:
         return self.run("location.href")
+
+    @property
+    def keyboard(self) -> Keyboard:
+        return Keyboard(self)
+
+    def evaluate(self, expr: str, arg=None):
+        """As Playwright's: a function is called w/ `arg`, anything else evaluated as written."""
+        return self.run(f"({expr})({json.dumps(arg)})" if FUNCTION.match(expr) else expr)
 
     def locator(self, selector: str, has_text=None) -> "Locator":
         return Locator(self, []).locator(selector, has_text)
@@ -190,8 +255,9 @@ class Page:
         for kind in ("mousePressed", "mouseReleased"):
             self.cdp.send("Input.dispatchMouseEvent", {"type": kind, "x": x, "y": y, "button": "left", "clickCount": 1})
 
-    def key(self, key: str, text: str | None = None) -> None:
-        code, vk, command = KEYS.get(key, (None, None, None))
+    def key(self, name: str, text: str | None = None) -> None:
+        key, code, vk, typed, command = KEYS.get(name, (name, None, None, None, None))
+        text = text or typed
         down = {"type": "keyDown", "key": key}
         if code:
             down |= {"code": code, "windowsVirtualKeyCode": vk}
@@ -218,7 +284,8 @@ class Locator:
         return self._with(("nth", i))
 
     def locator(self, selector: str, has_text: "str | re.Pattern | None" = None) -> "Locator":
-        found = self._with(("css", selector))
+        parts = css_parts(selector)
+        found = self._with(("parts", parts) if any(shown for _, shown in parts) else ("css", selector))
         if has_text is None:
             return found
         if isinstance(has_text, str):
@@ -305,11 +372,23 @@ class Locator:
     def scroll_into_view_if_needed(self, timeout: float | None = None) -> None:
         self._one("(e) => e.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'})", timeout=timeout)
 
-    def click(self, timeout: float | None = None) -> None:
-        # a real click at the box's middle, as a person's: the page's own handlers run
-        x, y = self._one("""(e) => { e.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'});
-          const r = e.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2]; }""", visible=True, timeout=timeout)
-        self.page.click_at(x, y)
+    def click(self, timeout: float | None = None, force: bool = False) -> None:
+        """A real click at the box's middle, as a person's: the page's own handlers run. As Playwright's: once
+        shown and nothing else sits on that point, else TimeoutError; `force` skips both checks - whatever is
+        on top there takes the click."""
+        timeout = TIMEOUT_MS if timeout is None else timeout
+        deadline = time.monotonic() + timeout / 1000
+        while True:
+            at = self._one(CLICK_POINT, force, visible=not force, timeout=max(0.0, (deadline - time.monotonic()) * 1000))
+            if at:
+                return self.page.click_at(*at)
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"{self.steps}: something else sits over it after {timeout} ms")
+            time.sleep(POLL)
+
+    def dispatch_event(self, type: str, event_init: dict | None = None, timeout: float | None = None) -> None:
+        """The event fired on the element itself, as Playwright's: no click point, nothing on top matters."""
+        self._one(DISPATCH, [type, event_init], timeout=timeout)
 
     def fill(self, value: str, timeout: float | None = None) -> None:
         self._one("(e) => { e.focus(); if (e.select) e.select(); }", visible=True, timeout=timeout)

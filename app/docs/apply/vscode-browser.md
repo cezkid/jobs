@@ -187,6 +187,44 @@ Readings:
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
 urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.5).
 
+## Workable - route 2 (plan-k8n.7)
+
+Same `measure.py raw`, level 3, no named read. Box = `input[name=firstname]`, file box = `input[type=file]` found,
+never chosen (`JF_NO_FILE=1`: the upload goes to Workable's storage at once and, blocked, breaks the form -
+`workable.md`). 2 employers (tenants A, B; A for its 3 dropdowns, B for its 16 radio questions - picked by 12
+plain reads of form definitions, not page loads), 2026-10-06; page loads apply.workable.com: 4 (A x3: one rerun
+after the landed link leaked the employer into `at` - scrubbed since, one w/ the widget probe; B x1). Numbers:
+[workable-tenant-a.json](vscode-browser/workable-tenant-a.json), [workable-tenant-b.json](vscode-browser/workable-tenant-b.json)
+(host path, ids + org scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| `READY` from navigate | 2.3 s (earlier loads 2.8, 2.1 s) | 2.3 s |
+| Boxes listed | 24 | 74 |
+| `debugger;` pauses | 0 | 0 |
+| Frames | none (1st load of 3: one 1x1 empty frame) | none |
+| Cloudflare `jsd/oneshot` POST on load | blocked on the 1st load of 3, none on the last 2 | none |
+| Captcha | Turnstile script (`challenges.cloudflare.com/turnstile/v0/api.js`, `turnstile` object), no Turnstile frame on load; no reCAPTCHA / hCaptcha | same |
+| Widgets | 2 radio groups (4 `[role=radio]`), 3 `[role=combobox]` lists, each in its `[data-ui]` wrapper | 16 radio groups (53 `[role=radio]`), no lists |
+| Cookie dialog | `[data-ui=cookie-consent]` `role=dialog` `aria-modal=true`, "This website uses cookies..." (Accept all / Decline all / Cookies settings), grey overlay over the whole form on load; on top at each list's middle: the dialog, 3 of 3 | same dialog |
+| Name: click + `Input.insertText` | not focused (the click met the dialog), read back "" | same |
+| Name: focused by script + `Input.insertText` | focused, read back "Test Applicant" | same |
+| Other writes | none while typing | none |
+
+Readings:
+- The cookie dialog covers the form: a person's click lands on it. Likely the "something sits over the box" that
+  made Chrome's plain clicks time out (`workable.md`, 8 of 8, 2026-10-03) - likely: not measured in Chrome.
+- The filler still fills under it, window as Chrome: typing = focus by script + `Input.insertText` (as
+  `Locator.fill`), lists opened by Down on the focused box, radios by Space on the focused `[role=radio]`, an
+  option's click dispatched on it - the paths `workable.py` already takes when a click times out.
+- File: never chosen here. Its upload in the tab - unmeasured; checked on the owner's real application (plan-k8n.9).
+- Turnstile script loads but shows nothing on load; at Submit - unmeasured (never Submit).
+- Cookie dialog = the employer's own; the user answers it.
+
+Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
+urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.8).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any
@@ -229,7 +267,7 @@ limits unchanged: never Submit, a file only after the user's yes (`form.fill` de
   page session, asks `requestCDPProxy` for it, answers {session, proxy}.
 - Python drives the tab over raw CDP ([cdp.py](../../apply/cdp.py), moved from the measure
   scripts): Playwright can't use the proxy (one page, no browser). `apply/window.py` `Page` +
-  `Locator` cover only what `greenhouse.py`, `ashby.py`, `lever.py` + `form.fill` call: click = instant scroll to the box's
+  `Locator` cover only what `greenhouse.py`, `ashby.py`, `lever.py`, `jazzhr.py`, `workable.py` + `form.fill` call: click = instant scroll to the box's
   middle + real mouse events, typing = `Input.insertText`, file = `DOM.setFileInputFiles`.
   `Debugger.setSkipAllPauses` on attach + after each navigation.
 - Done: `detach-form` => `disconnect {terminateDebuggee: false}` on the page session, then its
@@ -266,6 +304,17 @@ lists) + a stand-in for "Attach resume" (swaps paste / attach for the file box) 
 a second fill changes nothing, attestation tick left to the applicant in both. Added: `Locator.is_visible()`
 (no wait, nothing there = False, Playwright's shown rule), `select_option(value=)` (Playwright's signature:
 value or `label=`), each checked against Playwright's on that page. Unmeasured: JazzHR filled live in the window tab.
+Workable (plan-k8n.7, 2026-10-06; not in `--in-window`, owner decides plan-k8n.8): `workable.fill` + `holds` +
+`form.fill_page` on `fixtures/dom/workable-form.html` (hand-built from measured widgets: radios, ticks, lists, the
+resume box + a storage stand-in) + the cookie dialog as measured over the whole form, through Playwright AND
+`window.Page`: same report, same read-back (boxes, `[role=radio]` picks, ticks, list picks, stored file's name), a
+second fill changes nothing. Not a saved live page: Workable draws its form by script, a saved copy has no
+behaviour. Under the dialog a plain click times out in both, and the filler falls to keyboard / dispatched paths.
+Added: `click(force=)` + Playwright's hit check (waits until nothing else sits on the box's middle, else
+TimeoutError; force clicks whatever is on top - before, a covered click landed on the overlay silently),
+`dispatch_event` (MouseEvent etc., bubbles + cancelable + composed, as Playwright), `page.keyboard.press`,
+ArrowDown + Space by name, `page.evaluate` (a function called w/ its arg, else evaluated), `:visible` closing a
+selector part; each checked against Playwright's on that page. Unmeasured: Workable filled live in the window tab.
 
 Owner's real run (plan-29g.18, tenant G): every dropdown reported ok; owner: "some fields were not filled", picked Dropdowns. Not
 reproduced (plan-29g.20; plan-29g.24 adds upload success, MyGreenhouse sign-in + clicking around, `greenhouse.md` #Widgets): `measure.py ghfill` = the shipped filler in a scratch window, writes

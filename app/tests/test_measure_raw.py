@@ -139,5 +139,7 @@ def test_measure_raw_uses_rawkit():
     src = (cfg.APP / "docs" / "apply" / "vscode-browser" / "measure.py").read_text()
     raw = src[src.index("def raw(result):"):src.index("def restricted(result):")]
     assert "rawkit.ready_js(system.READY)" in raw and "rawkit.count_js(system.READY)" in raw
-    assert "rawkit.scrub_pairs(system, GH_URL, app_url)" in raw and raw.count("lab.record_tenants(TENANTS") == 2
+    assert "rawkit.scrub_pairs(system, GH_URL, app_url)" in raw and raw.count("lab.record_tenants(TENANTS") == 3
+    # where the page landed (a short link moves to the employer's own path) scrubbed + recorded the same way
+    assert "rawkit.scrub_pairs(system, landed)" in raw and "rawkit.tenant_lines(system, [landed])" in raw
     assert "document.querySelector({json.dumps(system.READY)" not in src and "parse_url(GH_URL)[-2:]" not in src
