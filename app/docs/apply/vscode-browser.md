@@ -89,6 +89,15 @@ cap 20, then skip on. One text box: click + `Input.insertText`. Dummy PDF by `DO
 [ashby-tenant-a.json](vscode-browser/ashby-tenant-a.json), [ashby-tenant-b.json](vscode-browser/ashby-tenant-b.json)
 (org, posting + question ids scrubbed).
 
+Every system since 2026-10-06 (plan-k8n.1, `rawkit.py`, tested on local pages + every EXAMPLES link, no live
+page): READY read as Playwright reads it - `:visible` (Oracle, iCIMS, ADP) = non-empty box + not
+`visibility:hidden`, open shadow roots walked (SmartRecruiters `#first-name-input`; closed ones can't be).
+Scrub per link: parse_url parts (any count - Paylocity 1), tenant host + its labels (Oracle pod, iCIMS
+`careers-<tenant>`), path parts, query values; string values only, any case. Shared hosts
+(`apply.workable.com` ...) kept. Org / tenant host / page title + `og:site_name` appended to
+`.data/measure/tenants.txt`, as `apply-form measure` does. Text box + file box still found by
+`document.querySelector`: inside a shadow root unmeasured.
+
 | Step | A | B |
 |---|---|---|
 | Canary first | received none | received none |

@@ -26,7 +26,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            level-3 block (+ lab.NAMED_READS, the owner's one exception) + canary first in the same tab;
            the page's `debugger;` pauses counted (skip off once, resumed in the handler, cap 20, then
            skip on), other-site frames listed + what each is, Input.insertText into one text box + read
-           back, the dummy PDF chosen + what the page then tries to send (blocked). Never Submit
+           back, the dummy PDF chosen + what the page then tries to send (blocked). Never Submit.
+           READY read as Playwright does, tenant parts scrubbed, tenants.txt appended: rawkit.py (plan-k8n.1)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -53,6 +54,7 @@ F, HOLD = D / "f", D / "hold"
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path[:0] = [str(HERE), str(SRC / "app")]
 import formsite  # noqa: E402
+import rawkit  # noqa: E402
 from apply.cdp import CDP  # noqa: E402
 
 CODE = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
@@ -61,7 +63,8 @@ UNIQ = secrets.token_hex(3)
 TITLE = f"JF form {UNIQ}"
 RESUME = D / "Test_Resume.pdf"
 READS = ("GET", "HEAD", "OPTIONS")
-SCRUB: list[tuple[str, str]] = []  # (tenant text, placeholder): raw adds the posting's org + id
+SCRUB: list[tuple[str, str]] = []  # (tenant text, placeholder): raw adds the links' tenant parts (rawkit.scrub_pairs)
+TENANTS = SRC / ".data" / "measure" / "tenants.txt"  # every measured org, for the anonymity grep (lab.py's file)
 
 
 def now():
@@ -165,8 +168,10 @@ def make_resume():
 
 
 def save(result):
+    if SCRUB:  # string values only, any case, longest first: a key is never cut
+        result = rawkit.scrub_values(json.loads(json.dumps(result, default=str)), sorted(SCRUB, key=lambda t: -len(t[0])))
     text = json.dumps(result, indent=1, default=str)
-    for a, b in ((str(D), "$D"), (str(SRC), "<checkout>"), (str(SHOTS), "<shots>"), *SCRUB):
+    for a, b in ((str(D), "$D"), (str(SRC), "<checkout>"), (str(SHOTS), "<shots>")):
         text = text.replace(a, b)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(text + "\n")
@@ -1135,6 +1140,9 @@ FRAMES = """(() => [...document.querySelectorAll('iframe')].map((f) => ({src: (f
   title: (f.title || '').slice(0, 60), shown: !!f.getClientRects().length, w: f.offsetWidth, h: f.offsetHeight})))()"""
 
 
+NAMES = """[document.title, (document.querySelector('meta[property="og:site_name"]') || {}).content || ''].map((s) => s.trim()).filter(Boolean)"""
+
+
 def frame_kind(url):
     import re
     return next((k for k, rx in FRAME_KIND if re.search(rx, url)), "other")
@@ -1150,15 +1158,15 @@ def short(url):
 
 def raw(result):
     """Canary first in the same tab, then the posting's form: pauses, frames, one typed box, the dummy PDF."""
-    from apply import systems
+    import re
+    from apply import lab, systems
     system = systems.for_url(GH_URL or "")
     if not system:
         sys.exit("raw needs a posting link systems.for_url knows")
-    if hasattr(system, "parse_url"):  # Ashby (org, id); Lever (eu, org, id)
-        org, pid = system.parse_url(GH_URL)[-2:]
-        SCRUB.extend([(pid, "<id>"), (org, "<org>")])
     tag = system.NAME.lower()
     app_url = system.application_url(GH_URL)
+    SCRUB.extend(rawkit.scrub_pairs(system, GH_URL, app_url))  # host tenant parts, path org + ids, query values
+    result["tenantsAdded"] = lab.record_tenants(TENANTS, rawkit.tenant_lines(system, [GH_URL, app_url]))
     cap, level = int(os.environ.get("JF_PAUSE_CAP", "20")), int(os.environ.get("JF_BLOCK_LEVEL", "3"))
     result |= {"system": system.NAME, "ready": system.READY, "url": app_url, "level": level, "pauseCap": cap}
     proc, result["launch"] = launch()
@@ -1196,13 +1204,18 @@ def raw(result):
         block.step = "load"
         t = time.time()
         c.send("Page.navigate", {"url": app_url})
-        ready = f"document.readyState === 'complete' && !!document.querySelector({json.dumps(system.READY)})"
+        ready = rawkit.ready_js(system.READY)  # ':visible' + open shadow roots, as Playwright reads READY
         result["loaded"] = bool(wait_for(lambda: quietly(lambda: c.evaluate(ready, timeout=3)), 40, 0.5))
         result["readyMs"] = round((time.time() - t) * 1000)
         time.sleep(4)  # its own scripts settle
         result["pausesOnLoad"] = len(pauses)
         result["at"] = quietly(lambda: c.evaluate("location.host + location.pathname"))
-        result["fields"] = quietly(lambda: c.evaluate(f"document.querySelectorAll({json.dumps(system.READY)}).length"))
+        result["fields"] = quietly(lambda: c.evaluate(rawkit.count_js(system.READY)))
+        names = quietly(lambda: c.evaluate(NAMES)) or []  # the employer's own names: tenants.txt + scrubbed
+        names += [m.group(1).strip() for s in names if (m := re.search(r"\bat (.+)$", s))]
+        lines = rawkit.tenant_lines(system, [], names)
+        result["tenantsAdded"] += lab.record_tenants(TENANTS, lines)
+        SCRUB.extend((s, "<org>") for s in lines if len(s) >= 4)
         result["boxes"] = quietly(lambda: c.evaluate(GH_FIELDS.replace("label: ", "_: ").replace("type: e.type,", "type: e.type, name: e.name,")))
         if isinstance(result["boxes"], list):  # labels are the employer's words: kinds only
             import re  # question ids are the employer's: "<field>"
