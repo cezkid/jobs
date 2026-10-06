@@ -378,7 +378,7 @@ def main() -> None:
     p.add_argument("url")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
-    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby + Lever, off by default) fill in a tab "
+    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby, Lever + JazzHR, off by default) fill in a tab "
                    "of the Job Finder window instead of Chrome")
     t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
     t.add_argument("slug")

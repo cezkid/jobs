@@ -136,7 +136,8 @@ The open list lags: 15 of 27 "open" links were already taken down.
 attestation checkbox (tenant B, "I certify / I authorize ..."), Human Check (all 4).
 
 In the Job Finder window (2026-10-06, 2 tenants, writes blocked): fills as here, Human Check a blank space
-with the block on - `vscode-browser.md` #JazzHR - route 2. Not offered there yet (plan-k8n.5).
+with the block on - `vscode-browser.md` #JazzHR - route 2. Offered there since the owner's yes 2026-10-06
+(plan-k8n.5): `fill --in-window`, off by default; its note says the Human Check at Submit is untested there.
 
 ## Tenant notes
 

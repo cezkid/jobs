@@ -241,7 +241,8 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse, Ashby + Lever only, off by default (plan-29g.9, Ashby plan-nko.8, Lever plan-nko.15).
+window, Greenhouse, Ashby, Lever + JazzHR only, off by default (plan-29g.9, Ashby plan-nko.8, Lever plan-nko.15,
+JazzHR plan-k8n.5).
 
 ## Owner decision (plan-29g.8)
 
@@ -251,10 +252,14 @@ Ashby 178, Lever 98, Workday 94). Built on the route-2 costs above: skip pauses 
 scroll `instant`, stop only the page session (never stop all - closes the tab), urlFilter matching
 exactly one tab, trusted folder required, embed forms opened top-level. Default Chrome path unchanged.
 
+2026-10-06 (plan-k8n.5): JazzHR added - one page, no frames, no `debugger;` pauses, choosing the file sends
+nothing, adapter parity passes (plan-k8n.4). Gap: Human Check at Submit unmeasured unblocked, as Lever's
+hCaptcha => `AT_SUBMIT` note + Chrome fallback. JazzHR = 27 open jobs / 13 employers on the owner's list.
+
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby + Lever only (owner's yes for Ashby
-2026-10-05, plan-nko.7, Lever plan-nko.14; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever + JazzHR only (owner's yes for Ashby
+2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 
 - Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
@@ -297,13 +302,14 @@ arg => TypeError at the end of every fill. Added: `eval_on_selector_all(sel, fn,
 Playwright's rule (style visible + a box with width and height; was any rect, 0x0 counted), each checked
 against Playwright's on that page. The fill says hCaptcha at Submit is untested in the window (`AT_SUBMIT`).
 Unmeasured: Lever filled live in the window tab; hCaptcha at Submit there.
-JazzHR (plan-k8n.4, 2026-10-06; not in `--in-window`, owner decides plan-k8n.5): `jazzhr.fill` + `holds` +
+JazzHR (plan-k8n.4, 2026-10-06; in `--in-window` since the owner's yes, plan-k8n.5): `jazzhr.fill` + `holds` +
 `form.fill_page` on `fixtures/jazzhr/tenant-b.html` (saved live form: checkbox groups, upper-case YES / NO
 lists) + a stand-in for "Attach resume" (swaps paste / attach for the file box) through Playwright AND
 `window.Page`: same report, same read-back (boxes, lists as the page writes them, ticks, file, file box shown),
 a second fill changes nothing, attestation tick left to the applicant in both. Added: `Locator.is_visible()`
 (no wait, nothing there = False, Playwright's shown rule), `select_option(value=)` (Playwright's signature:
-value or `label=`), each checked against Playwright's on that page. Unmeasured: JazzHR filled live in the window tab.
+value or `label=`), each checked against Playwright's on that page. The fill says the Human Check at Submit is
+untested in the window (`AT_SUBMIT`). Unmeasured: JazzHR filled live in the window tab; Human Check unblocked there.
 Workable (plan-k8n.7, 2026-10-06; not in `--in-window`, owner decides plan-k8n.8): `workable.fill` + `holds` +
 `form.fill_page` on `fixtures/dom/workable-form.html` (hand-built from measured widgets: radios, ticks, lists, the
 resume box + a storage stand-in) + the cookie dialog as measured over the whole form, through Playwright AND

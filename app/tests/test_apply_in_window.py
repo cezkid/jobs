@@ -826,7 +826,7 @@ def test_in_window_off_by_default_fill_stays_in_chrome(tmp_path, monkeypatch, ca
     assert capsys.readouterr().out.endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
 
 
-@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever"])
+@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever", "JazzHR"])
 def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, capsys, name):
     opened = fill_setup(tmp_path, monkeypatch, name)
     monkeypatch.setattr(form.sys, "argv", ["form.py", "fill", "7", "--in-window"])
@@ -834,13 +834,13 @@ def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, ca
     out = capsys.readouterr().out
     assert opened == ["window"] and "  [ok] First Name\n" in out
     said = "The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
-    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name == "Lever" else ""))
+    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name in ("Lever", "JazzHR") else ""))
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
-    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever")
+    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever", "JazzHR")
     opened = fill_setup(tmp_path, monkeypatch, "Workable")
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
-    assert str(stop.value) == "in the window: Greenhouse, Ashby, Lever only for now - run fill without --in-window"
+    assert str(stop.value) == "in the window: Greenhouse, Ashby, Lever, JazzHR only for now - run fill without --in-window"
     assert opened == []
