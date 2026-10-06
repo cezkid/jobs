@@ -1,0 +1,30 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Apply - Acme</title></head>
+<body>
+<h2>About you</h2>
+<label for="full_name">Full name</label><input id="full_name" name="full_name">
+<label for="country">Country</label>
+<select id="country" name="country"><option value="">Pick one</option><option>Canada</option><option>Mexico</option></select>
+<p class="note">Fields marked <b>required</b> must be filled.</p>
+<div class="g-recaptcha"></div>
+<div class="form-group"><label>Phone (optional)</label><input id="phone" name="phone"></div>
+<div class="form-group" style="display: none"><label>Phone</label><input name="old_phone"></div>
+<div class="fab-Select wrap"><div><input id="pick-in" name="pick"></div><button type="button" aria-haspopup="listbox">Choose</button></div>
+<p>Cover letter*</p><div><span><input type="file" id="letter" name="letter"></span></div>
+<iframe id="same" src="/dom/frames-inner.html" style="width: 600px; height: 320px; border: 0"></iframe>
+<shadow-box id="open-box"></shadow-box>
+<closed-box id="shut-box"></closed-box>
+<iframe id="other" style="width: 200px; height: 80px; border: 0"></iframe>
+<script>
+customElements.define("shadow-box", class extends HTMLElement {
+  constructor() { super(); const r = this.attachShadow({mode: "open"});
+    r.innerHTML = `<h3>Documents</h3><section class="part"><label for="nick">Preferred name</label><input id="nick" name="nick">
+      <span id="cv-name">Resume file</span><input type="file" id="cv" name="cv" aria-labelledby="cv-name">
+      <button type="button" class="act">Attach</button><div role="option" class="pick">Shadow pick</div>
+      <span class="part-note">Inside <i>the</i> shadow</span></section>`; } });
+customElements.define("closed-box", class extends HTMLElement {
+  constructor() { super(); this.attachShadow({mode: "closed"}).innerHTML = '<input id="hidden-away">'; } });
+// another site: the same server under its other name
+document.getElementById("other").src = location.href.replace("127.0.0.1", "localhost").replace(/\/[^/]*$/, "/frames-inner.html");
+</script>
+</body></html>

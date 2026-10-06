@@ -20,7 +20,7 @@ from conftest import REAL_HOME
 
 import cfg
 import launch
-from apply import browser, form, questions, window
+from apply import browser, dom, form, questions, window
 from apply.cdp import CDP
 from apply.systems import ashby, greenhouse, jazzhr, lever, workable
 
@@ -72,6 +72,8 @@ WORKABLE_BEHAVES = """<div data-ui="cookie-consent" role="dialog" aria-modal="tr
     This website uses cookies to enhance your experience.
     <button type="button">Accept all</button><button type="button">Decline all</button>
     <button type="button">Cookies settings</button></div></div>"""
+# a same-site frame, another site's frame (the same server by its other name), open + closed shadow roots
+FRAMES_PATH = "/dom/frames-shadow.html"
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
 
 
@@ -118,7 +120,9 @@ def site():
                 body, kind = b'{"resume": {}}', "application/json"
             else:
                 page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM,
-                        ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html")}.get(self.path)
+                        ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html"),
+                        FRAMES_PATH: FORM.with_name("frames-shadow.html"),
+                        FRAMES_PATH.replace("shadow", "inner"): FORM.with_name("frames-inner.html")}.get(self.path)
                 body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
                 if self.path == JAZZHR_PATH:
                     body = ("<!doctype html><html><head><meta charset=utf-8><title>Test Role - Acme</title></head><body>"
@@ -544,7 +548,7 @@ def test_in_window_workable_click_force_dispatch_keys_and_evaluate_as_playwright
                         page.evaluate("([a, b]) => a + b", ["x", "y"]), page.evaluate("function () { return 7; }")])
             got[name] = row
         with pytest.raises(ValueError):
-            tabs["window"].locator("div:visible > span")
+            tabs["window"].locator("div:not(:visible)")
     assert got["window"] == got["playwright"]
     assert got["window"][0][0] == 0 and got["window"][1] == ["High School/GED", "Associate", "Bachelor's"]
     assert got["window"][3] == "true" and got["window"][4][0] == "Associate" and got["window"][5][1:] == [42, "xy", 7]
@@ -695,6 +699,257 @@ def test_in_window_locator_waits_then_says_what_never_came(tab, site):
         assert page.locator("#email").input_value() == ""  # read without waiting to be shown
     finally:
         cdp.close()
+
+
+def frames_url(site):
+    return site.replace("/acme/jobs/1", FRAMES_PATH)
+
+
+def loaded(page):
+    """Both frames in: the same-site one with its boxes, the other site's listed."""
+    deadline = time.monotonic() + 10
+    while len(page.frames) < 3 and time.monotonic() < deadline:
+        time.sleep(0.1)
+    page.frames[1].locator("#city").wait_for(timeout=10000)
+    return page
+
+
+def test_in_window_parity_snapshot(tab, site, playwright_chrome):
+    # dom.snapshot through each on the frame + shadow page: same controls, frames, captcha, closed root
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        snaps = {name: dom.snapshot(loaded(page)) for name, page in tabs.items()}
+    assert snaps["window"] == snaps["playwright"]
+    snap, inner = snaps["window"], frames_url(site).replace("shadow", "inner")
+    assert [c["hook"] for c in snap["controls"] if c["frame"] == inner] == [
+        '[id="years"]', '[id="degree"]', '[name="relocate"]', '[id="weekends"]', '[id="city"]']
+    assert [c["hook"] for c in snap["controls"] if c["in_shadow"]] == ['[id="nick"]', '[id="cv"]']
+    assert snap["captcha"] == [{"url": frames_url(site), "marker": "g-recaptcha"}]
+    assert [f["url"] for f in snap["other_frames"]] == [inner.replace("127.0.0.1", "localhost")]
+    assert [(n["host"], n["why"]) for n in snap["not_readable"]] == [("closed-box", "closed shadow root - not readable")]
+
+
+FRAMES_ANSWERS = [("full_name", "Ada Lovelace"), ("country", "Mexico"), ("years", "8"), ("degree", "Bachelor's"),
+                  ("relocate", "No"), ("weekends", "Yes"), ("city", "Austin, Texas"), ("nick", "Ada"), ("cv", True)]
+# each box as the page shows it, in its own frame + shadow root - never the filler's word
+FRAMES_SHOWN = """() => { const deep = (d) => d.querySelector('shadow-box') ? d.querySelector('shadow-box').shadowRoot : d;
+  const inner = document.getElementById('same').contentDocument, s = deep(document);
+  return [document.getElementById('full_name').value, document.getElementById('country').value,
+    inner.getElementById('years').value, inner.getElementById('degree').value,
+    [...inner.querySelectorAll('[name=relocate]')].map(r => r.checked), inner.getElementById('weekends').checked,
+    inner.getElementById('city').value, s.getElementById('nick').value,
+    s.getElementById('cv').files[0] ? s.getElementById('cv').files[0].name : '']; }"""
+
+
+def test_in_window_parity_dom_fill(tab, site, playwright_chrome, tmp_path):
+    # dom.fill through each: boxes in the main page, the same-site frame (a list clicked inside it) and an open
+    # shadow root (the resume chosen there) - same reports, same page after
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    reports, shown = {}, {}
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        for name, page in tabs.items():
+            qs = {q["id"]: q for q in dom.questions(dom.snapshot(loaded(page)))}
+            todo = [qs[f'[id="{i}"]'] if f'[id="{i}"]' in qs else qs[f'[name="{i}"]'] for i, _ in FRAMES_ANSWERS]
+            reports[name] = [dom.fill(page, q | {"answer": a} | ({"key": "resume"} if a is True else {}), str(resume))
+                             for q, (_, a) in zip(todo, FRAMES_ANSWERS)]
+            shown[name] = page.evaluate(FRAMES_SHOWN)
+    assert reports["window"] == reports["playwright"] == ["ok"] * len(FRAMES_ANSWERS)
+    assert shown["window"] == shown["playwright"] == [
+        "Ada Lovelace", "Mexico", "8", "Bachelor's", [False, True], True, "Austin, Texas, United States", "Ada", resume.name]
+
+
+def test_in_window_parity_frames(tab, site, playwright_chrome):
+    # page.frames / main_frame / frame.url / frame.evaluate: same list in the same order, each frame its own page
+    got = {}
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        for name, page in tabs.items():
+            fs = loaded(page).frames
+            got[name] = [[f.url for f in fs], fs[0] is page.main_frame, page.frames[1] is fs[1],
+                         [f.evaluate("document.title") for f in fs[:2]], fs[1].evaluate("(n) => n * 2", 21),
+                         fs[1].locator("label").all_inner_texts()]
+    assert got["window"] == got["playwright"]
+    assert got["window"][1:4] == [True, True, ["Apply - Acme", "Inner form"]]
+
+
+def test_in_window_parity_evaluate_handle(tab, site, playwright_chrome):
+    # evaluate_handle + JSHandle get_property / json_value / get_properties / as_element, as dom.find and
+    # smartrecruiters.py use them
+    got = {}
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        for name, page in tabs.items():
+            h = page.evaluate_handle("(id) => ({n: 3, s: 'x', none: null, list: [document.body, document.getElementById(id)]})",
+                                     "full_name")
+            members = h.get_property("list").get_properties()
+            row = [h.get_property("n").json_value(), h.get_property("s").json_value(), h.get_property("none").json_value(),
+                   h.get_property("none").as_element(), h.get_property("n").as_element(), sorted(members),
+                   [m.as_element().evaluate("e => e.tagName") for m in members.values()], h.evaluate("x => x.n + 1"),
+                   h.evaluate("x => x === null")]
+            el = page.evaluate_handle("() => document.querySelector('shadow-box').shadowRoot.getElementById('nick')").as_element()
+            el.fill("Ada")
+            row += [el.input_value(), el.get_attribute("name"), page.evaluate_handle("() => null").as_element(),
+                    page.evaluate_handle("() => 5").json_value()]
+            h.dispose()
+            got[name] = row
+    assert got["window"] == got["playwright"]
+    assert got["window"][:4] == [3, "x", None, None] and got["window"][5:7] == [["0", "1"], ["BODY", "INPUT"]]
+
+
+def test_in_window_parity_closed_shadow(tab, site, playwright_chrome):
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        got = {name: dom.closed_shadow(loaded(page)) for name, page in tabs.items()}
+    assert got["window"] == got["playwright"] == [
+        {"url": frames_url(site), "host": "closed-box", "why": "closed shadow root - not readable"}]
+
+
+@pytest.mark.parametrize("selector", [
+    "#nick", "input", "section.part > input", "label + input", "h3 ~ section", "shadow-box section", "shadow-box label",
+    "button, #full_name, [role=option]", ".part-note i", "section:visible > span", "#closed-box input", "[id=hidden-away]",
+    "div.form-group:visible > label", "body > *:visible",
+])
+def test_in_window_parity_css_pierces_shadow(tab, site, playwright_chrome, selector):
+    # CSS looks inside open shadow roots as Playwright's does: combinators, comma lists in page order, :visible
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        got = {name: [page.locator(selector).count(), page.locator(selector).evaluate_all("es => es.map(e => e.id || e.tagName)")]
+               for name, page in tabs.items()}
+    assert got["window"] == got["playwright"]
+
+
+def test_in_window_parity_scope_and_chained_steps(tab, site, playwright_chrome):
+    got = {}
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        for name, page in tabs.items():
+            got[name] = [page.locator("section").locator(":scope > label").all_inner_texts(),
+                         page.locator("shadow-box").locator("input").count(),
+                         page.locator("div").locator(":scope > input").evaluate_all("es => es.map(e => e.id)"),
+                         page.locator(".fab-Select").locator(":scope button").count()]
+    assert got["window"] == got["playwright"]
+    assert got["window"][0] == ["Preferred name"]
+
+
+@pytest.mark.parametrize("text, exact", [("Attach", True), ("attach", False), ("attach", True), ("required", False),
+                                         ("Inside the shadow", True), ("inside", False), ("Phone", True),
+                                         ("Phone (optional)", True), (re.compile(r"^Cover"), False)])
+def test_in_window_parity_get_by_text_exact(tab, site, playwright_chrome, text, exact):
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        got = {name: [page.get_by_text(text, exact=exact).count(), page.get_by_text(text, exact=exact).all_inner_texts()]
+               for name, page in tabs.items()}
+    assert got["window"] == got["playwright"]
+
+
+@pytest.mark.parametrize("text, exact", [("Full name", True), ("full", False), ("Preferred name", True),
+                                         ("Resume file", True), ("name", False), ("Country", True), ("country", True),
+                                         (re.compile("^Pref"), False)])
+def test_in_window_parity_get_by_label(tab, site, playwright_chrome, text, exact):
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        got = {name: page.get_by_label(text, exact=exact).evaluate_all("es => es.map(e => e.id)") for name, page in tabs.items()}
+    assert got["window"] == got["playwright"]
+
+
+def test_in_window_parity_last(tab, site, playwright_chrome):
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        got = {name: [page.locator("input").last.get_attribute("id"), page.locator("label").nth(-1).inner_text(),
+                      page.locator("label").last.inner_text(), page.locator("#nowhere").last.count()]
+               for name, page in tabs.items()}
+    assert got["window"] == got["playwright"]
+    assert got["window"][:2] == ["cv", "Preferred name"]
+
+
+@pytest.mark.parametrize("ask", [
+    # bamboohr.py's shapes
+    lambda p: p.locator("#pick-in").locator("xpath=ancestor::div[contains(@class,'fab-Select')][1]//button[@aria-haspopup]").first,
+    lambda p: p.locator("""xpath=//p[normalize-space(translate(., '*', ''))="Cover letter"]/following-sibling::*//input[@type='file']"""),
+    lambda p: p.locator("#letter").locator("xpath=ancestor::*[contains(@class,'nowhere')][1]"),
+    lambda p: p.locator("//label"),
+    lambda p: p.locator("xpath=..").first,
+])
+def test_in_window_parity_xpath(tab, site, playwright_chrome, ask):
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        got = {name: ask(page).evaluate_all("es => es.map(e => e.id || e.tagName)") for name, page in tabs.items()}
+    assert got["window"] == got["playwright"]
+
+
+def test_in_window_parity_filter_has(tab, site, playwright_chrome):
+    # paylocity.py's group(): the shown .form-group whose own label is the question
+    said = re.compile(r"^\s*Phone\s*(?:\((?:required|optional)\))?\s*$", re.I)
+    got = {}
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        for name, page in tabs.items():
+            g = page.locator(".form-group:visible").filter(has=page.locator(":scope > label").filter(has_text=said)).first
+            got[name] = [g.locator("input").get_attribute("id"), page.locator(".form-group").filter(has=page.locator("label")).count(),
+                         page.locator("div").filter(has=page.locator("button"), has_text="Choose").count(),
+                         page.locator(".form-group").filter(has=page.locator("#nowhere")).count()]
+    assert got["window"] == got["playwright"]
+    assert got["window"][:2] == ["phone", 2]
+
+
+@pytest.mark.parametrize("wait_until", ["commit", "domcontentloaded", "load", "networkidle"])
+def test_in_window_parity_goto_wait_until(tab, site, playwright_chrome, wait_until):
+    # oracle.py + icims.py: goto(wait_until=); the page there to read once it says so
+    url = frames_url(site)
+    got = {}
+    with both(tab, playwright_chrome, site) as tabs:
+        for name, page in tabs.items():
+            page.goto(url, wait_until=wait_until)
+            page.locator("#full_name").wait_for(timeout=5000)
+            got[name] = [page.url, page.locator("#full_name").count()]
+        with pytest.raises(ValueError):
+            tabs["window"].goto(url, wait_until="soon")
+    assert got["window"] == got["playwright"] == [url, 1]
+
+
+def test_in_window_parity_press_modifier(tab, site, playwright_chrome):
+    # ukg.py: ControlOrMeta+a then typing replaces what the box held; held Control types nothing
+    got = {}
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        for name, page in tabs.items():
+            box = page.locator("#full_name")
+            box.fill("old words")
+            box.press("ControlOrMeta+a")
+            box.press_sequentially("new")
+            row = [box.input_value()]
+            box.press("Control+j")  # no macOS editing command: types nothing
+            box.press("Shift+A")
+            row.append(box.input_value())
+            got[name] = row
+        with pytest.raises(ValueError):
+            tabs["window"].locator("#full_name").press("Hyper+a")
+    assert got["window"] == got["playwright"]
+    assert got["window"][0] == "new"
+
+
+def test_in_window_parity_check_force(tab, site, playwright_chrome):
+    # check / uncheck (force too) inside the same-site frame: a click only where the tick differs
+    got = {}
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        for name, page in tabs.items():
+            frame = loaded(page).frames[1]
+            frame.evaluate("() => { window.clicks = 0; document.getElementById('weekends').addEventListener('click', () => clicks++); }")
+            box, no = frame.locator("#weekends"), frame.locator("[name=relocate]").last
+            box.check(force=True)
+            box.check(force=True)
+            row = [box.is_checked(), frame.evaluate("clicks")]
+            box.uncheck(force=True)
+            no.check()
+            row += [box.is_checked(), frame.evaluate("clicks"), no.is_checked()]
+            got[name] = row
+    assert got["window"] == got["playwright"] == [True, 1, False, 2, True]
+
+
+def test_in_window_parity_type_delay(tab, site, playwright_chrome):
+    # dom.put_combo's type(delay=): each letter its own key, the list answering as it goes
+    got = {}
+    with both(tab, playwright_chrome, frames_url(site)) as tabs:
+        for name, page in tabs.items():
+            frame = loaded(page).frames[1]
+            frame.evaluate("() => { window.keys = []; document.getElementById('city').addEventListener('keydown', (e) => keys.push(e.key)); }")
+            box = frame.locator("#city")
+            box.click()
+            start = time.monotonic()
+            box.type("Aus", delay=100)
+            took = time.monotonic() - start
+            got[name] = [box.input_value(), frame.evaluate("keys"), frame.locator("[role=option]").all_inner_texts(), took >= 0.2]
+    assert got["window"] == got["playwright"]
+    assert got["window"][2] == ["Austin, Texas, United States", "Austin, Minnesota, United States"]
 
 
 class FakeExtension:

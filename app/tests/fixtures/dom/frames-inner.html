@@ -1,0 +1,24 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Inner form</title>
+<style>ul[role=listbox] {margin: 0; padding: 0; list-style: none} [role=option] {padding: 4px} .gone {display: none}</style></head>
+<body>
+<h3>Background</h3>
+<label for="years">Years of experience</label><input id="years" name="years">
+<label for="degree">Degree</label>
+<select id="degree" name="degree"><option value="">Pick one</option><option>Associate</option><option>Bachelor's</option></select>
+<fieldset><legend>Willing to relocate?</legend>
+  <label><input type="radio" name="relocate" value="y"> Yes</label><label><input type="radio" name="relocate" value="n"> No</label></fieldset>
+<label><input type="checkbox" id="weekends" name="weekends"> I can work weekends</label>
+<label for="city">Location</label><input id="city" role="combobox" aria-controls="cities" autocomplete="off">
+<ul id="cities" role="listbox" class="gone"></ul>
+<script>
+const PLACES = ["Austin, Texas, United States", "Austin, Minnesota, United States", "Boston, Massachusetts, United States"];
+const box = document.getElementById("city"), list = document.getElementById("cities");
+box.addEventListener("input", () => { const t = box.value.trim().toLowerCase(); list.replaceChildren();
+  for (const p of PLACES.filter((p) => t && p.toLowerCase().startsWith(t))) {
+    const li = document.createElement("li"); li.setAttribute("role", "option"); li.textContent = p; list.append(li); }
+  list.classList.toggle("gone", !list.children.length); });
+list.addEventListener("click", (ev) => { const li = ev.target.closest("[role=option]");
+  if (li) { box.value = li.textContent; list.replaceChildren(); list.classList.add("gone"); } });
+</script>
+</body></html>

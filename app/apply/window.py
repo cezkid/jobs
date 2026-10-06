@@ -52,6 +52,10 @@ WHY = {"untrusted": "the Job Finder window is in Restricted Mode (opened without
 KEYS = {"Escape": ("Escape", "Escape", 27, None, None), "Delete": ("Delete", "Delete", 46, None, "deleteForward"),
         "Enter": ("Enter", "Enter", 13, None, None), "Tab": ("Tab", "Tab", 9, None, None),
         "ArrowDown": ("ArrowDown", "ArrowDown", 40, None, "moveDown"), "Space": (" ", "Space", 32, " ", None)}
+# held for a combo ("ControlOrMeta+a"): its bit in CDP's modifiers, code, Windows key code
+MODIFIERS = {"Alt": (1, "AltLeft", 18), "Control": (2, "ControlLeft", 17), "Meta": (4, "MetaLeft", 91), "Shift": (8, "ShiftLeft", 16)}
+# macOS: a combo edits only w/ its command named, as Playwright's (only the ones the fillers press)
+MAC_COMBOS = {("Meta", "KeyA"): "selectAll"}
 # a script that is a function: page.evaluate calls it, as Playwright's (anything else is evaluated as written)
 FUNCTION = re.compile(r"^\s*(async\s+)?(function\b|(\([^)]*\)|[\w$]+)\s*=>)")
 # dispatch_event: the event each type makes, as Playwright's (bubbles, cancelable, composed unless told otherwise)
@@ -63,11 +67,11 @@ DISPATCH = """(e, [type, init]) => { const kinds = {mouse: MouseEvent, key: Keyb
   e.dispatchEvent(new (kinds[kind] || Event)(type, {bubbles: true, cancelable: true, composed: true, ...(init || {})})); }"""
 # a click's point: the box's middle, scrolled into view -> [x, y]; null while nothing is there to click, or (unless
 # forced) something else sits on that point - Playwright's hit check, the target widened to the button or link
-# it sits in
+# it sits in; asked of the element's own shadow root or frame (a document asked names only the host)
 CLICK_POINT = """(e, force) => { e.scrollIntoView({block: 'center', inline: 'center', behavior: 'instant'});
   const r = e.getBoundingClientRect(); if (!r.width || !r.height) return null;
   const x = r.x + r.width / 2, y = r.y + r.height / 2; if (force) return [x, y];
-  const t = e.closest('button, [role=button], a, [role=link]') || e, hit = document.elementFromPoint(x, y);
+  const t = e.closest('button, [role=button], a, [role=link]') || e, hit = e.getRootNode().elementFromPoint(x, y);
   return hit && t.contains(hit) ? [x, y] : null; }"""
 HOLDING = ("<!doctype html><meta charset=utf-8><title>Opening the application form</title>"
            "<body style=\"font:16px system-ui;margin:3em;color:#333\">Opening the application form...</body>").encode()
@@ -82,50 +86,133 @@ VISIBLE = """function visible(e) { if (!e) return false; const s = getComputedSt
       return b.width > 0 && b.height > 0; })());
   if (!e.checkVisibility() || s.visibility !== "visible") return false;
   const b = e.getBoundingClientRect(); return b.width > 0 && b.height > 0; }"""
-# steps -> matching elements, in the page: css (querySelectorAll under each), parts (a selector w/ ':visible', one
-# [css, shown only] per comma part, together in page order), nth, text (the smallest
-# elements whose text holds it, case and spacing ignored - as Playwright's get_by_text), has (the
-# elements themselves, kept when their text holds a string as `text` does, or a pattern matches their
-# whole text as written - as Playwright's has_text), visible (kept when shown or not, as VISIBLE), role (as get_by_role: shown to a screen reader,
-# accessible name = aria-labelledby, aria-label, a button input's value, else its text; exact = the
-# whole name w/ case, else part of it w/o)
-RESOLVE = """(steps) => { let els = [document];
+# steps -> matching elements under `roots`, in the page - each a port of Playwright's own engine (its injected
+# script, 1.5x), so the same selector finds the same elements:
+# css [[compound, shown only, combinator to the next], ...] per comma part: the last compound queried inside open
+#   shadow roots too, the ones before matched walking up (a shadow root's host counts as a parent), ':scope' =
+#   the root; several parts together in page order (shadow children after their host's own)
+# xpath (elements only; '/...' under an element = './...'), nth (-1 = last), visible (shown or not, as VISIBLE)
+# text [text, exact] (get_by_text: the smallest elements whose text holds it, case and spacing ignored, or is it
+#   when exact), label [text, exact] (get_by_label: aria-labelledby, aria-label, else a box's <label>s)
+# has (has_text: the elements themselves, kept when their text holds a string as `text` does, or a pattern
+#   matches their whole text), inside (filter(has=): kept when the inner steps find something under them)
+# role (as get_by_role: shown to a screen reader, accessible name = aria-labelledby, aria-label, a button
+#   input's value, else its text; exact = the whole name w/ case, else part of it w/o)
+# Text = Playwright's: script, style + <head> skipped, a button input's value, open shadow roots' text included.
+RESOLVE = """(function resolve(steps, roots) {
   const norm = (s) => (s || "").replace(/[\\u200b\\u00ad]/g, "").trim().replace(/\\s+/g, " ");
   const low = (s) => norm(s).toLowerCase();
-  const text = (e) => e.nodeType === 3 ? e.nodeValue : ["SCRIPT", "NOSCRIPT", "STYLE"].includes(e.nodeName) ? ""
-    : (e instanceof HTMLInputElement && ["submit", "button", "reset"].includes(e.type)) ? e.value
-    : [...e.childNodes].map(text).join("");
-  const under = (sel) => [...new Set(els.flatMap((e) => [...e.querySelectorAll(sel)]))];
+  const shownNow = VISIBLE;
+  const up = (e) => e.parentElement || (e.parentNode && e.parentNode.nodeType === 11 && e.parentNode.host) || null;
+  const pierce = (scope, css) => { let out = [];
+    const q = (r) => { out = out.concat([...r.querySelectorAll(css)]); if (r.shadowRoot) q(r.shadowRoot);
+      for (const e of r.querySelectorAll("*")) if (e.shadowRoot) q(e.shadowRoot); };
+    q(scope); return out; };
+  const sorted = (elements) => { const entries = new Map(), tops = [], out = [];
+    const add = (e) => { let entry = entries.get(e); if (entry) return entry; const p = up(e);
+      if (p) add(p).children.push(e); else tops.push(e);
+      entry = {children: [], taken: false}; entries.set(e, entry); return entry; };
+    for (const e of elements) add(e).taken = true;
+    const visit = (e) => { const entry = entries.get(e); if (entry.taken) out.push(e);
+      if (entry.children.length > 1) { const set = new Set(entry.children); entry.children = [];
+        for (let c = e.firstElementChild; c && entry.children.length < set.size; c = c.nextElementSibling) if (set.has(c)) entry.children.push(c);
+        for (let c = e.shadowRoot ? e.shadowRoot.firstElementChild : null; c && entry.children.length < set.size; c = c.nextElementSibling)
+          if (set.has(c)) entry.children.push(c); }
+      entry.children.forEach(visit); };
+    tops.forEach(visit); return out; };
+  const css = (root, part) => { let scope = root, orig = null;
+    if (part.some(([c]) => c === ":scope") && scope.nodeType === 1 && up(scope)) { orig = scope; scope = up(scope); }
+    const actual = orig || scope, me = actual.nodeType === 9 ? actual.documentElement : actual;
+    const simple = (e, [c, shown]) => e !== scope && (c === ":scope" ? e === me : e.matches(c)) && (!shown || shownNow(e));
+    const parent = (e) => e === scope ? null : up(e), prev = (e) => e === scope ? null : e.previousElementSibling;
+    const parents = (e, i) => { if (i < 0) return true; const s = part[i], comb = s[2];
+      if (comb === ">") { const p = parent(e); return !!p && simple(p, s) && parents(p, i - 1); }
+      if (comb === "+") { const p = prev(e); return !!p && simple(p, s) && parents(p, i - 1); }
+      const step = comb === "~" ? prev : parent;
+      for (let p = step(e); p; p = step(p))
+        if (simple(p, s)) { if (parents(p, i - 1)) return true; if (part[i - 1] && part[i - 1][2] === comb) break; }
+      return false; };
+    const [last, shown] = part[part.length - 1];
+    return (last === ":scope" ? [me] : pierce(scope, last)).filter((e) => (!shown || shownNow(e)) && parents(e, part.length - 2)); };
+  const xpath = (root, sel) => { if (sel.startsWith("/") && root.nodeType !== 9) sel = "." + sel;
+    const doc = root.ownerDocument || root, out = [], it = doc.evaluate(sel, root, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE);
+    for (let n = it.iterateNext(); n; n = it.iterateNext()) if (n.nodeType === 1) out.push(n);
+    return out; };
+  const cache = new Map();
+  const skip = (e) => ["SCRIPT", "NOSCRIPT", "STYLE"].includes(e.nodeName) || !!(e.ownerDocument && e.ownerDocument.head && e.ownerDocument.head.contains(e));
+  const textOf = (root) => { let v = cache.get(root); if (v) return v;
+    v = {full: "", normalized: "", immediate: []};
+    if (!skip(root)) {
+      if (root.nodeName === "INPUT" && ["submit", "button", "reset"].includes(root.type)) v = {full: root.value, normalized: norm(root.value), immediate: [root.value]};
+      else { let now = "";
+        for (let c = root.firstChild; c; c = c.nextSibling) {
+          if (c.nodeType === 3) { v.full += c.nodeValue || ""; now += c.nodeValue || ""; }
+          else if (c.nodeType !== 8) { if (now) v.immediate.push(now); now = ""; if (c.nodeType === 1) v.full += textOf(c).full; } }
+        if (now) v.immediate.push(now);
+        if (root.shadowRoot) v.full += textOf(root.shadowRoot).full;
+        v.normalized = norm(v.full); } }
+    cache.set(root, v); return v; };
+  const matcher = (t, exact) => { if (t && typeof t === "object") { const re = new RegExp(t.source, t.flags); return (v) => re.test(v.full); }
+    const want = norm(t), lower = want.toLowerCase();
+    return exact ? (v) => v.normalized === want : (v) => v.normalized.toLowerCase().includes(lower); };
+  const matchesText = (e, m) => { if (skip(e) || !m(textOf(e))) return "none";
+    for (let c = e.firstChild; c; c = c.nextSibling) if (c.nodeType === 1 && m(textOf(c))) return "selfAndChildren";
+    return e.shadowRoot && m(textOf(e.shadowRoot)) ? "selfAndChildren" : "self"; };
+  const byText = (root, m, lax) => { const out = []; let miss = null;
+    for (const e of [...(root.nodeType === 1 ? [root] : []), ...pierce(root, "*")]) {
+      if (lax && miss && miss.contains(e)) continue;
+      const got = matchesText(e, m); if (got === "none") miss = e; else if (got === "self") out.push(e); }
+    return out; };
+  const refs = (e, ref) => { let top = e; while (top.parentNode) top = top.parentNode;
+    if (top.nodeType !== 9 && top.nodeType !== 11) return [];
+    try { const out = [];
+      for (const id of ref.split(" ").filter(Boolean)) { const f = top.querySelector("#" + CSS.escape(id)); if (f && !out.includes(f)) out.push(f); }
+      return out; } catch (err) { return []; } };
+  const labels = (e) => { const ref = e.getAttribute("aria-labelledby"), by = ref === null ? [] : refs(e, ref);
+    if (by.length) return by.map(textOf);
+    const al = e.getAttribute("aria-label"); if (al !== null && al.trim()) return [{full: al, normalized: norm(al), immediate: [al]}];
+    if (["BUTTON", "METER", "OUTPUT", "PROGRESS", "SELECT", "TEXTAREA"].includes(e.nodeName) || (e.nodeName === "INPUT" && e.type !== "hidden"))
+      return e.labels ? [...e.labels].map(textOf) : [];
+    return []; };
   const named = (e) => { const by = (e.getAttribute("aria-labelledby") || "").split(/\\s+/).filter(Boolean);
-    if (by.length) return by.map((id) => document.getElementById(id)?.textContent || "").join(" ");
+    if (by.length) return by.map((id) => e.getRootNode().getElementById(id)?.textContent || "").join(" ");
     if ((e.getAttribute("aria-label") || "").trim()) return e.getAttribute("aria-label");
-    return e instanceof HTMLInputElement ? e.value : e.textContent; };
-  const shown = (e) => !e.closest("[aria-hidden=true]") && e.checkVisibility({visibilityProperty: true});
+    return e.nodeName === "INPUT" ? e.value : e.textContent; };
+  const heard = (e) => !e.closest("[aria-hidden=true]") && e.checkVisibility({visibilityProperty: true});
+  let els = roots;
   for (const [k, v] of steps) {
-    if (k === "css") els = under(v);
-    else if (k === "nth") els = els.slice(v, v + 1);
-    else if (k === "visible") els = els.filter((e) => (VISIBLE)(e) === v);
-    else if (k === "parts") els = [...new Set(v.flatMap(([sel, vis]) => under(sel).filter((e) => !vis || (VISIBLE)(e))))]
-      .sort((a, b) => a === b ? 0 : a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1);
-    else if (k === "has") { const re = typeof v === "string" ? null : new RegExp(v.source, v.flags);
-      els = els.filter((e) => re ? re.test(text(e)) : low(text(e)).includes(low(v))); }
+    const each = (find) => { const out = new Set(); for (const r of els) for (const e of find(r)) out.add(e); return [...out]; };
+    if (k === "css") els = each((r) => v.length === 1 ? css(r, v[0]) : sorted(v.flatMap((part) => css(r, part))));
+    else if (k === "xpath") els = each((r) => xpath(r, v));
+    else if (k === "nth") { const n = v === -1 ? els.length - 1 : v; els = els.slice(n, n + 1); }
+    else if (k === "visible") els = els.filter((e) => shownNow(e) === v);
+    else if (k === "text") { const m = matcher(v[0], v[1]); els = each((r) => byText(r, m, typeof v[0] === "string" && !v[1])); }
+    else if (k === "label") { const m = matcher(v[0], v[1]); els = each((r) => pierce(r, "*").filter((e) => labels(e).some(m))); }
+    else if (k === "has") { const m = matcher(v, false); els = els.filter((e) => m(textOf(e))); }
+    else if (k === "inside") els = els.filter((e) => resolve(v, [e]).length > 0);
     else if (k === "role") { const [role, name, exact] = v, extra = ROLES[role];
-      els = under(extra ? `[role="${role}"], ${extra}` : `[role="${role}"]`)
-        .filter((e) => (!e.hasAttribute("role") || e.getAttribute("role").trim().split(/\\s+/)[0] === role) && shown(e))
+      els = each((r) => pierce(r, extra ? `[role="${role}"], ${extra}` : `[role="${role}"]`))
+        .filter((e) => (!e.hasAttribute("role") || e.getAttribute("role").trim().split(/\\s+/)[0] === role) && heard(e))
         .filter((e) => name === null || (exact ? norm(named(e)) === norm(name) : low(named(e)).includes(low(name)))); }
-    else { const want = low(v), has = (e) => low(e.textContent).includes(want);
-      els = [...new Set(els.flatMap((e) => [e, ...e.querySelectorAll("*")]))]
-        .filter((e) => e.nodeType === 1 && has(e) && ![...e.children].some(has)); } }
-  return els; }""".replace("ROLES", json.dumps(ROLES)).replace("VISIBLE", VISIBLE)
+    else throw new Error("unknown step " + k); }
+  return els; })""".replace("ROLES", json.dumps(ROLES)).replace("VISIBLE", VISIBLE)
+# what Playwright reads as another engine (text=, role=, internal:...) or a chain (>>): not taken here
+ENGINE = re.compile(r"^[a-zA-Z_0-9-]+\s*=|>>")
+VISIBLE_PSEUDO = re.compile(r":visible(?![\w-])")
 
 
-def css_parts(selector: str) -> list[tuple[str, bool]]:
-    """Playwright selector -> [(plain CSS, must be shown)], one per top-level comma part. ':visible' must
-    close its part: on an ancestor it would test the wrong element."""
-    parts, depth, quote, start = [], 0, "", 0
+def css_steps(selector: str) -> list:
+    """Playwright CSS -> [[compound, shown only, combinator to the next], ...] per top-level comma part.
+    ':visible' may close any compound (`div:visible > span`), never sit inside a function; ':scope' only as
+    a compound of its own. Native :has() / :not() stay plain CSS: they don't look into shadow roots."""
+    parts, depth, quote, escaped, start = [], 0, "", False, 0
     for i, ch in enumerate(selector):
-        if quote:
-            quote = "" if ch == quote and selector[i - 1] != "\\" else quote
+        if escaped:
+            escaped = False
+        elif ch == "\\":
+            escaped = True
+        elif quote:
+            quote = "" if ch == quote else quote
         elif ch in "'\"":
             quote = ch
         elif ch in "([":
@@ -136,13 +223,101 @@ def css_parts(selector: str) -> list[tuple[str, bool]]:
             parts.append(selector[start:i])
             start = i + 1
     parts.append(selector[start:])
-    out = []
-    for part in (p.strip() for p in parts):
-        css = part.removesuffix(":visible")
-        if re.search(r":visible(?![\w-])", re.sub(r"'[^']*'|\"[^\"]*\"", "", css)):  # quoted text aside
-            raise ValueError(f"':visible' only at the end of a part: {part!r}")
-        out.append((css, css != part))
+    return [compounds(p.strip(), selector) for p in parts]
+
+
+def compounds(part: str, selector: str) -> list:
+    out, buf, comb, depth, quote, escaped = [], "", None, 0, "", False
+
+    def flush():
+        nonlocal buf, comb
+        if not buf:
+            return
+        if out:
+            out[-1][2] = comb
+        css = buf.strip()
+        shown = bool(VISIBLE_PSEUDO.search(top_level(css)))
+        css = VISIBLE_PSEUDO.sub("", css) if shown else css
+        if VISIBLE_PSEUDO.search(css):
+            raise ValueError(f"':visible' inside a function: {selector!r}")
+        if ":scope" in css and css != ":scope":
+            raise ValueError(f"':scope' only as a part of its own: {selector!r}")
+        out.append([css or "*", shown, ""])
+        buf, comb = "", None
+
+    for ch in part:
+        if escaped:
+            escaped = False
+        elif ch == "\\":
+            escaped = True
+        elif quote:
+            quote = "" if ch == quote else quote
+        elif ch in "'\"":
+            quote = ch
+        elif ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth -= 1
+        elif not depth and (ch.isspace() or ch in ">+~"):
+            flush()
+            if ch.isspace():
+                comb = "" if comb is None else comb
+            elif comb or not out:
+                raise ValueError(f"combinator out of place: {selector!r}")
+            else:
+                comb = ch
+            continue
+        buf += ch
+    flush()
+    if comb or not out:
+        raise ValueError(f"combinator out of place: {selector!r}")
     return out
+
+
+def top_level(css: str) -> str:
+    """The compound w/ quoted text and function arguments blanked: what a ':visible' found there closes."""
+    out, depth, quote, escaped = [], 0, "", False
+    for ch in css:
+        if escaped:
+            escaped = False
+            out.append(" ")
+            continue
+        if ch == "\\":
+            escaped = True
+        elif quote:
+            quote = "" if ch == quote else quote
+        elif ch in "'\"":
+            quote = ch
+        elif ch in "([":
+            depth += 1
+        elif ch in ")]":
+            depth -= 1
+            out.append(" ")
+            continue
+        out.append(ch if not depth and not quote and ch not in "'\"" else " ")
+    return "".join(out)
+
+
+def text_arg(text: "str | re.Pattern"):
+    """A string as is, a Python pattern as a JS RegExp, as Playwright passes one: its flags i, s, m only."""
+    if isinstance(text, str):
+        return text
+    if text.flags & ~(re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE):
+        raise ValueError(f"flags JavaScript can't take: {text!r}")
+    flags = "".join(f for f, bit in (("i", re.IGNORECASE), ("s", re.DOTALL), ("m", re.MULTILINE)) if text.flags & bit)
+    return {"source": text.pattern, "flags": flags}
+
+
+def steps_of(selector: str) -> tuple:
+    """One Playwright selector -> its step: xpath= (or one starting // or ..), css= or plain CSS."""
+    if selector.startswith("xpath="):
+        return ("xpath", selector[len("xpath="):])
+    if selector.startswith(("//", "..")):
+        return ("xpath", selector)
+    selector = selector.removeprefix("css=")
+    if ENGINE.search(top_level(selector)):
+        raise ValueError(f"selector engine not taken in the window: {selector!r}")
+    return ("css", css_steps(selector))
 
 
 class Keyboard:
@@ -154,12 +329,110 @@ class Keyboard:
         self.page.key(key)
 
 
+class Session:
+    """page.context.new_cdp_session(page), as Playwright's: the tab's own CDP (dom.closed_shadow)."""
+    def __init__(self, cdp: CDP):
+        self.cdp = cdp
+
+    def send(self, method: str, params: dict | None = None) -> dict:
+        return self.cdp.send(method, params, 30)
+
+    def detach(self) -> None:
+        pass  # the connection is the fill's own
+
+
+class Context:
+    def new_cdp_session(self, page: "Page") -> Session:
+        return Session(page.cdp)
+
+
+class Frame:
+    """page.frames / page.main_frame, as Playwright's. The main frame runs in the page's own scripts' world; a
+    frame inside it in a world of our own (Page.createIsolatedWorld): its page, never its scripts' globals."""
+    def __init__(self, page: "Page", frame_id: str | None = None, url: str = ""):
+        self.page, self.id, self._url, self.world = page, frame_id, url, None
+
+    @property
+    def main(self) -> bool:
+        return self is self.page.main_frame
+
+    @property
+    def url(self) -> str:
+        return self.page.url if self.main else self._url
+
+    def _send(self, method: str, params: dict, timeout: float = 15) -> dict:
+        if self.main or "objectId" in params:
+            return self.page.cdp.send(method, params, timeout)
+        for again in (False, True):
+            if self.world is None:
+                self.world = self.page.cdp.send("Page.createIsolatedWorld", {"frameId": self.id, "worldName": "jf"})["executionContextId"]
+            try:
+                return self.page.cdp.send(method, params | {"contextId": self.world}, timeout)
+            except RuntimeError as e:  # the frame loaded again: its old world went with it
+                if again or "context" not in str(e).lower():
+                    raise
+                self.world = None
+
+    def call(self, fn: str, *args, root: str | None = None, by_value: bool = True, timeout: float = 15):
+        """fn(root, *args) in this frame -> its value (`by_value`), else CDP's handle on it. root = an object's id,
+        else the frame's document."""
+        common = {"returnByValue": by_value, "awaitPromise": True, "objectGroup": "jf"}
+        if root:
+            r = self._send("Runtime.callFunctionOn", {"objectId": root, "arguments": [{"value": a} for a in args],
+                           "functionDeclaration": f"function (...a) {{ return ({fn})(this, ...a); }}"} | common, timeout)
+        else:
+            r = self._send("Runtime.evaluate", {"expression": f"({fn})(document, {', '.join(json.dumps(a) for a in args)})"} | common, timeout)
+        if "exceptionDetails" in r:
+            d = r["exceptionDetails"]
+            raise ScriptError(d.get("exception", {}).get("description") or d.get("text"))
+        return r.get("result", {}).get("value") if by_value else r.get("result", {})
+
+    def run(self, expr: str, timeout: float = 15):
+        if self.main:
+            return self.page.run(expr, timeout)
+        r = self._send("Runtime.evaluate", {"expression": expr, "returnByValue": True, "awaitPromise": True}, timeout)
+        if "exceptionDetails" in r:
+            d = r["exceptionDetails"]
+            raise ScriptError(d.get("exception", {}).get("description") or d.get("text"))
+        return r.get("result", {}).get("value")
+
+    def evaluate(self, expr: str, arg=None):
+        """As Playwright's: a function is called w/ `arg`, anything else evaluated as written."""
+        return self.run(f"({expr})({json.dumps(arg)})" if FUNCTION.match(expr) else expr)
+
+    def evaluate_handle(self, expr: str, arg=None) -> "JSHandle":
+        fn = f"(d, arg) => ({expr})(arg)" if FUNCTION.match(expr) else f"(d) => ({expr})"
+        return JSHandle.of(self, self.call(fn, arg, by_value=False))
+
+    def locator(self, selector: str, has_text=None) -> "Locator":
+        return Locator(self, []).locator(selector, has_text)
+
+    def get_by_role(self, role: str, name: str | None = None, exact: bool = False) -> "Locator":
+        return Locator(self, []).get_by_role(role, name, exact)
+
+    def get_by_text(self, text: "str | re.Pattern", exact: bool = False) -> "Locator":
+        return Locator(self, []).get_by_text(text, exact)
+
+    def get_by_label(self, text: "str | re.Pattern", exact: bool = False) -> "Locator":
+        return Locator(self, []).get_by_label(text, exact)
+
+    def click_at(self, x: float, y: float) -> None:
+        """A frame's point -> the tab's: plus where the frame's box sits (in-process frames, one level measured)."""
+        if not self.main:
+            owner = self.page.cdp.send("DOM.getFrameOwner", {"frameId": self.id})
+            box = self.page.cdp.send("DOM.getBoxModel", {"backendNodeId": owner["backendNodeId"]})["model"]["content"]
+            x, y = x + box[0], y + box[1]
+        self.page.click_at(x, y)
+
+
 class Page:
     def __init__(self, cdp: CDP):
         self.cdp = cdp
+        self.main_frame, self._frames = Frame(self), {}
         # requests in flight, as the tab reports them: idle = none for IDLE_MS (Greenhouse readies its
         # upload with a request after the page has loaded, plan-29g.25)
-        self.inflight, self.moved, self.lock = set(), time.monotonic(), threading.Lock()
+        # request id -> its frame
+        self.inflight, self.moved, self.lock = {}, time.monotonic(), threading.Lock()
         for name in NETWORK:
             cdp.on(name, self._network)
         # js-debug's proxy passes a domain's events on only when asked (adds to what Block asked for);
@@ -170,7 +443,10 @@ class Page:
 
     def _network(self, params: dict, msg: dict) -> None:
         with self.lock:
-            (self.inflight.add if msg["method"] == "Network.requestWillBeSent" else self.inflight.discard)(params.get("requestId"))
+            if msg["method"] == "Network.requestWillBeSent":
+                self.inflight[params.get("requestId")] = params.get("frameId")
+            else:
+                self.inflight.pop(params.get("requestId"), None)
             self.moved = time.monotonic()
 
     def quiet(self) -> None:
@@ -204,17 +480,68 @@ class Page:
     def keyboard(self) -> Keyboard:
         return Keyboard(self)
 
+    @property
+    def context(self) -> Context:
+        return Context()
+
+    @property
+    def frames(self) -> list[Frame]:
+        """The main frame, then each frame inside, depth first. The tab's frame tree lists only frames in its
+        own process: another site's frame runs in its own (measured, headless Chrome 154) - named by the
+        browser's target list, after its parent's other frames; it has a url, never a page to read."""
+        try:
+            tree = self.cdp.send("Page.getFrameTree", {}, 5)["frameTree"]
+        except (RuntimeError, TimeoutError):  # unmeasured through the window's proxy: the page alone
+            return [self.main_frame]
+        with contextlib.suppress(RuntimeError, TimeoutError):  # unmeasured through the window's proxy
+            apart = [t for t in self.cdp.send("Target.getTargets", {}, 5)["targetInfos"] if t["type"] == "iframe"]
+            nodes, todo = {}, [tree]
+            while todo:
+                node = todo.pop()
+                nodes[node["frame"]["id"]] = node
+                todo += node.get("childFrames") or []
+            while add := [t for t in apart if t.get("parentFrameId") in nodes and t["targetId"] not in nodes]:
+                for t in add:
+                    nodes[t["targetId"]] = {"frame": {"id": t["targetId"], "url": t["url"]}}
+                    nodes[t["parentFrameId"]].setdefault("childFrames", []).append(nodes[t["targetId"]])
+        out, todo = [], [tree]
+        while todo:
+            node = todo.pop()
+            f, fid = node["frame"], node["frame"]["id"]
+            if not out:
+                self.main_frame.id = fid
+                frame = self.main_frame
+            else:
+                frame = self._frames.setdefault(fid, Frame(self, fid))
+                if frame._url != (url := f.get("url", "") + f.get("urlFragment", "")):
+                    frame._url, frame.world = url, None
+            out.append(frame)
+            todo += reversed(node.get("childFrames") or [])
+        return out
+
     def evaluate(self, expr: str, arg=None):
-        """As Playwright's: a function is called w/ `arg`, anything else evaluated as written."""
-        return self.run(f"({expr})({json.dumps(arg)})" if FUNCTION.match(expr) else expr)
+        return self.main_frame.evaluate(expr, arg)
+
+    def evaluate_handle(self, expr: str, arg=None) -> "JSHandle":
+        return self.main_frame.evaluate_handle(expr, arg)
 
     def locator(self, selector: str, has_text=None) -> "Locator":
-        return Locator(self, []).locator(selector, has_text)
+        return self.main_frame.locator(selector, has_text)
 
     def get_by_role(self, role: str, name: str | None = None, exact: bool = False) -> "Locator":
-        return Locator(self, []).get_by_role(role, name, exact)
+        return self.main_frame.get_by_role(role, name, exact)
 
-    def goto(self, url: str, timeout: float = TIMEOUT_MS) -> None:
+    def get_by_text(self, text: "str | re.Pattern", exact: bool = False) -> "Locator":
+        return self.main_frame.get_by_text(text, exact)
+
+    def get_by_label(self, text: "str | re.Pattern", exact: bool = False) -> "Locator":
+        return self.main_frame.get_by_label(text, exact)
+
+    def goto(self, url: str, timeout: float = TIMEOUT_MS, wait_until: str = "load") -> None:
+        """As Playwright's: done at `wait_until` - commit (the new page answered), domcontentloaded, load or
+        networkidle."""
+        if wait_until not in ("commit", "domcontentloaded", "load", "networkidle"):
+            raise ValueError(f"wait_until: {wait_until!r}")
         # the old page marked: done = a page without the mark, loaded
         with contextlib.suppress(RuntimeError, TimeoutError):
             self.run("window.__jfLeaving = true", 5)
@@ -223,25 +550,50 @@ class Page:
         r = self.cdp.send("Page.navigate", {"url": url}, timeout / 1000)
         if r.get("errorText"):
             raise RuntimeError(f"couldn't open the form: {r['errorText']}")
-        self.until("!window.__jfLeaving && document.readyState === 'complete'", timeout, "page load")
+        if wait_until == "commit":
+            return self.quiet()
+        ready = "document.readyState !== 'loading'" if wait_until == "domcontentloaded" else "document.readyState === 'complete'"
+        self.until(f"!window.__jfLeaving && {ready}", timeout, "page load")
         self.quiet()
+        if wait_until == "networkidle":
+            self.idle(timeout)
 
     def wait_for_load_state(self, state: str = "load", timeout: float = TIMEOUT_MS) -> None:
         if state == "domcontentloaded":
             return self.until("document.readyState !== 'loading'", timeout, state)
         self.until("document.readyState === 'complete'", timeout, state)
         if state == "networkidle":
-            # requests seen leaving and ending, never the page's own list of finished ones (it misses
-            # the one still out, and stops counting at 250)
-            deadline = time.monotonic() + timeout / 1000
-            while True:
+            self.idle(timeout)
+
+    def idle(self, timeout: float) -> None:
+        # requests seen leaving and ending, never the page's own list of finished ones (it misses
+        # the one still out, and stops counting at 250)
+        deadline = time.monotonic() + timeout / 1000
+        while True:
+            with self.lock:
+                busy, quiet = bool(self.inflight), time.monotonic() - self.moved
+            if busy:
+                self.gone()
                 with self.lock:
-                    busy, quiet = bool(self.inflight), time.monotonic() - self.moved
-                if not busy and quiet >= IDLE_MS / 1000:
-                    return
-                if time.monotonic() >= deadline:
-                    raise TimeoutError(f"networkidle: not after {timeout} ms")
-                time.sleep(POLL)
+                    busy = bool(self.inflight)
+            if not busy and quiet >= IDLE_MS / 1000:
+                return
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"networkidle: not after {timeout} ms")
+            time.sleep(POLL)
+
+    def gone(self) -> None:
+        """Requests of a frame no longer in the tab's tree: another site's frame started loading here and
+        finished in its own process, where this tab never hears it end (measured, headless Chrome 154)."""
+        with contextlib.suppress(RuntimeError, TimeoutError):
+            todo, ids = [self.cdp.send("Page.getFrameTree", {}, 5)["frameTree"]], set()
+            while todo:
+                node = todo.pop()
+                ids.add(node["frame"]["id"])
+                todo += node.get("childFrames") or []
+            with self.lock:
+                for rid in [r for r, f in self.inflight.items() if f and f not in ids]:
+                    del self.inflight[rid]
 
     def wait_for_timeout(self, ms: float) -> None:
         time.sleep(ms / 1000)
@@ -252,68 +604,102 @@ class Page:
     def bring_to_front(self) -> None:
         pass  # the tab is the one the window just opened
 
+    def release(self) -> None:
+        """Let go of every handle this fill took."""
+        with contextlib.suppress(RuntimeError, TimeoutError, Closed):
+            self.cdp.send("Runtime.releaseObjectGroup", {"objectGroup": "jf"}, 5)
+
     def click_at(self, x: float, y: float) -> None:
         self.cdp.send("Input.dispatchMouseEvent", {"type": "mouseMoved", "x": x, "y": y})
         for kind in ("mousePressed", "mouseReleased"):
             self.cdp.send("Input.dispatchMouseEvent", {"type": kind, "x": x, "y": y, "button": "left", "clickCount": 1})
 
     def key(self, name: str, text: str | None = None) -> None:
+        """A key, or a combo as Playwright writes one ("ControlOrMeta+a"): modifiers held, the key pressed,
+        let go in reverse. Held Control / Alt / Meta = nothing typed (Playwright's)."""
+        held, name = re.fullmatch(r"((?:\w+\+)*)(.+)", name, re.DOTALL).groups()
+        held = [("Meta" if sys.platform == "darwin" else "Control") if m == "ControlOrMeta" else m for m in held.split("+") if m]
+        if unknown := [m for m in held if m not in MODIFIERS]:
+            raise ValueError(f"unknown modifier {unknown[0]!r}")
         key, code, vk, typed, command = KEYS.get(name, (name, None, None, None, None))
-        text = text or typed
-        down = {"type": "keyDown", "key": key}
-        if code:
-            down |= {"code": code, "windowsVirtualKeyCode": vk}
-        if text:
+        if not code and len(name) == 1 and name.isascii() and name.isalnum():
+            code, vk = (f"Digit{name}" if name.isdigit() else f"Key{name.upper()}"), ord(name.upper())
+        text = text or typed or (name if len(name) == 1 else None)
+        bits = 0
+        for m in held:
+            bit, mcode, mvk = MODIFIERS[m]
+            bits |= bit
+            self.cdp.send("Input.dispatchKeyEvent", {"type": "keyDown", "key": m, "code": mcode, "windowsVirtualKeyCode": mvk, "modifiers": bits})
+        if held:
+            command = MAC_COMBOS.get(("+".join(held), code))
+        down = {"type": "keyDown", "key": key, "modifiers": bits} | ({"code": code, "windowsVirtualKeyCode": vk} if code else {})
+        if text and not bits & ~MODIFIERS["Shift"][0]:
             down |= {"text": text, "unmodifiedText": text}
         if command and sys.platform == "darwin":
             down["commands"] = [command]
         self.cdp.send("Input.dispatchKeyEvent", down)
-        self.cdp.send("Input.dispatchKeyEvent", {"type": "keyUp", "key": key} | ({"code": code, "windowsVirtualKeyCode": vk} if code else {}))
+        self.cdp.send("Input.dispatchKeyEvent", {"type": "keyUp", "key": key, "modifiers": bits}
+                      | ({"code": code, "windowsVirtualKeyCode": vk} if code else {}))
+        for m in reversed(held):
+            bit, mcode, mvk = MODIFIERS[m]
+            bits &= ~bit
+            self.cdp.send("Input.dispatchKeyEvent", {"type": "keyUp", "key": m, "code": mcode, "windowsVirtualKeyCode": mvk, "modifiers": bits})
 
 
 class Locator:
-    def __init__(self, page: Page, steps: list):
-        self.page, self.steps = page, steps
+    def __init__(self, frame: Frame, steps: list, root: str | None = None):
+        self.frame, self.steps, self.root = frame, steps, root
+
+    @property
+    def page(self) -> Page:
+        return self.frame.page
 
     def _with(self, step) -> "Locator":
-        return Locator(self.page, [*self.steps, step])
+        return Locator(self.frame, [*self.steps, step], self.root)
 
     @property
     def first(self) -> "Locator":
         return self.nth(0)
 
+    @property
+    def last(self) -> "Locator":
+        return self.nth(-1)
+
     def nth(self, i: int) -> "Locator":
         return self._with(("nth", i))
 
     def locator(self, selector: str, has_text: "str | re.Pattern | None" = None) -> "Locator":
-        parts = css_parts(selector)
-        found = self._with(("parts", parts) if any(shown for _, shown in parts) else ("css", selector))
-        if has_text is None:
-            return found
-        if isinstance(has_text, str):
-            return found._with(("has", has_text))
-        # a Python pattern as a JS RegExp, as Playwright passes one: its flags i, s, m only
-        if has_text.flags & ~(re.IGNORECASE | re.DOTALL | re.MULTILINE | re.UNICODE):
-            raise ValueError(f"has_text: flags JavaScript can't take: {has_text!r}")
-        flags = "".join(f for f, bit in (("i", re.IGNORECASE), ("s", re.DOTALL), ("m", re.MULTILINE)) if has_text.flags & bit)
-        return found._with(("has", {"source": has_text.pattern, "flags": flags}))
+        found = self._with(steps_of(selector))
+        return found if has_text is None else found._with(("has", text_arg(has_text)))
 
-    def filter(self, visible: bool) -> "Locator":
-        return self._with(("visible", visible))
+    def filter(self, has_text: "str | re.Pattern | None" = None, has: "Locator | None" = None,
+               visible: bool | None = None) -> "Locator":
+        """As Playwright's, in its order: text held, then something found inside, then shown or not."""
+        out = self
+        if has_text is not None:
+            out = out._with(("has", text_arg(has_text)))
+        if has is not None:
+            if has.frame is not self.frame or has.root:
+                raise ValueError('Inner "has" locator must belong to the same frame.')
+            out = out._with(("inside", has.steps))
+        return out if visible is None else out._with(("visible", visible))
 
     def all(self) -> list["Locator"]:
         """One locator per element there now - no wait, as Playwright's."""
         return [self.nth(i) for i in range(self.count())]
 
-    def get_by_text(self, text: str) -> "Locator":
-        return self._with(("text", text))
+    def get_by_text(self, text: "str | re.Pattern", exact: bool = False) -> "Locator":
+        return self._with(("text", [text_arg(text), exact]))
+
+    def get_by_label(self, text: "str | re.Pattern", exact: bool = False) -> "Locator":
+        return self._with(("label", [text_arg(text), exact]))
 
     def get_by_role(self, role: str, name: str | None = None, exact: bool = False) -> "Locator":
         return self._with(("role", [role, name, exact]))
 
     def _all(self, fn: str, arg=None):
-        """fn(elements, arg) in the page, now - no wait."""
-        return self.page.run(f"({fn})(({RESOLVE})({json.dumps(self.steps)}), {json.dumps(arg)})")
+        """fn(elements, arg) in the frame, now - no wait."""
+        return self.frame.call(f"(root, steps, arg) => ({fn})({RESOLVE}(steps, [root]), arg)", self.steps, arg, root=self.root)
 
     def _one(self, fn: str, arg=None, visible: bool = False, timeout: float | None = None):
         """fn(first element, arg) once there is one (shown, when `visible`)."""
@@ -365,6 +751,20 @@ class Locator:
           const on = e.getAttribute("aria-checked"); if (on === null) throw new Error("Not a checkbox or radio button");
           return on === "true"; }""", timeout=timeout)
 
+    def check(self, timeout: float | None = None, force: bool = False) -> None:
+        self._set_checked(True, timeout, force)
+
+    def uncheck(self, timeout: float | None = None, force: bool = False) -> None:
+        self._set_checked(False, timeout, force)
+
+    def _set_checked(self, on: bool, timeout: float | None, force: bool) -> None:
+        """As Playwright's: ticked already = nothing; else one click, and a tick that didn't change is an error."""
+        if self.is_checked(timeout) == on:
+            return
+        self.click(timeout=timeout, force=force)
+        if self.is_checked(timeout) != on:
+            raise RuntimeError("Clicking the checkbox did not change its state")
+
     def focus(self, timeout: float | None = None) -> None:
         self._one("(e) => e.focus()", timeout=timeout)
 
@@ -383,7 +783,7 @@ class Locator:
         while True:
             at = self._one(CLICK_POINT, force, visible=not force, timeout=max(0.0, (deadline - time.monotonic()) * 1000))
             if at:
-                return self.page.click_at(*at)
+                return self.frame.click_at(*at)
             if time.monotonic() >= deadline:
                 raise TimeoutError(f"{self.steps}: something else sits over it after {timeout} ms")
             time.sleep(POLL)
@@ -434,13 +834,68 @@ class Locator:
             self.page.key(ch, text=ch)
             time.sleep(delay / 1000)
 
+    def type(self, text: str, delay: float = 0, timeout: float | None = None) -> None:
+        """Playwright's older name for press_sequentially (dom.put_combo, the systems' location boxes)."""
+        self.press_sequentially(text, delay, timeout)
+
     def set_input_files(self, path: str, timeout: float | None = None) -> None:
         self._one("(e) => true", timeout=timeout)
-        r = self.page.cdp.send("Runtime.evaluate", {"expression": f"({RESOLVE})({json.dumps(self.steps)})[0]"})
-        oid = r.get("result", {}).get("objectId")
-        if not oid:
+        got = self.frame.call(f"(root, steps) => {RESOLVE}(steps, [root])[0]", self.steps, root=self.root, by_value=False)
+        if not got.get("objectId"):
             raise RuntimeError("file box gone")
-        self.page.cdp.send("DOM.setFileInputFiles", {"files": [str(Path(path).resolve())], "objectId": oid})
+        self.page.cdp.send("DOM.setFileInputFiles", {"files": [str(Path(path).resolve())], "objectId": got["objectId"]})
+
+
+class JSHandle:
+    """What page / frame.evaluate_handle give, as Playwright's: an object left in the page, read when asked."""
+    def __init__(self, frame: Frame, remote: dict):
+        self.frame, self.remote = frame, remote
+
+    @staticmethod
+    def of(frame: Frame, remote: dict) -> "JSHandle":
+        return ElementHandle(frame, remote) if remote.get("subtype") == "node" else JSHandle(frame, remote)
+
+    @property
+    def _id(self) -> str | None:
+        return self.remote.get("objectId")
+
+    def evaluate(self, fn: str, arg=None):
+        if not self._id:  # a plain value: nothing left in the page
+            return self.frame.call(f"(d, v, arg) => ({fn})(v, arg)", self.remote.get("value"), arg)
+        return self.frame.call(f"(h, arg) => ({fn})(h, arg)", arg, root=self._id)
+
+    def json_value(self):
+        return self.frame.call("(h) => h", root=self._id) if self._id else self.remote.get("value")
+
+    def get_property(self, name: str) -> "JSHandle":
+        if not self._id:
+            return JSHandle.of(self.frame, self.frame.call("(d, v, n) => v[n]", self.remote.get("value"), name, by_value=False))
+        return JSHandle.of(self.frame, self.frame.call("(h, n) => h[n]", name, root=self._id, by_value=False))
+
+    def get_properties(self) -> dict[str, "JSHandle"]:
+        """Its own enumerable properties (an array's items), as Playwright's."""
+        if not self._id:
+            return {}
+        got = self.frame.page.cdp.send("Runtime.getProperties", {"objectId": self._id, "ownProperties": True})
+        return {p["name"]: JSHandle.of(self.frame, p["value"]) for p in got.get("result", []) if p.get("enumerable") and "value" in p}
+
+    def as_element(self) -> "ElementHandle | None":
+        return None
+
+    def dispose(self) -> None:
+        if self._id:
+            with contextlib.suppress(RuntimeError, TimeoutError, Closed):
+                self.frame.page.cdp.send("Runtime.releaseObject", {"objectId": self._id}, 5)
+
+
+class ElementHandle(Locator, JSHandle):
+    """One element held, as Playwright's: every Locator method, aimed at that element alone."""
+    def __init__(self, frame: Frame, remote: dict):
+        Locator.__init__(self, frame, [], remote["objectId"])
+        self.remote = remote
+
+    def as_element(self) -> "ElementHandle":
+        return self
 
 
 @contextlib.contextmanager
@@ -516,13 +971,14 @@ def page_at(url: str, match=None, before_load=None):
         except (KeyError, ValueError, TypeError, OSError, Closed):
             let_go(session)
             sys.exit(f"not filled: the window's debugger didn't let us in - {FALLBACK}")
+    page = Page(cdp)
     try:
-        page = Page(cdp)
         page.quiet()
         if before_load:
             before_load(cdp)
         page.goto(url)
         yield page
     finally:
+        page.release()
         cdp.close()
         let_go(session)

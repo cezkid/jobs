@@ -321,6 +321,24 @@ TimeoutError; force clicks whatever is on top - before, a covered click landed o
 `dispatch_event` (MouseEvent etc., bubbles + cancelable + composed, as Playwright), `page.keyboard.press`,
 ArrowDown + Space by name, `page.evaluate` (a function called w/ its arg, else evaluated), `:visible` closing a
 selector part; each checked against Playwright's on that page. Unmeasured: Workable filled live in the window tab.
+Generic reader + the rest of the fillers' calls (plan-k8n.14, 2026-10-06; `window.SYSTEMS` unchanged):
+`fixtures/dom/frames-shadow.html` (same-site frame w/ a list, another site's frame, open + closed shadow roots,
+`.form-group`, xpath shapes) through Playwright AND `window.Page` - `dom.snapshot` equal, `dom.fill` same reports +
+read-back (a list clicked inside the frame, a resume chosen in a shadow root), tests `test_in_window_parity_*`.
+Added: selectors ported from Playwright's injected script - CSS, text, role + label look inside open shadow
+roots (combinators, comma lists in page order, `:scope`, `:visible` anywhere in a part), `xpath=` / `//`,
+`get_by_text(exact=)`, `get_by_label`, `.last` / `nth(-1)`, `filter(has=, has_text=)`; `page.frames` +
+`main_frame` + `frame.evaluate` / `locator` (a frame inside = Chrome's isolated world: its page, never its
+scripts' globals; clicks offset by the frame's box); `evaluate_handle` + `JSHandle` / `ElementHandle`
+(handles let go after each fill); `page.context.new_cdp_session` (`dom.closed_shadow`); `goto(wait_until=)`;
+`press("ControlOrMeta+a")` (held Control / Alt / Meta types nothing, as Playwright; macOS editing commands:
+Meta+A only - Playwright maps ~100, e.g. Control+B = move back); `check` / `uncheck(force=)`; `type(delay=)`.
+Measured (headless Chrome 154): Chrome's frame tree leaves out another site's frame (own process) -
+`Target.getTargets` names it (url + parent), listed after its parent's other frames; its page request starts
+in the tab + ends unreported there, so networkidle drops requests of frames gone from the tree. Gaps:
+another site's frame can't be read (dom never reads it); unmeasured whether js-debug's proxy passes
+`Page.getFrameTree`, `Page.createIsolatedWorld`, `DOM.getFrameOwner`, `Target.getTargets` (frames then = the
+main frame only).
 
 Owner's real run (plan-29g.18, tenant G): every dropdown reported ok; owner: "some fields were not filled", picked Dropdowns. Not
 reproduced (plan-29g.20; plan-29g.24 adds upload success, MyGreenhouse sign-in + clicking around, `greenhouse.md` #Widgets): `measure.py ghfill` = the shipped filler in a scratch window, writes
