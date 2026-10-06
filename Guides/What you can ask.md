@@ -16,6 +16,9 @@ first.) You never type commands or edit files.
 - **No reply yet:** "Write a follow-up for job 3" · "I followed up on job 3"
 - **Where things stand:** "I sent job 3" · "I heard back from job 3" · "Is job 3 still open?" ·
   "Job 3 is closed"
+- **About you:** "What do you know about me?" · "Remember I'd rather not work for tobacco companies" ·
+  "Forget what I said about my health" - notes are saved only when you say yes, and used only for
+  what each is for
 - **Anything:** "Who can see my information?" · "Why?"
 - **Light or dark:** use the switch at the top of Today, or say "dark mode"
 - **Leaving:** "Remove CEZ Job Finder" - turns off the morning check and clears sign-ins kept
@@ -32,6 +35,9 @@ and job boards. Each job links to the real posting. New ones checked every morni
 
 ## Your resume
 
+- Give it your resume as a PDF or Word file: drag it onto **My Resume**, not into the chat. Job
+  Finder reads it and checks nothing was lost - and your AI plan's allowance lasts longer than
+  if the AI opened the file itself.
 - Your facts: **Resume details.yml** in My Resume. Change a line, or tell the chat.
 - Nothing made up. Employers, titles, dates stay as you gave them.
 - One resume per job, in **My Jobs**. You approve every reworded line first.

@@ -13,6 +13,7 @@ had. Basis + what each rule rests on: `app/docs/apply/interview.md`.
 - `uv run app/jobs.py interview 12` -> requirements w/ the resume lines that showed them (or not),
   the posting's pay, the untrusted-text line. No saved posting -> `job-tailor` first, or paste it.
 - Say once: what they type in practice reaches their AI account, like their resume.
+- `uv run app/jobs.py about read goals` - their next step shapes which stories to practise first.
 
 ## Practice - one round per session
 

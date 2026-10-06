@@ -356,6 +356,19 @@ def test_pdf_opens_as_tab_with_viewer_system_viewer_without(tmp_path, monkeypatc
     assert viewer == [pdf.resolve().as_uri()]
 
 
+def test_word_resume_opens_in_the_computers_own_app_never_a_tab(tmp_path, monkeypatch, capsys):
+    import jobs
+    resume = tmp_path / "Original resume.docx"
+    resume.write_bytes(b"PK\x03\x04")
+    viewer, tabs = [], []
+    monkeypatch.setattr(launch.shutil, "which", lambda name: "code")
+    monkeypatch.setattr(jobs.webbrowser, "open", viewer.append)
+    monkeypatch.setattr(jobs.subprocess, "run", lambda args, check: tabs.append(args[-1]))
+    jobs.open_for_user(str(resume))
+    assert (viewer, tabs) == ([resume.resolve().as_uri()], [])
+    assert "computer's own app" in capsys.readouterr().out
+
+
 def test_vscode_started_on_its_own_hidden_console(monkeypatch):
     # shared launcher console => its terminal window stayed open while VS Code ran
     runs = []

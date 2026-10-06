@@ -1,5 +1,6 @@
 import argparse
 import copy
+import json
 import re
 import shutil
 import sys
@@ -13,7 +14,7 @@ import yaml
 
 import cfg
 import locks
-from resume import carry, facts, handoff, schema, tidy
+from resume import carry, facts, handoff, schema, tidy, word
 
 ZERO_WIDTH = re.compile("[\u200b\u200c\u200d\u2060\ufeff]")
 # Word exports its 2nd-level bullet as a plain "o" (Courier New) and Symbol/Wingdings bullets as
@@ -22,6 +23,8 @@ LINE_BULLET = re.compile("^[ \t]*(?:[\u25cf\u2022\u25aa\u25e6\u00b7\uf0a7\uf0b7]
 FOLD = str.maketrans({
     "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"',
     "\u2013": "-", "\u2014": "-", "\u00a0": " ", "\u202f": " ",
+    # Word's non-breaking hyphen (phones, date ranges), hyphen, minus sign; soft hyphen shows only at a line end
+    "\u2010": "-", "\u2011": "-", "\u2212": "-", "\u00ad": "",
 })
 WHITESPACE = re.compile(r"\s+")
 WORD = re.compile(r"\w+")
@@ -52,7 +55,7 @@ HEADING = re.compile(
     r"publications|interests|activities|affiliations|memberships|references|qualifications|highlights|expertise)"
     r"\s*:?$", re.I)
 
-SYSTEM = """You map resume text extracted from a PDF onto fixed fields. You never write, rephrase, correct or expand.
+SYSTEM = """You map resume text extracted from the user's resume file (PDF or Word) onto fixed fields. You never write, rephrase, correct or expand.
 
 Rules:
 - Every string you emit is copied character-for-character from the source text. Only allowed change: joining a line wrapped across a line break with one space, and dropping bullet glyphs.
@@ -87,17 +90,23 @@ MAPPED_SCHEMA = obj(
 )
 
 
-def extract(pdf: Path) -> str:
+def extract(path: Path) -> str:
+    """Resume file -> text the AI maps and the gates check: PDF or Word, told by its first bytes."""
+    if word.kind(path) != "pdf":
+        text = LINE_BULLET.sub("", ZERO_WIDTH.sub("", word.read(path)))
+        if not WORD.search(text):
+            raise ValueError(f"{path.name}: no text in it")
+        return text
     # content-stream order, never pymupdf4llm: its column detection interleaved two-column page 2 (measured 2026-09-16)
-    with pymupdf.open(pdf) as doc:
+    with pymupdf.open(path) as doc:
         raw = "\n".join(page.get_text() for page in doc)
     text = LINE_BULLET.sub("", ZERO_WIDTH.sub("", raw))
     visible = [c for c in text if not c.isspace()]
     if not visible:
-        raise ValueError(f"{pdf}: no text layer (scanned?)")
+        raise ValueError(f"{path}: no text layer (scanned?)")
     alpha = sum(c.isalpha() for c in visible) / len(visible)
     if alpha < MIN_ALPHA_RATIO:
-        raise ValueError(f"{pdf}: {alpha:.0%} letters - fonts lack ToUnicode map, text is glyph ids")
+        raise ValueError(f"{path}: {alpha:.0%} letters - fonts lack ToUnicode map, text is glyph ids")
     return text
 
 
@@ -149,9 +158,19 @@ def untraced(mapped: dict, source: str) -> list[str]:
     return [f"{path}: {value!r}" for path, value in traced_strings(mapped) if normalize(value) not in haystack]
 
 
+def heading(text: str) -> bool:
+    return bool(HEADING.match(normalize(text).replace("&", "and")))
+
+
 def content_lines(source: str) -> list[str]:
-    return [line.strip() for line in source.splitlines()
-            if WORD.search(line) and not HEADING.match(normalize(line).replace("&", "and"))]
+    # a layout table puts a heading cell and its first entry on one tab-joined line: the heading
+    # part is skipped there too, or its words count against recovery
+    out = []
+    for line in source.splitlines():
+        parts = [part.strip() for part in line.split("\t") if WORD.search(part) and not heading(part)]
+        if parts:
+            out.append("\t".join(parts))
+    return out
 
 
 def recovery(mapped: dict, source: str) -> tuple[float, list[str]]:
@@ -286,7 +305,7 @@ def build(mapped: dict, today: date) -> tuple[dict, list[str]]:
         certifications.append(drop_empty({**c, "date": when}))
     if schema.out_of_order(roles):
         roles = schema.newest_first(roles)
-        assumptions.append("the PDF listed jobs out of date order - they are now newest first")
+        assumptions.append("the resume file listed jobs out of date order - they are now newest first")
     master = drop_empty({
         "contact": drop_empty(mapped["contact"]),
         "summary": mapped["summary"],
@@ -301,23 +320,56 @@ def build(mapped: dict, today: date) -> tuple[dict, list[str]]:
     return master, assumptions
 
 
-def prepare(config: dict, pdf_from: Path | None, force: bool) -> None:
-    pdf, master_path = cfg.resume_path(config, "input_pdf"), cfg.resume_path(config, "master")
+# what prepare handed the AI: finish checks the answer against exactly this text (never a re-read -
+# a PDF and a Word copy can both sit in My Resume), and the next --force reads that same file
+def source_record() -> Path:
+    return cfg.DATA / "resume-source.json"
+
+
+def original(config: dict, suffix: str) -> Path:
+    """My Resume/Original resume.pdf, or .docx for a Word resume - the other one is never touched."""
+    return cfg.resume_path(config, "input_pdf").with_suffix(suffix)
+
+
+def recorded(config: dict) -> tuple[Path, str | None]:
+    """(file the last prepare read, its text) - (input_pdf, None) when nothing is recorded."""
+    try:
+        record = json.loads(source_record().read_text(encoding="utf-8"))
+        return Path(record["file"]), record["text"]
+    except (OSError, ValueError, KeyError, TypeError):
+        return cfg.resume_path(config, "input_pdf"), None
+
+
+def source_file(config: dict) -> Path:
+    return recorded(config)[0]
+
+
+def prepare(config: dict, file_from: Path | None, force: bool) -> None:
+    master_path = cfg.resume_path(config, "master")
     if master_path.exists() and not force:
-        sys.exit(f"{master_path} exists - hand edits live there; --force to read a new PDF "
-                 "(finish then lists what the new PDF lacks, and keeps what the user picks)")
-    if pdf_from:
-        pdf.parent.mkdir(parents=True, exist_ok=True)
-        if pdf_from.resolve() != pdf.resolve():
-            shutil.copyfile(pdf_from, pdf)
-    handoff.write_task(TASK, ANSWER, SYSTEM, MAPPED_SCHEMA, extract(pdf), FINISH,
-                       f"Your resume PDF is unchanged: {pdf}", "the rules for reading your resume")
+        sys.exit(f"{master_path} exists - hand edits live there; --force to read a new resume file "
+                 "(finish then lists what the new file lacks, and keeps what the user picks)")
+    if file_from and (refused := word.refusal(file_from)):
+        sys.exit(refused)
+    source = original(config, file_from.suffix.lower()) if file_from else source_file(config)
+    if file_from:
+        source.parent.mkdir(parents=True, exist_ok=True)
+        if file_from.resolve() != source.resolve():
+            shutil.copyfile(file_from, source)
+    try:
+        text = extract(source)
+    except ValueError as e:
+        sys.exit(str(e))
+    source_record().parent.mkdir(parents=True, exist_ok=True)
+    locks.write_atomic(source_record(), json.dumps({"file": str(source), "text": text}))
+    handoff.write_task(TASK, ANSWER, SYSTEM, MAPPED_SCHEMA, text, FINISH,
+                       f"Your resume file is unchanged: {source}", "the rules for reading your resume")
 
 
 def finish(config: dict, keep: str | None = None) -> None:
     started = time.perf_counter()
-    pdf, master_path = cfg.resume_path(config, "input_pdf"), cfg.resume_path(config, "master")
-    source = extract(pdf)
+    (pdf, source), master_path = recorded(config), cfg.resume_path(config, "master")
+    source = source if source is not None else extract(pdf)
     mapped = handoff.read_answer(ANSWER, MAPPED_SCHEMA)
 
     failures = untraced(mapped, source)
@@ -342,7 +394,7 @@ def finish(config: dict, keep: str | None = None) -> None:
             old = {}
         left = carry.left_behind(old, plain)
         if any(left.values()) and keep is None:
-            print("The new PDF lacks things in the resume details - nothing written yet:")
+            print("The new resume file lacks things in the resume details - nothing written yet:")
             print("\n".join(carry.describe(left)))
             print("Ask the user ONE multiSelect question (these groups, w/ what each holds; tick all that fit, "
                   "then Submit), then:\n  uv run app/jobs.py resume-import finish --keep <groups comma-separated | all | none>")
@@ -372,27 +424,28 @@ def finish(config: dict, keep: str | None = None) -> None:
 
 
 def left_out(dropped: list[str]) -> None:
-    """Every PDF line not fully in the details file, pass or fail: the user decides, not the floor."""
+    """Every resume-file line not fully in the details file, pass or fail: the user decides, not the floor."""
     if not dropped:
-        print("left out: nothing - every line of the PDF is in the resume details")
+        print("left out: nothing - every line of the resume file is in the resume details")
         return
-    print(f"left out: {len(dropped)} line(s) of the PDF are not fully in the resume details. "
+    print(f"left out: {len(dropped)} line(s) of the resume file are not fully in the resume details. "
           "Read each one to the user; any that is a real fact goes back in:")
     for line in dropped:
         print(f"  - {line}")
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Resume PDF -> structured resume details: prepare AI task, then finish")
+    ap = argparse.ArgumentParser(description="Resume file (PDF or Word .docx) -> structured resume details: prepare AI task, then finish")
     ap.add_argument("step", choices=["prepare", "finish"])
-    ap.add_argument("--pdf", type=Path, help="prepare: resume anywhere on disk; copied into My Resume first")
-    ap.add_argument("--force", action="store_true", help="prepare: read a new PDF over existing resume details")
+    ap.add_argument("--file", "--pdf", dest="file", type=Path,
+                    help="prepare: resume PDF or Word (.docx) anywhere on disk; copied into My Resume first")
+    ap.add_argument("--force", action="store_true", help="prepare: read a new resume file over existing resume details")
     ap.add_argument("--keep", help="finish, re-import: groups of the old file to keep - "
                                    f"{', '.join(carry.GROUPS)}, all or none (finish lists them first)")
     args = ap.parse_args()
     config = cfg.load()
     if args.step == "prepare":
-        prepare(config, args.pdf, args.force)
+        prepare(config, args.file, args.force)
     else:
         finish(config, args.keep)
 

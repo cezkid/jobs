@@ -140,9 +140,11 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 
 ## 3. Resume
 
-- Ask for resume PDF (drag it onto My Resume in the file list; `AGENTS.md` #User), then
-  `uv run app/jobs.py resume-import prepare --pdf "<path>"` (`--force` if re-importing).
-  Re-import: `finish` writes nothing yet when the new PDF lacks things in their resume details -
+- Ask for their resume - PDF or Word file (drag it onto My Resume in the file list; `AGENTS.md`
+  #User), then `uv run app/jobs.py resume-import prepare --file "<path>"` (`--force` if
+  re-importing). Never open the file yourself (`AGENTS.md` #Speed). Older Word, Pages, Google Docs
+  -> it prints the one step to say (save a copy as .docx or PDF).
+  Re-import: `finish` writes nothing yet when the new file lacks things in their resume details -
   it prints up to 3 groups (lines: their wording + added lines and skills; entries: jobs, schools,
   breaks, sections; details: legal name, hidden years, language levels, notes on a job) w/ counts
   + examples. ONE clickable multiSelect, each option naming its count ("23 lines you reworded or
@@ -240,7 +242,8 @@ Email too (only if they say yes):
 Tell them: open "CEZ Job Finder" on Desktop any time and say things like "any new jobs?",
 "make my resume for job 3", "stop showing jobs from <company>", "change my search" - and ask
 "why?" about anything it does. Same line for everyone: "Worried about bias - your name, age or
-a break? Ask any time." Next launch opens the Today page (what's waiting, newest jobs)
+a break? Ask any time." And: "Anything that matters to you in a workplace, or how you like to
+sound - tell me and I can save it as a note. Ask 'what do you know about me?' to see it all." Next launch opens the Today page (what's waiting, newest jobs)
 instead of START HERE; `Guides/What you can ask.md` + `Guides/Who sees what.md` repeat this and
 show what's private.
 

@@ -25,7 +25,7 @@ from resume import schema
 
 GROUPS = {
     "lines": "your wording, or lines + skills added since the last import",
-    "entries": "jobs, projects, schools, certifications, breaks or sections the new PDF lacks",
+    "entries": "jobs, projects, schools, certifications, breaks or sections the new resume file lacks",
     "details": "details the PDF can't carry: legal name, hidden years, language levels, notes on a job",
 }
 REWORDED = 0.5
