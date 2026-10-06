@@ -20,7 +20,8 @@ missing -> `job-setup` skill instead.
    - "does this company fit me / my values?" -> `AGENTS.md` #About me (fit question): posting
      text + `about read workplace` / `values` / `personal`; never a company's stance from memory;
      they decide -> `blocklist.companies`. A lasting preference they state -> offer to save it
-     as a note (one clickable Save / Don't save)
+     as a note (one clickable Save / Don't save). Religious employers / defense work named on
+     each job -> `rank.posting_says` (`app/docs/about-me.md`), after their yes
    - wrong field -> `blocklist.categories` (enrichment.category, local only)
    - misleading title -> `blocklist.title_phrases` (whole words, case-insensitive); first
      `uv run app/jobs.py rank --would-hide "<phrase>"`, tell user the count it hides; read

@@ -241,6 +241,33 @@ def clearance(job: dict) -> list[str]:
     return ["needs a security clearance"] if job.get("requires_clearance") else []
 
 
+# What a posting says about its employer, named on the job when the user asked for that kind
+# (`rank.posting_says`, set after a values / workplace note). Never hides, never sorts lower: a
+# preference, not a fit. Employer's own words only - never a stance looked up elsewhere.
+# 2026-10-06, 1,091 US postings (11 categories, 30 days): faith 7 rows / 7 employers, all religious
+# schools, dioceses, a church university; defense 41 rows / 8 employers, 0 false ("national
+# security" left out: an energy association's goals; 2 defense employers said only that). Politics measured + declined: "advocacy",
+# "progressive" matched patient care and legal aid, no party stance (app/docs/about-me.md).
+POSTING_SAYS = {
+    "faith": ("religious employer", re.compile(
+        r"\b(faith[- ]based|christ[- ]centered|catholic|lutheran|baptist|methodist|presbyterian|episcopal|"
+        r"(arch)?diocese|ministr(?:y|ies)|jewish (?:community|federation|day school)|islamic (?:school|center|relief)|"
+        r"christian (?:school|academy|university|college|ministry|ministries|values|faith|organization|mission|worldview))\b",
+        re.I)),
+    "defense": ("defense or military work", re.compile(
+        r"\b(defen[cs]e (?:technology|technologies|contractor|industry|industrial base|systems|company|programs?)|"
+        r"department of (?:defense|war)|DoD|munitions|missiles?|weapons? systems?|warfighters?|"
+        r"military (?:capabilities|customers|programs?|systems|applications|contracts?))\b", re.I)),
+}
+TAG = re.compile(r"<[^>]+>")
+
+
+def posting_says(job: dict, rc: dict) -> list[str]:
+    text = TAG.sub(" ", job.get("description") or "")
+    return [f"posting says: {words}" for kind, (words, rx) in POSTING_SAYS.items()
+            if kind in (rc.get("posting_says") or []) and rx.search(text)]
+
+
 def can_hold_clearance(config: dict) -> bool | None:
     """Setup's answer; else US clearances go to citizens only, so "neither citizen nor green card"
     settles it. A green card alone doesn't - asked, never guessed."""
@@ -356,7 +383,7 @@ def reasons(job: dict, config: dict, now: datetime | None = None, when: str | No
              age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
-    parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config) + clearance(job)
+    parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config) + clearance(job) + posting_says(job, rc)
     if job.get("stale"):
         parts.append(f"may be closed - not seen in {job['stale']}d")
     return " · ".join(p for p in parts if p)

@@ -49,6 +49,9 @@ Word with whatever fonts it has - the page count and line fill the gates checked
 Greenhouse names both .pdf and .docx as files it reads; none of 35 PDF readings in our parser test
 lost a word ([research: resume parser test](../../web/research/resume-parser-test.md)).
 
-Declined for now: a Word copy of the tailored resume. Some recruiters ask for Word (said in
-career guides; how often not measured); the copy would be unchecked by every page gate. Bead filed; if built, it
+Declined (2026-10-06): a Word copy of the tailored resume. Some recruiters ask for Word (said in
+career guides; how often not measured); the copy would be unchecked by every page gate. No
+measured form refuses a PDF: Ashby's resume box takes pdf, doc, docx ([ashby.md](../apply/ashby.md));
+Paylocity's `.doc,.docx,.pdf` ([paylocity.md](../apply/paylocity.md)); Greenhouse names .pdf.
+Reopen on a user's report of a form or recruiter that won't take PDF. Bead filed; if built, it
 goes out marked "not checked", the PDF stays the default.

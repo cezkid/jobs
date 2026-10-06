@@ -223,7 +223,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Search filters (not resume, not work-permit answer) | freehire.me job search | Sent each time jobs are checked |
 | Which listed job you make a resume for or check on (its listing id, nothing about you) | freehire.me job search | Each time you make a resume for it (fetching the posting + its application questions) or ask if it's still open |
 | Resume + answers you paste | that employer's site (Recruitee ...) | That employer, once you click Submit |
-| Resume + postings you work on; interview practice answers; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User's own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |
+| Resume + postings you work on; interview practice answers; a saved note about you, when it's used; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User's own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |
 | Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User's own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |
 | Text + screenshots of Job Finder window pages Copilot reads (VS Code's browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User's own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |
 | Work history, education, skills, work-permit answers you apply with | that employer's Workday site | That employer, once you click Save |
@@ -322,7 +322,8 @@ about list`). Rules + basis: `app/docs/about-me.md`.
 - Fit question: posting text + their notes; say what the posting says and what it doesn't. Never
   a company's politics, religion or ethics from your own memory - say you can't check that. Their
   company website: `jobs.py open` it for them, never fetch it. They decide -> hide the company
-  (`job-find`), counted first.
+  (`job-find`), counted first. Want religious employers or defense work named on every job ->
+  `rank.posting_says: [faith | defense]` in search settings after their yes (names, never hides).
 - "What do you know about me?" -> `about show`, then `jobs.py open` the path it prints (Copilot:
   say first an open tab may go along with their next message). Never read the page into chat.
 - "Forget ..." -> `about read <kind>`, `about forget <kind> <n>`; say the chat where it was said
