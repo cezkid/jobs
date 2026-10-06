@@ -22,6 +22,9 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
   score    reCAPTCHA v3 demo score: window tab (opened plain, then reloaded w/ the debugger on) vs a
            Chrome started as Job Finder's own - relative hint only, never Submit
   restricted  untrusted folder (Restricted Mode): does the attach start?
+  multipage   local form only (plan-k8n.12): page 1 filled, Next, page 2 filled - (a) debug session kept
+           between runs w/ no client, (c) one process attached throughout; same site / other site / in place;
+           a `debugger;` line every second; the user closes the tab; window reload
   raw      route 2 on ONE public posting of any system `systems.for_url` knows (plan-nko.6 Ashby, .13 Lever):
            level-3 block (+ lab.NAMED_READS, the owner's one exception) + canary first in the same tab;
            the page's `debugger;` pauses counted (skip off once, resumed in the handler, cap 20, then
@@ -1346,13 +1349,270 @@ def restricted(result):
             user.write_text(before)
 
 
+# ---------------------------------------------------------------- multi-page: keep the user's place (plan-k8n.12)
+MP_EVENTS = ["Debugger.paused", "Debugger.resumed", "Page.frameNavigated", "Page.navigatedWithinDocument",
+             "Page.loadEventFired", "Runtime.executionContextsCleared", "Inspector.detached", "Target.detachedFromTarget"]
+NEXT_MS = 4000  # page 1's own timer clicks Next (the user's click: no client of ours sends it)
+
+
+def ticks(since, page=None):
+    """The page's `debugger;` line, once a second: [(t, page, ms held)] logged after `since`."""
+    out = []
+    for e in formsite.log:
+        if e["t"] >= since and e["path"].startswith("/beacon?k=tick"):
+            qs = dict(x.split("=", 1) for x in e["path"].split("?", 1)[1].split("&"))
+            if page is None or qs["p"] == str(page):
+                out.append((e["t"], int(qs["p"]), int(qs["ms"])))
+    return out
+
+
+def tick_summary(since, until=None):
+    rows = [t for t in ticks(since) if until is None or t[0] <= until]
+    by = {}
+    for p in (1, 2):
+        mine = [t for t in rows if t[1] == p]
+        gaps = [round(b[0] - a[0], 1) for a, b in zip(mine, mine[1:])]
+        by[f"page{p}"] = {"n": len(mine), "maxHeldMs": max((t[2] for t in mine), default=None),
+                          "maxGapS": max(gaps, default=None)}
+    return by
+
+
+def mp_open(home, name, to, client_events=True):
+    """As window.page_at: a holding page, attach to it alone, skip pauses, then the form -> (child id, CDP, row)."""
+    hold = f"{home}/blank-{name}"
+    ask({"do": "open", "url": hold})
+    wait_for(lambda: any(e["path"] == f"/blank-{name}" for e in formsite.log), 20, 0.2)
+    res = ask({"do": "attach", "urlFilter": hold, "options": QUIET, "extra": {"internalConsoleOptions": "neverOpen"},
+               "waitMs": 10000, "settleMs": 1500}, 45)
+    row = {"attachMs": res.get("ms"), "sessions": res.get("sessions"), "error": res.get("error")}
+    child = next((s["id"] for s in res.get("sessions") or [] if s.get("parent")), None)
+    px = (res.get("proxies") or {}).get(child) or {}
+    row["proxyPath"] = px.get("path")
+    c = CDP(px["host"], px["port"], px["path"])
+    c.send("JsDebug.subscribe", {"events": MP_EVENTS})
+    c.send("Page.enable")
+    c.send("Page.navigate", {"url": f"{home}/mp/1?to={to}&tick=1"})
+    wait_for(lambda: quietly(lambda: c.evaluate("document.readyState === 'complete' && !!window.mpState", timeout=3)), 15)
+    c.send("Debugger.setSkipAllPauses", {"skip": True}, 5)  # after the load, as window.Page.goto: a navigation resets it (run 1)
+    click(c, q("#mp_first"))
+    c.send("Input.insertText", {"text": "Test"})
+    row["page1"] = quietly(lambda: c.evaluate("mpState()", timeout=3))
+    return child, c, row
+
+
+def on_page2(to, since):
+    """Page 2 showed: its request (new page) or its first tick (drawn in place)."""
+    if to == "spa":
+        return bool(ticks(since, 2))
+    return any(e["t"] >= since and e["path"].startswith("/mp/2") for e in formsite.log)
+
+
+def reconnect(child):
+    """(a): the same debug session's proxy asked for again -> (CDP or None, row)."""
+    px = ask({"do": "proxy", "id": child}).get("proxy") or {}
+    row = {"proxyPath": px.get("path"), "error": px.get("error")}
+    if not px.get("port"):
+        return None, row
+    try:
+        c = CDP(px["host"], px["port"], px["path"])
+        c.send("JsDebug.subscribe", {"events": MP_EVENTS})
+        return c, row
+    except Exception as e:
+        row["error"] = str(e)[:200]
+        return None, row
+
+
+def fill_page2(c, row):
+    row["href"] = attempt(lambda: c.evaluate("location.href", timeout=5))
+    row["resume"] = attempt(lambda: c.send("Debugger.resume", {}, 5))
+    row["skip"] = attempt(lambda: c.send("Debugger.setSkipAllPauses", {"skip": True}, 5))
+    t = time.time()
+    row["fill"] = attempt(lambda: (click(c, q("#mp_email")), c.send("Input.insertText", {"text": "test.person@example.com"}))[1])
+    row["state"] = attempt(lambda: c.evaluate("mpState()", timeout=5))
+    time.sleep(3)
+    time.sleep(3)
+    row["ticksAfter"] = tick_summary(t)
+    row["pausedNow"] = attempt(lambda: c.evaluate("1", timeout=3))
+
+
+def end_all():
+    ask({"do": "stop"})
+    time.sleep(1.5)
+    ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+    time.sleep(1)
+
+
+def reload_window(proc):
+    (HOLD / "up.json").unlink(missing_ok=True)
+    ask({"do": "command", "id": "workbench.action.reloadWindow"}, 5)
+    t = time.time()
+    up = wait_for(lambda: (HOLD / "up.json").exists(), 60, 0.25)
+    time.sleep(3)
+    after = ask({"do": "sessions"})
+    return {"upAgain": bool(up), "upMs": round((time.time() - t) * 1000), "sessions": after.get("sessions"),
+            "tabs": [t["label"] for g in after.get("tabs") or [] for t in g["tabs"]],
+            "shot": screenshot(f"mp-reloaded-{UNIQ}", proc)}
+
+
+def keep_quiet(c):
+    """(c): what a fill staying attached does - skip pauses again on each new page, resume any pause -> its log."""
+    fixes = []
+
+    def requiet(p, m):
+        if m["method"] == "Debugger.paused":
+            fixes.append(("resume", p.get("reason")))
+            c.post("Debugger.setSkipAllPauses", {"skip": True})
+            c.post("Debugger.resume")
+        elif not (p.get("frame") or {}).get("parentId"):
+            fixes.append(("skip", m["method"]))
+            c.post("Debugger.setSkipAllPauses", {"skip": True})
+    for ev in ("Debugger.paused", "Page.frameNavigated", "Page.navigatedWithinDocument"):
+        c.on(ev, requiet)
+    return fixes
+
+
+def multipage(result):
+    """Local form only: page 1 filled, Next clicked by the page itself, page 2 filled - (a) the debug
+    session kept between runs (no client of ours while the user works), (c) one fill process attached
+    throughout. Same site, other site, drawn in place; a `debugger;` line every second on both pages."""
+    proc, result["launch"] = launch()
+    home, other, close = formsite.serve(TITLE)
+    try:
+        # control: no debugger at all - the page's ticks reach the log
+        ask({"do": "open", "url": f"{home}/mp/1?to=same&tick=1&plain"})
+        t = time.time()
+        time.sleep(4)
+        result["control"] = tick_summary(t)
+        ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+        time.sleep(1)
+        # today's shipped end, for the baseline: fill, detach - what's left
+        child, c, row = mp_open(home, "base", "same")
+        c.close()
+        row["detach"] = {k: ask({"do": "detach", "id": child}).get(k) for k in ("sessions", "error")}
+        time.sleep(1)
+        row["shot"] = screenshot("mp-base-detached", proc)
+        t = time.time()
+        time.sleep(4)
+        row["ticksAfterDetach"] = tick_summary(t)
+        result["baseline"] = row
+        end_all()
+
+        # bpoff: VS Code's own "Deactivate breakpoints" on while the session is kept (js-debug -> setBreakpointsActive
+        # false, which V8 applies to `debugger;` lines too) - does it hold where the skip doesn't?
+        for to, off in (("same", False), ("other", False), ("spa", False), ("other", True), ("same", True)):
+            name = f"{to}-bpoff" if off else to
+            # (a) session kept, no client while the user works
+            child, c, row = mp_open(home, f"a-{name}", to)
+            if off:
+                row["bpoff"] = ask({"do": "command", "id": "workbench.debug.viewlet.action.toggleBreakpointsActivatedAction"}).get("error") or "ok"
+            c.evaluate(f"autoNext({NEXT_MS})")
+            c.close()
+            gone = time.time()
+            time.sleep(2)
+            row["shotIdlePage1"] = screenshot(f"mp-a-{name}-idle-page1", proc)
+            row["onPage2"] = bool(wait_for(lambda: on_page2(to, gone), 15, 0.2))
+            time.sleep(6)
+            row["shotIdlePage2"] = screenshot(f"mp-a-{name}-idle-page2", proc)
+            row["ticksIdle"] = tick_summary(gone)
+            s = ask({"do": "sessions"})
+            row["sessionsIdle"] = s.get("sessions")
+            row["tabsIdle"] = [t["label"] for g in s.get("tabs") or [] for t in g["tabs"]]
+            c2, row["reconnect"] = reconnect(child)
+            if c2:
+                fill_page2(c2, row["reconnect"])
+                c2.close()
+                # the user closes the tab while the session is kept
+                t = time.time()
+                ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+                time.sleep(3)
+                s = ask({"do": "sessions"})
+                row["userClosesTab"] = {"sessions": s.get("sessions"), "tabs": [t["label"] for g in s.get("tabs") or [] for t in g["tabs"]]}
+                c3, row["userClosesTab"]["reconnect"] = reconnect(child)
+                if c3:
+                    row["userClosesTab"]["href"] = attempt(lambda: c3.evaluate("location.href", timeout=5))
+                    c3.close()
+            if off:
+                ask({"do": "command", "id": "workbench.debug.viewlet.action.toggleBreakpointsActivatedAction"})
+            result[f"a-{name}"] = row
+            end_all()
+            if off:
+                continue
+
+            # (c) one process attached across pages
+            child, c, row = mp_open(home, f"c-{to}", to)
+            e0 = len(c.events)
+            row["fixes"] = keep_quiet(c)
+            c.evaluate(f"autoNext({NEXT_MS})")
+            t = time.time()
+            row["onPage2"] = bool(wait_for(lambda: on_page2(to, t), 15, 0.2))
+            nav = next((e for e in c.events[e0:] if e.get("method") in ("Page.frameNavigated", "Page.navigatedWithinDocument")
+                        and not (e.get("params", {}).get("frame") or {}).get("parentId")), None)
+            row["navEvent"] = nav and {"method": nav["method"], "afterMs": round((nav["t"] - t) * 1000)}
+            time.sleep(4)
+            row["shotPage2"] = screenshot(f"mp-c-{to}-page2", proc)
+            row["ticksBeforeQuiet"] = tick_summary(t)
+            row["events"] = [{"method": e.get("method"), "dt": round(e["t"] - t, 2)} for e in c.events[e0:] if e.get("method")][:40]
+            row["page2"] = {}
+            fill_page2(c, row["page2"])
+            if to == "same":  # the user closes the tab while attached
+                ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+                time.sleep(3)
+                s = ask({"do": "sessions"})
+                row["userClosesTab"] = {"cdpClosed": c.closed, "evaluate": attempt(lambda: c.evaluate("1", timeout=3)),
+                                        "sessions": s.get("sessions")}
+            c.close()
+            result[f"c-{to}"] = row
+            end_all()
+
+        # window reload on page 2: (a) session kept, (c) attached
+        for how in ("a", "c"):
+            child, c, row = mp_open(home, f"r-{how}", "same")
+            if how == "c":
+                row["fixes"] = keep_quiet(c)
+            c.evaluate(f"autoNext({NEXT_MS})")
+            t = time.time()
+            if how == "a":
+                c.close()
+            wait_for(lambda: on_page2("same", t), 15, 0.2)
+            time.sleep(2)
+            if how == "c":
+                row["fill2"] = attempt(lambda: (click(c, q("#mp_email")), c.send("Input.insertText", {"text": "test.person@example.com"}))[1])
+            row["reload"] = reload_window(proc)
+            if how == "c":
+                row["reload"]["cdpClosed"] = c.closed
+                row["reload"]["evaluate"] = attempt(lambda: c.evaluate("1", timeout=3))
+            c2, row["reload"]["reconnect"] = reconnect(child)
+            if c2:
+                row["reload"]["reconnect"]["href"] = attempt(lambda: c2.evaluate("location.href", timeout=5))
+                c2.close()
+            # fresh attach on the tab's own link (here a local http one: a real https form made no page session, 3 of 3)
+            page2 = next((t for t in row["reload"]["tabs"] if t.endswith(" mp")), None)
+            if page2:
+                res = ask({"do": "attach", "urlFilter": f"{home}/mp/2*", "options": QUIET,
+                           "extra": {"internalConsoleOptions": "neverOpen"}, "waitMs": 10000, "settleMs": 1500}, 45)
+                kid = next((s["id"] for s in res.get("sessions") or [] if s.get("parent")), None)
+                px = (res.get("proxies") or {}).get(kid) or {}
+                row["reload"]["freshAttach"] = {"error": res.get("error"), "sessions": len(res.get("sessions") or [])}
+                if px.get("port"):
+                    c3 = CDP(px["host"], px["port"], px["path"])
+                    row["reload"]["freshAttach"]["state"] = attempt(lambda: c3.evaluate("mpState()", timeout=5))
+                    c3.close()
+            result[f"reload-{how}"] = row
+            end_all()
+    finally:
+        result["quit"] = quit_(proc)
+        close()
+        result["siteWrites"] = [e for e in formsite.log if e["write"]]
+        result["siteLog"] = [{k: e[k] for k in ("t", "host", "path")} for e in formsite.log]
+
+
 if __name__ == "__main__":
     if running():
         sys.exit("a scratch VS Code on this dir is already running")
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw, "multipage": multipage}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

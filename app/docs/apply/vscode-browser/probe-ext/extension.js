@@ -63,6 +63,17 @@ async function handle(req, folder) {
     await vscode.debug.stopDebugging(req.id ? sessions.get(req.id) : undefined);
     return {};
   }
+  // as the shipped extension's detachForm (plan-k8n.12): disconnect w/o ending the tab, child first
+  if (req.do === "detach") {
+    const child = sessions.get(req.id);
+    for (const s of [child, child && child.parentSession].filter(Boolean)) {
+      try {
+        await Promise.race([s.customRequest("disconnect", { terminateDebuggee: false }), new Promise((ok) => setTimeout(ok, 5000))]);
+      } catch {}
+    }
+    await new Promise((ok) => setTimeout(ok, 2000));
+    return { sessions: [...sessions.values()].map(info) };
+  }
   if (req.do === "command") return { value: await vscode.commands.executeCommand(req.id, ...(req.args || [])) };
   if (req.do === "trust") return { trusted: vscode.workspace.isTrusted };
   return {};

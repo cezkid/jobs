@@ -10,7 +10,7 @@ macOS 26.4.1 x86_64. Binary started directly (never `launch.py`, never `~/.vscod
 folder = program copy + demo + the window's own settings, throwaway browser storage. Dummy data
 only (Test Person, `test.person@example.com`, 100-byte dummy PDF), never the user's; Submit never
 clicked. Scripts: [measure.py](vscode-browser/measure.py) (stages setup, ext, route1 - refused unless
-`JF_ALLOW_ROUTE1=1`, route2, gh, ghfill, ghupload, score, restricted, raw), [cdp.py](../../apply/cdp.py) (stdlib CDP client, now shipped for the trial), [formsite.py](vscode-browser/formsite.py)
+`JF_ALLOW_ROUTE1=1`, route2, gh, ghfill, ghupload, score, restricted, raw, multipage), [cdp.py](../../apply/cdp.py) (stdlib CDP client, now shipped for the trial), [formsite.py](vscode-browser/formsite.py)
 (local test form, logs every request), [probe-ext/](vscode-browser/probe-ext/extension.js) (scratch
 extension: opens tabs, starts the attach, asks for proxies). Screenshots (window only, ignored):
 `.data/probe-shots/form/`.
@@ -262,7 +262,7 @@ hCaptcha => `AT_SUBMIT` note + Chrome fallback. JazzHR = 27 open jobs / 13 emplo
 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 Multi-page form (`PER_PAGE`, `form.fill` passes `match`) refused by `window.page_at` before any tab opens, one line
-ending in the Chrome way: a fresh tab is page 1 again, the user's place lost (plan-k8n.2, 2026-10-06; keep-place = plan-k8n.12).
+ending in the Chrome way: a fresh tab is page 1 again, the user's place lost (plan-k8n.2, 2026-10-06; keep-place measured: "Multi-page (keep the user's place)" below, plan-k8n.12).
 
 - Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
   the window opens it (plain open request), then `attach-form` w/ that link as urlFilter. Never the
@@ -441,3 +441,47 @@ raced it; the wait costs ~1 s. After the error, re-picking the same PDF does not
 stays for the tab -> reload is the clean way; a fresh fill reloads the page and now waits.
 Owner's Submit check (blank Last Name on a live posting): not run - the loop's permission check refused
 clicking Submit on a live employer page; owner decides (plan-29g.25.1).
+
+## Multi-page (keep the user's place) (plan-k8n.12)
+
+Problem: `window.page_at` opens a fresh holding-page tab + loads page 1 every run => after the user
+clicks Next, a second fill starts over. Measured 2026-10-06, local form only (`formsite.py` `/mp/1`:
+Next -> page 2 on the same site, on another site = another process, or drawn in place by pushState),
+0 employer page loads. Page 1 + 2 run a `debugger;` line every second and report how long it held
+(stand-in for a site's own debugger). Next clicked by the page's own timer = the user's click; no
+client of ours sends it. Setup: scratch VS Code 1.140.0, Claude Code 2.1.292, macOS 26.4.1 x86_64.
+Stage `multipage` in [measure.py](vscode-browser/measure.py); numbers:
+[multipage-local.json](vscode-browser/multipage-local.json); shots `.data/probe-shots/form/mp-*.png`.
+
+Options: (a) the extension keeps the page's debug session after a fill run, no client attached while
+the user works, the next run asks its proxy again (`debugSessions` + `requestCDPProxy` already in
+`app/vscode/extension.js`); (b) attach by the tab's own https link - dead (`start.js` takes only the
+loopback holding page; a direct https attach made no page session 3 of 3); (c) one fill process stays
+attached across pages: sees the navigation, skips pauses again, fills the new page.
+
+Base fact: `Debugger.setSkipAllPauses` does NOT survive a new page (same site too, run 1) - set again
+after each load. A page drawn in place keeps it.
+
+| | (a) session kept, no client | (c) one process attached |
+|---|---|---|
+| place kept - same site | session + proxy survive (same proxy, same 2 sessions); page 2 filled after resume | yes, page 2 filled, read back |
+| place kept - other site | same as same site | yes; `Page.frameNavigated` still arrives |
+| place kept - in place | yes, page 2 filled | yes (`Page.navigatedWithinDocument`) |
+| pauses while idle | new page: FROZEN on its `debugger;` (0 ticks in 8 s, same + other site); VS Code opens a JS source tab over the form at the paused line (`mp-a-same-idle-page2.png`); `Runtime.evaluate` hangs until `Debugger.resume`. In place: none (7 ticks, 0 ms held) | none: every tick on page 2 held 0 ms (all 3 ways); the handler re-skips on each main-frame navigation + resumes any pause (0 needed) |
+| VS Code "Deactivate breakpoints" on while kept | no help: page 2 froze the same (same + other site) | - |
+| debug toolbar between pages | shown (floating over the tab bar, Pause button, Run and Debug badge 1) | shown, same (`mp-c-same-page2.png`); today's detach removes it (`mp-base-detached.png`) |
+| user closes the tab | both sessions end; proxy request -> nothing | socket closes ("Connection is closed"), sessions end |
+| window reload | sessions gone, tab kept (same label), proxy -> nothing | same; socket closed |
+| fresh attach after reload (local http link) | 2 sessions, page paused at once (evaluate hung 5 s); run 1: 0 sessions. Real https link: no page session 3 of 3 (above) | same |
+
+Also seen: (a) after resume + skip, 0 ticks for 6 s while the source tab covered the form - likely
+the hidden tab's timers held; unmeasured.
+
+Recommendation: (c). It is the only way that kept the place on a new page without freezing it;
+(a) works only for forms drawn in place and freezes any new page that runs `debugger;` (anti-bot scripts use it; 0
+on the systems measured above so far) - the user would face a stopped form + a code tab. Costs of (c), all unmeasured live:
+the fill process must stay alive while the user reads + clicks Next (end on tab closed, window
+reload, Submit page, or a time limit); the debug toolbar stays visible the whole time (VS Code's
+`debug.toolBarLocation: hidden` may hide it - untested); a page whose script runs `debugger;` before
+the navigation event lands pauses until the handler resumes it (0 of 3 here). Reload or closed tab
+= place lost in both: say so plainly, Chrome way as today. Owner decides: plan-k8n.13.

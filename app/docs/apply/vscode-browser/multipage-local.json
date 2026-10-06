@@ -1,0 +1,953 @@
+{
+ "stage": "multipage",
+ "at": "2026-10-06T20:21:24Z",
+ "uniq": "327043",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 5064,
+  "upInfo": {
+   "t": 1791318089578,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "control": {
+  "page1": {
+   "n": 3,
+   "maxHeldMs": 0,
+   "maxGapS": 1.0
+  },
+  "page2": {
+   "n": 0,
+   "maxHeldMs": null,
+   "maxGapS": null
+  }
+ },
+ "baseline": {
+  "attachMs": 6918,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=same&tick=1",
+   "page": 1
+  },
+  "detach": {
+   "sessions": 0,
+   "error": null
+  },
+  "shot": {
+   "path": "<checkout>/.data/probe-shots/form/mp-base-detached.png",
+   "bytes": 356953
+  },
+  "ticksAfterDetach": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 0,
+    "maxHeldMs": null,
+    "maxGapS": null
+   }
+  }
+ },
+ "a-same": {
+  "attachMs": 6771,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=same&tick=1",
+   "page": 1
+  },
+  "shotIdlePage1": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-same-idle-page1.png",
+   "bytes": 363557
+  },
+  "onPage2": true,
+  "shotIdlePage2": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-same-idle-page2.png",
+   "bytes": 687706
+  },
+  "ticksIdle": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 0,
+    "maxHeldMs": null,
+    "maxGapS": null
+   }
+  },
+  "sessionsIdle": 2,
+  "tabsIdle": [
+   "JF form 327043 mp",
+   "2?to=same&tick=1\ua7897:9"
+  ],
+  "reconnect": {
+   "proxyPath": true,
+   "error": null,
+   "href": {
+    "ok": false,
+    "error": "Runtime.evaluate: no reply in 5 s"
+   },
+   "resume": {
+    "ok": true,
+    "ms": 4,
+    "value": {}
+   },
+   "skip": {
+    "ok": true,
+    "ms": 5,
+    "value": {}
+   },
+   "fill": {
+    "ok": true,
+    "ms": 14,
+    "value": {}
+   },
+   "state": {
+    "ok": true,
+    "ms": 2,
+    "value": {
+     "email": "test.person@example.com",
+     "first": null,
+     "href": "http://<home>/mp/2?to=same&tick=1",
+     "page": 2
+    }
+   },
+   "ticksAfter": {
+    "page1": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    },
+    "page2": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    }
+   },
+   "pausedNow": {
+    "ok": true,
+    "ms": 5,
+    "value": 1
+   }
+  },
+  "userClosesTab": {
+   "sessions": 0,
+   "tabs": [],
+   "reconnect": {
+    "proxyPath": false,
+    "error": null
+   }
+  }
+ },
+ "c-same": {
+  "attachMs": 6797,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=same&tick=1",
+   "page": 1
+  },
+  "fixes": [
+   [
+    "skip",
+    "Page.frameNavigated"
+   ]
+  ],
+  "onPage2": true,
+  "navEvent": {
+   "method": "Page.frameNavigated",
+   "afterMs": 4021
+  },
+  "shotPage2": {
+   "path": "<checkout>/.data/probe-shots/form/mp-c-same-page2.png",
+   "bytes": 352690
+  },
+  "ticksBeforeQuiet": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 5,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   }
+  },
+  "events": [
+   {
+    "method": "Runtime.executionContextsCleared",
+    "dt": 4.02
+   },
+   {
+    "method": "Runtime.executionContextsCleared",
+    "dt": 4.02
+   },
+   {
+    "method": "Page.frameNavigated",
+    "dt": 4.02
+   },
+   {
+    "method": "Page.loadEventFired",
+    "dt": 4.04
+   }
+  ],
+  "page2": {
+   "href": {
+    "ok": true,
+    "ms": 3,
+    "value": "http://<home>/mp/2?to=same&tick=1"
+   },
+   "resume": {
+    "ok": false,
+    "error": "Debugger.resume: Can only perform operation while paused."
+   },
+   "skip": {
+    "ok": true,
+    "ms": 2,
+    "value": {}
+   },
+   "fill": {
+    "ok": true,
+    "ms": 15,
+    "value": {}
+   },
+   "state": {
+    "ok": true,
+    "ms": 3,
+    "value": {
+     "email": "test.person@example.com",
+     "first": null,
+     "href": "http://<home>/mp/2?to=same&tick=1",
+     "page": 2
+    }
+   },
+   "ticksAfter": {
+    "page1": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    },
+    "page2": {
+     "n": 6,
+     "maxHeldMs": 0,
+     "maxGapS": 1.0
+    }
+   },
+   "pausedNow": {
+    "ok": true,
+    "ms": 3,
+    "value": 1
+   }
+  },
+  "userClosesTab": {
+   "cdpClosed": false,
+   "evaluate": {
+    "ok": false,
+    "error": "Runtime.evaluate: Connection is closed"
+   },
+   "sessions": 0
+  }
+ },
+ "a-other": {
+  "attachMs": 6815,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=other&tick=1",
+   "page": 1
+  },
+  "shotIdlePage1": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-other-idle-page1.png",
+   "bytes": 363351
+  },
+  "onPage2": true,
+  "shotIdlePage2": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-other-idle-page2.png",
+   "bytes": 687613
+  },
+  "ticksIdle": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 0,
+    "maxHeldMs": null,
+    "maxGapS": null
+   }
+  },
+  "sessionsIdle": 2,
+  "tabsIdle": [
+   "JF form 327043 mp",
+   "2?to=other&tick=1\ua7897:9"
+  ],
+  "reconnect": {
+   "proxyPath": true,
+   "error": null,
+   "href": {
+    "ok": false,
+    "error": "Runtime.evaluate: no reply in 5 s"
+   },
+   "resume": {
+    "ok": true,
+    "ms": 3,
+    "value": {}
+   },
+   "skip": {
+    "ok": true,
+    "ms": 5,
+    "value": {}
+   },
+   "fill": {
+    "ok": true,
+    "ms": 19,
+    "value": {}
+   },
+   "state": {
+    "ok": true,
+    "ms": 7,
+    "value": {
+     "email": "test.person@example.com",
+     "first": null,
+     "href": "http://<other>/mp/2?to=other&tick=1",
+     "page": 2
+    }
+   },
+   "ticksAfter": {
+    "page1": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    },
+    "page2": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    }
+   },
+   "pausedNow": {
+    "ok": true,
+    "ms": 6,
+    "value": 1
+   }
+  },
+  "userClosesTab": {
+   "sessions": 0,
+   "tabs": [],
+   "reconnect": {
+    "proxyPath": false,
+    "error": null
+   }
+  }
+ },
+ "c-other": {
+  "attachMs": 6775,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=other&tick=1",
+   "page": 1
+  },
+  "fixes": [
+   [
+    "skip",
+    "Page.frameNavigated"
+   ]
+  ],
+  "onPage2": true,
+  "navEvent": null,
+  "shotPage2": {
+   "path": "<checkout>/.data/probe-shots/form/mp-c-other-page2.png",
+   "bytes": 353362
+  },
+  "ticksBeforeQuiet": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   }
+  },
+  "events": [
+   {
+    "method": "Runtime.executionContextsCleared",
+    "dt": 4.18
+   },
+   {
+    "method": "Runtime.executionContextsCleared",
+    "dt": 4.19
+   },
+   {
+    "method": "Page.frameNavigated",
+    "dt": 4.19
+   },
+   {
+    "method": "Page.loadEventFired",
+    "dt": 4.27
+   }
+  ],
+  "page2": {
+   "href": {
+    "ok": true,
+    "ms": 4,
+    "value": "http://<other>/mp/2?to=other&tick=1"
+   },
+   "resume": {
+    "ok": false,
+    "error": "Debugger.resume: Can only perform operation while paused."
+   },
+   "skip": {
+    "ok": true,
+    "ms": 2,
+    "value": {}
+   },
+   "fill": {
+    "ok": true,
+    "ms": 22,
+    "value": {}
+   },
+   "state": {
+    "ok": true,
+    "ms": 4,
+    "value": {
+     "email": "test.person@example.com",
+     "first": null,
+     "href": "http://<other>/mp/2?to=other&tick=1",
+     "page": 2
+    }
+   },
+   "ticksAfter": {
+    "page1": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    },
+    "page2": {
+     "n": 6,
+     "maxHeldMs": 0,
+     "maxGapS": 1.0
+    }
+   },
+   "pausedNow": {
+    "ok": true,
+    "ms": 4,
+    "value": 1
+   }
+  }
+ },
+ "a-spa": {
+  "attachMs": 6717,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=spa&tick=1",
+   "page": 1
+  },
+  "shotIdlePage1": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-spa-idle-page1.png",
+   "bytes": 363444
+  },
+  "onPage2": true,
+  "shotIdlePage2": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-spa-idle-page2.png",
+   "bytes": 354434
+  },
+  "ticksIdle": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 7,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   }
+  },
+  "sessionsIdle": 2,
+  "tabsIdle": [
+   "JF form 327043 mp"
+  ],
+  "reconnect": {
+   "proxyPath": true,
+   "error": null,
+   "href": {
+    "ok": true,
+    "ms": 3,
+    "value": "http://<home>/mp/1/step2?to=spa&tick=1"
+   },
+   "resume": {
+    "ok": false,
+    "error": "Debugger.resume: Can only perform operation while paused."
+   },
+   "skip": {
+    "ok": true,
+    "ms": 2,
+    "value": {}
+   },
+   "fill": {
+    "ok": true,
+    "ms": 14,
+    "value": {}
+   },
+   "state": {
+    "ok": true,
+    "ms": 2,
+    "value": {
+     "email": "test.person@example.com",
+     "first": null,
+     "href": "http://<home>/mp/1/step2?to=spa&tick=1",
+     "page": 2
+    }
+   },
+   "ticksAfter": {
+    "page1": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    },
+    "page2": {
+     "n": 6,
+     "maxHeldMs": 0,
+     "maxGapS": 1.0
+    }
+   },
+   "pausedNow": {
+    "ok": true,
+    "ms": 31,
+    "value": 1
+   }
+  },
+  "userClosesTab": {
+   "sessions": 0,
+   "tabs": [],
+   "reconnect": {
+    "proxyPath": false,
+    "error": null
+   }
+  }
+ },
+ "c-spa": {
+  "attachMs": 6658,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=spa&tick=1",
+   "page": 1
+  },
+  "fixes": [
+   [
+    "skip",
+    "Page.navigatedWithinDocument"
+   ]
+  ],
+  "onPage2": true,
+  "navEvent": {
+   "method": "Page.navigatedWithinDocument",
+   "afterMs": 4009
+  },
+  "shotPage2": {
+   "path": "<checkout>/.data/probe-shots/form/mp-c-spa-page2.png",
+   "bytes": 353381
+  },
+  "ticksBeforeQuiet": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 6,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   }
+  },
+  "events": [
+   {
+    "method": "Page.navigatedWithinDocument",
+    "dt": 4.01
+   }
+  ],
+  "page2": {
+   "href": {
+    "ok": true,
+    "ms": 3,
+    "value": "http://<home>/mp/1/step2?to=spa&tick=1"
+   },
+   "resume": {
+    "ok": false,
+    "error": "Debugger.resume: Can only perform operation while paused."
+   },
+   "skip": {
+    "ok": true,
+    "ms": 2,
+    "value": {}
+   },
+   "fill": {
+    "ok": true,
+    "ms": 13,
+    "value": {}
+   },
+   "state": {
+    "ok": true,
+    "ms": 3,
+    "value": {
+     "email": "test.person@example.com",
+     "first": null,
+     "href": "http://<home>/mp/1/step2?to=spa&tick=1",
+     "page": 2
+    }
+   },
+   "ticksAfter": {
+    "page1": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    },
+    "page2": {
+     "n": 6,
+     "maxHeldMs": 0,
+     "maxGapS": 1.0
+    }
+   },
+   "pausedNow": {
+    "ok": true,
+    "ms": 4,
+    "value": 1
+   }
+  }
+ },
+ "a-other-bpoff": {
+  "attachMs": 6710,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=other&tick=1",
+   "page": 1
+  },
+  "bpoff": "ok",
+  "shotIdlePage1": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-other-bpoff-idle-page1.png",
+   "bytes": 362576
+  },
+  "onPage2": true,
+  "shotIdlePage2": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-other-bpoff-idle-page2.png",
+   "bytes": 687613
+  },
+  "ticksIdle": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 0,
+    "maxHeldMs": null,
+    "maxGapS": null
+   }
+  },
+  "sessionsIdle": 2,
+  "tabsIdle": [
+   "JF form 327043 mp",
+   "2?to=other&tick=1\ua7897:9"
+  ],
+  "reconnect": {
+   "proxyPath": true,
+   "error": null,
+   "href": {
+    "ok": false,
+    "error": "Runtime.evaluate: no reply in 5 s"
+   },
+   "resume": {
+    "ok": true,
+    "ms": 3,
+    "value": {}
+   },
+   "skip": {
+    "ok": true,
+    "ms": 4,
+    "value": {}
+   },
+   "fill": {
+    "ok": true,
+    "ms": 23,
+    "value": {}
+   },
+   "state": {
+    "ok": true,
+    "ms": 3,
+    "value": {
+     "email": "test.person@example.com",
+     "first": null,
+     "href": "http://<other>/mp/2?to=other&tick=1",
+     "page": 2
+    }
+   },
+   "ticksAfter": {
+    "page1": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    },
+    "page2": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    }
+   },
+   "pausedNow": {
+    "ok": true,
+    "ms": 4,
+    "value": 1
+   }
+  },
+  "userClosesTab": {
+   "sessions": 0,
+   "tabs": [],
+   "reconnect": {
+    "proxyPath": false,
+    "error": null
+   }
+  }
+ },
+ "a-same-bpoff": {
+  "attachMs": 6783,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=same&tick=1",
+   "page": 1
+  },
+  "bpoff": "ok",
+  "shotIdlePage1": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-same-bpoff-idle-page1.png",
+   "bytes": 363569
+  },
+  "onPage2": true,
+  "shotIdlePage2": {
+   "path": "<checkout>/.data/probe-shots/form/mp-a-same-bpoff-idle-page2.png",
+   "bytes": 687314
+  },
+  "ticksIdle": {
+   "page1": {
+    "n": 4,
+    "maxHeldMs": 0,
+    "maxGapS": 1.0
+   },
+   "page2": {
+    "n": 0,
+    "maxHeldMs": null,
+    "maxGapS": null
+   }
+  },
+  "sessionsIdle": 2,
+  "tabsIdle": [
+   "JF form 327043 mp",
+   "2?to=same&tick=1\ua7897:9"
+  ],
+  "reconnect": {
+   "proxyPath": true,
+   "error": null,
+   "href": {
+    "ok": false,
+    "error": "Runtime.evaluate: no reply in 5 s"
+   },
+   "resume": {
+    "ok": true,
+    "ms": 4,
+    "value": {}
+   },
+   "skip": {
+    "ok": true,
+    "ms": 6,
+    "value": {}
+   },
+   "fill": {
+    "ok": true,
+    "ms": 14,
+    "value": {}
+   },
+   "state": {
+    "ok": true,
+    "ms": 2,
+    "value": {
+     "email": "test.person@example.com",
+     "first": null,
+     "href": "http://<home>/mp/2?to=same&tick=1",
+     "page": 2
+    }
+   },
+   "ticksAfter": {
+    "page1": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    },
+    "page2": {
+     "n": 0,
+     "maxHeldMs": null,
+     "maxGapS": null
+    }
+   },
+   "pausedNow": {
+    "ok": true,
+    "ms": 5,
+    "value": 1
+   }
+  },
+  "userClosesTab": {
+   "sessions": 0,
+   "tabs": [],
+   "reconnect": {
+    "proxyPath": false,
+    "error": null
+   }
+  }
+ },
+ "reload-a": {
+  "attachMs": 6755,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=same&tick=1",
+   "page": 1
+  },
+  "reload": {
+   "upAgain": true,
+   "upMs": 5906,
+   "sessions": 0,
+   "tabs": [
+    "JF form 327043 mp"
+   ],
+   "shot": {
+    "path": "<checkout>/.data/probe-shots/form/mp-reloaded-327043.png",
+    "bytes": 339110
+   },
+   "reconnect": {
+    "proxyPath": false,
+    "error": null
+   },
+   "freshAttach": {
+    "error": null,
+    "sessions": 2,
+    "state": {
+     "ok": false,
+     "error": "Runtime.evaluate: no reply in 5 s"
+    }
+   }
+  }
+ },
+ "reload-c": {
+  "attachMs": 6810,
+  "sessions": 2,
+  "error": null,
+  "proxyPath": true,
+  "page1": {
+   "email": null,
+   "first": "Test",
+   "href": "http://<home>/mp/1?to=same&tick=1",
+   "page": 1
+  },
+  "fixes": [
+   [
+    "skip",
+    "Page.frameNavigated"
+   ]
+  ],
+  "fill2": {
+   "ok": true,
+   "ms": 15,
+   "value": {}
+  },
+  "reload": {
+   "upAgain": true,
+   "upMs": 6769,
+   "sessions": 0,
+   "tabs": [
+    "JF form 327043 mp"
+   ],
+   "shot": {
+    "path": "<checkout>/.data/probe-shots/form/mp-reloaded-327043.png",
+    "bytes": 351637
+   },
+   "cdpClosed": true,
+   "evaluate": {
+    "ok": false,
+    "error": "Runtime.evaluate: no reply in 3 s"
+   },
+   "reconnect": {
+    "proxyPath": false,
+    "error": null
+   },
+   "freshAttach": {
+    "error": null,
+    "sessions": 2,
+    "state": {
+     "ok": false,
+     "error": "Runtime.evaluate: no reply in 5 s"
+    }
+   }
+  }
+ },
+ "quit": {
+  "killed": false
+ },
+ "siteWrites": [],
+ "note": "plan-k8n.12, local form only (formsite.py /mp/1), 0 employer page loads. sessions = count; proxyPath = proxy handed (true/false). Run 1 (skip set before page 1 loaded) discarded."
+}
