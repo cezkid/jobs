@@ -261,6 +261,8 @@ hCaptcha => `AT_SUBMIT` note + Chrome fallback. JazzHR = 27 open jobs / 13 emplo
 `uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever + JazzHR only (owner's yes for Ashby
 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
+Multi-page form (`PER_PAGE`, `form.fill` passes `match`) refused by `window.page_at` before any tab opens, one line
+ending in the Chrome way: a fresh tab is page 1 again, the user's place lost (plan-k8n.2, 2026-10-06; keep-place = plan-k8n.12).
 
 - Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
   the window opens it (plain open request), then `attach-form` w/ that link as urlFilter. Never the

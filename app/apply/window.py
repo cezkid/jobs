@@ -948,11 +948,14 @@ def let_go(session: str) -> None:
 
 @contextlib.contextmanager
 def page_at(url: str, match=None, before_load=None):
-    """A tab on `url` in the Job Finder window, as browser.page_at gives one in Chrome. `match` is
-    unused (Greenhouse, Ashby, Lever + JazzHR are one page each); `before_load(cdp)` runs before the form opens (measuring)."""
+    """A tab on `url` in the Job Finder window, as browser.page_at gives one in Chrome. `match` (a
+    multi-page form: the user's own tab, where they are) is refused - a fresh tab here is page 1
+    again, their place lost, until the window can keep it; `before_load(cdp)` runs before the form opens (measuring)."""
     import cfg
     import jobs
     import launch
+    if match is not None:  # SYSTEMS holds one-page forms only; this keeps a later SYSTEMS edit honest
+        sys.exit(f"not filled: this form has several pages and the window can't keep your place between them yet - {FALLBACK}")
     if not launch.vscode_running():
         sys.exit(f"not filled: the Job Finder window isn't open - open CEZ Job Finder, or {FALLBACK}")
     # extension from before an update => no link watcher or debugger hand-off: say so, not a timeout

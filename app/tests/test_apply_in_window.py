@@ -1042,6 +1042,17 @@ def test_in_window_page_at_says_restart_when_the_window_runs_the_old_extension(t
     assert ext.opened == [] and ext.attached == []
 
 
+def test_in_window_page_at_refuses_a_multi_page_form_before_opening_a_tab(tmp_path, monkeypatch):
+    # a fresh tab is page 1 again: the user's place after Next would be lost, silently
+    window_setup(tmp_path, monkeypatch)
+    with FakeExtension(tmp_path, {}) as ext, pytest.raises(SystemExit) as stop:
+        with window.page_at("https://acme.example/apply/1", match=lambda url: True):
+            pytest.fail("no page for a multi-page form in the window")
+    assert str(stop.value).startswith("not filled: this form has several pages")
+    assert str(stop.value).endswith("run fill without --in-window to fill it in Chrome")
+    assert ext.opened == [] and ext.attached == []
+
+
 def fill_setup(tmp_path, monkeypatch, name):
     from resume import tailor
     folder = tmp_path / "7 - Acme - Analyst"
