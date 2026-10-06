@@ -2,6 +2,7 @@
 
 Measured facts and why each rule exists: app/docs/apply/jazzhr.md.
 """
+import contextlib
 import re
 from html.parser import HTMLParser
 from pathlib import Path
@@ -34,6 +35,15 @@ NO_ANSWER = {"resumator_no_selection", "0"}
 FIELD = re.compile(r"^resumator-(.+)-value$")
 CHECK_ANSWER = "resumator-questionnaire-checkbox-answer"
 ATTACH = "#resumator-choose-upload"
+# the page's own words over the file box: "Attach resume as .pdf, .doc, ... (limit 5MB)" (4 of 4)
+UPLOAD_TEXT = "#resumator-resume-upload-wrapper .resumator-resume-text"
+LIMIT = re.compile(r"\blimit\s*(\d+(?:\.\d+)?)\s*MB\b", re.I)
+# what JazzHR's own script writes on a failed check (only at Submit: submit-resume.js, 2026-10-06)
+PAGE_ERROR = "#resumator-resume .resumator_label_error, #resumator-resume .dv_error"
+# a taken-down posting: 410 + the careers page + the posting's own words, no form (16 of 16, 2026-10-06)
+SAID_GONE = re.compile(r"this position is no longer available|hiring for this position has been put on hold", re.I)
+GONE = (404, 410)
+IDLE_WAIT_MS = 15000
 
 
 def matches(url: str) -> bool:
@@ -156,13 +166,37 @@ def from_html(html: str) -> list[dict]:
     return out
 
 
+def gone(r) -> str:
+    """Why a 404 / 410 posting has no form, in the page's own words when it has them."""
+    said = SAID_GONE.search(r.text or "")
+    return f"the posting says \"{said.group()}\" - it may have closed" if said else "posting not found - it may have closed"
+
+
 def questions(url: str) -> list[dict]:
     r = httpx.get(application_url(url), timeout=30, follow_redirects=True)
-    # an unknown posting id: 404 + the tenant's careers page, no form (2026-10-03)
-    if r.status_code == 404:
-        raise ValueError("posting not found - it may have closed")
+    # unknown id: 404; taken down: 410 + "This position is no longer available" (jazzhr.md "Closed posting")
+    if r.status_code in GONE:
+        raise ValueError(gone(r))
     r.raise_for_status()
     return from_html(r.text)
+
+
+def closed(url: str) -> str | None:
+    """Why the form isn't there (form.closed, when the page shows no form and no closed words the
+    shared list knows - "put on hold"): JazzHR's own answer for the posting link. None = form there."""
+    try:
+        r = httpx.get(application_url(url), timeout=30, follow_redirects=True)
+    except httpx.HTTPError as e:
+        return f"can't tell if the posting is open - JazzHR didn't answer ({type(e).__name__})"
+    if r.status_code in GONE:
+        return gone(r)
+    if r.status_code != 200:
+        return f"can't tell if the posting is open - JazzHR answered {r.status_code}"
+    try:
+        from_html(r.text)
+    except ValueError as e:
+        return str(e)
+    return None
 
 
 def ids_on_page(page) -> list[str]:
@@ -215,12 +249,7 @@ def put_ticks(page, q: dict) -> str:
     the hidden answer box is only joined from them on Submit."""
     n = q["id"].removeprefix("resumator-questionnaire-q")
     boxes = page.locator(f'#{FORM} input[type=checkbox][id^="resumator-checkbox-{n}-"]')
-    value = q["answer"]
-    if q["kind"] == "yesno":
-        value = ["Yes" if str(value).casefold() in ("yes", "true") else "No"]
-        if len(q["options"]) == 1:  # one lone box: ticked = yes
-            value = q["options"] if value == ["Yes"] else []
-    want = {norm(str(v)).casefold() for v in (value if isinstance(value, list) else [value])}
+    want = wanted(q)
     values = [norm(b.get_attribute("value") or "") for b in boxes.all()]
     if missing := want - {v.casefold() for v in values}:
         return f"ASK no option '{sorted(missing)[0]}'; offered: {', '.join(values)}"
@@ -231,15 +260,68 @@ def put_ticks(page, q: dict) -> str:
     return "ok" if not wrong else f"FAIL '{wrong[0]}' shows the wrong tick"
 
 
+def wanted(q: dict) -> set[str]:
+    """The option texts (any case) an answer picks; a lone box ticked = yes."""
+    value = q["answer"]
+    if q["kind"] == "yesno":
+        value = ["Yes" if str(value).casefold() in ("yes", "true") else "No"]
+        if q.get("native") == "jazzhr:checkboxes" and len(q["options"]) == 1:
+            value = q["options"] if value == ["Yes"] else []
+    return {norm(str(v)).casefold() for v in (value if isinstance(value, list) else [value])}
+
+
+def too_big(page, path: str) -> str:
+    """The page's own limit ("limit 5MB") against the file: JazzHR checks nothing on choosing - the
+    server decides at Submit (unmeasured) - so its stated words are the only check before then."""
+    words = norm(" ".join(page.locator(UPLOAD_TEXT).all_inner_texts()))
+    if not (m := LIMIT.search(words)):
+        return ""
+    size = Path(path).stat().st_size
+    return words if size > float(m.group(1)) * 1024 * 1024 else ""
+
+
 def put_file(page, field, path: str) -> str:
-    # the file box sits in a hidden wrapper until "Attach resume" is clicked (a link that only
-    # shows it, href="#"): shown so the user sees the file chosen
+    """Page idle first (as Greenhouse, Ashby), then "Attach resume" - a link that only shows the hidden
+    file box (href="#") - so the user sees the file chosen; the file goes with the form at Submit (0
+    writes on choosing, 4 of 4). Ok = the box holds the file, it fits the page's stated limit, and the
+    page shows no error of its own by the resume box."""
+    with contextlib.suppress(Exception):  # a page that keeps polling never goes idle: the read decides
+        page.wait_for_load_state("networkidle", timeout=IDLE_WAIT_MS)
     attach = page.locator(ATTACH)
     if not field.is_visible() and attach.count() and attach.first.is_visible():
         attach.first.click()
     field.set_input_files(path)
-    got = field.evaluate("e => e.files[0] ? e.files[0].name : ''")
-    return "ok" if got == Path(path).name else "ASK upload not confirmed on page - check the resume box"
+    if field.evaluate("e => e.files[0] ? e.files[0].name : ''") != Path(path).name:
+        return "ASK upload not confirmed on page - check the resume box"
+    if said := norm(" ".join(page.locator(PAGE_ERROR).all_inner_texts())):
+        return f"FAIL the page says '{said}' - check the resume box"
+    if said := too_big(page, path):
+        return f"FAIL the file is bigger than the page allows ('{said}') - the user picks a smaller file"
+    return "ok"
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck),
+    each kind as jazzhr.md "Read back" records it: a box by its value (phone by digits), a dropdown by
+    the option text it shows - never the no-answer one -, a checkbox question by each box's own tick
+    (not the hidden box JazzHR joins them into at Submit), a file by the name the box holds."""
+    field = by_id(page, q["id"])
+    if not field.count():
+        return False
+    kind, value = q["kind"], q["answer"]
+    if q.get("native") == "jazzhr:checkboxes":
+        n = q["id"].removeprefix("resumator-questionnaire-q")
+        ticks = page.locator(f'#{FORM} input[type=checkbox][id^="resumator-checkbox-{n}-"]').evaluate_all(
+            "bs => bs.map(b => [b.value, b.checked])")
+        want = wanted(q)
+        return bool(ticks) and all((norm(v).casefold() in want) == on for v, on in ticks)
+    if kind == "file":
+        return bool(field.evaluate("e => e.files && e.files[0] ? e.files[0].name : ''"))
+    if q.get("native") == "jazzhr:select":
+        got, text = field.evaluate("e => [e.value, e.selectedOptions[0] ? e.selectedOptions[0].text : '']")
+        return got not in NO_ANSWER and norm(text).casefold() in wanted(q)
+    got = field.input_value()
+    return digits(got) == digits(str(value)) if kind == "phone" else got == str(value)
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:

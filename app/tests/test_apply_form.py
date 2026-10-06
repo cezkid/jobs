@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import ashby, greenhouse, lever, ukg
+from apply.systems import ashby, greenhouse, jazzhr, lever, ukg
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -39,7 +39,7 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-IN_SCOPE = [greenhouse, ashby, lever]
+IN_SCOPE = [greenhouse, ashby, lever, jazzhr]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
@@ -1477,6 +1477,14 @@ READ_BACK_FORMS = {
         answered("cards[acme][field0]", "longtext", "Their own words."),
         answered("cards[acme][field1]", "yesno", "Yes"), answered("cards[acme][field2]", "choice", "3-5"),
         answered("cards[acme][field3]", "multichoice", ["Python", "Excel"])]),
+    "jazzhr": ("jazzhr-form.html", [
+        answered("resumator-firstname-value", "text", "Ada"), answered("resumator-email-value", "email", "ada@example.com"),
+        answered("resumator-phone-value", "phone", "555-0100"),
+        answered("resumator-questionnaire-q1474074", "yesno", "No", ["YES", "NO"]) | {"native": "jazzhr:select"},
+        answered("resumator-citizen-value", "choice", "I am a U.S. Citizen/Permanent Resident") | {"native": "jazzhr:select"},
+        answered("resumator-questionnaire-q1586173", "choice", "3-5") | {"native": "jazzhr:select"},
+        answered("resumator-start-value", "date", "11/02/2026") | {"native": "jazzhr:date"},
+        answered("resumator-questionnaire-q1474076", "yesno", "No", ["YES", "NO"]) | {"native": "jazzhr:checkboxes"}]),
 }
 
 
@@ -1515,6 +1523,40 @@ def test_ashby_holds_reads_what_shows_never_the_answer(fixture_page):
     page.locator('[data-field-path="q_country"] input').fill("Austin, TX, United States")
     assert ashby.holds(page, answered("q_country", "location", "Austin, Texas"))
     assert not ashby.holds(page, answered("q_country", "location", "Boston, MA"))
+
+
+def test_jazzhr_holds_reads_what_shows_never_the_answer(fixture_page):
+    """Untouched dropdown = the no-answer option shows; no tick; a box not on the page: not held."""
+    page = fixture_page("jazzhr-form.html")
+    sel = lambda id, kind, a, opts=(): answered(id, kind, a, opts) | {"native": "jazzhr:select"}
+    assert not jazzhr.holds(page, sel("resumator-over18-value", "yesno", "Yes", ["Yes", "No"]))
+    assert not jazzhr.holds(page, sel("resumator-questionnaire-q1586173", "choice", "No answer"))
+    ticks = answered("resumator-questionnaire-q1474076", "yesno", "Yes", ["YES", "NO"]) | {"native": "jazzhr:checkboxes"}
+    assert not jazzhr.holds(page, ticks)
+    assert jazzhr.fill(page, ticks, None) == "ok" and jazzhr.holds(page, ticks)
+    page.locator("#resumator-checkbox-1474076-2").check()  # both ticked shows no single answer
+    assert not jazzhr.holds(page, ticks)
+    assert not jazzhr.holds(page, answered("resumator-gone-value", "text", "x"))
+    page.locator("#resumator-phone-value").fill("(555) 010-0999")
+    assert not jazzhr.holds(page, answered("resumator-phone-value", "phone", "555-010-0100"))
+
+
+def test_jazzhr_upload_opens_attach_reads_the_name_and_the_pages_limit(fixture_page, tmp_path):
+    """"Attach resume" shows the file box; ok = the box holds the file within the page's own "limit 5MB";
+    an error JazzHR's script wrote by the resume box is passed on in its words."""
+    page = fixture_page("jazzhr-form.html")
+    resume = answered("resumator-resume-value", "file", True, title="Resume") | {"key": "resume"}
+    good, big = tmp_path / "Ada_Lovelace_Resume.pdf", tmp_path / "Big_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4 test")
+    big.write_bytes(b"%PDF-1.4 " + b"0" * (5 * 1024 * 1024 + 1))
+    assert not page.locator("#resumator-resume-value").is_visible()
+    assert jazzhr.fill(page, resume, str(good)) == "ok"
+    assert page.locator("#resumator-resume-value").is_visible() and jazzhr.holds(page, resume)
+    got = jazzhr.fill(page, resume, str(big))
+    assert got.startswith("FAIL the file is bigger than the page allows") and "limit 5MB" in got
+    page.evaluate("""() => document.getElementById('resumator-resume').insertAdjacentHTML('beforeend',
+        '<span class="resumator_label_error">Please attach a resume</span>')""")
+    assert jazzhr.fill(page, resume, str(good)) == "FAIL the page says 'Please attach a resume' - check the resume box"
 
 
 def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_page, monkeypatch, tmp_path):

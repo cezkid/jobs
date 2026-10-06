@@ -51,7 +51,7 @@ investigate references" text, required).
 | date (`resumator-datepicker`) | plain text box + jQuery UI datepicker | type `YYYY-MM-DD`, Escape shuts the popup, read back: typing alone keeps the value (`try`, tenant D, 2026-10-03) |
 | choice / yesno | native `select`; first option = no answer: `resumator_no_selection` ("-- No answer --", employer questions) or `0` ("No answer", system fields) | select by visible option text, exact; never the no-answer option. Options are often upper case (`YES` / `NO`, tenant B) - match case-insensitively, read back |
 | checkbox question | hidden `input.resumator-questionnaire-checkbox-answer` named `resumator-questionnaire[<n>]` + one `input.resumator-questionnaire-checkbox` per option, id `resumator-checkbox-<n>-<i>`, value = option text; group label = `label[for=resumator-questionnaire-q<n>]` | tick by value; on Submit JazzHR's script joins the ticked values into the hidden box (`YES-\|\|-`), so read back the ticks, not the hidden box. Yes/No as two checkboxes (tenant B, 2 questions): tick one only. A lone checkbox under a certify / authorize text = attestation: applicant's own act, never ticked |
-| Resume | `#resumator-resume-value` (file) sits in a hidden wrapper until the link "Attach resume" (`#resumator-choose-upload`) is clicked; "Paste resume" (`#resumator-choose-paste`) shows the textarea instead | click "Attach resume" first (a link that only shows the box, `href="#"`) so the user sees the file chosen, then set the file on the input; confirm by its value. Choosing the file sends nothing (`try`, 4 of 4: 0 writes); the file goes with the form on Submit, max 5 MB per the page text |
+| Resume | `#resumator-resume-value` (file) sits in a hidden wrapper until the link "Attach resume" (`#resumator-choose-upload`) is clicked; "Paste resume" (`#resumator-choose-paste`) shows the textarea instead | click "Attach resume" first (a link that only shows the box, `href="#"`) so the user sees the file chosen, then set the file on the input; confirm by the name the box holds. Choosing the file sends nothing (`try`, 4 of 4: 0 writes); the file goes with the form on Submit. No check on choosing (size, type): `submit-resume.js` read 2026-10-06 checks only at Submit; the limit is the page's own words "(limit 5MB)" (4 of 4) - see Read back |
 | Address | Street box carries the label; City / State / Postal only placeholders | find by id, never by label |
 | EEO | two native selects, "Decline to answer" preselected | voluntary - left as the page has it |
 | Human Check | reCAPTCHA v2 checkbox (`div.g-recaptcha`, required: "Please verify." if empty); its script adds a `g-recaptcha-response` box inside the form | applicant's own step; that box is no question (`ids_on_page` leaves it out) |
@@ -77,11 +77,57 @@ Earliest point anything the applicant typed or chose leaves: Submit. Page also l
 and Gainsight analytics scripts: 0 writes from them while filling (4 of 4); what they send after
 Submit is unmeasured.
 
+## Read back (2026-10)
+
+`holds(page, q)` = what the page SHOWS, read once the form had time to keep it; `form.recheck`
+fills a dropped answer once more, still gone -> FAIL, the user fills it by hand. Per kind:
+
+| Kind | Read back as | Not held when |
+|---|---|---|
+| text / email / date / textarea | the box's value | it differs from the answer |
+| phone | the box's digits | digits differ (page formatting ignored) |
+| choice / yesno (select) | the option TEXT shown, any case | the no-answer option shows (`resumator_no_selection` / `0`) - the page's own check counts it answered (Widgets) |
+| checkbox question | each box's own tick, by value | any box ticked against the answer, or no boxes; never the hidden join box (filled only at Submit) |
+| lone checkbox (not attestation) | ticked = yes, unticked = no | tick against the answer |
+| file | the name the file box holds | no file |
+
+Upload (`put_file`), as Greenhouse / Ashby: page idle first (15 s cap; a page that keeps polling
+is read anyway), "Attach resume" clicked, file chosen, then in order: the box doesn't hold the
+file name -> ASK; JazzHR's own error text by the resume box (`.resumator_label_error`,
+`.dv_error` - what its script writes, at Submit only per `submit-resume.js` 2026-10-06) -> FAIL
+in the page's words; file over the page's stated limit ("limit 5MB") -> FAIL with those words, the
+user picks a smaller file. Server's own verdict on the file: only at Submit - unmeasured.
+
+Covered by `app/tests/fixtures/dom/jazzhr-form.html` (tenant B form + tenant D screening selects
+and start date) in real headless Chrome: text, email, phone, upper-case YES / NO select, choice
+select, system select (citizenship), date, Yes/No checkbox pair, resume upload. Unmeasured - named
+in JazzHR's script, seen on no tenant: felony question, country select, disability select,
+two-stage form (resume first, rest on a second step; `#resumator-two-stage-resume-toggle`). No
+live read-back yet (fixtures + saved `try` runs only, 2026-10-06).
+
 ## Closed posting
 
-No closed one seen (all 4 open; JSON-LD `validThrough` about 3 months after `datePosted`, 4 of 4).
-Unknown posting id: 404 + the tenant's careers page, no form (1 tenant, 2026-10-03) - `questions`
-says "posting not found - it may have closed". A closed posting's own wording: unmeasured.
+Measured 2026-10-06, plain GET of every link in `.data/links/jazzhr-open.txt` + `-closed.txt`
+(2 s apart, 0 page loads, 0 errors, 0 429), then each employer's own job list once (13 employers):
+
+| List | Links | Form on page | 410 gone |
+|---|---|---|---|
+| open | 27 | 12 | 15 |
+| closed | 2 | 1 | 1 |
+
+Taken down = 410 + the careers page + the posting's own words, no form (16 of 16): "This position
+is no longer available" 15, "Hiring for this position has been put on hold at this time" 1.
+Employer's own job list agrees: 0 gone postings listed, 11 of 13 live forms listed (2 live but
+unlisted - the link still works). Unknown posting id: 404 + the careers page (1 tenant,
+2026-10-03).
+
+`questions` raises on 404 / 410 with the page's words ("the posting says \"This position is no
+longer available\" - it may have closed"); `closed(url)` (asked by `form.closed` when no form
+comes up) gives the same, "can't tell" on another status or no answer, never a guess.
+
+Open read as closed: 0 (13 of 13 with a form read open, 1 of them on the closed list; 16 of 16
+read closed are 410 with the words). Saved: `.data/measure/jazzhr-closed-check-2026-10-06.json`.
+The open list lags: 15 of 27 "open" links were already taken down.
 
 ## Try (2026-10-03)
 
