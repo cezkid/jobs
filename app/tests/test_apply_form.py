@@ -1713,3 +1713,41 @@ def test_without_restriction_asked_every_time_for_a_visa_holder():
     sponsor = q("Will you now or in the future require immigration sponsorship to work in the U.S.?", "yesno")
     f1 = {"work_authorization": {"student_visa": True, "needs_sponsorship": True, "authorized_us": None}}
     assert questions.draft([sponsor], CONTACT, config=f1)[0]["answer"] == "Yes"
+
+
+STUDYING = [{"institution": "The Ohio State University", "degree": "B.S.", "field": "Statistics", "end": "2027-05",
+             "gpa": "3.62/4.00"}]
+
+
+def drafted(title, kind="text", options=(), schools=STUDYING):
+    return questions.draft([q(title, kind, options=options)], CONTACT, schools=schools)[0]
+
+
+def test_expected_graduation_filled_only_for_one_degree_in_progress():
+    got = drafted("Expected graduation date")
+    assert (got["answer"], got["source"]) == ("May 2027", f"resume - {questions.READ_FIRST}")
+    assert drafted("When do you expect to graduate?", "choice", ["Dec 2026", "May 2027", "Dec 2027"])["answer"] == "May 2027"
+    # a finished degree's date stays the user's (age); a bare "graduation date" may mean high school
+    done = [{**STUDYING[0], "end": "2019-05"}]
+    assert drafted("Expected graduation date", schools=done)["answer"] is None
+    assert drafted("Graduation date")["source"] == f"{questions.ASK} - sensitive: graduation date"
+    two = [STUDYING[0], {**STUDYING[0], "institution": "Columbus State Community College", "degree": "AA"}]
+    assert drafted("Expected graduation date", schools=two)["answer"] is None
+
+
+def test_gpa_box_gets_the_transcript_figure_never_converted():
+    assert drafted("Cumulative GPA")["answer"] == "3.62/4.00"
+    assert drafted("GPA", "number")["answer"] == "3.62"
+    assert drafted("What is your GPA?", "choice", ["Below 3.0", "3.0 - 3.49", "3.5 - 3.74", "3.75+"])["answer"] == "3.5 - 3.74"
+    assert drafted("Major GPA")["answer"] is None
+    ten = [{**STUDYING[0], "gpa": "9.2/10"}]
+    got = drafted("GPA", "number", schools=ten)
+    assert got["answer"] is None and "never converted" in got["source"]
+    assert drafted("GPA", schools=[{**STUDYING[0], "gpa": None}])["answer"] is None
+
+
+def test_currently_enrolled_yes_only_while_a_degree_is_in_progress():
+    assert drafted("Are you currently enrolled in a degree program?", "yesno")["answer"] == "Yes"
+    assert drafted("Are you currently enrolled in a degree program?", "yesno",
+                   schools=[{**STUDYING[0], "end": "2019-05"}])["answer"] is None
+    assert drafted("Will you be returning to school full-time after the internship?", "yesno")["answer"] is None
