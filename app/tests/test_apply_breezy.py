@@ -1,6 +1,6 @@
 """Breezy: link shapes, saved definitions (anonymised, app/tests/fixtures/breezy) drawn into both page builds ->
 questions, each widget rule on a copy of the form Breezy's Angular template draws (fixtures/breezy/apply.html;
-nothing reaches the network)."""
+nothing reaches the network), the same copy filled in the window as through Playwright."""
 import html
 import json
 from pathlib import Path
@@ -8,8 +8,10 @@ from urllib.parse import urlsplit
 
 import httpx
 import pytest
+from test_apply_in_window import BREEZY_PATH, both, playwright_chrome, site, tab  # noqa: F401 - fixtures
 
-from apply import browser, questions, systems
+from apply import questions, systems
+from apply import form as fill_form
 from apply.systems import breezy
 
 FIXTURES = Path(__file__).parent / "fixtures" / "breezy"
@@ -174,16 +176,9 @@ def test_closed_or_unknown_posting_says_so(monkeypatch):
 # --- the page ---
 
 @pytest.fixture(scope="module")
-def chrome():
-    pw = pytest.importorskip("playwright.sync_api")
-    try:
-        exe = browser.chrome()
-    except SystemExit:
-        pytest.skip("Chrome not installed")
-    with pw.sync_playwright() as p:
-        b = p.chromium.launch(executable_path=exe, headless=True)
-        yield b
-        b.close()
+def chrome(playwright_chrome):
+    """The in-window test's own Playwright Chrome: a second sync Playwright in one module fails its setup."""
+    return playwright_chrome
 
 
 @pytest.fixture
@@ -320,3 +315,64 @@ def test_address_letters_named_as_going_to_google():
     where = questions.question("cAddress", "Address", "location", True, (), "location")
     assert "search Google's list as they're typed - those words reach Google" in apply_form.typed_note(breezy, [where])
     assert "as soon as it is chosen" in apply_form.upload_note(breezy, [questions.question("cResume", "Resume", "file", True, (), "resume")])
+
+
+# --- in the window: the same fill through window.Page as through Playwright ---
+
+# the page copy's questions, each kind answered once: resume, contact, address, pay + its two lists, location,
+# summary + letter, the employer's text / list / radios / ticks / date, two EEO radios (CCPA left: the applicant's own)
+WINDOW_ANSWERS = [
+    q("cResume", "file", True, "breezy:resume", key="resume", title="Resume"),
+    q("cName", "text", "Test Applicant", key="name", title="Full Name"),
+    q("cEmail", "email", "test@example.com", key="email", title="Email Address"),
+    q("cPhoneNumber", "phone", "555-0100", key="phone", title="Phone Number"),
+    q("cAddress", "location", "Springfield, IL", "breezy:address", key="location", title="Address"),
+    q("salaryCurrency", "choice", "canadian dollar ($)", "breezy:select", title="Currency"),
+    q("cSalary", "number", "$85,000", "breezy:salary", title="Desired Salary"),
+    q(breezy.PER, "choice", "Yearly", "breezy:select", breezy.PERIODS, title="Per"),
+    q("cLocation", "choice", "FL, US", "breezy:select", ["VA, US", "FL, US"], title="Preferred Location"),
+    q("cSummary", "longtext", "Line one\nLine two", title="Summary"),
+    q("cCoverLetter", "longtext", "Dear Acme,\nThanks.", title="Cover Letter"),
+    q("section_1000_question_0", "text", "Two weeks"),
+    q("section_1000_question_1", "yesno", "Yes", "breezy:select", ["Yes", "No"]),
+    q("section_1000_question_2", "yesno", "No", "breezy:radio", ["Yes", "No"]),
+    q("section_1000_question_3", "multichoice", ["Python", "Excel"], "breezy:checkbox"),
+    q("section_1000_question_4", "date", "2026-11-02", "breezy:date", title="Start"),
+    q("gender", "choice", "I don't wish to answer", "breezy:radio", title="Gender"),
+    q("eeoc.veteran_status", "choice", "I am not a protected veteran", "breezy:radio", title="Veteran status")]
+# each box's value or tick, each list's pick, the resume header's file name + error words - read off the page
+WINDOW_SHOWN = ("es => es.map(e => ['checkbox', 'radio'].includes(e.type) ? e.checked : e.value)"
+                ".concat([...document.querySelectorAll('.section-header .file-input-container a.bzyLinkColor,"
+                " .error-container:not(.ng-hide) span.error')].map(e => e.innerText.trim()))")
+WINDOW_BOXES = "form[name=form] input:not([type=file]):not([type=hidden]), form[name=form] textarea, form[name=form] select"
+
+
+def test_in_window_fills_breezy_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # breezy.fill + holds + form.fill_page through each: same report, same page after, every answer read
+    # back, a second fill changes nothing; honeypot + SMS consent + CCPA untouched (plan-k8n.35)
+    monkeypatch.setattr(fill_form, "SETTLE_MS", 300)
+    monkeypatch.setattr(breezy, "IDLE_WAIT_MS", 500)
+    resume = tmp_path / "Test_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    again = [a for a in WINDOW_ANSWERS if a["kind"] != "file"]
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, site.replace("/acme/jobs/1", BREEZY_PATH)) as tabs:
+        for name, page in tabs.items():
+            assert fill_form.closed(page, breezy) is None
+            report, extra = fill_form.fill_page(page, breezy, WINDOW_ANSWERS, str(resume), None)
+            reports[name] = dict(report)
+            # left unanswered here: the question file, the reference check, race (voluntary), CCPA (the applicant's own)
+            assert extra == ["section_1000_question_5", "section_1000_question_6", "race_ethnicity", "ccpaAgreement"]
+            once = page.eval_on_selector_all(WINDOW_BOXES, WINDOW_SHOWN)
+            assert (name, [breezy.fill(page, a, None) for a in again]) == (name, ["ok"] * len(again))
+            page.wait_for_timeout(300)
+            assert page.eval_on_selector_all(WINDOW_BOXES, WINDOW_SHOWN) == once
+            pages[name] = once
+            assert [a["id"] for a in WINDOW_ANSWERS if not breezy.holds(page, a)] == []
+            assert not page.evaluate("window.submitted || false")
+            assert page.evaluate("""() => [document.querySelector('[name=hp_7f2b]').value,
+                document.querySelector('[name=smsConsent]').checked, document.querySelector('[name=ccpaAgreement]').checked]""") == ["", False, False]
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {a["id"]: "ok" for a in WINDOW_ANSWERS}
+    assert pages["window"] == pages["playwright"]
+    assert resume.name in pages["window"]

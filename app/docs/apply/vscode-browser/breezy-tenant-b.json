@@ -1,0 +1,651 @@
+{
+  "stage": "raw",
+  "at": "<host>/p/<id>/apply",
+  "uniq": "bedc89",
+  "mac": "macOS 26.4.1 x86_64",
+  "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+  "tenantsAdded": 2,
+  "system": "Breezy",
+  "ready": "form[name=form] input[name=cName]",
+  "url": "https://<host>/p/<id>/apply",
+  "level": 3,
+  "pauseCap": 20,
+  "launch": {
+    "args": [
+      "--user-data-dir",
+      "$D/data",
+      "--extensions-dir",
+      "$D/ext",
+      "--shared-data-dir",
+      "$D/shared",
+      "--disable-workspace-trust",
+      "--new-window",
+      "$D/f"
+    ],
+    "up": true,
+    "upMs": 5200,
+    "upInfo": {
+      "t": 1791370901173,
+      "trusted": true,
+      "folder": "$D/f"
+    }
+  },
+  "pauses": [],
+  "attach": {
+    "ok": true,
+    "error": null,
+    "ms": 8007,
+    "sessions": [
+      {
+        "id": "a53c24a3-dd82-4b06-931e-60ecb53d6e05",
+        "type": "pwa-editor-browser",
+        "name": "Job Finder form",
+        "parent": null
+      },
+      {
+        "id": "32b76c05-6b79-49c4-a375-599372cfd904",
+        "type": "pwa-editor-browser",
+        "name": "JF form bedc89 blank \u00ab Job Finder form",
+        "parent": "a53c24a3-dd82-4b06-931e-60ecb53d6e05"
+      }
+    ],
+    "found": {
+      "32b76c05-6b79-49c4-a375-599372cfd904": {
+        "proxy": {
+          "host": "127.0.0.1",
+          "port": 53653,
+          "path": "/2318308659c805d9c4887e4911a1444ae0e43920"
+        },
+        "href": "http://127.0.0.1:53670/blank"
+      },
+      "a53c24a3-dd82-4b06-931e-60ecb53d6e05": {
+        "proxy": {
+          "error": "no answer in 5000 ms"
+        }
+      }
+    }
+  },
+  "install": {
+    "ok": true,
+    "ms": 15,
+    "value": {
+      "level": 3,
+      "blockedUrls": "urlPatterns"
+    }
+  },
+  "subscribe": {
+    "ok": true,
+    "ms": 0,
+    "value": {}
+  },
+  "skipOff": {
+    "ok": true,
+    "ms": 2,
+    "value": {}
+  },
+  "canary": {
+    "loaded": true,
+    "fired": true,
+    "received": [],
+    "blocked": [
+      "/frame.html",
+      "beacon",
+      "cross",
+      "form",
+      "keepalive",
+      "worker",
+      "xhr"
+    ],
+    "wsStubbed": [
+      "ws://127.0.0.1:53695/w/ws"
+    ],
+    "neither": [
+      "frame",
+      "frame-ws",
+      "ws"
+    ],
+    "seen": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:53695/w/xhr",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:53695/w/keepalive",
+        "type": "Fetch",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:53695/w/beacon",
+        "type": "Ping",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://localhost:53696/w/cross",
+        "type": "Fetch",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:53695/w/form",
+        "type": "Document",
+        "after": "canary"
+      }
+    ]
+  },
+  "loaded": true,
+  "readyMs": 2127,
+  "pausesOnLoad": 0,
+  "fields": 1,
+  "boxes": [
+    {
+      "id": "main-attachment",
+      "name": "cResume",
+      "role": "",
+      "type": "file"
+    },
+    {
+      "id": "",
+      "name": "cName",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "cEmail",
+      "role": "",
+      "type": "email"
+    },
+    {
+      "id": "",
+      "name": "cPhoneNumber",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "smsConsent",
+      "role": "",
+      "type": "checkbox"
+    },
+    {
+      "id": "",
+      "name": "cSalary",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "",
+      "role": "",
+      "type": "select-one"
+    },
+    {
+      "id": "",
+      "name": "cLocation",
+      "role": "",
+      "type": "select-one"
+    },
+    {
+      "id": "",
+      "name": "cSummary",
+      "role": "",
+      "type": "textarea"
+    },
+    {
+      "id": "",
+      "name": "cCoverLetter",
+      "role": "",
+      "type": "textarea"
+    },
+    {
+      "id": "hp_7f2b",
+      "name": "hp_7f2b",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_0",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_0",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "",
+      "name": "section_1760965664258_question_1",
+      "role": "",
+      "type": "radio"
+    }
+  ],
+  "frames": {
+    "iframes": [],
+    "blockedOtherSite": [
+      {
+        "url": "http://localhost/frame.html",
+        "kind": "other",
+        "after": "canary"
+      }
+    ],
+    "targets": {
+      "ok": true,
+      "ms": 2,
+      "value": []
+    }
+  },
+  "marks": {
+    "awsWafApi": "undefined",
+    "awsWafCookie": false,
+    "grecaptchaApi": "undefined",
+    "hcaptchaApi": "undefined",
+    "hiddenCaptchaButton": false,
+    "linkedinWidget": false,
+    "scripts": [],
+    "turnstileApi": "undefined"
+  },
+  "fill": {
+    "resume": {
+      "name": "Test_Resume.pdf",
+      "size": 100
+    },
+    "signIn": false,
+    "box": "input[name=cName]",
+    "type: click + Input.insertText": {
+      "ok": true,
+      "ms": 1364,
+      "value": {
+        "focused": true
+      }
+    },
+    "readBack": "Test Applicant",
+    "fileBox": "input[type=file]",
+    "fileChosen": true,
+    "upload: DOM.setFileInputFiles": {
+      "ok": true,
+      "ms": 14
+    },
+    "pageErrorsSeen": null,
+    "nameShown": false,
+    "failedLine": false,
+    "verdict": null,
+    "fileHeld": true,
+    "resumeBox": {
+      "error": "",
+      "name": "",
+      "sending": false
+    },
+    "sentOnChoice": [
+      {
+        "method": "POST",
+        "url": "https://app.breezy.hr/api/portal/<org>/upload",
+        "type": "XHR",
+        "contentType": "multipart/form-data; boundary=----WebKitFormBoundaryfV6WGfvt",
+        "body": true
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "contentType": "",
+        "body": false
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "contentType": "",
+        "body": false
+      }
+    ],
+    "tabShot": {
+      "path": "<checkout>/.data/probe-shots/form/breezy-route2-tab.png",
+      "bytes": 79666
+    }
+  },
+  "widgets": {
+    "checkboxes": 1,
+    "combobox": 0,
+    "comboboxInDataUi": 0,
+    "dialogs": [],
+    "fileInputs": 1,
+    "onTopAtListMiddle": [],
+    "options": 0,
+    "radioGroups": 0,
+    "radioInputs": 29,
+    "resumeWrapper": false,
+    "roleRadio": 0,
+    "select2": 0,
+    "select2Hidden": 0,
+    "selects": 2
+  },
+  "captchaBox": null,
+  "shot": {
+    "path": "<checkout>/.data/probe-shots/form/breezy-route2-window.png",
+    "bytes": 0
+  },
+  "pausesTotal": 0,
+  "skipOnAfterCap": false,
+  "submitClicked": false,
+  "block": {
+    "reads": 55,
+    "namedReads": [],
+    "failed": [
+      {
+        "method": "POST",
+        "url": "http://localhost/w/cross",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/xhr",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost/frame.html",
+        "type": "other-site frame",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/keepalive",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/beacon",
+        "type": "Ping",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/form",
+        "type": "Document",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/worker",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "type"
+      },
+      {
+        "method": "POST",
+        "url": "https://app.breezy.hr/api/portal/<org>/upload",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "upload"
+      }
+    ],
+    "seenWrites": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/xhr",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/keepalive",
+        "type": "Fetch",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/beacon",
+        "type": "Ping",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://localhost/w/cross",
+        "type": "Fetch",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/form",
+        "type": "Document",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "type"
+      },
+      {
+        "method": "POST",
+        "url": "https://app.breezy.hr/api/portal/<org>/upload",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "upload"
+      }
+    ]
+  },
+  "pageLoads": 1,
+  "handlerErrors": [],
+  "quit": {
+    "killed": false
+  }
+}

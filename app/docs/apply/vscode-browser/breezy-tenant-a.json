@@ -1,0 +1,616 @@
+{
+  "stage": "raw",
+  "at": "<host>/p/<id>/apply",
+  "uniq": "a051ff",
+  "mac": "macOS 26.4.1 x86_64",
+  "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+  "tenantsAdded": 2,
+  "system": "Breezy",
+  "ready": "form[name=form] input[name=cName]",
+  "url": "https://<host>/p/<id>/apply",
+  "level": 3,
+  "pauseCap": 20,
+  "launch": {
+    "args": [
+      "--user-data-dir",
+      "$D/data",
+      "--extensions-dir",
+      "$D/ext",
+      "--shared-data-dir",
+      "$D/shared",
+      "--disable-workspace-trust",
+      "--new-window",
+      "$D/f"
+    ],
+    "up": true,
+    "upMs": 5378,
+    "upInfo": {
+      "t": 1791370853275,
+      "trusted": true,
+      "folder": "$D/f"
+    }
+  },
+  "pauses": [],
+  "attach": {
+    "ok": true,
+    "error": null,
+    "ms": 7977,
+    "sessions": [
+      {
+        "id": "e7f3fb5d-ce08-4aad-894f-bd59279d7a6d",
+        "type": "pwa-editor-browser",
+        "name": "Job Finder form",
+        "parent": null
+      },
+      {
+        "id": "5796c2fa-a548-4bc8-bc9c-9659ad8569dc",
+        "type": "pwa-editor-browser",
+        "name": "JF form a051ff blank \u00ab Job Finder form",
+        "parent": "e7f3fb5d-ce08-4aad-894f-bd59279d7a6d"
+      }
+    ],
+    "found": {
+      "5796c2fa-a548-4bc8-bc9c-9659ad8569dc": {
+        "proxy": {
+          "host": "127.0.0.1",
+          "port": 53268,
+          "path": "/68432a2ac75b4a08ed6554224636e3726286cb7f"
+        },
+        "href": "http://127.0.0.1:53604/blank"
+      },
+      "e7f3fb5d-ce08-4aad-894f-bd59279d7a6d": {
+        "proxy": {
+          "error": "no answer in 5000 ms"
+        }
+      }
+    }
+  },
+  "install": {
+    "ok": true,
+    "ms": 16,
+    "value": {
+      "level": 3,
+      "blockedUrls": "urlPatterns"
+    }
+  },
+  "subscribe": {
+    "ok": true,
+    "ms": 0,
+    "value": {}
+  },
+  "skipOff": {
+    "ok": true,
+    "ms": 2,
+    "value": {}
+  },
+  "canary": {
+    "loaded": true,
+    "fired": true,
+    "received": [],
+    "blocked": [
+      "/frame.html",
+      "beacon",
+      "cross",
+      "form",
+      "keepalive",
+      "worker",
+      "xhr"
+    ],
+    "wsStubbed": [
+      "ws://127.0.0.1:53630/w/ws"
+    ],
+    "neither": [
+      "frame",
+      "frame-ws",
+      "ws"
+    ],
+    "seen": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:53630/w/xhr",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:53630/w/keepalive",
+        "type": "Fetch",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:53630/w/beacon",
+        "type": "Ping",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://localhost:53631/w/cross",
+        "type": "Fetch",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1:53630/w/form",
+        "type": "Document",
+        "after": "canary"
+      }
+    ]
+  },
+  "loaded": true,
+  "readyMs": 1809,
+  "pausesOnLoad": 0,
+  "fields": 1,
+  "boxes": [
+    {
+      "id": "main-attachment",
+      "name": "cResume",
+      "role": "",
+      "type": "file"
+    },
+    {
+      "id": "",
+      "name": "cName",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "cEmail",
+      "role": "",
+      "type": "email"
+    },
+    {
+      "id": "",
+      "name": "cPhoneNumber",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "smsConsent",
+      "role": "",
+      "type": "checkbox"
+    },
+    {
+      "id": "fullAddress",
+      "name": "cAddress",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "salaryCurrency",
+      "role": "",
+      "type": "select-one"
+    },
+    {
+      "id": "",
+      "name": "cSalary",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "",
+      "role": "",
+      "type": "select-one"
+    },
+    {
+      "id": "",
+      "name": "cSummary",
+      "role": "",
+      "type": "textarea"
+    },
+    {
+      "id": "hp_7f2b",
+      "name": "hp_7f2b",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "section_1674499768957_question_0",
+      "role": "",
+      "type": "select-one"
+    },
+    {
+      "id": "",
+      "name": "section_1674499768957_question_1",
+      "role": "",
+      "type": "select-one"
+    },
+    {
+      "id": "",
+      "name": "section_1674499768957_question_2",
+      "role": "",
+      "type": "text"
+    },
+    {
+      "id": "",
+      "name": "section_1674499768957_question_3",
+      "role": "",
+      "type": "select-one"
+    },
+    {
+      "id": "",
+      "name": "section_1674499768957_question_4",
+      "role": "",
+      "type": "select-one"
+    },
+    {
+      "id": "race_white",
+      "name": "race_ethnicity",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "race_black",
+      "name": "race_ethnicity",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "race_hispanic",
+      "name": "race_ethnicity",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "race_indian",
+      "name": "race_ethnicity",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "race_hawaiian",
+      "name": "race_ethnicity",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "race_two",
+      "name": "race_ethnicity",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "race_latino",
+      "name": "race_ethnicity",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "race_white_no",
+      "name": "race_ethnicity",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "gender_male",
+      "name": "gender",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "gender_female",
+      "name": "gender",
+      "role": "",
+      "type": "radio"
+    },
+    {
+      "id": "gender_no",
+      "name": "gender",
+      "role": "",
+      "type": "radio"
+    }
+  ],
+  "frames": {
+    "iframes": [],
+    "blockedOtherSite": [
+      {
+        "url": "http://localhost/frame.html",
+        "kind": "other",
+        "after": "canary"
+      }
+    ],
+    "targets": {
+      "ok": true,
+      "ms": 2,
+      "value": []
+    }
+  },
+  "marks": {
+    "awsWafApi": "undefined",
+    "awsWafCookie": false,
+    "grecaptchaApi": "undefined",
+    "hcaptchaApi": "undefined",
+    "hiddenCaptchaButton": false,
+    "linkedinWidget": false,
+    "scripts": [],
+    "turnstileApi": "undefined"
+  },
+  "fill": {
+    "resume": {
+      "name": "Test_Resume.pdf",
+      "size": 100
+    },
+    "signIn": false,
+    "box": "input[name=cName]",
+    "type: click + Input.insertText": {
+      "ok": true,
+      "ms": 1650,
+      "value": {
+        "focused": true
+      }
+    },
+    "readBack": "Test Applicant",
+    "fileBox": "input[type=file]",
+    "fileChosen": true,
+    "upload: DOM.setFileInputFiles": {
+      "ok": true,
+      "ms": 29
+    },
+    "pageErrorsSeen": null,
+    "nameShown": false,
+    "failedLine": false,
+    "verdict": null,
+    "fileHeld": true,
+    "resumeBox": {
+      "error": "",
+      "name": "",
+      "sending": false
+    },
+    "sentOnChoice": [
+      {
+        "method": "POST",
+        "url": "https://app.breezy.hr/api/portal/<org>/upload",
+        "type": "XHR",
+        "contentType": "multipart/form-data; boundary=----WebKitFormBoundaryIOS2Zs9r",
+        "body": true
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "contentType": "",
+        "body": false
+      },
+      {
+        "method": "POST",
+        "url": "https://r.lr-ingest.com/i",
+        "type": "XHR",
+        "contentType": "application/octet-stream",
+        "body": true
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "contentType": "",
+        "body": false
+      }
+    ],
+    "tabShot": {
+      "path": "<checkout>/.data/probe-shots/form/breezy-route2-tab.png",
+      "bytes": 1105796
+    }
+  },
+  "widgets": {
+    "checkboxes": 1,
+    "combobox": 0,
+    "comboboxInDataUi": 0,
+    "dialogs": [],
+    "fileInputs": 1,
+    "onTopAtListMiddle": [],
+    "options": 0,
+    "radioGroups": 0,
+    "radioInputs": 11,
+    "resumeWrapper": false,
+    "roleRadio": 0,
+    "select2": 0,
+    "select2Hidden": 0,
+    "selects": 6
+  },
+  "captchaBox": null,
+  "shot": {
+    "path": "<checkout>/.data/probe-shots/form/breezy-route2-window.png",
+    "bytes": 0
+  },
+  "pausesTotal": 0,
+  "skipOnAfterCap": false,
+  "submitClicked": false,
+  "block": {
+    "reads": 47,
+    "namedReads": [],
+    "failed": [
+      {
+        "method": "POST",
+        "url": "http://localhost/w/cross",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/xhr",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "GET",
+        "url": "http://localhost/frame.html",
+        "type": "other-site frame",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/keepalive",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/beacon",
+        "type": "Ping",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/form",
+        "type": "Document",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/worker",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://r.lr-ingest.com/i",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://r.lr-ingest.com/i",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "type"
+      },
+      {
+        "method": "POST",
+        "url": "https://app.breezy.hr/api/portal/<org>/upload",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://r.lr-ingest.com/i",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "upload"
+      }
+    ],
+    "seenWrites": [
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/xhr",
+        "type": "XHR",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/keepalive",
+        "type": "Fetch",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/beacon",
+        "type": "Ping",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://localhost/w/cross",
+        "type": "Fetch",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "http://127.0.0.1/w/form",
+        "type": "Document",
+        "after": "canary"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://r.lr-ingest.com/i",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://r.lr-ingest.com/i",
+        "type": "XHR",
+        "after": "load"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "type"
+      },
+      {
+        "method": "POST",
+        "url": "https://app.breezy.hr/api/portal/<org>/upload",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://r.lr-ingest.com/i",
+        "type": "XHR",
+        "after": "upload"
+      },
+      {
+        "method": "POST",
+        "url": "https://embed-api.ziggeo.com/v1/applications/<app>/session",
+        "type": "XHR",
+        "after": "upload"
+      }
+    ]
+  },
+  "pageLoads": 1,
+  "handlerErrors": [],
+  "quit": {
+    "killed": false
+  }
+}

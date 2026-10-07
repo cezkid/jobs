@@ -152,6 +152,16 @@ CCPA, pay with per list, location), synthetic answers, canary ok each (0 of 9 te
 
 Page loads on `breezy.hr` with the 6 measure loads: 10 of 10.
 
+## In the window (plan-k8n.35)
+
+Measured in a tab of the Job Finder window (route 2), 2 tenants (A React build, B Angular), 2026-10-07, 1 page load
+each: both drew the Angular form, up 1.8 / 2.1 s after navigate, 0 `debugger;` pauses, 0 frames, no captcha or AWS
+WAF on load, name typed + read back. Dummy resume: sent at once to the upload address (blocked), then the box shows
+no name, no error, nothing sending - as in Chrome with the upload blocked (`try`: ASK). Ziggeo on load, typing and
+upload; LogRocket on A only - window as Chrome. Parity test: same report + page as Chrome after one adapter fix (date
+box filled by value, as Playwright does). Not in `--in-window` yet - owner decides (plan-k8n.40). Numbers:
+`vscode-browser.md` "Breezy - route 2".
+
 ## Cost
 
 Filler took 1 bead (5 contexts). Estimated before: ~1-2 beads: stable names, definition in the page, but no `<label>`s (label by `h3`),

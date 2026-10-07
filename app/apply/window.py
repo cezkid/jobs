@@ -816,7 +816,16 @@ class Locator:
         self._one(DISPATCH, [type, event_init], timeout=timeout)
 
     def fill(self, value: str, timeout: float | None = None) -> None:
-        self._one("(e) => { e.focus(); if (e.select) e.select(); }", visible=True, timeout=timeout)
+        # date / time / color / range boxes take the value as Playwright's fill gives it: set, then input + change -
+        # typed letters land in one part of the box (a second fill emptied a date box, plan-k8n.35)
+        if self._one("""(e, v) => { if (!(e instanceof HTMLInputElement) || !SET_VALUE.has(e.type.toLowerCase())) {
+              e.focus(); if (e.select) e.select(); return false; }
+              v = v.trim(); e.focus(); e.value = v; if (e.value !== v) throw new Error("Malformed value");
+              e.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
+              e.dispatchEvent(new Event("change", {bubbles: true})); return true; }""".replace(
+                "SET_VALUE", "new Set(['color', 'date', 'time', 'datetime-local', 'month', 'range', 'week'])"),
+                value, visible=True, timeout=timeout):
+            return
         if value:
             self.page.cdp.send("Input.insertText", {"text": value})
         else:

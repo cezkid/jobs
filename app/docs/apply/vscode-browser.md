@@ -542,6 +542,47 @@ Readings:
 Route-2 costs otherwise as Greenhouse. `window.SYSTEMS` unchanged: Manatal fills in Job Finder's own Chrome until
 the owner decides (plan-k8n.39).
 
+## Breezy - route 2 (plan-k8n.35)
+
+Same `measure.py raw`, level 3, no named read. Box = `input[name=cName]` (full name; `raw` now looks for it before any
+text box), file = `input[type=file]` (hidden `#main-attachment`), dummy PDF chosen; `raw` now reads Breezy's resume
+header after the choice (name shown, "Uploading Resume", error words). 2 employers (tenant A: React build, B: Angular;
+one host each), 2026-10-07; page loads: 1 each = 2, `app.breezy.hr` 0 (1 blocked upload each). Numbers:
+[breezy-tenant-a.json](vscode-browser/breezy-tenant-a.json), [breezy-tenant-b.json](vscode-browser/breezy-tenant-b.json)
+(host, org, posting scrubbed).
+
+| Step | A (React build) | B (Angular) |
+|---|---|---|
+| Canary first | received none | none |
+| Attach | 8.0 s | 8.0 s |
+| `READY` (`form[name=form] input[name=cName]`) from navigate | 1.8 s - the Angular form, as in Chrome | 2.1 s |
+| Widgets | 6 `select`s, 11 radios, 1 checkbox, 1 file box; no combobox, no select2 | 2 `select`s, 29 radios, 1 checkbox, 1 file box |
+| `debugger;` pauses | 0 | 0 |
+| Captcha / AWS WAF | none: no reCAPTCHA, hCaptcha, Turnstile; no AWS WAF marks | same |
+| Frames | 0 iframes, 0 frame targets | same |
+| Page load writes (failed) | Ziggeo video session x2, LogRocket x2 | Ziggeo x2 |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant"; Ziggeo POST after it | same |
+| Dummy PDF chosen | file held; upload POST to `app.breezy.hr/api/portal/<org>/upload` at once (blocked), + Ziggeo, LogRocket | same, no LogRocket |
+| Resume header after it | no name, no error words, not "Uploading Resume" (blocked send = silent, `breezy.md`: ASK) | same |
+| Window screenshot | failed ("could not create image from window"); tab shot only | same |
+
+Readings:
+- Every box + the file box is in the page; no `debugger;`, no frame, no captcha to meet before Submit.
+- Resume leaves on choice, window as Chrome (`breezy.md`: the page uploads it at once, then refills from it).
+  Its live answer in the tab + the refill: unmeasured (the upload is blocked at level 3).
+- Address box (Google Places) not typed in here: its letters going to Google is the same page script either way.
+- What Submit does in the tab (email code, bot signals): unmeasured (never Submit).
+- Adapter gap, fixed: `Locator.fill` typed into a date box - the first fill held, a second one (as `form.recheck`
+  or a re-run does) emptied it. Now date / time / color / range / month / week boxes take the value whole + input +
+  change, a bad value throws "Malformed value" - as Playwright's fill (`test_in_window_parity_fill_date_box`).
+- Parity test (`test_in_window_fills_breezy_as_playwright_does`, page copy fixture, Playwright vs `window.Page` in
+  one headless Chrome) then passes: same report, same page after, every answer read back (18 kinds: resume, contact,
+  address, pay + currency + per, location, summary, letter, text, list, radios, ticks, date, 2 EEO), a second fill
+  changes nothing, honeypot + SMS + CCPA untouched.
+
+Route-2 costs otherwise as Greenhouse. `window.SYSTEMS` unchanged: Breezy fills in Job Finder's own Chrome until
+the owner decides (plan-k8n.40).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any

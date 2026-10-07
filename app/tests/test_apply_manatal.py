@@ -9,7 +9,7 @@ import httpx
 import pytest
 from test_apply_in_window import MANATAL_PATH, both, playwright_chrome, site, tab  # noqa: F401 - fixtures
 
-from apply import browser, questions, systems
+from apply import questions, systems
 from apply import form as fill_form  # form() below is a tenant's questions
 from apply.systems import manatal
 
@@ -154,16 +154,9 @@ def test_browser_check_said_plainly(monkeypatch):
 # --- the page ---
 
 @pytest.fixture(scope="module")
-def chrome():
-    pw = pytest.importorskip("playwright.sync_api")
-    try:
-        exe = browser.chrome()
-    except SystemExit:
-        pytest.skip("Chrome not installed")
-    with pw.sync_playwright() as p:
-        b = p.chromium.launch(executable_path=exe, headless=True)
-        yield b
-        b.close()
+def chrome(playwright_chrome):
+    """The in-window test's own Playwright Chrome: a second sync Playwright in one module fails its setup."""
+    return playwright_chrome
 
 
 @pytest.fixture

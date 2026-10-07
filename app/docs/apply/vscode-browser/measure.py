@@ -49,6 +49,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            page's own upload error words read every 0.5 s for 6 s (a toast goes in 5 s) (plan-k8n.18)
            a system's FILE_LABEL (Manatal) read back after the file is chosen + the error words under it; select2 lists +
            AWS WAF marks (its script, AwsWafIntegration, aws-waf-token cookie) counted (plan-k8n.32)
+           Breezy's full-name box (cName) before any text box; a system's RESUME_BOX read after the choice: name shown,
+           still sending (UPLOADING), error words (plan-k8n.35)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -1306,7 +1308,7 @@ def raw(result):
         # a sign-in page in place of the form (UKG, plan-k8n.18): its boxes are never typed in
         fill["signIn"] = bool(getattr(system, "SIGN_IN", None)) and bool(quietly(lambda: c.evaluate(f"!!{q(system.SIGN_IN)}")))
         box = None if fill["signIn"] else next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
-                                'input[name^="primary-email"]', '#first-name-input', '#guestFirstName', '#legalFirstName', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+                                'input[name^="primary-email"]', '#first-name-input', '#guestFirstName', '#legalFirstName', 'input[name=cName]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
             block.step = "type"
@@ -1376,6 +1378,11 @@ def raw(result):
                 near = f"{q(fbox)}.closest('.custom-file')"
                 fill["fileLabel"] = quietly(lambda: c.evaluate(f"(({near} || document).querySelector({json.dumps(label)}) || {{}}).innerText || null"))
                 fill["fileError"] = quietly(lambda: c.evaluate(f"(({near} || document).querySelector('small.text-danger') || {{}}).innerText || ''"))
+            if rbox := getattr(system, "RESUME_BOX", None):  # Breezy: the resume header's file name, 'Uploading Resume', error words (plan-k8n.35)
+                fill["resumeBox"] = quietly(lambda: c.evaluate(f"""(() => {{ const b = document.querySelector({json.dumps(rbox)}); if (!b) return null;
+                  const t = (s) => [...b.querySelectorAll(s)].map((e) => e.innerText.trim()).join(' ');
+                  return {{name: t('a.bzyLinkColor'), error: t('.error-container:not(.ng-hide) span.error'),
+                    sending: [...document.querySelectorAll({json.dumps(getattr(system, "FORM", "form") + " .apply-buttons")})].some((e) => e.innerText.includes({json.dumps(getattr(system, "UPLOADING", ""))}))}} }})()"""))
             fill["sentOnChoice"] = [{"method": b["method"], "url": short(b["url"]), "type": b["type"],
                                      "contentType": b.get("contentType"), "body": b.get("body")}
                                     for b in block.log if b["after"] == "upload"]

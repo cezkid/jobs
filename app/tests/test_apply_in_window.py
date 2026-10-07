@@ -76,6 +76,8 @@ BAMBOOHR_FORM = FORM.with_name("bamboohr-form.html")
 BAMBOOHR_PATH = "/careers/101"
 MANATAL_FORM = FORM.parent.parent / "manatal" / "apply.html"
 MANATAL_PATH = "/acme/job/AB12CD34/apply"
+BREEZY_FORM = FORM.parent.parent / "breezy" / "apply.html"
+BREEZY_PATH = "/p/0a1b2c3d4e5f-software-engineer/apply"
 # a same-site frame, another site's frame (the same server by its other name), open + closed shadow roots
 FRAMES_PATH = "/dom/frames-shadow.html"
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
@@ -125,7 +127,8 @@ def site():
             else:
                 page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM,
                         ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html"), BAMBOOHR_PATH: BAMBOOHR_FORM,
-                        MANATAL_PATH: MANATAL_FORM, FRAMES_PATH: FORM.with_name("frames-shadow.html"),
+                        MANATAL_PATH: MANATAL_FORM, BREEZY_PATH: BREEZY_FORM,
+                        FRAMES_PATH: FORM.with_name("frames-shadow.html"),
                         FRAMES_PATH.replace("shadow", "inner"): FORM.with_name("frames-inner.html")}.get(self.path)
                 body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
                 if self.path == JAZZHR_PATH:
@@ -956,6 +959,24 @@ def test_in_window_parity_type_delay(tab, site, playwright_chrome):
     assert got["window"] == got["playwright"]
     assert got["window"][2] == ["Austin, Texas, United States", "Austin, Minnesota, United States"]
 
+
+
+def test_in_window_parity_fill_date_box(tab, site, playwright_chrome):
+    # a date box takes the value whole, input + change once per fill, a second fill keeps it, a bad date throws
+    # (typed letters land in one part of the box: the second fill emptied it, plan-k8n.35)
+    got = {}
+    with both(tab, playwright_chrome, site.replace("/acme/jobs/1", BREEZY_PATH)) as tabs:
+        for name, page in tabs.items():
+            page.evaluate("""() => { window.seen = []; const d = document.querySelector('[name=section_1000_question_4]');
+                for (const k of ['input', 'change']) d.addEventListener(k, () => seen.push(k)); }""")
+            box = page.locator("[name=section_1000_question_4]")
+            box.fill("2026-11-02")
+            box.fill(" 2026-11-02 ")
+            row = [box.input_value(), page.evaluate("seen")]
+            with pytest.raises(Exception, match="Malformed value"):
+                box.fill("next month")
+            got[name] = row + [box.input_value()]
+    assert got["window"] == got["playwright"] == ["2026-11-02", ["input", "change"] * 2, ""]
 
 class FakeExtension:
     """Job Finder's window as window.py sees it: opens the holding page (a GET, as its tab would),
