@@ -19,20 +19,20 @@
 <meta property="og:description" content="Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.">
 <meta property="article:published_time" content="2026-10-03">
 <meta property="article:modified_time" content="2026-10-07">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
+<meta property="og:image" content="https://jobs.enrriquez.com/cards/what-makes-a-good-resume.png?v=2f2e806a">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta property="og:image:alt" content="Two spelling errors cut recruiters’ rated interview chance by 7.3 points out of 100. Source: Sterkens et al. 2023 (Lab test).">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta name="twitter:image:alt" content="Two spelling errors cut recruiters’ rated interview chance by 7.3 points out of 100. Source: Sterkens et al. 2023 (Lab test).">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/#article","headline":"What makes a good resume? The evidence, rule by rule","description":"Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.","url":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/","mainEntityOfPage":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"What makes a good resume? The evidence, rule by rule","item":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/#article","headline":"What makes a good resume? The evidence, rule by rule","description":"Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.","url":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/","mainEntityOfPage":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/cards/what-makes-a-good-resume.png?v=2f2e806a","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"What makes a good resume? The evidence, rule by rule","item":"https://jobs.enrriquez.com/research/what-makes-a-good-resume/"}]}]}</script>
 <style>
 /* shared */
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -249,6 +249,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .more p { margin: 0 0 8px; }
 .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
 .toc, .labels { display: none; }
 .labels dl { margin: 0 0 12px; }
 .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
@@ -313,8 +316,13 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .crumbs, .toc, .toc-mini, .more { display: none !important; }
   .page { max-width: none; }
   .sources li { break-inside: avoid; }
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
 }
 /* /doc */
+  .sure { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--line); font-size: var(--step--1); line-height: 1.5; }
+  .sure summary { padding: 11px 0; font-weight: 700; color: var(--text-2); cursor: pointer; }
+  .sure[open] { padding-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -481,7 +489,10 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <p>Most rules in the table rest on convention or a company’s own survey, test or help page. Only a few have studies of real hiring behind them.</p>
 <h2 id="does-your-resume-have-to-match-your-records">Does your resume have to match your records?</h2>
 <p><strong>Yes. Many employers check work history, and mismatches turn up.</strong> HireRight, a background-check company, ran a survey in 2025. More than three-quarters of the businesses it asked found a mismatch in the past 12 months. The most common were undisclosed criminal records, education and work history <small>(<a href="#src-hireright-2025">HireRight 2025a</a>)</small>. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of respondents in Asia-Pacific and 64% in Europe, the Middle East and Africa <small>(<a href="#src-hireright-2025-sept">HireRight 2025b</a>)</small>.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
 <p>HireRight sells background checks, and the people it asked work at firms that run checks. The survey’s question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.</p>
+</details>
 <p>Each employer name, job title and dates should match what a past employer would confirm. Anything on the page can also come up in an interview. A title line at the top that names the job you want is not a past job; it has its own section below.</p>
 <h2 id="should-a-resume-list-results-or-duties">Should a resume list results or duties?</h2>
 <p><strong>Career guides agree: show what you achieved, not only what the job asked of you.</strong> MIT’s career office says to record “accomplishments and contributions, not just responsibilities” <small>(<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>)</small>. Harvard’s career office lists “not demonstrating results” among common resume mistakes <small>(<a href="#src-harvard-ocs-resume">Harvard College Office of Career Services 2026</a>)</small>.</p>
@@ -516,7 +527,12 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <p>For you, a one-line reason is your call, and the evidence is mixed. It helped for one health reason in one test and did nothing for childcare in another. Bias against gaps is the employer’s, not a flaw in you. Application forms such as Workday’s ask for start and end dates anyway.</p>
 <h2 id="do-typos-really-matter">Do typos really matter?</h2>
 <p><strong>Probably, though no study has tested them in real hiring.</strong> Every typo study we found asked people to rate resumes. In a 2023 study, 445 recruiters in Belgium rated made-up graduate resumes. Two spelling errors lowered the rated chance of an interview by 7.3 points out of 100 <small>(<a href="#src-sterkens-2023">Sterkens et al. 2023</a>)</small>. Five errors lowered it by 18.5 points <small>(<a href="#src-sterkens-2023">Sterkens et al. 2023</a>, p. 10)</small>.</p>
-<p>About half of that penalty came from recruiters judging the applicant as less careful, less able or worse with people <small>(<a href="#src-sterkens-2023">Sterkens et al. 2023</a>)</small>. The study asked recruiters to rate resumes, not to hire, so it is a lab study. The resumes were in Dutch, for recent graduates, so US results may differ.</p>
+<p>About half of that penalty came from recruiters judging the applicant as less careful, less able or worse with people <small>(<a href="#src-sterkens-2023">Sterkens et al. 2023</a>)</small>.</p>
+<p>Say two spelling errors slipped into your resume. Recruiters in that study rated the interview chance 7.3 points lower, out of 100. The two-error drop was about the size of the rise for listing volunteer work. Five errors cost 18.5 points <small>(<a href="#src-sterkens-2023">Sterkens et al. 2023</a>, p. 10)</small>.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
+<p>The study asked recruiters to rate resumes, not to hire, so it is a lab study. The resumes were in Dutch, for recent graduates, so US results may differ <small>(<a href="#src-sterkens-2023">Sterkens et al. 2023</a>)</small>.</p>
+</details>
 <p>A careful proofread, by you and someone else, is one of the cheapest fixes there is.</p>
 <h2 id="how-long-should-a-resume-be">How long should a resume be?</h2>
 <p><strong>One page is the student rule; two pages is common with more experience.</strong> MIT’s career office says to stick to one page “unless you have extensive experience or an advanced degree” <small>(<a href="#src-mit-capd-resumes">MIT Career Advising &amp; Professional Development 2026d</a>)</small>. That is convention.</p>
@@ -585,6 +601,7 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <li>October 2026 – the review of time out of work now cites its 2026 journal version, not the 2024 draft; its figures are unchanged. The US health-reason study now cites its published summary, which calls the gain significant.</li>
 <li>October 2026 – a one-line gap reason is now “your call”, since studies disagree on whether it helps. The typo figure now reads 7.3 points in every line <small>(<a href="#src-sterkens-2023">Sterkens et al. 2023</a>)</small>. The background-check survey lines now say the share is of the businesses asked, over the past 12 months.</li>
 <li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
+<li>October 2026 – added a worked example of two spelling errors; the background-check survey’s limits and the typo study’s limits now fold under “How sure is this?”. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -610,9 +627,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
-<li><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
-<li><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a><p>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</p></li>
+<li class="thumb"><img src="/cards/ats-rejection-myth-small.png?v=0f13cb23" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
+<li class="thumb"><img src="/cards/age-bias-hiring-small.png?v=1481ecde" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
+<li class="thumb"><img src="/cards/employment-gaps-small.png?v=ed4c6ca1" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a><p>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>

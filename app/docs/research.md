@@ -120,6 +120,32 @@ author.
 - Citations stay in the sentence, as written; the page sets them small + grey and a tap opens the
   source's card instead of jumping to the list (readers open a source on ~0.3% of views; linked
   words pull a skimming eye). The evidence rules above are unchanged.
+- Two layers: method + caveat detail a skimmer can skip (an adjustment note, who ran a survey, which
+  copy we read, a test's limits) goes in a `sure` block - "How sure is this?", closed, right after the
+  claim it qualifies. Never the answer: no bold inside, never right under a heading (lint), never a
+  label the claim needs to stay true ("a link, not proof" stays in the sentence). Lints read it like
+  any text. Why: a folded short version was opened by ~19% and the rest still read on (VG, vendor
+  data); NN/g + NYT: readers scroll past what is hidden - so fold only what most don't need.
+- One worked example per article, in the main finding's section: "Say you were out 14 months ...",
+  built only from the cited study's numbers, cited; our arithmetic says "by our arithmetic". No
+  made-up story: the case must be the evidence (seductive details hurt learning, g = -0.33;
+  narrative helps when it carries the content, g = .48 - meta-analyses). Skip it where the page has
+  no number a reader can apply (say why in the bead).
+- Your case: where the answer depends on the reader's situation (gap length, age band, place), a
+  `case` block - caption w/ citation, rows Label | Finding | What to do. "What to do" restates a
+  What helps item (no new fact, no stronger wording); every row shows, nothing behind a tap (85%
+  never clicked a prominent button in NYT graphics). Decision aids that walk a person through their
+  own case raise knowledge (Cochrane review, 209 trials - health decisions, an analogy).
+- Guess first: at most one `guess` block per article, where one striking number exists - a question,
+  2-4 choices, "Answer:" cited. It sits under its section's heading, before the bold answer; the
+  answer is in a closed details (no JS needed). A question before the text helps recall of that fact
+  (pretesting review, Pan + Carpenter 2023; predict-then-reveal lab study, CHI 2017; a 2024 study
+  found surprise, no recall gain - mixed). Never a quiz on every section: interactivity alone adds
+  enjoyment, not knowledge (meta-analysis, 63 studies).
+- Share card: header `card:` = the key finding, <= 100 characters w/o its citation; a number carries
+  its `[@id]` (the card shows the source line) or an `uncited:` snippet for our own count. It is
+  drawn once per change (`assets.py --only cards`) and reused small in Keep reading (related links
+  w/ images got 63% more clicks, 1.8M-visit field test).
 - Body: short full sentences (< ~20 words) that each make sense quoted alone - AI answers and
   readers lift single sentences. Name the subject, never "this" / "it" across sentences.
 - Answer first, then evidence, then limits. Each section ends with what it means for the reader.
@@ -135,7 +161,8 @@ author.
 ## Search + AI answers
 
 - `title` <= 60 chars, the reader's question or claim, no brand. `description` <= 155, the short
-  answer in a sentence. Both unique (build checks).
+  answer in a sentence - no preview tail ("What studies show.", "Where each switch is"): it is the
+  answer line under the title. Both unique (build checks).
 - H2s question-led ("Do ATS systems reject most resumes?") - matches how people search + ask AI.
 - >= 2 internal links per article (another article, methods, the home page).
 - Slug: 2-5 plain words, a-z + hyphens, no jargon words (no `ats-api-...`), never changed once live.

@@ -5,6 +5,7 @@ published: 2026-10-03
 modified: 2026-10-07
 status: published
 og_title: "Do hiring systems reject 75% of resumes? Where the claim came from"
+card: "No study shows ATS reject 75% of resumes: it traces to a 2012 sales claim [@levinson-2012-cio]."
 uncited:
   - "No study shows that applicant tracking systems reject 75%"
   - "143 application forms"
@@ -33,6 +34,14 @@ uncited:
 - About a third of hiring managers in one 2026 vendor survey use AI to screen or rank (Vendor survey) [@resume-genius-2026]. How often it rejects alone: unknown.
 
 ## Where does the 75% number come from?
+
+```guess
+"75% of resumes are rejected by ATS" - how many studies back that number?
+- Several large studies
+- One study
+- None we could find
+Answer: None we could find. The earliest copy we found is a 2012 magazine article quoting a company that sold help to beat these systems; neither says how the number was measured [@levinson-2012-cio; @preptel-2012].
+```
 
 **No study shows that applicant tracking systems reject 75% of resumes.** The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems "kill 75% of candidates' chances" of an interview. The article credited that figure to Preptel, a company selling help to beat those systems [@levinson-2012-cio].
 
@@ -87,9 +96,13 @@ License, certificate or security clearance | 13 of 143
 
 A plain address box, or a question asking only where you live, is not counted in the on-site row.
 
+```sure
 These counts have limits. The forms we could read lean toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically. The data, one row per form, and how we counted: [the knockout-question data](knockout-questions-2026-10.md).
 
 An earlier count of many more forms, published by freehire.me's maker, reported far fewer forms with extra questions. We could not re-find that page to check it, so we don't cite its numbers. Our sample is small, and its share may not hold for all forms.
+```
+
+Say you apply to 10 jobs like the ones in our sample. By our arithmetic from our count, about 7 of their forms would ask about a work permit or visa sponsorship, and about 3 whether you can work on site or live nearby. A question is not a rejection. On Greenhouse, an employer that turns on auto-reject sets it on answers like those, not on resume text [@greenhouse-rules].
 
 Our share of 109 of the 143 forms does not confirm the old 75% claim [@levinson-2012-cio]. A question on a form is not a rejection, and the two numbers measure different things.
 
@@ -125,7 +138,9 @@ Gaps between your experience and the exact wording of a posting can matter. The 
 
 **How often AI rejects applicants with no person involved is unknown.** In a 2026 survey of 1,000 US hiring managers, 35% said they used AI to screen or rank applications. 19% said they used AI to screen some out before a human looked. 6% said AI can move applicants forward or reject them with limited human review. 32% said AI recommends or ranks, but people make all final decisions [@resume-genius-2026].
 
+```sure
 The Resume Genius survey was run by a resume-builder company. The survey does not give its dates, and the answers are what managers said.
+```
 
 Vendors describe their AI as an aid to a human reviewer. Ashby says its AI marks each applicant as meeting an employer's criteria or not, with reasons. Ashby says it is then "up to the reviewer to advance or reject" [@ashby-2024].
 
@@ -170,3 +185,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 - October 2026 - recounted our measurement. Some forms list the employer's questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.
 - October 2026 - the spaced-heading line now says three readers read a lightly spaced heading whole, and wider spacing split it in our parser test. The Form I-9 line now carries its date. The finding is unchanged.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - added a guess-first question and a worked example of 10 applications from our count; limits and survey notes now fold under "How sure is this?". The findings are unchanged.

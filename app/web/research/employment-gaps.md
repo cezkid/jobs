@@ -4,6 +4,7 @@ description: "Short gaps showed no clear cost in the biggest review; long ones c
 published: 2026-10-04
 modified: 2026-10-07
 status: published
+card: "Out of work 13 to 18 months: about 21% fewer employer replies than people in a job [@dhert-2026]."
 uncited:
   - "We found no field test"
   - "We searched the web and arXiv"
@@ -24,15 +25,41 @@ uncited:
 
 ## Does a gap in your work history cost you interviews?
 
+```guess
+In the biggest review, how did employers reply to people out of work 13 to 18 months, next to people in a job?
+- About as often
+- About a fifth less often
+- About half as often
+Answer: About a fifth less often - replies were about 21% lower. Up to six months out of work, the review found no clear cost [@dhert-2026, p. 1382].
+```
+
 **A long gap often does. A short one showed no clear cost in the biggest review so far.**
 
 That review came out in 2026. It combined 16 field experiments with almost 67,000 made-up applicants in seven countries. Each experiment sent employers resumes that differed in whether the applicant was out of work, and for how long. The review compared applicants out of work now with applicants who had a job [@dhert-2026, pp. 1357, 1362]. A callback means the employer answers and asks for an interview or more details. Studies call it a callback, a positive reply or an interview request.
 
-Length made the difference. Up to six months out of work, positive replies were about 8% higher than for applicants with a job. That difference could be chance. From 13 to 18 months, replies were about 21% lower. From 19 to 36 months, they were about 27% lower. The 8% figure is not adjusted for differences between studies; the two long-gap figures are. With that adjustment, and the most extreme studies set aside, short spells showed a plus of about 17% [@dhert-2026, p. 1382]. The review's summary says the harm becomes noticeable after about twelve months. The review's text gives no number for 7 to 12 months. Its chart shows replies a little lower for that span, and that difference could be chance [@dhert-2026, p. 1381].
+```case
+Your gap, what the biggest review found, what to do (Big study) [@dhert-2026, pp. 1380-1382]
+Time out of work | What the review found | What to do
+Up to 6 months, still searching | Replies about 8% higher than for people in a job; could be chance | Nothing to explain: a search under way is not a gap
+7 to 12 months | A little lower in the review's chart; could be chance; no number given | A one-line reason is your call
+13 to 18 months | Replies about 21% lower | List real work, study or volunteering; a reason line is your call
+19 to 36 months | Replies about 27% lower | List real work, study or volunteering; a reason line is your call
+A gap that ended, then a job | No clear effect in field tests | Keep every date true
+```
+
+Length made the difference. Up to six months out of work, positive replies were about 8% higher than for applicants with a job. That difference could be chance. From 13 to 18 months, replies were about 21% lower. From 19 to 36 months, they were about 27% lower [@dhert-2026, p. 1382].
+
+```sure
+The 8% figure is not adjusted for differences between studies; the two long-gap figures are. With that adjustment, and the most extreme studies set aside, short spells showed a plus of about 17% [@dhert-2026, p. 1382].
 
 Across all lengths together, applicants out of work got about 7% fewer positive replies. That overall result is borderline. Unadjusted, it could be chance; adjusted for differences between studies, it could not [@dhert-2026, p. 1380]. Averaged over spells of 1 to 36 months, each extra month was linked with about 1.7% fewer positive replies. That average hides the first six months, which showed no clear cost [@dhert-2026, p. 1383].
 
 The review has limits its authors name. It covers only peer-reviewed studies from one research database. It could not test whether the reason for being out of work changes the result [@dhert-2026, p. 1388].
+```
+
+Say you have been out of work for 14 months and are still searching. Applicants out of work 13 to 18 months got about 21% fewer positive replies than applicants with a job [@dhert-2026, p. 1382]. Where applicants with a job got 100 replies, that is about 79 for applicants out that long, by our arithmetic. Four months out and still searching, you would be in the group with no clear cost [@dhert-2026, p. 1382].
+
+The review's summary says the harm becomes noticeable after about twelve months. The review's text gives no number for 7 to 12 months. Its chart shows replies a little lower for that span, and that difference could be chance [@dhert-2026, p. 1381].
 
 ## When does a gap start to count?
 
@@ -79,7 +106,11 @@ For you, a short gap, or an old gap followed by a job, showed no clear cost in m
 | Weisshaar 2018 [@weisshaar-2018], 3,407 US applications | Laid off, or left to care for children, 18-month gap | Laid-off parents 8.8% to 9.7%; stay-at-home parents 4.9% to 5.4% |
 | Bateson 2023 [@bateson-2023], 974 US adults, lab study | Pandemic gap: laid off, child's online school, or in and out of work | Chosen about 20% less often, whatever the reason |
 
-The US health test had a third group, newly out of work, with replies of 27.4%. So the health reason won back about half of the drop between that group and the unexplained gap. Those three rates come from the authors' 2018 summary and may differ in the printed paper. The illness was cancer, and the gap was seven months or more, by the trial's registration. The resume also listed a cancer support group. The published summary says replies with the reason were "significantly higher" than with an unexplained gap [@namingit-2021]. The half is our arithmetic from the study's three rates.
+The US health test had a third group, newly out of work, with replies of 27.4%. So the health reason won back about half of the drop between that group and the unexplained gap [@namingit-2021]. The half is our arithmetic from the study's three rates.
+
+```sure
+Those three rates come from the authors' 2018 summary and may differ in the printed paper. The illness was cancer, and the gap was seven months or more, by the trial's registration. The resume also listed a cancer support group. The published summary says replies with the reason were "significantly higher" than with an unexplained gap [@namingit-2021].
+```
 
 The UK test found no gain from a childcare line. It also tried listing years worked per job in place of dates. That format got 4.9 points more replies than an unexplained gap and 2.9 points more than no gap at all [@kristal-2023]. The authors note the test ran in the UK only.
 
@@ -166,3 +197,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 - October 2026 - the six-month line is now credited to the survey it comes from, with its 48% figure, not called a convention [@fuller-2021]. The background-check survey line now says "in the past 12 months". The findings are unchanged.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - added a guess-first question, a chart by gap length with what to do, and a worked example of a 14-month gap; method notes now fold under "How sure is this?". The findings are unchanged.

@@ -4,6 +4,7 @@ description: "Often yes - many forms we checked had a letter box, and a 2019-20 
 published: 2026-10-04
 modified: 2026-10-07
 status: published
+card: "In a 2019-20 test by a resume company, tailored letters got 16.4% callbacks; no letter got 10.7% [@resumego-2020]."
 uncited:
   - "143 application forms"
   - "96 had a cover letter box"
@@ -38,7 +39,11 @@ uncited:
 
 **Many application forms still have a cover letter box.** Our measurement read 143 application forms from US job postings in October 2026. Of those, 96 had a cover letter box (67%). The box was optional on 91 of those 96 forms; 2 required one, and 3 we could not check because the hiring system no longer showed the posting. By employer, 71 of the 104 employers had a cover letter box on at least one form.
 
-The form system made the biggest difference we saw. Our measurement found a box on 85 of 96 Greenhouse forms, where it sits with the basic boxes such as name and email. It found a box on 3 of 15 Ashby forms and 7 of 12 Workable forms. Our measurement found 0 of 19 Lever forms with a box named cover letter. Some Lever forms show an open "additional information" box whose hint says to add a cover letter; we did not count those. Job field and form system overlap in our sample, so we can't fully separate the two. The forms, the counting code and the limits are on [our data page](cover-letter-boxes-2026-10.md).
+The form system made the biggest difference we saw. Our measurement found a box on 85 of 96 Greenhouse forms, where it sits with the basic boxes such as name and email. It found a box on 3 of 15 Ashby forms and 7 of 12 Workable forms. Our measurement found 0 of 19 Lever forms with a box named cover letter. Job field and form system overlap in our sample, so we can't fully separate the two. The forms, the counting code and the limits are on [our data page](cover-letter-boxes-2026-10.md).
+
+```sure
+Some Lever forms show an open "additional information" box whose hint says to add a cover letter; we did not count those.
+```
 
 A much larger count from the same job search points the same way. The maker of freehire.me, the job search our sample came from, says 209,297 of 402,117 open postings with a captured form have a letter box, about half. That count uses the same read of forms as ours, and its notes give no method or date [@freehire-letter-count].
 
@@ -47,6 +52,14 @@ A box on the form does not mean anyone reads what goes in it. No study we found 
 For you, a cover letter box is common, and it is almost always optional.
 
 ## Does a cover letter get you more interviews?
+
+```guess
+In a test of 7,287 applications, 10.7% of those sent with no cover letter got a callback. What share of those with a letter tailored to the job did?
+- About 11%
+- About 13%
+- About 16%
+Answer: About 16% - tailored letters got 16.4%, generic letters 12.5%. The test was small, run by a resume company, before chat AI [@resumego-2020].
+```
 
 **In the one field test we found, a tailored letter got more callbacks than none.** ResumeGo, a resume-writing company, sent 7,287 made-up applications from July 2019 to January 2020. The applications went to jobs on ZipRecruiter, Glassdoor and Indeed. Each went out with no letter, a generic letter or a letter tailored to the job. Within 30 days, 10.7% of applications with no letter got a callback. Generic letters got 12.5%, and tailored letters got 16.4%, about half again as many as no letter [@resumego-2020].
 
@@ -58,7 +71,11 @@ Generic cover letter | 12.5%
 Cover letter tailored to the job | 16.4%
 ```
 
+Say you sent 100 applications like the ones in that test. At its rates, about 11 with no letter and about 16 with a tailored letter would get a callback [@resumego-2020]. That is about 6 more per 100, by our arithmetic. The test ran before chat AI and gave no check of whether the gap could be chance [@resumego-2020].
+
+```sure
 The study has real limits. ResumeGo sells resume writing, and the study was not peer-reviewed. The page gives no group sizes and no job types. It does not say the applications were split between groups at random. It gives no test of whether the gap could be chance. Where a form had a letter box, the no-letter group left it blank or wrote "N/A". The test ran before chat AI could write a letter in seconds [@resumego-2020].
+```
 
 No peer-reviewed field test of letter against no letter turned up in our search. We searched the web and arXiv in October 2026 for field tests of cover letters and for surveys with a published method. The ResumeGo result is the best direct evidence, and it is weak.
 
@@ -143,3 +160,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 - October 2026 - ResumeGo's test is now labelled a small study by a resume company, matching our evidence scale. The AI letter gain now reads "may have raised", since it was too uncertain to rule out chance. Two survey samples now name who was asked. The 54% line now reads as a share of everyone asked [@insight-global-2025]. The model's extreme case now says applications, as the paper does, not letters. The numbers are unchanged.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - added a guess-first question and a worked example of 100 applications; the ResumeGo test's limits and our count's notes now fold under "How sure is this?". The findings are unchanged.

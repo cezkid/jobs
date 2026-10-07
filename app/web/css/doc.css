@@ -108,6 +108,11 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .more p { margin: 0 0 8px; }
 .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+/* an article's own share card, small, left of its link; the whole row is the link's hit box (::after) */
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+/* framed by a shadow, not a border: a border over 100px wide reads as a rule (qa RULES_STACKED) */
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
 /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
 .toc, .labels { display: none; }
 .labels dl { margin: 0 0 12px; }
@@ -187,4 +192,7 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .crumbs, .toc, .toc-mini, .more { display: none !important; }
   .page { max-width: none; }
   .sources li { break-inside: avoid; }
+  /* paper can't be tapped: folded method lines + guess answers print open */
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
 }

@@ -19,20 +19,20 @@
 <meta property="og:description" content="No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.">
 <meta property="article:published_time" content="2026-10-03">
 <meta property="article:modified_time" content="2026-10-07">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
+<meta property="og:image" content="https://jobs.enrriquez.com/cards/ats-rejection-myth.png?v=ee6ae643">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta property="og:image:alt" content="No study shows ATS reject 75% of resumes: it traces to a 2012 sales claim. Source: Levinson 2012 (News report).">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta name="twitter:image:alt" content="No study shows ATS reject 75% of resumes: it traces to a 2012 sales claim. Source: Levinson 2012 (News report).">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ats-rejection-myth/#article","headline":"Do ATS reject 75% of resumes? Where the number came from","description":"No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.","url":"https://jobs.enrriquez.com/research/ats-rejection-myth/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ats-rejection-myth/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do ATS reject 75% of resumes? Where the number came from","item":"https://jobs.enrriquez.com/research/ats-rejection-myth/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ats-rejection-myth/#article","headline":"Do ATS reject 75% of resumes? Where the number came from","description":"No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.","url":"https://jobs.enrriquez.com/research/ats-rejection-myth/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ats-rejection-myth/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/cards/ats-rejection-myth.png?v=ee6ae643","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do ATS reject 75% of resumes? Where the number came from","item":"https://jobs.enrriquez.com/research/ats-rejection-myth/"}]}]}</script>
 <style>
 /* shared */
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -249,6 +249,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .more p { margin: 0 0 8px; }
 .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
 .toc, .labels { display: none; }
 .labels dl { margin: 0 0 12px; }
 .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
@@ -313,8 +316,24 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .crumbs, .toc, .toc-mini, .more { display: none !important; }
   .page { max-width: none; }
   .sources li { break-inside: avoid; }
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
 }
 /* /doc */
+  .guess { margin: 32px 0; padding: 12px 0 4px; border-top: 2px solid var(--text); border-bottom: 1px solid var(--text); }
+  .guess::before { content: "Guess first"; display: block; font-size: var(--step--1); font-weight: 700; color: var(--text-2); }
+  .guess-q { margin: 4px 0 10px; font-size: var(--step-1); line-height: 1.35; }
+  .guess ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; padding: 0; }
+  .guess li { margin: 0; padding: 8px 14px; box-shadow: inset 0 0 0 1px var(--line); border-radius: 6px; }
+  .guess li:has(button) { padding: 0; box-shadow: none; }
+  .guess button { min-height: 44px; padding: 8px 16px; font: inherit; color: var(--text); background: var(--desk); border: 0; box-shadow: inset 0 0 0 2px var(--text); border-radius: 6px; cursor: pointer; }
+  @media (forced-colors: active) { .guess button { border: 2px solid ButtonText; } }
+  .guess button[aria-pressed="true"] { color: var(--desk); background: var(--text); }
+  .guess summary { padding: 11px 0; font-weight: 700; cursor: pointer; }
+  .guess details p { margin: 0 0 12px; }
+  .sure { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--line); font-size: var(--step--1); line-height: 1.5; }
+  .sure summary { padding: 11px 0; font-weight: 700; color: var(--text-2); cursor: pointer; }
+  .sure[open] { padding-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -386,6 +405,18 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <li>About a third of hiring managers in one 2026 vendor survey use AI to screen or rank <small>(Vendor survey; <a href="#src-resume-genius-2026">Chan 2026</a>)</small>. How often it rejects alone: unknown.</li>
 </ul>
 <h2 id="where-does-the-75-number-come-from">Where does the 75% number come from?</h2>
+<div class="guess">
+<p class="guess-q">“75% of resumes are rejected by ATS” – how many studies back that number?</p>
+<ul>
+<li>Several large studies</li>
+<li>One study</li>
+<li>None we could find</li>
+</ul>
+<details>
+<summary>Show the answer</summary>
+<p>None we could find. The earliest copy we found is a 2012 magazine article quoting a company that sold help to beat these systems; neither says how the number was measured <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>; <a href="#src-preptel-2012">Preptel 2012</a>)</small>.</p>
+</details>
+</div>
 <p><strong>No study shows that applicant tracking systems reject 75% of resumes.</strong> The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems “kill 75% of candidates’ chances” of an interview. The article credited that figure to Preptel, a company selling help to beat those systems <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>.</p>
 <p>Preptel sold a resume service for $24.95 a month at the time <small>(<a href="#src-levinson-2012-preptel">Levinson 2012b</a>)</small>. Preptel’s own news page had reposted the 75% line by December 2012 <small>(<a href="#src-preptel-2012">Preptel 2012</a>)</small>. Neither page says how the number was measured. We searched for a study, sample or data set behind the figure and found none.</p>
 <p>The 2012 line was about the chances of getting an interview, not a count of rejected resumes <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>. Retellings turned it into a count. Enhancv’s 2025 page quotes the common version: “75% of resumes are rejected by Applicant Tracking Systems” <small>(<a href="#src-enhancv-2025">Vasileva 2025</a>)</small>.</p>
@@ -437,8 +468,12 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 </table>
 </figure>
 <p>A plain address box, or a question asking only where you live, is not counted in the on-site row.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
 <p>These counts have limits. The forms we could read lean toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically. The data, one row per form, and how we counted: <a href="/research/knockout-questions-2026-10/">the knockout-question data</a>.</p>
 <p>An earlier count of many more forms, published by freehire.me’s maker, reported far fewer forms with extra questions. We could not re-find that page to check it, so we don’t cite its numbers. Our sample is small, and its share may not hold for all forms.</p>
+</details>
+<p>Say you apply to 10 jobs like the ones in our sample. By our arithmetic from our count, about 7 of their forms would ask about a work permit or visa sponsorship, and about 3 whether you can work on site or live nearby. A question is not a rejection. On Greenhouse, an employer that turns on auto-reject sets it on answers like those, not on resume text <small>(<a href="#src-greenhouse-rules">Greenhouse 2026b</a>)</small>.</p>
 <p>Our share of 109 of the 143 forms does not confirm the old 75% claim <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>. A question on a form is not a rejection, and the two numbers measure different things.</p>
 <p>Expect a work-permit or sponsorship question on many forms, and an on-site or location question on some.</p>
 <h2 id="do-formatting-errors-get-resumes-rejected">Do formatting errors get resumes rejected?</h2>
@@ -456,7 +491,10 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <p>Gaps between your experience and the exact wording of a posting can matter. The fix is the posting’s words for skills you really have, not words you lack.</p>
 <h2 id="is-ai-now-rejecting-resumes-on-its-own">Is AI now rejecting resumes on its own?</h2>
 <p><strong>How often AI rejects applicants with no person involved is unknown.</strong> In a 2026 survey of 1,000 US hiring managers, 35% said they used AI to screen or rank applications. 19% said they used AI to screen some out before a human looked. 6% said AI can move applicants forward or reject them with limited human review. 32% said AI recommends or ranks, but people make all final decisions <small>(<a href="#src-resume-genius-2026">Chan 2026</a>)</small>.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
 <p>The Resume Genius survey was run by a resume-builder company. The survey does not give its dates, and the answers are what managers said.</p>
+</details>
 <p>Vendors describe their AI as an aid to a human reviewer. Ashby says its AI marks each applicant as meeting an employer’s criteria or not, with reasons. Ashby says it is then “up to the reviewer to advance or reject” <small>(<a href="#src-ashby-2024">Ashby 2024</a>)</small>.</p>
 <p>A US lawsuit alleges otherwise for one vendor. In Mobley v. Workday, the plaintiffs allege Workday’s AI scored, sorted or screened applicants in a way that disadvantaged older people <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 3)</small>. The court described Workday’s position as: its AI cannot reject anyone without the employer taking part <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 10)</small>.</p>
 <p>In May 2025 a federal court in California let the age claim go forward as a collective action, at a preliminary stage. Workday can still ask the court to undo that step later <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>)</small>. Workday told the court 1.1 billion applications were rejected using its software. The court said that estimate ignores the limits of who is in the case <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 19)</small>.</p>
@@ -493,6 +531,7 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <li>October 2026 – recounted our measurement. Some forms list the employer’s questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.</li>
 <li>October 2026 – the spaced-heading line now says three readers read a lightly spaced heading whole, and wider spacing split it in our parser test. The Form I-9 line now carries its date. The finding is unchanged.</li>
 <li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
+<li>October 2026 – added a guess-first question and a worked example of 10 applications from our count; limits and survey notes now fold under “How sure is this?”. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -515,9 +554,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</p></li>
-<li><a href="/research/resume-parser-test/">Are two-column resumes ATS friendly? A 7-layout PDF test</a><p>We read one resume in 7 layouts with 3 free PDF readers, not an employer’s system. Our plain page never broke; spaced-out headings always did.</p></li>
-<li><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a><p>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</p></li>
+<li class="thumb"><img src="/cards/what-makes-a-good-resume-small.png?v=d7643363" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</p></li>
+<li class="thumb"><img src="/cards/resume-parser-test-small.png?v=90948c8c" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/resume-parser-test/">Are two-column resumes ATS friendly? A 7-layout PDF test</a><p>We read one resume in 7 layouts with 3 free PDF readers, not an employer’s system. Our plain page never broke; spaced-out headings always did.</p></li>
+<li class="thumb"><img src="/cards/employment-gaps-small.png?v=ed4c6ca1" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a><p>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
@@ -540,5 +579,6 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 </footer>
 <script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
 <script>(()=>{const d=document.createElement("dialog");d.className="card";document.body.append(d);document.addEventListener("click",e=>{const l=e.target.closest('a[href^="#src-"]');if(!l||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const s=document.getElementById(l.hash.slice(1));if(!s)return;e.preventDefault();d.innerHTML="<div>"+s.innerHTML+'<p><a href="#sources">All sources<\/a><button autofocus>Close<\/button><\/p><\/div>';d.showModal()});d.addEventListener("click",e=>{if(e.target==d||e.target.closest('button,[href="#sources"]'))d.close()})})()</script>
+<script>(()=>{for(const g of document.querySelectorAll(".guess")){const d=g.querySelector("details");for(const l of g.querySelectorAll("li")){const b=document.createElement("button");b.type="button";b.setAttribute("aria-pressed","false");b.append(...l.childNodes);l.append(b);b.onclick=()=>{for(const x of g.querySelectorAll("button"))x.setAttribute("aria-pressed",x==b);d.open=true}}}})()</script>
 </body>
 </html>

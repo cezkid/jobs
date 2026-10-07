@@ -19,20 +19,20 @@
 <meta property="og:description" content="New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow.">
 <meta property="article:published_time" content="2026-10-04">
 <meta property="article:modified_time" content="2026-10-07">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
+<meta property="og:image" content="https://jobs.enrriquez.com/cards/ai-hiring-laws.png?v=ca55242a">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta property="og:image:alt" content="As of October 2026: no US federal ban on AI resume screening we found. A few places require notice. Every claim on the page linked to its source.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta name="twitter:image:alt" content="As of October 2026: no US federal ban on AI resume screening we found. A few places require notice. Every claim on the page linked to its source.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-hiring-laws/#article","headline":"AI hiring laws in 2026: what employers must tell you","description":"New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow.","url":"https://jobs.enrriquez.com/research/ai-hiring-laws/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-hiring-laws/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"AI hiring laws in 2026: what employers must tell you","item":"https://jobs.enrriquez.com/research/ai-hiring-laws/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-hiring-laws/#article","headline":"AI hiring laws in 2026: what employers must tell you","description":"New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow.","url":"https://jobs.enrriquez.com/research/ai-hiring-laws/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-hiring-laws/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/cards/ai-hiring-laws.png?v=ca55242a","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"AI hiring laws in 2026: what employers must tell you","item":"https://jobs.enrriquez.com/research/ai-hiring-laws/"}]}]}</script>
 <style>
 /* shared */
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -249,6 +249,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .more p { margin: 0 0 8px; }
 .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
 .toc, .labels { display: none; }
 .labels dl { margin: 0 0 12px; }
 .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
@@ -313,8 +316,23 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .crumbs, .toc, .toc-mini, .more { display: none !important; }
   .page { max-width: none; }
   .sources li { break-inside: avoid; }
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
 }
 /* /doc */
+  .case { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .case figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .case table { width: 100%; }
+  .case tbody th { font-weight: 700; }
+  @media (max-width: 600px) {
+    .case thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .case tbody tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .case tbody th, .case tbody td { display: block; padding: 0 0 6px; border: 0; }
+    .case td::before { content: attr(data-label); display: block; color: var(--text-2); font-size: 0.9em; }
+  }
+  .sure { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--line); font-size: var(--step--1); line-height: 1.5; }
+  .sure summary { padding: 11px 0; font-weight: 700; color: var(--text-2); cursor: pointer; }
+  .sure[open] { padding-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -391,15 +409,68 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <p>The old discrimination laws still cover what the software does. In June 2026, a federal court in California let a lawsuit over AI screening go on. The claims going on include race, disability and age under federal law, plus California state-law claims. The court decided only which claims may continue, not whether they are true <small>(<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 1–2, 11)</small>.</p>
 <p>Connecticut says it outright, as of October 2026. Since October 1, 2026, using an automated tool is no defense to a discrimination complaint there <small>(<a href="#src-ct-pa26-15">Connecticut General Assembly 2026</a>, section 13)</small>.</p>
 <h2 id="which-laws-make-employers-tell-you-they-use-ai">Which laws make employers tell you they use AI?</h2>
+<figure class="case">
+<figcaption>Where you live or apply, what the law says, what to do – as of October 2026 (Law; not legal advice)</figcaption>
+<table>
+<thead>
+<tr>
+<th scope="col">Where</th>
+<th scope="col">What the law says</th>
+<th scope="col">What to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">New York City</th>
+<td data-label="What the law says">Notice to candidates who live in the city, 10 business days before an AI tool is used; a yearly bias audit, its summary public <small>(<a href="#src-nyc-ll144">NYC Department of Consumer and Worker Protection 2023b</a>; <a href="#src-nyc-aedt-rule">NYC Department of Consumer and Worker Protection 2023a</a>)</small></td>
+<td data-label="What to do">Look for the notice in the posting or careers page; ask in writing what data the tool uses</td>
+</tr>
+<tr>
+<th scope="row">Illinois</th>
+<td data-label="What the law says">Notice to employees that AI is used; whether applicants get one, and how, is not final <small>(<a href="#src-il-pa-103-0804">Illinois General Assembly 2024b</a>)</small></td>
+<td data-label="What to do">Keep a copy of each notice and of what you sent</td>
+</tr>
+<tr>
+<th scope="row">Colorado</th>
+<td data-label="What the law says">Notice, and a plain description of the system’s role within 30 days of a decision against you; start not settled, enforcement paused by a court <small>(<a href="#src-co-sb26-189">Colorado General Assembly 2026</a>; <a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>; <a href="#src-xai-weiser-stay">US District Court for the District of Colorado 2026</a>)</small></td>
+<td data-label="What to do">Once the law applies, ask for the description, your data and a human review</td>
+</tr>
+<tr>
+<th scope="row">California</th>
+<td data-label="What the law says">From January 2027: notice before use; you may ask how the tool worked <small>(<a href="#src-ca-cppa-admt-2025">California Privacy Protection Agency 2025</a>)</small></td>
+<td data-label="What to do">From January 2027, ask how a tool used your data; opt out or appeal to a person where offered</td>
+</tr>
+<tr>
+<th scope="row">Connecticut</th>
+<td data-label="What the law says">From October 2027: notice in plain words, and written notice before a decision <small>(<a href="#src-ct-pa26-15">Connecticut General Assembly 2026</a>)</small></td>
+<td data-label="What to do">Keep a copy of each notice and of what you sent</td>
+</tr>
+<tr>
+<th scope="row">European Union</th>
+<td data-label="What the law says">Fully automated decisions: you must be told, and a person can step in <small>(<a href="#src-eu-gdpr">European Union 2016</a>)</small></td>
+<td data-label="What to do">Ask for a person to review a fully automated rejection</td>
+</tr>
+<tr>
+<th scope="row">Anywhere in the US</th>
+<td data-label="What the law says">The disability law applies before any offer; you may ask for an accommodation for any test <small>(<a href="#src-eeoc-ada-preemployment">US Equal Employment Opportunity Commission 1995</a>)</small></td>
+<td data-label="What to do">If an AI test does not work for you because of a disability, ask for an accommodation</td>
+</tr>
+</tbody>
+</table>
+</figure>
 <h3 id="new-york-city-local-law-144">New York City (Local Law 144)</h3>
 <p>As of October 2026, New York City Local Law 144 covers automated tools that help decide who gets hired. An employer using one needs a bias audit done within the past year. A bias audit checks whether the tool’s results differ by sex, race or ethnicity. A summary of the audit results must be public. Candidates who live in the city must get notice 10 business days before the tool is used. The city has enforced the law since July 5, 2023 <small>(<a href="#src-nyc-ll144">NYC Department of Consumer and Worker Protection 2023b</a>; <a href="#src-nyc-aedt-rule">NYC Department of Consumer and Worker Protection 2023a</a>)</small>.</p>
 <p>The city’s rule says how notice works, as of October 2026. Notice can go on the careers page, in the job posting, or by mail or email. It must explain how to ask for another selection process or an accommodation, if one is available. The rule does not make the employer offer another process. The employer must also post what data the tool uses and where it comes from. You can ask for that in writing, and the employer must answer within 30 days <small>(<a href="#src-nyc-aedt-rule">NYC Department of Consumer and Worker Protection 2023a</a>, section 5–304)</small>.</p>
+<p>Say you live in New York City and apply in October 2026 to an employer that screens with such a tool. The employer must give you notice at least 10 business days before the tool is used, for example in the posting or on its careers page <small>(<a href="#src-nyc-aedt-rule">NYC Department of Consumer and Worker Protection 2023a</a>, section 5–304)</small>. If you write asking what data the tool uses, the employer has 30 days to answer. The rule does not make it offer you another process <small>(<a href="#src-nyc-aedt-rule">NYC Department of Consumer and Worker Protection 2023a</a>, section 5–304)</small>.</p>
 <h3 id="illinois-hb-3773">Illinois (HB 3773)</h3>
 <p>As of October 2026, Illinois treats some AI use in hiring as a civil rights violation. The law covers AI used in recruiting, hiring and other job decisions. It bans AI that has the effect of discriminating against a protected group. Using ZIP codes as a stand-in for a protected group also counts. The law, Public Act 103-0804, took effect January 1, 2026 <small>(<a href="#src-il-pa-103-0804">Illinois General Assembly 2024b</a>, p. 20; <a href="#src-il-hb3773">Illinois General Assembly 2024a</a>)</small>.</p>
 <p>The law also makes it a violation to fail to give notice “to an employee” that AI is used. Its definition of employee names only applicants for apprenticeships. It leaves the details to state rules: when notice is needed, how soon and how <small>(<a href="#src-il-pa-103-0804">Illinois General Assembly 2024b</a>, p. 20)</small>. We found no final Illinois rule on it as of October 2026.</p>
 <h3 id="colorado-sb26-189">Colorado (SB26-189)</h3>
-<p>As of October 2026, Colorado’s SB26-189 covers automated systems used in decisions such as hiring. Employers must give clear notice when you deal with such a system. After a decision goes against you, they must describe the system’s role in plain words within 30 days. The Attorney General must write rules on that description by January 1, 2027. You may ask for your personal data and correct data that is factually wrong. You may ask for “meaningful human review and reconsideration” of the decision. The Attorney General enforces the law, and applicants get no new right to sue. The law, signed May 14, 2026, replaced Colorado’s 2024 AI law <small>(<a href="#src-co-sb26-189">Colorado General Assembly 2026</a>)</small>.</p>
+<p>As of October 2026, Colorado’s SB26-189 covers automated systems used in decisions such as hiring. Employers must give clear notice when you deal with such a system. After a decision goes against you, they must describe the system’s role in plain words within 30 days. The Attorney General must write rules on that description by January 1, 2027. You may ask for your personal data and correct data that is factually wrong. You may ask for “meaningful human review and reconsideration” of the decision. The Attorney General enforces the law, and applicants get no new right to sue. The law, signed May 14, 2026, replaced Colorado’s 2024 AI law <small>(<a href="#src-co-sb26-189">Colorado General Assembly 2026</a>)</small>. When these duties start is not settled, as of October 2026: January 2027 or at signing <small>(<a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>)</small>.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
 <p>A May 2026 staff note says the disclosure duties begin January 1, 2027. The same note says the notice, rights and enforcement sections take effect at signing. It describes the bill before final passage. We could not open the signed act to settle the date <small>(<a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>)</small>.</p>
+</details>
 <p>A federal court has paused enforcement, as of October 2026. In April 2026, it ordered the Attorney General not to enforce the 2024 law or a law replacing it. The pause covers anything done until 14 days after the court rules on a request to block the law. That request is due 28 days after Colorado finishes its rules <small>(<a href="#src-xai-weiser-stay">US District Court for the District of Colorado 2026</a>, ECF 24)</small>.</p>
 <h3 id="california-privacy-rules">California (privacy rules)</h3>
 <p>As of October 2026, California’s privacy agency has rules for automated decisions about jobs. They cover tools that replace or substantially replace a human decision. Businesses must comply from January 1, 2027. Before the tool is used, you must get a notice of its purpose and your rights. You may ask how the tool worked and how its output shaped the decision <small>(<a href="#src-ca-cppa-admt-2025">California Privacy Protection Agency 2025</a>, sections 7001, 7200, 7220, 7222)</small>.</p>
@@ -423,7 +494,11 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <p>The executive orders tell federal agencies what to pursue. As of October 2026, people can still bring their own claims under the federal laws. In June 2026, a court let such claims over AI screening go on <small>(<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>)</small>.</p>
 <h2 id="are-ai-hiring-laws-enforced">Are AI hiring laws enforced?</h2>
 <p>A December 2025 state audit looked at New York City’s enforcement from July 2023 to June 2025. The city reviewed 32 companies and found one issue. State auditors looked at the same companies and found at least 17 possible problems. The city received two complaints in two years. The audit called the city’s complaint process “ineffective” <small>(<a href="#src-nys-comptroller-2025">Office of the New York State Comptroller 2025</a>)</small>.</p>
-<p>Researchers also checked employers’ websites in late 2023. 155 student investigators looked at 391 employers, mostly ones that hire Cornell graduates. Only 18 had posted a bias audit report, and only 13 a notice to candidates. Of the 391, 124 listed no New York City jobs at all. The authors warn the law gives employers “substantial discretion” over whether their tool is covered. So a missing audit does not prove an employer broke the law. Notices shown only after applying were not visible to the researchers <small>(<a href="#src-wright-2024">Wright et al. 2024</a>, p. 1, 7–8)</small>.</p>
+<p>Researchers also checked employers’ websites in late 2023. 155 student investigators looked at 391 employers, mostly ones that hire Cornell graduates. Only 18 had posted a bias audit report, and only 13 a notice to candidates. Of the 391, 124 listed no New York City jobs at all. The authors warn the law gives employers “substantial discretion” over whether their tool is covered. So a missing audit does not prove an employer broke the law <small>(<a href="#src-wright-2024">Wright et al. 2024</a>, p. 1, 7–8)</small>.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
+<p>Notices shown only after applying were not visible to the researchers <small>(<a href="#src-wright-2024">Wright et al. 2024</a>, p. 1, 7–8)</small>.</p>
+</details>
 <figure class="bars">
 <figcaption>What 391 employers had posted under New York City’s law, late 2023, published 2024 <small>(Real records; <a href="#src-wright-2024">Wright et al. 2024</a>, p. 8)</small></figcaption>
 <table>
@@ -595,6 +670,7 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <li>October 2026 – Colorado’s start date now reads “not settled” in every line, matching the Colorado section. The summary table’s heading is now a question.</li>
 <li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
 <li>October 2026 – the line under the title now says the EU rule covers fully automated decisions only.</li>
+<li>October 2026 – added a table by place with what to do, and a worked example of a New York City application; Colorado’s date note and one limit of the audit study now fold under “How sure is this?”. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -627,9 +703,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
-<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p></li>
-<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
+<li class="thumb"><img src="/cards/age-bias-hiring-small.png?v=1481ecde" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
+<li class="thumb"><img src="/cards/ai-resume-screening-bias-small.png?v=01305be0" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p></li>
+<li class="thumb"><img src="/cards/ats-rejection-myth-small.png?v=0f13cb23" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>

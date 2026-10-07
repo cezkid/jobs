@@ -19,20 +19,20 @@
 <meta property="og:description" content="Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it.">
 <meta property="article:published_time" content="2026-10-04">
 <meta property="article:modified_time" content="2026-10-07">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
+<meta property="og:image" content="https://jobs.enrriquez.com/cards/hiring-bias-what-helps.png?v=54823ba8">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta property="og:image:alt" content="Across 24 US field tests, white applicants got 36% more callbacks than equally qualified Black ones. Source: Quillian et al. 2017 (Big study).">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta name="twitter:image:alt" content="Across 24 US field tests, white applicants got 36% more callbacks than equally qualified Black ones. Source: Quillian et al. 2017 (Big study).">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/#article","headline":"Hiring discrimination: what studies show, what helps","description":"Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it.","url":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/","mainEntityOfPage":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Hiring discrimination: what studies show, what helps","item":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/#article","headline":"Hiring discrimination: what studies show, what helps","description":"Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it.","url":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/","mainEntityOfPage":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/cards/hiring-bias-what-helps.png?v=54823ba8","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Hiring discrimination: what studies show, what helps","item":"https://jobs.enrriquez.com/research/hiring-bias-what-helps/"}]}]}</script>
 <style>
 /* shared */
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -249,6 +249,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .more p { margin: 0 0 8px; }
 .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
 .toc, .labels { display: none; }
 .labels dl { margin: 0 0 12px; }
 .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
@@ -313,8 +316,13 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .crumbs, .toc, .toc-mini, .more { display: none !important; }
   .page { max-width: none; }
   .sources li { break-inside: avoid; }
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
 }
 /* /doc */
+  .sure { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--line); font-size: var(--step--1); line-height: 1.5; }
+  .sure summary { padding: 11px 0; font-weight: 700; color: var(--text-2); cursor: pointer; }
+  .sure[open] { padding-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -446,7 +454,11 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <p><strong>Yes. Many field tests have found it, and the gap has not shrunk for Black applicants.</strong></p>
 <p>A 2017 review combined 24 US field tests run from 1989 to 2015, with 54,318 applications. Some tests sent resumes; others sent matched pairs of trained testers in person. White applicants got 36% more callbacks than equally qualified Black applicants. They got 24% more than Latino applicants. The gap for Black applicants did not change over 25 years, and the gap for Latino applicants may have shrunk a little <small>(<a href="#src-quillian-2017">Quillian et al. 2017</a>)</small>.</p>
 <p>The largest single test sent more than 83,000 made-up applications for entry-level jobs to 108 of the largest US employers. About 24% of applications got a reply within 30 days. Names read as Black got 2.1 points fewer replies. Put the other way, names read as white got about 9% more <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 2–3)</small>.</p>
-<p>That gap is smaller than most past tests found, and the authors give two possible reasons. The very large employers they tested may be less biased. Their test also got many replies overall, which makes the same gap a smaller share <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, p. 3)</small>.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
+<p>The 9% gap is smaller than most past tests found, and the authors give two possible reasons. The very large employers they tested may be less biased. Their test also got many replies overall, which makes the same gap a smaller share <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, p. 3)</small>.</p>
+</details>
+<p>Say you send 100 applications for entry-level jobs at employers like those 108. About 24 would get a reply within 30 days. Employers replied to about 2 fewer of them under a name read as Black than under a name read as white <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 2–3)</small>. Over 500 applications, the gap means about 10 fewer replies, by our arithmetic.</p>
 <p>The bias does not stop at the callback. A 2020 review found 12 field tests that followed applicants through to the job offer. Majority applicants got 53% more callbacks than minority applicants, and 145% more job offers <small>(<a href="#src-quillian-2020">Quillian et al. 2020</a>)</small>. We read that review’s published summary only.</p>
 <p>A preprint posted in 2026 adds detail on where the gaps sit. A preprint has not yet been checked by other researchers. Its authors sent 36,880 made-up applications from new college graduates to 9,220 US job ads in 2016 and 2017. In management jobs, Black men, Black women, white women and Hispanic men got 18% to 28% fewer callbacks than white men. Hispanic women showed no clear gap in the main results <small>(<a href="#src-braun-2026">Braun et al. 2026</a>, pp. 1, 20)</small>.</p>
 <h2 id="is-the-bias-spread-evenly-across-employers">Is the bias spread evenly across employers?</h2>
@@ -495,7 +507,11 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <p>France tested anonymous resumes through its public employment service from November 2009 to September 2010. Firms chose whether to join. Minority here meant people living in deprived neighborhoods, immigrants and children of immigrants. The anonymous form hid the name, address, gender, nationality, photo, age, marital status and number of children. With standard resumes, 9.3% of minority candidates got an interview. With anonymous resumes, 4.7% did. The gap between minority and majority candidates widened by about 10.7 points. The hiring gap moved the same way, but that result was less certain. The firms that joined already interviewed minority candidates about as often as others, so those firms had the least bias to remove <small>(<a href="#src-behaghel-2015">Behaghel et al. 2015</a>, pp. 7, 10, 13–14, 19)</small>.</p>
 <p>An Australian government team reported a lab trial in 2017. More than 2,100 public servants from 14 agencies each shortlisted made-up candidates for a senior job. With names shown, reviewers were 2.9% more likely to shortlist women and 3.2% less likely to shortlist men. Most minority candidates also did better with names shown, though only one of those differences was clear. The report says reviewers knew they were in a study, and real hiring may differ. The report calls the evidence on hiding names “limited and mixed” <small>(<a href="#src-hiscox-2017">Behavioural Economics Team of the Australian Government (BETA) 2017</a>)</small>.</p>
 <p>Hiding names does not always backfire. Two districts of Gothenburg, Sweden, used anonymous applications from 2004 to 2006, and a third district did not. The districts were not picked at random, so this is a link, not proof. With names hidden, women and applicants of non-Western origin were each about 8 points more likely to get an interview. Women also got more job offers; applicants of non-Western origin did not <small>(<a href="#src-aslund-skans-2012">Åslund and Nordström Skans 2012</a>, pp. 1, 4, 21, 23–24)</small>.</p>
-<p>Removing a question can backfire too. New Jersey and New York City stopped employers asking about criminal records on application forms. A test sent about 15,000 online applications from made-up young men, before and after the change. Before it, white applicants got 7% more callbacks than Black applicants at employers that asked. After it, the gap was 43% <small>(<a href="#src-agan-starr-2018">Agan and Starr 2018</a>)</small>. The authors think employers guessed at records from race once the form could not ask. These figures are from the published summary; we read the methods in a 2016 working-paper version.</p>
+<p>Removing a question can backfire too. New Jersey and New York City stopped employers asking about criminal records on application forms. A test sent about 15,000 online applications from made-up young men, before and after the change. Before it, white applicants got 7% more callbacks than Black applicants at employers that asked. After it, the gap was 43% <small>(<a href="#src-agan-starr-2018">Agan and Starr 2018</a>)</small>. The authors think employers guessed at records from race once the form could not ask.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
+<p>These figures are from the published summary; we read the methods in a 2016 working-paper version <small>(<a href="#src-agan-starr-2018">Agan and Starr 2018</a>)</small>.</p>
+</details>
 <h2 id="does-age-or-a-break-in-work-count-against-you">Does age or a break in work count against you?</h2>
 <p><strong>Yes to both, with limits.</strong> Each has its own article here.</p>
 <p>Older applicants were about 42% less likely to get a positive reply across 17 field tests <small>(<a href="#src-lippens-2023">Lippens et al. 2023</a>)</small>. One US test found women of 40 to 42 got callbacks as often as women of 35 to 37 <small>(<a href="#src-farber-2017">Farber et al. 2017</a>)</small>. The largest US name test found a small drop, 0.6 points, when graduation dates implied an age over 40. One of its checks found a gap about as large, but it could be chance <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 4, 13)</small>. The ages, the dates that show age and the state rules are in <a href="/research/age-bias-hiring/">Age discrimination in hiring</a>.</p>
@@ -549,6 +565,7 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <ul>
 <li>October 2026 – the background-check survey line now says the share is of the businesses asked, over the past 12 months. The record section now says its law lines are for the US, as of October 2026. Two lines now say they come from a published summary only. The age line now says a second check found a gap about as large, which could be chance <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, p. 13)</small>. The findings are unchanged.</li>
 <li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
+<li>October 2026 – added a worked example of 100 applications; two method notes now fold under “How sure is this?”. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -579,9 +596,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
-<li><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a><p>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</p></li>
-<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p></li>
+<li class="thumb"><img src="/cards/age-bias-hiring-small.png?v=1481ecde" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
+<li class="thumb"><img src="/cards/employment-gaps-small.png?v=ed4c6ca1" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a><p>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</p></li>
+<li class="thumb"><img src="/cards/ai-resume-screening-bias-small.png?v=01305be0" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>

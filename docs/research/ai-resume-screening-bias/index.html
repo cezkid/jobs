@@ -19,20 +19,20 @@
 <meta property="og:description" content="AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.">
 <meta property="article:published_time" content="2026-10-03">
 <meta property="article:modified_time" content="2026-10-07">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
+<meta property="og:image" content="https://jobs.enrriquez.com/cards/ai-resume-screening-bias.png?v=56d48e3d">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta property="og:image:alt" content="In lab tests, AI models judge the same applicant differently by name, gender, age or disability. Every claim on the page linked to its source.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta name="twitter:image:alt" content="In lab tests, AI models judge the same applicant differently by name, gender, age or disability. Every claim on the page linked to its source.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/#article","headline":"Is AI resume screening biased? What the studies show","description":"AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.","url":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Is AI resume screening biased? What the studies show","item":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/#article","headline":"Is AI resume screening biased? What the studies show","description":"AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.","url":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/cards/ai-resume-screening-bias.png?v=56d48e3d","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Is AI resume screening biased? What the studies show","item":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/"}]}]}</script>
 <style>
 /* shared */
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -249,6 +249,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .more p { margin: 0 0 8px; }
 .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
 .toc, .labels { display: none; }
 .labels dl { margin: 0 0 12px; }
 .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
@@ -313,8 +316,13 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .crumbs, .toc, .toc-mini, .more { display: none !important; }
   .page { max-width: none; }
   .sources li { break-inside: avoid; }
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
 }
 /* /doc */
+  .sure { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--line); font-size: var(--step--1); line-height: 1.5; }
+  .sure summary { padding: 11px 0; font-weight: 700; color: var(--text-2); cursor: pointer; }
+  .sure[open] { padding-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -415,8 +423,12 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 </tbody>
 </table>
 </figure>
+<details class="sure">
+<summary>How sure is this?</summary>
 <p>The same study’s gender result was corrected in August 2026. Another team tried to repeat the study and found a coding error. The authors’ note says the gender numbers should be swapped. Swapped as the note directs, female names were favored in 51.9% of tests and male names in 11.1%. The published 2024 paper still prints the reverse. The race results held up when repeated <small>(<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>)</small>.</p>
+</details>
 <p>A larger 2025 study scored about 361,000 made-up resumes with five AI models. Four of the five models scored women or Black applicants higher on average. Black men were the exception: most of the models scored them lower than white men. GPT-3.5, for example, scored Black men 0.3 points lower, out of 100. With a pass mark of 80, GPT-3.5 cut Black men’s chance of passing by 1.4 percentage points. In that test, Black women’s chance rose 1.7 points and white women’s rose 1.4. The gaps look small per resume, but the authors call them economically significant across many applicants <small>(<a href="#src-an-2025">An et al. 2025</a>)</small>.</p>
+<p>Say 1,000 Black men’s resumes went through a screener like GPT-3.5 in that test, with a pass mark of 80. The 1.4-point drop means about 14 fewer of them pass than with white men’s names, by our arithmetic <small>(<a href="#src-an-2025">An et al. 2025</a>)</small>.</p>
 <p>In 2024, Bloomberg ran its own test of GPT-3.5 and GPT-4. GPT ranked eight equally qualified resumes, 1,000 times for each of four jobs. Some groups’ names came first less often than an even share of one in eight. For a software engineer job, GPT-3.5 put Black women’s names first 11% of the time. Bloomberg published its method and code. OpenAI said the test may not reflect how its customers use the models <small>(<a href="#src-bloomberg-2024">Yin et al. 2024</a>)</small>.</p>
 <p>For you, these tests show what models can do with a name. They do not show what any employer’s system does.</p>
 <h2 id="does-the-bias-always-go-against-the-same-people">Does the bias always go against the same people?</h2>
@@ -585,6 +597,7 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <li>October 2026 – corrected the law lines to match the laws’ text. Colorado employers must describe a system’s role after a rejection, not explain the rejection. Colorado’s start date is not settled, and a court has paused enforcement. Illinois’s notice duty names employees; whether applicants get one is not settled. Added California’s 2027 privacy rules and the EU’s existing rule on fully automated decisions.</li>
 <li>October 2026 – updated the Workday lawsuit after its June 2026 order: race, age and disability claims under federal law are among those going on. The New York City notice must say how to ask for another way to be assessed; the rule does not make employers offer one. Older applicants in the 2026 model test are now given as aged 45 to 58. The New York City audit line now dates the 391-employer check to late 2023. It now says the state comptroller called the complaint process ineffective. The short answer now says the same applicant, not identical resumes, and also cites the 2023 model test. The other findings are unchanged.</li>
 <li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
+<li>October 2026 – added a worked example from the 2025 scoring study; the note on the corrected gender result now folds under “How sure is this?”. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -625,9 +638,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
-<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
-<li><a href="/research/ai-hiring-laws/">AI hiring laws in 2026: what employers must tell you</a><p>New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow.</p></li>
+<li class="thumb"><img src="/cards/age-bias-hiring-small.png?v=1481ecde" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
+<li class="thumb"><img src="/cards/ats-rejection-myth-small.png?v=0f13cb23" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
+<li class="thumb"><img src="/cards/ai-hiring-laws-small.png?v=7c8be047" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/ai-hiring-laws/">AI hiring laws in 2026: what employers must tell you</a><p>New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>

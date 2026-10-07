@@ -335,3 +335,31 @@ Changes line: accurate. It leaves out the Short answer rename. Optional; no fix 
 No finding. Verdict: publish.
 
 Changes-line edit after this re-review (2026-10-07): the generic line now also says "renamed the Short answer box "What the evidence says""; accurate, no other article change. Verdict: publish (unchanged).
+
+## Re-review 2026-10-07: guess, fold-outs, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` Style, `git diff main` of the article, the whole article, `sources.yml` resumego-2020, earlier sections here, and the live ResumeGo page (text: 7,287 fictitious applications, Jul 15 2019 - Jan 10 2020, "assigned to one of the following groups" - no random stated, "N/A" detail, tailored "53% higher callback rate"; the 10.7 / 12.5 / 16.4 values are in a chart image, read in the first review). No source text addressed an AI.
+
+Changed: header `card:`; `guess` block under "Does a cover letter get you more interviews?"; worked example (100 applications); two `sure` folds (Lever / field-overlap notes; ResumeGo limits paragraph); one Changes line.
+
+- Card: 97 chars w/o citation (<= 100). 16.4% and 10.7% match source; "by a resume company" + card source line "(Small study)" = same label as body + bars caption. "2019-20" dates it before chat AI. Not stronger than body. OK.
+- Guess: question 10.7% + 7,287 match; right answer "About 16%" = 16.4%; "About 11%" = no-letter rate, "About 13%" = generic 12.5% (reveal names both) - not misleading. Reveal: "small, run by a resume company, before chat AI" - no stronger than body. Placement: under heading, before bold. OK.
+- Worked example: 11 / 16 per 100 = 10.7% / 16.4% rounded, cited. "About 5 more" = 16 - 11 on rounded numbers; unrounded 16.4 - 10.7 = 5.7, nearer 6 (R1). "Would get a callback" reads as a forecast for the reader; with the limits folded, the nearest visible words are only "before chat AI" (R2).
+- Fold, ResumeGo limits: verbatim (diff shows unchanged lines, fences only); cited. Visible text still says Small study, not peer-reviewed (bars caption), and "The ResumeGo result is the best direct evidence, and it is weak." So the reader still learns the test is weak - but not why near the worked example (R2).
+- Fold, our count: verbatim; uncited both before and after (our measurement). Lever sentence = skippable detail ("named cover letter" stays in the visible claim). "Job field and form system overlap ... can't fully separate the two" qualifies the visible claim "The form system made the biggest difference we saw" - a label the claim needs (R3).
+- Changes line: accurate (guess, worked example, both folds; "findings are unchanged" true). Does not name the share card - card is page metadata, optional.
+- Plain words, US English: OK.
+
+Findings (verdict revise):
+- **R1 (low)** Worked example rounds before subtracting: "about 5 more" vs unrounded 5.7. Fix: "That is about 6 more callbacks per 100, by our arithmetic (16.4 minus 10.7)." - or merge into R2's text.
+- **R2 (medium)** Worked example reads as a forecast ("would get") and, with the limits folded, no visible line next to it says the gap may be chance. Fix - replace the paragraph with: "Say you sent 100 applications like the ones in that test. At its rates, about 11 with no letter and about 16 with a tailored letter would get a callback [@resumego-2020]. That is about 6 more per 100, by our arithmetic. The test ran before chat AI and gave no check of whether the gap could be chance [@resumego-2020]."
+- **R3 (low)** Field-overlap caveat folded although the visible claim needs it. Fix: move "Job field and form system overlap in our sample, so we can't fully separate the two." back into the visible paragraph, after "...with a box named cover letter."; the `sure` block keeps only the Lever "additional information" sentence.
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+- R1: fixed. "about 6 more per 100, by our arithmetic" (16.4 - 10.7 = 5.7).
+- R2: fixed. Worked example now "At its rates ... would get a callback", cited; "before chat AI and gave no check of whether the gap could be chance" visible, cited. Matches source; full limits stay in the fold.
+- R3: fixed. Overlap sentence back in the visible paragraph after "...named cover letter."; fold holds only the Lever sentence, verbatim.
+- Changes line still accurate ("our count's notes now fold" - one note now; fine). No new finding.
+
+Verdict: publish

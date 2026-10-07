@@ -19,20 +19,20 @@
 <meta property="og:description" content="We read one resume in 7 layouts with 3 free PDF readers, not an employer’s system. Our plain page never broke; spaced-out headings always did.">
 <meta property="article:published_time" content="2026-10-04">
 <meta property="article:modified_time" content="2026-10-07">
-<meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
+<meta property="og:image" content="https://jobs.enrriquez.com/cards/resume-parser-test.png?v=4998f51e">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta property="og:image:alt" content="Our plain one-column page broke 0 of 5 readings; spaced-out headings broke 5 of 5. Source: our own measurement – method and data on the page.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image:alt" content="CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim marked in yellow, linked to its list of sources.">
+<meta name="twitter:image:alt" content="Our plain one-column page broke 0 of 5 readings; spaced-out headings broke 5 of 5. Source: our own measurement – method and data on the page.">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/resume-parser-test/#article","headline":"Are two-column resumes ATS friendly? A 7-layout PDF test","description":"We read one resume in 7 layouts with 3 free PDF readers, not an employer’s system. Our plain page never broke; spaced-out headings always did.","url":"https://jobs.enrriquez.com/research/resume-parser-test/","mainEntityOfPage":"https://jobs.enrriquez.com/research/resume-parser-test/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Are two-column resumes ATS friendly? A 7-layout PDF test","item":"https://jobs.enrriquez.com/research/resume-parser-test/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/resume-parser-test/#article","headline":"Are two-column resumes ATS friendly? A 7-layout PDF test","description":"We read one resume in 7 layouts with 3 free PDF readers, not an employer’s system. Our plain page never broke; spaced-out headings always did.","url":"https://jobs.enrriquez.com/research/resume-parser-test/","mainEntityOfPage":"https://jobs.enrriquez.com/research/resume-parser-test/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/cards/resume-parser-test.png?v=4998f51e","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Are two-column resumes ATS friendly? A 7-layout PDF test","item":"https://jobs.enrriquez.com/research/resume-parser-test/"}]}]}</script>
 <style>
 /* shared */
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -249,6 +249,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .more p { margin: 0 0 8px; }
 .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
 .toc, .labels { display: none; }
 .labels dl { margin: 0 0 12px; }
 .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
@@ -313,8 +316,13 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .crumbs, .toc, .toc-mini, .more { display: none !important; }
   .page { max-width: none; }
   .sources li { break-inside: avoid; }
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
 }
 /* /doc */
+  .sure { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--line); font-size: var(--step--1); line-height: 1.5; }
+  .sure summary { padding: 11px 0; font-weight: 700; color: var(--text-2); cursor: pointer; }
+  .sure[open] { padding-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -429,6 +437,7 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 </tbody>
 </table>
 </figure>
+<p>Say you send our sidebar page to an employer whose system reads text the way 2 of our 5 readings did. That system reads across both columns one line at a time, so a sidebar word can run into a job line, as “PresentCity” did. We don’t know how any employer’s system reads it. Our plain one-column page came through all 5 readings whole.</p>
 <p>For you, the safest layout in our test was the plainest one.</p>
 <h2 id="what-broke-layout-by-layout">What broke, layout by layout?</h2>
 <p><strong>Each layout that broke did so in its own way.</strong> The summary below comes from the committed results file.</p>
@@ -493,14 +502,21 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <p><strong>Yes, when the PDF holds real text.</strong> None of our 35 readings lost a word from a PDF. Greenhouse names .pdf as a file type it reads. It lists a resume uploaded as an image as a cause of failure <small>(<a href="#src-greenhouse-parse">Greenhouse 2026a</a>)</small>.</p>
 <h2 id="do-hiring-systems-say-the-same-thing">Do hiring systems say the same thing?</h2>
 <p><strong>One hiring-system maker warns against most of the same layouts.</strong> Greenhouse, one hiring system, lists what can stop it reading a resume into its fields. Its list includes spaces between letters, tables, headers and footers, and columned layouts. It also lists a name and contact details placed in a header, footer or text box <small>(<a href="#src-greenhouse-parse">Greenhouse 2026a</a>)</small>. Those are the layouts that broke readings or moved the contact line in our test.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
 <p>Greenhouse’s page adds a warning our test could not cover. Its resume reader skips names it takes for fake data, such as “First Last” or “Company 1” <small>(<a href="#src-greenhouse-parse">Greenhouse 2026a</a>)</small>. Our made-up resume used “Your Name” and “Company A”. A commercial resume reader might have skipped those names for that reason alone.</p>
+</details>
 <p>A university career office gives the same advice. MIT’s career office says “boring is better” and tells students to avoid tables, text boxes and icons. It says text boxes or columns can put the text in the wrong order <small>(<a href="#src-mit-capd-ats">MIT Career Advising &amp; Professional Development 2026b</a>)</small>. That is a guide, not a study.</p>
 <p>We found no Workday help page on how its resume reader handles layout. Lever has a help article we could not open in October 2026, so we do not cite it.</p>
 <h2 id="do-modern-resume-readers-handle-columns-fine">Do modern resume readers handle columns fine?</h2>
 <p><strong>Some vendors say their readers now handle columns well.</strong> Textkernel sells a resume reader used inside other hiring systems. In 2023, Textkernel wrote that about 10–15% of resumes use a column layout. It said better column detection raised its share of resumes read in the right order from 62% to 90%. Its own staff judged about 700 resumes side by side for that figure <small>(<a href="#src-textkernel-2023">Textkernel 2023</a>)</small>. That is the maker’s own test, described only in outline.</p>
 <p>The largest outside test we found used the same free readers we did. Enhancv, a resume builder that sells two-column templates, ran 3 resumes through 17 of its templates. It read each file 7 ways with pdftotext, PyMuPDF, pdfminer.six and pypdf: 357 readings <small>(<a href="#src-enhancv-2026">Vasileva 2026</a>)</small>.</p>
 <p>In Enhancv’s test, one-column and two-column pages kept nearly all their words, within half a point. Email and phone came back right in all 357 readings. Under the worst reading method, sections stayed whole in 35% of two-column readings and 60% of one-column ones <small>(<a href="#src-enhancv-2026">Vasileva 2026</a>)</small>. So its one-column pages broke too, just less often. Under another method the gap was about one point.</p>
-<p>Enhancv also had AI models read the scrambled text. The gap in whole sections shrank to about three points. Employer names still dropped from 100% to 83% <small>(<a href="#src-enhancv-2026">Vasileva 2026</a>)</small>. That AI test used 10 resumes. It is a seller’s test of its own templates, not peer-reviewed.</p>
+<p>Enhancv also had AI models read the scrambled text of 10 resumes. The gap in whole sections shrank to about three points. Employer names still dropped from 100% to 83% <small>(<a href="#src-enhancv-2026">Vasileva 2026</a>)</small>.</p>
+<details class="sure">
+<summary>How sure is this?</summary>
+<p>That AI test is a seller’s test of its own templates, not peer-reviewed <small>(<a href="#src-enhancv-2026">Vasileva 2026</a>)</small>.</p>
+</details>
 <p>A second template seller, Resumap, ran one made-up resume in 36 of its templates. It loaded each file into Zoho Recruit, Workable and Textkernel, and Manatal’s match scoring. Email and phone came back 36 of 36 on every reader shown. Workable split all 3 jobs correctly on all 36 templates; Textkernel did so on 31 <small>(<a href="#src-resumap-2026">Resumap 2026</a>)</small>.</p>
 <p>Resumap concluded “the failure mode isn’t columns. It’s text-stream order.” By that it means the order the file stores the text in. Resumap says column count did not predict which layouts failed, but gives no counts <small>(<a href="#src-resumap-2026">Resumap 2026</a>)</small>. The test was run by a template seller and is not peer-reviewed.</p>
 <p>Our results show both causes. Columns broke readers that sort text by where it sits on the page. That was 4 of our 13 breaks, on the sidebar and text-box pages. Stored order broke readers that keep the file’s own order: 2 more, on the text-box page. Our sidebar file stored its text in the right order, and those readers read it fine.</p>
@@ -538,6 +554,7 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <ul>
 <li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
 <li>October 2026 – two section answers now match their sections: only the layouts that broke failed in their own way, and the warnings come from one hiring-system maker.</li>
+<li>October 2026 – added a worked example with our sidebar page; two notes on test limits now fold under “How sure is this?”. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -551,9 +568,9 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</p></li>
-<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
-<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p></li>
+<li class="thumb"><img src="/cards/what-makes-a-good-resume-small.png?v=d7643363" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</p></li>
+<li class="thumb"><img src="/cards/ats-rejection-myth-small.png?v=0f13cb23" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
+<li class="thumb"><img src="/cards/ai-resume-screening-bias-small.png?v=01305be0" alt="" width="120" height="63" loading="lazy" decoding="async"><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>

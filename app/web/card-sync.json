@@ -1,0 +1,57 @@
+{
+  "age-bias-hiring": {
+    "spec": "94506fd9d36a4b28ccc377dc37e993b3db95cc86c16ed3037476914fea4e2e36",
+    "card": "6ca4f83c40691b73fc974018e4983b99457a672a9b4770d6329307dfbe81647a",
+    "small": "1481ecde538f37ce91823b6d3a0ccb0265d609795e3edf5544c9466aef75529d"
+  },
+  "ai-hiring-laws": {
+    "spec": "cfdf2ae990660cbe1bdb0c2320fac208e48a6241a09811d942048a5aa9b1530d",
+    "card": "ca55242a3c8fae8b666d36fdaa1dd16e9be5969a6add2045cc63dba7f84c94ae",
+    "small": "7c8be04791c4e74aba757c94965b737df27dc31fc4f738fe37cc0d955711a9e6"
+  },
+  "ai-resume-screening-bias": {
+    "spec": "d6ee4ba5ee2a661307167631baef5cef1e1fc102eb04bf76f2b96a75d259d5ea",
+    "card": "56d48e3db88daf52c770ccb31d989b8543b2e6c1a18be7ec406caf117d8fab5d",
+    "small": "01305be0202fec78ca2013ed34d9d59db721c5fef86cf6276ca4dd590afb7992"
+  },
+  "ai-written-resumes": {
+    "spec": "61423886256c334a0643c9fa5fbfd83fe2c7f5e3978e957a88ac4b4191697f8f",
+    "card": "058f3acc4e60c2edad193dd8985d74496baaae87ca076024f25cb472fe807574",
+    "small": "afbcd590201e618b9fe35e52c39d4933d8927585d989381a49827135db80d2a9"
+  },
+  "ats-rejection-myth": {
+    "spec": "e3e70dc9ac1d83578e40fd056ad5151ddc24cfd0344674df0090957572dcdb75",
+    "card": "ee6ae6431e963757a8de411f87ade9635287b1a54eda63c1fda03574a2ce3c52",
+    "small": "0f13cb23737c8acf43303c8699e75035de2c91c8de9a452042296e7ed0e8ff2e"
+  },
+  "cover-letters-after-ai": {
+    "spec": "bdb669eed1d060eb62e711bbf92f10a715432fc503d4a48d9d1f2bbc62f1df57",
+    "card": "8962e87180b2d2e403ce329351aa794a09b3341ea2928934c7be5fe8c5f7334e",
+    "small": "1a5d95bd88d50444f104820005b6c02c5fb9413c97cd26436e5e8230bbc22711"
+  },
+  "employment-gaps": {
+    "spec": "93b6477bf1034563cdcbb38831219b8856a8b9b65756fb3bd9cff8ba3ac26e42",
+    "card": "6c0fc2a529a7ff8690b21dff5832131fa0b66989da710d5ca7dcc438d4992ca2",
+    "small": "ed4c6ca114e0f04d8d7edc55af85ff0d2636c15a41d00bf56bde8ea1587bb0a1"
+  },
+  "hiring-bias-what-helps": {
+    "spec": "9a8e952cb159db6e987c509f163b5fdb97e2301ba532cf93a82a625abe933392",
+    "card": "54823ba8af5cf976580c9b374442c8de2dfe0666e30ca6d1f3d9dea5184fda0e",
+    "small": "08669cb265824d63df869a620ee2ed37d5924c1a3eee1a63a178d57ea2576e02"
+  },
+  "keep-chats-out-of-ai-training": {
+    "spec": "61080dcbeea63ee26394bd24f0b393be2a244906193cc64c6becdd538f802a34",
+    "card": "a1fcab89bbd4998a7c18b0cdfc1794f4cb5230f5793a0f37402cadbf8422f02b",
+    "small": "c1b7c47c7153d306706a3ae90918afb1c1d5501edb5cc797fe1de020fe94b47f"
+  },
+  "resume-parser-test": {
+    "spec": "e40390aaa09a3de69d7250019c092d949209ab7e7da2a25347bd00c10906cf42",
+    "card": "4998f51ea1bad52493c5cfb481929bac50986a31cff75fecb95337480b3f53a9",
+    "small": "90948c8c47a25d3a45189ebbbe783e7d8e2eb9b9861b6e426ca4e2e423991fe5"
+  },
+  "what-makes-a-good-resume": {
+    "spec": "d74113b39d6be40a2969dcfe811426466c0303bc133bea96573f5d4d27997ffd",
+    "card": "2f2e806aadb5b93827bb53372a2d6bf5f473bf7a742246b26e1f2455f749a7ff",
+    "small": "d76433632548792443026c8be372223d4e2341e0335e22d9de5e155d9dc6ad20"
+  }
+}

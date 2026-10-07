@@ -271,3 +271,50 @@ Findings (verdict revise):
 - D1: resolved. Description now "New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow." (152 characters, quoted YAML). EU scope matches the body, evidence bullet 2 and F1. "In 2026" and "Few let you ask why" dropped: the year sits in the title right above, and the body's law lines keep "as of October 2026". Acceptable.
 - Changes: "the line under the title now says the EU rule covers fully automated decisions only" - accurate; generic line records the rename.
 - No new finding. Verdict: publish.
+
+## Re-review 2026-10-07: your case, fold-outs, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` (Laws + Style: two layers, worked example, your case, guess first, share card), `git diff main` of the article, the whole article, this file's source table (NYC rule 5-304, wright-2024 abstract, co-sb26-189, ct-pa26-15 notes). Tried to open Illinois 820 ILCS 42 live (ilga.gov certificate error, Justia 403, Wayback 429) - lead only, see R4. No source text addressed an AI.
+
+Changed: header `card:`; `case` block under "Which laws make employers tell you" (7 rows); NYC worked example (1 paragraph); 2 `sure` folds (Colorado staff-note date; Wright caveats split off their paragraph, moved verbatim, same cite); 1 Changes line.
+
+Per item:
+- Case caption: "as of October 2026 (Law; not legal advice)" carries date + label for every row; forward dates (2027) in their rows. OK. "Where you apply" wrong for NYC (notice goes by residence) - R1.
+- Row NYC: law text OK (rule 5-304(b) "10 business days", yearly audit, public summary). Drops "who live in the city" - R1. What to do = What helps 1 + 2. OK.
+- Row Illinois: matches evidence bullet 2 + body; "employees" without the body's apprenticeship caveat reads as applicants get notice - R5 (low). What to do = What helps 8. OK.
+- Row Colorado: matches body; "start not settled" cited only to bill + stay, not the staff note that grounds it - R6 (low). What to do = What helps 7. OK.
+- Row California: matches body (7220, 7221, 7222). What to do = What helps 6. OK.
+- Row Connecticut: matches secs 9-10, Oct 1, 2027. What to do = What helps 8. OK.
+- Row EU: "you must be told, and a person can step in" = Art. 13-14 + 22(3); body's limit (where allowed by contract/consent) is softened but row keeps "fully automated". OK. What to do = What helps 5.
+- Row "Elsewhere in the US": "No AI notice law we found" is a new, stronger claim, not in body or `uncited:`; its cite (EEOC ADA) does not support it; article's search scope ("list only laws whose text we opened") does not support a negative; reviewer knows of Illinois' 2020 AI Video Interview Act (820 ILCS 42: notice, explanation, consent before AI analysis of recorded video interviews) and Maryland's 2020 facial-recognition interview consent law (Lab. & Empl. 3-717) - neither in the article. Also the ADA applies in every US row, not only "elsewhere". R2.
+- Worked example: only the rule's numbers (10 business days, 30 days), cited 5-304; "at least 10 business days" = law's "no less than ten business days" (§ 20-871(b), per earlier source notes); residence condition stated; no arithmetic; no advice beyond page line. OK. Second sentence uncited but covered by the third sentence's cite to the same section - acceptable.
+- Fold Colorado: moved verbatim, cited. But visible Colorado section now never says the start is not settled: line 68 reads as duties in force "as of October 2026"; the qualifier the claim needs is folded (research.md: never a label the claim needs to stay true) - R3.
+- Fold Wright: split verbatim, both parts cite p. 1, 7-8. "So a missing audit does not prove an employer broke the law" is the label the 18/13 counts and the bars chart need to stay fair (Laws: never say a named employer broke a law; authors' abstract: null result "cannot be said to indicate non-compliance"). Must stay visible - R3b. "Notices shown only after applying..." = test limit, fine to fold.
+- Card: 93 characters; true; matches body bold answer + evidence bullet 1. No "as of" date, and a share card travels without the page - R7.
+- Changes line: accurate in substance; "chart" for a table - R8 (low). Plain words, US English: OK.
+
+Findings (verdict revise):
+- **R1 (medium)** Case caption "Where you apply" + NYC row "Notice 10 business days before..." imply anyone applying to a city job gets notice; rule 5-304(b): candidates who live in the city. Fix NYC "What the law says" cell: "Notice to candidates who live in the city, 10 business days before an AI tool is used; a yearly bias audit, its summary public [@nyc-ll144; @nyc-aedt-rule]". Caption: "Where you live or apply, what the law says, what to do - as of October 2026 (Law; not legal advice)".
+- **R2 (high)** Row "Elsewhere in the US | No AI notice law we found" - uncited negative, unsupported by the article's search scope, likely false (Illinois AI Video Interview Act 2020, Maryland facial-recognition consent 2020), and implies the ADA covers only "elsewhere". Fix: replace row with "Anywhere in the US | The disability law applies before any offer; you may ask for an accommodation for any test [@eeoc-ada-preemployment] | If an AI test does not work for you because of a disability, ask for an accommodation".
+- **R3 (medium)** Colorado start-date qualifier now folded; visible section states duties as current. Fix: add visible sentence right before the `sure` block: "When these duties start is not settled, as of October 2026: January 2027 or at signing [@co-sb26-189-fiscal]." Keep the fold as is.
+- **R3b (medium)** Wright fold hides the fairness label. Fix: restore to the visible paragraph after "...124 listed no New York City jobs at all.": "The authors warn the law gives employers \"substantial discretion\" over whether their tool is covered. So a missing audit does not prove an employer broke the law [@wright-2024, p. 1, 7-8]." Fold keeps only: "Notices shown only after applying were not visible to the researchers [@wright-2024, p. 7-8]."
+- **R4 (medium, lead, separate bead)** Article omits Illinois' AI Video Interview Act (820 ILCS 42, since January 2020) and Maryland's interview facial-recognition consent law (since October 2020). Primary text not opened here (ilga.gov certificate error). Fix: open both, add to Illinois section, case row and summary table, or say why out of scope. Not needed for this change once R2 drops the negative.
+- **R5 (low)** Illinois row. Fix cell: "Notice to employees that AI is used; whether applicants get one, and how, is not final [@il-pa-103-0804]".
+- **R6 (low)** Colorado row cite. Fix: "[@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay]".
+- **R7 (low)** Card lacks date (Laws: jurisdiction + as of). Fix (100 characters, at the limit): "As of Oct 2026: no US federal ban on AI resume screening that we found. A few places require notice."
+- **R8 (low)** Changes line. Fix: "October 2026 - added a table by place with what to do, and a worked example of a New York City application; Colorado's date note and a test limit of the audit study now fold under \"How sure is this?\". The findings are unchanged." (adjust "a test limit" to "the audit study's caveats" if R3b is rebutted).
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+Re-read card, case block, Colorado section + fold, Wright paragraph + fold, Changes line.
+- R1: resolved. Caption "Where you live or apply"; NYC row names city residents, matches rule 5-304(b).
+- R2: resolved. "Anywhere in the US" row, ADA only, cite supports it; no uncited negative left.
+- R3: resolved. Visible "When these duties start is not settled, as of October 2026: January 2027 or at signing [@co-sb26-189-fiscal]." before the fold; fold verbatim.
+- R3b: resolved. Discretion + missing-audit sentences visible with cite; fold holds only the after-applying limit, cited.
+- R4: deferred to a bead (Illinois AI Video Interview Act, Maryland face-recognition consent law). Not blocking: R2 removed the negative it contradicted.
+- R5: resolved. Illinois cell says applicant coverage + how are not final; matches body.
+- R6: resolved. Colorado row cites the staff note.
+- R7: resolved. Card "As of October 2026: no US federal ban on AI resume screening we found. A few places require notice." 99 characters, dated, matches body.
+- R8: resolved ("table").
+- N1 (low, optional): Changes line says "the audit study's caveats now fold"; only one caveat (notices after applying) folds now. Fix: "...Colorado's date note and one limit of the audit study now fold under \"How sure is this?\". The findings are unchanged."
+Verdict: publish

@@ -5,6 +5,7 @@ published: 2026-10-04
 modified: 2026-10-07
 status: published
 og_title: "AI hiring laws in 2026: what employers must tell you"
+card: "As of October 2026: no US federal ban on AI resume screening we found. A few places require notice."
 uncited:
   - "We found no federal law"
   - "We found no final Illinois rule"
@@ -36,11 +37,25 @@ Connecticut says it outright, as of October 2026. Since October 1, 2026, using a
 
 ## Which laws make employers tell you they use AI?
 
+```case
+Where you live or apply, what the law says, what to do - as of October 2026 (Law; not legal advice)
+Where | What the law says | What to do
+New York City | Notice to candidates who live in the city, 10 business days before an AI tool is used; a yearly bias audit, its summary public [@nyc-ll144; @nyc-aedt-rule] | Look for the notice in the posting or careers page; ask in writing what data the tool uses
+Illinois | Notice to employees that AI is used; whether applicants get one, and how, is not final [@il-pa-103-0804] | Keep a copy of each notice and of what you sent
+Colorado | Notice, and a plain description of the system's role within 30 days of a decision against you; start not settled, enforcement paused by a court [@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay] | Once the law applies, ask for the description, your data and a human review
+California | From January 2027: notice before use; you may ask how the tool worked [@ca-cppa-admt-2025] | From January 2027, ask how a tool used your data; opt out or appeal to a person where offered
+Connecticut | From October 2027: notice in plain words, and written notice before a decision [@ct-pa26-15] | Keep a copy of each notice and of what you sent
+European Union | Fully automated decisions: you must be told, and a person can step in [@eu-gdpr] | Ask for a person to review a fully automated rejection
+Anywhere in the US | The disability law applies before any offer; you may ask for an accommodation for any test [@eeoc-ada-preemployment] | If an AI test does not work for you because of a disability, ask for an accommodation
+```
+
 ### New York City (Local Law 144)
 
 As of October 2026, New York City Local Law 144 covers automated tools that help decide who gets hired. An employer using one needs a bias audit done within the past year. A bias audit checks whether the tool's results differ by sex, race or ethnicity. A summary of the audit results must be public. Candidates who live in the city must get notice 10 business days before the tool is used. The city has enforced the law since July 5, 2023 [@nyc-ll144; @nyc-aedt-rule].
 
 The city's rule says how notice works, as of October 2026. Notice can go on the careers page, in the job posting, or by mail or email. It must explain how to ask for another selection process or an accommodation, if one is available. The rule does not make the employer offer another process. The employer must also post what data the tool uses and where it comes from. You can ask for that in writing, and the employer must answer within 30 days [@nyc-aedt-rule, section 5-304].
+
+Say you live in New York City and apply in October 2026 to an employer that screens with such a tool. The employer must give you notice at least 10 business days before the tool is used, for example in the posting or on its careers page [@nyc-aedt-rule, section 5-304]. If you write asking what data the tool uses, the employer has 30 days to answer. The rule does not make it offer you another process [@nyc-aedt-rule, section 5-304].
 
 ### Illinois (HB 3773)
 
@@ -50,9 +65,11 @@ The law also makes it a violation to fail to give notice "to an employee" that A
 
 ### Colorado (SB26-189)
 
-As of October 2026, Colorado's SB26-189 covers automated systems used in decisions such as hiring. Employers must give clear notice when you deal with such a system. After a decision goes against you, they must describe the system's role in plain words within 30 days. The Attorney General must write rules on that description by January 1, 2027. You may ask for your personal data and correct data that is factually wrong. You may ask for "meaningful human review and reconsideration" of the decision. The Attorney General enforces the law, and applicants get no new right to sue. The law, signed May 14, 2026, replaced Colorado's 2024 AI law [@co-sb26-189].
+As of October 2026, Colorado's SB26-189 covers automated systems used in decisions such as hiring. Employers must give clear notice when you deal with such a system. After a decision goes against you, they must describe the system's role in plain words within 30 days. The Attorney General must write rules on that description by January 1, 2027. You may ask for your personal data and correct data that is factually wrong. You may ask for "meaningful human review and reconsideration" of the decision. The Attorney General enforces the law, and applicants get no new right to sue. The law, signed May 14, 2026, replaced Colorado's 2024 AI law [@co-sb26-189]. When these duties start is not settled, as of October 2026: January 2027 or at signing [@co-sb26-189-fiscal].
 
+```sure
 A May 2026 staff note says the disclosure duties begin January 1, 2027. The same note says the notice, rights and enforcement sections take effect at signing. It describes the bill before final passage. We could not open the signed act to settle the date [@co-sb26-189-fiscal].
+```
 
 A federal court has paused enforcement, as of October 2026. In April 2026, it ordered the Attorney General not to enforce the 2024 law or a law replacing it. The pause covers anything done until 14 days after the court rules on a request to block the law. That request is due 28 days after Colorado finishes its rules [@xai-weiser-stay, ECF 24].
 
@@ -100,7 +117,11 @@ The executive orders tell federal agencies what to pursue. As of October 2026, p
 
 A December 2025 state audit looked at New York City's enforcement from July 2023 to June 2025. The city reviewed 32 companies and found one issue. State auditors looked at the same companies and found at least 17 possible problems. The city received two complaints in two years. The audit called the city's complaint process "ineffective" [@nys-comptroller-2025].
 
-Researchers also checked employers' websites in late 2023. 155 student investigators looked at 391 employers, mostly ones that hire Cornell graduates. Only 18 had posted a bias audit report, and only 13 a notice to candidates. Of the 391, 124 listed no New York City jobs at all. The authors warn the law gives employers "substantial discretion" over whether their tool is covered. So a missing audit does not prove an employer broke the law. Notices shown only after applying were not visible to the researchers [@wright-2024, p. 1, 7-8].
+Researchers also checked employers' websites in late 2023. 155 student investigators looked at 391 employers, mostly ones that hire Cornell graduates. Only 18 had posted a bias audit report, and only 13 a notice to candidates. Of the 391, 124 listed no New York City jobs at all. The authors warn the law gives employers "substantial discretion" over whether their tool is covered. So a missing audit does not prove an employer broke the law [@wright-2024, p. 1, 7-8].
+
+```sure
+Notices shown only after applying were not visible to the researchers [@wright-2024, p. 1, 7-8].
+```
 
 ```bars
 What 391 employers had posted under New York City's law, late 2023, published 2024 (Real records) [@wright-2024, p. 8]
@@ -170,3 +191,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 - October 2026 - Colorado's start date now reads "not settled" in every line, matching the Colorado section. The summary table's heading is now a question.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
 - October 2026 - the line under the title now says the EU rule covers fully automated decisions only.
+- October 2026 - added a table by place with what to do, and a worked example of a New York City application; Colorado's date note and one limit of the audit study now fold under "How sure is this?". The findings are unchanged.

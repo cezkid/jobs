@@ -122,8 +122,31 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
   (Close autofocused; Esc, backdrop, Close or "All sources" close it; focus returns to the citation). A
   modified click, or no JS, still jumps to the list.
 - Keep reading (`keep_reading()`): 3 articles - the ones the page links to, then the ones linking to it,
-  then the next in hub order (wrapping) - each w/ its description; then All research, install line, Back
-  to top. Related + end-of-article links got more clicks in a 1.8M-visit field test (`~/code/research/topics/web/reader-engagement.md`).
+  then the next in hub order (wrapping) - each w/ its description, and its own share card small (120x63,
+  `<li class="thumb">`, `alt=""`: the title says it; lazy; the whole row is the link's hit box) when it has
+  one; then All research, install line, Back to top. Related + end-of-article links got more clicks in a
+  1.8M-visit field test, w/ images 63% more (`~/code/research/topics/web/reader-engagement.md`).
+- Share card per article: header `card:` (the key finding; `pages.card()`: <= 100 chars w/o citation, a
+  number needs `[@id]` or an `uncited:` snippet, articles only) -> `assets.py --only cards` draws
+  `docs/cards/<slug>.png` (1200x630, `app/web/og-article.html`: title, finding, source line = author-year
+  w/o the a/b twin letter + plain evidence word, or "our own measurement") + `<slug>-small.png` (240x126)
+  and records spec hash + PNG hashes in `app/web/card-sync.json`. Build error when a `card:` line, the
+  template or the bird changed since its card was drawn; og:image + twitter alt + JSON-LD image = that card,
+  `?v=` = the PNG's own hash (no number to bump). test_site: files == the record, sizes, < 300 KB.
+  `pages.py --cards` prints the specs (assets.py runs it in the project env).
+- Blocks (fences, parsed after block parsing so lints, citations + typesetting read their text; GitHub
+  shows code, the site is the reader's copy): ```` ```case ```` = your-case figure - caption, `Label |
+  Finding | What to do` heads, 3-cell rows -> `<figure class="case">` + table (no scroll box; td
+  `data-label`, a phone stacks each row under its column names); the caption is a citation unit and its
+  citation covers every row, else each row cites itself. ```` ```guess ```` = question line, `- choice`
+  lines (2+), `Answer: ...` (needs a citation or an `uncited:` snippet) -> `<div class="guess">`, the
+  answer in a closed `<details>`; one unit for the lints (the answer's citation covers the choices);
+  `GUESS_JS` (<= 400 B, test_pages; only on pages w/ a guess) turns choices into `aria-pressed` buttons
+  that open it. ```` ```sure ```` = Markdown inside `<details class="sure"><summary>How sure is
+  this?</summary>`; line numbers stay the file's; lint: not right after a heading, no bold, no heading
+  inside. Print opens both. Each block's CSS ships only on pages that hold it (`BLOCK_CSS`).
+- Page CSS ships w/o its comments (`shipped()`, also cutting app/web/css/site.css + doc.css on their way in): the
+  why stays in the source, not in every download (saved ~1.6 KB gzip on the longest article; ~3 KB w/ site.css).
 - Render: markdown-it-py `js-default` (raw HTML shown as text, tables on). Heading id = the
   `test_docs.anchors()` rule, so `x.md#h` lands in VS Code, on GitHub and on the site. Table
   wrapped in a focusable, labelled scroll box (wide table scrolls, not the page). A table or bar figure
@@ -152,8 +175,8 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
 - Page: `<title>` = title alone, canonical = `og:url`, `og:type` article + published/modified
   time; `site.css` + `doc.css` built in, header, footer, icon + font links, `og:image` copied from `index.html`.
   Breadcrumb, h1, "By ... · Published · Updated" (Updated only when it differs). Share card =
-  `pages.CARD` (`/og-research.png`, alt `CARD_ALT`), size lines from `index.html`; per-article
-  cards later (would need a check that each card's title matches its page).
+  `pages.CARD` (`/og-research.png`, alt `CARD_ALT`), size lines from `index.html`; an article w/ a
+  `card:` line gets its own (above).
 - JSON-LD: one `@graph` block per page (`jsonld()`: compact, UTF-8, `<` -> `\u003c`). Article
   (headline, dates == the byline `<time>`s, author Person `@id` `/about/#person` w/ name + url,
   image = og:image, no publisher) + BreadcrumbList on articles; BreadcrumbList on hub + methods;

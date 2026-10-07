@@ -4,6 +4,7 @@ description: "Field tests find employers reply less to some names, ages and hist
 published: 2026-10-04
 modified: 2026-10-07
 status: published
+card: "Across 24 US field tests, white applicants got 36% more callbacks than equally qualified Black ones [@quillian-2017]."
 uncited:
   - "No field test we found"
   - "We found no field test"
@@ -49,7 +50,11 @@ A 2017 review combined 24 US field tests run from 1989 to 2015, with 54,318 appl
 
 The largest single test sent more than 83,000 made-up applications for entry-level jobs to 108 of the largest US employers. About 24% of applications got a reply within 30 days. Names read as Black got 2.1 points fewer replies. Put the other way, names read as white got about 9% more [@kline-2022, pp. 2-3].
 
-That gap is smaller than most past tests found, and the authors give two possible reasons. The very large employers they tested may be less biased. Their test also got many replies overall, which makes the same gap a smaller share [@kline-2022, p. 3].
+```sure
+The 9% gap is smaller than most past tests found, and the authors give two possible reasons. The very large employers they tested may be less biased. Their test also got many replies overall, which makes the same gap a smaller share [@kline-2022, p. 3].
+```
+
+Say you send 100 applications for entry-level jobs at employers like those 108. About 24 would get a reply within 30 days. Employers replied to about 2 fewer of them under a name read as Black than under a name read as white [@kline-2022, pp. 2-3]. Over 500 applications, the gap means about 10 fewer replies, by our arithmetic.
 
 The bias does not stop at the callback. A 2020 review found 12 field tests that followed applicants through to the job offer. Majority applicants got 53% more callbacks than minority applicants, and 145% more job offers [@quillian-2020]. We read that review's published summary only.
 
@@ -98,7 +103,11 @@ An Australian government team reported a lab trial in 2017. More than 2,100 publ
 
 Hiding names does not always backfire. Two districts of Gothenburg, Sweden, used anonymous applications from 2004 to 2006, and a third district did not. The districts were not picked at random, so this is a link, not proof. With names hidden, women and applicants of non-Western origin were each about 8 points more likely to get an interview. Women also got more job offers; applicants of non-Western origin did not [@aslund-skans-2012, pp. 1, 4, 21, 23-24].
 
-Removing a question can backfire too. New Jersey and New York City stopped employers asking about criminal records on application forms. A test sent about 15,000 online applications from made-up young men, before and after the change. Before it, white applicants got 7% more callbacks than Black applicants at employers that asked. After it, the gap was 43% [@agan-starr-2018]. The authors think employers guessed at records from race once the form could not ask. These figures are from the published summary; we read the methods in a 2016 working-paper version.
+Removing a question can backfire too. New Jersey and New York City stopped employers asking about criminal records on application forms. A test sent about 15,000 online applications from made-up young men, before and after the change. Before it, white applicants got 7% more callbacks than Black applicants at employers that asked. After it, the gap was 43% [@agan-starr-2018]. The authors think employers guessed at records from race once the form could not ask.
+
+```sure
+These figures are from the published summary; we read the methods in a 2016 working-paper version [@agan-starr-2018].
+```
 
 ## Does age or a break in work count against you?
 
@@ -169,3 +178,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 - October 2026 - the background-check survey line now says the share is of the businesses asked, over the past 12 months. The record section now says its law lines are for the US, as of October 2026. Two lines now say they come from a published summary only. The age line now says a second check found a gap about as large, which could be chance [@kline-2022, p. 13]. The findings are unchanged.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - added a worked example of 100 applications; two method notes now fold under "How sure is this?". The findings are unchanged.

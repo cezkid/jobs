@@ -483,3 +483,44 @@ Findings (verdict revise):
 - W1: resolved. Line 1 now "Degree 20 or more years old: consider taking off graduation and certificate years, and shortening the oldest jobs." The item's own scope; "consider" kept.
 - Generic Changes line now records the rename; accurate. Rest of the diff vs main as above (7 bold lines, script).
 - No new finding. Verdict: publish.
+
+## Re-review 2026-10-07: your case, fold-out, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` (Style), `git diff main` of the article, the whole article, `sources.yml` labels; opened carlsson-eriksson-2019 (IFAU PDF) + dalle-2025 (UGent open copy) for the locators new to the article; Lippens, Farber, Neumark figures from the source table above. No source text addressed an AI.
+
+Changed: header `card:`; ```case chart (3 age bands); Lippens caveats (2 sentences) moved into ```sure; citation [@lippens-2023] now ends the Lippens paragraph; worked example (woman aged 50, office jobs); one Changes line.
+
+Per item:
+- Card: 42% / 17 tests = Lippens older-age ratio 0.5804, supported; 75 characters. "employer replies" drops "positive" (body: "positive reply"): C1.
+- Case caption: "Big studies" but dalle-2025 is `field experiment` = Small study; "most US tests used women in office jobs" - body says 3 of 5 US tests used only women, 2 of them in office jobs: R1.
+- Case row Early 40s: Farber 2017 11.0 vs 11.9 (p. 180), Farber 2019 42-43 (p. 16) supported. Carlsson p. 7 (PDF page) says callbacks start to fall "early in the age interval"; "early 40s" itself is p. 3: R5.
+- Case row Around 50: numbers right (Neumark p. 26; Farber 2019 p. 16). Hides the body's counterpoint: men in sales 21.1% at 49-51 vs 20.9% at 29-31, no drop; Belgium no clear gap at 50: R2.
+- Case row Mid-50s+: numbers right (8.9 vs 11.0; 7.6; Dalle 27.74% at 56, PDF pp. 22-23). "Lower in every test that tried it" stronger than body: Farber 2017 gap clear only in the last of four rounds; Lahey could be chance; Kline slide borderline: R3.
+- What to do cells: row 1 = What helps item 4, same words. Row 2 = item 1, "your call" kept as choice. Row 3 "Shorten the oldest jobs too" drops item 2's condition "If you take the year off" and its "consider"/our-judgment status - an order where What helps gives a conditional judgment: R4. "never change a date" = item 6.
+- Age bands fair? US numbers all women in office jobs; caption must say so plainly (R1). Bands follow tested ages; no row says 40 is a line. OK after R1-R3.
+- Sure fold: verbatim (diff), skimmable caveats (publication bias, copy read); not the answer, no bold, not under a heading; "about 42%" stays true without it. Every body sentence still cited; second fold sentence was uncited before too (our own reading note). Supported.
+- Worked example: 10.3 -> about 10, 14.4 -> about 14 per 100, correct, "by our arithmetic", cited p. 26. Study's numbers only, no story, "Say you are" is a stated hypothetical, infers nothing. Cue (high school graduation year) not named: R6 (low).
+- Changes line: accurate in substance; "the review's caveats" can read as this review: R7 (low).
+- Plain words, US English, bias framed as the employer's: OK.
+
+Findings (verdict revise):
+- **R1 (medium)** Case caption label + scope wrong: Dalle 2025 is a Small study; "most US tests used women in office jobs" overstates (2 of 5 did). Fix line 44: `Your age, what field tests found, what to do (Big studies and one Small study, from Belgium; every US number here is for women applying to office jobs)`
+- **R2 (medium)** Around 50 row hides the body's counterpoint (men in sales, no drop; Belgium 50, no clear gap). Fix finding cell: `US: women in office jobs got 10.3% callbacks at 49-51, against 14.4% at 29-31; men in sales got 21.1% against 20.9%, no drop [@neumark-2019, p. 26]; no clear drop at 51-52 in the six-age test [@farber-2019, p. 16]; no clear gap at 50 in Belgium [@dalle-2025, pp. 22-23]`
+- **R3 (medium)** Mid-50s row "Lower in every test that tried it" stronger than body (Farber 2017 clear only in round 4). Fix opening: `Lower in each test that tried it, not always clearly: 8.9% at 55-58 against 11.0% at 35-37, clear only in the last of four rounds [@farber-2017, p. 180]; ...` (rest unchanged).
+- **R4 (medium)** Mid-50s What to do turns a conditional judgment into an order. Fix cell: `If you take the year off, consider shortening the oldest jobs too; never change a date`
+- **R5 (low)** Carlsson locator: "early 40s" is on p. 3. Fix: `[@carlsson-eriksson-2019, pp. 3, 7]`
+- **R6 (low)** Worked example: name the cue. Fix first sentence: `Say you are a woman aged 50 applying for office jobs, as in that test, with age shown by a high school graduation year.`
+- **R7 (low)** Changes line: `the review's caveats` -> `the caveats on the largest review`.
+- **C1 (low)** Card: `Older applicants got about 42% fewer positive employer replies across 17 field tests [@lippens-2023].` (84 characters w/o citation)
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+- R1: resolved. Caption "(Big studies and one Small study, from Belgium; US numbers are for women applying to office jobs unless named)". "unless named" is right now that R2 adds men in sales; every other US number in the chart is women in office jobs.
+- R2: resolved. Men in sales 21.1% vs 20.9% and Belgium at 50 added; one neumark p. 26 citation covers both figures in its sentence. The six-age test sentence drops "US:", but the body names it a US test; fine.
+- R3: resolved. "not always clearly" + "clear only in the last of four rounds", as the body.
+- R4: resolved. "If you take the year off, consider shortening the oldest jobs too" = What helps item 2.
+- R5: resolved. pp. 3, 7.
+- R6: resolved. Cue named (high school graduation year), as Neumark 2019.
+- R7: resolved. Changes line now "the caveats on the largest review".
+- C1: resolved. "positive employer replies", 84 characters w/o citation.
+- No new finding. Verdict: publish
