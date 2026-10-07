@@ -43,6 +43,9 @@ def test_copilot_shows_its_chat_and_carries_every_key():
     assert settings["github.copilot.enable"] == {"*": False}
     assert settings["github.copilot.nextEditSuggestions.enabled"] is False
     assert settings["chat.sessionSync.enabled"] is False
+    # experiment-controlled defaults pinned: which harness, when the agent pauses
+    assert settings["chat.defaultToCopilotHarness"] is False
+    assert settings["chat.agent.maxRequests"] == 150
     assert settings["github.copilot.chat.workspace.codeSearchExternalIngest.enabled"] is False
     assert all(v is True for v in settings["chat.tools.terminal.autoApprove"].values())
     assert not any(key.startswith("claudeCode.") for key in settings)

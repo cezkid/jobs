@@ -330,6 +330,30 @@ How links get there:
 Owner checks still open: a posting open inside the window looks + works right (plan-29g.5;
 scratch screenshot from #r: `.data/probe-shots/r-posting-in-window.png`).
 
+## Copilot's chat - pinned settings + what a dropped file becomes
+
+Read 2026-10-06 in the VS Code docs + source (microsoft/vscode `a4a3dff`, main - stable can lag a
+week; VS Code 1.140). Not measured in the window yet.
+
+- **Harness.** VS Code chat runs a session on one of several harnesses: Local (built-in), Copilot
+  (Agent Host, the Copilot CLI runtime), Claude, Codex. `chat.defaultToCopilotHarness` defaults
+  to false and is experiment-controlled, so Microsoft can move a user to Copilot. The two read
+  different instruction files (Local: `.github/copilot-instructions.md`, `AGENTS.md`, `CLAUDE.md`;
+  Copilot: `copilot-instructions.md` or `AGENTS.md`), and whether `chat.tools.terminal.autoApprove`
+  applies under Copilot is undocumented. `app/workspace.py` pins Local (false). Microsoft says the
+  Local agent "will be removed in a future release" - re-check each VS Code update.
+- **Pause.** The agent asks "Continue?" once a turn reaches `chat.agent.maxRequests`: docs say 25,
+  the source 50 or a per-plan experiment value (`chatAgentMaxRequestsFree` / `...Pro`). Pinned at
+  150 (judgement: a whole tailoring or apply turn; a runaway still stops).
+- **A file dragged into the chat (Local).** Every route - Finder / Explorer, VS Code's Explorer, Add
+  Context - attaches a file reference. A text file arrives as its text; a PDF arrives whole as a
+  document, to Claude and GPT-5+ models only (others drop it: "does not support PDF documents"),
+  without its path; a Word file or any other binary arrives as a hex dump of its first ~128 bytes
+  - no text, no path. Under the Copilot harness an attachment arrives as its absolute path. Hence
+  `AGENTS.md` #User: drag it onto My Resume, not into the chat.
+- **Autopilot** (a mode the user can pick) answers the ask-questions tool itself - it would invent a
+  "Did you send it?" answer. The window opens chats in agent mode (`chat.newSession.defaultMode`) and never turns it on.
+
 ## Rejected
 
 - Own Electron / Tauri shell: Claude, ChatGPT + Copilot chats exist only as VS Code extensions

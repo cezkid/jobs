@@ -1,8 +1,8 @@
 """Text of a Word (.docx) resume, read here so the AI never opens the file itself.
 
-A .docx is a zip of XML: word/document.xml held 11-22x the characters of its text, the whole
-package 29-63x (4 Word resume templates, measured 2026-10-06) - an AI reading it raw spends that
-many times the tokens. Reading it here hands the AI the text only, inside the import task.
+A .docx is a zip of XML: word/document.xml cost 19-45x the Claude tokens of its text (4 Word
+resume templates, measured 2026-10-06, app/docs/resume/resume-file.md) - an AI reading it raw
+spends that. Reading it here hands the AI the text only, inside the import task.
 
 Lines come out as Word shows them: header first (Word templates put the name + contact there),
 body, footer last. Left out: what Word doesn't show - hidden text, tracked deletions + moved-from

@@ -19,27 +19,38 @@ the same resume (no Word on the build machine to export a PDF twin).
 
 Both formats go through the same gates: every string the AI maps must be in the extracted text
 (`untraced`), 98% of its words must land somewhere (`recovery`), every left-out line read to the
-user. The copy kept is `My Resume/Original resume.pdf` or `.docx`; `.data/resume-source` names the
-one `prepare` read so `finish` checks against that same text. A second format never replaces or
+user. The copy kept is `My Resume/Original resume.pdf` or `.docx`; `.data/resume-source.json` holds
+the file `prepare` read + the exact text it handed out, and `finish` checks against that text. A second format never replaces or
 deletes the first.
 
 ## Token cost - why the AI never opens the file
 
-| 4 Word resume templates, 2026-10-06 | Characters |
-|---|---|
-| Text the program extracts | 4,762 - 6,198 |
-| `word/document.xml` | 11.0x - 22.4x the text |
-| Every XML part in the package | 29x - 63x the text |
+Real Claude tokens (Opus 5.5, the model Claude Code ran here), 2026-10-06. 4 Word resume templates
+(resume-site samples, not committed) + 1 one-page resume PDF rendered from `master.example.yml`:
 
-Measured by unzipping each file and counting characters, not tokens; XML usually costs more
-tokens per character than prose, so the token gap is likely wider (not measured). Claude Code's
-Read tool has no Word reader (docs list images, PDF, notebooks), so an AI opening a .docx itself
-unzips it and reads that XML. A PDF opened by the AI comes back as page text + images - also more
-than the extracted text, and it skips the gates. Rule (`AGENTS.md` #Speed): the AI reads the task
-file the program writes, never the resume file.
+| What reaches the chat | Tokens | Chars per token | vs the extracted text |
+|---|---|---|---|
+| Text the program extracts (4 templates) | 1,756 - 2,273 | 2.3 - 3.0 | 1x |
+| `word/document.xml` alone | 42,698 - 92,672 | 1.5 - 1.6 | **19x - 45x** |
+| 1-page PDF opened w/ Claude Code's Read | 2,069 | - | 5.1x (its text: 402) |
 
-Copilot gets a file dropped in its chat as data with no path: the program can't read that copy,
-so the user drags it onto My Resume (`AGENTS.md` #User).
+Method, no API key: one headless `claude -p` session per file - the model runs one tool on it,
+then answers; Claude Code's own transcript (`~/.claude/projects/*/<session>.jsonl`) records each
+API call's input (`input_tokens` + cache creation + cache read). File tokens = call 2 minus call 1,
+minus a 13-character control file's (174 via Bash `cat`, 151 via Read). XML sent in 20,000-char
+pieces: one `cat` of a whole document.xml came back cut to a preview (Claude Code caps command
+output), so an AI opening a .docx this way needs several reads; Read also cuts a file past its
+token limit to a "PARTIAL view" (limit not in the docs). Character ratios (11x - 22x document.xml, 29x - 63x every XML part)
+understated it: Word's XML packs 1.5 characters per token, the resume text 2.3 - 3.0. Other models'
+tokenizers differ (Claude 4.7+ counts ~30% more than older Claude, platform docs) - the ratio is the
+part that carries over. Claude Code's Read has no Word reader (docs list images, PDF, notebooks).
+A PDF opened by the AI also skips the import's gates. Rule (`AGENTS.md` #Speed): the AI reads the
+task file the program writes, never the resume file.
+
+Dropped in Copilot's chat (VS Code's Local harness, source read 2026-10-06): a PDF goes whole to
+Claude / GPT-5+ models only, without its path; a .docx arrives as a hex dump of its first ~128
+bytes - no text, no path ([app-window.md](../app-window.md#copilots-chat---pinned-settings--what-a-dropped-file-becomes)).
+Either way the program can't read that copy, so the user drags it onto My Resume (`AGENTS.md` #User).
 
 ## Out: PDF only
 
