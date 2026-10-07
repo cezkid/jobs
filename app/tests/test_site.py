@@ -182,33 +182,30 @@ def test_nothing_in_docs_trips_jekyll():
         assert not (cfg.ROOT / path).read_bytes().startswith(b"---"), path
 
 
-SITE_CSS = (DOCS / "site.css").read_text(encoding="utf-8")
+CSS_SRC = cfg.ROOT / "app" / "web" / "css"
+SITE_CSS = (CSS_SRC / "site.css").read_text(encoding="utf-8")
 
 
-def css_href(name: str) -> str:
-    """The stylesheet's URL as pages link it: its content hash (LF) keeps a reader's cache honest."""
-    text = (DOCS / name).read_bytes().decode("utf-8").replace("\r\n", "\n")
-    return f"/{name}?v={hashlib.sha256(text.encode()).hexdigest()[:10]}"
-
-
-def test_every_page_links_the_shared_stylesheets_and_carries_no_copy():
-    # one source for the shared CSS (owner 2026-10-07: "more reusable css shared"): every page links site.css, the
-    # reading pages doc.css too, each at its current hash (pages.py stamps it); no page keeps an inline copy - copied
-    # blocks drifted, and every page paid for them again
+def test_every_page_carries_the_shared_css_built_in_from_one_source():
+    # one source per rule (owner 2026-10-07: "more reusable css shared"): app/web/css/site.css on every page, doc.css
+    # on the reading pages, built into each <style> by pages.py (fresh: test_generated_files_are_fresh) - never
+    # linked: a linked sheet cost a slow phone ~220 ms before first paint (owner: "do what is best for speed")
+    blocks = {name: re.findall(r"/\* (shared|doc) \*/\n.*?/\* /\1 \*/\n", (DOCS / name).read_text(encoding="utf-8"), re.S)
+              for name in PAGES}
+    texts = {name: re.findall(r"/\* (?:shared|doc) \*/\n.*?/\* /(?:shared|doc) \*/\n", (DOCS / name).read_text(encoding="utf-8"), re.S)
+             for name in PAGES}
     for name in PAGES:
-        raw = (DOCS / name).read_text(encoding="utf-8")
-        want = [css_href("site.css")] + ([] if name == "index.html" else [css_href("doc.css")])
-        assert [a["href"] for a in page(name).links("stylesheet")] == want, name
-        assert "/* shared */" not in raw and "@font-face" not in raw and "--desk:" not in raw, name
-        assert raw.index('rel="stylesheet"') < raw.index("<style>") if "<style>" in raw else True, name
+        assert blocks[name] == (["shared"] if name == "index.html" else ["shared", "doc"]), name
+        assert not page(name).links("stylesheet"), name
+    assert len({t[0] for t in texts.values()}) == 1 and len({t[1] for n, t in texts.items() if n != "index.html"}) == 1
     # the reading pages' box rules for bare elements (h1 size, p + li margins ...) stay out of site.css: the home
     # page's scenes never inherit them (base type - text-wrap - is shared)
     assert element_box_rules(SITE_CSS) == []
     assert element_box_rules("@media (max-width: 600px) {\n  .x, main h2 { margin-top: 36px; }\n}") == ["main h2"]
-    # both files committed: on disk only, every check here passes and Pages serves the site unstyled
-    tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", "docs/site.css", "docs/doc.css"],
+    # both sources committed: on disk only, every check here passes and a fresh clone can't build the pages
+    tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", "app/web/css/site.css", "app/web/css/doc.css"],
                              capture_output=True, text=True, check=True).stdout.split()
-    assert tracked == ["docs/doc.css", "docs/site.css"], tracked
+    assert tracked == ["app/web/css/doc.css", "app/web/css/site.css"], tracked
 
 
 def element_box_rules(css: str) -> list[str]:
@@ -795,7 +792,7 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
     ({"body": "<i></i>" * 801}, {}, "elements in <body>"),
     ({"css": '@font-face { font-family: "X"; src: url("/fonts/big.woff2") format("woff2"); }'},
      {"fonts/big.woff2": 101_000}, "first load"),
-    ({"head": '<link rel="preload" href="/a.woff2" as="font" crossorigin>' * 6}, {}, "critical requests"),
+    ({"head": '<link rel="preload" href="/a.woff2" as="font" crossorigin>' * 5}, {}, "critical requests"),
     ({"scripts": '<script src="/app.js"></script>'}, {}, "<script src="),
     ({"css": ".x { will-change: transform; }"}, {}, "will-change"),
     ({"css": "@keyframes grow { from { width: 0; } to { width: 10px; } }"}, {}, "animates width"),

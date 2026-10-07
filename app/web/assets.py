@@ -46,7 +46,7 @@ ART = ("icon*.svg", "mark*.svg")  # Desktop tile icon + bare bird
 MARK_SMALL = APP_ICONS / "mark-32.svg"
 # pages w/ a hand-written header + hero window: their inline bird is rewritten from MARK_SMALL
 HAND_PAGES = ("index.html", "404.html", "privacy.html")
-# dark tab strip: the shared :root's dark --text + --desk (docs/site.css)
+# dark tab strip: the shared :root's dark --text + --desk (app/web/css/site.css)
 PALE, DESK = "#f2f2f2", "#1c1c1e"
 MARK_FILL = {"ink": "#000000", "beak": "#ffe433", "beak-low": "#e57a00", "eye": "#ffe433"}  # mark-32.svg as drawn
 # the paper disc a black bird sits on wherever the ground may be dark (the Desktop icon's, inscribed in the

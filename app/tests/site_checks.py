@@ -231,9 +231,7 @@ HTML_GZIP_MAX = 25 * KB       # 7.5 KB at the redesign start
 INLINE_JS_MAX = 5 * KB        # raw bytes of every inline script but JSON-LD (2.9 KB at start)
 BODY_ELEMENTS_MAX = 800       # 162 at start
 FIRST_LOAD_MAX = 100 * KB     # gzip HTML + every @font-face woff2 + icon.svg (colophon promises "under 100 KB")
-# HTML + preloads + stylesheets + icon.svg. 6 since the CSS moved out of the pages (2026-10-07): a reading page
-# links site.css + doc.css, both in its head, fetched together (HTTP/2: one round trip, not two); the home page 5
-CRITICAL_MAX = 6
+CRITICAL_MAX = 5              # HTML + preloads + stylesheets + icon.svg
 HEAD_SCRIPT_MAX = 600         # <head> script: html classes before first paint, nothing else
 # paint-free or cheap properties only; anything else animates layout or repaints big areas
 ANIMATABLE = {"transform", "opacity", "clip-path", "stroke-dashoffset", "background-size"}
@@ -417,7 +415,7 @@ def apca(text: str, background: str) -> float:
 
 def shared(raw: str) -> str:
     """The shared CSS: a page's inline /* shared */ ... /* /shared */ block (test fixtures), else the text itself
-    (docs/site.css, the real site's)."""
+    (app/web/css/site.css, the real site's source)."""
     m = re.search(r"/\* shared \*/.*?/\* /shared \*/", raw, re.S)
     return m.group(0) if m else raw
 

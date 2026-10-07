@@ -4,12 +4,13 @@ Sources: app/web/research/<slug>.md - a YAML header between --- lines (KEYS only
 <slug>.md -> /research/<slug>/, methods.md -> /research/methods/, about.md -> /about/, index.md =
 hub intro; research/feed.xml (Atom) once an article is published. status: draft => not built.
 Header, footer, icon + font links and og:image size are copied from docs/index.html, so every page stays the same as the home page; the share
-card itself is CARD (docs/og-research.png). CSS: docs/site.css (every page) + docs/doc.css (reading pages), both
-hand-written; each page links them w/ the file's hash (?v=) - this script stamps it, the hand-written pages too.
+card itself is CARD (docs/og-research.png). CSS: app/web/css/site.css (every page) + doc.css (reading pages), one
+source per rule, built into each page's <style> (comments cut) - the hand-written pages' blocks too.
 
-Hand-written pages (index.html, privacy.html, 404.html) stay as they are but for their stylesheet hashes; this
-script reads them for the sitemap. Everything else it writes is generated and committed - never hand-edit those
-files; change this script or its sources and rerun. In the hand-written pages edit anything but the ?v= hash. A test (test_site.py) fails when a committed file is
+Hand-written pages (index.html, privacy.html, 404.html) stay as they are but for their built-in CSS blocks
+(/* shared */ ... /* /shared */, /* doc */ ... /* /doc */); this script reads them for the sitemap. Everything else
+it writes is generated and committed - never hand-edit those files; change this script or its sources and rerun.
+In the hand-written pages edit anything but those blocks (their source: app/web/css/). A test (test_site.py) fails when a committed file is
 stale, missing, or left over in docs/research/ or docs/about/ (orphan) - rerun to fix.
 
 Output is deterministic: no clock, sorted order, UTF-8, LF. Dates read from sources, spelled with
@@ -31,7 +32,6 @@ import copy
 import csv
 import datetime
 import difflib
-import hashlib
 import importlib.util
 import io
 import json
@@ -594,7 +594,7 @@ def _cite(state):
 
 
 def _render_cite(self, tokens, idx, options, env):
-    # set small + grey (docs/doc.css): the findings, not the author names, are what a skimming eye lands on
+    # set small + grey (app/web/css/doc.css): the findings, not the author names, are what a skimming eye lands on
     links = [f'<a href="#src-{ref}">{escape(env["labels"][ref])}</a>' + (f", {escape(typeset(loc))}" if loc else "")
              for ref, loc in tokens[idx].meta["refs"]]
     return "<small>(" + "; ".join(links) + ")</small>"
@@ -1000,7 +1000,7 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
     notes = boxes(tokens)
     html = LEAD_CITE.sub(r"<small>(\1; ", MD.renderer.render(tokens, MD.options, {"labels": labels}))
     if "What to do" in notes and "what-helps" in src.ids:
-        # the note's way to the whole list at the end: its closing rule moves under this line (docs/doc.css)
+        # the note's way to the whole list at the end: its closing rule moves under this line (app/web/css/doc.css)
         cut = html.index("</ul>", html.index('<p class="box"><strong>What to do</strong></p>')) + len("</ul>\n")
         html = html[:cut] + '<p class="box-more"><a href="#what-helps">More in What helps</a></p>\n' + html[cut:]
     cited = {ref for _, cite in cites(src) for ref, _ in cite.meta["refs"] or []} & set(registry.entries)
@@ -1028,27 +1028,30 @@ def home_parts(root: Path) -> dict[str, str]:
     }
 
 
-# the site's two stylesheets, hand-written in docs/: site.css on every page, doc.css on the reading pages (these,
-# privacy, 404); each link carries its file's hash (?v=): a page fetched after a deploy never gets an old cached copy.
-# Pages ignores the query (serves the current file) and caches HTML 10 min, so a page cached from before the deploy
-# may get the new CSS w/ its old markup for those minutes - hashed file names would close that, not needed yet
-STYLESHEET = re.compile(r'<link rel="stylesheet" href="/(site|doc)\.css(?:\?v=[0-9a-f]*)?">')
+# the site's CSS, one source per rule in app/web/css/: site.css (every page), doc.css (reading pages: these, privacy,
+# 404). Built into each page's <style> between markers, never linked: a linked sheet cost a slow phone ~220 ms before
+# first paint + a 510 ms long frame (measured 2026-10-07; GitHub Pages caches it 10 min only, then each view asks
+# again). Comments cut on the way (the why stays in the source): ~3 KB gzip off every page
+CSS_DIR = Path("app") / "web" / "css"
+CSS_MARK = {"site.css": "shared", "doc.css": "doc"}
+CSS_BLOCK = re.compile(r"/\* (shared|doc) \*/\n.*?/\* /\1 \*/\n", re.S)
 
 
-def stylesheet(docs: Path, name: str) -> str:
-    """<link> to docs/<name> w/ its content hash (LF text: a CRLF checkout hashes the same)."""
-    if not (docs / name).is_file():
-        raise SystemExit(f"docs/{name} is missing: every page links it (site.css: all, doc.css: reading pages)")
-    text = (docs / name).read_bytes().decode("utf-8").replace("\r\n", "\n")
-    return f'<link rel="stylesheet" href="/{name}?v={hashlib.sha256(text.encode()).hexdigest()[:10]}">'
+def css(root: Path, name: str) -> str:
+    """app/web/css/<name> as the pages carry it: comments + blank lines cut, between its markers, LF."""
+    path = root / CSS_DIR / name
+    if not path.is_file():
+        raise SystemExit(f"{(CSS_DIR / name).as_posix()} is missing: every page's <style> is built from it")
+    text = re.sub(r"/\*.*?\*/", "", path.read_bytes().decode("utf-8").replace("\r\n", "\n"), flags=re.S)
+    lines = [line.rstrip() for line in text.split("\n") if line.strip()]
+    mark = CSS_MARK[name]
+    return f"/* {mark} */\n" + "\n".join(lines) + f"\n/* /{mark} */\n"
 
 
-def restamp(docs: Path, text: str, rel: str = "") -> str:
-    """A hand-written page w/ its stylesheet links pointing at the current files; a stylesheet link written any
-    other way (attributes reordered, media=) can't be stamped - a plain error, not a silently stale hash."""
-    if text.count('rel="stylesheet"') != len(STYLESHEET.findall(text)):
-        raise SystemExit(f"docs/{rel}: write stylesheet links exactly as <link rel=\"stylesheet\" href=\"/site.css\">")
-    return STYLESHEET.sub(lambda m: stylesheet(docs, m[1] + ".css"), text)
+def restyle(root: Path, text: str) -> str:
+    """A hand-written page w/ its built-in CSS blocks (site.css, doc.css) as the sources say now."""
+    names = {v: k for k, v in CSS_MARK.items()}
+    return CSS_BLOCK.sub(lambda m: css(root, names[m[1]]), text)
 
 
 
@@ -1306,8 +1309,8 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         *head,
-        stylesheet(root / "docs", "site.css"),
-        stylesheet(root / "docs", "doc.css"),
+        "<style>",
+        css(root, "site.css") + css(root, "doc.css") + "</style>",
         "</head>",
         "<body>",
         parts["header"],
@@ -1411,8 +1414,8 @@ def build(root: Path, warnings: list[str] | None = None) -> dict[str, str]:
     hand = {rel: (docs / rel).read_text(encoding="utf-8") for rel in found
             if rel.endswith(".html") and rel.split("/")[0] not in NOT_PAGES}
     out, lastmod = dated(root, set(found), warnings)
-    # hand-written pages: only their stylesheet links are this script's (the hash of the file they load)
-    out |= {rel: restamp(docs, text, rel) for rel, text in hand.items() if 'rel="stylesheet"' in text}
+    # hand-written pages: only their built-in CSS blocks are this script's (from app/web/css/)
+    out |= {rel: restyle(root, text) for rel, text in hand.items() if CSS_BLOCK.search(text)}
     hand |= {rel: text for rel, text in out.items() if rel in hand}
     out["sitemap.xml"] = sitemap(root, {**hand, **{k: v for k, v in out.items() if k.endswith(".html")}}, lastmod)
     return dict(sorted(out.items()))

@@ -1,6 +1,7 @@
-/* doc.css - reading pages (research articles, the hub, About, methods, privacy, 404) on top of site.css:
-   editorial type, notes, tables, citations + the source card, Sources, On this page, Keep reading. Element
-   rules (h1, p, li ...) live here, not in site.css, so the home page's scenes never inherit them. */
+/* doc.css - reading pages (research articles, the hub, About, methods, privacy, 404) on top of site.css, built
+   into each by app/web/pages.py (between the doc markers): editorial type, notes, tables, citations + the source
+   card, Sources, On this page, Keep reading. Element rules (h1, p, li ...) live here, not in site.css, so the home
+   page's scenes never inherit them. */
 /* main.wrap: .wrap's own padding shorthand would otherwise win and zero the top + bottom */
 main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
 /* editorial measure: one column of reading text, never wider than 68ch */

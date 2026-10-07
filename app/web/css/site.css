@@ -1,7 +1,8 @@
 /* site.css - every page: tokens, fonts, base type, links, marks, layout boxes (.grid, .wrap), header, footer,
-   touch boxes, print, page change. Hand-written; app/web/pages.py stamps its hash into each page's link
-   (?v=), so an edit reaches readers at once. Reading pages add doc.css; one-off styles stay in their page.
-   Why each rule: app/docs/site.md. */
+   touch boxes, print, page change. The one source: app/web/pages.py writes it (comments cut) into each page's
+   <style> between the shared markers - built in, never linked: a linked sheet cost a slow phone ~220 ms before
+   the first paint (GitHub Pages caches it 10 min only). Reading pages add doc.css; one-off styles stay in their
+   page. Why each rule: app/docs/site.md. */
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
 @font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
