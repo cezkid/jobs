@@ -236,6 +236,23 @@ js-debug's session was likely still on the tab at Submit. Suspects: Turnstile at
 attached, or the leftover session itself - unmeasured (never Submit while measuring). JazzHR's reCAPTCHA passed in
 the window the same day (1 of 1, w/ a picture puzzle). Workable pulled from `window.SYSTEMS` (owner, "Pull it").
 
+Why the let go wasn't clean - measured, local form only (`measure.py shipext` + `detach`: the shipped fill path,
+`window.page_at` + the shipped extension through the link folder, then probe-ext lists the debug sessions), 3 runs
+each, macOS 26.4.1 x86_64, 2026-10-07, 0 employer pages:
+- Extension 0.25.0: detach answered `left: 1` (10.4-10.9 s), 2 sessions stayed at +0, +3, +10 s - the attach
+  itself and a session for the form's cross-site frame, which sits under the tab's own. `detachForm` disconnected
+  only the tab + the attach; the frame's session was never asked, and the attach won't end while it lives. 3 of 3.
+  A real form has such frames (Workable's Turnstile, JazzHR's reCAPTCHA) - the same "may still be holding" note
+  the owner saw on both, 2 of 2. Earlier `multipage` baseline (0 left) had no cross-site frame.
+- 0.26.0: every session under the attach disconnected, deepest first, up to 3 passes (a frame still loading gets
+  its session late): `left: 0` (5.3-6.4 s), 0 sessions at +0, +3, +10 s, the form tab kept. 3 of 3.
+- Still unclean (an answer w/ `left`, an error, none in 30 s) -> `window.LET_GO_FAILED`: tell the user to close
+  the tab without clicking Submit, then fill in Chrome. Closing the tab ends every session on it (0 left, 6 of 6,
+  `multipage`).
+- Whether Workable's Submit passes w/ no session left - unmeasured (never Submit while measuring); Workable stays
+  out of `window.SYSTEMS` until a real Submit in the window passes (owner). Numbers:
+  [detach-local.json](vscode-browser/detach-local.json).
+
 ## BambooHR - route 2 (plan-k8n.10)
 
 Same `measure.py raw`, level 3, no named read. The form opens only after "Apply for This Job": `raw` now clicks a

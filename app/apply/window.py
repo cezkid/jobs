@@ -38,7 +38,9 @@ ATTACH, DETACH = "attach-form", "detach-form"
 OPEN_WAIT = 20
 # extension.js: picker 15 s + child session 10 s + proxy 5 s, w/ margin
 ATTACH_WAIT = 45
-DETACH_WAIT = 15
+# extension.js: up to 3 passes over the form's sessions (5 s each at worst + 2 s settle); 5-6 s measured
+# on the local form w/ one cross-site frame, 3 of 3 (plan-k8n.34)
+DETACH_WAIT = 30
 TIMEOUT_MS = 30000
 POLL = 0.1
 # no network for this long = settled, as Playwright's "networkidle"
@@ -961,10 +963,17 @@ def ask(request: dict, wait: float):
         return None
 
 
+# a debugger left on the tab: Workable's Submit failed there 2 of 2, the same job went through in
+# Chrome 1 of 1 (owner, 2026-10-07) => never Submit on it. The user closing the tab ends every session
+# on it (0 left, 6 of 6, multipage-local.json)
+LET_GO_FAILED = ("not let go: the window's debugger may still be on the form tab, and a site's robot check can refuse "
+                 "Submit there - tell the user to close that tab without clicking Submit, then " + FALLBACK)
+
+
 def let_go(session: str) -> None:
     answer = ask({"do": DETACH, "session": session}, DETACH_WAIT)
     if not isinstance(answer, dict) or answer.get("ok") is not True or answer.get("left"):
-        print("note: the window may still be holding the form tab - closing that tab after Submit lets it go")
+        print(LET_GO_FAILED)
 
 
 @contextlib.contextmanager

@@ -1,0 +1,405 @@
+{
+ "before": {
+  "stage": "detach",
+  "at": "2026-10-07T07:40:00Z",
+  "uniq": "41b992",
+  "mac": "macOS 26.4.1 x86_64",
+  "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+  "launch": {
+   "args": [
+    "--user-data-dir",
+    "$D/data",
+    "--extensions-dir",
+    "$D/ext",
+    "--shared-data-dir",
+    "$D/shared",
+    "--disable-workspace-trust",
+    "--new-window",
+    "$D/f"
+   ],
+   "up": true,
+   "upMs": 10612,
+   "upInfo": {
+    "t": 1791358810520,
+    "trusted": true,
+    "folder": "$D/f"
+   }
+  },
+  "runs": [
+   {
+    "s": 14.2,
+    "rc": 0,
+    "out": [
+     {
+      "do": "attach-form",
+      "answer": {
+       "ok": true,
+       "session": "2b886c70-f8c6-4433-9b94-88ca181b1736",
+       "proxy": {
+        "host": "127.0.0.1",
+        "port": 53845,
+        "path": "/5c52d59d5b0f744bf22047efc496d27dfd076277"
+       }
+      },
+      "s": 1.12
+     },
+     {
+      "do": "detach-form",
+      "answer": {
+       "ok": true,
+       "left": 1
+      },
+      "s": 10.85
+     },
+     "note: the window may still be holding the form tab - closing that tab after Submit lets it go",
+     {
+      "filled": true
+     }
+    ],
+    "sessions+0s": [
+     {
+      "id": "e1a452c9-779b-4f18-a419-f671e1c4d3b5",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "dab62916-0bc6-4503-88d6-016cb3aee5dd",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "2b886c70-f8c6-4433-9b94-88ca181b1736"
+     }
+    ],
+    "sessions+3s": [
+     {
+      "id": "e1a452c9-779b-4f18-a419-f671e1c4d3b5",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "dab62916-0bc6-4503-88d6-016cb3aee5dd",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "2b886c70-f8c6-4433-9b94-88ca181b1736"
+     }
+    ],
+    "sessions+10s": [
+     {
+      "id": "e1a452c9-779b-4f18-a419-f671e1c4d3b5",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "dab62916-0bc6-4503-88d6-016cb3aee5dd",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "2b886c70-f8c6-4433-9b94-88ca181b1736"
+     }
+    ],
+    "tabs": [
+     "JF form 41b992"
+    ]
+   },
+   {
+    "s": 12.8,
+    "rc": 0,
+    "out": [
+     {
+      "do": "attach-form",
+      "answer": {
+       "ok": true,
+       "session": "bc6e5ca9-b176-46b7-9456-e88e2eea1c99",
+       "proxy": {
+        "host": "127.0.0.1",
+        "port": 53961,
+        "path": "/1cdef6b2dc8deb9760a09b7d2a1effa88baff7ac"
+       }
+      },
+      "s": 0.66
+     },
+     {
+      "do": "detach-form",
+      "answer": {
+       "ok": true,
+       "left": 1
+      },
+      "s": 10.48
+     },
+     "note: the window may still be holding the form tab - closing that tab after Submit lets it go",
+     {
+      "filled": true
+     }
+    ],
+    "sessions+0s": [
+     {
+      "id": "b54e0706-f643-4722-9681-ede5f205e11e",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "f077f0b3-8ad1-41cc-98c1-12124c81b2fc",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "bc6e5ca9-b176-46b7-9456-e88e2eea1c99"
+     }
+    ],
+    "sessions+3s": [
+     {
+      "id": "b54e0706-f643-4722-9681-ede5f205e11e",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "f077f0b3-8ad1-41cc-98c1-12124c81b2fc",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "bc6e5ca9-b176-46b7-9456-e88e2eea1c99"
+     }
+    ],
+    "sessions+10s": [
+     {
+      "id": "b54e0706-f643-4722-9681-ede5f205e11e",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "f077f0b3-8ad1-41cc-98c1-12124c81b2fc",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "bc6e5ca9-b176-46b7-9456-e88e2eea1c99"
+     }
+    ],
+    "tabs": [
+     "JF form 41b992"
+    ]
+   },
+   {
+    "s": 12.5,
+    "rc": 0,
+    "out": [
+     {
+      "do": "attach-form",
+      "answer": {
+       "ok": true,
+       "session": "5ecdacf1-6da3-4749-9cd6-7f25277666d8",
+       "proxy": {
+        "host": "127.0.0.1",
+        "port": 53803,
+        "path": "/b5ad4a205c10d7d06c6f03cc7c7907f896355f4a"
+       }
+      },
+      "s": 0.6
+     },
+     {
+      "do": "detach-form",
+      "answer": {
+       "ok": true,
+       "left": 1
+      },
+      "s": 10.37
+     },
+     "note: the window may still be holding the form tab - closing that tab after Submit lets it go",
+     {
+      "filled": true
+     }
+    ],
+    "sessions+0s": [
+     {
+      "id": "8cb5a5e9-e7a4-4348-ac31-1e44d2aae6a7",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "4d3901d4-257f-40ae-95b3-bed1174f0625",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "5ecdacf1-6da3-4749-9cd6-7f25277666d8"
+     }
+    ],
+    "sessions+3s": [
+     {
+      "id": "8cb5a5e9-e7a4-4348-ac31-1e44d2aae6a7",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "4d3901d4-257f-40ae-95b3-bed1174f0625",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "5ecdacf1-6da3-4749-9cd6-7f25277666d8"
+     }
+    ],
+    "sessions+10s": [
+     {
+      "id": "8cb5a5e9-e7a4-4348-ac31-1e44d2aae6a7",
+      "type": "pwa-editor-browser",
+      "name": "Job Finder form",
+      "parent": null
+     },
+     {
+      "id": "4d3901d4-257f-40ae-95b3-bed1174f0625",
+      "type": "pwa-editor-browser",
+      "name": "http://localhost:53737/frame-form",
+      "parent": "5ecdacf1-6da3-4749-9cd6-7f25277666d8"
+     }
+    ],
+    "tabs": [
+     "JF form 41b992"
+    ]
+   }
+  ],
+  "quit": {
+   "killed": false
+  },
+  "siteWrites": []
+ },
+ "after": {
+  "stage": "detach",
+  "at": "2026-10-07T07:42:31Z",
+  "uniq": "3caac1",
+  "mac": "macOS 26.4.1 x86_64",
+  "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+  "launch": {
+   "args": [
+    "--user-data-dir",
+    "$D/data",
+    "--extensions-dir",
+    "$D/ext",
+    "--shared-data-dir",
+    "$D/shared",
+    "--disable-workspace-trust",
+    "--new-window",
+    "$D/f"
+   ],
+   "up": true,
+   "upMs": 11680,
+   "upInfo": {
+    "t": 1791358962380,
+    "trusted": true,
+    "folder": "$D/f"
+   }
+  },
+  "runs": [
+   {
+    "s": 10.4,
+    "rc": 0,
+    "out": [
+     {
+      "do": "attach-form",
+      "answer": {
+       "ok": true,
+       "session": "beea1722-9d9c-4f6c-ab3e-7deb2dc9acb0",
+       "proxy": {
+        "host": "127.0.0.1",
+        "port": 53657,
+        "path": "/b00f52c7e66fed7bd9524b7d803bd64d3066d424"
+       }
+      },
+      "s": 2.03
+     },
+     {
+      "do": "detach-form",
+      "answer": {
+       "ok": true,
+       "left": 0
+      },
+      "s": 6.39
+     },
+     {
+      "filled": true
+     }
+    ],
+    "sessions+0s": [],
+    "sessions+3s": [],
+    "sessions+10s": [],
+    "tabs": [
+     "JF form 3caac1"
+    ]
+   },
+   {
+    "s": 8.7,
+    "rc": 0,
+    "out": [
+     {
+      "do": "attach-form",
+      "answer": {
+       "ok": true,
+       "session": "c4a44342-5f85-4206-9662-5502a5cd0194",
+       "proxy": {
+        "host": "127.0.0.1",
+        "port": 53996,
+        "path": "/37ff5638ea8261c3cdc5c58ce28f9f11566cebaf"
+       }
+      },
+      "s": 1.0
+     },
+     {
+      "do": "detach-form",
+      "answer": {
+       "ok": true,
+       "left": 0
+      },
+      "s": 5.64
+     },
+     {
+      "filled": true
+     }
+    ],
+    "sessions+0s": [],
+    "sessions+3s": [],
+    "sessions+10s": [],
+    "tabs": [
+     "JF form 3caac1"
+    ]
+   },
+   {
+    "s": 7.8,
+    "rc": 0,
+    "out": [
+     {
+      "do": "attach-form",
+      "answer": {
+       "ok": true,
+       "session": "f7fa8ab7-4d27-4e2d-8d1f-7733eb0ea829",
+       "proxy": {
+        "host": "127.0.0.1",
+        "port": 53361,
+        "path": "/0409dfe5e778af4b7458608087cd267af7da502a"
+       }
+      },
+      "s": 0.92
+     },
+     {
+      "do": "detach-form",
+      "answer": {
+       "ok": true,
+       "left": 0
+      },
+      "s": 5.27
+     },
+     {
+      "filled": true
+     }
+    ],
+    "sessions+0s": [],
+    "sessions+3s": [],
+    "sessions+10s": [],
+    "tabs": [
+     "JF form 3caac1"
+    ]
+   }
+  ],
+  "quit": {
+   "killed": false
+  },
+  "siteWrites": []
+ },
+ "note": "plan-k8n.34: measure.py detach, local form (one cross-site frame), shipped window extension 0.25.0 (before) vs detachForm over the attach's whole tree (after). before: answer left 1, 2 sessions stay (attach + the frame's); after: left 0, 0 sessions at +0/+3/+10 s, form tab kept"
+}

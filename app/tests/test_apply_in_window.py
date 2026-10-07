@@ -959,9 +959,9 @@ class FakeExtension:
     """Job Finder's window as window.py sees it: opens the holding page (a GET, as its tab would),
     answers attach-form / detach-form in <name>.done, as extension.js does."""
 
-    def __init__(self, root, proxy, attach=None):
+    def __init__(self, root, proxy, attach=None, detach=None):
         import jobs
-        self.dir, self.proxy, self.attach = root / jobs.LINK_DIR, proxy, attach
+        self.dir, self.proxy, self.attach, self.detach = root / jobs.LINK_DIR, proxy, attach, detach
         self.opened, self.attached, self.detached = [], [], []
 
     def answer(self, request, answer):
@@ -984,7 +984,8 @@ class FakeExtension:
                     self.answer(request, self.attach or {"ok": True, "session": "s-1", "proxy": self.proxy})
                 elif req.get("do") == window.DETACH:
                     self.detached.append(req["session"])
-                    self.answer(request, {"ok": True, "left": 0})
+                    if self.detach != "silent":
+                        self.answer(request, self.detach or {"ok": True, "left": 0})
                 else:
                     self.opened.append(req["url"])
                     urllib.request.urlopen(req["url"], timeout=5).read()
@@ -1017,6 +1018,24 @@ def test_in_window_page_at_attaches_to_its_own_holding_page_and_lets_go(tab, sit
         assert len(ext.opened) == 1 and HOLDING.match(ext.opened[0]) and ext.attached == ext.opened
         assert ext.detached == ["s-1"] and len(hooked) == 1 and isinstance(hooked[0], CDP)
     assert list((tmp_path / ".data" / "open-link").iterdir()) == []
+
+
+# plan-k8n.34: Workable's Submit failed 2 of 2 w/ the debugger likely still on the tab => a let go
+# that isn't clean says what the user does before Submit, never a quiet note
+@pytest.mark.parametrize("detach", [{"ok": True, "left": 1}, {"error": "boom"}, "silent", None])
+def test_in_window_let_go_not_clean_tells_the_user_to_close_the_tab_before_submit(tab, site, tmp_path, monkeypatch, capsys, detach):
+    window_setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(window, "DETACH_WAIT", 0.5)
+    with FakeExtension(tmp_path, tab, detach=detach) as ext:
+        with window.page_at(site) as page:
+            assert page.url == site
+        assert ext.detached == ["s-1"]
+    out = capsys.readouterr().out
+    if detach is None:
+        assert out == ""
+    else:
+        assert out.strip() == window.LET_GO_FAILED
+        assert "close that tab without clicking Submit" in out and out.strip().endswith(window.FALLBACK)
 
 
 @pytest.mark.parametrize("running, attach, said", [

@@ -76,7 +76,10 @@ Pulled 2026-10-07 (owner, plan-k8n.34): Submit failed 2 of 2 in the window, 2026
 (1 job), filled 7/8 + read back, resume uploaded (file name shown) though the filler said ASK; Submit -> "Something
 went wrong" twice (2nd after Workable's own resume autofill), no confirmation email. Same job in Job Finder's Chrome:
 Submit went through after a "verify you are human" check (1 of 1). Points at the window, not the form or answers.
-`fill --in-window` now refused in one line (`window.REFUSED`); Chrome only.
+`fill --in-window` now refused in one line (`window.REFUSED`); Chrome only. Likely why: the window's debugger
+stayed on the form - a session for each cross-site frame (Turnstile) under the tab's was never let go (measured on
+the local form 3 of 3, fixed in window extension 0.26.0: 0 left, 3 of 3); `vscode-browser.md` "Workable Submit in
+the window". Back in the window only after a real Submit there passes.
 
 ## Pages
 

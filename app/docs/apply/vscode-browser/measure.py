@@ -27,6 +27,10 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            a `debugger;` line every second; the user closes the tab; window reload
   toolbar  local form only (plan-k8n.15): (c) as built, debug.toolBarLocation floating vs hidden - screenshots
            of page 1 + page 2 while attached
+  shipext  $D/f/app re-copied from the checkout, the SHIPPED window extension built from it + installed (plan-k8n.34)
+  detach   local form only (plan-k8n.34): the shipped fill path (window.page_at, shipped extension's attach + detach
+           through the link folder) in a subprocess, JF_RUNS times; the detach answer + how long it took, then the
+           debug sessions probe-ext still sees (must be 0), the window's tabs (the form tab must stay)
   raw      route 2 on ONE public posting of any system `systems.for_url` knows (plan-nko.6 Ashby, .13 Lever):
            level-3 block (+ lab.NAMED_READS, the owner's one exception) + canary first in the same tab;
            the page's `debugger;` pauses counted (skip off once, resumed in the handler, cap 20, then
@@ -1709,13 +1713,70 @@ def toolbar(result):
         result["siteWrites"] = [e for e in formsite.log if e["write"]]
 
 
+# ---------------------------------------------------------------- shipped fill's let-go (plan-k8n.34)
+def shipext(result):
+    """$D/f/app from the checkout again, the shipped window extension built from it + installed."""
+    subprocess.run(["rsync", "-a", "--delete", "--exclude", "__pycache__", f"{SRC}/app", f"{F}/"], check=True)
+    build = run(["uv", "run", "python", "-c", "import sys; sys.path.insert(0, 'app'); import vscode_ext; print(vscode_ext.build())"])
+    base = [CLI, "--user-data-dir", D / "data", "--extensions-dir", D / "ext", "--shared-data-dir", D / "shared"]
+    result["steps"] = [build, run([*base, "--install-extension", next(x for x in build["tail"].splitlines() if x.endswith(".vsix")), "--force"]),
+                       run([*base, "--list-extensions", "--show-versions"])]
+
+
+FILL = """import json, sys, time
+sys.path.insert(0, "app")
+from apply import window
+asked = window.ask
+def ask(req, wait):
+    t = time.time()
+    a = asked(req, wait)
+    print(json.dumps({"do": req.get("do"), "answer": a, "s": round(time.time() - t, 2)}), flush=True)
+    return a
+window.ask = ask
+with window.page_at(sys.argv[1]) as page:
+    page.evaluate("() => { first_name.value = 'Test'; return first_name.value; }")
+print(json.dumps({"filled": True}), flush=True)
+"""
+
+
+def detach(result):
+    """The shipped fill path end to end on the local form: what's attached once it ends."""
+    proc, result["launch"] = launch()
+    home, other, close = formsite.serve(TITLE)
+    env = {**os.environ, "JOBS_VSCODE_DIR": str(D)}
+    runs = result["runs"] = []
+    try:
+        time.sleep(5)  # the shipped extension's link watcher up
+        for i in range(int(os.environ.get("JF_RUNS", "3"))):
+            row = {}
+            t = time.time()
+            r = subprocess.run(["uv", "run", "python", "-c", FILL, f"{home}/form"], cwd=F, env=env,
+                               capture_output=True, text=True, timeout=180)
+            row["s"] = round(time.time() - t, 1)
+            row["rc"] = r.returncode
+            row["out"] = [json.loads(x) if x.startswith("{") else x for x in r.stdout.splitlines()]
+            row["err"] = r.stderr.strip()[-400:]
+            for wait in (0, 3, 10):
+                time.sleep(wait)
+                s = ask({"do": "sessions"})
+                row[f"sessions+{wait}s"] = s.get("sessions")
+            row["tabs"] = [t["label"] for g in s.get("tabs") or [] for t in g["tabs"]]
+            row["shot"] = screenshot(f"detach-{i}", proc)
+            runs.append(row)
+            end_all()
+    finally:
+        result["quit"] = quit_(proc)
+        close()
+        result["siteWrites"] = [e for e in formsite.log if e["write"]]
+
+
 if __name__ == "__main__":
     if running():
         sys.exit("a scratch VS Code on this dir is already running")
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw, "multipage": multipage, "toolbar": toolbar}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw, "multipage": multipage, "toolbar": toolbar, "shipext": shipext, "detach": detach}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

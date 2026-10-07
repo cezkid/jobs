@@ -173,6 +173,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    `fill` again without `--in-window` (Chrome). Oracle, iCIMS + Paylocity (several pages) there: pass on its `note:`
    line too - only the first page was checked in the window; a later page doesn't fill, a check balks or the resume
    isn't attached -> `fill` again without `--in-window`, which starts at the first page in Chrome.
+   Any `--in-window` run printing `not let go:` -> the window's debugger may still be on the form: tell the user to
+   close that tab without clicking Submit, then `fill` again without `--in-window` (Chrome).
    Form over several pages (`this page: X of Y required answered` + "question(s) on other
    pages"): tell the user to check this page and click Next / Continue themselves - never us.
    Once they say they're on the next page: `prepare` again if `fill` printed it (that system
