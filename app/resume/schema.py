@@ -11,7 +11,12 @@ PRESENT = "present"
 # year-month, or a year alone: a resume that gave only years keeps only years, never an invented month
 MONTH = re.compile(r"^\d{4}(-(0[1-9]|1[0-2]))?$")
 DATE_FIELDS = {"roles": ("start", "end"), "projects": ("start", "end"), "career_break": ("start", "end"),
-               "education": ("end",), "certifications": ("date",)}
+               "education": ("start", "end"), "certifications": ("date",)}
+# a GPA as a transcript writes it, any scale - never converted: "3.62", "3.62/4.00", "9.2/10",
+# "86%", "3.62 (Major 3.80)". A UK class ("First Class Honours") is no number: it goes in details
+GPA = re.compile(r"^\d{1,3}(?:\.\d{1,3})?\s*%?(?:\s*/\s*\d{1,3}(?:\.\d{1,3})?)?(?:\s*\(.+\))?$")
+# a GPA a 4-point box can take as is: no scale written, or out of 4 / 4.0 / 4.00
+FOUR_POINT = re.compile(r"^(?P<gpa>[0-4](?:\.\d{1,3})?)(?:\s*/\s*4(?:\.0{1,2})?)?(?:\s*\(.+\))?$")
 ID = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 # Greenhouse parse rules: titles unabbreviated (error); company legal identifier = lint warn only,
 # hospitals, schools, agencies carry none
@@ -162,6 +167,31 @@ def in_ai_era(entry: dict) -> bool:
                                   and month_index(end, date.today(), end=True) >= month_index(AI_ERA_FROM, date.today()))
 
 
+def in_progress(school: dict, today: date) -> bool:
+    """Degree still being earned: `expected` set (import sets it; it stays until the user says they
+    finished, so a date that slips past never turns into a degree held), or an end after this month.
+    A year alone equal to this year may be May, already done - so only a later year counts."""
+    if "expected" in school:
+        return school["expected"] is True
+    end = school.get("end")
+    return bool(end) and end != PRESENT and compare(end, PRESENT, today) > 0
+
+
+def expected_passed(school: dict, today: date) -> bool:
+    """Still marked expected, yet the date is behind us: did they finish? Asked, never assumed."""
+    end = school.get("end")
+    return school.get("expected") is True and bool(end) and end != PRESENT and compare(end, PRESENT, today) < 0
+
+
+def graduation(master: dict, today: date) -> str | None:
+    """When they finish (a degree in progress), else when they last did - YYYY-MM or a year. What
+    an internship's or new-grad programme's graduation window is read against; never shown."""
+    ends = [s["end"] for s in master.get("education") or [] if s.get("end") and s["end"] != PRESENT]
+    studying = [e for s, e in ((s, s.get("end")) for s in master.get("education") or []) if e and in_progress(s, today)]
+    pick = studying or ends
+    return max(pick, key=lambda e: month_index(e, today, end=True)) if pick else None
+
+
 def shown_end(school: dict) -> str:
     """Graduation date as the user lets it show: "" when they chose hide_year (the page, every
     application form), else the end as written. One place, so no form fills a year the page hides."""
@@ -196,21 +226,40 @@ def month_label(index: int) -> str:
 
 
 def employment_gaps(master: dict, today: date) -> list[dict]:
-    # a career break the user named covers its months: it is time accounted for, not a hole
+    # a career break the user named covers its months: it is time accounted for, not a hole.
+    # So does time in school (a start on file): the months between two summer internships are
+    # classes, not a break. No start on file = never guessed - setup asks when they started.
+    # School only fills holes between jobs: the years before a first job were never a gap.
     spans = sorted((month_index(r["start"], today), month_index(r["end"], today, end=True))
                    for r in [*master["roles"], *(master.get("career_break") or [])])
     if not spans:
         return []
     now = month_index(PRESENT, today)
+    school = [(month_index(s["start"], today), min(month_index(s["end"], today, end=True) if s.get("end") else now, now))
+              for s in master.get("education") or [] if s.get("start")]
     gaps = []
     covered_through = spans[0][1]
     # today as zero-length span => unemployment since last role counts as gap too
     for start, end in [*spans[1:], (now, now)]:
-        months = start - covered_through - 1
-        if months > MAX_GAP_MONTHS:
-            gaps.append({"after": month_label(covered_through), "before": month_label(start), "months": months})
+        for low, high in uncovered(covered_through + 1, start - 1, school):
+            if high - low + 1 > MAX_GAP_MONTHS:
+                gaps.append({"after": month_label(low - 1), "before": month_label(high + 1), "months": high - low + 1})
         covered_through = max(covered_through, end)
     return gaps
+
+
+def uncovered(low: int, high: int, spans: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    """Stretches of months low..high no span covers."""
+    out = []
+    for start, end in sorted(spans):
+        if end < low or start > high:
+            continue
+        if start > low:
+            out.append((low, start - 1))
+        low = max(low, end + 1)
+    if low <= high:
+        out.append((low, high))
+    return out
 
 
 def gap_is_current(gap: dict, today: date) -> bool:
@@ -266,6 +315,8 @@ def validate(master) -> list[str]:
         if not headline.strip() or "\n" in headline:
             errors.append("master.headline: one line of text")
     optional(master, "summary", str, "master", errors)
+    # their call which leads the page; absent = the convention render.education_first follows
+    optional(master, "education_first", bool, "master", errors)
 
     bullet_ids: set[str] = set()
     # no jobs yet is a real resume (a student, a first job): Education leads the page instead
@@ -312,7 +363,16 @@ def validate(master) -> list[str]:
             text(school, "degree", where, errors)
             optional(school, "field", str, where, errors)
             optional(school, "details", str, where, errors)
-            month(school, "end", where, errors, required=False)
+            # start: never printed (the page gives the graduation date only); counts school time
+            # as accounted for, not a work break
+            start = month(school, "start", where, errors, required=False)
+            end = month(school, "end", where, errors, required=False)
+            if start and end and month_index(end, date.today(), end=True) < month_index(start, date.today()):
+                errors.append(f"{where}: end {end} before start {start}")
+            if (gpa := optional(school, "gpa", str, where, errors)) and not GPA.match(gpa.strip()):
+                errors.append(f"{where}.gpa: {gpa!r} - write it as the transcript does, e.g. 3.62 or 3.62/4.00")
+            strings(school, "coursework", where, errors)
+            optional(school, "expected", bool, where, errors)
             optional(school, "hide_year", bool, where, errors)
         else:
             errors.append(f"{where}: expected mapping")

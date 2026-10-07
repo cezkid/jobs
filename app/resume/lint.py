@@ -209,6 +209,7 @@ WHY = {
     "personal-details": "US employers don't expect these; they invite bias.",
     "abbreviated-school": "Application forms match your school against a list of full names, so a short form like \"CC\" matches nothing.",
     "language-level": "Resume readers store each language with its own level, so write one per line with the level in brackets, like Spanish (Fluent).",
+    "expected-date-passed": "Your resume still says you expect to finish this degree, and that date has passed. Did you finish? The page keeps saying Expected until you say.",
     "old-graduation-year": "A graduation year from 15+ years ago lets a reader guess age; you may leave the year off and keep the degree.",
     "old-certification-year": "A certification year from 15+ years ago lets a reader guess age; you may leave the year off and keep the certification.",
     "spelling": "Resume scanners count a spelling mistake against the whole page, and US employers read British spellings as mistakes.",
@@ -581,6 +582,10 @@ def master_findings(master: dict, today: date) -> list[Finding]:
             findings.append(Finding(WARN, "abbreviated-school", f"education[{i}]",
                                     f"{m.group()!r} in {school['institution']!r}: write the school's full name"))
         end = school.get("end")
+        if schema.expected_passed(school, today):
+            findings.append(Finding(WARN, "expected-date-passed", f"education[{i}]",
+                                    f"{school['degree']} expected {render.month_label(end)}: did they finish? "
+                                    "Finished -> take out expected: true; not yet -> the new expected date"))
         if end and not school.get("hide_year") and today.year - int(end[:4]) >= OLD_GRADUATION_YEARS:
             findings.append(Finding(WARN, "old-graduation-year", f"education[{i}]",
                                     f"{school['degree']} ended {end[:4]}; {hide_year_advice(master, today)}"))

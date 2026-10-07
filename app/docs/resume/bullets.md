@@ -199,6 +199,7 @@ Mirrored from `lint.WHY`; `test_lint` keeps them in step.
 | `personal-details` | US employers don't expect these; they invite bias. |
 | `abbreviated-school` | Application forms match your school against a list of full names, so a short form like "CC" matches nothing. |
 | `language-level` | Resume readers store each language with its own level, so write one per line with the level in brackets, like Spanish (Fluent). |
+| `expected-date-passed` | Your resume still says you expect to finish this degree, and that date has passed. Did you finish? The page keeps saying Expected until you say. |
 | `old-graduation-year` | A graduation year from 15+ years ago lets a reader guess age; you may leave the year off and keep the degree. |
 | `old-certification-year` | A certification year from 15+ years ago lets a reader guess age; you may leave the year off and keep the certification. |
 | `spelling` | Resume scanners count a spelling mistake against the whole page, and US employers read British spellings as mistakes. |
