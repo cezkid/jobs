@@ -1751,3 +1751,13 @@ def test_currently_enrolled_yes_only_while_a_degree_is_in_progress():
     assert drafted("Are you currently enrolled in a degree program?", "yesno",
                    schools=[{**STUDYING[0], "end": "2019-05"}])["answer"] is None
     assert drafted("Will you be returning to school full-time after the internship?", "yesno")["answer"] is None
+
+
+def test_school_start_boxes_from_the_start_on_file_never_with_years_hidden():
+    school = {**STUDYING[0], "start": "2023-08"}
+    asked = [q("Start month", "choice", key="school_start_month", options=questions.MONTHS),
+             q("Start year", "text", key="school_start_year")]
+    got = questions.draft(asked, CONTACT, schools=[school])
+    assert [a["answer"] for a in got] == ["August", "2023"]
+    hidden = questions.draft(asked, CONTACT, schools=[{**school, "hide_year": True}])
+    assert [a["answer"] for a in hidden] == [None, None]

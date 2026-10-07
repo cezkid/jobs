@@ -412,8 +412,8 @@ def major_option(field: str, options: list[str]) -> str | None:
 def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
     """One Education box from school q["entry"] on the resume -> (answer, source). Degree and
     discipline as the form's list words them (a free-text box: as written); the graduation date only as the page shows it (hidden
-    by the user's choice -> left blank, or asked as sensitive when required); start dates aren't on
-    the resume."""
+    by the user's choice -> left blank, or asked as sensitive when required); a start date from the
+    school's start when on file (never with its years hidden), else asked."""
     entry = q.get("entry") or 0
     school = schools[entry] if entry < len(schools) else {}
     unsaid = (None, f"{ASK} - not on your resume") if q["required"] else (None, "not on your resume - left blank")
@@ -431,6 +431,10 @@ def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
             return None, f"{ASK} - '{written}' isn't on the form's list: the nearest option is theirs to pick"
         return pick, "resume" if pick.casefold() == written.casefold() else \
             f"resume - '{written}' as the form's nearest option - name it to the user"
+    if key in ("school_start_month", "school_start_year") and schema.shown_start(school):
+        year, _, month = schema.shown_start(school).partition("-")
+        value = year if key == "school_start_year" else MONTHS[int(month) - 1] if month.isdigit() else None
+        return (value, "resume") if value else unsaid
     if key in ("school_end_month", "school_end_year"):
         if school.get("hide_year") and school.get("end"):
             return (None, f"{ASK} - sensitive: graduation date") if q["required"] else \

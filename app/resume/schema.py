@@ -215,6 +215,12 @@ def degree_words(school: dict, today: date) -> str:
     return words
 
 
+def shown_start(school: dict) -> str:
+    """When they started, for a form's start boxes: "" when none is on file or they chose
+    hide_year - a start year is the same age cue the hidden graduation year is."""
+    return "" if school.get("hide_year") else school.get("start") or ""
+
+
 def shown_end(school: dict) -> str:
     """Graduation date as the user lets it show: "" when they chose hide_year (the page, every
     application form), else the end as written. One place, so no form fills a year the page hides."""
