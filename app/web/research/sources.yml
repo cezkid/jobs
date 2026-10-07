@@ -773,6 +773,28 @@
   checked: 2026-10-04
   recheck_by: 2027-01-03
 
+- id: il-pa-101-0260
+  type: law
+  org: Illinois General Assembly
+  year: 2019
+  title: "Public Act 101-0260 (HB 2557): Artificial Intelligence Video Interview Act, 820 ILCS 42"
+  url: https://www.ilga.gov/Documents/legislation/publicacts/101/PDF/101-0260.pdf
+  evidence: law
+  sample: enrolled act text, sections 1 to 15 (notice, explanation, consent; sharing; deletion within 30 days on request); in force January 1, 2020; current code text 820 ILCS 42/1-20 read on ilga.gov, same wording, no penalty or enforcement section
+  checked: 2026-10-07
+  recheck_by: 2027-04-07
+
+- id: il-pa-102-0047
+  type: law
+  org: Illinois General Assembly
+  year: 2021
+  title: "Public Act 102-0047 (HB 53): Artificial Intelligence Video Interview Act, section 20"
+  url: https://www.ilga.gov/Documents/legislation/publicacts/102/PDF/102-0047.pdf
+  evidence: law
+  sample: enrolled act text adding 820 ILCS 42/20 (race and ethnicity data when AI alone picks who gets an in-person interview, reported yearly to the state); in force January 1, 2022
+  checked: 2026-10-07
+  recheck_by: 2027-04-07
+
 - id: il-pa-103-0804
   type: law
   org: Illinois General Assembly
@@ -959,7 +981,16 @@
   sample: 306 field experiments published 2005-2020, 17 of them on older age; figures and page numbers are the working paper's
   checked: 2026-10-04
 
-# Court order: allegations, not findings
+- id: md-ch446-2020
+  type: law
+  org: Maryland General Assembly
+  year: 2020
+  title: "Chapter 446 of 2020 (HB 1202): Labor and Employment Article, section 3-717, facial recognition in interviews"
+  url: https://mgaleg.maryland.gov/2020RS/Chapters_noln/CH_446_hb1202t.pdf
+  evidence: law
+  sample: chapter law, 2 pages; enacted without the Governor's signature May 8, 2020; in force October 1, 2020; current code text of section 3-717 read on mgaleg.maryland.gov, same wording, no penalty or enforcement clause
+  checked: 2026-10-07
+  recheck_by: 2027-04-07
 
 - id: mit-capd-ai-cover-letters
   type: web
