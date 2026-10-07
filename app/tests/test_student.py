@@ -140,6 +140,7 @@ def test_fixture_is_plain_user_facts():
 
 
 def with_club(student: dict) -> dict:
+    student = copy.deepcopy(student)
     student["projects"].append({"name": "Black Student Union", "role": "Treasurer", "section": "Leadership & Activities",
                                 "start": "2024-09", "end": "present",
                                 "bullets": ["Managed a $12,000 budget for 30 campus events a year"]})
@@ -201,3 +202,14 @@ def test_school_dates_print_when_they_explain_a_break_between_jobs(student):
     assert education(student)["entries"][0]["subline"].endswith("| Aug 2023 - Expected May 2027")
     # no break to explain (campus job all through): the usual graduation date alone
     assert education(schema.load(STUDENT))["entries"][0]["subline"].endswith("| Expected May 2027")
+
+
+def test_feedback_says_the_gpa_and_groups_notes_the_same_to_every_student(student):
+    from resume import feedback
+    result = feedback.assess(with_club(student), TODAY)
+    text = feedback.report_md(result, [])
+    assert feedback.GPA_NOTE in text and feedback.GROUPS_NOTE in text
+    del student["education"][0]["gpa"]  # no GPA on file: the same words, never a different nudge
+    assert feedback.GPA_NOTE in feedback.report_md(feedback.assess(student, TODAY), [])
+    worker = schema.load(cfg.APP / "resume" / "master.example.yml")
+    assert "## For students" not in feedback.report_md(feedback.assess(worker, TODAY), [])
