@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-06
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.19 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.20
 ---
@@ -378,3 +378,22 @@ Fresh subagent; made none of the edits. Read the current paragraph, its diff, `p
 - M1: fixed. "Our own tests found that lightly spaced heading letters came back as "EXP E R I ENC E" in one PDF-to-web conversion". The paragraph now goes from light spacing (+0.08em, `page-format.md`) to wider spacing (+0.25em, METHOD.md). Both tests used the same three readers (PyMuPDF, pdfminer, pypdf: the `page-format.md` row and the METHOD.md Readers table), so "every reader in our October 2026 test" holds.
 - Changes line: accurate.
 - No new finding. Verdict: publish.
+
+## Re-review (2026-10-06, fresh AI session, headline title)
+
+Reviewer: fresh Claude session that made none of the edits; sources opened before the diff was read. No text in any source opened addressed an AI.
+
+What changed: one paragraph in "What does an ATS do?" (2025 recruiter survey: 76.4% filter by skills, 55.3% by job title; link to what-makes-a-good-resume); one `## Changes` line; modified 2026-10-06. New registry entry jobscan-2025.
+
+Sources opened:
+- jobscan-2025 (jobscan.co/state-of-the-job-search, read in the browser pane). Recruiter filter section: "We asked over 380 recruiters"; "the 384 recruiters we surveyed"; 76.4% filter by skills; 55.3% "use job titles as a keyword to filter applicants". Methodology: 384 recruiters, February-March 2025, random sample of HR professionals directly involved in hiring, Zoho Surveys. Numbers exact; label Vendor survey right (company sells resume scanning, said in the sentence).
+- sources.yml jobscan-2025: author, date (February 25, 2025), title, URL and sample all match the page.
+
+Findings:
+- **A1 (low) - first sentence general, from a self-report.** "Recruiters search by job title as well as by skill." The run is one vendor survey of what recruiters say. Fix: "Many recruiters say they search by job title as well as by skill."
+- Changes line ("most recruiters asked filter by skills, and over half by job title") matches 76.4% and 55.3%; fine.
+- Link target what-makes-a-good-resume.md exists and is published.
+
+No high or medium finding. Verdict: publish.
+
+Fix check (2026-10-06, fresh AI session): A1 applied as written ("Many recruiters say they search by job title as well as by skill."); jobscan-2025 re-opened, numbers match. Verdict: publish (unchanged).

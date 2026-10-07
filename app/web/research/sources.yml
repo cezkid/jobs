@@ -816,6 +816,16 @@
   sample: 4,600 people in six experiments judged 7,600 short self-descriptions (job, rental host and dating profiles), half written by older AI models (GPT-2, GPT-3)
   checked: 2026-10-03
 
+- id: jobscan-2025
+  type: web
+  authors: ["Myers, Sydney"]
+  year: 2025
+  title: "The State of the Job Search in 2025: AI, Cover Letter Comeback, and What Caused an 11X Increase in Interview Rate"
+  url: https://www.jobscan.co/state-of-the-job-search
+  evidence: vendor survey
+  sample: a company that sells resume scanning; 384 recruiters surveyed February-March 2025; interview rates from its own users' activity in its tools, over 2.5 million applications, how an interview was counted not stated; read in a browser (the site blocks scripts)
+  checked: 2026-10-06
+
 - id: jobscan-2026
   type: web
   authors: ["Purcell, Kelsey"]

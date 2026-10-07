@@ -16,6 +16,10 @@ Rules clash? This order wins: **true > real results > fits the job > easy to rea
   mismatch in the past 12 months. Most common: undisclosed criminal records, education and work history. Work history
   checks turned up mismatches most often in every region (72% of respondents in Asia-Pacific, 64% in
   Europe, the Middle East and Africa). *Vendor survey (HireRight 2025, a background-check company).*
+- **A title at the top is different.** A line under your name may name the job you want, in the
+  posting's words, if it fits your work now - never a higher level. Each job keeps its real title.
+  55% of 384 recruiters asked said they filter by job title. The often-quoted "10.6x more interviews" is
+  one company's own-user figure, method given in one line. *Vendor survey (Jobscan 2025, sells resume scanning).*
 - **Every number one you can explain.** Interviews ask about anything on the page. Nothing
   added you didn't give. *Convention.*
 - **No self-praise** ("world-class"). The fact behind it says more. *Convention.*

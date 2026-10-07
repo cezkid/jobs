@@ -2,7 +2,7 @@
 title: "Do ATS reject 75% of resumes? Where the number came from"
 description: No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.
 published: 2026-10-03
-modified: 2026-10-05
+modified: 2026-10-06
 status: published
 og_title: "Do hiring systems reject 75% of resumes? Where the claim came from"
 uncited:
@@ -43,6 +43,8 @@ In short, the 75% figure is not evidence [@levinson-2012-cio]. The figure was a 
 An applicant tracking system, or ATS, is the software employers use to collect and manage job applications. Almost every Fortune 500 company has one. A resume-tool company found one on the careers pages of 97.4% of Fortune 500 companies in 2026 [@jobscan-2026].
 
 The software does four main jobs. An ATS stores each application. An ATS lets recruiters search resumes for words, like a search engine [@greenhouse-search]. An ATS can filter applicants by their answers to the form's questions [@greenhouse-rules]. Newer versions also rank or score applicants against the job [@ashby-2024].
+
+Many recruiters say they search by job title as well as by skill. Jobscan, a company that sells resume scanning, surveyed 384 recruiters in 2025. 76.4% said they filter applicants by skills and 55.3% by job title [@jobscan-2025]. What that means for a title at the top of a resume: [What makes a good resume?](what-makes-a-good-resume.md)
 
 Filtering and ranking can keep a resume from being read without anyone rejecting it by hand. In the Hidden Workers survey, over 90% of executives said they used their software to first filter or rank applicants [@fuller-2021, p. 20]. A resume that no recruiter searched for was not rejected by a rule. A filter or a low rank can still keep it from a person's eyes.
 
@@ -158,5 +160,6 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 ## Changes
 
+- October 2026 - added a 2025 recruiter survey: most recruiters asked filter by skills, and over half by job title [@jobscan-2025].
 - October 2026 - recounted our measurement. Some forms list the employer's questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.
 - October 2026 - the spaced-heading line now says three readers read a lightly spaced heading whole, and wider spacing split it in our parser test. The Form I-9 line now carries its date. The finding is unchanged.
