@@ -33,6 +33,8 @@ Optional, a closed posting whose page says nothing closed:
     closed(url) -> str | None    why the form isn't there, from the system's own records (None =
                                  still open); form.closed asks it when the page shows no form and
                                  no closed wording (Ashby: "Page not found")
+    gone(page, url) -> str | None its own gone page told apart before the form check (iCIMS shows
+                                 its job search, boxes and all, in place of a closed posting's form)
 
 Optional, an Education section filled per school on the resume:
 
