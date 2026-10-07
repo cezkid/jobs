@@ -26,7 +26,8 @@ HEADER = [
 ]
 NOTES = {
     "contact": ["# Your name and how an employer reaches you. legal_first / legal_last: name on your ID, forms only."],
-    "headline": ["# One line above the summary: your real title and main skills. Optional."],
+    "headline": ["# One line above the summary: your real title | main skills. Optional.",
+                 "# A copy made for one job may show that job's title before the |, once you say it fits."],
     "summary": ["# The short pitch at the top of the page - up to four lines."],
     "roles": [
         "# Your jobs, newest first. Under each one, every line is one thing you did there.",

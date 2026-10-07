@@ -437,3 +437,12 @@ def test_one_opening_word_on_four_bullets_warns_once(master, model):
 def test_filler_words_warn_and_level_i_is_not_a_pronoun(master, model, text, words):
     hits = found(lint.lint(with_bullet(model, text), master), "filler-word")
     assert [f.detail.split(":")[0] for f in hits] == ([words] if words else [])
+
+
+def test_posting_title_in_the_headline_is_no_unresolved_entity(master, model):
+    """tailor.check_headline_title owns the title part; a word only the posting uses is not invented."""
+    master["headline"] = "Senior Software Engineer | Vue, TypeScript"
+    model["headline"] = "Senior Platform SRE Engineer | Vue, TypeScript"
+    assert "unresolved-entity" not in rules(lint.lint(model, master))
+    model["summary"] = "Platform SRE Engineer shipping Vue search"  # anywhere else it still fails
+    assert "unresolved-entity" in rules(lint.lint(model, master))
