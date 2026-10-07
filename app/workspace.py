@@ -86,6 +86,9 @@ COMMON = {
     "workbench.browser.dataStorage": "workspace",
     # no globe button in the title bar (an experiment can turn it on); links open from the pages
     "workbench.browser.showInTitleBar": False,
+    # filling a form in a window tab attaches VS Code's debugger: no floating Pause / Stop bar over
+    # the tabs meanwhile (measured hidden, fill the same - app/docs/apply/vscode-browser.md "Built (c)")
+    "debug.toolBarLocation": "hidden",
     "extensions.ignoreRecommendations": True,
     "workbench.editorAssociations": {
         "*.md": "vscode.markdown.preview.editor",

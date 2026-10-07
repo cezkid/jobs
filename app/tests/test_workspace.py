@@ -80,6 +80,13 @@ def test_window_browser_keeps_its_sign_ins_to_this_folder():
         assert "workbench.browser.enableChatTools" not in settings
 
 
+def test_debug_toolbar_hidden_while_a_form_fills_in_the_window():
+    # an attached fill showed VS Code's floating debug bar over the tabs; hidden measured gone, fill
+    # the same (vscode-browser.md "Built (c)", 2026-10-07)
+    for ai in ("claude", "chatgpt", "copilot", None):
+        assert workspace.settings(ai, HOME)["debug.toolBarLocation"] == "hidden"
+
+
 def codex_commands() -> set[str]:
     rules = (cfg.ROOT / ".codex" / "rules" / "default.rules").read_text(encoding="utf-8")
     found = set()

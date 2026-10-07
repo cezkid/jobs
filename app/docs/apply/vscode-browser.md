@@ -933,7 +933,7 @@ Recommendation: (c). It is the only way that kept the place on a new page withou
 on the systems measured above so far) - the user would face a stopped form + a code tab. Costs of (c), all unmeasured live:
 the fill process must stay alive while the user reads + clicks Next (end on tab closed, window
 reload, Submit page, or a time limit); the debug toolbar stays visible the whole time (VS Code's
-`debug.toolBarLocation: hidden` may hide it - untested); a page whose script runs `debugger;` before
+`debug.toolBarLocation: hidden` hides it - measured below); a page whose script runs `debugger;` before
 the navigation event lands pauses until the handler resumes it (0 of 3 here). Reload or closed tab
 = place lost in both: say so plainly, Chrome way as today. Owner decides: plan-k8n.13.
 
@@ -955,7 +955,8 @@ Owner picked (c) (plan-k8n.13, 2026-10-07). `apply/window.py`:
   a keep-place test (`page_at` twice in the holder -> same tab, one attach).
 
 Debug toolbar: shown while attached by default (`mp-c-other-page2.png`: floating over the tab bar, Pause button).
-`debug.toolBarLocation: hidden` tried (stage `toolbar`, local form, 0 employer loads, 2026-10-07): fill + page 2
-the same as floating (6 ticks, 0 ms held, both) - whether it hides the bar NOT seen: screen capture failed in that
-run (display unavailable). Not added to the window's settings until a screenshot shows it (follow-up bead).
+`debug.toolBarLocation: hidden` measured (stage `toolbar`, local form, 0 employer loads, 0 site writes, screen
+unlocked, 2026-10-07): floating -> bar over the tab bar on page 2 (`mp-toolbar-floating-page2.png`); hidden -> no
+bar, still attached (Run badge 1, `mp-toolbar-hidden-page2.png`); fill + page 2 the same both (6 ticks, 0 ms held).
+Set in the window's settings (`app/workspace.py`, plan-k8n.28).
 
