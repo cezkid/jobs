@@ -60,13 +60,23 @@ def png_size(path) -> tuple[int, int]:
     return struct.unpack(">II", data[16:24])
 
 
-def loaded_urls(head: Head) -> list[str]:
-    """What a browser fetches on load: every src, every <link> but canonical, every CSS url()."""
+def loaded_urls(head: Head, docs: Path | None = None) -> list[str]:
+    """What a browser fetches on load: every src, every <link> but canonical, every CSS url() - in the page's
+    <style> and, given docs/, in the stylesheets it links (site.css: the fonts)."""
     urls = [a["src"] for _, a in head.tags if "src" in a]
     urls += [a["href"] for a in head.all("link") if a.get("rel") != "canonical"]
-    for css in head.text.get("style", []):
+    for css in head.text.get("style", []) + (linked_css(docs, head) if docs else []):
         urls += re.findall(r"""url\(\s*["']?([^"')]+)""", css)
     return urls
+
+
+def linked_css(docs: Path, head: Head) -> list[str]:
+    """Text of each stylesheet the page links (root-relative, from docs/; a missing one reads as empty)."""
+    out = []
+    for a in head.links("stylesheet"):
+        path = docs / target(a["href"])
+        out.append(path.read_text(encoding="utf-8") if path.is_file() else "")
+    return out
 
 
 def files(docs: Path) -> set[str]:
@@ -221,21 +231,30 @@ HTML_GZIP_MAX = 25 * KB       # 7.5 KB at the redesign start
 INLINE_JS_MAX = 5 * KB        # raw bytes of every inline script but JSON-LD (2.9 KB at start)
 BODY_ELEMENTS_MAX = 800       # 162 at start
 FIRST_LOAD_MAX = 100 * KB     # gzip HTML + every @font-face woff2 + icon.svg (colophon promises "under 100 KB")
-CRITICAL_MAX = 5              # HTML + preloads + stylesheets + icon.svg
+# HTML + preloads + stylesheets + icon.svg. 6 since the CSS moved out of the pages (2026-10-07): a reading page
+# links site.css + doc.css, both in its head, fetched together (HTTP/2: one round trip, not two); the home page 5
+CRITICAL_MAX = 6
 HEAD_SCRIPT_MAX = 600         # <head> script: html classes before first paint, nothing else
 # paint-free or cheap properties only; anything else animates layout or repaints big areas
 ANIMATABLE = {"transform", "opacity", "clip-path", "stroke-dashoffset", "background-size"}
 TEXT_MIN, NON_TEXT_MIN = 4.5, 3.0  # WCAG 1.4.3 text, 1.4.11 controls + focus ring
 # (foreground, background) token pairs; tokens resolved per colour scheme from the shared :root
 TEXT_PAIRS = [("--text", "--desk"), ("--text-2", "--desk"), ("--desk", "--text"),  # step numbers
-              ("--ink", "--paper"), ("--ink-2", "--paper"), ("--ink", "--mark")]  # sheets + marks keep ink
-NON_TEXT_PAIRS = [("--text", "--desk"), ("--ink", "--paper"), ("--ink", "--mark")]  # control borders, frames
+              ("--accent", "--desk"),  # links in running text (the tint)
+              ("--ink", "--paper"), ("--ink-2", "--paper"), ("--ink", "--mark"),  # sheets + marks keep ink
+              ("--win-ink", "--win"), ("--win-ink-2", "--win")]  # the hero window (dark grey in dark mode)
+NON_TEXT_PAIRS = [("--text", "--desk"), ("--ink", "--paper"), ("--ink", "--mark"),  # control borders, frames
+                  ("--win-ink", "--win")]
+# Increase Contrast (prefers-contrast: more; Apple HIG: a higher-contrast variant of every custom colour): secondary
+# text = text, hairlines 3:1 (WCAG 1.4.11), the tint 7:1 (WCAG 1.4.6)
+MORE_SAME = [("--text-2", "--text")]
+MORE_PAIRS = [(("--line", "--desk"), 3.0), (("--accent", "--desk"), 7.0)]
 RING_BACKGROUNDS = ["--desk", "--paper"]  # focus ring on the desk and on a white sheet, both schemes
 # APCA (perceptual lightness contrast, WCAG 3 drafts): text pairs >= Lc 75, its floor for body-size text (the
 # secondary grey sets 12-17px bylines, footer + Sources); hairlines >= Lc 15, its floor for a line still seen.
 # WCAG 2 rated dark mode too kindly: #bdbdbd on #1c1c1e passed at 9.1:1 but read at Lc 65 (light: Lc 96)
 APCA_TEXT_MIN, APCA_LINE_MIN = 75, 15
-LINE_PAIRS = [("--line", "--desk"), ("--rule", "--paper")]  # hairlines between sections, on the sheets
+LINE_PAIRS = [("--line", "--desk"), ("--rule", "--paper"), ("--win-rule", "--win")]  # sections, sheets, window
 
 
 def styles(head: Head) -> str:
@@ -300,7 +319,8 @@ def budgets(docs: Path, name: str) -> list[str]:
 
     raw = (docs / name).read_text(encoding="utf-8")
     head, problems = Head(raw), []
-    css = styles(head)
+    sheets = linked_css(docs, head)
+    css = "\n".join([*sheets, styles(head)])  # cascade order: the linked sheets, then the page's own
     html_gzip = len(gzip.compress(raw.encode(), 9, mtime=0))
     if html_gzip > HTML_GZIP_MAX:
         problems.append(f"{name}: HTML {html_gzip} B gzip > {HTML_GZIP_MAX}")
@@ -315,10 +335,11 @@ def budgets(docs: Path, name: str) -> list[str]:
     fonts = sorted({u for face in re.findall(r"@font-face\s*\{([^}]*)\}", css)
                     for u in re.findall(r"""url\(\s*["']?([^"')]+\.woff2)""", face)})
     icon = "/icon.svg" in loaded_urls(head)
-    weight = html_gzip + sum((docs / target(u)).stat().st_size for u in fonts if (docs / target(u)).is_file())
+    weight = html_gzip + sum(len(gzip.compress(t.encode(), 9, mtime=0)) for t in sheets)
+    weight += sum((docs / target(u)).stat().st_size for u in fonts if (docs / target(u)).is_file())
     weight += (docs / "icon.svg").stat().st_size if icon and (docs / "icon.svg").is_file() else 0
     if weight > FIRST_LOAD_MAX:
-        problems.append(f"{name}: first load {weight} B (gzip HTML + fonts + icon) > {FIRST_LOAD_MAX}")
+        problems.append(f"{name}: first load {weight} B (gzip HTML + CSS + fonts + icon) > {FIRST_LOAD_MAX}")
     critical = 1 + len(head.links("preload")) + len(head.links("stylesheet")) + icon
     if critical > CRITICAL_MAX:
         problems.append(f"{name}: {critical} critical requests > {CRITICAL_MAX}")
@@ -395,22 +416,49 @@ def apca(text: str, background: str) -> float:
 
 
 def shared(raw: str) -> str:
+    """The shared CSS: a page's inline /* shared */ ... /* /shared */ block (test fixtures), else the text itself
+    (docs/site.css, the real site's)."""
     m = re.search(r"/\* shared \*/.*?/\* /shared \*/", raw, re.S)
-    return m.group(0) if m else ""
+    return m.group(0) if m else raw
+
+
+def props(body: str) -> dict[str, str]:
+    return {k: " ".join(v.split()) for k, v in re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", body)}
+
+
+def root_in(css: str, query: str) -> dict[str, str]:
+    """The :root custom properties inside @media <query> { :root { ... } } (query exactly as written)."""
+    m = re.search(r"@media\s*" + re.escape(query).replace(r"\ ", r"\s*") + r"\s*\{\s*:root\s*\{([^}]*)\}", css)
+    return props(m.group(1)) if m else {}
+
+
+DARK, MORE, MORE_DARK = ("(prefers-color-scheme: dark)", "(prefers-contrast: more)",
+                         "(prefers-contrast: more) and (prefers-color-scheme: dark)")
 
 
 def tokens(css: str) -> dict[str, dict[str, str]]:
-    """Custom properties of the shared :root, light + dark (dark = light w/ the dark-scheme overrides);
-    the (min-width: 768px) overrides are wide_tokens()'."""
-    def props(body: str) -> dict[str, str]:
-        return {k: " ".join(v.split()) for k, v in re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", body)}
-    dark_m = re.search(r"@media\s*\(prefers-color-scheme:\s*dark\)\s*\{\s*:root\s*\{([^}]*)\}", css)
-    wide_m = re.search(r"@media\s*\(min-width:\s*768px\)\s*\{\s*:root\s*\{([^}]*)\}", css)
+    """Custom properties of the shared :root, light + dark (dark = light w/ the dark-scheme overrides); the
+    (min-width: 768px) overrides are wide_tokens()', the Increase Contrast ones more_tokens()'."""
+    inside = [m.span() for m in re.finditer(r"@media[^{]*\{\s*:root\s*\{[^}]*\}", css)]
     light = {}
     for m in re.finditer(r":root\s*\{([^}]*)\}", css):
-        if not any(o and o.start() <= m.start() < o.end() for o in (dark_m, wide_m)):
+        if not any(a <= m.start() < b for a, b in inside):
             light.update(props(m.group(1)))
-    return {"light": light, "dark": {**light, **(props(dark_m.group(1)) if dark_m else {})}}
+    return {"light": light, "dark": {**light, **root_in(css, DARK)}}
+
+
+def more_tokens(css: str) -> dict[str, dict[str, str]]:
+    """The Increase Contrast overrides (prefers-contrast: more), per scheme: light = the more block, dark = the
+    more block + the more-and-dark one."""
+    more = root_in(css, MORE)
+    return {"light more": more, "dark more": {**more, **root_in(css, MORE_DARK)}}
+
+
+def schemes(css: str) -> dict[str, dict[str, str]]:
+    """Every scheme a visitor can get, resolved: light, dark and both with Increase Contrast."""
+    base, more = tokens(css), more_tokens(css)
+    return {**base, "light more": {**base["light"], **more["light more"]},
+            "dark more": {**base["dark"], **more["dark more"]}}
 
 
 def wide_tokens(css: str) -> dict[str, str]:
@@ -428,12 +476,13 @@ def colour(value: str, scheme: dict[str, str]) -> list[str]:
     return re.findall(r"#[0-9a-fA-F]{6}\b|#[0-9a-fA-F]{3}\b", value)
 
 
-SHEETS = (".window", ".proof")  # white paper in both schemes (home's app window + resume sheet)
+SHEETS = {".window": "--win", ".proof": "--paper"}  # home's app window + resume sheet: their own ground
 
 
 def contrasts(raw: str) -> list[str]:
-    """Token pairs under the minimum, light + dark, incl. the focus ring on desk + white sheet, the ink selection
-    and the selection on the white sheets against --paper (3:1); text + hairlines in APCA too; empty = fine."""
+    """Token pairs under the minimum, light + dark + both w/ Increase Contrast (its own floors too), incl. the focus
+    ring on desk + white sheet, the ink selection and each sheet's selection against its own ground (3:1); text +
+    hairlines in APCA too; empty = fine."""
     css = shared(raw)
     problems = []
     rings = [d for sel, d in re.findall(r"([^{}]*:focus-visible[^{}]*)\{([^}]*)\}", css)]
@@ -444,7 +493,18 @@ def contrasts(raw: str) -> list[str]:
     selections = [d for sel, d in selections_by]
     if not any(sel.strip() == "::selection" for sel, d in selections_by):
         problems.append("shared CSS: no ::selection rule")
-    for mode, scheme in tokens(css).items():
+    if not more_tokens(css)["light more"]:
+        problems.append("shared CSS: no @media (prefers-contrast: more) :root block (Increase Contrast)")
+    for mode, scheme in schemes(css).items():
+        if mode.endswith(" more"):
+            for a, b in MORE_SAME:
+                ca, cb = colour(scheme.get(a, ""), scheme), colour(scheme.get(b, ""), scheme)
+                if not ca or ca[:1] != cb[:1]:
+                    problems.append(f"{mode}: {a} is not {b} ({ca[:1] or 'unset'} vs {cb[:1] or 'unset'})")
+            for (fg, bg), least in MORE_PAIRS:
+                ratio = contrast(colour(scheme[fg], scheme)[0], colour(scheme[bg], scheme)[0])
+                if ratio < least:
+                    problems.append(f"{mode}: {fg} on {bg} {ratio:.2f}:1 < {least}:1")
         for pairs, least in (TEXT_PAIRS, TEXT_MIN), (NON_TEXT_PAIRS, NON_TEXT_MIN):
             for fg, bg in pairs:
                 if fg not in scheme or bg not in scheme:
@@ -475,29 +535,29 @@ def contrasts(raw: str) -> list[str]:
                 problems.append(f"{mode}: ::selection paints the highlighter")
             elif fg and bg and contrast(fg[0], bg[0]) < TEXT_MIN:
                 problems.append(f"{mode}: ::selection {contrast(fg[0], bg[0]):.2f}:1 < {TEXT_MIN}:1")
-        # the app window + resume sheet stay white in dark mode: their selection must show on --paper
-        # (their own ::selection rule, else the page-wide one)
-        paper = colour(scheme.get("--paper", ""), scheme)
-        for sheet in SHEETS:
+        # the app window + resume sheet keep their own ground in dark mode (the desk's selection vanished on a
+        # white sheet): their selection must show on it (their own ::selection rule, else the page-wide one)
+        for sheet, ground in SHEETS.items():
+            paper = colour(scheme.get(ground, ""), scheme)
             rules = [d for sel, d in selections_by if sheet in sel] or \
                     [d for sel, d in selections_by if sel.strip() == "::selection"]
             bg = [c for d in rules for c in colour(" ".join(re.findall(r"background(?:-color)?\s*:\s*([^;]+)", d)), scheme)]
             ratio = contrast(bg[-1], paper[0]) if bg and paper else 0
             if ratio < NON_TEXT_MIN:
-                problems.append(f"{mode}: selection on the paper sheet {sheet} {ratio:.2f}:1 against --paper "
+                problems.append(f"{mode}: selection on the sheet {sheet} {ratio:.2f}:1 against {ground} "
                                 f"< {NON_TEXT_MIN}:1")
     return problems
 
 
-def stroke_on_paper(raw: str, selector: str) -> dict[str, float]:
-    """Contrast of the stroke a page's own CSS rule for selector paints against --paper, per scheme (light, dark);
-    0 = no such rule or no colour (a drawing on a white sheet keeps --paper in both schemes)."""
+def stroke_on_paper(raw: str, selector: str, site_css: str = "") -> dict[str, float]:
+    """Contrast of the stroke a page's own CSS rule for selector paints against --paper, per scheme (light, dark),
+    tokens from site_css (the page's inline shared block when not given); 0 = no such rule or no colour."""
     css = re.sub(r"/\*.*?\*/", "", raw.split("/* /shared */", 1)[-1], flags=re.S)
     rule = next((d for sel, d in re.findall(r"([^{}]+)\{([^{}]*)\}", css)
                  if selector in [x.strip() for x in sel.split(",")]), "")
     stroke = " ".join(re.findall(r"(?<![-\w])stroke\s*:\s*([^;]+)", rule))
     out = {}
-    for mode, scheme in tokens(shared(raw)).items():
+    for mode, scheme in tokens(shared(site_css or raw)).items():
         fg, paper = colour(stroke, scheme), colour(scheme.get("--paper", ""), scheme)
         out[mode] = contrast(fg[0], paper[0]) if fg and paper else 0.0
     return out
@@ -510,6 +570,15 @@ def token_table(markdown: str) -> dict[str, dict[str, str]]:
         light[name] = lv
         dark[name] = lv if dv == "same" else dv.strip("`")
     return {"light": light, "dark": dark}
+
+
+def more_table(markdown: str) -> dict[str, dict[str, str]]:
+    """site.md's Increase Contrast rows (| more | `--x` | `light` | `dark` or same | use |) in more_tokens()' shape."""
+    light, dark = {}, {}
+    for name, lv, dv in re.findall(r"^\| more \| `(--[\w-]+)` \| `([^`]+)` \| (same|`[^`]+`) \|", markdown, re.M):
+        light[name] = lv
+        dark[name] = lv if dv == "same" else dv.strip("`")
+    return {"light more": light, "dark more": dark}
 
 
 def wide_table(markdown: str) -> dict[str, str]:

@@ -239,12 +239,33 @@ def research_site(root, extra=None, reviews=None, registry=REGISTRY):
     return folder
 
 
+def test_an_edited_stylesheet_restamps_every_page_that_links_it(tmp_path):
+    # GitHub Pages caches 10 min: a page linking /site.css w/o a new hash would show readers the old CSS
+    research_site(tmp_path)
+    pages.write(tmp_path)
+    docs = tmp_path / "docs"
+    css = docs / "site.css"
+    css.write_text(css.read_text(encoding="utf-8") + "\n.x { color: red; }\n", encoding="utf-8", newline="\n")
+    new = pages.stylesheet(docs, "site.css")
+    stale = pages.problems(tmp_path)
+    assert {"stale: docs/index.html", "stale: docs/privacy.html", "stale: docs/404.html",
+            "stale: docs/research/ats-myth/index.html"} <= set(stale), stale
+    pages.write(tmp_path)
+    assert pages.problems(tmp_path) == []
+    for name in ("index.html", "privacy.html", "404.html", "research/ats-myth/index.html"):
+        assert new in (docs / name).read_text(encoding="utf-8"), name
+    # a CRLF checkout hashes the same (Windows git autocrlf)
+    css.write_bytes(css.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
+    assert pages.stylesheet(docs, "site.css") == new
+
+
 def test_published_sources_become_pages_and_drafts_do_not(tmp_path):
     research_site(tmp_path)
     built = pages.build(tmp_path)
+    # + the hand-written pages: their stylesheet links (hash) are this script's
     assert [k for k in built if k != "sitemap.xml"] == [
-        "about/index.html", "research/ai-bias/index.html", "research/ats-myth/index.html", "research/feed.xml",
-        "research/index.html", "research/methods/index.html"]
+        "404.html", "about/index.html", "index.html", "privacy.html", "research/ai-bias/index.html",
+        "research/ats-myth/index.html", "research/feed.xml", "research/index.html", "research/methods/index.html"]
     assert "next-one" not in built["sitemap.xml"]
     assert "https://jobs.enrriquez.com/research/ats-myth/" in built["sitemap.xml"]
     assert pages.write(tmp_path) and pages.problems(tmp_path) == [] and pages.write(tmp_path) == []
@@ -286,7 +307,7 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
     home = Head((docs / "index.html").read_text(encoding="utf-8"))
     raw = {n: (docs / n).read_text(encoding="utf-8") for n in found if n.endswith(".html") and n.split("/")[0] in ("research", "about")}
     assert len(raw) == 5
-    shared = re.search(r"/\* shared \*/.*?/\* /shared \*/", (docs / "index.html").read_text(encoding="utf-8"), re.S).group(0)
+    sheets = [pages.stylesheet(docs, "site.css"), pages.stylesheet(docs, "doc.css")]
     for name, text in raw.items():
         head = Head(text)
         assert [a["href"] for a in head.links("canonical")] == [own_url(name, "https://jobs.enrriquez.com/")], name
@@ -295,11 +316,11 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
             assert head.links(rel) == home.links(rel), (name, rel)
         assert head.meta("og:image") == f"https://jobs.enrriquez.com/{pages.CARD}?v={pages.CARD_V}" and head.meta("twitter:card") == "summary_large_image"
         assert head.meta("og:image:alt") == head.meta("twitter:image:alt") == pages.CARD_ALT, name
-        assert shared in text, name
+        assert re.findall(r'<link rel="stylesheet"[^>]*>', text) == sheets and "<style" not in text, name
         for tag in "header", "footer":
             assert re.findall(rf"<{tag}\b.*?</{tag}>", text, re.S) == re.findall(
                 rf"<{tag}\b.*?</{tag}>", (docs / "index.html").read_text(encoding="utf-8"), re.S), (name, tag)
-        for url in loaded_urls(head):
+        for url in loaded_urls(head, docs):
             assert url.startswith("data:") or (url.startswith("/") and target(url) in found), (name, url)
         for a in head.all("a"):
             href = urlsplit(a["href"])
@@ -467,7 +488,9 @@ def test_citations_render_author_year_links_and_an_alphabetical_sources_list(tmp
             "Meta-analysis of field experiments shows no change in racial discrimination in hiring over time. "
             "<i>Proceedings of the National Academy of Sciences.</i> 28 US studies, 55,842 applications. "
             'Checked <time datetime="2026-09-29">September 29, 2026</time>. '
-            '<a href="https://doi.org/10.1073/pnas.1706255114">DOI</a></li>') in sources
+            '<span class="src-links"><a href="https://doi.org/10.1073/pnas.1706255114">DOI</a></span></li>') in sources
+    # the links on their own row, apart (Apple HIG spacing; 44x44 touch boxes in docs/doc.css), none when it has none
+    assert all(li.count('<span class="src-links">') == ("<a " in li) for li in re.findall(r"<li id=.*?</li>", sources))
     # A14: each entry opens with its label; no visible text is a raw URL
     for li in re.findall(r"<li id=.*?</li>", sources):
         assert li.startswith(re.match(r'<li id="[^"]+">', li).group(0) + '<b class="evidence">'), li
@@ -1224,7 +1247,7 @@ def test_article_first_screen_answer_byline_notes_then_on_this_page(tmp_path):
     top = TOP.replace("## What helps", "## Last one").replace("- A finding.", "- A **finding**.") + "\n**Not a note**\n\n- Item.\n"
     research_site(tmp_path / "b", {"ai-bias.md": f"---\n{head}---\n{top}"})
     html = pages.build(tmp_path / "b")["research/ai-bias/index.html"]
-    assert "box-more" not in html.split("</style>")[1] and html.split("</style>")[1].count('class="box"') == 2
+    assert "box-more" not in html.split("</head>")[1] and html.split("</head>")[1].count('class="box"') == 2
     # hub, about: no answer line
     built = pages.build(tmp_path)
     assert 'class="answer"' not in built["research/index.html"] + built["about/index.html"]

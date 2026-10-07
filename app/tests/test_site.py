@@ -25,9 +25,9 @@ if not (cfg.ROOT / ".git").exists():
 
 import pymupdf  # noqa: E402
 
-from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts,  # noqa: E402
-                         loaded_urls, outside_no_preference, own_url, png_size, shared, structured_data, target, token_table, tokens,
-                         run_together, wide_table, wide_tokens, stroke_on_paper, typewriter, yellow_fills, claim_problems)
+from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts, linked_css,  # noqa: E402
+                         loaded_urls, more_table, more_tokens, outside_no_preference, own_url, png_size, shared, structured_data,
+                         target, token_table, tokens, run_together, wide_table, wide_tokens, stroke_on_paper, typewriter, yellow_fills, claim_problems)
 
 DOCS = cfg.ROOT / "docs"
 SITE = "https://" + (DOCS / "CNAME").read_text().strip() + "/"
@@ -51,7 +51,7 @@ def test_each_page_carries_the_same_icons_and_font_preloads():
         assert [a["href"] for a in head.links("apple-touch-icon")] == ["/apple-touch-icon.png"], name
         assert [a["href"] for a in head.links("manifest")] == ["/manifest.webmanifest"], name
         # font preload w/o crossorigin => browser fetches the font twice; unmatched URL => wasted fetch
-        faces = re.findall(r"""url\("([^"]+\.woff2)"\)""", "".join(head.text["style"]))
+        faces = re.findall(r"""url\("([^"]+\.woff2)"\)""", "".join(head.text.get("style", []) + linked_css(DOCS, head)))
         preloads = head.all("link", rel="preload", **{"as": "font"})
         assert preloads, name
         for a in preloads:
@@ -107,7 +107,7 @@ def test_no_page_loads_a_file_from_another_site_or_a_missing_one():
     # Root-relative only: 404.html is served at any missing path (/a/b/c) => relative URLs break there.
     # Exact case: macOS disks match /Fonts/x for fonts/x, Pages answers 404
     for name in PAGES:
-        for url in loaded_urls(page(name)):
+        for url in loaded_urls(page(name), DOCS):
             if url.startswith("data:"):
                 continue
             assert url.startswith("/") and not url.startswith("//"), (name, url)
@@ -182,11 +182,50 @@ def test_nothing_in_docs_trips_jekyll():
         assert not (cfg.ROOT / path).read_bytes().startswith(b"---"), path
 
 
-def test_shared_css_is_the_same_on_every_page():
-    # fonts, colours and marks copied into each page by hand => one edited, the others drift
-    blocks = {name: re.search(r"/\* shared \*/.*?/\* /shared \*/", (DOCS / name).read_text(encoding="utf-8"), re.S).group(0)
-              for name in PAGES}
-    assert len(set(blocks.values())) == 1, sorted(blocks)
+SITE_CSS = (DOCS / "site.css").read_text(encoding="utf-8")
+
+
+def css_href(name: str) -> str:
+    """The stylesheet's URL as pages link it: its content hash (LF) keeps a reader's cache honest."""
+    text = (DOCS / name).read_bytes().decode("utf-8").replace("\r\n", "\n")
+    return f"/{name}?v={hashlib.sha256(text.encode()).hexdigest()[:10]}"
+
+
+def test_every_page_links_the_shared_stylesheets_and_carries_no_copy():
+    # one source for the shared CSS (owner 2026-10-07: "more reusable css shared"): every page links site.css, the
+    # reading pages doc.css too, each at its current hash (pages.py stamps it); no page keeps an inline copy - copied
+    # blocks drifted, and every page paid for them again
+    for name in PAGES:
+        raw = (DOCS / name).read_text(encoding="utf-8")
+        want = [css_href("site.css")] + ([] if name == "index.html" else [css_href("doc.css")])
+        assert [a["href"] for a in page(name).links("stylesheet")] == want, name
+        assert "/* shared */" not in raw and "@font-face" not in raw and "--desk:" not in raw, name
+        assert raw.index('rel="stylesheet"') < raw.index("<style>") if "<style>" in raw else True, name
+    # the reading pages' box rules for bare elements (h1 size, p + li margins ...) stay out of site.css: the home
+    # page's scenes never inherit them (base type - text-wrap - is shared)
+    assert element_box_rules(SITE_CSS) == []
+    assert element_box_rules("@media (max-width: 600px) {\n  .x, main h2 { margin-top: 36px; }\n}") == ["main h2"]
+    # both files committed: on disk only, every check here passes and Pages serves the site unstyled
+    tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", "docs/site.css", "docs/doc.css"],
+                             capture_output=True, text=True, check=True).stdout.split()
+    assert tracked == ["docs/doc.css", "docs/site.css"], tracked
+
+
+def element_box_rules(css: str) -> list[str]:
+    """Selectors (in any rule, @media included) whose subject is a bare reading element w/ a box property set and
+    nothing scoping it to a shared part (a class, id, attribute, header / footer / nav): those reach home's scenes."""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    found = []
+    for sels, body in re.findall(r"([^{}]+)\{([^{}]*)\}", css):
+        if not re.search(r"(?<![\w-])(margin|padding|border|font-size)[\w-]*\s*:", body):
+            continue
+        for sel in (x.strip() for x in re.split(r",(?![^()]*\))", sels)):
+            if re.search(r"[.#\[]|(?<![\w-])(header|footer|nav)(?![\w-])", sel):
+                continue
+            subject = re.split(r"[\s>+~]+", sel)[-1]
+            if re.fullmatch(r"(h[1-6]|p|ul|ol|li|table|th|td|small|code|pre|blockquote)(::?[\w-]+(\([^)]*\))?)*", subject):
+                found.append(sel)
+    return found
 
 
 def test_header_and_footer_are_the_same_on_every_page():
@@ -216,9 +255,9 @@ def test_404_offers_install_and_research():
 def test_404_cut_line_shows_on_the_paper_in_both_schemes():
     # the dashed cut crosses the white sheet; --text turns near-white in dark mode and the line vanishes (A17)
     raw = (DOCS / "404.html").read_text(encoding="utf-8")
-    assert all(r >= 3 for r in stroke_on_paper(raw, ".cut .dash").values()), stroke_on_paper(raw, ".cut .dash")
+    assert all(r >= 3 for r in stroke_on_paper(raw, ".cut .dash", SITE_CSS).values()), stroke_on_paper(raw, ".cut .dash", SITE_CSS)
     faint = raw.replace(".cut .dash { fill: none; stroke: var(--ink)", ".cut .dash { fill: none; stroke: var(--text)", 1)
-    assert faint != raw and stroke_on_paper(faint, ".cut .dash")["dark"] < 3
+    assert faint != raw and stroke_on_paper(faint, ".cut .dash", SITE_CSS)["dark"] < 3
 
 
 def test_about_is_one_click_from_home():
@@ -324,10 +363,14 @@ def test_no_page_shows_the_mark_as_an_img():
 
 def test_inline_bird_is_black_on_a_paper_disc_with_a_two_tone_beak():
     # a pale bird on the dark desk read as a white one, its yellow lost on it (owner 2026-10-05): black on every
-    # ground, on a paper disc that vanishes on white; the orange lower beak carries its edge on white (yellow: 1.2:1)
-    css = shared((DOCS / "index.html").read_text(encoding="utf-8"))
+    # ground, on a paper disc - the desk itself in light (no white halo on the cream), paper in dark, and paper in the
+    # hero window (white in light, raised grey in dark); the orange lower beak carries its edge (yellow: 1.2:1)
+    raw = (DOCS / "index.html").read_text(encoding="utf-8")
+    css = SITE_CSS
     assert re.search(r"\.bird \{[^}]*fill: var\(--ink\)", css)
-    assert ".bird .disc { fill: var(--paper); }" in css
+    assert ".bird .disc { fill: var(--disc); }" in css
+    assert tokens(css)["light"]["--disc"] == "var(--desk)" and tokens(css)["dark"]["--disc"] == "var(--paper)"
+    assert re.search(r"\.window \{[^}]*--disc: var\(--paper\)", raw)
     assert re.search(r"\.bird :is\(\.beak, \.eye\) \{ fill: var\(--mark\); \}", css)
     assert ".bird .beak-low { fill: var(--beak-low); }" in css
     assert "@media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }" in css
@@ -676,14 +719,13 @@ def test_every_page_fits_the_budgets():
 
 def test_shared_colours_meet_contrast_in_both_schemes():
     # text 4.5:1, controls + focus ring 3:1 (WCAG 1.4.3, 1.4.11); ring also on a white sheet in dark mode
-    assert contrasts((DOCS / "index.html").read_text(encoding="utf-8")) == []
+    assert contrasts(SITE_CSS) == []
 
 
 def test_every_page_lays_its_sheet_down_only_without_reduced_motion():
-    # page change (PICK P-d2) opted in by every page: masthead held, main = the sheet that is laid
-    # down; reduced motion => no transition at all
-    for name in PAGES:
-        css = shared((DOCS / name).read_text(encoding="utf-8"))
+    # page change (PICK P-d2) opted in by every page (each links site.css: the test above): masthead held, main =
+    # the sheet that is laid down; reduced motion => no transition at all
+    for name, css in {"site.css": SITE_CSS}.items():
         assert re.search(NO_PREFERENCE + r"[^}]*@view-transition\s*\{\s*navigation:\s*auto", css), name
         assert re.search(r"\.masthead\s*\{\s*view-transition-name:\s*masthead", css), name
         assert re.search(r"(?<![\w.-])main\s*\{\s*view-transition-name:\s*sheet", css), name
@@ -693,8 +735,7 @@ def test_every_page_lays_its_sheet_down_only_without_reduced_motion():
 def test_page_change_moves_only_transform_and_opacity_within_400ms():
     # ::view-transition-* keyframes animate transform + opacity only (compositor, no layout or paint)
     # and each pseudo is done (delay + duration) by 400 ms, so a click never waits on the motion
-    for name in PAGES:
-        css = shared((DOCS / name).read_text(encoding="utf-8"))
+    for name, css in {"site.css": SITE_CSS}.items():
         rules = re.findall(r"::view-transition-[\w-]+\([^)]*\)\s*\{([^}]*)\}", css)
         assert rules, name
         frames = dict(re.findall(r"@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^}]*\})*)\s*\}", css))
@@ -711,19 +752,23 @@ def test_page_change_moves_only_transform_and_opacity_within_400ms():
 
 def test_site_md_tokens_table_is_the_shared_root():
     # site.md lists every token: one edited w/o the other => the doc lies about the colours
-    css = shared((DOCS / "index.html").read_text(encoding="utf-8"))
+    css = SITE_CSS
     doc = (cfg.APP / "docs" / "site.md").read_text(encoding="utf-8")
     assert token_table(doc) == tokens(css)
     assert wide_table(doc) == wide_tokens(css) != {}
+    assert more_table(doc) == more_tokens(css) and more_tokens(css)["light more"]
 
 
 PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>
   /* shared */
-  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; --desk: #ffffff; --text: #000000; --line: #c8c8c8; --text-2: #3a3a3a; }}
-  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }} }}
+  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; --desk: #ffffff; --text: #000000; --line: #c8c8c8; --accent: #8f3f00; --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule); --text-2: #3a3a3a; }}
+  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; --paper: #ebe8e2; --accent: #ffc690; --win: #2c2c2e; --win-ink: #f2f2f2; --win-ink-2: #d6d6d6; --win-rule: #6c6c6e; }} }}
+  @media (prefers-contrast: more) {{ :root {{ --text-2: var(--text); --line: #767676; --accent: #6b2f00; }} }}
+  @media (prefers-contrast: more) and (prefers-color-scheme: dark) {{ :root {{ --accent: #ffd9b8; }} }}
   :focus-visible {{ outline: 3px solid var(--text); box-shadow: 0 0 0 3px var(--desk); }}
   ::selection {{ background: var(--text); color: var(--desk); }}
-  .window ::selection, .proof ::selection {{ background: var(--ink); color: var(--paper); }}
+  .window ::selection {{ background: var(--win-ink); color: var(--win); }}
+  .proof ::selection {{ background: var(--ink); color: var(--paper); }}
   {css}
   /* /shared */
 </style></head><body><header><a href="/">x</a>{header}</header><main>{body}</main><footer>{footer}</footer>{scripts}</body></html>"""
@@ -750,7 +795,7 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
     ({"body": "<i></i>" * 801}, {}, "elements in <body>"),
     ({"css": '@font-face { font-family: "X"; src: url("/fonts/big.woff2") format("woff2"); }'},
      {"fonts/big.woff2": 101_000}, "first load"),
-    ({"head": '<link rel="preload" href="/a.woff2" as="font" crossorigin>' * 5}, {}, "critical requests"),
+    ({"head": '<link rel="preload" href="/a.woff2" as="font" crossorigin>' * 6}, {}, "critical requests"),
     ({"scripts": '<script src="/app.js"></script>'}, {}, "<script src="),
     ({"css": ".x { will-change: transform; }"}, {}, "will-change"),
     ({"css": "@keyframes grow { from { width: 0; } to { width: 10px; } }"}, {}, "animates width"),
@@ -798,12 +843,28 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
     ("::selection", "::marker", "no ::selection rule"),
     ("background: var(--text); color: var(--desk)", "background: var(--mark); color: var(--ink)", "paints the highlighter"),
     ("background: var(--text); color: var(--desk)", "background: var(--text); color: var(--text-2)", "dark: ::selection"),
-    (".window ::selection, .proof ::selection {", ".gone {",
-     "dark: selection on the paper sheet .window"),
+    # the resume sheet w/o its own selection: the page's light selection on the softened paper (dark)
+    (".proof ::selection {", ".gone {", "dark: selection on the sheet .proof"),
     ("background: var(--ink); color: var(--paper)", "background: #dddddd; color: var(--ink)",
-     "light: selection on the paper sheet .proof"),
+     "light: selection on the sheet .proof"),
+    ("background: var(--win-ink); color: var(--win)", "background: #3a3a3c; color: var(--win-ink)",
+     "dark: selection on the sheet .window"),
+    # the tint: links in running text (beak orange 3.0:1 on white; the light one on the dark desk)
+    ("--accent: #8f3f00;", "--accent: #e57a00;", "light: --accent on --desk"),
+    ("--accent: #ffc690;", "--accent: #8f3f00;", "dark: --accent on --desk"),
+    # the hero window's own dark grey
+    ("--win-ink-2: #d6d6d6;", "--win-ink-2: #8e8e93;", "dark: --win-ink-2 on --win"),
+    ("--win-rule: #6c6c6e;", "--win-rule: #333335;", "dark: hairline --win-rule on --win APCA"),
+    # Increase Contrast: grey left grey, a faint hairline, the tint not deepened, the block gone
+    ("--text-2: var(--text);", "--text-2: #3a3a3a;", "light more: --text-2 is not --text"),
+    ("--line: #767676;", "--line: #c8c8c8;", "light more: --line on --desk"),
+    ("--accent: #6b2f00;", "--accent: #a64b00;", "light more: --accent on --desk"),
+    ("--accent: #ffd9b8;", "--accent: #c26a00;", "dark more: --accent on --desk"),
+    ("@media (prefers-contrast: more) {", "@media (prefers-contrast: less) {", "no @media (prefers-contrast: more)"),
 ], ids=["text-light", "text-dark", "text-dark-apca", "line-dark-apca", "rule-light-apca", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
-        "selection-faint", "selection-on-sheet-gone", "selection-on-sheet-faint"])
+        "selection-faint", "selection-on-sheet-gone", "selection-on-sheet-faint", "selection-on-window-faint",
+        "accent-light", "accent-dark", "window-text-dark", "window-rule-dark", "more-text-2", "more-line",
+        "more-accent-light", "more-accent-dark", "more-block-gone"])
 def test_each_contrast_rule_trips_on_its_fixture(tmp_path, old, new, trips):
     template = PAGE.format(**dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), ""))
     old, new = old.replace("}}", "}"), new.replace("}}", "}")
