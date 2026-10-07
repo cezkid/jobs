@@ -539,8 +539,8 @@ Readings:
   a second fill changes nothing - every call `manatal.fill` + `holds` + `form.fill_page` make already exists in
   `window.py` (xpath ancestor, `select_option(value=[...])`, `set_input_files`, `evaluate_all`).
 
-Route-2 costs otherwise as Greenhouse. `window.SYSTEMS` unchanged: Manatal fills in Job Finder's own Chrome until
-the owner decides (plan-k8n.39).
+Route-2 costs otherwise as Greenhouse. In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.39), `AT_SUBMIT`
+note for Submit (resume + answers sent only then).
 
 ## Breezy - route 2 (plan-k8n.35)
 
@@ -580,8 +580,8 @@ Readings:
   address, pay + currency + per, location, summary, letter, text, list, radios, ticks, date, 2 EEO), a second fill
   changes nothing, honeypot + SMS + CCPA untouched.
 
-Route-2 costs otherwise as Greenhouse. `window.SYSTEMS` unchanged: Breezy fills in Job Finder's own Chrome until
-the owner decides (plan-k8n.40).
+Route-2 costs otherwise as Greenhouse. In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.40), `AT_SUBMIT`
+note for the upload + its refill and Submit (possible emailed code).
 
 ## Teamtailor - route 2 (plan-k8n.38)
 
@@ -631,8 +631,8 @@ Readings:
   choice, 7 yes / no radios, letter - with a cookie notice holding the keyboard, never clicked), a second fill
   changes nothing, consent never ticked.
 
-Route-2 costs otherwise as Greenhouse. `window.SYSTEMS` unchanged: Teamtailor fills in Job Finder's own Chrome until
-the owner decides (plan-k8n.41).
+Route-2 costs otherwise as Greenhouse. In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.41), `AT_SUBMIT`
+note for the upload's live answer + Submit.
 
 ## Recommendation
 
@@ -650,9 +650,10 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle, iCIMS + Paylocity only, off by default (plan-29g.9,
-Ashby plan-nko.8, Lever plan-nko.15, JazzHR plan-k8n.5, BambooHR plan-k8n.11, Oracle + iCIMS + Paylocity plan-k8n.20;
-Workable plan-k8n.8, pulled plan-k8n.34).
+window, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, Breezy, Teamtailor, Oracle, iCIMS + Paylocity only, off
+by default (plan-29g.9, Ashby plan-nko.8, Lever plan-nko.15, JazzHR plan-k8n.5, BambooHR plan-k8n.11, Oracle + iCIMS +
+Paylocity plan-k8n.20, Manatal plan-k8n.39, Breezy plan-k8n.40, Teamtailor plan-k8n.41; Workable plan-k8n.8, pulled
+plan-k8n.34).
 
 ## Owner decision (plan-29g.8)
 
@@ -690,11 +691,20 @@ Paylocity: sent on choice, blocked = no words) => `AT_SUBMIT` note + Chrome fall
 box never shown in the window under the block, unmeasured), SmartRecruiters (DataDome device check replaces the form,
 2 of 2), UKG (`window.REFUSED`).
 
+2026-10-07 (plan-k8n.39, .40, .41): Manatal, Breezy + Teamtailor added ("Manatal (recommended), Breezy (recommended),
+Teamtailor (recommended)", owner) - one page each, no frames, no `debugger;` pauses, no captcha or AWS WAF on load,
+adapter parity passes (Manatal no new code, plan-k8n.32; Breezy after the date-box fix, plan-k8n.35; Teamtailor after
+`wait_for(state=)`, 2 tenants incl. a keyboard-trapping cookie notice, plan-k8n.38). Gaps, all unmeasured (never
+Submit; uploads blocked at level 3): Manatal's Submit (presigned upload, S3, answers POST - the resume is held until
+then); Breezy's upload answer + the refill from it, possible emailed code at Submit; Teamtailor's upload answer
+(presigned, S3) + Submit => `AT_SUBMIT` note each + Chrome fallback.
+
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle,
-iCIMS + Paylocity only (owner's yes for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5,
-BambooHR 2026-10-07 plan-k8n.11, Oracle + iCIMS + Paylocity 2026-10-07 plan-k8n.20; Workable 2026-10-06 plan-k8n.8,
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, Breezy,
+Teamtailor, Oracle, iCIMS + Paylocity only (owner's yes for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR
+2026-10-06 plan-k8n.5, BambooHR 2026-10-07 plan-k8n.11, Oracle + iCIMS + Paylocity 2026-10-07 plan-k8n.20, Manatal +
+Breezy + Teamtailor 2026-10-07 plan-k8n.39, .40, .41; Workable 2026-10-06 plan-k8n.8,
 pulled 2026-10-07 plan-k8n.34; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 Multi-page form (`PER_PAGE`, `form.fill` passes `match`): no longer refused (plan-k8n.15, owner's pick (c)) - one

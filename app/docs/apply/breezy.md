@@ -159,8 +159,10 @@ each: both drew the Angular form, up 1.8 / 2.1 s after navigate, 0 `debugger;` p
 WAF on load, name typed + read back. Dummy resume: sent at once to the upload address (blocked), then the box shows
 no name, no error, nothing sending - as in Chrome with the upload blocked (`try`: ASK). Ziggeo on load, typing and
 upload; LogRocket on A only - window as Chrome. Parity test: same report + page as Chrome after one adapter fix (date
-box filled by value, as Playwright does). Not in `--in-window` yet - owner decides (plan-k8n.40). Numbers:
-`vscode-browser.md` "Breezy - route 2".
+box filled by value, as Playwright does). Numbers: `vscode-browser.md` "Breezy - route 2".
+
+Window: offered since the owner's yes 2026-10-07 (plan-k8n.40): `fill --in-window`, off by default; its note says
+the resume upload, the boxes Breezy refills from it + any emailed code at Submit are untested there.
 
 ## Cost
 

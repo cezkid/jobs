@@ -143,8 +143,11 @@ cookie notice's link): on A + C, focus by script + typing held "Test Applicant";
 the keyboard, every typing landed nowhere, set by script with the box's own events held it (= the filler's `write`,
 as in Chrome). Dummy resume: sent at once to `/uploads/presigned_data` (blocked), then the drop box shows "TypeError:
 Failed to fetch" - as Chrome's try (FAIL with the page's words). Parity test: same report + page as Chrome on A + B
-(B with a cookie notice holding the keyboard) after one adapter fix (`wait_for(state=...)`, as Playwright). Not in
-`--in-window` yet - owner decides (plan-k8n.41). Numbers: `vscode-browser.md` "Teamtailor - route 2".
+(B with a cookie notice holding the keyboard) after one adapter fix (`wait_for(state=...)`, as Playwright). Numbers:
+`vscode-browser.md` "Teamtailor - route 2".
+
+Window: offered since the owner's yes 2026-10-07 (plan-k8n.41): `fill --in-window`, off by default; its note says
+the resume upload's live answer + Submit are untested there.
 
 ## Cost
 

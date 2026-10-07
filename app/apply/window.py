@@ -1,12 +1,13 @@
 """Trial, off by default (plan-29g.9): fill a form in a tab of the Job Finder window instead of Chrome -
-`apply-form fill <job> --in-window`, Greenhouse, Ashby, Lever, JazzHR, BambooHR + the multi-page Oracle,
-iCIMS, Paylocity (owner's yes for Ashby + Lever 2026-10-05, plan-nko.7, plan-nko.14; JazzHR 2026-10-06, plan-k8n.5;
-BambooHR 2026-10-07, plan-k8n.11; Oracle, iCIMS + Paylocity 2026-10-07, plan-k8n.20). Workable pulled 2026-10-07
+`apply-form fill <job> --in-window`, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, Breezy, Teamtailor + the
+multi-page Oracle, iCIMS, Paylocity (owner's yes for Ashby + Lever 2026-10-05, plan-nko.7, plan-nko.14; JazzHR 2026-10-06,
+plan-k8n.5; BambooHR 2026-10-07, plan-k8n.11; Oracle, iCIMS + Paylocity 2026-10-07, plan-k8n.20; Manatal, Breezy +
+Teamtailor 2026-10-07, plan-k8n.39, .40, .41). Workable pulled 2026-10-07
 (owner, plan-k8n.34): Submit failed 2 of 2 in the window, went through in Chrome. Route 2 of app/docs/apply/vscode-browser.md: the
 window's extension attaches VS Code's JavaScript debugger to the tab and hands back its CDP proxy;
 Playwright can't use that proxy (one page, no browser), so Page + Locator below speak CDP and cover
-only what greenhouse.py, ashby.py, lever.py, jazzhr.py, workable.py, bamboohr.py, oracle.py, icims.py, paylocity.py
-and form.fill call. Every hard limit of the Chrome path stays: never Submit,
+only what greenhouse.py, ashby.py, lever.py, jazzhr.py, workable.py, bamboohr.py, oracle.py, icims.py, paylocity.py,
+manatal.py, breezy.py, teamtailor.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
 a file chosen only after the user's yes (form.fill decides that, not this file).
 
 Measured costs this follows (vscode-browser.md): skip every pause on attach (a site's own `debugger;`
@@ -29,7 +30,8 @@ from pathlib import Path
 
 from apply.cdp import CDP, Closed, ScriptError
 
-SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", "Oracle Recruiting Cloud", "iCIMS", "Paylocity")
+SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", "Oracle Recruiting Cloud", "iCIMS", "Paylocity",
+           "Manatal", "Breezy", "Teamtailor")
 # never in the window, whatever SYSTEMS says: why, in plain words
 REFUSED = {"UKG": "its sign-in lives in Job Finder's Chrome - a tab in the window isn't signed in",
            "Workable": "Submit didn't go through from the window (2 of 2 tries, 2026-10-07) - in Chrome it did"}
@@ -65,7 +67,15 @@ AT_SUBMIT = {"Lever": "Lever's hCaptcha check at Submit is untested in the windo
                       "Submit doesn't go through, fill it again from the start without --in-window (Chrome)",
              "Paylocity": "Paylocity's resume upload and its steps after the first are untested in the window - if the resume "
                           "doesn't show as attached, a step doesn't fill, or Submit doesn't go through, fill it again from the "
-                          "start without --in-window (Chrome)"}
+                          "start without --in-window (Chrome)",
+             # one page; each measured in the tab up to the resume chosen, never Submit (plan-k8n.32, .35, .38)
+             "Manatal": "Manatal's Submit is untested in the window - it sends the resume, then the answers, only then; if "
+                        "Submit doesn't go through or shows an error, fill it again without --in-window (Chrome)",
+             "Breezy": "Breezy's resume upload, the boxes it fills from the resume and any emailed code at Submit are "
+                       "untested in the window - if the resume doesn't show as attached, a code box doesn't show, or "
+                       "Submit doesn't go through, fill it again without --in-window (Chrome)",
+             "Teamtailor": "Teamtailor's resume upload and its Submit are untested in the window - if the resume doesn't "
+                           "show as attached or Submit doesn't go through, fill it again without --in-window (Chrome)"}
 WHY = {"untrusted": "the Job Finder window is in Restricted Mode (opened without its Desktop icon)",
        "picker": "the window couldn't tell which tab to use",
        "no proxy": "the window's debugger didn't hand over the tab",

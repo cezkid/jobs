@@ -22,7 +22,8 @@ import cfg
 import launch
 from apply import browser, dom, form, questions, window
 from apply.cdp import CDP
-from apply.systems import adp, ashby, greenhouse, icims, jazzhr, lever, oracle, paycom, paylocity, smartrecruiters, workable
+from apply.systems import (adp, ashby, breezy, greenhouse, icims, jazzhr, lever, manatal, oracle, paycom, paylocity,
+                           smartrecruiters, teamtailor, workable)
 
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
 ASHBY_FORM = FORM.with_name("ashby-form.html")
@@ -1184,7 +1185,7 @@ def test_in_window_off_by_default_fill_stays_in_chrome(tmp_path, monkeypatch, ca
     assert capsys.readouterr().out.endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
 
 
-@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR"])
+@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", "Manatal", "Breezy", "Teamtailor"])
 def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, capsys, name):
     opened = fill_setup(tmp_path, monkeypatch, name)
     monkeypatch.setattr(form.sys, "argv", ["form.py", "fill", "7", "--in-window"])
@@ -1192,20 +1193,28 @@ def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, ca
     out = capsys.readouterr().out
     assert opened == ["window"] and "  [ok] First Name\n" in out
     said = "The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
-    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name in ("Lever", "JazzHR", "BambooHR") else ""))
+    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name not in ("Greenhouse", "Ashby") else ""))
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
     assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", oracle.NAME, icims.NAME,
-                              paylocity.NAME)
+                              paylocity.NAME, manatal.NAME, breezy.NAME, teamtailor.NAME)
     # owner 2026-10-07 (plan-k8n.20): these multi-page systems stay in Chrome
     assert not {smartrecruiters.NAME, adp.NAME, paycom.NAME} & set(window.SYSTEMS)
     opened = fill_setup(tmp_path, monkeypatch, smartrecruiters.NAME)
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
     assert str(stop.value) == ("in the window: Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle Recruiting Cloud, "
-                               "iCIMS, Paylocity only for now - run fill without --in-window")
+                               "iCIMS, Paylocity, Manatal, Breezy, Teamtailor only for now - run fill without --in-window")
     assert opened == []
+
+
+@pytest.mark.parametrize("module", [manatal, breezy, teamtailor])
+def test_in_window_offers_manatal_breezy_teamtailor_with_a_chrome_fallback(module):
+    # owner's yes 2026-10-07 (plan-k8n.39, .40, .41): one page each, Submit untested in the window
+    assert module.NAME in window.SYSTEMS and not getattr(module, "PER_PAGE", False)
+    note = window.AT_SUBMIT[module.NAME]
+    assert "Submit" in note and "untested in the window" in note and note.endswith("without --in-window (Chrome)")
 
 
 def test_in_window_workable_refused_plainly(tmp_path, monkeypatch):

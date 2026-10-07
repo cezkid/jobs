@@ -165,14 +165,16 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
    quirk in that system's doc.
-   `--in-window` (Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle, iCIMS, Paylocity, a trial): only when
-   the owner asks for it; hard limits the same. Workable: Chrome only (Submit failed 2 of 2 in the window). Lever,
-   JazzHR + BambooHR there: pass on its `note:` line - the check at Submit (Lever hCaptcha, JazzHR Human Check,
-   BambooHR reCAPTCHA tick-box) untested in the window, BambooHR's resume upload too; it doesn't show, the resume
-   isn't attached or Submit balks ->
-   `fill` again without `--in-window` (Chrome). Oracle, iCIMS + Paylocity (several pages) there: pass on its `note:`
-   line too - only the first page was checked in the window; a later page doesn't fill, a check balks or the resume
-   isn't attached -> `fill` again without `--in-window`, which starts at the first page in Chrome.
+   `--in-window` (Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, Breezy, Teamtailor, Oracle, iCIMS, Paylocity,
+   a trial): only when the owner asks for it; hard limits the same. Workable: Chrome only (Submit failed 2 of 2 in the
+   window). Lever, JazzHR + BambooHR there: pass on its `note:` line - the check at Submit (Lever hCaptcha, JazzHR
+   Human Check, BambooHR reCAPTCHA tick-box) untested in the window, BambooHR's resume upload too; it doesn't show, the
+   resume isn't attached or Submit balks -> `fill` again without `--in-window` (Chrome). Manatal, Breezy + Teamtailor
+   there: pass on its `note:` line too - Submit untested in the window (Manatal sends resume + answers only then;
+   Breezy may email a code), Breezy's + Teamtailor's resume upload too; same fallback. Oracle, iCIMS + Paylocity
+   (several pages) there: pass on its `note:` line too - only the first page was checked in the window; a later page
+   doesn't fill, a check balks or the resume isn't attached -> `fill` again without `--in-window`, which starts at the
+   first page in Chrome.
    Any `--in-window` run printing `not let go:` -> the window's debugger may still be on the form: tell the user to
    close that tab without clicking Submit, then `fill` again without `--in-window` (Chrome).
    Form over several pages (`this page: X of Y required answered` + "question(s) on other

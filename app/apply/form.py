@@ -413,8 +413,9 @@ def main() -> None:
                    "window's tab, as fill --in-window fills it")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
-    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle, iCIMS + Paylocity, off by default) fill in a tab "
-                   "of the Job Finder window instead of Chrome")
+    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, "
+                   "Breezy, Teamtailor, Oracle, iCIMS + Paylocity, off by default) fill in a tab of the Job Finder window "
+                   "instead of Chrome")
     sub.add_parser("hold", help="(started by fill / prepare --in-window) stay on a multi-page form's window tab "
                    "between runs")
     sub.add_parser("let-go", help="the window's form helper lets go of the tabs it keeps and stops")

@@ -134,7 +134,10 @@ Page loads on the host: 4.
 Measured in a tab of the Job Finder window (route 2), 2 tenants, 2026-10-07, 2 page loads: form up 1.3 s after
 navigate (Vue mount), 0 `debugger;` pauses, 0 frames, no captcha or AWS WAF on load, name typed + read back, dummy
 resume shown in the label with no error and nothing sent on choice. Parity test: same report + page as Chrome, no
-adapter gaps. Not in `--in-window` yet - owner decides (plan-k8n.39). Numbers: `vscode-browser.md` "Manatal - route 2".
+adapter gaps. Numbers: `vscode-browser.md` "Manatal - route 2".
+
+Window: offered since the owner's yes 2026-10-07 (plan-k8n.39): `fill --in-window`, off by default; its note says
+Submit (resume via presigned upload + S3, then the answers) is untested there.
 
 ## Cost
 
