@@ -235,6 +235,9 @@ check, 1 of 1. The fill printed "the window may still be holding the form tab" =
 js-debug's session was likely still on the tab at Submit. Suspects: Turnstile at Submit refusing a tab w/ a debugger
 attached, or the leftover session itself - unmeasured (never Submit while measuring). JazzHR's reCAPTCHA passed in
 the window the same day (1 of 1, w/ a picture puzzle). Workable pulled from `window.SYSTEMS` (owner, "Pull it").
+Upload in the window, same run: took (file name shown in the box), 1 of 1; the fill's "upload not confirmed" ASK
+was a read-back miss in `workable.put_file`, Chrome too (`data-ui="resume"` sits on the file input, no text) -
+fixed plan-k8n.33 (`workable.md` Read back).
 
 Why the let go wasn't clean - measured, local form only (`measure.py shipext` + `detach`: the shipped fill path,
 `window.page_at` + the shipped extension through the link folder, then probe-ext lists the debug sessions), 3 runs

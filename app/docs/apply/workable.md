@@ -56,7 +56,7 @@ the following page" - a page after Submit: unmeasured. Consent / attestation lin
 |---|---|---|
 | standard text boxes | `input#<id>` w/ `name` = the definition id (`firstname`, `lastname`, `email`, `headline`, `address`); phone `input#input_phone[name=phone]` type tel; `textarea#summary`, `textarea#cover_letter` | find by `name` = id (stable both loads, 4 of 4) |
 | address helpers | `input#city`, `#postcode`, `#country`, no label, never required, empty on load (4 of 4) | left alone - what fills them (Address's place search?): unmeasured |
-| Resume | `input[type=file]` id `input_files_input_<random>` - changes every load (4 of 4), no `name`; wrapper `[data-ui="resume"]` (form script, 2026-10-06) | the file input whose nearest words say resume / CV (not photo), never by id. Choosing it uploads at once - see below; read back off the wrapper's words (Read back) |
+| Resume | `input[type=file]` id `input_files_input_<random>` - changes every load (4 of 4), no `name`; `data-ui="resume"` on the input itself, no text (live, 2026-10-07; photo's = `avatar`) | the file input whose nearest words say resume / CV (not photo), never by id. Choosing it uploads at once - see below; read back off its field's words (Read back) |
 | boolean | radio pair labelled YES / NO, `name` = `QA_<n>`, id random per load, inside a `fieldset` (radiogroup); each option a `[role=radio]` w/ `aria-checked` | the input only mirrors the pick: ticked by script it doesn't stay, its label isn't clickable (try, 2026-10-03). Pick the `[role=radio]` by its text, case-insensitive; a plain click times out (covered), so a click where it sits, then Space on it focused - ticked = `aria-checked` true (try: 3 of 3 postings, 11 radio questions) |
 | `multiple` single | same radios; the `[role=radio]` holds no text - the option's words sit beside it, after an icon whose fallback text "SVGs not supported by this browser." is read in (headless) | option text = the widest box around it holding no other option, fallback text stripped (1 tenant) |
 | `multiple` multi | checkboxes, `name` = the option's `name` from the definition (e.g. `5249623`), no id | tick each by the option `name` the definition gives for the answer |
@@ -120,27 +120,36 @@ fills a dropped answer once more, still gone -> FAIL, the user fills it by hand.
 | boolean, single `multiple` (radios) | the option text of the one `[role=radio]` with `aria-checked` true, any case | none ticked, or another option ticked |
 | checkbox `multiple` | each box's own tick, by the option `name` the definition gives | any box ticked against the answer, or a box missing |
 | dropdown | the text shown in its `div[data-ui=<id>]` wrapper, outside the list | nothing or another option shows |
-| resume | a file name in the `[data-ui="resume"]` box, no error words | no name, or Workable's error words show |
+| resume | a file name in its field (the `[data-ui=section-fields]` child around `input[data-ui=resume]`; input gone -> the child labelled resume / CV), no error words | no name, or Workable's error words show |
 
 Upload (`put_file`), as Greenhouse / Ashby: page idle first (15 s cap; a page that keeps polling
 is read anyway), file chosen - it goes to Workable's storage at once (What leaves). Then the
 resume box's words, every 250 ms up to 20 s: Workable's own error words -> FAIL in those words;
-the file's name shows and no error for 2 s -> ok; neither -> ASK. What the box shows, from
-Workable's form script (plain download, 2026-10-06; no live upload seen): wrapper `data-ui` = the
-field id (`resume`, as each dropdown's); the name shows only once storage answered (name + stored
-link set together); errors "File is too big" (the page's own size check, before anything goes;
+the file's name shows and no error for 2 s -> ok (a box empty before: any file name, shortened too -
+full-name display unmeasured); neither -> ASK. What the box shows, from Workable's form script
+(plain download, 2026-10-06): the name shows only once storage answered (name + stored link set
+together); errors "File is too big" (the page's own size check, before anything goes;
 limit = the definition's `maxFileSize`: 12000000 on tenant A, script default 5242880), "Something
 went wrong. We are working on this, please try again later." (upload failed), "Please use a
 different file." (type it doesn't take).
+
+Live 2026-10-07: owner's real application (job 685) - upload took, file name shown in the box, yet
+the filler said ASK in the window AND in Job Finder's Chrome. Cause = read-back miss, both paths:
+the 2026-10-06 script reading put `data-ui="resume"` on a wrapper; live it sits on the file input
+(no text) -> words always empty -> ASK on every upload. Live box measured w/ writes blocked (1
+tenant, throwaway Chrome, canary 0): input > `div[data-role=dropzone]` > label + dropzone ("*
+Resume Choose file or drag and drop here") > field > `[data-ui=section-fields]` >
+`section[data-ui=section]` > `form[data-ui=application-form]`. Choosing w/ upload blocked: 2
+storage + 2 error-report requests blocked, the input then gone. Fixed plan-k8n.33 (read the field).
 
 Covered by `app/tests/fixtures/dom/workable-form.html` in real headless Chrome (measured widget
 shapes + the script's resume box; upload to a stand-in endpoint on the fixture's own host):
 text, email, phone, prefilled address, paragraph, number as text, YES / NO radios, single
 `multiple` radios w/ icon text, checkbox `multiple`, 2 dropdowns (list + Yes / No), resume ok /
-too big / upload failed. Live: 3 saved `try --no-upload` runs (2026-10-03, below) - every kind
-above but the resume; no new try (no kind unseen). Live upload + its read-back: unmeasured - the
-upload sends the file to Workable before Submit, and blocked it breaks the form (owner decides
-whether a measuring tab may answer it: plan-k8n.9).
+too big / upload failed (fixture box = the live shape, 2026-10-07). Live: 3 saved `try --no-upload` runs (2026-10-03, below) - every kind
+above but the resume; no new try (no kind unseen). Live upload: 1 (owner's, above) - took; the
+fixed read-back unmeasured on a live upload (it sends the file to Workable before Submit, and
+blocked it breaks the form).
 
 ## Closed posting
 

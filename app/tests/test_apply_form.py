@@ -1632,6 +1632,29 @@ def test_workable_upload_waits_for_storage_and_says_the_pages_words(fixture_page
                                                       "please try again later.' - choose the file again on the page, or check the resume box")
 
 
+def test_workable_upload_reads_the_live_shaped_resume_box(fixture_page, monkeypatch, tmp_path):
+    """Live box (2026-10-07, plan-k8n.33): `data-ui="resume"` sits on the file input, which holds no text -
+    the read takes its field's words, so a taken upload reads ok once the name shows; the input drawn away,
+    the field its label names; a name the box shortens counts on a box that showed none."""
+    monkeypatch.setattr(workable, "ERROR_WAIT_MS", 500)
+    page = fixture_page("workable-form.html")
+    resume = answered("resume", "file", True, title="Resume") | {"key": "resume"}
+    good = tmp_path / "Ada_Lovelace_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    assert page.locator('[data-ui="resume"]').evaluate("e => e.tagName + ':' + e.innerText") == "INPUT:"
+    assert workable.resume_says(page) == ("* Resume Choose file or drag and drop here", "")
+    assert workable.fill(page, resume, str(good)) == "ok" and workable.holds(page, resume)
+    assert workable.resume_says(page) == ("* Resume Ada_Lovelace_Resume.pdf", "")
+    page.locator('[data-ui="resume"]').evaluate("e => e.remove()")
+    assert workable.resume_says(page)[0] == "* Resume Ada_Lovelace_Resume.pdf" and workable.holds(page, resume)
+    short = fixture_page("workable-form.html")
+    short.evaluate("""() => { const row = document.querySelector('[data-role=dropzone] .file');
+      new MutationObserver(() => { if (row.textContent.includes('Lovelace')) row.textContent = 'Ada_Lov...sume.pdf'; })
+        .observe(row, {childList: true}); }""")
+    assert workable.fill(short, resume, str(good)) == "ok"
+    assert workable.resume_says(short)[0] == "* Resume Ada_Lov...sume.pdf"
+
+
 def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_page, monkeypatch, tmp_path):
     """A failed upload still shows the file name + Replace (3 of 3 employers, 2026-10-05): ok only once
     the page has said nothing failed for a while after the name; its own error words otherwise."""

@@ -480,7 +480,7 @@ WORKABLE_ANSWERS = [
 # the page, never the filler's word
 WORKABLE_SHOWN = ("es => es.map(e => ['checkbox', 'radio'].includes(e.type) ? e.checked : e.type === 'file' ? e.files.length : e.value)"
                   ".concat([...document.querySelectorAll('[role=radio]')].map(r => r.getAttribute('aria-checked')),"
-                  " [document.querySelector('[data-ui=\"resume\"] .file').textContent])")
+                  " [document.querySelector('[data-ui=\"section-fields\"] > :has([data-ui=\"resume\"]) .file').textContent])")
 WORKABLE_BOXES = "#application input:not([type=hidden]), #application textarea"
 
 
