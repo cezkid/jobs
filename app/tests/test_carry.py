@@ -119,3 +119,17 @@ def test_reimport_writes_nothing_until_asked_then_keeps_the_ticked_groups(import
     assert "Mentored 2 interns on the release process." not in [b["claim"] for b in after["roles"][0]["bullets"]]
     kept = sorted((master_path.parent.parent / ".data").glob("Resume details before import *.yml"))
     assert kept and yaml.safe_load(kept[-1].read_text(encoding="utf-8"))["contact"]["legal_first"] == "Pat"
+
+
+def test_old_activities_lines_and_gpa_details_are_not_reported_lost_once_read_into_their_fields():
+    from resume import carry
+    old = {"contact": {}, "roles": [], "education": [{"institution": "State U", "degree": "BS", "details": "GPA: 3.62"}],
+           "other": [{"heading": "Activities", "lines": ["Treasurer, Black Student Union, Sep 2024 - Present",
+                                                         "Managed a $12,000 budget for 30 events"]}]}
+    new = {"contact": {}, "roles": [], "education": [{"institution": "State U", "degree": "BS", "gpa": "3.62"}],
+           "projects": [{"name": "Black Student Union", "role": "Treasurer", "start": "2024-09", "end": "present",
+                         "bullets": [{"claim": "Managed a $12,000 budget for 30 events"}]}]}
+    left = carry.left_behind(old, new)
+    assert left["entries"] == [] and left["details"] == []
+    gone = {**new, "projects": []}
+    assert [e["say"] for e in carry.left_behind(old, gone)["entries"]] == ["Activities"]

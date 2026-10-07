@@ -29,6 +29,7 @@ GROUPS = {
     "details": "details the PDF can't carry: legal name, hidden years, language levels, notes on a job",
 }
 REWORDED = 0.5
+DATE_WORDS = {"jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec", "pre", "cur", "now"}
 SECTIONS = ("roles", "projects", "education", "certifications", "other")
 LEGAL = re.compile(r"[,.]?\s+(inc|llc|ltd|corp|corporation|co|company|plc|lp|llp)\.?$", re.I)
 
@@ -79,6 +80,23 @@ def label(section: str, entry: dict) -> str:
                           "other": "heading"}[section]))
 
 
+def moved_to_projects(section: dict, new: dict) -> bool:
+    """An older import kept a student's Activities as plain lines; this one reads each club as a
+    project with its role. Every old line found there = the same facts, not a section lost."""
+    found = " ".join(claim_key(" ".join([p.get("name") or "", p.get("role") or "", *map(text_of, p.get("bullets") or [])]))
+                     for p in new.get("projects") or [])
+    lines = section.get("lines") or []
+    # dates are the project's start and end now: their words ("Sep", "2024", "Present") aren't looked for
+    words = [claim_key(w) for line in lines for w in re.findall(r"\w+", line)
+             if not (w.isdigit() or w.casefold()[:3] in DATE_WORDS)]
+    return bool(lines) and all(w in found for w in words if w)
+
+
+def in_school_fields(details: str, school: dict) -> bool:
+    """Old details ("GPA: 3.8; Relevant coursework: ...") now read into the school's own fields."""
+    return bool(school.get("gpa") or school.get("coursework")) and bool(re.search(r"gpa|coursework|courses", str(details), re.I))
+
+
 def left_behind(old: dict, new: dict) -> dict[str, list[dict]]:
     """What the old file says that the new read lacks, by group. Each item knows where it goes."""
     out: dict[str, list[dict]] = {g: [] for g in GROUPS}
@@ -97,10 +115,13 @@ def left_behind(old: dict, new: dict) -> dict[str, list[dict]]:
                 continue
             at = match(section, entry, new_entries)
             if at is None:
-                out["entries"].append({"kind": "entry", "section": section, "value": entry, "say": label(section, entry)})
+                if not (section == "other" and moved_to_projects(entry, new)):
+                    out["entries"].append({"kind": "entry", "section": section, "value": entry, "say": label(section, entry)})
                 continue
             there = new_entries[at]
             for key, value in entry.items():
+                if section == "education" and key == "details" and in_school_fields(value, there):
+                    continue
                 if key not in ("bullets", "lines", "id") and key not in there and value not in (None, ""):
                     out["details"].append({"kind": "field", "section": section, "at": at, "key": key, "value": value,
                                            "say": f"{key} on {label(section, there)}"})

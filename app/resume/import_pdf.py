@@ -52,8 +52,21 @@ HEADING = re.compile(
     r"skills(?: and abilities)?|competencies|summary|profile|objective|about(?: me)?|"
     r"certifications?(?: and licen[cs]es?)?|licen[cs]es?(?: and certifications?)?|credentials|projects|languages|"
     r"volunteer(?:ing)?|work|awards(?: and honors)?|honors(?: and awards)?|achievements|accomplishments|"
-    r"publications|interests|activities|affiliations|memberships|references|qualifications|highlights|expertise)"
+    r"publications|interests|activities|affiliations|memberships|references|qualifications|highlights|expertise|"
+    # a student's page: Relevant Coursework, Leadership & Activities, Campus Involvement, Academic Projects
+    r"coursework|courses|leadership(?: experience| and activities| and involvement)?|activities and leadership|"
+    r"extracurricular(?: activities)?|campus involvement|involvement|research(?: experience)?|academic projects|"
+    r"projects and activities)"
     r"\s*:?$", re.I)
+# words a student's education lines carry around the facts copied out of them ("GPA: 3.62/4.00",
+# "Relevant Coursework: ...", "Expected May 2027"): counted as kept when the school holds that fact
+EDUCATION_LABELS = {"gpa", "cumulative", "overall", "relevant", "selected", "coursework", "courses", "expected",
+                    "anticipated", "graduation", "class", "of"}
+# qualifiers around a graduation date: "Expected May 2027", "May 2027 (expected)", "Class of 2027"
+EXPECTED_WORDS = re.compile(r"^(?:expected|anticipated|projected|estimated|est\.?|exp\.?|graduating|graduation|"
+                            r"class of)\s*:?\s*|\s*\((?:expected|anticipated)\)$|\s+(?:expected|anticipated)$", re.I)
+# the source itself says the degree isn't done yet ("Class of 2025" alone says nothing either way)
+SAYS_EXPECTED = re.compile(r"\b(?:expected|anticipated|projected|estimated|est|exp)\b", re.I)
 
 SYSTEM = """You map resume text extracted from the user's resume file (PDF or Word) onto fixed fields. You never write, rephrase, correct or expand.
 
@@ -67,6 +80,8 @@ Rules:
 - `ai_work` true only when the claim itself describes AI/LLM work.
 - Skills: `group` is your short label; `items` = each pipe- or comma-separated entry copied verbatim.
 - `dates` on a project may be null when the source gives none.
+- Education: `start` / `end` = the source's own date words ("Aug 2023", "Expected May 2027", "Class of 2027"); a range splits into start and end. `gpa` = the GPA figure exactly as written ("3.62/4.00", "9.2/10"), never rounded or converted. `coursework` = each course listed under that school, copied verbatim. Honors and minors stay in `details`.
+- Clubs, student organisations, teams, sororities and fraternities, student government, volunteering with a role: one `projects` entry each - `name` = the group exactly as written, `role` = the position held ("Treasurer"), `section` = the heading it sits under, as written ("Leadership & Activities"). Class or academic projects: `projects` with `section` only if the source gives them their own heading. Never leave out, shorten, generalise or reword a group because of what kind of group it is (cultural, religious, identity, political): copy every one.
 - `other` = every section fitting none of the fields above (volunteer work, awards, clearances, publications, licences outside a certifications list): `heading` as written, `lines` each source line copied verbatim, dates left inside the line.
 - Every non-heading source line must land in some field."""
 
@@ -81,13 +96,18 @@ MAPPED_SCHEMA = obj(
     roles=array(obj(
         company=STRING, title=STRING, location=NULLABLE, blurb=NULLABLE, dates=STRING, bullets=array(BULLET),
     )),
-    projects=array(obj(name=STRING, dates=NULLABLE, bullets=array(BULLET))),
+    projects=array(obj(name=STRING, role=NULLABLE, section=NULLABLE, dates=NULLABLE, bullets=array(BULLET))),
     skills=array(obj(group=STRING, items=STRINGS)),
-    education=array(obj(institution=STRING, degree=STRING, field=NULLABLE, details=NULLABLE, end=NULLABLE)),
+    education=array(obj(institution=STRING, degree=STRING, field=NULLABLE, details=NULLABLE, start=NULLABLE, end=NULLABLE,
+                        gpa=NULLABLE, coursework=STRINGS)),
     certifications=array(obj(name=STRING, issuer=NULLABLE, date=NULLABLE)),
     languages=STRINGS,
     other=array(obj(heading=STRING, lines=STRINGS)),
 )
+# a student's fields came later: an answer written before them (or one leaving them out) still checks
+for _entry, _keys in ((MAPPED_SCHEMA["properties"]["projects"]["items"], ("role", "section")),
+                      (MAPPED_SCHEMA["properties"]["education"]["items"], ("start", "gpa", "coursework"))):
+    _entry["required"] = [k for k in _entry["required"] if k not in _keys]
 
 
 def extract(path: Path) -> str:
@@ -125,10 +145,11 @@ def traced_strings(mapped: dict) -> list[tuple[str, str]]:
         for i, v in enumerate(value) if isinstance(value, list) else [(None, value)]:
             add(f"contact.{key}" + ("" if i is None else f"[{i}]"), v)
     add("summary", mapped["summary"])
-    for kind, named in (("roles", ("company", "title", "location", "blurb", "dates")), ("projects", ("name", "dates"))):
+    for kind, named in (("roles", ("company", "title", "location", "blurb", "dates")),
+                        ("projects", ("name", "role", "section", "dates"))):
         for i, entry in enumerate(mapped[kind]):
             for key in named:
-                add(f"{kind}[{i}].{key}", entry[key])
+                add(f"{kind}[{i}].{key}", entry.get(key))
             for j, bullet in enumerate(entry["bullets"]):
                 where = f"{kind}[{i}].bullets[{j}]"
                 add(f"{where}.claim", bullet["claim"])
@@ -139,8 +160,10 @@ def traced_strings(mapped: dict) -> list[tuple[str, str]]:
         for k, v in enumerate(group["items"]):
             add(f"skills[{i}].items[{k}]", v)
     for i, school in enumerate(mapped["education"]):
-        for key in ("institution", "degree", "field", "details", "end"):
-            add(f"education[{i}].{key}", school[key])
+        for key in ("institution", "degree", "field", "details", "start", "end", "gpa"):
+            add(f"education[{i}].{key}", school.get(key))
+        for k, course in enumerate(school.get("coursework") or []):
+            add(f"education[{i}].coursework[{k}]", course)
     for i, cert in enumerate(mapped["certifications"]):
         for key in ("name", "issuer", "date"):
             add(f"certifications[{i}].{key}", cert[key])
@@ -178,6 +201,8 @@ def recovery(mapped: dict, source: str) -> tuple[float, list[str]]:
     # a skill group label stays untraced (AI may coin its own), but one copied from the source
     # ("Agile Practice - Scrum, Kanban") holds that line's words; counted here or the line reads left out
     got.update(w for group in mapped["skills"] for w in WORD.findall(normalize(group["group"])))
+    if any(s.get("gpa") or s.get("coursework") or s.get("end") or s.get("start") for s in mapped["education"]):
+        got.update(EDUCATION_LABELS)
     lines = content_lines(source)
     want = Counter(w for line in lines for w in WORD.findall(normalize(line)))
     ratio = sum((want & got).values()) / max(sum(want.values()), 1)
@@ -215,16 +240,19 @@ def endpoint(value: str, today: date) -> str | None:
     return f"{match['year']}-{MONTHS.index(match['month']) + 1:02d}" if match["month"] else match["year"]
 
 
-def parse_endpoint(text: str, where: str, today: date, assumptions: list[str]) -> str | None:
+def parse_endpoint(text: str, where: str, today: date, assumptions: list[str], school: bool = False) -> str | None:
     value = normalize(text)
     if value in PRESENT_WORDS:
         return schema.PRESENT
+    if school:
+        value = EXPECTED_WORDS.sub("", value).strip()
     result = endpoint(value, today)
     if result is None:
         # left unset => schema flags field missing; hand edit settles it
         assumptions.append(f"{where}: unparseable date {text!r}, set by hand")
         return None
-    if schema.month_index(result, today) > schema.month_index(schema.PRESENT, today):
+    # a school's end ahead of today is a degree still being earned, not a slip
+    if not school and schema.month_index(result, today) > schema.month_index(schema.PRESENT, today):
         assumptions.append(f"{where}: {result} after today")
     return result
 
@@ -291,14 +319,25 @@ def build(mapped: dict, today: date) -> tuple[dict, list[str]]:
         project_id = unique(slug(p["name"]), taken)
         bullets = build_bullets(p["bullets"], project_id)
         projects.append(drop_empty({
-            "id": project_id, "name": p["name"], **parse_range(p["dates"], f"projects[{i}]", today, assumptions),
+            "id": project_id, "name": p["name"], "role": p.get("role"), "section": p.get("section"),
+            **parse_range(p["dates"], f"projects[{i}]", today, assumptions),
             "ai_era": any(b.get("ai_work") for b in bullets),
             "bullets": bullets,
         }))
     education = []
     for i, s in enumerate(mapped["education"]):
-        end = s["end"] and parse_endpoint(s["end"], f"education[{i}].end", today, assumptions)
-        education.append(drop_empty({**s, "end": end}))
+        where = f"education[{i}]"
+        dates = {"start": s.get("start"), "end": s["end"]}
+        # "Aug 2023 - Expected May 2027" mapped whole into end: a range is a start and an end
+        if s["end"] and not s.get("start") and len(RANGE_SEP.split(normalize(s["end"]))) == 2:
+            dates["start"], dates["end"] = RANGE_SEP.split(normalize(s["end"]))
+        start = dates["start"] and parse_endpoint(dates["start"], f"{where}.start", today, assumptions, school=True)
+        end = dates["end"] and parse_endpoint(dates["end"], f"{where}.end", today, assumptions, school=True)
+        studying = bool(end) and (bool(SAYS_EXPECTED.search(normalize(dates["end"]))) or
+                                  schema.in_progress({"end": end}, today))
+        education.append(drop_empty({**{k: v for k, v in s.items() if k not in ("start", "end")}, "start": start,
+                                     "end": end, "expected": True if studying else None,
+                                     "coursework": s.get("coursework") or None}))
     certifications = []
     for i, c in enumerate(mapped["certifications"]):
         when = c["date"] and parse_endpoint(c["date"], f"certifications[{i}].date", today, assumptions)
