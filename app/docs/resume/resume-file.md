@@ -23,6 +23,25 @@ user. The copy kept is `My Resume/Original resume.pdf` or `.docx`; `.data/resume
 the file `prepare` read + the exact text it handed out, and `finish` checks against that text. A second format never replaces or
 deletes the first.
 
+## Word-made test files
+
+`app/tests/fixtures/word/` (plan-xku.2, 2026-10-06): a fake-data resume built by python-docx (page
+header w/ name + contact, 2-column tables per job, bullets at 2 levels, a text box w/ the
+certifications), opened + re-saved by Microsoft Word for Mac 16.113 over AppleScript, + Word's PDF
+of it. Remake: [word-fixture/](word-fixture/). Author fields set to "CEZ Job Finder test" (Word
+stamps the computer's account name).
+
+| Finding | Measured |
+|---|---|
+| Word's own save | `docProps/app.xml` "Microsoft Office Word", rsid marks on every paragraph, header part kept |
+| Text box | Word 16 wrote the DrawingML box only - no VML `mc:Fallback` copy (older Word's duplicate) |
+| Same words both ways | .docx 163 words = its PDF 163, no word on one side only; both pass `untraced` + `recovery` w/ one mapping |
+| Text a box clips | box too short for its 3rd line: the line stays in the .docx, the PDF loses it without a trace (`word-resume-clipped`). The Word reader keeps it - the user's own line, and recovery reads left-out lines to them anyway |
+| Word for Mac's PDF | scripted "save as PDF" = macOS print path (producer "Quartz PDFContext"): bullets come out as U+2022, not Windows Word's private-use U+F0B7 / U+F0A7. The Windows exporter's glyphs stay covered by the made-up PDF in `test_word_resume_imports_whole_and_dated` |
+
+Not covered: Windows Word's PDF exporter, and Word for Mac's "Best for electronic distribution"
+PDF (made by a Microsoft online service - the file leaves the computer).
+
 ## Token cost - why the AI never opens the file
 
 Real Claude tokens (Opus 5.5, the model Claude Code ran here), 2026-10-06. 4 Word resume templates

@@ -1,5 +1,7 @@
 import copy
+from collections import Counter
 from datetime import date
+from pathlib import Path
 
 import pymupdf
 import pytest
@@ -478,3 +480,83 @@ def test_finish_without_a_record_reads_the_pdf(resume_dir):
 
 def test_heading_cell_on_a_tab_joined_line_is_skipped_too():
     assert import_pdf.content_lines("EXPERIENCE\tNorthwind Logistics\nSKILLS\n") == ["Northwind Logistics"]
+
+
+# Made by Microsoft Word for Mac 16.113 (plan-xku.2): fake data, re-saved by Word + its PDF
+# (Quartz print path). Remake: app/docs/resume/word-fixture/.
+WORD_MADE = Path(__file__).parent / "fixtures" / "word"
+
+
+def bullet(claim, *metrics):
+    return {"claim": claim, "metrics": list(metrics), "stack": [], "ai_work": False}
+
+
+WORD_MADE_MAPPED = {
+    "contact": {"name": "Alex Rivera", "email": "alex.rivera@example.com", "phone": "(555) 010-0199",
+                "location": "Riverton, OH", "links": ["linkedin.com/in/alex-rivera-example"]},
+    "summary": "Operations lead for regional freight and warehouse teams, 14 years across receiving, inventory and dispatch.",
+    "roles": [
+        {"company": "Northwind Logistics", "title": "Operations Manager", "location": "Columbus, OH", "blurb": None,
+         "dates": "10/2024 - Present", "bullets": [
+             bullet("Cut dock-to-stock time 18% by redesigning the receiving flow", "18%"),
+             bullet("Trained 12 new leads on the warehouse system", "12 new leads"),
+             bullet("Ran weekly safety reviews across 3 shifts", "3 shifts"),
+             bullet("Lowered overtime spend 9% in the first year", "9%")]},
+        {"company": "Contoso Freight", "title": "Shift Supervisor", "location": "Dayton, OH", "blurb": None,
+         "dates": "03/2019 - 09/2024", "bullets": [
+             bullet("Scheduled 40 drivers across two depots", "40 drivers"),
+             bullet("Kept on-time dispatch at 96% through two peak seasons", "96%")]},
+        {"company": "Fabrikam Supply", "title": "Inventory Clerk", "location": "Akron, OH", "blurb": None,
+         "dates": "07/2007 - 06/2013", "bullets": [bullet("Counted cycle stock for 2,000 bins each quarter", "2,000 bins")]},
+    ],
+    "projects": [],
+    "skills": [{"group": "Warehouse Systems", "items": ["SAP EWM", "Manhattan WMS"]},
+               {"group": "Lean Practice", "items": ["5S", "Kaizen", "Value Stream Mapping"]}],
+    "education": [{"institution": "Ohio State University", "degree": "B.S.", "field": "Industrial Engineering",
+                   "details": None, "end": "05/2007"}],
+    "certifications": [{"name": "Lean Six Sigma Green Belt", "issuer": "ASQ", "date": "03/2019"},
+                       {"name": "OSHA 30-Hour General Industry", "issuer": None, "date": "2021"}],
+    "languages": [],
+    "other": [],
+}
+
+
+def words(text):
+    return Counter(w for line in text.splitlines() for w in import_pdf.WORD.findall(import_pdf.normalize(line)))
+
+
+def test_word_made_fixture_is_words_own_save():
+    import zipfile
+    with zipfile.ZipFile(WORD_MADE / "word-resume.docx") as z:
+        assert b"<Application>Microsoft Office Word</Application>" in z.read("docProps/app.xml")
+        assert b"w:rsidR=" in z.read("word/document.xml") and "word/header1.xml" in z.namelist()
+        assert b"CEZ Job Finder test" in z.read("docProps/core.xml")
+
+
+@pytest.mark.parametrize("name", ["word-resume.docx", "word-resume.pdf"])
+def test_word_made_resume_passes_the_import_gates_as_docx_and_as_its_pdf(name):
+    source = import_pdf.extract(WORD_MADE / name)
+    mapped = copy.deepcopy(WORD_MADE_MAPPED)
+    assert handoff.violations(mapped, import_pdf.MAPPED_SCHEMA, "answer") == []
+    assert import_pdf.untraced(mapped, source) == []
+    ratio, dropped = import_pdf.recovery(mapped, source)
+    assert dropped == [] and ratio >= import_pdf.MIN_RECOVERY
+    master, assumptions = import_pdf.build(mapped, TODAY)
+    assert assumptions == [] and schema.validate(master) == []
+
+
+def test_word_made_docx_and_its_pdf_read_the_same_words():
+    docx = import_pdf.extract(WORD_MADE / "word-resume.docx")
+    assert docx.splitlines()[:2] == [
+        "Alex Rivera", "Riverton, OH | alex.rivera@example.com | (555) 010-0199 | linkedin.com/in/alex-rivera-example"]
+    assert docx.count("Lean Six Sigma Green Belt") == 1
+    assert words(docx) == words(import_pdf.extract(WORD_MADE / "word-resume.pdf"))
+
+
+def test_text_a_box_clips_is_in_the_docx_not_its_pdf():
+    """Word hides a text box's overflow on the page; the file still holds it. The Word reader keeps
+    it (the user's own line) - a PDF of the same file loses it without a trace."""
+    docx = import_pdf.extract(WORD_MADE / "word-resume-clipped.docx")
+    pdf = import_pdf.extract(WORD_MADE / "word-resume-clipped.pdf")
+    assert "OSHA 30-Hour General Industry, 2021" in docx and "OSHA" not in pdf
+    assert words(docx) - words(pdf) == Counter({"osha": 1, "30": 1, "hour": 1, "general": 1, "industry": 1, "2021": 1})
