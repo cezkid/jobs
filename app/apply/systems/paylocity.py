@@ -5,8 +5,10 @@ One host for every employer, no account. The apply page carries the whole form a
 `window.pageData = {...}` - a plain HTTP read, the same GET as opening the form. Measured facts
 and why each rule exists: app/docs/apply/paylocity.md.
 """
+import contextlib
 import json
 import re
+import time
 from pathlib import Path
 
 import httpx
@@ -30,6 +32,16 @@ READY = ".form-group"
 # a picked file POSTs to Paylocity at once, before Submit (paylocity.md)
 FILE_ON_CHOICE = True
 PAGE_DATA = re.compile(r"window\.pageData\s*=\s*")
+# a missing or closed job: 302 to /Recruiting/Jobs/JobNotFound, "that job does not exist or is not
+# currently active" (2026-10-03; 2 of 5 listed links, 2026-10-07)
+NOT_FOUND = "JobNotFound"
+# Paylocity's own words for a failed upload (its form script, 2026-10-07): a 5 s toast "Error uploading /
+# attaching <file> <reason>", or the file box's own check. Not a failure: "Sorry, we cannot complete the
+# application using your resume" = attached, only its read into the boxes failed. Where they show: unmeasured
+UPLOAD_ERRORS = re.compile(r"Error (?:uploading|attaching) (?:Resume|Cover Letter|Additional File)\b[^\n]{0,160}|"
+                           r"File cannot be larger than [\d.]+ ?MB\.|File type \S+ is not allowed\.|"
+                           r"A maximum of \d+ file\(s\) is allowed\.")
+IDLE_WAIT_MS, SHOWN_WAIT_MS, ERROR_WAIT_MS = 15000, 20000, 2000
 # info field -> (page id, kind, key, widget); widgets: text box, react-widgets dropdown (combo),
 # native radios, tag box, file input. Definition `type` is null on every field (7 of 7): the name decides
 INFO = {
@@ -194,15 +206,31 @@ def from_definition(data: dict) -> list[dict]:
     return out
 
 
-def questions(url: str) -> list[dict]:
-    r = httpx.get(application_url(url), timeout=30)
-    # a missing or closed job: 302 to /Recruiting/Jobs/JobNotFound (2026-10-03)
-    if r.status_code in (301, 302, 404) or "JobNotFound" in r.headers.get("location", ""):
-        raise ValueError("posting not found - it may have closed")
-    r.raise_for_status()
+def definition(url: str) -> tuple[dict | None, str | None]:
+    """(form definition, None) off the apply page - a plain GET, the same as opening the form - or
+    (None, why it isn't there). Listed links with no form: 2 of 5, each Paylocity's own JobNotFound
+    redirect; 1 link on freehire's closed list still had its form (2026-10-07)."""
+    try:
+        r = httpx.get(application_url(url), timeout=30)
+    except httpx.HTTPError:
+        return None, "can't tell if the posting is open - Paylocity didn't answer"
+    if r.status_code in (301, 302, 404) or NOT_FOUND in r.headers.get("location", ""):
+        return None, "Paylocity says the job does not exist or is not active - it may have closed"
+    if r.status_code != 200:
+        return None, f"can't tell if the posting is open - Paylocity answered {r.status_code}"
     data = page_data(r.text)
+    return (data, None) if data is not None else (None, "no form on Paylocity's apply page - the posting may have closed")
+
+
+def closed(url: str) -> str | None:
+    """Why the form isn't there (form.closed, when the page shows no form and no closed words): None = its form is."""
+    return definition(url)[1]
+
+
+def questions(url: str) -> list[dict]:
+    data, why = definition(url)
     if data is None:
-        raise ValueError("no form on the apply page - the posting may have closed")
+        raise ValueError(why)
     return from_definition(data)
 
 
@@ -264,11 +292,21 @@ def put_combo(page, box, value) -> str:
     return "ok" if got.casefold() == want.casefold() else f"FAIL shows '{got}'"
 
 
+def radio_names(radios) -> list[str]:
+    return radios.evaluate_all("rs => rs.map(r => ((r.closest('label') || r.parentElement).innerText || r.value)"
+                               ".replace(/\\s+/g, ' ').trim())")
+
+
+def radio_on(radios) -> str | None:
+    """The text beside the ticked radio, None when none is."""
+    on = radios.evaluate_all("rs => rs.map(r => r.checked)")
+    return next((n for n, c in zip(radio_names(radios), on) if c), None)
+
+
 def put_radio(page, name: str, value) -> str:
     """Native radios in a role=radiogroup, named by the text beside each (no [role=radio])."""
     radios = page.locator(f'input[type=radio][name="{name}"]')
-    names = radios.evaluate_all("rs => rs.map(r => ((r.closest('label') || r.parentElement).innerText || r.value)"
-                                ".replace(/\\s+/g, ' ').trim())")
+    names = radio_names(radios)
     want = str(value).strip()
     if want not in names:
         return f"ASK no option '{want}'; offered: {', '.join(names)[:200]}"
@@ -346,13 +384,34 @@ def put_tags(page, box, value) -> str:
     return "ok" if not missing else f"FAIL not added: {', '.join(missing)[:120]}"
 
 
+def errors_shown(page) -> list[str]:
+    return UPLOAD_ERRORS.findall(page.locator("body").inner_text())
+
+
 def put_file(page, id: str, path: str) -> str:
-    page.locator(f'input[type=file][id="{id}"]').set_input_files(path)
-    try:
-        page.get_by_text(Path(path).name).first.wait_for(timeout=15000)
-    except Exception:
-        return "ASK upload not confirmed on page - check the box"
-    return "ok"
+    """Page idle first (as Greenhouse, Ashby), then the file chosen - it goes to Paylocity at once
+    (paylocity.md). Ok = its name shows for ERROR_WAIT_MS with no new error in Paylocity's own words;
+    one of those -> FAIL with them; nothing either way -> ASK."""
+    with contextlib.suppress(Exception):  # a page that keeps polling never goes idle: the read decides
+        page.wait_for_load_state("networkidle", timeout=IDLE_WAIT_MS)
+    box = page.locator(f'input[type=file][id="{id}"]')
+    if not box.count():
+        return "ASK upload box not found - upload it by hand"
+    before = errors_shown(page)
+    box.set_input_files(path)
+    name, since = Path(path).name, None
+    deadline = time.monotonic() + SHOWN_WAIT_MS / 1000
+    while time.monotonic() < deadline:
+        if said := [e for e in errors_shown(page) if e not in before]:
+            return f"FAIL the page says '{said[0].strip()}' - choose the file again on the page"
+        if name not in page.locator("body").inner_text():
+            since = None
+        elif since is None:
+            since = time.monotonic()
+        elif time.monotonic() - since >= ERROR_WAIT_MS / 1000:
+            return "ok"
+        page.wait_for_timeout(250)
+    return "ASK upload not confirmed on page - check the box"
 
 
 def group(page, title: str):
@@ -439,6 +498,65 @@ def put_history(page, q: dict, resume_file: str | None) -> str:
         report = add_work(page, roles, tailored) + ([note] if note else [])
     return "ok - " + "; ".join(report or ["nothing on the resume to add"]) + \
         " (the rest of each entry is the user's on the page)"
+
+
+def picked(q: dict) -> str:
+    return ("Yes" if dom.yes(q["answer"]) else "No") if q["kind"] == "yesno" else str(q["answer"]).strip()
+
+
+def box_holds(box, q: dict) -> bool:
+    """A typed box's value: phone by digits (the page's own dialling code allowed in front), a date by
+    its digits (the mask adds the slashes), the rest exact."""
+    got, want = box.input_value(), str(q["answer"])
+    if q["kind"] == "phone":
+        return bool(dom.digits(want)) and dom.digits(got).endswith(dom.digits(want))
+    if q["kind"] == "date":
+        return bool(dom.digits(want)) and dom.digits(got) == dom.digits(want)
+    return got == want
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck), each
+    kind as paylocity.md "Read back (2026-10)" records it: a dropdown by the text the box shows, radios by
+    the one ticked, Country / State by what their .form-group shows (the input stays empty), skills by
+    the tags, work history / education by the first entry's box, a file by the name the page shows, the
+    rest by the box's value. Nothing to read = False."""
+    native = q["native"]
+    if native in ("work", "school"):
+        box = by_id(page, f"{WORK}.companyName.0" if native == "work" else f"{SCHOOL}.name.0")
+        return bool(box.count()) and bool(box.input_value().strip())
+    if q["kind"] == "file":
+        box = page.locator(f'input[type=file][id="{q["id"]}"]')
+        name = box.evaluate("e => e.files && e.files[0] ? e.files[0].name : ''") if box.count() else ""
+        return bool(name) and name in page.locator("body").inner_text()
+    if native == "references":
+        return False  # never filled: the user's on the page
+    want = picked(q)
+    if native == "label":
+        g = group(page, q["title"])
+        if not g.count():
+            return False
+        if g.locator("[role=combobox]").count():
+            return norm(g.locator("[role=combobox]").first.inner_text()).casefold() == want.casefold()
+        if g.locator("input[type=radio]").count():
+            return radio_on(g.locator("input[type=radio]")) == want
+        box = g.locator("textarea, input[type=text], input:not([type])").first
+        return bool(box.count()) and box_holds(box, q)
+    if native == "radio":
+        return radio_on(page.locator(f'input[type=radio][name="{q["id"]}"]')) == want
+    box = by_id(page, q["id"])
+    if not box.count() or not box.is_visible():
+        return False
+    if native == "combo":
+        return norm(box.inner_text()).casefold() == want.casefold()
+    if native == "list":
+        return bool(want) and (box.input_value().casefold() == want.casefold() or want.casefold() in shown_in(box).casefold())
+    if native == "tags":
+        value = q["answer"]
+        items = [i.strip() for i in (value if isinstance(value, list) else re.split(r"[,\n]", str(value))) if i.strip()]
+        have = {norm(t).casefold() for t in page.locator(".react-tagsinput-tag").all_inner_texts()}
+        return bool(items) and all(i.casefold() in have for i in items)
+    return box_holds(box, q)
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:

@@ -46,7 +46,10 @@ CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|"
                     r"does not exist or is not currently active|"
                     # SmartRecruiters: posting page "Sorry, this job has expired", form app "This job ad has
                     # expired" (2026-10-06); its "the form has been closed" = a timed-out session, not matched
-                    r"job (?:ad )?has expired", re.I)
+                    r"job (?:ad )?has expired|"
+                    # UKG's posting page of a gone opportunity: "This opportunity is currently not available.",
+                    # its 404 words "Sorry, this opportunity is not available." (its English strings, 2026-10-07)
+                    r"opportunity is (?:currently )?not available", re.I)
 
 
 def job_dir(config: dict, slug: str) -> Path:

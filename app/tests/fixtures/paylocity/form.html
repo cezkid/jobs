@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Example Job</title>
+<style>.hidden { display: none; } [role=listbox][hidden] { display: none; }</style></head>
+<!-- Paylocity apply page step 1, hand-built from the Widgets table in app/docs/apply/paylocity.md (tenants A-J,
+     2026-10-03) and its form script's own English strings (2026-10-07) - no live page's markup. A small
+     synthetic definition in window.pageData; ?upload=fail shows Paylocity's upload toast, ?upload=never nothing. -->
+<body>
+<h1>Example Job</h1>
+<script>
+window.pageData = {
+  "requireResume": true,
+  "countriesOptions": [{"text": "CANADA"}, {"text": "UNITED STATES"}],
+  "statesOptions": [{"text": "Illinois"}, {"text": "New York"}],
+  "genderOptions": [{"text": "Male"}, {"text": "Female"}, {"text": "I do not wish to self-identify"}],
+  "raceOptions": [{"text": "Asian"}, {"text": "White"}, {"text": "I do not wish to self-identify"}],
+  "customJobApplication": {"sections": [
+    {"name": "info", "isIncluded": true, "isOneRequired": false, "displayOrder": 1, "fields": [
+      {"name": "name", "displayName": "Name", "isIncluded": true, "isRequired": true, "displayOrder": 1},
+      {"name": "emailAddress", "displayName": "Email", "isIncluded": true, "isRequired": true, "displayOrder": 2},
+      {"name": "cellPhone", "displayName": "Mobile Phone", "isIncluded": true, "isRequired": true, "displayOrder": 3},
+      {"name": "address", "displayName": "Address", "isIncluded": true, "isRequired": true, "displayOrder": 4},
+      {"name": "country", "displayName": "Country", "isIncluded": true, "isRequired": true, "displayOrder": 5},
+      {"name": "city", "displayName": "City", "isIncluded": true, "isRequired": true, "displayOrder": 6},
+      {"name": "state", "displayName": "State", "isIncluded": true, "isRequired": true, "displayOrder": 7},
+      {"name": "postalCode", "displayName": "Zip Code", "isIncluded": true, "isRequired": true, "displayOrder": 8},
+      {"name": "workedHereBefore", "displayName": "Have you worked with us before?", "isIncluded": true, "isRequired": false, "displayOrder": 9},
+      {"name": "howDidYouHear", "displayName": "How did you hear about us?", "isIncluded": true, "isRequired": false, "displayOrder": 10,
+       "values": [{"value": "Online Job Board", "label": null}, {"value": "Company Website", "label": null}]},
+      {"name": "dateAvailable", "displayName": "Date Available", "isIncluded": true, "isRequired": false, "displayOrder": 11},
+      {"name": "linkedInUrl", "displayName": "LinkedIn Profile", "isIncluded": true, "isRequired": false, "displayOrder": 12},
+      {"name": "skills", "displayName": "Skills", "isIncluded": true, "isRequired": false, "displayOrder": 13}]},
+    {"name": "acknowledgements", "isIncluded": true, "isOneRequired": false, "displayOrder": 2, "fields": [
+      {"name": "authorizedToWork", "displayName": "Are you legally authorized to work in the United States?", "isIncluded": true, "isRequired": true, "displayOrder": 1},
+      {"name": "eeoGenderEthnicity", "displayName": "EEO", "isIncluded": true, "isRequired": false, "displayOrder": 2}]}]},
+  "screener": {"questions": [
+    {"order": 1, "title": "Do you have a valid driver's license?", "questionType": "multi", "isRequired": true,
+     "answers": [{"title": "Yes", "isCorrect": true}, {"title": "No", "isAutoReject": true}]},
+    {"order": 2, "title": "Which shift do you prefer?", "questionType": "multi", "isRequired": true,
+     "answers": [{"title": "Day"}, {"title": "Night"}]},
+    {"order": 3, "title": "Describe your forklift experience.", "questionType": "text", "isParagraph": "true", "isRequired": false}]}
+};
+</script>
+<p>Step 1 of 1</p>
+<button data-automation-id="btn-resume">Select Resume to Upload</button>
+<input type="file" id="btn-resume" accept=".doc,.docx,.pdf" hidden><div id="resume-name"></div><div id="toast"></div>
+<div id="boxes"></div>
+<script>
+const mode = new URLSearchParams(location.search).get('upload');
+const boxes = document.getElementById('boxes');
+// labels sit beside the box, no `for`; "(required)" in an <em>
+const group = (label, inner, required) => boxes.insertAdjacentHTML('beforeend',
+  `<div class="form-group${required ? ' form-required' : ''}"><label>${label}${required ? ' <em>(required)</em>' : ''}</label>${inner}</div>`);
+const text = (id, label, required, type = 'text') => group(label, `<input type="${type}" id="${id}" data-for="${label}">`, required);
+let n = 0;
+// react-widgets dropdown: div role=combobox, its list aria-owns <id>__listbox
+const combo = (label, options, id = `rw_${++n}`, required = false) => group(label,
+  `<div role="combobox" tabindex="0" id="${id}" aria-owns="${id}__listbox"><span class="rw-value"></span></div>` +
+  `<ul role="listbox" id="${id}__listbox" hidden>${options.map(o => `<li role="option">${o}</li>`).join('')}</ul>`, required);
+const radios = (label, name, options, required = false) => group(label, `<div role="radiogroup">${options.map(o =>
+  `<label><input type="radio" name="${name}" value="${o}"> ${o}</label>`).join('')}</div>`, required);
+// Country / State: a text box under a layer; the pick shows over the input, the input stays empty
+const list = (id, label, options) => group(label, `<div class="pick"></div><input type="text" id="${id}" data-options="${options.join('|')}">` +
+  '<ul role="listbox" class="suggest" hidden></ul>', true);
+
+text('info.firstName', 'First Name', true); text('info.lastName', 'Last Name', true);
+text('info.middleName', 'Middle Name'); text('info.preferredName', 'Preferred Name');
+text('info.email', 'Email', true); text('info.cellPhone', 'Mobile Phone', true, 'tel');
+list('public-site-address-country', 'Country', ['Canada', 'United States']);
+text('public-site-address-address-1', 'Address Line 1', true); text('public-site-address-city', 'City', true);
+text('public-site-address-county', 'County'); list('public-site-address-us-state', 'State', ['Illinois', 'New York']);
+text('public-site-address-zip', 'Zip Code', true);
+combo('Have you worked with us before?', ['Yes', 'No'], 'info.haveYouWorkedWithUsBefore');
+radios('How did you hear about us?', 'info.howDidYouHearAboutUs', ['Online Job Board', 'Company Website']);
+text('info.dateAvailableToStart', 'Date Available'); text('info.linkedIn', 'LinkedIn Profile');
+group('Skills', '<span id="tags"></span><input class="react-tagsinput-input" id="info.skills" placeholder="Type a skill and press enter">');
+combo('Are you legally authorized to work in the United States?', ['Yes', 'No'], undefined, true);
+combo('Gender', pageData.genderOptions.map(o => o.text)); combo('Race/Ethnicity', pageData.raceOptions.map(o => o.text));
+radios("Do you have a valid driver's license?", 'screener-1', ['Yes', 'No'], true);
+radios('Which shift do you prefer?', 'screener-2', ['Day', 'Night'], true);
+group('Describe your forklift experience.', '<textarea></textarea>');
+
+for (const box of document.querySelectorAll('[role=combobox]')) {
+  const owned = document.getElementById(box.getAttribute('aria-owns'));
+  box.addEventListener('click', () => owned.hidden = false);
+  for (const o of owned.children) o.addEventListener('click', () => { box.firstChild.textContent = o.textContent; owned.hidden = true; });
+}
+for (const box of document.querySelectorAll('[data-options]')) {
+  const g = box.closest('.form-group'), suggest = g.querySelector('.suggest');
+  box.addEventListener('input', () => {
+    const typed = box.value.toLowerCase();
+    suggest.innerHTML = box.dataset.options.split('|').filter(o => o.toLowerCase().startsWith(typed)).map(o => `<li role="option">${o}</li>`).join('');
+    suggest.hidden = !typed;
+    for (const li of suggest.children) li.addEventListener('click', () => { g.querySelector('.pick').textContent = li.textContent; box.value = ''; suggest.hidden = true; });
+  });
+}
+const date = document.getElementById('info.dateAvailableToStart');  // MM/DD/YYYY typing mask: digits in, slashes added
+date.addEventListener('input', () => {
+  const d = date.value.replace(/\D/g, '').slice(0, 8);
+  date.value = [d.slice(0, 2), d.slice(2, 4), d.slice(4)].filter(Boolean).join('/');
+});
+const skills = document.getElementById('info.skills');
+skills.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' || !skills.value.trim()) return;
+  document.getElementById('tags').insertAdjacentHTML('beforeend', `<span class="react-tagsinput-tag">${skills.value.trim()}</span>`);
+  skills.value = '';
+});
+document.getElementById('btn-resume').addEventListener('change', e => {
+  const name = e.target.files[0].name;
+  if (mode === 'fail') return setTimeout(() => document.getElementById('toast').textContent = 'Error uploading Resume File cannot be larger than 5MB.', 300);
+  if (mode === 'never') return;
+  setTimeout(() => document.getElementById('resume-name').textContent = name, 300);
+});
+</script>
+</body></html>

@@ -38,6 +38,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            same-site frame (iCIMS ?in_iframe=1) through contentDocument, focused by script + Input.insertText (plan-k8n.16)
            boxes looked up through open shadow roots too; SmartRecruiters' resume box = its FILES, the deep page text
            read after the upload (name shown, its own error words) (plan-k8n.17)
+           a sign-in page in place of the form (SIGN_IN, UKG) is never typed in; file box `btn-resume` (Paylocity); the
+           page's own upload error words read every 0.5 s for 6 s (a toast goes in 5 s) (plan-k8n.18)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -1289,7 +1291,9 @@ def raw(result):
                                              for t in c.send("Target.getTargets")["targetInfos"] if t["type"] == "iframe"])
         result["marks"] = quietly(lambda: c.evaluate(MARKS))
         fill = result["fill"] = {"resume": dummy}
-        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
+        # a sign-in page in place of the form (UKG, plan-k8n.18): its boxes are never typed in
+        fill["signIn"] = bool(getattr(system, "SIGN_IN", None)) and bool(quietly(lambda: c.evaluate(f"!!{q(system.SIGN_IN)}")))
+        box = None if fill["signIn"] else next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
                                 'input[name^="primary-email"]', '#first-name-input', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
@@ -1313,7 +1317,7 @@ def raw(result):
                     return {"focused": c.evaluate(f"document.activeElement === {q(box)}")}
                 fill["type: focused by script + Input.insertText"] = attempt(focused_typed)
                 fill["readBackAfterFocus"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
-        if not box:  # the start box in the page's own same-site frame (iCIMS ?in_iframe=1, plan-k8n.16): reached through
+        if not box and not fill["signIn"]:  # the start box in the page's own same-site frame (iCIMS ?in_iframe=1, plan-k8n.16): reached through
             # contentDocument from the top page's session, focused by script + Input.insertText (no click: frame offset)
             fill["frameBox"] = quietly(lambda: c.evaluate(f"!!{FRAME_BOX}"))
             if fill["frameBox"]:
@@ -1332,15 +1336,22 @@ def raw(result):
                                                                 f"boxes: d.querySelectorAll('input:not([type=hidden]), select, textarea').length}} }})()"))
         # SmartRecruiters: its resume field = the file box after the name (FILES), never the parsing box above it
         files = (f"js:({system.FILES})()",) if hasattr(system, "FILES") else ()
-        fbox = next((s for s in (*files, '[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file]')
+        fbox = next((s for s in (*files, '[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file][id="btn-resume"]', 'input[type=file]')
                      if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["fileBox"] = fbox
         result["widgets"] = quietly(lambda: c.evaluate(WIDGETS))
-        fill["fileChosen"] = bool(fbox) and os.environ.get("JF_NO_FILE") != "1"
+        fill["fileChosen"] = bool(fbox) and os.environ.get("JF_NO_FILE") != "1" and not fill["signIn"]
         if fill["fileChosen"]:
             block.step = "upload"
             fill["upload: DOM.setFileInputFiles"] = attempt(lambda: upload(c, fbox, RESUME))
-            time.sleep(6)
+            seen = []  # the page's own upload error words, read every 0.5 s: a toast can go in 5 s (Paylocity, plan-k8n.18)
+            for _ in range(12):
+                time.sleep(0.5)
+                if errors := getattr(system, "UPLOAD_ERRORS", None):
+                    deep = getattr(system, "DEEP", None)
+                    text = quietly(lambda: c.evaluate(f"({deep})(document.body)" if deep else "document.body.innerText")) or ""
+                    seen += [e.strip() for e in errors.findall(text) if e.strip() not in seen]
+            fill["pageErrorsSeen"] = seen if getattr(system, "UPLOAD_ERRORS", None) else None
             fill["nameShown"] = quietly(lambda: c.evaluate(f"document.body.innerText.includes({json.dumps(RESUME.name)})"))
             fill["failedLine"] = quietly(lambda: c.evaluate("/failed to upload/i.test(document.body.innerText)"))
             fill["verdict"] = quietly(lambda: c.evaluate(VERDICT))

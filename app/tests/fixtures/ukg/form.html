@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Example Job</title>
+<style>.hidden { display: none; }</style></head>
+<!-- UKG signed-in apply page, hand-built from the Widgets table in app/docs/apply/ukg.md (tenant A,
+     2026-09) and UKG's own English strings (2026-10-07) - no live page's markup. Knockout faked: ko.dataFor
+     gives each screening block its question, ko.contextFor the opportunity; State reloads after Country;
+     ?upload=fail shows UKG's upload error words, ?upload=never shows nothing. -->
+<body>
+<h1>Example Job</h1>
+<div class="form-group"><label for="FirstName">First Name</label>
+  <input id="FirstName" data-automation="first-name-textbox" value="Test" readonly></div>
+<div class="form-group"><label for="Country">Country</label>
+  <select id="Country" required><option>Select...</option><option>Canada</option><option>United States</option></select></div>
+<div class="form-group"><label for="AddressLine1">Address Line 1</label><input id="AddressLine1" required></div>
+<div class="form-group"><label for="City">City</label><input id="City" required></div>
+<div class="form-group"><label for="State">State</label><select id="State" required><option>Select...</option></select></div>
+<div class="form-group"><label for="PostalCode">Zip Code</label><input id="PostalCode" required></div>
+<div class="form-group"><label for="Phone">Phone</label><input id="Phone" type="tel"></div>
+<div class="form-group"><label for="ApplicantSource">How did you hear about us?</label>
+  <select id="ApplicantSource"><option>Select...</option><option>Company Website</option><option>Job Board</option></select></div>
+
+<div data-automation="application-documents"><h2>Documents</h2>
+  <input type="file" data-automation="upload-file-input"><div id="docs"></div><div id="alert"></div></div>
+
+<p>Were you referred by a current employee?</p>
+<label><input type="radio" name="referral" data-automation="yes-employee-referral-radio"> Yes</label>
+<label><input type="radio" name="referral" data-automation="no-employee-referral-radio"> No</label>
+
+<p>Available start date</p>
+<div data-automation="available-start-date-datepicker">
+  <input aria-label="Month" maxlength="2"><input aria-label="Day" maxlength="2"><input aria-label="Year" maxlength="4"></div>
+
+<div id="questions"></div>
+
+<div class="form-group"><label for="Gender">Gender</label>
+  <select id="Gender" data-automation="country-questions-gender"><option>Select...</option><option>Male</option><option>Female</option></select>
+  <label><input type="checkbox"> I decline to say</label></div>
+<div class="form-group"><label for="HispanicOrigin">Hispanic or Latino</label>
+  <select id="HispanicOrigin" data-automation="country-questions-hispanic"><option>Select...</option><option>Hispanic/Latino</option><option>Not Hispanic/Latino</option></select>
+  <label><input type="checkbox"> I decline to say</label></div>
+<div class="form-group hidden" id="race"><label for="EthnicOrigin">Race</label>
+  <select id="EthnicOrigin" data-automation="country-questions-race"><option>Select...</option><option>Asian</option><option>White</option></select>
+  <label><input type="checkbox"> I decline to say</label></div>
+
+<div data-automation="work-experience-panel"><h2>Work Experience</h2><button data-automation="primary-action-button">Add</button></div>
+<div data-automation="education-panel"><h2>Education</h2><button data-automation="primary-action-button">Add</button></div>
+<div data-automation="skills-panel"><h2>Skills</h2><button data-automation="primary-action-button">Add</button></div>
+<div data-automation="links-panel"><h2>Links</h2><button data-automation="primary-action-button">Add</button></div>
+<script>
+const mode = new URLSearchParams(location.search).get('upload');
+const STATES = {'United States': ['Illinois', 'New York'], 'Canada': ['Ontario', 'Quebec']};
+const OPP = {ApplicationQuestions: [
+  {Id: '00000000-0000-4000-a000-0000000000a1', Question: 'Are you legally authorized to work in the United States?',
+   ResponseType: 'MultipleChoice', ResponseConfiguration: {Choices: [{Text: 'Yes'}, {Text: 'No'}]}},
+  {Id: '00000000-0000-4000-a000-0000000000a2', Question: 'Which shift do you prefer?',
+   ResponseType: 'MultipleChoice', ResponseConfiguration: {Choices: [{Text: 'Day'}, {Text: 'Night'}, {Text: 'Either'}]}},
+  {Id: '00000000-0000-4000-a000-0000000000a3', Question: 'Describe your experience with  inventory.', ResponseType: 'Text'},
+  {Id: '00000000-0000-4000-a000-0000000000a4', Question: 'Years of experience?', ResponseType: 'Numeric'}]};
+const bound = new Map();
+window.ko = {dataFor: e => bound.get(e), contextFor: e => ({$data: bound.get(e), $parent: {opportunity: OPP}}),
+             toJS: x => JSON.parse(JSON.stringify(x))};
+// each block: the visible response plus UKG's hidden templates reusing the same data-automation
+const answers = (q, i) => {
+  if (q.ResponseType === 'MultipleChoice')
+    return q.ResponseConfiguration.Choices.map(c => `<label><input type="radio" name="q${i}" data-automation="multiple-choice-response"><span class="radio-text">${c.Text}</span></label>`).join('');
+  return q.ResponseType === 'Numeric' ? '<input type="number" data-automation="numeric-response">'
+                                      : '<textarea data-automation="text-response"></textarea>';
+};
+OPP.ApplicationQuestions.forEach((q, i) => {
+  const block = document.createElement('div');
+  block.dataset.automation = 'application-knockout-question';
+  block.innerHTML = `<p>${q.Question}</p>${answers(q, i)}<div class="hidden">` +
+    '<label><input type="radio" data-automation="multiple-choice-response"><span class="radio-text">Yes</span></label>' +
+    '<textarea data-automation="text-response"></textarea><input type="number" data-automation="numeric-response"></div>';
+  bound.set(block, q);
+  document.getElementById('questions').append(block);
+});
+const state = document.getElementById('State');
+document.getElementById('Country').addEventListener('change', e => {
+  state.innerHTML = '<option>Select...</option>';
+  setTimeout(() => (STATES[e.target.value] || []).forEach(s => state.add(new Option(s))), 400);
+});
+document.getElementById('HispanicOrigin').addEventListener('change', e =>
+  document.getElementById('race').classList.toggle('hidden', e.target.value !== 'Not Hispanic/Latino'));
+document.querySelector('[data-automation=upload-file-input]').addEventListener('change', e => {
+  const name = e.target.files[0].name;
+  if (mode === 'fail') return setTimeout(() => document.getElementById('alert').textContent = "We're sorry, that file type is not supported.", 300);
+  if (mode === 'never') return;
+  setTimeout(() => document.getElementById('docs').textContent = `${name} Resume`, 300);
+});
+</script>
+</body></html>

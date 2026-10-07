@@ -362,6 +362,67 @@ Readings:
   multi-page decision (F4, plan-k8n.20).
 - `window.SYSTEMS` unchanged: SmartRecruiters stays in Job Finder's own Chrome.
 
+## Paylocity - route 2 (plan-k8n.18)
+
+Same `measure.py raw`, level 3, no named read. Resume box = `input[type=file]#btn-resume` (`paylocity.md` widgets);
+the page's own upload error words (`paylocity.UPLOAD_ERRORS`) now read every 0.5 s for 6 s - its toast goes in 5 s.
+2 employers (tenants A, B: the 2 open-list links whose form definition carries `pageData`), 2026-10-07; page loads: 2
+(one host for every employer). Numbers: [paylocity-tenant-a.json](vscode-browser/paylocity-tenant-a.json),
+[paylocity-tenant-b.json](vscode-browser/paylocity-tenant-b.json) (host ids scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| `READY` (`.form-group`) from navigate | 1.6 s | 1.7 s |
+| Boxes shown (`READY` count) | 16 | 17 |
+| `debugger;` pauses | 0 | 0 |
+| Frames / frame targets | OneTrust's 0x0 resize frame only / none | same |
+| Captcha | none (no reCAPTCHA / hCaptcha / Turnstile) | none |
+| Over the form | "Apply with resume" dialog + OneTrust cookie banner (`paylocity-route2-tab.png`) | same |
+| Text box: click + `Input.insertText` | not focused, read back "" (the dialog took the click) | same |
+| Text box: focused by script + `Input.insertText` | focused, read back ok | same |
+| Resume: `DOM.setFileInputFiles` on `btn-resume` | ok; POST `/Recruiting/Jobs/FileUpload/` at once, failed by the block | same |
+| After the failed upload | no name shown, box emptied, **no error words** in 6 s (no toast) | same |
+| Page writes on load (failed) | none | none |
+
+Readings:
+- Page 1 fills in the tab: text boxes typed as `Locator.fill` does (focus by script + `Input.insertText`), whatever
+  dialog sits over them. No frame, no pause, no captcha on these 2.
+- Upload: the file leaves at once (as in Chrome, `paylocity.md` What leaves). Blocked, the page says nothing - so
+  `put_file` returns ASK "not confirmed" there, never FAIL (its error words only come from Paylocity's own answer).
+  An unblocked upload in the tab: unmeasured (would send the file).
+- Cookie banner + "Apply with resume" dialog = the user's (never "Accept All"; dialog: `paylocity.md`).
+- Later steps (Step 2 of N ...): Paylocity is multi-step on one page, Next blocked by the resume dialog under the
+  block (`paylocity.md`) - unmeasured here; filling it in the window waits on plan-k8n.20.
+- `window.SYSTEMS` unchanged: Paylocity stays in Job Finder's own Chrome.
+
+## UKG - route 2 (plan-k8n.18)
+
+Same `measure.py raw`, level 3, `JF_NO_FILE=1`, signed out (no account here - the form needs one, `ukg.md`). `raw` now
+types nothing on a page showing `ukg.SIGN_IN` (a password box): sign-in boxes are the user's. 2 employers (tenants A,
+B; posting page open by `ukg.closed`, one on each UKG host), 2026-10-07; page loads: 1 per host = 2. Numbers:
+[ukg-tenant-a.json](vscode-browser/ukg-tenant-a.json), [ukg-tenant-b.json](vscode-browser/ukg-tenant-b.json)
+(hosts, tenant, ids scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| `OpportunityApply` lands on | UKG's sign-in page (`<host>/u/login`): "Welcome, come on in!", email + password, "Forgot your password?" (`ukg-route2-tab-b.png`) | same |
+| `READY` (first-name box) | **never** (40 s cap) - signed out | **never** |
+| Boxes | 2: `username` (text), `password` | same |
+| Typed | nothing (sign-in page) | nothing |
+| `debugger;` pauses | 0 | 0 |
+| Frames / frame targets | none / none | none / none |
+| Captcha | none on load | none |
+| Page writes on load (failed) | none | none |
+
+Readings:
+- Signed out, the window tab shows the same sign-in page as Chrome (`ukg.md` Sign-in first): no frame, no captcha, no
+  pause on load. The user signs in or makes an account there themselves (never typed for them).
+- After sign-in: unmeasured (no account). Sign-in kept by the window's own storage (`app-window.md`) vs Job Finder's
+  Chrome profile: unmeasured. UKG's form is sign-in + multi-step, so it waits on plan-k8n.20.
+- `window.SYSTEMS` unchanged: UKG stays in Job Finder's own Chrome.
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any

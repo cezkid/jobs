@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import ashby, bamboohr, greenhouse, icims, jazzhr, lever, oracle, smartrecruiters, ukg, workable
+from apply.systems import ashby, bamboohr, greenhouse, icims, jazzhr, lever, oracle, paylocity, smartrecruiters, ukg, workable
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -39,7 +39,7 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters]
+IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
