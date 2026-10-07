@@ -166,7 +166,7 @@ def from_html(html: str) -> list[dict]:
     return out
 
 
-def gone(r) -> str:
+def posting_gone(r) -> str:
     """Why a 404 / 410 posting has no form, in the page's own words when it has them."""
     said = SAID_GONE.search(r.text or "")
     return f"the posting says \"{said.group()}\" - it may have closed" if said else "posting not found - it may have closed"
@@ -176,7 +176,7 @@ def questions(url: str) -> list[dict]:
     r = httpx.get(application_url(url), timeout=30, follow_redirects=True)
     # unknown id: 404; taken down: 410 + "This position is no longer available" (jazzhr.md "Closed posting")
     if r.status_code in GONE:
-        raise ValueError(gone(r))
+        raise ValueError(posting_gone(r))
     r.raise_for_status()
     return from_html(r.text)
 
@@ -189,7 +189,7 @@ def closed(url: str) -> str | None:
     except httpx.HTTPError as e:
         return f"can't tell if the posting is open - JazzHR didn't answer ({type(e).__name__})"
     if r.status_code in GONE:
-        return gone(r)
+        return posting_gone(r)
     if r.status_code != 200:
         return f"can't tell if the posting is open - JazzHR answered {r.status_code}"
     try:

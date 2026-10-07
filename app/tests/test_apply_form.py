@@ -37,6 +37,19 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
     assert system.SOURCES and system.EXAMPLES and all(isinstance(x, str) for x in system.SOURCES + system.EXAMPLES)
 
 
+# optional members the shared code calls by name -> how many arguments it passes; a helper of the
+# same name taking other arguments crashed every fill (JazzHR's gone(response), 2026-10-07)
+OPTIONAL = {"closed": 1, "gone": 2, "holds": 2, "read": 1, "on_tab": 2}
+
+
+@pytest.mark.parametrize("system", systems.SYSTEMS, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
+def test_optional_members_take_what_the_shared_code_passes(system):
+    for name, n in OPTIONAL.items():
+        if hasattr(system, name):
+            params = inspect.signature(getattr(system, name)).parameters.values()
+            assert sum(p.default is p.empty for p in params) == n, f"{name}: shared code passes {n}"
+
+
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
 IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom]
