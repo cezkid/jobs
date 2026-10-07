@@ -21,7 +21,7 @@ small plug-in.
 | Oracle Recruiting Cloud | `<pod>.fa.<dc>.oraclecloud.com/hcmUI/CandidateExperience/<lang>/sites/<site>/job/<id>` (any host with that path) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `oracle.md` |
 | iCIMS | `careers-<co>.icims.com/jobs/<id>/<slug>/job` (any `*.icims.com` host) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `icims.md` |
 
-Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
+Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), Manatal + Rippling (measured, no filler - [manatal.md](manatal.md), [rippling.md](rippling.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
 `apply-form paste` writes `Application answers.md` to paste from. Otherwise `prepare` says so
 plainly -> user gets tailored PDF + answers to paste.
