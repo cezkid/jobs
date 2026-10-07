@@ -39,9 +39,13 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   one row, a sticky column counted to its parent's bottom); TOC_BESIDE: an article's On this page column
   <= 120px right of its text, <= 400px empty right of the column (A3)
 
-HIT_BOXES, every page at 390x844 (phone, touch): every visible link + button but links inside running text
-and the skip link is >= 44px tall; HIT_OVERLAP, same pages + size: every header / footer / nav tap box keeps
->= 24px of its height uncovered by its neighbours' boxes (Lighthouse target-size); NAV_CURRENT, every page at 1366x641: the header's Research link is
+HIT_BOXES, every page at 390x844 (phone, touch) + 1366x1024 (iPad landscape, touch): every visible link + button
+but links inside running text and the skip link is >= 44px tall + wide (Apple HIG 44x44pt); HIT_OVERLAP, same
+pages + sizes: every header / footer / nav tap box keeps >= 24px of its height uncovered by its neighbours' boxes
+(Lighthouse target-size); SCHEME_LIGHT / SCHEME_DARK, home + an article at 1440x900: desk, running-text link
+(the tint), navigation + titles (ink), the hero window's ground + text + marks + bird; CONTRAST_MORE, same pages,
+light + dark w/ prefers-contrast: more: footer text = body text, hairlines #767676; PRINT_DARK, home printed from
+a dark screen: the window + desk ink on white; NAV_CURRENT, every page at 1366x641: the header's Research link is
 underlined thicker than Install on /research/** and the same elsewhere; FOOTER_BOTTOM, every page at
 1440x900: the footer ends within 2px of the window's bottom or the page end (404: no blank band under it).
 TOC_NARROW, every page with an On this page column at 390x844 (phone) + 1024x768: a visible 'On this page'
@@ -667,15 +671,17 @@ LINE_BOXES = """() => { const l = document.getElementById("line"); if (!l) retur
 # PAINT_CONCURRENT (gate, full motion): at every half-screen scroll step, animations mid-way (0 < progress
 # < 1) on a paint property (background-size, clip-path, stroke-dashoffset) - <= PAINT_CAP at once
 # HIT_BOXES (B9): phone at 390x844 (touch => pointer: coarse), every visible link + button but links inside
-# running text (WCAG 2.5.8 exempts those) and the skip link (shown on keyboard focus only): >= 44px tall
+# running text (WCAG 2.5.8 exempts those) and the skip link (shown on keyboard focus only): >= 44px tall and, since
+# the Apple HIG review (2026-10-07: 44x44pt), >= 44px wide; again on a wide touch screen (TOUCH_WIDE, iPad landscape)
 HIT_MIN = 44
+TOUCH_WIDE = (1366, 1024)
 HIT_BOXES = """() => { const out = [];
   for (const el of document.querySelectorAll("a, button")) {
     const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
     if (!r.width || !r.height || cs.visibility !== "visible" || el.classList.contains("skip")) continue;
     const inText = !el.closest("header, footer, nav") && el.tagName === "A"
       && [...el.parentElement.childNodes].some(n => n.nodeType === 3 && n.textContent.trim());
-    if (!inText) out.push([el.tagName.toLowerCase() + " " + JSON.stringify(el.textContent.trim().slice(0, 40)), r.height]);
+    if (!inText) out.push([el.tagName.toLowerCase() + " " + JSON.stringify(el.textContent.trim().slice(0, 40)), r.height, r.width]);
   }
   return out; }"""
 # HIT_OVERLAP (G1): same pages + size, the links + buttons in header, footer and nav: each keeps >= 24px of its
@@ -927,6 +933,22 @@ FAULTS = [
      "motion"),
     (HOME, "HIT_BOXES: footer links back to their text height on touch", "<style>@media (pointer: coarse) "
      "{ footer a { padding-block: 0 !important; margin-block: 0 !important; } }</style>", "phone"),
+    (ARTICLE, "HIT_BOXES: crumb Home back to its text width on touch", "<style>@media (pointer: coarse) { .crumbs a "
+     "{ padding-inline: 0 !important; margin-inline: 0 !important; } }</style>", "phone"),
+    (ARTICLE, "HIT_BOXES: Sources links back inline, 18px tall", "<style>.src-links { display: inline !important; } "
+     ".src-links a { padding: 0 !important; margin: 0 !important; }</style>", "phone"),
+    (ARTICLE, "HIT_BOXES: On this page rows overprint on an iPad (before 2026-10-07)", "<style>@media (pointer: coarse) "
+     "{ .toc a { padding-block: 8px 9px !important; margin-block: -12px !important; } }</style>", "touch"),
+    (HOME, "SCHEME_DARK: marks in the window turn pale", "<style>@media (prefers-color-scheme: dark) { .window mark "
+     "{ color: #f2f2f2 !important; } }</style>", "schemes"),
+    (HOME, "SCHEME_DARK: the window white again in dark mode", "<style>.window { background: #ffffff !important; }"
+     "</style>", "schemes"),
+    (HOME, "SCHEME_LIGHT: links in running text back to ink", "<style>main a { color: var(--text) !important; }</style>",
+     "schemes"),
+    (HOME, "CONTRAST_MORE: grey text kept under Increase Contrast", "<style>@media (prefers-contrast: more) { :root "
+     "{ --text-2: #767676 !important; } }</style>", "schemes"),
+    (HOME, "PRINT_DARK: the window prints pale from a dark screen", "<style>@media print { body { --win-ink: #f2f2f2 "
+     "!important; } }</style>", "schemes"),
     (ARTICLE, "HIT_OVERLAP: footer rows 8px apart w/ 53px tap boxes on touch (before G1)", "<style>@media (pointer: "
      "coarse) { footer nav { row-gap: 8px !important; } footer nav a { padding-block: calc((45px - 1.1em) / 2) "
      "!important; margin-block: calc((1.1em - 45px) / 2) !important; } }</style>", "phone"),
@@ -993,7 +1015,8 @@ CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FR
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_BESIDE": "TOC_BESIDE", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
-             "HIT_OVERLAP": "HIT_OVERLAP", "SPACE_RATIO": "SPACE_RATIO", "STICKY_FIT": "STICKY_FIT", "0 matches": "found 0 elements"}
+             "HIT_OVERLAP": "HIT_OVERLAP", "SCHEME_DARK": "SCHEME_DARK", "SCHEME_LIGHT": "SCHEME_LIGHT",
+             "CONTRAST_MORE": "CONTRAST_MORE", "PRINT_DARK": "PRINT_DARK", "SPACE_RATIO": "SPACE_RATIO", "STICKY_FIT": "STICKY_FIT", "0 matches": "found 0 elements"}
 
 
 def pages() -> list[str]:
@@ -1069,7 +1092,7 @@ def opened(browser, base: str, name: str, width: int, height: int, phone: bool, 
     """A fresh context + page; console errors + uncaught errors land in failed on close.
     ua: browser name, default PHONE_UA / DESKTOP_UA (Windows)."""
     mobile = {"is_mobile": phone} if browser.browser_type.name != "firefox" else {}
-    context = browser.new_context(viewport={"width": width, "height": height}, has_touch=phone,
+    context = browser.new_context(viewport={"width": width, "height": height}, has_touch=options.pop("has_touch", phone),
                                   user_agent=ua or (PHONE_UA if phone else DESKTOP_UA), **mobile, **options)
     context.set_default_timeout(ACTION_MS)
     page = context.new_page()
@@ -1215,13 +1238,7 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
             boxes = page.evaluate(HIT_BOXES)
             if not boxes:
                 failed.append(f"HIT_BOXES {where}: check found 0 links or buttons")
-            failed += [f"HIT_BOXES {where}: {what} hit box {h:.1f}px tall, under {HIT_MIN}px"
-                       for what, h in boxes if h < HIT_MIN]
-            n, overlaps = page.evaluate(HIT_OVERLAP)
-            if not n:
-                failed.append(f"HIT_OVERLAP {where}: check found 0 elements")
-            failed += [f"HIT_OVERLAP {where}: {a!r} keeps {h:.1f}px of its tap box (under {HIT_FREE}px), "
-                       f"covered by {', '.join(map(repr, b))}" for a, b, h in overlaps]
+            failed += hit_problems(page, where)
         if (width, height) == FOLD and not phone and not mac:
             research, other = page.evaluate(NAV_CURRENT)
             if research is None or other is None:
@@ -1558,6 +1575,92 @@ def check_print(browser, base: str, inject: str | None = None) -> list[str]:
     return failed
 
 
+def hit_problems(page, where: str) -> list[str]:
+    """HIT_BOXES + HIT_OVERLAP on an open touch page."""
+    failed = []
+    boxes = page.evaluate(HIT_BOXES)
+    if not boxes:
+        failed.append(f"HIT_BOXES {where}: check found 0 links or buttons")
+    failed += [f"HIT_BOXES {where}: {what} hit box {h:.1f}px tall, under {HIT_MIN}px" for what, h, w in boxes if h < HIT_MIN]
+    failed += [f"HIT_BOXES {where}: {what} hit box {w:.1f}px wide, under {HIT_MIN}px" for what, h, w in boxes if w < HIT_MIN]
+    n, overlaps = page.evaluate(HIT_OVERLAP)
+    if not n:
+        failed.append(f"HIT_OVERLAP {where}: check found 0 elements")
+    failed += [f"HIT_OVERLAP {where}: {a!r} keeps {h:.1f}px of its tap box (under {HIT_FREE}px), "
+               f"covered by {', '.join(map(repr, b))}" for a, b, h in overlaps]
+    return failed
+
+
+def check_touch(browser, base: str, inject: str | None = None, names: list[str] | None = None) -> list[str]:
+    """HIT_BOXES + HIT_OVERLAP on a wide touch screen (iPad landscape, TOUCH_WIDE): the phone run missed On this
+    page's rows overprinting there (2026-10-07)."""
+    failed = []
+    for name in names or pages():
+        where = label_for(browser, name, *TOUCH_WIDE, False, "touch")
+        with opened(browser, base, name, *TOUCH_WIDE, False, failed, where, inject, has_touch=True) as page:
+            if not page.evaluate("matchMedia('(pointer: coarse)').matches"):
+                failed.append(f"HIT_BOXES {where}: touch emulation off (pointer: coarse not matched)")
+                continue
+            failed += hit_problems(page, where)
+    return failed
+
+
+# SCHEME_* (Apple HIG review, 2026-10-07): the colours each scheme must paint, read off computed styles - the static
+# contrast check can't see the hero window's own tokens, nor print. Home + an article; light, dark, both w/ Increase
+# Contrast (prefers-contrast: more), and print from a dark screen (Chrome keeps the scheme when printing).
+SCHEME_JS = """() => { const c = (s, p = "color") => { const e = document.querySelector(s); return e ? getComputedStyle(e)[p] : null; };
+  return {desk: c("body", "backgroundColor"), text: c("body"), win: c(".window", "backgroundColor"), winText: c(".window"),
+    winMark: c(".window mark"), bird: c(".window .bird", "fill"), disc: c(".window .bird .disc", "fill"),
+    link: c("main .research-head a, main .box-more a"), nav: c(".links a"), title: c("main .picks a, main .crumbs a"),
+    cite: c("main small a"), foot: c("footer p"), footLine: c("footer", "borderTopColor")}; }"""
+SCHEME_WANT = {
+    "light": {"desk": "rgb(246, 241, 231)", "link": "rgb(143, 63, 0)", "nav": "rgb(0, 0, 0)", "title": "rgb(0, 0, 0)",
+              "win": "rgb(255, 255, 255)", "winMark": "rgb(0, 0, 0)", "cite": "rgb(0, 0, 0)"},
+    "dark": {"desk": "rgb(28, 28, 30)", "link": "rgb(255, 198, 144)", "nav": "rgb(242, 242, 242)",
+             "title": "rgb(242, 242, 242)", "win": "rgb(44, 44, 46)", "winText": "rgb(242, 242, 242)",
+             "winMark": "rgb(0, 0, 0)", "bird": "rgb(0, 0, 0)", "cite": "rgb(242, 242, 242)"},
+}
+MORE_LINE = "rgb(118, 118, 118)"
+# what each page must have for its colours to be checked at all (a renamed class would skip them silently)
+SCHEME_NEEDS = {"index.html": ("desk", "link", "nav", "title", "win", "winText", "winMark", "bird", "disc", "foot"),
+                "ARTICLE": ("desk", "link", "nav", "title", "cite", "foot")}
+
+
+def check_schemes(browser, base: str, inject: str | None = None) -> list[str]:
+    """SCHEME_LIGHT / SCHEME_DARK colours, CONTRAST_MORE (footer text = body text, hairline #767676) and PRINT_DARK
+    (the window + desk print ink on white from a dark screen), home + ARTICLE at 1440x900."""
+    failed = []
+    for name in ("index.html", ARTICLE):
+        for scheme in ("light", "dark"):
+            where = f"{name} at 1440x900 ({scheme})"
+            with opened(browser, base, name, 1440, 900, False, failed, where, inject, color_scheme=scheme) as page:
+                got = page.evaluate(SCHEME_JS)
+                gone = [k for k in SCHEME_NEEDS["index.html" if name == "index.html" else "ARTICLE"] if got[k] is None]
+                if gone:
+                    failed.append(f"SCHEME_{scheme.upper()} {where}: check found 0 elements for {', '.join(gone)}")
+                for key, want in SCHEME_WANT[scheme].items():
+                    if got[key] is None:
+                        continue  # not on this page (window: home only, citations: articles only) - SCHEME_NEEDS
+                    if got[key] != want:
+                        failed.append(f"SCHEME_{scheme.upper()} {where}: {key} {got[key]}, want {want}")
+                if name == "index.html" and scheme == "dark" and got["disc"] == got["win"]:
+                    failed.append(f"SCHEME_DARK {where}: the window bird's disc is the window's own grey (a black "
+                                  f"bird lost on it)")
+                page.emulate_media(contrast="more")
+                more = page.evaluate(SCHEME_JS)
+                if more["foot"] != more["text"] or more["footLine"] != MORE_LINE:
+                    failed.append(f"CONTRAST_MORE {where}: footer text {more['foot']} vs body {more['text']}, "
+                                  f"hairline {more['footLine']} (want the body colour + {MORE_LINE})")
+                if name == "index.html" and scheme == "dark":
+                    page.emulate_media(contrast="no-preference", media="print")
+                    printed = page.evaluate(SCHEME_JS)
+                    if (printed["win"], printed["winText"], printed["desk"]) != \
+                            ("rgb(255, 255, 255)", "rgb(0, 0, 0)", "rgb(255, 255, 255)"):
+                        failed.append(f"PRINT_DARK {where}: prints window {printed['win']} / {printed['winText']} "
+                                      f"on {printed['desk']} (want ink on white)")
+    return failed
+
+
 STATUS_TEXT = "() => [...document.querySelectorAll('[role=status]')].map(e => e.textContent.trim()).join(' | ')"
 
 
@@ -1645,6 +1748,8 @@ def run_chrome(base: str) -> tuple[list[str], list[str]]:
             for (w, h), phone in MOTION_SIZES:
                 failed += check_motion(browser, base, name, w, h, phone)
         failed += check_print(browser, base)
+        failed += check_schemes(browser, base)
+        failed += check_touch(browser, base)
         failed += check_status(browser, base)
         failed += check_hover(browser, base)
         failed += check_toc(browser, base)
@@ -1698,6 +1803,10 @@ def run_self_test(base: str) -> list[str]:
             return check_transition(browser, base, inject)
         if kind == "status":
             return check_status(browser, base, inject)
+        if kind == "schemes":
+            return check_schemes(browser, base, inject)
+        if kind == "touch":
+            return check_touch(browser, base, inject, [name])
         if kind == "hover":
             return check_hover(browser, base, inject, [name])
         if kind == "toc":

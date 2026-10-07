@@ -9,7 +9,7 @@
 <link rel="alternate" type="application/atom+xml" title="CEZ Job Finder Research" href="/research/feed.xml">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="CEZ Job Finder">
@@ -34,305 +34,292 @@
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ats-rejection-myth/#article","headline":"Do ATS reject 75% of resumes? Where the number came from","description":"No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.","url":"https://jobs.enrriquez.com/research/ats-rejection-myth/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ats-rejection-myth/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/cards/ats-rejection-myth.png?v=ee6ae643","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do ATS reject 75% of resumes? Where the number came from","item":"https://jobs.enrriquez.com/research/ats-rejection-myth/"}]}]}</script>
 <style>
-  /* shared */
-  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
-  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
-  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
-  /* Cambria = metric twin of Caladea; Georgia needs overrides (app/web/assets.py prints them) */
-  @font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
-  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
-  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia"); font-weight: 400;
-    size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
-  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
-    size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
-  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Italic"), local("Cambria-Italic"); font-weight: 400; font-style: italic; }
-  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
-    size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
-  :root {
-    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --beak-low: #e57a00; --rule: #c8c8c8;
-    --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
-    --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
-    --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
-    --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
-    --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
-    --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
-    --track-display: -0.016em; --lead-display: 1.06;
-    --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
+/* shared */
+@font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
+@font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
+@font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia"); font-weight: 400;
+  size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+@font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
+  size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+@font-face { font-family: "Caladea Fallback"; src: local("Cambria Italic"), local("Cambria-Italic"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
+  size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
+:root {
+  --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --beak-low: #e57a00; --rule: #c8c8c8;
+  --desk: #f6f1e7; --text: #000000; --text-2: #3a3a3a; --line: #d0c5b0; --accent: #8f3f00; --disc: var(--desk);
+  --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule);
+  --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+  --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
+  --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
+  --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
+  --track-display: -0.016em; --lead-display: 1.06;
+  --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+@media (min-width: 768px) {
+  :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
+}
+@media (prefers-color-scheme: dark) {
+  :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; --paper: #ebe8e2; --accent: #ffc690;
+    --disc: var(--paper); --win: #2c2c2e; --win-ink: #f2f2f2; --win-ink-2: #d6d6d6; --win-rule: #6c6c6e; }
+}
+@media (prefers-contrast: more) {
+  :root { --text-2: var(--text); --line: #767676; --accent: #6b2f00; }
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root { --accent: #ffd9b8; }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--desk); color: var(--text);
+  font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
+}
+h1, h2, h3 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+main a { color: var(--accent); }
+main :is(.picks, .list, .more li, .crumbs, .toc, .toc-mini, .sources, small) a, main a.send { color: var(--text); }
+:is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
+:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
+mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
+::selection { background: var(--text); color: var(--desk); }
+.window ::selection { background: var(--win-ink); color: var(--win); }
+.proof ::selection { background: var(--ink); color: var(--paper); }
+@media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
+summary { list-style: none; position: relative; padding-right: 40px; cursor: pointer; }
+summary::-webkit-details-marker { display: none; }
+summary::before, summary::after {
+  content: ""; position: absolute; right: 6px; top: 50%; width: 16px; margin-top: -1px; border-top: 2px solid currentColor;
+}
+summary::after { transform: rotate(90deg); }
+details[open] > summary::after { transform: none; }
+@media (hover: hover) {
+  a:hover, summary:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; }
+  :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
+}
+:is(.picks, .list) > li { position: relative; }
+:is(.picks, .list) > li::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -2px; border-top: 4px solid var(--text);
+  transform: scaleX(0); transform-origin: 0 0;
+}
+@media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
+@media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+:is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
+.grid {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
+  padding: 0 max(var(--side), (100% - var(--max)) / 2);
+}
+.wrap { max-width: calc(var(--max) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
+.skip {
+  position: absolute; z-index: 1; left: var(--side); top: 8px; padding: 6px 12px;
+  background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
+}
+.skip:focus { transform: none; }
+.masthead { position: relative; border-bottom: 3px solid var(--text); }
+.masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: var(--ink); }
+.bird .disc { fill: var(--disc); }
+.bird :is(.beak, .eye) { fill: var(--mark); }
+.bird .beak-low { fill: var(--beak-low); }
+@media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }
+.links { display: flex; gap: 28px; white-space: nowrap; }
+:root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
+footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
+footer .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
+footer p { margin: 0 auto 0 0; }
+footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+@media screen {
+  body { display: flex; flex-direction: column; min-height: 100svh; }
+  main { flex: 1 0 auto; width: 100%; }
+}
+@media (max-width: 600px) {
+  .top { gap: 12px; }
+  .links { gap: 14px; font-size: 1.0625rem; }
+  .links .code { display: none; }
+  footer nav { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px 28px; }
+}
+@media (pointer: coarse) {
+  .brand, :is(nav, footer) a, .tap { padding-block: calc((45px - 1.1em) / 2); margin-block: calc((1.1em - 45px) / 2); }
+  :is(.links, .crumbs, footer) a { padding-inline: 6px; margin-inline: -6px; }
+  footer nav { row-gap: calc(45px - 1lh); }
+  footer nav a { padding-block: calc((45px - 1lh) / 2); margin-block: calc((1lh - 45px) / 2); }
+}
+@media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
+@media print {
+  body { --paper: #ffffff; --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule);
+    --accent: var(--ink); --disc: var(--paper); --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2);
+    --win-rule: var(--rule); font-size: 11pt; }
+  .skip, .links { display: none; }
+  mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  h1, h2, h3, summary { break-after: avoid; }
+  figure, li, details, pre { break-inside: avoid; }
+  footer .row { padding-bottom: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .masthead { view-transition-name: masthead; }
+  main { view-transition-name: sheet; }
+  @keyframes sheet-off { to { opacity: 0; transform: translateY(-8px); } }
+  @keyframes sheet-on { from { opacity: 0; transform: translateY(12px); } }
+  ::view-transition-old(sheet) { animation: sheet-off 300ms var(--ease-mark) both; }
+  ::view-transition-new(sheet) { animation: sheet-on 340ms var(--ease-mark) 40ms both; }
+}
+/* /shared */
+/* doc */
+main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
+.page { max-width: 68ch; }
+.crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
+.crumbs li { margin: 0; }
+.crumbs li + li::before { content: "/"; padding: 0 0.5em; }
+h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
+.plain h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; margin: 0 0 16px; }
+.deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
+.list .deck { margin-top: 2px; font-size: 0.8em; }
+h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
+h2, h3 { scroll-margin-top: 16px; }
+.answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
+.meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
+p { margin: 0 0 16px; }
+ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+li { margin: 0 0 8px; }
+li::marker { color: var(--text-2); }
+i, em, cite { font-style: italic; font-synthesis: none; }
+strong, b { font-weight: 700; }
+blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
+code { font-family: var(--mono); font-size: 0.85em; }
+pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
+.box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+.box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+.box-list li::marker { color: var(--text); }
+.box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+.box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
+.box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+:is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
+:is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
+:is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+small { font-size: 0.85em; color: var(--text-2); }
+small a { text-decoration-color: var(--text-2); }
+.card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--paper); color: var(--text); }
+@media (prefers-color-scheme: dark) { .card { background: var(--desk); } }
+.card::backdrop { background: rgb(0 0 0 / 0.45); }
+.card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
+.card .evidence { display: block; font-weight: 700; color: var(--text-2); }
+.card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
+.card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: none; border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
+.table { overflow-x: auto; margin: 24px 0; }
+table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
+thead th { border-bottom: 2px solid var(--text); }
+th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+:is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
+.table td:first-child { font-weight: 700; }
+.bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+.bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+.bars table { width: 100%; }
+.bars tbody th { width: 42%; font-weight: 400; }
+.bars td { font-weight: 700; }
+.bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
+#sources { margin-top: 64px; border-top: 3px solid var(--text); }
+.sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
+.sources li { position: relative; margin: 0; padding: 10px 0 10px 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: 16px; }
+.sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
+.sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
+.sources a { text-decoration-color: var(--text-2); }
+.sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
+.src-links { display: flex; flex-wrap: wrap; gap: 0 28px; }
+.toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
+.toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
+.toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
+.toc-mini li { margin: 0; }
+.toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+:is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration-color: var(--text); }
+@media (pointer: coarse) {
+  .toc-mini a { padding-block: 12px; margin-block: 0; }
+  :is(.src-links, .card p) a { padding: calc((45px - 1lh) / 2) 12px; margin: calc((1lh - 45px) / 2) -12px; }
+}
+.more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
+.more > p:first-child { margin: 0 0 4px; font-weight: 700; }
+.more ul { list-style: none; margin: 0 0 16px; padding: 0; }
+.more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.more p { margin: 0 0 8px; }
+.more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
+.toc, .labels { display: none; }
+.labels dl { margin: 0 0 12px; }
+.labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
+.labels dd { margin: 0 0 8px; color: var(--text-2); }
+.labels p { margin: 0; }
+@media (min-width: 1280px) {
+  main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
+  main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
+  main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
+  .side > h2:first-child { margin-top: 0; }
+  .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
+  .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
+  .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
+  .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
+  .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
+  main.wrap > .list { grid-column: 1; grid-row: 2; }
+  main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
+  .intro p:last-child { margin-bottom: 0; }
+  main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
+  main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+  main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
+  .toc-mini { display: none; }
+  :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
+  .toc {
+    display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
+    position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
+    margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
   }
-  /* desktop: the gaps grow with the display type (owner, plan-dxn.37: 107px headings over 32px gutters
-     read cramped). 768px up, continuous with the phone values: gap 22 -> 56 -> 72px, side margin
-     32 -> 83 -> 103px at 768x1024 / 1440x900 / 1920x1080 (past 1576px the --max centring margin is wider
-     anyway); capped by height like the display type (11vh - 16px: 54px at 1366x641 keeps Copy on screen) */
-  @media (min-width: 768px) {
-    :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
-  }
-  *, *::before, *::after { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0; background: var(--desk); color: var(--text);
-    font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
-  }
-  h1, h2, h3 { text-wrap: balance; }
-  p, li { text-wrap: pretty; }
-  a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
-  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
-     browser's default grey box vanished on the dark desk */
-  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
-  /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
-  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
-  mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
-  /* selection in ink, never yellow: the highlighter means "marked by the app" */
-  ::selection { background: var(--text); color: var(--desk); }
-  /* on the white sheets (app window, resume) the desk's selection vanishes in dark mode: ink on paper */
-  .window ::selection, .proof ::selection { background: var(--ink); color: var(--paper); }
-  /* forced colours drop the gradient: system mark colours keep the words marked */
-  @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
-  /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */
-  summary { list-style: none; position: relative; padding-right: 40px; cursor: pointer; }
-  summary::-webkit-details-marker { display: none; }
-  summary::before, summary::after {
-    content: ""; position: absolute; right: 6px; top: 50%; width: 16px; margin-top: -1px; border-top: 2px solid currentColor;
-  }
-  summary::after { transform: rotate(90deg); }
-  details[open] > summary::after { transform: none; }
-  /* hover in ink, never yellow (audit A5): underline 1 -> 2px, instant; (hover: hover) = no hover left
-     stuck after a tap. The current Research link (3px) goes to 4px so it still answers the pointer */
-  @media (hover: hover) {
-    a:hover, summary:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; }
-    :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
-  }
-  /* research picks (home) + hub list: hovering an item thickens its top rule left to right (a ::before
-     scaleX: transform only, eased in full motion, instant in reduced) */
-  :is(.picks, .list) > li { position: relative; }
-  :is(.picks, .list) > li::before {
-    content: ""; position: absolute; left: 0; right: 0; top: -2px; border-top: 4px solid var(--text);
-    transform: scaleX(0); transform-origin: 0 0;
-  }
-  @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
-  @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
-  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
-  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
-  /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
-     .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
-  .grid {
-    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
-    padding: 0 max(var(--side), (100% - var(--max)) / 2);
-  }
-  .wrap { max-width: calc(var(--max) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
-  .skip {
-    position: absolute; z-index: 1; left: var(--side); top: 8px; padding: 6px 12px;
-    background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
-  }
-  .skip:focus { transform: none; }
-  /* full-bleed double rule: thick + thin, like a newspaper masthead */
-  .masthead { position: relative; border-bottom: 3px solid var(--text); }
-  .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
-  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
-  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg) on its paper disc: a black bird on every
-     ground (a pale one read as a white bird, its yellow lost on it); the disc vanishes on the white desk + paper.
-     Two-tone bill: the orange lower half carries its edge on white. 32px = the cut's own size; margins keep the
-     row's height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
-  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: var(--ink); }
-  .bird .disc { fill: var(--paper); }
-  .bird :is(.beak, .eye) { fill: var(--mark); }
-  .bird .beak-low { fill: var(--beak-low); }
-  @media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }
-  .links { display: flex; gap: 28px; white-space: nowrap; }
-  /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
-  :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
-  footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
-  footer .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
-  footer p { margin: 0 auto 0 0; }
-  /* the links wrap as one group: under the credit, never one link alone on a row */
-  footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
-  /* a short page (404) keeps its footer at the window's bottom: main grows, no blank band under it;
-     width 100%: .wrap's auto margins would shrink main to its content in a flex column */
-  @media screen {
-    body { display: flex; flex-direction: column; min-height: 100svh; }
-    main { flex: 1 0 auto; width: 100%; }
-  }
-  /* phones: brand + 3 links don't fit 360px => Source code only in the footer; footer = credit, then
-     its 6 links as 2 even rows of 3 */
-  @media (max-width: 600px) {
-    .top { gap: 12px; }
-    .links { gap: 14px; font-size: 1.0625rem; }
-    .links .code { display: none; }
-    footer nav { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px 28px; }
-  }
-  /* touch: link hit boxes >= 44px tall (Apple HIG 44pt) - padding grows the box, an equal negative
-     margin keeps layout + look unchanged (an inline link's padding never moves its line). 1.1em ~ an
-     inline link's own box (Caladea ascent + descent); a flex-item link's (1lh) is taller => also >= 44 */
-  @media (pointer: coarse) {
-    .brand, :is(nav, footer) a, .tap { padding-block: calc((45px - 1.1em) / 2); margin-block: calc((1.1em - 45px) / 2); }
-    /* footer links are grid/flex items (box 1lh): exactly 45px each, rows 45px apart - overlapping boxes
-       read as covered (Lighthouse target-size) */
-    footer nav { row-gap: calc(45px - 1lh); }
-    footer nav a { padding-block: calc((45px - 1lh) / 2); margin-block: calc((1lh - 45px) / 2); }
-  }
-  /* under 360px (320px phones) the links may drop below the brand */
-  @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
-  /* print: ink on white in either scheme (body, not :root: the token table reads :root), no nav */
-  @media print {
-    body { --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule); font-size: 11pt; }
-    .skip, .links { display: none; }
-    mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    h1, h2, h3, summary { break-after: avoid; }
-    figure, li, details, pre { break-inside: avoid; }
-    footer .row { padding-bottom: 0; }
-  }
-  /* page change (PICK P-d2, page laid down): the old sheet lifts off, the new one is set down from below,
-     transform + opacity only, done by 380 ms; the masthead holds still; reduced motion = instant */
-  @media (prefers-reduced-motion: no-preference) {
-    @view-transition { navigation: auto; }
-    .masthead { view-transition-name: masthead; }
-    main { view-transition-name: sheet; }
-    @keyframes sheet-off { to { opacity: 0; transform: translateY(-8px); } }
-    @keyframes sheet-on { from { opacity: 0; transform: translateY(12px); } }
-    ::view-transition-old(sheet) { animation: sheet-off 300ms var(--ease-mark) both; }
-    ::view-transition-new(sheet) { animation: sheet-on 340ms var(--ease-mark) 40ms both; }
-  }
-  /* /shared */
-  main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
-  .page { max-width: 68ch; }
-  .crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
-  .crumbs li { margin: 0; }
-  .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
-  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
-  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
-  .list .deck { margin-top: 2px; font-size: 0.8em; }
-  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-  h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
-  h2, h3 { scroll-margin-top: 16px; }
-  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
-  .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  p { margin: 0 0 16px; }
-  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
-  li { margin: 0 0 8px; }
-  li::marker { color: var(--text-2); }
-  i, em, cite { font-style: italic; font-synthesis: none; }
-  strong, b { font-weight: 700; }
-  blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
-  code { font-family: var(--mono); font-size: 0.85em; }
-  pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  .box-list li::marker { color: var(--text); }
-  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
-  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
-  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
-  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
-  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
-  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
-  small { font-size: 0.85em; color: var(--text-2); }
-  small a { text-decoration-color: var(--text-2); }
-  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
-  .card::backdrop { background: rgb(0 0 0 / 0.45); }
-  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
-  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
-  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
-  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
-  .table { overflow-x: auto; margin: 24px 0; }
-  table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
-  thead th { border-bottom: 2px solid var(--text); }
-  th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
-  :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
-  .table td:first-child { font-weight: 700; }
-  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
-  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
-  .bars table { width: 100%; }
-  .bars tbody th { width: 42%; font-weight: 400; }
-  .bars td { font-weight: 700; }
-  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
-  #sources { margin-top: 64px; border-top: 3px solid var(--text); }
-  .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
-  .sources li { position: relative; margin: 0; padding: 10px 0 10px 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: 16px; }
-  .sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
-  .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
-  .sources a { text-decoration-color: var(--text-2); }
-  .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
-  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
-  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
-  .toc-mini li { margin: 0; }
-  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
-  :is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration-color: var(--text); }
-  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
-  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
-  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
-  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
-  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
-  .more p { margin: 0 0 8px; }
-  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
-  .more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
-  .more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
-  .more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
-  .toc, .labels { display: none; }
-  .labels dl { margin: 0 0 12px; }
-  .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
-  .labels dd { margin: 0 0 8px; color: var(--text-2); }
-  .labels p { margin: 0; }
-  @media (min-width: 1280px) {
-    main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
-    main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
-    main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
-    .side > h2:first-child { margin-top: 0; }
-    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
-    .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
-    .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
-    .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
-    main.wrap > .list { grid-column: 1; grid-row: 2; }
-    main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
-    .intro p:last-child { margin-bottom: 0; }
-    main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
-    .toc-mini { display: none; }
-    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
-    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
-    .toc {
-      display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
-      position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
-      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
-    }
-    .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
-    .toc ol { list-style: none; margin: 0; padding: 0; }
-    .toc li { margin: 0; border-bottom: 1px solid var(--line); }
-    .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
-  }
-  @media (min-width: 1280px) and (max-height: 819px) {
-    .toc a { padding: 3px 0 4px; }
-    .toc:has(li:nth-child(19)) { position: static; max-height: none; overflow: visible; }
-    .labels { position: static; max-height: none; overflow: visible; }
-  }
-  .list { list-style: none; margin: 32px 0 0; padding: 0; }
-  .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
-  .list li:last-child { border-bottom: 1px solid var(--line); }
-  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
-  .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
-  .list p { margin: 8px 0 0; color: var(--text-2); }
-  .list .date { margin-top: 6px; }
-  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
-  .date { color: var(--text-2); font-size: var(--step--1); }
-  @media (max-width: 600px) {
-    main.wrap { padding-top: 22px; }
-    h2 { margin-top: 36px; }
-    .sources li { padding-left: 2.2em; }
-    .sources li::before { width: 1.7em; }
-    article .crumbs [aria-current] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  }
-  @media print {
-    main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs, .toc, .toc-mini, .more { display: none !important; }
-    .page { max-width: none; }
-    .sources li { break-inside: avoid; }
-    :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
-    .guess::before { content: none; }
-  }
+  .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
+  .toc ol { list-style: none; margin: 0; padding: 0; }
+  .toc li { margin: 0; border-bottom: 1px solid var(--line); }
+  .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
+}
+@media (min-width: 1280px) and (max-height: 819px) {
+  .toc a { padding: 3px 0 4px; }
+  .toc:has(li:nth-child(19)) { position: static; max-height: none; overflow: visible; }
+  .labels { position: static; max-height: none; overflow: visible; }
+}
+@media (min-width: 1280px) and (pointer: coarse) { .toc a { padding-block: 11px; margin-block: 0; } }
+@media (min-width: 1280px) and (max-height: 819px) and (pointer: coarse) {
+  .toc { position: static; max-height: none; overflow: visible; }
+}
+.list { list-style: none; margin: 32px 0 0; padding: 0; }
+.list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
+.list li:last-child { border-bottom: 1px solid var(--line); }
+.list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
+.list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
+.list p { margin: 8px 0 0; color: var(--text-2); }
+.list .date { margin-top: 6px; }
+.intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
+.date { color: var(--text-2); font-size: var(--step--1); }
+@media (max-width: 600px) {
+  main.wrap { padding-top: 22px; }
+  h2 { margin-top: 36px; }
+  .sources li { padding-left: 2.2em; }
+  .sources li::before { width: 1.7em; }
+  article .crumbs [aria-current] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media print {
+  main.wrap { padding-top: 0; padding-bottom: 0; }
+  .crumbs, .toc, .toc-mini, .more { display: none !important; }
+  .page { max-width: none; }
+  .sources li { break-inside: avoid; }
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
+}
+/* /doc */
   .guess { margin: 32px 0; padding: 12px 0 4px; border-top: 2px solid var(--text); border-bottom: 1px solid var(--text); }
   .guess::before { content: "Guess first"; display: block; font-size: var(--step--1); font-weight: 700; color: var(--text-2); }
   .guess-q { margin: 4px 0 10px; font-size: var(--step-1); line-height: 1.35; }
@@ -548,21 +535,21 @@
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-ashby-2024"><b class="evidence">The maker’s own description of its product</b> Ashby (2024). AI-Assisted Application Review. The maker’s own description of its feature, September 2024. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.ashbyhq.com/blog/product/ai-assisted-application-review">Publisher</a></li>
-<li id="src-resume-genius-2026"><b class="evidence">Survey by a company that sells the service</b> Chan, Eva (2026). 2026 Hiring Insights Report. 1,000 US hiring managers, online panel; survey dates not given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://resumegenius.com/blog/job-hunting/hiring-insights-report">Publisher</a></li>
-<li id="src-clearinghouse-mobley"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> Civil Rights Litigation Clearinghouse, University of Michigan (2025). Mobley v. Workday, Inc. 3:23-cv-00770 (N.D. Cal.). Case summary (updated December 2025) and list of court filings through June 2026; events only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://clearinghouse.net/case/44074/">Publisher</a></li>
-<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></li>
-<li id="src-greenhouse-search"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2022). Search resumes for keywords. The maker’s own help page, updated June 2022. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords">Publisher</a></li>
-<li id="src-greenhouse-rules"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2026). Application Rules Overview. The maker’s own help page, updated March 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://support.greenhouse.io/hc/en-us/articles/203105595-Application-Rules-Overview">Publisher</a></li>
-<li id="src-lawyer-monthly-2026"><b class="evidence">News report (used for the event only)</b> Lawyer Monthly (2026). Workday AI Hiring Bias Case Seeks Class Status. News report of a filing, September 2026; used for the event only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/">Publisher</a></li>
-<li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012.</i> Open copy on Computerworld. Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></li>
-<li id="src-levinson-2012-preptel"><b class="evidence">Survey by a company that sells the service</b> Levinson, Meredith (2012). New job search service helps job seekers penetrate applicant tracking systems. <i>CIO, February 2012.</i> News story about Preptel’s paid service. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.cio.com/article/284417/careers-staffing-new-job-search-service-helps-job-seekers-penetrate-applicant-tracking-systems.html">Publisher</a></li>
-<li id="src-jobscan-2025"><b class="evidence">Survey by a company that sells the service</b> Myers, Sydney (2025). The State of the Job Search in 2025: AI, Cover Letter Comeback, and What Caused an 11X Increase in Interview Rate. A company that sells resume scanning; 384 recruiters surveyed February-March 2025; interview rates from its own users’ activity in its tools, over 2.5 million applications, how an interview was counted not stated; read in a browser (the site blocks scripts). Checked <time datetime="2026-10-06">October 6, 2026</time>. <a href="https://www.jobscan.co/state-of-the-job-search">Publisher</a></li>
-<li id="src-preptel-2012"><b class="evidence">Survey by a company that sells the service</b> Preptel (2012). News. The company’s own news page, archived December 2012; no method given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://web.archive.org/web/20121227085958/http://www.preptel.com:80/news/">Publisher</a></li>
-<li id="src-jobscan-2026"><b class="evidence">Survey by a company that sells the service</b> Purcell, Kelsey (2026). 2026 Applicant Tracking System (ATS) Usage Report: Key Shifts and Strategies for Job Seekers. Career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/">Publisher</a></li>
-<li id="src-uscis-i9"><b class="evidence">Law</b> US Citizenship and Immigration Services (2026). I-9, Employment Eligibility Verification. Agency page, last reviewed June 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://www.uscis.gov/i-9">Publisher</a></li>
-<li id="src-mobley-2025-order"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the Northern District of California (2025). Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting Preliminary Collective Certification. Court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf">Publisher</a></li>
-<li id="src-enhancv-2025"><b class="evidence">Survey by a company that sells the service</b> Vasileva, Doroteya (2025). Does the ATS Reject Your Resume? 25 Recruiters Explain What Really Happens. 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published. Checked <time datetime="2026-10-03">October 3, 2026</time>. <a href="https://enhancv.com/blog/does-ats-reject-resumes/">Publisher</a></li>
+<li id="src-ashby-2024"><b class="evidence">The maker’s own description of its product</b> Ashby (2024). AI-Assisted Application Review. The maker’s own description of its feature, September 2024. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://www.ashbyhq.com/blog/product/ai-assisted-application-review">Publisher</a></span></li>
+<li id="src-resume-genius-2026"><b class="evidence">Survey by a company that sells the service</b> Chan, Eva (2026). 2026 Hiring Insights Report. 1,000 US hiring managers, online panel; survey dates not given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://resumegenius.com/blog/job-hunting/hiring-insights-report">Publisher</a></span></li>
+<li id="src-clearinghouse-mobley"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> Civil Rights Litigation Clearinghouse, University of Michigan (2025). Mobley v. Workday, Inc. 3:23-cv-00770 (N.D. Cal.). Case summary (updated December 2025) and list of court filings through June 2026; events only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://clearinghouse.net/case/44074/">Publisher</a></span></li>
+<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></span></li>
+<li id="src-greenhouse-search"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2022). Search resumes for keywords. The maker’s own help page, updated June 2022. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://support.greenhouse.io/hc/en-us/articles/115004600186-Search-resumes-for-keywords">Publisher</a></span></li>
+<li id="src-greenhouse-rules"><b class="evidence">The maker’s own description of its product</b> Greenhouse (2026). Application Rules Overview. The maker’s own help page, updated March 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://support.greenhouse.io/hc/en-us/articles/203105595-Application-Rules-Overview">Publisher</a></span></li>
+<li id="src-lawyer-monthly-2026"><b class="evidence">News report (used for the event only)</b> Lawyer Monthly (2026). Workday AI Hiring Bias Case Seeks Class Status. News report of a filing, September 2026; used for the event only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://www.lawyer-monthly.com/2026/09/workday-faces-class-bid-over-ai-hiring-bias-claims/">Publisher</a></span></li>
+<li id="src-levinson-2012-cio"><b class="evidence">News report (used for the event only)</b> Levinson, Meredith (2012). 5 insider secrets for beating applicant tracking systems. <i>CIO, March 2012.</i> Open copy on Computerworld. Repeats a claim by Preptel, a company selling resume help; no method given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://www.computerworld.com/article/1458323/5-insider-secrets-for-beating-applicant-tracking-systems.html">Publisher</a></span></li>
+<li id="src-levinson-2012-preptel"><b class="evidence">Survey by a company that sells the service</b> Levinson, Meredith (2012). New job search service helps job seekers penetrate applicant tracking systems. <i>CIO, February 2012.</i> News story about Preptel’s paid service. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://www.cio.com/article/284417/careers-staffing-new-job-search-service-helps-job-seekers-penetrate-applicant-tracking-systems.html">Publisher</a></span></li>
+<li id="src-jobscan-2025"><b class="evidence">Survey by a company that sells the service</b> Myers, Sydney (2025). The State of the Job Search in 2025: AI, Cover Letter Comeback, and What Caused an 11X Increase in Interview Rate. A company that sells resume scanning; 384 recruiters surveyed February-March 2025; interview rates from its own users’ activity in its tools, over 2.5 million applications, how an interview was counted not stated; read in a browser (the site blocks scripts). Checked <time datetime="2026-10-06">October 6, 2026</time>. <span class="src-links"><a href="https://www.jobscan.co/state-of-the-job-search">Publisher</a></span></li>
+<li id="src-preptel-2012"><b class="evidence">Survey by a company that sells the service</b> Preptel (2012). News. The company’s own news page, archived December 2012; no method given. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://web.archive.org/web/20121227085958/http://www.preptel.com:80/news/">Publisher</a></span></li>
+<li id="src-jobscan-2026"><b class="evidence">Survey by a company that sells the service</b> Purcell, Kelsey (2026). 2026 Applicant Tracking System (ATS) Usage Report: Key Shifts and Strategies for Job Seekers. Career pages of Fortune 500 companies, checked by a company that sells resume scanning, August 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://www.jobscan.co/blog/fortune-500-use-applicant-tracking-systems/">Publisher</a></span></li>
+<li id="src-uscis-i9"><b class="evidence">Law</b> US Citizenship and Immigration Services (2026). I-9, Employment Eligibility Verification. Agency page, last reviewed June 2026. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://www.uscis.gov/i-9">Publisher</a></span></li>
+<li id="src-mobley-2025-order"><b class="evidence">Court record (what was claimed or ordered, not proven facts)</b> US District Court for the Northern District of California (2025). Mobley v. Workday, Inc., No. 3:23-cv-00770-RFL: Order Granting Preliminary Collective Certification. Court order, May 2025; describes what the plaintiffs allege, decides nothing on the facts. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://storage.courtlistener.com/recap/gov.uscourts.cand.408645/gov.uscourts.cand.408645.128.0.pdf">Publisher</a></span></li>
+<li id="src-enhancv-2025"><b class="evidence">Survey by a company that sells the service</b> Vasileva, Doroteya (2025). Does the ATS Reject Your Resume? 25 Recruiters Explain What Really Happens. 25 US recruiters interviewed, September-October 2025; how they were found not stated; raw answers not published. Checked <time datetime="2026-10-03">October 3, 2026</time>. <span class="src-links"><a href="https://enhancv.com/blog/does-ats-reject-resumes/">Publisher</a></span></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>

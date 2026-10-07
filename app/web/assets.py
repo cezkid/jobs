@@ -49,11 +49,12 @@ ART = ("icon*.svg", "mark*.svg")  # Desktop tile icon + bare bird
 MARK_SMALL = APP_ICONS / "mark-32.svg"
 # pages w/ a hand-written header + hero window: their inline bird is rewritten from MARK_SMALL
 HAND_PAGES = ("index.html", "404.html", "privacy.html")
-# dark tab strip: the shared :root's dark --text + --desk (docs/index.html)
+# dark tab strip: the shared :root's dark --text + --desk (app/web/css/site.css)
 PALE, DESK = "#f2f2f2", "#1c1c1e"
 MARK_FILL = {"ink": "#000000", "beak": "#ffe433", "beak-low": "#e57a00", "eye": "#ffe433"}  # mark-32.svg as drawn
 # the paper disc a black bird sits on wherever the ground may be dark (the Desktop icon's, inscribed in the
-# 32 grid): white on a white page it vanishes; tail tip + leg ends past it fade into a dark one
+# 32 grid): the page's own colour in light (it vanishes), paper on a dark ground; tail tip + leg ends past it fade
+# into a dark one
 DISC = '<circle class="disc" cx="16" cy="16" r="16"/>'
 PUPIL = '<circle cx="156" cy="36" r="5.5" fill="#000000"/>\n'  # icon.svg's, dropped under the 128 px icon
 INK = "#0c0c0e"  # outer stop of the app tile's ink gradient: plate under full-bleed icons
@@ -178,7 +179,8 @@ def favicon_svg():
 def inline_bird():
     """The bird as the pages carry it inline (header brand, hero title bar): mark-32.svg's shapes
     w/ their fills cut, on the paper disc - the shared CSS colours them (.bird: ink = --ink, black
-    on every ground, CanvasText in forced colours; disc = --paper; beak + eye = --mark, beak-low =
+    on every ground, CanvasText in forced colours; disc = --disc (the desk in light, paper in dark; the hero
+    window's paper); beak + eye = --mark, beak-low =
     --beak-low). No id (the header is copied to every page)."""
     shapes = "".join(re.sub(r' fill="[^"]*"', "", el).replace(' class="ink"', "") for _, el in mark_shapes())
     return f'<svg class="bird" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" focusable="false">{DISC}{shapes}</svg>'

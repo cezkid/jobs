@@ -3,12 +3,14 @@
 Sources: app/web/research/<slug>.md - a YAML header between --- lines (KEYS only), then Markdown.
 <slug>.md -> /research/<slug>/, methods.md -> /research/methods/, about.md -> /about/, index.md =
 hub intro; research/feed.xml (Atom) once an article is published. status: draft => not built.
-Shared CSS, header, footer, icon + font links and og:image size are copied from docs/index.html, so every page stays the same as the home page; the share
-card itself is CARD (docs/og-research.png).
+Header, footer, icon + font links and og:image size are copied from docs/index.html, so every page stays the same as the home page; the share
+card itself is CARD (docs/og-research.png). CSS: app/web/css/site.css (every page) + doc.css (reading pages), one
+source per rule, built into each page's <style> (comments cut) - the hand-written pages' blocks too.
 
-Hand-written pages (index.html, privacy.html, 404.html) stay as they are; this script reads them
-for the sitemap. Everything it writes is generated and committed - never hand-edit those files;
-change this script or its sources and rerun. A test (test_site.py) fails when a committed file is
+Hand-written pages (index.html, privacy.html, 404.html) stay as they are but for their built-in CSS blocks
+(/* shared */ ... /* /shared */, /* doc */ ... /* /doc */); this script reads them for the sitemap. Everything else
+it writes is generated and committed - never hand-edit those files; change this script or its sources and rerun.
+In the hand-written pages edit anything but those blocks (their source: app/web/css/). A test (test_site.py) fails when a committed file is
 stale, missing, or left over in docs/research/ or docs/about/ (orphan) - rerun to fix.
 
 Output is deterministic: no clock, sorted order, UTF-8, LF. Dates read from sources, spelled with
@@ -718,7 +720,7 @@ def _cite(state):
 
 
 def _render_cite(self, tokens, idx, options, env):
-    # set small + grey (PAGE_CSS): the findings, not the author names, are what a skimming eye lands on
+    # set small + grey (app/web/css/doc.css): the findings, not the author names, are what a skimming eye lands on
     links = [f'<a href="#src-{ref}">{escape(env["labels"][ref])}</a>' + (f", {escape(typeset(loc))}" if loc else "")
              for ref, loc in tokens[idx].meta["refs"]]
     return "<small>(" + "; ".join(links) + ")</small>"
@@ -891,7 +893,9 @@ class Registry:
         if entry.get("url"):
             host = urlsplit(entry["url"]).netloc.lower()
             links.append(("Open copy" if host.endswith(OPEN_COPY_HOSTS) else "Publisher", entry["url"]))
-        parts.append(" ".join(f'<a href="{escape(url)}">{word}</a>' for word, url in links))
+        if links:
+            parts.append('<span class="src-links">' + " ".join(f'<a href="{escape(url)}">{word}</a>' for word, url in links)
+                         + "</span>")
         return f'<li id="src-{ref}">' + " ".join(parts) + "</li>"
 
 
@@ -1216,7 +1220,7 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
     notes = boxes(tokens)
     html = LEAD_CITE.sub(r"<small>(\1; ", MD.renderer.render(tokens, MD.options, {"labels": labels}))
     if "What to do" in notes and "what-helps" in src.ids:
-        # the note's way to the whole list at the end: its closing rule moves under this line (PAGE_CSS)
+        # the note's way to the whole list at the end: its closing rule moves under this line (app/web/css/doc.css)
         cut = html.index("</ul>", html.index('<p class="box"><strong>What to do</strong></p>')) + len("</ul>\n")
         html = html[:cut] + '<p class="box-more"><a href="#what-helps">More in What helps</a></p>\n' + html[cut:]
     cited = {ref for _, cite in cites(src) for ref, _ in cite.meta["refs"] or []} & set(registry.entries)
@@ -1228,7 +1232,7 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
 
 
 def home_parts(root: Path) -> dict[str, str]:
-    """What every generated page copies from docs/index.html: shared CSS, header, footer, head links,
+    """What every generated page copies from docs/index.html: header, footer, head links,
     og:image size + type lines (image + alt swapped for CARD)."""
     text = (root / "docs" / "index.html").read_text(encoding="utf-8")
     links = re.findall(r'^<link rel="(?:icon|apple-touch-icon|manifest|preload)".*$', text, re.M)
@@ -1236,7 +1240,6 @@ def home_parts(root: Path) -> dict[str, str]:
     og = re.sub(r'^(<meta property="og:image" content=")[^"]*', rf"\g<1>{site(root)}{CARD}?v={CARD_V}", text, flags=re.M)
     og = re.sub(r'^(<meta (?:property="og|name="twitter):image:alt" content=")[^"]*', rf"\g<1>{alt}", og, flags=re.M)
     return {
-        "css": re.search(r"  /\* shared \*/.*?/\* /shared \*/", text, re.S).group(0),
         "header": re.search(r"<header\b.*?</header>", text, re.S).group(0),
         "footer": re.search(r"<footer\b.*?</footer>", text, re.S).group(0),
         "links": "\n".join(links),
@@ -1245,187 +1248,29 @@ def home_parts(root: Path) -> dict[str, str]:
     }
 
 
-PAGE_CSS = """
-  /* main.wrap: .wrap's own padding shorthand would otherwise win and zero the top + bottom */
-  main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
-  /* editorial measure: one column of reading text, never wider than 68ch */
-  .page { max-width: 68ch; }
-  .crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
-  .crumbs li { margin: 0; }
-  .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
-  /* display scale, like the home page's section heads (>= 72px at 1440 wide); a two-part title's deck on its own line */
-  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
-  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
-  .list .deck { margin-top: 2px; font-size: 0.8em; }
-  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-  h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
-  h2, h3 { scroll-margin-top: 16px; }
-  /* the answer in a sentence under the h1, then the byline: on a phone the first screen holds the answer + what to do */
-  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
-  .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  p { margin: 0 0 16px; }
-  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
-  li { margin: 0 0 8px; }
-  li::marker { color: var(--text-2); }
-  /* real italics: the Caladea Italic face, never a slanted roman */
-  i, em, cite { font-style: italic; font-synthesis: none; }
-  strong, b { font-weight: 700; }
-  blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
-  code { font-family: var(--mono); font-size: 0.85em; }
-  pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  /* notes at the top ("What to do", "What the evidence says"; boxes()): a bold label + its list = a ruled note
-     (thick rule over, thin under); "More in What helps" closes the first */
-  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  .box-list li::marker { color: var(--text); }
-  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
-  /* the link a 46px tap box (qa HIT_BOXES); negative margins keep the line where it was */
-  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
-  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
-  /* a note right before the next one: the next one's thick rule closes it (two rules 32px apart read as one
-     doubled, qa RULES_STACKED) */
-  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
-  /* On this page right under a note: no hairline of its own under the note's rule; the heading after a note
-     (On this page hidden or absent): none either (A19) */
-  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
-  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
-  /* citations: the (label; Author year) parenthetical small + grey, so a skimming eye lands on the findings, not
-     on names (linked words draw it); still links - a tap opens the source card (CITE_JS) */
-  small { font-size: 0.85em; color: var(--text-2); }
-  small a { text-decoration-color: var(--text-2); }
-  /* source card (CITE_JS): one Sources entry over the page, centred */
-  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
-  .card::backdrop { background: rgb(0 0 0 / 0.45); }
-  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
-  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
-  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
-  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
-  /* tables: lining, tabular figures so columns of numbers line up */
-  .table { overflow-x: auto; margin: 24px 0; }
-  table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
-  thead th { border-bottom: 2px solid var(--text); }
-  th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
-  /* a table right before a heading: the heading's rule closes it (two hairlines 49px apart read as a double rule) */
-  :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
-  /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
-  .table td:first-child { font-weight: 700; }
-  /* bar figures (A15): caption over a two-column table, an ink bar from zero under each value (a border, so
-     print + forced colours paint it); no motion */
-  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
-  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
-  .bars table { width: 100%; }
-  .bars tbody th { width: 42%; font-weight: 400; }
-  .bars td { font-weight: 700; }
-  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
-  /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
-  #sources { margin-top: 64px; border-top: 3px solid var(--text); }
-  .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
-  .sources li { position: relative; margin: 0; padding: 10px 0 10px 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: 16px; }
-  .sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
-  .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
-  .sources a { text-decoration-color: var(--text-2); }
-  .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  /* On this page below 1280px: a closed list after the notes at the top, a hairline over it (none right under a note) */
-  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
-  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
-  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
-  .toc-mini li { margin: 0; }
-  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
-  /* the section in view (TOC_JS marks it): bold, underlined in ink; without JS nothing is marked */
-  :is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration-color: var(--text); }
-  /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
-  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
-  /* Keep reading: the article's way on, under a thick rule like Sources */
-  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
-  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
-  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
-  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
-  .more p { margin: 0 0 8px; }
-  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
-  /* an article's own share card, small, left of its link; the whole row is the link's hit box (::after) */
-  .more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
-  /* framed by a shadow, not a border: a border over 100px wide reads as a rule (qa RULES_STACKED) */
-  .more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
-  .more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
-  /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
-  .toc, .labels { display: none; }
-  .labels dl { margin: 0 0 12px; }
-  .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
-  .labels dd { margin: 0 0 8px; color: var(--text-2); }
-  .labels p { margin: 0; }
-  @media (min-width: 1280px) {
-    main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
-    main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
-    /* hub + about: the second column holds real content (evidence labels; About's later sections) */
-    main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
-    .side > h2:first-child { margin-top: 0; }
-    /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
-    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
-    .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
-    .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
-    .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
-    main.wrap > .list { grid-column: 1; grid-row: 2; }
-    /* hub (A16): the method lines beside the h1, the labels beside the list, the articles as 2-column clippings,
-       so 4 titles show in a 1440x900 first screen */
-    main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
-    .intro p:last-child { margin-bottom: 0; }
-    main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
-    .toc-mini { display: none; }
-    /* On this page hidden: the first heading sits right under a note's rule, the next note's rule closes the first */
-    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
-    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
-    .toc {
-      /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
-      display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
-      position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
-      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
-    }
-    .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
-    .toc ol { list-style: none; margin: 0; padding: 0; }
-    .toc li { margin: 0; border-bottom: 1px solid var(--line); }
-    .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
-  }
-  /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits (18 rows
-     at 30px; at 32px the 18th hid 25px + its link took no hover), a list of 19+ scrolls with the page, and so
-     do the hub's labels - a sticky column taller than the window hid its end (qa STICKY_FIT) */
-  @media (min-width: 1280px) and (max-height: 819px) {
-    .toc a { padding: 3px 0 4px; }
-    .toc:has(li:nth-child(19)) { position: static; max-height: none; overflow: visible; }
-    .labels { position: static; max-height: none; overflow: visible; }
-  }
-  /* hub: each article a clipping under a thick rule, like the home page's research picks */
-  .list { list-style: none; margin: 32px 0 0; padding: 0; }
-  .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
-  .list li:last-child { border-bottom: 1px solid var(--line); }
-  /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
-  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
-  .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
-  .list p { margin: 8px 0 0; color: var(--text-2); }
-  .list .date { margin-top: 6px; }
-  /* hub: the method lines after the list (beside the h1 on wide screens) */
-  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
-  .date { color: var(--text-2); font-size: var(--step--1); }
-  @media (max-width: 600px) {
-    main.wrap { padding-top: 22px; }
-    h2 { margin-top: 36px; }
-    .sources li { padding-left: 2.2em; }
-    .sources li::before { width: 1.7em; }
-    /* an article's current crumb repeats the h1 just below: hidden (screen readers keep it) so the crumbs fit one line */
-    article .crumbs [aria-current] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  }
-  @media print {
-    main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs, .toc, .toc-mini, .more { display: none !important; }
-    .page { max-width: none; }
-    .sources li { break-inside: avoid; }
-    /* paper can't be tapped: folded method lines + guess answers print open */
-    :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
-    .guess::before { content: none; }
-  }
-"""
+# the site's CSS, one source per rule in app/web/css/: site.css (every page), doc.css (reading pages: these, privacy,
+# 404). Built into each page's <style> between markers, never linked: a linked sheet cost a slow phone ~220 ms before
+# first paint + a 510 ms long frame (measured 2026-10-07; GitHub Pages caches it 10 min only, then each view asks
+# again). Comments cut on the way (the why stays in the source): ~3 KB gzip off every page
+CSS_DIR = Path("app") / "web" / "css"
+CSS_MARK = {"site.css": "shared", "doc.css": "doc"}
+CSS_BLOCK = re.compile(r"/\* (shared|doc) \*/\n.*?/\* /\1 \*/\n", re.S)
+
+
+def css(root: Path, name: str) -> str:
+    """app/web/css/<name> as the pages carry it: comments + blank lines cut, between its markers, LF."""
+    path = root / CSS_DIR / name
+    if not path.is_file():
+        raise SystemExit(f"{(CSS_DIR / name).as_posix()} is missing: every page's <style> is built from it")
+    mark = CSS_MARK[name]
+    return f"/* {mark} */\n" + shipped(path.read_bytes().decode("utf-8").replace("\r\n", "\n")) + f"\n/* /{mark} */\n"
+
+
+def restyle(root: Path, text: str) -> str:
+    """A hand-written page w/ its built-in CSS blocks (site.css, doc.css) as the sources say now."""
+    names = {v: k for k, v in CSS_MARK.items()}
+    return CSS_BLOCK.sub(lambda m: css(root, names[m[1]]), text)
+
 
 
 # block CSS, only on pages that hold the block (a page pays for what it shows: HTML budget 25 KB gzip)
@@ -1699,7 +1544,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
           if hub and (src.article or src.name == "index") else []),
         '<meta name="robots" content="index, follow, max-image-preview:large">',
         '<meta name="color-scheme" content="light dark">',
-        '<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">',
+        '<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">',
         '<meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">',
         f'<meta property="og:type" content="{kind}">',
         '<meta property="og:site_name" content="CEZ Job Finder">',
@@ -1743,9 +1588,8 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         *head,
         "<style>",
-        parts["css"],
-        *(shipped(css) for css in [PAGE_CSS, *(css for mark, css in BLOCK_CSS.items() if mark in body)]),
-        "</style>",
+        css(root, "site.css") + css(root, "doc.css")
+        + "".join(shipped(block) + "\n" for mark, block in BLOCK_CSS.items() if mark in body) + "</style>",
         "</head>",
         "<body>",
         parts["header"],
@@ -1851,6 +1695,9 @@ def build(root: Path, warnings: list[str] | None = None) -> dict[str, str]:
     hand = {rel: (docs / rel).read_text(encoding="utf-8") for rel in found
             if rel.endswith(".html") and rel.split("/")[0] not in NOT_PAGES}
     out, lastmod = dated(root, set(found), warnings)
+    # hand-written pages: only their built-in CSS blocks are this script's (from app/web/css/)
+    out |= {rel: restyle(root, text) for rel, text in hand.items() if CSS_BLOCK.search(text)}
+    hand |= {rel: text for rel, text in out.items() if rel in hand}
     out["sitemap.xml"] = sitemap(root, {**hand, **{k: v for k, v in out.items() if k.endswith(".html")}}, lastmod)
     return dict(sorted(out.items()))
 

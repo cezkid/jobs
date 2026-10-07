@@ -9,7 +9,7 @@
 <link rel="alternate" type="application/atom+xml" title="CEZ Job Finder Research" href="/research/feed.xml">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="article">
 <meta property="og:site_name" content="CEZ Job Finder">
@@ -34,305 +34,292 @@
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/employment-gaps/#article","headline":"Does an employment gap on your resume hurt?","description":"Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.","url":"https://jobs.enrriquez.com/research/employment-gaps/","mainEntityOfPage":"https://jobs.enrriquez.com/research/employment-gaps/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/cards/employment-gaps.png?v=6c0fc2a5","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Does an employment gap on your resume hurt?","item":"https://jobs.enrriquez.com/research/employment-gaps/"}]}]}</script>
 <style>
-  /* shared */
-  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
-  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
-  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
-  /* Cambria = metric twin of Caladea; Georgia needs overrides (app/web/assets.py prints them) */
-  @font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
-  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
-  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia"); font-weight: 400;
-    size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
-  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
-    size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
-  @font-face { font-family: "Caladea Fallback"; src: local("Cambria Italic"), local("Cambria-Italic"); font-weight: 400; font-style: italic; }
-  @font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
-    size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
-  :root {
-    --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --beak-low: #e57a00; --rule: #c8c8c8;
-    --desk: #ffffff; --text: #000000; --text-2: #3a3a3a; --line: #c8c8c8;
-    --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
-    --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
-    --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
-    --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
-    --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
-    --track-display: -0.016em; --lead-display: 1.06;
-    --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
+/* shared */
+@font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Caladea"; src: url("/fonts/caladea-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+@font-face { font-family: "Caladea Fallback"; src: local("Cambria"); font-weight: 400; }
+@font-face { font-family: "Caladea Fallback"; src: local("Cambria Bold"), local("Cambria-Bold"); font-weight: 700; }
+@font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia"); font-weight: 400;
+  size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+@font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
+  size-adjust: 92.96%; ascent-override: 96.82%; descent-override: 26.89%; line-gap-override: 0%; }
+@font-face { font-family: "Caladea Fallback"; src: local("Cambria Italic"), local("Cambria-Italic"); font-weight: 400; font-style: italic; }
+@font-face { font-family: "Caladea Fallback Georgia"; src: local("Georgia Italic"), local("Georgia-Italic"); font-weight: 400; font-style: italic;
+  size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
+:root {
+  --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --beak-low: #e57a00; --rule: #c8c8c8;
+  --desk: #f6f1e7; --text: #000000; --text-2: #3a3a3a; --line: #d0c5b0; --accent: #8f3f00; --disc: var(--desk);
+  --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule);
+  --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
+  --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+  --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
+  --step--1: 0.9375rem; --step-0: 1.25rem; --step-1: 1.375rem; --step-2: 1.75rem;
+  --display: min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem);
+  --track-display: -0.016em; --lead-display: 1.06;
+  --ease-mark: cubic-bezier(0.3, 0.7, 0.4, 1);
+}
+@media (min-width: 768px) {
+  :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
+}
+@media (prefers-color-scheme: dark) {
+  :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; --paper: #ebe8e2; --accent: #ffc690;
+    --disc: var(--paper); --win: #2c2c2e; --win-ink: #f2f2f2; --win-ink-2: #d6d6d6; --win-rule: #6c6c6e; }
+}
+@media (prefers-contrast: more) {
+  :root { --text-2: var(--text); --line: #767676; --accent: #6b2f00; }
+}
+@media (prefers-contrast: more) and (prefers-color-scheme: dark) {
+  :root { --accent: #ffd9b8; }
+}
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--desk); color: var(--text);
+  font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
+}
+h1, h2, h3 { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+main a { color: var(--accent); }
+main :is(.picks, .list, .more li, .crumbs, .toc, .toc-mini, .sources, small) a, main a.send { color: var(--text); }
+:is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
+:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
+mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
+::selection { background: var(--text); color: var(--desk); }
+.window ::selection { background: var(--win-ink); color: var(--win); }
+.proof ::selection { background: var(--ink); color: var(--paper); }
+@media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
+summary { list-style: none; position: relative; padding-right: 40px; cursor: pointer; }
+summary::-webkit-details-marker { display: none; }
+summary::before, summary::after {
+  content: ""; position: absolute; right: 6px; top: 50%; width: 16px; margin-top: -1px; border-top: 2px solid currentColor;
+}
+summary::after { transform: rotate(90deg); }
+details[open] > summary::after { transform: none; }
+@media (hover: hover) {
+  a:hover, summary:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; }
+  :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
+}
+:is(.picks, .list) > li { position: relative; }
+:is(.picks, .list) > li::before {
+  content: ""; position: absolute; left: 0; right: 0; top: -2px; border-top: 4px solid var(--text);
+  transform: scaleX(0); transform-origin: 0 0;
+}
+@media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
+@media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+:is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
+.grid {
+  display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
+  padding: 0 max(var(--side), (100% - var(--max)) / 2);
+}
+.wrap { max-width: calc(var(--max) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
+.skip {
+  position: absolute; z-index: 1; left: var(--side); top: 8px; padding: 6px 12px;
+  background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
+}
+.skip:focus { transform: none; }
+.masthead { position: relative; border-bottom: 3px solid var(--text); }
+.masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
+.bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: var(--ink); }
+.bird .disc { fill: var(--disc); }
+.bird :is(.beak, .eye) { fill: var(--mark); }
+.bird .beak-low { fill: var(--beak-low); }
+@media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }
+.links { display: flex; gap: 28px; white-space: nowrap; }
+:root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
+footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
+footer .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
+footer p { margin: 0 auto 0 0; }
+footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
+@media screen {
+  body { display: flex; flex-direction: column; min-height: 100svh; }
+  main { flex: 1 0 auto; width: 100%; }
+}
+@media (max-width: 600px) {
+  .top { gap: 12px; }
+  .links { gap: 14px; font-size: 1.0625rem; }
+  .links .code { display: none; }
+  footer nav { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px 28px; }
+}
+@media (pointer: coarse) {
+  .brand, :is(nav, footer) a, .tap { padding-block: calc((45px - 1.1em) / 2); margin-block: calc((1.1em - 45px) / 2); }
+  :is(.links, .crumbs, footer) a { padding-inline: 6px; margin-inline: -6px; }
+  footer nav { row-gap: calc(45px - 1lh); }
+  footer nav a { padding-block: calc((45px - 1lh) / 2); margin-block: calc((1lh - 45px) / 2); }
+}
+@media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
+@media print {
+  body { --paper: #ffffff; --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule);
+    --accent: var(--ink); --disc: var(--paper); --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2);
+    --win-rule: var(--rule); font-size: 11pt; }
+  .skip, .links { display: none; }
+  mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  h1, h2, h3, summary { break-after: avoid; }
+  figure, li, details, pre { break-inside: avoid; }
+  footer .row { padding-bottom: 0; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .masthead { view-transition-name: masthead; }
+  main { view-transition-name: sheet; }
+  @keyframes sheet-off { to { opacity: 0; transform: translateY(-8px); } }
+  @keyframes sheet-on { from { opacity: 0; transform: translateY(12px); } }
+  ::view-transition-old(sheet) { animation: sheet-off 300ms var(--ease-mark) both; }
+  ::view-transition-new(sheet) { animation: sheet-on 340ms var(--ease-mark) 40ms both; }
+}
+/* /shared */
+/* doc */
+main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
+.page { max-width: 68ch; }
+.crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
+.crumbs li { margin: 0; }
+.crumbs li + li::before { content: "/"; padding: 0 0.5em; }
+h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
+.plain h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; margin: 0 0 16px; }
+.deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
+.list .deck { margin-top: 2px; font-size: 0.8em; }
+h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
+h2, h3 { scroll-margin-top: 16px; }
+.answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
+.meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
+p { margin: 0 0 16px; }
+ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+li { margin: 0 0 8px; }
+li::marker { color: var(--text-2); }
+i, em, cite { font-style: italic; font-synthesis: none; }
+strong, b { font-weight: 700; }
+blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
+code { font-family: var(--mono); font-size: 0.85em; }
+pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
+.box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+.box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+.box-list li::marker { color: var(--text); }
+.box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+.box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
+.box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+:is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
+:is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
+:is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+small { font-size: 0.85em; color: var(--text-2); }
+small a { text-decoration-color: var(--text-2); }
+.card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--paper); color: var(--text); }
+@media (prefers-color-scheme: dark) { .card { background: var(--desk); } }
+.card::backdrop { background: rgb(0 0 0 / 0.45); }
+.card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
+.card .evidence { display: block; font-weight: 700; color: var(--text-2); }
+.card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
+.card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: none; border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
+.table { overflow-x: auto; margin: 24px 0; }
+table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
+thead th { border-bottom: 2px solid var(--text); }
+th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+:is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
+.table td:first-child { font-weight: 700; }
+.bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+.bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+.bars table { width: 100%; }
+.bars tbody th { width: 42%; font-weight: 400; }
+.bars td { font-weight: 700; }
+.bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
+#sources { margin-top: 64px; border-top: 3px solid var(--text); }
+.sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
+.sources li { position: relative; margin: 0; padding: 10px 0 10px 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: 16px; }
+.sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
+.sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
+.sources a { text-decoration-color: var(--text-2); }
+.sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
+.src-links { display: flex; flex-wrap: wrap; gap: 0 28px; }
+.toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
+.toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
+.toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
+.toc-mini li { margin: 0; }
+.toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
+:is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration-color: var(--text); }
+@media (pointer: coarse) {
+  .toc-mini a { padding-block: 12px; margin-block: 0; }
+  :is(.src-links, .card p) a { padding: calc((45px - 1lh) / 2) 12px; margin: calc((1lh - 45px) / 2) -12px; }
+}
+.more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
+.more > p:first-child { margin: 0 0 4px; font-weight: 700; }
+.more ul { list-style: none; margin: 0 0 16px; padding: 0; }
+.more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.more p { margin: 0 0 8px; }
+.more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+.more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
+.toc, .labels { display: none; }
+.labels dl { margin: 0 0 12px; }
+.labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
+.labels dd { margin: 0 0 8px; color: var(--text-2); }
+.labels p { margin: 0; }
+@media (min-width: 1280px) {
+  main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
+  main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
+  main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
+  .side > h2:first-child { margin-top: 0; }
+  .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
+  .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
+  .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
+  .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
+  .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
+  main.wrap > .list { grid-column: 1; grid-row: 2; }
+  main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
+  .intro p:last-child { margin-bottom: 0; }
+  main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
+  main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+  main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
+  .toc-mini { display: none; }
+  :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
+  .toc {
+    display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
+    position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
+    margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
   }
-  /* desktop: the gaps grow with the display type (owner, plan-dxn.37: 107px headings over 32px gutters
-     read cramped). 768px up, continuous with the phone values: gap 22 -> 56 -> 72px, side margin
-     32 -> 83 -> 103px at 768x1024 / 1440x900 / 1920x1080 (past 1576px the --max centring margin is wider
-     anyway); capped by height like the display type (11vh - 16px: 54px at 1366x641 keeps Copy on screen) */
-  @media (min-width: 768px) {
-    :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
-  }
-  @media (prefers-color-scheme: dark) {
-    :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; }
-  }
-  *, *::before, *::after { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; }
-  body {
-    margin: 0; background: var(--desk); color: var(--text);
-    font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
-  }
-  h1, h2, h3 { text-wrap: balance; }
-  p, li { text-wrap: pretty; }
-  a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
-  /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
-     browser's default grey box vanished on the dark desk */
-  :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
-  /* two-tone: the desk band keeps the ring visible on a white sheet in dark mode (spread only, not a shadow) */
-  :focus-visible { outline: 3px solid var(--text); outline-offset: 3px; box-shadow: 0 0 0 3px var(--desk); }
-  mark { background: linear-gradient(var(--mark), var(--mark)) no-repeat 0 0 / 100% 100%; color: var(--ink); padding: 0 0.1em; }
-  /* selection in ink, never yellow: the highlighter means "marked by the app" */
-  ::selection { background: var(--text); color: var(--desk); }
-  /* on the white sheets (app window, resume) the desk's selection vanishes in dark mode: ink on paper */
-  .window ::selection, .proof ::selection { background: var(--ink); color: var(--paper); }
-  /* forced colours drop the gradient: system mark colours keep the words marked */
-  @media (forced-colors: active) { mark { background: Mark; color: MarkText; } }
-  /* +/- drawn as two borders (U+2212 is not in the font subset; borders survive forced colours) */
-  summary { list-style: none; position: relative; padding-right: 40px; cursor: pointer; }
-  summary::-webkit-details-marker { display: none; }
-  summary::before, summary::after {
-    content: ""; position: absolute; right: 6px; top: 50%; width: 16px; margin-top: -1px; border-top: 2px solid currentColor;
-  }
-  summary::after { transform: rotate(90deg); }
-  details[open] > summary::after { transform: none; }
-  /* hover in ink, never yellow (audit A5): underline 1 -> 2px, instant; (hover: hover) = no hover left
-     stuck after a tap. The current Research link (3px) goes to 4px so it still answers the pointer */
-  @media (hover: hover) {
-    a:hover, summary:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; }
-    :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
-  }
-  /* research picks (home) + hub list: hovering an item thickens its top rule left to right (a ::before
-     scaleX: transform only, eased in full motion, instant in reduced) */
-  :is(.picks, .list) > li { position: relative; }
-  :is(.picks, .list) > li::before {
-    content: ""; position: absolute; left: 0; right: 0; top: -2px; border-top: 4px solid var(--text);
-    transform: scaleX(0); transform-origin: 0 0;
-  }
-  @media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
-  @media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
-  /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
-  :is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
-  /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
-     .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
-  .grid {
-    display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gutter);
-    padding: 0 max(var(--side), (100% - var(--max)) / 2);
-  }
-  .wrap { max-width: calc(var(--max) + 2 * var(--side)); margin: 0 auto; padding: 0 var(--side); }
-  .skip {
-    position: absolute; z-index: 1; left: var(--side); top: 8px; padding: 6px 12px;
-    background: var(--desk); border: 2px solid var(--text); border-radius: 6px; transform: translateY(-200%);
-  }
-  .skip:focus { transform: none; }
-  /* full-bleed double rule: thick + thin, like a newspaper masthead */
-  .masthead { position: relative; border-bottom: 3px solid var(--text); }
-  .masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
-  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
-  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-  /* the mark, inline (assets.py redraws it from app/install/mark-32.svg) on its paper disc: a black bird on every
-     ground (a pale one read as a white bird, its yellow lost on it); the disc vanishes on the white desk + paper.
-     Two-tone bill: the orange lower half carries its edge on white. 32px = the cut's own size; margins keep the
-     row's height and, 29px in the name's 31px line, land the bird on whole pixels (-2px 0 sat half a pixel off) */
-  .bird { flex: none; width: 32px; height: 32px; margin: -2px 0 -1px; fill: var(--ink); }
-  .bird .disc { fill: var(--paper); }
-  .bird :is(.beak, .eye) { fill: var(--mark); }
-  .bird .beak-low { fill: var(--beak-low); }
-  @media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }
-  .links { display: flex; gap: 28px; white-space: nowrap; }
-  /* on /research/** the header's Research link shows it is current: thicker ink underline (header bytes stay one copy) */
-  :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"] { text-decoration-thickness: 3px; }
-  footer { border-top: 1px solid var(--line); font-size: 1.0625rem; color: var(--text-2); }
-  footer .row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 28px; padding-top: 22px; padding-bottom: 40px; }
-  footer p { margin: 0 auto 0 0; }
-  /* the links wrap as one group: under the credit, never one link alone on a row */
-  footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
-  /* a short page (404) keeps its footer at the window's bottom: main grows, no blank band under it;
-     width 100%: .wrap's auto margins would shrink main to its content in a flex column */
-  @media screen {
-    body { display: flex; flex-direction: column; min-height: 100svh; }
-    main { flex: 1 0 auto; width: 100%; }
-  }
-  /* phones: brand + 3 links don't fit 360px => Source code only in the footer; footer = credit, then
-     its 6 links as 2 even rows of 3 */
-  @media (max-width: 600px) {
-    .top { gap: 12px; }
-    .links { gap: 14px; font-size: 1.0625rem; }
-    .links .code { display: none; }
-    footer nav { display: grid; grid-template-columns: repeat(3, max-content); gap: 8px 28px; }
-  }
-  /* touch: link hit boxes >= 44px tall (Apple HIG 44pt) - padding grows the box, an equal negative
-     margin keeps layout + look unchanged (an inline link's padding never moves its line). 1.1em ~ an
-     inline link's own box (Caladea ascent + descent); a flex-item link's (1lh) is taller => also >= 44 */
-  @media (pointer: coarse) {
-    .brand, :is(nav, footer) a, .tap { padding-block: calc((45px - 1.1em) / 2); margin-block: calc((1.1em - 45px) / 2); }
-    /* footer links are grid/flex items (box 1lh): exactly 45px each, rows 45px apart - overlapping boxes
-       read as covered (Lighthouse target-size) */
-    footer nav { row-gap: calc(45px - 1lh); }
-    footer nav a { padding-block: calc((45px - 1lh) / 2); margin-block: calc((1lh - 45px) / 2); }
-  }
-  /* under 360px (320px phones) the links may drop below the brand */
-  @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
-  /* print: ink on white in either scheme (body, not :root: the token table reads :root), no nav */
-  @media print {
-    body { --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule); font-size: 11pt; }
-    .skip, .links { display: none; }
-    mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    h1, h2, h3, summary { break-after: avoid; }
-    figure, li, details, pre { break-inside: avoid; }
-    footer .row { padding-bottom: 0; }
-  }
-  /* page change (PICK P-d2, page laid down): the old sheet lifts off, the new one is set down from below,
-     transform + opacity only, done by 380 ms; the masthead holds still; reduced motion = instant */
-  @media (prefers-reduced-motion: no-preference) {
-    @view-transition { navigation: auto; }
-    .masthead { view-transition-name: masthead; }
-    main { view-transition-name: sheet; }
-    @keyframes sheet-off { to { opacity: 0; transform: translateY(-8px); } }
-    @keyframes sheet-on { from { opacity: 0; transform: translateY(12px); } }
-    ::view-transition-old(sheet) { animation: sheet-off 300ms var(--ease-mark) both; }
-    ::view-transition-new(sheet) { animation: sheet-on 340ms var(--ease-mark) 40ms both; }
-  }
-  /* /shared */
-  main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
-  .page { max-width: 68ch; }
-  .crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
-  .crumbs li { margin: 0; }
-  .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
-  h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
-  .deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
-  .list .deck { margin-top: 2px; font-size: 0.8em; }
-  h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-  h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
-  h2, h3 { scroll-margin-top: 16px; }
-  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
-  .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  p { margin: 0 0 16px; }
-  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
-  li { margin: 0 0 8px; }
-  li::marker { color: var(--text-2); }
-  i, em, cite { font-style: italic; font-synthesis: none; }
-  strong, b { font-weight: 700; }
-  blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
-  code { font-family: var(--mono); font-size: 0.85em; }
-  pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  .box-list li::marker { color: var(--text); }
-  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
-  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
-  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
-  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
-  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
-  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
-  small { font-size: 0.85em; color: var(--text-2); }
-  small a { text-decoration-color: var(--text-2); }
-  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
-  .card::backdrop { background: rgb(0 0 0 / 0.45); }
-  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
-  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
-  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
-  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
-  .table { overflow-x: auto; margin: 24px 0; }
-  table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
-  thead th { border-bottom: 2px solid var(--text); }
-  th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
-  :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
-  .table td:first-child { font-weight: 700; }
-  .bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
-  .bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
-  .bars table { width: 100%; }
-  .bars tbody th { width: 42%; font-weight: 400; }
-  .bars td { font-weight: 700; }
-  .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--text); }
-  #sources { margin-top: 64px; border-top: 3px solid var(--text); }
-  .sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
-  .sources li { position: relative; margin: 0; padding: 10px 0 10px 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: 16px; }
-  .sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
-  .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
-  .sources a { text-decoration-color: var(--text-2); }
-  .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
-  .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
-  .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
-  .toc-mini li { margin: 0; }
-  .toc-mini a { display: block; padding: 5px 0; text-decoration-color: var(--text-2); }
-  :is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration-color: var(--text); }
-  @media (pointer: coarse) { .toc-mini a { padding-block: 12px; margin-block: 0; } }
-  .more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--text); }
-  .more > p:first-child { margin: 0 0 4px; font-weight: 700; }
-  .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
-  .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
-  .more p { margin: 0 0 8px; }
-  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
-  .more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
-  .more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
-  .more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
-  .toc, .labels { display: none; }
-  .labels dl { margin: 0 0 12px; }
-  .labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
-  .labels dd { margin: 0 0 8px; color: var(--text-2); }
-  .labels p { margin: 0; }
-  @media (min-width: 1280px) {
-    main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
-    main.wrap:has(> .toc) > .page, main.wrap:has(> .side) > .page { grid-column: 1; grid-row: 1; }
-    main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
-    .side > h2:first-child { margin-top: 0; }
-    .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-    .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--text); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
-    .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
-    .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
-    .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
-    main.wrap > .list { grid-column: 1; grid-row: 2; }
-    main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
-    .intro p:last-child { margin-bottom: 0; }
-    main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
-    .toc-mini { display: none; }
-    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
-    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
-    .toc {
-      display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
-      position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
-      margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
-    }
-    .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
-    .toc ol { list-style: none; margin: 0; padding: 0; }
-    .toc li { margin: 0; border-bottom: 1px solid var(--line); }
-    .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
-  }
-  @media (min-width: 1280px) and (max-height: 819px) {
-    .toc a { padding: 3px 0 4px; }
-    .toc:has(li:nth-child(19)) { position: static; max-height: none; overflow: visible; }
-    .labels { position: static; max-height: none; overflow: visible; }
-  }
-  .list { list-style: none; margin: 32px 0 0; padding: 0; }
-  .list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
-  .list li:last-child { border-bottom: 1px solid var(--line); }
-  .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
-  .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
-  .list p { margin: 8px 0 0; color: var(--text-2); }
-  .list .date { margin-top: 6px; }
-  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
-  .date { color: var(--text-2); font-size: var(--step--1); }
-  @media (max-width: 600px) {
-    main.wrap { padding-top: 22px; }
-    h2 { margin-top: 36px; }
-    .sources li { padding-left: 2.2em; }
-    .sources li::before { width: 1.7em; }
-    article .crumbs [aria-current] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  }
-  @media print {
-    main.wrap { padding-top: 0; padding-bottom: 0; }
-    .crumbs, .toc, .toc-mini, .more { display: none !important; }
-    .page { max-width: none; }
-    .sources li { break-inside: avoid; }
-    :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
-    .guess::before { content: none; }
-  }
+  .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--text); }
+  .toc ol { list-style: none; margin: 0; padding: 0; }
+  .toc li { margin: 0; border-bottom: 1px solid var(--line); }
+  .toc a { display: block; padding: 8px 0 9px; text-decoration-color: var(--text-2); }
+}
+@media (min-width: 1280px) and (max-height: 819px) {
+  .toc a { padding: 3px 0 4px; }
+  .toc:has(li:nth-child(19)) { position: static; max-height: none; overflow: visible; }
+  .labels { position: static; max-height: none; overflow: visible; }
+}
+@media (min-width: 1280px) and (pointer: coarse) { .toc a { padding-block: 11px; margin-block: 0; } }
+@media (min-width: 1280px) and (max-height: 819px) and (pointer: coarse) {
+  .toc { position: static; max-height: none; overflow: visible; }
+}
+.list { list-style: none; margin: 32px 0 0; padding: 0; }
+.list li { margin: 0; padding: 16px 0 22px; border-top: 2px solid var(--text); }
+.list li:last-child { border-bottom: 1px solid var(--line); }
+.list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
+.list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
+.list p { margin: 8px 0 0; color: var(--text-2); }
+.list .date { margin-top: 6px; }
+.intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
+.date { color: var(--text-2); font-size: var(--step--1); }
+@media (max-width: 600px) {
+  main.wrap { padding-top: 22px; }
+  h2 { margin-top: 36px; }
+  .sources li { padding-left: 2.2em; }
+  .sources li::before { width: 1.7em; }
+  article .crumbs [aria-current] { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+@media print {
+  main.wrap { padding-top: 0; padding-bottom: 0; }
+  .crumbs, .toc, .toc-mini, .more { display: none !important; }
+  .page { max-width: none; }
+  .sources li { break-inside: avoid; }
+  :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+  .guess::before { content: none; }
+}
+/* /doc */
   .case { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
   .case figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
   .case table { width: 100%; }
@@ -707,25 +694,25 @@
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
-<li id="src-baert-vujic-2018"><b class="evidence">Small study (real applications)</b> Baert, Stijn and Vujić, Sunčica (2018). Does it pay to care? Volunteering and employment opportunities. <i>Journal of Population Economics 31(3), 819–836.</i> Open copy, IZA Discussion Paper 9649. 576 made-up applications sent in pairs to 288 job openings in Flanders, Belgium, December 2014-April 2015; tests volunteering on a resume, not during a gap. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1007/s00148-017-0682-8">DOI</a> <a href="https://docs.iza.org/dp9649.pdf">Publisher</a></li>
-<li id="src-bateson-2023"><b class="evidence">Lab test (not real hiring)</b> Bateson, Regina (2023). Perceptions of pandemic resume gaps: Survey experimental evidence from the United States. <i>PLOS ONE 18(3), e0281449.</i> Open copy on PubMed Central. 974 US adults choosing between made-up hotel and restaurant job applicants, July 2021; not hiring staff. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1371/journal.pone.0281449">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10019729/">Open copy</a></li>
-<li id="src-dhert-2026"><b class="evidence">Big study (many studies combined)</b> D’hert, Liam, Baert, Stijn and Lippens, Louis (2026). Unemployment, inactivity, and hiring chances: A systematic review and meta-analysis. <i>Socio-Economic Review 24(3), 1355–1393.</i> Open copy, Ghent University library. 28 studies reviewed; 16 field experiments with almost 67,000 made-up applicants in 7 countries combined. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/ser/mwag023">DOI</a> <a href="https://biblio.ugent.be/publication/01KRK8YTYRYHA7486FX045Y7Z8/file/01M0A5AWFGQ1RCZS17ER8A70C8.pdf">Publisher</a></li>
-<li id="src-eriksson-rooth-2014"><b class="evidence">Big study (thousands of real applications)</b> Eriksson, Stefan and Rooth, Dan-Olof (2014). Do Employers Use Unemployment as a Sorting Criterion When Hiring? Evidence from a Field Experiment. <i>American Economic Review 104(3), 1014–1039.</i> Open copy, IZA Discussion Paper 6235. 8,466 made-up applications to 3,786 employers in Sweden, 13 kinds of job. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1257/aer.104.3.1014">DOI</a> <a href="https://docs.iza.org/dp6235.pdf">Publisher</a></li>
-<li id="src-farber-2016"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Silverman, Dan and von Wachter, Till (2016). Determinants of Callbacks to Job Applications: An Audit Study. <i>American Economic Review 106(5), 314–318.</i> Open copy, NBER working paper 21689. About 12,000 made-up applications (by our count of its four rounds) from college-educated women to office support jobs in 8 US cities, 2012–2014. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1257/aer.p20161010">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w21689/w21689.pdf">Open copy</a></li>
-<li id="src-farber-2019"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Herbst, Chris M., Silverman, Dan and von Wachter, Till (2019). Whom Do Employers Want? The Role of Recent Employment and Unemployment Status and Age. <i>Journal of Labor Economics 37(2), 323–349.</i> Open copy, NBER working paper 24605. 8,488 made-up applications to 2,122 US job postings. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1086/700184">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w24605/w24605.pdf">Open copy</a></li>
-<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></li>
-<li id="src-gibbons-katz-1991"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Gibbons, Robert and Katz, Lawrence F. (1991). Layoffs and Lemons. <i>Journal of Labor Economics 9(4), 351–380.</i> Open copy, NBER working paper 2968. US government survey of workers who lost jobs, January 1984 and 1986; men aged 20–61 who lost full-time jobs. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1086/298273">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w2968/w2968.pdf">Open copy</a></li>
-<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></li>
-<li id="src-hireright-2025-sept"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). Identity Fraud and Candidate Discrepancies Remain Key Concerns for Employers, Finds HireRight’s 2025 Global Benchmark Report. September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers">Publisher</a></li>
-<li id="src-kristal-2023"><b class="evidence">Big study (thousands of real applications)</b> Kristal, Ariella S., Nicks, Leanne, Gloor, Jamie L. and Hauser, Oliver P. (2023). Reducing discrimination against job seekers with and without employment gaps. <i>Nature Human Behaviour 7, 211–218.</i> Open copy on PubMed Central. 9,022 made-up applications to real UK job ads, plan registered in advance. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1038/s41562-022-01485-6">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/">Open copy</a></li>
-<li id="src-kroft-2013"><b class="evidence">Big study (thousands of real applications)</b> Kroft, Kory, Lange, Fabian and Notowidigdo, Matthew J. (2013). Duration Dependence and Labor Market Conditions: Evidence from a Field Experiment. <i>Quarterly Journal of Economics 128(3), 1123–1167.</i> Open copy, NBER working paper 18387. About 12,000 made-up resumes sent to job ads in 100 US cities. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1093/qje/qjt015">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w18387/w18387.pdf">Open copy</a></li>
-<li id="src-namingit-2021"><b class="evidence">Big study (thousands of real applications)</b> Namingit, Sheryll, Blankenau, William and Schwab, Benjamin (2021). Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate. <i>Journal of Economic Behavior &amp; Organization 185, 865–882 (full text paywalled; published abstract read on RePEc).</i> 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs; the three rates are from the authors’ open 2018 conference abstract, gap length from the AEA trial registry. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1016/j.jebo.2020.09.033">DOI</a> <a href="https://ideas.repec.org/a/eee/jeborg/v185y2021icp865-882.html">Publisher</a></li>
-<li id="src-nunley-2017"><b class="evidence">Big study (thousands of real applications)</b> Nunley, John M., Pugh, Adam, Romero, Nicholas and Seals, R. Alan (2017). The Effects of Unemployment and Underemployment on Employment Opportunities: Results from a Correspondence Audit of the Labor Market for College Graduates. <i>ILR Review 70(3), 642–669.</i> Open copy, Auburn University working paper AUWP 2014-04. About 9,400 made-up resumes from recent college graduates to business jobs in 7 US cities, January-July 2013; figures read in the 2014 working-paper copy; underemployment figure matches the published abstract (30%). Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1177/0019793916654686">DOI</a> <a href="https://cla.auburn.edu/econwp/Archives/2014/2014-04.pdf">Publisher</a></li>
-<li id="src-pedulla-2016"><b class="evidence">Small study (real applications)</b> Pedulla, David S. (2016). Penalized or Protected? Gender and the Consequences of Nonstandard and Mismatched Employment Histories. <i>American Sociological Review 81(2), 262–289.</i> Open copy on PubMed Central. 2,420 made-up applications to 1,210 job openings in five US cities, November 2012-June 2013. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1177/0003122416630982">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4864988/">Open copy</a></li>
-<li id="src-ada-title-i"><b class="evidence">Law</b> US Equal Employment Opportunity Commission (1990). Titles I and V of the Americans with Disabilities Act of 1990 (ADA). The statute text; Title I covers employers with 15 or more employees. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.eeoc.gov/statutes/titles-i-and-v-americans-disabilities-act-1990-ada">Publisher</a></li>
-<li id="src-eeoc-ada-preemployment"><b class="evidence">Law</b> US Equal Employment Opportunity Commission (1995). Enforcement Guidance: Preemployment Disability-Related Questions and Medical Examinations. The agency’s guidance on the Americans with Disabilities Act before a job offer. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://www.eeoc.gov/laws/guidance/enforcement-guidance-preemployment-disability-related-questions-and-medical">Publisher</a></li>
-<li id="src-weisshaar-2018"><b class="evidence">Big study (thousands of real applications)</b> Weisshaar, Katherine (2018). From Opt Out to Blocked Out: The Challenges for Labor Market Re-entry after Family-Related Employment Lapses. <i>American Sociological Review 83(1), 34–60 (read in an Internet Archive copy of the journal page).</i> 3,407 made-up applications from parents to professional and managerial jobs in 50 US metro areas, August 2015-January 2016; archive snapshot of August 2021. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1177/0003122417752355">DOI</a> <a href="https://web.archive.org/web/20210803042055/https://journals.sagepub.com/doi/full/10.1177/0003122417752355">Publisher</a></li>
-<li id="src-weisshaar-2021"><b class="evidence">Lab test (not real hiring)</b> Weisshaar, Katherine (2021). Employment Lapses and Subsequent Hiring Disadvantages: An Experimental Approach Examining Types of Discrimination and Mechanisms. <i>Socius 7.</i> Open copy, University of North Carolina library. 2,000 US adults choosing between made-up job applicants, March and June 2015; not hiring staff. Checked <time datetime="2026-10-04">October 4, 2026</time>. <a href="https://doi.org/10.1177/23780231211019861">DOI</a> <a href="https://doi.org/10.17615/bj2t-yr59">Publisher</a></li>
+<li id="src-baert-vujic-2018"><b class="evidence">Small study (real applications)</b> Baert, Stijn and Vujić, Sunčica (2018). Does it pay to care? Volunteering and employment opportunities. <i>Journal of Population Economics 31(3), 819–836.</i> Open copy, IZA Discussion Paper 9649. 576 made-up applications sent in pairs to 288 job openings in Flanders, Belgium, December 2014-April 2015; tests volunteering on a resume, not during a gap. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1007/s00148-017-0682-8">DOI</a> <a href="https://docs.iza.org/dp9649.pdf">Publisher</a></span></li>
+<li id="src-bateson-2023"><b class="evidence">Lab test (not real hiring)</b> Bateson, Regina (2023). Perceptions of pandemic resume gaps: Survey experimental evidence from the United States. <i>PLOS ONE 18(3), e0281449.</i> Open copy on PubMed Central. 974 US adults choosing between made-up hotel and restaurant job applicants, July 2021; not hiring staff. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1371/journal.pone.0281449">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10019729/">Open copy</a></span></li>
+<li id="src-dhert-2026"><b class="evidence">Big study (many studies combined)</b> D’hert, Liam, Baert, Stijn and Lippens, Louis (2026). Unemployment, inactivity, and hiring chances: A systematic review and meta-analysis. <i>Socio-Economic Review 24(3), 1355–1393.</i> Open copy, Ghent University library. 28 studies reviewed; 16 field experiments with almost 67,000 made-up applicants in 7 countries combined. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1093/ser/mwag023">DOI</a> <a href="https://biblio.ugent.be/publication/01KRK8YTYRYHA7486FX045Y7Z8/file/01M0A5AWFGQ1RCZS17ER8A70C8.pdf">Publisher</a></span></li>
+<li id="src-eriksson-rooth-2014"><b class="evidence">Big study (thousands of real applications)</b> Eriksson, Stefan and Rooth, Dan-Olof (2014). Do Employers Use Unemployment as a Sorting Criterion When Hiring? Evidence from a Field Experiment. <i>American Economic Review 104(3), 1014–1039.</i> Open copy, IZA Discussion Paper 6235. 8,466 made-up applications to 3,786 employers in Sweden, 13 kinds of job. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1257/aer.104.3.1014">DOI</a> <a href="https://docs.iza.org/dp6235.pdf">Publisher</a></span></li>
+<li id="src-farber-2016"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Silverman, Dan and von Wachter, Till (2016). Determinants of Callbacks to Job Applications: An Audit Study. <i>American Economic Review 106(5), 314–318.</i> Open copy, NBER working paper 21689. About 12,000 made-up applications (by our count of its four rounds) from college-educated women to office support jobs in 8 US cities, 2012–2014. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1257/aer.p20161010">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w21689/w21689.pdf">Open copy</a></span></li>
+<li id="src-farber-2019"><b class="evidence">Big study (thousands of real applications)</b> Farber, Henry S., Herbst, Chris M., Silverman, Dan and von Wachter, Till (2019). Whom Do Employers Want? The Role of Recent Employment and Unemployment Status and Age. <i>Journal of Labor Economics 37(2), 323–349.</i> Open copy, NBER working paper 24605. 8,488 made-up applications to 2,122 US job postings. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1086/700184">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w24605/w24605.pdf">Open copy</a></span></li>
+<li id="src-fuller-2021"><b class="evidence">Survey</b> Fuller, Joseph B., Raman, Manjari, Sage-Gavin, Eva and Hines, Kristen (2021). Hidden Workers: Untapped Talent. <i>Harvard Business School and Accenture.</i> 2,275 executives in the US, UK and Germany, January-February 2020; answers are what executives said, not measured. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://web.archive.org/web/20250105040136/https://www.hbs.edu/managing-the-future-of-work/Documents/research/hiddenworkers09032021.pdf">Publisher</a></span></li>
+<li id="src-gibbons-katz-1991"><b class="evidence">Real records, no experiment (a link, not proof of cause)</b> Gibbons, Robert and Katz, Lawrence F. (1991). Layoffs and Lemons. <i>Journal of Labor Economics 9(4), 351–380.</i> Open copy, NBER working paper 2968. US government survey of workers who lost jobs, January 1984 and 1986; men aged 20–61 who lost full-time jobs. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1086/298273">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w2968/w2968.pdf">Open copy</a></span></li>
+<li id="src-hireright-2025"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). HireRight Releases 2025 Global Benchmark Report. Over 1,000 HR, risk and hiring staff worldwide, February-March 2025; run by a background-check company; question wording not published. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://hireright.com/company/newsroom/hireright-releases-2025-global-benchmark-report">Publisher</a></span></li>
+<li id="src-hireright-2025-sept"><b class="evidence">Survey by a company that sells the service</b> HireRight (2025). Identity Fraud and Candidate Discrepancies Remain Key Concerns for Employers, Finds HireRight’s 2025 Global Benchmark Report. September 15 2025 release on the same survey (over 1,000 HR, risk and hiring staff worldwide); regional figures given for Asia-Pacific and Europe, Middle East and Africa only. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://www.hireright.com/company/newsroom/identity-fraud-and-candidate-discrepancies-remain-key-concerns-for-employers">Publisher</a></span></li>
+<li id="src-kristal-2023"><b class="evidence">Big study (thousands of real applications)</b> Kristal, Ariella S., Nicks, Leanne, Gloor, Jamie L. and Hauser, Oliver P. (2023). Reducing discrimination against job seekers with and without employment gaps. <i>Nature Human Behaviour 7, 211–218.</i> Open copy on PubMed Central. 9,022 made-up applications to real UK job ads, plan registered in advance. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1038/s41562-022-01485-6">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC7614241/">Open copy</a></span></li>
+<li id="src-kroft-2013"><b class="evidence">Big study (thousands of real applications)</b> Kroft, Kory, Lange, Fabian and Notowidigdo, Matthew J. (2013). Duration Dependence and Labor Market Conditions: Evidence from a Field Experiment. <i>Quarterly Journal of Economics 128(3), 1123–1167.</i> Open copy, NBER working paper 18387. About 12,000 made-up resumes sent to job ads in 100 US cities. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1093/qje/qjt015">DOI</a> <a href="https://www.nber.org/system/files/working_papers/w18387/w18387.pdf">Open copy</a></span></li>
+<li id="src-namingit-2021"><b class="evidence">Big study (thousands of real applications)</b> Namingit, Sheryll, Blankenau, William and Schwab, Benjamin (2021). Sick and tell: A field experiment analyzing the effects of an illness-related employment gap on the callback rate. <i>Journal of Economic Behavior &amp; Organization 185, 865–882 (full text paywalled; published abstract read on RePEc).</i> 3,771 made-up resumes sent to 1,257 US sales, office and accounting assistant jobs; the three rates are from the authors’ open 2018 conference abstract, gap length from the AEA trial registry. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1016/j.jebo.2020.09.033">DOI</a> <a href="https://ideas.repec.org/a/eee/jeborg/v185y2021icp865-882.html">Publisher</a></span></li>
+<li id="src-nunley-2017"><b class="evidence">Big study (thousands of real applications)</b> Nunley, John M., Pugh, Adam, Romero, Nicholas and Seals, R. Alan (2017). The Effects of Unemployment and Underemployment on Employment Opportunities: Results from a Correspondence Audit of the Labor Market for College Graduates. <i>ILR Review 70(3), 642–669.</i> Open copy, Auburn University working paper AUWP 2014-04. About 9,400 made-up resumes from recent college graduates to business jobs in 7 US cities, January-July 2013; figures read in the 2014 working-paper copy; underemployment figure matches the published abstract (30%). Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1177/0019793916654686">DOI</a> <a href="https://cla.auburn.edu/econwp/Archives/2014/2014-04.pdf">Publisher</a></span></li>
+<li id="src-pedulla-2016"><b class="evidence">Small study (real applications)</b> Pedulla, David S. (2016). Penalized or Protected? Gender and the Consequences of Nonstandard and Mismatched Employment Histories. <i>American Sociological Review 81(2), 262–289.</i> Open copy on PubMed Central. 2,420 made-up applications to 1,210 job openings in five US cities, November 2012-June 2013. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1177/0003122416630982">DOI</a> <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC4864988/">Open copy</a></span></li>
+<li id="src-ada-title-i"><b class="evidence">Law</b> US Equal Employment Opportunity Commission (1990). Titles I and V of the Americans with Disabilities Act of 1990 (ADA). The statute text; Title I covers employers with 15 or more employees. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://www.eeoc.gov/statutes/titles-i-and-v-americans-disabilities-act-1990-ada">Publisher</a></span></li>
+<li id="src-eeoc-ada-preemployment"><b class="evidence">Law</b> US Equal Employment Opportunity Commission (1995). Enforcement Guidance: Preemployment Disability-Related Questions and Medical Examinations. The agency’s guidance on the Americans with Disabilities Act before a job offer. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://www.eeoc.gov/laws/guidance/enforcement-guidance-preemployment-disability-related-questions-and-medical">Publisher</a></span></li>
+<li id="src-weisshaar-2018"><b class="evidence">Big study (thousands of real applications)</b> Weisshaar, Katherine (2018). From Opt Out to Blocked Out: The Challenges for Labor Market Re-entry after Family-Related Employment Lapses. <i>American Sociological Review 83(1), 34–60 (read in an Internet Archive copy of the journal page).</i> 3,407 made-up applications from parents to professional and managerial jobs in 50 US metro areas, August 2015-January 2016; archive snapshot of August 2021. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1177/0003122417752355">DOI</a> <a href="https://web.archive.org/web/20210803042055/https://journals.sagepub.com/doi/full/10.1177/0003122417752355">Publisher</a></span></li>
+<li id="src-weisshaar-2021"><b class="evidence">Lab test (not real hiring)</b> Weisshaar, Katherine (2021). Employment Lapses and Subsequent Hiring Disadvantages: An Experimental Approach Examining Types of Discrimination and Mechanisms. <i>Socius 7.</i> Open copy, University of North Carolina library. 2,000 US adults choosing between made-up job applicants, March and June 2015; not hiring staff. Checked <time datetime="2026-10-04">October 4, 2026</time>. <span class="src-links"><a href="https://doi.org/10.1177/23780231211019861">DOI</a> <a href="https://doi.org/10.17615/bj2t-yr59">Publisher</a></span></li>
 </ol>
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
