@@ -220,13 +220,16 @@ def graduation_label(school: dict, today: date) -> str:
     return f"Expected {month_label(end)}" if end else "In progress"
 
 
-def education_entry(school: dict, today: date | None = None) -> dict:
+def education_entry(school: dict, today: date | None = None, span: bool = False) -> dict:
     """School on its own heading line, degree line under it: the same two-line shape as a job,
     so a parser splits institution from degree instead of reading one line as the school name.
     GPA as the transcript gives it; relevant courses as one line under it, the way career centres
     lay a student's page out."""
     # hide_year: the user's choice to leave an old graduation year off; the degree still shows
     year = graduation_label(school, today or date.today())
+    # span: its months explain a break between jobs, so the start shows (schema.closes_gap)
+    if span and year:
+        year = f"{month_label(school['start'], years=schema.year_only(school.get('end') or ''))} - {year}"
     degree = ", ".join(p for p in (degree_name(school["degree"]), school.get("field")) if p)
     gpa = school.get("gpa") and f"GPA {school['gpa']}"
     courses = school.get("coursework") or []
@@ -256,7 +259,9 @@ def page_model(master: dict, today: date | None = None) -> dict:
             {"label": g["group"], "text": ", ".join(g["items"])} for g in master["skills"]
         ]})
     if master.get("education"):
-        education = {"title": "Education", "entries": [education_entry(s, today) for s in master["education"]]}
+        day = today or date.today()
+        education = {"title": "Education", "entries": [education_entry(s, day, schema.closes_gap(master, s, day))
+                                                       for s in master["education"]]}
         if education_first(master, today or date.today()):
             sections.insert(0, education)
         else:

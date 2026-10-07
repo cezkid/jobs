@@ -271,6 +271,16 @@ def employment_gaps(master: dict, today: date) -> list[dict]:
     return gaps
 
 
+def closes_gap(master: dict, school: dict, today: date) -> bool:
+    """This school's months fill a break between jobs the page would otherwise show: its start
+    then belongs on the page too, or the reader still sees the hole the program no longer flags."""
+    if not school.get("start") or school.get("hide_year"):
+        return False
+    alone = {**master, "education": [s for s in master.get("education") or [] if s is not school]}
+    return len(employment_gaps(alone, today)) > len(employment_gaps(master, today)) or \
+        sum(g["months"] for g in employment_gaps(alone, today)) > sum(g["months"] for g in employment_gaps(master, today))
+
+
 def uncovered(low: int, high: int, spans: list[tuple[int, int]]) -> list[tuple[int, int]]:
     """Stretches of months low..high no span covers."""
     out = []

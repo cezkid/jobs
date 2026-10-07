@@ -192,3 +192,12 @@ def test_expected_may_2027_in_a_tailored_summary_is_the_users_own_fact(student):
     model = render.page_model(student, TODAY)
     model["summary"] = "Statistics student, expected May 2027, GPA 3.62; Python, SQL and Tableau"
     assert "unresolved-entity" not in {f.rule for f in lint.lint(model, student)}
+
+
+def test_school_dates_print_when_they_explain_a_break_between_jobs(student):
+    # two summer internships with school between: the program no longer flags it, so the page shows why
+    intern = student["roles"][0]
+    student["roles"] = [intern, {**intern, "start": "2024-06", "end": "2024-08"}]
+    assert education(student)["entries"][0]["subline"].endswith("| Aug 2023 - Expected May 2027")
+    # no break to explain (campus job all through): the usual graduation date alone
+    assert education(schema.load(STUDENT))["entries"][0]["subline"].endswith("| Expected May 2027")
