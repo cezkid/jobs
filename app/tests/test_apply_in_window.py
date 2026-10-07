@@ -1105,7 +1105,7 @@ def test_in_window_off_by_default_fill_stays_in_chrome(tmp_path, monkeypatch, ca
     assert capsys.readouterr().out.endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
 
 
-@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever", "JazzHR", "Workable", "BambooHR"])
+@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR"])
 def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, capsys, name):
     opened = fill_setup(tmp_path, monkeypatch, name)
     monkeypatch.setattr(form.sys, "argv", ["form.py", "fill", "7", "--in-window"])
@@ -1113,20 +1113,30 @@ def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, ca
     out = capsys.readouterr().out
     assert opened == ["window"] and "  [ok] First Name\n" in out
     said = "The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
-    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name in ("Lever", "JazzHR", "Workable", "BambooHR") else ""))
+    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name in ("Lever", "JazzHR", "BambooHR") else ""))
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
-    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever", "JazzHR", "Workable", "BambooHR", oracle.NAME, icims.NAME,
+    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", oracle.NAME, icims.NAME,
                               paylocity.NAME)
     # owner 2026-10-07 (plan-k8n.20): these multi-page systems stay in Chrome
     assert not {smartrecruiters.NAME, adp.NAME, paycom.NAME} & set(window.SYSTEMS)
     opened = fill_setup(tmp_path, monkeypatch, smartrecruiters.NAME)
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
-    assert str(stop.value) == ("in the window: Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR, Oracle Recruiting Cloud, "
+    assert str(stop.value) == ("in the window: Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle Recruiting Cloud, "
                                "iCIMS, Paylocity only for now - run fill without --in-window")
     assert opened == []
+
+
+def test_in_window_workable_refused_plainly(tmp_path, monkeypatch):
+    # owner 2026-10-07 (plan-k8n.34): Submit failed 2 of 2 from the window, went through in Chrome
+    assert "Workable" not in window.SYSTEMS and "Workable" not in window.AT_SUBMIT
+    opened = fill_setup(tmp_path, monkeypatch, "Workable")
+    with pytest.raises(SystemExit) as stop:
+        form.fill("7", in_window=True)
+    assert str(stop.value) == f"not in the window: Workable - {window.REFUSED['Workable']}; run fill without --in-window"
+    assert "2 of 2" in window.REFUSED["Workable"] and opened == []
 
 
 @pytest.mark.parametrize("module", [oracle, icims, paylocity])

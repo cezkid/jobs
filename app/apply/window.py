@@ -1,7 +1,8 @@
 """Trial, off by default (plan-29g.9): fill a form in a tab of the Job Finder window instead of Chrome -
-`apply-form fill <job> --in-window`, Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR + the multi-page Oracle,
-iCIMS, Paylocity (owner's yes for Ashby + Lever 2026-10-05, plan-nko.7, plan-nko.14; JazzHR + Workable 2026-10-06,
-plan-k8n.5, plan-k8n.8; BambooHR 2026-10-07, plan-k8n.11; Oracle, iCIMS + Paylocity 2026-10-07, plan-k8n.20). Route 2 of app/docs/apply/vscode-browser.md: the
+`apply-form fill <job> --in-window`, Greenhouse, Ashby, Lever, JazzHR, BambooHR + the multi-page Oracle,
+iCIMS, Paylocity (owner's yes for Ashby + Lever 2026-10-05, plan-nko.7, plan-nko.14; JazzHR 2026-10-06, plan-k8n.5;
+BambooHR 2026-10-07, plan-k8n.11; Oracle, iCIMS + Paylocity 2026-10-07, plan-k8n.20). Workable pulled 2026-10-07
+(owner, plan-k8n.34): Submit failed 2 of 2 in the window, went through in Chrome. Route 2 of app/docs/apply/vscode-browser.md: the
 window's extension attaches VS Code's JavaScript debugger to the tab and hands back its CDP proxy;
 Playwright can't use that proxy (one page, no browser), so Page + Locator below speak CDP and cover
 only what greenhouse.py, ashby.py, lever.py, jazzhr.py, workable.py, bamboohr.py, oracle.py, icims.py, paylocity.py
@@ -28,9 +29,10 @@ from pathlib import Path
 
 from apply.cdp import CDP, Closed, ScriptError
 
-SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR", "Workable", "BambooHR", "Oracle Recruiting Cloud", "iCIMS", "Paylocity")
+SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", "Oracle Recruiting Cloud", "iCIMS", "Paylocity")
 # never in the window, whatever SYSTEMS says: why, in plain words
-REFUSED = {"UKG": "its sign-in lives in Job Finder's Chrome - a tab in the window isn't signed in"}
+REFUSED = {"UKG": "its sign-in lives in Job Finder's Chrome - a tab in the window isn't signed in",
+           "Workable": "Submit didn't go through from the window (2 of 2 tries, 2026-10-07) - in Chrome it did"}
 ATTACH, DETACH = "attach-form", "detach-form"
 # holding page: the window's open-link wait + the tab's first request
 OPEN_WAIT = 20
@@ -49,8 +51,6 @@ AT_SUBMIT = {"Lever": "Lever's hCaptcha check at Submit is untested in the windo
                       "fill it again without --in-window (Chrome)",
              "JazzHR": "JazzHR's Human Check at Submit is untested in the window - if it doesn't show or Submit doesn't "
                        "go through, fill it again without --in-window (Chrome)",
-             "Workable": "Workable's Turnstile check at Submit and the resume upload are untested in the window - if the "
-                         "resume doesn't show as attached or Submit doesn't go through, fill it again without --in-window (Chrome)",
              "BambooHR": "BambooHR's reCAPTCHA tick-box at Submit and the resume upload are untested in the window - if "
                          "the resume doesn't show as attached, the tick-box doesn't show or take a click, or Submit doesn't "
                          "go through, fill it again without --in-window (Chrome)",

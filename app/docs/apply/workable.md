@@ -71,8 +71,12 @@ No captcha frame at load (0 of 4). Submit button: unmeasured (controls only). Ne
 Cookie dialog (window, 2 tenants, 2026-10-06): `[data-ui=cookie-consent]` `role=dialog` `aria-modal` covers the
 whole form on load - a click at a list's middle meets it (3 of 3). Likely what "a plain click times out (covered)"
 above is; Chrome unmeasured. Typing focused by script still fills. `vscode-browser.md` "Workable - route 2".
-Offered there since the owner's yes 2026-10-06 (plan-k8n.8): `fill --in-window`, off by default; its note says
-Turnstile at Submit + the resume upload are untested there.
+Offered there from the owner's yes 2026-10-06 (plan-k8n.8) to 2026-10-07: `fill --in-window`, off by default.
+Pulled 2026-10-07 (owner, plan-k8n.34): Submit failed 2 of 2 in the window, 2026-10-07 - owner's real application
+(1 job), filled 7/8 + read back, resume uploaded (file name shown) though the filler said ASK; Submit -> "Something
+went wrong" twice (2nd after Workable's own resume autofill), no confirmation email. Same job in Job Finder's Chrome:
+Submit went through after a "verify you are human" check (1 of 1). Points at the window, not the form or answers.
+`fill --in-window` now refused in one line (`window.REFUSED`); Chrome only.
 
 ## Pages
 

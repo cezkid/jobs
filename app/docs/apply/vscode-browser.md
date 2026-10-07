@@ -223,7 +223,18 @@ Readings:
 - Cookie dialog = the employer's own; the user answers it.
 
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
-urlFilter). In `window.SYSTEMS` since the owner's yes 2026-10-06 (plan-k8n.8).
+urlFilter). In `window.SYSTEMS` from the owner's yes 2026-10-06 (plan-k8n.8) to 2026-10-07: pulled, Submit failed
+2 of 2 in the window ("Workable Submit in the window" below).
+
+## Workable Submit in the window (plan-k8n.34)
+
+Submit failed 2 of 2 in the window, 2026-10-07 - owner's real application (1 job, `fill --in-window`): filled 7/8 +
+read back, resume uploaded; Submit -> Workable's "Something went wrong" twice (2nd after its own resume autofill), no
+confirmation email. Same job in Job Finder's Chrome (no debugger): Submit went through after a "verify you are human"
+check, 1 of 1. The fill printed "the window may still be holding the form tab" = `let_go` got no clean detach, so
+js-debug's session was likely still on the tab at Submit. Suspects: Turnstile at Submit refusing a tab w/ a debugger
+attached, or the leftover session itself - unmeasured (never Submit while measuring). JazzHR's reCAPTCHA passed in
+the window the same day (1 of 1, w/ a picture puzzle). Workable pulled from `window.SYSTEMS` (owner, "Pull it").
 
 ## BambooHR - route 2 (plan-k8n.10)
 
@@ -491,9 +502,9 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR, Oracle, iCIMS + Paylocity only, off by default (plan-29g.9,
-Ashby plan-nko.8, Lever plan-nko.15, JazzHR plan-k8n.5, Workable plan-k8n.8, BambooHR plan-k8n.11, Oracle + iCIMS +
-Paylocity plan-k8n.20).
+window, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle, iCIMS + Paylocity only, off by default (plan-29g.9,
+Ashby plan-nko.8, Lever plan-nko.15, JazzHR plan-k8n.5, BambooHR plan-k8n.11, Oracle + iCIMS + Paylocity plan-k8n.20;
+Workable plan-k8n.8, pulled plan-k8n.34).
 
 ## Owner decision (plan-29g.8)
 
@@ -513,6 +524,10 @@ Submit + the resume upload in the tab unmeasured (upload goes to Workable's stor
 real application, plan-k8n.9) => `AT_SUBMIT` note + Chrome fallback. Workable = 46 open jobs / 28 employers on the
 owner's list.
 
+2026-10-07 (plan-k8n.34): Workable pulled ("Pull it", owner) - Submit failed 2 of 2 in the window on the owner's
+real application, 1 of 1 ok in Chrome (same job). Refused in one line (`window.REFUSED`) until a fix passes a real
+Workable Submit in the window.
+
 2026-10-07 (plan-k8n.11): BambooHR added - one page, no frames, no `debugger;` pauses, adapter parity passes with no
 new code (plan-k8n.10). Gaps: the resume upload (sent on choice; blocked in the measure, so only the page's failure
 banner seen) + the reCAPTCHA v2 tick-box at Submit (frame blank under the block), both unmeasured unblocked in the
@@ -529,16 +544,17 @@ box never shown in the window under the block, unmeasured), SmartRecruiters (Dat
 
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR, Oracle,
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle,
 iCIMS + Paylocity only (owner's yes for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5,
-Workable 2026-10-06 plan-k8n.8, BambooHR 2026-10-07 plan-k8n.11, Oracle + iCIMS + Paylocity 2026-10-07 plan-k8n.20;
-other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+BambooHR 2026-10-07 plan-k8n.11, Oracle + iCIMS + Paylocity 2026-10-07 plan-k8n.20; Workable 2026-10-06 plan-k8n.8,
+pulled 2026-10-07 plan-k8n.34; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 Multi-page form (`PER_PAGE`, `form.fill` passes `match`): no longer refused (plan-k8n.15, owner's pick (c)) - one
 holder process keeps the user's tab between runs, see "Built (c)" below. Multi-page systems offered in the window
 (`window.SYSTEMS`): Oracle, iCIMS + Paylocity (plan-k8n.20). UKG refused in the window (`window.REFUSED`, `fill` +
 `prepare --in-window`): its sign-in lives in Job Finder's Chrome, a window tab isn't signed in - one plain line + the
-Chrome way. `prepare` takes `--in-window` too; next-step lines keep the flag.
+Chrome way. Workable refused the same way since 2026-10-07: Submit failed 2 of 2 from the window (plan-k8n.34).
+`prepare` takes `--in-window` too; next-step lines keep the flag.
 
 - Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
   the window opens it (plain open request), then `attach-form` w/ that link as urlFilter. Never the
@@ -588,7 +604,7 @@ a second fill changes nothing, attestation tick left to the applicant in both. A
 (no wait, nothing there = False, Playwright's shown rule), `select_option(value=)` (Playwright's signature:
 value or `label=`), each checked against Playwright's on that page. The fill says the Human Check at Submit is
 untested in the window (`AT_SUBMIT`). Unmeasured: JazzHR filled live in the window tab; Human Check unblocked there.
-Workable (plan-k8n.7, 2026-10-06; in `--in-window` since the owner's yes, plan-k8n.8): `workable.fill` + `holds` +
+Workable (plan-k8n.7, 2026-10-06; in `--in-window` from the owner's yes, plan-k8n.8, to 2026-10-07, plan-k8n.34): `workable.fill` + `holds` +
 `form.fill_page` on `fixtures/dom/workable-form.html` (hand-built from measured widgets: radios, ticks, lists, the
 resume box + a storage stand-in) + the cookie dialog as measured over the whole form, through Playwright AND
 `window.Page`: same report, same read-back (boxes, `[role=radio]` picks, ticks, list picks, stored file's name), a
@@ -598,8 +614,8 @@ Added: `click(force=)` + Playwright's hit check (waits until nothing else sits o
 TimeoutError; force clicks whatever is on top - before, a covered click landed on the overlay silently),
 `dispatch_event` (MouseEvent etc., bubbles + cancelable + composed, as Playwright), `page.keyboard.press`,
 ArrowDown + Space by name, `page.evaluate` (a function called w/ its arg, else evaluated), `:visible` closing a
-selector part; each checked against Playwright's on that page. The fill says Turnstile at Submit + the resume upload
-are untested in the window (`AT_SUBMIT`). Unmeasured: Workable filled live in the window tab; its upload + Turnstile there.
+selector part; each checked against Playwright's on that page. Live (owner's real application, 2026-10-07): filled
+7/8 + read back, resume uploaded; Submit failed 2 of 2 in the window - pulled (plan-k8n.34).
 Generic reader + the rest of the fillers' calls (plan-k8n.14, 2026-10-06; `window.SYSTEMS` unchanged):
 `fixtures/dom/frames-shadow.html` (same-site frame w/ a list, another site's frame, open + closed shadow roots,
 `.form-group`, xpath shapes) through Playwright AND `window.Page` - `dom.snapshot` equal, `dom.fill` same reports +
