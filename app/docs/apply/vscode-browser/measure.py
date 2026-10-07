@@ -36,6 +36,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            a system with APPLY (BambooHR): that button clicked once (real click) before READY is read (plan-k8n.10)
            Oracle's email box by name (never the honeypot text box); no box in the page -> the email box in a
            same-site frame (iCIMS ?in_iframe=1) through contentDocument, focused by script + Input.insertText (plan-k8n.16)
+           boxes looked up through open shadow roots too; SmartRecruiters' resume box = its FILES, the deep page text
+           read after the upload (name shown, its own error words) (plan-k8n.17)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -329,8 +331,16 @@ from urllib.parse import urlsplit  # noqa: E402
 QUIET = {"suppressDebugToolbar": True, "suppressDebugStatusbar": True, "suppressDebugView": True}
 
 
+# document first, then each open shadow root in page order: SmartRecruiters' boxes live in them (plan-k8n.17);
+# a box in the document itself is found as before
+DEEP_Q = ("(s => { const f = r => { const hit = r.querySelector(s); if (hit) return hit;"
+          " for (const e of r.querySelectorAll('*')) if (e.shadowRoot) { const h = f(e.shadowRoot); if (h) return h; }"
+          " return null; }; return f(document); })")
+
+
 def q(sel):
-    return f"document.querySelector({json.dumps(sel)})"
+    """An element by selector (shadow roots too), or 'js:<expression>' as is."""
+    return sel[3:] if sel.startswith("js:") else f"{DEEP_Q}({json.dumps(sel)})"
 
 
 # a framework's own setter sees script-set values only through the prototype's setter + events
@@ -1280,7 +1290,7 @@ def raw(result):
         result["marks"] = quietly(lambda: c.evaluate(MARKS))
         fill = result["fill"] = {"resume": dummy}
         box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
-                                'input[name^="primary-email"]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+                                'input[name^="primary-email"]', '#first-name-input', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
             block.step = "type"
@@ -1320,7 +1330,10 @@ def raw(result):
                                                                 f"hcaptcha: !!d.querySelector('.h-captcha, [data-hcaptcha-widget-id]'), "
                                                                 f"tick: !!d.querySelector('#accept_gdpr'), "
                                                                 f"boxes: d.querySelectorAll('input:not([type=hidden]), select, textarea').length}} }})()"))
-        fbox = next((s for s in ('[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        # SmartRecruiters: its resume field = the file box after the name (FILES), never the parsing box above it
+        files = (f"js:({system.FILES})()",) if hasattr(system, "FILES") else ()
+        fbox = next((s for s in (*files, '[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file]')
+                     if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["fileBox"] = fbox
         result["widgets"] = quietly(lambda: c.evaluate(WIDGETS))
         fill["fileChosen"] = bool(fbox) and os.environ.get("JF_NO_FILE") != "1"
@@ -1331,6 +1344,10 @@ def raw(result):
             fill["nameShown"] = quietly(lambda: c.evaluate(f"document.body.innerText.includes({json.dumps(RESUME.name)})"))
             fill["failedLine"] = quietly(lambda: c.evaluate("/failed to upload/i.test(document.body.innerText)"))
             fill["verdict"] = quietly(lambda: c.evaluate(VERDICT))
+            if deep := getattr(system, "DEEP", None):  # names + errors drawn in shadow roots (SmartRecruiters)
+                text = quietly(lambda: c.evaluate(f"({deep})(document.body)")) or ""
+                fill["nameShownDeep"] = RESUME.name in text
+                fill["pageErrors"] = system.UPLOAD_ERRORS.findall(text) if hasattr(system, "UPLOAD_ERRORS") else None
             fill["fileHeld"] = quietly(lambda: c.evaluate(f"({q(fbox)}.files[0] || {{}}).name || ''") == RESUME.name)
             fill["sentOnChoice"] = [{"method": b["method"], "url": short(b["url"]), "type": b["type"],
                                      "contentType": b.get("contentType"), "body": b.get("body")}

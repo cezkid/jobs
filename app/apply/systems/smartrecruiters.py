@@ -5,8 +5,10 @@ No public question list: the form definition is fetched by the page with an inte
 (plain HTTP -> 403), the documented apply API wants a partner key. So `read` takes the form off
 the tab. Measured facts and why each rule exists: app/docs/apply/smartrecruiters.md.
 """
+import contextlib
 import functools
 import re
+import time
 from pathlib import Path
 
 import httpx
@@ -35,6 +37,15 @@ PAGE_ONE = "Contact and resume"
 PAGE_LATER = "Screening questions"
 RESUME = "resume"
 COUNTRY = "phone-country"
+# SmartRecruiters' own words for a failed upload (its form app's English strings, plain GET
+# /oneclick-ui/i18n/en, 2026-10-06; where the page shows them: unmeasured, every upload blocked)
+UPLOAD_ERRORS = re.compile(r"Cannot upload (?:resume|file)\. Please try again in a while\.|"
+                           r"Unfortunately, this file format is not supported\.|"
+                           r"File size cannot be empty nor bigger than [\d.]+ ?MB\.|An error occurred, please try again later\.|"
+                           r"Please attach your resume to complete this application\.?")
+# a chosen file's name, as the resume field shows it
+FILE_SHOWN = re.compile(r"[^\s/\\]+\.(?:pdf|docx?|odt|rtf|txt)\b", re.I)
+IDLE_WAIT_MS, SHOWN_WAIT_MS, ERROR_WAIT_MS = 15000, 20000, 2000
 # boxes on page 1 that are never questions: the photo slot (no photo - AGENTS.md), the phone
 # widget's own country search (filled by COUNTRY)
 SKIP_LABELS = ("upload profile image", "search by country/region or code")
@@ -105,10 +116,22 @@ def publication(url: str) -> str | None:
 
 
 def is_closed(url: str) -> bool:
-    """The record says inactive (a closed posting's own page wording: unmeasured, 2026-10-03)."""
+    """The record says inactive = SmartRecruiters' own posting page says "this job has expired"
+    (15 of 15 links, 2026-10-06). A form app link carries no record."""
     if FORM_URL.match(url.strip()):
         return False
     return (record(url) or {}).get("active") is False
+
+
+def closed(url: str) -> str | None:
+    """Why the form isn't there (form.closed, when the page shows no form and no closed words):
+    None = the record says active."""
+    if FORM_URL.match(url.strip()):
+        return "can't tell if the posting is open - a form link carries no posting record"
+    got = record(url)
+    if got is None:
+        return "can't tell if the posting is open - SmartRecruiters didn't answer"
+    return "SmartRecruiters says the posting has expired - it may have closed" if got.get("active") is False else None
 
 
 def on_tab(url: str, tab_url: str) -> bool:
@@ -153,7 +176,7 @@ def read(page) -> list[dict]:
 
 def questions(url: str) -> list[dict]:
     if is_closed(url):
-        raise ValueError("posting not active - it may have closed")
+        raise ValueError(closed(url))
     with browser.page_at(application_url(url), match=lambda tab: on_tab(url, tab)) as page:
         return read(page)
 
@@ -187,19 +210,36 @@ def page_text(page) -> str:
     return page.evaluate(f"() => ({DEEP})(document.body)")
 
 
+def errors_shown(page) -> list[str]:
+    return UPLOAD_ERRORS.findall(page_text(page))
+
+
 def put_file(page, path: str) -> str:
+    """Page idle first (as Greenhouse, Ashby), then the file chosen in the resume field - it goes to
+    SmartRecruiters at once (smartrecruiters.md). Ok = its name shows for ERROR_WAIT_MS with no new
+    error in SmartRecruiters' own words; one of those -> FAIL with them; nothing either way -> ASK."""
+    with contextlib.suppress(Exception):  # a page that keeps polling never goes idle: the read decides
+        page.wait_for_load_state("networkidle", timeout=IDLE_WAIT_MS)
     box = page.evaluate_handle(FILES).as_element()
     if box is None:
         return f"{LATER} on another page of the form" if not page.locator("#first-name-input").count() \
             else "ASK resume box not found - upload it by hand"
+    before = errors_shown(page)
     # never the box above the name: that one reads the file and fills the boxes from it
     box.set_input_files(path)
-    name = Path(path).name
-    for _ in range(40):
-        if name in page_text(page):
+    name, since = Path(path).name, None
+    deadline = time.monotonic() + SHOWN_WAIT_MS / 1000
+    while time.monotonic() < deadline:
+        if said := [e for e in errors_shown(page) if e not in before]:
+            return f"FAIL the page says '{said[0]}' - choose the file again on the page, or check the Resume box"
+        if name not in page_text(page):
+            since = None
+        elif since is None:
+            since = time.monotonic()
+        elif time.monotonic() - since >= ERROR_WAIT_MS / 1000:
             return "ok"
-        page.wait_for_timeout(500)
-    return "ASK upload not confirmed on page - check the resume box"
+        page.wait_for_timeout(250)
+    return "ASK upload not confirmed on page - check the Resume box"
 
 
 def menu(box, pick: int | None = None) -> dict:
@@ -272,6 +312,25 @@ def put_country(page, value: str) -> str:
         return f"ASK no country '{want}' on the list ({offered(labels)}) - pick it by hand"
     shown = country_shown(button)
     return "ok" if shown.casefold() == chosen.casefold() else f"FAIL country shows '{shown}'"
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck), each
+    kind as smartrecruiters.md "Read back (2026-10)" records it: the phone's country by the name its
+    button shows, City by the place its box shows, the resume by a file name shown, every other box by
+    dom.holds (its snapshot walks the shadow roots). Nothing to read = False."""
+    if q["id"] == RESUME:
+        return bool(FILE_SHOWN.search(page_text(page)))
+    if q["id"] == COUNTRY:
+        button = page.get_by_role("combobox", name="Country code").first
+        return bool(button.count()) and country_shown(button).casefold() == str(q["answer"]).strip().casefold()
+    if q["kind"] == "location":
+        found = dom.find(page, q["id"])
+        if found is None:
+            return False
+        want = str(q["answer"]).split(",")[0].strip().casefold()
+        return bool(want) and found[2][0].input_value().split(",")[0].strip().casefold() == want
+    return dom.holds(page, q)
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:

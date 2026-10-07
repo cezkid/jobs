@@ -325,6 +325,43 @@ Readings:
 
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab urlFilter).
 
+## SmartRecruiters - route 2 (plan-k8n.17)
+
+Same `measure.py raw`, level 3, no named read. Boxes now looked up through open shadow roots (name box
+`#first-name-input`; resume = the file box after it, `smartrecruiters.FILES`, never the parsing box above).
+Link = posting + `?oga=true` (302 to the form app, as the filler opens it). 2 employers (tenants A, B; record
+active + on the company's own list), 2026-10-06; page loads: 2 (one host for every employer; bead total 6 of 10).
+Numbers: [smartrecruiters-tenant-a.json](vscode-browser/smartrecruiters-tenant-a.json),
+[smartrecruiters-tenant-b.json](vscode-browser/smartrecruiters-tenant-b.json) (host, company, ids scrubbed - the
+shared host reads `jobs.<org>`: an earlier run recorded it as a tenant line, kept).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| 302 to the form app | yes | yes |
+| `READY` (`#first-name-input`) | **never** (40 s cap) | **never** |
+| What the tab got instead | **DataDome Device Check**: one other-site frame `geo.captcha-delivery.com/interstitial/` 828x465 in place of the form app - its document failed before load by the block => blank tab (`smartrecruiters-route2-tab.png`) | same |
+| Boxes / file boxes | 0 / 0 (nothing typed, no file chosen) | 0 / 0 |
+| Page writes (failed) | Cloudflare challenge `POST /cdn-cgi/challenge-platform/.../jsd/oneshot/...` | none past the frame |
+| `debugger;` pauses | 0 | 0 |
+| Frame targets | none | none |
+
+Same posting kind in Job Finder's own Chrome (apply-form measure, same block): headed - the form app drew
+(DataDome's `api-js.datadome.co/js/` POST failed, no device check); headless - the same device check
+(2026-10-06, `smartrecruiters.md`). So the window tab reads to DataDome as headless Chrome does: flagged on the
+first load, before any box exists.
+
+Readings:
+- Under the block the form never renders in the tab (2 of 2): nothing to fill, nothing to read back. Every
+  page-1 kind (`holds`, `put_file`, City, phone country) stays measured in Chrome + fixtures only.
+- Unblocked, the user would get DataDome's device check first - whether it passes by itself, asks for a slider
+  puzzle, or blocks the tab: unmeasured (its frame is another site's: the block fails it, and Claude couldn't
+  reach into it anyway - Local form, other-site frame). Why the tab is flagged (Electron build, debugger
+  attached, fresh storage): unmeasured.
+- Screening after Next = the user's own tab (`smartrecruiters.md` Pages) -> in the window it needs the
+  multi-page decision (F4, plan-k8n.20).
+- `window.SYSTEMS` unchanged: SmartRecruiters stays in Job Finder's own Chrome.
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any
