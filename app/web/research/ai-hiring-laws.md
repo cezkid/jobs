@@ -1,6 +1,6 @@
 ---
 title: "AI hiring laws in 2026: what employers must tell you"
-description: "New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow."
+description: "New York City and Illinois (AI video interviews) require AI notice; the EU, for fully automated decisions. Colorado, California and Connecticut follow."
 published: 2026-10-04
 modified: 2026-10-07
 status: published
@@ -21,7 +21,7 @@ uncited:
 **What the evidence says**
 
 - Legal in the US: we found no federal law banning AI resume screening, as of October 2026. Discrimination claims over it still go to court (Court record) [@mobley-2026-order].
-- Notice as of October 2026: New York City, EU (fully automated decisions). Illinois: notice to employees, rules not final. Colorado: start not settled. From 2027: California, Connecticut (Law) [@nyc-ll144; @il-pa-103-0804; @eu-gdpr; @co-sb26-189-fiscal; @ca-cppa-admt-2025; @ct-pa26-15].
+- Notice as of October 2026: New York City, EU (fully automated decisions). Illinois: consent first for AI-judged video interviews, since 2020; wider notice rules not final. Maryland: a signed waiver before face recognition in an interview, since 2020. Colorado: start not settled. From 2027: California, Connecticut (Law) [@nyc-ll144; @il-pa-101-0260; @md-ch446-2020; @il-pa-103-0804; @eu-gdpr; @co-sb26-189-fiscal; @ca-cppa-admt-2025; @ct-pa26-15].
 - Ask a person to look again: EU since 2018, for fully automated decisions; California from 2027, for some tools; Colorado once in force (start not settled), enforcement paused by a court (Law, Court record) [@eu-gdpr; @ca-cppa-admt-2025; @co-sb26-189; @xai-weiser-stay].
 - Little checking: New York City got 2 complaints in 2 years (Real records) [@nys-comptroller-2025].
 
@@ -42,6 +42,8 @@ Where you live or apply, what the law says, what to do - as of October 2026 (Law
 Where | What the law says | What to do
 New York City | Notice to candidates who live in the city, 10 business days before an AI tool is used; a yearly bias audit, its summary public [@nyc-ll144; @nyc-aedt-rule] | Look for the notice in the posting or careers page; ask in writing what data the tool uses
 Illinois | Notice to employees that AI is used; whether applicants get one, and how, is not final [@il-pa-103-0804] | Keep a copy of each notice and of what you sent
+Illinois, video interviews | For a job based in Illinois, AI may judge a recorded video interview only after notice, an explanation of how it works and your consent; the employer must delete your videos within 30 days if you ask [@il-pa-101-0260] | Before a recorded interview, look for the notice and consent request; ask for your videos to be deleted if you want
+Maryland | No face recognition to make a facial template in your interview unless you sign a waiver giving your consent [@md-ch446-2020] | Read any face-recognition waiver before you sign it
 Colorado | Notice, and a plain description of the system's role within 30 days of a decision against you; start not settled, enforcement paused by a court [@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay] | Once the law applies, ask for the description, your data and a human review
 California | From January 2027: notice before use; you may ask how the tool worked [@ca-cppa-admt-2025] | From January 2027, ask how a tool used your data; opt out or appeal to a person where offered
 Connecticut | From October 2027: notice in plain words, and written notice before a decision [@ct-pa26-15] | Keep a copy of each notice and of what you sent
@@ -62,6 +64,16 @@ Say you live in New York City and apply in October 2026 to an employer that scre
 As of October 2026, Illinois treats some AI use in hiring as a civil rights violation. The law covers AI used in recruiting, hiring and other job decisions. It bans AI that has the effect of discriminating against a protected group. Using ZIP codes as a stand-in for a protected group also counts. The law, Public Act 103-0804, took effect January 1, 2026 [@il-pa-103-0804, p. 20; @il-hb3773].
 
 The law also makes it a violation to fail to give notice "to an employee" that AI is used. Its definition of employee names only applicants for apprenticeships. It leaves the details to state rules: when notice is needed, how soon and how [@il-pa-103-0804, p. 20]. We found no final Illinois rule on it as of October 2026.
+
+### Illinois (video interviews)
+
+As of October 2026, Illinois' Artificial Intelligence Video Interview Act covers recorded video interviews that AI analyzes. Its notice and consent duties apply to jobs based in Illinois. Before the interview, the employer must tell you AI may be used, and explain how it works and what general types of traits it judges. The employer must also get your consent, and may not use the AI on applicants who did not consent. The employer may share your videos only with people needed to judge your fitness. If you ask, the employer must delete your videos within 30 days, and tell anyone it shared them with to delete theirs [@il-pa-101-0260, sections 5-15]. The act has been in force since January 1, 2020 [@il-pa-101-0260].
+
+Since January 1, 2022, the Illinois act also asks for data. An employer must report race and ethnicity data to the state each year if AI analysis of video interviews alone picks who gets an in-person interview [@il-pa-102-0047, section 20]. The act, with its 2022 addition, names no penalty and no agency that enforces it [@il-pa-101-0260; @il-pa-102-0047].
+
+### Maryland (face recognition in interviews)
+
+As of October 2026, a Maryland law limits face recognition in job interviews. An employer may not use a face recognition service to make a facial template during your interview unless you consent. A facial template is the pattern of your facial features the software extracts from images. You consent by signing a waiver. The waiver must state in plain words your name, the interview date, that you consent, and whether you read the waiver. The law has been in force since October 1, 2020. Maryland's law names no penalty and no agency that enforces it [@md-ch446-2020].
 
 ### Colorado (SB26-189)
 
@@ -144,6 +156,8 @@ Even among employers listing city jobs, few had posted either one.
 |---|---|---|---|---|---|
 | Local Law 144 | New York City | Yearly bias audit, public summary, notice 10 business days before use | Data used and its source, answered within 30 days; how to ask for another process | Enforced since July 2023 | [@nyc-ll144; @nyc-aedt-rule] |
 | Public Act 103-0804 | Illinois | Notice to employees that AI is used; no AI with discriminating effects; no ZIP code stand-ins | No request right in the text | In force since January 2026; notice rules not final | [@il-pa-103-0804] |
+| Artificial Intelligence Video Interview Act | Illinois | Before an AI-judged video interview: notice, how the AI works, your consent; share videos only to judge you; race and ethnicity data to the state if AI alone picks who gets an in-person interview | Deletion of your videos within 30 days | In force since January 2020; data reports since January 2022 | [@il-pa-101-0260; @il-pa-102-0047] |
+| Labor and Employment section 3-717 | Maryland | No face recognition to make a facial template in an interview without your signed waiver | No request right in the text | In force since October 2020 | [@md-ch446-2020] |
 | SB26-189 | Colorado | Notice; plain description of the system's role within 30 days after a decision against you | Your data; fix wrong data; human review and reconsideration | Start not settled: January 2027 or at signing, per a staff note; enforcement paused by a court | [@co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay] |
 | Privacy rules on automated decisions | California | Notice before use; opt-out or human appeal, except some hiring tools | How the tool worked and shaped the decision | Starts January 2027 | [@ca-cppa-admt-2025] |
 | Public Act 26-15 | Connecticut | Plain-words notice; written notice before a decision | No explanation or correction right in the text | Notice starts October 2027 | [@ct-pa26-15] |
@@ -159,6 +173,7 @@ Each row's last column links to the law or rule it summarizes.
 ## What we don't know
 
 - What an Illinois notice must say, and whether applicants get one. We found no final Illinois rule on it as of October 2026.
+- Whether anyone enforces Illinois' video interview act or Maryland's face-recognition law. Neither text names a penalty or an agency [@il-pa-101-0260; @md-ch446-2020].
 - When Colorado's law will be enforced, and whether it survives the federal challenge. The court has not ruled, as of October 2026 [@xai-weiser-stay].
 - What Colorado's 30-day description must contain. The Attorney General's rules on it are due by January 1, 2027 [@co-sb26-189].
 - How many employers use AI to screen resumes. No study found that counts it across employers.
@@ -169,6 +184,8 @@ Each row's last column links to the law or rule it summarizes.
 - Read the job posting and careers page for an AI notice. New York City allows notice there [@nyc-aedt-rule].
 - In New York City, ask in writing what data a tool uses. The employer has 30 days to answer [@nyc-aedt-rule].
 - In New York City, a missing audit or notice can be reported to the city's consumer agency [@nyc-ll144].
+- In Illinois, before a recorded interview that AI judges, look for the notice and consent request. You may ask for your videos to be deleted, and the employer has 30 days [@il-pa-101-0260].
+- In Maryland, read any face-recognition waiver before you sign it. Without your signed waiver, the employer may not use face recognition to make a facial template in your interview [@md-ch446-2020].
 - If an AI test or game does not work for you because of a disability, ask for an accommodation [@eeoc-ada-preemployment].
 - In the EU, ask for a person to review a fully automated rejection [@eu-gdpr].
 - In California from January 2027, ask how a tool used your data in the decision. Opt out, or appeal to a person, where offered [@ca-cppa-admt-2025].
@@ -188,6 +205,7 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 ## Changes
 
+- October 2026 - added Illinois' AI video interview law and Maryland's face-recognition interview law, both in force since 2020, to the evidence box, the table by place, the body, the summary table, What we don't know and What helps.
 - October 2026 - Colorado's start date now reads "not settled" in every line, matching the Colorado section. The summary table's heading is now a question.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
 - October 2026 - the line under the title now says the EU rule covers fully automated decisions only.
