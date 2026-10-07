@@ -23,6 +23,9 @@ first.) You never type commands or edit files.
 - **Light or dark:** use the switch at the top of Today, or say "dark mode"
 - **Leaving:** "Remove CEZ Job Finder" - turns off the morning check and clears sign-ins kept
   outside the folder; then you delete the folder
+- **Students:** "I'm looking for a summer internship" · "Add my GPA" · "Add a class project to my
+  resume" · "Add the club I'm treasurer of" · "I graduated" - internships, part-time jobs, your
+  first job and F-1 questions: **[For students](For%20students.md)**
 - **Bias:** worried about bias - your name, age or a break? Ask any time.
   **[Unfair hiring - what's known, what helps](Unfair%20hiring%20-%20what's%20known,%20what%20helps.md)**
 

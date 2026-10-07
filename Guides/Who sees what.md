@@ -27,6 +27,9 @@ and clears them. Then delete the folder.
 **AI training:** on a personal Claude, ChatGPT or GitHub Copilot plan, your chats may help train future AI
 unless you switch it off. How, and what it doesn't cover: **[Keep your chats out of AI training](Keep%20your%20chats%20out%20of%20AI%20training.md)**
 
+**A school AI account** (ChatGPT Edu, Claude for Education) belongs to your school: what its admins
+can see is up to your school.
+
 **If CEZ Job Finder itself breaks:** the AI can repair the program and asks before sharing that
 repair with its maker. Only the repaired program code is sent - never your resume, jobs,
 settings or anything personal.

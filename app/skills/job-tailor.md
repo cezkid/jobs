@@ -28,7 +28,8 @@ Never values / personal here (`AGENTS.md` #About me).
    - posting requires US citizenship or a green card and `citizen_or_permanent_resident` is
      false -> same: quote the line first. Unset -> ask once, save the answer.
    - `prepare` prints "minimum asks the resume details don't meet" (years asked vs dated jobs, a
-     degree level vs the highest listed) -> say each in plain words, quoting the posting, before
+     degree level vs the highest listed; for a student, a graduation window theirs misses, a degree
+     level they aren't studying for) -> say each in plain words, quoting the posting, before
      writing; ONE clickable question: Tailor anyway / Skip this job. Never say they'd be screened
      out - how firm a minimum is varies by employer; their call.
 2. `prepare` makes `My Jobs/1 To apply/N - Company - Title/` + task file (job already sent ->

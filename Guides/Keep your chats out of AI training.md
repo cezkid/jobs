@@ -29,14 +29,18 @@ Covers this chat in VS Code too.
 2. Find **Privacy**.
 3. Set **Allow GitHub to use my data for AI model training** to **Disabled**.
 
-Covers this chat in VS Code too. Copilot Student isn't used for training - nothing to do. GitHub
-may share your Copilot chats with Microsoft, its parent company.
+Covers this chat in VS Code too. Copilot Student isn't used for training - nothing to do. Moved up
+from Copilot Student to Copilot Pro? Pro is a personal plan: switch it off as above. GitHub may share
+your Copilot chats with Microsoft, its parent company.
 
 ## Work or school account?
 
 Claude Team or Enterprise, ChatGPT Business, Enterprise or Edu, Copilot Business or Enterprise:
 chats aren't used for training by default. Nothing to do. Same if you signed in to Claude or
 ChatGPT with a developer API key.
+
+A school account (ChatGPT Edu, Claude for Education) belongs to your school: what its admins can
+see is up to your school, and you may lose the account after you graduate.
 
 ## What the switch does and doesn't do
 
