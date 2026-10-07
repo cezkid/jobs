@@ -583,6 +583,57 @@ Readings:
 Route-2 costs otherwise as Greenhouse. `window.SYSTEMS` unchanged: Breezy fills in Job Finder's own Chrome until
 the owner decides (plan-k8n.40).
 
+## Teamtailor - route 2 (plan-k8n.38)
+
+Same `measure.py raw`, level 3, no named read. Box = `input[name="candidate[first_name]"]`, file = the drop box's own
+file box (`#upload_resume_field input[type=file]`, drawn after load), dummy PDF chosen; `raw` now reads Teamtailor's
+drop box after the choice (name, link, error words), the cookie notice (shown, where focus sits), the proof-of-work box,
+and sets the box by script with its events when typing left it empty. 3 employers (tenant A, B, C on its own domain;
+one host each), 2026-10-07; page loads: 1 each = 3 (with plan-k8n.31's: A 5, B 8, C 4 of 10). Numbers:
+[teamtailor-tenant-a.json](vscode-browser/teamtailor-tenant-a.json),
+[teamtailor-tenant-b.json](vscode-browser/teamtailor-tenant-b.json),
+[teamtailor-tenant-c.json](vscode-browser/teamtailor-tenant-c.json) (host, org, posting scrubbed).
+
+| Step | A | B | C (own domain) |
+|---|---|---|---|
+| Canary first | received none | none | none |
+| Attach | 8.1 s | 8.0 s | 8.1 s |
+| `READY` (`form#job-application-form input[name="candidate[first_name]"]`) from navigate | 1.6 s | 2.1 s | 3.3 s |
+| Widgets | 2 file boxes, 2 radios, 4 checkboxes, 2 comboboxes; no `select` | 2 file boxes, 17 radios, 1 slider, 3 checkboxes, 1 combobox | 2 file boxes, 2 checkboxes, 1 combobox |
+| `debugger;` pauses | 0 | 0 | 0 |
+| Captcha / AWS WAF | none: no reCAPTCHA, hCaptcha, Turnstile; no AWS WAF marks | same | same |
+| Proof-of-work box | answered by the page, 80 ms | 975 ms | 2200 ms |
+| Frames | 0 iframes, 0 frame targets | same | same |
+| Page load writes (failed) | `POST /pageview` x1 | same | same |
+| Cookie notice | shown small, focus on its link | takeover shown, focus trapped in it | shown small, focus on its link |
+| Name: click + `Input.insertText` | never focused, nothing held | same | same |
+| Name: focus by script + `Input.insertText` | held "Test Applicant" | nothing held (focus back in the notice) | held "Test Applicant" |
+| Name: set by script + input / change | - | held "Test Applicant", focus still in the notice | - |
+| Dummy PDF chosen | `POST <host>/uploads/presigned_data` at once (blocked) | same | same |
+| Drop box after it | "TypeError: Failed to fetch", no name, no link (= Chrome try: FAIL with the page's words) | same | same |
+| Window screenshot | failed ("could not create image from window"); tab shot only | same | same |
+
+Readings:
+- Every box + both file boxes are in the page; no `debugger;`, no frame, no captcha to meet before Submit.
+- Click-to-focus never lands on these pages, takeover notice or not: the filler's `write` (value + the box's own events
+  when typing doesn't hold) is what fills, window as Chrome.
+- Resume leaves on choice, window as Chrome (`teamtailor.md`: presigned request, then S3). Its live answer in the tab:
+  unmeasured (blocked at level 3).
+- Address box (Teamtailor's place list) not typed in here: same page script either way.
+- What Submit does in the tab: unmeasured (never Submit).
+- Adapter gap, fixed: `Locator.wait_for` took no `state` - `teamtailor.put_file` waits for the drop box's file box with
+  `state="attached"` (hidden box), the TypeError was swallowed, so no wait: a drop box drawn late read ASK "didn't
+  load". Now attached / visible / hidden / detached as Playwright's (`test_in_window_wait_for_states_as_playwright`,
+  fails without the fix).
+- Parity test (`test_in_window_fills_teamtailor_as_playwright_does`, saved tenant A + B forms + `page.js`, Playwright vs
+  `window.Page` in one headless Chrome) passes: same report, same page after, every answer read back (A: resume,
+  contact, phone, address from the place list, requirement radio, texts, number, letter; B: resume, contact, slider,
+  choice, 7 yes / no radios, letter - with a cookie notice holding the keyboard, never clicked), a second fill
+  changes nothing, consent never ticked.
+
+Route-2 costs otherwise as Greenhouse. `window.SYSTEMS` unchanged: Teamtailor fills in Job Finder's own Chrome until
+the owner decides (plan-k8n.41).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any

@@ -6,8 +6,10 @@ from urllib.parse import urlsplit
 
 import httpx
 import pytest
+from test_apply_in_window import TEAMTAILOR_PATHS, both, playwright_chrome, site, tab  # noqa: F401 - fixtures
 
-from apply import browser, questions, systems
+from apply import form as fill_form
+from apply import questions, systems
 from apply.systems import teamtailor
 
 FIXTURES = Path(__file__).parent / "fixtures" / "teamtailor"
@@ -154,16 +156,9 @@ def test_closed_or_unknown_posting_says_so(monkeypatch):
 # --- the page ---
 
 @pytest.fixture(scope="module")
-def chrome():
-    pw = pytest.importorskip("playwright.sync_api")
-    try:
-        exe = browser.chrome()
-    except SystemExit:
-        pytest.skip("Chrome not installed")
-    with pw.sync_playwright() as p:
-        b = p.chromium.launch(executable_path=exe, headless=True)
-        yield b
-        b.close()
+def chrome(playwright_chrome):
+    """The window parity test's Playwright Chrome: a second sync Playwright in one run fails to start."""
+    return playwright_chrome
 
 
 def open_form(chrome, tenant: str):
@@ -338,3 +333,78 @@ def test_what_leaves_before_submit_is_named():
     assert "search Teamtailor's own list as they're typed" in apply_form.typed_note(teamtailor, [where])
     resume = questions.question(teamtailor.RESUME, "Upload resume", "file", True, (), "resume")
     assert "as soon as it is chosen" in apply_form.upload_note(teamtailor, [resume])
+
+
+# --- in the window: the same fill through window.Page as through Playwright ---
+
+WINDOW_ANSWERS = {
+    # tenant A: the requirement radio, the place list, the number box, the phone, the resume drop box
+    "a": [q(teamtailor.RESUME, "file", True, "teamtailor:upload", key="resume", title="Upload resume"),
+          q("candidate[first_name]", "text", "Test", "teamtailor:standard", key="first_name"),
+          q("candidate[last_name]", "text", "Applicant", "teamtailor:standard", key="last_name"),
+          q("candidate[email]", "email", "test@example.com", "teamtailor:standard", key="email"),
+          q("candidate[phone]", "phone", "(555) 010-0100", "teamtailor:standard", key="phone"),
+          q("candidate[location][query]", "location", "Springfield, MO", "teamtailor:standard", key="location"),
+          q(answer(0, "boolean"), "yesno", "Yes", "teamtailor:qualifying", ["Yes", "No"]),
+          q(answer(1, "text"), "text", "Springfield, MO"),
+          q(answer(2, "text"), "text", "https://www.linkedin.com/in/test", key="linkedin"),
+          q(answer(3, "number"), "number", "$85,000", "teamtailor:number"),
+          q(answer(4, "text"), "text", "None"),
+          q("candidate[job_applications_attributes][0][cover_letter]", "longtext", "Dear Acme,\nThanks.")],
+    # tenant B: yes / no radios, a choice list, the slider - with a takeover cookie notice holding the keyboard
+    # (shown on tenant B live: typing landed nowhere, the box's own events set it)
+    "b": [q(teamtailor.RESUME, "file", True, "teamtailor:upload", key="resume", title="Upload resume"),
+          q("candidate[first_name]", "text", "Test", "teamtailor:standard", key="first_name"),
+          q("candidate[last_name]", "text", "Applicant", "teamtailor:standard", key="last_name"),
+          q("candidate[email]", "email", "test@example.com", "teamtailor:standard", key="email"),
+          q("candidate[phone]", "phone", "+1 555 010 0100", "teamtailor:standard", key="phone"),
+          q(answer(0, "text"), "text", "United States"),
+          q(answer(1, "range"), "number", "5000", "teamtailor:range"),
+          q(answer(2, "choice"), "choice", "advanced - c1", "teamtailor:choice"),
+          *[q(answer(n, "boolean"), "yesno", "Yes" if n % 2 else "No", "teamtailor:boolean", ["Yes", "No"])
+            for n in range(3, 10)],
+          q("candidate[job_applications_attributes][0][cover_letter]", "longtext", "Line one\nLine two")]}
+# left to the user on each: other files + both consent boxes
+WINDOW_EXTRA = {"a": ["candidate[file_remote_url]", "candidate[consent_given]", "candidate[consent_given_future_jobs]"],
+                "b": ["candidate[file_remote_url]", "candidate[consent_given]"]}
+COOKIE_TRAP = """() => { const a = document.createElement('a'); a.id = 'cookie'; a.href = '#'; a.textContent = 'Accept all';
+    document.body.append(a); window.accepted = false; a.addEventListener('click', () => window.accepted = true);
+    document.addEventListener('focusin', e => { if (e.target !== a) a.focus(); }, true); }"""
+# each box's value or tick, each list's pick, the resume box's name + link + error words - read off the page
+WINDOW_SHOWN = """() => [...document.querySelectorAll('#job-application-form :is(input:not([type=file]), textarea, select)')]
+    .map(e => ['checkbox', 'radio'].includes(e.type) ? e.checked : e.value)
+    .concat([...document.querySelectorAll('[data-dz-name], [data-forms--inputs--upload-target="errorMsg"]')].map(e => e.textContent.trim()))"""
+
+
+@pytest.mark.parametrize("tenant", ["a", "b"])
+def test_in_window_fills_teamtailor_as_playwright_does(tenant, tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # teamtailor.fill + holds + form.fill_page through each: same report, same page after, every answer read
+    # back, a second fill changes nothing; consent never ticked, the cookie notice never clicked (plan-k8n.38)
+    monkeypatch.setattr(fill_form, "SETTLE_MS", 300)
+    monkeypatch.setattr(teamtailor, "IDLE_WAIT_MS", 0)  # quicker than live; the late file box wait: test_apply_in_window
+    resume = tmp_path / "Test_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    answers = WINDOW_ANSWERS[tenant]
+    again = [a for a in answers if a["kind"] != "file"]
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, site.replace("/acme/jobs/1", TEAMTAILOR_PATHS[tenant])) as tabs:
+        for name, page in tabs.items():
+            if tenant == "b":
+                page.evaluate(COOKIE_TRAP)
+            report, extra = fill_form.fill_page(page, teamtailor, answers, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == WINDOW_EXTRA[tenant]
+            once = page.evaluate(WINDOW_SHOWN)
+            assert (name, [teamtailor.fill(page, a, None) for a in again]) == (name, ["ok"] * len(again))
+            page.wait_for_timeout(300)
+            assert page.evaluate(WINDOW_SHOWN) == once
+            pages[name] = once
+            assert [a["id"] for a in answers if not teamtailor.holds(page, a)] == []
+            assert not page.evaluate("window.submitted || false")
+            assert not page.evaluate("[...document.querySelectorAll('input[name^=\"candidate[consent_given\"]')].some(b => b.checked)")
+            if tenant == "b":
+                assert page.evaluate("[document.activeElement.id, window.accepted]") == ["cookie", False]
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {a["id"]: "ok" for a in answers}
+    assert pages["window"] == pages["playwright"]
+    assert resume.name in pages["window"]

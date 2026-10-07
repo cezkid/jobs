@@ -1,0 +1,429 @@
+{
+ "stage": "raw",
+ "at": "<host>/jobs/<id>/<org>/new",
+ "uniq": "8f62cb",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "tenantsAdded": 1,
+ "system": "Teamtailor",
+ "ready": "form#job-application-form input[name=\"candidate[first_name]\"]",
+ "url": "<host>/jobs/<id>/<org>/new",
+ "level": 3,
+ "pauseCap": 20,
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 4746,
+  "upInfo": {
+   "t": 1791373303651,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "pauses": [],
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 8085,
+  "sessions": [
+   {
+    "id": "b632623d-4cb0-4a00-ac58-4b91c507b72b",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "2a05cab0-e40f-4f8e-9f83-5053d1403164",
+    "type": "pwa-editor-browser",
+    "name": "JF form 8f62cb blank \u00ab Job Finder form",
+    "parent": "b632623d-4cb0-4a00-ac58-4b91c507b72b"
+   }
+  ],
+  "found": {
+   "2a05cab0-e40f-4f8e-9f83-5053d1403164": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53500,
+     "path": "/9a6e32b3e2b06958e25798776e8518348e0d7dec"
+    },
+    "href": "http://127.0.0.1:58699/blank"
+   },
+   "b632623d-4cb0-4a00-ac58-4b91c507b72b": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "install": {
+  "ok": true,
+  "ms": 15,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "subscribe": {
+  "ok": true,
+  "ms": 0,
+  "value": {}
+ },
+ "skipOff": {
+  "ok": true,
+  "ms": 2,
+  "value": {}
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:58725/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:58725/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:58725/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:58725/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:58726/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:58725/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "loaded": true,
+ "readyMs": 3334,
+ "pausesOnLoad": 0,
+ "fields": 1,
+ "boxes": [
+  {
+   "id": "strictly_necessary",
+   "name": "",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "analytics",
+   "name": "",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "candidate_first_name",
+   "name": "candidate[first_name]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "candidate_last_name",
+   "name": "candidate[last_name]",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "candidate_email",
+   "name": "candidate[email]",
+   "role": "",
+   "type": "email"
+  },
+  {
+   "id": "iti-0__search-input",
+   "name": "",
+   "role": "combobox",
+   "type": "search"
+  },
+  {
+   "id": "candidate_phone",
+   "name": "candidate[phone]",
+   "role": "",
+   "type": "tel"
+  },
+  {
+   "id": "candidate_resume_remote_url",
+   "name": "",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "candidate_file_remote_url",
+   "name": "",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "",
+   "name": "commit",
+   "role": "",
+   "type": "submit"
+  }
+ ],
+ "frames": {
+  "iframes": [],
+  "blockedOtherSite": [
+   {
+    "url": "http://localhost/frame.html",
+    "kind": "other",
+    "after": "canary"
+   }
+  ],
+  "targets": {
+   "ok": true,
+   "ms": 2,
+   "value": []
+  }
+ },
+ "marks": {
+  "awsWafApi": "undefined",
+  "awsWafCookie": false,
+  "grecaptchaApi": "undefined",
+  "hcaptchaApi": "undefined",
+  "hiddenCaptchaButton": false,
+  "linkedinWidget": false,
+  "scripts": [],
+  "turnstileApi": "undefined"
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "signIn": false,
+  "box": "input[name=\"candidate[first_name]\"]",
+  "takeover": {
+   "boxes": 1,
+   "focus": "A",
+   "shown": false,
+   "takeover": 0
+  },
+  "type: click + Input.insertText": {
+   "ok": true,
+   "ms": 929,
+   "value": {
+    "focused": false
+   }
+  },
+  "readBack": "",
+  "type: focused by script + Input.insertText": {
+   "ok": true,
+   "ms": 511,
+   "value": {
+    "focused": false
+   }
+  },
+  "readBackAfterFocus": "Test Applicant",
+  "fileBox": "#upload_resume_field input[type=file]",
+  "fileChosen": true,
+  "upload: DOM.setFileInputFiles": {
+   "ok": true,
+   "ms": 22
+  },
+  "pageErrorsSeen": null,
+  "nameShown": false,
+  "failedLine": false,
+  "verdict": null,
+  "fileHeld": false,
+  "dropBox": {
+   "error": "TypeError: Failed to fetch",
+   "link": null,
+   "name": ""
+  },
+  "sentOnChoice": [
+   {
+    "method": "POST",
+    "url": "<host>/uploads/presigned_data",
+    "type": "XHR",
+    "contentType": "application/json",
+    "body": true
+   }
+  ],
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/teamtailor-route2-tab.png",
+   "bytes": 664982
+  }
+ },
+ "proofOfWork": {
+  "answered": true,
+  "solveMs": "2200"
+ },
+ "widgets": {
+  "checkboxes": 2,
+  "combobox": 1,
+  "comboboxInDataUi": 0,
+  "dialogs": [],
+  "fileInputs": 2,
+  "onTopAtListMiddle": [
+   "a"
+  ],
+  "options": 244,
+  "radioGroups": 0,
+  "radioInputs": 0,
+  "resumeWrapper": false,
+  "roleRadio": 0,
+  "select2": 0,
+  "select2Hidden": 0,
+  "selects": 0
+ },
+ "captchaBox": null,
+ "shot": {
+  "path": "<checkout>/.data/probe-shots/form/teamtailor-route2-window.png",
+  "bytes": 0
+ },
+ "pausesTotal": 0,
+ "skipOnAfterCap": false,
+ "submitClicked": false,
+ "block": {
+  "reads": 42,
+  "namedReads": [],
+  "failed": [
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "GET",
+    "url": "http://localhost/frame.html",
+    "type": "other-site frame",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/worker",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "<host>/pageview",
+    "type": "XHR",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "<host>/uploads/presigned_data",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ],
+  "seenWrites": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "<host>/pageview",
+    "type": "XHR",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "<host>/uploads/presigned_data",
+    "type": "Fetch",
+    "after": "upload"
+   }
+  ]
+ },
+ "pageLoads": 1,
+ "handlerErrors": [],
+ "quit": {
+  "killed": false
+ }
+}

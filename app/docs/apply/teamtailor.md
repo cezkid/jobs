@@ -134,6 +134,18 @@ each (0 of 9 test writes through), 0 writes sent:
 
 Page loads per site (with the 2 measure loads each): A 4, B 7, C 3 of 10.
 
+## In the window (plan-k8n.38)
+
+Measured in a tab of the Job Finder window (route 2), 3 tenants (A, B, C own domain), 2026-10-07, 1 page load each:
+form up 1.6 / 2.1 / 3.3 s after navigate, 0 `debugger;` pauses, 0 frames, no captcha or AWS WAF; proof-of-work box
+answered by the page itself (80 / 975 / 2200 ms). A click on the first-name box never focused it (focus stays on the
+cookie notice's link): on A + C, focus by script + typing held "Test Applicant"; on B the takeover cookie notice held
+the keyboard, every typing landed nowhere, set by script with the box's own events held it (= the filler's `write`,
+as in Chrome). Dummy resume: sent at once to `/uploads/presigned_data` (blocked), then the drop box shows "TypeError:
+Failed to fetch" - as Chrome's try (FAIL with the page's words). Parity test: same report + page as Chrome on A + B
+(B with a cookie notice holding the keyboard) after one adapter fix (`wait_for(state=...)`, as Playwright). Not in
+`--in-window` yet - owner decides (plan-k8n.41). Numbers: `vscode-browser.md` "Teamtailor - route 2".
+
 ## Cost
 
 Filler took 1 bead (6 contexts). Estimated before: ~1 bead (BambooHR / Workable size): stable names + real labels, form by plain GET,

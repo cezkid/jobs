@@ -51,6 +51,10 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            AWS WAF marks (its script, AwsWafIntegration, aws-waf-token cookie) counted (plan-k8n.32)
            Breezy's full-name box (cName) before any text box; a system's RESUME_BOX read after the choice: name shown,
            still sending (UPLOADING), error words (plan-k8n.35)
+           Teamtailor's first-name box by its name, before any text box; its drop box's file box
+           (RESUME_BOX), then the name + link it shows + its error words (PREVIEW / ERROR); the takeover cookie box + where
+           focus sits; a box still empty after both typings set by script with its events (teamtailor.write); the
+           proof-of-work answer box (plan-k8n.38)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -361,6 +365,16 @@ SET = """((e, v) => { const proto = e instanceof HTMLTextAreaElement ? HTMLTextA
   : e instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
   Object.getOwnPropertyDescriptor(proto, 'value').set.call(e, v);
   e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); return e.value; })"""
+
+
+# Teamtailor's cookie box as a takeover (an attribute ending takeover-modal-value = "true"), where focus sits (plan-k8n.38)
+TAKEOVER = """(() => { const all = [...document.querySelectorAll('*')].filter((e) => [...e.attributes].some((a) => a.name.endsWith('takeover-modal-value')));
+  const on = all.filter((e) => [...e.attributes].some((a) => a.name.endsWith('takeover-modal-value') && a.value === 'true'));
+  return {boxes: all.length, takeover: on.length, shown: on.some((e) => !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length)),
+    focus: (document.activeElement || {}).tagName || null} })()"""
+# Teamtailor's proof-of-work, solved in the page on load: its answer box filled + how long it took (plan-k8n.38)
+POW = """(() => { const r = document.querySelector('[name=challenge_response]'), ms = document.querySelector('[name=challenge_solve_ms]');
+  return r ? {answered: !!r.value, solveMs: ms ? ms.value : null} : null })()"""
 
 
 def set_value(c, sel, v):
@@ -1308,8 +1322,11 @@ def raw(result):
         # a sign-in page in place of the form (UKG, plan-k8n.18): its boxes are never typed in
         fill["signIn"] = bool(getattr(system, "SIGN_IN", None)) and bool(quietly(lambda: c.evaluate(f"!!{q(system.SIGN_IN)}")))
         box = None if fill["signIn"] else next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
-                                'input[name^="primary-email"]', '#first-name-input', '#guestFirstName', '#legalFirstName', 'input[name=cName]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+                                'input[name^="primary-email"]', '#first-name-input', '#guestFirstName', '#legalFirstName', 'input[name=cName]', 'input[name="candidate[first_name]"]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
+        # Teamtailor's takeover cookie box (holds the keyboard on 2 of 10 postings) + its proof-of-work boxes (plan-k8n.38)
+        fill["takeover"] = quietly(lambda: c.evaluate(TAKEOVER))
+        result["proofOfWork"] = quietly(lambda: c.evaluate(POW))
         if box:
             block.step = "type"
 
@@ -1331,6 +1348,9 @@ def raw(result):
                     return {"focused": c.evaluate(f"document.activeElement === {q(box)}")}
                 fill["type: focused by script + Input.insertText"] = attempt(focused_typed)
                 fill["readBackAfterFocus"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
+                if not fill["readBackAfterFocus"]:  # still trapped: set with the box's own events, as teamtailor.write does
+                    fill["setByScript"] = quietly(lambda: set_value(c, box, "Test Applicant"))
+                    fill["focusedAfterSet"] = quietly(lambda: c.evaluate("(document.activeElement || {}).tagName || null"))
         if not box and not fill["signIn"]:  # the start box in the page's own same-site frame (iCIMS ?in_iframe=1, plan-k8n.16): reached through
             # contentDocument from the top page's session, focused by script + Input.insertText (no click: frame offset)
             fill["frameBox"] = quietly(lambda: c.evaluate(f"!!{FRAME_BOX}"))
@@ -1349,7 +1369,8 @@ def raw(result):
                                                                 f"tick: !!d.querySelector('#accept_gdpr'), "
                                                                 f"boxes: d.querySelectorAll('input:not([type=hidden]), select, textarea').length}} }})()"))
         # SmartRecruiters: its resume field = the file box after the name (FILES), never the parsing box above it
-        files = (f"js:({system.FILES})()",) if hasattr(system, "FILES") else ()
+        files = ((f"js:({system.FILES})()",) if isinstance(getattr(system, "FILES", None), str)
+                 else (f"{system.RESUME_BOX} input[type=file]",) if hasattr(system, "PREVIEW") else ())  # Teamtailor's drop box
         fbox = next((s for s in (*files, '[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file][id="btn-resume"]', 'input[type=file]')
                      if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["fileBox"] = fbox
@@ -1378,7 +1399,12 @@ def raw(result):
                 near = f"{q(fbox)}.closest('.custom-file')"
                 fill["fileLabel"] = quietly(lambda: c.evaluate(f"(({near} || document).querySelector({json.dumps(label)}) || {{}}).innerText || null"))
                 fill["fileError"] = quietly(lambda: c.evaluate(f"(({near} || document).querySelector('small.text-danger') || {{}}).innerText || ''"))
-            if rbox := getattr(system, "RESUME_BOX", None):  # Breezy: the resume header's file name, 'Uploading Resume', error words (plan-k8n.35)
+            if preview := getattr(system, "PREVIEW", None):  # Teamtailor: the drop box's file name, its link, error words (plan-k8n.38)
+                fill["dropBox"] = quietly(lambda: c.evaluate(f"""(() => {{ const p = document.querySelector({json.dumps(preview)}),
+                  e = document.querySelector({json.dumps(system.ERROR)}), link = p && p.querySelector('input[name="{system.RESUME}"]');
+                  return {{name: p ? [...p.querySelectorAll('[data-dz-name]')].map((n) => n.innerText.trim()).join(' ') : null,
+                    link: link ? !!link.value : null, error: e && !e.classList.contains('hidden') ? e.innerText.trim() : ''}} }})()"""))
+            elif rbox := getattr(system, "RESUME_BOX", None):  # Breezy: the resume header's file name, 'Uploading Resume', error words (plan-k8n.35)
                 fill["resumeBox"] = quietly(lambda: c.evaluate(f"""(() => {{ const b = document.querySelector({json.dumps(rbox)}); if (!b) return null;
                   const t = (s) => [...b.querySelectorAll(s)].map((e) => e.innerText.trim()).join(' ');
                   return {{name: t('a.bzyLinkColor'), error: t('.error-container:not(.ng-hide) span.error'),

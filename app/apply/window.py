@@ -753,8 +753,28 @@ class Locator:
     def evaluate(self, fn: str, arg=None):
         return self._one(f"(e, arg) => ({fn})(e, arg)", arg)
 
-    def wait_for(self, timeout: float | None = None) -> None:
-        self._one("(e) => true", visible=True, timeout=timeout)
+    def wait_for(self, timeout: float | None = None, state: str = "visible") -> None:
+        """As Playwright's: attached = on the page, visible = shown, detached = gone, hidden = gone or not shown."""
+        if state == "visible":
+            return self._one("(e) => true", visible=True, timeout=timeout)
+        if state == "attached":
+            return self._one("(e) => true", timeout=timeout)
+        if state not in ("detached", "hidden"):
+            raise ValueError(f'state: expected one of (attached|detached|visible|hidden), got "{state}"')
+        timeout = TIMEOUT_MS if timeout is None else timeout
+        gone = "(els) => els.length === 0" + ("" if state == "detached" else f" || !({VISIBLE})(els[0])")
+        deadline = time.monotonic() + timeout / 1000
+        while True:
+            try:
+                if self._all(gone):
+                    return
+            except ScriptError:
+                raise
+            except (RuntimeError, TimeoutError):  # page mid-navigation
+                pass
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"{self.steps}: still {'on the page' if state == 'detached' else 'shown'} after {timeout} ms")
+            time.sleep(POLL)
 
     def inner_text(self, timeout: float | None = None) -> str:
         return self._one("(e) => e.innerText", timeout=timeout)

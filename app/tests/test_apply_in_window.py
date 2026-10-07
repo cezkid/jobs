@@ -78,6 +78,9 @@ MANATAL_FORM = FORM.parent.parent / "manatal" / "apply.html"
 MANATAL_PATH = "/acme/job/AB12CD34/apply"
 BREEZY_FORM = FORM.parent.parent / "breezy" / "apply.html"
 BREEZY_PATH = "/p/0a1b2c3d4e5f-software-engineer/apply"
+TEAMTAILOR = FORM.parent.parent / "teamtailor"
+# tenant -> its form's link; each frame wrapped as test_apply_teamtailor's open_form does, page.js beside it
+TEAMTAILOR_PATHS = {t: f"/jobs/70000{n}-software-engineer/applications/new" for n, t in enumerate("abc", 1)}
 # a same-site frame, another site's frame (the same server by its other name), open + closed shadow roots
 FRAMES_PATH = "/dom/frames-shadow.html"
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
@@ -136,6 +139,13 @@ def site():
                             f"{JAZZHR_FORM.read_text()}{JAZZHR_BEHAVES}</body></html>").encode()
                 if self.path == WORKABLE_PATH:
                     body = WORKABLE_FORM.read_text().replace("</body>", f"{WORKABLE_BEHAVES}</body>").encode()
+                if self.path == "/page.js":
+                    body, kind = (TEAMTAILOR / "page.js").read_bytes(), "text/javascript"
+                for tenant, path in TEAMTAILOR_PATHS.items():
+                    if self.path == path:
+                        body = ('<html><head><style>.hidden{display:none}</style></head><body>'
+                                + (TEAMTAILOR / f"tenant-{tenant}.html").read_text()
+                                + '<script src="/page.js"></script></body></html>').encode()
                 if self.path == LEVER_PATH:
                     body = ("<!doctype html><html><head><meta charset=utf-8><title>Apply - Acme</title></head><body>"
                             f"{LEVER_FORM.read_text()}{LEVER_BEHAVES}</body></html>").encode()
@@ -707,6 +717,33 @@ def test_in_window_locator_waits_then_says_what_never_came(tab, site):
         assert page.locator("#email").input_value() == ""  # read without waiting to be shown
     finally:
         cdp.close()
+
+
+def test_in_window_wait_for_states_as_playwright(tab, site, playwright_chrome):
+    # attached / visible / hidden / detached, each met or timed out alike; a box drawn late is waited for
+    # (Teamtailor's drop box draws its hidden file box after load - plan-k8n.38)
+    def outcome(page, selector, state):
+        try:
+            page.locator(selector).first.wait_for(state=state, timeout=400)
+            return "met"
+        except Exception as e:
+            return type(e).__name__ if isinstance(e, (TypeError, ValueError)) else "timeout"
+
+    got = {}
+    with both(tab, playwright_chrome, site) as tabs:
+        for name, page in tabs.items():
+            page.evaluate("() => { document.getElementById('email').style.display = 'none'; }")
+            got[name] = [outcome(page, sel, state) for sel in ("#email", "#first_name", "#nowhere")
+                         for state in ("attached", "visible", "hidden", "detached")]
+            page.evaluate("""() => setTimeout(() => { const b = Object.assign(document.createElement('input'),
+                {type: 'file', id: 'late'}); b.style.display = 'none'; document.body.append(b); }, 300)""")
+            page.locator("#late").wait_for(state="attached", timeout=3000)
+            page.evaluate("() => setTimeout(() => document.getElementById('late').remove(), 300)")
+            page.locator("#late").wait_for(state="detached", timeout=3000)
+            assert page.locator("#late").count() == 0
+    assert got["window"] == got["playwright"]
+    assert got["window"] == ["met", "timeout", "met", "timeout", "met", "met", "timeout", "timeout",
+                             "timeout", "timeout", "met", "met"]
 
 
 def frames_url(site):
