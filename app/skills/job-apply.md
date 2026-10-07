@@ -165,11 +165,13 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    fills, prints one line per question + "required answered X of Y". "the posting says it's
    closed" -> nothing filled; ask, then `status set <job> closed`. `FAIL`/`ASK` -> tell the user plainly, fix, record the
    quirk in that system's doc.
-   `--in-window` (Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR, a trial): only when the owner asks for it; hard
-   limits the same. Lever, JazzHR, Workable + BambooHR there: pass on its `note:` line - the check at Submit (Lever
-   hCaptcha, JazzHR Human Check, Workable Turnstile, BambooHR reCAPTCHA tick-box) untested in the window, Workable's +
-   BambooHR's resume upload too; it doesn't show, the resume isn't attached or Submit balks -> `fill` again without
-   `--in-window` (Chrome).
+   `--in-window` (Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR, Oracle, iCIMS, Paylocity, a trial): only when
+   the owner asks for it; hard limits the same. Lever, JazzHR, Workable + BambooHR there: pass on its `note:` line - the
+   check at Submit (Lever hCaptcha, JazzHR Human Check, Workable Turnstile, BambooHR reCAPTCHA tick-box) untested in the
+   window, Workable's + BambooHR's resume upload too; it doesn't show, the resume isn't attached or Submit balks ->
+   `fill` again without `--in-window` (Chrome). Oracle, iCIMS + Paylocity (several pages) there: pass on its `note:`
+   line too - only the first page was checked in the window; a later page doesn't fill, a check balks or the resume
+   isn't attached -> `fill` again without `--in-window`, which starts at the first page in Chrome.
    Form over several pages (`this page: X of Y required answered` + "question(s) on other
    pages"): tell the user to check this page and click Next / Continue themselves - never us.
    Once they say they're on the next page: `prepare` again if `fill` printed it (that system

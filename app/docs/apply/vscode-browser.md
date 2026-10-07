@@ -291,7 +291,7 @@ Readings:
   box. No frame, no pause, no captcha on these 2 (Chrome saw an invisible hCaptcha on 2 of 7, `oracle.md`).
 - Cookie banner = the employer's own; the user answers it.
 - Pages after Next: unmeasured (never Next) - the owner's real application (plan-6oq.6.6, .6.8). Oracle's flow is
-  multi-page, so whether it fills in the window waits on the multi-page decision (plan-k8n.20).
+  multi-page: in `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.20), `AT_SUBMIT` note for the rest.
 
 ## iCIMS - route 2 (plan-k8n.16)
 
@@ -321,7 +321,8 @@ Readings:
   Next - unmeasured (never Next), same open question as Oracle and BambooHR's reCAPTCHA.
 - Upload in the frame (`DOM.setFileInputFiles` on a frame element from the top session): unmeasured - no file box
   on the start box; pages after Next unmeasured (the owner's real application, plan-6oq.6.6, .6.8).
-- `window.SYSTEMS` unchanged: iCIMS is multi-page (start box -> Next -> account), so it waits on plan-k8n.20.
+- iCIMS is multi-page (start box -> Next -> account): in `window.SYSTEMS` since the owner's yes 2026-10-07
+  (plan-k8n.20), `AT_SUBMIT` note for the rest.
 
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab urlFilter).
 
@@ -393,8 +394,8 @@ Readings:
   An unblocked upload in the tab: unmeasured (would send the file).
 - Cookie banner + "Apply with resume" dialog = the user's (never "Accept All"; dialog: `paylocity.md`).
 - Later steps (Step 2 of N ...): Paylocity is multi-step on one page, Next blocked by the resume dialog under the
-  block (`paylocity.md`) - unmeasured here; filling it in the window waits on plan-k8n.20.
-- `window.SYSTEMS` unchanged: Paylocity stays in Job Finder's own Chrome.
+  block (`paylocity.md`) - unmeasured here.
+- In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.20), `AT_SUBMIT` note for the upload + later steps.
 
 ## UKG - route 2 (plan-k8n.18)
 
@@ -490,8 +491,9 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse, Ashby, Lever, JazzHR, Workable + BambooHR only, off by default (plan-29g.9, Ashby plan-nko.8,
-Lever plan-nko.15, JazzHR plan-k8n.5, Workable plan-k8n.8, BambooHR plan-k8n.11).
+window, Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR, Oracle, iCIMS + Paylocity only, off by default (plan-29g.9,
+Ashby plan-nko.8, Lever plan-nko.15, JazzHR plan-k8n.5, Workable plan-k8n.8, BambooHR plan-k8n.11, Oracle + iCIMS +
+Paylocity plan-k8n.20).
 
 ## Owner decision (plan-29g.8)
 
@@ -516,15 +518,25 @@ new code (plan-k8n.10). Gaps: the resume upload (sent on choice; blocked in the 
 banner seen) + the reCAPTCHA v2 tick-box at Submit (frame blank under the block), both unmeasured unblocked in the
 tab => `AT_SUBMIT` note + Chrome fallback. BambooHR = 3 open jobs / 3 employers on the owner's list.
 
+2026-10-07 (plan-k8n.20): owner picked Oracle, iCIMS + Paylocity of the multi-page systems (recommended option) - each
+filled clean on its start box / page 1 in the tab, 2 of 2 tenants, held on the user's tab between pages ("Built (c)").
+Gaps, all unmeasured (never Next): pages after Next, any check at Next or Submit (Oracle: invisible hCaptcha on 2 of 7
+in Chrome; iCIMS: hCaptcha frames blank under the block), the resume upload in the tab (iCIMS: in its same-site frame;
+Paylocity: sent on choice, blocked = no words) => `AT_SUBMIT` note + Chrome fallback from the first page. Oracle =
+26 open jobs / 21 employers, iCIMS 16 / 12, Paylocity 3 / 2 on the owner's list. Stay in Chrome: ADP + Paycom (start
+box never shown in the window under the block, unmeasured), SmartRecruiters (DataDome device check replaces the form,
+2 of 2), UKG (`window.REFUSED`).
+
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, Workable + BambooHR only
-(owner's yes for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5, Workable 2026-10-06
-plan-k8n.8, BambooHR 2026-10-07 plan-k8n.11; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR, Oracle,
+iCIMS + Paylocity only (owner's yes for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5,
+Workable 2026-10-06 plan-k8n.8, BambooHR 2026-10-07 plan-k8n.11, Oracle + iCIMS + Paylocity 2026-10-07 plan-k8n.20;
+other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 Multi-page form (`PER_PAGE`, `form.fill` passes `match`): no longer refused (plan-k8n.15, owner's pick (c)) - one
-holder process keeps the user's tab between runs, see "Built (c)" below. Which multi-page systems are offered in the
-window = `window.SYSTEMS`, unchanged until plan-k8n.20. UKG refused in the window (`window.REFUSED`, `fill` +
+holder process keeps the user's tab between runs, see "Built (c)" below. Multi-page systems offered in the window
+(`window.SYSTEMS`): Oracle, iCIMS + Paylocity (plan-k8n.20). UKG refused in the window (`window.REFUSED`, `fill` +
 `prepare --in-window`): its sign-in lives in Job Finder's Chrome, a window tab isn't signed in - one plain line + the
 Chrome way. `prepare` takes `--in-window` too; next-step lines keep the flag.
 

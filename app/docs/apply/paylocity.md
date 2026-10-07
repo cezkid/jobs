@@ -77,6 +77,10 @@ measurable while blocked: `try --next` on tenant J - "Next Step" (`btn-submit`,
 blocked) and the cookie banner. Page has no step headings (`h1`-`h4`): page of a question comes
 from its section in the definition; boxes not on the user's step -> LATER.
 
+Window: offered since the owner's yes 2026-10-07 (plan-k8n.20): `fill --in-window`, off by default, one holder
+keeps the user's tab between steps; its note says the resume upload + steps after the first are untested there
+(`vscode-browser.md` "Paylocity - route 2").
+
 ## What leaves the computer, when
 
 Measured on load only (nothing typed), 2026-10-03:

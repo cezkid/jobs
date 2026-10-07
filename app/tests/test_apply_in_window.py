@@ -22,7 +22,7 @@ import cfg
 import launch
 from apply import browser, dom, form, questions, window
 from apply.cdp import CDP
-from apply.systems import ashby, greenhouse, jazzhr, lever, workable
+from apply.systems import adp, ashby, greenhouse, icims, jazzhr, lever, oracle, paycom, paylocity, smartrecruiters, workable
 
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
 ASHBY_FORM = FORM.with_name("ashby-form.html")
@@ -1117,12 +1117,32 @@ def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, ca
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
-    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever", "JazzHR", "Workable", "BambooHR")
-    opened = fill_setup(tmp_path, monkeypatch, "SmartRecruiters")
+    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever", "JazzHR", "Workable", "BambooHR", oracle.NAME, icims.NAME,
+                              paylocity.NAME)
+    # owner 2026-10-07 (plan-k8n.20): these multi-page systems stay in Chrome
+    assert not {smartrecruiters.NAME, adp.NAME, paycom.NAME} & set(window.SYSTEMS)
+    opened = fill_setup(tmp_path, monkeypatch, smartrecruiters.NAME)
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
-    assert str(stop.value) == "in the window: Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR only for now - run fill without --in-window"
+    assert str(stop.value) == ("in the window: Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR, Oracle Recruiting Cloud, "
+                               "iCIMS, Paylocity only for now - run fill without --in-window")
     assert opened == []
+
+
+@pytest.mark.parametrize("module", [oracle, icims, paylocity])
+def test_in_window_fills_the_owners_multipage_systems_on_the_held_tab(tmp_path, monkeypatch, capsys, module):
+    # owner's yes 2026-10-07 (plan-k8n.20): filled on the user's held tab, w/ the note on what's untested there
+    assert module.PER_PAGE and module.NAME in window.AT_SUBMIT
+    opened = fill_setup(tmp_path, monkeypatch, module.NAME)
+    form.system_for("").PER_PAGE = True
+    monkeypatch.setattr(form.systems, "tab_match", lambda system, url: lambda tab_url: True)
+    monkeypatch.setattr(window.inside, "on", True, raising=False)
+    form.fill("7", in_window=True)
+    out = capsys.readouterr().out
+    assert opened == ["window"] and "  [ok] First Name\n" in out
+    assert out.endswith("The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
+                        f"note: {window.AT_SUBMIT[module.NAME]}\n")
+    assert "from the start without --in-window (Chrome)" in window.AT_SUBMIT[module.NAME]
 
 
 # a form over two pages, each its own document on the same site: Next is a plain link the user
