@@ -244,3 +244,20 @@ def test_legal_name_both_or_neither_and_round_trips_after_the_page_name(tmp_path
     alone = {**before, "contact": {**doc["contact"], "legal_first": None, "legal_middle": None, "legal_last": None}}
     alone["contact"] = {k: v for k, v in alone["contact"].items() if v is not None}
     assert schema.validate(alone) == ["contact.form_name: needs legal_first and legal_last"]
+
+
+def test_a_students_file_tidies_whole_and_still_meets_the_editor_schema(tmp_path):
+    # Expected flag, start, GPA kept as text, coursework, a club under its own heading
+    path = tmp_path / "Resume details.yml"
+    student = yaml.safe_load((cfg.APP / "tests" / "fixtures" / "student.yml").read_text(encoding="utf-8"))
+    student["education"][0].update(gpa="3.50", expected=True)
+    student["projects"].append({"name": "Robotics Club", "role": "Captain", "section": "Leadership & Activities",
+                                "bullets": ["Led 12 members to a regional final"]})
+    path.write_text(yaml.safe_dump(student, sort_keys=False), encoding="utf-8")
+    tidy.tidy(path, tmp_path / "index.yml")
+    again = yaml.safe_load(path.read_text(encoding="utf-8"))
+    jsonschema.validate(again, DETAILS_SCHEMA)
+    assert again["education"][0]["gpa"] == "3.50" and again["education"][0]["expected"] is True
+    assert again["projects"][1]["section"] == "Leadership & Activities"
+    assert schema.load(path, tmp_path / "index.yml")["education"][0]["coursework"] == ["Regression Analysis", "Database Systems",
+                                                               "Data Visualization"]
