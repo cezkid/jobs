@@ -29,9 +29,10 @@ NOT_WORK = re.compile(rf"\bwithin\s+(?:\(?{NUM}\)?\s*)+(?:years?|months?)|\bever
 # school, not work, right after the years: "2 years of undergraduate study", "two years of college",
 # "one year of a Master's degree", "of coursework" ("work" inside it). Only the words that follow the
 # number, and never a line that goes on to say experience: "5+ years of high school coaching
-# experience", "a degree program and 3 years of experience" still ask years. A doing-word in between
-# ("of teaching in a school") is work, not study
-STUDY = re.compile(r"^\W*(?:of|in)\s+(?:(?:a|an|the|your)\s+)?(?:(?![\w'’/.-]*ing\b)[\w'’/.-]+\s+){0,6}?"
+# experience", "a degree program and 3 years of experience" still ask years. A lower-case doing-word
+# on the way ("of full-time teaching in a school") is work; a field's name ("Aerospace Engineering
+# program") is not
+STUDY = re.compile(r"^\W*(?:of|in)\s+(?:(?:a|an|the|your)\s+)?(?:(?-i:(?![a-z][\w'’/.-]*ing\b))[\w'’/.-]+\s+){0,6}?"
                    r"(?:coursework|degree|program|college|university|school|study|studies|undergraduate|education)\b", re.I)
 # "up to 2 years" caps the experience; it asks no minimum
 UP_TO = re.compile(r"\bup to\s*$", re.I)
