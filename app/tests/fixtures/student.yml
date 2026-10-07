@@ -1,0 +1,45 @@
+# A made-up student's resume details: a junior with a campus job, one summer internship, a class
+# project and a club role - the shape career centres teach (education first, Expected date).
+contact:
+  name: Sam Rivera
+  email: sam.rivera@example.com
+  phone: (555) 010-0199
+  location: Columbus, OH
+  links: [linkedin.com/in/samrivera-example]
+
+roles:
+  - company: Buckeye Analytics
+    title: Data Analyst Intern
+    location: Columbus, OH
+    start: "2025-06"
+    end: "2025-08"
+    bullets:
+      - Built 3 Tableau dashboards tracking weekly sales for 12 regional stores
+      - Cleaned 50,000 rows of survey data in Python before the quarterly review
+  - company: State University Library
+    title: Student Assistant
+    location: Columbus, OH
+    start: "2024-09"
+    end: present
+    bullets:
+      - Answered 40+ patron questions per shift at the main circulation desk
+      - Trained 6 new student assistants on the checkout system
+
+projects:
+  - name: Course Scheduler
+    bullets:
+      - Built a Python course scheduler used by 120 classmates to plan their spring terms
+
+skills:
+  - group: Data
+    items: [Python, SQL, Tableau, Excel]
+
+education:
+  - institution: The Ohio State University
+    degree: B.S.
+    field: Statistics
+    details: Dean's List
+    start: "2023-08"
+    end: "2027-05"
+    gpa: 3.62/4.00
+    coursework: [Regression Analysis, Database Systems, Data Visualization]

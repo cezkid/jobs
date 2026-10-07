@@ -16,15 +16,34 @@ COLLECTION_NAMES = {"fortune500": "Fortune 500", "bigtech": "big tech", "mag7": 
 # long-open job reaching the list now); closer than that the two read the same
 POSTING_AGE_GAP = 7
 # title words that clearly contradict a stated career level; a title without any is never demoted
-_JUNIOR = r"intern|internship|junior|jr|entry[ -]level|trainee|apprentice"
+_JUNIOR = r"interns?|internships?|co-?op|junior|jr|entry[ -]level|trainee|apprentice"
 _TOP = r"director|vp|vice president|chief|head of"
 # level -> (words above it, words below it)
 LEVEL_MISMATCH = {
     "entry": (rf"senior|sr|principal|lead|{_TOP}", None),
-    "mid": (_TOP, r"intern|internship|trainee|apprentice"),
+    "mid": (_TOP, r"interns?|internships?|co-?op|trainee|apprentice"),
     "senior": (None, _JUNIOR),
     "leader": (None, _JUNIOR),
 }
+
+
+# a title naming an early-career job: where the job search's experience_years_min tag misreads
+# most (10 on "Software Engineer - New Grad", 20 on "Entry Level Sales Representative", 2026-10-07)
+EARLY_CAREER = rf"{_JUNIOR}|new (?:college )?grad(?:uate)?s?|early career|graduate program|university grad(?:uate)?"
+# a shop's shift lead is an hourly floor role, not a level above entry
+ENTRY_TITLE_KEEP = re.compile(r"\bshift (?:lead|leader|supervisor)\b", re.I)
+# the job search tags 87 of 300 real internships full time (summer hours) and 17 part time
+# (2026-10-07, newest intern-titled US rows): the title says what the job is. One way only - a
+# title can keep a job its tag would hide or sort lower, never hide one ("Intern Program Manager")
+TITLE_TYPES = (("internship", re.compile(r"(?<!\w)(?:interns?|internships?|co-?op|co op)(?!\w)", re.I)),
+               ("part_time", re.compile(r"(?<!\w)part[- ]time(?!\w)", re.I)))
+# entry level: a required line asking this many years or more is a job for someone further on
+# (knockout.years_asked reads the posting's own line; the job search's experience_years_min tag read
+# 10 on "Software Engineer - New Grad" and 7 on "18+ years old", 2026-10-07)
+ENTRY_MAX_YEARS = 3
+# graduation compared only while studying or this soon after: a year further back says nothing
+# about an internship's window, and a year they hid stays hidden
+GRADUATION_RECENT_MONTHS = 24
 
 
 def words(phrase: str) -> re.Pattern:
@@ -51,8 +70,11 @@ def blocked(job: dict, blocklist: dict) -> bool:
             return True
     if norm_company(job.get("company")) in {norm_company(c) for c in blocklist.get("companies") or []}:
         return True
-    # the job search's own tags: a job w/o one is never hidden by them
-    if job.get("employment_type") and job["employment_type"] in (blocklist.get("employment_types") or []):
+    # the job search's own tags: a job w/o one is never hidden by them, nor one whose title names
+    # a type they kept (an internship tagged full time)
+    hidden_types = blocklist.get("employment_types") or []
+    if job.get("employment_type") in hidden_types and job.get("employment_type") \
+            and not ((t := title_type(job)) and t not in hidden_types):
         return True
     if blocklist.get("clearance") and job.get("requires_clearance"):
         return True
@@ -112,6 +134,36 @@ def pay_label(job: dict) -> str:
     return f"${lo:.0f}k" if lo == hi else f"${lo:.0f}k-{hi:.0f}k"
 
 
+def hourly_floor(rc: dict) -> bool:
+    return rc.get("salary_floor_unit") == "hour"
+
+
+def floor_words(rc: dict, floor: float | None = None) -> str:
+    """Their lowest pay in the unit they gave it: "$22/hr" (stored yearly, x 2080) or "$60,000"."""
+    floor = rc.get("salary_floor_usd") if floor is None else floor
+    if hourly_floor(rc):
+        return f"${money(round(floor / PERIODS_PER_YEAR['hour'], 2))}/hr"
+    return f"${floor:,.0f}"
+
+
+def parse_floor(text: str) -> tuple[int, str]:
+    """"22/hr", "$22 an hour", "45000" -> (yearly USD, unit). An hourly floor is kept yearly
+    (x 2080) so every comparison stays one sum; the unit only changes how it is said."""
+    m = re.fullmatch(r"\$?\s*([\d,]+(?:\.\d+)?)\s*(/\s*(?:hr|hour|h)|an? hour|per hour|hourly)?", text.strip(), re.I)
+    if not m:
+        raise ValueError(f"{text!r}: a pay like 22/hr or 45000")
+    value = float(m[1].replace(",", ""))
+    hourly = bool(m[2]) or value < HOURLY_BELOW
+    return round(value * PERIODS_PER_YEAR["hour"]) if hourly else round(value), "hour" if hourly else "year"
+
+
+def incomparable(job: dict, rc: dict) -> bool:
+    """A part-time job listing a yearly or monthly sum against an hourly floor: the hours behind
+    the sum are unknown ($25,000 for 20 hours a week is $24/hr), so it is never read as low pay."""
+    p = pay(job)
+    return hourly_floor(rc) and bool(p) and p[2] in ("year", "month") and job_type(job) == "part_time"
+
+
 def pay_hidden(job: dict, rc: dict) -> str | None:
     """Why rank.pay_filter hides it: "below" (top of range under the floor), "unlisted" (no USD
     pay to compare - not low pay, just unknown), else None. No floor set => never hidden."""
@@ -120,6 +172,8 @@ def pay_hidden(job: dict, rc: dict) -> str | None:
         return None
     if pay(job) is None:
         return "unlisted" if pf.get("hide_unlisted") else None
+    if incomparable(job, rc):
+        return None
     return "below" if pf.get("hide_below_floor") and not meets_floor(job, floor) else None
 
 
@@ -160,7 +214,7 @@ def pay_probe(jobs: list[dict], config: dict, floor: float, hide_unlisted: bool,
     for label, rows in (("open", shown), ("reached your list in the last 7 days", week)):
         why = [pay_hidden(j, rc) for j in rows]
         out.append(f"{label}: {len(rows)} - keeps {why.count(None)}, hides {why.count('below')} below"
-                   f" ${floor:,.0f}" + (f" + {why.count('unlisted')} with no pay listed" if hide_unlisted else
+                   f" {floor_words(rc, floor)}" + (f" + {why.count('unlisted')} with no pay listed" if hide_unlisted else
                                         f" (no pay listed, kept: {sum(1 for j in rows if pay(j) is None)})"))
     return "\n".join(out)
 
@@ -177,7 +231,7 @@ def pay_words(job: dict, rc: dict) -> str:
         return f"below your pay: {label} (few new jobs this week)"
     if job.get("pay_relaxed") == "unlisted":
         return "pay not listed (few new jobs this week)"
-    if label and rc["salary_floor_usd"]:
+    if label and rc["salary_floor_usd"] and not incomparable(job, rc):
         label += " (meets your pay)" if meets_floor(job, rc["salary_floor_usd"]) else " (below your pay)"
     return label or "pay not listed"
 
@@ -213,26 +267,89 @@ def doubts(job: dict, rc: dict) -> list[str]:
     return out
 
 
+def title_type(job: dict) -> str | None:
+    """Employment type the title itself names, or None."""
+    title = job.get("title") or ""
+    return next((kind for kind, rx in TITLE_TYPES if rx.search(title)), None)
+
+
+def early_career(job: dict) -> bool:
+    return job.get("seniority") in ("intern", "junior") or bool(words(EARLY_CAREER).search(job.get("title") or ""))
+
+
+def job_type(job: dict) -> str | None:
+    """Type as the title says it, else the job search's tag."""
+    return title_type(job) or job.get("employment_type")
+
+
 def mismatches(job: dict, rc: dict) -> list[str]:
     out = []
-    above, below = LEVEL_MISMATCH.get(rc.get("career_level") or "", (None, None))
+    level = rc.get("career_level") or ""
+    above, below = LEVEL_MISMATCH.get(level, (None, None))
     title = job.get("title") or ""
-    if above and words(above).search(title):
+    if above and words(above).search(ENTRY_TITLE_KEEP.sub(" ", title) if level == "entry" else title):
         out.append("title above your level")
     if below and words(below).search(title):
         out.append("title below your level")
-    wanted = rc.get("employment_types") or []
-    if wanted and job.get("employment_type") and job["employment_type"] not in wanted:
+    wanted, kind = rc.get("employment_types") or [], job_type(job)
+    # an intern title below a mid-level user's level already says it: one doubt, not two
+    if wanted and kind and kind not in wanted and "title below your level" not in out:
         human = lambda t: t.replace("_", " ")
-        out.append(f"{human(job['employment_type'])}, you asked {' or '.join(map(human, wanted))}")
+        out.append(f"{human(kind)}, you asked {' or '.join(map(human, wanted))}")
     return out
+
+
+def required_lines(job: dict) -> list[str]:
+    return [r["text"] for r in (job.get("enrichment") or {}).get("requirements") or [] if r.get("priority") == "required"]
+
+
+def asks_beyond(job: dict, config: dict, graduation: str | None, today) -> list[str]:
+    """What a posting's own required lines ask that a student or first-job seeker clearly lacks:
+    3+ years (entry level only) and a graduation window theirs misses. Sorted lower, never hidden."""
+    from resume import knockout  # light: the posting's lines only
+    out = []
+    if config["rank"].get("career_level") == "entry":
+        asked = [y for t in required_lines(job) if (y := knockout.years_asked(t)) is not None]
+        if asked and max(asked) >= ENTRY_MAX_YEARS:
+            out.append(f"asks {max(asked)}+ years")
+    reqs = (job.get("enrichment") or {}).get("requirements") or []
+    if hit := knockout.graduation_asked({"requirements": reqs}, graduation, today):
+        out.append(f"asks graduating {hit[0]}; yours {knockout.window_label(graduation_span(graduation, today))}")
+    return out
+
+
+def graduation_span(graduation: str, today) -> tuple[int, int]:
+    from resume import schema
+    return schema.month_index(graduation, today), schema.month_index(graduation, today, end=True)
+
+
+def student_graduation(config: dict, today) -> str | None:
+    """Their graduation as internship and new-grad windows are read against: a degree in
+    progress, or one finished in the last GRADUATION_RECENT_MONTHS, its year not hidden. Read off
+    their resume details; none yet or unreadable => None."""
+    from resume import schema
+    try:
+        master = schema.load(cfg.resume_path(config, "master"))
+    except (OSError, ValueError, KeyError):
+        return None
+    when = schema.graduation(master, today)
+    school = next((s for s in master.get("education") or [] if s.get("end") == when), {})
+    if not when or school.get("hide_year"):
+        return None
+    now = schema.month_index(schema.PRESENT, today)
+    recent = schema.in_progress(school, today) or now - schema.month_index(when, today, end=True) <= GRADUATION_RECENT_MONTHS
+    return when if recent else None
 
 
 def sponsorship(job: dict, config: dict) -> list[str]:
     """User needs a visa sponsor and freehire marks this job as never sponsoring. A weak label
     (docs/jobs/freehire.md #Visa sponsorship): demoted like a mismatch, never hidden."""
-    needs = (config.get("work_authorization") or {}).get("needs_sponsorship")
-    return ["says no visa sponsorship"] if needs and (job.get("enrichment") or {}).get("visa_sponsorship") is False else []
+    wa = config.get("work_authorization") or {}
+    if not (wa.get("needs_sponsorship") and (job.get("enrichment") or {}).get("visa_sponsorship") is False):
+        return []
+    # CPT and OPT need no employer sponsorship: an internship saying "no sponsorship" may still take them
+    return ["says no visa sponsorship - CPT or OPT may still work, read the posting"] if wa.get("student_visa") \
+        else ["says no visa sponsorship"]
 
 
 def clearance(job: dict) -> list[str]:
@@ -313,6 +430,9 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     now = now or datetime.now(timezone.utc)
     kept = pay_filter(collapse([dict(j, stale=stale_for(j, rc, now)) for j in jobs
                                 if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)]), rc, now)
+    # read once per list, kept on each row: the sort key, its reasons and best's demerits all read it
+    graduation = student_graduation(config, now.date())
+    kept = [dict(j, beyond=asks_beyond(j, config, graduation, now.date())) for j in kept]
     # Order, most decisive first:
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
@@ -331,7 +451,7 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
         bool(j["stale"]),
         # ghost reasons are one verdict told several ways (likely-evergreen = two of old,
         # reposted, many copies open, "always hiring" text), so they count once
-        bool(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config))
+        bool(doubts(j, rc)) + len(mismatches(j, rc)) + len(sponsorship(j, config)) + len(j["beyond"])
         + (bool(clearance(j)) and can_hold_clearance(config) is False),
         not meets_floor(j, rc["salary_floor_usd"]),
         -(annual_usd(j) or 0),
@@ -383,7 +503,8 @@ def reasons(job: dict, config: dict, now: datetime | None = None, when: str | No
              age_label(job, now or datetime.now(timezone.utc)) if when is None else when]
     if 1 < reposts(job) < rc["repost_demote"]:
         parts.append(f"reposted {reposts(job)}x")
-    parts += doubts(job, rc) + mismatches(job, rc) + sponsorship(job, config) + clearance(job) + posting_says(job, rc)
+    parts += (doubts(job, rc) + mismatches(job, rc) + (job.get("beyond") or []) + sponsorship(job, config)
+              + clearance(job) + posting_says(job, rc))
     if job.get("stale"):
         parts.append(f"may be closed - not seen in {job['stale']}d")
     return " · ".join(p for p in parts if p)
@@ -417,8 +538,8 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=30)
     ap.add_argument("--suspects", action="store_true", help="list companies spanning unrelated categories")
     ap.add_argument("--would-hide", metavar="PHRASE", help="count + sample titles a title phrase would hide")
-    ap.add_argument("--pay-floor", type=float, metavar="USD", help="count what a yearly pay floor would hide"
-                    " (all open + last 7 days, before the thin-week relax), to say before saving it")
+    ap.add_argument("--pay-floor", metavar="PAY", help="count what a pay floor would hide - yearly (45000) or"
+                    " hourly (22/hr) - all open + last 7 days, before the thin-week relax, to say before saving it")
     ap.add_argument("--hide-unlisted", action="store_true", help="with --pay-floor: no pay listed hides too")
     ap.add_argument("--best", action="store_true", help="Today page's 'Best to apply next' order: open jobs not"
                     " acted on, resume match, asks, pay, where, freshness (app/best.py)")
@@ -438,7 +559,11 @@ def main() -> None:
         return
     now = datetime.now(timezone.utc)
     if args.pay_floor is not None:
-        print(pay_probe(jobs, config, args.pay_floor, args.hide_unlisted, now))
+        floor, unit = parse_floor(args.pay_floor)
+        config = cfg.merge(config, {"rank": {"salary_floor_unit": unit}})
+        print(pay_probe(jobs, config, floor, args.hide_unlisted, now))
+        if unit == "hour":
+            print(f"to save: rank.salary_floor_usd: {floor}  rank.salary_floor_unit: hour  ({floor_words(config['rank'], floor)})")
         return
     if args.best:
         import best  # imports this module

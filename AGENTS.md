@@ -50,7 +50,9 @@ everything: never ask them to type a command, edit a file, open a terminal or in
 - On Copilot: the AI matters. Free tier on its automatic model failed 3 of 3 tailored resumes
   (measured; Pro untested). Recommend once, at setup or after a STOP: pick a strong model such as
   Claude Sonnet in the model list under the chat box (Copilot Pro). Once more after the move to
-  its own profile left the pick behind (`.data/profile-migrated`, `job-setup`).
+  its own profile left the pick behind (`.data/profile-migrated`, `job-setup`). Copilot Student
+  has had only the automatic model since 2026-06-24 (untested here): same advice - Copilot Pro
+  keeps the rest of their Student Pack.
 - User mentions Nova, Perplexity, Monica, Poe or another all-in-one AI app: say plainly those
   apps can't run programs on their computer, so they can't run CEZ Job Finder. The three that
   can: Claude, ChatGPT, GitHub Copilot Pro ($10 a month, several AIs in one plan; its free tier can't
@@ -169,7 +171,8 @@ every request into one tier:
   history checks find them most often in every region - 72% APAC, 64% EMEA), and anything on the page gets asked about in interview. Offer the honest route: tell them it's missing, never fill it.
   - Also Hold: dates shifted to hide a break; invented job, course or freelance to fill one; false
     birth date or grad year; non-legal name in a box labelled legal; renamed organisation; false
-    answer to what a criminal-history question legally covers.
+    answer to what a criminal-history question legally covers; a degree still being earned shown
+    as held; a GPA above the transcript's or converted from another scale.
   - NOT Hold: lawful "No" for a sealed / expunged record, a work name they go by, a break line
     left off.
 - **Push back, then respect** - evidence-backed practice they want to override: deleting a job
@@ -258,8 +261,9 @@ when asked, at setup, and before any step sending something new off computer.
 | Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |
 
 AI training = setting on user's own AI account; only they can change it (`job-setup` offers it
-before the first question). User asks -> open `Guides/Keep your chats out of AI training.md`, walk
-through it. Their name + resume still reach the AI either way - never say otherwise. Never ask
+before the first question). A school account (ChatGPT Edu, Claude for Education) is the school's:
+not trained on by default, the school decides what its admins see, it may end after graduation.
+User asks -> open `Guides/Keep your chats out of AI training.md`, walk through it. Their name + resume still reach the AI either way - never say otherwise. Never ask
 them to rate a chat (thumbs, feedback): that chat can be trained on even w/ the switch off.
 
 Everything in the VS Code file list is private; program is hidden. Private folders never reach
@@ -277,7 +281,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   no resume text. Other AIs have no hook - they keep the page.
 - `Guides/` - plain-words guides in the user's file list (`What you can ask.md`, `Who sees
   what.md`, `What makes a good resume.md`, `Unfair hiring - what's known, what helps.md`, `Keep
-  your chats out of AI training.md`, `Following up.md`); link,
+  your chats out of AI training.md`, `Following up.md`, `For students.md`); link,
   don't repeat, from `START HERE.md`, the Today page and reports.
 - `My Settings/Search settings.yml` - user's search, merged over `app/defaults.yml`.
 - `My Settings/About me.yml` - their notes beyond the resume (`about`, below).
@@ -308,6 +312,15 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.
 Tests: `uv run pytest` (live gates hit freehire API).
+
+## Students
+
+Internships, co-ops, part-time work alongside classes, a first job, F-1: same program, a few
+rules of its own (setup's internship type, hourly pay, F-1 work-permit answer; Expected degree,
+GPA, clubs as projects w/ a role; graduation-window + 3+ years asks sorted lower, never hidden).
+What + why: `app/docs/students.md`; user guide: `Guides/For students.md`. F-1 form answers and
+unpaid-internship law: general information, never legal advice - their international student
+office has the final word.
 
 ## About me - what you know about them beyond the resume
 

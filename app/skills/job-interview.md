@@ -24,6 +24,8 @@ had. Basis + what each rule rests on: `app/docs/apply/interview.md`.
 - Ask ONE question, then stop. Stay in role - no coaching mid-answer, never finish their sentence.
 - Questions from the posting, never a generic bank: shown requirements (practise saying it aloud)
   and not-shown ones (the struggle happens here, not in the room).
+- Student or first job: a story can come from a class project, a club or team, a part-time job or
+  volunteering - anything real on their page. Say so once when they stall on "a time at work".
 - After each answer, 3-4 lines, no praise padding: did they say what THEY did or what the team did;
   a result, or does it trail off; a number where one plainly exists (never suggest one); one thing
   to change. Strong -> say so in a clause, move on. Inflating a weak answer makes practice worse

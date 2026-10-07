@@ -64,6 +64,7 @@
     },
     "headline": { "type": "string", "minLength": 1, "description": "One line above your summary saying what you do - your real title and main skills, like Software Engineer | React.js, TypeScript, Node.js. Leave it out if you prefer none." },
     "summary": { "type": "string", "description": "The short pitch at the top of the page - up to four lines." },
+    "education_first": { "type": "boolean", "description": "true puts Education above your jobs, false below them. Leave it out and Job Finder follows the usual convention: Education first while you're a student or just graduated, after your jobs once you've worked a few years." },
     "roles": {
       "type": "array",
       "description": "Your jobs, newest first. Leave it as [] if you have not had one yet.",
@@ -106,14 +107,16 @@
     },
     "projects": {
       "type": "array",
-      "description": "Worth showing but not a job: side projects, teaching. Dates may be left out; give both or neither.",
+      "description": "Worth showing but not a job: side projects, class projects, teaching - and clubs, teams or student groups. Dates may be left out; give both or neither.",
       "items": {
         "type": "object",
         "required": ["name", "bullets"],
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string" },
-          "name": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1, "description": "The project, or the group exactly as it's called. How a group shows is your call: its full name, a general description you write here, or left off." },
+          "role": { "type": "string", "description": "Your part in a club or group: Treasurer, Captain, Member. Prints like a job title." },
+          "section": { "type": "string", "description": "The heading it prints under, like Leadership & Activities. Leave it out for Projects." },
           "location": { "type": "string" },
           "blurb": { "type": "string" },
           "start": { "$ref": "#/definitions/month" },
@@ -147,8 +150,12 @@
           "institution": { "type": "string", "minLength": 1 },
           "degree": { "type": "string", "minLength": 1, "description": "BA, AA, certificate, whatever it was called." },
           "field": { "type": "string" },
-          "details": { "type": "string" },
-          "end": { "$ref": "#/definitions/month" },
+          "details": { "type": "string", "description": "A minor or honors, as you'd write it: Minor in Mathematics; Dean's List." },
+          "start": { "$ref": "#/definitions/month", "description": "When you started. Never printed; it keeps your time in school from reading as a break between jobs." },
+          "end": { "$ref": "#/definitions/month", "description": "When you finished, or expect to. A date still ahead prints as Expected May 2027." },
+          "expected": { "type": "boolean", "description": "true while you're still earning it: the page says Expected. Once you finish, take it out (or set false)." },
+          "gpa": { "type": "string", "description": "Exactly as your transcript gives it: 3.62 or 3.62/4.00. Never rounded up. Leave it out if you'd rather not show it." },
+          "coursework": { "type": "array", "items": { "type": "string" }, "description": "Courses worth naming for the jobs you want, as your school titles them. Printed as Relevant coursework." },
           "hide_year": { "type": "boolean", "description": "true leaves the year off the page. Worth it for a degree finished 15 or more years ago; recommended at 20 or more, with your other old years." }
         }
       }

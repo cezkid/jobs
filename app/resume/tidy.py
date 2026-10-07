@@ -35,9 +35,13 @@ NOTES = {
     ],
     "career_break": ["# Time away from work, said plainly: reason, then start and end. Shown with your jobs.",
                      "# explain: optional, your own words for forms that ask about a break. Never on the page."],
-    "projects": ["# Worth showing but not a job: side projects, teaching. Dates may be left out."],
+    "projects": ["# Worth showing but not a job: side projects, class projects, teaching. Dates may be left out.",
+                 "# A club, team or student group: name = the group as it's called, role = your part,",
+                 "# section = the heading it prints under (Leadership & Activities)."],
     "skills": ["# The skills block. 'group' is the heading, 'items' are the words under it."],
-    "education": ["# Schools, newest first. hide_year: true leaves the year off the page."],
+    "education": ["# Schools, newest first. hide_year: true leaves the year off the page.",
+                  "# Still studying: end = when you expect to finish, expected: true (the page says Expected).",
+                  "# gpa in quotes exactly as your transcript gives it; coursework = courses worth naming."],
     "certifications": ["# Licences and certifications. Leave it as [] if you have none.",
                        "# hide_year: true leaves the date off the page."],
     "languages": ["# Languages you speak, one per line, level in brackets: Spanish (Fluent).",
@@ -46,8 +50,9 @@ NOTES = {
 }
 ORDER = ["contact", "headline", "summary", "roles", "career_break", "projects", "skills", "education", "certifications",
          "other", "languages"]
-ENTRY_ORDER = ["company", "name", "title", "heading", "reason", "location", "blurb", "start", "end", "explain", "ai_era",
-               "bullets", "lines"]
+ENTRY_ORDER = ["company", "name", "role", "section", "title", "heading", "reason", "institution", "degree", "field",
+               "details", "gpa", "coursework", "location", "blurb", "start", "end", "expected", "hide_year", "explain",
+               "ai_era", "bullets", "lines"]
 ORDERS = {"contact": ["name", "legal_first", "legal_middle", "legal_last", "other_names", "form_name", "form_jobs",
                       "email", "phone", "location", "links"]}
 # plain scalar would read back as something else: leading indicator, a key, a comment, a number

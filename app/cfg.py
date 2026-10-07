@@ -106,4 +106,6 @@ def load_or_defaults() -> dict:
 
 
 def tier_order(config: dict) -> list[str]:
-    return [p["tier"] for p in config["passes"]]
+    """Each tier once, in pass order: two passes may fill one tier (an internship search reads
+    two of the job search's tags, each its own pass)."""
+    return list(dict.fromkeys(p["tier"] for p in config["passes"]))

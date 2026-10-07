@@ -209,6 +209,7 @@ WHY = {
     "personal-details": "US employers don't expect these; they invite bias.",
     "abbreviated-school": "Application forms match your school against a list of full names, so a short form like \"CC\" matches nothing.",
     "language-level": "Resume readers store each language with its own level, so write one per line with the level in brackets, like Spanish (Fluent).",
+    "expected-date-passed": "Your resume still says you expect to finish this degree, and that date has passed. Did you finish? The page keeps saying Expected until you say.",
     "old-graduation-year": "A graduation year from 15+ years ago lets a reader guess age; you may leave the year off and keep the degree.",
     "old-certification-year": "A certification year from 15+ years ago lets a reader guess age; you may leave the year off and keep the certification.",
     "spelling": "Resume scanners count a spelling mistake against the whole page, and US employers read British spellings as mistakes.",
@@ -373,11 +374,14 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
     """`posting` = the job's own text: a style or grade word it uses is its term, not the writer's."""
     inferences = inferences or []
     findings: list[Finding] = []
-    master_page = [norm(s) for s in render.page_strings(render.page_model(master))]
+    untailored = render.page_strings(render.page_model(master))
+    master_page = [norm(s) for s in untailored]
     facts = master_strings(master)
     verbatim = set(master_page) | {norm(s) for s in facts}
     corpus = " ".join(facts)
-    known = {entity_key(t) for t in TOKEN.findall(corpus)}
+    # what the untailored page prints from those facts counts too: "Expected May 2027", "GPA",
+    # "Bachelor of Science" are the page's words for "2027-05", gpa, "B.S."
+    known = {entity_key(t) for t in TOKEN.findall(" ".join([corpus, *untailored]))}
     known_terms = {norm(s) for e in [*master["roles"], *master.get("projects", [])] for b in e["bullets"] for s in b.get("stack", [])}
     known_terms |= {norm(i) for g in master.get("skills", []) for i in g["items"]}
     entries = {e["id"]: e for e in [*master["roles"], *master.get("projects", [])]}
@@ -529,7 +533,8 @@ def check_ai_era(entry: dict, where: str, text: str, findings: list[Finding], ow
     severity = WARN if own else FAIL
     if not entry.get("ai_era") and (m := ai_term(text)):
         findings.append(Finding(severity, "ai-era", where, f"{m.group()!r} inside entry with ai_era false: {text!r}"))
-    if entry["end"] == schema.PRESENT:
+    # undated or still running: no end date for a tool to postdate
+    if entry.get("end") in (None, schema.PRESENT):
         return
     for pattern, released in TOOL_RELEASED.items():
         if (m := pattern.search(text)) and schema.compare(entry["end"], released, date.today()) < 0:
@@ -544,11 +549,14 @@ def check_entry_identity(entry: dict, where: str, entries: dict, findings: list[
     if source is None:
         findings.append(Finding(FAIL, "unknown-entry", where, f"id {entry.get('id')!r} not in master roles/projects"))
         return
-    name = source.get("title", source.get("name"))
+    name = source.get("title") or source.get("role") or source.get("name")
     if not entry["heading"].startswith(name):
         findings.append(Finding(FAIL, "title-changed", where, f"{entry['heading']!r} does not start with master {name!r}"))
-    if source.get("company") and entry.get("org") != source["company"]:
-        findings.append(Finding(FAIL, "employer-changed", where, f"{entry.get('org')!r} != master {source['company']!r}"))
+    # a club or student group under its role: its name is checked like an employer's - never
+    # renamed, shortened or generalised on a tailored page (an affinity group's name is the user's call)
+    org = source.get("company") or (source.get("role") and source.get("name"))
+    if org and entry.get("org") != org:
+        findings.append(Finding(FAIL, "employer-changed", where, f"{entry.get('org')!r} != master {org!r}"))
     span = render.span_label(source)
     if span and span not in (entry.get("subline") or ""):
         findings.append(Finding(FAIL, "dates-changed", where, f"subline {entry.get('subline')!r} lacks {span!r}"))
@@ -580,6 +588,10 @@ def master_findings(master: dict, today: date) -> list[Finding]:
             findings.append(Finding(WARN, "abbreviated-school", f"education[{i}]",
                                     f"{m.group()!r} in {school['institution']!r}: write the school's full name"))
         end = school.get("end")
+        if schema.expected_passed(school, today):
+            findings.append(Finding(WARN, "expected-date-passed", f"education[{i}]",
+                                    f"{school['degree']} expected {render.month_label(end)}: did they finish? "
+                                    "Finished -> take out expected: true; not yet -> the new expected date"))
         if end and not school.get("hide_year") and today.year - int(end[:4]) >= OLD_GRADUATION_YEARS:
             findings.append(Finding(WARN, "old-graduation-year", f"education[{i}]",
                                     f"{school['degree']} ended {end[:4]}; {hide_year_advice(master, today)}"))

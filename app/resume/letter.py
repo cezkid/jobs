@@ -68,15 +68,14 @@ def facts_of(master: dict) -> dict[str, str]:
     """Citable id -> the fact's own words: bullets, certifications[i], education[i]."""
     out = {b["id"]: b["claim"] for e in [*master["roles"], *master.get("projects", [])] for b in e["bullets"]}
     out |= {f"certifications[{i}]": render.joined(c["name"], c.get("issuer")) for i, c in enumerate(master.get("certifications") or [])}
-    out |= {f"education[{i}]": render.joined(s.get("degree"), s.get("field"), s.get("institution"))
-            for i, s in enumerate(master.get("education") or [])}
+    out |= {f"education[{i}]": schema.degree_words(s, date.today()) for i, s in enumerate(master.get("education") or [])}
     return out
 
 
 def headers_of(master: dict, ids: list[str]) -> list[str]:
     """The job or project a cited bullet sits under: its employer, title, place are the fact's too."""
     entries = [e for e in [*master["roles"], *master.get("projects", [])] if {b["id"] for b in e["bullets"]} & set(ids)]
-    return [str(e.get(k)) for e in entries for k in ("company", "title", "name", "location") if e.get(k)]
+    return [str(e.get(k)) for e in entries for k in ("company", "title", "name", "role", "location") if e.get(k)]
 
 
 def never_shows(job: dict, master: dict) -> list[str]:

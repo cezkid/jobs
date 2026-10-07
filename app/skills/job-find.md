@@ -6,7 +6,9 @@ missing -> `job-setup` skill instead.
 1. `uv run app/jobs.py find --limit 15` (checks for new jobs, then ranks). Row columns: `#12` job
    number (the user's name for it - same in email, Today page, every chat), `NEW` (not yet
    notified) or `-`, tier, `title | company`, `[why]` in plain words (place, pay, employer list,
-   first seen, reposts, level/hours mismatch), link (the posting - show this one), slug (last).
+   first seen, reposts, level/hours mismatch; for a student or first-job seeker "asks 3+ years",
+   "asks graduating Dec 2027 - Jun 2028; yours May 2027" - each sorts it lower, never hides it),
+   link (the posting - show this one), slug (last).
 2. Show as `AGENTS.md` job list, each led by its own number ("**Job 12**"), grouped by tier label
    (e.g. "Remote US", "Springfield area"). Numbers aren't 1, 2, 3 - never renumber them.
    Add one plain sentence on how the list is ordered, read off

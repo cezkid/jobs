@@ -11,6 +11,8 @@
   name, age, breaks, records, AI screening: what helps, w/ strength of its evidence.
 - [Keep your chats out of AI training](../../Guides/Keep%20your%20chats%20out%20of%20AI%20training.md) -
   the switch on each AI account, what it doesn't cover.
+- [For students](../../Guides/For%20students.md) - internships, part-time jobs, a first job, GPA,
+  F-1 questions, unpaid internships, job scams, AI plans for students.
 
 **AI assistant + contributors** - measured facts + evidence behind the code. Read the area's doc
 before changing it: each records what was measured and rejected, so a retired rule stays retired.
@@ -23,6 +25,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Resume | [resume/resume-file.md](resume/resume-file.md) | Resume file in: PDF or Word (.docx) read by the program, token cost of an AI opening it (measured), why every made resume stays a PDF |
 | Resume | [resume/typeface.md](resume/typeface.md) | Why Caladea, how widths are measured, adding a font + its cost |
 | Resume | [resume/fair-screening.md](resume/fair-screening.md) | Name, age, work-break, record + AI-screening bias: evidence graded by strength, laws as of 2026-09, what the program carries, advice we don't follow, unverified list |
+| Students | [students.md](students.md) | Internships, new grad, part-time, F-1: what the program does for a student + why (measured search facts, resume + form rules, AI plans), what review declined |
 | About you | [about-me.md](about-me.md) | Notes beyond the resume (goals, workplace, voice, never mention, sensitive values + personal): saved only on a yes, read one kind for its use, company fit w/o guessing a stance; What Job Finder knows page; Claude's own memory off |
 | Install | [desktop-icon.md](desktop-icon.md) | Desktop icon: brand files + how they're made, Mac applet edits, why the Dock still shows VS Code |
 | Jobs | [jobs/freehire.md](jobs/freehire.md) | Job API: filters, facets, measured pitfalls - read before touching search or ingest |
