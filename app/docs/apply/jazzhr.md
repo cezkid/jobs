@@ -74,8 +74,19 @@ Measured 2026-10-03, every write blocked + logged: `apply-form measure` (load) o
 | Submit | form data + resume, once (native form POST to the posting link) - never clicked, unmeasured live | - |
 
 Earliest point anything the applicant typed or chose leaves: Submit. Page also loads New Relic
-and Gainsight analytics scripts: 0 writes from them while filling (4 of 4); what they send after
-Submit is unmeasured.
+and Gainsight analytics scripts: 0 writes from them while filling (4 of 4).
+
+At Submit, before the form goes (`submit-resume.js` + `gpx-util.js`, plain GET 2026-10-06; read,
+unmeasured live - Submit is never clicked):
+
+| Step | Goes to | What |
+|---|---|---|
+| every Submit | `storage.googleapis.com` (Gainsight's `gpx-util.js`) | a script load - nothing typed |
+| 1 in 100 sessions (`samplePercentage = 1`; murmurhash of the session cookie `% 100 < 1`; no cookie = never) | Gainsight PX (`web-sdk.aptrinsic.com`) | `aptrinsic("identify")`: email, first + last name, phone, city, state, country, role "Applicant", session id; account = the employer's JazzHR subdomain + Salesforce id |
+| then | the posting link | form data + resume (`send_form`) |
+
+Privacy table row: Gainsight, JazzHR's analytics company. The filler never clicks Submit, so the
+user's click is what starts it.
 
 ## Read back (2026-10)
 

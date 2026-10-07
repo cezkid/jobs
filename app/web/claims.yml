@@ -154,6 +154,15 @@ privacy-maintainer:
     rows: ^\| .* \| maintainer \|
     are:
     - '| Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |'
+privacy-hiring-analytics:
+  page: privacy.html
+  text: 'Employers’ hiring sites run their own analytics. JazzHR sends your name, email, phone and town to its analytics company, Gainsight, when you click Submit – for about 1 in 100 applicants.'
+  why: 'privacy table: JazzHR page script identifies a sampled share of applicants to Gainsight at Submit'
+  rests_on:
+  - file: AGENTS.md
+    rows: ^\| .* \| Gainsight, JazzHR's analytics company
+    are:
+    - '| Email, name, phone, city / state / country you apply with | Gainsight, JazzHR''s analytics company (its script on the employer''s JazzHR page) | Gainsight, when you click Submit - about 1 in 100 applicants, a sample the page draws (read in JazzHR''s script, unmeasured live) |'
 vscode-usage-data:
   page: privacy.html
   text: 'VS Code (Microsoft) sends usage data by default. If the installer put VS Code on your computer, the app turns that off. On a VS Code you already had: Settings, search “telemetry”.'

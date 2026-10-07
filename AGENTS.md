@@ -243,6 +243,7 @@ when asked, at setup, and before any step sending something new off computer.
 | Work history, education, skills, links you apply with | that employer's UKG site | That employer, as each is added (only after you say yes) |
 | Contact details, answers, resume you apply with | that employer's UKG site | That employer, once you click Submit |
 | Contact details, answers, resume you apply with | that employer's JazzHR site | That employer, once you click Submit |
+| Email, name, phone, city / state / country you apply with | Gainsight, JazzHR's analytics company (its script on the employer's JazzHR page) | Gainsight, when you click Submit - about 1 in 100 applicants, a sample the page draws (read in JazzHR's script, unmeasured live) |
 | Resume (and cover letter) you apply with | that employer's BambooHR site | That employer, as soon as the file is chosen - before Submit |
 | Contact details, answers you apply with | that employer's BambooHR site | That employer, once you click Submit |
 | Email, resume, contact details, answers you apply with | that employer's Paylocity site | That employer: email as you leave its box, resume as you pick the file (both measured), the rest by Submit |
