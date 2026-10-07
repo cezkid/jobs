@@ -116,6 +116,10 @@ rank:
   # yearly USD; a job whose top of range reaches it ranks above those that don't. 0 = no floor
   # (pay_filter then hides nothing)
   salary_floor_usd: 0
+  # how they gave it: year, or hour (an internship or part-time job). Kept yearly above either way
+  # (hourly x 2080) so every comparison is one sum; hour = said back as "$22/hr", and a part-time
+  # job listing only a yearly sum (hours unknown) is never hidden by it
+  salary_floor_unit: year
   # hides jobs by pay on every list (Today, chat, email, find); rows stay saved. Owner 2026-10-04:
   # "only if job count is low should lower paying jobs be allowed". Why + measured counts:
   # app/docs/jobs/pay-filter.md

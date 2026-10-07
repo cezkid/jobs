@@ -19,6 +19,7 @@ import yaml
 
 import cfg
 import locks
+import rank
 
 FILE = cfg.ROOT / "My Settings" / "About me.yml"
 HEADER = ("# Notes about you beyond your resume - your own words, each saved after you said yes.\n"
@@ -122,8 +123,10 @@ def resume_lines(config: dict) -> list[str]:
 def search_lines(config: dict) -> list[str]:
     rc, block = config.get("rank") or {}, config.get("blocklist") or {}
     floor = rc.get("salary_floor_usd") or 0
+    pay_line = (f"Lowest hourly pay: {rank.floor_words(rc)}" if floor and rank.hourly_floor(rc)
+                else f"Lowest yearly pay: {f'${floor:,}' if floor else 'any'}")
     lines = [f"Looking for: {(config.get('profile') or {}).get('name') or 'not set'}",
-             f"Lowest yearly pay: {f'${floor:,}' if floor else 'any'}",
+             pay_line,
              f"Career level: {rc.get('career_level') or 'any'}",
              f"Hours: {', '.join(rc.get('employment_types') or []) or 'any'}"]
     if companies := block.get("companies"):
