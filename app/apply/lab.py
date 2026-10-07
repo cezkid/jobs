@@ -74,7 +74,7 @@ TEXT_KEEP = 4096
 GENERIC = {"www", "jobs", "job", "careers", "career", "apply", "boards", "board", "job-boards", "embed", "job_app",
            "greenhouse", "lever", "ashbyhq", "workable", "smartrecruiters", "applytojob", "bamboohr", "paylocity",
            "dayforcehcm", "paycomonline", "workforcenow", "oraclecloud", "icims", "myworkdayjobs", "myworkday", "workday",
-           "ultipro", "manatal", "careers-page", "rippling", "rippling recruiting", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
+           "ultipro", "manatal", "careers-page", "rippling", "rippling recruiting", "breezy", "breezy hr", "teamtailor", "people", "candidateportal", "mascsr", "hcmui", "recruiting", "recruitment", "hiring", "posting", "postings", "opening", "openings",
            "en-us", "en_us", "en", "us", "com", "net", "org", "io", "co"}
 # page chrome, not a name: iCIMS start box titles "Login", its submit input's value is "Next" (2026-10-03)
 # - in tenants.txt they hit every "next" in the code
