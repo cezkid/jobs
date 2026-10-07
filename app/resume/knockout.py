@@ -68,6 +68,105 @@ def degree_asked(text: str) -> str | None:
     return found[-1] if found else None
 
 
+# Graduation window an internship or new-grad posting asks ("graduating between December 2027 and
+# June 2028", "Class of 2027", "by Summer 2028", "December 2026 or later"). 2026-10-07, 2,268 live US
+# intern / new grad / entry level / co-op / early career rows: 116 carried one on a required line.
+# Read wide on purpose - a season spans its months, "A or B" its whole stretch - so only a date
+# clearly outside is ever said. "if graduating before ..." is a condition, not a window.
+MONTH_NUM = {m: i for i, m in enumerate(("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov",
+                                         "dec"), 1)}
+# a season's widest reading: spring commencements run March-June, fall's September-December;
+# "winter" is December at some schools, a January-March term at others, so it spans both
+SEASONS = {"spring": (3, 6), "summer": (6, 8), "fall": (9, 12), "autumn": (9, 12), "winter": (1, 15)}
+_WHEN = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?|spring|summer|fall|autumn|winter"
+POINT = re.compile(rf"\b(?P<when>(?:{_WHEN})(?:\s*(?:/|&|,|and|or)\s*(?:{_WHEN}))*)?\s*(?:of\s+)?"
+                   r"(?:the\s+)?(?P<years>20\d\d(?:\s*/\s*20\d\d)?)\b", re.I)
+GRADUATING = re.compile(r"\bgraduat\w*|\bclass of\b|\bcompletion of\b", re.I)
+CONDITIONAL = re.compile(r"\bif (?:you are |you're )?graduat", re.I)
+# a clause ends where the graduation ask does: "graduate by Dec 2026 and be able to start by Feb 2027"
+CLAUSE = re.compile(r";|\.(?:\s|$)|\band (?:be able to |can |will )?(?:start|begin)\b|\b(?:start|begin)\w*\b|"
+                    r"\bavailab\w*|\bwork period\b|\bduring\b", re.I)
+OPEN_LOW = re.compile(r"\b(?:by|before|no later than|prior to)\b|\bor (?:sooner|earlier|before)\b|\brecent(?:ly)? grad", re.I)
+BEFORE = re.compile(r"\b(?:before|prior to)\b", re.I)
+OPEN_HIGH = re.compile(r"\bor (?:later|after|beyond)\b|\bin or after\b|\band (?:later|after)\b|\bonward", re.I)
+# the text cut off mid-date ("... Fall 2027 or Spring/Summ"): its last end is unknown, so left open
+CUT_OFF = re.compile(r"(?:/|,|\bor\b|\band\b)\s*(?:spr|sum|fal|aut|win|jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s*$", re.I)
+WITHIN = re.compile(rf"\bwithin the (?:past|last) (?:\d+\s*-\s*)?{NUM} years?\b", re.I)
+
+
+def _spans(point: re.Match) -> list[tuple[int, int]]:
+    """One date mention -> month spans (months since year 0): "May/June of 2027", "Spring 2028/2029"."""
+    years = [int(y) for y in re.findall(r"20\d\d", point["years"])]
+    whens = re.split(r"\s*(?:/|&|,|and|or)\s*", point["when"].casefold()) if point["when"] else []
+    out = []
+    for year in years:
+        if not whens:
+            out.append((year * 12, year * 12 + 11))
+        for w in whens:
+            first, last = SEASONS[w] if w in SEASONS else (MONTH_NUM[w[:3]],) * 2
+            out.append((year * 12 + first - 1, year * 12 + last - 1))
+    return out
+
+
+def graduation_window(text: str, today: date) -> tuple[int | None, int | None] | None:
+    """(earliest, latest) graduation month a required line accepts, either end open (None); None when
+    the line names no graduation date. Months since year 0, as schema.month_index."""
+    if CONDITIONAL.search(text) or not (m := GRADUATING.search(text)):
+        return None
+    # the clause holding the ask: from the sentence's start, so "(2027 or 2028 graduates)" counts
+    start = max((c.end() for c in CLAUSE.finditer(text, 0, m.start())), default=0)
+    stop = next((c.start() for c in CLAUSE.finditer(text, m.end())), len(text))
+    clause = text[start:stop]
+    points = list(POINT.finditer(clause))
+    spans = [s for p in points for s in _spans(p)]
+    if not spans:
+        return None
+    low, high = min(s[0] for s in spans), max(s[1] for s in spans)
+    if OPEN_HIGH.search(clause) or CUT_OFF.search(clause[points[-1].end():]):
+        high = None
+    if OPEN_LOW.search(clause):
+        high = min(s[0] for s in spans) - 1 if BEFORE.search(clause) and len(spans) == 1 else high
+        low = None
+    if within := WITHIN.search(clause):
+        # "graduated within the past two years": anyone who finished from then up to today
+        years, now = int(within[1]) if within[1].isdigit() else WORDS[within[1].lower()], today.year * 12 + today.month - 1
+        low = None if low is None else min(low, now - 12 * years)
+        high = None if high is None else max(high, now)
+    return None if low is None and high is None else (low, high)
+
+
+def window_label(window: tuple[int | None, int | None]) -> str:
+    """"Dec 2027 - Jun 2028", "2027-2028", "by Jun 2028", "Dec 2027 or later"."""
+    def month(i: int) -> str:
+        return f"{render.MONTH_NAMES[i % 12][:3]} {i // 12}"
+    low, high = window
+    if low is not None and high is not None and low % 12 == 0 and high % 12 == 11:
+        return str(low // 12) if low // 12 == high // 12 else f"{low // 12}-{high // 12}"
+    if low is None:
+        return f"by {month(high)}"
+    if high is None:
+        return f"{month(low)} or later"
+    return month(low) if low == high else f"{month(low)} - {month(high)}"
+
+
+def outside(window: tuple[int | None, int | None], graduation: str, today: date) -> bool:
+    """Their graduation (YYYY-MM or a year, its whole span) clearly misses the window."""
+    mine_low, mine_high = schema.month_index(graduation, today), schema.month_index(graduation, today, end=True)
+    low, high = window
+    return (high is not None and mine_low > high) or (low is not None and mine_high < low)
+
+
+def graduation_asked(job: dict, graduation: str | None, today: date) -> tuple[str, str] | None:
+    """(window label, the posting's line) when a required line's graduation window misses theirs."""
+    if not graduation:
+        return None
+    for req in job.get("requirements") or []:
+        if req.get("priority") == "required" and (w := graduation_window(req["text"], today)) \
+                and outside(w, graduation, today):
+            return window_label(w), req["text"]
+    return None
+
+
 def degree_held(entry: dict) -> str | None:
     """Level of one education entry, or None (a certificate program, a professional doctorate)."""
     written = (entry.get("degree") or "").strip()

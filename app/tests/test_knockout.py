@@ -79,3 +79,56 @@ def test_an_education_entry_it_cannot_read_says_nothing_about_degrees():
 def test_overlapping_jobs_count_once():
     m = {"roles": [{"start": "2020-01", "end": "2022-12"}, {"start": "2021-06", "end": "2023-12"}]}
     assert knockout.dated_years(m, TODAY) == 4
+
+
+GRAD_TODAY = date(2026, 10, 7)
+
+
+@pytest.mark.parametrize("text, label", [
+    # real required lines, 2026-10-07 (intern / new grad rows)
+    ("Anticipated graduation date from an undergraduate program in December 2027 - June 2028", "Dec 2027 - Jun 2028"),
+    ("Currently enrolled in a U.S. undergraduate or graduate degree program with a graduation date of December 2027 or later",
+     "Dec 2027 or later"),
+    ("Rising Junior or Senior graduating in 2027 or 2028", "2027-2028"),
+    ("Undergraduate with graduation date of December 2027, May, or June 2028", "Dec 2027 - Jun 2028"),
+    ("Graduating between Fall 2027 and Summer 2028", "Sep 2027 - Aug 2028"),
+    ("Graduating in the 2028 calendar year", "2028"),
+    ("Pursuing a degree in Computer Science, graduating by Summer 2029", "by Aug 2029"),
+    ("Bachelor's or Master's degree in Computer Science, graduating before July 2026", "by Jun 2026"),
+    ("Graduating in Spring 2027 or sooner and interested in a full-time position", "by Jun 2027"),
+    ("To be eligible for this role, you need to graduate by Dec 2026 and be able to start FTE by January/February 2027.",
+     "by Dec 2026"),
+    ("MBA degree with planned graduation in May/June of 2027, with 4-7 years prior work experience preferred",
+     "May 2027 - Jun 2027"),
+    ("Graduation date of Spring 2028/2029 or Fall 2029", "Mar 2028 - Dec 2029"),
+    ("Currently pursuing a degree in Marketing or a related field (2027 or 2028 graduates)", "2027-2028"),
+    ("Graduating in Fall 2025 or graduated within the past two years.", "Oct 2024 - Oct 2026"),
+    ("Expected completion of a BS degree in Civil Engineering in May 2027", "May 2027"),
+    # the source cut off mid-date: the late end stays open, never read short
+    ("Currently pursuing a degree in design with expected graduation in Fall 2027 or Spring/Summ", "Sep 2027 or later"),
+])
+def test_graduation_window_reads_the_widest_span_a_line_accepts(text, label):
+    assert knockout.window_label(knockout.graduation_window(text, GRAD_TODAY)) == label
+
+
+@pytest.mark.parametrize("text", [
+    "You must be enrolled in an advanced degree program if graduating before June 2027.",  # a condition
+    "Open exclusively to current Co-Op students (work period January-June 2027, 40 hrs/week)",  # no graduation
+    "Bachelor's degree from an accredited university",
+    "Graduate degree preferred",
+    "Can start full-time in Summer 2027",
+])
+def test_graduation_window_says_nothing_without_a_graduation_date(text):
+    assert knockout.graduation_window(text, GRAD_TODAY) is None
+
+
+def test_only_a_graduation_clearly_outside_the_window_is_said():
+    job = {"requirements": [{"text": "Graduating between December 2027 and June 2028", "priority": "required"}]}
+    asked = knockout.graduation_asked
+    assert asked(job, "2027-05", GRAD_TODAY) == ("Dec 2027 - Jun 2028", "Graduating between December 2027 and June 2028")
+    assert asked(job, "2028-05", GRAD_TODAY) is None
+    # a year alone spans its months: 2027 may be December 2027
+    assert asked(job, "2027", GRAD_TODAY) is None
+    assert asked(job, None, GRAD_TODAY) is None
+    preferred = {"requirements": [{"text": "Graduating in 2030", "priority": "preferred"}]}
+    assert asked(preferred, "2027-05", GRAD_TODAY) is None
