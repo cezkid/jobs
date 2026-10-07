@@ -446,3 +446,14 @@ def test_posting_title_in_the_headline_is_no_unresolved_entity(master, model):
     assert "unresolved-entity" not in rules(lint.lint(model, master))
     model["summary"] = "Platform SRE Engineer shipping Vue search"  # anywhere else it still fails
     assert "unresolved-entity" in rules(lint.lint(model, master))
+
+
+def test_undated_project_lints_and_may_name_ai_work(master):
+    # a class project often carries no dates: lint read entry["end"] and crashed (KeyError), which
+    # broke resume-lint, resume-feedback and tailor check for every such student resume
+    master["projects"] = [{"name": "Course chatbot", "bullets": [
+        {"claim": "Built a course Q&A chatbot on an LLM for 120 classmates"}]}]
+    master = schema.expand(master, {})
+    assert schema.validate(master) == []
+    findings = lint.lint(render.page_model(master), master)
+    assert "ai-era" not in {f.rule for f in findings}

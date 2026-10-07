@@ -155,6 +155,9 @@ def expand_bullet(bullet, derived_id: str, index: dict, ai_era: bool = True):
 
 def in_ai_era(entry: dict) -> bool:
     end = entry.get("end")
+    # undated (a class project): the page claims no time, so AI words there backdate nothing
+    if end is None:
+        return True
     return end == PRESENT or bool(isinstance(end, str) and MONTH.match(end)
                                   and month_index(end, date.today(), end=True) >= month_index(AI_ERA_FROM, date.today()))
 

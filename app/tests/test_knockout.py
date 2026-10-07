@@ -18,6 +18,12 @@ TODAY = date(2026, 10, 1)
     ("Must be at least 16 years old", None),
     ("CPMA certification a plus (must be obtained within 1 year of hire).", None),
     ("Strong communication skills", None),
+    # school, not work (a student's internship asks): "work" inside "coursework", "of" after the years
+    ("Completed at least 2 years of undergraduate study", None),
+    ("Completed 2 years of coursework in accounting", None),
+    ("Two years of college or equivalent", None),
+    ("Completed at least two years of a four-year degree program", None),
+    ("2+ years of work experience in retail", 2),
 ])
 def test_years_asked_reads_the_lower_bound_never_age_or_deadlines(text, years):
     assert knockout.years_asked(text) == years
@@ -42,8 +48,10 @@ def test_degree_asked_is_the_lowest_level_named_and_skips_what_says_nothing(text
 
 def test_degree_held_reads_written_or_short_forms():
     held = [knockout.degree_held({"degree": d}) for d in ("BS", "B.S.", "Associate of Applied Science", "MBA",
-                                                          "PhD", "Juris Doctor", "Certificate in Welding")]
-    assert held == ["bachelor's", "bachelor's", "associate's", "master's", "doctorate", None, None]
+                                                          "PhD", "Juris Doctor", "Certificate in Welding",
+                                                          "B.S. in Computer Science", "BA Economics")]
+    assert held == ["bachelor's", "bachelor's", "associate's", "master's", "doctorate", None, None,
+                    "bachelor's", "bachelor's"]
 
 
 def master(years_worked: int, degree: str | None) -> dict:

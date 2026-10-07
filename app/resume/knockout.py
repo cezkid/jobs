@@ -26,7 +26,11 @@ YEARS = re.compile(rf"\b{NUM}\s*(?:\+|plus)?\s*(?:(?:-|–|to|or)\s*{NUM}\s*\+?\
                    r"(?!\s+(?:of\s+age|old|ago))", re.I)
 NOT_WORK = re.compile(rf"\bwithin\s+(?:\(?{NUM}\)?\s*)+(?:years?|months?)|\bevery\b|\bper\b|of age\b|\byears? old\b|"
                       r"\bago\b|\bcommit", re.I)
-WORK = re.compile(r"experience|working|work\b|professional|industry|background|practice|clinical", re.I)
+# school, not work: "2 years of undergraduate study", "two years of college", "coursework" ("work" in it)
+STUDY = re.compile(r"\bcoursework\b|\bdegree program\b|\b(?:undergraduate|college|university|graduate|academic)\s+"
+                   r"(?:study|studies|education|program)\b|\byears?\s+of\s+(?:college|university|school|study|"
+                   r"undergraduate|graduate school)\b", re.I)
+WORK = re.compile(r"experience|working|\bwork\b|professional|industry|background|practice|clinical", re.I)
 AFTER = re.compile(r"\s*(?:of|in|as|with|working|doing|building|developing|leading|managing|designing|teaching|"
                    r"supporting|selling|providing)\b", re.I)
 LADDER = ("high school", "associate's", "bachelor's", "master's", "doctorate")
@@ -48,7 +52,7 @@ HELD = {"associate": "associate's", "bachelor": "bachelor's", "master": "master'
 
 
 def years_asked(text: str) -> int | None:
-    if NOT_WORK.search(text):
+    if NOT_WORK.search(text) or STUDY.search(text):
         return None
     m = YEARS.search(text)
     if not m or not (WORK.search(text) or AFTER.match(text[m.end():])):
@@ -67,7 +71,8 @@ def degree_asked(text: str) -> str | None:
 def degree_held(entry: dict) -> str | None:
     """Level of one education entry, or None (a certificate program, a professional doctorate)."""
     written = (entry.get("degree") or "").strip()
-    spelled = render.DEGREES.get(re.sub(r"[\s.]", "", written).upper(), written)
+    # "BS", "B.S. in Computer Science", "Bachelor of Science": the first word names the level
+    spelled = render.DEGREES.get(re.sub(r"[\s.]", "", written).upper()) or render.degree_name(written)
     first = spelled.split()[0].casefold() if spelled.split() else ""
     if first in HELD:
         return HELD[first]

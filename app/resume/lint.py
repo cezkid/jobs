@@ -529,7 +529,8 @@ def check_ai_era(entry: dict, where: str, text: str, findings: list[Finding], ow
     severity = WARN if own else FAIL
     if not entry.get("ai_era") and (m := ai_term(text)):
         findings.append(Finding(severity, "ai-era", where, f"{m.group()!r} inside entry with ai_era false: {text!r}"))
-    if entry["end"] == schema.PRESENT:
+    # undated or still running: no end date for a tool to postdate
+    if entry.get("end") in (None, schema.PRESENT):
         return
     for pattern, released in TOOL_RELEASED.items():
         if (m := pattern.search(text)) and schema.compare(entry["end"], released, date.today()) < 0:
