@@ -1,5 +1,5 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-06
 verdict: publish
 reviewer: fresh AI session, bead plan-xsy.28 (no drafting context; sources opened before the draft was read)
 ---
@@ -323,3 +323,76 @@ Fresh subagent; made none of the edits. Read the current article, its diff and t
 - No medium or high open. Verdict: publish (unchanged).
 
 Editor, after the resolution check (2026-10-05): W3 fixed by editor (share, not count).
+
+## Re-review (2026-10-06, fresh AI session, headline title)
+
+Reviewer: fresh Claude session that made none of the edits; sources opened before the diff was read. No text in any source opened addressed an AI.
+
+What changed: new section "Should the top of your resume name the job you want?"; table row "A target job title at the top"; records rule now "each job's" / "in your work history" (short answer, table, body, What helps, app box); new "not backed" bullet (10.6x); new "What we don't know" bullet; new `uncited:` search line; What helps + app box lines on the top title; Changes line; modified 2026-10-06. Guide: one bullet.
+
+Sources opened:
+- jobscan-2025 (jobscan.co/state-of-the-job-search, read in the browser pane; Sydney Myers, February 25, 2025). Keys to success: matching title "on their resumes" -> interview rate 10.6 times higher; higher degree 6.7x; bachelor's 6.1x; over 2.5 million applications. Recruiter filter section: 384 recruiters; 76.4% filter by skills; 55.3% "use job titles as a keyword to filter"; takeaway "Use consistent job titles". Stand-out section: question was what makes a candidate stand out; 46.75% "check for alignment between LinkedIn profiles and applications". Methodology: recruiters = random sample of HR professionals, February-March 2025, Zoho Surveys; interview rates = "Anonymous job seeker activity ... in Jobscan tools" (one line; no definition of an interview). Supports every number on the page, exact. Side note: the stand-out and filter percentages fit 385 respondents (213/385 = 55.32%, 180/385 = 46.75%), not 384; the page rightly repeats the report's 384. No fix.
+- harvard-ocs-resume (page text) + mit-capd-resumes (page text and its 14-page sample-resume PDF): no title or headline line at the top in either guide or any MIT sample (placeholder names such as "Mechanical Engineer" sit in the name slot, not under a name). Supports "neither guide mentions a title line".
+- app/docs/resume/page-format.md #The headline: tailored copy may swap the title part of the top line for the posting's title, whole words, no level word the user's current title lacks, confirmed under "To confirm"; work-history titles locked. Supports both app-box lines.
+
+Claim table:
+
+| Claim | Source | What the source says | Verdict |
+|---|---|---|---|
+| 384 recruiters, 2025; 55.3% filter by title, 76.4% by skills | jobscan-2025 | same numbers; "use job titles as a keyword to filter" | Supported |
+| 10.6 times higher interview rate when the title matched | jobscan-2025 | "job titles on their resumes that match the target title" | Supported; wording "resume title" narrower than source (R3) |
+| From own users' tool activity; interview not defined | jobscan-2025 Methodology | one line, no definition | Supported |
+| Counts a matching title anywhere on the resume | jobscan-2025 | "job titles on their resumes", no location given | Fair reading |
+| Bachelor's degree 6.1x | jobscan-2025 | "increased the interview likelihood by 6.1 times" | Supported; "credits" keeps it the report's claim |
+| "figures like these mostly show who the applicants were" | ours | marked "Our reading" | OK; correlation never stated as cause |
+| 46.75% "said they check that the two match" | jobscan-2025 stand-out section | answer to "what makes a candidate stand out" | Overstated (R1) |
+| Harvard + MIT guides don't mention a title line | both guides + MIT samples | no title line | Supported |
+| Career coaches and resume companies give this advice | none cited | - | Uncited (R4) |
+| Top title "a cheap way to meet a recruiter's title search" | jobscan-2025 | says recruiters filter by title; not which field a title filter reads | Beyond the evidence (R2) |
+| Label Vendor survey | jobscan-2025 | company selling resume scanning; survey + own-user data | Right; not stronger than the evidence |
+| sources.yml sample | jobscan-2025 | 384 recruiters Feb-Mar 2025; own users' activity; over 2.5 million applications; interview not defined | Accurate |
+| App box: posting's title at the top, never a higher level, after you confirm | page-format.md #The headline | as summarized above | Supported |
+
+Findings:
+- **R1 (medium) - LinkedIn figure misstates the question.** "46.75% in the same survey said they check that the two match" - recruiters were asked what makes a candidate stand out; a Survey shows what they said. Fix: "Recruiters may also compare your resume with your LinkedIn profile. In the same survey, 46.75% named a LinkedIn profile that matches the application as something that makes a candidate stand out [@jobscan-2025]."
+- **R2 (medium) - section takeaway stated beyond the evidence, and a third "For you,".** "For you, a target title at the top is a cheap way to meet a recruiter's title search." The survey says recruiters filter by title; it does not say whether a title filter reads a line at the top or only past job titles. The page now has 3 "For you," (rule: at most 2). Fix: "A target title at the top may help when a recruiter searches by title, since keyword search reads the whole resume [@greenhouse-search]. No study shows it gets more interviews. Use the posting's words, keep your own level, and keep each job's real title below." Add to "What we don't know": "Whether recruiters' title filters read a title line at the top, or only the titles of past jobs. The survey did not ask."
+- **R3 (low) - "resume title" narrower than the source.** "applicants whose resume title matched the posting" vs the report's "job titles on their resumes". Fix: "Jobscan's report says applicants with a job title on their resume matching the posting's title had an interview rate 10.6 times higher."
+- **R4 (low) - uncited claim.** "Career coaches and resume companies give this advice." Fix: "Resume companies give this advice; Jobscan's report tells readers to match their resume's job titles to the job [@jobscan-2025]." (or drop "Career coaches" unless one is cited).
+- **R5 (low) - unsupported "most often".** "The number most often quoted for this advice is weaker than it sounds." No source shows it is the most quoted. Fix: "A figure often quoted for this advice is weaker than it sounds."
+- **R6 (low) - What helps says "do" for "say".** "Many recruiters filter by title [@jobscan-2025]." Fix: "Many recruiters say they filter by title [@jobscan-2025]."
+- **R7 (low, outside the article) - Guide wording.** `Guides/What makes a good resume.md`: "55% of 384 recruiters asked filter by job title" -> "55% of 384 recruiters asked said they filter by job title"; "method unpublished" -> "method given in one line" (matches the article's "no method beyond one line").
+
+Plain words: US English, plain; new sentences under ~22 words; H2 question-led. Short answer unchanged in count (4 bullets).
+
+Verdict: revise (R1, R2 open).
+
+## Re-review (2026-10-06, fresh AI session, fixes checked)
+
+Reviewer: fresh Claude session that made none of the edits; read `app/docs/research.md`, then the sources, then `git diff main -- app/web/research Guides`. No text in any source opened addressed an AI.
+
+Sources opened (browser pane, 2026-10-06):
+- jobscan-2025. Stand-out section: recruiters asked "what truly makes a candidate stand out"; 46.75% "check for alignment between LinkedIn profiles and applications". Keys to success: "job titles on their resumes that match the target title" -> interview rate 10.6 times higher; bachelor's 6.1x. Recruiter filter section: 384 recruiters, 55.3% "use job titles as a keyword to filter applicants", 76.4% skills; takeaway "Use consistent job titles: Match your resume to the job you're applying for." Methodology for interview rates: one line, own users' tool activity. All fixed sentences match.
+- greenhouse-search (support.greenhouse.io, updated June 6, 2022). Recruiters turn on "Full Text Search" on the All Candidates page; results show a snippet of where the terms appear in the profile. Supports that Greenhouse's search covers the full resume text; it is one product's help page, not all keyword search (G1).
+
+Findings from the headline-title re-review:
+- R1: fixed as written ("named a LinkedIn profile that matches the application as something that makes a candidate stand out").
+- R2: fixed as written; closing paragraph is no longer "For you,"; "What we don't know" bullet on title filters added. "For you," count now 2.
+- R3: fixed as written.
+- R4: fixed ("Career coaches" dropped; Jobscan's takeaway cited and matches the source).
+- R5: fixed ("A figure often quoted").
+- R6: fixed ("Many recruiters say they filter by title").
+- R7: fixed; guide now "said they filter by job title" and "method given in one line", matching the article.
+- A1 (ATS article): fixed as written ("Many recruiters say they search by job title as well as by skill.").
+
+New findings:
+- **G1 (low) - one product's search stated as all keyword search.** "since keyword search reads the whole resume [@greenhouse-search]". The help page shows one system's full-text search. Fix: "A target title at the top may help when a recruiter searches by title. Greenhouse, one hiring system, offers a full-text search of stored resumes [@greenhouse-search]."
+- **G2 (low) - same general claim A1 fixed in the ATS article.** "Recruiters do search by title." rests on what recruiters said in one vendor survey. Fix: "Many recruiters say they search by title."
+- **G3 (low) - "It" across sentences.** "It counts a matching title anywhere on the resume, not only at the top." Fix: "The figure counts a matching title anywhere on the resume, not only at the top."
+
+Checked, no finding: numbers (384, 55.3%, 76.4%, 46.75%, 10.6, 6.1) exact; labels Vendor survey / Maker's docs right and not stronger than the evidence; citation runs end in a cite; new sentences 18-23 words; plain words; Short answer still 4 bullets; "For you," = 2 in each article; guide bullet matches the article; app-box lines match `page-format.md` #The headline.
+
+No high or medium open. Verdict: publish.
+
+## Edit after review (2026-10-06, headline title)
+
+Applied G1, G2 and G3 exactly as the fix text above gives them. Wording only; no number, label or source changed beyond G1 now naming Greenhouse as the one system its help page covers.

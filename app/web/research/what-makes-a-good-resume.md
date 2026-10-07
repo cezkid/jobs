@@ -2,7 +2,7 @@
 title: "What makes a good resume? The evidence, rule by rule"
 description: Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.
 published: 2026-10-03
-modified: 2026-10-05
+modified: 2026-10-06
 status: published
 og_title: "What makes a good resume? Each rule and the evidence behind it"
 uncited:
@@ -12,10 +12,11 @@ uncited:
   - "EXP E R I ENC E"
   - "Our measurement"
   - "searched for field experiments on achievement lines versus duty lines, on posting-word match versus callbacks, and on whether resume-checker scores predict interviews (October 2026); none found"
+  - "searched for a study of a target job title at the top of a resume versus interviews, and read the Harvard and MIT career office resume guides (October 2026); no study found, and neither guide mentions a title line"
 ---
 **Short answer**
 
-- True first: employer, title, dates match records. Firms that check find mismatches (Vendor survey) [@hireright-2025].
+- True first: each job's employer, title and dates match records. Firms that check find mismatches (Vendor survey) [@hireright-2025].
 - Typos: 2 errors, rated interview chance 7.3 points lower out of 100 (Lab study) [@sterkens-2023].
 - Long time out of work costs callbacks. Short spells: studies disagree (Big studies) [@dhert-2026; @kroft-2013].
 - Results over duties, one page early on: career-guide advice, no study (Convention) [@mit-capd-resumes]. Last 10-15 years in detail: one career guide (Convention) [@indeed-experience-2025]. No photo: one field experiment found photos help some, hurt others (Big study) [@ruffle-2015].
@@ -34,13 +35,14 @@ The table sums up each rule, the strongest evidence we found for it, and what th
 
 | Rule | Evidence | What it shows |
 |---|---|---|
-| Employer, title and dates match your records | Vendor survey | More than three-quarters of businesses a background-check company asked found a mismatch in the past 12 months [@hireright-2025] |
+| Each job's employer, title and dates match your records | Vendor survey | More than three-quarters of businesses a background-check company asked found a mismatch in the past 12 months [@hireright-2025] |
 | Proofread for typos | Lab study | Two spelling errors lowered recruiters' rated interview chance by 7.3 points out of 100 [@sterkens-2023] |
 | Long time out of work costs callbacks | Big study | 13-18 months out of work cut positive replies by about 21% [@dhert-2026, p. 1382] |
 | Short spells out of work | Big studies; they disagree | A 2026 review found no clear cost for 1-6 months; a US experiment found callbacks fell over the first 8 months [@dhert-2026; @kroft-2013] |
 | A reason for a gap helps | Big studies; they disagree | One US study's published summary says an illness reason got significantly more replies than no reason; a UK study found no gain for a childcare reason [@namingit-2021; @kristal-2023] |
 | Results over duties | Convention | Career offices agree; no study found [@mit-capd-resumes; @harvard-ocs-resume] |
 | Use the posting's words for skills you have | Maker's docs | Recruiters can search stored resumes by word; no large study of interviews found [@greenhouse-search] |
+| A target job title at the top, in words that fit your work | Vendor survey | 55.3% of 384 recruiters said they filter applicants by job title; no study of interviews found [@jobscan-2025] |
 | Last 10-15 years in detail | Convention | One job-site guide says so for senior candidates; no study cited [@indeed-experience-2025] |
 | One page early on | Convention | Career offices say one page unless you have extensive experience [@mit-capd-resumes] |
 | No photo | Big study | In Israel, attractive men got more replies with a photo; women got the most replies without one [@ruffle-2015] |
@@ -54,7 +56,7 @@ Yes. Many employers check work history, and mismatches turn up. HireRight, a bac
 
 HireRight sells background checks, and the people it asked work at firms that run checks. The survey's question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.
 
-Each employer name, job title and dates should match what a past employer would confirm. Anything on the page can also come up in an interview.
+Each employer name, job title and dates should match what a past employer would confirm. Anything on the page can also come up in an interview. A title line at the top that names the job you want is not a past job; it has its own section below.
 
 ## Should a resume list results or duties?
 
@@ -73,6 +75,20 @@ Use the posting's words for skills you really have. Recruiters can search stored
 The rule rests on how hiring software is built, not on a study of interviews. We searched for a large study showing that matching a posting's words gets more interviews and found none. The claim that software rejects most resumes traces to a 2012 trade article repeating a sales pitch [@levinson-2012-cio]. Why it does not hold up: [Do hiring systems reject most resumes?](ats-rejection-myth.md).
 
 A skill the posting asks for and you lack is a gap to know about. Adding the word without the skill invites questions you cannot answer.
+
+## Should the top of your resume name the job you want?
+
+It can, when the title fairly names the work you do now. A title line under your name labels the job you want. It is not one of your past jobs, so no past employer is asked to confirm it. Each job below keeps its real title.
+
+Many recruiters say they search by title. Jobscan, a company that sells resume scanning, surveyed 384 recruiters in 2025. 55.3% said they filter applicants by job title, and 76.4% said they filter by skills [@jobscan-2025].
+
+A figure often quoted for this advice is weaker than it sounds. Jobscan's report says applicants with a job title on their resume matching the posting's title had an interview rate 10.6 times higher. The figure comes from its own users' activity in its tools, and the report does not say how an interview was counted. The figure counts a matching title anywhere on the resume, not only at the top. The same report credits a bachelor's degree with 6.1 times the interview rate [@jobscan-2025]. Our reading: figures like these mostly show who the applicants were, not what one change did.
+
+Resume companies give this advice; Jobscan's report tells readers to match their resume's job titles to the job [@jobscan-2025]. The Harvard and MIT career office resume guides we read do not mention a title line at the top. We found no study that tested it.
+
+Two limits matter. A title that claims a level you do not hold, such as "Manager" when you managed no one, will come up in an interview. Recruiters may also compare your resume with your LinkedIn profile. In the same survey, 46.75% named a LinkedIn profile that matches the application as something that makes a candidate stand out [@jobscan-2025].
+
+A target title at the top may help when a recruiter searches by title. Greenhouse, one hiring system, offers a full-text search of stored resumes [@greenhouse-search]. No study shows it gets more interviews. Use the posting's words, keep your own level, and keep each job's real title below.
 
 ## How far back should a resume go?
 
@@ -148,6 +164,7 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 - **"75% of resumes are rejected by software."** A 2012 sales claim with no method behind it [@levinson-2012-cio]. The full story: [Where the number came from](ats-rejection-myth.md).
 - **"Put a number on every line."** Our view: the advice invites made-up numbers. A number you cannot explain hurts in an interview.
 - **"Add the posting's keywords."** Only for skills you have. A listed skill you lack gets asked about.
+- **"Matching the job title gets 10.6 times more interviews."** One company's figure from its own users' activity, with no method beyond one line. The same report credits a bachelor's degree with 6.1 times the interview rate [@jobscan-2025].
 - **0-100 resume scores from checker tools.** We searched for a published method linking these scores to interviews and found none.
 - **Two-column templates.** Our measurement above found text at the right edge read out of order. Ladders' vendor test linked several columns with weaker resumes [@ladders-2018].
 - **Photo templates.** A photo invites judgments about looks, as above [@ruffle-2015].
@@ -157,6 +174,8 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 
 - Whether results lines beat duty lines in real hiring. No study found.
 - Whether matching a posting's words gets more interviews. No large study found.
+- Whether a target job title at the top of a resume gets more interviews. No study found; one company's figure counts its own users.
+- Whether recruiters' title filters read a title line at the top, or only the titles of past jobs. The survey did not ask.
 - Whether a short spell out of work costs callbacks. One review says no clear cost; one US experiment says yes.
 - How a past break between jobs is treated, as opposed to being out of work now. Few studies test it.
 - Whether typos cost interviews in real hiring. Every study found asked raters, not employers.
@@ -167,7 +186,8 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 
 ## What helps
 
-- Make every employer, title and date match your records [@hireright-2025].
+- Make every employer, title and date in your work history match your records [@hireright-2025].
+- A title at the top may name the job you want, in the posting's words, if it fits your work now. Many recruiters say they filter by title [@jobscan-2025].
 - Proofread, and have someone else proofread too [@sterkens-2023].
 - After a long gap, a short, honest reason is your call; studies disagree on whether it helps [@namingit-2021; @kristal-2023]. The bias grows with time out of work, and it is the employer's [@dhert-2026].
 - Leave off a photo and personal details [@mit-capd-resumes].
@@ -177,7 +197,8 @@ How we grade evidence: [How we research](methods.md). More articles: [Research](
 
 ## How CEZ Job Finder uses this
 
-- Never changes an employer, title or date, except to fix a real mistake.
+- Never changes an employer, job title or date in your work history, except to fix a real mistake.
+- May put the posting's title in the line at the top, never a higher level than yours, and only after you confirm it fits.
 - Checks spelling and US forms on every resume.
 - Uses a posting's words only where your experience backs them.
 - Makes a one-column page, black text, no photo, and checks it reads back cleanly.
@@ -187,5 +208,6 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 ## Changes
 
+- October 2026 - added a section on a job title at the top of the resume, with a 2025 recruiter survey and why its often-quoted 10.6 times figure is weak [@jobscan-2025]. The records rule now says it covers each job in your work history. The app section now says the app may put the posting's title at the top after you confirm.
 - October 2026 - the review of time out of work now cites its 2026 journal version, not the 2024 draft; its figures are unchanged. The US health-reason study now cites its published summary, which calls the gain significant.
 - October 2026 - a one-line gap reason is now "your call", since studies disagree on whether it helps. The typo figure now reads 7.3 points in every line [@sterkens-2023]. The background-check survey lines now say the share is of the businesses asked, over the past 12 months.
