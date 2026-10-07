@@ -255,14 +255,14 @@
 <div class="page">
   <div class="head">
   <h1>Privacy</h1>
-  <p class="meta">Updated <time datetime="2026-10-04">October 4, 2026</time></p>
+  <p class="meta">Updated <time datetime="2026-10-06">October 6, 2026</time></p>
   </div>
 
   <section class="summary" aria-labelledby="short">
   <h2 id="short">Short version</h2>
   <ul class="short">
     <li>No account. No tracking. Nothing sent to us.</li>
-    <li>Your resume, jobs and settings stay on your computer.</li>
+    <li data-claim="privacy-stays">Your resume, jobs, settings and notes about you stay on your computer.</li>
   </ul>
   </section>
 
@@ -275,7 +275,7 @@
     </thead>
     <tbody>
       <tr data-claim="privacy-freehire"><th scope="row">freehire.me</th><td>Your search words; the company names on your job list; which job from your list you make a resume for or ask about. Not your resume.</td><td class="when">To find jobs, get the whole posting, or see if it’s still open. Each morning, to find each listed company’s website.</td></tr>
-      <tr data-claim="privacy-ai"><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume, the postings you work on and what you tell it, on your own account. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application. GitHub Copilot gets the words and screenshots of pages in the CEZ Job Finder window that it opens or you share with it.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</td></tr>
+      <tr data-claim="privacy-ai"><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume, the postings you work on and what you tell it, on your own account – a note you saved about yourself only when it’s used. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application. GitHub Copilot gets the words and screenshots of pages in the CEZ Job Finder window that it opens or you share with it.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</td></tr>
       <tr data-claim="privacy-employers"><th scope="row">Employers</th><td>What you apply with.</td><td class="when">When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</td></tr>
       <tr data-claim="privacy-email"><th scope="row">Your email provider</th><td>The morning email, sent to yourself.</td><td class="when">Only if you turn on email alerts.</td></tr>
       <tr data-claim="privacy-maintainer"><th scope="row">The maintainer</th><td>A fix to the program’s code. Never your files.</td><td class="when">Only if you say yes.</td></tr>
@@ -295,6 +295,7 @@
   <p data-claim="privacy-delete">Ask the chat to turn off the daily check and clear the sign-ins from pages you opened in the app’s window – VS Code keeps them outside the folder. Then delete the <span translate="no">CEZ Job Finder</span> folder.</p>
   <p data-claim="privacy-delete-later">Folder already gone? Paste <code translate="no">%APPDATA%\Code\User\workspaceStorage</code> into File Explorer’s address bar (Mac: <code translate="no">~/Library/Application Support/Code/User/workspaceStorage</code> into Finder’s Go to Folder, Shift-Cmd-G). Delete the folder in it whose <span translate="no">workspace.json</span> names your <span translate="no">CEZ Job Finder</span> folder.</p>
   <p>Chats live in your AI account – delete them there.</p>
+  <p data-claim="privacy-claude-copies">Claude also keeps a copy of each chat on your computer, outside the folder, for its chat history. It deletes each one after 30 days.</p>
 
   <h2>Questions</h2>
   <p><a href="https://github.com/cezkid/jobs/issues">Ask on GitHub</a>. The code is public, so anyone can check this.</p>

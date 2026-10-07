@@ -148,6 +148,13 @@ def copilot(home: Path | None = None, root: Path | None = None) -> dict:
         "chat.disableAIFeatures": False,
         # agent runs Job Finder's commands; ask/edit modes can't, and the user would not know to switch
         "chat.newSession.defaultMode": "agent",
+        # the built-in (Local) harness, pinned: Microsoft flips this default by experiment, and the
+        # other harness reads other instruction files + its approvals of the commands below are
+        # undocumented (app/docs/app-window.md #Copilot's chat)
+        "chat.defaultToCopilotHarness": False,
+        # a "Continue?" pause mid-resume stalls a user who doesn't see it: docs say 25, the source
+        # 50 or a per-plan experiment value. 150 = a whole tailoring or apply turn, a runaway still stops
+        "chat.agent.maxRequests": 150,
         # same steps Claude runs without asking (.claude/settings.json), nothing more - a prompt per
         # step stalls a user who can't judge a command
         "chat.tools.terminal.autoApprove": {command: True for command in claude_commands(root)},

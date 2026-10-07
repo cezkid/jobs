@@ -130,6 +130,10 @@ rank:
   # freehire employer lists; only order jobs with no pay listed. bigtech/unicorn/yc are
   # tech-only - add them for a tech search. fortune500 spans every field (54k US rows 2026-09-24)
   boost_collections: [fortune500]
+  # what a posting says about its employer, named on the job: faith (religious employer),
+  # defense (defense or military work). Set only when the user asks after a note
+  # (app/docs/about-me.md); never hides or sorts. [] = never named
+  posting_says: []
   # company spanning this many enrichment categories -> printed by `rank --suspects`
   suspect_min_categories: 5
   # "Best to apply next" (app/best.py): Today page, chat brief, morning email order. Each factor

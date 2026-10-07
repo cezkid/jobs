@@ -314,3 +314,24 @@ def test_pay_probe_counts_before_saving():
     assert out[1] == "reached your list in the last 7 days: 3 - keeps 2, hides 1 below $100,000 (no pay listed, kept: 1)"
     assert rank.pay_probe(jobs, CONFIG, 100000, True, NOW).startswith(
         "open: 4 - keeps 1, hides 2 below $100,000 + 1 with no pay listed")
+
+
+def test_posting_says_named_only_when_asked_never_hides_or_sorts():
+    school = make_job("school", title="Math Teacher", description="<p>St. Mary <b>Catholic</b> High School seeks ...</p>")
+    drone = make_job("drone", title="Designer", description="Anduril is a defense technology company ...")
+    plain = make_job("plain", title="Designer", description="We build tools for warehouses.")
+    vets = make_job("vets", title="Designer", description="Military veterans encouraged to apply. National security matters.")
+    assert all("posting says" not in rank.reasons(j, CONFIG, NOW) for j in (school, drone))
+    asked = level_config(posting_says=["faith", "defense"])
+    assert "posting says: religious employer" in rank.reasons(school, asked, NOW)
+    assert "posting says: defense or military work" in rank.reasons(drone, asked, NOW)
+    assert all("posting says" not in rank.reasons(j, asked, NOW) for j in (plain, vets))
+    faith_only = level_config(posting_says=["faith"])
+    assert "posting says" not in rank.reasons(drone, faith_only, NOW)
+    jobs = [school, drone, plain, vets]
+    assert slugs(rank.rank(jobs, asked, NOW)) == slugs(rank.rank(jobs, CONFIG, NOW))
+
+
+def test_posting_says_kinds_match_the_defaults_comment():
+    assert set(rank.POSTING_SAYS) == {"faith", "defense"}
+    assert cfg.defaults()["rank"]["posting_says"] == []
