@@ -323,3 +323,44 @@ Findings (verdict revise):
 - D1: resolved. Description as proposed (145 characters, quoted YAML). Changes line "the line under the title now says the tests used older AI models" - accurate; generic line records the rename.
 - Note, optional: under the answer-line rule now in `research.md` Style, the tail "What studies show." adds nothing; it can go (this reviewer's own proposed wording).
 - No new finding. Verdict: publish.
+
+## Re-review 2026-10-07: description, guess, fold-out, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` Style + Search, `git diff main` of the article, the article top to detectors, `sources.yml` jakesch-2023 + russell-2025, earlier review rows; reopened jakesch-2023 (PMC copy) for the design. No source text addressed an AI.
+
+Changed:
+- Description: tail "What studies show." dropped (126 chars).
+- Header `card:` (90 chars w/o cite) [@jakesch-2023].
+- `guess` block under "Can people tell ...", before the bold answer.
+- Worked example "Say a reader judges 10 short profiles ...".
+- Russell paragraph split: selection, whole-AI and not-resumes sentences into a `sure` fold.
+- One Changes line.
+
+Source check (jakesch-2023): each judge saw 12 (professional, dating) or 16 (hospitality) texts, half AI, half human; 52.2% / 51.6% / 51.2%; accuracy pooled across judges, no per-person spread in main text; professional texts 60-90 words.
+
+Verdicts:
+- Description: supported. Answer, not teaser; "older AI models" kept (D1); <= 155.
+- Guess: supported. Answer = cited 50-52%, coin-toss wording as body, GPT-2/GPT-3 caveat in the reveal; distractors plainly wrong, not near the answer; one block, under heading, before bold. Question omits "older AI" but reveal carries it - fine.
+- Worked example: numbers right (50-52% of 10 = 5.0-5.2). Half-AI set matches the design (balanced). R2 (arithmetic label on wrong sentence), R3 (10 vs 12 texts).
+- Sure fold: R1 (selection caveat folded; the claim needs it). Whole-AI and not-resumes OK to fold: "articles" stays in the visible sentence, "text written wholly by AI" in the section ending. Not verbatim: "Those five were" -> "Those five readers were" (harmless). Citations cover both halves.
+- Card: R4 (drops "older AI models").
+- Changes line: R5.
+- Plain words, US English: OK.
+
+Findings (verdict revise):
+- **R1 (medium)** Fold hides "picked because they resembled the best reader in a first round" (F4, medium). Visible line "Five readers who used AI for writing often were far better" then reads as if AI use alone made them good - the label the claim needs stays in the sentence (Style rule). Fix, visible sentence: "Five readers who used AI for writing often, picked for resembling the best reader in a first round, were far better." Fold keeps: "The AI articles were written wholly by AI, not human drafts edited with AI. They were news-style articles, not resumes [@russell-2025]."
+- **R2 (low)** "so about 5 of the 10 calls would be right" is our arithmetic but sits in the cited sentence; "by our arithmetic" is on the trivial complement. Fix: "Say a reader judges 12 short profiles like the ones in that test, half of them written by AI. Readers there were right 50% to 52% of the time [@jakesch-2023]. By our arithmetic, that is about 6 right calls and 6 wrong ones - the same as flipping a coin."
+- **R3 (low)** 10 texts is not the test's set; professional-profile judges saw 12, half AI. Fix: use 12 (text in R2).
+- **R4 (medium)** Card is the share image, read alone; it drops the older-model caveat V1 and D1 required on this same claim. Fix (97 chars w/o cite): "In tests with older AI, 4,600 people guessed AI or human writer right only 50% to 52% of the time [@jakesch-2023]."
+- **R5 (low)** Changes line names only "how the practiced readers were picked" as folded; the fold also holds whole-AI and not-resumes, and the card is not named. Fix (after R1): "- October 2026 - the line under the title now ends on the answer. Added a guess-first question, a worked example of 12 profiles and a share card; which texts the practiced readers saw now folds under "How sure is this?". The findings are unchanged."
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+- R1: resolved. Visible line now "Five readers who used AI for writing often, picked for resembling the best reader in a first round, were far better."; fold holds only the whole-AI + not-resumes sentences, cited [@russell-2025].
+- R2: resolved. Cited sentence carries only the study's 50-52%; "By our arithmetic, that is about 6 right calls and 6 wrong ones" (12 x 0.50-0.52 = 6.0-6.2) labelled ours.
+- R3: resolved. 12 profiles, half AI = the professional-profile design.
+- R4: resolved. Card "In tests with older AI, 4,600 people guessed AI or human writer right only 50% to 52% of the time" (97 chars w/o cite) [@jakesch-2023].
+- R5: resolved. Changes line as proposed; matches the edits.
+- No new finding; build parses.
+
+Verdict: publish

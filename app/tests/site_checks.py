@@ -345,8 +345,11 @@ def budgets(docs: Path, name: str) -> list[str]:
         if "LINES" in code:
             problems.append(f"{name}: <head> script names LINES (install line + Copy live in the body script)")
     for inner in re.findall(r"<figure\b(.*?)</figure>", raw, re.S):
-        # a bar figure's caption cites its source: links there are the citation, not a control (A15)
-        held = re.sub(r"<figcaption\b.*?</figcaption>", "", inner, flags=re.S) if inner.startswith(' class="bars"') else inner
+        # a bar or case figure cites its sources (caption, a case row's cells): links there are the citation, not a
+        # control (A15)
+        held = inner
+        if inner.startswith((' class="bars"', ' class="case"')):
+            held = re.sub(r"<small>\(.*?\)</small>", "", re.sub(r"<figcaption\b.*?</figcaption>", "", inner, flags=re.S), flags=re.S)
         bad = sorted(set(re.findall(r"<(a|button|input|select|textarea)\b", held)))
         if bad:
             problems.append(f"{name}: <figure> holds {bad} (illustrations show controls, never hold one)")

@@ -421,3 +421,33 @@ Findings (verdict revise):
 - W1: resolved. Line 1 now "Make every employer, title and date in your work history match your records." The item's exact words; fits the title-line section.
 - Generic Changes line records the rename; accurate.
 - No new finding. Verdict: publish.
+
+## Re-review 2026-10-07: fold-outs, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` (Style: two layers, worked example, share card), `git diff main` of the article, the whole article, `sources.yml` entries sterkens-2023 + hireright-2025, and the Sterkens 2023 PDF (PLOS ONE, all 20 pages, text extracted). No source text addressed an AI.
+
+Changed: header `card:`; HireRight limits paragraph -> `sure` fold (verbatim); typo-study limits -> `sure` fold (verbatim + `[@sterkens-2023]`); worked example in the typo section; one Changes line.
+
+Source facts (Sterkens 2023): 445 recruiters, Flanders, Dutch graduate resumes, vignette (scenario) experiment. Errors = spelling errors (wrong verb endings, phonetic misspellings), zero / two / five - not typographical slips; the paper's own literature table keeps the two apart (Martin-Lacroux 2017: spelling vs typographical errors read differently). Outcome = 0-10 agreement with "I will invite this applicant for an interview", reported as percent points. Two errors -7.3 (abstract p. 1, p. 16); five -18.5 (p. 10, p. 16). Comparison = error-free resumes in a regression that holds the other six varied features equal; resumes differed in sex, age, work, hobbies etc. - not one resume shown with and without errors. p. 10 + p. 16: two-error penalty about the same as the gain for listing volunteering (beta 0.706 vs -0.730).
+
+Verdicts per item:
+- Card: true (83 chars w/o cite), "spelling errors" + "rated" exact, not stronger than body. Fits as card: the page's one applicable number; gaps have their own article. OK.
+- Worked example: numbers right; says "typos" for spelling errors (R1); "the same resume with none" overstates the design (R2); "Finding and fixing them takes minutes" is ours, uncited, and repeats the next paragraph (R3); example only restates paragraph 1's numbers - the study's own volunteering comparison would make it applicable (folded into R1 fix).
+- HireRight fold: verbatim. Vendor label stays visible ("HireRight, a background-check company, ran a survey"; "of the businesses it asked"; box says Vendor survey). Fold holds detail, not a needed label. OK.
+- Typo fold: verbatim + cite; cite covers Dutch / graduates (p. 5). Lab nature stays visible near 7.3: "Every typo study we found asked people to rate resumes", "445 recruiters ... rated made-up graduate resumes", "rated the interview chance", evidence box "Lab study". Dutch not visible outside the fold; "Belgium" is - acceptable. OK.
+- Fold placement: after the worked example, not right after paragraph 1's claim; qualifies both. Acceptable.
+- Changes line: accurate; omits the share card (header asset, not page text) - optional, no fix.
+- Plain words: fine; sentences < 22 words.
+
+Findings (verdict revise):
+- **R1 (medium) - worked example calls them typos; the study tested spelling errors.** The card, table, box and paragraph 1 say "spelling errors"; the example switches to "typos", which the study did not test and the prior work it cites treats as different. Fix (replaces the whole example paragraph): "Say two spelling errors slipped into your resume. Recruiters in that study rated the interview chance 7.3 points lower, out of 100. The two-error drop was about the size of the rise for listing volunteer work [@sterkens-2023, p. 10]. Five errors cost 18.5 points [@sterkens-2023, p. 10]."
+- **R2 (low) - "than for the same resume with none".** The study compared error-free resumes statistically, other features held equal; no resume was shown twice. Covered by R1's fix (comparison phrase dropped). If R1 is not taken: "than for a similar resume with none".
+- **R3 (low) - "Finding and fixing them takes minutes."** Our words, uncited, and duplicates the section's last line ("one of the cheapest fixes there is"). Fix: delete the sentence (R1's fix leaves it out).
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+- R1: resolved. The example now says "spelling errors" and adds the volunteering comparison. The run ends in one citation, [@sterkens-2023, p. 10]. That fits research.md's citation rule, since p. 10 holds both the volunteering comparison and the 18.5 figure.
+- R2: resolved. The "same resume with none" phrase is gone.
+- R3: resolved. "Finding and fixing them takes minutes." is deleted, and the section still ends with the proofread line.
+- The Changes line now reads "a worked example of two spelling errors". It is accurate.
+- No new finding. Verdict: publish

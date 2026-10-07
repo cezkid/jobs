@@ -4,6 +4,7 @@ description: "We read one resume in 7 layouts with 3 free PDF readers, not an em
 published: 2026-10-04
 modified: 2026-10-07
 status: published
+card: "Our plain one-column page broke 0 of 5 readings; spaced-out headings broke 5 of 5."
 uncited:
   - "13 of 35"
   - "35 readings"
@@ -62,6 +63,8 @@ Placed text boxes | 4 of 5
 Spaced-out headings | 5 of 5
 ```
 
+Say you send our sidebar page to an employer whose system reads text the way 2 of our 5 readings did. That system reads across both columns one line at a time, so a sidebar word can run into a job line, as "PresentCity" did. We don't know how any employer's system reads it. Our plain one-column page came through all 5 readings whole.
+
 For you, the safest layout in our test was the plainest one.
 
 ## What broke, layout by layout?
@@ -104,7 +107,9 @@ In practice, the damage was to order and word shape. No reading lost a word outr
 
 **One hiring-system maker warns against most of the same layouts.** Greenhouse, one hiring system, lists what can stop it reading a resume into its fields. Its list includes spaces between letters, tables, headers and footers, and columned layouts. It also lists a name and contact details placed in a header, footer or text box [@greenhouse-parse]. Those are the layouts that broke readings or moved the contact line in our test.
 
+```sure
 Greenhouse's page adds a warning our test could not cover. Its resume reader skips names it takes for fake data, such as "First Last" or "Company 1" [@greenhouse-parse]. Our made-up resume used "Your Name" and "Company A". A commercial resume reader might have skipped those names for that reason alone.
+```
 
 A university career office gives the same advice. MIT's career office says "boring is better" and tells students to avoid tables, text boxes and icons. It says text boxes or columns can put the text in the wrong order [@mit-capd-ats]. That is a guide, not a study.
 
@@ -118,7 +123,11 @@ The largest outside test we found used the same free readers we did. Enhancv, a 
 
 In Enhancv's test, one-column and two-column pages kept nearly all their words, within half a point. Email and phone came back right in all 357 readings. Under the worst reading method, sections stayed whole in 35% of two-column readings and 60% of one-column ones [@enhancv-2026]. So its one-column pages broke too, just less often. Under another method the gap was about one point.
 
-Enhancv also had AI models read the scrambled text. The gap in whole sections shrank to about three points. Employer names still dropped from 100% to 83% [@enhancv-2026]. That AI test used 10 resumes. It is a seller's test of its own templates, not peer-reviewed.
+Enhancv also had AI models read the scrambled text of 10 resumes. The gap in whole sections shrank to about three points. Employer names still dropped from 100% to 83% [@enhancv-2026].
+
+```sure
+That AI test is a seller's test of its own templates, not peer-reviewed [@enhancv-2026].
+```
 
 A second template seller, Resumap, ran one made-up resume in 36 of its templates. It loaded each file into Zoho Recruit, Workable and Textkernel, and Manatal's match scoring. Email and phone came back 36 of 36 on every reader shown. Workable split all 3 jobs correctly on all 36 templates; Textkernel did so on 31 [@resumap-2026].
 
@@ -164,3 +173,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
 - October 2026 - two section answers now match their sections: only the layouts that broke failed in their own way, and the warnings come from one hiring-system maker.
+- October 2026 - added a worked example with our sidebar page; two notes on test limits now fold under "How sure is this?". The findings are unchanged.

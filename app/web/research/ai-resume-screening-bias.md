@@ -5,6 +5,7 @@ published: 2026-10-03
 modified: 2026-10-07
 status: published
 og_title: "Is AI resume screening biased? What the studies show"
+card: "In lab tests, AI models judge the same applicant differently by name, gender, age or disability."
 uncited:
   - "No study found that measures"
   - "We found no study showing"
@@ -37,9 +38,13 @@ Black people | 8.6% of tests
 Neither, no clear difference | 6.3% of tests
 ```
 
+```sure
 The same study's gender result was corrected in August 2026. Another team tried to repeat the study and found a coding error. The authors' note says the gender numbers should be swapped. Swapped as the note directs, female names were favored in 51.9% of tests and male names in 11.1%. The published 2024 paper still prints the reverse. The race results held up when repeated [@wilson-caliskan-2024].
+```
 
 A larger 2025 study scored about 361,000 made-up resumes with five AI models. Four of the five models scored women or Black applicants higher on average. Black men were the exception: most of the models scored them lower than white men. GPT-3.5, for example, scored Black men 0.3 points lower, out of 100. With a pass mark of 80, GPT-3.5 cut Black men's chance of passing by 1.4 percentage points. In that test, Black women's chance rose 1.7 points and white women's rose 1.4. The gaps look small per resume, but the authors call them economically significant across many applicants [@an-2025].
+
+Say 1,000 Black men's resumes went through a screener like GPT-3.5 in that test, with a pass mark of 80. The 1.4-point drop means about 14 fewer of them pass than with white men's names, by our arithmetic [@an-2025].
 
 In 2024, Bloomberg ran its own test of GPT-3.5 and GPT-4. GPT ranked eight equally qualified resumes, 1,000 times for each of four jobs. Some groups' names came first less often than an even share of one in eight. For a software engineer job, GPT-3.5 put Black women's names first 11% of the time. Bloomberg published its method and code. OpenAI said the test may not reflect how its customers use the models [@bloomberg-2024].
 
@@ -170,3 +175,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 - October 2026 - corrected the law lines to match the laws' text. Colorado employers must describe a system's role after a rejection, not explain the rejection. Colorado's start date is not settled, and a court has paused enforcement. Illinois's notice duty names employees; whether applicants get one is not settled. Added California's 2027 privacy rules and the EU's existing rule on fully automated decisions.
 - October 2026 - updated the Workday lawsuit after its June 2026 order: race, age and disability claims under federal law are among those going on. The New York City notice must say how to ask for another way to be assessed; the rule does not make employers offer one. Older applicants in the 2026 model test are now given as aged 45 to 58. The New York City audit line now dates the 391-employer check to late 2023. It now says the state comptroller called the complaint process ineffective. The short answer now says the same applicant, not identical resumes, and also cites the 2023 model test. The other findings are unchanged.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - added a worked example from the 2025 scoring study; the note on the corrected gender result now folds under "How sure is this?". The findings are unchanged.

@@ -92,6 +92,20 @@ def test_share_cards_fit_every_app_and_each_has_its_source():
         assert (cfg.ROOT / "app" / "web" / name.replace(".png", ".html")).is_file(), name
 
 
+def test_article_cards_are_the_files_assets_drew_and_fit_every_app():
+    # app/web/card-sync.json (assets.py --only cards): one share card + its thumbnail per article w/ a card: line;
+    # a hand edit or a card left behind = a fault (pages.py checks each spec is current)
+    sync = json.loads((cfg.ROOT / "app/web/card-sync.json").read_text(encoding="utf-8"))
+    sha = lambda p: hashlib.sha256(p.read_bytes()).hexdigest()  # noqa: E731
+    made = sorted(n for n in FILES if n.startswith("cards/"))
+    assert made == sorted(f"cards/{name}{tail}.png" for name in sync for tail in ("", "-small"))
+    for name, rec in sync.items():
+        card, small = DOCS / "cards" / f"{name}.png", DOCS / "cards" / f"{name}-small.png"
+        assert (sha(card), sha(small)) == (rec["card"], rec["small"]), name
+        assert png_size(card) == (1200, 630) and png_size(small) == (240, 126), name
+        assert card.stat().st_size < 300_000 and small.stat().st_size < 40_000, name
+
+
 def test_each_indexed_page_is_its_own_canonical_and_the_rest_stay_out_of_search():
     # canonical pointing elsewhere => search drops this page for that one
     assert INDEXED["index.html"] == SITE and "404.html" not in INDEXED

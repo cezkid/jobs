@@ -415,3 +415,27 @@ Changes line: accurate. It leaves out the Short answer rename, and the second Ch
 No finding. Verdict: publish.
 
 Changes-line edit after this re-review (2026-10-07): the generic line now also says "renamed the Short answer box "What the evidence says""; accurate, no other article change. Verdict: publish (unchanged).
+
+## Re-review 2026-10-07: fold-out, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` (Style: Two layers, worked example, share card), `git diff main` of the article, the whole article, `sources.yml` an-2025 + wilson-caliskan-2024, and an-2025 itself (PMC11937954, opened 2026-10-07). No source text addressed an AI.
+
+Changed: header `card:` line; Wilson-Caliskan gender-correction paragraph moved verbatim into a `sure` block after the bars; one worked example after the An paragraph; one Changes line.
+
+- Worked example: numbers right. an-2025: GPT-3.5, 80-point cutoff ("average hiring probability of ~35%"), linear probability model, Black men "1.4 percentage-point lower probability" vs the white-male baseline. 1.4 pp x 1,000 = 14. Labelled "by our arithmetic", cited, "in that test" keeps it a lab result. Not stronger than the study. But the sentence never says fewer than whom (R2).
+- Sure fold: acceptable. Detail on one study's other result, not the section's answer; no bold; not under a heading; follows the bars on that study. No visible claim needs it: the page states no Wilson-Caliskan gender result outside the fold, and the table row keeps a visible pointer ("gender result corrected in 2026"). The correction is the source's, not this page's, so the Changes section owes it nothing. Citation still covers every sentence.
+- Card: 94 chars, no number, so no source line needed. "Judge ... differently" makes no direction claim, fits "some tests find no gap" via "In lab tests". But "the same resume" brings back wording this page dropped (R1).
+- Changes line: accurate; leaves out the card (share image, not a finding) - fine.
+
+Findings (verdict revise):
+- **R1 (medium)** Card "the same resume": the age test (Bone) changes the graduation year and the disability test (Glazko) adds awards - not the same resume; evidence bullet 1 was reworded "identical resumes" -> "the same applicant" for this reason (plan-xsy.79 L1). Fix (96 chars, then redraw: `assets.py --only cards`): `card: "In lab tests, AI models judge the same applicant differently by name, gender, age or disability."`
+- **R2 (low)** Worked example "about 14 fewer of them pass" has no comparison; the 1.4 pp is against white men's resumes in the same test. Fix: "The 1.4-point drop means about 14 fewer of them pass than with white men's names, by our arithmetic [@an-2025]." (+5 words.)
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+Same reviewer; re-read article lines 8 + 46-47.
+- R1: fixed. Card reads "the same applicant ... or disability", 96 chars, matches evidence bullet 1.
+- R2: fixed. Example now says "than with white men's names"; matches an-2025's white-male baseline.
+- No new finding.
+
+Verdict: publish

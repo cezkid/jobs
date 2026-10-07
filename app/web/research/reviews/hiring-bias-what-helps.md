@@ -566,3 +566,28 @@ Findings (verdict revise):
 - W1: resolved. Line 1 now "Apply widely: in the largest test, bias varied a lot between employers." The item's scope and tense.
 - Generic Changes line records the rename; accurate. No "More in What helps" link here: accepted by the coordinator.
 - No new finding. Verdict: publish.
+
+## Re-review 2026-10-07: fold-outs, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` (Sources, Style: two layers, worked example, share card), `git diff main` of the article, the article top through the Kline section, `sources.yml` rows kline-2022 / quillian-2017 / agan-starr-2018; re-opened the Kline NBER w29053 PDF ("Overall, 24% of the applications we sent were contacted by employers within 30 days"; Black names "reduce the likelihood of employer contact ... by 2.1 percentage points, an effect equal to 9% of the Black mean contact rate"; "Past work has typically found larger proportional effects"). No source text addressed an AI.
+
+Changed: header `card:`; worked example after the Kline paragraph; Kline "smaller than past tests" paragraph moved verbatim into a `sure` fold; Agan-Starr "published summary" note moved into a `sure` fold, now cited [@agan-starr-2018]; one Changes line.
+
+- Worked example: numbers match the source (24% within 30 days, 2.1 points). Three problems: no "by our arithmetic" (research.md requires it); "2 fewer replies" has no comparison (fewer than a name read as white, not fewer than the 24); "Across many applications, that adds up." is our words, uncited, vague, and "that" leans on the sentence before. Scope (entry-level, very large employers, 30 days) half kept. R1.
+- Fold 1 (Kline, why the gap is smaller): method detail, skippable, no bold, not under a heading, citation kept, words verbatim. But it now sits after the worked example, not after the claim it qualifies, and "That gap" now points at the worked example's 2.1 points, while the source's "smaller" is about the proportional gap (9%). R2.
+- Fold 2 (Agan-Starr, published summary): "which copy we read" is named foldable in Style; the fold sits right after the finding, so the Sources rule "says so next to that finding" still holds. Added citation is right (sources.yml: "figures are the published abstract's"). Words verbatim. Accept. Note: the Quillian 2020 and Kline 2024 summary markers stay inline - mixed treatment, harmless.
+- Card: 100 characters without the citation (at the limit, allowed). Matches body + quillian-2017 (24 US tests since 1989, 36% more callbacks, equally qualified, "African Americans" -> "Black"). Leaves out "1989 to 2015"; the source finds no change over time, so the present reading is not wrong. Accept.
+- Changes line: accurate (worked example, two folds, findings unchanged). Card not visible on the page; no mention needed.
+- Wording: "a name read as Black" names how the name is read, never infers a person's race. Bias framed as the employer's: R1 fix puts employers as the actor.
+
+Findings (verdict revise):
+- **R1 (medium)** Worked example: missing "by our arithmetic"; "2 fewer" has no comparison; last sentence uncited, vague, cross-sentence "that". Fix - replace the whole paragraph with: "Say you send 100 applications for entry-level jobs at employers like those 108. About 24 would get a reply within 30 days. Employers replied to about 2 fewer of them under a name read as Black than under a name read as white [@kline-2022, pp. 2-3]. Over 500 applications, the gap means about 10 fewer replies, by our arithmetic."
+- **R2 (low)** Fold 1 is out of place and its "That gap" now points at the wrong number. Fix - move the `sure` block up to directly after the Kline paragraph (before the worked example), and change its first sentence to: "The 9% gap is smaller than most past tests found, and the authors give two possible reasons."
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+- R1: resolved. Worked example now word for word as given: entry-level scope, 30 days, compared with a name read as white, employers as the actor, "by our arithmetic" on the 500-application figure (2.1 x 5 = 10.5, "about 10" fair). Cited [@kline-2022, pp. 2-3].
+- R2: resolved. `sure` fold sits directly after the Kline paragraph and opens "The 9% gap is smaller ...", matching the source ("larger proportional effects"). Not under a heading, no bold.
+- No new finding. Changes line still accurate.
+
+Verdict: publish
