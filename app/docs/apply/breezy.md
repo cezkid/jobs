@@ -1,7 +1,6 @@
 # Breezy application forms - measured facts
 
-**Not filled yet** - no system module; `prepare` says "not supported yet". Facts for the owner's
-pick of which systems get a filler (plan-k8n.23).
+Filled by `app/apply/systems/breezy.py` (plan-k8n.30) - `apply-form`, Job Finder's own Chrome.
 
 Breezy HR = hiring system, one subdomain per employer: `<employer>.breezy.hr/p/<id>-<slug>`, form
 at the same link + `/apply`. Angular 1.2 page (`javascripts/portal.js`); some employers get a
@@ -91,10 +90,71 @@ unmeasured.
 ## Closed posting
 
 200 page "Position Closed", no Apply link (6 of 16 checks) - read the text, never the status.
+`breezy.closed` / `questions`: a page with no position definition (neither build) = closed, whatever
+the status says.
+
+Closed check 2026-10-07 (plan-k8n.30, plain GET of each link's apply page, 2 s apart, 0 page loads):
+open list 14 links - 9 forms, 5 read "may have closed" (all 5 have no form: really closed, the list
+lags); closed list 2 - 1 read closed, 1 still has its form. **0 links with a form read closed.**
+`.data/measure/breezy-closed-check-2026-10-07.json`.
+
+## Filler rules
+
+- Questions from the apply page by plain GET (`QUESTIONS_OVER_HTTP`): either build's position
+  definition, standard boxes by `application_form` (`hidden` dropped), then the employer's
+  sections. Ids = the page's box names.
+- Name = one full-name box. Phone: tenant C's country-code list left as the page sets it.
+- Address: typed, Escape closes Google's suggestions, the typed text read back (the page's address
+  check is switched off in its script - plain text is kept). `SEARCHED_AS_TYPED` +
+  `SEARCHED_WITH = "Google"`: the handover says the letters went to Google, not the employer.
+- Pay: `Desired Salary` never drafted; number box, currency list (only with 2+ currencies), per list
+  (unnamed select after the pay box, id `cSalary:per`; fallback = the form's list offering
+  "Yearly").
+- Work history / education: repeaters, no names -> ASK (user adds entries, or the resume upload
+  fills them).
+- Question file, reference check, video, emailed code -> ASK, the user's own on the page; date ->
+  filled only as `yyyy-mm-dd`, else ASK.
+- Tick boxes have no `value`: matched by their words (`label[for]`, the label around them, or the
+  text right after).
+- EEO radios = voluntary questions (titles "Race or Ethnicity", "Gender", "Veteran status"); CCPA
+  box = the applicant's consent, left on the page; SMS consent + honeypot `hp_7f2b`: no question,
+  never touched (`ids_on_page` drops them).
+
+## Read back (2026-10)
+
+What `breezy.holds` reads off the page (`form.recheck`: refilled once, still gone -> FAIL to fill by
+hand) - what shows, never the answer it was given.
+
+| Kind | Read back |
+|---|---|
+| box (contact, address, text, summary, letter) | its value; phone by digits; pay by its number (page strips non-digits) |
+| list (currency, per, location, dropdown) | text of the option picked; the empty first option = not held |
+| tick boxes / radios | every one in the group: ticked exactly when its words are an answer |
+| resume | the paperclip link in the resume header shows the file name, "Uploading Resume" gone, no error words |
+| box not on the page | not held |
+
+Upload: the file leaves on choosing (`/api/portal/<company>/upload`). `put_file`: page idle (15 s
+cap), file chosen, name shown + not sending -> ok; error words (`.error-container span.error`, only
+the 50 MB cap has words) -> FAIL with Breezy's words; neither in 15 s -> ASK (a failed send shows no
+words).
+
+## Try (2026-10-07)
+
+`apply-form try` on 3 postings, 3 tenants (one React build; dropdowns, radios, tick boxes, EEO,
+CCPA, pay with per list, location), synthetic answers, canary ok each (0 of 9 test writes through),
+0 writes sent:
+
+- tenant A (React build): per list not found under `div.desired-salary` -> FAIL; fixed (list after
+  the pay box), re-try 12 of 14 required ok - resume ASK (upload blocked by the try), CCPA left (the
+  applicant's own).
+- tenant B: 14 of 16 required ok.
+- tenant C: 10 of 12 - resume ASK, education repeater ASK; its video question was a plain text box.
+
+Page loads on `breezy.hr` with the 6 measure loads: 10 of 10.
 
 ## Cost
 
-Filler ~1-2 beads: stable names, definition in the page, but no `<label>`s (label by `h3`),
+Filler took 1 bead (5 contexts). Estimated before: ~1-2 beads: stable names, definition in the page, but no `<label>`s (label by `h3`),
 honeypot, upload on choose + a parse that overwrites summary / work history (upload first, then
 fill), Google Places address, repeaters, possible sections + email code at Submit, silent
 auto-disqualify tags.

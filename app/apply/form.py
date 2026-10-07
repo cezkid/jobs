@@ -106,6 +106,9 @@ def typed_note(system, answers: list[dict]) -> str:
     """A system whose boxes search its own list as they're typed: those words leave before Submit.
     By key or kind: an Ashby Location box of the employer's own has no key."""
     typed = [k for k in getattr(system, "SEARCHED_AS_TYPED", ()) if any(k in (a.get("key"), a["kind"]) for a in answers)]
+    if typed and (other := getattr(system, "SEARCHED_WITH", "")):
+        return (f"{system.NAME}: the {', '.join(typed)} boxes search {other}'s list as they're typed - "
+                f"those words reach {other} during the fill, before Submit; say so when naming them")
     if typed:
         return (f"{system.NAME}: the {', '.join(typed)} boxes search {system.NAME}'s own list as they're typed - "
                 "those words reach its site during the fill, before Submit; say so when naming them")

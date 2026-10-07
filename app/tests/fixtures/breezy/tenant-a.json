@@ -1,0 +1,158 @@
+{
+ "build": "react",
+ "position": {
+  "_id": "posa",
+  "name": "Software Engineer",
+  "friendly_id": "0a1b2c3d4e5f-software-engineer",
+  "application_form": {
+   "name": "required",
+   "headline": "optional",
+   "summary": "optional",
+   "profile_photo": "optional",
+   "address": "required",
+   "salary": "required",
+   "email_address": "required",
+   "phone_number": "required",
+   "resume": "required",
+   "work_history": "optional",
+   "education": "optional",
+   "cover_letter": "optional",
+   "preferred_location": "required",
+   "questionnaire_in_experience": true,
+   "eeoc": "optional",
+   "ccpa": "required"
+  },
+  "locations": [
+   {
+    "name": "VA, US",
+    "id": "loc0"
+   },
+   {
+    "name": "FL, US",
+    "id": "loc1"
+   },
+   {
+    "name": "TX, US",
+    "id": "loc2"
+   },
+   {
+    "name": "MD, US",
+    "id": "loc3"
+   }
+  ]
+ },
+ "questions": [
+  {
+   "_id": 1000,
+   "title": "",
+   "questions": [
+    {
+     "_id": "q10000",
+     "text": "If you are chosen for a position with Acme, how soon would you be able to start?",
+     "body": "",
+     "type": {
+      "id": "text",
+      "name": "Text"
+     },
+     "required": true
+    },
+    {
+     "_id": "q10001",
+     "text": "Do you currently hold U.S. citizenship?",
+     "body": "",
+     "type": {
+      "id": "multiplechoice",
+      "name": "Multiple Choice"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "Yes",
+       "actions": {
+        "add_tags": [
+         {
+          "tag": "auto disqualified"
+         }
+        ]
+       }
+      },
+      {
+       "text": "No",
+       "actions": {
+        "add_tags": [
+         {
+          "tag": "auto disqualified"
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "_id": "q10002",
+     "text": "Are you eligible for a clearance?",
+     "body": "",
+     "type": {
+      "id": "multiplechoice",
+      "name": "Multiple Choice"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "Yes",
+       "actions": {
+        "add_tags": [
+         {
+          "tag": "auto disqualified"
+         }
+        ]
+       }
+      },
+      {
+       "text": "No",
+       "actions": {
+        "add_tags": [
+         {
+          "tag": "auto disqualified"
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "_id": "q10003",
+     "text": "What is your desired compensation?",
+     "body": "",
+     "type": {
+      "id": "text",
+      "name": "Text"
+     },
+     "required": true
+    },
+    {
+     "_id": "q10004",
+     "text": "Do you have an active CAC card in your possession?",
+     "body": "",
+     "type": {
+      "id": "multiplechoice",
+      "name": "Multiple Choice"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "Yes"
+      },
+      {
+       "text": "No"
+      }
+     ]
+    }
+   ]
+  }
+ ],
+ "flags": {
+  "eeocEnabled": true,
+  "ccpaEnabled": true
+ }
+}

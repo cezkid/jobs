@@ -1,0 +1,107 @@
+<!doctype html>
+<!-- Breezy's apply form as its Angular template draws it (apply page + portal.js, 2026-10-07), cut to the
+     widgets the filler meets, Angular's bindings resolved by hand: boxes by name under <h3> headings (no
+     <label>), resume box + its name / spinner / error words, SMS yes + bot trap, address, pay = currency list
+     + number + an unnamed per-list, location list, questions section_<id>_question_<i> (text, list, radios in
+     labels, ticks with words beside them, date, a file), EEO radios with label for=, the CCPA consent. -->
+<html><head><meta charset="utf-8"><title>Apply</title></head>
+<body>
+<form name="form" novalidate>
+  <div data-section="application">
+    <div class="apply-container"><ul class="apply-buttons">
+      <li class="apply-button"><div class="file-input-container type"><a href="#" class="button resume"><div class="app-resume-btn"><span>Upload Resume</span></div></a></div></li>
+    </ul></div>
+    <div class="section-header"><input type="hidden" id="resume_required" value="required">
+      <div class="file-input-container type">
+        <input id="main-attachment" name="cResume" style="display:none;" type="file" accept=".pdf, .doc, .docx, .txt, .rtd, .pages" class="attachment">
+        <div class="error-container ng-hide"><span class="error">Please attach a resume</span></div>
+        <div class="error-container ng-hide" id="size-error"><span class="error">The file attachment is limited to 50MB</span></div>
+      </div></div>
+    <div class="section">
+      <h3><span>Full Name</span><span class="required">*</span></h3><input name="cName" type="text" placeholder="Full Name" required>
+      <h3><span>Email Address</span><span class="required">*</span></h3><input name="cEmail" type="email" placeholder="Email Address" required>
+      <h3><span>Phone Number</span><span class="required">*</span></h3><input name="cPhoneNumber" type="text" placeholder="Phone Number" required>
+      <ul class="options"><li class="option consent-form"><input type="checkbox" name="smsConsent"><span>I agree to receive SMS messages</span></li></ul>
+      <h3><span>Address</span><span class="required">*</span></h3><input name="cAddress" id="fullAddress" type="text" placeholder="Address" autocomplete="off">
+      <div class="desired-salary"><h3><span>Desired Salary</span><span class="required">*</span></h3>
+        <span><select name="salaryCurrency" class="salary-details options-dropdown">
+          <option value="USD" selected>US Dollar ($)</option><option value="CAD">Canadian Dollar ($)</option><option value="EUR">Euro (€)</option></select></span>
+        <input name="cSalary" type="text" placeholder="Desired Salary" class="salary-number">
+        <select class="salary-details"><option value="?" selected></option><option value="0">Hourly</option><option value="1">Weekly</option>
+          <option value="2">Monthly</option><option value="3">Yearly</option></select></div>
+      <div class="preferred-location"><h3><span>Which location are you applying for</span></h3>
+        <select name="cLocation" class="location-details"><option value="?" selected></option><option value="0">VA, US</option><option value="1">FL, US</option></select></div>
+    </div>
+    <div class="section">
+      <h3><span>Experience Summary</span></h3><textarea name="cSummary"></textarea>
+      <h3><span>Cover Letter</span></h3><textarea name="cCoverLetter"></textarea>
+    </div>
+    <div aria-hidden="true" style="position:absolute;left:-9999px;height:0;overflow:hidden;opacity:0" class="apply-field-extra">
+      <label for="hp_7f2b"></label><input id="hp_7f2b" type="text" name="hp_7f2b" tabindex="-1" autocomplete="hp-4f3c9a">
+      <input id="form_token" type="hidden" value="token"></div>
+  </div>
+  <input type="hidden" id="questions" value="[]">
+  <div data-section="1000" class="questionnaire-section"><div class="section questions"><ul>
+    <li class="question"><div><h3><span>How soon could you start?</span></h3><input name="section_1000_question_0" type="text"></div></li>
+    <li class="question"><div class="dropdown"><h3><span>Are you willing to work as a full-time W2 employee?</span></h3>
+      <select name="section_1000_question_1" class="options-dropdown"><option value="?" selected></option><option value="Yes">Yes</option><option value="No">No</option></select></div></li>
+    <li class="question"><div class="multiplechoice"><h3><span>Do you currently hold U.S. citizenship?</span></h3><ul class="options">
+      <li class="option"><label><input type="radio" value="Yes" name="section_1000_question_2"><span>Yes</span></label></li>
+      <li class="option"><label><input type="radio" value="No" name="section_1000_question_2"><span>No</span></label></li></ul></div></li>
+    <li class="question"><div class="multiplechoice"><h3>Which tools do you use?</h3><ul class="options">
+      <li class="option"><input type="checkbox" name="section_1000_question_3"><span>Python</span></li>
+      <li class="option"><input type="checkbox" name="section_1000_question_3"><span>SQL</span></li>
+      <li class="option"><input type="checkbox" name="section_1000_question_3"><span>Excel</span></li></ul></div></li>
+    <li class="question"><div><h3><span>Earliest start date</span></h3><input name="section_1000_question_4" type="date"></div></li>
+    <li class="question"><div><h3><span>Portfolio</span></h3><div class="file-input-container type">
+      <input id="questionnaire-file-10005" name="section_1000_question_5" style="display:none;" type="file" class="attachment"></div></div></li>
+    <li class="question"><div class="referencecheck"><h3><span>A reference</span></h3><ul class="references"><li class="reference">
+      <input type="text" name="section_1000_question_6" class="reference-name"><input type="email" class="reference-email">
+      <input type="radio" name="reference.type_q6_1000_1" value="professional"><strong>Professional</strong>
+      <input type="radio" name="reference.type_q6_1000_1" value="personal"><strong>Personal</strong></li></ul></div></li>
+  </ul></div></div>
+  <div data-section="eeoc"><div class="eeoc-form-container"><input type="hidden" id="eeoc" value="true"><div class="section questions"><ul>
+    <li class="question"><div class="multiplechoice"><h3>Race or Ethnicity</h3><ul class="options">
+      <li class="option"><input id="race_white" type="radio" name="race_ethnicity" value="white"><label for="race_white"><span>White (not Hispanic or Latino)</span></label></li>
+      <li class="option"><input id="race_hispanic" type="radio" name="race_ethnicity" value="asian"><label for="race_hispanic"><span>Asian (not Hispanic or Latino)</span></label></li>
+      <li class="option"><input id="race_white_no" type="radio" name="race_ethnicity" value="unspecified"><label for="race_white_no"><span>I don't wish to answer</span></label></li></ul></div></li>
+    <li class="question"><div class="multiplechoice"><h3>Gender</h3><ul class="options">
+      <li class="option"><input id="gender_male" type="radio" name="gender" value="male"><label for="gender_male"><span>Male</span></label></li>
+      <li class="option"><input id="gender_female" type="radio" name="gender" value="female"><label for="gender_female"><span>Female</span></label></li>
+      <li class="option"><input id="gender_no" type="radio" name="gender" value="unspecified"><label for="gender_no"><span>I don't wish to answer</span></label></li></ul></div></li>
+  </ul></div>
+    <ul><li><input id="vet_yes" type="radio" name="eeoc.veteran_status" value="true"><label for="vet_yes"><strong>I IDENTIFY AS ONE OR MORE OF THE CLASSIFICATIONS OF PROTECTED VETERAN LISTED ABOVE</strong></label></li>
+      <li><input id="vet_no" type="radio" name="eeoc.veteran_status" value="false"><label for="vet_no"><strong>I AM NOT A PROTECTED VETERAN</strong></label></li>
+      <li><input id="vet_nope" type="radio" name="eeoc.veteran_status" value="unspecified"><label for="vet_nope"><strong>I CHOOSE NOT TO SELF-IDENTIFY MY PROTECTED VETERAN STATUS</strong></label></li></ul>
+  </div></div>
+  <div data-section="ccpa"><div class="gdpr-agreement"><div class="section"><div class="gdpr-accept">
+    <h3><span>CCPA Recruitment Privacy Notice</span><span class="required">*</span></h3>
+    <label><input type="checkbox" name="ccpaAgreement" value="true"><div><p>I've read the Privacy Notice below and consent the processing of my data as part of my job application.</p></div></label>
+  </div></div></div></div>
+  <div class="apply-container"><ul class="navigation-buttons"><li class="apply-button"><button type="button" id="submit">Submit Application</button></li></ul></div>
+</form>
+<script>
+  // portal.js onFileSelect, cut down: the button shows "Uploading Resume" while the file goes to Breezy, then
+  // the name appears in a link; too big -> its error words show and no name (window.CAP stands in for 50 MB)
+  const resume = document.getElementById('main-attachment');
+  resume.addEventListener('change', () => {
+    const file = resume.files[0], button = document.querySelector('.apply-buttons a.resume'),
+          box = resume.closest('.file-input-container'), error = document.getElementById('size-error');
+    box.querySelectorAll('a.bzyLinkColor').forEach(a => a.remove());
+    if (file.size > (window.CAP || 50 * 1024 * 1024)) { error.classList.remove('ng-hide'); return; }
+    error.classList.add('ng-hide');
+    button.innerHTML = '<div><span>Uploading Resume</span></div>';
+    setTimeout(() => {
+      button.innerHTML = '<div><span>Attached</span></div>';
+      const a = document.createElement('a');
+      a.className = 'bzyLinkColor';
+      a.innerHTML = '<span class="fa fa-paperclip"></span><span> </span><span></span>';
+      a.lastChild.textContent = file.name;
+      box.insertBefore(a, resume);
+    }, 300);
+  });
+  // stripNonNumeric on the pay box
+  document.querySelector('[name=cSalary]').addEventListener('input', e => { e.target.value = e.target.value.replace(/[^\d.]+/g, ''); });
+  document.getElementById('submit').addEventListener('click', () => { window.submitted = true; });
+</script>
+</body></html>

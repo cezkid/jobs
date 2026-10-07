@@ -20,9 +20,10 @@ small plug-in.
 | ADP Workforce Now | `workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=<uuid>&jobId=<id>` (any order, `ccId` / `lang` too) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `adp.md` |
 | Oracle Recruiting Cloud | `<pod>.fa.<dc>.oraclecloud.com/hcmUI/CandidateExperience/<lang>/sites/<site>/job/<id>` (any host with that path) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `oracle.md` |
 | Manatal | `www.careers-page.com/<co>/job/<hash>` (form `+ /apply`, `?utm_source=` tail) | `apply-form`, Job Finder's own Chrome; questions from the posting's form definition (plain HTTP); everything, resume too, sent at Submit | `manatal.md` |
+| Breezy | `<co>.breezy.hr/p/<id>-<slug>` (form `+ /apply`) | `apply-form`, Job Finder's own Chrome; questions from the definition in the apply page (plain HTTP); resume sent on choosing it, address letters to Google as typed, the rest at Submit | `breezy.md` |
 | iCIMS | `careers-<co>.icims.com/jobs/<id>/<slug>/job` (any `*.icims.com` host) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `icims.md` |
 
-Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), Rippling (measured, no filler - [rippling.md](rippling.md)), Breezy + Teamtailor (measured, no filler - [breezy.md](breezy.md), [teamtailor.md](teamtailor.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
+Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), Rippling (measured, no filler - [rippling.md](rippling.md)), Teamtailor (measured, no filler - [teamtailor.md](teamtailor.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
 `apply-form paste` writes `Application answers.md` to paste from. Otherwise `prepare` says so
 plainly -> user gets tailored PDF + answers to paste.
