@@ -31,7 +31,21 @@ sensitive kinds (date of birth, graduation date, criminal history, work break, d
 health - `fair-screening.md`) are marked "ask the user" when prepared. An answer to one must come
 from the user, marked `source: "you said"`; `fill` and `paste` refuse any other - a guess at a
 salary is the user's number on the employer's file. Work permit + sponsorship come only from
-setup's answers, the US question asked the same way (`questions.work_permit`).
+setup's answers, the US question asked the same way (`questions.work_permit`) - and "authorized
+... without restriction" is asked every time for a visa holder (`needs_sponsorship` or
+`student_visa`: a CPT/OPT or H-1B permit has limits; CMU + UCI international offices say No on F-1),
+even over a Yes an older setup saved.
+
+## A student's boxes
+
+`questions.student_answer`, from the school in progress on the resume, named at handover:
+expected graduation date (box says expected / anticipated / "when do you expect to graduate", one
+degree in progress - the date the page shows, "read it before Submit"; a bare "graduation date"
+stays sensitive), GPA (the transcript's figure; a number box gets the part before "/"; a range list
+the one range holding it; another scale is never converted - asked; major, high-school, weighted or
+term GPA asked), "currently enrolled?" (Yes while a degree is in progress; full-time, half-time or
+returning-after questions asked). A school's start boxes take its `start` (`schema.shown_start`:
+never with `hide_year`). None of these is kept for the next form.
 Agreeing, consenting, signing - terms and conditions / of use, privacy policy or notice, texts /
 SMS / automated calls, e-signature or "type your name to sign", certify / attest / acknowledge
 statements: never drafted, never filled, not even from "you said" - the applicant's own act, ticked
@@ -90,7 +104,7 @@ one per topic or question, newest wins. The next form:
 |---|---|---|
 | Filled, named before Submit | 18 or older, notice period, how you heard, the same question word for word | true on any form; a wrong one is cheap |
 | Offered first, never filled | pay expected (beside the posting's pay), moving for the job, start date, written answers | each depends on this job |
-| Never kept | work permit + sponsorship, current pay, sensitive kinds, voluntary questions about them, where they live, agreeing / consenting / signing, two topics in one question | setup answers the US permit questions; a kept "I agree" would tick the next form's box; the rest are the user's every time |
+| Never kept | work permit + sponsorship, current pay, sensitive kinds, voluntary questions about them, where they live, agreeing / consenting / signing, two topics in one question; a student's status (enrolled, current student, graduation, GPA, OPT / CPT / F-1 / EAD, eligibility, immigration) - by question, and any answer naming a permit or a GPA | setup answers the US permit questions; a kept "I agree" would tick the next form's box; a student's status changes (a saved "Yes, enrolled" would fill the next form after graduation); the rest are the user's every time |
 
 Basis: freehire.me's captured forms, 647,795 (Greenhouse, Lever, Ashby, Recruitee, Workable;
 measured 2026-09-09, github.com/strelov1/freehire, docs/superpowers/plans/measurements/ 01 + 03) - how you heard 61,762, 18+ 30,337, salary 24,762,
