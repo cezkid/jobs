@@ -208,7 +208,7 @@ In practice, use one column, plain headings, normal letter spacing and black tex
 - Leave off a photo and personal details [@mit-capd-resumes].
 - Use a plain, one-column page with clear headings [@ladders-2018].
 
-How we grade evidence: [How we research](methods.md). More articles: [Research](index.md).
+More articles: [Research](index.md).
 
 ## How CEZ Job Finder uses this
 

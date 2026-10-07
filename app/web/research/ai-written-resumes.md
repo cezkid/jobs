@@ -134,7 +134,7 @@ Words like "delve," "showcase" and "pivotal" add no facts. Cutting them makes a 
 - Be able to explain every line. Anything on the page can come up in an interview; that is common advice, not a study finding.
 - Never let AI invent a skill, job or number. That is a false claim, whoever typed it.
 
-How we grade evidence: [How we research](methods.md). How AI screeners treat applicants: [Is AI resume screening biased?](ai-resume-screening-bias.md). Whether software rejects most resumes: [Do hiring systems reject most resumes?](ats-rejection-myth.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md).
+How AI screeners treat applicants: [Is AI resume screening biased?](ai-resume-screening-bias.md). Whether software rejects most resumes: [Do hiring systems reject most resumes?](ats-rejection-myth.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md).
 
 ## How CEZ Job Finder uses this
 

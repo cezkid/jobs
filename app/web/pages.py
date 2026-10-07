@@ -1277,7 +1277,7 @@ def restyle(root: Path, text: str) -> str:
 CASE_CSS = """
   /* your-case figure (```case): caption over a 3-column table, the row's label bold; every row shown. Phone: each
      row stacks, its finding + what to do under their column names (the thead stays for screen readers) */
-  .case { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .case { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--heavy); }
   .case figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
   .case table { width: 100%; }
   .case tbody th { font-weight: 700; }
@@ -1291,7 +1291,7 @@ CASE_CSS = """
 GUESS_CSS = """
   /* guess first (```guess): a ruled note - the question, its choices (buttons once GUESS_JS runs), the answer
      in a closed details under them */
-  .guess { margin: 32px 0; padding: 12px 0 4px; border-top: 2px solid var(--text); border-bottom: 1px solid var(--text); }
+  .guess { margin: 32px 0; padding: 12px 0 4px; border-top: 2px solid var(--heavy); border-bottom: 1px solid var(--line); }
   .guess::before { content: "Guess first"; display: block; font-size: var(--step--1); font-weight: 700; color: var(--text-2); }
   .guess-q { margin: 4px 0 10px; font-size: var(--step-1); line-height: 1.35; }
   .guess ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; padding: 0; }
@@ -1301,7 +1301,7 @@ GUESS_CSS = """
      forced colours drop shadows, so the border comes back there */
   .guess button { min-height: 44px; padding: 8px 16px; font: inherit; color: var(--text); background: var(--desk); border: 0; box-shadow: inset 0 0 0 2px var(--text); border-radius: 6px; cursor: pointer; }
   @media (forced-colors: active) { .guess button { border: 2px solid ButtonText; } }
-  .guess button[aria-pressed="true"] { color: var(--desk); background: var(--text); }
+  .guess button[aria-pressed="true"] { color: var(--desk); background: var(--pen); box-shadow: inset 0 0 0 2px var(--pen); }
   .guess summary { padding: 11px 0; font-weight: 700; cursor: pointer; }
   .guess details p { margin: 0 0 12px; }
 """
@@ -1545,7 +1545,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         '<meta name="robots" content="index, follow, max-image-preview:large">',
         '<meta name="color-scheme" content="light dark">',
         '<meta name="theme-color" content="#f6f1e7" media="(prefers-color-scheme: light)">',
-        '<meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)">',
+        '<meta name="theme-color" content="#1a1712" media="(prefers-color-scheme: dark)">',
         f'<meta property="og:type" content="{kind}">',
         '<meta property="og:site_name" content="CEZ Job Finder">',
         '<meta property="og:locale" content="en_US">',

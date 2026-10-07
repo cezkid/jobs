@@ -4,7 +4,7 @@
   "description": "Free helper on your own computer: finds new jobs every morning and makes your resume for any job you pick.",
   "start_url": "/",
   "display": "browser",
-  "background_color": "#1c1c1e",
+  "background_color": "#1a1712",
   "theme_color": "#f6f1e7",
   "icons": [
     {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},

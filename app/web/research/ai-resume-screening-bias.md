@@ -160,7 +160,7 @@ Only one row, one job at one company with an older algorithm, shows a real emplo
 - Use your rights where they exist. As of October 2026: notice in New York City, and a person to review a fully automated decision in the EU. From January 2027 in California: how a tool that replaces a human decision shaped the decision about you. In Colorado: a description of the tool's role; the start date is not settled and a court has paused enforcement [@nyc-ll144; @eu-gdpr; @ca-cppa-admt-2025; @co-sb26-189; @co-sb26-189-fiscal; @xai-weiser-stay].
 - Remember bias in a screener is the employer's problem, not a flaw in you.
 
-How we grade evidence: [How we research](methods.md). More articles: [Research](index.md). Whether an AI-written resume hurts: [Can employers tell if AI wrote your resume?](ai-written-resumes.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md). Bias over names, records and more, in one place: [Hiring discrimination: what studies show, what helps](hiring-bias-what-helps.md).
+More articles: [Research](index.md). Whether an AI-written resume hurts: [Can employers tell if AI wrote your resume?](ai-written-resumes.md). Keeping your resume out of AI training: [Keep your chats out of AI training](keep-chats-out-of-ai-training.md). Bias over names, records and more, in one place: [Hiring discrimination: what studies show, what helps](hiring-bias-what-helps.md).
 
 ## How CEZ Job Finder uses this
 
