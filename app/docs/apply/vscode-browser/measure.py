@@ -47,6 +47,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            read after the upload (name shown, its own error words) (plan-k8n.17)
            a sign-in page in place of the form (SIGN_IN, UKG) is never typed in; file box `btn-resume` (Paylocity); the
            page's own upload error words read every 0.5 s for 6 s (a toast goes in 5 s) (plan-k8n.18)
+           a system's FILE_LABEL (Manatal) read back after the file is chosen + the error words under it; select2 lists +
+           AWS WAF marks (its script, AwsWafIntegration, aws-waf-token cookie) counted (plan-k8n.32)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -1156,9 +1158,10 @@ FRAME_KIND = (("recaptcha", r"recaptcha\.net|google\.com/recaptcha|gstatic\.com/
               ("turnstile", r"challenges\.cloudflare\.com"), ("linkedin", r"linkedin\.com"), ("google sign-in", r"accounts\.google\.com"))
 # what the page carries before Submit: captcha + Cloudflare scripts, Lever's Apply with LinkedIn widget
 MARKS = """(() => ({hcaptchaApi: typeof window.hcaptcha, grecaptchaApi: typeof window.grecaptcha, turnstileApi: typeof window.turnstile,
+  awsWafApi: typeof window.AwsWafIntegration, awsWafCookie: /aws-waf-token/.test(document.cookie),
   hiddenCaptchaButton: !!document.querySelector('#hcaptchaSubmitBtn, .h-captcha, [data-hcaptcha-widget-id]'),
   linkedinWidget: !!document.querySelector('script[type="IN/AwliWidget"]'),
-  scripts: [...new Set([...document.scripts].map((s) => s.src).filter((u) => /hcaptcha|recaptcha|challenge-platform|turnstile|linkedin|licdn/.test(u))
+  scripts: [...new Set([...document.scripts].map((s) => s.src).filter((u) => /hcaptcha|recaptcha|challenge-platform|turnstile|linkedin|licdn|awswaf/.test(u))
     .map((u) => { try { const x = new URL(u); return x.host + x.pathname.replace(/[0-9a-f]{16,}/gi, '<h>').slice(0, 80) } catch (e) { return '?' } }))]}))()"""
 # the upload's own words: Ashby's toast, Lever's label states (lever.md)
 VERDICT = """(() => { const m = document.body.innerText.match(/failed to upload|couldn.t auto-read resume\\.?|analyzing resume\\.*|success!/i);
@@ -1189,6 +1192,8 @@ WIDGETS = """(() => { const boxes = [...document.querySelectorAll('[role=combobo
     checkboxes: document.querySelectorAll('input[type=checkbox]').length, combobox: boxes.length,
     comboboxInDataUi: boxes.filter((b) => b.closest('[data-ui]')).length, options: document.querySelectorAll('[role=option]').length,
     fileInputs: document.querySelectorAll('input[type=file]').length, resumeWrapper: !!document.querySelector('[data-ui="resume"]'),
+    selects: document.querySelectorAll('select').length, select2: document.querySelectorAll('.select2-container').length,
+    select2Hidden: document.querySelectorAll('select.select2-hidden-accessible').length,
     onTopAtListMiddle: boxes.slice(0, 8).map(top),
     dialogs: [...document.querySelectorAll('[role=dialog]')].filter((d) => d.getClientRects().length).map((d) => ({ui: d.getAttribute('data-ui'),
       modal: d.getAttribute('aria-modal'), text: (d.innerText || '').replace(/\\s+/g, ' ').slice(0, 60)}))}; })()"""
@@ -1367,6 +1372,10 @@ def raw(result):
                 fill["nameShownDeep"] = RESUME.name in text
                 fill["pageErrors"] = system.UPLOAD_ERRORS.findall(text) if hasattr(system, "UPLOAD_ERRORS") else None
             fill["fileHeld"] = quietly(lambda: c.evaluate(f"({q(fbox)}.files[0] || {{}}).name || ''") == RESUME.name)
+            if label := getattr(system, "FILE_LABEL", None):  # the box's own label + error words under it (Manatal, plan-k8n.32)
+                near = f"{q(fbox)}.closest('.custom-file')"
+                fill["fileLabel"] = quietly(lambda: c.evaluate(f"(({near} || document).querySelector({json.dumps(label)}) || {{}}).innerText || null"))
+                fill["fileError"] = quietly(lambda: c.evaluate(f"(({near} || document).querySelector('small.text-danger') || {{}}).innerText || ''"))
             fill["sentOnChoice"] = [{"method": b["method"], "url": short(b["url"]), "type": b["type"],
                                      "contentType": b.get("contentType"), "body": b.get("body")}
                                     for b in block.log if b["after"] == "upload"]

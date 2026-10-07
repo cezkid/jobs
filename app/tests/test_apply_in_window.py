@@ -74,6 +74,8 @@ WORKABLE_BEHAVES = """<div data-ui="cookie-consent" role="dialog" aria-modal="tr
     <button type="button">Cookies settings</button></div></div>"""
 BAMBOOHR_FORM = FORM.with_name("bamboohr-form.html")
 BAMBOOHR_PATH = "/careers/101"
+MANATAL_FORM = FORM.parent.parent / "manatal" / "apply.html"
+MANATAL_PATH = "/acme/job/AB12CD34/apply"
 # a same-site frame, another site's frame (the same server by its other name), open + closed shadow roots
 FRAMES_PATH = "/dom/frames-shadow.html"
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
@@ -123,7 +125,7 @@ def site():
             else:
                 page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM,
                         ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html"), BAMBOOHR_PATH: BAMBOOHR_FORM,
-                        FRAMES_PATH: FORM.with_name("frames-shadow.html"),
+                        MANATAL_PATH: MANATAL_FORM, FRAMES_PATH: FORM.with_name("frames-shadow.html"),
                         FRAMES_PATH.replace("shadow", "inner"): FORM.with_name("frames-inner.html")}.get(self.path)
                 body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
                 if self.path == JAZZHR_PATH:

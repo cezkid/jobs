@@ -1,0 +1,398 @@
+{
+ "stage": "raw",
+ "at": "<host>/<org>/job/<id>/apply",
+ "uniq": "765741",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "tenantsAdded": 0,
+ "system": "Manatal",
+ "ready": "#app form [id^=\"field\"]",
+ "url": "https://<host>/<org>/job/<id>/apply",
+ "level": 3,
+ "pauseCap": 20,
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 5608,
+  "upInfo": {
+   "t": 1791368677676,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "pauses": [],
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 7975,
+  "sessions": [
+   {
+    "id": "d65606ed-a66f-4506-8855-7f188f297863",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "013c749d-ba1d-4cc7-817d-ee958a682172",
+    "type": "pwa-editor-browser",
+    "name": "JF form 765741 blank \u00ab Job Finder form",
+    "parent": "d65606ed-a66f-4506-8855-7f188f297863"
+   }
+  ],
+  "found": {
+   "013c749d-ba1d-4cc7-817d-ee958a682172": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53076,
+     "path": "/9a970cf367d1092e5861dfc16d0b4051fe9c6a3f"
+    },
+    "href": "http://127.0.0.1:50586/blank"
+   },
+   "d65606ed-a66f-4506-8855-7f188f297863": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "install": {
+  "ok": true,
+  "ms": 17,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "subscribe": {
+  "ok": true,
+  "ms": 1,
+  "value": {}
+ },
+ "skipOff": {
+  "ok": true,
+  "ms": 2,
+  "value": {}
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:50611/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:50611/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:50611/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:50611/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:50612/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:50611/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "loaded": true,
+ "readyMs": 1305,
+ "pausesOnLoad": 0,
+ "fields": 7,
+ "boxes": [
+  {
+   "id": "field<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "field<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "field<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "field<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "textarea"
+  },
+  {
+   "id": "field<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "field<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "field<field>",
+   "name": "<field>",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "<field>{index}",
+   "name": "<field>",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "<field>{index}",
+   "name": "<field>",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "",
+   "name": "terms_and_condition",
+   "role": "",
+   "type": "checkbox"
+  }
+ ],
+ "frames": {
+  "iframes": [],
+  "blockedOtherSite": [
+   {
+    "url": "http://localhost/frame.html",
+    "kind": "other",
+    "after": "canary"
+   }
+  ],
+  "targets": {
+   "ok": true,
+   "ms": 2,
+   "value": []
+  }
+ },
+ "marks": {
+  "awsWafApi": "undefined",
+  "awsWafCookie": false,
+  "grecaptchaApi": "undefined",
+  "hcaptchaApi": "undefined",
+  "hiddenCaptchaButton": false,
+  "linkedinWidget": false,
+  "scripts": [],
+  "turnstileApi": "undefined"
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "signIn": false,
+  "box": "input[type=text]",
+  "type: click + Input.insertText": {
+   "ok": true,
+   "ms": 939,
+   "value": {
+    "focused": true
+   }
+  },
+  "readBack": "Test Applicant",
+  "fileBox": "input[type=file]",
+  "fileChosen": true,
+  "upload: DOM.setFileInputFiles": {
+   "ok": true,
+   "ms": 17
+  },
+  "pageErrorsSeen": null,
+  "nameShown": true,
+  "failedLine": false,
+  "verdict": null,
+  "fileHeld": true,
+  "fileLabel": "Test_Resume.pdf",
+  "fileError": "",
+  "sentOnChoice": [],
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/manatal-route2-tab.png",
+   "bytes": 100787
+  }
+ },
+ "widgets": {
+  "checkboxes": 3,
+  "combobox": 0,
+  "comboboxInDataUi": 0,
+  "dialogs": [],
+  "fileInputs": 1,
+  "onTopAtListMiddle": [],
+  "options": 0,
+  "radioGroups": 0,
+  "radioInputs": 0,
+  "resumeWrapper": false,
+  "roleRadio": 0,
+  "select2": 0,
+  "select2Hidden": 0,
+  "selects": 0
+ },
+ "captchaBox": null,
+ "shot": {
+  "path": "<checkout>/.data/probe-shots/form/manatal-route2-window.png",
+  "bytes": 0
+ },
+ "pausesTotal": 0,
+ "skipOnAfterCap": false,
+ "submitClicked": false,
+ "block": {
+  "reads": 30,
+  "namedReads": [],
+  "failed": [
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "GET",
+    "url": "http://localhost/frame.html",
+    "type": "other-site frame",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/worker",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://analytics.google.com/g/collect",
+    "type": "XHR",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://www.google.com/g/collect",
+    "type": "XHR",
+    "after": "load"
+   }
+  ],
+  "seenWrites": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://analytics.google.com/g/collect",
+    "type": "Fetch",
+    "after": "load"
+   },
+   {
+    "method": "POST",
+    "url": "https://www.google.com/g/collect",
+    "type": "Fetch",
+    "after": "load"
+   }
+  ]
+ },
+ "pageLoads": 1,
+ "handlerErrors": [],
+ "quit": {
+  "killed": false
+ }
+}

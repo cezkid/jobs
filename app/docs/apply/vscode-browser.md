@@ -506,6 +506,42 @@ Readings:
   its privacy-policy read came back empty there). The start box in the window: unmeasured.
 - `window.SYSTEMS` unchanged: Paycom stays in Job Finder's own Chrome (multi-page after Continue: plan-k8n.20).
 
+## Manatal - route 2 (plan-k8n.32)
+
+Same `measure.py raw`, level 3, no named read. Box = `input[type=text]` (full name), file = `input[type=file]`
+(resume), dummy PDF chosen. 2 employers (tenants A, B; one host for all), 2026-10-07; page loads: 1 each = 2.
+`raw` now also reads AWS WAF marks (`awsWafApi`, `aws-waf-token` cookie, `awswaf` script), native + select2 lists,
+and the resume box's label + error words after the choice. Numbers:
+[manatal-tenant-a.json](vscode-browser/manatal-tenant-a.json), [manatal-tenant-b.json](vscode-browser/manatal-tenant-b.json)
+(host, org, posting + field ids scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| Attach | 8.1 s | 8.0 s |
+| `READY` (Vue mount) from navigate | 1.3 s | 1.3 s |
+| Fields listed | 7 | 7 |
+| Widgets | pay box + 2 native `select`s (currency, frequency), 1 checkbox (terms); 0 select2 | 3 checkboxes (Yes / No array + terms), 0 `select`, 0 select2 |
+| `debugger;` pauses | 0 | 0 |
+| Captcha / AWS WAF | none: no reCAPTCHA, hCaptcha, Turnstile; `awsWafApi` undefined, no `aws-waf-token` cookie, no `awswaf` script | same |
+| Frames | 0 iframes, 0 frame targets | same |
+| Page load writes (failed) | Google Analytics `g/collect` x3 | x2 |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant" | same |
+| Dummy PDF chosen | label `.custom-file-label` shows "Test_Resume.pdf", no error words, file held, nothing sent on choice | same |
+| Window screenshot | failed ("could not create image from window"); tab shot only | same |
+
+Readings:
+- Every box + the file box is in the page; no `debugger;`, no frame, no captcha to meet before Submit.
+- Resume stays on the computer on choice, window as Chrome (`manatal.md`: the form script uploads it only at Submit).
+- What Submit does in the tab (presigned upload, then S3, then the answers): unmeasured (never Submit).
+- Adapter gaps: none. The parity test (`test_in_window_fills_manatal_as_playwright_does`, page copy fixture,
+  Playwright vs `window.Page` in one headless Chrome) passes: same report, same page after, every answer read back,
+  a second fill changes nothing - every call `manatal.fill` + `holds` + `form.fill_page` make already exists in
+  `window.py` (xpath ancestor, `select_option(value=[...])`, `set_input_files`, `evaluate_all`).
+
+Route-2 costs otherwise as Greenhouse. `window.SYSTEMS` unchanged: Manatal fills in Job Finder's own Chrome until
+the owner decides (plan-k8n.39).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any

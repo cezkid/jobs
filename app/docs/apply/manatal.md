@@ -129,6 +129,13 @@ box `ok`, required 6 of 6, 5 of 5, 7 of 7; 0 writes sent (3 Google Analytics pos
 FAIL (the `.png`'s words still up - empty alone unmeasured); the resume after -> ok, error gone.
 Page loads on the host: 4.
 
+## In the window (plan-k8n.32)
+
+Measured in a tab of the Job Finder window (route 2), 2 tenants, 2026-10-07, 2 page loads: form up 1.3 s after
+navigate (Vue mount), 0 `debugger;` pauses, 0 frames, no captcha or AWS WAF on load, name typed + read back, dummy
+resume shown in the label with no error and nothing sent on choice. Parity test: same report + page as Chrome, no
+adapter gaps. Not in `--in-window` yet - owner decides (plan-k8n.39). Numbers: `vscode-browser.md` "Manatal - route 2".
+
 ## Cost
 
 Filler ~1 bead (JazzHR / BambooHR size): stable names, definition by plain GET, file leaves only

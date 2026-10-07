@@ -1,13 +1,16 @@
 """Manatal: link shapes, saved form definitions (anonymised, app/tests/fixtures/manatal) -> questions, each widget rule
-on a copy of the page Manatal's template renders (fixtures/manatal/apply.html; nothing reaches the network)."""
+on a copy of the page Manatal's template renders (fixtures/manatal/apply.html; nothing reaches the network), the same
+copy filled in the window as through Playwright."""
 import json
 from pathlib import Path
 from urllib.parse import urlsplit
 
 import httpx
 import pytest
+from test_apply_in_window import MANATAL_PATH, both, playwright_chrome, site, tab  # noqa: F401 - fixtures
 
 from apply import browser, questions, systems
+from apply import form as fill_form  # form() below is a tenant's questions
 from apply.systems import manatal
 
 FIXTURES = Path(__file__).parent / "fixtures" / "manatal"
@@ -261,3 +264,58 @@ def test_other_files_sections_and_dates_left_to_the_user(page):
     assert manatal.fill(page, q("9", "longtext", "x", "manatal:educations", title="Education"), None).startswith("ASK the Education section")
     assert manatal.fill(page, q("9", "date", "2026-11-01", "manatal:date", title="Start"), None).startswith("ASK date box")
     assert manatal.fill(page, q("9999", "text", "x"), None) == "FAIL question not on page"
+
+
+# --- in the window: the same fill through window.Page as through Playwright ---
+
+# the page copy's questions, each kind answered once: boxes, the pay box + its two lists, the shared-id
+# checkboxes, the yes box, a dropdown, the resume (terms left: the applicant's own)
+WINDOW_ANSWERS = [
+    q("1001", "text", "Test Applicant", key="name", title="Full Name"),
+    q("1002", "email", "test@example.com", key="email", title="Email"),
+    q("1003", "phone", "555-0100", key="phone", title="Phone"),
+    q("1004", "longtext", "Line one\nLine two", title="Cover Letter"),
+    q("1005", "file", True, "manatal:resume", key="resume", title="Resume"),
+    q("1006", "yesno", "No", "manatal:checkbox", ["Yes", "No"], title="Do you meet all the requirements?"),
+    q("1007", "yesno", "Yes", "manatal:boolean", ["Yes", "No"], title="Are you authorized to work lawfully in the United States?"),
+    q("1008", "number", "$85,000", "manatal:number", title="Pay"),
+    q("1008:currency", "choice", "United States dollar", "manatal:currency:expected", title="Pay currency"),
+    q("1008:frequency", "choice", "Yearly", "manatal:frequency:expected", title="Pay frequency"),
+    q("1009", "choice", "Contract", "manatal:select", ["Full time", "Contract"], title="Employment type")]
+# each box's value or tick, each list's pick, the resume label + its error words - read off the page
+WINDOW_SHOWN = ("es => es.map(e => e.type === 'checkbox' ? e.checked : e.value)"
+                ".concat([...document.querySelectorAll('.custom-file-label, small.text-danger')].map(e => e.innerText.trim()))")
+WINDOW_BOXES = "#app form input:not([type=file]), #app form textarea, #app form select"
+
+
+def test_in_window_fills_manatal_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # manatal.fill + holds + form.fill_page through each: same report, same page after, every answer read
+    # back, a second fill changes nothing (plan-k8n.32)
+    monkeypatch.setattr(fill_form, "SETTLE_MS", 300)
+    monkeypatch.setattr(manatal, "IDLE_WAIT_MS", 500)
+    resume = tmp_path / "Test_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    again = [a for a in WINDOW_ANSWERS if a["kind"] != "file"]
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, site.replace("/acme/jobs/1", MANATAL_PATH)) as tabs:
+        for name, page in tabs.items():
+            assert fill_form.closed(page, manatal) is None
+            report, extra = fill_form.fill_page(page, manatal, WINDOW_ANSWERS, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == []
+            once = page.eval_on_selector_all(WINDOW_BOXES, WINDOW_SHOWN)
+            assert [manatal.fill(page, a, None) for a in again] == ["ok"] * len(again)
+            page.wait_for_timeout(300)
+            assert page.eval_on_selector_all(WINDOW_BOXES, WINDOW_SHOWN) == once
+            pages[name] = once
+            assert [a["id"] for a in WINDOW_ANSWERS if not manatal.holds(page, a)] == []
+            assert not page.evaluate("window.submitted || false")
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {a["id"]: "ok" for a in WINDOW_ANSWERS}
+    assert pages["window"] == pages["playwright"]
+    # what shows, empty boxes + clear ticks left out: contact, the letter, No (Yes clear), the yes box, pay in
+    # dollars a year, Contract (terms left clear), the resume's name in its label, no error under it
+    assert [v for v in pages["window"] if v not in ("", False)] == [
+        "Test Applicant", "test@example.com", "555-0100", "Line one\nLine two", True, True, "85000", "840", "year",
+        "Contract", resume.name]
+    assert pages["window"][4:6] == [False, True] and pages["window"][-1] == "" and pages["window"][-3] is False
