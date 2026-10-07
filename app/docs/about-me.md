@@ -58,11 +58,11 @@ on this computer, `~/.claude/projects/<folder>/`, 30 days by default (`cleanupPe
 sessions.md) - in the privacy table and the removal steps. Developers who want memory in their
 checkout: `autoMemoryEnabled: true` in `.claude/settings.local.json` (not shipped, kept on update).
 
-Other two AIs (vendor docs, read 2026-10-06; nothing switched from this folder - see why):
+Other two AIs (vendor docs, read 2026-10-06):
 
 | AI | Its own memory | Off from this folder? | Chats kept |
 |---|---|---|---|
-| GitHub Copilot (VS Code) | memory tool: notes as local files, user scope `/memories/` across every workspace; default + off switch not documented (agents/memory). Copilot Memory: GitHub account, on by default for personal plans, used by cloud agent, code review, CLI - VS Code chat not listed (copilot-memory) | no setting id exists; the AGENTS.md rule (facts -> About me, never your own memory) is the guard. Copilot Memory: user only, github.com > Copilot settings > Features | local SQLite; `chat.sessionSync.enabled` (default true) syncs sessions to the GitHub account - covered by the privacy row "User's own GitHub account"; not switched off here: workspace scope undocumented, and it would cost the user their history elsewhere |
+| GitHub Copilot (VS Code) | memory tool: notes as local files, user scope `/memories/` across every workspace; default + off switch not documented (agents/memory). Copilot Memory: GitHub account, on by default for personal plans, used by cloud agent, code review, CLI - VS Code chat not listed (copilot-memory) | no setting id exists; the AGENTS.md rule (facts -> About me, never your own memory) is the guard. Copilot Memory: user only, github.com > Copilot settings > Features | local SQLite; `chat.sessionSync.enabled` (default true) syncs sessions to the GitHub account - set false in the window's own settings (`app/workspace.py`), so this window's chats stay local |
 | OpenAI Codex (ChatGPT sign-in) | local Codex memories `~/.codex/memories/`, off by default; ChatGPT web memory is separate (learn.chatgpt.com customization/memories) | project `.codex/config.toml` loads only for a trusted project, memory keys at project level undocumented - default off already, nothing added | `~/.codex/sessions`, `history.jsonl` (local); server side: the privacy row's AI account |
 
 Sources: code.visualstudio.com/docs/copilot/agents/memory, .../agents/sessions/session-sync,
