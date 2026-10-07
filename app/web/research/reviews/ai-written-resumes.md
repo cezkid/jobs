@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.25 (no drafting context; sources opened before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.25 (no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Can employers tell if AI wrote your resume? (`ai-written-resumes.md`)
 
@@ -296,3 +296,30 @@ Fresh subagent; made none of the edits. Read the current article and its diff.
 - A1: fixed. "In the same survey, 54% said they would care if a resume or cover letter was written by AI."
 - A2: fixed. Changes line: "names its sample as HR and talent leaders, as its method section does. The 54% line now reads as a share of everyone asked".
 - No new finding. Verdict: publish (unchanged).
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 6 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Use AI for wording, not facts." <- same words [@wiles-2025]; the item ties Wiles to fixing errors and clearer lines, as F3 asked. Supported.
+- "Put in your own facts and numbers, and edit what AI drafts." <- "Put in your own facts and numbers." [@resume-genius-2026] + "Edit what AI drafts." [@cui-2025]. Supported.
+- "Never let AI invent a skill, job or number." <- same words. Supported.
+- No statistic, citation or jargon in the note.
+
+Bold: 6 lines, one per question section; deleting the added ** pair gives the main line byte for byte (script). One bold answer reads stronger alone than its paragraph: B1.
+Description vs body: "Mostly no, in tests - most people can't spot AI writing." is present tense with no "older AI models". Body: GPT-2 and GPT-3 texts (Jakesch); 5 frequent AI users spotted whole AI texts far better (Russell). V1 (plan-xsy.53) required "older AI models" on this same claim in the box; plan-xsy.52 passed the description as a search line. It is now the first line on the page, above that box: D1. "About half of hiring managers say they'd care" supported (54%, Insight Global).
+Changes line: accurate. It leaves out the Short answer rename. Optional; no fix needed.
+
+Findings (verdict revise):
+- **B1 (low)** Under "Does using AI on your resume hurt your chances?" the bold answer is "Writing help raised hiring in the largest real test." Read alone it borrows Wiles for AI help, the F3 problem; "That test used spelling and grammar help, not today's chat AI" sits outside the bold. Fix, bold only: "**Writing help raised hiring in the largest real test. That test used spelling and grammar help, not today's chat AI** [@wiles-2025]."
+- **D1 (low)** Description states the 2023 older-model result as a present-tense fact. Fix (145 characters): "Mostly no, in tests with older AI models: most people couldn't spot AI writing. About half of hiring managers say they'd care. What studies show."
+
+### Resolution check 2026-10-07 (plan-ngk.6)
+
+- B1: resolved. "**Writing help raised hiring in the largest real test. That test used spelling and grammar help, not today's chat AI** [@wiles-2025]." Qualifier inside the bold, cite outside; deleting the ** pair still gives the main line (script).
+- D1: resolved. Description as proposed (145 characters, quoted YAML). Changes line "the line under the title now says the tests used older AI models" - accurate; generic line records the rename.
+- Note, optional: under the answer-line rule now in `research.md` Style, the tail "What studies show." adds nothing; it can go (this reviewer's own proposed wording).
+- No new finding. Verdict: publish.

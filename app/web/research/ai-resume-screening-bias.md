@@ -2,7 +2,7 @@
 title: "Is AI resume screening biased? What the studies show"
 description: AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.
 published: 2026-10-03
-modified: 2026-10-05
+modified: 2026-10-07
 status: published
 og_title: "Is AI resume screening biased? What the studies show"
 uncited:
@@ -10,7 +10,13 @@ uncited:
   - "We found no study showing"
   - "We searched the web, arXiv and news"
 ---
-**Short answer**
+**What to do**
+
+- Apply widely: when many employers use one tool, one "no" can repeat.
+- Keep your resume accurate, relevant and easy to read.
+- Use your rights to a notice or a human review where they exist.
+
+**What the evidence says**
 
 - AI models judge the same applicant differently by name, gender, age or disability (Lab study, many tests) [@wilson-caliskan-2024; @an-2025; @rozado-2026; @bone-2026; @tamkin-2023; @glazko-2024].
 - Who gets favored flips between models, versions and test designs (Lab study, preprints) [@gao-2026; @chen-xiao-2026].
@@ -19,7 +25,7 @@ uncited:
 
 ## Do AI resume screeners treat people differently by name?
 
-Yes, in many lab tests, though some tests find no gap. Researchers give AI models resumes that are the same except for the name. The models then often pick, rank or score them differently.
+**Yes, in many lab tests, though some tests find no gap.** Researchers give AI models resumes that are the same except for the name. The models then often pick, rank or score them differently.
 
 In a 2024 test, three AI text-matching models ranked over 500 resumes with 120 names added. The models favored names linked with white people in 85.1% of tests. Names linked with Black people were favored in 8.6% of tests. The other 6.3% showed no clear difference. White men's names beat Black men's names in 100% of tests [@wilson-caliskan-2024].
 
@@ -41,7 +47,7 @@ For you, these tests show what models can do with a name. They do not show what 
 
 ## Does the bias always go against the same people?
 
-No. The direction changes with the model, its version and how the test is built.
+**No. The direction changes with the model, its version and how the test is built.**
 
 A 2026 study tested 22 AI models on 70 jobs, swapping names between matched resumes. Every one of the 22 models picked the female-named resume more often. Overall, female names won 56.9% of picks [@rozado-2026].
 
@@ -57,7 +63,7 @@ A headline that says "AI favors group X" describes one test. Another model or te
 
 ## Does removing your name stop the bias?
 
-Not reliably, in one preprint. The team built 620 made-up resumes with no names. They added clues to a person's background: community groups, activities and interests. Some clues were plain and some were faint. Nine AI models guessed the background every time when the clue was plain. With faint clues, they guessed right 9% to 69% of the time [@chen-xiao-2026]. The test covered five groups in an Australian setting.
+**Not reliably, in one preprint.** The team built 620 made-up resumes with no names. They added clues to a person's background: community groups, activities and interests. Some clues were plain and some were faint. Nine AI models guessed the background every time when the clue was plain. With faint clues, they guessed right 9% to 69% of the time [@chen-xiao-2026]. The test covered five groups in an Australian setting.
 
 The same preprint found the score differences between groups were very small [@chen-xiao-2026]. So the models could often tell, but in that test barely acted on it.
 
@@ -65,7 +71,7 @@ In practice, leaving your name off may not hide your background if other lines p
 
 ## Are other groups affected - age, disability?
 
-Lab tests say yes. A 2026 conference paper tested 10 openly released AI models, each before and after extra training. That extra training is how makers turn a raw model into a chat assistant. Age showed through the graduation year. After training, the models were 3.6% less likely to call back older applicants than before. Older meant 45 to 58 in that test. The drop held in 8 of the 10 models [@bone-2026].
+**Lab tests say yes.** A 2026 conference paper tested 10 openly released AI models, each before and after extra training. That extra training is how makers turn a raw model into a chat assistant. Age showed through the graduation year. After training, the models were 3.6% less likely to call back older applicants than before. Older meant 45 to 58 in that test. The drop held in 8 of the 10 models [@bone-2026].
 
 A small 2024 test gave GPT-4 one resume and the same resume plus disability-related awards. The version with awards was the stronger resume, so it should have come first. GPT-4 ranked the disability version first in only 15 of 60 trials. An autism-related version came first in none of 10 trials. A custom GPT-4 given disability-justice instructions did better, at 37 of 60 [@glazko-2024]. Each disability got only 10 trials, on a GPT-4 version from early 2024.
 
@@ -75,7 +81,7 @@ Age and disability can count against you in some models' choices. Those tests us
 
 ## What happens with real applicants?
 
-Real-hiring data is rare, and the largest set is not about resumes. A 2026 study looked at 4.2 million applications scored by one vendor's game-based tests. The applications came from 3.4 million people, to 1,746 jobs at 156 employers. The data run from December 2018 to December 2022, before chat AI was common [@bommasani-2026].
+**Real-hiring data is rare, and the largest set is not about resumes.** A 2026 study looked at 4.2 million applications scored by one vendor's game-based tests. The applications came from 3.4 million people, to 1,746 jobs at 156 employers. The data run from December 2018 to December 2022, before chat AI was common [@bommasani-2026].
 
 In 10.62% of jobs, the tests recommended Black applicants at a rate below the US "four-fifths" benchmark. That benchmark flags a group passing at under 80% of the top group's rate. 25.87% of Black applicants' applications went to those jobs [@bommasani-2026].
 
@@ -91,7 +97,7 @@ Our reading: when many employers use one tool, the same person can be shut out m
 
 ## What real cases are there?
 
-Three cases are often cited, and none has proven an AI broke a law.
+**Three cases are often cited, and none has proven an AI broke a law.**
 
 In 2018, Reuters reported Amazon dropped a resume-ranking tool it had built. The tool reportedly marked down resumes with the word "women's". It learned from 10 years of resumes, mostly from men. Sources said recruiters looked at its ratings but never relied on them alone. Amazon said its recruiters never used the tool to evaluate candidates [@dastin-2018]. That account comes from unnamed sources in a news report.
 
@@ -101,7 +107,7 @@ Mobley v. Workday is a US lawsuit still in progress. The plaintiffs allege Workd
 
 ## What do the laws say?
 
-As of October 2026, a few places set rules, and some may change. This is general information, not legal advice.
+**As of October 2026, a few places set rules, and some may change.** This is general information, not legal advice.
 
 - **New York City**: employers using these tools need a yearly bias audit, a public summary and notice to applicants. Enforced since July 2023 [@nyc-ll144]. A check of 391 employers in late 2023, published 2024, found only 18 posted audits [@wright-2024]. In December 2025, the state comptroller called the city's complaint process "ineffective" [@nys-comptroller-2025].
 - **California**: since October 2025, state rules say an automated hiring tool can break anti-discrimination law if it harms people by race, gender, disability or another protected trait. Employers must keep the tool's data for four years. Whether an employer tested its tool for bias can count in a claim [@ca-crc-ads-2025]. From January 2027, California's privacy rules cover hiring tools that replace or substantially replace a human decision. Before a covered tool is used, you must get notice, and you may ask how the tool shaped the decision [@ca-cppa-admt-2025].
@@ -163,3 +169,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 - October 2026 - corrected the law lines to match the laws' text. Colorado employers must describe a system's role after a rejection, not explain the rejection. Colorado's start date is not settled, and a court has paused enforcement. Illinois's notice duty names employees; whether applicants get one is not settled. Added California's 2027 privacy rules and the EU's existing rule on fully automated decisions.
 - October 2026 - updated the Workday lawsuit after its June 2026 order: race, age and disability claims under federal law are among those going on. The New York City notice must say how to ask for another way to be assessed; the rule does not make employers offer one. Older applicants in the 2026 model test are now given as aged 45 to 58. The New York City audit line now dates the 391-employer check to late 2023. It now says the state comptroller called the complaint process ineffective. The short answer now says the same applicant, not identical resumes, and also cites the 2023 model test. The other findings are unchanged.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.

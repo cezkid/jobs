@@ -1,8 +1,8 @@
 ---
 title: "AI hiring laws in 2026: what employers must tell you"
-description: In 2026, New York City and the EU make employers tell you about AI screening; Illinois, Colorado, California and Connecticut follow. Few let you ask why.
+description: "New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow."
 published: 2026-10-04
-modified: 2026-10-05
+modified: 2026-10-07
 status: published
 og_title: "AI hiring laws in 2026: what employers must tell you"
 uncited:
@@ -11,7 +11,13 @@ uncited:
   - "We searched news and state legislature sites"
   - "No study found that counts"
 ---
-**Short answer**
+**What to do**
+
+- Look for an AI notice in the job posting and on the careers page.
+- Where a law gives you the right, ask what data a tool used, or for a person to review.
+- Keep a copy of each notice and of what you sent.
+
+**What the evidence says**
 
 - Legal in the US: we found no federal law banning AI resume screening, as of October 2026. Discrimination claims over it still go to court (Court record) [@mobley-2026-order].
 - Notice as of October 2026: New York City, EU (fully automated decisions). Illinois: notice to employees, rules not final. Colorado: start not settled. From 2027: California, Connecticut (Law) [@nyc-ll144; @il-pa-103-0804; @eu-gdpr; @co-sb26-189-fiscal; @ca-cppa-admt-2025; @ct-pa26-15].
@@ -22,7 +28,7 @@ This page describes laws as of October 2026. It is general information, not lega
 
 ## Is it legal for employers to use AI to screen resumes?
 
-Yes, in the US as of October 2026. We found no federal law that bans employers from using AI to read or rank resumes. A few places add rules on top, mostly about telling you.
+**Yes, in the US as of October 2026.** We found no federal law that bans employers from using AI to read or rank resumes. A few places add rules on top, mostly about telling you.
 
 The old discrimination laws still cover what the software does. In June 2026, a federal court in California let a lawsuit over AI screening go on. The claims going on include race, disability and age under federal law, plus California state-law claims. The court decided only which claims may continue, not whether they are true [@mobley-2026-order, p. 1-2, 11].
 
@@ -84,7 +90,7 @@ As of October 2026, the federal disability law, the ADA, applies before any job 
 
 ## What is the federal government doing about AI hiring laws?
 
-An April 2025 executive order set a policy to end disparate-impact liability "in all contexts to the maximum degree possible." Disparate impact means a neutral-looking practice that harms one group more. The order told federal agencies to deprioritize enforcing it, including under Title VII, the main federal job discrimination law [@eo-14281].
+**An April 2025 executive order set a policy to end disparate-impact liability "in all contexts to the maximum degree possible."** Disparate impact means a neutral-looking practice that harms one group more. The order told federal agencies to deprioritize enforcing it, including under Title VII, the main federal job discrimination law [@eo-14281].
 
 A December 2025 executive order set up a federal task force to challenge state AI laws. The order names Colorado's law as an example [@eo-14365]. In April 2026, the Justice Department asked to join a company's lawsuit against Colorado's 2024 AI law. The department argues that law breaks the Constitution's equal protection rule [@doj-xai-2026]. Colorado replaced the 2024 law with SB26-189 in May 2026 [@co-sb26-189]. As of October 2026, the court has paused enforcement but not ruled on the challenge [@xai-weiser-stay].
 
@@ -109,7 +115,7 @@ Even among employers listing city jobs, few had posted either one.
 
 ## What about the Workday lawsuit?
 
-Mobley v. Workday is a US lawsuit still in progress, as of October 2026. The plaintiffs allege Workday's screening tools discriminated by race, age and disability [@mobley-2026-order, p. 1]. In May 2025 the court let the age claim go forward for a wider group of applicants, at a preliminary stage. Workday denies the claims, and nothing has been proven [@clearinghouse-mobley]. In September 2026 the plaintiffs asked the court to certify four groups as a class action: African American applicants, women, people over 40 and people with disabilities. A hearing is set for March 9, 2027 [@lawyer-monthly-2026].
+**Mobley v. Workday is a US lawsuit still in progress, as of October 2026.** The plaintiffs allege Workday's screening tools discriminated by race, age and disability [@mobley-2026-order, p. 1]. In May 2025 the court let the age claim go forward for a wider group of applicants, at a preliminary stage. Workday denies the claims, and nothing has been proven [@clearinghouse-mobley]. In September 2026 the plaintiffs asked the court to certify four groups as a class action: African American applicants, women, people over 40 and people with disabilities. A hearing is set for March 9, 2027 [@lawyer-monthly-2026].
 
 ## Which AI hiring laws apply where?
 
@@ -162,3 +168,5 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - Colorado's start date now reads "not settled" in every line, matching the Colorado section. The summary table's heading is now a question.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - the line under the title now says the EU rule covers fully automated decisions only.

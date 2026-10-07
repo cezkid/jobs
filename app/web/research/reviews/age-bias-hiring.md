@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.74 (no drafting context; sources opened before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.74 (no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Age discrimination in hiring: when it starts, what helps (`age-bias-hiring.md`)
 
@@ -458,3 +458,28 @@ Fresh subagent; made none of the edits. Read the current article, its diff, `sou
 - No medium or high open. Verdict: publish.
 
 Editor, after the resolution check (2026-10-05): L3 fixed by editor (Bone range line dropped from fair-screening Unverified); L4 fixed (judgment, US spelling).
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 7 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Degree 20 or more years old: consider taking off the years and shortening the oldest jobs." <- "Degree 20 or more years old: consider taking off graduation and certificate years, shortening the oldest jobs, and dropping phrases like "25 years of experience"" + "If you take the year off, shorten the oldest jobs too." Same strength ("consider"); "our judgment, not a tested threshold" stays in What helps. "the years" has no referent: W1.
+- "Name the current tools you really use." <- same words, What helps item 4 [@van-borm-2021]. Supported.
+- "Never change a date; answer a required date box truthfully." <- "Never change a date." [@nsc-about; @hireright-2025] + "On an application form, answer a required date box truthfully." Supported.
+- No statistic, citation or jargon in the note. "Removing it is your call" stays a choice: the note says "consider", as the item does.
+
+Bold: 7 lines, one per question section; deleting the added ** pair gives the main line byte for byte (script). No word changed.
+Description vs body: "little or no drop ... at 40" = Kline 0.6 points + "No US test here found a sudden drop at 40"; "it shows around 50" = "grows from about 50", drop at 49 to 51 for women; Sweden "from the early 40s" = Carlsson and Eriksson. Supported, not stronger.
+Changes line: accurate. It leaves out the Short answer rename, and the first Changes line still says "the short answer". Optional; no fix needed.
+
+Findings (verdict revise):
+- **W1 (low)** What to do line 1 "taking off the years": no referent, and the plural reads as every year on the page, job dates too. The item says graduation and certificate years only; the article never advises dropping job dates. Fix: "Degree 20 or more years old: consider taking off graduation and certificate years and shortening the oldest jobs."
+
+### Resolution check 2026-10-07 (plan-ngk.6)
+
+- W1: resolved. Line 1 now "Degree 20 or more years old: consider taking off graduation and certificate years, and shortening the oldest jobs." The item's own scope; "consider" kept.
+- Generic Changes line now records the rename; accurate. Rest of the diff vs main as above (7 bold lines, script).
+- No new finding. Verdict: publish.

@@ -18,7 +18,7 @@
 <meta property="og:title" content="Do cover letters still matter now that AI writes them?">
 <meta property="og:description" content="Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.">
 <meta property="article:published_time" content="2026-10-04">
-<meta property="article:modified_time" content="2026-10-05">
+<meta property="article:modified_time" content="2026-10-07">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/cover-letters-after-ai/#article","headline":"Do cover letters still matter now that AI writes them?","description":"Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.","url":"https://jobs.enrriquez.com/research/cover-letters-after-ai/","mainEntityOfPage":"https://jobs.enrriquez.com/research/cover-letters-after-ai/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do cover letters still matter now that AI writes them?","item":"https://jobs.enrriquez.com/research/cover-letters-after-ai/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/cover-letters-after-ai/#article","headline":"Do cover letters still matter now that AI writes them?","description":"Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.","url":"https://jobs.enrriquez.com/research/cover-letters-after-ai/","mainEntityOfPage":"https://jobs.enrriquez.com/research/cover-letters-after-ai/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do cover letters still matter now that AI writes them?","item":"https://jobs.enrriquez.com/research/cover-letters-after-ai/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -211,8 +211,9 @@
   h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
+  /* the answer in a sentence under the h1, then the byline: on a phone the first screen holds the answer + what to do */
+  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  .meta:has(+ .ai-note) { margin-bottom: 4px; }
   p { margin: 0 0 16px; }
   ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
@@ -223,12 +224,33 @@
   blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
-  /* the heading after it: no hairline of its own right under the note's rule (A19) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* notes at the top ("What to do", "What the evidence says"; boxes()): a bold label + its list = a ruled note
+     (thick rule over, thin under); "More in What helps" closes the first */
+  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  .box-list li::marker { color: var(--text); }
+  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+  /* the link a 46px tap box (qa HIT_BOXES); negative margins keep the line where it was */
+  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
+  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+  /* a note right before the next one: the next one's thick rule closes it (two rules 32px apart read as one
+     doubled, qa RULES_STACKED) */
+  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
+  /* On this page right under a note: no hairline of its own under the note's rule; the heading after a note
+     (On this page hidden or absent): none either (A19) */
+  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
+  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* citations: the (label; Author year) parenthetical small + grey, so a skimming eye lands on the findings, not
+     on names (linked words draw it); still links - a tap opens the source card (CITE_JS) */
+  small { font-size: 0.85em; color: var(--text-2); }
+  small a { text-decoration-color: var(--text-2); }
+  /* source card (CITE_JS): one Sources entry over the page, centred */
+  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
+  .card::backdrop { background: rgb(0 0 0 / 0.45); }
+  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
+  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
+  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
+  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -254,7 +276,7 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  /* On this page below 1280px: a closed list after the notes at the top, a hairline over it (none right under a note) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
   .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
@@ -270,6 +292,7 @@
   .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
   .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .more p { margin: 0 0 8px; }
+  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -294,9 +317,12 @@
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
+    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
+    /* On this page hidden: the first heading sits right under a note's rule, the next note's rule closes the first */
+    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
     .toc {
       /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
       display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
@@ -325,6 +351,8 @@
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
+  /* hub: the method lines after the list (beside the h1 on wide screens) */
+  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
   .date { color: var(--text-2); font-size: var(--step--1); }
   @media (max-width: 600px) {
     main.wrap { padding-top: 22px; }
@@ -374,8 +402,15 @@
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Do cover letters still matter now that AI writes them?</li></ol></nav>
 <h1>Do cover letters still matter now that AI writes them?</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
-<p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="answer">Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>. Updated <time datetime="2026-10-07">October 7, 2026</time>. How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="box"><strong>What to do</strong></p>
+<ul class="box-list">
+<li>Write a letter when the form asks for one.</li>
+<li>Say in your own words why you want this job.</li>
+<li>If AI drafts it, edit it with your own facts; never let it invent.</li>
+</ul>
+<p class="box-more"><a href="#what-helps">More in What helps</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
 <summary>On this page</summary>
@@ -394,23 +429,23 @@
 </ol>
 </details>
 </nav>
-<p><strong>Short answer</strong></p>
-<ul>
+<p class="box"><strong>What the evidence says</strong></p>
+<ul class="box-list">
 <li>Many forms have a box: 96 of 143 US forms we read, mostly Greenhouse; nearly all optional (Our measurement, October 2026).</li>
-<li>A tailored letter beat no letter on callbacks in a 2019–20 test of 7,287 applications (Small study by a resume company, not peer-reviewed; <a href="#src-resumego-2020">Yang 2020a</a>).</li>
-<li>After an AI letter tool arrived, the link between a letter matching the job post and callbacks fell 51% (Real records, preprint; <a href="#src-cui-2025">Cui et al. 2025</a>).</li>
-<li>What still counts: your own reasons and facts only you know; edit any AI draft (Real records; convention; <a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-mit-capd-ai-cover-letters">MIT Career Advising &amp; Professional Development 2026a</a>).</li>
+<li>A tailored letter beat no letter on callbacks in a 2019–20 test of 7,287 applications <small>(Small study by a resume company, not peer-reviewed; <a href="#src-resumego-2020">Yang 2020a</a>)</small>.</li>
+<li>After an AI letter tool arrived, the link between a letter matching the job post and callbacks fell 51% <small>(Real records, preprint; <a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</li>
+<li>What still counts: your own reasons and facts only you know; edit any AI draft <small>(Real records; convention; <a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-mit-capd-ai-cover-letters">MIT Career Advising &amp; Professional Development 2026a</a>)</small>.</li>
 </ul>
 <h2 id="do-employers-still-ask-for-cover-letters">Do employers still ask for cover letters?</h2>
-<p>Many application forms still have a cover letter box. Our measurement read 143 application forms from US job postings in October 2026. Of those, 96 had a cover letter box (67%). The box was optional on 91 of those 96 forms; 2 required one, and 3 we could not check because the hiring system no longer showed the posting. By employer, 71 of the 104 employers had a cover letter box on at least one form.</p>
+<p><strong>Many application forms still have a cover letter box.</strong> Our measurement read 143 application forms from US job postings in October 2026. Of those, 96 had a cover letter box (67%). The box was optional on 91 of those 96 forms; 2 required one, and 3 we could not check because the hiring system no longer showed the posting. By employer, 71 of the 104 employers had a cover letter box on at least one form.</p>
 <p>The form system made the biggest difference we saw. Our measurement found a box on 85 of 96 Greenhouse forms, where it sits with the basic boxes such as name and email. It found a box on 3 of 15 Ashby forms and 7 of 12 Workable forms. Our measurement found 0 of 19 Lever forms with a box named cover letter. Some Lever forms show an open “additional information” box whose hint says to add a cover letter; we did not count those. Job field and form system overlap in our sample, so we can’t fully separate the two. The forms, the counting code and the limits are on <a href="/research/cover-letter-boxes-2026-10/">our data page</a>.</p>
-<p>A much larger count from the same job search points the same way. The maker of freehire.me, the job search our sample came from, says 209,297 of 402,117 open postings with a captured form have a letter box, about half. That count uses the same read of forms as ours, and its notes give no method or date (<a href="#src-freehire-letter-count">freehire 2026</a>).</p>
+<p>A much larger count from the same job search points the same way. The maker of freehire.me, the job search our sample came from, says 209,297 of 402,117 open postings with a captured form have a letter box, about half. That count uses the same read of forms as ours, and its notes give no method or date <small>(<a href="#src-freehire-letter-count">freehire 2026</a>)</small>.</p>
 <p>A box on the form does not mean anyone reads what goes in it. No study we found measures how often optional letters are opened.</p>
 <p>For you, a cover letter box is common, and it is almost always optional.</p>
 <h2 id="does-a-cover-letter-get-you-more-interviews">Does a cover letter get you more interviews?</h2>
-<p>In the one field test we found, a tailored letter got more callbacks than none. ResumeGo, a resume-writing company, sent 7,287 made-up applications from July 2019 to January 2020. The applications went to jobs on ZipRecruiter, Glassdoor and Indeed. Each went out with no letter, a generic letter or a letter tailored to the job. Within 30 days, 10.7% of applications with no letter got a callback. Generic letters got 12.5%, and tailored letters got 16.4%, about half again as many as no letter (<a href="#src-resumego-2020">Yang 2020a</a>).</p>
+<p><strong>In the one field test we found, a tailored letter got more callbacks than none.</strong> ResumeGo, a resume-writing company, sent 7,287 made-up applications from July 2019 to January 2020. The applications went to jobs on ZipRecruiter, Glassdoor and Indeed. Each went out with no letter, a generic letter or a letter tailored to the job. Within 30 days, 10.7% of applications with no letter got a callback. Generic letters got 12.5%, and tailored letters got 16.4%, about half again as many as no letter <small>(<a href="#src-resumego-2020">Yang 2020a</a>)</small>.</p>
 <figure class="bars">
-<figcaption>Callbacks within 30 days, by cover letter, 2019–2020 (Small study by a resume company, 7,287 made-up applications, not peer-reviewed; <a href="#src-resumego-2020">Yang 2020a</a>)</figcaption>
+<figcaption>Callbacks within 30 days, by cover letter, 2019–2020 <small>(Small study by a resume company, 7,287 made-up applications, not peer-reviewed; <a href="#src-resumego-2020">Yang 2020a</a>)</small></figcaption>
 <table>
 <thead>
 <tr>
@@ -434,22 +469,22 @@
 </tbody>
 </table>
 </figure>
-<p>The study has real limits. ResumeGo sells resume writing, and the study was not peer-reviewed. The page gives no group sizes and no job types. It does not say the applications were split between groups at random. It gives no test of whether the gap could be chance. Where a form had a letter box, the no-letter group left it blank or wrote “N/A”. The test ran before chat AI could write a letter in seconds (<a href="#src-resumego-2020">Yang 2020a</a>).</p>
+<p>The study has real limits. ResumeGo sells resume writing, and the study was not peer-reviewed. The page gives no group sizes and no job types. It does not say the applications were split between groups at random. It gives no test of whether the gap could be chance. Where a form had a letter box, the no-letter group left it blank or wrote “N/A”. The test ran before chat AI could write a letter in seconds <small>(<a href="#src-resumego-2020">Yang 2020a</a>)</small>.</p>
 <p>No peer-reviewed field test of letter against no letter turned up in our search. We searched the web and arXiv in October 2026 for field tests of cover letters and for surveys with a published method. The ResumeGo result is the best direct evidence, and it is weak.</p>
 <h2 id="do-recruiters-actually-read-cover-letters">Do recruiters actually read cover letters?</h2>
-<p>Recruiters say they do, in surveys run by companies that sell resume or letter help. In ResumeGo’s survey of 236 recruiters and hiring managers, 87% said they read cover letters. A smaller share, 65%, said letters had real weight in who gets an interview or a job. Most readers were quick: 32% said they spend under 10 seconds, and 52% said 10 seconds to a minute. Only 26% said they hold a missing optional letter against an applicant (<a href="#src-resumego-2020-survey">Yang 2020b</a>).</p>
-<p>A survey of 200 US recruiters, HR staff and hiring managers was run for ResumeLab, which sells a letter builder. Its page is dated 2025, but the same survey was on it by February 2020, before chat AI. In it, 77% said they read cover letters even when not required. Oddly, fewer, 74%, said they read them when required. Also 77% said they prefer applicants who sent an optional letter. Only 13% said they would still consider an application missing a required letter. The page gives no survey dates and says some answers were rephrased (<a href="#src-resumelab-2020">ResumeLab 2020</a>).</p>
+<p><strong>Recruiters say they do, in surveys run by companies that sell resume or letter help.</strong> In ResumeGo’s survey of 236 recruiters and hiring managers, 87% said they read cover letters. A smaller share, 65%, said letters had real weight in who gets an interview or a job. Most readers were quick: 32% said they spend under 10 seconds, and 52% said 10 seconds to a minute. Only 26% said they hold a missing optional letter against an applicant <small>(<a href="#src-resumego-2020-survey">Yang 2020b</a>)</small>.</p>
+<p>A survey of 200 US recruiters, HR staff and hiring managers was run for ResumeLab, which sells a letter builder. Its page is dated 2025, but the same survey was on it by February 2020, before chat AI. In it, 77% said they read cover letters even when not required. Oddly, fewer, 74%, said they read them when required. Also 77% said they prefer applicants who sent an optional letter. Only 13% said they would still consider an application missing a required letter. The page gives no survey dates and says some answers were rephrased <small>(<a href="#src-resumelab-2020">ResumeLab 2020</a>)</small>.</p>
 <p>Both surveys come from sellers of the thing they ask about. Both report what recruiters say, not what they do. A recruiter who says letters matter may still skip most of them.</p>
 <h2 id="does-ai-change-what-a-cover-letter-tells-employers">Does AI change what a cover letter tells employers?</h2>
-<p>AI letters may have raised callbacks a little for a short time, but letters now tell employers less. The best evidence comes from one freelance job platform that added an AI letter writer in April 2023 (<a href="#src-cui-2025">Cui et al. 2025</a>).</p>
-<p>Researchers studied 5 million cover letters on that platform. Among those who could use the tool, 62% used it at least once. Having the tool raised callbacks by 0.43 per 100 letters, from a base of about 7 per 100. That gain was too uncertain to rule out chance, and it faded after about two months. Before the tool, a letter that shared many words with the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker’s past reviews instead. The authors found no evidence of a change in overall hiring, and call that result early (<a href="#src-cui-2025">Cui et al. 2025</a>).</p>
-<p>Most AI letters got little or no editing. Over three in four AI letters were sent within a minute of being made. Only about 5% were sent after five minutes or more. Workers who spent longer editing their AI draft got more job offers. That link is not proof that editing caused the offers (<a href="#src-cui-2025">Cui et al. 2025</a>). The study is a preprint, not yet peer-reviewed.</p>
-<p>A second team studied about 2.7 million applications to coding jobs on the same platform. Before chat AI, employers were willing to pay more for workers whose written applications fit the job closely. After chat AI, that premium mostly disappeared, and a close fit no longer predicted finishing the job well. The authors then used a model of the market to test an extreme case: applications that tell employers nothing about how able a worker is. In that case, the top fifth of workers were hired 19% less often and the bottom fifth 14% more often. Those numbers come from the model, not from counting real hires (<a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>).</p>
+<p><strong>AI letters may have raised callbacks a little for a short time, but letters now tell employers less.</strong> The best evidence comes from one freelance job platform that added an AI letter writer in April 2023 <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</p>
+<p>Researchers studied 5 million cover letters on that platform. Among those who could use the tool, 62% used it at least once. Having the tool raised callbacks by 0.43 per 100 letters, from a base of about 7 per 100. That gain was too uncertain to rule out chance, and it faded after about two months. Before the tool, a letter that shared many words with the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker’s past reviews instead. The authors found no evidence of a change in overall hiring, and call that result early <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</p>
+<p>Most AI letters got little or no editing. Over three in four AI letters were sent within a minute of being made. Only about 5% were sent after five minutes or more. Workers who spent longer editing their AI draft got more job offers. That link is not proof that editing caused the offers <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>. The study is a preprint, not yet peer-reviewed.</p>
+<p>A second team studied about 2.7 million applications to coding jobs on the same platform. Before chat AI, employers were willing to pay more for workers whose written applications fit the job closely. After chat AI, that premium mostly disappeared, and a close fit no longer predicted finishing the job well. The authors then used a model of the market to test an extreme case: applications that tell employers nothing about how able a worker is. In that case, the top fifth of workers were hired 19% less often and the bottom fifth 14% more often. Those numbers come from the model, not from counting real hires <small>(<a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>)</small>.</p>
 <p>Both studies use the same platform’s data, so they are not two independent tests. Neither covers regular jobs with a recruiter. Both point the same way: a letter anyone could have made with AI tells employers little.</p>
 <p>For you, a letter that only echoes the job post now carries less weight. What you add yourself is what still counts.</p>
 <h2 id="can-employers-tell-an-ai-written-cover-letter">Can employers tell an AI-written cover letter?</h2>
-<p>Hiring managers say they can, and about half say they would mind. In an October 2024 vendor survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI (<a href="#src-insight-global-2025">Insight Global 2025</a>).</p>
-<p>One small lab test points the other way. In a 2024 student thesis, 86 raters each scored six made-up cover letters. Letters written by ChatGPT got the highest hiring scores, above letters people wrote themselves. The scores barely moved after raters were told AI may have been used. The raters were screened only by two questions about themselves, and no one was really hired (<a href="#src-kleine-allekotte-2024">Kleine-Allekotte 2024</a>).</p>
+<p><strong>Hiring managers say they can, and about half say they would mind.</strong> In an October 2024 vendor survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI <small>(<a href="#src-insight-global-2025">Insight Global 2025</a>)</small>.</p>
+<p>One small lab test points the other way. In a 2024 student thesis, 86 raters each scored six made-up cover letters. Letters written by ChatGPT got the highest hiring scores, above letters people wrote themselves. The scores barely moved after raters were told AI may have been used. The raters were screened only by two questions about themselves, and no one was really hired <small>(<a href="#src-kleine-allekotte-2024">Kleine-Allekotte 2024</a>)</small>.</p>
 <p>Saying you can tell is not the same as telling. Whether people and AI detectors really spot AI writing is covered in <a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a>.</p>
 <h2 id="what-do-the-studies-show-side-by-side">What do the studies show, side by side?</h2>
 <p>Each study answers a different question. Only the first tests whether a letter helps; the rest show what letters signal or what people say.</p>
@@ -466,56 +501,56 @@
 </thead>
 <tbody>
 <tr>
-<td>ResumeGo 2019–20 (<a href="#src-resumego-2020">Yang 2020a</a>)</td>
+<td>ResumeGo 2019–20 <small>(<a href="#src-resumego-2020">Yang 2020a</a>)</small></td>
 <td>Small study, by a resume company</td>
 <td>7,287 made-up applications</td>
 <td>Tailored letter vs. none, on callbacks</td>
 <td>Group sizes, job types, whether the gap is chance, AI-era effect</td>
 </tr>
 <tr>
-<td>ResumeGo 2019–20 survey (<a href="#src-resumego-2020-survey">Yang 2020b</a>)</td>
+<td>ResumeGo 2019–20 survey <small>(<a href="#src-resumego-2020-survey">Yang 2020b</a>)</small></td>
 <td>Vendor survey</td>
 <td>236 recruiters and hiring managers</td>
 <td>What readers say they do</td>
 <td>What they actually do</td>
 </tr>
 <tr>
-<td>ResumeLab, about 2020 (<a href="#src-resumelab-2020">ResumeLab 2020</a>)</td>
+<td>ResumeLab, about 2020 <small>(<a href="#src-resumelab-2020">ResumeLab 2020</a>)</small></td>
 <td>Vendor survey</td>
 <td>200 US recruiters, HR staff and hiring managers</td>
 <td>Stated reading of optional letters</td>
 <td>Dates, wording, real behavior, anything after chat AI</td>
 </tr>
 <tr>
-<td>Insight Global 2025 (<a href="#src-insight-global-2025">Insight Global 2025</a>)</td>
+<td>Insight Global 2025 <small>(<a href="#src-insight-global-2025">Insight Global 2025</a>)</small></td>
 <td>Vendor survey</td>
 <td>1,005 US HR and talent leaders</td>
 <td>Stated attitudes to AI-written letters</td>
 <td>Whether they can spot one</td>
 </tr>
 <tr>
-<td>Kleine-Allekotte 2024 (<a href="#src-kleine-allekotte-2024">Kleine-Allekotte 2024</a>)</td>
+<td>Kleine-Allekotte 2024 <small>(<a href="#src-kleine-allekotte-2024">Kleine-Allekotte 2024</a>)</small></td>
 <td>Lab study, student thesis</td>
 <td>86 raters, six letters each</td>
 <td>How raters score AI-written letters</td>
 <td>Real hiring; who the raters were</td>
 </tr>
 <tr>
-<td>Cui and others 2025 (<a href="#src-cui-2025">Cui et al. 2025</a>)</td>
+<td>Cui and others 2025 <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small></td>
 <td>Real records, preprint</td>
 <td>5 million letters, one freelance platform</td>
 <td>What an AI letter tool changed</td>
 <td>Regular jobs; editing as a cause</td>
 </tr>
 <tr>
-<td>Galdin and Silbert 2025 (<a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>)</td>
+<td>Galdin and Silbert 2025 <small>(<a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>)</small></td>
 <td>Real records plus a model, preprint</td>
 <td>2.7 million applications, coding jobs, same platform</td>
 <td>Lost value of a close fit after chat AI</td>
 <td>Real hiring shifts by ability (model only)</td>
 </tr>
 <tr>
-<td>freehire.me count (<a href="#src-freehire-letter-count">freehire 2026</a>)</td>
+<td>freehire.me count <small>(<a href="#src-freehire-letter-count">freehire 2026</a>)</small></td>
 <td>Maker’s docs</td>
 <td>402,117 postings</td>
 <td>The maker’s own count, unchecked</td>
@@ -536,19 +571,19 @@
 <ul>
 <li>Whether a cover letter still raises callbacks now that AI can write one. We found no study of letter against no letter since 2020.</li>
 <li>How often optional letters are opened at all. The surveys report what recruiters say.</li>
-<li>Whether the freelance platform results hold for regular jobs. Both AI studies come from one platform (<a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>).</li>
-<li>Whether editing an AI draft causes better results, or only goes with them (<a href="#src-cui-2025">Cui et al. 2025</a>).</li>
+<li>Whether the freelance platform results hold for regular jobs. Both AI studies come from one platform <small>(<a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>)</small>.</li>
+<li>Whether editing an AI draft causes better results, or only goes with them <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</li>
 <li>How forms on Workday, iCIMS and other large systems handle letters. Our count covered five other form systems.</li>
 </ul>
 <h2 id="what-helps">What helps</h2>
 <ul>
-<li>Write a letter when the form asks for one. A tailored letter beat no letter in the one test we found (<a href="#src-resumego-2020">Yang 2020a</a>).</li>
-<li>Say in your own words why you want this job. MIT’s career office says that story must come from you; that is convention, not a study (<a href="#src-mit-capd-ai-cover-letters">MIT Career Advising &amp; Professional Development 2026a</a>).</li>
-<li>Add something your resume doesn’t show; don’t repeat it. MIT’s career office gives the same advice (<a href="#src-mit-capd-cover-letters">MIT Career Advising &amp; Professional Development 2026c</a>).</li>
-<li>Use AI to fix spelling and wording in your own draft. That kind of help raised hires in a large test of job profiles, not letters (<a href="#src-wiles-2025">Wiles et al. 2025</a>).</li>
-<li>If AI drafts, edit it with your own facts. Longer editing went with more job offers, in one study (<a href="#src-cui-2025">Cui et al. 2025</a>).</li>
-<li>Never let AI invent a skill, number or reason. A guide warns AI can oversell you or make up claims (<a href="#src-mit-capd-ai-cover-letters">MIT Career Advising &amp; Professional Development 2026a</a>).</li>
-<li>Keep it to one page. That is convention (<a href="#src-mit-capd-cover-letters">MIT Career Advising &amp; Professional Development 2026c</a>).</li>
+<li>Write a letter when the form asks for one. A tailored letter beat no letter in the one test we found <small>(<a href="#src-resumego-2020">Yang 2020a</a>)</small>.</li>
+<li>Say in your own words why you want this job. MIT’s career office says that story must come from you; that is convention, not a study <small>(<a href="#src-mit-capd-ai-cover-letters">MIT Career Advising &amp; Professional Development 2026a</a>)</small>.</li>
+<li>Add something your resume doesn’t show; don’t repeat it. MIT’s career office gives the same advice <small>(<a href="#src-mit-capd-cover-letters">MIT Career Advising &amp; Professional Development 2026c</a>)</small>.</li>
+<li>Use AI to fix spelling and wording in your own draft. That kind of help raised hires in a large test of job profiles, not letters <small>(<a href="#src-wiles-2025">Wiles et al. 2025</a>)</small>.</li>
+<li>If AI drafts, edit it with your own facts. Longer editing went with more job offers, in one study <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</li>
+<li>Never let AI invent a skill, number or reason. A guide warns AI can oversell you or make up claims <small>(<a href="#src-mit-capd-ai-cover-letters">MIT Career Advising &amp; Professional Development 2026a</a>)</small>.</li>
+<li>Keep it to one page. That is convention <small>(<a href="#src-mit-capd-cover-letters">MIT Career Advising &amp; Professional Development 2026c</a>)</small>.</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. What else makes a resume work: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a>.</p>
 <h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
@@ -561,7 +596,8 @@
 <p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="changes">Changes</h2>
 <ul>
-<li>October 2026 – ResumeGo’s test is now labelled a small study by a resume company, matching our evidence scale. The AI letter gain now reads “may have raised”, since it was too uncertain to rule out chance. Two survey samples now name who was asked. The 54% line now reads as a share of everyone asked (<a href="#src-insight-global-2025">Insight Global 2025</a>). The model’s extreme case now says applications, as the paper does, not letters. The numbers are unchanged.</li>
+<li>October 2026 – ResumeGo’s test is now labelled a small study by a resume company, matching our evidence scale. The AI letter gain now reads “may have raised”, since it was too uncertain to rule out chance. Two survey samples now name who was asked. The 54% line now reads as a share of everyone asked <small>(<a href="#src-insight-global-2025">Insight Global 2025</a>)</small>. The model’s extreme case now says applications, as the paper does, not letters. The numbers are unchanged.</li>
+<li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -580,8 +616,9 @@
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a></li>
-<li><a href="/research/hiring-bias-what-helps/">Hiring discrimination: what studies show, what helps</a></li>
+<li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a><p>Mostly no, in tests with older AI models: most people couldn’t spot AI writing. About half of hiring managers say they’d care. What studies show.</p></li>
+<li><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</p></li>
+<li><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a><p>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
@@ -603,5 +640,6 @@
   </div>
 </footer>
 <script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
+<script>(()=>{const d=document.createElement("dialog");d.className="card";document.body.append(d);document.addEventListener("click",e=>{const l=e.target.closest('a[href^="#src-"]');if(!l||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const s=document.getElementById(l.hash.slice(1));if(!s)return;e.preventDefault();d.innerHTML="<div>"+s.innerHTML+'<p><a href="#sources">All sources<\/a><button autofocus>Close<\/button><\/p><\/div>';d.showModal()});d.addEventListener("click",e=>{if(e.target==d||e.target.closest('button,[href="#sources"]'))d.close()})})()</script>
 </body>
 </html>

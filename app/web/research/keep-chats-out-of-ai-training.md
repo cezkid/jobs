@@ -2,7 +2,7 @@
 title: "Opt out of AI training: ChatGPT, Claude, Copilot and Gemini"
 description: ChatGPT, Claude, GitHub Copilot and Gemini can train on personal-plan chats. Where each switch is, and what it doesn't stop.
 published: 2026-10-03
-modified: 2026-10-04
+modified: 2026-10-07
 status: published
 og_title: "Stop ChatGPT, Claude, GitHub Copilot and Gemini training on your chats"
 uncited:
@@ -12,7 +12,13 @@ uncited:
 ---
 *A guide. Every step was checked against the company's own help page in October 2026.*
 
-**Short answer**
+**What to do**
+
+- Turn the training switch off on every AI app you use for job hunting.
+- Skip thumbs up, thumbs down and feedback on chats with your resume.
+- Use a temporary chat for one-off questions with personal details.
+
+**What the evidence says**
 
 - Personal plans of ChatGPT, Claude, GitHub Copilot and Gemini can train on your chats; one main switch each turns most of it off (Maker's docs) [@openai-data-controls; @anthropic-training-setting; @github-copilot-docs; @google-gemini-privacy]. See what the switch doesn't do, below.
 - Work and school plans don't train on chats by default (Maker's docs) [@openai-data-controls; @anthropic-training-work; @github-copilot-docs].
@@ -21,7 +27,7 @@ uncited:
 
 ## Why does this matter for a job seeker?
 
-A resume is personal data. It names you, your employers, your schools and your dates. Job seekers also type pay, work permits and gaps into AI chats.
+**A resume is personal data.** It names you, your employers, your schools and your dates. Job seekers also type pay, work permits and gaps into AI chats.
 
 On personal plans, the companies may use those chats to train future AI models. ChatGPT "improves by further training on the conversations people have with it," says OpenAI, unless you opt out [@openai-model-training]. GitHub started using Copilot Free, Pro and Pro+ interactions, chats and code, for training from April 24, 2026, unless you opt out [@github-copilot-2026]. Anthropic asked Claude Free, Pro and Max users to choose in 2025 [@anthropic-consumer-terms-2025]. If you clicked through that pop-up, check where your switch is now.
 
@@ -33,7 +39,7 @@ For you, the switch is a cheap step. In ChatGPT, your chats stay in your history
 
 ## Which switch does each app use?
 
-Each app names its switch differently and puts it in a different menu. The table sums up each app's personal plans; the sections below give each step.
+**Each app names its switch differently and puts it in a different menu.** The table sums up each app's personal plans; the sections below give each step.
 
 | App | Switch name | Where | On by default? | Chats kept in your history with it off? | Feedback still trains with it off? |
 |---|---|---|---|---|---|
@@ -124,7 +130,7 @@ Skip the thumbs buttons on any chat that holds your resume.
 
 ## What about work, school and developer accounts?
 
-Business plans are the opposite: no training by default.
+**Business plans are the opposite: no training by default.**
 
 - OpenAI doesn't train on ChatGPT Business, Enterprise or Edu workspaces by default [@openai-data-controls].
 - Anthropic's 2025 change excluded Claude for Work, Claude for Education and its developer platform [@anthropic-consumer-terms-2025]. Those are used for training only if you send feedback or agree to it [@anthropic-training-work].
@@ -161,3 +167,7 @@ What belongs on a resume at all: [What makes a good resume?](what-makes-a-good-r
 - Only you can change the switch. No setting in CEZ Job Finder reaches your AI account.
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.

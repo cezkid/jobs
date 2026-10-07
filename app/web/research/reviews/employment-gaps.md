@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.71 (no drafting context; sources opened before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.71 (no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Does an employment gap on your resume hurt? (`employment-gaps.md`)
 
@@ -490,3 +490,28 @@ Fresh subagent; made none of the edits. Read the current article, its diff and t
 - No medium or high open. Verdict: publish.
 
 Editor, after the resolution check (2026-10-05): E2 fixed by editor (middle-skill applicants).
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it; dhert-2026's design (people out of work now vs people in a job) is in the body with page numbers. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 9 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Still searching? There is no gap to explain yet." <- "Still searching? A search under way is not a gap to explain. In the largest review, the first six months out of work showed no clear cost [@dhert-2026]." The line drops the six-month sentence L10 added (plan-xsy.72) so a current spell would not read as exempt; the cited review studies current spells, and 13-18 months cut replies about 21%. W1.
+- "Out a year or more: list real work, study or volunteering you did." <- "Gap of a year or more: list real work, study or volunteering you did." [@baert-vujic-2018]. Supported.
+- "Keep every date true; a one-line reason is your call." <- "Keep dates true on the resume and on every form." [@hireright-2025] + "Gap of six months or more: a one-line reason is your call." The choice stays a choice. Supported.
+- No statistic, citation or jargon in the note.
+
+Bold: 9 lines, every question section; deleting the added ** pair gives the main line byte for byte (script).
+Description vs body: "Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer's." = section 1 bold answer, reason table (Namingit, Kristal), "This is bias by employers". Supported, not stronger.
+Changes line: accurate. It leaves out the Short answer rename. Optional; no fix needed.
+
+Findings (verdict revise):
+- **W1 (low)** What to do line 1 brings L10 back at the top of the page: with no time limit, "There is no gap to explain yet" reads as if a current spell costs nothing at any length. Fix, as L10 asked ("for the first months"): "Still searching? For the first six months, there is no gap to explain."
+
+### Resolution check 2026-10-07 (plan-ngk.6)
+
+- W1: resolved. Line 1 now "Still searching? For the first six months, there is no gap to explain." L10's scope is back, matching the item's dhert-2026 sentence.
+- Generic Changes line records the rename; accurate.
+- No new finding. Verdict: publish.

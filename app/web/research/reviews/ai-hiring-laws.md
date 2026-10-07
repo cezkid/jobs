@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.60 (no drafting context; sources opened before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.60 (no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: AI hiring laws in 2026: what employers must tell you (`ai-hiring-laws.md`)
 
@@ -246,3 +246,28 @@ Fresh subagent; made none of the edits. Read the current article, its diff and t
 - Changes line: accurate. Every Colorado start line (Short answer x2, Colorado section, table, What helps) now says not settled. The "as of October 2026" / "since 2018" tags are not listed: clarifications, not corrections.
 - No new finding. `pages.py --check`: no error for this page.
 - Verdict: publish (unchanged).
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. Reopened, from cache: NYC rule 5-304(d) (`~/.cache/plan-xsy.60/nycrule.txt`), GDPR Art. 22 (`gdpr22.txt`) and Art. 13 (`~/.cache/plan-xsy.61/g13.html`). No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 3 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Look for an AI notice in the job posting and on the careers page." <- "Read the job posting and careers page for an AI notice." [@nyc-aedt-rule]. Supported.
+- "Where a law gives you the right, ask what data a tool used, or for a person to review." <- NYC "ask in writing what data a tool uses" [@nyc-aedt-rule]; EU "ask for a person to review a fully automated rejection" [@eu-gdpr]; California from 2027, Colorado once it applies. "Where a law gives you the right" keeps every limit. Rule 5-304(d): type of data collected for the tool and its source, on written request, within 30 days; "used" also fits California's 2027 right. Art. 22(3): "at least the right to obtain human intervention". Supported.
+- "Keep a copy of each notice and of what you sent." <- "Keep a copy of each notice and what you sent." Supported.
+- No statistic, citation or jargon in the note.
+
+Bold: 3 lines (legal question, federal government, Workday); deleting the added ** pair gives the main line byte for byte (script). The other 4 question sections open with detail and have no one-sentence answer to bold. Fine.
+Description vs body: "In 2026, New York City and the EU make employers tell you about AI screening; Illinois, Colorado, California and Connecticut follow. Few let you ask why." The EU half is wider than the body: body, evidence bullet 2 ("EU (fully automated decisions)") and F1 limit the EU's 2026 duty to fully automated decisions. Art. 13(2)(f): notice of "automated decision-making ... referred to in Article 22(1) and (4)". AI screening with a person deciding gets EU notice only under the AI Act, from December 2027. Rest supported ("follow" vague enough for Illinois' unfinished rules; "Few let you ask why" = table).
+Changes line: accurate. It leaves out the Short answer rename. Optional; no fix needed.
+
+Findings (verdict revise):
+- **D1 (low)** Description, now the on-page answer line, says the EU makes employers tell you about AI screening; as of October 2026 the EU duty covers fully automated decisions only. Fix (152 characters): "In 2026, New York City and the EU (fully automated decisions only) make employers tell you about AI; Illinois, Colorado, California, Connecticut follow."
+
+### Resolution check 2026-10-07 (plan-ngk.6)
+
+- D1: resolved. Description now "New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow." (152 characters, quoted YAML). EU scope matches the body, evidence bullet 2 and F1. "In 2026" and "Few let you ask why" dropped: the year sits in the title right above, and the body's law lines keep "as of October 2026". Acceptable.
+- Changes: "the line under the title now says the EU rule covers fully automated decisions only" - accurate; generic line records the rename.
+- No new finding. Verdict: publish.

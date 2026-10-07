@@ -592,15 +592,16 @@ def _cite(state):
 
 
 def _render_cite(self, tokens, idx, options, env):
+    # set small + grey (PAGE_CSS): the findings, not the author names, are what a skimming eye lands on
     links = [f'<a href="#src-{ref}">{escape(env["labels"][ref])}</a>' + (f", {escape(typeset(loc))}" if loc else "")
              for ref, loc in tokens[idx].meta["refs"]]
-    return "(" + "; ".join(links) + ")"
+    return "<small>(" + "; ".join(links) + ")</small>"
 
 
 OPEN_COPY_NOTE = re.compile(r"(.+?)(?:\s*\((open copy[^()]*)\))?", re.S)
 # "(Vendor survey) (Enhancv 2025)" -> "(Vendor survey; Enhancv 2025)": an evidence label written just before a
-# citation joins it as one parenthetical (audit A13); the source .md keeps both
-LEAD_CITE = re.compile(r'\(([^()<>]+)\)[ \u00a0]\((?=<a href="#src-)')
+# citation joins it as one parenthetical (audit A13), small like it; the source .md keeps both
+LEAD_CITE = re.compile(r'\(([^()<>]+)\)[ \u00a0]<small>\((?=<a href="#src-)')
 
 ESCAPED = "\ue000"  # \[ in a source: kept out of the cite rule, turned back into [ after it
 
@@ -945,6 +946,36 @@ def rewrite(href: str, src: Source, by_name: dict[str, Source], root: Path, site
     return REPO + quote(rel) + (f"#{url.fragment}" if url.fragment else "")
 
 
+def boxes(tokens: list[Token]) -> list[str]:
+    """The notes before the first heading - a bold label alone in its paragraph, then a list ("**What to do**",
+    "**What the evidence says**"): class box on the label, box-list on its list, so CSS sets each as a ruled note
+    whatever comes before it. Returns the labels in page order."""
+    labels = []
+    for i, token in enumerate(tokens):
+        if token.type == "heading_open":
+            break
+        # markdown-it leaves empty text tokens around the strong pair
+        kids = [c for c in tokens[i + 1].children or [] if c.type != "text" or c.content] if token.type == "paragraph_open" else []
+        if ([c.type for c in kids] == ["strong_open", "text", "strong_close"] and i + 3 < len(tokens)
+                and tokens[i + 3].type == "bullet_list_open"):
+            token.attrSet("class", "box")
+            tokens[i + 3].attrSet("class", "box-list")
+            labels.append(kids[1].content)
+    return labels
+
+
+def links_to(src: Source) -> list[str]:
+    """Names of the research pages a source links to (<name>.md, a #section allowed), in page order, once each."""
+    found: list[str] = []
+    for token in src.tokens:
+        for child in token.children or []:
+            href = child.attrGet("href") if child.type == "link_open" else None
+            match = re.fullmatch(r"([a-z0-9]+(?:-[a-z0-9]+)*)\.md(?:#.*)?", href or "")
+            if match and match.group(1) not in found:
+                found.append(match.group(1))
+    return found
+
+
 def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: set[str], errors: list[str],
               registry: Registry, repo_files: set[str]) -> str:
     label = src.title
@@ -961,7 +992,13 @@ def body_html(src: Source, by_name: dict[str, Source], root: Path, site_files: s
                     except ValueError as e:
                         errors.append(f"{src.rel}:{src.line(token)}: {e}")
     labels = {ref: typeset(label) for ref, label in registry.labels.items()}
-    html = LEAD_CITE.sub(r"(\1; ", MD.renderer.render(typeset_tokens(src.tokens), MD.options, {"labels": labels}))
+    tokens = typeset_tokens(src.tokens)
+    notes = boxes(tokens)
+    html = LEAD_CITE.sub(r"<small>(\1; ", MD.renderer.render(tokens, MD.options, {"labels": labels}))
+    if "What to do" in notes and "what-helps" in src.ids:
+        # the note's way to the whole list at the end: its closing rule moves under this line (PAGE_CSS)
+        cut = html.index("</ul>", html.index('<p class="box"><strong>What to do</strong></p>')) + len("</ul>\n")
+        html = html[:cut] + '<p class="box-more"><a href="#what-helps">More in What helps</a></p>\n' + html[cut:]
     cited = {ref for _, cite in cites(src) for ref, _ in cite.meta["refs"] or []} & set(registry.entries)
     if cited:
         # alphabetical by label, so a reader scanning for "Quillian et al. 2017" finds it
@@ -1003,8 +1040,9 @@ PAGE_CSS = """
   h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
+  /* the answer in a sentence under the h1, then the byline: on a phone the first screen holds the answer + what to do */
+  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  .meta:has(+ .ai-note) { margin-bottom: 4px; }
   p { margin: 0 0 16px; }
   ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
@@ -1015,12 +1053,33 @@ PAGE_CSS = """
   blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
-  /* the heading after it: no hairline of its own right under the note's rule (A19) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* notes at the top ("What to do", "What the evidence says"; boxes()): a bold label + its list = a ruled note
+     (thick rule over, thin under); "More in What helps" closes the first */
+  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  .box-list li::marker { color: var(--text); }
+  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+  /* the link a 46px tap box (qa HIT_BOXES); negative margins keep the line where it was */
+  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
+  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+  /* a note right before the next one: the next one's thick rule closes it (two rules 32px apart read as one
+     doubled, qa RULES_STACKED) */
+  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
+  /* On this page right under a note: no hairline of its own under the note's rule; the heading after a note
+     (On this page hidden or absent): none either (A19) */
+  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
+  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* citations: the (label; Author year) parenthetical small + grey, so a skimming eye lands on the findings, not
+     on names (linked words draw it); still links - a tap opens the source card (CITE_JS) */
+  small { font-size: 0.85em; color: var(--text-2); }
+  small a { text-decoration-color: var(--text-2); }
+  /* source card (CITE_JS): one Sources entry over the page, centred */
+  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
+  .card::backdrop { background: rgb(0 0 0 / 0.45); }
+  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
+  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
+  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
+  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -1046,7 +1105,7 @@ PAGE_CSS = """
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  /* On this page below 1280px: a closed list after the notes at the top, a hairline over it (none right under a note) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
   .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
@@ -1062,6 +1121,7 @@ PAGE_CSS = """
   .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
   .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .more p { margin: 0 0 8px; }
+  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -1086,9 +1146,12 @@ PAGE_CSS = """
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
+    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
+    /* On this page hidden: the first heading sits right under a note's rule, the next note's rule closes the first */
+    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
     .toc {
       /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
       display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
@@ -1117,6 +1180,8 @@ PAGE_CSS = """
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
+  /* hub: the method lines after the list (beside the h1 on wide screens) */
+  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
   .date { color: var(--text-2); font-size: var(--step--1); }
   @media (max-width: 600px) {
     main.wrap { padding-top: 22px; }
@@ -1144,6 +1209,17 @@ TOC_JS = ('(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>
           'if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll('
           '".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute('
           '"aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()')
+
+# Source card: a click on a citation (#src-<id>) shows that Sources entry in a modal <dialog> instead of jumping
+# ~4,000 words down; Esc, the backdrop, Close or "All sources" close it and
+# focus goes back to the citation. A modified click, or no JS, still jumps. Budget 1 KB (test_pages); no "</"
+CITE_JS = ('(()=>{const d=document.createElement("dialog");d.className="card";document.body.append(d);'
+           'document.addEventListener("click",e=>{const l=e.target.closest(\'a[href^="#src-"]\');'
+           'if(!l||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;'
+           'const s=document.getElementById(l.hash.slice(1));if(!s)return;e.preventDefault();'
+           'd.innerHTML="<div>"+s.innerHTML+\'<p><a href="#sources">All sources<\\/a>'
+           '<button autofocus>Close<\\/button><\\/p><\\/div>\';d.showModal()});'
+           'd.addEventListener("click",e=>{if(e.target==d||e.target.closest(\'button,[href="#sources"]\'))d.close()})})()')
 
 
 def jsonld(graph: list[dict]) -> str:
@@ -1193,13 +1269,19 @@ def listing(articles: list[Source]) -> str:
     return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
 
 
-def keep_reading(src: Source, articles: list[Source]) -> str:
-    """An article page's way on, last in <article>: the next 2 articles in hub order (wrapping round), the hub,
-    the install line, back to top. Plain links in a nav (touch: 44px hit boxes, like every nav link)."""
+def keep_reading(src: Source, articles: list[Source], linked: dict[str, list[str]]) -> str:
+    """A page's way on, last in <article>: 3 articles - the ones it links to, then the ones linking to it, then
+    the next in hub order (wrapping round) - each w/ its one-line answer (description); then the hub, the install
+    line, back to top. Related beat "most popular" + end-of-article links got more clicks than mid-article ones in
+    a 1.8M-visit field test (topics/web/reader-engagement.md). Plain links in a nav (touch: 44px hit boxes)."""
     order = newest(articles)
     i = next((n for n, s in enumerate(order) if s.name == src.name), -1)
-    picks = (order[i + 1:] + order[:max(i, 0)])[:2]
-    items = [f'<li><a href="{s.url}">{escape(s.title)}</a></li>' for s in picks]
+    ring = order[i + 1:] + order[:max(i, 0)]
+    others = {s.name: s for s in ring}
+    names = [*linked.get(src.name, []), *(s.name for s in order if src.name in linked.get(s.name, [])),
+             *(s.name for s in ring)]
+    picks = [others[n] for n in dict.fromkeys(names) if n in others][:3]
+    items = [f'<li><a href="{s.url}">{escape(s.title)}</a><p>{escape(s.description)}</p></li>' for s in picks]
     return "\n".join(['<nav class="more" aria-label="Keep reading">', "<p>Keep reading</p>", "<ul>", *items,
                       '<li><a href="/research/">All research</a></li>', "</ul>",
                       f'<p class="try">Try it: <a href="/#install">install <span translate="no">{BRAND}</span> on Windows or Mac</a></p>',
@@ -1318,7 +1400,8 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
     elif src.name == "about":
         meta = f'Updated <time datetime="{src.modified}">{long_date(src.modified)}</time>'
     else:
-        meta = f'By <a href="/about/">{AUTHOR}</a>. {dates(src)}'
+        # byline, dates + how it was made in one line under the answer: the answer comes first on a phone
+        meta = f'By <a href="/about/">{AUTHOR}</a>. {dates(src)} {AI_NOTE}'
     kind = {"about": "profile", "index": "website"}.get(src.name, "article")
     head = [
         f"<title>{escape(src.title)}</title>",
@@ -1352,6 +1435,18 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
            "</nav>"] if len(heads) > 2 else []
     mini = ['<nav class="toc-mini" aria-label="Contents">', "<details>", "<summary>On this page</summary>",
             "<ol>", *items, "</ol>", "</details>", "</nav>"] if toc else []
+    if mini:
+        # right after the first note (What to do): on a phone the first screen holds the answer + what to do, the
+        # list a short scroll below (owner, 2026-10-07; qa TOC_NARROW); no note -> before the first section
+        if '<p class="box-more">' in body:
+            cut = body.index("</p>\n", body.index('<p class="box-more">')) + len("</p>\n")
+        elif '<ul class="box-list">' in body:
+            cut = body.index("</ul>\n", body.index('<ul class="box-list">')) + len("</ul>\n")
+        else:
+            cut = body.index("<h2")
+        body, mini = body[:cut] + "\n".join(mini) + "\n" + body[cut:], []
+    # the answer in a sentence (the description, the line a search result shows) right under the h1
+    answer = escape(src.description).replace(BRAND, f'<span translate="no">{BRAND}</span>')
     return "\n".join([
         "<!doctype html>",
         '<html lang="en">',
@@ -1371,9 +1466,8 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         f'<{wrapper} class="page">',
         f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(visible)}</ol></nav>',
         f"<h1>{headline(src.title)}</h1>",
+        *([f'<p class="answer">{answer}</p>'] if kind == "article" else []),
         *([f'<p class="meta">{meta}</p>'] if meta else []),
-        *([f'<p class="meta ai-note">{AI_NOTE}</p>'] if kind == "article" else []),
-        *mini,
         body.rstrip("\n"),
         *([more.rstrip("\n")] if more else []),
         f"</{wrapper}>",
@@ -1382,6 +1476,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         "</main>",
         parts["footer"],
         *([f"<script>{TOC_JS}</script>"] if toc else []),
+        *([f"<script>{CITE_JS}</script>"] if 'href="#src-' in body else []),
         "</body>",
         "</html>",
         "",
@@ -1427,22 +1522,24 @@ def dated(root: Path, site_files: set[str], warnings: list[str] | None = None) -
             errors.append(f"{SOURCES.as_posix()}/about.md:1: bylines link /about/ - publish about.md with the first page")
         files = site_files | {s.out for s in built} | {s.data_out for s in built if s.data} | ({FEED} if hub else set())
         repo_files = tracked(root)
+        linked = {s.name: links_to(s) for s in built}  # read before body_html rewrites the hrefs
         for src in built:
             body = body_html(src, by_name, root, files, errors, registry, repo_files)
             side = after = ""
             if src.name == "index":
-                # the first paragraph (the promise) stays under the h1; the method lines go beside it (A16)
+                # the first paragraph (the promise) stays under the h1, the articles come next on every width; the
+                # method lines follow them (beside the h1 on wide screens, A16), then the labels
                 cut = body.find("</p>") + len("</p>\n")
                 body, rest = body[:cut], body[cut:].strip("\n")
                 intro = f'<div class="side intro">\n{rest}\n</div>\n' if "<p" in rest else ""
-                side, after = intro + evidence_labels(by_name.get("methods")), listing(articles)
+                side = listing(articles) + intro + evidence_labels(by_name.get("methods"))
             elif src.name == "about" and "<h2" in body:
                 cut = body.index("<h2")
                 body, side = body[:cut], '<div class="side">\n' + body[cut:] + "</div>\n"
             if src.data:
                 body = download(src) + body
                 out[src.data_out] = src.csv
-            more = keep_reading(src, articles) if hub and src.name not in ("index", "about") else ""
+            more = keep_reading(src, articles, linked) if hub and src.name not in ("index", "about") else ""
             out[src.out] = page(src, root, body, parts, hub, side, after, more, hub_name)
         if hub:
             out[FEED] = feed(root, by_name["index"], articles)

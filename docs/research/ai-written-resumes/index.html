@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Can employers tell if AI wrote your resume?</title>
-<meta name="description" content="Mostly no, in tests – most people can’t spot AI writing. About half of hiring managers say they’d care. What studies show, and what to do.">
+<meta name="description" content="Mostly no, in tests with older AI models: most people couldn’t spot AI writing. About half of hiring managers say they’d care. What studies show.">
 <link rel="canonical" href="https://jobs.enrriquez.com/research/ai-written-resumes/">
 <link rel="alternate" type="application/atom+xml" title="CEZ Job Finder Research" href="/research/feed.xml">
 <meta name="robots" content="index, follow, max-image-preview:large">
@@ -16,9 +16,9 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:url" content="https://jobs.enrriquez.com/research/ai-written-resumes/">
 <meta property="og:title" content="Can employers tell if AI wrote your resume? What studies show">
-<meta property="og:description" content="Mostly no, in tests – most people can’t spot AI writing. About half of hiring managers say they’d care. What studies show, and what to do.">
+<meta property="og:description" content="Mostly no, in tests with older AI models: most people couldn’t spot AI writing. About half of hiring managers say they’d care. What studies show.">
 <meta property="article:published_time" content="2026-10-03">
-<meta property="article:modified_time" content="2026-10-05">
+<meta property="article:modified_time" content="2026-10-07">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-written-resumes/#article","headline":"Can employers tell if AI wrote your resume?","description":"Mostly no, in tests – most people can’t spot AI writing. About half of hiring managers say they’d care. What studies show, and what to do.","url":"https://jobs.enrriquez.com/research/ai-written-resumes/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-written-resumes/","datePublished":"2026-10-03","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Can employers tell if AI wrote your resume?","item":"https://jobs.enrriquez.com/research/ai-written-resumes/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-written-resumes/#article","headline":"Can employers tell if AI wrote your resume?","description":"Mostly no, in tests with older AI models: most people couldn’t spot AI writing. About half of hiring managers say they’d care. What studies show.","url":"https://jobs.enrriquez.com/research/ai-written-resumes/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-written-resumes/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Can employers tell if AI wrote your resume?","item":"https://jobs.enrriquez.com/research/ai-written-resumes/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -211,8 +211,9 @@
   h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
+  /* the answer in a sentence under the h1, then the byline: on a phone the first screen holds the answer + what to do */
+  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  .meta:has(+ .ai-note) { margin-bottom: 4px; }
   p { margin: 0 0 16px; }
   ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
@@ -223,12 +224,33 @@
   blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
-  /* the heading after it: no hairline of its own right under the note's rule (A19) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* notes at the top ("What to do", "What the evidence says"; boxes()): a bold label + its list = a ruled note
+     (thick rule over, thin under); "More in What helps" closes the first */
+  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  .box-list li::marker { color: var(--text); }
+  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+  /* the link a 46px tap box (qa HIT_BOXES); negative margins keep the line where it was */
+  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
+  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+  /* a note right before the next one: the next one's thick rule closes it (two rules 32px apart read as one
+     doubled, qa RULES_STACKED) */
+  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
+  /* On this page right under a note: no hairline of its own under the note's rule; the heading after a note
+     (On this page hidden or absent): none either (A19) */
+  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
+  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* citations: the (label; Author year) parenthetical small + grey, so a skimming eye lands on the findings, not
+     on names (linked words draw it); still links - a tap opens the source card (CITE_JS) */
+  small { font-size: 0.85em; color: var(--text-2); }
+  small a { text-decoration-color: var(--text-2); }
+  /* source card (CITE_JS): one Sources entry over the page, centred */
+  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
+  .card::backdrop { background: rgb(0 0 0 / 0.45); }
+  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
+  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
+  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
+  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -254,7 +276,7 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  /* On this page below 1280px: a closed list after the notes at the top, a hairline over it (none right under a note) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
   .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
@@ -270,6 +292,7 @@
   .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
   .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .more p { margin: 0 0 8px; }
+  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -294,9 +317,12 @@
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
+    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
+    /* On this page hidden: the first heading sits right under a note's rule, the next note's rule closes the first */
+    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
     .toc {
       /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
       display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
@@ -325,6 +351,8 @@
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
+  /* hub: the method lines after the list (beside the h1 on wide screens) */
+  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
   .date { color: var(--text-2); font-size: var(--step--1); }
   @media (max-width: 600px) {
     main.wrap { padding-top: 22px; }
@@ -374,8 +402,15 @@
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Can employers tell if AI wrote your resume?</li></ol></nav>
 <h1>Can employers tell if AI wrote your resume?</h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
-<p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="answer">Mostly no, in tests with older AI models: most people couldn’t spot AI writing. About half of hiring managers say they’d care. What studies show.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-07">October 7, 2026</time>. How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="box"><strong>What to do</strong></p>
+<ul class="box-list">
+<li>Use AI for wording, not facts.</li>
+<li>Put in your own facts and numbers, and edit what AI drafts.</li>
+<li>Never let AI invent a skill, job or number.</li>
+</ul>
+<p class="box-more"><a href="#what-helps">More in What helps</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
 <summary>On this page</summary>
@@ -394,32 +429,32 @@
 </ol>
 </details>
 </nav>
-<p><strong>Short answer</strong></p>
-<ul>
-<li>In tests with older AI models, most of 4,600 people couldn’t tell AI writing from human writing; 5 readers who use AI often spotted whole AI-written texts far better (Lab studies; <a href="#src-jakesch-2023">Jakesch et al. 2023</a>; <a href="#src-russell-2025">Russell et al. 2025</a>).</li>
-<li>Early detectors misfired and flagged non-native writers; one paid 2025 tool did far better; none tested on resumes (Lab studies; maker’s docs; <a href="#src-openai-2023">OpenAI 2023</a>; <a href="#src-liang-2023">Liang et al. 2023</a>; <a href="#src-russell-2025">Russell et al. 2025</a>).</li>
-<li>About half of hiring managers say they’d care; they name generic, vague lines as AI signs (Vendor surveys; <a href="#src-insight-global-2025">Insight Global 2025</a>; <a href="#src-resume-genius-2026">Chan 2026</a>).</li>
-<li>Spelling and grammar help raised hires (2021, not chat AI); AI-tailored letters now count for less (Big study; Real records, preprint; <a href="#src-wiles-2025">Wiles et al. 2025</a>; <a href="#src-cui-2025">Cui et al. 2025</a>).</li>
+<p class="box"><strong>What the evidence says</strong></p>
+<ul class="box-list">
+<li>In tests with older AI models, most of 4,600 people couldn’t tell AI writing from human writing; 5 readers who use AI often spotted whole AI-written texts far better <small>(Lab studies; <a href="#src-jakesch-2023">Jakesch et al. 2023</a>; <a href="#src-russell-2025">Russell et al. 2025</a>)</small>.</li>
+<li>Early detectors misfired and flagged non-native writers; one paid 2025 tool did far better; none tested on resumes <small>(Lab studies; maker’s docs; <a href="#src-openai-2023">OpenAI 2023</a>; <a href="#src-liang-2023">Liang et al. 2023</a>; <a href="#src-russell-2025">Russell et al. 2025</a>)</small>.</li>
+<li>About half of hiring managers say they’d care; they name generic, vague lines as AI signs <small>(Vendor surveys; <a href="#src-insight-global-2025">Insight Global 2025</a>; <a href="#src-resume-genius-2026">Chan 2026</a>)</small>.</li>
+<li>Spelling and grammar help raised hires (2021, not chat AI); AI-tailored letters now count for less <small>(Big study; Real records, preprint; <a href="#src-wiles-2025">Wiles et al. 2025</a>; <a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</li>
 </ul>
 <h2 id="can-people-tell-if-a-resume-was-written-by-ai">Can people tell if a resume was written by AI?</h2>
-<p>Most people couldn’t, in the largest test. In 2023, 4,600 people judged short self-descriptions written by people or by AI. The texts included freelancer profiles of the kind used to win work. People picked the right source only 50% to 52% of the time, about as good as a coin toss. Paying people for right answers barely helped, at 51.6%. Telling them after each answer whether they were right gave 51.2% (<a href="#src-jakesch-2023">Jakesch et al. 2023</a>).</p>
-<p>People relied on wrong clues. They took first-person words, contractions and family topics as signs of a human writer. AI text tuned to those clues was judged human more often than real human text, 65.7% against 51.7%. The AI models in that study were older ones, GPT-2 and GPT-3 (<a href="#src-jakesch-2023">Jakesch et al. 2023</a>).</p>
-<p>The strongest counter-evidence comes from a 2025 study of practiced readers. Nine paid readers labeled 300 articles as human or AI. Four readers who rarely used AI for writing did about as well as chance. They flagged 56.7% of AI articles but also about half of human ones. Five readers who used AI for writing often were far better. Their majority vote got 299 of the 300 articles right. Those five were picked because they resembled the best reader in a first round. Their most common clue was “AI vocabulary,” words like “vibrant” and “crucial”. The AI articles were written wholly by AI, not human drafts edited with AI. They were news-style articles, not resumes (<a href="#src-russell-2025">Russell et al. 2025</a>).</p>
+<p><strong>Most people couldn’t, in the largest test.</strong> In 2023, 4,600 people judged short self-descriptions written by people or by AI. The texts included freelancer profiles of the kind used to win work. People picked the right source only 50% to 52% of the time, about as good as a coin toss. Paying people for right answers barely helped, at 51.6%. Telling them after each answer whether they were right gave 51.2% <small>(<a href="#src-jakesch-2023">Jakesch et al. 2023</a>)</small>.</p>
+<p>People relied on wrong clues. They took first-person words, contractions and family topics as signs of a human writer. AI text tuned to those clues was judged human more often than real human text, 65.7% against 51.7%. The AI models in that study were older ones, GPT-2 and GPT-3 <small>(<a href="#src-jakesch-2023">Jakesch et al. 2023</a>)</small>.</p>
+<p>The strongest counter-evidence comes from a 2025 study of practiced readers. Nine paid readers labeled 300 articles as human or AI. Four readers who rarely used AI for writing did about as well as chance. They flagged 56.7% of AI articles but also about half of human ones. Five readers who used AI for writing often were far better. Their majority vote got 299 of the 300 articles right. Those five were picked because they resembled the best reader in a first round. Their most common clue was “AI vocabulary,” words like “vibrant” and “crucial”. The AI articles were written wholly by AI, not human drafts edited with AI. They were news-style articles, not resumes <small>(<a href="#src-russell-2025">Russell et al. 2025</a>)</small>.</p>
 <p>For you, a reader who uses AI often may notice text written wholly by AI. Most readers will guess, and some will guess wrong about text you wrote yourself.</p>
 <h2 id="do-ai-detectors-work-on-resumes">Do AI detectors work on resumes?</h2>
-<p>Early detectors did not work well, and no detector has been tested on resumes. OpenAI released its own AI-text detector in January 2023. In its maker’s test, the detector caught 26% of AI text. It wrongly flagged human text 9% of the time. OpenAI withdrew the detector in July 2023, citing “its low rate of accuracy” (<a href="#src-openai-2023">OpenAI 2023</a>).</p>
-<p>A 2023 study ran seven detectors on essays all written by people. The detectors were nearly perfect on essays by US eighth graders. On essays by non-native English writers, they flagged 61% as AI on average. Of those essays, 97.8% were flagged by at least one detector. Plainer word choice made human writing look like AI to those 2023 detectors (<a href="#src-liang-2023">Liang et al. 2023</a>).</p>
-<p>A 2026 follow-up found no such bias with detectors of 2025, including a paid one. It tested essays in Czech, not English, and is a preprint. Its authors conclude the bias depends on the language (<a href="#src-al-ali-2026">Al Ali et al. 2026</a>).</p>
-<p>Detectors have changed since 2023. In the 2025 reader test above, one paid detector, Pangram, caught 99.3% of AI articles even after a rewording tool. That matched the practiced readers. Another popular detector, GPTZero, caught 85.3% of AI articles and wrongly flagged 0.7% of human ones. Two free, openly released detectors caught only 6.7% and 23.3% of AI articles reworded by a rewording tool. All of these were whole articles, not resumes (<a href="#src-russell-2025">Russell et al. 2025</a>).</p>
+<p><strong>Early detectors did not work well, and no detector has been tested on resumes.</strong> OpenAI released its own AI-text detector in January 2023. In its maker’s test, the detector caught 26% of AI text. It wrongly flagged human text 9% of the time. OpenAI withdrew the detector in July 2023, citing “its low rate of accuracy” <small>(<a href="#src-openai-2023">OpenAI 2023</a>)</small>.</p>
+<p>A 2023 study ran seven detectors on essays all written by people. The detectors were nearly perfect on essays by US eighth graders. On essays by non-native English writers, they flagged 61% as AI on average. Of those essays, 97.8% were flagged by at least one detector. Plainer word choice made human writing look like AI to those 2023 detectors <small>(<a href="#src-liang-2023">Liang et al. 2023</a>)</small>.</p>
+<p>A 2026 follow-up found no such bias with detectors of 2025, including a paid one. It tested essays in Czech, not English, and is a preprint. Its authors conclude the bias depends on the language <small>(<a href="#src-al-ali-2026">Al Ali et al. 2026</a>)</small>.</p>
+<p>Detectors have changed since 2023. In the 2025 reader test above, one paid detector, Pangram, caught 99.3% of AI articles even after a rewording tool. That matched the practiced readers. Another popular detector, GPTZero, caught 85.3% of AI articles and wrongly flagged 0.7% of human ones. Two free, openly released detectors caught only 6.7% and 23.3% of AI articles reworded by a rewording tool. All of these were whole articles, not resumes <small>(<a href="#src-russell-2025">Russell et al. 2025</a>)</small>.</p>
 <p>We found no study that tests detectors on resumes. We also found no study showing how many employers run them. A widely repeated survey figure on employer use led to no source we could open.</p>
-<p>A detector’s “AI” label is untested on resumes. Older detectors were tripped by plain, simple English (<a href="#src-liang-2023">Liang et al. 2023</a>).</p>
+<p>A detector’s “AI” label is untested on resumes. Older detectors were tripped by plain, simple English <small>(<a href="#src-liang-2023">Liang et al. 2023</a>)</small>.</p>
 <h2 id="what-do-hiring-managers-say-about-ai-written-resumes">What do hiring managers say about AI-written resumes?</h2>
-<p>They say they can tell, and about half say they care. Both surveys below are vendor surveys, run for companies in the hiring or resume business.</p>
-<p>In an October 2024 survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI. The other 46% said they would not care (<a href="#src-insight-global-2025">Insight Global 2025</a>).</p>
-<p>A 2026 survey of 1,000 US hiring managers was run for a resume-builder company. In it, 80% said they can often tell when AI wrote a resume. Most, 76%, said AI-written resumes make it harder to see what a person actually did. And 72% said heavy reliance on AI makes applicants seem less skilled. Asked about disclosure, 79% said applicants should say when AI helped (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
-<p>Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%), and vague or inflated descriptions and buzzword-heavy writing (41% each). Formatting habits such as long dashes were named by 32% (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
+<p><strong>They say they can tell, and about half say they care.</strong> Both surveys below are vendor surveys, run for companies in the hiring or resume business.</p>
+<p>In an October 2024 survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI. The other 46% said they would not care <small>(<a href="#src-insight-global-2025">Insight Global 2025</a>)</small>.</p>
+<p>A 2026 survey of 1,000 US hiring managers was run for a resume-builder company. In it, 80% said they can often tell when AI wrote a resume. Most, 76%, said AI-written resumes make it harder to see what a person actually did. And 72% said heavy reliance on AI makes applicants seem less skilled. Asked about disclosure, 79% said applicants should say when AI helped <small>(<a href="#src-resume-genius-2026">Chan 2026</a>)</small>.</p>
+<p>Most signs they named were about wording quality. The top ones were unnatural phrasing (51%), repetitive or generic wording (44%), and vague or inflated descriptions and buzzword-heavy writing (41% each). Formatting habits such as long dashes were named by 32% <small>(<a href="#src-resume-genius-2026">Chan 2026</a>)</small>.</p>
 <figure class="bars">
-<figcaption>Signs of an AI-written resume that hiring managers named, 2026; each could name more than one (Vendor survey, 1,000 US hiring managers; <a href="#src-resume-genius-2026">Chan 2026</a>)</figcaption>
+<figcaption>Signs of an AI-written resume that hiring managers named, 2026; each could name more than one <small>(Vendor survey, 1,000 US hiring managers; <a href="#src-resume-genius-2026">Chan 2026</a>)</small></figcaption>
 <table>
 <thead>
 <tr>
@@ -459,37 +494,37 @@
 </tbody>
 </table>
 </figure>
-<p>Saying you can spot AI is not the same as spotting it. In one lab test, readers who rarely used AI felt sure but did no better than chance (<a href="#src-russell-2025">Russell et al. 2025</a>).</p>
+<p>Saying you can spot AI is not the same as spotting it. In one lab test, readers who rarely used AI felt sure but did no better than chance <small>(<a href="#src-russell-2025">Russell et al. 2025</a>)</small>.</p>
 <p>The warning signs managers name are generic, vague and inflated lines. Those are worth cutting whoever wrote them.</p>
 <h2 id="does-using-ai-on-your-resume-hurt-your-chances">Does using AI on your resume hurt your chances?</h2>
-<p>Writing help raised hiring in the largest real test. That test used spelling and grammar help, not today’s chat AI (<a href="#src-wiles-2025">Wiles et al. 2025</a>).</p>
-<p>In 2021, an online freelance platform ran an experiment with 480,948 new job seekers. Half got automatic suggestions on spelling, grammar and wording for their profile. Those who got the help were hired about 8% more often, within a range of 3% to 13%. They got 10% higher pay, too. Employers rated the people they hired just as highly afterward. The authors’ reading: clearer writing helped employers see what people could do. The platform funded the authors’ work (<a href="#src-wiles-2025">Wiles et al. 2025</a>).</p>
-<p>Chat AI that writes the whole text is different. Two 2025 studies looked at one freelance platform after it added an AI letter writer in April 2023 (<a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>). Both are preprints, not yet peer-reviewed.</p>
-<p>The first studied 5 million cover letters to over 100,000 jobs. Having the tool raised callbacks by 0.43 per 100 letters. For people who chose to use it, the estimate was 3.56 more callbacks per 100 letters. Neither estimate was certain enough to rule out chance, and the gain faded after two months. The authors found no evidence of a change in overall hiring (<a href="#src-cui-2025">Cui et al. 2025</a>).</p>
-<p>Before the tool, a letter that closely matched the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker’s past reviews on the platform. Longer editing of the AI draft went with a higher chance of a job offer. Most AI letters were sent with little or no editing (<a href="#src-cui-2025">Cui et al. 2025</a>).</p>
-<p>The second studied about 2.7 million applications to coding jobs. Before chat AI, employers were willing to pay more for workers whose applications fit the job closely. After chat AI, that premium mostly disappeared. The authors then used a model of the market to test an extreme case: applications that tell employers nothing about how able a worker is. In that case, the top fifth of workers were hired 19% less often. The bottom fifth were hired 14% more often. Those two numbers come from the model, not from counting real hires (<a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>). What this means for cover letters: <a href="/research/cover-letters-after-ai/">Do cover letters still matter now that AI writes them?</a></p>
+<p><strong>Writing help raised hiring in the largest real test. That test used spelling and grammar help, not today’s chat AI</strong> <small>(<a href="#src-wiles-2025">Wiles et al. 2025</a>)</small>.</p>
+<p>In 2021, an online freelance platform ran an experiment with 480,948 new job seekers. Half got automatic suggestions on spelling, grammar and wording for their profile. Those who got the help were hired about 8% more often, within a range of 3% to 13%. They got 10% higher pay, too. Employers rated the people they hired just as highly afterward. The authors’ reading: clearer writing helped employers see what people could do. The platform funded the authors’ work <small>(<a href="#src-wiles-2025">Wiles et al. 2025</a>)</small>.</p>
+<p>Chat AI that writes the whole text is different. Two 2025 studies looked at one freelance platform after it added an AI letter writer in April 2023 <small>(<a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>)</small>. Both are preprints, not yet peer-reviewed.</p>
+<p>The first studied 5 million cover letters to over 100,000 jobs. Having the tool raised callbacks by 0.43 per 100 letters. For people who chose to use it, the estimate was 3.56 more callbacks per 100 letters. Neither estimate was certain enough to rule out chance, and the gain faded after two months. The authors found no evidence of a change in overall hiring <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</p>
+<p>Before the tool, a letter that closely matched the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker’s past reviews on the platform. Longer editing of the AI draft went with a higher chance of a job offer. Most AI letters were sent with little or no editing <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</p>
+<p>The second studied about 2.7 million applications to coding jobs. Before chat AI, employers were willing to pay more for workers whose applications fit the job closely. After chat AI, that premium mostly disappeared. The authors then used a model of the market to test an extreme case: applications that tell employers nothing about how able a worker is. In that case, the top fifth of workers were hired 19% less often. The bottom fifth were hired 14% more often. Those two numbers come from the model, not from counting real hires <small>(<a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>)</small>. What this means for cover letters: <a href="/research/cover-letters-after-ai/">Do cover letters still matter now that AI writes them?</a></p>
 <p>For you, fixing errors in your own wording helped in a large test. A letter that only echoes the job post now tells employers less.</p>
 <h2 id="does-ai-wording-help-with-ai-screeners">Does AI wording help with AI screeners?</h2>
-<p>In one lab test, it did, when the screener was the same AI. A 2025 study took 2,245 real resumes and had AI models rewrite each summary section. Each AI model then picked between the person’s own summary and one the same model wrote. In the updated June 2026 version, eight of the nine models picked their own version more often. In simulated hiring for 24 jobs, applicants using the screener’s own AI were 23% to 60% more likely to be shortlisted. Simple changes to the screener’s instructions cut this preference by more than half (<a href="#src-xu-2025">Xu et al. 2025</a>). That is a lab test, not a real employer’s system.</p>
+<p><strong>In one lab test, it did, when the screener was the same AI.</strong> A 2025 study took 2,245 real resumes and had AI models rewrite each summary section. Each AI model then picked between the person’s own summary and one the same model wrote. In the updated June 2026 version, eight of the nine models picked their own version more often. In simulated hiring for 24 jobs, applicants using the screener’s own AI were 23% to 60% more likely to be shortlisted. Simple changes to the screener’s instructions cut this preference by more than half <small>(<a href="#src-xu-2025">Xu et al. 2025</a>)</small>. That is a lab test, not a real employer’s system.</p>
 <p>An AI screener’s preference for its own wording cuts both ways for job seekers. An AI screener may like AI wording, while a human reader may dislike it. Clear, specific lines are our advice for both; no study tests it.</p>
 <h2 id="what-words-make-writing-sound-like-ai">What words make writing sound like AI?</h2>
-<p>Some words became much more common after chat AI arrived. A 2025 study counted words in over 15 million science paper summaries from 2010 to 2024. “Delves” appeared 28 times more often in 2024 than its earlier trend predicted. “Underscores” rose 13.8 times and “showcasing” 10.7 times. Common words like “crucial” and “potential” also jumped. The authors estimate at least 13.5% of 2024 summaries were processed with AI (<a href="#src-kobak-2025">Kobak et al. 2025</a>). That study is about science writing, not resumes. It shows which words AI overuses, not whether employers notice them.</p>
+<p><strong>Some words became much more common after chat AI arrived.</strong> A 2025 study counted words in over 15 million science paper summaries from 2010 to 2024. “Delves” appeared 28 times more often in 2024 than its earlier trend predicted. “Underscores” rose 13.8 times and “showcasing” 10.7 times. Common words like “crucial” and “potential” also jumped. The authors estimate at least 13.5% of 2024 summaries were processed with AI <small>(<a href="#src-kobak-2025">Kobak et al. 2025</a>)</small>. That study is about science writing, not resumes. It shows which words AI overuses, not whether employers notice them.</p>
 <p>Words like “delve,” “showcase” and “pivotal” add no facts. Cutting them makes a line clearer, whoever wrote it.</p>
 <h2 id="what-we-dont-know">What we don’t know</h2>
 <ul>
 <li>How often employers run AI detectors on resumes. We found no study measuring it.</li>
 <li>How well detectors work on resumes, which are short and full of lists. No study found that tests this.</li>
 <li>Whether hiring managers who say they can tell actually can. The surveys report what they say.</li>
-<li>Whether today’s chat AI helps or hurts resumes in real hiring. The large field test used spelling and grammar help, in 2021 (<a href="#src-wiles-2025">Wiles et al. 2025</a>). The chat AI study covered cover letters on one platform (<a href="#src-cui-2025">Cui et al. 2025</a>).</li>
-<li>Whether the freelance platform results hold for regular jobs. Both studies come from one platform (<a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>).</li>
+<li>Whether today’s chat AI helps or hurts resumes in real hiring. The large field test used spelling and grammar help, in 2021 <small>(<a href="#src-wiles-2025">Wiles et al. 2025</a>)</small>. The chat AI study covered cover letters on one platform <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</li>
+<li>Whether the freelance platform results hold for regular jobs. Both studies come from one platform <small>(<a href="#src-cui-2025">Cui et al. 2025</a>; <a href="#src-galdin-silbert-2025">Galdin and Silbert 2025</a>)</small>.</li>
 <li>We searched the web, arXiv and news in October 2026 for studies on these gaps, including surveys of employer detector use.</li>
 </ul>
 <h2 id="what-helps">What helps</h2>
 <ul>
-<li>Use AI for wording, not facts. Fixing errors and making lines clearer raised hires in the largest test (<a href="#src-wiles-2025">Wiles et al. 2025</a>).</li>
-<li>Put in your own facts and numbers. AI can’t know them, and managers name vague lines as AI signs (<a href="#src-resume-genius-2026">Chan 2026</a>).</li>
-<li>Edit what AI drafts. More editing time went with more job offers, in one study (<a href="#src-cui-2025">Cui et al. 2025</a>).</li>
-<li>Cut generic, vague and inflated lines. Hiring managers name these as AI signs (<a href="#src-resume-genius-2026">Chan 2026</a>).</li>
+<li>Use AI for wording, not facts. Fixing errors and making lines clearer raised hires in the largest test <small>(<a href="#src-wiles-2025">Wiles et al. 2025</a>)</small>.</li>
+<li>Put in your own facts and numbers. AI can’t know them, and managers name vague lines as AI signs <small>(<a href="#src-resume-genius-2026">Chan 2026</a>)</small>.</li>
+<li>Edit what AI drafts. More editing time went with more job offers, in one study <small>(<a href="#src-cui-2025">Cui et al. 2025</a>)</small>.</li>
+<li>Cut generic, vague and inflated lines. Hiring managers name these as AI signs <small>(<a href="#src-resume-genius-2026">Chan 2026</a>)</small>.</li>
 <li>Be able to explain every line. Anything on the page can come up in an interview; that is common advice, not a study finding.</li>
 <li>Never let AI invent a skill, job or number. That is a false claim, whoever typed it.</li>
 </ul>
@@ -505,7 +540,9 @@
 <h2 id="changes">Changes</h2>
 <ul>
 <li>October 2026 – reworded the two cover letter studies. The hiring shifts by ability come from an extreme case in the authors’ model, and both callback estimates were too weak to rule out chance; the numbers are unchanged.</li>
-<li>October 2026 – the hiring survey now names its sample as HR and talent leaders, as its method section does. The 54% line now reads as a share of everyone asked (<a href="#src-insight-global-2025">Insight Global 2025</a>). The numbers are unchanged.</li>
+<li>October 2026 – the hiring survey now names its sample as HR and talent leaders, as its method section does. The 54% line now reads as a share of everyone asked <small>(<a href="#src-insight-global-2025">Insight Global 2025</a>)</small>. The numbers are unchanged.</li>
+<li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
+<li>October 2026 – the line under the title now says the tests used older AI models.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -525,8 +562,9 @@
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a></li>
-<li><a href="/research/keep-chats-out-of-ai-training/">Opt out of AI training: ChatGPT, Claude, Copilot and Gemini</a></li>
+<li><a href="/research/cover-letters-after-ai/">Do cover letters still matter now that AI writes them?</a><p>Often yes – many forms we checked had a letter box, and a 2019–20 test found more callbacks with one. AI-written letters now tell employers less.</p></li>
+<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p></li>
+<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
@@ -548,5 +586,6 @@
   </div>
 </footer>
 <script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
+<script>(()=>{const d=document.createElement("dialog");d.className="card";document.body.append(d);document.addEventListener("click",e=>{const l=e.target.closest('a[href^="#src-"]');if(!l||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const s=document.getElementById(l.hash.slice(1));if(!s)return;e.preventDefault();d.innerHTML="<div>"+s.innerHTML+'<p><a href="#sources">All sources<\/a><button autofocus>Close<\/button><\/p><\/div>';d.showModal()});d.addEventListener("click",e=>{if(e.target==d||e.target.closest('button,[href="#sources"]'))d.close()})})()</script>
 </body>
 </html>

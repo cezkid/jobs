@@ -453,9 +453,13 @@ def test_lint_patterns_match_their_originals():
 def test_citations_render_author_year_links_and_an_alphabetical_sources_list(tmp_path):
     research_site(tmp_path)
     html = pages.build(tmp_path)["research/ats-myth/index.html"]
-    assert 'Callbacks differ by 36% (<a href="#src-quillian-2017">Quillian et al. 2017</a>, p. 3).' in html
-    assert ('Firms vary (<a href="#src-kline-2021">Kline et al. 2021</a>; '
-            '<a href="#src-eeoc-2023">US Equal Employment Opportunity Commission 2023</a>).') in html
+    # set small: a skimming eye lands on the finding, not the names (reader-engagement.md)
+    assert 'Callbacks differ by 36% <small>(<a href="#src-quillian-2017">Quillian et al. 2017</a>, p. 3)</small>.' in html
+    assert ('Firms vary <small>(<a href="#src-kline-2021">Kline et al. 2021</a>; '
+            '<a href="#src-eeoc-2023">US Equal Employment Opportunity Commission 2023</a>)</small>.') in html
+    # a tap opens the entry in a card: the script once, after the footer; none on a page citing nothing
+    assert html.count(f"<script>{pages.CITE_JS}</script>") == 1 and html.index("</footer>") < html.index(pages.CITE_JS)
+    assert pages.CITE_JS not in pages.build(tmp_path)["research/ai-bias/index.html"]
     sources = html.split('<h2 id="sources">Sources</h2>\n<ol class="sources">\n')[1].split("</ol>")[0]
     assert re.findall(r'<li id="src-([^"]+)"', sources) == ["kline-2021", "quillian-2017", "eeoc-2023"]
     assert ('<li id="src-quillian-2017"><b class="evidence">Big study (many studies combined)</b> '
@@ -801,8 +805,8 @@ def test_wide_screen_second_column_hub_labels_from_methods_and_about_sections(tm
     assert "<dt>Law</dt><dd>The law’s own text</dd>" in side
     assert '<a href="/research/methods/#what-the-labels-mean">How we research</a>' in side
     assert side.lstrip("\n").startswith("<h2>Evidence labels</h2>")
-    # labels column, then the list, both after the page column (narrow screens: labels hidden, list follows the intro)
-    assert hub.index('class="page"') < hub.index('class="side labels"') < hub.index('<ul class="list">') < hub.index("</main>")
+    # the list right after the page column (a phone shows the articles under the h1), then the labels column
+    assert hub.index('class="page"') < hub.index('<ul class="list">') < hub.index('class="side labels"') < hub.index("</main>")
     # about: text before the first h2 stays in the page column, the h2 sections go to the second column
     page, rest = about.split('<div class="side">')
     assert "Intro line." in page and '<h2 id="work">Work</h2>' not in page
@@ -824,13 +828,14 @@ def test_one_breadcrumb_name_per_url(tmp_path):
 
 
 def test_hub_intro_first_line_under_h1_method_lines_beside(tmp_path):
-    # A16: the hub's first paragraph stays under the h1; the rest goes to the second column, before the labels
+    # A16: the hub's first paragraph stays under the h1; the rest goes to the second column, before the labels;
+    # the articles come before both, so a phone reaches them first
     research_site(tmp_path, {"index.md": SOURCES["index.md"].rstrip("\n") + "\n\nSecond line.\n"})
     hub = pages.build(tmp_path)["research/index.html"]
     page, side = hub.split('<div class="side intro">')
     assert "<p>Second line.</p>" in side.split("</div>")[0] and "Second line." not in page
     assert "<h1>" in page and page.count("<p>") >= 1
-    assert hub.index('class="side intro"') < hub.index('<ul class="list">')
+    assert hub.index('<ul class="list">') < hub.index('class="side intro"')
 
 
 def test_no_article_no_hub_and_an_article_needs_the_hub_intro(tmp_path):
@@ -928,7 +933,7 @@ def test_every_article_links_how_ai_is_used_under_the_byline_and_never_says_appr
     built = pages.build(tmp_path)
     for name in "research/ats-myth/index.html", "research/ai-bias/index.html":
         html = built[name]
-        note = re.search(r'<p class="meta">By .*?</p>\n<p class="meta ai-note">(.*?)</p>', html, re.S)
+        note = re.search(r'<p class="meta">By [^\n]*?\. (How this was made: .*?)</p>', html)
         assert note and note.group(1) == 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>', name
         assert "approved" not in html.lower()
     assert "how-is-ai-used" not in built["about/index.html"] + built["research/index.html"]
@@ -1168,6 +1173,85 @@ def test_toc_script_fits_its_budget():
     assert "</" not in pages.TOC_JS and 'aria-current","true"' in pages.TOC_JS
 
 
+def test_cite_script_fits_its_budget_and_keeps_the_jump_for_modified_clicks():
+    assert len(pages.CITE_JS.encode()) <= 1000
+    assert "</" not in pages.CITE_JS and "showModal()" in pages.CITE_JS and "autofocus" in pages.CITE_JS
+    assert all(key in pages.CITE_JS for key in ("e.button", "e.ctrlKey", "e.metaKey", "e.shiftKey", "e.altKey"))
+
+
+TOP = """**What to do**
+
+- First step.
+- Second step.
+
+**What the evidence says**
+
+- A finding.
+
+## A question?
+
+Answer.
+
+## Another one?
+
+More.
+
+## What helps
+
+- First step, longer.
+
+## What was measured
+
+Text.
+"""
+
+
+def test_article_first_screen_answer_byline_notes_then_on_this_page(tmp_path):
+    # a phone's first screen: h1, the answer in a sentence (the description), the byline line, What to do; On this
+    # page right after that note (owner 2026-10-07), then the evidence note
+    head = SOURCES["ai-bias.md"].split("---\n")[1]
+    research_site(tmp_path, {"ai-bias.md": f"---\n{head}---\n{TOP}"})
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    article = html.split('<article class="page">')[1]
+    order = ["<h1>", '<p class="answer">What tests of AI resume screeners found.</p>', '<p class="meta">By ',
+             '<p class="box"><strong>What to do</strong></p>', '<ul class="box-list">\n<li>First step.</li>',
+             '<p class="box-more"><a href="#what-helps">More in What helps</a></p>', '<nav class="toc-mini"',
+             '<p class="box"><strong>What the evidence says</strong></p>', '<h2 id="a-question">']
+    at = [article.index(part) for part in order]
+    assert at == sorted(at)
+    assert article.count('class="box"') == 2 and article.count('<ul class="box-list">') == 2
+    # no What helps section: no link to it; a bold line inside a paragraph, or after the first heading, is no note
+    top = TOP.replace("## What helps", "## Last one").replace("- A finding.", "- A **finding**.") + "\n**Not a note**\n\n- Item.\n"
+    research_site(tmp_path / "b", {"ai-bias.md": f"---\n{head}---\n{top}"})
+    html = pages.build(tmp_path / "b")["research/ai-bias/index.html"]
+    assert "box-more" not in html.split("</style>")[1] and html.split("</style>")[1].count('class="box"') == 2
+    # hub, about: no answer line
+    built = pages.build(tmp_path)
+    assert 'class="answer"' not in built["research/index.html"] + built["about/index.html"]
+
+
+def test_keep_reading_picks_linked_pages_then_linking_pages_then_hub_order(tmp_path):
+    def article(title, day, text):
+        return f"---\ntitle: {title}\ndescription: {title} in a sentence.\npublished: 2026-09-{day}\nstatus: published\n---\n{text}\n"
+    research_site(tmp_path, {
+        "ai-bias.md": article("Bias", "10", "Links [a](gaps.md) and [b](laws.md#x).\n\n## What was measured\n\nText."),
+        "gaps.md": article("Gaps", "11", "Nothing."),
+        "laws.md": article("Laws", "12", "Nothing.\n\n## X\n\nY."),
+        "age.md": article("Age", "13", "See [bias](ai-bias.md)."),
+        "pay.md": article("Pay", "14", "Nothing."),
+    })
+    built = pages.build(tmp_path)
+    more = built["research/ai-bias/index.html"].split('aria-label="Keep reading"')[1]
+    picks = re.findall(r'<li><a href="(/research/[^"]+/)">', more)
+    assert picks == ["/research/gaps/", "/research/laws/", "/research/age/"]  # out, out, in; 3 at most
+    assert "<p>Gaps in a sentence.</p>" in more
+    # a page linking nowhere and linked from nowhere: the next ones in hub order, wrapping round
+    order = re.findall(r'<li><h2><a href="(/research/[^"]+/)">', built["research/index.html"])
+    pay = re.findall(r'<li><a href="(/research/[^"]+/)">', built["research/pay/index.html"].split('aria-label="Keep reading"')[1])
+    i = order.index("/research/pay/")
+    assert pay == (order[i + 1:] + order[:i])[:3]
+
+
 def test_articles_end_with_keep_reading_and_on_this_page_comes_before_the_article(tmp_path):
     third = SOURCES["ai-bias.md"].replace("AI screening and bias", "Third one").replace("2026-09-10", "2026-09-05").replace(
         "What tests of AI resume screeners found.", "A third page.")
@@ -1200,11 +1284,13 @@ def test_articles_end_with_keep_reading_and_on_this_page_comes_before_the_articl
             assert "<script>(" not in html, name
         ids = re.findall(r'\sid="([^"]+)"', html)
         assert len(ids) == len(set(ids)), name
-    # the next two after it in hub order (newest first), wrapping round
+    # related first: ai-bias links to ats-myth, so ats-myth leads though third comes next in hub order
     order = re.findall(r'<li><h2><a href="(/research/[^"]+/)">', built["research/index.html"])
+    assert order.index("/research/third/") < order.index("/research/ats-myth/")
     ai = re.findall(r'href="(/research/[^"#]+/)"', built["research/ai-bias/index.html"].split('aria-label="Keep reading"')[1])
-    i = order.index("/research/ai-bias/")
-    assert ai[:2] == (order[i + 1:] + order[:i])[:2]
+    assert ai[:2] == ["/research/ats-myth/", "/research/third/"]
+    # each pick carries its one-line answer (the description)
+    assert "<p>A third page.</p>" in built["research/ai-bias/index.html"].split('aria-label="Keep reading"')[1]
 
 
 @pytest.mark.parametrize("title, html", [
@@ -1241,7 +1327,7 @@ def test_bars_block_is_a_figure_with_caption_citation_and_a_real_table(tmp_path)
     research_site(tmp_path, body(BARS))
     html = pages.build(tmp_path)["research/ai-bias/index.html"]
     figure = html[html.index('<figure class="bars">'):html.index("</figure>")]
-    assert '<figcaption>Who got called, share of tests (Lab study; <a href="#src-quillian-2017">' in figure
+    assert '<figcaption>Who got called, share of tests <small>(Lab study; <a href="#src-quillian-2017">' in figure
     assert '<th scope="col">Group</th>' in figure and '<th scope="row">White</th>' in figure
     assert '<td>85.1% of tests<span class="bar" style="width:85.1%" aria-hidden="true"></span></td>' in figure
     assert 'role="region"' not in figure  # no scroll box: short, and the figure names it

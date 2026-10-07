@@ -2,14 +2,20 @@
 title: "Does an employment gap on your resume hurt?"
 description: "Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer's."
 published: 2026-10-04
-modified: 2026-10-05
+modified: 2026-10-07
 status: published
 uncited:
   - "We found no field test"
   - "We searched the web and arXiv"
   - "No study we found"
 ---
-**Short answer**
+**What to do**
+
+- Still searching? For the first six months, there is no gap to explain.
+- Out a year or more: list real work, study or volunteering you did.
+- Keep every date true; a one-line reason is your call.
+
+**What the evidence says**
 
 - Short gaps: up to 6 months out of work showed no clear cost in a 2026 review of 16 field tests; its authors read a plus (Big study) [@dhert-2026].
 - Long gaps: 13 months or more cut employer replies by about a fifth or more in that review; US tests disagree on when it starts (Big studies) [@dhert-2026; @kroft-2013; @farber-2016].
@@ -18,7 +24,7 @@ uncited:
 
 ## Does a gap in your work history cost you interviews?
 
-A long gap often does. A short one showed no clear cost in the biggest review so far.
+**A long gap often does. A short one showed no clear cost in the biggest review so far.**
 
 That review came out in 2026. It combined 16 field experiments with almost 67,000 made-up applicants in seven countries. Each experiment sent employers resumes that differed in whether the applicant was out of work, and for how long. The review compared applicants out of work now with applicants who had a job [@dhert-2026, pp. 1357, 1362]. A callback means the employer answers and asks for an interview or more details. Studies call it a callback, a positive reply or an interview request.
 
@@ -30,7 +36,7 @@ The review has limits its authors name. It covers only peer-reviewed studies fro
 
 ## When does a gap start to count?
 
-The studies disagree. Four US tests from three research teams do not agree.
+**The studies disagree. Four US tests from three research teams do not agree.**
 
 | Study | Sample | Time out of work | What happened to employer replies |
 |---|---|---|---|
@@ -60,11 +66,11 @@ For you, a short gap, or an old gap followed by a job, showed no clear cost in m
 
 ## Do employers filter out gaps with software?
 
-Some say they do. A 2020 survey asked 2,275 executives in the US, UK and Germany about their hiring software. Among executives whose software ranks or filters applicants, 48% said it filtered middle-skills applicants on gaps over six months [@fuller-2021, p. 22-23]. That is what executives said, not a measurement of the software. It does not describe all employers. What such software can and can't do is covered in [Do ATS systems reject most resumes?](ats-rejection-myth.md).
+**Some say they do.** A 2020 survey asked 2,275 executives in the US, UK and Germany about their hiring software. Among executives whose software ranks or filters applicants, 48% said it filtered middle-skills applicants on gaps over six months [@fuller-2021, p. 22-23]. That is what executives said, not a measurement of the software. It does not describe all employers. What such software can and can't do is covered in [Do ATS systems reject most resumes?](ats-rejection-myth.md).
 
 ## Does explaining a gap help?
 
-Sometimes, and sometimes not at all. The two main tests differ in more than the reason, so we can't tell what made the difference.
+**Sometimes, and sometimes not at all.** The two main tests differ in more than the reason, so we can't tell what made the difference.
 
 | Study | Reason tested | Result |
 |---|---|---|
@@ -79,7 +85,7 @@ The UK test found no gain from a childcare line. It also tried listing years wor
 
 ## Do parents who stayed home face a bigger penalty?
 
-In the main US test, yes, and fathers as much as mothers. The test sent 3,407 made-up applications from parents to professional and managerial jobs. Some resumes showed a current job. Some said the parent was laid off 18 months ago. Some said the parent left work to care for children [@weisshaar-2018].
+**In the main US test, yes, and fathers as much as mothers.** The test sent 3,407 made-up applications from parents to professional and managerial jobs. Some resumes showed a current job. Some said the parent was laid off 18 months ago. Some said the parent left work to care for children [@weisshaar-2018].
 
 ```bars
 Interview requests by work history, US parents, 2015-2016 (Big study, 3,407 made-up applications) [@weisshaar-2018]
@@ -100,7 +106,7 @@ This is bias by employers. It says nothing about how well a parent will do the j
 
 ## Does a stop-gap job or volunteering help?
 
-A stop-gap job below your level did not help in three US tests. One sent 2,420 applications with different last-year histories. Men with a full-time job at their level got callbacks 10.4% of the time. Men in a job below their skill level got 4.7%, and men a year out of work got 4.2%. For women in the same test, a below-level job also cut callbacks, from 10.4% to 5.2%. A year out of work showed no clear cost for women. Temp agency work showed no clear cost for men or women [@pedulla-2016]. In another test, a lower-level interim job cut callbacks from 9.8% to 8.5% [@farber-2016]. In the third, graduates working in a job that needs no degree got about 30% fewer interview requests. The comparison group held jobs that fit their degree [@nunley-2017].
+**A stop-gap job below your level did not help in three US tests.** One sent 2,420 applications with different last-year histories. Men with a full-time job at their level got callbacks 10.4% of the time. Men in a job below their skill level got 4.7%, and men a year out of work got 4.2%. For women in the same test, a below-level job also cut callbacks, from 10.4% to 5.2%. A year out of work showed no clear cost for women. Temp agency work showed no clear cost for men or women [@pedulla-2016]. In another test, a lower-level interim job cut callbacks from 9.8% to 8.5% [@farber-2016]. In the third, graduates working in a job that needs no degree got about 30% fewer interview requests. The comparison group held jobs that fit their degree [@nunley-2017].
 
 That is a result about the resume page, not about taking the job. A stop-gap job pays bills. Whether it goes on the page is your call; application forms still ask for full work history.
 
@@ -108,19 +114,19 @@ Volunteering did better in one test. In Belgium, resumes that listed volunteer w
 
 ## Does a layoff look worse than other job loss?
 
-Old US records hint that it can, compared with a plant closing. In surveys from 1984 and 1986, laid-off men lost about 4% more in pay at their next job than men whose plant closed. They also stayed out of work about 25% longer [@gibbons-katz-1991]. Those are real records, so the layoff is linked with the worse result, not shown to cause it. The data is forty years old.
+**Old US records hint that it can, compared with a plant closing.** In surveys from 1984 and 1986, laid-off men lost about 4% more in pay at their next job than men whose plant closed. They also stayed out of work about 25% longer [@gibbons-katz-1991]. Those are real records, so the layoff is linked with the worse result, not shown to cause it. The data is forty years old.
 
 In the one test that compared a layoff with caregiving, laid-off parents got more interview requests [@weisshaar-2018]. We found no field test that compared naming a layoff with saying nothing.
 
 ## What can you say about a health gap?
 
-A few words is enough - no diagnosis. In the US, as of October 2026, an employer may not ask disability-related questions before a conditional job offer [@eeoc-ada-preemployment]. That federal rule covers employers with 15 or more employees [@ada-title-i]. State rules vary. This is not legal advice.
+**A few words is enough - no diagnosis.** In the US, as of October 2026, an employer may not ask disability-related questions before a conditional job offer [@eeoc-ada-preemployment]. That federal rule covers employers with 15 or more employees [@ada-title-i]. State rules vary. This is not legal advice.
 
 A line such as "a health matter, now resolved or well managed" names no condition. That wording is convention, not a tested phrase. The one field test of a health reason used a letter naming a physical illness with full recovery. The resume pointed to cancer [@namingit-2021]. No study we found tested a shorter health line.
 
 ## Should you change dates to hide a gap?
 
-No. Many employers check. A background-check company ran a survey in 2025. More than three-quarters of the businesses it asked had found mismatches in applicants' details in the past 12 months. Work history was one of the most common kinds [@hireright-2025]. A later release said work history checks found mismatches most often in every region, named by 72% of respondents in Asia-Pacific [@hireright-2025-sept]. The company sells those checks, so read its numbers with care.
+**No. Many employers check.** A background-check company ran a survey in 2025. More than three-quarters of the businesses it asked had found mismatches in applicants' details in the past 12 months. Work history was one of the most common kinds [@hireright-2025]. A later release said work history checks found mismatches most often in every region, named by 72% of respondents in Asia-Pacific [@hireright-2025-sept]. The company sells those checks, so read its numbers with care.
 
 A gap costs some replies at some employers. A false date found in a check is a mismatch on record.
 
@@ -159,3 +165,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - the six-month line is now credited to the survey it comes from, with its 48% figure, not called a convention [@fuller-2021]. The background-check survey line now says "in the past 12 months". The findings are unchanged.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.

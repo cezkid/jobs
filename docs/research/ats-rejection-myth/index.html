@@ -18,7 +18,7 @@
 <meta property="og:title" content="Do hiring systems reject 75% of resumes? Where the claim came from">
 <meta property="og:description" content="No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.">
 <meta property="article:published_time" content="2026-10-03">
-<meta property="article:modified_time" content="2026-10-06">
+<meta property="article:modified_time" content="2026-10-07">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ats-rejection-myth/#article","headline":"Do ATS reject 75% of resumes? Where the number came from","description":"No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.","url":"https://jobs.enrriquez.com/research/ats-rejection-myth/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ats-rejection-myth/","datePublished":"2026-10-03","dateModified":"2026-10-06","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do ATS reject 75% of resumes? Where the number came from","item":"https://jobs.enrriquez.com/research/ats-rejection-myth/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ats-rejection-myth/#article","headline":"Do ATS reject 75% of resumes? Where the number came from","description":"No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.","url":"https://jobs.enrriquez.com/research/ats-rejection-myth/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ats-rejection-myth/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Do ATS reject 75% of resumes? Where the number came from","item":"https://jobs.enrriquez.com/research/ats-rejection-myth/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -211,8 +211,9 @@
   h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
+  /* the answer in a sentence under the h1, then the byline: on a phone the first screen holds the answer + what to do */
+  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  .meta:has(+ .ai-note) { margin-bottom: 4px; }
   p { margin: 0 0 16px; }
   ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
@@ -223,12 +224,33 @@
   blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
-  /* the heading after it: no hairline of its own right under the note's rule (A19) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* notes at the top ("What to do", "What the evidence says"; boxes()): a bold label + its list = a ruled note
+     (thick rule over, thin under); "More in What helps" closes the first */
+  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  .box-list li::marker { color: var(--text); }
+  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+  /* the link a 46px tap box (qa HIT_BOXES); negative margins keep the line where it was */
+  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
+  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+  /* a note right before the next one: the next one's thick rule closes it (two rules 32px apart read as one
+     doubled, qa RULES_STACKED) */
+  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
+  /* On this page right under a note: no hairline of its own under the note's rule; the heading after a note
+     (On this page hidden or absent): none either (A19) */
+  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
+  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* citations: the (label; Author year) parenthetical small + grey, so a skimming eye lands on the findings, not
+     on names (linked words draw it); still links - a tap opens the source card (CITE_JS) */
+  small { font-size: 0.85em; color: var(--text-2); }
+  small a { text-decoration-color: var(--text-2); }
+  /* source card (CITE_JS): one Sources entry over the page, centred */
+  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
+  .card::backdrop { background: rgb(0 0 0 / 0.45); }
+  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
+  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
+  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
+  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -254,7 +276,7 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  /* On this page below 1280px: a closed list after the notes at the top, a hairline over it (none right under a note) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
   .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
@@ -270,6 +292,7 @@
   .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
   .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .more p { margin: 0 0 8px; }
+  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -294,9 +317,12 @@
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
+    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
+    /* On this page hidden: the first heading sits right under a note's rule, the next note's rule closes the first */
+    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
     .toc {
       /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
       display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
@@ -325,6 +351,8 @@
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
+  /* hub: the method lines after the list (beside the h1 on wide screens) */
+  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
   .date { color: var(--text-2); font-size: var(--step--1); }
   @media (max-width: 600px) {
     main.wrap { padding-top: 22px; }
@@ -375,8 +403,15 @@
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Do ATS reject 75% of resumes? Where the number came from</li></ol></nav>
 <h1>Do ATS reject 75% of resumes? <span class="deck">Where the number came from</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-06">October 6, 2026</time>.</p>
-<p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="answer">No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-07">October 7, 2026</time>. How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="box"><strong>What to do</strong></p>
+<ul class="box-list">
+<li>Answer the form’s yes/no questions truthfully.</li>
+<li>Use the posting’s own words for skills you really have.</li>
+<li>Fill every question yourself; autofill can leave them blank.</li>
+</ul>
+<p class="box-more"><a href="#what-helps">More in What helps</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
 <summary>On this page</summary>
@@ -396,35 +431,35 @@
 </ol>
 </details>
 </nav>
-<p><strong>Short answer</strong></p>
-<ul>
-<li>“75% rejected by ATS”: a 2012 sales claim; we found no method or data behind it (News report; <a href="#src-levinson-2012-cio">Levinson 2012a</a>).</li>
-<li>Hiring software stores, searches, filters and ranks; recruiters say a person usually decides (Vendor survey; <a href="#src-enhancv-2025">Vasileva 2025</a>).</li>
-<li>Where software rejects alone, recruiters name yes/no questions: work permit, location, license (Vendor survey, 25 recruiters; <a href="#src-enhancv-2025">Vasileva 2025</a>).</li>
-<li>About a third of hiring managers in one 2026 vendor survey use AI to screen or rank (Vendor survey; <a href="#src-resume-genius-2026">Chan 2026</a>). How often it rejects alone: unknown.</li>
+<p class="box"><strong>What the evidence says</strong></p>
+<ul class="box-list">
+<li>“75% rejected by ATS”: a 2012 sales claim; we found no method or data behind it <small>(News report; <a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>.</li>
+<li>Hiring software stores, searches, filters and ranks; recruiters say a person usually decides <small>(Vendor survey; <a href="#src-enhancv-2025">Vasileva 2025</a>)</small>.</li>
+<li>Where software rejects alone, recruiters name yes/no questions: work permit, location, license <small>(Vendor survey, 25 recruiters; <a href="#src-enhancv-2025">Vasileva 2025</a>)</small>.</li>
+<li>About a third of hiring managers in one 2026 vendor survey use AI to screen or rank <small>(Vendor survey; <a href="#src-resume-genius-2026">Chan 2026</a>)</small>. How often it rejects alone: unknown.</li>
 </ul>
 <h2 id="where-does-the-75-number-come-from">Where does the 75% number come from?</h2>
-<p>No study shows that applicant tracking systems reject 75% of resumes. The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems “kill 75% of candidates’ chances” of an interview. The article credited that figure to Preptel, a company selling help to beat those systems (<a href="#src-levinson-2012-cio">Levinson 2012a</a>).</p>
-<p>Preptel sold a resume service for $24.95 a month at the time (<a href="#src-levinson-2012-preptel">Levinson 2012b</a>). Preptel’s own news page had reposted the 75% line by December 2012 (<a href="#src-preptel-2012">Preptel 2012</a>). Neither page says how the number was measured. We searched for a study, sample or data set behind the figure and found none.</p>
-<p>The 2012 line was about the chances of getting an interview, not a count of rejected resumes (<a href="#src-levinson-2012-cio">Levinson 2012a</a>). Retellings turned it into a count. Enhancv’s 2025 page quotes the common version: “75% of resumes are rejected by Applicant Tracking Systems” (<a href="#src-enhancv-2025">Vasileva 2025</a>).</p>
-<p>Enhancv asked 25 recruiters where they had heard the rejection claim. 17 of the 25 recruiters guessed that job seekers picked it up on LinkedIn or TikTok (<a href="#src-enhancv-2025">Vasileva 2025</a>). That answer is the recruiters’ guess, from interviews run by a company that sells a resume builder.</p>
-<p>In short, the 75% figure is not evidence (<a href="#src-levinson-2012-cio">Levinson 2012a</a>). The figure was a sales line, and we found nothing that backs it up.</p>
+<p><strong>No study shows that applicant tracking systems reject 75% of resumes.</strong> The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems “kill 75% of candidates’ chances” of an interview. The article credited that figure to Preptel, a company selling help to beat those systems <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>.</p>
+<p>Preptel sold a resume service for $24.95 a month at the time <small>(<a href="#src-levinson-2012-preptel">Levinson 2012b</a>)</small>. Preptel’s own news page had reposted the 75% line by December 2012 <small>(<a href="#src-preptel-2012">Preptel 2012</a>)</small>. Neither page says how the number was measured. We searched for a study, sample or data set behind the figure and found none.</p>
+<p>The 2012 line was about the chances of getting an interview, not a count of rejected resumes <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>. Retellings turned it into a count. Enhancv’s 2025 page quotes the common version: “75% of resumes are rejected by Applicant Tracking Systems” <small>(<a href="#src-enhancv-2025">Vasileva 2025</a>)</small>.</p>
+<p>Enhancv asked 25 recruiters where they had heard the rejection claim. 17 of the 25 recruiters guessed that job seekers picked it up on LinkedIn or TikTok <small>(<a href="#src-enhancv-2025">Vasileva 2025</a>)</small>. That answer is the recruiters’ guess, from interviews run by a company that sells a resume builder.</p>
+<p>In short, the 75% figure is not evidence <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>. The figure was a sales line, and we found nothing that backs it up.</p>
 <h2 id="what-does-an-applicant-tracking-system-actually-do">What does an applicant tracking system actually do?</h2>
-<p>An applicant tracking system, or ATS, is the software employers use to collect and manage job applications. Almost every Fortune 500 company has one. A resume-tool company found one on the careers pages of 97.4% of Fortune 500 companies in 2026 (<a href="#src-jobscan-2026">Purcell 2026</a>).</p>
-<p>The software does four main jobs. An ATS stores each application. An ATS lets recruiters search resumes for words, like a search engine (<a href="#src-greenhouse-search">Greenhouse 2022</a>). An ATS can filter applicants by their answers to the form’s questions (<a href="#src-greenhouse-rules">Greenhouse 2026b</a>). Newer versions also rank or score applicants against the job (<a href="#src-ashby-2024">Ashby 2024</a>).</p>
-<p>Many recruiters say they search by job title as well as by skill. Jobscan, a company that sells resume scanning, surveyed 384 recruiters in 2025. 76.4% said they filter applicants by skills and 55.3% by job title (<a href="#src-jobscan-2025">Myers 2025</a>). What that means for a title at the top of a resume: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a></p>
-<p>Filtering and ranking can keep a resume from being read without anyone rejecting it by hand. In the Hidden Workers survey, over 90% of executives said they used their software to first filter or rank applicants (<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 20). A resume that no recruiter searched for was not rejected by a rule. A filter or a low rank can still keep it from a person’s eyes.</p>
+<p><strong>An applicant tracking system, or ATS, is the software employers use to collect and manage job applications.</strong> Almost every Fortune 500 company has one. A resume-tool company found one on the careers pages of 97.4% of Fortune 500 companies in 2026 <small>(<a href="#src-jobscan-2026">Purcell 2026</a>)</small>.</p>
+<p>The software does four main jobs. An ATS stores each application. An ATS lets recruiters search resumes for words, like a search engine <small>(<a href="#src-greenhouse-search">Greenhouse 2022</a>)</small>. An ATS can filter applicants by their answers to the form’s questions <small>(<a href="#src-greenhouse-rules">Greenhouse 2026b</a>)</small>. Newer versions also rank or score applicants against the job <small>(<a href="#src-ashby-2024">Ashby 2024</a>)</small>.</p>
+<p>Many recruiters say they search by job title as well as by skill. Jobscan, a company that sells resume scanning, surveyed 384 recruiters in 2025. 76.4% said they filter applicants by skills and 55.3% by job title <small>(<a href="#src-jobscan-2025">Myers 2025</a>)</small>. What that means for a title at the top of a resume: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a></p>
+<p>Filtering and ranking can keep a resume from being read without anyone rejecting it by hand. In the Hidden Workers survey, over 90% of executives said they used their software to first filter or rank applicants <small>(<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 20)</small>. A resume that no recruiter searched for was not rejected by a rule. A filter or a low rank can still keep it from a person’s eyes.</p>
 <p>For you, the useful question is not “will a robot reject me?” The useful question is “will a recruiter searching for this job find me, and will my answers pass the form?”</p>
 <h2 id="what-gets-rejected-automatically">What gets rejected automatically?</h2>
-<p>Where software rejects on its own, recruiters say it is mostly on yes/no answers (Vendor survey, 25 recruiters). Recruiters call them knockout questions. 21 of the 25 recruiters in the Enhancv interviews said they rely on knockout questions (<a href="#src-enhancv-2025">Vasileva 2025</a>). Nobody publishes a count of automatic rejections, so this is what recruiters said, not a measurement.</p>
-<p>Greenhouse, one hiring system, lets employers reject applicants automatically based on answers to custom questions. Greenhouse’s own example is a license or location requirement. The auto-reject feature comes only with its higher-priced plans (<a href="#src-greenhouse-rules">Greenhouse 2026b</a>).</p>
-<p>Greenhouse’s rules act on your answers, not on your resume text. The same help page says the system can send a rejection email automatically (<a href="#src-greenhouse-rules">Greenhouse 2026b</a>).</p>
-<p>23 of the 25 recruiters said their system did not reject automatically for formatting, content or design. Two said their systems were set up to reject on resume content, such as a low match score. The same page reports that a third recruiter, using a system called Phenom, applies a score cutoff to reject low matches (<a href="#src-enhancv-2025">Vasileva 2025</a>). So two, possibly three, of the 25 described rejection based on resume content. The sample is small, and how the 25 were chosen is not stated.</p>
+<p><strong>Where software rejects on its own, recruiters say it is mostly on yes/no answers</strong> (Vendor survey, 25 recruiters). Recruiters call them knockout questions. 21 of the 25 recruiters in the Enhancv interviews said they rely on knockout questions <small>(<a href="#src-enhancv-2025">Vasileva 2025</a>)</small>. Nobody publishes a count of automatic rejections, so this is what recruiters said, not a measurement.</p>
+<p>Greenhouse, one hiring system, lets employers reject applicants automatically based on answers to custom questions. Greenhouse’s own example is a license or location requirement. The auto-reject feature comes only with its higher-priced plans <small>(<a href="#src-greenhouse-rules">Greenhouse 2026b</a>)</small>.</p>
+<p>Greenhouse’s rules act on your answers, not on your resume text. The same help page says the system can send a rejection email automatically <small>(<a href="#src-greenhouse-rules">Greenhouse 2026b</a>)</small>.</p>
+<p>23 of the 25 recruiters said their system did not reject automatically for formatting, content or design. Two said their systems were set up to reject on resume content, such as a low match score. The same page reports that a third recruiter, using a system called Phenom, applies a score cutoff to reject low matches <small>(<a href="#src-enhancv-2025">Vasileva 2025</a>)</small>. So two, possibly three, of the 25 described rejection based on resume content. The sample is small, and how the 25 were chosen is not stated.</p>
 <p>For you, the answers on the form matter more than the layout of the page.</p>
 <h2 id="how-common-are-knockout-questions-our-measurement">How common are knockout questions? Our measurement</h2>
 <p>We wanted to know how often real application forms ask these questions. In October 2026 we drew a sample of US job postings from the last 14 days. The sample covered 14 job fields, from healthcare and sales to law and education.</p>
 <p>Our measurement: 840 postings yielded 143 application forms we could read. Most of the rest sat on Workday, Oracle or iCIMS forms we can’t read, or on job boards that copy postings. In our sample, the middle form asked four questions beyond name, contact details, address and profile links. 22 of the 143 forms asked nothing beyond those.</p>
-<p>Our measurement found 109 of the 143 forms asked about work permit, visa sponsorship, where you work, years of experience, a license or a security clearance.</p>
+<p><strong>Our measurement found 109 of the 143 forms asked about work permit, visa sponsorship, where you work, years of experience, a license or a security clearance.</strong></p>
 <figure class="bars">
 <figcaption>Forms asking each kind of question, October 2026 (Our measurement, 143 application forms; <a href="/research/knockout-questions-2026-10/">the data</a>)</figcaption>
 <table>
@@ -457,29 +492,29 @@
 <p>A plain address box, or a question asking only where you live, is not counted in the on-site row.</p>
 <p>These counts have limits. The forms we could read lean toward tech and office jobs. Sales, customer success, HR and backend software jobs gave 92 of the 143 forms. Healthcare and finance gave one form each, and design gave none. Five form systems are covered; Workday and iCIMS are not. We can see the questions, not whether an employer set any of them to reject automatically. The data, one row per form, and how we counted: <a href="/research/knockout-questions-2026-10/">the knockout-question data</a>.</p>
 <p>An earlier count of many more forms, published by freehire.me’s maker, reported far fewer forms with extra questions. We could not re-find that page to check it, so we don’t cite its numbers. Our sample is small, and its share may not hold for all forms.</p>
-<p>Our share of 109 of the 143 forms does not confirm the old 75% claim (<a href="#src-levinson-2012-cio">Levinson 2012a</a>). A question on a form is not a rejection, and the two numbers measure different things.</p>
+<p>Our share of 109 of the 143 forms does not confirm the old 75% claim <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>. A question on a form is not a rejection, and the two numbers measure different things.</p>
 <p>Expect a work-permit or sponsorship question on many forms, and an on-site or location question on some.</p>
 <h2 id="do-formatting-errors-get-resumes-rejected">Do formatting errors get resumes rejected?</h2>
-<p>We found no study showing that a formatting slip alone causes automatic rejection. Recruiters in the Enhancv interviews mostly said formatting did not trigger rejection (<a href="#src-enhancv-2025">Vasileva 2025</a>). That evidence is a vendor survey of 25 people, so it is weak in both directions.</p>
-<p>Formatting can still hurt in a quieter way: through ranking and search. In a test reported by CIO in 2012, one ideal resume was misread by the Taleo hiring system and scored only 43% relevant (<a href="#src-levinson-2012-cio">Levinson 2012a</a>). That was one resume in one system, so it shows what can happen, not how often.</p>
+<p><strong>We found no study showing that a formatting slip alone causes automatic rejection.</strong> Recruiters in the Enhancv interviews mostly said formatting did not trigger rejection <small>(<a href="#src-enhancv-2025">Vasileva 2025</a>)</small>. That evidence is a vendor survey of 25 people, so it is weak in both directions.</p>
+<p>Formatting can still hurt in a quieter way: through ranking and search. In a test reported by CIO in 2012, one ideal resume was misread by the Taleo hiring system and scored only 43% relevant <small>(<a href="#src-levinson-2012-cio">Levinson 2012a</a>)</small>. That was one resume in one system, so it shows what can happen, not how often.</p>
 <p>Our own tests found that lightly spaced heading letters came back as “EXP E R I ENC E” in one PDF-to-web conversion (<a href="https://github.com/cezkid/jobs/blob/main/app/docs/resume/page-format.md">page-format.md</a>). Three common PDF readers read that lightly spaced heading whole. With wider spacing, every reader in our October 2026 test split the headings into single letters (<a href="/research/resume-parser-test/">Are two-column resumes ATS friendly?</a>). We don’t know whether any ATS reads a page the way that conversion did. If one did, the garbled word would not match a recruiter’s search.</p>
 <p>In one Workday test, a school and degree written on one line landed in the wrong boxes (<a href="https://github.com/cezkid/jobs/blob/main/app/docs/resume/page-format.md">page-format.md</a>).</p>
 <p>Blank questions are not rejections either. Ashby’s “Autofill from resume” filled only contact boxes in our test, leaving the employer’s questions empty (<a href="https://github.com/cezkid/jobs/blob/main/app/docs/apply/ashby.md">ashby.md</a>). Applicants can read the empty boxes as the system rejecting their resume. The autofill did not reject anyone.</p>
 <p>Our own layout test read one resume in 7 layouts with free PDF readers: <a href="/research/resume-parser-test/">Are two-column resumes ATS friendly?</a></p>
 <p>In practice, a plain one-column page that reads back cleanly is the safe choice. Fancy layouts are a risk to being found, not a sure rejection.</p>
 <h2 id="do-employers-filters-screen-out-people-who-could-do-the-job">Do employers’ filters screen out people who could do the job?</h2>
-<p>Yes, by executives’ own account. The Hidden Workers survey asked 2,275 executives in the US, UK and Germany in early 2020 (<a href="#src-fuller-2021">Fuller et al. 2021</a>). Over 90% said they used their software to first filter or rank middle-skills and high-skills applicants (<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 20).</p>
-<p>Most of those executives said their system filters out qualified people at least sometimes. 88% said so for high-skills jobs and 94% for middle-skills jobs. “Always” or “often” was the answer of 62% and 63%. The question asked about candidates who could do the job but did not match exact criteria (<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 26).</p>
-<p>The Hidden Workers numbers are what executives said, not a measurement of what the software did. The survey ran in early 2020, before today’s AI screening tools were common (<a href="#src-fuller-2021">Fuller et al. 2021</a>). What the same executives said about breaks in work history is in <a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a>.</p>
+<p><strong>Yes, by executives’ own account.</strong> The Hidden Workers survey asked 2,275 executives in the US, UK and Germany in early 2020 <small>(<a href="#src-fuller-2021">Fuller et al. 2021</a>)</small>. Over 90% said they used their software to first filter or rank middle-skills and high-skills applicants <small>(<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 20)</small>.</p>
+<p>Most of those executives said their system filters out qualified people at least sometimes. 88% said so for high-skills jobs and 94% for middle-skills jobs. “Always” or “often” was the answer of 62% and 63%. The question asked about candidates who could do the job but did not match exact criteria <small>(<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 26)</small>.</p>
+<p>The Hidden Workers numbers are what executives said, not a measurement of what the software did. The survey ran in early 2020, before today’s AI screening tools were common <small>(<a href="#src-fuller-2021">Fuller et al. 2021</a>)</small>. What the same executives said about breaks in work history is in <a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a>.</p>
 <p>Gaps between your experience and the exact wording of a posting can matter. The fix is the posting’s words for skills you really have, not words you lack.</p>
 <h2 id="is-ai-now-rejecting-resumes-on-its-own">Is AI now rejecting resumes on its own?</h2>
-<p>How often AI rejects applicants with no person involved is unknown. In a 2026 survey of 1,000 US hiring managers, 35% said they used AI to screen or rank applications. 19% said they used AI to screen some out before a human looked. 6% said AI can move applicants forward or reject them with limited human review. 32% said AI recommends or ranks, but people make all final decisions (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
+<p><strong>How often AI rejects applicants with no person involved is unknown.</strong> In a 2026 survey of 1,000 US hiring managers, 35% said they used AI to screen or rank applications. 19% said they used AI to screen some out before a human looked. 6% said AI can move applicants forward or reject them with limited human review. 32% said AI recommends or ranks, but people make all final decisions <small>(<a href="#src-resume-genius-2026">Chan 2026</a>)</small>.</p>
 <p>The Resume Genius survey was run by a resume-builder company. The survey does not give its dates, and the answers are what managers said.</p>
-<p>Vendors describe their AI as an aid to a human reviewer. Ashby says its AI marks each applicant as meeting an employer’s criteria or not, with reasons. Ashby says it is then “up to the reviewer to advance or reject” (<a href="#src-ashby-2024">Ashby 2024</a>).</p>
-<p>A US lawsuit alleges otherwise for one vendor. In Mobley v. Workday, the plaintiffs allege Workday’s AI scored, sorted or screened applicants in a way that disadvantaged older people (<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 3). The court described Workday’s position as: its AI cannot reject anyone without the employer taking part (<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 10).</p>
-<p>In May 2025 a federal court in California let the age claim go forward as a collective action, at a preliminary stage. Workday can still ask the court to undo that step later (<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>). Workday told the court 1.1 billion applications were rejected using its software. The court said that estimate ignores the limits of who is in the case (<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 19).</p>
-<p>In July 2025 the court ruled that applicants screened with Workday’s HiredScore AI features also belong in the case. In June 2026 the court granted part of Workday’s motion to dismiss the amended complaint and denied the rest (<a href="#src-clearinghouse-mobley">Civil Rights Litigation Clearinghouse, University of Michigan 2025</a>). As of October 2026, the plaintiffs are asking the court to certify four groups of applicants as a class action. A hearing is set for March 2027 (<a href="#src-lawyer-monthly-2026">Lawyer Monthly 2026</a>). Workday denies the claims (<a href="#src-clearinghouse-mobley">Civil Rights Litigation Clearinghouse, University of Michigan 2025</a>). Nothing has been proven. Not legal advice. What the laws require of employers: <a href="/research/ai-hiring-laws/">AI hiring laws in 2026</a>.</p>
-<p>AI scores are in use, but most managers in that survey said a person still makes the call (<a href="#src-resume-genius-2026">Chan 2026</a>).</p>
+<p>Vendors describe their AI as an aid to a human reviewer. Ashby says its AI marks each applicant as meeting an employer’s criteria or not, with reasons. Ashby says it is then “up to the reviewer to advance or reject” <small>(<a href="#src-ashby-2024">Ashby 2024</a>)</small>.</p>
+<p>A US lawsuit alleges otherwise for one vendor. In Mobley v. Workday, the plaintiffs allege Workday’s AI scored, sorted or screened applicants in a way that disadvantaged older people <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 3)</small>. The court described Workday’s position as: its AI cannot reject anyone without the employer taking part <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 10)</small>.</p>
+<p>In May 2025 a federal court in California let the age claim go forward as a collective action, at a preliminary stage. Workday can still ask the court to undo that step later <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>)</small>. Workday told the court 1.1 billion applications were rejected using its software. The court said that estimate ignores the limits of who is in the case <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>, p. 19)</small>.</p>
+<p>In July 2025 the court ruled that applicants screened with Workday’s HiredScore AI features also belong in the case. In June 2026 the court granted part of Workday’s motion to dismiss the amended complaint and denied the rest <small>(<a href="#src-clearinghouse-mobley">Civil Rights Litigation Clearinghouse, University of Michigan 2025</a>)</small>. As of October 2026, the plaintiffs are asking the court to certify four groups of applicants as a class action. A hearing is set for March 2027 <small>(<a href="#src-lawyer-monthly-2026">Lawyer Monthly 2026</a>)</small>. Workday denies the claims <small>(<a href="#src-clearinghouse-mobley">Civil Rights Litigation Clearinghouse, University of Michigan 2025</a>)</small>. Nothing has been proven. Not legal advice. What the laws require of employers: <a href="/research/ai-hiring-laws/">AI hiring laws in 2026</a>.</p>
+<p>AI scores are in use, but most managers in that survey said a person still makes the call <small>(<a href="#src-resume-genius-2026">Chan 2026</a>)</small>.</p>
 <h2 id="what-we-dont-know">What we don’t know</h2>
 <ul>
 <li>How many applications any system rejects automatically. We found no public data that counts it across employers.</li>
@@ -490,11 +525,11 @@
 </ul>
 <h2 id="what-helps">What helps</h2>
 <ul>
-<li>Answer yes/no questions truthfully. In the US, as of October 2026, every new hire proves their right to work on Form I-9 (<a href="#src-uscis-i9">US Citizenship and Immigration Services 2026</a>). A false “no” to sponsorship shows up when a visa is needed.</li>
-<li>Use the posting’s own words for skills you really have. Recruiters can search resumes for them (<a href="#src-greenhouse-search">Greenhouse 2022</a>).</li>
+<li>Answer yes/no questions truthfully. In the US, as of October 2026, every new hire proves their right to work on Form I-9 <small>(<a href="#src-uscis-i9">US Citizenship and Immigration Services 2026</a>)</small>. A false “no” to sponsorship shows up when a visa is needed.</li>
+<li>Use the posting’s own words for skills you really have. Recruiters can search resumes for them <small>(<a href="#src-greenhouse-search">Greenhouse 2022</a>)</small>.</li>
 <li>Use a plain one-column page that a computer reads back correctly.</li>
 <li>Fill every question yourself; autofill can leave them blank (our Ashby test did).</li>
-<li>Apply widely. Executives say rigid filters drop qualified people (<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 26), so one rejection may say more about the filter than about you.</li>
+<li>Apply widely. Executives say rigid filters drop qualified people <small>(<a href="#src-fuller-2021">Fuller et al. 2021</a>, p. 26)</small>, so one rejection may say more about the filter than about you.</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. More articles: <a href="/research/">Research</a>. Whether AI screeners treat people fairly: <a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a>. Which resume rules have evidence: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a>.</p>
 <h2 id="how-cez-job-finder-uses-this">How <span translate="no">CEZ Job Finder</span> uses this</h2>
@@ -507,9 +542,10 @@
 <p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="changes">Changes</h2>
 <ul>
-<li>October 2026 – added a 2025 recruiter survey: most recruiters asked filter by skills, and over half by job title (<a href="#src-jobscan-2025">Myers 2025</a>).</li>
+<li>October 2026 – added a 2025 recruiter survey: most recruiters asked filter by skills, and over half by job title <small>(<a href="#src-jobscan-2025">Myers 2025</a>)</small>.</li>
 <li>October 2026 – recounted our measurement. Some forms list the employer’s questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.</li>
 <li>October 2026 – the spaced-heading line now says three readers read a lightly spaced heading whole, and wider spacing split it in our parser test. The Form I-9 line now carries its date. The finding is unchanged.</li>
+<li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -532,8 +568,9 @@
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/keep-chats-out-of-ai-training/">Opt out of AI training: ChatGPT, Claude, Copilot and Gemini</a></li>
-<li><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a></li>
+<li><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</p></li>
+<li><a href="/research/resume-parser-test/">Are two-column resumes ATS friendly? A 7-layout PDF test</a><p>We read one resume in 7 layouts with 3 free PDF readers, not an employer’s system. Our plain page never broke; spaced-out headings always did.</p></li>
+<li><a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a><p>Short gaps showed no clear cost in the biggest review; long ones cut replies. A reason line helped in one test, not in another. The bias is the employer’s.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
@@ -555,5 +592,6 @@
   </div>
 </footer>
 <script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
+<script>(()=>{const d=document.createElement("dialog");d.className="card";document.body.append(d);document.addEventListener("click",e=>{const l=e.target.closest('a[href^="#src-"]');if(!l||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const s=document.getElementById(l.hash.slice(1));if(!s)return;e.preventDefault();d.innerHTML="<div>"+s.innerHTML+'<p><a href="#sources">All sources<\/a><button autofocus>Close<\/button><\/p><\/div>';d.showModal()});d.addEventListener("click",e=>{if(e.target==d||e.target.closest('button,[href="#sources"]'))d.close()})})()</script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 title: "Do ATS reject 75% of resumes? Where the number came from"
 description: No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.
 published: 2026-10-03
-modified: 2026-10-06
+modified: 2026-10-07
 status: published
 og_title: "Do hiring systems reject 75% of resumes? Where the claim came from"
 uncited:
@@ -19,7 +19,13 @@ uncited:
   - "from 105 to 109 of 143"
   - "one form each"
 ---
-**Short answer**
+**What to do**
+
+- Answer the form's yes/no questions truthfully.
+- Use the posting's own words for skills you really have.
+- Fill every question yourself; autofill can leave them blank.
+
+**What the evidence says**
 
 - "75% rejected by ATS": a 2012 sales claim; we found no method or data behind it (News report) [@levinson-2012-cio].
 - Hiring software stores, searches, filters and ranks; recruiters say a person usually decides (Vendor survey) [@enhancv-2025].
@@ -28,7 +34,7 @@ uncited:
 
 ## Where does the 75% number come from?
 
-No study shows that applicant tracking systems reject 75% of resumes. The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems "kill 75% of candidates' chances" of an interview. The article credited that figure to Preptel, a company selling help to beat those systems [@levinson-2012-cio].
+**No study shows that applicant tracking systems reject 75% of resumes.** The earliest copy we found is a 2012 magazine article quoting a resume-help company. In March 2012, CIO magazine wrote that applicant tracking systems "kill 75% of candidates' chances" of an interview. The article credited that figure to Preptel, a company selling help to beat those systems [@levinson-2012-cio].
 
 Preptel sold a resume service for $24.95 a month at the time [@levinson-2012-preptel]. Preptel's own news page had reposted the 75% line by December 2012 [@preptel-2012]. Neither page says how the number was measured. We searched for a study, sample or data set behind the figure and found none.
 
@@ -40,7 +46,7 @@ In short, the 75% figure is not evidence [@levinson-2012-cio]. The figure was a 
 
 ## What does an applicant tracking system actually do?
 
-An applicant tracking system, or ATS, is the software employers use to collect and manage job applications. Almost every Fortune 500 company has one. A resume-tool company found one on the careers pages of 97.4% of Fortune 500 companies in 2026 [@jobscan-2026].
+**An applicant tracking system, or ATS, is the software employers use to collect and manage job applications.** Almost every Fortune 500 company has one. A resume-tool company found one on the careers pages of 97.4% of Fortune 500 companies in 2026 [@jobscan-2026].
 
 The software does four main jobs. An ATS stores each application. An ATS lets recruiters search resumes for words, like a search engine [@greenhouse-search]. An ATS can filter applicants by their answers to the form's questions [@greenhouse-rules]. Newer versions also rank or score applicants against the job [@ashby-2024].
 
@@ -52,7 +58,7 @@ For you, the useful question is not "will a robot reject me?" The useful questio
 
 ## What gets rejected automatically?
 
-Where software rejects on its own, recruiters say it is mostly on yes/no answers (Vendor survey, 25 recruiters). Recruiters call them knockout questions. 21 of the 25 recruiters in the Enhancv interviews said they rely on knockout questions [@enhancv-2025]. Nobody publishes a count of automatic rejections, so this is what recruiters said, not a measurement.
+**Where software rejects on its own, recruiters say it is mostly on yes/no answers** (Vendor survey, 25 recruiters). Recruiters call them knockout questions. 21 of the 25 recruiters in the Enhancv interviews said they rely on knockout questions [@enhancv-2025]. Nobody publishes a count of automatic rejections, so this is what recruiters said, not a measurement.
 
 Greenhouse, one hiring system, lets employers reject applicants automatically based on answers to custom questions. Greenhouse's own example is a license or location requirement. The auto-reject feature comes only with its higher-priced plans [@greenhouse-rules].
 
@@ -68,7 +74,7 @@ We wanted to know how often real application forms ask these questions. In Octob
 
 Our measurement: 840 postings yielded 143 application forms we could read. Most of the rest sat on Workday, Oracle or iCIMS forms we can't read, or on job boards that copy postings. In our sample, the middle form asked four questions beyond name, contact details, address and profile links. 22 of the 143 forms asked nothing beyond those.
 
-Our measurement found 109 of the 143 forms asked about work permit, visa sponsorship, where you work, years of experience, a license or a security clearance.
+**Our measurement found 109 of the 143 forms asked about work permit, visa sponsorship, where you work, years of experience, a license or a security clearance.**
 
 ```bars
 Forms asking each kind of question, October 2026 (Our measurement, 143 application forms; [the data](knockout-questions-2026-10.md))
@@ -91,7 +97,7 @@ Expect a work-permit or sponsorship question on many forms, and an on-site or lo
 
 ## Do formatting errors get resumes rejected?
 
-We found no study showing that a formatting slip alone causes automatic rejection. Recruiters in the Enhancv interviews mostly said formatting did not trigger rejection [@enhancv-2025]. That evidence is a vendor survey of 25 people, so it is weak in both directions.
+**We found no study showing that a formatting slip alone causes automatic rejection.** Recruiters in the Enhancv interviews mostly said formatting did not trigger rejection [@enhancv-2025]. That evidence is a vendor survey of 25 people, so it is weak in both directions.
 
 Formatting can still hurt in a quieter way: through ranking and search. In a test reported by CIO in 2012, one ideal resume was misread by the Taleo hiring system and scored only 43% relevant [@levinson-2012-cio]. That was one resume in one system, so it shows what can happen, not how often.
 
@@ -107,7 +113,7 @@ In practice, a plain one-column page that reads back cleanly is the safe choice.
 
 ## Do employers' filters screen out people who could do the job?
 
-Yes, by executives' own account. The Hidden Workers survey asked 2,275 executives in the US, UK and Germany in early 2020 [@fuller-2021]. Over 90% said they used their software to first filter or rank middle-skills and high-skills applicants [@fuller-2021, p. 20].
+**Yes, by executives' own account.** The Hidden Workers survey asked 2,275 executives in the US, UK and Germany in early 2020 [@fuller-2021]. Over 90% said they used their software to first filter or rank middle-skills and high-skills applicants [@fuller-2021, p. 20].
 
 Most of those executives said their system filters out qualified people at least sometimes. 88% said so for high-skills jobs and 94% for middle-skills jobs. "Always" or "often" was the answer of 62% and 63%. The question asked about candidates who could do the job but did not match exact criteria [@fuller-2021, p. 26].
 
@@ -117,7 +123,7 @@ Gaps between your experience and the exact wording of a posting can matter. The 
 
 ## Is AI now rejecting resumes on its own?
 
-How often AI rejects applicants with no person involved is unknown. In a 2026 survey of 1,000 US hiring managers, 35% said they used AI to screen or rank applications. 19% said they used AI to screen some out before a human looked. 6% said AI can move applicants forward or reject them with limited human review. 32% said AI recommends or ranks, but people make all final decisions [@resume-genius-2026].
+**How often AI rejects applicants with no person involved is unknown.** In a 2026 survey of 1,000 US hiring managers, 35% said they used AI to screen or rank applications. 19% said they used AI to screen some out before a human looked. 6% said AI can move applicants forward or reject them with limited human review. 32% said AI recommends or ranks, but people make all final decisions [@resume-genius-2026].
 
 The Resume Genius survey was run by a resume-builder company. The survey does not give its dates, and the answers are what managers said.
 
@@ -163,3 +169,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 - October 2026 - added a 2025 recruiter survey: most recruiters asked filter by skills, and over half by job title [@jobscan-2025].
 - October 2026 - recounted our measurement. Some forms list the employer's questions next to the name and email boxes, and the first count missed them. Forms with a screening question rose from 105 to 109 of 143; the finding is unchanged.
 - October 2026 - the spaced-heading line now says three readers read a lightly spaced heading whole, and wider spacing split it in our parser test. The Form I-9 line now carries its date. The finding is unchanged.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.

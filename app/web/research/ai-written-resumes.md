@@ -1,8 +1,8 @@
 ---
 title: "Can employers tell if AI wrote your resume?"
-description: Mostly no, in tests - most people can't spot AI writing. About half of hiring managers say they'd care. What studies show, and what to do.
+description: "Mostly no, in tests with older AI models: most people couldn't spot AI writing. About half of hiring managers say they'd care. What studies show."
 published: 2026-10-03
-modified: 2026-10-05
+modified: 2026-10-07
 status: published
 og_title: "Can employers tell if AI wrote your resume? What studies show"
 uncited:
@@ -10,7 +10,13 @@ uncited:
   - "We found no study"
   - "We searched the web, arXiv and news"
 ---
-**Short answer**
+**What to do**
+
+- Use AI for wording, not facts.
+- Put in your own facts and numbers, and edit what AI drafts.
+- Never let AI invent a skill, job or number.
+
+**What the evidence says**
 
 - In tests with older AI models, most of 4,600 people couldn't tell AI writing from human writing; 5 readers who use AI often spotted whole AI-written texts far better (Lab studies) [@jakesch-2023; @russell-2025].
 - Early detectors misfired and flagged non-native writers; one paid 2025 tool did far better; none tested on resumes (Lab studies; maker's docs) [@openai-2023; @liang-2023; @russell-2025].
@@ -19,7 +25,7 @@ uncited:
 
 ## Can people tell if a resume was written by AI?
 
-Most people couldn't, in the largest test. In 2023, 4,600 people judged short self-descriptions written by people or by AI. The texts included freelancer profiles of the kind used to win work. People picked the right source only 50% to 52% of the time, about as good as a coin toss. Paying people for right answers barely helped, at 51.6%. Telling them after each answer whether they were right gave 51.2% [@jakesch-2023].
+**Most people couldn't, in the largest test.** In 2023, 4,600 people judged short self-descriptions written by people or by AI. The texts included freelancer profiles of the kind used to win work. People picked the right source only 50% to 52% of the time, about as good as a coin toss. Paying people for right answers barely helped, at 51.6%. Telling them after each answer whether they were right gave 51.2% [@jakesch-2023].
 
 People relied on wrong clues. They took first-person words, contractions and family topics as signs of a human writer. AI text tuned to those clues was judged human more often than real human text, 65.7% against 51.7%. The AI models in that study were older ones, GPT-2 and GPT-3 [@jakesch-2023].
 
@@ -29,7 +35,7 @@ For you, a reader who uses AI often may notice text written wholly by AI. Most r
 
 ## Do AI detectors work on resumes?
 
-Early detectors did not work well, and no detector has been tested on resumes. OpenAI released its own AI-text detector in January 2023. In its maker's test, the detector caught 26% of AI text. It wrongly flagged human text 9% of the time. OpenAI withdrew the detector in July 2023, citing "its low rate of accuracy" [@openai-2023].
+**Early detectors did not work well, and no detector has been tested on resumes.** OpenAI released its own AI-text detector in January 2023. In its maker's test, the detector caught 26% of AI text. It wrongly flagged human text 9% of the time. OpenAI withdrew the detector in July 2023, citing "its low rate of accuracy" [@openai-2023].
 
 A 2023 study ran seven detectors on essays all written by people. The detectors were nearly perfect on essays by US eighth graders. On essays by non-native English writers, they flagged 61% as AI on average. Of those essays, 97.8% were flagged by at least one detector. Plainer word choice made human writing look like AI to those 2023 detectors [@liang-2023].
 
@@ -43,7 +49,7 @@ A detector's "AI" label is untested on resumes. Older detectors were tripped by 
 
 ## What do hiring managers say about AI-written resumes?
 
-They say they can tell, and about half say they care. Both surveys below are vendor surveys, run for companies in the hiring or resume business.
+**They say they can tell, and about half say they care.** Both surveys below are vendor surveys, run for companies in the hiring or resume business.
 
 In an October 2024 survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI. The other 46% said they would not care [@insight-global-2025].
 
@@ -69,7 +75,7 @@ The warning signs managers name are generic, vague and inflated lines. Those are
 
 ## Does using AI on your resume hurt your chances?
 
-Writing help raised hiring in the largest real test. That test used spelling and grammar help, not today's chat AI [@wiles-2025].
+**Writing help raised hiring in the largest real test. That test used spelling and grammar help, not today's chat AI** [@wiles-2025].
 
 In 2021, an online freelance platform ran an experiment with 480,948 new job seekers. Half got automatic suggestions on spelling, grammar and wording for their profile. Those who got the help were hired about 8% more often, within a range of 3% to 13%. They got 10% higher pay, too. Employers rated the people they hired just as highly afterward. The authors' reading: clearer writing helped employers see what people could do. The platform funded the authors' work [@wiles-2025].
 
@@ -85,13 +91,13 @@ For you, fixing errors in your own wording helped in a large test. A letter that
 
 ## Does AI wording help with AI screeners?
 
-In one lab test, it did, when the screener was the same AI. A 2025 study took 2,245 real resumes and had AI models rewrite each summary section. Each AI model then picked between the person's own summary and one the same model wrote. In the updated June 2026 version, eight of the nine models picked their own version more often. In simulated hiring for 24 jobs, applicants using the screener's own AI were 23% to 60% more likely to be shortlisted. Simple changes to the screener's instructions cut this preference by more than half [@xu-2025]. That is a lab test, not a real employer's system.
+**In one lab test, it did, when the screener was the same AI.** A 2025 study took 2,245 real resumes and had AI models rewrite each summary section. Each AI model then picked between the person's own summary and one the same model wrote. In the updated June 2026 version, eight of the nine models picked their own version more often. In simulated hiring for 24 jobs, applicants using the screener's own AI were 23% to 60% more likely to be shortlisted. Simple changes to the screener's instructions cut this preference by more than half [@xu-2025]. That is a lab test, not a real employer's system.
 
 An AI screener's preference for its own wording cuts both ways for job seekers. An AI screener may like AI wording, while a human reader may dislike it. Clear, specific lines are our advice for both; no study tests it.
 
 ## What words make writing sound like AI?
 
-Some words became much more common after chat AI arrived. A 2025 study counted words in over 15 million science paper summaries from 2010 to 2024. "Delves" appeared 28 times more often in 2024 than its earlier trend predicted. "Underscores" rose 13.8 times and "showcasing" 10.7 times. Common words like "crucial" and "potential" also jumped. The authors estimate at least 13.5% of 2024 summaries were processed with AI [@kobak-2025]. That study is about science writing, not resumes. It shows which words AI overuses, not whether employers notice them.
+**Some words became much more common after chat AI arrived.** A 2025 study counted words in over 15 million science paper summaries from 2010 to 2024. "Delves" appeared 28 times more often in 2024 than its earlier trend predicted. "Underscores" rose 13.8 times and "showcasing" 10.7 times. Common words like "crucial" and "potential" also jumped. The authors estimate at least 13.5% of 2024 summaries were processed with AI [@kobak-2025]. That study is about science writing, not resumes. It shows which words AI overuses, not whether employers notice them.
 
 Words like "delve," "showcase" and "pivotal" add no facts. Cutting them makes a line clearer, whoever wrote it.
 
@@ -128,3 +134,5 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 - October 2026 - reworded the two cover letter studies. The hiring shifts by ability come from an extreme case in the authors' model, and both callback estimates were too weak to rule out chance; the numbers are unchanged.
 - October 2026 - the hiring survey now names its sample as HR and talent leaders, as its method section does. The 54% line now reads as a share of everyone asked [@insight-global-2025]. The numbers are unchanged.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - the line under the title now says the tests used older AI models.

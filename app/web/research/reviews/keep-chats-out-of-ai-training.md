@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.31 (no drafting context; sources opened before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.31 (no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Keep your chats out of AI training (`keep-chats-out-of-ai-training.md`)
 
@@ -223,3 +223,23 @@ New section "Which switch does each app use?": lead, a 4-row table (switch name,
 4. Low. Lead "The table sums up the four personal plans" reads as four plans, not four apps. Replace with: "The table sums up each app's personal plans; the sections below give each step."
 
 Revision (plan-xsy.54, 2026-10-04): findings 1-4 fixed with the proposed wording, plus the optional body line on Copilot feedback (under "Feedback can send the whole chat."). Verdict publish.
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 3 section answers set in bold; `modified` 2026-10-07; a new `## Changes` section with one line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Turn the training switch off on every AI app you use for job hunting." <- same words. Supported.
+- "Skip thumbs up, thumbs down and feedback on chats with your resume." <- "Skip thumbs up, thumbs down and "send feedback" on chats with your resume" [@openai-data-controls; @anthropic-training-consumer]. Supported.
+- "Use a temporary chat for one-off questions with personal details." <- "Use a temporary or incognito chat ..." [@openai-data-controls; @anthropic-training-consumer]. Same advice; "temporary" is generic, and Claude's name for it (Incognito) is in the Claude section. Supported.
+- No statistic, citation or jargon in the note. Nothing says the switch stops the AI reading the resume.
+
+Bold: 3 lines (job seeker, switch table, work plans); deleting the added ** pair gives the main line byte for byte (script). The four how-to sections already bold the switch name; "What doesn't the switch do?" already had bold lead-ins, F17 wording unchanged.
+Description vs body: "ChatGPT, Claude, GitHub Copilot and Gemini can train on personal-plan chats. Where each switch is, and what it doesn't stop." = evidence bullet 1, the four step sections and "What doesn't the switch do?". Supported, not stronger.
+Changes: new section, one line, accurate. It leaves out the Short answer rename. Optional; no fix needed.
+
+No finding. Verdict: publish.
+
+Changes-line edit after this re-review (2026-10-07): the generic line now also says "renamed the Short answer box "What the evidence says""; accurate, no other article change. Verdict: publish (unchanged).

@@ -2,7 +2,7 @@
 title: "Do cover letters still matter now that AI writes them?"
 description: "Often yes - many forms we checked had a letter box, and a 2019-20 test found more callbacks with one. AI-written letters now tell employers less."
 published: 2026-10-04
-modified: 2026-10-05
+modified: 2026-10-07
 status: published
 uncited:
   - "143 application forms"
@@ -21,7 +21,13 @@ uncited:
   - "We found no study"
   - "We searched the web and arXiv"
 ---
-**Short answer**
+**What to do**
+
+- Write a letter when the form asks for one.
+- Say in your own words why you want this job.
+- If AI drafts it, edit it with your own facts; never let it invent.
+
+**What the evidence says**
 
 - Many forms have a box: 96 of 143 US forms we read, mostly Greenhouse; nearly all optional (Our measurement, October 2026).
 - A tailored letter beat no letter on callbacks in a 2019-20 test of 7,287 applications (Small study by a resume company, not peer-reviewed) [@resumego-2020].
@@ -30,7 +36,7 @@ uncited:
 
 ## Do employers still ask for cover letters?
 
-Many application forms still have a cover letter box. Our measurement read 143 application forms from US job postings in October 2026. Of those, 96 had a cover letter box (67%). The box was optional on 91 of those 96 forms; 2 required one, and 3 we could not check because the hiring system no longer showed the posting. By employer, 71 of the 104 employers had a cover letter box on at least one form.
+**Many application forms still have a cover letter box.** Our measurement read 143 application forms from US job postings in October 2026. Of those, 96 had a cover letter box (67%). The box was optional on 91 of those 96 forms; 2 required one, and 3 we could not check because the hiring system no longer showed the posting. By employer, 71 of the 104 employers had a cover letter box on at least one form.
 
 The form system made the biggest difference we saw. Our measurement found a box on 85 of 96 Greenhouse forms, where it sits with the basic boxes such as name and email. It found a box on 3 of 15 Ashby forms and 7 of 12 Workable forms. Our measurement found 0 of 19 Lever forms with a box named cover letter. Some Lever forms show an open "additional information" box whose hint says to add a cover letter; we did not count those. Job field and form system overlap in our sample, so we can't fully separate the two. The forms, the counting code and the limits are on [our data page](cover-letter-boxes-2026-10.md).
 
@@ -42,7 +48,7 @@ For you, a cover letter box is common, and it is almost always optional.
 
 ## Does a cover letter get you more interviews?
 
-In the one field test we found, a tailored letter got more callbacks than none. ResumeGo, a resume-writing company, sent 7,287 made-up applications from July 2019 to January 2020. The applications went to jobs on ZipRecruiter, Glassdoor and Indeed. Each went out with no letter, a generic letter or a letter tailored to the job. Within 30 days, 10.7% of applications with no letter got a callback. Generic letters got 12.5%, and tailored letters got 16.4%, about half again as many as no letter [@resumego-2020].
+**In the one field test we found, a tailored letter got more callbacks than none.** ResumeGo, a resume-writing company, sent 7,287 made-up applications from July 2019 to January 2020. The applications went to jobs on ZipRecruiter, Glassdoor and Indeed. Each went out with no letter, a generic letter or a letter tailored to the job. Within 30 days, 10.7% of applications with no letter got a callback. Generic letters got 12.5%, and tailored letters got 16.4%, about half again as many as no letter [@resumego-2020].
 
 ```bars
 Callbacks within 30 days, by cover letter, 2019-2020 (Small study by a resume company, 7,287 made-up applications, not peer-reviewed) [@resumego-2020]
@@ -58,7 +64,7 @@ No peer-reviewed field test of letter against no letter turned up in our search.
 
 ## Do recruiters actually read cover letters?
 
-Recruiters say they do, in surveys run by companies that sell resume or letter help. In ResumeGo's survey of 236 recruiters and hiring managers, 87% said they read cover letters. A smaller share, 65%, said letters had real weight in who gets an interview or a job. Most readers were quick: 32% said they spend under 10 seconds, and 52% said 10 seconds to a minute. Only 26% said they hold a missing optional letter against an applicant [@resumego-2020-survey].
+**Recruiters say they do, in surveys run by companies that sell resume or letter help.** In ResumeGo's survey of 236 recruiters and hiring managers, 87% said they read cover letters. A smaller share, 65%, said letters had real weight in who gets an interview or a job. Most readers were quick: 32% said they spend under 10 seconds, and 52% said 10 seconds to a minute. Only 26% said they hold a missing optional letter against an applicant [@resumego-2020-survey].
 
 A survey of 200 US recruiters, HR staff and hiring managers was run for ResumeLab, which sells a letter builder. Its page is dated 2025, but the same survey was on it by February 2020, before chat AI. In it, 77% said they read cover letters even when not required. Oddly, fewer, 74%, said they read them when required. Also 77% said they prefer applicants who sent an optional letter. Only 13% said they would still consider an application missing a required letter. The page gives no survey dates and says some answers were rephrased [@resumelab-2020].
 
@@ -66,7 +72,7 @@ Both surveys come from sellers of the thing they ask about. Both report what rec
 
 ## Does AI change what a cover letter tells employers?
 
-AI letters may have raised callbacks a little for a short time, but letters now tell employers less. The best evidence comes from one freelance job platform that added an AI letter writer in April 2023 [@cui-2025].
+**AI letters may have raised callbacks a little for a short time, but letters now tell employers less.** The best evidence comes from one freelance job platform that added an AI letter writer in April 2023 [@cui-2025].
 
 Researchers studied 5 million cover letters on that platform. Among those who could use the tool, 62% used it at least once. Having the tool raised callbacks by 0.43 per 100 letters, from a base of about 7 per 100. That gain was too uncertain to rule out chance, and it faded after about two months. Before the tool, a letter that shared many words with the job post went with more callbacks. After the tool, that link was 51% weaker. The link between a close match and a job offer fell 79%. Employers leaned a little more on each worker's past reviews instead. The authors found no evidence of a change in overall hiring, and call that result early [@cui-2025].
 
@@ -80,7 +86,7 @@ For you, a letter that only echoes the job post now carries less weight. What yo
 
 ## Can employers tell an AI-written cover letter?
 
-Hiring managers say they can, and about half say they would mind. In an October 2024 vendor survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI [@insight-global-2025].
+**Hiring managers say they can, and about half say they would mind.** In an October 2024 vendor survey of 1,005 US HR and talent leaders, 88% said they can tell when applicants use AI. In the same survey, 54% said they would care if a resume or cover letter was written by AI [@insight-global-2025].
 
 One small lab test points the other way. In a 2024 student thesis, 86 raters each scored six made-up cover letters. Letters written by ChatGPT got the highest hiring scores, above letters people wrote themselves. The scores barely moved after raters were told AI may have been used. The raters were screened only by two questions about themselves, and no one was really hired [@kleine-allekotte-2024].
 
@@ -136,3 +142,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - ResumeGo's test is now labelled a small study by a resume company, matching our evidence scale. The AI letter gain now reads "may have raised", since it was too uncertain to rule out chance. Two survey samples now name who was asked. The 54% line now reads as a share of everyone asked [@insight-global-2025]. The model's extreme case now says applications, as the paper does, not letters. The numbers are unchanged.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
