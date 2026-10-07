@@ -155,7 +155,7 @@ A missing year is not a false statement. A false year found in a check is a mism
 - Never change a date. Degree and work dates can be checked [@nsc-about; @hireright-2025].
 - Apply widely. That is common advice, not a study finding.
 
-How we grade evidence: [How we research](methods.md). What else makes a resume work: [What makes a good resume?](what-makes-a-good-resume.md). Gaps in work history are covered in [Does an employment gap on your resume hurt?](employment-gaps.md) Bias over names, records and more, in one place: [Hiring discrimination: what studies show, what helps](hiring-bias-what-helps.md).
+What else makes a resume work: [What makes a good resume?](what-makes-a-good-resume.md). Gaps in work history are covered in [Does an employment gap on your resume hurt?](employment-gaps.md) Bias over names, records and more, in one place: [Hiring discrimination: what studies show, what helps](hiring-bias-what-helps.md).
 
 ## How CEZ Job Finder uses this
 

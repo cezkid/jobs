@@ -159,7 +159,7 @@ For you, a column is risky because you can't control which kind of reader an emp
 - Skip text boxes and designer templates when applying online. If your field values design, MIT's career office suggests keeping those for resumes you hand over directly [@mit-capd-ats].
 - Check your file's text: save it as plain text, or copy it into a plain text editor. MIT says text in the wrong order points to text boxes or columns [@mit-capd-ats]. Your check shows one reader's view only. Other readers may read columns across, so one column is still the safer choice.
 
-Why a plain page is the safe choice: [What makes a good resume?](what-makes-a-good-resume.md#does-layout-matter). Whether software rejects most resumes: [Do hiring systems reject 75% of resumes?](ats-rejection-myth.md). The full data and method: [Seven resume layouts, three PDF text readers](resume-parser-test-2026-10.md). How we grade evidence: [How we research](methods.md).
+Why a plain page is the safe choice: [What makes a good resume?](what-makes-a-good-resume.md#does-layout-matter). Whether software rejects most resumes: [Do hiring systems reject 75% of resumes?](ats-rejection-myth.md). The full data and method: [Seven resume layouts, three PDF text readers](resume-parser-test-2026-10.md).
 
 ## How CEZ Job Finder uses this
 

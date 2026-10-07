@@ -42,8 +42,8 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
 HIT_BOXES, every page at 390x844 (phone, touch) + 1366x1024 (iPad landscape, touch): every visible link + button
 but links inside running text and the skip link is >= 44px tall + wide (Apple HIG 44x44pt); HIT_OVERLAP, same
 pages + sizes: every header / footer / nav tap box keeps >= 24px of its height uncovered by its neighbours' boxes
-(Lighthouse target-size); SCHEME_LIGHT / SCHEME_DARK, home + an article at 1440x900: desk, running-text link
-(the tint), navigation + titles (ink), the hero window's ground + text + marks + bird; CONTRAST_MORE, same pages,
+(Lighthouse target-size); SCHEME_LIGHT / SCHEME_DARK, home + an article at 1440x900: desk, a link in the page
+(ink, the pen underline), navigation + titles (ink), a research folder + the sticky note's face, the hero window's ground + text + marks + bird; CONTRAST_MORE, same pages,
 light + dark w/ prefers-contrast: more: footer text = body text, hairlines #767676; PRINT_DARK, home printed from
 a dark screen: the window + desk ink on white; NAV_CURRENT, every page at 1366x641: the header's Research link is
 underlined thicker than Install on /research/** and the same elsewhere; FOOTER_BOTTOM, every page at
@@ -80,7 +80,7 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
 - ZOOM_H1, home at 1366x641, 1440x900, 1920x1080: the h1 at 200% zoom (half the viewport, device scale
   2) is >= its size at 100%, in device px (WCAG 1.4.4)
 - HOVER, home + hub + one article at 1366x641 (reduced motion): the mouse on each visible a, button +
-  summary changes >= 1 visual style of it and newly paints nothing #FFE433; a pick / hub item's top rule grows
+  summary changes >= 1 visual style of it and newly paints nothing #FFE433; a research folder pulls up
 - STATUS, home at 1366x641: after Copy the role=status text is "Copied to the clipboard" and Copy's
   accessible name holds its visible label; after the OS switch the status names the OS shown
 - home's opening moment, 1366x641 + 390x844 (full motion): at load only the hero window animates
@@ -108,7 +108,7 @@ the Mac line on more lines, two framed objects at once, Copy + OS switch results
 by a fixed label, the strike / bullet dots gone in forced colours, Copy shown / the Mac answer link hidden w/o JS,
 the h1's vh cap back below 1080px, footer links back to text height on touch), an article (a wide element, a
 console error, the Research link plain, links unchanged on hover, On this page rows too tall for a short window),
-the hub (an item's top rule stuck, the labels stuck + clipped on a short window), the
+the hub (a folder that doesn't lift, the labels stuck + clipped on a short window), the
 404 (a blank band under its footer); home also gets a hover rule painting the highlighter.
 --capture DIR: every page at 1366x641, 1440x900, 1440x780 (Mac), 1920x1080, 390x844 phone, light +
 dark, reduced motion: full-page + per-screen shots and DIR/numbers.md (screens long, print pages, h1 +
@@ -740,7 +740,7 @@ FOOTER_BOTTOM = """() => { const f = document.querySelector("footer"); if (!f) r
 # HOVER (A5): home, hub + one article at 1366x641, reduced motion (hover changes land at once): the mouse on
 # each visible a / button / summary changes >= 1 visual style of it (an underline thickness on a box with no
 # underline doesn't count) and newly paints nothing #FFE433 (hover is ink, never the highlighter); a research
-# pick / hub item's ::before top rule grows. Elements above the page (the skip link) are keyboard-only: skipped
+# folder (home pick, hub item, Keep reading) pulls up. Elements above the page (the skip link) are keyboard-only: skipped
 HOVER_PAGES = ["index.html", "research/index.html", "research/what-makes-a-good-resume/index.html"]
 HOVER_SELECTOR = "a, button, summary"
 HOVER_MARK = "rgb(255, 228, 51)"
@@ -752,11 +752,11 @@ HOVER_STATE = """i => { const el = document.querySelectorAll("a, button, summary
                    "borderTopWidth", "borderTopColor", "borderBottomWidth", "borderBottomColor", "outlineStyle",
                    "outlineWidth", "outlineColor", "color", "backgroundColor", "backgroundImage", "backgroundSize",
                    "transform", "opacity", "boxShadow"]) style[p] = cs[p];
-  const li = el.closest(".picks > li, .list > li");
+  const li = el.closest(".picks > li, .list > li, .more li:has(> p)");
   const q = el.getClientRects()[0];
   return {what: el.tagName.toLowerCase() + " " + JSON.stringify(el.textContent.trim().slice(0, 40)),
           x: q.left + q.width / 2, y: q.top + q.height / 2, style,
-          rule: li && li.querySelector("a") === el ? getComputedStyle(li, "::before").transform : null}; }"""
+          rule: li && li.querySelector("a") === el ? getComputedStyle(li).transform : null}; }"""
 PAINT_CAP = 3
 PAINT_CONCURRENT ="async () => {" + HELPERS + """
   const PAINT = ["backgroundSize", "clipPath", "strokeDashoffset"];
@@ -943,7 +943,8 @@ FAULTS = [
      "{ color: #f2f2f2 !important; } }</style>", "schemes"),
     (HOME, "SCHEME_DARK: the window white again in dark mode", "<style>.window { background: #ffffff !important; }"
      "</style>", "schemes"),
-    (HOME, "SCHEME_LIGHT: links in running text back to ink", "<style>main a { color: var(--text) !important; }</style>",
+    (HOME, "SCHEME_LIGHT: links in the page lose the pen's underline", "<style>main a { text-decoration-color: "
+     "var(--text) !important; }</style>",
      "schemes"),
     (HOME, "CONTRAST_MORE: grey text kept under Increase Contrast", "<style>@media (prefers-contrast: more) { :root "
      "{ --text-2: #767676 !important; } }</style>", "schemes"),
@@ -960,9 +961,6 @@ FAULTS = [
      "justify-self: start !important; }</style>", "wide"),
     ("privacy.html", "RULES_STACKED: a hairline under the Short version, over the next heading's",
      "<style>.short { border-bottom: 1px solid; padding-bottom: 30px; }</style>", "narrow"),
-    ("research/ai-resume-screening-bias/index.html", "RULES_STACKED: On this page's hairline back under the "
-     "evidence note's rule", "<style>:is(.box-list, .box-more) + .toc-mini details { border-top: 1px solid "
-     "!important; }</style>", "narrow"),
     (ARTICLE, "ARTICLE_H1: article h1 back to 64px", "<style>h1 { font-size: 4rem !important; }</style>", "wide"),
     ("research/index.html", "ARTICLE_H1: hub h1 below the display scale", "<style>h1 { font-size: clamp(2.25rem, "
      "1.4rem + 2.6vw, 4rem) !important; }</style>", "wide"),
@@ -1006,8 +1004,8 @@ FAULTS = [
     (ARTICLE, "CRUMBS_ONE_LINE: current crumb shown on phones", "<style>article .crumbs [aria-current] "
      "{ position: static !important; width: auto !important; height: auto !important; clip-path: none !important; "
      "white-space: normal !important; }</style>", "toc"),
-    ("research/index.html", "HOVER: hub item's top rule stays put", "<style>.list > li:hover::before "
-     "{ transform: scaleX(0) !important; }</style>", "hover"),
+    ("research/index.html", "HOVER: a hub folder stays put", "<style>.list > li:hover "
+     "{ transform: none !important; }</style>", "hover"),
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
@@ -1611,19 +1609,26 @@ def check_touch(browser, base: str, inject: str | None = None, names: list[str] 
 SCHEME_JS = """() => { const c = (s, p = "color") => { const e = document.querySelector(s); return e ? getComputedStyle(e)[p] : null; };
   return {desk: c("body", "backgroundColor"), text: c("body"), win: c(".window", "backgroundColor"), winText: c(".window"),
     winMark: c(".window mark"), bird: c(".window .bird", "fill"), disc: c(".window .bird .disc", "fill"),
-    link: c("main .research-head a, main .box-more a"), nav: c(".links a"), title: c("main .picks a, main .crumbs a"),
-    cite: c("main small a"), foot: c("footer p"), footLine: c("footer", "borderTopColor")}; }"""
+    link: c("main .research-head a, main .box-more a"), linkLine: c("main .research-head a, main .box-more a", "textDecorationColor"),
+    nav: c(".links a"), title: c("main .picks a, main .crumbs a"), cite: c("main small a"),
+    folder: c("main .picks > li", "backgroundColor"), note: c("main .box", "backgroundColor"),
+    foot: c("footer p"), footLine: c("footer", "borderTopColor")}; }"""
+# the job-search desk (plan-h14): a link in the page keeps the text's ink, the blue pen draws its underline; the
+# objects' faces (a home research folder, an article's sticky note) dim in dark
 SCHEME_WANT = {
-    "light": {"desk": "rgb(246, 241, 231)", "link": "rgb(143, 63, 0)", "nav": "rgb(0, 0, 0)", "title": "rgb(0, 0, 0)",
-              "win": "rgb(255, 255, 255)", "winMark": "rgb(0, 0, 0)", "cite": "rgb(0, 0, 0)"},
-    "dark": {"desk": "rgb(28, 28, 30)", "link": "rgb(255, 198, 144)", "nav": "rgb(242, 242, 242)",
-             "title": "rgb(242, 242, 242)", "win": "rgb(44, 44, 46)", "winText": "rgb(242, 242, 242)",
-             "winMark": "rgb(0, 0, 0)", "bird": "rgb(0, 0, 0)", "cite": "rgb(242, 242, 242)"},
+    "light": {"desk": "rgb(246, 241, 231)", "link": "rgb(0, 0, 0)", "linkLine": "rgb(42, 81, 184)",
+              "nav": "rgb(0, 0, 0)", "title": "rgb(0, 0, 0)", "win": "rgb(255, 255, 255)", "winMark": "rgb(0, 0, 0)",
+              "cite": "rgb(0, 0, 0)", "folder": "rgb(238, 220, 185)", "note": "rgb(251, 241, 174)"},
+    "dark": {"desk": "rgb(26, 23, 18)", "link": "rgb(234, 230, 221)", "linkLine": "rgb(129, 180, 246)",
+             "nav": "rgb(234, 230, 221)", "title": "rgb(234, 230, 221)", "win": "rgb(35, 32, 28)",
+             "winText": "rgb(234, 230, 221)", "winMark": "rgb(0, 0, 0)", "bird": "rgb(0, 0, 0)",
+             "cite": "rgb(234, 230, 221)", "folder": "rgb(40, 34, 23)", "note": "rgb(37, 35, 23)"},
 }
 MORE_LINE = "rgb(118, 118, 118)"
 # what each page must have for its colours to be checked at all (a renamed class would skip them silently)
-SCHEME_NEEDS = {"index.html": ("desk", "link", "nav", "title", "win", "winText", "winMark", "bird", "disc", "foot"),
-                "ARTICLE": ("desk", "link", "nav", "title", "cite", "foot")}
+SCHEME_NEEDS = {"index.html": ("desk", "link", "linkLine", "nav", "title", "win", "winText", "winMark", "bird", "disc",
+                               "folder", "foot"),
+                "ARTICLE": ("desk", "link", "linkLine", "nav", "title", "cite", "note", "foot")}
 
 
 def check_schemes(browser, base: str, inject: str | None = None) -> list[str]:
@@ -1721,7 +1726,7 @@ def check_hover(browser, base: str, inject: str | None = None, names: list[str] 
                 failed += [f"{where}: {before['what']} paints the highlighter on hover ({p}: {a[p]})"
                            for p in a if HOVER_MARK in a[p] and a[p] != b[p]]
                 if before["rule"] is not None and before["rule"] == after["rule"]:
-                    failed.append(f"{where}: {before['what']}'s top rule doesn't grow on hover ({after['rule']})")
+                    failed.append(f"{where}: {before['what']}'s folder doesn't lift on hover ({after['rule']})")
             if not seen:
                 failed.append(f"{where}: check found 0 elements for {HOVER_SELECTOR!r}")
     return failed

@@ -145,7 +145,7 @@ The table shows a gap. The only test of letter against no letter is a small stud
 - Never let AI invent a skill, number or reason. A guide warns AI can oversell you or make up claims [@mit-capd-ai-cover-letters].
 - Keep it to one page. That is convention [@mit-capd-cover-letters].
 
-How we grade evidence: [How we research](methods.md). What else makes a resume work: [What makes a good resume?](what-makes-a-good-resume.md).
+What else makes a resume work: [What makes a good resume?](what-makes-a-good-resume.md).
 
 ## How CEZ Job Finder uses this
 

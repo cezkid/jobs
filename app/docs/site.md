@@ -101,7 +101,7 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
   `/about/` (must be published w/ the first page: every byline links it), `index.md` = hub intro.
 - Hub `/research/` = `index.md` (published, no review: its first paragraph over the list) + every article,
   newest published first, each title an h2 holding its link (screen readers jump article to article; set
-  like the clipping it was), description (the answer in a sentence) + dates under it; the list comes right
+  like the folder it is), description (the answer in a sentence) + dates under it; the list comes right
   after the page column, before `index.md`'s other paragraphs and the labels column (a phone reaches the
   articles first, not the method); the labels column heads itself w/ an h2 too. Built once >= 1 article is
   published (article = not about / methods / index); an article w/o a published `index.md` = error.
@@ -234,50 +234,84 @@ Concept: "A morning with Job Finder" - the paper objects the app really makes, t
 morning (hero app window, the resume corrected, applications filled, who sees what, research,
 questions, install). Real behaviour only: employers, titles, dates never change; you approve every line.
 
-- Ink on paper, like the resume it makes, on a warm desk. Highlighter yellow only on marks, the Copy button (the
-  one filled yellow control) + the bird's upper beak and eye (its lower beak is `--beak-low`). No shadows: depth = an
-  offset second sheet. Marks keep black text in both schemes.
-- Colour (owner 2026-10-07: "everything is just black or white ... figure out light and dark; what would Apple do";
-  reopens "desk white" + "sheets stay white"). Apple's model, from the HIG (Color, Dark Mode, Branding; fetched
-  2026-10-07 as DocC JSON, `developer.apple.com/tutorials/data/design/human-interface-guidelines/<page>.json`):
-  - Grouped background + cards: the desk is a warm paper tint (`#f6f1e7`, cf. Apple's #f5f5f7 bands, Apple Books'
-    sepia page), the sheets white on it - they read as paper on a desk, not boxes on white.
-  - One tint for what you can act on: links in running text take `--accent` (the beak's orange, deepened to 6.5:1 on
-    the cream; peach `#ffc690` in dark - a gold one read as the highlighter, 1.16:1 against it, HIG: never one colour
-    for two meanings). Navigation (header, footer, crumbs, On this page), titles (picks, hub, Keep reading), Sources
-    + citations stay ink. The prominent action keeps the colour fill (Copy, yellow) - HIG: "apply color to the
-    background ... prominent buttons", "refrain from adding color to the background of multiple controls".
-  - Dark Mode: "dimmer backgrounds and brighter foreground ... not necessarily inversions". Paper softened to
-    `#ebe8e2` ("soften the color of white backgrounds": the resume sheet + 404 drawing stopped glowing). The hero
-    window follows the scheme like the app's own Today page (`app/vscode/today.js`, `body.vscode-dark`): raised one
-    step, `--win` `#2c2c2e` (the app's DESK_2), so the site shows what a dark-mode desktop shows; marks keep ink on
-    yellow, its bird stays black on its paper disc (owner 2026-10-05: no pale bird).
-  - Increase Contrast (macOS + iOS -> `prefers-contrast: more`, Safari 14.1+, Chrome 96+): HIG asks a higher-contrast
-    variant of every custom colour - grey text becomes ink, hairlines 3:1 (`#767676`), the tint deeper. Sheets + the
-    window keep theirs: they mirror what the app prints (and `--rule` also draws the 404's placeholder lines).
-  - Print: ink on white from either scheme - the body resets `--paper`, `--desk`, `--accent`, `--disc` + `--win*`.
+- The job-search desk (owner 2026-10-07, plan-h14: "no cohesion ... white text on dark background the whole page";
+  then "the yellow highlighter and blue pen ... memo pad, manila folder, sticky note ... keep going with the whole
+  theme", "still follow Apple design guidelines, a premium look like Apple designed the pages"). Everything on a page
+  is an object on one desk, each with one job:
+  - Paper + ink: what the app prints (the resume sheet, the 404 drawing, the window in light). Ink = `--text`.
+  - Highlighter yellow (`--mark`): what the app marks - the posting's words in the window + on the resume, the
+    bar figures' bars (the number that matters), Copy (the one filled yellow control) + the bird's upper beak and
+    eye. Marks keep black text in both schemes.
+  - Blue pen (`--pen`): the person's own hand - the ring round the job you pick, the proofreader's strike +
+    insert mark, "You approved this line" + its tick, the Submit you press, the guess you choose - and every place
+    you can go: a link in the page keeps the text's ink, the pen draws its underline (2px), hover writes the word
+    in pen; the section in view gets a 3px pen stroke in On this page. Bylines, citations, Sources + crumbs
+    underline in a quiet grey; navigation underlines in ink. The pen is opposite the yellow on the colour wheel,
+    so the two never read as one (the orange tint before it did: gold read as the highlighter, peach as random).
+  - Sticky note (`--sticky`): what to do - an article's first note ("What to do", a data page's "Short answer"),
+    home's closing steps.
+  - Memo card (`--raised`): the next note ("What the evidence says"), the source card (an index card: a pen-blue
+    head rule under its label).
+  - Manila folder (`--folder`, `--folder-tab`): research filed - home's picks, the hub list, Keep reading. A tab
+    on the left with a concave fillet; hovering pulls the folder up 4px (transform, eased in full motion only).
+  - Apple's restraint (HIG Color, Dark Mode, Materials): objects drawn, not costumed - one radius (`--radius`
+    14px, tab 10px), flat faces, no textures, ruled lines, perforations or tape (tried 2026-10-07: the index card's
+    ruled lines crossed its text, the memo's binding + perforation read as a costume); no shadows - depth is the
+    face against the desk (and an offset second sheet for the window + resume).
+- Light = the morning desk: warm paper (`#f6f1e7`, cf. Apple's #f5f5f7 bands, Apple Books' sepia), objects in
+  their full colour on it - white memo + cards, pale canary sticky, manila folders.
+- Dark = the same desk, lamp low (HIG: "dimmer backgrounds and brighter foreground ... not necessarily
+  inversions"): warm charcoal `#1a1712` (OKLCH 0.205, chroma 0.010 at the cream's hue: lively dark modes tint
+  toward their brand - GitHub, Wikipedia, Josh Comeau all blue-tinted, flat grey only on monochrome brands; Radix:
+  a grey "saturated with the hue closest to your accent" reads more harmonious); paper-white text `#eae6dd`
+  (APCA Lc 90.8: its preferred body contrast, and large text stays under Lc 90-100 - `#f2f2f2` on the old grey
+  read glaring); headings the body's colour (brighter headings break APCA's cap for large text in dark). The
+  objects' big faces dim to a lamp-lit tint of their colour (chroma <= 0.022) and their colour stays on the
+  object's edge: the sticky's top edge, the folder's tab + top edge (a field of 13 light folders turned the hub
+  into a light page, measured side by side). The resume sheet + 404 drawing stay paper (`#ebe8e2`, HIG "soften
+  white backgrounds"; dimmer paper lost the sheet's hairlines, `--rule` Lc < 15). The hero window raised one step
+  (`--raised`), as the app's own dark Today page. Thick rules (masthead, notes, Sources, Keep reading, table
+  heads) a step under the text (`--heavy`), so no white line glares. Grayscale font smoothing (macOS draws light
+  text on dark heavy). The pen takes a lighter ink on the desk (`#81b4f6` strokes, `#afd1fc` words; Apple + Material
+  agree: blue lighter in dark, saturated blue vibrates), its dark ink on the paper sheets (`--pen-paper`).
+- Increase Contrast (macOS + iOS -> `prefers-contrast: more`, Safari 14.1+, Chrome 96+): HIG asks a higher-contrast
+  variant of every custom colour - grey text becomes ink, hairlines 3:1 (`#767676`), the pen's ink 7:1. Sheets + the
+  window keep theirs: they mirror what the app prints (and `--rule` also draws the 404's placeholder lines).
+- Print: ink on white from either scheme - the body resets every desk + object token (objects print as plain
+  paper, the pen as ink, bars in ink).
+- Forced colours: faces drop, so every object keeps a CanvasText outline (folders, notes, sticky, source card); bars
+  CanvasText; marks `Mark`/`MarkText`.
 - Tokens: one `:root` block in `site.css` + a dark-scheme override + two Increase Contrast overrides (all
   schemes, then dark); these tables = those blocks (`test_site_md_tokens_table_is_the_shared_root`). The paper
   tokens (`--paper` aside) never follow the scheme; `--win*` = the hero window's own (paper in light).
 
 | Token | Light | Dark | Use |
 |---|---|---|---|
-| `--paper` | `#ffffff` | `#ebe8e2` | sheets (the resume, the 404 drawing), the source card in light; softened in dark (HIG) |
+| `--paper` | `#ffffff` | `#ebe8e2` | sheets (the resume, the 404 drawing); softened in dark (HIG) |
 | `--ink` | `#000000` | same | text + rules on paper, text on marks |
 | `--ink-2` | `#3a3a3a` | same | secondary text on paper |
+| `--mark` | `#ffe433` | same | the highlighter: marks, bar figures' bars, Copy, the bird's upper beak + eye |
+| `--beak-low` | `#e57a00` | same | the bird's lower beak (two-tone bill: 3.0:1 on white, its edge) - the logo only |
 | `--rule` | `#c8c8c8` | same | hairlines on paper (sheets; Lc 29.5 on white, 16.1 on the dark paper) |
-| `--mark` | `#ffe433` | same | highlighter: marks, Copy, the bird's upper beak + eye |
-| `--beak-low` | `#e57a00` | same | the bird's lower beak (two-tone bill: 3.0:1 on white, its edge) |
-| `--desk` | `#f6f1e7` | `#1c1c1e` | page background: warm paper desk (ink 18.65:1); the app's dark desk |
-| `--text` | `#000000` | `#f2f2f2` | text, navigation links, control borders, focus ring on the desk |
-| `--text-2` | `#3a3a3a` | `#cfcfcf` | secondary text on the desk (APCA Lc 88 light, 76 dark) |
-| `--line` | `#d0c5b0` | `#5c5c5e` | hairlines between sections (decorative; warm on the cream, Lc 22.5 light, 17 dark) |
-| `--accent` | `#8f3f00` | `#ffc690` | the tint: links in running text, the OS switch (6.48:1 Lc 76.6; 11.13:1 Lc 77.1) |
+| `--desk` | `#f6f1e7` | `#1a1712` | page background: the morning desk (ink 18.65:1); lamp low, warm charcoal |
+| `--text` | `#000000` | `#eae6dd` | text, headings, navigation links, control borders, focus ring on the desk (dark: Lc 90.8) |
+| `--text-2` | `#3a3a3a` | `#d7d0c6` | secondary text on the desk + objects (dark: Lc 77.5 desk, 76 on the faces) |
+| `--line` | `#d0c5b0` | `#5f5a52` | hairlines between sections + rows (decorative; Lc 22.5 light, 17.3 dark, 16 on a card) |
+| `--heavy` | `var(--text)` | `#a39e94` | thick rules: masthead, Sources, Keep reading, table heads, On this page (dark: a step under the text) |
 | `--disc` | `var(--desk)` | `var(--paper)` | the header bird's disc: the desk itself in light (no halo), paper on the dark desk |
-| `--win` | `var(--paper)` | `#2c2c2e` | the hero window's ground: paper in light, raised one step in dark (the app's DESK_2) |
-| `--win-ink` | `var(--ink)` | `#f2f2f2` | window text, frame, title bar + day rules |
-| `--win-ink-2` | `var(--ink-2)` | `#d6d6d6` | window secondary text (Lc 77.4 on `#2c2c2e`) |
-| `--win-rule` | `var(--rule)` | `#6c6c6e` | hairlines between the window's jobs (Lc 21.4) |
+| `--pen` | `#2a51b8` | `#81b4f6` | the blue pen's stroke: link underlines, the ring, Submit, the current section, a chosen guess (6.29:1; 8.33:1) |
+| `--pen-text` | `var(--pen)` | `#afd1fc` | a word written in pen on the desk: hovered link, the OS switch, Submit (dark Lc 75.9) |
+| `--pen-paper` | `#23459d` | same | the pen on a paper sheet: strike, insert mark, the approval + its tick (7.13:1 Lc 75.9 on the dark paper) |
+| `--raised` | `#ffffff` | `#23201c` | memo card, source card, the window in dark: white on the desk, one step up in dark |
+| `--sticky` | `#fbf1ae` | `#252317` | the sticky note's face: pale canary (under the highlighter's chroma); dimmed in dark |
+| `--sticky-edge` | `var(--sticky)` | `#ded392` | the sticky's top edge: its own face in light, the canary kept in dark |
+| `--folder` | `#eedcb9` | `#282217` | a manila folder's face; dimmed in dark (`--text-2` Lc 76.8 light) |
+| `--folder-tab` | `var(--folder)` | `#d2ba92` | the folder's tab + top edge: the face in light, the manila kept in dark |
+| `--radius` | `14px` | same | every object's corner (cards, sticky, folders, source card) |
+| `--win` | `var(--paper)` | `var(--raised)` | the hero window's ground: paper in light, raised one step in dark |
+| `--win-ink` | `var(--ink)` | `var(--text)` | window text, frame, title bar + day rules |
+| `--win-ink-2` | `var(--ink-2)` | `var(--text-2)` | window secondary text |
+| `--win-rule` | `var(--rule)` | `#6a645b` | hairlines between the window's jobs |
 | `--serif` | `"Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif` | same | all text |
 | `--mono` | `ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace` | same | the install command only |
 | `--gutter` | `clamp(16px, 2.5vw, 32px)` | same | grid column gap (phones; 768px up below) |
@@ -290,16 +324,17 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--display` | `min(clamp(2.5rem, 1.2rem + 3vw, 6rem), 8.6vh + 0.5rem)` | same | home h1: as large as the 1366x641 fold allows |
 | `--track-display` | `-0.016em` | same | letter-spacing of display lines (h1 + scene h2, 941px+ wide) |
 | `--lead-display` | `1.06` | same | line-height of the same lines: 0.98 (2026-10-03) read cramped at 82-131px in bold - owner 2026-10-04; multi-line text <= 18px >= 1.45 |
-| `--ease-mark` | `cubic-bezier(0.3, 0.7, 0.4, 1)` | same | highlighter sweeps |
+| `--ease-mark` | `cubic-bezier(0.3, 0.7, 0.4, 1)` | same | highlighter sweeps, a folder pulled up |
 
 Increase Contrast overrides (`@media (prefers-contrast: more)`, then `... and (prefers-color-scheme: dark)`), checked
-per scheme (`more_table`): `--text-2` resolves to `--text`, `--line` >= 3:1, `--accent` >= 7:1 on the desk.
+per scheme (`more_table`): `--text-2` resolves to `--text`, `--line` >= 3:1, `--pen-text` >= 7:1 on the desk.
 
 | When | Token | Light | Dark | Use |
 |---|---|---|---|---|
-| more | `--text-2` | `var(--text)` | same | secondary text in full ink (dark: Lc 76 -> 98) |
-| more | `--line` | `#767676` | same | hairlines seen: 4.03:1 on the cream, 3.75:1 on the dark desk |
-| more | `--accent` | `#6b2f00` | `#ffd9b8` | the tint deeper: 9.18:1 / 12.86:1 |
+| more | `--text-2` | `var(--text)` | same | secondary text in full ink |
+| more | `--line` | `#767676` | same | hairlines seen: 4.03:1 on the cream, 3.9:1 on the dark desk |
+| more | `--pen` | `#1f3c9c` | `#a9cdfb` | the pen's stroke deeper / lighter |
+| more | `--pen-text` | `var(--pen)` | `#cfe2fd` | a word in pen: 8.54:1 / 13.57:1 |
 
 768px up, the spacing grows with the display type (owner, plan-dxn.37, S1 look: "such large font and
 tiny gutter" - 107px label h2s over a 32px gap, 60px side margin at 1440). Linear in the window width,
@@ -341,10 +376,10 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
   `Mark`/`MarkText`; print = ink on white in either scheme (tokens reset on `body`, not `:root`,
   so the token table stays one source), no skip link or nav, marks printed (`print-color-adjust`).
 - Hover + press (audit A5; before it the site had 0 `:hover` rules - jurors hover every control):
-  in the link's own colour (ink, or the tint for running-text links), never yellow, inside `@media (hover: hover)`
+  in the link's own colour (ink; a link in the page is written in pen), never yellow, inside `@media (hover: hover)`
   so a tap leaves nothing stuck. Links + summaries underline 2px (instant), the current Research link 3 -> 4px; Copy a 3px ink border (padding gives the 1px
-  back: nothing moves), `:active` 1px into the paper; picks + hub items thicken their top rule left
-  to right (`::before` `scaleX`, the only eased one, full motion only). No rotating +/- (details
+  back: nothing moves), `:active` 1px into the paper; picks, hub items + Keep reading (folders) pull up
+  4px (`transform`, the only eased one, full motion only). No rotating +/- (details
   motion was cut). qa HOVER: every visible link/button/summary on home, hub + an article changes
   on hover and newly paints no `--mark`.
   Home print adds the desktop install steps, no buttons: 3 Letter pages (cap 5).
@@ -472,7 +507,7 @@ KB = 1000 bytes.
   timed animations end; layout equal reduced vs full motion; forced colours = marks still paint, every
   `<del>` struck, every bullet dot painted; phone 390x844 + iPad 1366x1024 (touch) every non-inline link + button
   >= 44px tall + wide, and each header / footer / nav one keeps >= 24px of its height uncovered by its neighbours'
-  hit boxes (Lighthouse target-size); light + dark colours read off computed styles (desk, the tint vs ink
+  hit boxes (Lighthouse target-size); light + dark colours read off computed styles (desk, the pen underline vs ink
   navigation, the hero window + its marks + bird), Increase Contrast (footer text = body text, hairlines #767676)
   and print from a dark screen (window + desk ink on white) - the static contrast check can't see those;
   Research link thicker on /research/** only (1366x641); footer at the window/page bottom (1440x900);

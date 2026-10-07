@@ -162,7 +162,7 @@ Court certificates have mixed evidence. A 2016 Ohio test, which its authors call
 - With a record, read the exact question and answer only what it asks (convention). Check your state's rules with free legal aid.
 - Prepare for the interview as well as the resume. Bias went on after the callback: the gap in job offers was wider than the gap in callbacks [@quillian-2020].
 
-How we grade evidence: [How we research](methods.md). What else makes a resume work: [What makes a good resume?](what-makes-a-good-resume.md)
+What else makes a resume work: [What makes a good resume?](what-makes-a-good-resume.md)
 
 ## How CEZ Job Finder uses this
 

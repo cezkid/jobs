@@ -168,7 +168,7 @@ AI scores are in use, but most managers in that survey said a person still makes
 - Fill every question yourself; autofill can leave them blank (our Ashby test did).
 - Apply widely. Executives say rigid filters drop qualified people [@fuller-2021, p. 26], so one rejection may say more about the filter than about you.
 
-How we grade evidence: [How we research](methods.md). More articles: [Research](index.md). Whether AI screeners treat people fairly: [Is AI resume screening biased?](ai-resume-screening-bias.md). Which resume rules have evidence: [What makes a good resume?](what-makes-a-good-resume.md).
+More articles: [Research](index.md). Whether AI screeners treat people fairly: [Is AI resume screening biased?](ai-resume-screening-bias.md). Which resume rules have evidence: [What makes a good resume?](what-makes-a-good-resume.md).
 
 ## How CEZ Job Finder uses this
 

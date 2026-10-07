@@ -176,7 +176,7 @@ Each row's last column links to the law or rule it summarizes.
 - Keep a copy of each notice and what you sent. The rights above run on dates: 10 business days, 30 days.
 - Remember bias in a screener is the employer's problem, not a flaw in you.
 
-How we grade evidence: [How we research](methods.md). What studies show about bias in AI screeners: [Is AI resume screening biased?](ai-resume-screening-bias.md). Whether software rejects most resumes: [Do hiring systems reject most resumes?](ats-rejection-myth.md). More articles: [Research](index.md).
+What studies show about bias in AI screeners: [Is AI resume screening biased?](ai-resume-screening-bias.md). Whether software rejects most resumes: [Do hiring systems reject most resumes?](ats-rejection-myth.md). More articles: [Research](index.md).
 
 ## How CEZ Job Finder uses this
 

@@ -238,21 +238,25 @@ ANIMATABLE = {"transform", "opacity", "clip-path", "stroke-dashoffset", "backgro
 TEXT_MIN, NON_TEXT_MIN = 4.5, 3.0  # WCAG 1.4.3 text, 1.4.11 controls + focus ring
 # (foreground, background) token pairs; tokens resolved per colour scheme from the shared :root
 TEXT_PAIRS = [("--text", "--desk"), ("--text-2", "--desk"), ("--desk", "--text"),  # step numbers
-              ("--accent", "--desk"),  # links in running text (the tint)
+              ("--pen-text", "--desk"),  # a word written in pen: a hovered link, the OS switch, Submit
               ("--ink", "--paper"), ("--ink-2", "--paper"), ("--ink", "--mark"),  # sheets + marks keep ink
-              ("--win-ink", "--win"), ("--win-ink-2", "--win")]  # the hero window (dark grey in dark mode)
+              ("--pen-paper", "--paper"),  # the pen on a sheet: "You approved this line"
+              ("--text", "--raised"), ("--text-2", "--raised"),  # memo + index card
+              ("--text", "--sticky"), ("--text-2", "--sticky"), ("--text", "--folder"), ("--text-2", "--folder"),
+              ("--win-ink", "--win"), ("--win-ink-2", "--win")]  # the hero window (raised in dark mode)
 NON_TEXT_PAIRS = [("--text", "--desk"), ("--ink", "--paper"), ("--ink", "--mark"),  # control borders, frames
-                  ("--win-ink", "--win")]
+                  ("--pen", "--desk"), ("--pen", "--raised"), ("--pen", "--sticky"), ("--pen", "--folder"),  # pen strokes
+                  ("--pen-paper", "--paper"), ("--win-ink", "--win")]
 # Increase Contrast (prefers-contrast: more; Apple HIG: a higher-contrast variant of every custom colour): secondary
-# text = text, hairlines 3:1 (WCAG 1.4.11), the tint 7:1 (WCAG 1.4.6)
+# text = text, hairlines 3:1 (WCAG 1.4.11), the pen's ink 7:1 (WCAG 1.4.6)
 MORE_SAME = [("--text-2", "--text")]
-MORE_PAIRS = [(("--line", "--desk"), 3.0), (("--accent", "--desk"), 7.0)]
+MORE_PAIRS = [(("--line", "--desk"), 3.0), (("--pen-text", "--desk"), 7.0)]
 RING_BACKGROUNDS = ["--desk", "--paper"]  # focus ring on the desk and on a white sheet, both schemes
 # APCA (perceptual lightness contrast, WCAG 3 drafts): text pairs >= Lc 75, its floor for body-size text (the
 # secondary grey sets 12-17px bylines, footer + Sources); hairlines >= Lc 15, its floor for a line still seen.
 # WCAG 2 rated dark mode too kindly: #bdbdbd on #1c1c1e passed at 9.1:1 but read at Lc 65 (light: Lc 96)
 APCA_TEXT_MIN, APCA_LINE_MIN = 75, 15
-LINE_PAIRS = [("--line", "--desk"), ("--rule", "--paper"), ("--win-rule", "--win")]  # sections, sheets, window
+LINE_PAIRS = [("--line", "--desk"), ("--line", "--raised"), ("--rule", "--paper"), ("--win-rule", "--win")]  # sections, cards, sheets, window
 
 
 def styles(head: Head) -> str:

@@ -18,7 +18,10 @@
   size-adjust: 89.76%; ascent-override: 100.27%; descent-override: 27.85%; line-gap-override: 0%; }
 :root {
   --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --beak-low: #e57a00; --rule: #c8c8c8;
-  --desk: #f6f1e7; --text: #000000; --text-2: #3a3a3a; --line: #d0c5b0; --accent: #8f3f00; --disc: var(--desk);
+  --desk: #f6f1e7; --text: #000000; --text-2: #3a3a3a; --line: #d0c5b0; --heavy: var(--text); --disc: var(--desk);
+  --pen: #2a51b8; --pen-text: var(--pen); --pen-paper: #23459d;
+  --raised: #ffffff; --sticky: #fbf1ae; --sticky-edge: var(--sticky); --folder: #eedcb9; --folder-tab: var(--folder);
+  --radius: 14px;
   --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule);
   --serif: "Caladea", "Caladea Fallback", "Caladea Fallback Georgia", serif;
   --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
@@ -35,17 +38,21 @@
 @media (min-width: 768px) {
   :root { --gutter: min(72px, 5vw - 16px); --side: max(var(--gutter), min(9.52vw - 41px, 11vh - 16px, 128px)); }
 }
-/* dark: paper softened, the window raised a step, the tint peach (site.md#look) */
+/* dark: the same desk, lamp low (site.md#look) - warm charcoal, paper-white text, the pen in a lighter ink; the
+   objects' big faces dim (their colour stays on edge, tab + binding), the paper sheets softened, thick rules a step
+   under the text */
 @media (prefers-color-scheme: dark) {
-  :root { --desk: #1c1c1e; --text: #f2f2f2; --text-2: #cfcfcf; --line: #5c5c5e; --paper: #ebe8e2; --accent: #ffc690;
-    --disc: var(--paper); --win: #2c2c2e; --win-ink: #f2f2f2; --win-ink-2: #d6d6d6; --win-rule: #6c6c6e; }
+  :root { --desk: #1a1712; --text: #eae6dd; --text-2: #d7d0c6; --line: #5f5a52; --heavy: #a39e94; --paper: #ebe8e2;
+    --disc: var(--paper); --pen: #81b4f6; --pen-text: #afd1fc; --raised: #23201c; --sticky: #252317;
+    --sticky-edge: #ded392; --folder: #282217; --folder-tab: #d2ba92;
+    --win: var(--raised); --win-ink: var(--text); --win-ink-2: var(--text-2); --win-rule: #6a645b; }
 }
-/* Increase Contrast (macOS/iOS): grey text to ink, hairlines 3:1, tint deeper; sheets keep theirs */
+/* Increase Contrast (macOS/iOS): grey text to ink, hairlines 3:1, the pen's ink deeper; sheets keep theirs */
 @media (prefers-contrast: more) {
-  :root { --text-2: var(--text); --line: #767676; --accent: #6b2f00; }
+  :root { --text-2: var(--text); --line: #767676; --pen: #1f3c9c; --pen-text: var(--pen); }
 }
 @media (prefers-contrast: more) and (prefers-color-scheme: dark) {
-  :root { --accent: #ffd9b8; }
+  :root { --pen: #a9cdfb; --pen-text: #cfe2fd; }
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -53,12 +60,16 @@ body {
   margin: 0; background: var(--desk); color: var(--text);
   font: var(--step-0)/1.55 var(--serif); font-kerning: normal;
 }
+/* light text on the dark desk: grayscale smoothing (macOS's subpixel default draws it heavy) */
+@media (prefers-color-scheme: dark) { body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; } }
 h1, h2, h3 { text-wrap: balance; }
 p, li { text-wrap: pretty; }
 a { color: var(--text); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
-/* the tint: links in running text; navigation, titles, Sources + citations stay ink */
-main a { color: var(--accent); }
-main :is(.picks, .list, .more li, .crumbs, .toc, .toc-mini, .sources, small) a, main a.send { color: var(--text); }
+/* the blue pen: a link in the page keeps the text's ink and the pen draws its underline (the words keep full
+   reading contrast); hover writes the word in pen. Bylines, citations, Sources + crumbs: a quiet grey underline */
+main a { text-decoration-color: var(--pen); text-decoration-thickness: 2px; }
+main :is(.crumbs, .sources, small, .meta) a { text-decoration-color: color-mix(in srgb, var(--text-2) 60%, transparent); text-decoration-thickness: 1px; }
+main .meta a { color: inherit; }
 /* touch: a tap acts at once (no double-tap zoom wait) and shows as an ink tint in either scheme - the
    browser's default grey box vanished on the dark desk */
 :is(a, button, summary) { touch-action: manipulation; -webkit-tap-highlight-color: color-mix(in srgb, var(--text) 14%, transparent); }
@@ -80,23 +91,35 @@ summary::before, summary::after {
 }
 summary::after { transform: rotate(90deg); }
 details[open] > summary::after { transform: none; }
-/* hover in ink, never yellow (audit A5): underline 1 -> 2px, instant; (hover: hover) = no hover left
-   stuck after a tap. The current Research link (3px) goes to 4px so it still answers the pointer */
+/* hover never yellow (audit A5): underline 1 -> 2px, instant; a link in the page is written in pen; (hover: hover)
+   = no hover left stuck after a tap. The current Research link (3px) goes to 4px so it still answers the pointer */
 @media (hover: hover) {
   a:hover, summary:hover { text-decoration: underline 2px; text-underline-offset: 0.15em; }
+  main a:hover { color: var(--pen-text); }
   :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
 }
-/* research picks (home) + hub list: hovering an item thickens its top rule left to right (a ::before
-   scaleX: transform only, eased in full motion, instant in reduced) */
-:is(.picks, .list) > li { position: relative; }
-:is(.picks, .list) > li::before {
-  content: ""; position: absolute; left: 0; right: 0; top: -2px; border-top: 4px solid var(--text);
-  transform: scaleX(0); transform-origin: 0 0;
+/* manila folders: research picks (home), the hub list, Keep reading - the folder's face, a tab on the left; in dark
+   the face dims and the manila stays on the tab + top edge. Hovering one pulls it up from the drawer (transform only,
+   eased in full motion, instant in reduced) */
+:is(.picks > li, .list > li, .more li:has(> p)) {
+  position: relative; margin: 24px 0 0; padding: 14px 20px 16px; background: var(--folder);
+  border-top: 2px solid var(--folder-tab); border-radius: 0 var(--radius) var(--radius) var(--radius);
 }
-@media (hover: hover) { :is(.picks, .list) > li:hover::before { transform: none; } }
-@media (prefers-reduced-motion: no-preference) { :is(.picks, .list) > li::before { transition: transform 240ms var(--ease-mark); } }
+/* the tab: rounded top corners, a concave fillet where it meets the face (::after on the li) */
+:is(.picks > li, .list > li, .more li:has(> p))::before {
+  content: ""; position: absolute; left: 0; top: -16px; width: min(38%, 9.5rem); height: 16px;
+  background: var(--folder-tab); border-radius: 10px 10px 0 0;
+}
+:is(.picks > li, .list > li, .more li:has(> p))::after {
+  content: ""; position: absolute; left: min(38%, 9.5rem); top: -10px; width: 10px; height: 10px;
+  background: radial-gradient(circle at 100% 0, transparent 9.5px, var(--folder-tab) 10px);
+}
+@media (hover: hover) { :is(.picks > li, .list > li, .more li:has(> p)):hover { transform: translateY(-4px); } }
+@media (prefers-reduced-motion: no-preference) { :is(.picks > li, .list > li, .more li:has(> p)) { transition: transform 200ms var(--ease-mark); } }
+/* forced colours drop the face: the folder keeps its outline */
+@media (forced-colors: active) { :is(.picks > li, .list > li, .more li:has(> p)) { border: 1px solid CanvasText; } }
 /* the whole item answers the pointer, so the whole item is the link: no spot that reacts but can't be clicked */
-:is(.picks, .list) > li a::after { content: ""; position: absolute; inset: 0; }
+:is(.picks > li, .list > li, .more li:has(> p)) a::after { content: ""; position: absolute; inset: 0; }
 /* 12 columns for composed pages; .wrap = the same content box w/o columns (generated pages).
    .grid spans the whole window, its padding centres the columns: a rule on it is full-bleed */
 .grid {
@@ -110,8 +133,8 @@ details[open] > summary::after { transform: none; }
 }
 .skip:focus { transform: none; }
 /* full-bleed double rule: thick + thin, like a newspaper masthead */
-.masthead { position: relative; border-bottom: 3px solid var(--text); }
-.masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--text); }
+.masthead { position: relative; border-bottom: 3px solid var(--heavy); }
+.masthead::after { content: ""; position: absolute; left: 0; right: 0; bottom: -7px; border-bottom: 1px solid var(--heavy); }
 .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding-top: 18px; padding-bottom: 16px; }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; text-decoration: none; white-space: nowrap; }
 /* the mark, inline (assets.py redraws it from app/install/mark-32.svg) on its paper disc: a black bird on every
@@ -159,10 +182,12 @@ footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
 }
 /* under 360px (320px phones) the links may drop below the brand */
 @media (max-width: 359px) { .top { flex-wrap: wrap; row-gap: 6px; } }
-/* print: ink on white in either scheme (body, not :root: the token table reads :root), no nav */
+/* print: ink on white in either scheme, the objects plain paper (body, not :root: the token table reads :root), no nav */
 @media print {
   body { --paper: #ffffff; --desk: var(--paper); --text: var(--ink); --text-2: var(--ink-2); --line: var(--rule);
-    --accent: var(--ink); --disc: var(--paper); --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2);
+    --heavy: var(--ink); --pen: var(--ink); --pen-text: var(--ink); --pen-paper: var(--ink); --disc: var(--paper);
+    --raised: var(--paper); --sticky: var(--paper); --sticky-edge: var(--rule); --folder: var(--paper);
+    --folder-tab: var(--rule); --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2);
     --win-rule: var(--rule); font-size: 11pt; }
   .skip, .links { display: none; }
   mark { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
