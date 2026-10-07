@@ -56,6 +56,37 @@ B; `try` on A, B, G: "form never showed"). A + B both list an employer privacy d
 settings, C none - likely the reason (a privacy step first); not proved. Never worked around
 (apply-systems.md: no allow-lists).
 
+## Read back (2026-10)
+
+What `adp.holds` reads off the page once the form had time to keep it (`form.recheck`: refilled once,
+still gone -> FAIL to fill by hand) - what shows, never the answer it was given. `dom.holds` on the
+page without the cookie panel (`page_only`); fixture `app/tests/fixtures/adp/start-box.html` (rebuilt
+from what measure read, 2026-10-03); Chrome tests in `test_apply_adp.py`.
+
+| Box | Read back |
+|---|---|
+| First Name, Last Name, Email | box value exact |
+| Mobile Number | by digits: the box shows its own "+1 " in front (`with_code`) |
+| cookie choices, any agreeing tick | never read as ours (not held) |
+| box gone, or its label changed | not held |
+
+No upload on the start box (no file box, 5 tenants): `put_file` never runs here. Pages after
+Continue: read generically, their uploads unmeasured.
+
+## Closed posting (2026-10-07)
+
+`adp.closed(url)`: plain GET (not a page load) of the posting record the job page itself reads -
+`/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions/<jobId>?cid=..&ccId=..&lang=en_US&locale=en_US`.
+Its `itemID` = the job id + a `requisitionTitle` -> open; an empty record (no id, no title, ~1.2 KB)
+-> closed, `questions` stops before any browser; anything else (not 200, not JSON, another job's id)
+-> can't tell. The empty record's page says "We are no longer accepting applications for this
+position." (no Apply) - `form.CLOSED` already matches it.
+
+Measured over freehire's listed links (8 employers): open list 6 -> 5 full record, 1 empty (its page
+read closed: freehire's list stale); closed list 2 -> both full record, one page measured: Apply
+shown, no closed words (open at ADP: freehire's list stale). 0 open read closed. Page loads 2
+(`.data/measure/adp-closed-check-2026-10-07.json`).
+
 ## Pages after Continue - unmeasured
 
 Settings read on 3 tenants: `NewExperienceOTPDisabled` false (a one-time code likely follows
@@ -72,7 +103,7 @@ None public. Questions come after the applicant is verified - behind Continue, u
 
 | What | When |
 |---|---|
-| Listing id (`cid` + `jobId`: posting + employer settings reads) | opening the job page |
+| Listing id (`cid` + `jobId`: posting + employer settings reads) | opening the job page; `closed` reads the same posting record |
 | Bot-defense check (POST to an F5 / Shape host), cookie-consent receipt | page load (blocked in every run) |
 | Name, email, mobile number | the user's own click on Continue - before the form |
 | Everything after | unmeasured - first real application |
@@ -81,3 +112,5 @@ None public. Questions come after the applicant is verified - behind Continue, u
 
 - A, B, G: Apply opens nothing while blocked (2026-10-03); A + B carry a privacy document.
 - C, D, E, F, H: start box opens, 4 of 4 boxes filled by `try` (2026-10-03).
+- Window A, B, C (3 more employers, `vscode-browser.md` ADP - route 2): Apply opens nothing while
+  blocked (2026-10-07).

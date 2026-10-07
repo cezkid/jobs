@@ -34,6 +34,7 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            JF_NO_FILE=1: file box found, never chosen (Workable: its upload blocked breaks the form, plan-k8n.7);
            WIDGETS: radios + lists as the page draws them, what sits on top at each list's middle - read only;
            a system with APPLY (BambooHR): that button clicked once (real click) before READY is read (plan-k8n.10)
+           ADP / Paycom start box by its first-name id (else input[type=text] hits ADP's hidden cookie search) (plan-k8n.19)
            Oracle's email box by name (never the honeypot text box); no box in the page -> the email box in a
            same-site frame (iCIMS ?in_iframe=1) through contentDocument, focused by script + Input.insertText (plan-k8n.16)
            boxes looked up through open shadow roots too; SmartRecruiters' resume box = its FILES, the deep page text
@@ -1294,7 +1295,7 @@ def raw(result):
         # a sign-in page in place of the form (UKG, plan-k8n.18): its boxes are never typed in
         fill["signIn"] = bool(getattr(system, "SIGN_IN", None)) and bool(quietly(lambda: c.evaluate(f"!!{q(system.SIGN_IN)}")))
         box = None if fill["signIn"] else next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
-                                'input[name^="primary-email"]', '#first-name-input', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+                                'input[name^="primary-email"]', '#first-name-input', '#guestFirstName', '#legalFirstName', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
             block.step = "type"

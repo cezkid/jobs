@@ -49,7 +49,9 @@ CLOSED = re.compile(r"no longer (?:accepting applications|available|open)|"
                     r"job (?:ad )?has expired|"
                     # UKG's posting page of a gone opportunity: "This opportunity is currently not available.",
                     # its 404 words "Sorry, this opportunity is not available." (its English strings, 2026-10-07)
-                    r"opportunity is (?:currently )?not available", re.I)
+                    r"opportunity is (?:currently )?not available|"
+                    # Paycom's job page of a job id it doesn't have: "We Couldn't Find This Job" (2026-10-07)
+                    r"couldn['’]t find this job", re.I)
 
 
 def job_dir(config: dict, slug: str) -> Path:

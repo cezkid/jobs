@@ -8,6 +8,8 @@ Measured facts, and what isn't measured: app/docs/apply/paycom.md.
 import re
 from urllib.parse import urlsplit
 
+import httpx
+
 from apply import browser, dom
 from apply.questions import question, signs
 
@@ -22,6 +24,12 @@ EXAMPLES = ("https://www.paycomonline.net/v4/ats/web.php/portal/acme000000000000
             "https://www.paycomonline.net/v4/ats/web.php/portal/acme0000000000000000000000000000/jobs/123456?utm_source=x",
             "https://www.paycomonline.net/v4/ats/web.php/jobs/ViewJobDetails?job=123456&clientkey=ACME0000000000000000000000000000")
 PER_PAGE = True
+# the job page's button that opens the start box (measure.py raw clicks it once)
+APPLY = "Apply"
+# an open job page carries the posting for search engines; a gone or unknown job id gets the same
+# page without it, then "We Couldn't Find This Job" (plain GET, 2 synthetic ids, 2026-10-07)
+POSTING = re.compile(r'<script[^>]*type="application/ld\+json"[^>]*>[^<]*"@type"\s*:\s*"JobPosting"', re.I)
+SHELL = re.compile(r"<html", re.I)
 # the job page itself has no form controls (measured, 3 tenants): a box shows only once Apply opened one
 READY = "input:not([type=hidden]), select, textarea"
 START = "Getting You Started"
@@ -49,6 +57,21 @@ def parse_url(url: str) -> tuple[str, str]:
 def application_url(url: str) -> str:
     key, job = parse_url(url)
     return f"https://www.paycomonline.net/v4/ats/web.php/portal/{key}/jobs/{job}"
+
+
+def closed(url: str) -> str | None:
+    """Why no box shows (form.closed, after the page's own words): the job page by plain GET, signed
+    out. The posting in it -> None (open); the page without it -> closed (a real closed posting is
+    unmeasured - no link to one; job ids that never existed read so); anything else -> can't tell."""
+    try:
+        r = httpx.get(application_url(url), timeout=30, follow_redirects=True, headers={"User-Agent": "Mozilla/5.0"})
+    except httpx.HTTPError as e:
+        return f"can't tell if the posting is open - Paycom didn't answer ({type(e).__name__})"
+    if r.status_code == 200 and POSTING.search(r.text):
+        return None
+    if r.status_code == 200 and SHELL.search(r.text):
+        return "Paycom can't find this job (its page says \"We Couldn't Find This Job\") - it may have closed"
+    return f"can't tell if the posting is open - Paycom's job page answered {r.status_code} without the posting"
 
 
 def on_tab(url: str, tab_url: str) -> bool:
@@ -107,12 +130,22 @@ def read(page) -> list[dict]:
 
 
 def questions(url: str) -> list[dict]:
+    if (why := closed(url)) and not why.startswith("can't tell"):
+        raise ValueError(why)  # before any browser: a gone posting never opens a tab for nothing
     with browser.page_at(application_url(url), match=lambda tab: on_tab(url, tab)) as page:
         return read(page)
 
 
 def ids_on_page(page) -> list[str]:
     return [c["hook"] for c in dom.snapshot(page)["controls"] if c["visible"] and not c["password"]]
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck), as
+    paycom.md "Read back (2026-10)" records it: dom.holds - each box by its value, both email boxes
+    exact, the phone by its digits. The SMS consent tick is the applicant's (never filled, never read
+    as ours)."""
+    return not signs(q["title"]) and dom.holds(page, q)
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:

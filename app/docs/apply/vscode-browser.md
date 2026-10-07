@@ -423,6 +423,57 @@ Readings:
   Chrome profile: unmeasured. UKG's form is sign-in + multi-step, so it waits on plan-k8n.20.
 - `window.SYSTEMS` unchanged: UKG stays in Job Finder's own Chrome.
 
+## ADP - route 2 (plan-k8n.19)
+
+Same `measure.py raw`, level 3, `JF_NO_FILE=1`; `adp.APPLY` ("Apply") clicked once (real click), 2 s after it
+shows. `raw` now looks for the start box's own first-name box (`#guestFirstName`) before any text box. 3 employers
+(tenants A, B, C: open by `adp.closed`), 2026-10-07; page loads: 3 (one host for every employer). Numbers:
+[adp-tenant-a.json](vscode-browser/adp-tenant-a.json), [adp-tenant-b.json](vscode-browser/adp-tenant-b.json),
+[adp-tenant-c.json](vscode-browser/adp-tenant-c.json) (ids scrubbed).
+
+| Step | A | B | C |
+|---|---|---|---|
+| Canary first | received none | none | none |
+| Apply shown from navigate / clicked | 7.1 s / ok | 5.3 s / ok | 4.2 s / ok |
+| Start box (`READY`) | **never** (40 s cap) | **never** | **never** |
+| Boxes | the cookie panel's hidden ones only (8) | same | same |
+| Typed | nothing: no first-name box; the hidden cookie search box not focused, read back "" | same | same |
+| `debugger;` pauses | 0 | 0 | 0 |
+| Frames / frame targets | OneTrust's 0x0 resize frame only / none | same | same |
+| Captcha | none on load (Continue carries reCAPTCHA, `adp.md`) | none | none |
+| Over the page | OneTrust cookie banner (`adp-route2-tab-a.png`) | same | same |
+| Page writes (failed) | bot-defense POST (F5 / Shape host) | none | none |
+
+Readings:
+- Apply opens nothing in the window while writes are blocked - 3 of 3, as in Chrome on tenants A, B, G
+  (`adp.md` Start box). Why: unproved (a privacy step first, or a blocked read). So the start box in the window is
+  unmeasured; its boxes are the same plain inputs `try` filled in Chrome on 5 tenants.
+- No frame, no pause, no captcha on load. Continue (reCAPTCHA) + the one-time code after it = the user's.
+- `window.SYSTEMS` unchanged: ADP stays in Job Finder's own Chrome (multi-page after Continue: plan-k8n.20).
+
+## Paycom - route 2 (plan-k8n.19)
+
+Same `measure.py raw`, level 3, `JF_NO_FILE=1`; `paycom.APPLY` ("Apply") clicked once. 1 employer (tenant A: the only
+open-list link, open by `paycom.closed`), 2026-10-07; page loads: 1. Numbers:
+[paycom-tenant-a.json](vscode-browser/paycom-tenant-a.json) (portal key, job id scrubbed).
+
+| Step | A |
+|---|---|
+| Canary first | received none |
+| Apply shown from navigate / clicked | 6.3 s / ok |
+| Start box (`READY`) | **never** (40 s cap) |
+| Boxes / typed | 0 / nothing |
+| `debugger;` pauses | 0 |
+| Frames / frame targets | none / none |
+| Captcha | none on load (the box's hCaptcha never drawn) |
+| Over the page | cookie banner, "Accept Cookies" (`paycom-route2-tab-a.png`) |
+| Page writes (failed) | POST `api/analytics` (the click's page-view analytics, `paycom.md`) |
+
+Readings:
+- Apply opens nothing in the window while writes are blocked, as in Chrome on tenants A, B (`paycom.md` Start box:
+  its privacy-policy read came back empty there). The start box in the window: unmeasured.
+- `window.SYSTEMS` unchanged: Paycom stays in Job Finder's own Chrome (multi-page after Continue: plan-k8n.20).
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any
