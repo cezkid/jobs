@@ -102,7 +102,24 @@ author.
 
 ## Style
 
-- **Short answer** box first: telegraphic, 2-4 fragments, the answer + its strength.
+- First phone screen (375x812) = the answer + what to do. Order, built by `pages.py`: title; the
+  `description` shown under it as the answer line (so it must read as the answer, not a teaser);
+  byline line (dates + "How this was made"); then the body's two notes:
+  - **What to do** first: 3 plain lines, each restating an item of the article's "What helps"
+    list - no new fact, no statistic, no citation, no stronger wording; a "your call" item stays a
+    choice. `pages.py` adds "More in What helps" when the page has that heading.
+  - **What the evidence says** next (was "Short answer"): telegraphic, 2-4 fragments, the answer +
+    its strength, cited.
+  Why: leave risk peaks in the first seconds; 57% of viewing time is on the first screen, 74% on the
+  first two; the typical reader stops about halfway down (big log study, lab eyetracking, vendor
+  data - `~/code/research/topics/web/reader-engagement.md`).
+- Under each question heading, the sentence that answers it in **bold** - words unchanged; no bold
+  where no sentence answers it (a table intro, a list). Headings + bold cues are what a skimming
+  reader reads (signaling meta-analysis, 103 studies: recall g = 0.53). Not in What we don't know,
+  What helps, How CEZ Job Finder uses this, Changes.
+- Citations stay in the sentence, as written; the page sets them small + grey and a tap opens the
+  source's card instead of jumping to the list (readers open a source on ~0.3% of views; linked
+  words pull a skimming eye). The evidence rules above are unchanged.
 - Body: short full sentences (< ~20 words) that each make sense quoted alone - AI answers and
   readers lift single sentences. Name the subject, never "this" / "it" across sentences.
 - Answer first, then evidence, then limits. Each section ends with what it means for the reader.
@@ -168,7 +185,7 @@ author.
   files). `git add` new files before the gate. Revise bead adds >= 2 links in + >= 2 out to
   published siblings (the site-wide pass found articles with 0).
 - **Pick the title from searched wording at draft time** (after publishing, 3 of 5 got a new title or description to match searches).
-- **Draft with the reader's shape**: Short answer <= 4 bullets; "For you," at most twice (drafts had
+- **Draft with the reader's shape**: What the evidence says (then "Short answer") <= 4 bullets; "For you," at most twice (drafts had
   6-11); a summary table where >= 5 findings compare; a `bars` figure where one source gives >= 3
   comparable shares (all added after publishing in wave 1).
 - **Script-blocked sources**: many publishers + help centres 403 scripts (OpenAI help, PeerJ,

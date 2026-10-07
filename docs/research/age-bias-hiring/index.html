@@ -18,7 +18,7 @@
 <meta property="og:title" content="Age discrimination in hiring: when it starts, what helps">
 <meta property="og:description" content="US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.">
 <meta property="article:published_time" content="2026-10-04">
-<meta property="article:modified_time" content="2026-10-05">
+<meta property="article:modified_time" content="2026-10-07">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/age-bias-hiring/#article","headline":"Age discrimination in hiring: when it starts, what helps","description":"US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.","url":"https://jobs.enrriquez.com/research/age-bias-hiring/","mainEntityOfPage":"https://jobs.enrriquez.com/research/age-bias-hiring/","datePublished":"2026-10-04","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Age discrimination in hiring: when it starts, what helps","item":"https://jobs.enrriquez.com/research/age-bias-hiring/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/age-bias-hiring/#article","headline":"Age discrimination in hiring: when it starts, what helps","description":"US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.","url":"https://jobs.enrriquez.com/research/age-bias-hiring/","mainEntityOfPage":"https://jobs.enrriquez.com/research/age-bias-hiring/","datePublished":"2026-10-04","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Age discrimination in hiring: when it starts, what helps","item":"https://jobs.enrriquez.com/research/age-bias-hiring/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -211,8 +211,9 @@
   h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
+  /* the answer in a sentence under the h1, then the byline: on a phone the first screen holds the answer + what to do */
+  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  .meta:has(+ .ai-note) { margin-bottom: 4px; }
   p { margin: 0 0 16px; }
   ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
@@ -223,12 +224,33 @@
   blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
-  /* the heading after it: no hairline of its own right under the note's rule (A19) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* notes at the top ("What to do", "What the evidence says"; boxes()): a bold label + its list = a ruled note
+     (thick rule over, thin under); "More in What helps" closes the first */
+  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  .box-list li::marker { color: var(--text); }
+  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+  /* the link a 46px tap box (qa HIT_BOXES); negative margins keep the line where it was */
+  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
+  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+  /* a note right before the next one: the next one's thick rule closes it (two rules 32px apart read as one
+     doubled, qa RULES_STACKED) */
+  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
+  /* On this page right under a note: no hairline of its own under the note's rule; the heading after a note
+     (On this page hidden or absent): none either (A19) */
+  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
+  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* citations: the (label; Author year) parenthetical small + grey, so a skimming eye lands on the findings, not
+     on names (linked words draw it); still links - a tap opens the source card (CITE_JS) */
+  small { font-size: 0.85em; color: var(--text-2); }
+  small a { text-decoration-color: var(--text-2); }
+  /* source card (CITE_JS): one Sources entry over the page, centred */
+  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
+  .card::backdrop { background: rgb(0 0 0 / 0.45); }
+  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
+  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
+  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
+  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -254,7 +276,7 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  /* On this page below 1280px: a closed list after the notes at the top, a hairline over it (none right under a note) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
   .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
@@ -270,6 +292,7 @@
   .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
   .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .more p { margin: 0 0 8px; }
+  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -294,9 +317,12 @@
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
+    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
+    /* On this page hidden: the first heading sits right under a note's rule, the next note's rule closes the first */
+    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
     .toc {
       /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
       display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
@@ -325,6 +351,8 @@
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
+  /* hub: the method lines after the list (beside the h1 on wide screens) */
+  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
   .date { color: var(--text-2); font-size: var(--step--1); }
   @media (max-width: 600px) {
     main.wrap { padding-top: 22px; }
@@ -375,8 +403,15 @@
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Age discrimination in hiring: when it starts, what helps</li></ol></nav>
 <h1>Age discrimination in hiring: <span class="deck">when it starts, what helps</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
-<p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="answer">US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-04">October 4, 2026</time>. Updated <time datetime="2026-10-07">October 7, 2026</time>. How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="box"><strong>What to do</strong></p>
+<ul class="box-list">
+<li>Degree 20 or more years old: consider taking off graduation and certificate years, and shortening the oldest jobs.</li>
+<li>Name the current tools you really use.</li>
+<li>Never change a date; answer a required date box truthfully.</li>
+</ul>
+<p class="box-more"><a href="#what-helps">More in What helps</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
 <summary>On this page</summary>
@@ -396,19 +431,19 @@
 </ol>
 </details>
 </nav>
-<p><strong>Short answer</strong></p>
-<ul>
-<li>Older applicants get fewer employer replies: about 42% fewer across 17 field tests, more in Europe than in the US (Big study; <a href="#src-lippens-2023">Lippens et al. 2023</a>).</li>
-<li>Two US tests of women applying to office jobs found no clear drop from the mid-30s to the early 40s (<a href="#src-farber-2017">Farber et al. 2017</a>; <a href="#src-farber-2019">Farber et al. 2019</a>). A test at 108 large US employers found a small gap for all ages over 40 counted together: 0.6 points, when about 24% got a reply; one check could not rule out chance (<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 2, 4, 11, 13). In US tests a clearer drop shows somewhere between the mid-40s and mid-50s. In a Swedish test with age stated, it shows from the early 40s (Big studies; <a href="#src-farber-2017">Farber et al. 2017</a>; <a href="#src-neumark-2019">Neumark et al. 2019</a>; <a href="#src-carlsson-eriksson-2019">Carlsson and Eriksson 2019</a>).</li>
-<li>The graduation year is the usual cue. No field test has removed the graduation year alone. One US test shortened the work history and left the year on; callbacks did not clearly change (Big study; <a href="#src-neumark-2019">Neumark et al. 2019</a>).</li>
+<p class="box"><strong>What the evidence says</strong></p>
+<ul class="box-list">
+<li>Older applicants get fewer employer replies: about 42% fewer across 17 field tests, more in Europe than in the US <small>(Big study; <a href="#src-lippens-2023">Lippens et al. 2023</a>)</small>.</li>
+<li>Two US tests of women applying to office jobs found no clear drop from the mid-30s to the early 40s <small>(<a href="#src-farber-2017">Farber et al. 2017</a>; <a href="#src-farber-2019">Farber et al. 2019</a>)</small>. A test at 108 large US employers found a small gap for all ages over 40 counted together: 0.6 points, when about 24% got a reply; one check could not rule out chance <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 2, 4, 11, 13)</small>. In US tests a clearer drop shows somewhere between the mid-40s and mid-50s. In a Swedish test with age stated, it shows from the early 40s <small>(Big studies; <a href="#src-farber-2017">Farber et al. 2017</a>; <a href="#src-neumark-2019">Neumark et al. 2019</a>; <a href="#src-carlsson-eriksson-2019">Carlsson and Eriksson 2019</a>)</small>.</li>
+<li>The graduation year is the usual cue. No field test has removed the graduation year alone. One US test shortened the work history and left the year on; callbacks did not clearly change <small>(Big study; <a href="#src-neumark-2019">Neumark et al. 2019</a>)</small>.</li>
 <li>Never use a false date. The bias is the employer’s, not a flaw in you.</li>
 </ul>
 <h2 id="is-there-age-discrimination-in-hiring">Is there age discrimination in hiring?</h2>
-<p>Yes. Field tests in many countries find it.</p>
-<p>A field test sends employers made-up applications that differ only in age. A callback means the employer answers and asks for an interview or more details. The largest review combined 306 field tests published from 2005 to 2020. Nineteen of them tested age, and 17 of those tested older age. In the 17, older applicants were about 42% less likely to get a positive reply than younger ones. Across all 19 age tests the gap was about 40%. For older applicants the gap was about 49% in European tests and about 31% in US tests. The review’s authors say published tests may overstate such gaps to some extent (<a href="#src-lippens-2023">Lippens et al. 2023</a>). We read the review’s open working-paper copy, so the printed figures may differ slightly.</p>
-<p>A rating study points the same way (Lab study). A 2025 study showed 5,017 Danish employers made-up applicants aged 45 to 75. No other trait of an applicant weighed more than age (<a href="#src-qvist-larsen-2025">Qvist and Larsen 2025</a>). That study asked employers to rate descriptions; it did not watch real hiring.</p>
+<p><strong>Yes. Field tests in many countries find it.</strong></p>
+<p>A field test sends employers made-up applications that differ only in age. A callback means the employer answers and asks for an interview or more details. The largest review combined 306 field tests published from 2005 to 2020. Nineteen of them tested age, and 17 of those tested older age. In the 17, older applicants were about 42% less likely to get a positive reply than younger ones. Across all 19 age tests the gap was about 40%. For older applicants the gap was about 49% in European tests and about 31% in US tests. The review’s authors say published tests may overstate such gaps to some extent <small>(<a href="#src-lippens-2023">Lippens et al. 2023</a>)</small>. We read the review’s open working-paper copy, so the printed figures may differ slightly.</p>
+<p>A rating study points the same way (Lab study). A 2025 study showed 5,017 Danish employers made-up applicants aged 45 to 75. No other trait of an applicant weighed more than age <small>(<a href="#src-qvist-larsen-2025">Qvist and Larsen 2025</a>)</small>. That study asked employers to rate descriptions; it did not watch real hiring.</p>
 <h2 id="at-what-age-does-the-hiring-penalty-start">At what age does the hiring penalty start?</h2>
-<p>In US tests, somewhere between the mid-40s and mid-50s. In the largest US test built to study age, the drop was already there for women at 49 to 51. In a Swedish test where the resume stated age, in the early 40s.</p>
+<p><strong>In US tests, somewhere between the mid-40s and mid-50s.</strong> In the largest US test built to study age, the drop was already there for women at 49 to 51. In a Swedish test where the resume stated age, in the early 40s.</p>
 <div class="table" role="region" aria-label="Table: At what age does the hiring penalty start?" tabindex="0">
 <table>
 <thead>
@@ -422,49 +457,49 @@
 </thead>
 <tbody>
 <tr>
-<td>Farber and others 2017 (<a href="#src-farber-2017">Farber et al. 2017</a>, p. 180)</td>
+<td>Farber and others 2017 <small>(<a href="#src-farber-2017">Farber et al. 2017</a>, p. 180)</small></td>
 <td>US</td>
 <td>35–37, 40–42, 55–58</td>
 <td>College graduation year</td>
 <td>11.0%, 11.9% and 8.9%; only the oldest group was lower, and the gap was clear only in the last of four rounds</td>
 </tr>
 <tr>
-<td>Farber and others 2019 (<a href="#src-farber-2019">Farber et al. 2019</a>, p. 16)</td>
+<td>Farber and others 2019 <small>(<a href="#src-farber-2019">Farber et al. 2019</a>, p. 16)</small></td>
 <td>US</td>
 <td>22–23 up to 60–61</td>
 <td>College graduation and job dates</td>
 <td>No clear difference from 27 to 52; lower at 60–61</td>
 </tr>
 <tr>
-<td>Neumark and others 2019 (<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 26)</td>
+<td>Neumark and others 2019 <small>(<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 26)</small></td>
 <td>US</td>
 <td>29–31, 49–51, 64–66</td>
 <td>High school graduation year</td>
 <td>18.7%, 15.4% and 12.2% over all jobs tested</td>
 </tr>
 <tr>
-<td>Kline and others 2022 (<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 9–11, 13)</td>
+<td>Kline and others 2022 <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 9–11, 13)</small></td>
 <td>US</td>
 <td>22 to 58</td>
 <td>High school graduation year</td>
 <td>0.6 points lower for all ages over 40 counted as one group; in the 72 firms tested in every round, about as large but could be chance</td>
 </tr>
 <tr>
-<td>Lahey 2008 (<a href="#src-lahey-2008">Lahey 2008</a>, pp. 4, 18)</td>
+<td>Lahey 2008 <small>(<a href="#src-lahey-2008">Lahey 2008</a>, pp. 4, 18)</small></td>
 <td>US</td>
 <td>35 to 62</td>
 <td>High school graduation year</td>
 <td>Applicants under 50 were 42% to 46% more likely to get an interview offer; could be chance, and 50 was the cut-off that gave the strongest result</td>
 </tr>
 <tr>
-<td>Carlsson and Eriksson 2019 (<a href="#src-carlsson-eriksson-2019">Carlsson and Eriksson 2019</a>, p. 7)</td>
+<td>Carlsson and Eriksson 2019 <small>(<a href="#src-carlsson-eriksson-2019">Carlsson and Eriksson 2019</a>, p. 7)</small></td>
 <td>Sweden</td>
 <td>35 to 70</td>
 <td>Age stated outright</td>
 <td>About 0.5 points lower for each year of age</td>
 </tr>
 <tr>
-<td>Dalle and others 2025 (<a href="#src-dalle-2025">Dalle et al. 2025</a>, pp. 22–23)</td>
+<td>Dalle and others 2025 <small>(<a href="#src-dalle-2025">Dalle et al. 2025</a>, pp. 22–23)</small></td>
 <td>Belgium</td>
 <td>38, 44, 50, 56</td>
 <td>Birth year</td>
@@ -473,12 +508,12 @@
 </tbody>
 </table>
 </div>
-<p>Forty is the legal line in the US, not the measured start. Federal age law protects people who are at least 40, as of October 2026 (<a href="#src-adea-631">United States Code 1967</a>). No US test here found a sudden drop at 40. In one test, women aged 40 to 42 got callbacks as often as women aged 35 to 37 (<a href="#src-farber-2017">Farber et al. 2017</a>, p. 180). One study of a restaurant chain’s records treats everyone 40 and over as one group, so that study cannot say where the drop starts (<a href="#src-neumark-2024">Neumark 2024</a>, p. 2).</p>
-<p>A US test aimed mainly at race and gender also tested age. That test sent more than 83,000 applications to 108 of the largest US employers (<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 2–4). The test’s made-up applicants were aged 22 to 58, shown by a high school graduation year (<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 4, 9–10). About 24% of all applications got a reply within 30 days. In that test, applicants over 40, counted as one group, got 0.6 points fewer replies than applicants under 40. In the 72 firms tested in every round, the gap was about as large but could be chance. Replies fell a little and steadily with each older age group; the authors call that slide borderline. The authors say their test confirms age bias in US hiring, though smaller than in the largest US test built to study age (<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 11, 13). The age groups in that test differed too little to show where the drop starts.</p>
-<p>The largest US test built to study age sent 40,223 applications at three ages and tested nothing between 31 and 49. So that test cannot say where the drop begins. Women applying to office jobs got callbacks 14.4% of the time at 29 to 31, 10.3% at 49 to 51 and 7.6% at 64 to 66. Men applying to sales jobs got 20.9%, 21.1% and 14.7% (<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 26). In this test the drop at 49 to 51 showed for women and not for men in sales. The authors say their evidence for men is weaker than for women (<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 37).</p>
+<p>Forty is the legal line in the US, not the measured start. Federal age law protects people who are at least 40, as of October 2026 <small>(<a href="#src-adea-631">United States Code 1967</a>)</small>. No US test here found a sudden drop at 40. In one test, women aged 40 to 42 got callbacks as often as women aged 35 to 37 <small>(<a href="#src-farber-2017">Farber et al. 2017</a>, p. 180)</small>. One study of a restaurant chain’s records treats everyone 40 and over as one group, so that study cannot say where the drop starts <small>(<a href="#src-neumark-2024">Neumark 2024</a>, p. 2)</small>.</p>
+<p>A US test aimed mainly at race and gender also tested age. That test sent more than 83,000 applications to 108 of the largest US employers <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 2–4)</small>. The test’s made-up applicants were aged 22 to 58, shown by a high school graduation year <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 4, 9–10)</small>. About 24% of all applications got a reply within 30 days. In that test, applicants over 40, counted as one group, got 0.6 points fewer replies than applicants under 40. In the 72 firms tested in every round, the gap was about as large but could be chance. Replies fell a little and steadily with each older age group; the authors call that slide borderline. The authors say their test confirms age bias in US hiring, though smaller than in the largest US test built to study age <small>(<a href="#src-kline-2022">Kline et al. 2022</a>, pp. 11, 13)</small>. The age groups in that test differed too little to show where the drop starts.</p>
+<p>The largest US test built to study age sent 40,223 applications at three ages and tested nothing between 31 and 49. So that test cannot say where the drop begins. Women applying to office jobs got callbacks 14.4% of the time at 29 to 31, 10.3% at 49 to 51 and 7.6% at 64 to 66. Men applying to sales jobs got 20.9%, 21.1% and 14.7% <small>(<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 26)</small>. In this test the drop at 49 to 51 showed for women and not for men in sales. The authors say their evidence for men is weaker than for women <small>(<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 37)</small>.</p>
 <p>One US test covered six ages in the same kind of job. Its applicants were women applying to office support jobs.</p>
 <figure class="bars">
-<figcaption>Callbacks by age, US women applying to office support jobs (Big study, 8,488 made-up applications; <a href="#src-farber-2019">Farber et al. 2019</a>, p. 16)</figcaption>
+<figcaption>Callbacks by age, US women applying to office support jobs <small>(Big study, 8,488 made-up applications; <a href="#src-farber-2019">Farber et al. 2019</a>, p. 16)</small></figcaption>
 <table>
 <thead>
 <tr>
@@ -514,23 +549,23 @@
 </tbody>
 </table>
 </figure>
-<p>The authors of that test found no clear difference among the four middle groups. Callbacks were lower only for the youngest and the oldest (<a href="#src-farber-2019">Farber et al. 2019</a>, p. 16). The dip at 51 to 52 may be chance.</p>
-<p>Sweden looks different. A test there sent 6,066 applications with the age written in the letter and the birth date on the resume. Callbacks fell by about 0.5 points for each year of age, starting in the early 40s. Near retirement age, callbacks were 2% to 3% (<a href="#src-carlsson-eriksson-2019">Carlsson and Eriksson 2019</a>, pp. 3, 7, 20). A Belgian test, printed in a journal in 2025, tried four ages. Applicants aged 56 got about 28% fewer positive replies; applicants aged 44 and 50 showed no clear gap (<a href="#src-dalle-2025">Dalle et al. 2025</a>, pp. 22–23). We read the authors’ open copy of the Belgian paper.</p>
+<p>The authors of that test found no clear difference among the four middle groups. Callbacks were lower only for the youngest and the oldest <small>(<a href="#src-farber-2019">Farber et al. 2019</a>, p. 16)</small>. The dip at 51 to 52 may be chance.</p>
+<p>Sweden looks different. A test there sent 6,066 applications with the age written in the letter and the birth date on the resume. Callbacks fell by about 0.5 points for each year of age, starting in the early 40s. Near retirement age, callbacks were 2% to 3% <small>(<a href="#src-carlsson-eriksson-2019">Carlsson and Eriksson 2019</a>, pp. 3, 7, 20)</small>. A Belgian test, printed in a journal in 2025, tried four ages. Applicants aged 56 got about 28% fewer positive replies; applicants aged 44 and 50 showed no clear gap <small>(<a href="#src-dalle-2025">Dalle et al. 2025</a>, pp. 22–23)</small>. We read the authors’ open copy of the Belgian paper.</p>
 <p>For you, the tests suggest the risk on a US resume is small in the early 40s and grows from about 50, for the women and jobs tested.</p>
 <h2 id="should-you-remove-your-graduation-year-from-your-resume">Should you remove your graduation year from your resume?</h2>
-<p>The graduation year is how readers guess age, but no field test has removed it alone. Removing it is your call.</p>
-<p>Every US test in the table showed age through a graduation year. Real resumes show it too: 56% of more than 25,000 real resumes in one sample listed a high school graduation year (<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 17). In a 2022 survey for a resume company, 41% of 800 US hiring managers said a graduation year makes age bias more likely. Nearly one in four said they would never recommend listing it. The largest group, 26%, said to always list all relevant experience (<a href="#src-resumebuilder-2022">ResumeBuilder.com 2022</a>). A resume company ran that survey, so read it with care.</p>
-<p>A shorter work history did not help while the year stayed. The largest US age test cut older applicants’ work history short and left the graduation year on. Callbacks did not clearly change, except for janitor jobs (<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 30). That test hid no age cue, so it cannot say what hiding one does.</p>
-<p>Real records from one US restaurant chain show where the loss came. The records come from reports filed in an age-discrimination lawsuit, so the result is a link, not proof of cause. The author discloses a financial relationship that may be relevant to the research. Applicants 40 and over who applied online were picked for interviews as often as younger ones, or more often. After the in-person interview, their job offers were 40% lower. For paper applications handed in face to face, offers were 68% lower (<a href="#src-neumark-2024">Neumark 2024</a>, p. 2). The online form still asked for a high school graduation year, and some applicants gave it (<a href="#src-neumark-2024">Neumark 2024</a>, p. 7). At this one employer, older applicants reached the interview as often as younger ones. The offers fell after the interview.</p>
-<p>Leaving a date off may cost a little; no US test has measured it. A lab study asked 610 HR professionals in Belgium to rate resumes. Resumes without a birth date got slightly lower ratings overall. Hobbies and first names the raters read as old-fashioned also lowered ratings (<a href="#src-derous-2017">Derous and Decoster 2017</a>). Belgian resumes usually carry a birth date, so that result may not carry over to a US graduation year.</p>
+<p><strong>The graduation year is how readers guess age, but no field test has removed it alone.</strong> Removing it is your call.</p>
+<p>Every US test in the table showed age through a graduation year. Real resumes show it too: 56% of more than 25,000 real resumes in one sample listed a high school graduation year <small>(<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 17)</small>. In a 2022 survey for a resume company, 41% of 800 US hiring managers said a graduation year makes age bias more likely. Nearly one in four said they would never recommend listing it. The largest group, 26%, said to always list all relevant experience <small>(<a href="#src-resumebuilder-2022">ResumeBuilder.com 2022</a>)</small>. A resume company ran that survey, so read it with care.</p>
+<p>A shorter work history did not help while the year stayed. The largest US age test cut older applicants’ work history short and left the graduation year on. Callbacks did not clearly change, except for janitor jobs <small>(<a href="#src-neumark-2019">Neumark et al. 2019</a>, p. 30)</small>. That test hid no age cue, so it cannot say what hiding one does.</p>
+<p>Real records from one US restaurant chain show where the loss came. The records come from reports filed in an age-discrimination lawsuit, so the result is a link, not proof of cause. The author discloses a financial relationship that may be relevant to the research. Applicants 40 and over who applied online were picked for interviews as often as younger ones, or more often. After the in-person interview, their job offers were 40% lower. For paper applications handed in face to face, offers were 68% lower <small>(<a href="#src-neumark-2024">Neumark 2024</a>, p. 2)</small>. The online form still asked for a high school graduation year, and some applicants gave it <small>(<a href="#src-neumark-2024">Neumark 2024</a>, p. 7)</small>. At this one employer, older applicants reached the interview as often as younger ones. The offers fell after the interview.</p>
+<p>Leaving a date off may cost a little; no US test has measured it. A lab study asked 610 HR professionals in Belgium to rate resumes. Resumes without a birth date got slightly lower ratings overall. Hobbies and first names the raters read as old-fashioned also lowered ratings <small>(<a href="#src-derous-2017">Derous and Decoster 2017</a>)</small>. Belgian resumes usually carry a birth date, so that result may not carry over to a US graduation year.</p>
 <h2 id="why-do-employers-pass-over-older-applicants">Why do employers pass over older applicants?</h2>
-<p>Part of it is belief about skills. A lab study asked 400 people on an online panel to rate made-up candidates of different ages. All had experience judging applicants, and nine in ten were in the US. Three beliefs explained about 41% of the age effect: weaker technology skills, less flexibility and being harder to train. The authors say this link is not proof of cause (<a href="#src-van-borm-2021">Van Borm et al. 2021</a>). In the 2022 vendor survey, hiring managers named two main worries about applicants aged 60 and up. One was retiring soon; the other was technology skills. In the same survey, managers had concerns about applicants under 25 just as often (<a href="#src-resumebuilder-2022">ResumeBuilder.com 2022</a>).</p>
+<p><strong>Part of it is belief about skills.</strong> A lab study asked 400 people on an online panel to rate made-up candidates of different ages. All had experience judging applicants, and nine in ten were in the US. Three beliefs explained about 41% of the age effect: weaker technology skills, less flexibility and being harder to train. The authors say this link is not proof of cause <small>(<a href="#src-van-borm-2021">Van Borm et al. 2021</a>)</small>. In the 2022 vendor survey, hiring managers named two main worries about applicants aged 60 and up. One was retiring soon; the other was technology skills. In the same survey, managers had concerns about applicants under 25 just as often <small>(<a href="#src-resumebuilder-2022">ResumeBuilder.com 2022</a>)</small>.</p>
 <p>These are beliefs about a group. They say nothing about how well one person will do the job.</p>
 <h2 id="does-ai-screening-read-age-too">Does AI screening read age too?</h2>
-<p>In lab tests, yes. A 2026 conference paper had 10 openly released AI models pick which of two made-up applicants to call back. Age showed through the college graduation year; older meant 45 to 58. The makers’ extra training moved callbacks for older applicants down by 3.6% against the same models before that training. Eight of the ten moved that way (<a href="#src-bone-2026">Bone et al. 2026</a>). A 2023 preprint from an AI maker tested one older model on 70 made-up decisions, with the age stated. The decisions covered loans and visas as well as jobs. Its answers were less favorable for people over 60 (<a href="#src-tamkin-2023">Tamkin et al. 2023</a>). Lab tests show what models do in a test, not what employers do. More tests are in <a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a></p>
-<p>One US lawsuit puts the question to a court. In May 2025, a federal court let an age claim over Workday’s screening tools go forward for a wider group. The group is applicants aged 40 and over since September 2020. The order describes what the plaintiffs allege and decides nothing on the facts (<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>). As of October 2026, we found no ruling on the facts in the case. The case and the laws around it are in <a href="/research/ai-hiring-laws/">AI hiring laws</a>.</p>
+<p><strong>In lab tests, yes.</strong> A 2026 conference paper had 10 openly released AI models pick which of two made-up applicants to call back. Age showed through the college graduation year; older meant 45 to 58. The makers’ extra training moved callbacks for older applicants down by 3.6% against the same models before that training. Eight of the ten moved that way <small>(<a href="#src-bone-2026">Bone et al. 2026</a>)</small>. A 2023 preprint from an AI maker tested one older model on 70 made-up decisions, with the age stated. The decisions covered loans and visas as well as jobs. Its answers were less favorable for people over 60 <small>(<a href="#src-tamkin-2023">Tamkin et al. 2023</a>)</small>. Lab tests show what models do in a test, not what employers do. More tests are in <a href="/research/ai-resume-screening-bias/">Is AI resume screening biased?</a></p>
+<p>One US lawsuit puts the question to a court. In May 2025, a federal court let an age claim over Workday’s screening tools go forward for a wider group. The group is applicants aged 40 and over since September 2020. The order describes what the plaintiffs allege and decides nothing on the facts <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>)</small>. As of October 2026, we found no ruling on the facts in the case. The case and the laws around it are in <a href="/research/ai-hiring-laws/">AI hiring laws</a>.</p>
 <h2 id="can-an-employer-ask-your-age-or-graduation-year">Can an employer ask your age or graduation year?</h2>
-<p>Federal law does not ban the question, and at least seven states limit it, as of October 2026. This is general information, not legal advice.</p>
+<p><strong>Federal law does not ban the question, and at least seven states limit it, as of October 2026.</strong> This is general information, not legal advice.</p>
 <div class="table" role="region" aria-label="Table: Can an employer ask your age or graduation year?" tabindex="0">
 <table>
 <thead>
@@ -546,66 +581,66 @@
 <td>US, federal</td>
 <td>No ban. A form that asks age or birth date will be “closely scrutinized”, the federal rule says</td>
 <td>Any stage</td>
-<td>(<a href="#src-cfr-1625-5">US Equal Employment Opportunity Commission 2007</a>)</td>
+<td><small>(<a href="#src-cfr-1625-5">US Equal Employment Opportunity Commission 2007</a>)</small></td>
 </tr>
 <tr>
 <td>California</td>
 <td>Questions that reveal age, such as age, birth date or graduation dates</td>
 <td>Spoken and written questions before hiring</td>
-<td>(<a href="#src-ca-2ccr-11079">California Civil Rights Council 2020</a>)</td>
+<td><small>(<a href="#src-ca-2ccr-11079">California Civil Rights Council 2020</a>)</small></td>
 </tr>
 <tr>
 <td>Colorado</td>
 <td>Age, birth date, school attendance or graduation dates</td>
 <td>First application, since July 1, 2024</td>
-<td>(<a href="#src-co-sb23-058">Colorado General Assembly 2023</a>)</td>
+<td><small>(<a href="#src-co-sb23-058">Colorado General Assembly 2023</a>)</small></td>
 </tr>
 <tr>
 <td>Connecticut</td>
 <td>Age, birth date, school attendance or graduation dates</td>
 <td>First application, since October 1, 2021</td>
-<td>(<a href="#src-ct-pa21-69">Connecticut General Assembly 2021</a>)</td>
+<td><small>(<a href="#src-ct-pa21-69">Connecticut General Assembly 2021</a>)</small></td>
 </tr>
 <tr>
 <td>Delaware</td>
 <td>Age, birth date, school attendance or graduation dates; employers with 4 or more employees</td>
 <td>First application; law signed September 2022</td>
-<td>(<a href="#src-de-19-711">Delaware General Assembly 2022</a>)</td>
+<td><small>(<a href="#src-de-19-711">Delaware General Assembly 2022</a>)</small></td>
 </tr>
 <tr>
 <td>Minnesota</td>
 <td>Information that pertains to age</td>
 <td>Before a person is hired</td>
-<td>(<a href="#src-mn-363a-08">Minnesota Legislature, Office of the Revisor of Statutes 2026</a>)</td>
+<td><small>(<a href="#src-mn-363a-08">Minnesota Legislature, Office of the Revisor of Statutes 2026</a>)</small></td>
 </tr>
 <tr>
 <td>Oregon</td>
 <td>Age, birth date, when you attended or graduated from a school</td>
 <td>Until the first interview is done, or until a conditional offer if there is no interview; since September 26, 2025</td>
-<td>(<a href="#src-or-hb3187">Oregon Legislative Assembly 2025</a>)</td>
+<td><small>(<a href="#src-or-hb3187">Oregon Legislative Assembly 2025</a>)</small></td>
 </tr>
 <tr>
 <td>Pennsylvania</td>
 <td>Questions or form entries about age</td>
 <td>Before hiring</td>
-<td>(<a href="#src-pa-phra-955">Pennsylvania General Assembly 1955</a>)</td>
+<td><small>(<a href="#src-pa-phra-955">Pennsylvania General Assembly 1955</a>)</small></td>
 </tr>
 </tbody>
 </table>
 </div>
 <p>Each state rule has exceptions, such as a real job requirement or another law that needs the date. Which rule covers a job depends on where the job is and who the employer is. We checked these eight sources in October 2026 and did not survey all 50 states.</p>
 <h2 id="should-you-change-a-date-to-look-younger">Should you change a date to look younger?</h2>
-<p>No. Leaving a date off is honest; a false date is not.</p>
-<p>Degrees are easy to check. The National Student Clearinghouse says its member schools enroll 97% of students at US public and private colleges (<a href="#src-nsc-about">National Student Clearinghouse 2026a</a>). The Clearinghouse runs a service that confirms degrees and attendance (<a href="#src-nsc-verify">National Student Clearinghouse 2026b</a>). A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants’ details in the past 12 months (<a href="#src-hireright-2025">HireRight 2025a</a>). That company sells those checks.</p>
+<p><strong>No. Leaving a date off is honest; a false date is not.</strong></p>
+<p>Degrees are easy to check. The National Student Clearinghouse says its member schools enroll 97% of students at US public and private colleges <small>(<a href="#src-nsc-about">National Student Clearinghouse 2026a</a>)</small>. The Clearinghouse runs a service that confirms degrees and attendance <small>(<a href="#src-nsc-verify">National Student Clearinghouse 2026b</a>)</small>. A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants’ details in the past 12 months <small>(<a href="#src-hireright-2025">HireRight 2025a</a>)</small>. That company sells those checks.</p>
 <p>A missing year is not a false statement. A false year found in a check is a mismatch on record.</p>
 <h2 id="what-we-dont-know">What we don’t know</h2>
 <ul>
 <li>Whether removing only the graduation year raises callbacks. We found no field test of it. We searched the web and arXiv in October 2026.</li>
-<li>What a missing graduation year costs on a US resume. The one test of a missing date was a Belgian lab study of birth dates (<a href="#src-derous-2017">Derous and Decoster 2017</a>).</li>
-<li>Where the US penalty starts between the mid-40s and mid-50s. The largest US age test skipped ages 32 to 48; the six-age test jumped from 42–43 to 51–52; the 108-employer test’s age groups differed too little to tell (<a href="#src-neumark-2019">Neumark et al. 2019</a>; <a href="#src-farber-2019">Farber et al. 2019</a>; <a href="#src-kline-2022">Kline et al. 2022</a>).</li>
-<li>Whether the results hold for men and for jobs outside office, sales and service work. Three of the five US tests here used only women, two of them in office jobs (<a href="#src-farber-2017">Farber et al. 2017</a>; <a href="#src-farber-2019">Farber et al. 2019</a>; <a href="#src-lahey-2008">Lahey 2008</a>).</li>
-<li>Whether showing recent training closes the gap. The skills finding comes from a lab study (<a href="#src-van-borm-2021">Van Borm et al. 2021</a>).</li>
-<li>How employers’ AI tools treat age in real hiring. The tests used made-up applicants (<a href="#src-bone-2026">Bone et al. 2026</a>).</li>
+<li>What a missing graduation year costs on a US resume. The one test of a missing date was a Belgian lab study of birth dates <small>(<a href="#src-derous-2017">Derous and Decoster 2017</a>)</small>.</li>
+<li>Where the US penalty starts between the mid-40s and mid-50s. The largest US age test skipped ages 32 to 48; the six-age test jumped from 42–43 to 51–52; the 108-employer test’s age groups differed too little to tell <small>(<a href="#src-neumark-2019">Neumark et al. 2019</a>; <a href="#src-farber-2019">Farber et al. 2019</a>; <a href="#src-kline-2022">Kline et al. 2022</a>)</small>.</li>
+<li>Whether the results hold for men and for jobs outside office, sales and service work. Three of the five US tests here used only women, two of them in office jobs <small>(<a href="#src-farber-2017">Farber et al. 2017</a>; <a href="#src-farber-2019">Farber et al. 2019</a>; <a href="#src-lahey-2008">Lahey 2008</a>)</small>.</li>
+<li>Whether showing recent training closes the gap. The skills finding comes from a lab study <small>(<a href="#src-van-borm-2021">Van Borm et al. 2021</a>)</small>.</li>
+<li>How employers’ AI tools treat age in real hiring. The tests used made-up applicants <small>(<a href="#src-bone-2026">Bone et al. 2026</a>)</small>.</li>
 <li>Whether results from before 2020 still hold. Most field tests here ran before then.</li>
 <li>What a 2023 review of age studies found. Its page would not open for us, so this article does not use it.</li>
 </ul>
@@ -614,9 +649,9 @@
 <li>Degree 20 or more years old: consider taking off graduation and certificate years, shortening the oldest jobs, and dropping phrases like “25 years of experience”. A year lets a reader guess age. The 20-year line is our judgment from the tests above, not a tested threshold.</li>
 <li>If you take the year off, shorten the oldest jobs too. A long history lets a reader guess age as well. That is our judgment; no test compared the two.</li>
 <li>Early in your career, keep the year. Career guides expect it, and that is convention, not a study.</li>
-<li>Name the current tools you really use. Raters’ doubts about technology skills explained part of the age gap in a lab study (<a href="#src-van-borm-2021">Van Borm et al. 2021</a>).</li>
+<li>Name the current tools you really use. Raters’ doubts about technology skills explained part of the age gap in a lab study <small>(<a href="#src-van-borm-2021">Van Borm et al. 2021</a>)</small>.</li>
 <li>On an application form, answer a required date box truthfully. An optional one can stay empty.</li>
-<li>Never change a date. Degree and work dates can be checked (<a href="#src-nsc-about">National Student Clearinghouse 2026a</a>; <a href="#src-hireright-2025">HireRight 2025a</a>).</li>
+<li>Never change a date. Degree and work dates can be checked <small>(<a href="#src-nsc-about">National Student Clearinghouse 2026a</a>; <a href="#src-hireright-2025">HireRight 2025a</a>)</small>.</li>
 <li>Apply widely. That is common advice, not a study finding.</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. What else makes a resume work: <a href="/research/what-makes-a-good-resume/">What makes a good resume?</a>. Gaps in work history are covered in <a href="/research/employment-gaps/">Does an employment gap on your resume hurt?</a> Bias over names, records and more, in one place: <a href="/research/hiring-bias-what-helps/">Hiring discrimination: what studies show, what helps</a>.</p>
@@ -631,8 +666,9 @@
 <p><span translate="no">CEZ Job Finder</span> is a free job-search app for Windows and Mac: <a href="/">see how <span translate="no">CEZ Job Finder</span> works</a>.</p>
 <h2 id="changes">Changes</h2>
 <ul>
-<li>October 2026 – added a US test of more than 83,000 applications at 108 large employers. Applicants over 40, counted together, got slightly fewer replies (<a href="#src-kline-2022">Kline et al. 2022</a>). So the short answer, the description and one body sentence no longer say US tests found no drop at 40. Neumark 2019 is now called the largest US test built to study age, not the largest US test. The other findings are unchanged.</li>
-<li>October 2026 – the background-check survey line now says the share is of the businesses asked, over the past 12 months. The 2026 model test is now described as it ran: each prompt asked a model to pick one of two applicants (<a href="#src-bone-2026">Bone et al. 2026</a>). <span translate="no">CEZ Job Finder</span>’s age offer is now described as it works: it offers at 15 years, recommends at 20. The findings are unchanged.</li>
+<li>October 2026 – added a US test of more than 83,000 applications at 108 large employers. Applicants over 40, counted together, got slightly fewer replies <small>(<a href="#src-kline-2022">Kline et al. 2022</a>)</small>. So the short answer, the description and one body sentence no longer say US tests found no drop at 40. Neumark 2019 is now called the largest US test built to study age, not the largest US test. The other findings are unchanged.</li>
+<li>October 2026 – the background-check survey line now says the share is of the businesses asked, over the past 12 months. The 2026 model test is now described as it ran: each prompt asked a model to pick one of two applicants <small>(<a href="#src-bone-2026">Bone et al. 2026</a>)</small>. <span translate="no">CEZ Job Finder</span>’s age offer is now described as it works: it offers at 15 years, recommends at 20. The findings are unchanged.</li>
+<li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -668,8 +704,9 @@
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/ai-hiring-laws/">AI hiring laws in 2026: what employers must tell you</a></li>
-<li><a href="/research/cover-letters-after-ai/">Do cover letters still matter now that AI writes them?</a></li>
+<li><a href="/research/ai-resume-screening-bias/">Is AI resume screening biased? What the studies show</a><p>AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p></li>
+<li><a href="/research/ai-hiring-laws/">AI hiring laws in 2026: what employers must tell you</a><p>New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow.</p></li>
+<li><a href="/research/what-makes-a-good-resume/">What makes a good resume? The evidence, rule by rule</a><p>Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
@@ -691,5 +728,6 @@
   </div>
 </footer>
 <script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
+<script>(()=>{const d=document.createElement("dialog");d.className="card";document.body.append(d);document.addEventListener("click",e=>{const l=e.target.closest('a[href^="#src-"]');if(!l||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const s=document.getElementById(l.hash.slice(1));if(!s)return;e.preventDefault();d.innerHTML="<div>"+s.innerHTML+'<p><a href="#sources">All sources<\/a><button autofocus>Close<\/button><\/p><\/div>';d.showModal()});d.addEventListener("click",e=>{if(e.target==d||e.target.closest('button,[href="#sources"]'))d.close()})})()</script>
 </body>
 </html>

@@ -2,7 +2,7 @@
 title: "What makes a good resume? The evidence, rule by rule"
 description: Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested.
 published: 2026-10-03
-modified: 2026-10-06
+modified: 2026-10-07
 status: published
 og_title: "What makes a good resume? Each rule and the evidence behind it"
 uncited:
@@ -14,7 +14,13 @@ uncited:
   - "searched for field experiments on achievement lines versus duty lines, on posting-word match versus callbacks, and on whether resume-checker scores predict interviews (October 2026); none found"
   - "searched for a study of a target job title at the top of a resume versus interviews, and read the Harvard and MIT career office resume guides (October 2026); no study found, and neither guide mentions a title line"
 ---
-**Short answer**
+**What to do**
+
+- Make every employer, title and date in your work history match your records.
+- Proofread, and have someone else proofread too.
+- Use a plain, one-column page with clear headings.
+
+**What the evidence says**
 
 - True first: each job's employer, title and dates match records. Firms that check find mismatches (Vendor survey) [@hireright-2025].
 - Typos: 2 errors, rated interview chance 7.3 points lower out of 100 (Lab study) [@sterkens-2023].
@@ -23,7 +29,7 @@ uncited:
 
 ## What matters most on a resume?
 
-A resume has four jobs, in this order: be true, show real results, fit the job, read easily. The order is our rule, not a study's finding. When two rules clash, the earlier one wins. A strong line that is not true fails the first job.
+**A resume has four jobs, in this order: be true, show real results, fit the job, read easily.** The order is our rule, not a study's finding. When two rules clash, the earlier one wins. A strong line that is not true fails the first job.
 
 Most resume advice has never been tested in real hiring. A few rules have studies behind them, and many rest on career-guide agreement. Each section below says which kind of evidence backs the rule. How we grade evidence: [How we research](methods.md).
 
@@ -52,7 +58,7 @@ Most rules in the table rest on convention or a company's own survey, test or he
 
 ## Does your resume have to match your records?
 
-Yes. Many employers check work history, and mismatches turn up. HireRight, a background-check company, ran a survey in 2025. More than three-quarters of the businesses it asked found a mismatch in the past 12 months. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of respondents in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].
+**Yes. Many employers check work history, and mismatches turn up.** HireRight, a background-check company, ran a survey in 2025. More than three-quarters of the businesses it asked found a mismatch in the past 12 months. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of respondents in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].
 
 HireRight sells background checks, and the people it asked work at firms that run checks. The survey's question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.
 
@@ -60,7 +66,7 @@ Each employer name, job title and dates should match what a past employer would 
 
 ## Should a resume list results or duties?
 
-Career guides agree: show what you achieved, not only what the job asked of you. MIT's career office says to record "accomplishments and contributions, not just responsibilities" [@mit-capd-resumes]. Harvard's career office lists "not demonstrating results" among common resume mistakes [@harvard-ocs-resume].
+**Career guides agree: show what you achieved, not only what the job asked of you.** MIT's career office says to record "accomplishments and contributions, not just responsibilities" [@mit-capd-resumes]. Harvard's career office lists "not demonstrating results" among common resume mistakes [@harvard-ocs-resume].
 
 The rule is convention. We searched for a study that tested results lines against duty lines in real hiring and found none.
 
@@ -70,7 +76,7 @@ So rewrite duty lines into what you did and what came of it, using only facts yo
 
 ## Should you use the words in the job posting?
 
-Use the posting's words for skills you really have. Recruiters can search stored resumes for words, much like a web search [@greenhouse-search]. Our reading: a skill you have but name differently may not come up in that search.
+**Use the posting's words for skills you really have.** Recruiters can search stored resumes for words, much like a web search [@greenhouse-search]. Our reading: a skill you have but name differently may not come up in that search.
 
 The rule rests on how hiring software is built, not on a study of interviews. We searched for a large study showing that matching a posting's words gets more interviews and found none. The claim that software rejects most resumes traces to a 2012 trade article repeating a sales pitch [@levinson-2012-cio]. Why it does not hold up: [Do hiring systems reject most resumes?](ats-rejection-myth.md).
 
@@ -78,7 +84,7 @@ A skill the posting asks for and you lack is a gap to know about. Adding the wor
 
 ## Should the top of your resume name the job you want?
 
-It can, when the title fairly names the work you do now. A title line under your name labels the job you want. It is not one of your past jobs, so no past employer is asked to confirm it. Each job below keeps its real title.
+**It can, when the title fairly names the work you do now.** A title line under your name labels the job you want. It is not one of your past jobs, so no past employer is asked to confirm it. Each job below keeps its real title.
 
 Many recruiters say they search by title. Jobscan, a company that sells resume scanning, surveyed 384 recruiters in 2025. 55.3% said they filter applicants by job title, and 76.4% said they filter by skills [@jobscan-2025].
 
@@ -92,7 +98,7 @@ A target title at the top may help when a recruiter searches by title. Greenhous
 
 ## How far back should a resume go?
 
-One job-site guide tells senior candidates to list work "up to the last 10-15 years". It also says to keep newest jobs first and give older jobs less detail [@indeed-experience-2025].
+**One job-site guide tells senior candidates to list work "up to the last 10-15 years".** It also says to keep newest jobs first and give older jobs less detail [@indeed-experience-2025].
 
 The rule is convention, with no study behind it. Older jobs can stay as short lines, so the page shows no false hole in the middle.
 
@@ -100,7 +106,7 @@ In practice, keep jobs newest first, give recent, relevant work the most room, a
 
 ## Does a gap in your resume hurt?
 
-Long time out of work costs callbacks. For short spells, the two main studies disagree.
+**Long time out of work costs callbacks. For short spells, the two main studies disagree.**
 
 A 2026 review combined 16 field experiments with almost 67,000 made-up applicants in 7 countries [@dhert-2026, pp. 1357, 1362]. Compared with people in work, 1-6 months out of work showed no clear effect on positive replies. Being out of work 13-18 months cut positive replies by about 21%. Being out 19-36 months cut them by about 27% [@dhert-2026, p. 1382]. Each study and its limits: [Does an employment gap on your resume hurt?](employment-gaps.md).
 
@@ -114,7 +120,7 @@ Longer time out of work is worth handling with care. Shorter spells may matter t
 
 ## Does explaining a gap help?
 
-The studies disagree. In one US field experiment, a resume and cover letter saying the gap was an illness, now recovered, did better than no reason. An early summary of that study reports replies of 25.6% with the reason and 23.3% without. The study's published summary calls replies with the reason "significantly higher" [@namingit-2021].
+**The studies disagree.** In one US field experiment, a resume and cover letter saying the gap was an illness, now recovered, did better than no reason. An early summary of that study reports replies of 25.6% with the reason and 23.3% without. The study's published summary calls replies with the reason "significantly higher" [@namingit-2021].
 
 A larger UK experiment found no gain from a childcare reason. Mothers' resumes with a 2.5-year gap explained as full-time childcare did no better than an unexplained gap. The same study tried listing years worked per job instead of dates, which hides the gap. Listing years raised replies by about 8% over resumes with no gap at all [@kristal-2023].
 
@@ -122,7 +128,7 @@ For you, a one-line reason is your call, and the evidence is mixed. It helped fo
 
 ## Do typos really matter?
 
-Probably, though no study has tested them in real hiring. Every typo study we found asked people to rate resumes. In a 2023 study, 445 recruiters in Belgium rated made-up graduate resumes. Two spelling errors lowered the rated chance of an interview by 7.3 points out of 100 [@sterkens-2023]. Five errors lowered it by 18.5 points [@sterkens-2023, p. 10].
+**Probably, though no study has tested them in real hiring.** Every typo study we found asked people to rate resumes. In a 2023 study, 445 recruiters in Belgium rated made-up graduate resumes. Two spelling errors lowered the rated chance of an interview by 7.3 points out of 100 [@sterkens-2023]. Five errors lowered it by 18.5 points [@sterkens-2023, p. 10].
 
 About half of that penalty came from recruiters judging the applicant as less careful, less able or worse with people [@sterkens-2023]. The study asked recruiters to rate resumes, not to hire, so it is a lab study. The resumes were in Dutch, for recent graduates, so US results may differ.
 
@@ -130,7 +136,7 @@ A careful proofread, by you and someone else, is one of the cheapest fixes there
 
 ## How long should a resume be?
 
-One page is the student rule; two pages is common with more experience. MIT's career office says to stick to one page "unless you have extensive experience or an advanced degree" [@mit-capd-resumes]. That is convention.
+**One page is the student rule; two pages is common with more experience.** MIT's career office says to stick to one page "unless you have extensive experience or an advanced degree" [@mit-capd-resumes]. That is convention.
 
 The test most often quoted for two pages is weak. ResumeGo, a resume-writing company, ran a hiring simulation with 482 recruiters and managers. Two-page resumes were picked 5,375 times out of 7,712 [@resumego-2018]. The company says both versions showed similar experience, but the two-page ones held more detail. It is a seller's own test, not peer-reviewed, and not real hiring.
 
@@ -140,7 +146,7 @@ So use the length your relevant experience fills, and pick a narrow, plain font 
 
 ## What should a resume leave off?
 
-US career guides say to leave off a photo and personal details. MIT's career office says not to include age, religion, health or marital status. MIT also says photos "are generally not preferred" on US resumes [@mit-capd-resumes].
+**US career guides say to leave off a photo and personal details.** MIT's career office says not to include age, religion, health or marital status. MIT also says photos "are generally not preferred" on US resumes [@mit-capd-resumes].
 
 A photo invites judgments about looks. In an Israeli field experiment, 5,312 resumes went to 2,656 real job ads, some with a photo. Attractive men got more replies with a photo. Women without a photo got the most replies of all women [@ruffle-2015]. Photos are optional in Israel, and US results may differ.
 
@@ -150,7 +156,7 @@ Leave off the photo, birth date, marital status and street address.
 
 ## Does layout matter?
 
-A plain, one-column page is the safe choice. In a 2018 eye-tracking test by Ladders, a job site, resumes that held recruiters' attention longest had simple layouts and clear headings. The worst had clutter, several columns and missing headings [@ladders-2018]. It is a vendor's test, and the press release does not say how many recruiters took part.
+**A plain, one-column page is the safe choice.** In a 2018 eye-tracking test by Ladders, a job site, resumes that held recruiters' attention longest had simple layouts and clear headings. The worst had clutter, several columns and missing headings [@ladders-2018]. It is a vendor's test, and the press release does not say how many recruiters took part.
 
 Our measurement, September 2026, shows how layout trips up software. A heading with letters spaced apart came back as "EXP E R I ENC E" from one PDF-to-web-page converter. Three other PDF text readers read it whole. Dates set at the right edge of a line were read after the job's bullet points by pdftotext, a common PDF text reader. A degree and school on one line filled Workday's school box wrongly and left its degree box empty.
 
@@ -211,3 +217,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 - October 2026 - added a section on a job title at the top of the resume, with a 2025 recruiter survey and why its often-quoted 10.6 times figure is weak [@jobscan-2025]. The records rule now says it covers each job in your work history. The app section now says the app may put the posting's title at the top after you confirm.
 - October 2026 - the review of time out of work now cites its 2026 journal version, not the 2024 draft; its figures are unchanged. The US health-reason study now cites its published summary, which calls the gain significant.
 - October 2026 - a one-line gap reason is now "your call", since studies disagree on whether it helps. The typo figure now reads 7.3 points in every line [@sterkens-2023]. The background-check survey lines now say the share is of the businesses asked, over the past 12 months.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.

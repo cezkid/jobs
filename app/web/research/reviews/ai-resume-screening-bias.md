@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.22 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.23
+reviewer: fresh AI session, bead plan-xsy.22 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.23; re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Is AI resume screening biased? (`ai-resume-screening-bias.md`)
 
@@ -395,3 +395,23 @@ Fresh subagent; made none of the edits. Read the current article, its diff, `sou
 - No medium or high open. Verdict: publish.
 
 Editor, after the resolution check (2026-10-05): L5 fixed by editor (Changes line now names the short-answer change).
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 7 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Apply widely: when many employers use one tool, one "no" can repeat." <- "Apply widely. When many employers use one tool, one "no" can repeat everywhere [@bommasani-2026]." Softer (no "everywhere"). Supported: game results reused across applications; 4% of those applying to 10 jobs were recommended for none.
+- "Keep your resume accurate, relevant and easy to read." <- same words. The item's "We found no study showing a resume change that beats a biased screener" stays in What helps and in evidence bullet 4 right below. Supported.
+- "Use your rights to a notice or a human review where they exist." <- "Use your rights where they exist. As of October 2026: notice in New York City, and a person to review a fully automated decision in the EU. ..." "where they exist" kept. Supported.
+- No statistic, citation or jargon in the note.
+
+Bold: 7 lines, every question section but the summary table; deleting the added ** pair gives the main line byte for byte (script).
+Description vs body: "AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce." = evidence bullets 1-3 + "Real-hiring data is rare"; each trait has a resume test (Wilson and Caliskan, An, Rozado, Bone, Glazko). Supported, not stronger.
+Changes line: accurate. It leaves out the Short answer rename, and the second Changes line still says "The short answer now says". Optional; no fix needed.
+
+No finding. Verdict: publish.
+
+Changes-line edit after this re-review (2026-10-07): the generic line now also says "renamed the Short answer box "What the evidence says""; accurate, no other article change. Verdict: publish (unchanged).

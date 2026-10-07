@@ -2,7 +2,7 @@
 title: "Hiring discrimination: what studies show, what helps"
 description: "Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it."
 published: 2026-10-04
-modified: 2026-10-05
+modified: 2026-10-07
 status: published
 uncited:
   - "No field test we found"
@@ -12,7 +12,13 @@ uncited:
   - "No resume change has been shown"
   - "No resume change shown"
 ---
-**Short answer**
+**What to do**
+
+- Apply widely: in the largest test, bias varied a lot between employers.
+- Keep every fact on your resume and forms true.
+- Prepare for the interview as well as the resume.
+
+**What the evidence says**
 
 - Names: across 24 US field tests from 1989 to 2015, white applicants got about 36% more callbacks than equally qualified Black applicants, with no change over time (Big study) [@quillian-2017]. The largest single test, at 108 big employers, found about 9% (Big study) [@kline-2022].
 - Employers differ: in that test, the worst fifth of firms caused nearly half of the lost replies; most firms showed mild bias (Big study) [@kline-2022].
@@ -21,7 +27,7 @@ uncited:
 
 ## What do the statistics on hiring discrimination show?
 
-Hiring discrimination is common, and field tests have measured it for decades.
+**Hiring discrimination is common, and field tests have measured it for decades.**
 
 A field test sends employers made-up applications that differ in one detail, such as the name. A callback means the employer answers and asks for an interview or more details. A gap of one point means one reply fewer per 100 applications. The table shows the strongest study we found for each kind of bias. Strength grades the study, not the advice. Advice marked "our reading" or "convention" has no test behind it.
 
@@ -37,7 +43,7 @@ The sections below give each study's limits, and what we could not check.
 
 ## Is there name discrimination on resumes?
 
-Yes. Many field tests have found it, and the gap has not shrunk for Black applicants.
+**Yes. Many field tests have found it, and the gap has not shrunk for Black applicants.**
 
 A 2017 review combined 24 US field tests run from 1989 to 2015, with 54,318 applications. Some tests sent resumes; others sent matched pairs of trained testers in person. White applicants got 36% more callbacks than equally qualified Black applicants. They got 24% more than Latino applicants. The gap for Black applicants did not change over 25 years, and the gap for Latino applicants may have shrunk a little [@quillian-2017].
 
@@ -51,7 +57,7 @@ A preprint posted in 2026 adds detail on where the gaps sit. A preprint has not 
 
 ## Is the bias spread evenly across employers?
 
-No. In the largest US test, bias varied a lot between employers.
+**No. In the largest US test, bias varied a lot between employers.**
 
 The fifth of firms with the widest gaps caused nearly half of the replies lost by applicants with names read as Black. Most firms showed mild bias, and a few showed very large bias [@kline-2022, p. 3]. The authors could single out 23 of the 108 firms as discriminating against those applicants [@kline-2022, p. 5]. In 2024 the same authors published grades for 97 of the employers, by name [@kline-2024]. We read that paper's published summary only.
 
@@ -61,7 +67,7 @@ The 2026 preprint estimated what the gaps cost. Applicants who were not white me
 
 ## Does "whitening" a resume get more callbacks?
 
-In one small US test, yes. The change has a cost, and part of the method was not honest. This article does not recommend it or argue against it; the choice is yours.
+**In one small US test, yes.** The change has a cost, and part of the method was not honest. This article does not recommend it or argue against it; the choice is yours.
 
 A 2016 study sent 1,600 made-up applications to entry-level jobs in 16 US metro areas. Each group had one made-up male graduate, and no white applicant was sent to compare with. Some resumes changed the first name, some removed clues in the experience, and some did both. Here are the results for the Black applicant, 200 applications per version [@kang-2016, pp. 27-28].
 
@@ -84,7 +90,7 @@ The study also interviewed 59 Black and Asian university students. Of those stud
 
 ## Do anonymous resumes fix it?
 
-Sometimes. It depends on the bias the employer started with.
+**Sometimes. It depends on the bias the employer started with.**
 
 France tested anonymous resumes through its public employment service from November 2009 to September 2010. Firms chose whether to join. Minority here meant people living in deprived neighborhoods, immigrants and children of immigrants. The anonymous form hid the name, address, gender, nationality, photo, age, marital status and number of children. With standard resumes, 9.3% of minority candidates got an interview. With anonymous resumes, 4.7% did. The gap between minority and majority candidates widened by about 10.7 points. The hiring gap moved the same way, but that result was less certain. The firms that joined already interviewed minority candidates about as often as others, so those firms had the least bias to remove [@behaghel-2015, pp. 7, 10, 13-14, 19].
 
@@ -96,7 +102,7 @@ Removing a question can backfire too. New Jersey and New York City stopped emplo
 
 ## Does age or a break in work count against you?
 
-Yes to both, with limits. Each has its own article here.
+**Yes to both, with limits.** Each has its own article here.
 
 Older applicants were about 42% less likely to get a positive reply across 17 field tests [@lippens-2023]. One US test found women of 40 to 42 got callbacks as often as women of 35 to 37 [@farber-2017]. The largest US name test found a small drop, 0.6 points, when graduation dates implied an age over 40. One of its checks found a gap about as large, but it could be chance [@kline-2022, pp. 4, 13]. The ages, the dates that show age and the state rules are in [Age discrimination in hiring](age-bias-hiring.md).
 
@@ -104,7 +110,7 @@ Breaks of 13 months or more cut employer replies by about a fifth or more in a 2
 
 ## What about a criminal record?
 
-A record cuts callbacks sharply, and in the US, as of October 2026, the law limits what employers may ask. This is general information, not legal advice.
+**A record cuts callbacks sharply, and in the US, as of October 2026, the law limits what employers may ask.** This is general information, not legal advice.
 
 Employers that asked about records were 63% more likely to call back young men who had none [@agan-starr-2018]. That figure is from the published summary.
 
@@ -116,11 +122,11 @@ Court certificates have mixed evidence. A 2016 Ohio test, which its authors call
 
 ## Is AI resume screening biased?
 
-In lab tests, often, and the direction changes. A 2026 preprint tested 14 AI models on 24,024 resume pairs each that differed only by name. The one model from 2023 favored white names; the models from 2024 on were neutral or favored Black names [@gao-2026]. Another 2026 preprint found models picked up background clues from resumes with no name on them [@chen-xiao-2026]. Lab tests show what models do in a test, not what employers do. The tests are in [Is AI resume screening biased?](ai-resume-screening-bias.md) The rules on notice are in [AI hiring laws](ai-hiring-laws.md).
+**In lab tests, often, and the direction changes.** A 2026 preprint tested 14 AI models on 24,024 resume pairs each that differed only by name. The one model from 2023 favored white names; the models from 2024 on were neutral or favored Black names [@gao-2026]. Another 2026 preprint found models picked up background clues from resumes with no name on them [@chen-xiao-2026]. Lab tests show what models do in a test, not what employers do. The tests are in [Is AI resume screening biased?](ai-resume-screening-bias.md) The rules on notice are in [AI hiring laws](ai-hiring-laws.md).
 
 ## What can employers do?
 
-The studies here point to hiring steps that are the same for everyone and can be checked. The evidence is thin.
+**The studies here point to hiring steps that are the same for everyone and can be checked.** The evidence is thin.
 
 - In the largest US test, firms that handled applicant contact centrally had smaller gaps. Federal contractors did too. Both are links, not proof of cause [@kline-2022, p. 4].
 - In the preprint with applications from 2016 and 2017, gaps were narrower in kinds of jobs whose ads more often mentioned tests, certifications or background checks. That is a link, not proof of cause [@braun-2026, pp. 1, 25].
@@ -139,7 +145,7 @@ The studies here point to hiring steps that are the same for everyone and can be
 
 ## Can you avoid bias in job applications?
 
-Not fully, because the bias is the employer's. These steps fit the evidence or follow convention.
+**Not fully, because the bias is the employer's.** These steps fit the evidence or follow convention.
 
 - Apply widely. Bias varied a lot between employers in the largest test [@kline-2022]. That is our reading of the finding, not a tested tactic.
 - Keep facts true. A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants' details in the past 12 months [@hireright-2025]. That company sells those checks.
@@ -162,3 +168,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 ## Changes
 
 - October 2026 - the background-check survey line now says the share is of the businesses asked, over the past 12 months. The record section now says its law lines are for the US, as of October 2026. Two lines now say they come from a published summary only. The age line now says a second check found a gap about as large, which could be chance [@kline-2022, p. 13]. The findings are unchanged.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.

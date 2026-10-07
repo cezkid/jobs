@@ -18,7 +18,7 @@
 <meta property="og:title" content="Is AI resume screening biased? What the studies show">
 <meta property="og:description" content="AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.">
 <meta property="article:published_time" content="2026-10-03">
-<meta property="article:modified_time" content="2026-10-05">
+<meta property="article:modified_time" content="2026-10-07">
 <meta property="og:image" content="https://jobs.enrriquez.com/og-research.png?v=3">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1200">
@@ -32,7 +32,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="preload" href="/fonts/caladea-regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/caladea-bold.woff2" as="font" type="font/woff2" crossorigin>
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/#article","headline":"Is AI resume screening biased? What the studies show","description":"AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.","url":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/","datePublished":"2026-10-03","dateModified":"2026-10-05","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Is AI resume screening biased? What the studies show","item":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/"}]}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Article","@id":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/#article","headline":"Is AI resume screening biased? What the studies show","description":"AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.","url":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/","mainEntityOfPage":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/","datePublished":"2026-10-03","dateModified":"2026-10-07","author":{"@type":"Person","@id":"https://jobs.enrriquez.com/about/#person","name":"Cesar Enrriquez-Zuniga","url":"https://jobs.enrriquez.com/about/"},"image":"https://jobs.enrriquez.com/og-research.png?v=3","inLanguage":"en"},{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://jobs.enrriquez.com/"},{"@type":"ListItem","position":2,"name":"Research on AI and resumes","item":"https://jobs.enrriquez.com/research/"},{"@type":"ListItem","position":3,"name":"Is AI resume screening biased? What the studies show","item":"https://jobs.enrriquez.com/research/ai-resume-screening-bias/"}]}]}</script>
 <style>
   /* shared */
   @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
@@ -211,8 +211,9 @@
   h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
   h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
   h2, h3 { scroll-margin-top: 16px; }
+  /* the answer in a sentence under the h1, then the byline: on a phone the first screen holds the answer + what to do */
+  .answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
   .meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-  .meta:has(+ .ai-note) { margin-bottom: 4px; }
   p { margin: 0 0 16px; }
   ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
   li { margin: 0 0 8px; }
@@ -223,12 +224,33 @@
   blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--text); font-size: var(--step-1); line-height: 1.45; }
   code { font-family: var(--mono); font-size: 0.85em; }
   pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
-  /* "Short answer": the bold line right under the byline + its list = a ruled note (thick rule over, thin under) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child):has(+ ul) { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul { margin: 0 0 40px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul li::marker { color: var(--text); }
-  /* the heading after it: no hairline of its own right under the note's rule (A19) */
-  :is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* notes at the top ("What to do", "What the evidence says"; boxes()): a bold label + its list = a ruled note
+     (thick rule over, thin under); "More in What helps" closes the first */
+  .box { margin: 0; padding-top: 12px; border-top: 3px solid var(--text); font-size: var(--step-1); }
+  .box-list { margin: 0 0 32px; padding: 10px 0 14px 1.3em; border-bottom: 1px solid var(--text); }
+  .box-list li::marker { color: var(--text); }
+  .box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 0; border-bottom: 0; }
+  /* the link a 46px tap box (qa HIT_BOXES); negative margins keep the line where it was */
+  .box-more { margin: 0 0 32px; padding-bottom: 14px; border-bottom: 1px solid var(--text); font-size: var(--step--1); }
+  .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
+  /* a note right before the next one: the next one's thick rule closes it (two rules 32px apart read as one
+     doubled, qa RULES_STACKED) */
+  :is(.box-list, .box-more):has(+ .box) { border-bottom: 0; padding-bottom: 0; }
+  /* On this page right under a note: no hairline of its own under the note's rule; the heading after a note
+     (On this page hidden or absent): none either (A19) */
+  :is(.box-list, .box-more) + .toc-mini details { border-top: 0; }
+  :is(.box-list, .box-more) + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+  /* citations: the (label; Author year) parenthetical small + grey, so a skimming eye lands on the findings, not
+     on names (linked words draw it); still links - a tap opens the source card (CITE_JS) */
+  small { font-size: 0.85em; color: var(--text-2); }
+  small a { text-decoration-color: var(--text-2); }
+  /* source card (CITE_JS): one Sources entry over the page, centred */
+  .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 2px solid var(--text); background: var(--desk); color: var(--text); }
+  .card::backdrop { background: rgb(0 0 0 / 0.45); }
+  .card > div { padding: 16px 20px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
+  .card .evidence { display: block; font-weight: 700; color: var(--text-2); }
+  .card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
+  .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: var(--desk); border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
   /* tables: lining, tabular figures so columns of numbers line up */
   .table { overflow-x: auto; margin: 24px 0; }
   table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -254,7 +276,7 @@
   .sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
   .sources a { text-decoration-color: var(--text-2); }
   .sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
-  /* On this page below 1280px: a closed list under the byline, a hairline over it (the Short answer rules itself) */
+  /* On this page below 1280px: a closed list after the notes at the top, a hairline over it (none right under a note) */
   .toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
   .toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
   .toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
@@ -270,6 +292,7 @@
   .more ul { list-style: none; margin: 0 0 16px; padding: 0; }
   .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .more p { margin: 0 0 8px; }
+  .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -294,9 +317,12 @@
     main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--text); font-size: var(--step--1); line-height: 1.5; }
     .intro p:last-child { margin-bottom: 0; }
     main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
-    main.wrap > .intro ~ .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
-    main.wrap > .intro ~ .list li:last-child { border-bottom: 0; }
+    main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
+    main.wrap:has(> .intro) > .list li:last-child { border-bottom: 0; }
     .toc-mini { display: none; }
+    /* On this page hidden: the first heading sits right under a note's rule, the next note's rule closes the first */
+    :is(.box-list, .box-more) + .toc-mini + h2 { margin-top: 0; padding-top: 0; border-top: 0; }
+    :is(.box-list, .box-more):has(+ .toc-mini + .box) { border-bottom: 0; padding-bottom: 0; }
     .toc {
       /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
       display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
@@ -325,6 +351,8 @@
   .list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
   .list p { margin: 8px 0 0; color: var(--text-2); }
   .list .date { margin-top: 6px; }
+  /* hub: the method lines after the list (beside the h1 on wide screens) */
+  .intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
   .date { color: var(--text-2); font-size: var(--step--1); }
   @media (max-width: 600px) {
     main.wrap { padding-top: 22px; }
@@ -376,8 +404,15 @@
 <article class="page">
 <nav class="crumbs" aria-label="Breadcrumb"><ol><li><a href="/">Home</a></li><li><a href="/research/">Research on AI and resumes</a></li><li aria-current="page">Is AI resume screening biased? What the studies show</li></ol></nav>
 <h1>Is AI resume screening biased? <span class="deck">What the studies show</span></h1>
-<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-05">October 5, 2026</time>.</p>
-<p class="meta ai-note">How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="answer">AI models judge resumes differently by name, gender, age and disability in tests. The direction changes by model and test. Real-hiring data is scarce.</p>
+<p class="meta">By <a href="/about/">Cesar Enrriquez-Zuniga</a>. Published <time datetime="2026-10-03">October 3, 2026</time>. Updated <time datetime="2026-10-07">October 7, 2026</time>. How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a></p>
+<p class="box"><strong>What to do</strong></p>
+<ul class="box-list">
+<li>Apply widely: when many employers use one tool, one “no” can repeat.</li>
+<li>Keep your resume accurate, relevant and easy to read.</li>
+<li>Use your rights to a notice or a human review where they exist.</li>
+</ul>
+<p class="box-more"><a href="#what-helps">More in What helps</a></p>
 <nav class="toc-mini" aria-label="Contents">
 <details>
 <summary>On this page</summary>
@@ -398,18 +433,18 @@
 </ol>
 </details>
 </nav>
-<p><strong>Short answer</strong></p>
-<ul>
-<li>AI models judge the same applicant differently by name, gender, age or disability (Lab study, many tests; <a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>; <a href="#src-an-2025">An et al. 2025</a>; <a href="#src-rozado-2026">Rozado 2026</a>; <a href="#src-bone-2026">Bone et al. 2026</a>; <a href="#src-tamkin-2023">Tamkin et al. 2023</a>; <a href="#src-glazko-2024">Glazko et al. 2024</a>).</li>
-<li>Who gets favored flips between models, versions and test designs (Lab study, preprints; <a href="#src-gao-2026">Gao et al. 2026</a>; <a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>).</li>
-<li>One large real-hiring data set: one vendor’s game tests, not resumes; some jobs’ tests passed fewer Black applicants (Real records; <a href="#src-bommasani-2026">Bommasani et al. 2026</a>).</li>
+<p class="box"><strong>What the evidence says</strong></p>
+<ul class="box-list">
+<li>AI models judge the same applicant differently by name, gender, age or disability <small>(Lab study, many tests; <a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>; <a href="#src-an-2025">An et al. 2025</a>; <a href="#src-rozado-2026">Rozado 2026</a>; <a href="#src-bone-2026">Bone et al. 2026</a>; <a href="#src-tamkin-2023">Tamkin et al. 2023</a>; <a href="#src-glazko-2024">Glazko et al. 2024</a>)</small>.</li>
+<li>Who gets favored flips between models, versions and test designs <small>(Lab study, preprints; <a href="#src-gao-2026">Gao et al. 2026</a>; <a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>)</small>.</li>
+<li>One large real-hiring data set: one vendor’s game tests, not resumes; some jobs’ tests passed fewer Black applicants <small>(Real records; <a href="#src-bommasani-2026">Bommasani et al. 2026</a>)</small>.</li>
 <li>No study found showing a resume change protects you from a biased screener. Apply widely.</li>
 </ul>
 <h2 id="do-ai-resume-screeners-treat-people-differently-by-name">Do AI resume screeners treat people differently by name?</h2>
-<p>Yes, in many lab tests, though some tests find no gap. Researchers give AI models resumes that are the same except for the name. The models then often pick, rank or score them differently.</p>
-<p>In a 2024 test, three AI text-matching models ranked over 500 resumes with 120 names added. The models favored names linked with white people in 85.1% of tests. Names linked with Black people were favored in 8.6% of tests. The other 6.3% showed no clear difference. White men’s names beat Black men’s names in 100% of tests (<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>).</p>
+<p><strong>Yes, in many lab tests, though some tests find no gap.</strong> Researchers give AI models resumes that are the same except for the name. The models then often pick, rank or score them differently.</p>
+<p>In a 2024 test, three AI text-matching models ranked over 500 resumes with 120 names added. The models favored names linked with white people in 85.1% of tests. Names linked with Black people were favored in 8.6% of tests. The other 6.3% showed no clear difference. White men’s names beat Black men’s names in 100% of tests <small>(<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>)</small>.</p>
 <figure class="bars">
-<figcaption>Whose names three AI models favored, share of tests, 2024 (Lab study; <a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>)</figcaption>
+<figcaption>Whose names three AI models favored, share of tests, 2024 <small>(Lab study; <a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>)</small></figcaption>
 <table>
 <thead>
 <tr>
@@ -433,51 +468,51 @@
 </tbody>
 </table>
 </figure>
-<p>The same study’s gender result was corrected in August 2026. Another team tried to repeat the study and found a coding error. The authors’ note says the gender numbers should be swapped. Swapped as the note directs, female names were favored in 51.9% of tests and male names in 11.1%. The published 2024 paper still prints the reverse. The race results held up when repeated (<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>).</p>
-<p>A larger 2025 study scored about 361,000 made-up resumes with five AI models. Four of the five models scored women or Black applicants higher on average. Black men were the exception: most of the models scored them lower than white men. GPT-3.5, for example, scored Black men 0.3 points lower, out of 100. With a pass mark of 80, GPT-3.5 cut Black men’s chance of passing by 1.4 percentage points. In that test, Black women’s chance rose 1.7 points and white women’s rose 1.4. The gaps look small per resume, but the authors call them economically significant across many applicants (<a href="#src-an-2025">An et al. 2025</a>).</p>
-<p>In 2024, Bloomberg ran its own test of GPT-3.5 and GPT-4. GPT ranked eight equally qualified resumes, 1,000 times for each of four jobs. Some groups’ names came first less often than an even share of one in eight. For a software engineer job, GPT-3.5 put Black women’s names first 11% of the time. Bloomberg published its method and code. OpenAI said the test may not reflect how its customers use the models (<a href="#src-bloomberg-2024">Yin et al. 2024</a>).</p>
+<p>The same study’s gender result was corrected in August 2026. Another team tried to repeat the study and found a coding error. The authors’ note says the gender numbers should be swapped. Swapped as the note directs, female names were favored in 51.9% of tests and male names in 11.1%. The published 2024 paper still prints the reverse. The race results held up when repeated <small>(<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>)</small>.</p>
+<p>A larger 2025 study scored about 361,000 made-up resumes with five AI models. Four of the five models scored women or Black applicants higher on average. Black men were the exception: most of the models scored them lower than white men. GPT-3.5, for example, scored Black men 0.3 points lower, out of 100. With a pass mark of 80, GPT-3.5 cut Black men’s chance of passing by 1.4 percentage points. In that test, Black women’s chance rose 1.7 points and white women’s rose 1.4. The gaps look small per resume, but the authors call them economically significant across many applicants <small>(<a href="#src-an-2025">An et al. 2025</a>)</small>.</p>
+<p>In 2024, Bloomberg ran its own test of GPT-3.5 and GPT-4. GPT ranked eight equally qualified resumes, 1,000 times for each of four jobs. Some groups’ names came first less often than an even share of one in eight. For a software engineer job, GPT-3.5 put Black women’s names first 11% of the time. Bloomberg published its method and code. OpenAI said the test may not reflect how its customers use the models <small>(<a href="#src-bloomberg-2024">Yin et al. 2024</a>)</small>.</p>
 <p>For you, these tests show what models can do with a name. They do not show what any employer’s system does.</p>
 <h2 id="does-the-bias-always-go-against-the-same-people">Does the bias always go against the same people?</h2>
-<p>No. The direction changes with the model, its version and how the test is built.</p>
-<p>A 2026 study tested 22 AI models on 70 jobs, swapping names between matched resumes. Every one of the 22 models picked the female-named resume more often. Overall, female names won 56.9% of picks (<a href="#src-rozado-2026">Rozado 2026</a>).</p>
-<p>The same study found a stronger pull from order. The resume listed first won 63.5% of picks. Order mattered in 21 of the 22 models. When each resume was rated alone, the gender gap almost vanished (<a href="#src-rozado-2026">Rozado 2026</a>).</p>
-<p>A 2026 preprint tested 14 models released from 2023 to 2026. GPT-3.5, from 2023, gave white names a 2.12 percentage point higher call-back rate. Every model from 2024 on showed no race gap or favored Black names (<a href="#src-gao-2026">Gao et al. 2026</a>). The study is not yet peer-reviewed.</p>
-<p>Gao’s gender results moved the same way. GPT-3.5 gave men a 1.92 percentage point higher call-back rate. Ten of 12 later models favored women, and the other two showed no gap (<a href="#src-gao-2026">Gao et al. 2026</a>).</p>
-<p>Test design can create a gap or hide one. A 2026 preprint asked nine openly released AI models to choose between two resumes. Forced to choose, the models looked biased. Allowed to call a tie, most models did so in at least 94% of cases (<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>).</p>
+<p><strong>No. The direction changes with the model, its version and how the test is built.</strong></p>
+<p>A 2026 study tested 22 AI models on 70 jobs, swapping names between matched resumes. Every one of the 22 models picked the female-named resume more often. Overall, female names won 56.9% of picks <small>(<a href="#src-rozado-2026">Rozado 2026</a>)</small>.</p>
+<p>The same study found a stronger pull from order. The resume listed first won 63.5% of picks. Order mattered in 21 of the 22 models. When each resume was rated alone, the gender gap almost vanished <small>(<a href="#src-rozado-2026">Rozado 2026</a>)</small>.</p>
+<p>A 2026 preprint tested 14 models released from 2023 to 2026. GPT-3.5, from 2023, gave white names a 2.12 percentage point higher call-back rate. Every model from 2024 on showed no race gap or favored Black names <small>(<a href="#src-gao-2026">Gao et al. 2026</a>)</small>. The study is not yet peer-reviewed.</p>
+<p>Gao’s gender results moved the same way. GPT-3.5 gave men a 1.92 percentage point higher call-back rate. Ten of 12 later models favored women, and the other two showed no gap <small>(<a href="#src-gao-2026">Gao et al. 2026</a>)</small>.</p>
+<p>Test design can create a gap or hide one. A 2026 preprint asked nine openly released AI models to choose between two resumes. Forced to choose, the models looked biased. Allowed to call a tie, most models did so in at least 94% of cases <small>(<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>)</small>.</p>
 <p>A headline that says “AI favors group X” describes one test. Another model or test may show the opposite.</p>
 <h2 id="does-removing-your-name-stop-the-bias">Does removing your name stop the bias?</h2>
-<p>Not reliably, in one preprint. The team built 620 made-up resumes with no names. They added clues to a person’s background: community groups, activities and interests. Some clues were plain and some were faint. Nine AI models guessed the background every time when the clue was plain. With faint clues, they guessed right 9% to 69% of the time (<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>). The test covered five groups in an Australian setting.</p>
-<p>The same preprint found the score differences between groups were very small (<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>). So the models could often tell, but in that test barely acted on it.</p>
+<p><strong>Not reliably, in one preprint.</strong> The team built 620 made-up resumes with no names. They added clues to a person’s background: community groups, activities and interests. Some clues were plain and some were faint. Nine AI models guessed the background every time when the clue was plain. With faint clues, they guessed right 9% to 69% of the time <small>(<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>)</small>. The test covered five groups in an Australian setting.</p>
+<p>The same preprint found the score differences between groups were very small <small>(<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>)</small>. So the models could often tell, but in that test barely acted on it.</p>
 <p>In practice, leaving your name off may not hide your background if other lines point to it. Cutting those lines has a cost: they may be real experience.</p>
 <h2 id="are-other-groups-affected---age-disability">Are other groups affected – age, disability?</h2>
-<p>Lab tests say yes. A 2026 conference paper tested 10 openly released AI models, each before and after extra training. That extra training is how makers turn a raw model into a chat assistant. Age showed through the graduation year. After training, the models were 3.6% less likely to call back older applicants than before. Older meant 45 to 58 in that test. The drop held in 8 of the 10 models (<a href="#src-bone-2026">Bone et al. 2026</a>).</p>
-<p>A small 2024 test gave GPT-4 one resume and the same resume plus disability-related awards. The version with awards was the stronger resume, so it should have come first. GPT-4 ranked the disability version first in only 15 of 60 trials. An autism-related version came first in none of 10 trials. A custom GPT-4 given disability-justice instructions did better, at 37 of 60 (<a href="#src-glazko-2024">Glazko et al. 2024</a>). Each disability got only 10 trials, on a GPT-4 version from early 2024.</p>
-<p>Anthropic’s own 2023 preprint tested its Claude 2.0 model on made-up decisions, including job offers. The model favored women and non-white people, and was less positive about people over 60. Those gaps were much smaller when the model had to infer the person from a name. Telling the model that discrimination is illegal cut the gaps (<a href="#src-tamkin-2023">Tamkin et al. 2023</a>).</p>
+<p><strong>Lab tests say yes.</strong> A 2026 conference paper tested 10 openly released AI models, each before and after extra training. That extra training is how makers turn a raw model into a chat assistant. Age showed through the graduation year. After training, the models were 3.6% less likely to call back older applicants than before. Older meant 45 to 58 in that test. The drop held in 8 of the 10 models <small>(<a href="#src-bone-2026">Bone et al. 2026</a>)</small>.</p>
+<p>A small 2024 test gave GPT-4 one resume and the same resume plus disability-related awards. The version with awards was the stronger resume, so it should have come first. GPT-4 ranked the disability version first in only 15 of 60 trials. An autism-related version came first in none of 10 trials. A custom GPT-4 given disability-justice instructions did better, at 37 of 60 <small>(<a href="#src-glazko-2024">Glazko et al. 2024</a>)</small>. Each disability got only 10 trials, on a GPT-4 version from early 2024.</p>
+<p>Anthropic’s own 2023 preprint tested its Claude 2.0 model on made-up decisions, including job offers. The model favored women and non-white people, and was less positive about people over 60. Those gaps were much smaller when the model had to infer the person from a name. Telling the model that discrimination is illegal cut the gaps <small>(<a href="#src-tamkin-2023">Tamkin et al. 2023</a>)</small>.</p>
 <p>Age and disability can count against you in some models’ choices. Those tests use made-up applicants, not real hiring. What field tests with real employers show about age is in <a href="/research/age-bias-hiring/">Age discrimination in hiring</a>.</p>
 <h2 id="what-happens-with-real-applicants">What happens with real applicants?</h2>
-<p>Real-hiring data is rare, and the largest set is not about resumes. A 2026 study looked at 4.2 million applications scored by one vendor’s game-based tests. The applications came from 3.4 million people, to 1,746 jobs at 156 employers. The data run from December 2018 to December 2022, before chat AI was common (<a href="#src-bommasani-2026">Bommasani et al. 2026</a>).</p>
-<p>In 10.62% of jobs, the tests recommended Black applicants at a rate below the US “four-fifths” benchmark. That benchmark flags a group passing at under 80% of the top group’s rate. 25.87% of Black applicants’ applications went to those jobs (<a href="#src-bommasani-2026">Bommasani et al. 2026</a>).</p>
-<p>A separate finding concerns individual people, not groups. Some people were turned down everywhere. Of those who applied to 10 jobs, 4% were not recommended for any of them. That happened more often than chance would give. The employers all used the same vendor, and a person’s game results were reused across applications (<a href="#src-bommasani-2026">Bommasani et al. 2026</a>).</p>
+<p><strong>Real-hiring data is rare, and the largest set is not about resumes.</strong> A 2026 study looked at 4.2 million applications scored by one vendor’s game-based tests. The applications came from 3.4 million people, to 1,746 jobs at 156 employers. The data run from December 2018 to December 2022, before chat AI was common <small>(<a href="#src-bommasani-2026">Bommasani et al. 2026</a>)</small>.</p>
+<p>In 10.62% of jobs, the tests recommended Black applicants at a rate below the US “four-fifths” benchmark. That benchmark flags a group passing at under 80% of the top group’s rate. 25.87% of Black applicants’ applications went to those jobs <small>(<a href="#src-bommasani-2026">Bommasani et al. 2026</a>)</small>.</p>
+<p>A separate finding concerns individual people, not groups. Some people were turned down everywhere. Of those who applied to 10 jobs, 4% were not recommended for any of them. That happened more often than chance would give. The employers all used the same vendor, and a person’s game results were reused across applications <small>(<a href="#src-bommasani-2026">Bommasani et al. 2026</a>)</small>.</p>
 <p>The study is real records, so it shows a link, not a cause. It covers one vendor’s tests, not AI reading resumes.</p>
-<p>One field experiment compared an algorithm with human resume screeners at one company. For a random share of applicants to a software engineer job, the algorithm replaced the human screeners. Applicants it picked that people would have passed over were 14% more likely to pass interviews and get an offer than those both picked. The algorithm picked more people human screeners tended to pass over, including women and racial minorities (<a href="#src-cowgill-2020">Cowgill 2020</a>). That was one job at one company, with an older kind of algorithm, not today’s chat AI. The paper is a working paper, not peer-reviewed.</p>
-<p>People also follow a biased AI. In a 2025 study, 528 people screened resumes with help from a simulated AI. With no AI or a neutral AI, people picked groups about equally. With a biased AI, they followed its lean up to 90% of the time (<a href="#src-wilson-2025">Wilson et al. 2025</a>). So “a person makes the final call” may not remove the bias. That study used a simulated AI in a lab, not a real hiring tool.</p>
+<p>One field experiment compared an algorithm with human resume screeners at one company. For a random share of applicants to a software engineer job, the algorithm replaced the human screeners. Applicants it picked that people would have passed over were 14% more likely to pass interviews and get an offer than those both picked. The algorithm picked more people human screeners tended to pass over, including women and racial minorities <small>(<a href="#src-cowgill-2020">Cowgill 2020</a>)</small>. That was one job at one company, with an older kind of algorithm, not today’s chat AI. The paper is a working paper, not peer-reviewed.</p>
+<p>People also follow a biased AI. In a 2025 study, 528 people screened resumes with help from a simulated AI. With no AI or a neutral AI, people picked groups about equally. With a biased AI, they followed its lean up to 90% of the time <small>(<a href="#src-wilson-2025">Wilson et al. 2025</a>)</small>. So “a person makes the final call” may not remove the bias. That study used a simulated AI in a lab, not a real hiring tool.</p>
 <p>Our reading: when many employers use one tool, the same person can be shut out many times. Applying through different routes may spread that risk.</p>
 <h2 id="what-real-cases-are-there">What real cases are there?</h2>
-<p>Three cases are often cited, and none has proven an AI broke a law.</p>
-<p>In 2018, Reuters reported Amazon dropped a resume-ranking tool it had built. The tool reportedly marked down resumes with the word “women’s”. It learned from 10 years of resumes, mostly from men. Sources said recruiters looked at its ratings but never relied on them alone. Amazon said its recruiters never used the tool to evaluate candidates (<a href="#src-dastin-2018">Dastin 2018</a>). That account comes from unnamed sources in a news report.</p>
-<p>In 2023, iTutorGroup settled a US agency lawsuit for $365,000. The agency alleged its software rejected women 55 and over and men 60 and over (<a href="#src-eeoc-itutorgroup-2023">US Equal Employment Opportunity Commission 2023</a>). That was a fixed age rule, not AI.</p>
-<p>Mobley v. Workday is a US lawsuit still in progress. The plaintiffs allege Workday’s screening tools discriminated by race, age and disability (<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 1). In May 2025 the court let the age claim go forward for a wider group of applicants, at a preliminary stage (<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>). After a June 2026 order, the claims going on include race, age and disability under federal law, plus California state-law claims (<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 1–2, 11). The same order dismissed a newly added race claim by one plaintiff (<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 11). In September 2026 the plaintiffs asked to add four groups to the case, with a hearing set for March 2027. Workday denies the claims, and nothing has been proven as of October 2026 (<a href="#src-lawyer-monthly-2026">Lawyer Monthly 2026</a>). More on that case: <a href="/research/ats-rejection-myth/">Do hiring systems reject most resumes?</a>.</p>
+<p><strong>Three cases are often cited, and none has proven an AI broke a law.</strong></p>
+<p>In 2018, Reuters reported Amazon dropped a resume-ranking tool it had built. The tool reportedly marked down resumes with the word “women’s”. It learned from 10 years of resumes, mostly from men. Sources said recruiters looked at its ratings but never relied on them alone. Amazon said its recruiters never used the tool to evaluate candidates <small>(<a href="#src-dastin-2018">Dastin 2018</a>)</small>. That account comes from unnamed sources in a news report.</p>
+<p>In 2023, iTutorGroup settled a US agency lawsuit for $365,000. The agency alleged its software rejected women 55 and over and men 60 and over <small>(<a href="#src-eeoc-itutorgroup-2023">US Equal Employment Opportunity Commission 2023</a>)</small>. That was a fixed age rule, not AI.</p>
+<p>Mobley v. Workday is a US lawsuit still in progress. The plaintiffs allege Workday’s screening tools discriminated by race, age and disability <small>(<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 1)</small>. In May 2025 the court let the age claim go forward for a wider group of applicants, at a preliminary stage <small>(<a href="#src-mobley-2025-order">US District Court for the Northern District of California 2025</a>)</small>. After a June 2026 order, the claims going on include race, age and disability under federal law, plus California state-law claims <small>(<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 1–2, 11)</small>. The same order dismissed a newly added race claim by one plaintiff <small>(<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 11)</small>. In September 2026 the plaintiffs asked to add four groups to the case, with a hearing set for March 2027. Workday denies the claims, and nothing has been proven as of October 2026 <small>(<a href="#src-lawyer-monthly-2026">Lawyer Monthly 2026</a>)</small>. More on that case: <a href="/research/ats-rejection-myth/">Do hiring systems reject most resumes?</a>.</p>
 <h2 id="what-do-the-laws-say">What do the laws say?</h2>
-<p>As of October 2026, a few places set rules, and some may change. This is general information, not legal advice.</p>
+<p><strong>As of October 2026, a few places set rules, and some may change.</strong> This is general information, not legal advice.</p>
 <ul>
-<li><strong>New York City</strong>: employers using these tools need a yearly bias audit, a public summary and notice to applicants. Enforced since July 2023 (<a href="#src-nyc-ll144">NYC Department of Consumer and Worker Protection 2023b</a>). A check of 391 employers in late 2023, published 2024, found only 18 posted audits (<a href="#src-wright-2024">Wright et al. 2024</a>). In December 2025, the state comptroller called the city’s complaint process “ineffective” (<a href="#src-nys-comptroller-2025">Office of the New York State Comptroller 2025</a>).</li>
-<li><strong>California</strong>: since October 2025, state rules say an automated hiring tool can break anti-discrimination law if it harms people by race, gender, disability or another protected trait. Employers must keep the tool’s data for four years. Whether an employer tested its tool for bias can count in a claim (<a href="#src-ca-crc-ads-2025">California Civil Rights Council 2025</a>). From January 2027, California’s privacy rules cover hiring tools that replace or substantially replace a human decision. Before a covered tool is used, you must get notice, and you may ask how the tool shaped the decision (<a href="#src-ca-cppa-admt-2025">California Privacy Protection Agency 2025</a>).</li>
-<li><strong>Illinois</strong>: since January 2026, using AI that has a discriminatory effect in hiring is a civil-rights violation (<a href="#src-il-hb3773">Illinois General Assembly 2024a</a>). The law also requires notice “to an employee” that AI is used. Among job applicants, the act’s definition of employee names only those applying for apprenticeships. The details are left to state rules, and we found no final rule as of October 2026 (<a href="#src-il-pa-103-0804">Illinois General Assembly 2024b</a>).</li>
-<li><strong>Colorado</strong>: employers must give notice when you deal with an automated system used in hiring decisions. After a decision against you, they must describe the system’s role in plain words within 30 days. You can ask to fix wrong data, and after a decision against you, ask for a human review. The state attorney general enforces the law and must write rules on the description by January 2027 (<a href="#src-co-sb26-189">Colorado General Assembly 2026</a>). When each part starts is not settled. A staff note gives January 2027 for disclosures, but signing for the notice and rights sections (<a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>). A federal court has paused enforcement as of October 2026 (<a href="#src-xai-weiser-stay">US District Court for the District of Colorado 2026</a>). A December 2025 executive order set up a federal task force to challenge state AI laws, and it names Colorado’s (<a href="#src-eo-14365">Executive Office of the President 2025b</a>).</li>
-<li><strong>European Union</strong>: data protection law already covers decisions made only by software that significantly affect you. If contract or consent allows a fully automated decision, you may ask a person to step in and contest it (<a href="#src-eu-gdpr">European Union 2016</a>, Article 22). AI that filters applications is high-risk under the AI Act (<a href="#src-eu-ai-act">European Union 2024</a>). Those rules now start in December 2027 (<a href="#src-eu-omnibus-2026">European Commission 2026</a>).</li>
-<li><strong>US federal</strong>: a 2025 executive order tells agencies to move away from “disparate impact” cases (<a href="#src-eo-14281">Executive Office of the President 2025a</a>). Those are cases about unequal results without intent. Private lawsuits like Mobley v. Workday still use that idea (<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 2).</li>
+<li><strong>New York City</strong>: employers using these tools need a yearly bias audit, a public summary and notice to applicants. Enforced since July 2023 <small>(<a href="#src-nyc-ll144">NYC Department of Consumer and Worker Protection 2023b</a>)</small>. A check of 391 employers in late 2023, published 2024, found only 18 posted audits <small>(<a href="#src-wright-2024">Wright et al. 2024</a>)</small>. In December 2025, the state comptroller called the city’s complaint process “ineffective” <small>(<a href="#src-nys-comptroller-2025">Office of the New York State Comptroller 2025</a>)</small>.</li>
+<li><strong>California</strong>: since October 2025, state rules say an automated hiring tool can break anti-discrimination law if it harms people by race, gender, disability or another protected trait. Employers must keep the tool’s data for four years. Whether an employer tested its tool for bias can count in a claim <small>(<a href="#src-ca-crc-ads-2025">California Civil Rights Council 2025</a>)</small>. From January 2027, California’s privacy rules cover hiring tools that replace or substantially replace a human decision. Before a covered tool is used, you must get notice, and you may ask how the tool shaped the decision <small>(<a href="#src-ca-cppa-admt-2025">California Privacy Protection Agency 2025</a>)</small>.</li>
+<li><strong>Illinois</strong>: since January 2026, using AI that has a discriminatory effect in hiring is a civil-rights violation <small>(<a href="#src-il-hb3773">Illinois General Assembly 2024a</a>)</small>. The law also requires notice “to an employee” that AI is used. Among job applicants, the act’s definition of employee names only those applying for apprenticeships. The details are left to state rules, and we found no final rule as of October 2026 <small>(<a href="#src-il-pa-103-0804">Illinois General Assembly 2024b</a>)</small>.</li>
+<li><strong>Colorado</strong>: employers must give notice when you deal with an automated system used in hiring decisions. After a decision against you, they must describe the system’s role in plain words within 30 days. You can ask to fix wrong data, and after a decision against you, ask for a human review. The state attorney general enforces the law and must write rules on the description by January 2027 <small>(<a href="#src-co-sb26-189">Colorado General Assembly 2026</a>)</small>. When each part starts is not settled. A staff note gives January 2027 for disclosures, but signing for the notice and rights sections <small>(<a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>)</small>. A federal court has paused enforcement as of October 2026 <small>(<a href="#src-xai-weiser-stay">US District Court for the District of Colorado 2026</a>)</small>. A December 2025 executive order set up a federal task force to challenge state AI laws, and it names Colorado’s <small>(<a href="#src-eo-14365">Executive Office of the President 2025b</a>)</small>.</li>
+<li><strong>European Union</strong>: data protection law already covers decisions made only by software that significantly affect you. If contract or consent allows a fully automated decision, you may ask a person to step in and contest it <small>(<a href="#src-eu-gdpr">European Union 2016</a>, Article 22)</small>. AI that filters applications is high-risk under the AI Act <small>(<a href="#src-eu-ai-act">European Union 2024</a>)</small>. Those rules now start in December 2027 <small>(<a href="#src-eu-omnibus-2026">European Commission 2026</a>)</small>.</li>
+<li><strong>US federal</strong>: a 2025 executive order tells agencies to move away from “disparate impact” cases <small>(<a href="#src-eo-14281">Executive Office of the President 2025a</a>)</small>. Those are cases about unequal results without intent. Private lawsuits like Mobley v. Workday still use that idea <small>(<a href="#src-mobley-2026-order">US District Court for the Northern District of California 2026</a>, p. 2)</small>.</li>
 </ul>
-<p>In New York City, employers must tell you when they use these tools. The New York City notice must say how to ask for another way to be assessed, if one is available. The city’s rule does not make the employer offer one (<a href="#src-nyc-ll144">NYC Department of Consumer and Worker Protection 2023b</a>; <a href="#src-nyc-aedt-rule">NYC Department of Consumer and Worker Protection 2023a</a>). Illinois requires notice to employees; whether job applicants get one is not settled (<a href="#src-il-pa-103-0804">Illinois General Assembly 2024b</a>). In the EU you can already ask a person to review a fully automated decision (<a href="#src-eu-gdpr">European Union 2016</a>). Colorado employers must also describe an AI tool’s role in a rejection (<a href="#src-co-sb26-189">Colorado General Assembly 2026</a>). When Colorado’s duty starts is not settled, and a court has paused enforcement as of October 2026 (<a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>; <a href="#src-xai-weiser-stay">US District Court for the District of Colorado 2026</a>). Every law, its status and what you can ask for: <a href="/research/ai-hiring-laws/">AI hiring laws in 2026</a>.</p>
+<p>In New York City, employers must tell you when they use these tools. The New York City notice must say how to ask for another way to be assessed, if one is available. The city’s rule does not make the employer offer one <small>(<a href="#src-nyc-ll144">NYC Department of Consumer and Worker Protection 2023b</a>; <a href="#src-nyc-aedt-rule">NYC Department of Consumer and Worker Protection 2023a</a>)</small>. Illinois requires notice to employees; whether job applicants get one is not settled <small>(<a href="#src-il-pa-103-0804">Illinois General Assembly 2024b</a>)</small>. In the EU you can already ask a person to review a fully automated decision <small>(<a href="#src-eu-gdpr">European Union 2016</a>)</small>. Colorado employers must also describe an AI tool’s role in a rejection <small>(<a href="#src-co-sb26-189">Colorado General Assembly 2026</a>)</small>. When Colorado’s duty starts is not settled, and a court has paused enforcement as of October 2026 <small>(<a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>; <a href="#src-xai-weiser-stay">US District Court for the District of Colorado 2026</a>)</small>. Every law, its status and what you can ask for: <a href="/research/ai-hiring-laws/">AI hiring laws in 2026</a>.</p>
 <h2 id="which-studies-found-what">Which studies found what?</h2>
 <p>The table sums up the main AI studies in this article. Most rows are lab tests: AI models, or people helped by one, judging test resumes, not real hiring. The last two rows look at real applicants: one company’s algorithm, and one vendor’s game tests, not resumes.</p>
 <div class="table" role="region" aria-label="Table: Which studies found what?" tabindex="0">
@@ -496,77 +531,77 @@
 <td>Wilson and Caliskan</td>
 <td>2024</td>
 <td>3 text-matching models</td>
-<td>White-linked names favored in 85.1% of tests; gender result corrected in 2026 (<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>)</td>
+<td>White-linked names favored in 85.1% of tests; gender result corrected in 2026 <small>(<a href="#src-wilson-caliskan-2024">Wilson and Caliskan 2024</a>)</small></td>
 <td>Lab study</td>
 </tr>
 <tr>
 <td>Bloomberg</td>
 <td>2024</td>
 <td>GPT-3.5, GPT-4</td>
-<td>Some groups’ names ranked first less often than one in eight (<a href="#src-bloomberg-2024">Yin et al. 2024</a>)</td>
+<td>Some groups’ names ranked first less often than one in eight <small>(<a href="#src-bloomberg-2024">Yin et al. 2024</a>)</small></td>
 <td>Lab study</td>
 </tr>
 <tr>
 <td>Glazko and others</td>
 <td>2024</td>
 <td>GPT-4</td>
-<td>The disability version, the stronger resume, ranked first in only 15 of 60 trials (<a href="#src-glazko-2024">Glazko et al. 2024</a>)</td>
+<td>The disability version, the stronger resume, ranked first in only 15 of 60 trials <small>(<a href="#src-glazko-2024">Glazko et al. 2024</a>)</small></td>
 <td>Lab study</td>
 </tr>
 <tr>
 <td>An and others</td>
 <td>2025</td>
 <td>5 models</td>
-<td>Four of five scored women or Black applicants higher on average; most scored Black men lower than white men (<a href="#src-an-2025">An et al. 2025</a>)</td>
+<td>Four of five scored women or Black applicants higher on average; most scored Black men lower than white men <small>(<a href="#src-an-2025">An et al. 2025</a>)</small></td>
 <td>Lab study</td>
 </tr>
 <tr>
 <td>Wilson and others</td>
 <td>2025</td>
 <td>A simulated AI, 528 people</td>
-<td>People followed a biased AI up to 90% of the time (<a href="#src-wilson-2025">Wilson et al. 2025</a>)</td>
+<td>People followed a biased AI up to 90% of the time <small>(<a href="#src-wilson-2025">Wilson et al. 2025</a>)</small></td>
 <td>Lab study</td>
 </tr>
 <tr>
 <td>Rozado</td>
 <td>2026</td>
 <td>22 models</td>
-<td>Female names won 56.9% of picks; the first resume listed won 63.5% (<a href="#src-rozado-2026">Rozado 2026</a>)</td>
+<td>Female names won 56.9% of picks; the first resume listed won 63.5% <small>(<a href="#src-rozado-2026">Rozado 2026</a>)</small></td>
 <td>Lab study</td>
 </tr>
 <tr>
 <td>Gao and others</td>
 <td>2026</td>
 <td>14 models</td>
-<td>GPT-3.5 favored white names; models from 2024 on showed no race gap or favored Black names (<a href="#src-gao-2026">Gao et al. 2026</a>)</td>
+<td>GPT-3.5 favored white names; models from 2024 on showed no race gap or favored Black names <small>(<a href="#src-gao-2026">Gao et al. 2026</a>)</small></td>
 <td>Lab study, not yet peer-reviewed</td>
 </tr>
 <tr>
 <td>Chen and Xiao</td>
 <td>2026</td>
 <td>9 open models</td>
-<td>Forced to choose, models looked biased; allowed a tie, most tied in at least 94% of cases (<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>)</td>
+<td>Forced to choose, models looked biased; allowed a tie, most tied in at least 94% of cases <small>(<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>)</small></td>
 <td>Lab study, not yet peer-reviewed</td>
 </tr>
 <tr>
 <td>Bone and others</td>
 <td>2026</td>
 <td>10 open models</td>
-<td>After extra training, 3.6% less likely than before to call back applicants aged 45 to 58, in 8 of 10 models (<a href="#src-bone-2026">Bone et al. 2026</a>)</td>
+<td>After extra training, 3.6% less likely than before to call back applicants aged 45 to 58, in 8 of 10 models <small>(<a href="#src-bone-2026">Bone et al. 2026</a>)</small></td>
 <td>Lab study</td>
 </tr>
 <tr>
 <td>Cowgill</td>
 <td>2020</td>
 <td>An older screening algorithm, one company</td>
-<td>Picked more women and minorities than human screeners did, for one job (<a href="#src-cowgill-2020">Cowgill 2020</a>)</td>
+<td>Picked more women and minorities than human screeners did, for one job <small>(<a href="#src-cowgill-2020">Cowgill 2020</a>)</small></td>
 <td>Small study, not yet peer-reviewed</td>
 </tr>
 <tr>
 <td>Bommasani and others</td>
 <td>2026</td>
 <td>One vendor’s game tests, not resumes</td>
-<td>In 10.62% of jobs, Black applicants were recommended below the four-fifths benchmark (<a href="#src-bommasani-2026">Bommasani et al. 2026</a>)</td>
+<td>In 10.62% of jobs, Black applicants were recommended below the four-fifths benchmark <small>(<a href="#src-bommasani-2026">Bommasani et al. 2026</a>)</small></td>
 <td>Real records</td>
 </tr>
 </tbody>
@@ -577,17 +612,17 @@
 <ul>
 <li>How often employers let AI screen resumes without a person. No study found that measures it across employers. Surveys ask employers, but they report what employers say.</li>
 <li>Whether lab results match real hiring. Almost all evidence uses made-up resumes.</li>
-<li>Which way today’s models lean. Results changed between model versions within two years (<a href="#src-gao-2026">Gao et al. 2026</a>).</li>
-<li>How much the test design drives the result (<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>; <a href="#src-rozado-2026">Rozado 2026</a>).</li>
-<li>Whether AI is more or less biased than human screeners. We found one field test, at one company, with an older algorithm (<a href="#src-cowgill-2020">Cowgill 2020</a>).</li>
+<li>Which way today’s models lean. Results changed between model versions within two years <small>(<a href="#src-gao-2026">Gao et al. 2026</a>)</small>.</li>
+<li>How much the test design drives the result <small>(<a href="#src-chen-xiao-2026">Chen and Xiao 2026</a>; <a href="#src-rozado-2026">Rozado 2026</a>)</small>.</li>
+<li>Whether AI is more or less biased than human screeners. We found one field test, at one company, with an older algorithm <small>(<a href="#src-cowgill-2020">Cowgill 2020</a>)</small>.</li>
 <li>Whether any resume change protects you. We found no study showing that one does.</li>
 <li>We searched the web, arXiv and news in October 2026 for studies on these gaps.</li>
 </ul>
 <h2 id="what-helps">What helps</h2>
 <ul>
-<li>Apply widely. When many employers use one tool, one “no” can repeat everywhere (<a href="#src-bommasani-2026">Bommasani et al. 2026</a>).</li>
+<li>Apply widely. When many employers use one tool, one “no” can repeat everywhere <small>(<a href="#src-bommasani-2026">Bommasani et al. 2026</a>)</small>.</li>
 <li>Keep your resume accurate, relevant and easy to read. We found no study showing a resume change that beats a biased screener.</li>
-<li>Use your rights where they exist. As of October 2026: notice in New York City, and a person to review a fully automated decision in the EU. From January 2027 in California: how a tool that replaces a human decision shaped the decision about you. In Colorado: a description of the tool’s role; the start date is not settled and a court has paused enforcement (<a href="#src-nyc-ll144">NYC Department of Consumer and Worker Protection 2023b</a>; <a href="#src-eu-gdpr">European Union 2016</a>; <a href="#src-ca-cppa-admt-2025">California Privacy Protection Agency 2025</a>; <a href="#src-co-sb26-189">Colorado General Assembly 2026</a>; <a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>; <a href="#src-xai-weiser-stay">US District Court for the District of Colorado 2026</a>).</li>
+<li>Use your rights where they exist. As of October 2026: notice in New York City, and a person to review a fully automated decision in the EU. From January 2027 in California: how a tool that replaces a human decision shaped the decision about you. In Colorado: a description of the tool’s role; the start date is not settled and a court has paused enforcement <small>(<a href="#src-nyc-ll144">NYC Department of Consumer and Worker Protection 2023b</a>; <a href="#src-eu-gdpr">European Union 2016</a>; <a href="#src-ca-cppa-admt-2025">California Privacy Protection Agency 2025</a>; <a href="#src-co-sb26-189">Colorado General Assembly 2026</a>; <a href="#src-co-sb26-189-fiscal">Colorado Legislative Council Staff 2026</a>; <a href="#src-xai-weiser-stay">US District Court for the District of Colorado 2026</a>)</small>.</li>
 <li>Remember bias in a screener is the employer’s problem, not a flaw in you.</li>
 </ul>
 <p>How we grade evidence: <a href="/research/methods/">How we research</a>. More articles: <a href="/research/">Research</a>. Whether an AI-written resume hurts: <a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a>. Keeping your resume out of AI training: <a href="/research/keep-chats-out-of-ai-training/">Keep your chats out of AI training</a>. Bias over names, records and more, in one place: <a href="/research/hiring-bias-what-helps/">Hiring discrimination: what studies show, what helps</a>.</p>
@@ -602,6 +637,7 @@
 <ul>
 <li>October 2026 – corrected the law lines to match the laws’ text. Colorado employers must describe a system’s role after a rejection, not explain the rejection. Colorado’s start date is not settled, and a court has paused enforcement. Illinois’s notice duty names employees; whether applicants get one is not settled. Added California’s 2027 privacy rules and the EU’s existing rule on fully automated decisions.</li>
 <li>October 2026 – updated the Workday lawsuit after its June 2026 order: race, age and disability claims under federal law are among those going on. The New York City notice must say how to ask for another way to be assessed; the rule does not make employers offer one. Older applicants in the 2026 model test are now given as aged 45 to 58. The New York City audit line now dates the 391-employer check to late 2023. It now says the state comptroller called the complaint process ineffective. The short answer now says the same applicant, not identical resumes, and also cites the 2023 model test. The other findings are unchanged.</li>
+<li>October 2026 – added a short What to do list at the top, renamed the Short answer box “What the evidence says” and set each section’s answer in bold. The findings are unchanged.</li>
 </ul>
 <h2 id="sources">Sources</h2>
 <ol class="sources">
@@ -642,8 +678,9 @@
 <nav class="more" aria-label="Keep reading">
 <p>Keep reading</p>
 <ul>
-<li><a href="/research/ai-written-resumes/">Can employers tell if AI wrote your resume?</a></li>
-<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a></li>
+<li><a href="/research/age-bias-hiring/">Age discrimination in hiring: when it starts, what helps</a><p>US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s.</p></li>
+<li><a href="/research/ats-rejection-myth/">Do ATS reject 75% of resumes? Where the number came from</a><p>No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms.</p></li>
+<li><a href="/research/ai-hiring-laws/">AI hiring laws in 2026: what employers must tell you</a><p>New York City makes employers tell you about AI screening; the EU, for fully automated decisions. Illinois, Colorado, California and Connecticut follow.</p></li>
 <li><a href="/research/">All research</a></li>
 </ul>
 <p class="try">Try it: <a href="/#install">install <span translate="no">CEZ Job Finder</span> on Windows or Mac</a></p>
@@ -665,5 +702,6 @@
   </div>
 </footer>
 <script>(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>{let c;for(const x of h)if(x.getBoundingClientRect().top<innerHeight*.15)c=x;for(const a of document.querySelectorAll(".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute("aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()</script>
+<script>(()=>{const d=document.createElement("dialog");d.className="card";document.body.append(d);document.addEventListener("click",e=>{const l=e.target.closest('a[href^="#src-"]');if(!l||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const s=document.getElementById(l.hash.slice(1));if(!s)return;e.preventDefault();d.innerHTML="<div>"+s.innerHTML+'<p><a href="#sources">All sources<\/a><button autofocus>Close<\/button><\/p><\/div>';d.showModal()});d.addEventListener("click",e=>{if(e.target==d||e.target.closest('button,[href="#sources"]'))d.close()})})()</script>
 </body>
 </html>

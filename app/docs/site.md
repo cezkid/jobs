@@ -79,15 +79,31 @@ stay hand-drawn (owner): sample jobs, no claim. New sentence about the app => ad
   `app/web/knockout_count.py`; raw sample never published - it holds posting titles + links).
 - `<slug>.md` -> `/research/<slug>/`, `methods.md` -> `/research/methods/`, `about.md` ->
   `/about/` (must be published w/ the first page: every byline links it), `index.md` = hub intro.
-- Hub `/research/` = `index.md` (published, no review: intro over the list) + every article, newest
-  published first, each title an h2 holding its link (screen readers jump article to article; set like the
-  clipping it was), description + dates under it; the labels column heads itself w/ an h2 too. Built once >= 1 article is
+- Hub `/research/` = `index.md` (published, no review: its first paragraph over the list) + every article,
+  newest published first, each title an h2 holding its link (screen readers jump article to article; set
+  like the clipping it was), description (the answer in a sentence) + dates under it; the list comes right
+  after the page column, before `index.md`'s other paragraphs and the labels column (a phone reaches the
+  articles first, not the method); the labels column heads itself w/ an h2 too. Built once >= 1 article is
   published (article = not about / methods / index); an article w/o a published `index.md` = error.
   Before the hub exists the Research breadcrumb is text, after it's a link named w/ the hub's own title
   (one name per URL in every crumb + BreadcrumbList, D22). From 1280px: `index.md`'s first paragraph stays
   under the h1, the rest sits beside it, evidence labels beside the list, articles in 2 columns (>= 4 titles
   in a 1440x900 first screen, qa HUB_FOLD). Short windows (< 820px tall) the labels scroll w/ the page: sticky,
   they hid 99px of themselves at 1280x720 (qa STICKY_FIT).
+- Article top (`page()`, `boxes()`; why: research.md Style): h1, `description` as `<p class="answer">`,
+  one `<p class="meta">` (byline, dates, AI note), then the body's leading notes - a bold-label
+  paragraph + its list before the first heading gets `class="box"` / `class="box-list"` (What to do,
+  What the evidence says; "More in What helps" `box-more` link when that h2 exists). The closed On this
+  page (below 1280px) sits right after the first note: the answer + What to do own a phone's first screen,
+  the list starts within 1.25 screens (owner 2026-10-07; qa TOC_NARROW, was: inside the first screen).
+- Citations render `<small>(Label; Author year)</small>` (an evidence label written right before a
+  citation joins it, LEAD_CITE). `CITE_JS` (<= 1 KB, test_pages; after the footer, only on pages that
+  cite): a plain click on a `#src-` link opens that Sources entry in a modal `<dialog class="card">`
+  (Close autofocused; Esc, backdrop, Close or "All sources" close it; focus returns to the citation). A
+  modified click, or no JS, still jumps to the list.
+- Keep reading (`keep_reading()`): 3 articles - the ones the page links to, then the ones linking to it,
+  then the next in hub order (wrapping) - each w/ its description; then All research, install line, Back
+  to top. Related + end-of-article links got more clicks in a 1.8M-visit field test (`~/code/research/topics/web/reader-engagement.md`).
 - Render: markdown-it-py `js-default` (raw HTML shown as text, tables on). Heading id = the
   `test_docs.anchors()` rule, so `x.md#h` lands in VS Code, on GitHub and on the site. Table
   wrapped in a focusable, labelled scroll box (wide table scrolls, not the page). A table or bar figure
@@ -293,7 +309,7 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
   18 rows fit at 1366x641 (30px each); a list of 19+ scrolls w/ the page there (`.toc:has(li:nth-child(19))`).
 - On this page sits before the article in the source (grid places it): after the article, the wide-screen
   list was the 85th Tab stop on the longest page, behind every citation link. The h1 is still main's
-  first heading (the list's label is a `<p>`); below 1280px the closed list under the byline is the one shown.
+  first heading (the list's label is a `<p>`); below 1280px the closed list right after the What to do note is the one shown.
 - `<symbol>` + `<use>` on the home page only; shared marks are CSS only (generated pages copy the
   shared block, not the home page's SVG).
 

@@ -2,7 +2,7 @@
 title: "Are two-column resumes ATS friendly? A 7-layout PDF test"
 description: "We read one resume in 7 layouts with 3 free PDF readers, not an employer's system. Our plain page never broke; spaced-out headings always did."
 published: 2026-10-04
-modified: 2026-10-04
+modified: 2026-10-07
 status: published
 uncited:
   - "13 of 35"
@@ -27,7 +27,13 @@ uncited:
   - "reject 75% of resumes"
   - "a quarter of a letter"
 ---
-**Short answer**
+**What to do**
+
+- Use one column, top to bottom.
+- Keep normal letter spacing in headings.
+- Put your name, email and phone in the body of the page, not the header or footer.
+
+**What the evidence says**
 
 - Our measurement: one made-up resume, 7 layouts, 3 free PDF text readers, 35 readings. No employer's hiring system tested.
 - Our plain one-column page: 0 of 5 broke. Spaced-out headings: 5 of 5. Text boxes: 4 of 5. Sidebar, table: 2 of 5 each.
@@ -36,7 +42,7 @@ uncited:
 
 ## Are two-column resumes ATS friendly?
 
-A two-column resume is a gamble, not a sure failure. In our test, a sidebar layout broke 2 of 5 readings. Our plain one-column page broke 0 of 5.
+**A two-column resume is a gamble, not a sure failure.** In our test, a sidebar layout broke 2 of 5 readings. Our plain one-column page broke 0 of 5.
 
 We wrote one made-up resume: "Your Name", 3 jobs at "Company A" to "Company C", a degree and two skill lines. We laid the same words out in 7 layouts. Only the arrangement on the page changed. Then we read each file 5 ways with three free PDF text readers: PyMuPDF, pdfminer.six and pypdf. Every file, script and result is on [the data page](resume-parser-test-2026-10.md).
 
@@ -60,7 +66,7 @@ For you, the safest layout in our test was the plainest one.
 
 ## What broke, layout by layout?
 
-Each layout failed in its own way. The summary below comes from the committed results file.
+**Each layout that broke did so in its own way.** The summary below comes from the committed results file.
 
 | Layout | Broke | How it broke |
 |---|---|---|
@@ -88,15 +94,15 @@ In practice, the damage was to order and word shape. No reading lost a word outr
 
 ## Do ATS read tables?
 
-Not always in the right order. In our test, a table layout broke 2 of 5 readings. Both put each job's dates on a different line from its title. Greenhouse lists tables among the things that can stop its resume reader filling in its fields [@greenhouse-parse].
+**Not always in the right order.** In our test, a table layout broke 2 of 5 readings. Both put each job's dates on a different line from its title. Greenhouse lists tables among the things that can stop its resume reader filling in its fields [@greenhouse-parse].
 
 ## Can ATS read a PDF?
 
-Yes, when the PDF holds real text. None of our 35 readings lost a word from a PDF. Greenhouse names .pdf as a file type it reads. It lists a resume uploaded as an image as a cause of failure [@greenhouse-parse].
+**Yes, when the PDF holds real text.** None of our 35 readings lost a word from a PDF. Greenhouse names .pdf as a file type it reads. It lists a resume uploaded as an image as a cause of failure [@greenhouse-parse].
 
 ## Do hiring systems say the same thing?
 
-Hiring-system makers warn against most of the same layouts. Greenhouse, one hiring system, lists what can stop it reading a resume into its fields. Its list includes spaces between letters, tables, headers and footers, and columned layouts. It also lists a name and contact details placed in a header, footer or text box [@greenhouse-parse]. Those are the layouts that broke readings or moved the contact line in our test.
+**One hiring-system maker warns against most of the same layouts.** Greenhouse, one hiring system, lists what can stop it reading a resume into its fields. Its list includes spaces between letters, tables, headers and footers, and columned layouts. It also lists a name and contact details placed in a header, footer or text box [@greenhouse-parse]. Those are the layouts that broke readings or moved the contact line in our test.
 
 Greenhouse's page adds a warning our test could not cover. Its resume reader skips names it takes for fake data, such as "First Last" or "Company 1" [@greenhouse-parse]. Our made-up resume used "Your Name" and "Company A". A commercial resume reader might have skipped those names for that reason alone.
 
@@ -106,7 +112,7 @@ We found no Workday help page on how its resume reader handles layout. Lever has
 
 ## Do modern resume readers handle columns fine?
 
-Some vendors say their readers now handle columns well. Textkernel sells a resume reader used inside other hiring systems. In 2023, Textkernel wrote that about 10-15% of resumes use a column layout. It said better column detection raised its share of resumes read in the right order from 62% to 90%. Its own staff judged about 700 resumes side by side for that figure [@textkernel-2023]. That is the maker's own test, described only in outline.
+**Some vendors say their readers now handle columns well.** Textkernel sells a resume reader used inside other hiring systems. In 2023, Textkernel wrote that about 10-15% of resumes use a column layout. It said better column detection raised its share of resumes read in the right order from 62% to 90%. Its own staff judged about 700 resumes side by side for that figure [@textkernel-2023]. That is the maker's own test, described only in outline.
 
 The largest outside test we found used the same free readers we did. Enhancv, a resume builder that sells two-column templates, ran 3 resumes through 17 of its templates. It read each file 7 ways with pdftotext, PyMuPDF, pdfminer.six and pypdf: 357 readings [@enhancv-2026].
 
@@ -153,3 +159,8 @@ Why a plain page is the safe choice: [What makes a good resume?](what-makes-a-go
 - Reads each page back with one reader, two ways, and checks the text keeps the order you see.
 
 CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Finder works](https://jobs.enrriquez.com/).
+
+## Changes
+
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - two section answers now match their sections: only the layouts that broke failed in their own way, and the warnings come from one hiring-system maker.

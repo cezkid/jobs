@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-06
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.19 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.20
+reviewer: fresh AI session, bead plan-xsy.19 (no drafting context; sources opened before the draft was read); revision checked in plan-xsy.20; re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Do ATS reject 75% of resumes? (`ats-rejection-myth.md`)
 
@@ -397,3 +397,23 @@ Findings:
 No high or medium finding. Verdict: publish.
 
 Fix check (2026-10-06, fresh AI session): A1 applied as written ("Many recruiters say they search by job title as well as by skill."); jobscan-2025 re-opened, numbers match. Verdict: publish (unchanged).
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 7 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Answer the form's yes/no questions truthfully." <- "Answer yes/no questions truthfully." [@uscis-i9]. Supported.
+- "Use the posting's own words for skills you really have." <- same words [@greenhouse-search]. Supported.
+- "Fill every question yourself; autofill can leave them blank." <- same words + "(our Ashby test did)". "can" kept; body: Ashby's autofill filled only contact boxes. Supported.
+- No statistic, citation or jargon in the note.
+
+Bold: 7 lines, one per question section; in the knockout section the bold sits on the measurement line, which is that section's answer. Deleting the added ** pair gives the main line byte for byte (script).
+Description vs body: "No study shows ATS reject 75% of resumes. The figure traces to a 2012 sales claim. We counted the screening questions on 143 application forms." = section 1 bold answer, the CIO/Preptel trail ("a sales line"), our count. Supported, not stronger.
+Changes line: accurate. It leaves out the Short answer rename. Optional; no fix needed.
+
+No finding. Verdict: publish.
+
+Changes-line edit after this re-review (2026-10-07): the generic line now also says "renamed the Short answer box "What the evidence says""; accurate, no other article change. Verdict: publish (unchanged).

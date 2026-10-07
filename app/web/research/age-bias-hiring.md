@@ -2,7 +2,7 @@
 title: "Age discrimination in hiring: when it starts, what helps"
 description: "US tests find little or no drop in employer replies at 40; it shows around 50. With age stated, Swedish employers reply less from the early 40s."
 published: 2026-10-04
-modified: 2026-10-05
+modified: 2026-10-07
 status: published
 uncited:
   - "no field test has removed it alone"
@@ -10,7 +10,13 @@ uncited:
   - "We searched the web and arXiv"
   - "no US test has measured it"
 ---
-**Short answer**
+**What to do**
+
+- Degree 20 or more years old: consider taking off graduation and certificate years, and shortening the oldest jobs.
+- Name the current tools you really use.
+- Never change a date; answer a required date box truthfully.
+
+**What the evidence says**
 
 - Older applicants get fewer employer replies: about 42% fewer across 17 field tests, more in Europe than in the US (Big study) [@lippens-2023].
 - Two US tests of women applying to office jobs found no clear drop from the mid-30s to the early 40s [@farber-2017; @farber-2019]. A test at 108 large US employers found a small gap for all ages over 40 counted together: 0.6 points, when about 24% got a reply; one check could not rule out chance [@kline-2022, pp. 2, 4, 11, 13]. In US tests a clearer drop shows somewhere between the mid-40s and mid-50s. In a Swedish test with age stated, it shows from the early 40s (Big studies) [@farber-2017; @neumark-2019; @carlsson-eriksson-2019].
@@ -19,7 +25,7 @@ uncited:
 
 ## Is there age discrimination in hiring?
 
-Yes. Field tests in many countries find it.
+**Yes. Field tests in many countries find it.**
 
 A field test sends employers made-up applications that differ only in age. A callback means the employer answers and asks for an interview or more details. The largest review combined 306 field tests published from 2005 to 2020. Nineteen of them tested age, and 17 of those tested older age. In the 17, older applicants were about 42% less likely to get a positive reply than younger ones. Across all 19 age tests the gap was about 40%. For older applicants the gap was about 49% in European tests and about 31% in US tests. The review's authors say published tests may overstate such gaps to some extent [@lippens-2023]. We read the review's open working-paper copy, so the printed figures may differ slightly.
 
@@ -27,7 +33,7 @@ A rating study points the same way (Lab study). A 2025 study showed 5,017 Danish
 
 ## At what age does the hiring penalty start?
 
-In US tests, somewhere between the mid-40s and mid-50s. In the largest US test built to study age, the drop was already there for women at 49 to 51. In a Swedish test where the resume stated age, in the early 40s.
+**In US tests, somewhere between the mid-40s and mid-50s.** In the largest US test built to study age, the drop was already there for women at 49 to 51. In a Swedish test where the resume stated age, in the early 40s.
 
 | Study | Country | Ages tested | How age showed | What happened to employer replies |
 |---|---|---|---|---|
@@ -66,7 +72,7 @@ For you, the tests suggest the risk on a US resume is small in the early 40s and
 
 ## Should you remove your graduation year from your resume?
 
-The graduation year is how readers guess age, but no field test has removed it alone. Removing it is your call.
+**The graduation year is how readers guess age, but no field test has removed it alone.** Removing it is your call.
 
 Every US test in the table showed age through a graduation year. Real resumes show it too: 56% of more than 25,000 real resumes in one sample listed a high school graduation year [@neumark-2019, p. 17]. In a 2022 survey for a resume company, 41% of 800 US hiring managers said a graduation year makes age bias more likely. Nearly one in four said they would never recommend listing it. The largest group, 26%, said to always list all relevant experience [@resumebuilder-2022]. A resume company ran that survey, so read it with care.
 
@@ -78,19 +84,19 @@ Leaving a date off may cost a little; no US test has measured it. A lab study as
 
 ## Why do employers pass over older applicants?
 
-Part of it is belief about skills. A lab study asked 400 people on an online panel to rate made-up candidates of different ages. All had experience judging applicants, and nine in ten were in the US. Three beliefs explained about 41% of the age effect: weaker technology skills, less flexibility and being harder to train. The authors say this link is not proof of cause [@van-borm-2021]. In the 2022 vendor survey, hiring managers named two main worries about applicants aged 60 and up. One was retiring soon; the other was technology skills. In the same survey, managers had concerns about applicants under 25 just as often [@resumebuilder-2022].
+**Part of it is belief about skills.** A lab study asked 400 people on an online panel to rate made-up candidates of different ages. All had experience judging applicants, and nine in ten were in the US. Three beliefs explained about 41% of the age effect: weaker technology skills, less flexibility and being harder to train. The authors say this link is not proof of cause [@van-borm-2021]. In the 2022 vendor survey, hiring managers named two main worries about applicants aged 60 and up. One was retiring soon; the other was technology skills. In the same survey, managers had concerns about applicants under 25 just as often [@resumebuilder-2022].
 
 These are beliefs about a group. They say nothing about how well one person will do the job.
 
 ## Does AI screening read age too?
 
-In lab tests, yes. A 2026 conference paper had 10 openly released AI models pick which of two made-up applicants to call back. Age showed through the college graduation year; older meant 45 to 58. The makers' extra training moved callbacks for older applicants down by 3.6% against the same models before that training. Eight of the ten moved that way [@bone-2026]. A 2023 preprint from an AI maker tested one older model on 70 made-up decisions, with the age stated. The decisions covered loans and visas as well as jobs. Its answers were less favorable for people over 60 [@tamkin-2023]. Lab tests show what models do in a test, not what employers do. More tests are in [Is AI resume screening biased?](ai-resume-screening-bias.md)
+**In lab tests, yes.** A 2026 conference paper had 10 openly released AI models pick which of two made-up applicants to call back. Age showed through the college graduation year; older meant 45 to 58. The makers' extra training moved callbacks for older applicants down by 3.6% against the same models before that training. Eight of the ten moved that way [@bone-2026]. A 2023 preprint from an AI maker tested one older model on 70 made-up decisions, with the age stated. The decisions covered loans and visas as well as jobs. Its answers were less favorable for people over 60 [@tamkin-2023]. Lab tests show what models do in a test, not what employers do. More tests are in [Is AI resume screening biased?](ai-resume-screening-bias.md)
 
 One US lawsuit puts the question to a court. In May 2025, a federal court let an age claim over Workday's screening tools go forward for a wider group. The group is applicants aged 40 and over since September 2020. The order describes what the plaintiffs allege and decides nothing on the facts [@mobley-2025-order]. As of October 2026, we found no ruling on the facts in the case. The case and the laws around it are in [AI hiring laws](ai-hiring-laws.md).
 
 ## Can an employer ask your age or graduation year?
 
-Federal law does not ban the question, and at least seven states limit it, as of October 2026. This is general information, not legal advice.
+**Federal law does not ban the question, and at least seven states limit it, as of October 2026.** This is general information, not legal advice.
 
 | Place | What may not be asked | When | Source |
 |---|---|---|---|
@@ -107,7 +113,7 @@ Each state rule has exceptions, such as a real job requirement or another law th
 
 ## Should you change a date to look younger?
 
-No. Leaving a date off is honest; a false date is not.
+**No. Leaving a date off is honest; a false date is not.**
 
 Degrees are easy to check. The National Student Clearinghouse says its member schools enroll 97% of students at US public and private colleges [@nsc-about]. The Clearinghouse runs a service that confirms degrees and attendance [@nsc-verify]. A background-check company surveyed businesses in 2025. More than three-quarters had found mismatches in applicants' details in the past 12 months [@hireright-2025]. That company sells those checks.
 
@@ -150,3 +156,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 
 - October 2026 - added a US test of more than 83,000 applications at 108 large employers. Applicants over 40, counted together, got slightly fewer replies [@kline-2022]. So the short answer, the description and one body sentence no longer say US tests found no drop at 40. Neumark 2019 is now called the largest US test built to study age, not the largest US test. The other findings are unchanged.
 - October 2026 - the background-check survey line now says the share is of the businesses asked, over the past 12 months. The 2026 model test is now described as it ran: each prompt asked a model to pick one of two applicants [@bone-2026]. CEZ Job Finder's age offer is now described as it works: it offers at 15 years, recommends at 20. The findings are unchanged.
+- October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.

@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.77 (two contexts, no drafting context; sources opened before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.77 (two contexts, no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Hiring discrimination: what studies show, what helps (`hiring-bias-what-helps.md`)
 
@@ -539,4 +539,30 @@ Fresh subagent; made none of the edits. Read the current article, its diff, `sou
 - L2: fixed. Changes line: "the share is of the businesses asked".
 - methods M1, carried here: fixed. After the Kline 2024 sentence: "We read that paper's published summary only." After the 63% sentence: "That figure is from the published summary." NBER w32313 page re-opened: abstract only, "97 U.S. employers, the identities of which we disclose for the first time". Crossref abstract of 10.1093/qje/qjx028 re-opened: "employers that asked about criminal records were 63% more likely to call applicants with no record". Both match `sources.yml` (kline-2024 venue "abstract read on the NBER working paper page"; agan-starr-2018 sample "figures are the published abstract's") and the source rows above. Table row 33 repeats the 63% with no new number. The new research.md rule covers it.
 - Changes line: accurate (HireRight share, US + date tag, two summary markers, the age check).
+- No new finding. Verdict: publish.
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each item. This page's "What helps" list is "Can you avoid bias in job applications?". No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 10 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> list item:
+- "Apply widely: bias varies a lot from one employer to the next." <- "Apply widely. Bias varied a lot between employers in the largest test [@kline-2022]. That is our reading of the finding, not a tested tactic." The line turns one test's finding (108 large US employers) into a general present-tense fact. W1.
+- "Keep every fact on your resume and forms true." <- "Keep facts true." [@hireright-2025]. Supported.
+- "Prepare for the interview as well as the resume." <- same words [@quillian-2020]. Supported.
+- No statistic, citation or jargon in the note. The "your call" items (name, groups, record answers) are left out of the note; none turned into advice.
+
+Bold: 10 lines, every question section; deleting the added ** pair gives the main line byte for byte (script). Note, no fix needed: on whitening, "In one small US test, yes." is bold alone, with the cost and "the choice is yours" after it unbolded. It answers the heading's question accurately; bolding the second sentence too would keep both sides in a skim.
+Description vs body: "Field tests find employers reply less to some names, ages and histories. Bias varies by employer. No resume change has been shown to remove it." = table, Kline and Behaghel sections, evidence bullet 3. Supported, not stronger.
+Changes line: accurate. It leaves out the Short answer rename. Optional; no fix needed.
+Page note (generator, not this article): no "More in What helps" link under the note here; `pages.py` adds it only where a `#what-helps` heading exists.
+
+Findings (verdict revise):
+- **W1 (low)** What to do line 1 says more than its item: "bias varies a lot from one employer to the next" vs "Bias varied a lot between employers in the largest test". Fix: "Apply widely: in the largest test, bias varied a lot between employers."
+
+### Resolution check 2026-10-07 (plan-ngk.6)
+
+- W1: resolved. Line 1 now "Apply widely: in the largest test, bias varied a lot between employers." The item's scope and tense.
+- Generic Changes line records the rename; accurate. No "More in What helps" link here: accepted by the coordinator.
 - No new finding. Verdict: publish.

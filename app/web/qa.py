@@ -45,7 +45,8 @@ and the skip link is >= 44px tall; HIT_OVERLAP, same pages + size: every header 
 underlined thicker than Install on /research/** and the same elsewhere; FOOTER_BOTTOM, every page at
 1440x900: the footer ends within 2px of the window's bottom or the page end (404: no blank band under it).
 TOC_NARROW, every page with an On this page column at 390x844 (phone) + 1024x768: a visible 'On this page'
-summary in the first screen, opened = a link to every h2; TOC_WIDE at 1440x900 (also in --engines): the
+summary starting within 1.25 screens (right after the What to do note, which owns the first screen), opened =
+a link to every h2; TOC_WIDE at 1440x900 (also in --engines): the
 column's links all visible, the first in the first screen, right of the text column; TOC_CURRENT there: the
 3rd h2 scrolled to the top -> its link (both lists, only it) aria-current="true" + bold; CRUMBS_ONE_LINE at
 360x780 + 390x844 (phone): an article's visible crumbs share one line. STICKY_FIT, every page w/ a side column
@@ -581,7 +582,7 @@ EMPTY_RIGHT = """(rows) => {
 }""".replace("BAND_W", str(BAND_W)).replace("BAND_H", str(BAND_H))
 # RULES_STACKED (privacy, every size): two horizontal rules (a border edge > 100px wide) overlapping side by
 # side, <= RULE_GAP px apart with no text line between them = a double rule (A19); every article page too
-# (Short answer's rule over the next h2)
+# (a top note's rule over On this page or the next h2)
 RULES_PAGES = {"privacy.html"}
 RULE_GAP = 60
 RULES_STACKED = """() => {
@@ -698,10 +699,13 @@ NAV_CURRENT = """() => { const t = s => { const a = document.querySelector(s);
     return a ? parseFloat(getComputedStyle(a).textDecorationThickness) || 0 : null; };
   return [t('.links a[href="/research/"]'), t('.links a[href="/#install"]')]; }"""
 # TOC_NARROW (B2): every page with an On this page column, at 390x844 (phone) + 1024x768: a visible summary
-# "On this page" inside the first screen; opened, its visible links = every h2 of the page, in order.
+# "On this page" starting within TOC_NARROW_SCREENS screens - right after the What to do note, which holds the
+# first screen w/ the answer (owner 2026-10-07, plan-ngk; was: inside the first screen); opened, its visible
+# links = every h2 of the page, in order.
 # TOC_WIDE (B2/D21), 1440x900, Chrome + WebKit + Firefox: the column's links all visible, the first in the
 # first screen, right of the text column, and again = every h2
 TOC_NARROW_AT = [((390, 844), True), ((1024, 768), False)]
+TOC_NARROW_SCREENS = 1.25
 TOC_WIDE_AT = (1440, 900)
 TOC_HEADS = """() => [...document.querySelectorAll("main article h2[id]")].map(h => "#" + h.id)"""
 # sel -> null (none) or {text, shown, top, bottom, left of first link?} for the first match
@@ -934,9 +938,9 @@ FAULTS = [
      "justify-self: start !important; }</style>", "wide"),
     ("privacy.html", "RULES_STACKED: a hairline under the Short version, over the next heading's",
      "<style>.short { border-bottom: 1px solid; padding-bottom: 30px; }</style>", "narrow"),
-    ("research/ai-resume-screening-bias/index.html", "RULES_STACKED: the next heading's hairline back under the "
-     "Short answer", "<style>:is(.meta, .toc-mini) + p:has(> strong:only-child) + ul + h2 { padding-top: 14px "
-     "!important; border-top: 1px solid !important; }</style>", "narrow"),
+    ("research/ai-resume-screening-bias/index.html", "RULES_STACKED: On this page's hairline back under the "
+     "evidence note's rule", "<style>:is(.box-list, .box-more) + .toc-mini details { border-top: 1px solid "
+     "!important; }</style>", "narrow"),
     (ARTICLE, "ARTICLE_H1: article h1 back to 64px", "<style>h1 { font-size: 4rem !important; }</style>", "wide"),
     ("research/index.html", "ARTICLE_H1: hub h1 below the display scale", "<style>h1 { font-size: clamp(2.25rem, "
      "1.4rem + 2.6vw, 4rem) !important; }</style>", "wide"),
@@ -959,8 +963,10 @@ FAULTS = [
      "toc"),
     (ARTICLE, "TOC_NARROW: the opened list drops a heading", "<script>document.querySelector('.toc-mini li:last-child')"
      ".remove()</script>", "toc"),
+    # the longest list (19 rows since 2026-10-06) scrolls w/ the page on a short window, so the fault sticks it again
     (ARTICLE, "STICKY_FIT: On this page rows back to full height on a short window", "<style>@media (max-height: "
-     "819px) { .toc a { padding: 8px 0 9px !important; } }</style>", "sticky"),
+     "819px) { .toc a { padding: 8px 0 9px !important; } .toc:has(li:nth-child(19)) { position: sticky !important; "
+     "max-height: calc(100vh - 48px) !important; overflow-y: auto !important; } }</style>", "sticky"),
     ("research/index.html", "STICKY_FIT: evidence labels stuck + clipped on a short window", "<style>@media "
      "(min-width: 1280px) { .labels { position: sticky !important; max-height: calc(100vh - 48px) !important; "
      "overflow-y: auto !important; } }</style>", "sticky"),
@@ -1120,8 +1126,8 @@ def check_toc(browser, base: str, inject: str | None = None, names: list[str] | 
                 if not heads or box is None:
                     failed.append(f"{where}: check found 0 elements for {'h2' if not heads else '.toc-mini summary'}")
                     continue
-                if not box["shown"] or box["text"] != "On this page" or box["bottom"] > h:
-                    failed.append(f"{where}: no visible 'On this page' in the first screen ({box})")
+                if not box["shown"] or box["text"] != "On this page" or box["top"] > h * TOC_NARROW_SCREENS:
+                    failed.append(f"{where}: no visible 'On this page' within {TOC_NARROW_SCREENS} screens ({box})")
                     continue
                 page.click(".toc-mini summary")
                 got = page.evaluate(TOC_LINKS, ".toc-mini a")

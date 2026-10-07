@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-05
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.68 (no drafting context; sources opened and the count rerun before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.68 (no drafting context; sources opened and the count rerun before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Do cover letters still matter now that AI writes them? (`cover-letters-after-ai.md`)
 
@@ -315,3 +315,23 @@ Fresh subagent; made none of the edits. Read the current article, its diff and `
 - No medium or high open. Verdict: publish (unchanged).
 
 Editor, after the resolution check (2026-10-05): C5 + C6 fixed by editor as proposed.
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 5 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Write a letter when the form asks for one." <- same words [@resumego-2020]. Supported.
+- "Say in your own words why you want this job." <- same words [@mit-capd-ai-cover-letters]; the item's "convention, not a study" stays in What helps. Supported.
+- "If AI drafts it, edit it with your own facts; never let it invent." <- "If AI drafts, edit it with your own facts." [@cui-2025] + "Never let AI invent a skill, number or reason." [@mit-capd-ai-cover-letters]. Supported.
+- No statistic, citation or jargon in the note.
+
+Bold: 5 lines, every question section but the side-by-side table; deleting the added ** pair gives the main line byte for byte (script).
+Description vs body: "Often yes - many forms we checked had a letter box, and a 2019-20 test found more callbacks with one. AI-written letters now tell employers less." Facts match the body (96 of 143 forms; ResumeGo 16.4% and 12.5% vs 10.7%; Cui, match-callback link 51% weaker). "Often yes" is the article's reading on the box count plus one small pre-AI test by a resume company; the evidence box right below labels that test, and What helps says to write one when the form asks. Not stronger than the body.
+Changes line: accurate. It leaves out the Short answer rename. Optional; no fix needed.
+
+No finding. Verdict: publish.
+
+Changes-line edit after this re-review (2026-10-07): the generic line now also says "renamed the Short answer box "What the evidence says""; accurate, no other article change. Verdict: publish (unchanged).

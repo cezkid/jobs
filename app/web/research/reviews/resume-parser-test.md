@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-04
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.65 (no drafting context; sources opened and the study rerun before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.65 (no drafting context; sources opened and the study rerun before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: Are two-column resumes ATS friendly? We tested 7 layouts (`resume-parser-test.md`)
 
@@ -189,3 +189,30 @@ All F and R findings are closed. Notes where the fix is partial or a finding is 
 - R1: article now gives the spacing (a quarter of a letter's width); sibling `what-makes-a-good-resume.md` says wider spacing split the headings in every reader. `app/docs/resume/page-format.md` records the study line (+0.25em -> split in all 5 readings).
 - R2: "parser" / "parse" in body replaced by "resume reader" / "fill in the fields"; `greenhouse-parse` stays as a source id only.
 - Links in: `what-makes-a-good-resume.md`, `ats-rejection-myth.md`, data page `resume-parser-test-2026-10.md`. Out: what-makes-a-good-resume, ats-rejection-myth, data page, methods.
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 6 section answers set in bold; `modified` 2026-10-07; a new `## Changes` section with one line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Use one column, top to bottom." <- same words ("It broke 0 of 5 readings in our test"). Supported.
+- "Keep normal letter spacing in headings." <- "Write headings with normal letter spacing." (spaced-out headings broke 5 of 5). Supported.
+- "Put your name, email and phone in the body of the page, not the header or footer." <- same words [@greenhouse-parse]. Supported: Greenhouse lists name and contact in a header, footer or text box as a risk; our header-and-footer file read the contact line last in all 5.
+- No statistic, citation or jargon in the note.
+
+Bold: 6 lines, every question section; deleting the added ** pair gives the main line byte for byte (script). Two bolded sentences, unchanged since wave 2 (99d8971), now stand as the section answers and say more than their sections: B1, B2.
+Description vs body: "We read one resume in 7 layouts with 3 free PDF readers, not an employer's system. Our plain page never broke; spaced-out headings always did." = 0 of 5 and 5 of 5, scoped to our test. Supported, not stronger.
+Changes: new section, one line, accurate. It leaves out the Short answer rename. Optional; no fix needed.
+
+Findings (verdict revise):
+- **B1 (low)** "**Each layout failed in its own way.**" under "What broke, layout by layout?": the table below gives plain one column, header and footer, and drawn icons 0 of 5 ("Nothing", "No break"). Read alone, the bold answer says every layout failed, the plain page included. Fix: "**Each layout that broke did so in its own way.**", plus a Changes line.
+- **B2 (low)** "**Hiring-system makers warn against most of the same layouts.**": one maker is cited (Greenhouse); no Workday page was found and Lever's was not opened; evidence bullet 4 says "Greenhouse's help page". Fix: "**One hiring-system maker warns against most of the same layouts.**" (the next sentence names Greenhouse), plus a Changes line.
+
+### Resolution check 2026-10-07 (plan-ngk.6)
+
+- B1: resolved. "**Each layout that broke did so in its own way.**" Matches the table (three layouts 0 of 5).
+- B2: resolved. "**One hiring-system maker warns against most of the same layouts.**" The next sentence names Greenhouse; matches evidence bullet 4.
+- Changes: "two section answers now match their sections: only the layouts that broke failed in their own way, and the warnings come from one hiring-system maker" - accurate; generic line records the rename. Only those two sentences changed words vs main; the other 4 bold lines unchanged (script).
+- No new finding. Verdict: publish.

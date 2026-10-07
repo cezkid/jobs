@@ -1,7 +1,7 @@
 ---
-reviewed: 2026-10-06
+reviewed: 2026-10-07
 verdict: publish
-reviewer: fresh AI session, bead plan-xsy.28 (no drafting context; sources opened before the draft was read)
+reviewer: fresh AI session, bead plan-xsy.28 (no drafting context; sources opened before the draft was read); re-review 2026-10-07 fresh AI session (plan-ngk.6)
 ---
 # Review: What makes a good resume? The evidence, rule by rule (`what-makes-a-good-resume.md`)
 
@@ -396,3 +396,28 @@ No high or medium open. Verdict: publish.
 ## Edit after review (2026-10-06, headline title)
 
 Applied G1, G2 and G3 exactly as the fix text above gives them. Wording only; no number, label or source changed beyond G1 now naming Greenhouse as the one system its help page covers.
+
+## Re-review 2026-10-07: what to do note + bold answers (plan-ngk.6)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md`, `git diff main` of the article, the whole article and the `sources.yml` entries behind each What helps item. No line moved a source's meaning far enough to reopen it. No source text addressed an AI.
+
+Changed: "What to do" note (3 lines) above the old Short answer; "Short answer" -> "What the evidence says", bullets unchanged; 12 section answers set in bold; `modified` 2026-10-07; one Changes line. Page only (generator): the description now shows as the answer line under the title.
+
+What to do -> What helps:
+- "Make every employer, title and date match your records." <- "Make every employer, title and date in your work history match your records [@hireright-2025]." Drops "in your work history": W1.
+- "Proofread, and have someone else proofread too." <- same words [@sterkens-2023]. Supported.
+- "Use a plain, one-column page with clear headings." <- same words [@ladders-2018]. Supported.
+- No statistic, citation or jargon in the note. "A one-line reason is your call" is left out of the note; not turned into advice.
+
+Bold: 12 lines, every question section but the summary table and the not-backed list; deleting the added ** pair gives the main line byte for byte (script).
+Description vs body: "Resume rules sorted by evidence. Long gaps cost callbacks; typos lower recruiter ratings. Most format rules are career-guide convention, not tested." = table, gap and typo sections (typos: rated interview chance, lab study). Supported, not stronger.
+Changes line: accurate. It leaves out the Short answer rename. Optional; no fix needed.
+
+Findings (verdict revise):
+- **W1 (medium)** What to do line 1 drops "in your work history", the scope the 2026-10-06 headline-title edit put in the evidence box, table, body, What helps and app box. Read alone, "every ... title ... match your records" rules out the title line at the top that the article's own section and What helps item 2 allow. Fix: "Make every employer, title and date in your work history match your records."
+
+### Resolution check 2026-10-07 (plan-ngk.6)
+
+- W1: resolved. Line 1 now "Make every employer, title and date in your work history match your records." The item's exact words; fits the title-line section.
+- Generic Changes line records the rename; accurate.
+- No new finding. Verdict: publish.
