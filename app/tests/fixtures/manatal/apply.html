@@ -1,0 +1,60 @@
+<!doctype html>
+<!-- Manatal's apply form as its Vue template renders it (application-form.js, 2026-10-06), cut to the
+     widgets the filler meets: boxes #field<id> named <id>, label not tied, resume label + error words,
+     checkboxes sharing one literal id, a yes box, pay = number + currency + frequency, terms. -->
+<html><head><meta charset="utf-8"><title>Apply</title></head>
+<body>
+<div id="app">
+<form>
+  <div class="form-group"><label for="">Full Name: <span>*</span></label>
+    <div><input type="text" name="1001" class="form-control" id="field1001"></div></div>
+  <div class="form-group"><label for="">Email: <span>*</span></label>
+    <div><input type="text" name="1002" class="form-control" id="field1002"></div></div>
+  <div class="form-group"><label for="">Phone: <span>*</span></label>
+    <div><input type="text" name="1003" class="form-control" id="field1003"></div></div>
+  <div class="form-group"><label for="">Cover Letter: </label>
+    <div><textarea name="1004" id="field1004" class="form-control"></textarea></div></div>
+  <div class="form-group"><label for="">Resume: <span>*</span></label>
+    <div class="custom-file">
+      <input type="file" name="1005" class="custom-file-input" id="field1005" onchange="fileinputChanged(this)">
+      <label class="custom-file-label">Choose file</label>
+      <div><small class="text-danger"></small></div>
+    </div></div>
+  <div class="form-group"><label for="">Do you meet all the requirements?: <span>*</span></label>
+    <div><ul class="list-unstyled">
+      <li><label class="checkcontainer"> Yes <input type="checkbox" id="1006{index}" name="1006" value="Yes"><span class="checkmark"></span></label></li>
+      <li><label class="checkcontainer"> No <input type="checkbox" id="1006{index}" name="1006" value="No"><span class="checkmark"></span></label></li>
+    </ul></div></div>
+  <div class="form-group">
+    <div><input type="checkbox" name="1007" id="field1007"><label for="field.id">Are you authorized to work lawfully in the United States?: <span>*</span></label></div></div>
+  <div class="form-group"><label for="">Your expected compensation per month: </label>
+    <div class="row">
+      <div class="col-md-4"><input type="number" min="0" step="any" name="1008" class="form-control" id="field1008"></div>
+      <div class="col-md-4"><select name="1008" class="form-control" id="expected_currency">
+        <option value="12">Barbados dollar</option><option value="840">United States dollar</option><option value="978">Euro</option></select></div>
+      <div class="col-md-4"><select name="1008" class="form-control" id="expected_frequency">
+        <option value="hour">Hourly</option><option value="day">Daily</option><option value="week">Weekly</option>
+        <option value="month">Monthly</option><option value="year">Yearly</option></select></div>
+    </div></div>
+  <div class="form-group"><label for="">Employment type: </label>
+    <div><select name="1009" class="form-control" id="field1009">
+      <option value="">Select Employment type</option><option value="Full time">Full time</option><option value="Contract">Contract</option></select></div></div>
+  <div class="">
+    <input type="checkbox" name="terms_and_condition" value="checked">
+    <span>I have read and agree to the terms and conditions and privacy policy.</span>
+  </div>
+  <button type="submit" class="btn btn-primary">Apply</button>
+</form>
+</div>
+<script>
+  // the form script's own check on choosing a file (fileinputChanged): extension, then size
+  function fileinputChanged(input) {
+    const box = input.closest('.custom-file'), label = box.querySelector('.custom-file-label'),
+          error = box.querySelector('small.text-danger'), file = input.files[0];
+    const bad = !/\.(pdf|doc|docx|rtf)$/i.test(file.name) || file.size === 0 || file.size / 1000000 > 20;
+    error.textContent = bad ? 'This file is invalid. Supported formats include PDF, DOC, DOCX, or RTF (max 20MB).' : '';
+    label.textContent = bad ? 'Choose file' : file.name;
+  }
+  document.querySelector('form').addEventListener('submit', e => { e.preventDefault(); window.submitted = true; });
+</script>
+</body></html>

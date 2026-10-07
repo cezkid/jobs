@@ -1,7 +1,7 @@
 # Manatal application forms - measured facts
 
-**Not filled yet** - no system module; `prepare` says "not supported yet". Facts for the owner's
-pick of which systems get a filler (plan-k8n.23).
+Filled by `app/apply/systems/manatal.py` (plan-k8n.29): questions from the form definition (plain
+HTTP), answers typed into the page in Job Finder's own Chrome, read back off the page.
 
 Manatal = hiring system whose careers pages sit on one host for every employer:
 `www.careers-page.com/<employer>/job/<hash>`, form at the same link + `/apply`. Vue 2 page
@@ -64,7 +64,7 @@ On load (blocked log, 6 loads): Google Analytics `g/collect` (3 POST, 1 load). N
 
 While filling: typing sends nothing, from the form script; a location search
 (`consolidated-locations?search=`) runs only in education / experience entries - none of the 47
-forms have them. Live try: unmeasured (no filler).
+forms have them. Live try (below): 0 writes sent, only the 3 Google Analytics posts on load blocked.
 
 Resume: the script uploads it ONLY at Submit - presigned link
 (`jobs/apply-by-career-page-resume-get-presigned-url/`), then to S3, then the answers POST
@@ -72,10 +72,65 @@ Resume: the script uploads it ONLY at Submit - presigned link
 
 ## Closed posting
 
-404 on the apply page (1 of 1 closed, 11 of 58 on the open list). The employer's public job list
-(above) can confirm it - unmeasured per posting.
+404 on the apply page (1 of 1 closed, 11 of 58 on the open list). `closed()`: 404 -> "may have
+closed"; a 200 page without `selectedJobId` -> no form; other answers -> can't tell.
+
+Closed check 2026-10-07 (`.data/measure/manatal-closed-check-2026-10-07.json`; plain GETs 2 s apart,
+0 page loads): open list 58 -> 47 form, 11 read closed; closed list 1 -> 1 read closed. Each employer's
+own job list (29 employers): 47 of 47 forms on it, 12 of 12 read closed off it. **Open read as
+closed: 0.**
+
+## Filler rules
+
+| Definition | Question | On the page |
+|---|---|---|
+| `full_name` | text, key name (one box, never split) | `#field<id>` |
+| `email`, `phone_number` | email, phone | `#field<id>` |
+| `field_type` resume | file, key resume | `input[type=file]#field<id>` |
+| `attachment` | file, no key (the user's own file) | ASK |
+| `social_media` 3 | url, key linkedin | `#field<id>` |
+| `expected_salary` / `current_salary` | number + `<id>:currency` (Manatal's own currency names, `/api/v1.0/currencies/`, read only when a pay box exists) + `<id>:frequency` (Hourly ... Yearly) | number box + `select#expected_currency` / `#expected_frequency` |
+| client field `dropdown` / `multiple_select_dropdown` | choice / multichoice | native `select` (select2 on top; the script reads the native one) |
+| client field `checkbox` / `multiple_choice` | multichoice / choice; Yes + No or one lone box -> yes / no | ticks by `value` |
+| `gender`, notice period, years, nationalities, languages, industries | choice / multichoice, options as the page lists them | `select` |
+| other: `char` / `longtext` / `integer` / `boolean` / `datetime` | text / longtext / number / yes / no (one checkbox) / date | `#field<id>` |
+| `educations`, `experiences` | ASK - entries added one by one on the page (0 of 47 forms) | - |
+| date | ASK - the page's calendar (flatpickr) | - |
+| `terms_and_condition` | never a question - the applicant's own consent | - |
+
+Pay box: "$85,000" typed as 85000 (the box takes digits only).
+
+## Read back (2026-10)
+
+What `manatal.holds` reads off the page (`form.recheck`: refilled once, still gone -> FAIL to fill by
+hand) - what shows, never the answer it was given. The form script reads every value straight from
+the page at Submit (`field.val()`, `:checked`), so the page's value is what's sent.
+
+| Kind | Read back |
+|---|---|
+| box (contact, pay, LinkedIn, employer text) | its value; phone by digits; pay as the digits typed |
+| list (currency, per, employer list) | text of the option(s) picked; "Select ..." (value "") = not held |
+| tick boxes / radios | every box: ticked exactly when its `value` is an answer |
+| yes box (boolean) | its tick |
+| resume | the box's label (`.custom-file-label`) shows a file name, not "Choose file", no error under it, the input holds the file |
+| box not on the page | not held |
+
+Upload: nothing leaves on choosing - the script checks the file, then the label shows its name, or
+`small.text-danger` in the `.custom-file` block says "This file is invalid. Supported formats include
+PDF, DOC, DOCX, or RTF (max 20MB)." `put_file`: page idle (15 s cap), file chosen, label = file name
+-> ok; error words -> FAIL with Manatal's words; neither in 5 s -> ASK.
+
+## Try (2026-10-07)
+
+`apply-form try` on 3 postings, 3 tenants (tick boxes Yes / No; pay + currency + per with LinkedIn;
+three Yes / No text boxes), synthetic answers: canary ok each (0 of 9 test writes through), every
+box `ok`, required 6 of 6, 5 of 5, 7 of 7; 0 writes sent (3 Google Analytics posts blocked each).
+`--upload-errors` on one: a `.png` -> FAIL with the page's words above; an empty file right after ->
+FAIL (the `.png`'s words still up - empty alone unmeasured); the resume after -> ok, error gone.
+Page loads on the host: 4.
 
 ## Cost
 
 Filler ~1 bead (JazzHR / BambooHR size): stable names, definition by plain GET, file leaves only
 at Submit. Watch: full name in one box, required not in the page, the array's repeated id.
+Took 1 bead (plan-k8n.29, 3 contexts).

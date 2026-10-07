@@ -17,11 +17,11 @@ installer-ai-choice:
     contains: Type 1, 2 or 3, then press Enter
 apply-systems:
   page: index.html
-  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
   why: hiring systems the app fills (bold) or starts (plain)
   rests_on:
   - apply_systems: true
-    filled: [Ashby, BambooHR, Greenhouse, JazzHR, Lever, Paylocity, SmartRecruiters, UKG, Workable, Workday]
+    filled: [Ashby, BambooHR, Greenhouse, JazzHR, Lever, Manatal, Paylocity, SmartRecruiters, UKG, Workable, Workday]
     # [name in the code, name on the page]
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
@@ -130,6 +130,7 @@ privacy-employers:
     - '| Email, resume, contact details, answers you apply with | that employer''s Paylocity site | That employer: email as you leave its box, resume as you pick the file (both measured), the rest by Submit |'
     - '| Resume file you apply with | that employer''s SmartRecruiters site | That employer, as soon as it is chosen (only after you say yes) |'
     - '| Contact details, answers you apply with | that employer''s SmartRecruiters site | That employer, once you click Submit |'
+    - '| Contact details, answers, resume you apply with | that employer''s Manatal site | That employer, once you click Submit |'
     - '| Name, email, phone you start with | that employer''s Paycom site | That employer, when you click Continue on its start box - before the form |'
     - '| Name, email, phone you start with | that employer''s ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |'
     - '| Email you start with | that employer''s Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |'

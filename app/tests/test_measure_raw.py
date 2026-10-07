@@ -24,6 +24,7 @@ PAGE = """<!doctype html><body>
 <input name="firstname"><input id="firstName"><div class="form-group"><input></div>
 <div data-field-path="x"><input></div><div id="application-form"><input name="name"></div>
 <input data-automation="first-name-textbox"></form>
+<div id="app"><form><input id="field101"></form></div>
 <div id="host"></div><div id="closed"></div>
 <script>
 const open = document.getElementById('host').attachShadow({mode: 'open'});
