@@ -1714,6 +1714,36 @@ def test_bamboohr_upload_waits_for_the_block_and_says_the_pages_words(fixture_pa
         "FAIL the page says 'Request failed with status code 500' - choose the file again on the page, or check the Resume box"
 
 
+def test_bamboohr_upload_failing_between_reads_says_its_own_words(fixture_page, monkeypatch, tmp_path):
+    """The page takes the file off the block + draws its banner between the loop's banner read and its block
+    read (flaky in the full suite, plan-k8n.37): the words are this failure's, never the earlier banner's."""
+    monkeypatch.setattr(bamboohr, "ERROR_WAIT_MS", 500)
+    page = fixture_page("bamboohr-form.html")
+    resume = answered("resumeFileId", "file", True, title="Resume") | {"key": "resume", "native": "bamboohr:file 2 of 2"}
+    good = tmp_path / "Ada_Lovelace_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(
+        status=200, content_type="application/json", body='{"status": "ERROR", "errorType": "invalid_file_size"}'))
+    assert bamboohr.fill(page, resume, str(good)).startswith("FAIL the page says 'Whoa, this is a big file")
+    page.unroute("**/bamboohr-upload.json")
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(status=500, body=""))
+    page.clock.install()  # the page's own timer holds the failure until the block read lets it run
+    reads, calls = bamboohr.block_says, []
+
+    def late(upload):  # the page's change lands after the loop's banner read, before this one
+        if calls:
+            for _ in range(40):
+                page.clock.run_for(1000)
+                if not upload.locator(".name").count():
+                    break
+                page.wait_for_timeout(50)
+        calls.append(1)
+        return reads(upload)
+    monkeypatch.setattr(bamboohr, "block_says", late)
+    assert bamboohr.fill(page, resume, str(good)) == \
+        "FAIL the page says 'Request failed with status code 500' - choose the file again on the page, or check the Resume box"
+
+
 def test_survey_tally_is_counts_only():
     from apply import survey
     f = lambda **k: {"type": "t", "required": False, "survey": False, "resume": False, "file": False, "known": True,
