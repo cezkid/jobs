@@ -5,9 +5,13 @@ No public form definition: the form shows only after the user signs in (their ow
 typed by us), so `questions` reads it from Job Finder's Chrome. Measured facts and why each rule
 exists: app/docs/apply/ukg.md.
 """
+import contextlib
 import json
 import re
+import time
 from pathlib import Path
+
+import httpx
 
 from apply import browser
 from apply.questions import asks_complete_history, form_roles, major_option, question
@@ -34,7 +38,24 @@ FIELDS = {"Country": ("choice", None), "AddressLine1": ("text", "street"), "City
           "ApplicantSource": ("choice", None)}
 DECLINE = "I decline to say"
 PROFILE = "resume-sections"
+PANELS = ("work-experience-panel", "education-panel", "skills-panel", "links-panel")
 DEGREES = {"b": "Bachelor", "a": "Associate", "m": "Master", "d": "Doctor", "p": "Doctor"}
+# the posting page of a gone opportunity: UKG's own block in place of the posting (3 of 9 listed links,
+# 2026-10-07); an open one carries its view model + apply link (6 of 9)
+GONE = 'data-i18n="Opportunity.OpportunityError.OpportunityUnavailableMessage"'
+OPEN = "US.Opportunity.CandidateOpportunityDetail("
+# UKG's own words for a failed upload (its English strings, plain GET of the site's translation file,
+# 2026-10-07; where the page shows them: unmeasured, no account here). The resume-parsing box's own
+# errors are left out: never that box
+UPLOAD_ERRORS = re.compile(r"We['’]re sorry, (?:something went wrong with the upload\. Please try again\.|"
+                           r"files must be [\d.]+ ?MB or less\.|that file type is not supported\.|"
+                           r"the file name must not exceed \d+ characters\.|files cannot contain any of the following characters)|"
+                           r"There was an error uploading your file\.|"
+                           r"Sorry, we can only support \d+ (?:attached )?documents per (?:person|application)\.|"
+                           r"(?:Application|Candidate) documents? limit exceeded\.")
+# a chosen file's name, as the Documents box lists it
+FILE_SHOWN = re.compile(r"[^\s/\\]+\.(?:pdf|docx?|jpe?g|png)\b", re.I)
+IDLE_WAIT_MS, SHOWN_WAIT_MS, ERROR_WAIT_MS = 15000, 20000, 2000
 
 # everything the form asks, read in the page (runs in Chrome)
 SNAPSHOT = """() => {
@@ -83,6 +104,26 @@ def application_url(url: str) -> str:
     return f"https://{host}/{tenant}/JobBoard/{board}/OpportunityApply?opportunityId={opportunity}"
 
 
+def detail_url(url: str) -> str:
+    host, tenant, board, opportunity = parse_url(url)
+    return f"https://{host}/{tenant}/JobBoard/{board}/OpportunityDetail?opportunityId={opportunity}"
+
+
+def closed(url: str) -> str | None:
+    """Why the form isn't there (form.closed, when the page shows no form and no closed words), off the
+    posting page - a plain GET, signed out: UKG's own "not available" block -> closed; its posting with
+    the apply link -> None (open); anything else -> can't tell."""
+    try:
+        r = httpx.get(detail_url(url), timeout=30, follow_redirects=True)
+    except httpx.HTTPError:
+        return "can't tell if the posting is open - UKG didn't answer"
+    if r.status_code == 200 and GONE in r.text:
+        return "UKG says this opportunity is not available - it may have closed"
+    if r.status_code == 200 and OPEN in r.text:
+        return None
+    return f"can't tell if the posting is open - UKG's posting page answered {r.status_code} without the posting"
+
+
 def from_snapshot(snap: dict) -> list[dict]:
     out = []
     for f in snap["fields"]:
@@ -112,6 +153,8 @@ def from_snapshot(snap: dict) -> list[dict]:
 
 
 def questions(url: str) -> list[dict]:
+    if (why := closed(url)) and not why.startswith("can't tell"):
+        raise ValueError(why)  # before any browser: a gone posting never shows the sign-in for nothing
     with browser.page_at(application_url(url)) as page:
         return read(page)
 
@@ -181,42 +224,74 @@ def put_radio(radios, value: str) -> str:
 
 def put_date(page, value: str) -> str:
     """Start date = three boxes (Month, Day, Year) in UKG's own date picker."""
-    m = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", value.strip()) or re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", value.strip())
-    if not m:
+    want = date_parts(value)
+    if not want:
         return f"FAIL date '{value}' not MM/DD/YYYY"
-    month, day, year = m.groups() if "/" in value else (m.group(2), m.group(3), m.group(1))
     parts = page.locator("[data-automation=available-start-date-datepicker] input")
-    for i, part in enumerate((month.zfill(2), day.zfill(2), year)):
+    for i, part in enumerate(want):
         box = parts.nth(i)
         box.click()
         box.press("ControlOrMeta+a")
         box.press_sequentially(part, delay=60)
     parts.nth(2).press("Tab")
     got = [parts.nth(i).input_value() for i in range(3)]
-    return "ok" if got == [month.zfill(2), day.zfill(2), year] else f"FAIL shows {'/'.join(got)}"
+    return "ok" if got == want else f"FAIL shows {'/'.join(got)}"
+
+
+def question_block(page, id: str):
+    """The screening question's block, found by its GUID (ko.dataFor), or None."""
+    index = page.evaluate("""id => [...document.querySelectorAll('[data-automation=application-knockout-question]')]
+        .findIndex(e => ko.dataFor(e).Id === id)""", id)
+    return page.locator("[data-automation=application-knockout-question]").nth(index) if index >= 0 else None
+
+
+def response_box(block):
+    return block.locator("[data-automation=text-response]:visible, [data-automation=numeric-response]:visible").first
 
 
 def put_question(page, q: dict) -> str:
-    index = page.evaluate("""id => [...document.querySelectorAll('[data-automation=application-knockout-question]')]
-        .findIndex(e => ko.dataFor(e).Id === id)""", q["id"])
-    if index < 0:
+    box = question_block(page, q["id"])
+    if box is None:
         return "FAIL question not on page"
-    box = page.locator("[data-automation=application-knockout-question]").nth(index)
     box.scroll_into_view_if_needed()
     if q["native"] == "MultipleChoice":
         return put_radio(box.locator("[data-automation=multiple-choice-response]"), q["answer"])
-    field = box.locator("[data-automation=text-response]:visible, [data-automation=numeric-response]:visible").first
-    return put_text(field, q["answer"])
+    return put_text(response_box(box), q["answer"])
+
+
+def documents(page) -> str:
+    docs = page.locator("[data-automation=application-documents]")
+    return docs.first.inner_text() if docs.count() else ""
+
+
+def errors_shown(page) -> list[str]:
+    return UPLOAD_ERRORS.findall(page.locator("body").inner_text())
 
 
 def put_file(page, path: str) -> str:
-    page.locator("[data-automation=upload-file-input]").first.set_input_files(path)
-    docs = page.locator("[data-automation=application-documents]")
-    try:
-        docs.get_by_text(Path(path).name).first.wait_for(timeout=20000)
-    except Exception:
-        return "ASK upload not confirmed on page - check the Documents box"
-    return "ok"
+    """Page idle first (as Greenhouse, Ashby), then the file chosen in the Documents box. Ok = its name
+    shows there for ERROR_WAIT_MS with no new error in UKG's own words; one of those -> FAIL with them;
+    nothing either way -> ASK."""
+    with contextlib.suppress(Exception):  # a page that keeps polling never goes idle: the read decides
+        page.wait_for_load_state("networkidle", timeout=IDLE_WAIT_MS)
+    box = page.locator("[data-automation=upload-file-input]").first
+    if not box.count():
+        return "ASK Documents box not found - upload it by hand"
+    before = errors_shown(page)
+    box.set_input_files(path)
+    name, since = Path(path).name, None
+    deadline = time.monotonic() + SHOWN_WAIT_MS / 1000
+    while time.monotonic() < deadline:
+        if said := [e for e in errors_shown(page) if e not in before]:
+            return f"FAIL the page says '{said[0]}' - choose the file again on the page, or check the Documents box"
+        if name not in documents(page):
+            since = None
+        elif since is None:
+            since = time.monotonic()
+        elif time.monotonic() - since >= ERROR_WAIT_MS / 1000:
+            return "ok"
+        page.wait_for_timeout(250)
+    return "ASK upload not confirmed on page - check the Documents box"
 
 
 # --- work history, education, skills, links from the resume ---
@@ -405,6 +480,75 @@ def put_profile(page, resume_file: str | None) -> str:
               + add_links(page, (master.get("contact") or {}).get("links") or []))
     bad = [r for r in report if " FAIL" in f" {r}" or " ASK" in f" {r}"]
     return ("ASK " if bad else "ok - ") + "; ".join(bad or report)
+
+
+def radio_on(radios) -> str | None:
+    """The text beside the ticked visible radio, None when none is."""
+    for i in range(radios.count()):
+        r = radios.nth(i)
+        if r.is_visible() and r.is_checked():
+            return r.evaluate("e => (e.closest('label') || e.parentElement).innerText.trim()")
+    return None
+
+
+def date_parts(value: str) -> list[str] | None:
+    value = value.strip()
+    if m := re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", value):
+        return [m[1].zfill(2), m[2].zfill(2), m[3]]
+    if m := re.fullmatch(r"(\d{4})-(\d{2})-(\d{2})", value):
+        return [m[2], m[3], m[1]]
+    return None
+
+
+def selected(select) -> str:
+    return select.evaluate("e => e.selectedIndex < 0 ? '' : e.options[e.selectedIndex].text.trim()")
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck), each
+    kind as ukg.md "Read back (2026-10)" records it: a list by the option it shows, a box by its value
+    (phone by digits), the referral and screening radios by the one ticked, the start date by its three
+    parts, "I decline to say" by its tick, the resume by its name in the Documents box, the resume
+    sections by no editor left open (each entry saved to the account as it was added). Nothing to read = False."""
+    kind, value, native = q["kind"], q["answer"], q["native"]
+    if native == "profile":
+        panels = page.locator(", ".join(f"[data-automation={p}]" for p in PANELS))
+        return bool(panels.count()) and not panels.locator("[data-automation=save-button]:visible").count()
+    if kind == "file":
+        return bool(FILE_SHOWN.search(documents(page)))
+    if native == "referral":
+        word = "yes" if str(value).casefold() in ("yes", "true") else "no"
+        radio = page.locator(f"[data-automation={word}-employee-referral-radio]")
+        return bool(radio.count()) and radio.first.is_checked()
+    if native == "start-date":
+        parts = page.locator("[data-automation=available-start-date-datepicker] input")
+        want = date_parts(str(value))
+        return bool(want) and parts.count() >= 3 and [parts.nth(i).input_value() for i in range(3)] == want
+    if native == "self-id":
+        select = page.locator(f"#{q['id']}")
+        if not select.count() or not select.is_visible():
+            return False
+        if value == DECLINE:
+            box = page.locator(f".form-group:has(#{q['id']}) input[type=checkbox]").first
+            return bool(box.count()) and box.is_checked()
+        return selected(select) == str(value)
+    if native == "field":
+        box = page.locator(f"#{q['id']}")
+        if not box.count() or not box.is_visible():
+            return False
+        if kind == "choice":
+            return selected(box) == str(value)
+        got = box.input_value()
+        if kind == "phone":
+            return bool(re.sub(r"\D", "", str(value))) and re.sub(r"\D", "", got) == re.sub(r"\D", "", str(value))
+        return got == str(value)
+    block = question_block(page, q["id"])
+    if block is None:
+        return False
+    if native == "MultipleChoice":
+        return radio_on(block.locator("[data-automation=multiple-choice-response]")) == str(value)
+    box = response_box(block)
+    return bool(box.count()) and box.input_value() == str(value)
 
 
 def fill(page, q: dict, resume_file: str | None) -> str:

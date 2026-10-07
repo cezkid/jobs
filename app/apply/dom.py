@@ -379,3 +379,44 @@ def fill(page, q: dict, resume_file: str | None, later: bool = False) -> str:
     if control == "combobox":
         return put_combo(frame, el, value, starts=kind == "location")
     return put_text(el, value, kind, editable=control == "editable")
+
+
+def holds(page, q: dict, snap: dict | None = None) -> bool:
+    """The answer still shows, read off the page as a person sees it (form.recheck): the box its hook
+    names, shown and still the same question (its label), its value by kind - a box exact (phone by
+    digits; a dialling code the page adds in front is the page's), a dropdown by the option text it
+    shows, ticks by which are ticked, a list pick by what the box shows, a file by the name the box
+    holds. `snap`: a snapshot the system has cut (Oracle's bot trap). Nothing to read = False."""
+    snap = snap or snapshot(page)
+    c = next((c for c in snap["controls"] if c["hook"] == q["id"]), None)
+    if c is None or c["password"] or not (c["visible"] or c["type"] == "file"):
+        return False
+    if answers.fold(title(c["label"])) != answers.fold(q["title"]):
+        return False
+    kind, value, control = q["kind"], q["answer"], c["control"]
+    pick = ("Yes" if yes(value) else "No") if kind == "yesno" else str(value).strip()
+    if control in ("input", "textarea", "editable") and c["type"] != "file":
+        got = c["value"]
+        if kind == "phone":
+            return bool(digits(pick)) and digits(got).endswith(digits(pick))
+        return norm(got) == pick if control == "editable" else got == str(value)
+    found = find(page, q["id"])
+    if found is None:
+        return False
+    _, info, members = found
+    el = members[0]
+    if c["type"] == "file":
+        return bool(el.evaluate("e => e.files && e.files[0] ? e.files[0].name : ''"))
+    if control == "select":
+        want = [str(v).strip() for v in value] if isinstance(value, list) else [pick]
+        got = el.evaluate("e => [...e.selectedOptions].filter(o => o.value !== '').map(o => o.text.replace(/\\s+/g, ' ').trim())")
+        return sorted(got) == sorted(want)
+    if control == "combobox":
+        shown = el.evaluate("e => [e.value || '', (e.closest('[class*=control], [class*=select]') || e.parentElement).innerText || '']")
+        want = (pick.split(",")[0] if kind == "location" else pick).casefold()
+        return bool(want) and any(want in norm(s).casefold() for s in shown)
+    on = [n for el, n in zip(members, info["names"]) if checked(el, control == "rolegroup")]
+    if control == "checkbox":
+        return bool(on) == yes(value)
+    want = [str(v).strip() for v in value] if isinstance(value, list) else [pick]
+    return sorted(on) == sorted(want)

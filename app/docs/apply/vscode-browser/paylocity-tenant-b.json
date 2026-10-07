@@ -1,0 +1,576 @@
+{
+ "stage": "raw",
+ "at": "recruiting.paylocity.com/Recruiting/Jobs/Apply/<id>",
+ "uniq": "48b26a",
+ "mac": "macOS 26.4.1 x86_64",
+ "scratch": "$D = mktemp -d /tmp/jfv.XXXX",
+ "tenantsAdded": 1,
+ "system": "Paylocity",
+ "ready": ".form-group",
+ "url": "https://recruiting.paylocity.com/Recruiting/Jobs/Apply/<id>",
+ "level": 3,
+ "pauseCap": 20,
+ "launch": {
+  "args": [
+   "--user-data-dir",
+   "$D/data",
+   "--extensions-dir",
+   "$D/ext",
+   "--shared-data-dir",
+   "$D/shared",
+   "--disable-workspace-trust",
+   "--new-window",
+   "$D/f"
+  ],
+  "up": true,
+  "upMs": 5378,
+  "upInfo": {
+   "t": 1791334033850,
+   "trusted": true,
+   "folder": "$D/f"
+  }
+ },
+ "pauses": [],
+ "attach": {
+  "ok": true,
+  "error": null,
+  "ms": 7985,
+  "sessions": [
+   {
+    "id": "22525847-4eb1-4266-81c7-151b9fb86197",
+    "type": "pwa-editor-browser",
+    "name": "Job Finder form",
+    "parent": null
+   },
+   {
+    "id": "5ebf58c6-db00-4434-ab14-83c86e0f2c51",
+    "type": "pwa-editor-browser",
+    "name": "JF form 48b26a blank \u00ab Job Finder form",
+    "parent": "22525847-4eb1-4266-81c7-151b9fb86197"
+   }
+  ],
+  "found": {
+   "5ebf58c6-db00-4434-ab14-83c86e0f2c51": {
+    "proxy": {
+     "host": "127.0.0.1",
+     "port": 53587,
+     "path": "/d07fa7dde8e8601219915efcefc3c15a1acefb24"
+    },
+    "href": "http://127.0.0.1:59403/blank"
+   },
+   "22525847-4eb1-4266-81c7-151b9fb86197": {
+    "proxy": {
+     "error": "no answer in 5000 ms"
+    }
+   }
+  }
+ },
+ "install": {
+  "ok": true,
+  "ms": 18,
+  "value": {
+   "level": 3,
+   "blockedUrls": "urlPatterns"
+  }
+ },
+ "subscribe": {
+  "ok": true,
+  "ms": 1,
+  "value": {}
+ },
+ "skipOff": {
+  "ok": true,
+  "ms": 3,
+  "value": {}
+ },
+ "canary": {
+  "loaded": true,
+  "fired": true,
+  "received": [],
+  "blocked": [
+   "/frame.html",
+   "beacon",
+   "cross",
+   "form",
+   "keepalive",
+   "worker",
+   "xhr"
+  ],
+  "wsStubbed": [
+   "ws://127.0.0.1:59429/w/ws"
+  ],
+  "neither": [
+   "frame",
+   "frame-ws",
+   "ws"
+  ],
+  "seen": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:59429/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:59429/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:59429/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost:59430/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1:59429/w/form",
+    "type": "Document",
+    "after": "canary"
+   }
+  ]
+ },
+ "loaded": true,
+ "readyMs": 1662,
+ "pausesOnLoad": 0,
+ "fields": 17,
+ "boxes": [
+  {
+   "id": "btn-forceResume",
+   "name": "",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "btn-resume",
+   "name": "",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "useAttachedResumeToFillOutApplication",
+   "name": "",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "info.firstName",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.lastName",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.middleName",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.preferredName",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.email",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.cellPhone",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.phone",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "public-site-address-country",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "public-site-address-address-1",
+   "name": "",
+   "role": "combobox",
+   "type": "text"
+  },
+  {
+   "id": "public-site-address-address-2",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "public-site-address-city",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "public-site-address-county",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "public-site-address-us-state",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "public-site-address-zip",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.linkedIn",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.minimumDesiredSalary",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.maximumDesiredSalary",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "",
+   "name": "info.howDidYouHearAboutUs",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "info.howDidYouHearAboutUs",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "info.howDidYouHearAboutUs",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "info.howDidYouHearAboutUs",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "info.howDidYouHearAboutUs",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "",
+   "name": "info.howDidYouHearAboutUs",
+   "role": "",
+   "type": "radio"
+  },
+  {
+   "id": "info.referredBy",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "info.skills",
+   "name": "",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "btn-coverLetter",
+   "name": "",
+   "role": "",
+   "type": "file"
+  },
+  {
+   "id": "ot-group-id-C0004",
+   "name": "ot-group-id-C0004",
+   "role": "switch",
+   "type": "checkbox"
+  },
+  {
+   "id": "ot-group-id-C0002",
+   "name": "ot-group-id-C0002",
+   "role": "switch",
+   "type": "checkbox"
+  },
+  {
+   "id": "vendor-search-handler",
+   "name": "vendor-search-handler",
+   "role": "",
+   "type": "text"
+  },
+  {
+   "id": "chkbox-id",
+   "name": "",
+   "role": "",
+   "type": "checkbox"
+  },
+  {
+   "id": "select-all-hosts-groups-handler",
+   "name": "switch",
+   "role": "switch",
+   "type": "checkbox"
+  },
+  {
+   "id": "select-all-vendor-groups-handler",
+   "name": "switch",
+   "role": "switch",
+   "type": "checkbox"
+  },
+  {
+   "id": "select-all-vendor-leg-handler",
+   "name": "switch",
+   "role": "switch",
+   "type": "checkbox"
+  }
+ ],
+ "frames": {
+  "iframes": [
+   {
+    "h": 0,
+    "shown": false,
+    "src": "://",
+    "title": "onetrust-text-resize",
+    "w": 0,
+    "kind": "other"
+   }
+  ],
+  "blockedOtherSite": [
+   {
+    "url": "http://localhost/frame.html",
+    "kind": "other",
+    "after": "canary"
+   }
+  ],
+  "targets": {
+   "ok": true,
+   "ms": 2,
+   "value": []
+  }
+ },
+ "marks": {
+  "grecaptchaApi": "undefined",
+  "hcaptchaApi": "undefined",
+  "hiddenCaptchaButton": false,
+  "linkedinWidget": false,
+  "scripts": [],
+  "turnstileApi": "undefined"
+ },
+ "fill": {
+  "resume": {
+   "name": "Test_Resume.pdf",
+   "size": 100
+  },
+  "signIn": false,
+  "box": "input[type=text]",
+  "type: click + Input.insertText": {
+   "ok": true,
+   "ms": 953,
+   "value": {
+    "focused": false
+   }
+  },
+  "readBack": "",
+  "type: focused by script + Input.insertText": {
+   "ok": true,
+   "ms": 516,
+   "value": {
+    "focused": true
+   }
+  },
+  "readBackAfterFocus": "Test Applicant",
+  "fileBox": "input[type=file][id=\"btn-resume\"]",
+  "fileChosen": true,
+  "upload: DOM.setFileInputFiles": {
+   "ok": true,
+   "ms": 16
+  },
+  "pageErrorsSeen": [],
+  "nameShown": false,
+  "failedLine": false,
+  "verdict": null,
+  "fileHeld": false,
+  "sentOnChoice": [
+   {
+    "method": "POST",
+    "url": "https://recruiting.paylocity.com/Recruiting/Jobs/FileUpload/",
+    "type": "XHR",
+    "contentType": "multipart/form-data; boundary=----WebKitFormBoundary8H5B3iU7",
+    "body": true
+   }
+  ],
+  "tabShot": {
+   "path": "<checkout>/.data/probe-shots/form/paylocity-route2-tab.png",
+   "bytes": 73565
+  }
+ },
+ "widgets": {
+  "checkboxes": 7,
+  "combobox": 4,
+  "comboboxInDataUi": 0,
+  "dialogs": [
+   {
+    "modal": null,
+    "text": "Apply with resume Upload your resume and we'll automatically",
+    "ui": null
+   },
+   {
+    "modal": null,
+    "text": "Apply with resume Upload your resume and we'll automatically",
+    "ui": null
+   }
+  ],
+  "fileInputs": 3,
+  "onTopAtListMiddle": [
+   "div",
+   "p",
+   "p",
+   "div"
+  ],
+  "options": 0,
+  "radioGroups": 1,
+  "radioInputs": 6,
+  "resumeWrapper": false,
+  "roleRadio": 0
+ },
+ "captchaBox": null,
+ "shot": {
+  "path": "<checkout>/.data/probe-shots/form/paylocity-route2-window.png",
+  "bytes": 0
+ },
+ "pausesTotal": 0,
+ "skipOnAfterCap": false,
+ "submitClicked": false,
+ "block": {
+  "reads": 68,
+  "namedReads": [],
+  "failed": [
+   {
+    "method": "GET",
+    "url": "http://localhost/frame.html",
+    "type": "other-site frame",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/worker",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://recruiting.paylocity.com/Recruiting/Jobs/FileUpload/",
+    "type": "XHR",
+    "after": "upload"
+   }
+  ],
+  "seenWrites": [
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/xhr",
+    "type": "XHR",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/keepalive",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/beacon",
+    "type": "Ping",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://localhost/w/cross",
+    "type": "Fetch",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "http://127.0.0.1/w/form",
+    "type": "Document",
+    "after": "canary"
+   },
+   {
+    "method": "POST",
+    "url": "https://recruiting.paylocity.com/Recruiting/Jobs/FileUpload/",
+    "type": "Fetch",
+    "after": "upload"
+   }
+  ]
+ },
+ "pageLoads": 1,
+ "handlerErrors": [],
+ "quit": {
+  "killed": false
+ }
+}

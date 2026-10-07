@@ -109,6 +109,27 @@ def test_closed_or_unknown_posting_says_so(monkeypatch):
     monkeypatch.setattr(httpx, "get", lambda *a, **k: Got(200, "<html><h1>Careers</h1></html>"))
     with pytest.raises(ValueError, match="closed"):
         jazzhr.questions(LINK)
+    # taken down: 410 + the posting's own words (16 of 16, 2026-10-06) - said, never a crash
+    monkeypatch.setattr(httpx, "get", lambda *a, **k: Got(410, "<h2>This position is no longer available.</h2>"))
+    with pytest.raises(ValueError, match="no longer available"):
+        jazzhr.questions(LINK)
+
+
+def test_closed_reads_jazzhrs_own_answer_never_guesses(monkeypatch):
+    answers = {LINK: Got(410, "<p>Hiring for this position has been put on hold at this time.</p>")}
+    monkeypatch.setattr(httpx, "get", lambda url, **k: answers[url])
+    assert "put on hold" in jazzhr.closed(LINK + "?utm_source=freehire.me")
+    answers[LINK] = Got(200, (FIXTURES / "tenant-a.html").read_text())
+    assert jazzhr.closed(LINK) is None
+    answers[LINK] = Got(200, "<html><h1>Careers</h1></html>")
+    assert jazzhr.closed(LINK).endswith("it may have closed")
+    answers[LINK] = Got(503)
+    assert jazzhr.closed(LINK).startswith("can't tell")
+
+    def down(url, **k):
+        raise httpx.ConnectError("no route")
+    monkeypatch.setattr(httpx, "get", down)
+    assert jazzhr.closed(LINK).startswith("can't tell")
 
 
 # --- widgets, with fakes ---
@@ -235,9 +256,99 @@ class Link:
         self.box.visible = True
 
 
+class Words:
+    def __init__(self, texts):
+        self.texts = texts
+
+    def all_inner_texts(self):
+        return self.texts
+
+
+class UploadPage:
+    def __init__(self, link, error=(), limit="Attach resume as .pdf, .doc, .docx (limit 5MB) or Paste resume"):
+        self.link, self.words = link, {jazzhr.PAGE_ERROR: list(error), jazzhr.UPLOAD_TEXT: [limit]}
+
+    def wait_for_load_state(self, state, timeout):
+        raise TimeoutError("still polling")  # never idle: the read decides
+
+    def locator(self, selector):
+        return self.link if selector == jazzhr.ATTACH else Words(self.words[selector])
+
+
 def test_resume_upload_shows_the_attach_box_then_reads_the_file_back(tmp_path):
+    resume = tmp_path / "Test_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4 test")
     box = FileBox()
     link = Link(box)
-    page = type("P", (), {"locator": lambda self, s: link})()
-    assert jazzhr.put_file(page, box, str(tmp_path / "Test_Resume.pdf")) == "ok"
+    assert jazzhr.put_file(UploadPage(link), box, str(resume)) == "ok"
     assert link.clicked == 1 and box.name == "Test_Resume.pdf"
+    # the box never took the file: the user checks it
+    box.set_input_files = lambda path: None
+    box.name = ""
+    assert jazzhr.put_file(UploadPage(Link(box)), box, str(resume)).startswith("ASK upload not confirmed")
+
+
+def test_resume_upload_fails_on_the_pages_own_words(tmp_path):
+    resume, big = tmp_path / "Test_Resume.pdf", tmp_path / "Big_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4 test")
+    big.write_bytes(b"0" * (5 * 1024 * 1024 + 1))
+    box = FileBox()
+    said = jazzhr.put_file(UploadPage(Link(box), error=["Resume is required"]), box, str(resume))
+    assert said == "FAIL the page says 'Resume is required' - check the resume box"
+    assert "limit 5MB" in jazzhr.put_file(UploadPage(Link(box)), box, str(big))
+    # no limit stated: nothing to hold the file to before Submit
+    assert jazzhr.put_file(UploadPage(Link(box), limit="Attach resume"), box, str(big)) == "ok"
+
+
+class Shown:
+    """One box on a page for holds(): its value, the option text a dropdown shows, the file it holds."""
+    def __init__(self, value="", text="", file=""):
+        self.value, self.text, self.file = value, text, file
+
+    def count(self):
+        return 1
+
+    def input_value(self):
+        return self.value
+
+    def evaluate(self, js):
+        return self.file if "files" in js else [self.value, self.text]
+
+
+class Ticks:
+    def __init__(self, ticks):
+        self.ticks = ticks
+
+    def evaluate_all(self, js):
+        return self.ticks
+
+
+class HoldPage:
+    def __init__(self, field, ticks=()):
+        self.field, self.ticks = field, list(ticks)
+
+    def locator(self, selector):
+        return Ticks(self.ticks) if "checkbox" in selector else self
+
+    @property
+    def first(self):
+        return self.field
+
+
+def test_holds_reads_each_kind_as_the_page_shows_it():
+    yn = questions.question("q", "Employed here?", "yesno", True, ["YES", "NO"], native="jazzhr:select") | {"answer": "No"}
+    assert jazzhr.holds(HoldPage(Shown("NO", "NO")), yn)
+    assert not jazzhr.holds(HoldPage(Shown("resumator_no_selection", "-- No answer --")), yn | {"answer": "No answer"})
+    assert not jazzhr.holds(HoldPage(Shown("0", "No answer")), yn | {"answer": "No answer"})
+    ticks = yn | {"native": "jazzhr:checkboxes", "answer": "Yes"}
+    assert jazzhr.holds(HoldPage(Shown(), [["YES", True], ["NO", False]]), ticks)
+    assert not jazzhr.holds(HoldPage(Shown(), [["YES", True], ["NO", True]]), ticks)
+    assert not jazzhr.holds(HoldPage(Shown(), []), ticks)
+    # a lone attestation-style box: ticked = yes, unticked = no
+    lone = ticks | {"options": ["YES"]}
+    assert jazzhr.holds(HoldPage(Shown(), [["YES", False]]), lone | {"answer": "No"})
+    phone = questions.question("p", "Phone", "phone", True) | {"answer": "555-010-0100"}
+    assert jazzhr.holds(HoldPage(Shown("(555) 010-0100")), phone)
+    resume = questions.question("r", "Resume", "file", True) | {"answer": True}
+    assert jazzhr.holds(HoldPage(Shown(file="A_Resume.pdf")), resume)
+    assert not jazzhr.holds(HoldPage(Shown(file="")), resume)

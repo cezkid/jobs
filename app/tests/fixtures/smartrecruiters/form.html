@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Example Job</title></head>
+<!-- SmartRecruiters page 1, hand-built from the Widgets table in app/docs/apply/smartrecruiters.md (tenants A-D,
+     2026-10-03) and its form app's own English strings - no live page's markup. Spark boxes in open shadow
+     roots; ?upload=fail shows SmartRecruiters' upload error words, ?upload=never shows nothing. -->
+<body>
+<h1>Example Job</h1>
+<input type="file" aria-label="Upload profile image" hidden>
+<spl-dropzone id="parsing"><template shadowrootmode="open">
+  <p>Use your resume to autocomplete your application</p>
+  <label for="file-input">Choose a file or drop it here</label><input type="file" id="file-input" hidden>
+</template></spl-dropzone>
+<spl-input><template shadowrootmode="open"><label for="first-name-input">First name*</label><input id="first-name-input" autocomplete="given-name" required></template></spl-input>
+<spl-input><template shadowrootmode="open"><label for="last-name-input">Last name*</label><input id="last-name-input" autocomplete="family-name" required></template></spl-input>
+<spl-input><template shadowrootmode="open"><label for="email-input">Email*</label><input id="email-input" type="email" autocomplete="email" required></template></spl-input>
+<spl-input><template shadowrootmode="open"><label for="confirm-email-input">Confirm your email*</label><input id="confirm-email-input" type="email" autocomplete="email" required></template></spl-input>
+<spl-autocomplete id="city"><template shadowrootmode="open">
+  <label for="spl-form-element_10">City*</label>
+  <input id="spl-form-element_10" role="combobox" aria-controls="spl-list_10" autocomplete="off" required>
+  <div id="spl-list_10" role="listbox"></div>
+</template></spl-autocomplete>
+<spl-phone-field><template shadowrootmode="open">
+  <spl-select id="country" value="US"><template shadowrootmode="open">
+      <button role="combobox" aria-label="Country code" id="spl-form-element_12">+1</button>
+      <input role="combobox" aria-label="Search by country/region or code" autocomplete="off" hidden>
+    </template>
+    <spl-select-option value="CA" label="Canada"></spl-select-option>
+    <spl-select-option value="MX" label="Mexico"></spl-select-option>
+    <spl-select-option value="US" label="United States"></spl-select-option>
+  </spl-select>
+  <label for="spl-form-element_5">Phone number</label><input id="spl-form-element_5" type="tel" autocomplete="off" required>
+</template></spl-phone-field>
+<h2>Your Profiles</h2>
+<spl-input><template shadowrootmode="open"><label for="linkedin-input">LinkedIn</label><input id="linkedin-input"></template></spl-input>
+<spl-input><template shadowrootmode="open"><label for="website-input">Website</label><input id="website-input"></template></spl-input>
+<h2>Resume</h2>
+<spl-dropzone id="resume"><template shadowrootmode="open">
+  <label for="file-input">Choose a file or drop it here</label><input type="file" id="file-input" hidden>
+  <span class="chosen"></span>
+</template></spl-dropzone>
+<spl-textarea><template shadowrootmode="open"><label for="hiring-manager-message-input">Let the company know about your interest working there</label><textarea id="hiring-manager-message-input"></textarea></template></spl-textarea>
+<div id="toast" role="alert"></div>
+<script>
+const mode = new URLSearchParams(location.search).get('upload');
+const PLACES = [['US_NJ_CITY_newark', 'Newark, NJ, US'], ['US_NY_CITY_new_york_city', 'New York, NY, US'],
+                ['US_NY_CITY_newburgh', 'Newburgh, NY, US']];
+// parsing upload: reads the file + fills the name boxes from it - what the filler must never use
+const parsing = document.getElementById('parsing').shadowRoot;
+parsing.getElementById('file-input').addEventListener('change', () => {
+  document.querySelector('spl-input').shadowRoot.getElementById('first-name-input').value = 'Parsed'; });
+// resume field: its name shows once SmartRecruiters took it, or its error words
+const resume = document.getElementById('resume').shadowRoot;
+const field = resume.getElementById('file-input');
+field.addEventListener('change', () => setTimeout(() => {
+  if (mode === 'fail') document.getElementById('toast').textContent = 'Cannot upload resume. Please try again in a while.';
+  else if (mode !== 'never') resume.querySelector('.chosen').textContent = field.files[0].name;
+}, 300));
+// City: a place search answering after a pause in typing; an option click fills the box with its label
+const city = document.getElementById('city').shadowRoot, box = city.getElementById('spl-form-element_10');
+let timer;
+box.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => {
+  const list = city.getElementById('spl-list_10'); list.textContent = '';
+  for (const [value, label] of PLACES.filter(p => p[1].toLowerCase().startsWith(box.value.toLowerCase()))) {
+    const o = document.createElement('spl-select-option'); o.setAttribute('value', value);
+    const t = document.createElement('span'); t.title = label; t.textContent = label; o.append(t);
+    o.addEventListener('click', () => { box.value = label; list.textContent = ''; });
+    list.append(o); } }, 400); });
+// phone country: Enter on the button opens the search; an option click sets the widget's value
+const select = document.querySelector('spl-phone-field').shadowRoot.getElementById('country');
+select.shadowRoot.querySelector('button').addEventListener('keydown', e => {
+  if (e.key === 'Enter') select.shadowRoot.querySelector('input').hidden = false; });
+for (const o of select.querySelectorAll('spl-select-option'))
+  o.addEventListener('click', () => { select.setAttribute('value', o.getAttribute('value'));
+    select.shadowRoot.querySelector('input').hidden = true; });
+</script>
+</body></html>

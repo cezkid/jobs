@@ -2,7 +2,10 @@
 home (127.0.0.1:<p1>) serves the form, other (localhost:<p2>) serves a form in a cross-site frame
 (Chromium isolates by site => its own process + target when site isolation is on). Every request
 logged (method, path); writes (POST/PUT/...) answered 204 + logged as writes. The page records
-whether each input/key/click it saw was trusted (`isTrusted`) and what file it got."""
+whether each input/key/click it saw was trusted (`isTrusted`) and what file it got.
+Multi-page form (plan-k8n.12): /mp/1?to=same|other|spa, Next -> page 2 on this site (new page), on
+the other site (new page, another process), or drawn in place (pushState, same page); tick=1 runs a
+`debugger;` line every second on both pages + reports how long it held (a pause = a gap + a long one)."""
 import http.server
 import threading
 import time
@@ -77,6 +80,38 @@ window.frameState = () => ({{name: document.getElementById("frame_name").value, 
 </script></body></html>"""
 
 
+MP = """<!doctype html><html><head><meta charset="utf-8"><title>__TITLE__ mp</title><style>
+body { font: 15px/1.5 -apple-system, system-ui, sans-serif; margin: 0; background: #f6f7f9; color: #1d2433 }
+main { max-width: 640px; margin: 24px auto; background: #fff; border: 1px solid #dde1e7; border-radius: 8px; padding: 20px 28px }
+label { display: block; margin-top: 12px; font-weight: 600 } input { font: inherit; padding: 6px 8px; width: 100%; box-sizing: border-box }
+button { margin-top: 16px; padding: 8px 18px }
+</style></head><body><main id="main"></main>
+<script>
+const q = new URLSearchParams(location.search), to = q.get("to") || "same", tick = q.get("tick") === "1";
+const OTHER = "__OTHER__";
+let page = location.pathname.endsWith("/2") ? 2 : 1;
+function one() {
+  document.getElementById("main").innerHTML = '<h1>Data Analyst - step 1 of 2</h1><p>Test form on this computer - not a real job.</p>' +
+    '<label for="mp_first">First name</label><input id="mp_first"><button type="button" id="next">Next</button>';
+  document.getElementById("next").addEventListener("click", () => {
+    const rest = "?to=" + to + (tick ? "&tick=1" : "");
+    if (to === "spa") { history.pushState({}, "", location.pathname + "/step2" + rest); page = 2; two(); }
+    else location.href = (to === "other" ? OTHER : "") + "/mp/2" + rest;
+  });
+}
+function two() {
+  document.getElementById("main").innerHTML = '<h1>Data Analyst - step 2 of 2</h1>' +
+    '<label for="mp_email">Email</label><input id="mp_email"><button type="button" id="submit">Submit application</button>';
+}
+page === 2 ? two() : one();
+window.autoNext = (ms) => setTimeout(() => document.getElementById("next").click(), ms);
+window.mpState = () => ({page, href: location.href, first: (document.getElementById("mp_first") || {}).value ?? null,
+  email: (document.getElementById("mp_email") || {}).value ?? null});
+if (tick) setInterval(() => { const t = performance.now(); debugger;
+  new Image().src = "/beacon?k=tick&p=" + page + "&ms=" + Math.round(performance.now() - t); }, 1000);
+</script></body></html>"""
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     def log_message(self, *a):
         pass
@@ -104,6 +139,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         path = self.path.split("?")[0]
         if path == "/form":
             return self.reply(FORM.format(title=self.server.title, other=self.server.other))
+        if path.startswith("/mp/"):
+            return self.reply(MP.replace("__TITLE__", self.server.title).replace("__OTHER__", self.server.other))
         if path == "/frame-form":
             return self.reply(FRAME_FORM.format())
         if path.startswith("/blank"):

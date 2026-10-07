@@ -1,12 +1,15 @@
 """Paylocity: link shapes, the form definition in the apply page -> shared questions, each widget
-rule against small fakes. Fixtures = 7 tenants' anonymised definitions (app/tests/fixtures/paylocity/,
-measured 2026-10-03); facts in app/docs/apply/paylocity.md."""
+rule against small fakes, closed off the apply page (plain GET, faked), and every box filled + read back
+on a hand-built step in headless Chrome (fixtures/paylocity/form.html). Fixtures = 7 tenants' anonymised
+definitions (app/tests/fixtures/paylocity/, measured 2026-10-03); facts in app/docs/apply/paylocity.md."""
 import json
 from pathlib import Path
+from urllib.parse import urlsplit
 
+import httpx
 import pytest
 
-from apply import form, questions, systems
+from apply import browser, form, questions, systems
 from apply.systems import paylocity
 
 FIXTURES = Path(__file__).parent / "fixtures" / "paylocity"
@@ -216,3 +219,166 @@ def test_fill_references_files_and_history_rules():
     other = questions.question("upload", "Portfolio", "file", False, native="file") | {"answer": True}
     assert paylocity.fill(page, other, "r.pdf").startswith("ASK not the resume box")
     assert paylocity.fill(page, b["workHistory"] | {"answer": "No"}, None) == "skipped - user said no"
+
+
+# --- closed: the apply page, a plain GET ---
+
+APPLY = "https://recruiting.paylocity.com/Recruiting/Jobs/Apply/1000001"
+
+
+def answer(monkeypatch, status=200, text="", headers=None, error=False):
+    def get(url, **kw):
+        assert url == APPLY and not kw.get("follow_redirects")  # the redirect itself says JobNotFound
+        if error:
+            raise httpx.ConnectError("down")
+        return httpx.Response(status, text=text, headers=headers or {})
+    monkeypatch.setattr(paylocity.httpx, "get", get)
+
+
+def test_closed_off_paylocitys_own_redirect_or_a_page_without_its_form(monkeypatch):
+    answer(monkeypatch, 302, headers={"location": "/Recruiting/Jobs/JobNotFound"})
+    assert "does not exist or is not active" in paylocity.closed(APPLY)
+    with pytest.raises(ValueError, match="does not exist"):
+        paylocity.questions(APPLY)
+    answer(monkeypatch, text="<html>no form</html>")
+    assert paylocity.closed(APPLY).startswith("no form")
+
+
+def test_form_present_is_open_else_cant_tell(monkeypatch):
+    answer(monkeypatch, text='<script>window.pageData = {"customJobApplication": {"sections": []}};</script>')
+    assert paylocity.closed(APPLY) is None and paylocity.questions(APPLY)[0]["id"] == "btn-resume"
+    answer(monkeypatch, 500)
+    assert paylocity.closed(APPLY).startswith("can't tell")
+    answer(monkeypatch, error=True)
+    assert paylocity.closed(APPLY).startswith("can't tell")
+
+
+@pytest.mark.parametrize("text", ["Error uploading Resume File cannot be larger than 5MB.",
+                                  "Error attaching Cover Letter Network Error", "File type .exe is not allowed.",
+                                  "A maximum of 1 file(s) is allowed."])
+def test_upload_error_words(text):
+    assert paylocity.UPLOAD_ERRORS.search(text)
+
+
+def test_resume_attached_but_not_read_is_no_upload_error():
+    assert not paylocity.UPLOAD_ERRORS.search("Sorry, we cannot complete the application using your resume. "
+                                              "A copy of the resume has been attached to your application.")
+
+
+# --- the form, in headless Chrome ---
+
+SITE = "recruiting.paylocity.com"
+
+
+@pytest.fixture(scope="module")
+def chrome():
+    pw = pytest.importorskip("playwright.sync_api")
+    try:
+        exe = browser.chrome()
+    except SystemExit:
+        pytest.skip("Chrome not installed")
+    with pw.sync_playwright() as p:
+        b = p.chromium.launch(executable_path=exe, headless=True)
+        yield b
+        b.close()
+
+
+@pytest.fixture
+def at(chrome):
+    """at(query) -> a page showing fixtures/paylocity/form.html as the apply page; nothing reaches the network."""
+    context = chrome.new_context()
+    asked = []
+
+    def serve(route):
+        u = urlsplit(route.request.url)
+        asked.append(u.hostname)
+        return route.fulfill(path=str(FIXTURES / "form.html")) if u.hostname == SITE else route.abort()
+
+    context.route("**/*", serve)
+    page = context.new_page()
+
+    def go(query=""):
+        page.goto(APPLY + query, wait_until="load")
+        return page
+    yield go
+    assert set(asked) <= {SITE}, asked
+    context.close()
+
+
+ANSWERS = {"btn-resume": True, "info.firstName": "Test", "info.lastName": "Applicant", "info.email": "test@example.com",
+           "info.cellPhone": "555-0100", "public-site-address-country": "United States",
+           "public-site-address-address-1": "1 Main St", "public-site-address-city": "Springfield",
+           "public-site-address-us-state": "Illinois", "public-site-address-zip": "62701",
+           "info.haveYouWorkedWithUsBefore": "No", "info.howDidYouHearAboutUs": "Company Website",
+           "info.dateAvailableToStart": "10/15/2026", "info.linkedIn": "https://www.linkedin.com/in/test",
+           "info.skills": "Excel, Forklift", "acknowledgements.authorizedToWork": "Yes",
+           "acknowledgements.eeoGenderEthnicity.0": "Female", "acknowledgements.eeoGenderEthnicity.1": "I do not wish to self-identify",
+           "screener.1": "Yes", "screener.2": "Night", "screener.3": "Two years.\nDay shift."}
+
+
+def answered(page):
+    qs = paylocity.from_definition(page.evaluate("() => window.pageData"))
+    for q in qs:
+        q["answer"] = ANSWERS.get(q["id"])
+    return qs
+
+
+def resume(tmp_path):
+    path = tmp_path / "Test_Applicant_Resume.pdf"
+    path.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    return str(path)
+
+
+def test_every_box_filled_and_read_back_off_the_page(at, tmp_path):
+    page = at()
+    qs = answered(page)
+    assert {q["id"] for q in qs} - set(ANSWERS) == {"info.middleName", "info.preferredName", "public-site-address-county"}
+    report, extra = form.fill_page(page, paylocity, qs, resume(tmp_path), None)
+    assert dict(report) == {id: "ok" for id in ANSWERS}, report
+    assert extra == []
+    by = {q["id"]: q for q in qs}
+    for id in ANSWERS:
+        assert paylocity.holds(page, by[id]), id
+    # Country shows over its box, the box itself stays empty
+    assert page.locator('[id="public-site-address-country"]').input_value() == ""
+    # what the page shows changed -> not held
+    page.locator('[id="info.linkedIn"]').fill("")
+    assert not paylocity.holds(page, by["info.linkedIn"])
+    for id, other in (("public-site-address-country", "Canada"), ("info.haveYouWorkedWithUsBefore", "Yes"),
+                      ("info.howDidYouHearAboutUs", "Online Job Board"), ("info.dateAvailableToStart", "10/16/2026"),
+                      ("info.cellPhone", "555-0199"), ("info.skills", "Excel, Welding"),
+                      ("acknowledgements.eeoGenderEthnicity.0", "Male"), ("screener.2", "Day"),
+                      ("screener.3", "Three years.")):
+        assert not paylocity.holds(page, by[id] | {"answer": other}), id
+    assert not paylocity.holds(page, by["screener.1"] | {"title": "Do you have a forklift license?"})  # no such box
+    assert not paylocity.holds(page, questions.question("workHistory", "Work", "yesno", False, native="work") | {"answer": "Yes"})
+
+
+def test_upload_error_in_the_pages_own_words_fails(at, tmp_path):
+    page = at("?upload=fail")
+    q = next(q for q in answered(page) if q["id"] == "btn-resume")
+    assert paylocity.fill(page, q, resume(tmp_path)) == \
+        "FAIL the page says 'Error uploading Resume File cannot be larger than 5MB.' - choose the file again on the page"
+    assert not paylocity.holds(page, q)
+
+
+def test_upload_nothing_shown_asks(at, tmp_path, monkeypatch):
+    monkeypatch.setattr(paylocity, "SHOWN_WAIT_MS", 1500)
+    assert paylocity.put_file(at("?upload=never"), "btn-resume", resume(tmp_path)).startswith("ASK upload not confirmed")
+
+
+def test_a_box_dropped_after_filling_is_filled_again(at, monkeypatch):
+    page = at()
+    qs = [q for q in answered(page) if q["id"] == "info.linkedIn"]
+    calls = []
+    real = paylocity.fill
+
+    def fill_then_drop(page, q, file):
+        calls.append(q["id"])
+        got = real(page, q, file)
+        if len(calls) == 1:  # the page empties it once, as Ashby's did
+            page.locator('[id="info.linkedIn"]').fill("")
+        return got
+    monkeypatch.setattr(paylocity, "fill", fill_then_drop)
+    report, _ = form.fill_page(page, paylocity, qs, None, None)
+    assert report == [("info.linkedIn", "ok")] and len(calls) == 2

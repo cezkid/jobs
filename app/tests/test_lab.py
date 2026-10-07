@@ -212,3 +212,12 @@ def test_canary_still_blocks_every_kind_with_named_reads(page):
     block.install(page)
     got = lab.canary(page, block)
     assert got["received"] == [] and set(got["blocked"]) == lab.KINDS and block.passed == []
+    # Manatal + Rippling: one host for every employer, site name = the platform's (2026-10-06)
+    assert lab.tenants("https://www.careers-page.com/acmetest/job/AB12CD/apply", ["Manatal", "Acme Test Co"],
+                       {"controls": []}) == ["Acme Test Co", "acmetest"]
+    assert lab.tenants("https://ats.rippling.com/acmetest/jobs/1", ["Rippling Recruiting"], {"controls": []}) == ["acmetest"]
+    # Breezy + Teamtailor: employer = host label; platform names + a "people." careers host are not names (2026-10-07)
+    assert lab.tenants("https://acmetest.breezy.hr/p/ab12-dev/apply", ["Breezy HR"], {"controls": []}) == ["acmetest"]
+    assert lab.tenants("https://acmetest.na.teamtailor.com/jobs/1-dev/applications/new", ["Teamtailor"],
+                       {"controls": []}) == ["acmetest"]
+    assert lab.tenants("https://people.acmetest.com/jobs/1-dev/applications/new", [], {"controls": []}) == ["acmetest"]

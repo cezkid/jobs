@@ -53,7 +53,7 @@ one attestation (tenant E: "Do you affirm that the information you've provided .
 complete?", yes_no, not required) - applicant's own act, never answered for them.
 
 Unknown posting id: `/detail` -> 404 `{"type": "not_found", "title": "Resource not found."}` (1
-tenant, 2026-10-03). A closed posting's own wording: unmeasured (12 of 12 open).
+tenant, 2026-10-03; 3 of 3 on 2026-10-06 - Closed posting).
 
 ## Widgets (4 tenants, 2026-10-03)
 
@@ -69,7 +69,7 @@ the form on the same URL; before the click the page has no form box (measure, te
 | Date Available | text input, no name, id `FabricTextField-<n>` (changed on 1 of 4), label "Date Available" | find by label; mm/dd/yyyy typed, read back as typed (4 of 4) |
 | employer question | name `customQuestionAnswers.<type>_<id>` - `<id>` = the definition's question id (`short_1018`, `yes_no_175`, `long_761`) | find by name from the definition |
 | yes_no | two native radios Yes / No sharing that name, inside a `role=radiogroup` with no `role=radio` inside | tick by option text |
-| file (resume, cover letter, file question) | `input[type=file]`, no name, no label (reads "file-input"), inside a `FileUpload` block under a `<p>` heading "Resume*" / "Cover Letter" (3 tenants); order on the page = cover letter (optional), resume (required), then a file question in place (tenant B). React empties the input once it has the file | find under its heading, else by place; read back = the file's name shown in the block (unmeasured while the upload is blocked: try reports it ASK) |
+| file (resume, cover letter, file question) | `input[type=file]`, no name, no label (reads "file-input"), inside a `FileUpload` block under a `<p>` heading "Resume*" / "Cover Letter" (3 tenants); order on the page = cover letter (optional), resume (required), then a file question in place (tenant B). React empties the input once it has the file | find under its heading, else by place; read back = Read back (2026-10) |
 | Veteran Status | native radios named `:r<n>:` (React id, changes per page), 3 options "Decline to Answer" / "Not a Veteran" / "Veteran", not required on the page (4 of 4) though the definition says required + 6 options | voluntary - left as the page has it |
 | honeypot | `input#nickname_hpcsaf`, label "Please leave this field blank", hidden (4 of 4) | never filled |
 | MUI shadow textarea | unlabelled `textarea` with value `x` next to each textarea (MUI autosize copy) | not a question |
@@ -85,6 +85,9 @@ Reader fix found here: a `role=radiogroup` holding native radios crashed the who
 
 Captcha: a hidden `g-recaptcha-response` box on the form (4 of 4 tries; nothing to tick seen) - the
 applicant's own step; what it checks at Submit unmeasured.
+
+Window: offered since the owner's yes 2026-10-07 (plan-k8n.11): `fill --in-window`, off by default; its note says
+the reCAPTCHA tick-box at Submit + the resume upload are untested there (`vscode-browser.md` "BambooHR - route 2").
 
 ## What leaves the computer, when
 
@@ -106,8 +109,23 @@ before Submit. Typed answers: Submit. GETs the page makes: `/careers/<id>/detail
 
 ## Closed posting
 
-`jobOpeningStatus` other than `"Open"` -> "may have closed" (the value a closed one carries is
-unmeasured; 12 of 12 open). Unknown id -> 404, same message.
+Measured 2026-10-06 over `.data/links/bamboohr-open.txt` + `-closed.txt` (4 links, 4 tenants; plain
+GETs 2 s apart, 0 page loads, 0 429; counts in `.data/measure/bamboohr-closed-check-2026-10-06.json`):
+
+| List | Links | `/detail` 200 Open | `/detail` 404 | On the employer's job list |
+|---|---|---|---|---|
+| open | 3 | 1 | 2 | the 200 one yes; both 404 no |
+| closed | 1 | 0 | 1 | no |
+
+- `/detail` 404 body = `{"type": "not_found", ...  "Looks like the id you provided doesn't exist."}`
+  (3 of 3) - same for a taken-down posting and an id never used: the 404 alone can't tell which.
+- Employer's own job list: `GET https://<co>.bamboohr.com/careers/list` -> 200 `{result: [{id, ...}]}`,
+  no key (4 of 4 tenants). Only the employer name from the link goes out, same as opening its careers page.
+- `jobOpeningStatus` seen: `"Open"` only; any other value -> "may have closed" with BambooHR's word.
+- Rule (`bamboohr.closed`, + `questions` on a 404): 404 + not on the list -> "no longer on the employer's
+  BambooHR job list - it may have closed"; 404 + on the list, or the list fails -> "can't tell"; never a guess.
+- Open read as closed: 0. The 2 open-list links that 404 are off their employer's list too - the job
+  search still listed postings the employer had taken down.
 
 ## Try (2026-10-03)
 
@@ -127,3 +145,34 @@ answered (`questions.signs`).
 | tenant C | Date Available, Desired Pay, education + references required; 12 questions, 1 required (bilingual); driving + schedule; gender, ethnicity, veteran |
 | tenant D | Desired Pay required; cover letter optional; referredBy; 1 question (security clearance); gender, ethnicity, veteran |
 | tenant E | definition only: no address boxes; Date Available + Desired Pay required; 17 questions (16 required) incl. the only `multi` and an attestation yes_no; no EEO |
+
+## Read back (2026-10)
+
+What `bamboohr.holds` reads off the page once the form had time to keep it (`form.recheck`: refilled
+once, still gone -> FAIL to fill by hand) - what shows, never the answer it was given. Hand-built form
+`app/tests/fixtures/dom/bamboohr-form.html` (Widgets above + upload block / banner from BambooHR's own
+page script; no live page's markup); Chrome tests in `test_apply_form.py`, window parity in
+`test_apply_bamboohr.py`.
+
+| Kind | Read back |
+|---|---|
+| box (contact, address by name, Date Available by label, pay, links, employer short / long) | its value as typed; phone by digits, a dialling code the box adds in front allowed |
+| Fabric list (State, Country, education) | the text its button shows (`.fab-SelectToggle__content`); untouched = "-Select-" = not held; Country preset "United States" holds |
+| yes_no + Veteran Status radios | exactly one ticked, its label = the answer |
+| file | a file name in its `FileUpload` block, no progress bar (failed upload leaves the block) |
+| box not on the page | not held |
+
+Upload (BambooHR's page script `fabric.<hash>.dist.js`, plain GET 2026-10-06; live failure unmeasured -
+try blocks the upload):
+- choosing a file adds it to the block's `[data-fabric-component=FileUploadList]` at once, with a
+  `[role=progressbar][aria-label=file-upload-progress-bar]` while it goes; sent = bar gone, name stays.
+- failed = file removed from the block + a banner in a body portal `[data-fabric-component=Slidedown]`
+  (`aria-hidden` when shut), words per error: too big "Whoa, this is a big file (a little too big). The
+  maximum file size you can upload is 20 MB." (server-side, 20 MB), wrong type "Sorry, we can't accept
+  the ".x" format...", empty file, network "For some reason we are having trouble uploading files right
+  now...", other "Whoops, something on our side prevented your file from uploading...", encrypted PDF,
+  storage, backup. Else the error's own message: files_api_v2 path (tenant B) "Upload failed"; v1 path
+  (`attachTemporary.php`, A C D) HTTP error "Request failed with status code N" / "Network Error".
+- `put_file`: page idle (15 s cap), file chosen, ok = name in its block + no bar for 2 s with no new
+  banner; banner words -> FAIL with BambooHR's words; file taken off the block -> FAIL; nothing in 20 s
+  -> ASK. A banner already up before the choice = an earlier try's, not counted.

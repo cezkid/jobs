@@ -22,11 +22,27 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
   score    reCAPTCHA v3 demo score: window tab (opened plain, then reloaded w/ the debugger on) vs a
            Chrome started as Job Finder's own - relative hint only, never Submit
   restricted  untrusted folder (Restricted Mode): does the attach start?
+  multipage   local form only (plan-k8n.12): page 1 filled, Next, page 2 filled - (a) debug session kept
+           between runs w/ no client, (c) one process attached throughout; same site / other site / in place;
+           a `debugger;` line every second; the user closes the tab; window reload
+  toolbar  local form only (plan-k8n.15): (c) as built, debug.toolBarLocation floating vs hidden - screenshots
+           of page 1 + page 2 while attached
   raw      route 2 on ONE public posting of any system `systems.for_url` knows (plan-nko.6 Ashby, .13 Lever):
            level-3 block (+ lab.NAMED_READS, the owner's one exception) + canary first in the same tab;
            the page's `debugger;` pauses counted (skip off once, resumed in the handler, cap 20, then
            skip on), other-site frames listed + what each is, Input.insertText into one text box + read
-           back, the dummy PDF chosen + what the page then tries to send (blocked). Never Submit
+           back, the dummy PDF chosen + what the page then tries to send (blocked). Never Submit.
+           READY read as Playwright does, tenant parts scrubbed, tenants.txt appended: rawkit.py (plan-k8n.1)
+           JF_NO_FILE=1: file box found, never chosen (Workable: its upload blocked breaks the form, plan-k8n.7);
+           WIDGETS: radios + lists as the page draws them, what sits on top at each list's middle - read only;
+           a system with APPLY (BambooHR): that button clicked once (real click) before READY is read (plan-k8n.10)
+           ADP / Paycom start box by its first-name id (else input[type=text] hits ADP's hidden cookie search) (plan-k8n.19)
+           Oracle's email box by name (never the honeypot text box); no box in the page -> the email box in a
+           same-site frame (iCIMS ?in_iframe=1) through contentDocument, focused by script + Input.insertText (plan-k8n.16)
+           boxes looked up through open shadow roots too; SmartRecruiters' resume box = its FILES, the deep page text
+           read after the upload (name shown, its own error words) (plan-k8n.17)
+           a sign-in page in place of the form (SIGN_IN, UKG) is never typed in; file box `btn-resume` (Paylocity); the
+           page's own upload error words read every 0.5 s for 6 s (a toast goes in 5 s) (plan-k8n.18)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -53,6 +69,7 @@ F, HOLD = D / "f", D / "hold"
 HERE = pathlib.Path(__file__).resolve().parent
 sys.path[:0] = [str(HERE), str(SRC / "app")]
 import formsite  # noqa: E402
+import rawkit  # noqa: E402
 from apply.cdp import CDP  # noqa: E402
 
 CODE = "/Applications/Visual Studio Code.app/Contents/MacOS/Code"
@@ -61,7 +78,8 @@ UNIQ = secrets.token_hex(3)
 TITLE = f"JF form {UNIQ}"
 RESUME = D / "Test_Resume.pdf"
 READS = ("GET", "HEAD", "OPTIONS")
-SCRUB: list[tuple[str, str]] = []  # (tenant text, placeholder): raw adds the posting's org + id
+SCRUB: list[tuple[str, str]] = []  # (tenant text, placeholder): raw adds the links' tenant parts (rawkit.scrub_pairs)
+TENANTS = SRC / ".data" / "measure" / "tenants.txt"  # every measured org, for the anonymity grep (lab.py's file)
 
 
 def now():
@@ -165,8 +183,10 @@ def make_resume():
 
 
 def save(result):
+    if SCRUB:  # string values only, any case, longest first: a key is never cut
+        result = rawkit.scrub_values(json.loads(json.dumps(result, default=str)), sorted(SCRUB, key=lambda t: -len(t[0])))
     text = json.dumps(result, indent=1, default=str)
-    for a, b in ((str(D), "$D"), (str(SRC), "<checkout>"), (str(SHOTS), "<shots>"), *SCRUB):
+    for a, b in ((str(D), "$D"), (str(SRC), "<checkout>"), (str(SHOTS), "<shots>")):
         text = text.replace(a, b)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(text + "\n")
@@ -316,8 +336,16 @@ from urllib.parse import urlsplit  # noqa: E402
 QUIET = {"suppressDebugToolbar": True, "suppressDebugStatusbar": True, "suppressDebugView": True}
 
 
+# document first, then each open shadow root in page order: SmartRecruiters' boxes live in them (plan-k8n.17);
+# a box in the document itself is found as before
+DEEP_Q = ("(s => { const f = r => { const hit = r.querySelector(s); if (hit) return hit;"
+          " for (const e of r.querySelectorAll('*')) if (e.shadowRoot) { const h = f(e.shadowRoot); if (h) return h; }"
+          " return null; }; return f(document); })")
+
+
 def q(sel):
-    return f"document.querySelector({json.dumps(sel)})"
+    """An element by selector (shadow roots too), or 'js:<expression>' as is."""
+    return sel[3:] if sel.startswith("js:") else f"{DEEP_Q}({json.dumps(sel)})"
 
 
 # a framework's own setter sees script-set values only through the prototype's setter + events
@@ -1135,6 +1163,37 @@ FRAMES = """(() => [...document.querySelectorAll('iframe')].map((f) => ({src: (f
   title: (f.title || '').slice(0, 60), shown: !!f.getClientRects().length, w: f.offsetWidth, h: f.offsetHeight})))()"""
 
 
+# reCAPTCHA v2 checkbox (JazzHR's "Human Check", plan-k8n.4): scrolled to, then is its frame there + on top at the box's middle
+CAPTCHA_BOX = """(() => { const b = document.querySelector('.g-recaptcha'); if (!b) return null;
+  b.scrollIntoView({block: 'center', behavior: 'instant'}); const r = b.getBoundingClientRect(), f = b.querySelector('iframe');
+  const hit = document.elementFromPoint(r.x + Math.min(r.width, 300) / 2, r.y + Math.min(r.height, 74) / 2);
+  return {shown: !!b.getClientRects().length, w: Math.round(r.width), h: Math.round(r.height), frame: !!f,
+    frameShown: f ? !!f.getClientRects().length : false, frameW: f ? f.offsetWidth : 0, frameH: f ? f.offsetHeight : 0,
+    onTopAtMiddle: hit ? (hit === f ? 'its frame' : hit.nodeName.toLowerCase() + (hit.className ? '.' + String(hit.className).split(' ')[0] : '')) : null,
+    responseBox: !!document.querySelector('[name="g-recaptcha-response"]'), text: b.innerText.slice(0, 80)}; })()"""
+
+# Workable's widgets (plan-k8n.7): the [role=radio] beside each radio input, the [role=combobox] in each
+# list's wrapper, and what takes a click at a list's middle (Chrome: plain clicks timed out, workable.md)
+WIDGETS = """(() => { const boxes = [...document.querySelectorAll('[role=combobox]')];
+  const top = (e) => { e.scrollIntoView({block: 'center', behavior: 'instant'}); const r = e.getBoundingClientRect();
+    const hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+    return hit === e ? 'itself' : !hit ? null : e.contains(hit) ? 'inside it' : hit.contains(e) ? 'its ancestor ' + hit.nodeName.toLowerCase()
+      : hit.nodeName.toLowerCase() + (hit.getAttribute('data-ui') ? '[data-ui]' : '') + (hit.getAttribute('role') ? '[role=' + hit.getAttribute('role') + ']' : ''); };
+  window.scrollTo(0, 0);
+  return {roleRadio: document.querySelectorAll('[role=radio]').length, radioInputs: document.querySelectorAll('input[type=radio]').length,
+    radioGroups: document.querySelectorAll('fieldset[role=radiogroup], [role=radiogroup]').length,
+    checkboxes: document.querySelectorAll('input[type=checkbox]').length, combobox: boxes.length,
+    comboboxInDataUi: boxes.filter((b) => b.closest('[data-ui]')).length, options: document.querySelectorAll('[role=option]').length,
+    fileInputs: document.querySelectorAll('input[type=file]').length, resumeWrapper: !!document.querySelector('[data-ui="resume"]'),
+    onTopAtListMiddle: boxes.slice(0, 8).map(top),
+    dialogs: [...document.querySelectorAll('[role=dialog]')].filter((d) => d.getClientRects().length).map((d) => ({ui: d.getAttribute('data-ui'),
+      modal: d.getAttribute('aria-modal'), text: (d.innerText || '').replace(/\\s+/g, ' ').slice(0, 60)}))}; })()"""
+
+FRAME_BOX = ("[...document.querySelectorAll('iframe')].map((f) => { try { return f.contentDocument && "
+             "f.contentDocument.querySelector('input[name=css_loginName], input[type=email]') } catch (e) { return null } }).find(Boolean)")
+NAMES = """[document.title, (document.querySelector('meta[property="og:site_name"]') || {}).content || ''].map((s) => s.trim()).filter(Boolean)"""
+
+
 def frame_kind(url):
     import re
     return next((k for k, rx in FRAME_KIND if re.search(rx, url)), "other")
@@ -1150,15 +1209,15 @@ def short(url):
 
 def raw(result):
     """Canary first in the same tab, then the posting's form: pauses, frames, one typed box, the dummy PDF."""
-    from apply import systems
+    import re
+    from apply import lab, systems
     system = systems.for_url(GH_URL or "")
     if not system:
         sys.exit("raw needs a posting link systems.for_url knows")
-    if hasattr(system, "parse_url"):  # Ashby (org, id); Lever (eu, org, id)
-        org, pid = system.parse_url(GH_URL)[-2:]
-        SCRUB.extend([(pid, "<id>"), (org, "<org>")])
     tag = system.NAME.lower()
     app_url = system.application_url(GH_URL)
+    SCRUB.extend(rawkit.scrub_pairs(system, GH_URL, app_url))  # host tenant parts, path org + ids, query values
+    result["tenantsAdded"] = lab.record_tenants(TENANTS, rawkit.tenant_lines(system, [GH_URL, app_url]))
     cap, level = int(os.environ.get("JF_PAUSE_CAP", "20")), int(os.environ.get("JF_BLOCK_LEVEL", "3"))
     result |= {"system": system.NAME, "ready": system.READY, "url": app_url, "level": level, "pauseCap": cap}
     proc, result["launch"] = launch()
@@ -1196,13 +1255,31 @@ def raw(result):
         block.step = "load"
         t = time.time()
         c.send("Page.navigate", {"url": app_url})
-        ready = f"document.readyState === 'complete' && !!document.querySelector({json.dumps(system.READY)})"
+        ready = rawkit.ready_js(system.READY)  # ':visible' + open shadow roots, as Playwright reads READY
+        if apply := getattr(system, "APPLY", None):  # the form opens only after this button (BambooHR, plan-k8n.10)
+            button = (f"[...document.querySelectorAll('button, a')].find(e => e.innerText.trim() === {json.dumps(apply)})")
+            result["applyButton"] = {"found": bool(wait_for(lambda: quietly(lambda: c.evaluate(f"!!{button}", timeout=3)), 40, 0.5)),
+                                     "ms": round((time.time() - t) * 1000)}
+            if result["applyButton"]["found"]:
+                block.step = "apply click"
+                time.sleep(2)  # its own scripts settle, as a person reads the posting first
+                result["applyButton"]["click"] = attempt(lambda: click(c, button))
+                block.step = "load"
         result["loaded"] = bool(wait_for(lambda: quietly(lambda: c.evaluate(ready, timeout=3)), 40, 0.5))
         result["readyMs"] = round((time.time() - t) * 1000)
         time.sleep(4)  # its own scripts settle
         result["pausesOnLoad"] = len(pauses)
+        # where the page landed: a short link can move to the employer's own path (Workable /j/ -> /<account>/j/, plan-k8n.7)
+        landed = quietly(lambda: c.evaluate("location.href")) or ""
+        SCRUB.extend(rawkit.scrub_pairs(system, landed))
+        result["tenantsAdded"] += lab.record_tenants(TENANTS, rawkit.tenant_lines(system, [landed]))
         result["at"] = quietly(lambda: c.evaluate("location.host + location.pathname"))
-        result["fields"] = quietly(lambda: c.evaluate(f"document.querySelectorAll({json.dumps(system.READY)}).length"))
+        result["fields"] = quietly(lambda: c.evaluate(rawkit.count_js(system.READY)))
+        names = quietly(lambda: c.evaluate(NAMES)) or []  # the employer's own names: tenants.txt + scrubbed
+        names += [m.group(1).strip() for s in names if (m := re.search(r"\bat (.+)$", s))]
+        lines = rawkit.tenant_lines(system, [], names)
+        result["tenantsAdded"] += lab.record_tenants(TENANTS, lines)
+        SCRUB.extend((s, "<org>") for s in lines if len(s) >= 4)
         result["boxes"] = quietly(lambda: c.evaluate(GH_FIELDS.replace("label: ", "_: ").replace("type: e.type,", "type: e.type, name: e.name,")))
         if isinstance(result["boxes"], list):  # labels are the employer's words: kinds only
             import re  # question ids are the employer's: "<field>"
@@ -1217,7 +1294,10 @@ def raw(result):
                                              for t in c.send("Target.getTargets")["targetInfos"] if t["type"] == "iframe"])
         result["marks"] = quietly(lambda: c.evaluate(MARKS))
         fill = result["fill"] = {"resume": dummy}
-        box = next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+        # a sign-in page in place of the form (UKG, plan-k8n.18): its boxes are never typed in
+        fill["signIn"] = bool(getattr(system, "SIGN_IN", None)) and bool(quietly(lambda: c.evaluate(f"!!{q(system.SIGN_IN)}")))
+        box = None if fill["signIn"] else next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
+                                'input[name^="primary-email"]', '#first-name-input', '#guestFirstName', '#legalFirstName', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
         if box:
             block.step = "type"
@@ -1231,20 +1311,67 @@ def raw(result):
                 return {"focused": focused}
             fill["type: click + Input.insertText"] = attempt(typed)
             fill["readBack"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
-        fbox = next((s for s in ('[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+            if not fill["readBack"]:  # the click landed on something over the box: focused by script, as Locator.fill does
+
+                def focused_typed():
+                    c.evaluate(f"{q(box)}.focus()")
+                    c.send("Input.insertText", {"text": "Test Applicant"})
+                    time.sleep(0.5)
+                    return {"focused": c.evaluate(f"document.activeElement === {q(box)}")}
+                fill["type: focused by script + Input.insertText"] = attempt(focused_typed)
+                fill["readBackAfterFocus"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
+        if not box and not fill["signIn"]:  # the start box in the page's own same-site frame (iCIMS ?in_iframe=1, plan-k8n.16): reached through
+            # contentDocument from the top page's session, focused by script + Input.insertText (no click: frame offset)
+            fill["frameBox"] = quietly(lambda: c.evaluate(f"!!{FRAME_BOX}"))
+            if fill["frameBox"]:
+                block.step = "type"
+
+                def frame_typed():
+                    c.evaluate(f"{FRAME_BOX}.focus()")
+                    c.send("Input.insertText", {"text": "test@example.com"})
+                    time.sleep(0.5)
+                    return {"focused": c.evaluate(f"{FRAME_BOX}.ownerDocument.activeElement === {FRAME_BOX}")}
+                fill["frame: focused by script + Input.insertText"] = attempt(frame_typed)
+                fill["frameReadBack"] = quietly(lambda: c.evaluate(f"{FRAME_BOX}.value"))
+                fill["frameMarks"] = quietly(lambda: c.evaluate(f"(() => {{ const d = {FRAME_BOX}.ownerDocument; return {{"
+                                                                f"hcaptcha: !!d.querySelector('.h-captcha, [data-hcaptcha-widget-id]'), "
+                                                                f"tick: !!d.querySelector('#accept_gdpr'), "
+                                                                f"boxes: d.querySelectorAll('input:not([type=hidden]), select, textarea').length}} }})()"))
+        # SmartRecruiters: its resume field = the file box after the name (FILES), never the parsing box above it
+        files = (f"js:({system.FILES})()",) if hasattr(system, "FILES") else ()
+        fbox = next((s for s in (*files, '[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file][id="btn-resume"]', 'input[type=file]')
+                     if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["fileBox"] = fbox
-        if fbox:
+        result["widgets"] = quietly(lambda: c.evaluate(WIDGETS))
+        fill["fileChosen"] = bool(fbox) and os.environ.get("JF_NO_FILE") != "1" and not fill["signIn"]
+        if fill["fileChosen"]:
             block.step = "upload"
             fill["upload: DOM.setFileInputFiles"] = attempt(lambda: upload(c, fbox, RESUME))
-            time.sleep(6)
+            seen = []  # the page's own upload error words, read every 0.5 s: a toast can go in 5 s (Paylocity, plan-k8n.18)
+            for _ in range(12):
+                time.sleep(0.5)
+                if errors := getattr(system, "UPLOAD_ERRORS", None):
+                    deep = getattr(system, "DEEP", None)
+                    text = quietly(lambda: c.evaluate(f"({deep})(document.body)" if deep else "document.body.innerText")) or ""
+                    seen += [e.strip() for e in errors.findall(text) if e.strip() not in seen]
+            fill["pageErrorsSeen"] = seen if getattr(system, "UPLOAD_ERRORS", None) else None
             fill["nameShown"] = quietly(lambda: c.evaluate(f"document.body.innerText.includes({json.dumps(RESUME.name)})"))
             fill["failedLine"] = quietly(lambda: c.evaluate("/failed to upload/i.test(document.body.innerText)"))
             fill["verdict"] = quietly(lambda: c.evaluate(VERDICT))
+            if deep := getattr(system, "DEEP", None):  # names + errors drawn in shadow roots (SmartRecruiters)
+                text = quietly(lambda: c.evaluate(f"({deep})(document.body)")) or ""
+                fill["nameShownDeep"] = RESUME.name in text
+                fill["pageErrors"] = system.UPLOAD_ERRORS.findall(text) if hasattr(system, "UPLOAD_ERRORS") else None
+            fill["fileHeld"] = quietly(lambda: c.evaluate(f"({q(fbox)}.files[0] || {{}}).name || ''") == RESUME.name)
             fill["sentOnChoice"] = [{"method": b["method"], "url": short(b["url"]), "type": b["type"],
                                      "contentType": b.get("contentType"), "body": b.get("body")}
                                     for b in block.log if b["after"] == "upload"]
         block.step = "end"
         fill["tabShot"] = tab_shot(c, f"{tag}-route2-tab")
+        result["captchaBox"] = quietly(lambda: c.evaluate(CAPTCHA_BOX))
+        if result["captchaBox"]:
+            time.sleep(1)
+            result["captchaShot"] = tab_shot(c, f"{tag}-route2-captcha")
         result["shot"] = screenshot(f"{tag}-route2-window", proc)
         result["pausesTotal"] = len(pauses)
         result["skipOnAfterCap"] = len(pauses) >= cap
@@ -1285,13 +1412,310 @@ def restricted(result):
             user.write_text(before)
 
 
+# ---------------------------------------------------------------- multi-page: keep the user's place (plan-k8n.12)
+MP_EVENTS = ["Debugger.paused", "Debugger.resumed", "Page.frameNavigated", "Page.navigatedWithinDocument",
+             "Page.loadEventFired", "Runtime.executionContextsCleared", "Inspector.detached", "Target.detachedFromTarget"]
+NEXT_MS = 4000  # page 1's own timer clicks Next (the user's click: no client of ours sends it)
+
+
+def ticks(since, page=None):
+    """The page's `debugger;` line, once a second: [(t, page, ms held)] logged after `since`."""
+    out = []
+    for e in formsite.log:
+        if e["t"] >= since and e["path"].startswith("/beacon?k=tick"):
+            qs = dict(x.split("=", 1) for x in e["path"].split("?", 1)[1].split("&"))
+            if page is None or qs["p"] == str(page):
+                out.append((e["t"], int(qs["p"]), int(qs["ms"])))
+    return out
+
+
+def tick_summary(since, until=None):
+    rows = [t for t in ticks(since) if until is None or t[0] <= until]
+    by = {}
+    for p in (1, 2):
+        mine = [t for t in rows if t[1] == p]
+        gaps = [round(b[0] - a[0], 1) for a, b in zip(mine, mine[1:])]
+        by[f"page{p}"] = {"n": len(mine), "maxHeldMs": max((t[2] for t in mine), default=None),
+                          "maxGapS": max(gaps, default=None)}
+    return by
+
+
+def mp_open(home, name, to, client_events=True):
+    """As window.page_at: a holding page, attach to it alone, skip pauses, then the form -> (child id, CDP, row)."""
+    hold = f"{home}/blank-{name}"
+    ask({"do": "open", "url": hold})
+    wait_for(lambda: any(e["path"] == f"/blank-{name}" for e in formsite.log), 20, 0.2)
+    res = ask({"do": "attach", "urlFilter": hold, "options": QUIET, "extra": {"internalConsoleOptions": "neverOpen"},
+               "waitMs": 10000, "settleMs": 1500}, 45)
+    row = {"attachMs": res.get("ms"), "sessions": res.get("sessions"), "error": res.get("error")}
+    child = next((s["id"] for s in res.get("sessions") or [] if s.get("parent")), None)
+    px = (res.get("proxies") or {}).get(child) or {}
+    row["proxyPath"] = px.get("path")
+    c = CDP(px["host"], px["port"], px["path"])
+    c.send("JsDebug.subscribe", {"events": MP_EVENTS})
+    c.send("Page.enable")
+    c.send("Page.navigate", {"url": f"{home}/mp/1?to={to}&tick=1"})
+    wait_for(lambda: quietly(lambda: c.evaluate("document.readyState === 'complete' && !!window.mpState", timeout=3)), 15)
+    c.send("Debugger.setSkipAllPauses", {"skip": True}, 5)  # after the load, as window.Page.goto: a navigation resets it (run 1)
+    click(c, q("#mp_first"))
+    c.send("Input.insertText", {"text": "Test"})
+    row["page1"] = quietly(lambda: c.evaluate("mpState()", timeout=3))
+    return child, c, row
+
+
+def on_page2(to, since):
+    """Page 2 showed: its request (new page) or its first tick (drawn in place)."""
+    if to == "spa":
+        return bool(ticks(since, 2))
+    return any(e["t"] >= since and e["path"].startswith("/mp/2") for e in formsite.log)
+
+
+def reconnect(child):
+    """(a): the same debug session's proxy asked for again -> (CDP or None, row)."""
+    px = ask({"do": "proxy", "id": child}).get("proxy") or {}
+    row = {"proxyPath": px.get("path"), "error": px.get("error")}
+    if not px.get("port"):
+        return None, row
+    try:
+        c = CDP(px["host"], px["port"], px["path"])
+        c.send("JsDebug.subscribe", {"events": MP_EVENTS})
+        return c, row
+    except Exception as e:
+        row["error"] = str(e)[:200]
+        return None, row
+
+
+def fill_page2(c, row):
+    row["href"] = attempt(lambda: c.evaluate("location.href", timeout=5))
+    row["resume"] = attempt(lambda: c.send("Debugger.resume", {}, 5))
+    row["skip"] = attempt(lambda: c.send("Debugger.setSkipAllPauses", {"skip": True}, 5))
+    t = time.time()
+    row["fill"] = attempt(lambda: (click(c, q("#mp_email")), c.send("Input.insertText", {"text": "test.person@example.com"}))[1])
+    row["state"] = attempt(lambda: c.evaluate("mpState()", timeout=5))
+    time.sleep(3)
+    time.sleep(3)
+    row["ticksAfter"] = tick_summary(t)
+    row["pausedNow"] = attempt(lambda: c.evaluate("1", timeout=3))
+
+
+def end_all():
+    ask({"do": "stop"})
+    time.sleep(1.5)
+    ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+    time.sleep(1)
+
+
+def reload_window(proc):
+    (HOLD / "up.json").unlink(missing_ok=True)
+    ask({"do": "command", "id": "workbench.action.reloadWindow"}, 5)
+    t = time.time()
+    up = wait_for(lambda: (HOLD / "up.json").exists(), 60, 0.25)
+    time.sleep(3)
+    after = ask({"do": "sessions"})
+    return {"upAgain": bool(up), "upMs": round((time.time() - t) * 1000), "sessions": after.get("sessions"),
+            "tabs": [t["label"] for g in after.get("tabs") or [] for t in g["tabs"]],
+            "shot": screenshot(f"mp-reloaded-{UNIQ}", proc)}
+
+
+def keep_quiet(c):
+    """(c): what a fill staying attached does - skip pauses again on each new page, resume any pause -> its log."""
+    fixes = []
+
+    def requiet(p, m):
+        if m["method"] == "Debugger.paused":
+            fixes.append(("resume", p.get("reason")))
+            c.post("Debugger.setSkipAllPauses", {"skip": True})
+            c.post("Debugger.resume")
+        elif not (p.get("frame") or {}).get("parentId"):
+            fixes.append(("skip", m["method"]))
+            c.post("Debugger.setSkipAllPauses", {"skip": True})
+    for ev in ("Debugger.paused", "Page.frameNavigated", "Page.navigatedWithinDocument"):
+        c.on(ev, requiet)
+    return fixes
+
+
+def multipage(result):
+    """Local form only: page 1 filled, Next clicked by the page itself, page 2 filled - (a) the debug
+    session kept between runs (no client of ours while the user works), (c) one fill process attached
+    throughout. Same site, other site, drawn in place; a `debugger;` line every second on both pages."""
+    proc, result["launch"] = launch()
+    home, other, close = formsite.serve(TITLE)
+    try:
+        # control: no debugger at all - the page's ticks reach the log
+        ask({"do": "open", "url": f"{home}/mp/1?to=same&tick=1&plain"})
+        t = time.time()
+        time.sleep(4)
+        result["control"] = tick_summary(t)
+        ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+        time.sleep(1)
+        # today's shipped end, for the baseline: fill, detach - what's left
+        child, c, row = mp_open(home, "base", "same")
+        c.close()
+        row["detach"] = {k: ask({"do": "detach", "id": child}).get(k) for k in ("sessions", "error")}
+        time.sleep(1)
+        row["shot"] = screenshot("mp-base-detached", proc)
+        t = time.time()
+        time.sleep(4)
+        row["ticksAfterDetach"] = tick_summary(t)
+        result["baseline"] = row
+        end_all()
+
+        # bpoff: VS Code's own "Deactivate breakpoints" on while the session is kept (js-debug -> setBreakpointsActive
+        # false, which V8 applies to `debugger;` lines too) - does it hold where the skip doesn't?
+        for to, off in (("same", False), ("other", False), ("spa", False), ("other", True), ("same", True)):
+            name = f"{to}-bpoff" if off else to
+            # (a) session kept, no client while the user works
+            child, c, row = mp_open(home, f"a-{name}", to)
+            if off:
+                row["bpoff"] = ask({"do": "command", "id": "workbench.debug.viewlet.action.toggleBreakpointsActivatedAction"}).get("error") or "ok"
+            c.evaluate(f"autoNext({NEXT_MS})")
+            c.close()
+            gone = time.time()
+            time.sleep(2)
+            row["shotIdlePage1"] = screenshot(f"mp-a-{name}-idle-page1", proc)
+            row["onPage2"] = bool(wait_for(lambda: on_page2(to, gone), 15, 0.2))
+            time.sleep(6)
+            row["shotIdlePage2"] = screenshot(f"mp-a-{name}-idle-page2", proc)
+            row["ticksIdle"] = tick_summary(gone)
+            s = ask({"do": "sessions"})
+            row["sessionsIdle"] = s.get("sessions")
+            row["tabsIdle"] = [t["label"] for g in s.get("tabs") or [] for t in g["tabs"]]
+            c2, row["reconnect"] = reconnect(child)
+            if c2:
+                fill_page2(c2, row["reconnect"])
+                c2.close()
+                # the user closes the tab while the session is kept
+                t = time.time()
+                ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+                time.sleep(3)
+                s = ask({"do": "sessions"})
+                row["userClosesTab"] = {"sessions": s.get("sessions"), "tabs": [t["label"] for g in s.get("tabs") or [] for t in g["tabs"]]}
+                c3, row["userClosesTab"]["reconnect"] = reconnect(child)
+                if c3:
+                    row["userClosesTab"]["href"] = attempt(lambda: c3.evaluate("location.href", timeout=5))
+                    c3.close()
+            if off:
+                ask({"do": "command", "id": "workbench.debug.viewlet.action.toggleBreakpointsActivatedAction"})
+            result[f"a-{name}"] = row
+            end_all()
+            if off:
+                continue
+
+            # (c) one process attached across pages
+            child, c, row = mp_open(home, f"c-{to}", to)
+            e0 = len(c.events)
+            row["fixes"] = keep_quiet(c)
+            c.evaluate(f"autoNext({NEXT_MS})")
+            t = time.time()
+            row["onPage2"] = bool(wait_for(lambda: on_page2(to, t), 15, 0.2))
+            nav = next((e for e in c.events[e0:] if e.get("method") in ("Page.frameNavigated", "Page.navigatedWithinDocument")
+                        and not (e.get("params", {}).get("frame") or {}).get("parentId")), None)
+            row["navEvent"] = nav and {"method": nav["method"], "afterMs": round((nav["t"] - t) * 1000)}
+            time.sleep(4)
+            row["shotPage2"] = screenshot(f"mp-c-{to}-page2", proc)
+            row["ticksBeforeQuiet"] = tick_summary(t)
+            row["events"] = [{"method": e.get("method"), "dt": round(e["t"] - t, 2)} for e in c.events[e0:] if e.get("method")][:40]
+            row["page2"] = {}
+            fill_page2(c, row["page2"])
+            if to == "same":  # the user closes the tab while attached
+                ask({"do": "command", "id": "workbench.action.closeAllEditors"})
+                time.sleep(3)
+                s = ask({"do": "sessions"})
+                row["userClosesTab"] = {"cdpClosed": c.closed, "evaluate": attempt(lambda: c.evaluate("1", timeout=3)),
+                                        "sessions": s.get("sessions")}
+            c.close()
+            result[f"c-{to}"] = row
+            end_all()
+
+        # window reload on page 2: (a) session kept, (c) attached
+        for how in ("a", "c"):
+            child, c, row = mp_open(home, f"r-{how}", "same")
+            if how == "c":
+                row["fixes"] = keep_quiet(c)
+            c.evaluate(f"autoNext({NEXT_MS})")
+            t = time.time()
+            if how == "a":
+                c.close()
+            wait_for(lambda: on_page2("same", t), 15, 0.2)
+            time.sleep(2)
+            if how == "c":
+                row["fill2"] = attempt(lambda: (click(c, q("#mp_email")), c.send("Input.insertText", {"text": "test.person@example.com"}))[1])
+            row["reload"] = reload_window(proc)
+            if how == "c":
+                row["reload"]["cdpClosed"] = c.closed
+                row["reload"]["evaluate"] = attempt(lambda: c.evaluate("1", timeout=3))
+            c2, row["reload"]["reconnect"] = reconnect(child)
+            if c2:
+                row["reload"]["reconnect"]["href"] = attempt(lambda: c2.evaluate("location.href", timeout=5))
+                c2.close()
+            # fresh attach on the tab's own link (here a local http one: a real https form made no page session, 3 of 3)
+            page2 = next((t for t in row["reload"]["tabs"] if t.endswith(" mp")), None)
+            if page2:
+                res = ask({"do": "attach", "urlFilter": f"{home}/mp/2*", "options": QUIET,
+                           "extra": {"internalConsoleOptions": "neverOpen"}, "waitMs": 10000, "settleMs": 1500}, 45)
+                kid = next((s["id"] for s in res.get("sessions") or [] if s.get("parent")), None)
+                px = (res.get("proxies") or {}).get(kid) or {}
+                row["reload"]["freshAttach"] = {"error": res.get("error"), "sessions": len(res.get("sessions") or [])}
+                if px.get("port"):
+                    c3 = CDP(px["host"], px["port"], px["path"])
+                    row["reload"]["freshAttach"]["state"] = attempt(lambda: c3.evaluate("mpState()", timeout=5))
+                    c3.close()
+            result[f"reload-{how}"] = row
+            end_all()
+    finally:
+        result["quit"] = quit_(proc)
+        close()
+        result["siteWrites"] = [e for e in formsite.log if e["write"]]
+        result["siteLog"] = [{k: e[k] for k in ("t", "host", "path")} for e in formsite.log]
+
+
+# ---------------------------------------------------------------- debug toolbar between pages (plan-k8n.15)
+def toolbar(result):
+    """(c) as built: does user setting debug.toolBarLocation 'hidden' keep the debug toolbar off the window while
+    one process stays attached across pages? Default ('floating') first, then hidden - local form only."""
+    user = D / "data" / "User" / "settings.json"
+    before = user.read_text() if user.exists() else None
+    user.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        for loc in ("floating", "hidden"):
+            user.write_text(json.dumps({"debug.toolBarLocation": loc}))
+            proc, row = {}, {}
+            proc, row["launch"] = launch()
+            home, other, close = formsite.serve(TITLE)
+            try:
+                child, c, open_row = mp_open(home, f"t-{loc}", "same")
+                row.update(open_row)
+                row["fixes"] = keep_quiet(c)
+                time.sleep(1)
+                row["shotPage1"] = screenshot(f"mp-toolbar-{loc}-page1", proc)
+                c.evaluate(f"autoNext({NEXT_MS})")
+                t = time.time()
+                row["onPage2"] = bool(wait_for(lambda: on_page2("same", t), 15, 0.2))
+                time.sleep(3)
+                row["shotPage2"] = screenshot(f"mp-toolbar-{loc}-page2", proc)
+                row["page2"] = {}
+                fill_page2(c, row["page2"])
+                c.close()
+                end_all()
+            finally:
+                row["quit"] = quit_(proc)
+                close()
+            result[loc] = row
+    finally:
+        if before is None:
+            user.unlink(missing_ok=True)
+        else:
+            user.write_text(before)
+        result["siteWrites"] = [e for e in formsite.log if e["write"]]
+
+
 if __name__ == "__main__":
     if running():
         sys.exit("a scratch VS Code on this dir is already running")
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw, "multipage": multipage, "toolbar": toolbar}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

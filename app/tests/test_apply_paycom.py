@@ -3,9 +3,10 @@ page (rebuilt from its labels - it doesn't open while writes are blocked), the a
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import httpx
 import pytest
 
-from apply import browser, dom, questions, systems
+from apply import browser, dom, form, questions, systems
 from apply.systems import paycom
 
 FIXTURES = Path(__file__).parent / "fixtures" / "paycom"
@@ -115,3 +116,51 @@ def test_page_after_continue_read_generically_marked_unmeasured(at, capsys):
     out = capsys.readouterr().out
     assert paycom.UNMEASURED in out and "password box 'Password' - yours to type" in out
     assert "Password" not in [dom.title(c["label"]) for c in dom.snapshot(page)["controls"] if c["hook"] in paycom.ids_on_page(page)]
+
+
+def test_holds_reads_what_the_box_shows_never_the_sms_consent(at):
+    page = at("start-box.html")
+    qs = {q["title"]: q for q in paycom.read(page)}
+    email, phone = qs["Confirm Email"] | {"answer": "test@example.com"}, qs["Primary Phone"] | {"answer": "555-0100"}
+    assert not paycom.holds(page, email)  # nothing typed yet
+    assert paycom.fill(page, email, None) == "ok" and paycom.fill(page, phone, None) == "ok"
+    assert paycom.holds(page, email) and paycom.holds(page, phone)
+    assert not paycom.holds(page, email | {"answer": "other@example.com"})
+    page.fill("#confirmEmailAddress", "")
+    assert not paycom.holds(page, email)
+    page.evaluate("document.querySelector('#primaryPhoneNumber').remove()")
+    assert not paycom.holds(page, phone)  # box gone
+    sms = next(q for t, q in qs.items() if "(SMS)" in t)
+    page.evaluate("document.querySelectorAll('input[name=primaryPhoneOptIn]').forEach(e => e.checked = true)")
+    assert not paycom.holds(page, sms | {"answer": "Yes"})
+
+
+def job_page(monkeypatch, status=200, text="", error=None):
+    asked = []
+
+    def get(url, **kw):
+        asked.append(url)
+        if error:
+            raise error
+        return httpx.Response(status, text=text, request=httpx.Request("GET", url))
+    monkeypatch.setattr(paycom.httpx, "get", get)
+    return asked
+
+
+def test_closed_reads_the_job_page_for_its_posting(monkeypatch):
+    open_page = ('<html><head><script type="application/ld+json" id="google-job-json-ld">'
+                 '{"@context": "https://schema.org", "@type": "JobPosting", "title": "Test Job"}</script></head></html>')
+    asked = job_page(monkeypatch, text=open_page)
+    assert paycom.closed(OLD) is None and asked == [PORTAL]
+    # a job id Paycom doesn't have: the same page without the posting, then "We Couldn't Find This Job"
+    job_page(monkeypatch, text="<html><head><title>Careers</title></head><body><div id=app></div></body></html>")
+    assert paycom.closed(PORTAL).startswith("Paycom can't find this job")
+    with pytest.raises(ValueError, match="can't find this job"):
+        paycom.questions(PORTAL)  # before any browser
+    for kw in ({"status": 503, "text": "<html>busy</html>"}, {"text": "not a page"}, {"error": httpx.ConnectError("down")}):
+        job_page(monkeypatch, **kw)
+        assert paycom.closed(PORTAL).startswith("can't tell"), kw
+
+
+def test_closed_words_on_the_page_match():
+    assert form.CLOSED.search("We Couldn't Find This Job") and form.CLOSED.search("We couldn’t find this job")

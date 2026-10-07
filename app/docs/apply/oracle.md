@@ -37,10 +37,63 @@ created and kept up to date automatically as you enter details for each of your 
 | Cookie banner (A, C, D: Accept / Decline, Opt Out) | - | the applicant's choice; nothing clicks it |
 
 Also on every page: a hidden digital-assistant box (`oda-work-summary-text-area`, required) -
-dropped (`page_only`). No password box, no captcha on the start box (4 of 4).
+dropped (`page_only`). No password box (4 of 4). Captcha: none on 4 start boxes (2026-10-03); an
+invisible hCaptcha + a `g-recaptcha-response` box on 2 of 7 start boxes (2026-10-06, 2 tenants) - the
+applicant's own, listed as their step.
+
+Easy Apply route (1 tenant, 2026-10-06): `.../apply/email` redirects to `.../easy-apply/email`, label
+"What's your email?", heading "Authentication screen. Let's get started", button "Next" - same email
+box name (`primary-email`), so `on_tab` + `read` treat it as the start box. The "communicate by phone
+instead?" switch showed on a second tenant too.
 
 `try`, 3 tenants (A, B, D): Email ok, terms left as the applicant's step, 0 writes sent.
 `read` recognises the start box by its email box (`name=primary-email`), page = "Job application form".
+
+## Read back (2026-10)
+
+What `oracle.holds` reads off the page once the form had time to keep it (`form.recheck`: refilled
+once, still gone -> FAIL to fill by hand) - what shows, never the answer it was given. `dom.holds` on
+the page without the bot trap. Fixtures `app/tests/fixtures/oracle/start-box.html` +
+`start-box-easy-apply.html` (rebuilt from measure reads); Chrome tests in `test_apply_oracle.py`.
+
+| Box | Read back |
+|---|---|
+| Email | its value exactly as typed, shown + label unchanged; emptied -> not held |
+| honeypot | never: a hook or title naming the trap reads as not held, filled or not |
+| terms tick | never ours (`signs`) - not held, ticked or not |
+| box not on the page | not held |
+
+No upload on the start box; pages after Next unmeasured (their read back = `dom.holds`, untested live).
+
+## Closed posting (2026-10-06)
+
+Measured over `.data/links/oracle-open.txt` + `-closed.txt` (42 links, 21 employers on the open list):
+plain GETs of each posting's record + its site's job list, 2 s apart, 0 429; 20 page loads (max 6 per
+host, canary ok each). Counts in `.data/measure/oracle-closed-check-2026-10-06.json`.
+
+| List | Links | Record posted, on the job list | Record, no posted date, off list | Record gone (`items` []), off list |
+|---|---|---|---|---|
+| open | 26 | 19 | 3 | 4 |
+| closed | 16 | 2 | 2 | 12 |
+
+Start-box link loaded (9 links + 1 made-up id):
+
+| Record | Links | Start box | "This job is no longer available." |
+|---|---|---|---|
+| posted (open 1, closed 1) | 2 | 2 | 0 |
+| no posted date (open) | 1 | 1 | 0 |
+| gone (open 4, closed 2) | 6 | 3 | 3 |
+| made-up id | 1 | 0 | 1 |
+
+- Closed page: `.../apply/email` redirects to the job page `.../job/<id>`, no boxes, words "This job is
+  no longer available. You may also VIEW ALL JOBS / SEARCH FOR JOBS." (`form.CLOSED` matches).
+- Record gone != closed: 3 of 6 gone records still opened a start box (2 tenants, Easy Apply on one).
+  So the page decides first (`form.closed`: a box shows -> open; closed words -> closed); the record
+  only speaks when neither shows.
+- On the job list <=> posted start date past: 42 of 42. `ExternalPostedEndDate` past: 0 seen.
+- Rule (`oracle.closed`): record gone -> "Oracle no longer has the posting on record - it may have
+  closed"; end date past -> "may have closed"; no / future start date or any error -> "can't tell";
+  posted -> None. Start box read as closed: 0 of 7.
 
 ## Pages after Next - unmeasured
 
@@ -66,6 +119,7 @@ finder=findByRequisitionNumber;RequisitionNumber="<id>"` (flow flags, legal + e-
 |---|---|
 | Listing id (posting, apply flow, site settings reads) | opening the start box |
 | Visit tracking (`recruitingCEUserTrackings` POST, B), ad tags (Google, C) | page load (blocked in every run) |
+| Listing id (posting record read) | only when no box shows, to say why (`closed`) |
 | Email | the user's own click on Next - before the form |
 | Everything after | unmeasured - first real application |
 

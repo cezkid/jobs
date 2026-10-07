@@ -92,11 +92,51 @@ Measured on load only (nothing typed), 2026-10-03:
 - Name, phone, address, pay, skills, choices: nothing sent while typed (3 of 3).
 - At Next Step and Submit: unmeasured (Next not reachable while blocked, above).
 
+## Read back (2026-10)
+
+What `paylocity.holds` reads off the page once the form had time to keep it (`form.recheck`: refilled
+once, still gone -> FAIL to fill by hand) - what shows, never the answer it was given. Hand-built step
+`app/tests/fixtures/paylocity/form.html` (Widgets above, small synthetic `pageData`, Paylocity's own
+upload words; no live page's markup); Chrome tests in `test_apply_paylocity.py`.
+
+| Box | Read back |
+|---|---|
+| text boxes (name, email, LinkedIn, city, zip, address line 1) | box value as typed |
+| phone | by digits (the page's dialling code allowed in front) |
+| start date | by digits (the mask adds the slashes) |
+| yes/no, pay type (react-widgets) | text the combobox shows, case-blind |
+| How did you hear (native radios) | text beside the one ticked |
+| Country / State | the input's value, else what its `.form-group` shows (the pick shows over an empty input) |
+| skills | every item a tag |
+| labelled questions (acknowledgements, self-ID, screener) | found by label in its `.form-group`: its combobox text, ticked radio or box value |
+| work history / education | the first entry's company / school box not empty |
+| resume / cover letter | the chosen file's name shown on the page |
+| references, box not on this step | not held |
+
+Upload (`put_file`): page idle first (15 s cap), then the file chosen - it goes to Paylocity at once.
+Ok = its name shows for 2 s with no new error in Paylocity's own words; one of those -> FAIL with them;
+nothing either way in 20 s -> ASK. Words (its form script, plain GET, 2026-10-07): a 5 s toast "Error
+uploading Resume <reason>", "Error attaching Resume / Cover Letter / Additional File <reason>"; the file
+box's checks "File cannot be larger than <N>MB.", "File type <ext> is not allowed.", "A maximum of <N>
+file(s) is allowed.". Not a failure: "Sorry, we cannot complete the application using your resume. A
+copy of the resume has been attached ..." (attached; only its read into the boxes failed). Where the
+live page shows them: unmeasured - every `try` blocks the upload.
+
 ## Closed posting
 
 Apply link of a missing / closed job: 302 to `/Recruiting/Jobs/JobNotFound`, page says "We're
 sorry, that job does not exist or is not currently active" (2026-10-03, a made-up id) -
-`questions` says closed; `form.CLOSED` matches the wording.
+`form.CLOSED` matches the wording.
+
+`paylocity.closed(url)` (2026-10-07): plain GET of the apply page, redirect not followed (the same GET
+as opening the form - not a page load). 301 / 302 / 404 or a JobNotFound redirect -> closed, its
+`window.pageData` -> open, a 200 without it -> "no form ... may have closed", other answer or no
+answer -> can't tell. `pageData` has no active flag (only `lastStatusToActive`, a date).
+
+Measured over freehire's listed links (2 employers): open list 3 -> 2 with their form, 1 JobNotFound
+(freehire's list stale, closed per Paylocity); closed list 2 -> 1 JobNotFound, 1 still with its form
+(Paylocity still takes it - read open). 0 links with a form read closed
+(`.data/measure/paylocity-closed-check-2026-10-07.json`).
 
 ## Tenant notes
 

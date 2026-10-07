@@ -4,6 +4,7 @@ own steps."""
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import httpx
 import pytest
 
 from apply import browser, dom, questions, systems
@@ -147,3 +148,48 @@ def test_page_after_continue_read_generically_consent_and_password_left(at, caps
     assert adp.UNMEASURED in out and "password box 'Password' - yours to type" in out
     assert "(agreeing or consenting)" in out
     assert "Password" not in [dom.title(c["label"]) for c in dom.snapshot(page)["controls"] if c["hook"] in adp.ids_on_page(page)]
+
+
+def test_holds_reads_what_the_box_shows_never_cookie_or_consent(at):
+    page = at("start-box.html")
+    qs = {q["title"]: q for q in adp.read(page)}
+    first, phone = qs["First Name"] | {"answer": "Test"}, qs["Mobile Number"] | {"answer": "555-0100"}
+    assert not adp.holds(page, first)  # nothing typed yet
+    assert adp.fill(page, first, None) == "ok" and adp.fill(page, phone, None) == "ok"
+    assert adp.holds(page, first)
+    assert adp.holds(page, phone)  # the box shows "+1 555-0100": digits end the same
+    assert not adp.holds(page, qs["Mobile Number"] | {"answer": "555-0199"})
+    page.fill("#guestFirstName", "")
+    assert not adp.holds(page, first)
+    page.evaluate("document.querySelector('#login_view_phone').remove()")
+    assert not adp.holds(page, phone)  # box gone
+    assert not adp.holds(page, {"id": '[id="chkbox-id"]', "title": "checkbox label", "kind": "yesno", "answer": "Yes"})
+    assert not adp.holds(page, {"id": "#terms", "title": "I agree to the Terms", "kind": "yesno", "answer": "Yes"})
+
+
+def record(monkeypatch, status=200, body=None, error=None):
+    asked = []
+
+    def get(url, **kw):
+        asked.append(url)
+        if error:
+            raise error
+        return httpx.Response(status, json=body, request=httpx.Request("GET", url))
+    monkeypatch.setattr(adp.httpx, "get", get)
+    return asked
+
+
+def test_closed_reads_the_posting_record(monkeypatch):
+    asked = record(monkeypatch, body={"itemID": "9200000000001_1", "requisitionTitle": "Test Job", "links": []})
+    assert adp.closed(LINK) is None
+    u = urlsplit(asked[0])
+    assert u.path.endswith("/job-requisitions/9200000000001_1") and f"cid={CID}" in u.query and "ccId=19000101_000001" in u.query
+    # the empty record of a posting the page says is no longer accepting applications (2026-10-07)
+    record(monkeypatch, body={"postingInstructions": [], "links": [], "additionalProperties": {}})
+    assert adp.closed(LINK).startswith("ADP says it is no longer accepting applications")
+    with pytest.raises(ValueError, match="no longer accepting"):
+        adp.questions(LINK)  # before any browser
+    for kw in ({"status": 500}, {"body": ["x"]}, {"body": {"itemID": "other", "requisitionTitle": "Other"}},
+               {"error": httpx.ConnectError("down")}):
+        record(monkeypatch, **kw)
+        assert adp.closed(LINK).startswith("can't tell"), kw

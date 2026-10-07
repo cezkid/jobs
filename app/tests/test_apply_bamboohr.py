@@ -1,10 +1,13 @@
-"""BambooHR: link shapes, saved form definitions (anonymised, app/tests/fixtures/bamboohr) -> questions, each widget rule."""
+"""BambooHR: link shapes, saved form definitions (anonymised, app/tests/fixtures/bamboohr) -> questions, each widget rule,
+the hand-built form filled in the window as through Playwright."""
 import json
 from pathlib import Path
 
 import httpx
 import pytest
+from test_apply_in_window import BAMBOOHR_PATH, both, playwright_chrome, site, tab  # noqa: F401 - fixtures
 
+from apply import form as fill_form  # form() below is a tenant's questions
 from apply import questions, systems
 from apply.systems import bamboohr
 
@@ -110,10 +113,22 @@ class Got:
         return self.data
 
 
+def board(listed: bool, status=200):
+    """/detail answers 404; the employer's job list lists the posting or not."""
+    return lambda url, **k: (Got(status, {"result": [{"id": "7"}] + ([{"id": 101}] if listed else [])})
+                             if url.endswith("/careers/list") else Got(404))
+
+
 def test_closed_or_unknown_posting_says_so(monkeypatch):
-    # unknown posting id: 404 {"type": "not_found"} (2026-10-03)
-    monkeypatch.setattr(httpx, "get", lambda *a, **k: Got(404))
-    with pytest.raises(ValueError, match="closed"):
+    # taken down or unknown: 404 {"type": "not_found"} either way (2026-10-06) - the job list tells which
+    monkeypatch.setattr(httpx, "get", board(listed=False))
+    with pytest.raises(ValueError, match="no longer on the employer's BambooHR job list - it may have closed"):
+        bamboohr.questions(LINK)
+    monkeypatch.setattr(httpx, "get", board(listed=True))
+    with pytest.raises(ValueError, match="can't tell if the posting is open - it is on the employer's BambooHR job list"):
+        bamboohr.questions(LINK)
+    monkeypatch.setattr(httpx, "get", board(listed=False, status=503))
+    with pytest.raises(ValueError, match="can't tell .* job list answered 503"):
         bamboohr.questions(LINK)
     shut = detail("a")
     shut["result"]["jobOpening"]["jobOpeningStatus"] = "Closed"
@@ -123,6 +138,34 @@ def test_closed_or_unknown_posting_says_so(monkeypatch):
     asked = []
     monkeypatch.setattr(httpx, "get", lambda url, **k: asked.append(url) or Got(200, detail("a")))
     assert bamboohr.questions(LINK + "?utm_source=freehire.me") and asked == [LINK + "/detail"]
+
+
+def test_closed_reads_the_definition_then_the_job_list_never_guesses(monkeypatch):
+    monkeypatch.setattr(httpx, "get", lambda *a, **k: Got(200, detail("a")))
+    assert bamboohr.closed(LINK) is None
+    shut = detail("a")
+    shut["result"]["jobOpening"]["jobOpeningStatus"] = "Filled"
+    monkeypatch.setattr(httpx, "get", lambda *a, **k: Got(200, shut))
+    assert bamboohr.closed(LINK) == "BambooHR lists the posting as 'Filled' - it may have closed"
+    monkeypatch.setattr(httpx, "get", board(listed=False))
+    assert bamboohr.closed(LINK).startswith("the posting is no longer on the employer's BambooHR job list")
+    monkeypatch.setattr(httpx, "get", board(listed=True))
+    assert bamboohr.closed(LINK).startswith("can't tell")
+    monkeypatch.setattr(httpx, "get", lambda *a, **k: Got(500))
+    assert bamboohr.closed(LINK) == "can't tell if the posting is open - BambooHR answered 500"
+
+    def down(*a, **k):
+        raise httpx.ConnectError("no route")
+    monkeypatch.setattr(httpx, "get", down)
+    assert bamboohr.closed(LINK) == "can't tell if the posting is open - BambooHR didn't answer (ConnectError)"
+
+
+def test_upload_error_words_are_bamboohrs_own():
+    for said in ("Upload failed", "Request failed with status code 500", "Network Error",
+                 "Whoa, this is a big file (a little too big). The maximum file size you can upload is 20 MB.",
+                 "Whoops, something on our side prevented your file from uploading."):
+        assert bamboohr.UPLOAD_ERRORS.search(f"x {said} y").group() == said, said
+    assert not bamboohr.UPLOAD_ERRORS.search("Resume.pdf 120 KB")
 
 
 # --- widgets, with fakes ---
@@ -270,3 +313,74 @@ def test_files_only_the_resume_or_letter_and_only_after_yes():
     assert bamboohr.fill(object(), b["resumeFileId"] | {"answer": None}, "/tmp/r.pdf") == "skipped - upload not approved"
     letter = form("a")["coverLetterFileId"] | {"answer": True}
     assert bamboohr.fill(object(), letter, None).startswith("ASK cover letter box")
+
+
+# --- in the window: the same fill through window.Page as through Playwright ---
+
+def asked(id, title, kind, answer, key=None, options=(), native=None):
+    return questions.question(id, title, kind, True, options, key, native) | {"answer": answer}
+
+
+# the hand-built form's questions (fixtures/dom/bamboohr-form.html), each kind answered once: boxes by id, by
+# name + by label, Fabric lists, the employer's radios + Veteran Status's, the resume (the cover letter left)
+WINDOW_ANSWERS = [
+    asked("firstName", "First Name", "text", "Ada", key="first_name"),
+    asked("lastName", "Last Name", "text", "Lovelace", key="last_name"),
+    asked("email", "Email", "email", "ada@example.com", key="email"),
+    asked("phone", "Phone", "phone", "555-0100", key="phone"),
+    asked("streetAddress", "Address", "text", "1 Main St", key="street"),
+    asked("city", "City", "text", "Austin", key="city"),
+    asked("state", "State", "text", "New York", key="state"),
+    asked("zip", "ZIP", "text", "78701", key="zip"),
+    asked("countryId", "Country", "choice", "United States", options=["Canada", "United States"]),
+    asked("coverLetterFileId", "Cover Letter", "file", None, key="cover_letter", native="bamboohr:file 1 of 2"),
+    asked("resumeFileId", "Resume", "file", True, key="resume", native="bamboohr:file 2 of 2"),
+    asked("dateAvailable", "Date Available", "date", "11/02/2026"),
+    asked("desiredPay", "Desired Pay", "text", "90000"),
+    asked("linkedinUrl", "LinkedIn Profile URL", "url", "https://www.linkedin.com/in/example", key="linkedin"),
+    asked("educationLevelId", "Highest Education Obtained", "choice", "Bachelor's Degree"),
+    asked("references", "References", "longtext", "On request."),
+    asked("customQuestionAnswers.short_1018", "Salary range", "text", "90000-100000", native="bamboohr:short"),
+    asked("customQuestionAnswers.long_761", "Why Acme?", "longtext", "Their own words.", native="bamboohr:long"),
+    asked("customQuestionAnswers.yes_no_1019", "Will you now or in the future require sponsorship?", "yesno", "No",
+          options=["Yes", "No"], native="bamboohr:yes_no"),
+    asked("veteranStatusId", "Veteran Status", "choice", "Not a Veteran", options=bamboohr.VETERAN_OPTIONS)]
+# each box's value or tick, each Fabric list's shown pick, each upload block's words - read off the page
+WINDOW_SHOWN = ("es => es.map(e => e.type === 'radio' ? e.checked : e.value)"
+                ".concat([...document.querySelectorAll('.fab-SelectToggle__content, [data-fabric-component=FileUploadList]')]"
+                ".map(e => e.innerText.trim()))")
+WINDOW_BOXES = "form input:not([type=file]):not([name=nickname_hpcsaf]), form textarea:not([aria-hidden])"
+
+
+def test_in_window_fills_bamboohr_as_playwright_does(tab, site, playwright_chrome, tmp_path, monkeypatch):
+    # bamboohr.fill + holds + form.fill_page through each: same report, same page after, every answer read
+    # back, a second fill changes nothing (plan-k8n.10)
+    monkeypatch.setattr(fill_form, "SETTLE_MS", 300)
+    monkeypatch.setattr(bamboohr, "ERROR_WAIT_MS", 500)
+    resume = tmp_path / "Ada_Lovelace_Resume.pdf"
+    resume.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    answered = [q for q in WINDOW_ANSWERS if q["answer"] is not None]
+    again = [q for q in answered if q["kind"] != "file"]
+    reports, pages = {}, {}
+    with both(tab, playwright_chrome, site.replace("/acme/jobs/1", BAMBOOHR_PATH)) as tabs:
+        for name, page in tabs.items():
+            assert fill_form.closed(page, bamboohr) is None
+            bamboohr.recover(page, LINK)  # the form is up: no button clicked
+            report, extra = fill_form.fill_page(page, bamboohr, WINDOW_ANSWERS, str(resume), None)
+            reports[name] = dict(report)
+            assert extra == []
+            once = page.eval_on_selector_all(WINDOW_BOXES, WINDOW_SHOWN)
+            assert [bamboohr.fill(page, q, None) for q in again] == ["ok"] * len(again)
+            page.wait_for_timeout(300)
+            assert page.eval_on_selector_all(WINDOW_BOXES, WINDOW_SHOWN) == once
+            pages[name] = once
+            assert [q["id"] for q in answered if not bamboohr.holds(page, q)] == []
+    assert reports["window"] == reports["playwright"]
+    assert reports["window"] == {q["id"]: "ok" for q in answered}
+    assert pages["window"] == pages["playwright"]
+    # what shows, empty boxes + clear ticks left out: contact, address, the date, pay, profile, references,
+    # both employer answers, No, Not a Veteran, State + Country, the resume in its block (not the letter's), education
+    assert [v for v in pages["window"] if v not in ("", False)] == [
+        "Ada", "Lovelace", "ada@example.com", "555-0100", "1 Main St", "Austin", "78701", "11/02/2026", "90000",
+        "https://www.linkedin.com/in/example", "On request.", "90000-100000", "Their own words.", True, True,
+        "New York", "United States", resume.name, "Bachelor's Degree"]

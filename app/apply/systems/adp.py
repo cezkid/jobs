@@ -8,7 +8,10 @@ click on Continue sends them to the employer - the page calls it a verification.
 Measured facts, and what isn't measured: app/docs/apply/adp.md.
 """
 import re
+import time
 from urllib.parse import parse_qs, urlencode, urlsplit
+
+import httpx
 
 from apply import browser, dom
 from apply.questions import question, signs
@@ -21,6 +24,11 @@ SOURCES = ("adp",)
 EXAMPLES = ("https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=00000000-acme-0000-0000-000000000000&ccId=19000101_000001&jobId=9200000000001_1",
             "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?ccId=19000101_000001&cid=00000000-acme-0000-0000-000000000000&jobId=9200000000001_1&lang=en_US&utm_source=x")
 PER_PAGE = True
+# the job page's button that opens the start box (measure.py raw clicks it once; recover() too)
+APPLY = "Apply"
+# the posting's record, the one the job page itself reads (plain GET, signed out, 2026-10-07)
+RECORD = ("https://" + HOST + "/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions/{job}"
+          "?cid={cid}&timeStamp={ms}&lang=en_US&ccId={cc}&locale=en_US")
 # the job page's only controls are the hidden cookie panel's (measured, 3 tenants): a box shows
 # only once Apply opened one
 READY = "input:not([type=hidden]):visible, select:visible, textarea:visible"
@@ -66,6 +74,30 @@ def application_url(url: str) -> str:
     return f"https://{HOST}{PATH}?{urlencode(params)}"
 
 
+def closed(url: str) -> str | None:
+    """Why no box shows (form.closed, after the page's own words): the posting's record. Its job id +
+    title -> None (open); an empty record (no id, no title) -> closed: the page then says "We are no
+    longer accepting applications for this position." (1 of 6 listed open, measured 2026-10-07); anything
+    else -> can't tell - never a guess."""
+    parse_url(url)
+    q = {k.casefold(): v[0] for k, v in parse_qs(urlsplit(url.strip()).query).items()}
+    try:
+        r = httpx.get(RECORD.format(job=q["jobid"], cid=q["cid"], cc=q.get("ccid", ""), ms=int(time.time() * 1000)),
+                      timeout=30, headers={"Accept": "application/json", "User-Agent": "Mozilla/5.0"})
+        if r.status_code != 200:
+            return f"can't tell if the posting is open - ADP answered {r.status_code}"
+        record = r.json()
+    except (httpx.HTTPError, ValueError) as e:
+        return f"can't tell if the posting is open - ADP didn't answer ({type(e).__name__})"
+    if not isinstance(record, dict):
+        return "can't tell if the posting is open - ADP's answer wasn't a posting record"
+    if record.get("itemID") == q["jobid"] and record.get("requisitionTitle"):
+        return None
+    if not record.get("itemID") and not record.get("requisitionTitle"):
+        return "ADP says it is no longer accepting applications for this job - it may have closed"
+    return "can't tell if the posting is open - ADP's record names another job"
+
+
 def on_tab(url: str, tab_url: str) -> bool:
     """This employer's job: the start box opens over the job page (same link, 3 tenants); one host
     serves every employer, so cid + job id decide - never the host alone."""
@@ -82,7 +114,7 @@ def recover(page, url: str) -> None:
     sent nothing in the click (measured, blocked, 2026-10-03). Nothing else is clicked."""
     if page.locator(READY).count():
         return
-    apply = page.get_by_role("button", name="Apply", exact=True).filter(visible=True)
+    apply = page.get_by_role("button", name=APPLY, exact=True).filter(visible=True)
     if apply.count():
         apply.first.click(timeout=15000)
 
@@ -138,6 +170,8 @@ def read(page) -> list[dict]:
 
 
 def questions(url: str) -> list[dict]:
+    if (why := closed(url)) and not why.startswith("can't tell"):
+        raise ValueError(why)  # before any browser: a gone posting never opens a tab for nothing
     with browser.page_at(application_url(url), match=lambda tab: on_tab(url, tab)) as page:
         recover(page, url)
         page.locator(READY).first.wait_for(timeout=30000)
@@ -159,7 +193,21 @@ def with_code(page, q: dict) -> dict:
     return q | {"answer": f"{code.group(1)} {answer}"} if code else q
 
 
+def cookie(q: dict) -> bool:
+    return bool(COOKIE_IDS.match(q["id"]) or (q["id"].startswith("role=checkbox|") and q["title"].casefold() in COOKIE_LABELS))
+
+
+def holds(page, q: dict) -> bool:
+    """The answer still shows, read off the page once the form had time to keep it (form.recheck), as
+    adp.md "Read back (2026-10)" records it: dom.holds on the page without the cookie panel - each box
+    by its value, the mobile number by its digits (the box shows its own "+1 " in front). Cookie choices
+    and agreeing ticks are the applicant's: never read as ours."""
+    if cookie(q) or signs(q["title"]):
+        return False
+    return dom.holds(page, q, page_only(dom.snapshot(page)))
+
+
 def fill(page, q: dict, resume_file: str | None) -> str:
-    if COOKIE_IDS.match(q["id"]) or (q["id"].startswith("role=checkbox|") and q["title"].casefold() in COOKIE_LABELS):
+    if cookie(q):
         return "ASK yours to do on the page - cookie choices are your own"
     return dom.fill(page, with_code(page, q), resume_file, later=True)

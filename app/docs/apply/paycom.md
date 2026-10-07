@@ -53,6 +53,38 @@ Page code names the phone parts `primaryPhoneNumber`, `primaryPhoneIsoCode`, `pr
 - the box's own ids unmeasured. `read` recognises the box by its labels (Legal First Name +
 Confirm Email) and tags each box `page="Getting You Started"`.
 
+## Read back (2026-10)
+
+What `paycom.holds` reads off the page once the form had time to keep it (`form.recheck`: refilled
+once, still gone -> FAIL to fill by hand) - what shows, never the answer it was given. `dom.holds`;
+fixture `app/tests/fixtures/paycom/start-box.html` (rebuilt from its labels - the box never opened
+while blocked); Chrome tests in `test_apply_paycom.py`. Live read-back unmeasured (no open box).
+
+| Box | Read back |
+|---|---|
+| Legal First / Last Name, Email, Confirm Email | box value exact |
+| Primary Phone | by digits |
+| SMS consent | the applicant's own - never read as ours (not held) |
+| box gone, or its label changed | not held |
+
+No upload on the start box (none seen by hand): `put_file` never runs here. Pages after Continue:
+read generically, their uploads unmeasured.
+
+## Closed posting (2026-10-07)
+
+`paycom.closed(url)`: plain GET (not a page load) of the portal job page. An open job's page carries
+the posting for search engines (`<script type="application/ld+json" id="google-job-json-ld">`,
+`"@type": "JobPosting"`) -> open; a page without it -> closed, `questions` stops before any browser;
+not 200 / not a page -> can't tell. Job ids that never existed (1, 99999999): 200, same page, no
+posting; the page then says "We Couldn't Find This Job" + "Return to Job Listings" (measure, 1 page
+load) - `form.CLOSED` now matches "couldn't find this job". Its own read
+`api/ats/job-postings/<id>` 404s there, but by plain GET answers 401 (needs the page's session) - not
+used.
+
+Measured: open list 1 link -> open; 0 open read closed. A real closed posting: unmeasured (no link
+to one) - it is assumed to read like an id that never existed. Page loads 2
+(`.data/measure/paycom-closed-check-2026-10-07.json`).
+
 ## Pages after Continue - unmeasured
 
 After Continue the page code sends the user to `applications/<id>` (same portal). `read` takes
@@ -68,7 +100,7 @@ None public. The page code fetches questions after the record exists (`getQuesti
 
 | What | When |
 |---|---|
-| Listing id (posting + privacy policy reads) | opening the job page, clicking Apply |
+| Listing id (posting + privacy policy reads) | opening the job page, clicking Apply; `closed` reads the job page by plain GET |
 | Page-view analytics (job, screen size, referrer) | page load + Apply click (POST `api/analytics`) |
 | Name, email, phone (+ SMS answer) | the user's own click on Continue To Application - before the form |
 | Everything after | unmeasured - first real application |
@@ -78,3 +110,5 @@ None public. The page code fetches questions after the record exists (`getQuesti
 - A, B: Apply opens nothing while blocked (2026-10-03).
 - C: `#!apply-sign-in` link renders blank while blocked (2026-10-03).
 - D: `try` - "form never showed" (2026-10-03).
+- Window A (one more employer, `vscode-browser.md` Paycom - route 2): Apply opens nothing while
+  blocked (2026-10-07).

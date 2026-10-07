@@ -68,6 +68,50 @@ the entry off.
 - Rerun safe: work entry skipped when "Title, Company" already listed, school by name, skill by
   text, link by `href`.
 
+## Read back (2026-10)
+
+What `ukg.holds` reads off the page once the form had time to keep it (`form.recheck`: refilled once,
+still gone -> FAIL to fill by hand) - what shows, never the answer it was given. Hand-built page
+`app/tests/fixtures/ukg/form.html` (Widgets above + UKG's own English strings; no live page's markup,
+signed-in page unmeasured here - no account); Chrome tests in `test_apply_ukg.py`.
+
+| Box | Read back |
+|---|---|
+| Country, State, How did you hear | text of the option the list shows |
+| address, city, zip | box value as typed; phone by digits |
+| referral | the Yes / No radio ticked |
+| start date | its 3 parts (month, day, year) = the answer's |
+| screening: MultipleChoice | text beside the visible radio ticked (hidden template copies never read) |
+| screening: Text / Numeric | the visible box's value |
+| self-ID | list's option shown; "I decline to say" = its box ticked; list hidden -> not held |
+| resume | a file name in the Documents box |
+| resume sections | panels there, no entry editor left open (each entry saved to the account as added) |
+| box / question not on the page | not held |
+
+Upload (`put_file`): page idle first (15 s cap), then the file chosen in the Documents box. Ok = its
+name shows there for 2 s with no new error in UKG's own words; one of those -> FAIL with them; nothing
+either way in 20 s -> ASK. Words (UKG's English strings, plain GET of the site's
+`/Content/locales/en-US/translation.json`, 2026-10-07): "We're sorry, something went wrong with the
+upload. Please try again.", "... files must be <N> MB or less.", "... that file type is not
+supported.", "... the file name must not exceed <N> characters.", "There was an error uploading your
+file.", "Sorry, we can only support <N> documents per ...". Resume-parsing box's own errors left out
+(never that box). Where the signed-in page shows them: unmeasured.
+
+## Closed posting (2026-10-07)
+
+`ukg.closed(url)`: plain GET of the posting page (`OpportunityDetail`, signed out - not a page load).
+UKG's own block `data-i18n="Opportunity.OpportunityError.OpportunityUnavailableMessage"` ("This
+opportunity is currently not available.") -> closed, `questions` stops before any browser; view model
+`US.Opportunity.CandidateOpportunityDetail(` + apply link -> open; else can't tell. `form.CLOSED`
+matches "opportunity is (currently) not available" (also its 404 words "Sorry, this opportunity is
+not available."); not "Visa sponsorship is not available", not "only available for <tenant>
+employees" (internal posting, a sign-in matter).
+
+Measured over freehire's listed links (7 employers): open list 9 -> 6 open (view model + apply
+link, 89-99 KB), 3 UKG's block (~42 KB, no view model, no apply link) - freehire's list stale; 0 open
+read closed. Closed list: 0 links - closed wording once signed in unmeasured. Bead planned 3 page
+loads; plain reads covered all 9 instead (`.data/measure/ukg-closed-check-2026-10-07.json`).
+
 ## Sent or not
 
 No sent page in history. Signed in: My Presence (`.../Candidate/ViewPresence`) -> Applications

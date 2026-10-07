@@ -90,11 +90,61 @@ Per box (`apply-form try`, tenants A, B, E, 2026-10-03, all blocked):
 
 Bot checks: DataDome + Cloudflare challenge scripts load on every form; no captcha shown on page 1
 (4 of 4).
+Headless Chrome (`lab` measure, 2026-10-06): DataDome Device Check (`geo.captcha-delivery.com`
+interstitial) in place of the form, 2 of 2 - measure headed. Job Finder window tab: same device check, 2 of
+2, form never drawn (`vscode-browser.md`, SmartRecruiters - route 2).
 
-## Closed posting
+## Closed posting (2026-10-06)
 
-Page wording unmeasured. The public posting record carries `active`: `questions` reads it first and
-stops on `false` ("posting not active - it may have closed").
+Measured over `.data/links/smartrecruiters-open.txt` + `-closed.txt` (15 links, 12 employers; plain
+GETs 2 s apart, 0 page loads for this, 0 429). Counts in `.data/measure/smartrecruiters-closed-check-2026-10-06.json`.
+
+| List | Links | Record 200 | `active` true | `active` false | On the company's public list |
+|---|---|---|---|---|---|
+| open | 14 | 14 | 8 | 6 (2 `visibility` INTERNAL) | 7 of the 8 true; 0 of the 6 false |
+| closed | 1 | 1 | 1 | 0 | no |
+
+- Record = `GET https://api.smartrecruiters.com/v1/companies/<Company>/postings/<postingId>`, no key.
+- SmartRecruiters' own posting page (plain GET, 200 for all 15) agrees with `active` 15 of 15: false
+  -> "Sorry, this job has expired" + a past `validThrough`, no apply button (6 of 6); true -> "I'm
+  interested" button, no `validThrough` (9 of 9).
+- Company's public list (`/v1/companies/<Company>/postings?limit=100&offset=N`) misses 2 active
+  ones (one released a day before) - not used; the record decides.
+- `?oga=true` still 302s to the form app for an expired posting (15 of 15); the form app then shows
+  "This job ad has expired" + "Find more job offers at https://jobs.smartrecruiters.com", 0 boxes, its
+  address ending `/expired` (headed measure, 1 link). Both wordings are in `form.CLOSED`
+  (`job (?:ad )?has expired`); its "the form has been closed to protect your data" = a timed-out
+  session, and "Your authentication code expired" - neither matched.
+- Rule (`smartrecruiters.closed`, + `questions`): `active` false -> "SmartRecruiters says the
+  posting has expired - it may have closed"; record unreadable, or a form app link (no posting id)
+  -> "can't tell"; never a guess.
+- Open read as closed: 0. Every link whose SmartRecruiters page shows the apply button reads
+  `active` true. The 6 open-list links read closed are expired on SmartRecruiters' own page - the
+  job search still listed them.
+
+## Read back (2026-10)
+
+What `smartrecruiters.holds` reads off the page once the form had time to keep it (`form.recheck`:
+refilled once, still gone -> FAIL to fill by hand) - what shows, never the answer it was given.
+Hand-built page `app/tests/fixtures/smartrecruiters/form.html` (Widgets above + the form app's own
+English strings; no live page's markup); Chrome tests in `test_apply_smartrecruiters.py`.
+
+| Box | Read back |
+|---|---|
+| names, email + confirm, links, phone number, message | `dom.holds`: its snapshot walks the open shadow roots; value as typed (phone by digits), shown, label unchanged |
+| City | the place its box shows, town before the first comma = the answer's |
+| phone country | the name of the option the widget's value names (`spl-select value="US"` -> United States) |
+| resume | a file name shown on the page (deep text, shadow roots) |
+| box not on the page | not held |
+
+Upload (`put_file`): page idle first (15 s cap), then the file chosen in the resume field. Ok = its
+name shows for 2 s with no new error in SmartRecruiters' own words; one of those -> FAIL with them;
+nothing either way in 20 s -> ASK. Words (form app's English strings, plain GET
+`/oneclick-ui/i18n/en?names=oneclick-ui`, 2026-10-06): "Cannot upload resume. Please try again in a
+while.", "Cannot upload file. ...", "Unfortunately, this file format is not supported.", "File size
+cannot be empty nor bigger than <N> MB.", "An error occurred, please try again later.", "Please
+attach your resume to complete this application". Where the live page shows them: unmeasured -
+every `try` blocks the upload.
 
 ## Tenant notes
 

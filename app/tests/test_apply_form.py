@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import ashby, greenhouse, lever, ukg
+from apply.systems import adp, ashby, bamboohr, greenhouse, icims, jazzhr, lever, oracle, paycom, paylocity, smartrecruiters, ukg, workable
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -39,7 +39,7 @@ def test_every_system_module_is_found_and_keeps_the_contract(module):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-IN_SCOPE = [greenhouse, ashby, lever]
+IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
@@ -1477,6 +1477,34 @@ READ_BACK_FORMS = {
         answered("cards[acme][field0]", "longtext", "Their own words."),
         answered("cards[acme][field1]", "yesno", "Yes"), answered("cards[acme][field2]", "choice", "3-5"),
         answered("cards[acme][field3]", "multichoice", ["Python", "Excel"])]),
+    "jazzhr": ("jazzhr-form.html", [
+        answered("resumator-firstname-value", "text", "Ada"), answered("resumator-email-value", "email", "ada@example.com"),
+        answered("resumator-phone-value", "phone", "555-0100"),
+        answered("resumator-questionnaire-q1474074", "yesno", "No", ["YES", "NO"]) | {"native": "jazzhr:select"},
+        answered("resumator-citizen-value", "choice", "I am a U.S. Citizen/Permanent Resident") | {"native": "jazzhr:select"},
+        answered("resumator-questionnaire-q1586173", "choice", "3-5") | {"native": "jazzhr:select"},
+        answered("resumator-start-value", "date", "11/02/2026") | {"native": "jazzhr:date"},
+        answered("resumator-questionnaire-q1474076", "yesno", "No", ["YES", "NO"]) | {"native": "jazzhr:checkboxes"}]),
+    "workable": ("workable-form.html", [
+        answered("firstname", "text", "Ada"), answered("email", "email", "ada@example.com"),
+        answered("phone", "phone", "555-0100"), answered("address", "location", "Boston, MA"),
+        answered("QA_1", "longtext", "Their own words."), answered("QA_2", "number", "90000"),
+        answered("QA_3", "yesno", "Yes", ["Yes", "No"]),
+        answered("QA_4", "choice", "No", ["Yes - please add details below", "No"]),
+        answered("CA_9", "multichoice", ["Weekends", "Holiday"], ["Weekends", "Evenings", "Holiday"])
+        | {"native": "CA:multiple:152176,152177,152178"},
+        answered("CA_1", "choice", "Associate", ["High School/GED", "Associate", "Bachelor's"]),
+        answered("CA_2", "yesno", "No", ["Yes", "No"])]),
+    "bamboohr": ("bamboohr-form.html", [
+        answered("firstName", "text", "Ada"), answered("email", "email", "ada@example.com"),
+        answered("phone", "phone", "555-0100"), answered("streetAddress", "text", "1 Main St"),
+        answered("state", "text", "New York"), answered("countryId", "choice", "United States"),
+        answered("dateAvailable", "date", "11/02/2026", title="Date Available"),
+        answered("educationLevelId", "choice", "Bachelor's Degree"),
+        answered("customQuestionAnswers.short_1018", "text", "90000"),
+        answered("customQuestionAnswers.long_761", "longtext", "Their own words."),
+        answered("customQuestionAnswers.yes_no_1019", "yesno", "No", ["Yes", "No"]) | {"native": "bamboohr:yes_no"},
+        answered("veteranStatusId", "choice", "Not a Veteran", bamboohr.VETERAN_OPTIONS)]),
 }
 
 
@@ -1517,6 +1545,80 @@ def test_ashby_holds_reads_what_shows_never_the_answer(fixture_page):
     assert not ashby.holds(page, answered("q_country", "location", "Boston, MA"))
 
 
+def test_jazzhr_holds_reads_what_shows_never_the_answer(fixture_page):
+    """Untouched dropdown = the no-answer option shows; no tick; a box not on the page: not held."""
+    page = fixture_page("jazzhr-form.html")
+    sel = lambda id, kind, a, opts=(): answered(id, kind, a, opts) | {"native": "jazzhr:select"}
+    assert not jazzhr.holds(page, sel("resumator-over18-value", "yesno", "Yes", ["Yes", "No"]))
+    assert not jazzhr.holds(page, sel("resumator-questionnaire-q1586173", "choice", "No answer"))
+    ticks = answered("resumator-questionnaire-q1474076", "yesno", "Yes", ["YES", "NO"]) | {"native": "jazzhr:checkboxes"}
+    assert not jazzhr.holds(page, ticks)
+    assert jazzhr.fill(page, ticks, None) == "ok" and jazzhr.holds(page, ticks)
+    page.locator("#resumator-checkbox-1474076-2").check()  # both ticked shows no single answer
+    assert not jazzhr.holds(page, ticks)
+    assert not jazzhr.holds(page, answered("resumator-gone-value", "text", "x"))
+    page.locator("#resumator-phone-value").fill("(555) 010-0999")
+    assert not jazzhr.holds(page, answered("resumator-phone-value", "phone", "555-010-0100"))
+
+
+def test_jazzhr_upload_opens_attach_reads_the_name_and_the_pages_limit(fixture_page, tmp_path):
+    """"Attach resume" shows the file box; ok = the box holds the file within the page's own "limit 5MB";
+    an error JazzHR's script wrote by the resume box is passed on in its words."""
+    page = fixture_page("jazzhr-form.html")
+    resume = answered("resumator-resume-value", "file", True, title="Resume") | {"key": "resume"}
+    good, big = tmp_path / "Ada_Lovelace_Resume.pdf", tmp_path / "Big_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4 test")
+    big.write_bytes(b"%PDF-1.4 " + b"0" * (5 * 1024 * 1024 + 1))
+    assert not page.locator("#resumator-resume-value").is_visible()
+    assert jazzhr.fill(page, resume, str(good)) == "ok"
+    assert page.locator("#resumator-resume-value").is_visible() and jazzhr.holds(page, resume)
+    got = jazzhr.fill(page, resume, str(big))
+    assert got.startswith("FAIL the file is bigger than the page allows") and "limit 5MB" in got
+    page.evaluate("""() => document.getElementById('resumator-resume').insertAdjacentHTML('beforeend',
+        '<span class="resumator_label_error">Please attach a resume</span>')""")
+    assert jazzhr.fill(page, resume, str(good)) == "FAIL the page says 'Please attach a resume' - check the resume box"
+
+
+def test_workable_holds_reads_what_shows_never_the_answer(fixture_page):
+    """Nothing picked, a wrong pick, a box not on the page, a tick too many: not held."""
+    page = fixture_page("workable-form.html")
+    work = answered("QA_3", "yesno", "Yes", ["Yes", "No"])
+    assert not workable.holds(page, work)
+    assert workable.fill(page, work | {"answer": "No"}, None) == "ok"
+    assert not workable.holds(page, work)
+    degree = answered("CA_1", "choice", "Associate")
+    assert not workable.holds(page, degree)
+    assert workable.fill(page, degree | {"answer": "Bachelor's"}, None) == "ok" and not workable.holds(page, degree)
+    shifts = answered("CA_9", "multichoice", ["Weekends"], ["Weekends", "Evenings", "Holiday"]) | {"native": "CA:multiple:152176,152177,152178"}
+    assert workable.fill(page, shifts, None) == "ok" and workable.holds(page, shifts)
+    page.locator('input[name="152177"]').check()
+    assert not workable.holds(page, shifts)
+    assert not workable.holds(page, answered("QA_99", "text", "x"))
+    page.locator("#input_phone").fill("+1 555-0100")  # a dialling code in front is the box's
+    assert workable.holds(page, answered("phone", "phone", "555-0100"))
+    assert not workable.holds(page, answered("phone", "phone", "555-0199"))
+    assert not workable.holds(page, answered("resume", "file", True) | {"key": "resume"})
+
+
+def test_workable_upload_waits_for_storage_and_says_the_pages_words(fixture_page, monkeypatch, tmp_path):
+    """Choosing the file sends it to storage at once (stand-in endpoint on the fixture host): ok only once
+    the name shows and no error follows; the page's own words when it refuses or the upload fails."""
+    monkeypatch.setattr(workable, "ERROR_WAIT_MS", 500)
+    page = fixture_page("workable-form.html")
+    resume = answered("resume", "file", True, title="Resume") | {"key": "resume"}
+    good, big = tmp_path / "Ada_Lovelace_Resume.pdf", tmp_path / "Big_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    big.write_bytes(b"%PDF-1.4 " + b"0" * (5 * 1024 * 1024 + 1))
+    assert workable.fill(page, resume, str(good)) == "ok" and workable.holds(page, resume)
+    assert page.locator("#input_files_input_ph0t0").evaluate("e => e.files.length") == 0  # never the photo box
+    assert workable.fill(page, resume, str(big)) == \
+        "FAIL the page says 'File is too big' - choose the file again on the page, or check the resume box"
+    assert not workable.holds(page, resume)
+    page.route("**/workable-upload.json", lambda route: route.fulfill(status=500, body=""))
+    assert workable.fill(page, resume, str(good)) == ("FAIL the page says 'Something went wrong. We are working on this, "
+                                                      "please try again later.' - choose the file again on the page, or check the resume box")
+
+
 def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_page, monkeypatch, tmp_path):
     """A failed upload still shows the file name + Replace (3 of 3 employers, 2026-10-05): ok only once
     the page has said nothing failed for a while after the name; its own error words otherwise."""
@@ -1529,6 +1631,51 @@ def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_pag
     assert ashby.fill(page, resume, str(bad)) == \
         "FAIL the page says 'bad_Resume.pdf failed to upload' - choose the file again on the page, or check the resume box"
     assert ashby.fill(page, resume, str(good)) == "ok"
+
+
+def test_bamboohr_holds_reads_what_shows_never_the_answer(fixture_page):
+    """Untouched list shows "-Select-", no radio ticked, another pick, a box not on the page, no file: not held."""
+    page = fixture_page("bamboohr-form.html")
+    state = answered("state", "text", "New York")
+    assert not bamboohr.holds(page, state)
+    assert bamboohr.fill(page, state | {"answer": "Alaska"}, None) == "ok" and not bamboohr.holds(page, state)
+    assert bamboohr.holds(page, answered("countryId", "choice", "United States"))  # preset by the page
+    vet = answered("veteranStatusId", "choice", "Veteran")
+    assert not bamboohr.holds(page, vet)
+    assert bamboohr.fill(page, vet | {"answer": "Not a Veteran"}, None) == "ok" and not bamboohr.holds(page, vet)
+    sponsor = answered("customQuestionAnswers.yes_no_1019", "yesno", "Yes") | {"native": "bamboohr:yes_no"}
+    assert not bamboohr.holds(page, sponsor)
+    assert bamboohr.fill(page, sponsor, None) == "ok" and bamboohr.holds(page, sponsor)
+    assert not bamboohr.holds(page, answered("customQuestionAnswers.short_9", "text", "x"))
+    page.locator("#phone").fill("+1 555-0100")  # a dialling code in front is the box's
+    assert bamboohr.holds(page, answered("phone", "phone", "555-0100"))
+    assert not bamboohr.holds(page, answered("phone", "phone", "555-0199"))
+    resume = answered("resumeFileId", "file", True, title="Resume") | {"key": "resume", "native": "bamboohr:file 2 of 2"}
+    assert not bamboohr.holds(page, resume)
+
+
+def test_bamboohr_upload_waits_for_the_block_and_says_the_pages_words(fixture_page, monkeypatch, tmp_path):
+    """Choosing the file sends it at once (stand-in endpoint on the fixture host): ok once the name shows,
+    sent, with no error after; BambooHR's own banner words when it refuses or the upload fails - a banner
+    left from an earlier try is not this one's. Never the cover letter box."""
+    monkeypatch.setattr(bamboohr, "ERROR_WAIT_MS", 500)
+    page = fixture_page("bamboohr-form.html")
+    resume = answered("resumeFileId", "file", True, title="Resume") | {"key": "resume", "native": "bamboohr:file 2 of 2"}
+    good = tmp_path / "Ada_Lovelace_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    assert bamboohr.fill(page, resume, str(good)) == "ok" and bamboohr.holds(page, resume)
+    letter = page.locator("[data-fabric-component=FileUploadList]").first
+    assert letter.inner_text() == ""  # never the cover letter box
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(
+        status=200, content_type="application/json", body='{"status": "ERROR", "errorType": "invalid_file_size"}'))
+    assert bamboohr.fill(page, resume, str(good)) == (
+        "FAIL the page says 'Whoa, this is a big file (a little too big). The maximum file size you can upload is 20 MB.'"
+        " - choose the file again on the page, or check the Resume box")
+    assert not bamboohr.holds(page, resume)
+    page.unroute("**/bamboohr-upload.json")
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(status=500, body=""))
+    assert bamboohr.fill(page, resume, str(good)) == \
+        "FAIL the page says 'Request failed with status code 500' - choose the file again on the page, or check the Resume box"
 
 
 def test_survey_tally_is_counts_only():

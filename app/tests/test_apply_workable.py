@@ -91,10 +91,61 @@ def test_workable_acknowledgment_date_and_attestations_are_the_applicants():
         assert workable.fill(None, q | {"answer": "x"}, None).startswith("ASK yours to do on the page"), q["title"]
 
 
+class Answer:
+    def __init__(self, status, body=None, location=None):
+        self.status_code, self.body, self.headers = status, body, {"location": location} if location else {}
+
+    def json(self):
+        return self.body
+
+    def raise_for_status(self):
+        assert self.status_code == 200
+
+
+def workable_says(monkeypatch, form=404, short=(301, "/acme/j/1A2B3C4D5E"), listed=()):
+    """Workable's three plain answers (2026-10-06): the form definition, the short link's redirect, the
+    employer's job list."""
+    asked = []
+
+    def get(url, timeout):
+        asked.append(url)
+        if url.endswith("/form"):
+            return Answer(form, [] if form == 200 else None)
+        if "/widget/accounts/" in url:
+            assert url.endswith("/acme")
+            return Answer(200, {"jobs": [{"shortcode": c} for c in listed]})
+        return Answer(short[0], location=short[1])
+    monkeypatch.setattr(workable.httpx, "get", get)
+    return asked
+
+
 def test_workable_posting_gone_is_said_plainly(monkeypatch):
-    monkeypatch.setattr(workable.httpx, "get", lambda url, timeout: type("R", (), {"status_code": 404})())
-    with pytest.raises(ValueError, match="may have closed"):
+    workable_says(monkeypatch)
+    with pytest.raises(ValueError, match="no longer on the employer's Workable job list - it may have closed"):
         workable.questions(APPLY)
+    workable_says(monkeypatch, short=(302, "/oops"))
+    with pytest.raises(ValueError, match="Workable no longer knows this posting - it may have closed"):
+        workable.questions(APPLY)
+
+
+def test_workable_closed_only_from_its_own_answers_never_a_guess(monkeypatch):
+    """Form there = open (38 of 38 were on the employer's list); 404 + off the list = may have closed
+    (5 of 5); 404 + still listed = can't tell; no answer = can't tell."""
+    asked = workable_says(monkeypatch, form=200)
+    assert workable.closed(APPLY) is None and len(asked) == 1
+    workable_says(monkeypatch)
+    assert workable.closed(APPLY) == "the posting is no longer on the employer's Workable job list - it may have closed"
+    workable_says(monkeypatch, short=(302, "/oops"))
+    assert workable.closed(APPLY) == "Workable no longer knows this posting - it may have closed"
+    workable_says(monkeypatch, listed=["1a2b3c4d5e"])
+    assert workable.closed(APPLY).startswith("can't tell if the posting is open - it is on the employer's Workable job list")
+    workable_says(monkeypatch, form=503)
+    assert workable.closed(APPLY) == "can't tell if the posting is open - Workable answered 503"
+
+    def down(url, timeout):
+        raise workable.httpx.ConnectError("no network")
+    monkeypatch.setattr(workable.httpx, "get", down)
+    assert workable.closed(APPLY) == "can't tell if the posting is open - Workable didn't answer (ConnectError)"
 
 
 # --- widgets, with fakes ---
@@ -237,6 +288,8 @@ class Page:
         raise AssertionError(css)
 
     def evaluate(self, js):
+        if js == workable.RESUME_BOX:  # the resume box's words: the chosen file's name once stored
+            return " ".join(getattr(self.files[self.resume_at], "files", [])) if self.resume_at >= 0 else None
         assert js == workable.RESUME_INPUT
         return self.resume_at
 
@@ -308,7 +361,8 @@ def test_workable_ticks_by_option_name():
     assert workable.fill(Page(), multi, None) == "FAIL question not on page"
 
 
-def test_workable_resume_found_by_its_words_and_only_with_a_yes(tmp_path):
+def test_workable_resume_found_by_its_words_and_only_with_a_yes(tmp_path, monkeypatch):
+    monkeypatch.setattr(workable, "ERROR_WAIT_MS", 0)
     cv = tmp_path / "Test_Resume.pdf"
     cv.write_bytes(b"%PDF")
     photo, resume = Box("file"), Box("file")

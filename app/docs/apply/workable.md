@@ -56,7 +56,7 @@ the following page" - a page after Submit: unmeasured. Consent / attestation lin
 |---|---|---|
 | standard text boxes | `input#<id>` w/ `name` = the definition id (`firstname`, `lastname`, `email`, `headline`, `address`); phone `input#input_phone[name=phone]` type tel; `textarea#summary`, `textarea#cover_letter` | find by `name` = id (stable both loads, 4 of 4) |
 | address helpers | `input#city`, `#postcode`, `#country`, no label, never required, empty on load (4 of 4) | left alone - what fills them (Address's place search?): unmeasured |
-| Resume | `input[type=file]` id `input_files_input_<random>` - changes every load (4 of 4), no `name` | the file input whose nearest words say resume / CV (not photo), never by id. Choosing it uploads at once - see below |
+| Resume | `input[type=file]` id `input_files_input_<random>` - changes every load (4 of 4), no `name`; wrapper `[data-ui="resume"]` (form script, 2026-10-06) | the file input whose nearest words say resume / CV (not photo), never by id. Choosing it uploads at once - see below; read back off the wrapper's words (Read back) |
 | boolean | radio pair labelled YES / NO, `name` = `QA_<n>`, id random per load, inside a `fieldset` (radiogroup); each option a `[role=radio]` w/ `aria-checked` | the input only mirrors the pick: ticked by script it doesn't stay, its label isn't clickable (try, 2026-10-03). Pick the `[role=radio]` by its text, case-insensitive; a plain click times out (covered), so a click where it sits, then Space on it focused - ticked = `aria-checked` true (try: 3 of 3 postings, 11 radio questions) |
 | `multiple` single | same radios; the `[role=radio]` holds no text - the option's words sit beside it, after an icon whose fallback text "SVGs not supported by this browser." is read in (headless) | option text = the widest box around it holding no other option, fallback text stripped (1 tenant) |
 | `multiple` multi | checkboxes, `name` = the option's `name` from the definition (e.g. `5249623`), no id | tick each by the option `name` the definition gives for the answer |
@@ -67,6 +67,12 @@ the following page" - a page after Submit: unmeasured. Consent / attestation lin
 | education / experience entries, `avatar` | groups need an "add" click, not done; photo never | unmeasured |
 
 No captcha frame at load (0 of 4). Submit button: unmeasured (controls only). Never clicked.
+
+Cookie dialog (window, 2 tenants, 2026-10-06): `[data-ui=cookie-consent]` `role=dialog` `aria-modal` covers the
+whole form on load - a click at a list's middle meets it (3 of 3). Likely what "a plain click times out (covered)"
+above is; Chrome unmeasured. Typing focused by script still fills. `vscode-browser.md` "Workable - route 2".
+Offered there since the owner's yes 2026-10-06 (plan-k8n.8): `fill --in-window`, off by default; its note says
+Turnstile at Submit + the resume upload are untested there.
 
 ## Pages
 
@@ -95,10 +101,66 @@ Contact details + answers: only on Submit (never clicked - unmeasured past it).
 | tenant E | 25: 8 dropdowns (2 lists, 6 Yes / No), boolean, paragraphs, text | all ok; resume left; authorization line left (signing) |
 | tenant G | 21: headline, numbers as text, 5 boolean, single `multiple`, checkbox `multiple` | all ok; resume left; "Do you certify ..." left (signing) |
 
+## Read back (2026-10)
+
+`holds(page, q)` = what the page SHOWS, read once the form had time to keep it; `form.recheck`
+fills a dropped answer once more, still gone -> FAIL, the user fills it by hand. Per kind:
+
+| Kind | Read back as | Not held when |
+|---|---|---|
+| text / number / paragraph / email / address | the box's value | it differs from the answer |
+| phone | the box's digits, ending in the answer's | other digits (a dialling code the box puts in front is the page's) |
+| boolean, single `multiple` (radios) | the option text of the one `[role=radio]` with `aria-checked` true, any case | none ticked, or another option ticked |
+| checkbox `multiple` | each box's own tick, by the option `name` the definition gives | any box ticked against the answer, or a box missing |
+| dropdown | the text shown in its `div[data-ui=<id>]` wrapper, outside the list | nothing or another option shows |
+| resume | a file name in the `[data-ui="resume"]` box, no error words | no name, or Workable's error words show |
+
+Upload (`put_file`), as Greenhouse / Ashby: page idle first (15 s cap; a page that keeps polling
+is read anyway), file chosen - it goes to Workable's storage at once (What leaves). Then the
+resume box's words, every 250 ms up to 20 s: Workable's own error words -> FAIL in those words;
+the file's name shows and no error for 2 s -> ok; neither -> ASK. What the box shows, from
+Workable's form script (plain download, 2026-10-06; no live upload seen): wrapper `data-ui` = the
+field id (`resume`, as each dropdown's); the name shows only once storage answered (name + stored
+link set together); errors "File is too big" (the page's own size check, before anything goes;
+limit = the definition's `maxFileSize`: 12000000 on tenant A, script default 5242880), "Something
+went wrong. We are working on this, please try again later." (upload failed), "Please use a
+different file." (type it doesn't take).
+
+Covered by `app/tests/fixtures/dom/workable-form.html` in real headless Chrome (measured widget
+shapes + the script's resume box; upload to a stand-in endpoint on the fixture's own host):
+text, email, phone, prefilled address, paragraph, number as text, YES / NO radios, single
+`multiple` radios w/ icon text, checkbox `multiple`, 2 dropdowns (list + Yes / No), resume ok /
+too big / upload failed. Live: 3 saved `try --no-upload` runs (2026-10-03, below) - every kind
+above but the resume; no new try (no kind unseen). Live upload + its read-back: unmeasured - the
+upload sends the file to Workable before Submit, and blocked it breaks the form (owner decides
+whether a measuring tab may answer it: plan-k8n.9).
+
 ## Closed posting
 
-`/j/<unknown>/apply` -> 302 to `/oops`; `/api/v1/jobs/<unknown>/form` -> 404 `Not Found` (1 probe
-each, unknown shortcode, 2026-10-03). A posting closed by its employer: unmeasured.
+Measured 2026-10-06, plain GET (0 page loads, 2 s apart, 0 errors, 0 429) of each link's form
+definition in `.data/links/workable-open.txt` + `-closed.txt`, then its short link (redirect not
+followed), then each employer's own public job list `GET /api/v1/widget/accounts/<account>` once
+(26 employers):
+
+| List | Links | Form (200) | 404, short link names the employer | 404, short link -> `/oops` |
+|---|---|---|---|---|
+| open | 46 | 38 | 4 | 4 |
+| closed | 2 | 0 | 1 | 1 |
+
+Employer's own list agrees: 38 of 38 forms listed, 5 of 5 404s w/ an employer not listed. 404
+body = `Not Found` either way (10 of 10) - no words of its own; `/oops` = Workable no longer knows
+the shortcode. A closed posting's page wording: unmeasured (no page load spent - the definition +
+the list decide).
+
+`questions` raises on 404 with the reason (`board_says`): not on the employer's list -> "the
+posting is no longer on the employer's Workable job list - it may have closed"; short link to
+`/oops` -> "Workable no longer knows this posting - it may have closed"; still listed -> "can't
+tell". `closed(url)` (asked by `form.closed` when no form comes up) gives the same; another
+status or no answer -> "can't tell", never a guess.
+
+Open read as closed: 0 (38 of 38 with a form read open, all on their employer's list).
+Saved: `.data/measure/workable-closed-check-2026-10-06.json`. The open list lags: 8 of 46
+"open" links already gone.
 
 ## Tenant notes
 
