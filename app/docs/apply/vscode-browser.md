@@ -263,7 +263,7 @@ Readings:
   (`check(force=)`, xpath, `get_by_role`, `evaluate_all`).
 
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
-urlFilter). `window.SYSTEMS` unchanged; owner decides (plan-k8n.11).
+urlFilter). In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.11).
 
 ## Oracle - route 2 (plan-k8n.16)
 
@@ -490,8 +490,8 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse, Ashby, Lever, JazzHR + Workable only, off by default (plan-29g.9, Ashby plan-nko.8, Lever
-plan-nko.15, JazzHR plan-k8n.5, Workable plan-k8n.8).
+window, Greenhouse, Ashby, Lever, JazzHR, Workable + BambooHR only, off by default (plan-29g.9, Ashby plan-nko.8,
+Lever plan-nko.15, JazzHR plan-k8n.5, Workable plan-k8n.8, BambooHR plan-k8n.11).
 
 ## Owner decision (plan-29g.8)
 
@@ -511,10 +511,16 @@ Submit + the resume upload in the tab unmeasured (upload goes to Workable's stor
 real application, plan-k8n.9) => `AT_SUBMIT` note + Chrome fallback. Workable = 46 open jobs / 28 employers on the
 owner's list.
 
+2026-10-07 (plan-k8n.11): BambooHR added - one page, no frames, no `debugger;` pauses, adapter parity passes with no
+new code (plan-k8n.10). Gaps: the resume upload (sent on choice; blocked in the measure, so only the page's failure
+banner seen) + the reCAPTCHA v2 tick-box at Submit (frame blank under the block), both unmeasured unblocked in the
+tab => `AT_SUBMIT` note + Chrome fallback. BambooHR = 3 open jobs / 3 employers on the owner's list.
+
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR + Workable only (owner's yes
-for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5, Workable 2026-10-06 plan-k8n.8; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, Workable + BambooHR only
+(owner's yes for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5, Workable 2026-10-06
+plan-k8n.8, BambooHR 2026-10-07 plan-k8n.11; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 Multi-page form (`PER_PAGE`, `form.fill` passes `match`): no longer refused (plan-k8n.15, owner's pick (c)) - one
 holder process keeps the user's tab between runs, see "Built (c)" below. Which multi-page systems are offered in the

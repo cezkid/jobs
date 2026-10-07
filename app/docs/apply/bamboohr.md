@@ -86,6 +86,9 @@ Reader fix found here: a `role=radiogroup` holding native radios crashed the who
 Captcha: a hidden `g-recaptcha-response` box on the form (4 of 4 tries; nothing to tick seen) - the
 applicant's own step; what it checks at Submit unmeasured.
 
+Window: offered since the owner's yes 2026-10-07 (plan-k8n.11): `fill --in-window`, off by default; its note says
+the reCAPTCHA tick-box at Submit + the resume upload are untested there (`vscode-browser.md` "BambooHR - route 2").
+
 ## What leaves the computer, when
 
 Measured 2026-10-03, every write blocked + logged: `apply-form measure` (load + Apply click) on 4
