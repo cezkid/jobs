@@ -1702,3 +1702,14 @@ def test_survey_tally_is_counts_only():
     assert (got["other_file_boxes"], got["employers_with_other_file"], got["unknown"]) == (1, 1, ["card:file-upload"])
     assert got["types"]["standard:resume:file"] == {"employers": 1, "fields": 1, "required": 1}
     assert "Acme" not in json.dumps(got)  # question text never in the counts
+
+
+def test_without_restriction_asked_every_time_for_a_visa_holder():
+    # CMU + UCI international offices: an F-1 student answers No; setup's old option saved Yes
+    title = "Are you legally authorized to work in the U.S. without restriction for any employer?"
+    for wa in ({"authorized_us": True, "needs_sponsorship": True}, {"student_visa": True, "needs_sponsorship": True}):
+        got = questions.draft([q(title, "yesno")], CONTACT, config={"work_authorization": wa})[0]
+        assert got["answer"] is None and got["source"] == questions.ASK, wa
+    sponsor = q("Will you now or in the future require immigration sponsorship to work in the U.S.?", "yesno")
+    f1 = {"work_authorization": {"student_visa": True, "needs_sponsorship": True, "authorized_us": None}}
+    assert questions.draft([sponsor], CONTACT, config=f1)[0]["answer"] == "Yes"

@@ -12,7 +12,8 @@ Recall, by what's at stake if it's wrong for this job:
 - offered first, never filled: the pay you expect (shown beside the posting's pay), moving for the
   job, start date, any written answer - each depends on this job;
 - never kept or recalled: work permit + sponsorship (setup's answers, the US question asked the same
-  way - a saved Yes would travel to another country's form), sensitive kinds, voluntary questions
+  way - a saved Yes would travel to another country's form), a student's status (enrolled, graduation,
+  GPA, OPT / CPT / F-1 - each changes or is read off the resume), sensitive kinds, voluntary questions
   about them, where they live, current pay, agreeing / consenting / signing (an "I agree" kept
   would tick the next form's box - the applicant's own act).
 """
@@ -42,7 +43,14 @@ TOPICS = (
     ("18 or older", r"\bat least 18\b|over the age of 18|18 years of age or older|\b18 or older\b"),
 )
 FILLED = {"notice period", "how you heard", "18 or older"}
-NEVER = re.compile(r"authori[sz]|right to work|sponsor|\bvisa\b|citizen|green card|current (?:salary|compensation|pay)")
+NEVER = re.compile(r"authori[sz]|right to work|sponsor|\bvisa\b|citizen|green card|current (?:salary|compensation|pay)|"
+                   # a student's status changes: enrolled now, graduated by the next form; an F-1 permit
+                   # (OPT, CPT, its EAD card) has dates; a GPA is the transcript's, read off the resume
+                   r"\bopt\b|\bcpt\b|\bf-?1\b|\bead\b|eligib|immigration|enrol|current(?:ly)? (?:a )?student|"
+                   r"\bgpa\b|grade point|graduat")
+# an answer naming a permit or a grade is never kept, whatever the question looked like
+NEVER_IN_ANSWER = re.compile(r"\bopt\b|\bcpt\b|\bf-?1\b|\bead\b|\bvisa\b|sponsor|green card|citizen|immigration|"
+                             r"\bgpa\b", re.I)
 POLITE = re.compile(r"^(?:please |kindly )?(?:tell us|share|provide|let us know|could you|we'd like to know)\b\W*")
 
 
@@ -93,7 +101,7 @@ def keep(asked: list[dict], job: str, company: str, on: str) -> int:
         if not k or q.get("source") != questions.USER_SAID or questions.blank(answer) or isinstance(answer, bool):
             continue
         text = ", ".join(answer) if isinstance(answer, list) else str(answer).strip()
-        if len(text) > MAX_CHARS:
+        if len(text) > MAX_CHARS or NEVER_IN_ANSWER.search(text):
             continue
         saved = [s for s in saved if s["key"] != k]
         saved.append({"key": k, "question": q["title"], "answer": text, "job": job, "company": company, "on": on})

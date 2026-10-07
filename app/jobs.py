@@ -214,7 +214,13 @@ def open_for_user(target: str, outside: bool = False, wait: float = LINK_WAIT) -
 def check_settings() -> None:
     import cfg
     import launch
-    cfg.load()
+    config = cfg.load()
+    wa = config.get("work_authorization") or {}
+    if wa.get("authorized_us") and wa.get("needs_sponsorship"):
+        # setup's old "allowed now, will need sponsorship later" option saved this pair; a CPT/OPT or
+        # H-1B permit has limits, so "without restriction" forms now ask each time
+        print("ask once: work permit says 'allowed without restriction' and 'needs sponsorship later' - "
+              "CPT, OPT and H-1B work has limits. Ask the work-permit question again (job-setup)")
     # setup runs this right after saving search settings => START HERE ("type set me up") leaves
     # the open window's file list now, not at next launch; no-op when nothing changed
     launch.write_workspace(launch.chosen_ai())

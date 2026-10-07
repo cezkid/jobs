@@ -139,7 +139,8 @@ def permit_lines(config: dict) -> list[str]:
     return [f"Allowed to work in the US without restriction: {yes_no(wa.get('authorized_us'))}",
             f"Need visa sponsorship, now or later: {yes_no(wa.get('needs_sponsorship'))}",
             f"US citizen or green card holder: {yes_no(wa.get('citizen_or_permanent_resident'))}",
-            f"Can hold a US security clearance: {yes_no(wa.get('can_hold_clearance'))}"]
+            f"Can hold a US security clearance: {yes_no(wa.get('can_hold_clearance'))}",
+            f"International student (F-1), working through CPT or OPT: {yes_no(wa.get('student_visa'))}"]
 
 
 def address_lines(config: dict) -> list[str]:

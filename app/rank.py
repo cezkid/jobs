@@ -344,8 +344,12 @@ def student_graduation(config: dict, today) -> str | None:
 def sponsorship(job: dict, config: dict) -> list[str]:
     """User needs a visa sponsor and freehire marks this job as never sponsoring. A weak label
     (docs/jobs/freehire.md #Visa sponsorship): demoted like a mismatch, never hidden."""
-    needs = (config.get("work_authorization") or {}).get("needs_sponsorship")
-    return ["says no visa sponsorship"] if needs and (job.get("enrichment") or {}).get("visa_sponsorship") is False else []
+    wa = config.get("work_authorization") or {}
+    if not (wa.get("needs_sponsorship") and (job.get("enrichment") or {}).get("visa_sponsorship") is False):
+        return []
+    # CPT and OPT need no employer sponsorship: an internship saying "no sponsorship" may still take them
+    return ["says no visa sponsorship - CPT or OPT may still work, read the posting"] if wa.get("student_visa") \
+        else ["says no visa sponsorship"]
 
 
 def clearance(job: dict) -> list[str]:

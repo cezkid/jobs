@@ -67,3 +67,12 @@ def test_compound_question_asks_and_forget_removes_only_that_one():
     saved.pop(0)
     answers.write(saved)
     assert [s["key"] for s in answers.load()] == ["start date"]
+
+
+def test_a_students_status_and_permit_are_never_kept():
+    for title in ("Are you currently enrolled in a degree program?", "What is your cumulative GPA?",
+                  "Expected graduation date", "Are you currently on F-1 OPT?", "Do you have an EAD card?",
+                  "Are you a current student?"):
+        assert answers.key(q(title)) is None, title
+    said = [q("Anything else we should know?", answer="I'm on F-1 OPT until June 2028", source=questions.USER_SAID)]
+    assert answers.keep(said, "Job 5", "Acme", "2026-10-07") == 0

@@ -314,6 +314,11 @@ def work_permit(q: dict, config: dict):
     if q["kind"] != "yesno":
         return None
     if "authorized to work in the u" in title and "without restriction" in title:
+        # a visa holder's permit has limits - CPT/OPT their field and dates, H-1B one employer - and
+        # international offices (CMU, UCI) say "No" here: asked every time, even over a Yes saved
+        # before this rule (setup's old "allowed now, sponsorship later" option saved one)
+        if wa.get("needs_sponsorship") or wa.get("student_visa"):
+            return None
         return wa.get("authorized_us")
     if "sponsorship" in title and "future" in title and us:
         return wa.get("needs_sponsorship")
