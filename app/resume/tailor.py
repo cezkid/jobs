@@ -27,8 +27,19 @@ CERTS_TITLE = "Certifications"
 # Indeed/Monster/Coursera: 10-15 years is the convention (docs/resume/bullets.md Tier 3). A role that
 # ended this long ago may leave the page, but only from the end: a hole mid-career is a gap
 OLD_ROLE_YEARS = 15
-# a mirrored title may not claim a level the candidate's own title does not hold
-SENIORITY = ("senior", "lead", "principal", "staff", "manager", "director", "head", "chief", "supervisor")
+# a mirrored or headline title may not claim a level the candidate's own title does not hold.
+# Words that ARE a level in most fields; ones that are an entry title somewhere (Account Executive,
+# Loan Officer, Product Owner, HR Business Partner) stay out - a gate that blocks honest titles gets overruled
+SENIORITY = ("senior", "lead", "leader", "principal", "staff", "manager", "director", "head", "chief", "supervisor",
+             "supervising", "charge", "superintendent", "foreman", "architect", "vp", "vice", "president", "founder",
+             "ceo", "cto", "cfo", "coo", "cio", "ciso")
+# a grade numeral ends a title ("Engineer III"); anywhere else it is a word ("IV Infusion Nurse" = intravenous)
+GRADES = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5}
+# words two titles share by accident, not by naming the same work
+TITLE_FILLER = {"and", "the", "for", "with"}
+# posting words a tailored title may not shorten; wider than schema.ABBREVIATED_TITLE, which also
+# judges the user's own file (their "Sales Mgr" is theirs to keep)
+ABBREVIATED = re.compile(r"\b(Sr|Jr|Snr|Jnr|Mgr)\b\.?", re.I)
 # coverage evidence beyond on-page bullets: facts that always render, and copied skills items
 EVIDENCE_REF = re.compile(r"^(certifications|education)\[(\d+)\]$")
 SKILL_REF = "skills:"
@@ -43,14 +54,20 @@ GUIDE_PROSE = (
 
 TAILORED_SCHEMA = obj(
     summary=NULLABLE,
+    headline_title=NULLABLE,
     entries=array(obj(id=STRING, title_mirror=NULLABLE, bullets=array(obj(text=STRING, sources=STRINGS)))),
     skills=array(obj(group=STRING, items=STRINGS)),
     inferences=array(obj(claim=STRING, sources=STRINGS)),
     coverage=array(obj(requirement={"type": "integer"}, evidence=STRINGS, note=STRING)),
     reasons=array(obj(id=STRING, reason=STRING)),
 )
-# optional: an answer without reasons still checks; the report just has less to show the user
+# optional: an answer without reasons still checks; the report just has less to show the user.
+# headline_title too: answers written before it existed keep the user's headline as written
 TAILORED_SCHEMA["required"].remove("reasons")
+TAILORED_SCHEMA["required"].remove("headline_title")
+# headline = "Title | main skills" (docs/resume/page-format.md #The headline): the part before the bar
+# is the one a tailored copy may swap for the posting's title
+HEADLINE_BAR = "|"
 
 
 # low edge of the two-line window the writer is handed. Not render.TARGET_LINE_FILL: a second
@@ -124,7 +141,8 @@ Wording
 
 Summary
 - `summary`: at most {render.MAX_BLOCK_WORDS} words and {render.MAX_SUMMARY_LINES} lines, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. It may name a licence or certification the posting requires and the candidate holds. Build it only from facts in master. It sits in a narrower column than the bullets, and its last line follows the bullet rule: well filled, never a stub.
-- A `headline` in master prints above the summary exactly as written; the summary need not repeat it.
+- A `headline` in master prints above the summary; the summary need not repeat it.
+- `headline_title`: null, or whole words of the posting's title copied exactly (same capitals), when the candidate's CURRENT work genuinely matches it. It replaces the title part of the headline, the words before "{HEADLINE_BAR}": "Software Engineer {HEADLINE_BAR} Python, SQL" becomes "Backend Engineer {HEADLINE_BAR} Python, SQL"; the words after the bar print as written. No headline in master: the title alone becomes one. A master headline without "{HEADLINE_BAR}", or whose part before it is no job title (skills first), is the candidate's own sentence: null. Never abbreviate, never a level their current title or the headline's own title lacks ({", ".join(SENIORITY)}). The headline stays one row: drop words such as a location or team rather than wrap. Its words count as generated words, in place of the title words they replace. The user confirms it on every job.
 - When the posting's requirements name a certification the candidate holds, code moves Certifications up to sit under the summary.
 
 Skills
@@ -180,7 +198,8 @@ def page_model(master: dict, tailored: dict, job: dict | None = None) -> dict:
             sections.append(section)
     if job and certification_required(master, job):
         sections.sort(key=lambda section: section["title"] != CERTS_TITLE)
-    return {**base, "summary": tailored["summary"] or None, "sections": sections}
+    return {**base, "headline": headline(master, tailored.get("headline_title")),
+            "summary": tailored["summary"] or None, "sections": sections}
 
 
 def certification_required(master: dict, job: dict) -> bool:
@@ -196,6 +215,87 @@ def certification_required(master: dict, job: dict) -> bool:
 
 def mirrored(title: str, mirror: str | None) -> str:
     return f"{title} ({mirror})" if mirror else title
+
+
+def headline_parts(master: dict) -> tuple[str, str] | None:
+    """(title, rest) of a "Title | skills" headline; None when there is no title part to swap: no bar,
+    or the part before it shares no word with any of their job titles ("Python, SQL | Engineer")."""
+    line = master.get("headline")
+    if not line or HEADLINE_BAR not in line:
+        return None
+    title, rest = (part.strip() for part in line.split(HEADLINE_BAR, 1))
+    held = {w for r in master.get("roles") or [] for w in title_words(r["title"])}
+    return (title, rest) if held & title_words(title) else None
+
+
+def title_words(title: str) -> set[str]:
+    return {w for w in re.findall(r"\w+", title.casefold()) if len(w) > 2 and w not in TITLE_FILLER}
+
+
+def headline(master: dict, title: str | None) -> str | None:
+    """The headline this copy prints: the posting's title in place of the user's, the rest as written."""
+    own = master.get("headline")
+    if not title:
+        return own
+    if not own:
+        return title
+    parts = headline_parts(master)
+    # no title part to swap: check_headline_title fails it; the page keeps their words
+    if not parts:
+        return own
+    return f"{title} {HEADLINE_BAR} {parts[1]}" if parts[1] else title
+
+
+def current_titles(master: dict) -> list[str]:
+    """Titles the candidate holds now: every role still running, else the newest one (out of work)."""
+    roles = master.get("roles") or []
+    return [r["title"] for r in roles if r["end"] == schema.PRESENT] or [r["title"] for r in roles[:1]]
+
+
+def headline_rows(font: str, text: str) -> int:
+    """Rows the headline takes at full column width, in the weight the template sets it in (600:
+    the nearest face at or above it, as Typst picks), tracking included."""
+    faces = typeface.faces(font)
+    weight = min((w for w in faces if w >= 600), default=max(faces))
+    face = pymupdf.Font(fontfile=str(faces[weight]))
+    lines, current = 1, ""
+    for word in text.split():
+        trial = f"{current} {word}" if current else word
+        if current and face.text_length(trial, fontsize=measure.SIZE) + render.TRACKING_EM * measure.SIZE * len(trial) > measure.COLUMN:
+            lines, current = lines + 1, word
+        else:
+            current = trial
+    return lines
+
+
+def check_headline_title(master: dict, job: dict, title: str | None, font: str = typeface.DEFAULT) -> list[str]:
+    """Posting's title in the headline: its exact words, never a level the candidate's current title lacks."""
+    if not title:
+        return []
+    where, own = "headline_title", master.get("headline")
+    parts = headline_parts(master)
+    if own and not parts:
+        return [f"{where}: headline {own!r} has no job title before {HEADLINE_BAR!r} to swap - leave it null"]
+    squeeze = lambda text: " ".join(text.split())  # noqa: E731
+    # capitals as the posting writes them, so the top line reads as its title; an all-caps posting
+    # title leaves the casing to the writer
+    flags = re.I if job["title"].isupper() else 0
+    if (HEADLINE_BAR in title or not re.search(r"\w", title)
+            or not re.search(rf"(?<!\w){re.escape(squeeze(title))}(?!\w)", squeeze(job["title"]), flags)):
+        return [f"{where}: {title!r} not whole words of job title {job['title']!r}, capitals as written"]
+    if parts and lint.norm(title) == lint.norm(parts[0]):
+        return [f"{where}: {title!r} repeats the headline's own title - leave it null"]
+    out = []
+    current = current_titles(master)
+    if claimed := claims(title, [*current, *([parts[0]] if parts else [])]):
+        out.append(f"{where}: {title!r} claims {', '.join(claimed)} - not in the candidate's current title "
+                   f"{' / '.join(map(repr, current)) or '(none)'}")
+    if ABBREVIATED.search(title):
+        out.append(f"{where}: {title!r} abbreviated")
+    line = headline(master, title)
+    if (rows := headline_rows(font, line)) > (headline_rows(font, own) if own else 1):
+        out.append(f"{where}: headline {line!r} wraps to {rows} rows - use fewer of the posting title's words")
+    return out
 
 
 def skeleton(master: dict) -> dict:
@@ -277,7 +377,7 @@ def dropped_roles(master: dict, ids: list[str], today: date) -> list[str]:
 
 def check_selection(master: dict, job: dict, tailored: dict, font: str = typeface.DEFAULT,
                     today: date | None = None) -> list[str]:
-    """Rules lint cannot see: entry ids, claim ownership, mirror source, coverage shape."""
+    """Rules lint cannot see: entry ids, claim ownership, mirror + headline title source, coverage shape."""
     violations: list[str] = []
     entries = entries_by_id(master)
     owner = {b["id"]: e["id"] for e in entries.values() for b in e["bullets"]}
@@ -309,11 +409,12 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
                 violations.append(f"{where}: title_mirror {mirror!r} not whole words of job title {job['title']!r}")
             elif lint.norm(mirror) == lint.norm(roles[t["id"]]["title"]):
                 violations.append(f"{where}: title_mirror repeats master title")
-            elif claimed := sorted(levels(mirror) - levels(roles[t["id"]]["title"])):
+            elif claimed := claims(mirror, [roles[t["id"]]["title"]]):
                 violations.append(f"{where}: title_mirror {mirror!r} claims {', '.join(claimed)} - "
                                   f"not in the candidate's own title {roles[t['id']]['title']!r}")
-            if schema.ABBREVIATED_TITLE.search(mirror):
+            if ABBREVIATED.search(mirror):
                 violations.append(f"{where}: title_mirror {mirror!r} abbreviated")
+    violations += check_headline_title(master, job, tailored.get("headline_title"), font)
 
     if tailored["summary"] and (rows := measure.fit(font, tailored["summary"], measure.SUMMARY)[0]) > render.MAX_SUMMARY_LINES:
         violations.append(f"summary: renders {rows} lines (max {render.MAX_SUMMARY_LINES}) - shorten it")
@@ -337,6 +438,19 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
 
 def levels(title: str) -> set[str]:
     return set(re.findall(r"\w+", title.casefold())) & set(SENIORITY)
+
+
+def grade(title: str) -> int:
+    words = re.findall(r"\w+", title.casefold())
+    return GRADES.get(words[-1], 0) if words else 0
+
+
+def claims(title: str, held: list[str]) -> list[str]:
+    """Level words in `title` none of the `held` titles carry, plus a grade numeral above theirs."""
+    out = sorted(levels(title) - set().union(*map(levels, held)))
+    if grade(title) > max(map(grade, held), default=0):
+        out.append(re.findall(r"\w+", title)[-1])
+    return out
 
 
 def evidence_problem(master: dict, tailored: dict, ref: str, on_page: set[str]) -> str | None:

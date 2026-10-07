@@ -532,3 +532,122 @@ def test_title_mirror_always_setting_skips_confirming_titles(tailored, tmp_path)
     assert "Yes, once you confirm the 1 line(s)" in report.report_md(JOB, tailored, result, [], [])
     assert tailor.MIRROR_ALWAYS in tailor.system(typeface.DEFAULT, True)
     assert "The user confirms every mirror." in tailor.system(typeface.DEFAULT)
+
+
+def test_headline_title_swaps_only_the_title_part(master, tailored):
+    """Posting's title in the top line; the user's skills after the bar print as written."""
+    master["headline"] = "Senior Software Engineer | Vue, TypeScript"
+    tailored["headline_title"] = "Senior Vue Engineer"
+    assert tailor.check_selection(master, JOB, tailored) == []
+    assert tailor.page_model(master, tailored)["headline"] == "Senior Vue Engineer | Vue, TypeScript"
+    del tailored["headline_title"]  # answers written before the field: headline as written
+    assert tailor.check_selection(master, JOB, tailored) == []
+    assert tailor.page_model(master, tailored)["headline"] == master["headline"]
+
+
+def test_headline_title_without_a_headline_becomes_one(master, tailored):
+    master.pop("headline", None)
+    tailored["headline_title"] = "Vue Engineer"
+    assert tailor.check_selection(master, JOB, tailored) == []
+    assert tailor.page_model(master, tailored)["headline"] == "Vue Engineer"
+
+
+@pytest.mark.parametrize("own, title, expected", [
+    ("Senior Software Engineer | Vue", "Staff Engineer", "not whole words of job title"),
+    ("Senior Software Engineer | Vue", "Vue Eng", "not whole words of job title"),
+    ("Senior Software Engineer | Vue", "senior vue engineer", "capitals as written"),
+    ("Senior Software Engineer | Vue", " ", "not whole words of job title"),
+    ("Senior Vue Engineer | Vue", "Senior Vue Engineer", "repeats the headline's own title"),
+    ("Engineer who ships fast search", "Vue Engineer", "no job title before '|'"),
+    ("Vue, TypeScript | Senior Software Engineer", "Vue Engineer", "no job title before '|'"),
+])
+def test_headline_title_violations(master, tailored, own, title, expected):
+    master["headline"], tailored["headline_title"] = own, title
+    violations = tailor.check_selection(master, JOB, tailored)
+    assert any(expected in v for v in violations), violations
+    if "no job title" in expected:  # the page never loses the user's own sentence
+        assert tailor.page_model(master, tailored)["headline"] == own
+
+
+@pytest.mark.parametrize("posting, title", [
+    ("VP of Engineering", "VP of Engineering"), ("Vice President, Engineering", "Vice President"),
+    ("Software Engineer III", "Software Engineer III"), ("Solutions Architect", "Solutions Architect"),
+    ("Engineering Team Leader", "Engineering Team Leader"), ("Snr Software Engineer", "Snr Software Engineer"),
+])
+def test_headline_title_level_words_beyond_senior_fail(master, tailored, posting, title):
+    """Top line has nothing beside it showing the real title: every level word is held to it."""
+    master["roles"][0]["title"], master["headline"] = "Software Engineer", "Software Engineer | Vue"
+    tailored["entries"][0]["title_mirror"], tailored["headline_title"] = None, title
+    violations = tailor.check_selection(master, {**JOB, "title": posting}, tailored)
+    assert any(v.startswith("headline_title") and ("claims" in v or "abbreviated" in v) for v in violations), violations
+
+
+def test_headline_title_level_is_judged_on_the_role_held_now(master, tailored):
+    """Newest by start is not current: a newer part-time role never hides the running one's level."""
+    master["roles"][0]["end"] = "present"
+    master["roles"].insert(0, {**master["roles"][1], "id": "tutor", "title": "Tutor", "start": "2026-01",
+                               "end": "present", "bullets": []})
+    master["headline"] = "Senior Software Engineer | Vue"
+    tailored["entries"].insert(0, {"id": "tutor", "title_mirror": None, "bullets": []})
+    tailored["headline_title"] = "Senior Vue Engineer"
+    assert not [v for v in tailor.check_selection(master, JOB, tailored) if v.startswith("headline_title")]
+    assert tailor.current_titles(master) == ["Tutor", "Senior Software Engineer"]
+
+
+@pytest.mark.parametrize("held, title, claimed", [
+    ("Registered Nurse", "IV Infusion Nurse", []),  # intravenous, not a grade
+    ("Software Engineer III", "Search Engineer II", []),
+    ("Software Engineer II", "Search Engineer III", ["III"]),
+    ("Software Engineer", "Software Engineer IV", ["IV"]),
+])
+def test_grade_numeral_counts_only_at_the_end_and_only_upward(held, title, claimed):
+    assert tailor.claims(title, [held]) == claimed
+
+
+def test_filler_word_never_makes_a_skills_part_a_title(master):
+    master["roles"][0]["title"] = "VP of Sales and Marketing"
+    master["headline"] = "Salesforce and HubSpot | VP of Sales and Marketing"
+    assert tailor.headline_parts(master) is None
+    master["headline"] = "Sales Director | Salesforce and HubSpot"
+    assert tailor.headline_parts(master) == ("Sales Director", "Salesforce and HubSpot")
+
+
+def test_all_caps_posting_title_leaves_the_casing_to_the_writer(master, tailored):
+    master["headline"], tailored["headline_title"] = "Senior Software Engineer | Vue", "Senior Vue Engineer"
+    tailored["entries"][0]["title_mirror"] = None
+    assert tailor.check_selection(master, {**JOB, "title": "SENIOR VUE ENGINEER, SEARCH"}, tailored) == []
+
+
+def test_headline_title_may_not_wrap_a_headline_that_fit(master, tailored):
+    master["headline"] = "Senior Software Engineer | Vue, TypeScript, GraphQL, Playwright, Web Workers"
+    long_title = "Senior Software Engineer Machine Learning Infrastructure and Platform Reliability"
+    tailored["headline_title"] = long_title
+    violations = tailor.check_selection(master, {**JOB, "title": long_title + ", Remote"}, tailored)
+    assert any("wraps to 2 rows" in v for v in violations), violations
+
+
+def test_headline_title_claiming_a_level_the_current_title_lacks_fails(master, tailored):
+    """An older Manager role does not vouch for a Manager headline: the top line reads as now."""
+    master["roles"][0]["title"], master["roles"][1]["title"] = "Staff Nurse", "Nurse Manager"
+    master["headline"] = "Staff Nurse | ICU, telemetry"
+    tailored["entries"][0]["title_mirror"] = None
+    tailored["headline_title"] = "Nurse Manager"
+    job = {**JOB, "title": "Nurse Manager, ICU"}
+    assert any("headline_title: 'Nurse Manager' claims manager" in v for v in tailor.check_selection(master, job, tailored))
+
+
+def test_headline_title_is_confirmed_on_every_job(master, tailored, tmp_path):
+    master["headline"] = "Senior Software Engineer | Vue, TypeScript"
+    tailored["entries"][0]["title_mirror"], tailored["headline_title"] = None, "Senior Vue Engineer"
+    model = tailor.page_model(master, tailored)
+    diff = report.diff_md(master, tailored, model)
+    assert ('- Top line shown as "Senior Vue Engineer | Vue, TypeScript" (yours said "Senior Software Engineer | '
+            'Vue, TypeScript"). The title there is the posting\'s') in diff
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [("pages", True, "1")] * 22,
+              "selection": [], "findings": []}
+    assert "Yes, once you confirm the 1 line(s)" in report.report_md(JOB, tailored, result, [], [])
+    # "always" pre-approved brackets beside a role's title, not the top line in place of theirs
+    assert "Yes, once you confirm the 1 line(s)" in report.report_md(JOB, tailored, result, [], [], mirror_ok=True)
+    listed = report.diff_md(master, tailored, model, mirror_ok=True)
+    assert "To confirm" in listed and '- Top line shown as "Senior Vue Engineer | Vue, TypeScript"' in listed
+    assert "headline" not in tailor.MIRROR_ALWAYS

@@ -67,7 +67,7 @@ Never values / personal here (`AGENTS.md` #About me).
    Skills list only), "What the application asks" (read ahead: questions, written answers,
    topics like pay or sponsorship, a cover letter box), "Asked for, not shown", "In your Skills list only", "Soft skills they ask
    for", "Wording notes", "What changed from your resume". Walk them through "To confirm - is each of these true?" item by item, mirrored title
-   included: "New version says you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is
+   + top line included: "New version says you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is
    'led' accurate?" No -> fix `tailored.json` or `My Resume/Resume details.yml`, rerun check;
    never leave unconfirmed claim. Each "why:" on a left-out line is a suggestion - they can
    overrule it; put it back and rerun check.
@@ -125,7 +125,14 @@ theirs: whole words of the posting title only, never a level word their own titl
 Nurse never mirrored as Nurse Manager - check fails it). They confirm every mirror in "To
 confirm" (step 3) - unless `resume.title_mirror: always` in settings (they said yes to all once,
 "always adjust the job title"): then it is listed under "Job titles", never asked. Back to asking
--> set `ask`. A self-added narrowing suffix ("Software Engineer (Frontend)") is the user's
+-> set `ask`. Top line (headline): `headline_title` may put the posting's title in place of the title part
+(before `|`); their skills after it stay. Same limits - whole words, no level the job(s) they
+hold now lack - and asked in step 3 on every job (`always` covers brackets only). User asks if
+it's honest: the top line names the job they're aiming for, not one they held; employers check
+employer, title and dates in work history, and those never change. No -> `headline_title`
+null, rerun check. A headline w/o `|` is their sentence: never swapped
+(`app/docs/resume/page-format.md` #The headline).
+A self-added narrowing suffix ("Software Engineer (Frontend)") is the user's
 to drop: no verification risk, but it labels them narrower than their bullets and stacks the
 mirror into two parentheticals. Ask whose wording it is before touching it.
 

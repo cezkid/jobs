@@ -30,8 +30,26 @@ sort by position, text boxes also file-order readers; table split job dates from
 
 Optional one-line `headline` in Resume details, bold under contact line, above summary: user's
 real title + main skills ("Software Engineer | Python, SQL"). Career guidance: one in place of a
-generic "Summary" label. User's own words -> never generated, never adds a level their title
-lacks (`bullets.md` Tier 1).
+generic "Summary" label. Untailored copy: their words as written, never a level their title lacks
+(`bullets.md` Tier 1).
+
+Per job (2026-10-06, users asked): a tailored copy may swap the title part - words before `|` -
+for the posting's title (`headline_title`); words after `|` print as written. No headline -> the
+title alone becomes one. No `|`, or a part before it sharing no word w/ any of their job titles
+("Python, SQL | Engineer"; filler words like "and" don't count) = their own sentence, never touched.
+
+| For | Against / limit |
+|---|---|
+| Top line = target-role label, not an employment record: no employer, no dates, nothing a background check compares. Work-history titles stay locked (`title-changed`) | Read as what they are NOW, w/ nothing beside it showing the real title -> level judged on roles still running (else the newest) or their own headline title; an old Manager role never vouches for a Manager headline. Level list wider than "Senior": VP, Vice President, Architect, Leader, Charge ... (`tailor.SENIORITY`); a grade numeral counts only as the title's last word and only upward ("Engineer II" over III fine; "IV Infusion Nurse" = intravenous) |
+| Recruiter search: title = the posting's exact string, read first on the page (same mechanism as `bullets.md` Tier 3 terms) | Jobscan's "10.6x interviews when the title matches" = vendor analysis of its own users, correlational (people who match titles tailor everything else too) - not cited as cause |
+| Career-centre convention: a resume title naming the target role, real titles kept below | A title they can't defend in interview (posting's quirky or wider title) -> whole words, capitals as the posting writes them (all-caps posting: any), AI picks the plain part ("Data Analyst" of "Data Analyst Rockstar - Remote"), user confirms |
+| Confirmed on every job under "To confirm" - `resume.title_mirror: always` pre-approves brackets beside a role's title only, never the top line in place of theirs | Copies sent to one employer can carry different top lines - harmless (one resume per posting is normal), named here so nobody re-asks |
+
+Enforced: `tailor.check_headline_title` - whole words of the posting title (case kept), no `|`,
+not a repeat, no level word the current title / own headline title lacks, no abbreviation (Sr,
+Snr, Mgr ...), never wraps a headline that fit one row (measured in the 600 weight). Its words
+count as generated words in the page budget (prompt says so). Lint's `unresolved-entity` skips
+the headline (the check above owns its title part).
 
 ## Summary length
 

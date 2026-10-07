@@ -161,7 +161,8 @@ We lead w/ best practice and are the authority; user can always see + challenge 
 every request into one tier:
 
 - **Hold** - explain, don't do: invent a skill, number, tool or credential; change employer,
-  title, dates, degree or certification except to correct a real mistake; inflate seniority;
+  title, dates, degree or certification except to correct a real mistake (the top line's title
+  may show the posting's - a label, not a record: `job-tailor`); inflate seniority;
   shade a work-authorization or sponsorship answer (checked on Form I-9 once hired).
   Why, plainly: employers check these w/ past employers (HireRight 2025: over 3/4 of businesses
   asked found discrepancies in 12 months; most common: undisclosed criminal records, education, work history; work

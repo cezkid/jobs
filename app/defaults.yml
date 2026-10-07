@@ -47,6 +47,7 @@ resume:
   # posting's title added in brackets after a role's own title ("Software Engineer (Frontend)").
   # ask = user confirms each one; always = user said yes to all, added wherever the work matches.
   # Either way never a level word their title lacks (Senior, Lead ...) - tailor check fails it.
+  # Never covers the top line (headline): the posting's title there is asked on every job.
   title_mirror: ask
 
 # Setup answers to the work-permit questions US applications ask. Stay on this computer:

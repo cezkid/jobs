@@ -55,7 +55,8 @@
   box(if url == "" { p.at(1) } else { link(url, p.at(1)) })
 }).join(sep)
 
-// the user's own one-line headline: what they are, in their words, read first (a branding headline)
+// the user's one-line headline: what they are, read first (a branding headline); a tailored copy
+// may show the posting's title before its | once they confirm (docs/resume/page-format.md)
 #let headline = d.at("headline", default: none)
 #if headline != none [
   #block(above: 10pt)[#text(weight: 600)[#headline]]

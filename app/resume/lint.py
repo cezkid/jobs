@@ -449,8 +449,9 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
             hit("unmeasurable-grade", where, text, f"{', '.join(graded)} - grade the reader cannot check", own)
         if is_bullet and not (re.search(r"\d", text) or any(c.isupper() for c in text[1:]) or ai_term(text) or any(t in norm(text) for t in known_terms)):
             hit("specificity", where, text, "no product, stack item, number or proper noun", own)
-        # heading may carry JD's title as mirror suffix => check_entry_identity owns it
-        if not own and kind != "heading":
+        # heading may carry JD's title as mirror suffix => check_entry_identity owns it; headline may
+        # carry it in place of the user's title => tailor.check_headline_title owns it, rest is theirs
+        if not own and kind not in ("heading", "headline"):
             unresolved = sorted({e for e in entities(text) if entity_key(e) not in known})
             if unresolved:
                 findings.append(Finding(FAIL, "unresolved-entity", where, f"{unresolved} in no master fact or inference: {text!r}"))
