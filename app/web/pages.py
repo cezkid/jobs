@@ -19,9 +19,10 @@ the page's end, entries from app/web/research/sources.yml. A published page also
 adversarial review in app/web/research/reviews/<name>.md (verdict: publish, reviewed on or after
 modified); reviews are never built into docs/.
 
-Run from repo root: uv run app/web/pages.py [--check | --links [sources.yml]]
+Run from repo root: uv run app/web/pages.py [--check | --links [sources.yml] | --cards]
 Writes by default; --check lists problems, writes nothing, exits 1 on any; --links checks every
-source is real over the network (DOI, arXiv id, url), exits 1 on a broken one.
+source is real over the network (DOI, arXiv id, url), exits 1 on a broken one; --cards prints the share card
+specs assets.py draws (an article's card: header -> docs/cards/).
 Project env (no inline deps): markdown-it-py comes locked through rich.
 """
 
@@ -30,6 +31,7 @@ import copy
 import csv
 import datetime
 import difflib
+import hashlib
 import importlib.util
 import io
 import json
@@ -70,15 +72,24 @@ TAGS_BUT_BRAND = re.compile(r'<(?!span translate="no">|/span>)[^>]+>')
 AI_NOTE = 'How this was made: <a href="/research/methods/#how-is-ai-used">How we research</a>'
 # every generated page's share card: docs/og-research.png from app/web/og-research.html
 # (uv run app/web/assets.py --only og); changed => bump CARD_V (LinkedIn caches a preview ~7 days,
-# keyed by URL). Per-article cards: later.
+# keyed by URL). An article w/ a card: header has its own (below) instead.
 CARD, CARD_V = "og-research.png", 3
+# per-article share card: header card: = the key finding (its [@id] names the source on the card; a number needs
+# one) -> docs/cards/<slug>.png (1200x630, og:image) + <slug>-small.png (Keep reading thumbnail), drawn by
+# app/web/assets.py --only cards from CARD_TEMPLATE. CARD_SYNC records each card's spec hash + PNG hashes: a spec
+# changed since its render = build error (rerun assets.py); ?v= = the PNG's own hash, so a new card is a new URL
+CARD_TEMPLATE = Path("app") / "web" / "og-article.html"
+CARD_SYNC = Path("app") / "web" / "card-sync.json"
+CARDS_DIR = "cards"
+CARD_MAX = 100  # finding, citation aside: about 3 lines at the card's size (the render fails on overflow anyway)
+THUMB = (120, 63)  # Keep reading thumbnail, CSS px (the file is 2x)
 FEED = "research/feed.xml"  # Atom: published articles, linked (autodiscovery) from the hub + every article
 FEED_TITLE = "CEZ Job Finder Research"
 CARD_ALT = ("CEZ Job Finder Research - AI and resumes: what the evidence says. A page with one claim"
             " marked in yellow, linked to its list of sources.")
 REPO = "https://github.com/cezkid/jobs/blob/main/"
 ISSUES = "https://github.com/cezkid/jobs/issues"  # body links may go here: readers report corrections
-KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited", "data", "license"}
+KEYS = {"title", "description", "published", "modified", "status", "og_title", "uncited", "data", "license", "card"}
 # data page (header data: <name>.csv): the file is built next to the page, the page carries Dataset JSON-LD +
 # a download line; never on the hub or in the feed (not an article). license: one of these (owner picks)
 LICENSES = {"CC BY 4.0": "https://creativecommons.org/licenses/by/4.0/",
@@ -403,7 +414,7 @@ def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
             words = words.replace(ok, "")
         if JARGON.search(words):
             errors.append(f"{src.rel}:2: header uses {JARGON.search(words).group(0)!r} - say it in plain words")
-        level = 1
+        level, folded = 1, 0
         for i, token in enumerate(src.tokens):
             if token.type == "heading_open":
                 depth = int(token.tag[1])
@@ -422,8 +433,24 @@ def lint(sources: list[Source], errors: list[str], warnings: list[str]) -> None:
                     errors.append(f"{src.rel}:{src.line(token)}: HTML or &...; entity in a heading - plain text only")
                 if token.markup.startswith("#") and re.search(r"\s#+\s*$", raw):
                     errors.append(f"{src.rel}:{src.line(token)}: closing # in a heading - drop it")
-            if token.type == "bars_open" and token.meta.get("error"):
+            if token.type in ("bars_open", "case_open", "guess_open", "sure_open") and token.meta.get("error"):
                 errors.append(f"{src.rel}:{src.line(token)}: {token.meta['error']}")
+            if token.type == "sure_open":
+                if i and src.tokens[i - 1].type == "heading_close":
+                    errors.append(f"{src.rel}:{src.line(token)}: '{SURE_LABEL}' right under a heading - the section's answer"
+                                  " comes first, its method + caveats after it")
+                folded += 1
+            elif token.type == "sure_close":
+                folded -= 1
+            elif folded and token.type == "heading_open":
+                errors.append(f"{src.rel}:{src.line(token)}: heading inside '{SURE_LABEL}' - end the block before it")
+            if folded and any(c.type == "strong_open" for c in token.children or []):
+                errors.append(f"{src.rel}:{src.find(token, '**')}: bold inside '{SURE_LABEL}' - the answer is never folded away;"
+                              " keep the bold sentence above the block")
+            if token.meta.get("answer") and not any(c.type == "cite" for c in token.children or []) \
+                    and not any(u in token.content for u in src.uncited):
+                errors.append(f"{src.rel}:{src.line(token)}: guess answer needs its citation [@id] (or an uncited: snippet"
+                              " for our own count)")
             if token.type != "inline":
                 continue
             for child in token.children or []:
@@ -524,7 +551,7 @@ def _bars(state):
         out.append(tok("bars_open", "figure", 1, attrs={"class": "bars"}, meta={"error": error}))
         out += [tok("figcaption_open", "figcaption", 1), inline(lines[0] if lines else ""), tok("figcaption_close", "figcaption", -1)]
         if not error:
-            out.append(tok("table_open", "table", 1, meta={"bars": True}))
+            out.append(tok("table_open", "table", 1, meta={"figure": True}))
             out += [tok("thead_open", "thead", 1), tok("tr_open", "tr", 1)]
             for head in rows[0]:
                 out += [tok("th_open", "th", 1, attrs={"scope": "col"}), inline(head), tok("th_close", "th", -1)]
@@ -533,7 +560,7 @@ def _bars(state):
                 out += [tok("tr_open", "tr", 1), tok("th_open", "th", 1, attrs={"scope": "row"}), inline(label),
                         tok("th_close", "th", -1), tok("td_open", "td", 1), inline(value),
                         tok("td_close", "td", -1, meta={"bar": width}), tok("tr_close", "tr", -1)]
-            out += [tok("tbody_close", "tbody", -1), tok("table_close", "table", -1, meta={"bars": True})]
+            out += [tok("tbody_close", "tbody", -1), tok("table_close", "table", -1, meta={"figure": True})]
         out.append(tok("bars_close", "figure", -1))
     state.tokens[:] = out
 
@@ -547,7 +574,7 @@ def _td_close(self, tokens, idx, options, env):
 
 
 def _table_open(self, tokens, idx, options, env):
-    if tokens[idx].meta.get("bars"):  # a bar figure: short, never scrolls; the figure + caption name it
+    if tokens[idx].meta.get("figure"):  # a bar or case figure: never scrolls; the figure + caption name it
         return self.renderToken(tokens, idx, options, env)
     # wide table scrolls inside its own box, not the page; focusable so keyboards can scroll it
     label = escape(tokens[idx].meta.get("label", "Table"))
@@ -555,12 +582,111 @@ def _table_open(self, tokens, idx, options, env):
 
 
 def _table_close(self, tokens, idx, options, env):
-    if tokens[idx].meta.get("bars"):
+    if tokens[idx].meta.get("figure"):
         return self.renderToken(tokens, idx, options, env)
     return self.renderToken(tokens, idx, options, env) + "</div>\n"
 
 
+GUESS_PREFIX, ANSWER_PREFIX = "- ", "Answer:"
+SURE_LABEL = "How sure is this?"
+
+
+def _case(fence, tok, inline) -> list[Token]:
+    """```case: "your case" chart - line 1 caption (citation, evidence label), line 2 "Label | Finding | What to do"
+    column heads, then one row per case (a gap length, an age band, a place). Every row shows, nothing behind a tap
+    (85% never clicked a prominent button in NYT graphics); on a phone each row stacks, its cells labelled."""
+    lines = [ln.strip() for ln in fence.content.split("\n") if ln.strip()]
+    rows = [[c.strip() for c in ln.split("|")] for ln in lines[1:]]
+    error = None
+    if len(lines) < 3 or any(len(r) != 3 or not all(r) for r in rows):
+        error = "case block needs a caption line, a 'Label | Finding | What to do' line, then 'label | finding | what to do' rows"
+    out = [tok("case_open", "figure", 1, attrs={"class": "case"}, meta={"error": error}),
+           tok("figcaption_open", "figcaption", 1), inline(lines[0] if lines else ""), tok("figcaption_close", "figcaption", -1)]
+    if not error:
+        heads = rows[0]
+        out += [tok("table_open", "table", 1, meta={"figure": True}), tok("thead_open", "thead", 1), tok("tr_open", "tr", 1)]
+        for head in heads:
+            out += [tok("th_open", "th", 1, attrs={"scope": "col"}), inline(head), tok("th_close", "th", -1)]
+        out += [tok("tr_close", "tr", -1), tok("thead_close", "thead", -1), tok("tbody_open", "tbody", 1)]
+        for label, finding, action in rows[1:]:
+            out += [tok("tr_open", "tr", 1), tok("th_open", "th", 1, attrs={"scope": "row"}), inline(label), tok("th_close", "th", -1)]
+            for head, cell in ((heads[1], finding), (heads[2], action)):
+                out += [tok("td_open", "td", 1, attrs={"data-label": typeset(head)}), inline(cell), tok("td_close", "td", -1)]
+            out.append(tok("tr_close", "tr", -1))
+        out += [tok("tbody_close", "tbody", -1), tok("table_close", "table", -1, meta={"figure": True})]
+    return out + [tok("case_close", "figure", -1)]
+
+
+def _guess(fence, tok, inline) -> list[Token]:
+    """```guess: guess first, then the answer - line 1 the question, then "- choice" lines (2+), last an
+    "Answer: ..." line (cited). The answer sits in a closed <details>: works w/o JS; GUESS_JS turns the choices
+    into buttons that open it. Asking before telling helps recall of that fact (pretesting review, Pan + Carpenter
+    2023; predict-then-reveal, CHI 2017 - topics/web/reader-engagement.md)."""
+    lines = [ln.strip() for ln in fence.content.split("\n") if ln.strip()]
+    choices = [ln[len(GUESS_PREFIX):].strip() for ln in lines[1:-1]]
+    answer = lines[-1][len(ANSWER_PREFIX):].strip() if lines and lines[-1].startswith(ANSWER_PREFIX) else ""
+    error = None
+    if (len(lines) < 4 or not all(ln.startswith(GUESS_PREFIX) for ln in lines[1:-1]) or not all(choices)
+            or not answer or lines[0].startswith((GUESS_PREFIX, ANSWER_PREFIX))):
+        error = "guess block needs a question line, 2 or more '- choice' lines, then one 'Answer: ...' line"
+    out = [tok("guess_open", "div", 1, attrs={"class": "guess"}, meta={"error": error})]
+    if not error:
+        out += [tok("paragraph_open", "p", 1, attrs={"class": "guess-q"}), inline(lines[0]), tok("paragraph_close", "p", -1),
+                tok("bullet_list_open", "ul", 1)]
+        for choice in choices:
+            out += [tok("list_item_open", "li", 1), inline(choice), tok("list_item_close", "li", -1)]
+        out += [tok("bullet_list_close", "ul", -1), tok("details_open", "details", 1), tok("summary_open", "summary", 1),
+                inline("Show the answer"), tok("summary_close", "summary", -1), tok("paragraph_open", "p", 1)]
+        tail = inline(answer)
+        tail.meta = {"answer": True}
+        out += [tail, tok("paragraph_close", "p", -1), tok("details_close", "details", -1)]
+    return out + [tok("guess_close", "div", -1)]
+
+
+def _blocks(state, tokens=None) -> list[Token]:
+    """```case, ```guess + ```sure fences -> their tokens (after block parsing, before inline: citations, lints +
+    typesetting see their text like any other). ```sure = "How sure is this?": Markdown inside a closed <details>
+    - method + caveat detail most readers skip (VG's short version: 19% opened it, the rest still read on), never
+    the answer (lint). Its Markdown is parsed here; line numbers stay the source file's."""
+    top = tokens is None
+    out = []
+    for fence in state.tokens if top else tokens:
+        kind = fence.info.strip() if fence.type == "fence" else ""
+        if kind not in ("case", "guess", "sure"):
+            out.append(fence)
+            continue
+
+        def tok(kind, tag, nesting, **kw):
+            return Token(kind, tag, nesting, map=fence.map, block=True, **kw)
+
+        def inline(text):
+            return Token("inline", "", 0, content=text, map=fence.map, children=[])
+
+        if kind == "case":
+            out += _case(fence, tok, inline)
+        elif kind == "guess":
+            out += _guess(fence, tok, inline)
+        else:
+            inner: list[Token] = []
+            state.md.block.parse(fence.content, state.md, state.env, inner)
+            shift = fence.map[0] + 1
+            for t in inner:
+                t.map = [t.map[0] + shift, t.map[1] + shift] if t.map else fence.map
+            error = None if inner else f"sure block needs the method or caveat text that goes under '{SURE_LABEL}'"
+            out += [tok("sure_open", "details", 1, attrs={"class": "sure"}, meta={"error": error}),
+                    *_blocks(state, inner), tok("sure_close", "details", -1)]
+    if top:
+        state.tokens[:] = out
+    return out
+
+
+def _sure_open(self, tokens, idx, options, env):
+    return self.renderToken(tokens, idx, options, env) + f"<summary>{SURE_LABEL}</summary>\n"
+
+
 MD.core.ruler.after("block", "bars", _bars)
+MD.core.ruler.after("block", "blocks", _blocks)  # before bars: a ```bars inside ```sure gets drawn too
+MD.add_render_rule("sure_open", _sure_open)
 MD.add_render_rule("table_open", _table_open)
 MD.add_render_rule("table_close", _table_close)
 MD.add_render_rule("td_close", _td_close)
@@ -786,23 +912,29 @@ def units(src: Source):
         return "".join({"text": c.content, "cite": "\x01", "code_inline": "\x02", "softbreak": " ",
                         "hardbreak": " "}.get(c.type, "") for c in inline.children or [])
 
-    row, figure = None, None
+    row, figure, cover = None, None, ""
     for i, token in enumerate(src.tokens):
-        # a bar figure is one unit: its caption's citation covers every row
-        if token.type == "bars_open":
+        # a bar figure or a guess is one unit: its caption's / answer's citation covers every row / choice
+        if token.type in ("bars_open", "guess_open"):
             figure = []
-        elif token.type == "bars_close":
+        elif token.type in ("bars_close", "guess_close"):
             if figure:
                 yield figure[0], " | ".join(flat(t) for t in figure)
             figure = None
         elif figure is not None:
             if token.type == "inline":
                 figure.append(token)
+        # a case figure: the caption is a unit, each row one too; a citation in the caption covers every row
+        elif token.type == "inline" and src.tokens[i - 1].type == "figcaption_open":
+            yield token, flat(token)
+            cover = " \x01" if "\x01" in flat(token) else ""
+        elif token.type == "case_close":
+            cover = ""
         elif token.type == "tr_open":
             row = []
         elif token.type == "tr_close":
             if row:
-                yield row[0], " | ".join(flat(t) for t in row)
+                yield row[0], " | ".join(flat(t) for t in row) + cover
             row = None
         elif token.type == "inline" and row is not None and src.tokens[i - 1].type in ("th_open", "td_open"):
             row.append(token)
@@ -859,6 +991,94 @@ def citations(sources: list[Source], registry: Registry, errors: list[str], warn
                                   " - cite it once, at the end of the run")
     for ref in sorted(set(registry.entries) - used):
         warnings.append(f"{registry.rel}:{registry.lines[ref]}: {ref} is not cited by any page")
+
+
+def card(src: Source, registry: Registry, errors: list[str]) -> dict | None:
+    """An article's share card from its card: header (None = the shared Research card): the finding w/o its
+    citations, + a source line naming them (author-year + plain evidence words). A number on the card needs its
+    citation - the card has no Sources list, so the source line is its only one."""
+    text = src.head.get("card")
+    if text is None:
+        return None
+    at = f"{src.rel}:{src.line_of(src.text, 'card')}"
+    if not isinstance(text, str) or not text.strip() or "\n" in text.strip():
+        errors.append(f"{at}: card must be one line: the article's key finding")
+        return None
+    if not src.article:
+        errors.append(f"{at}: card goes on an article - other pages share the Research card")
+        return None
+    parts = [[CITE_PART.fullmatch(p) for p in m[1:-1].split(";")] for m in CITE.findall(text)]
+    if not all(all(ps) for ps in parts):
+        errors.append(f"{at}: card citation - write [@id] or [@a; @b]")
+        return None
+    refs = list(dict.fromkeys(m.group(1) for ps in parts for m in ps))
+    unknown = [r for r in refs if r not in registry.entries]
+    if unknown:
+        errors.append(f"{at}: card cites [@{unknown[0]}], not in {registry.rel}")
+        return None
+    finding = re.sub(r"\s+([.,;:!?])", r"\1", " ".join(CITE.sub("", text).split()))
+    if len(finding) > CARD_MAX:
+        errors.append(f"{at}: card is {len(finding)} characters without its citation, max {CARD_MAX}")
+    own = any(u in finding for u in src.uncited)  # our own count: the page's uncited: snippets, as in the body
+    # a year ("as of October 2026") is a date, not a number to source
+    if (re.search(r"\d", re.sub(r"\b(?:19|20)\d\d\b", "", finding)) or STAT.search(finding)) and not refs and not own:
+        errors.append(f"{at}: a number on the card needs its source - add [@id], or use a snippet from uncited: for our own count")
+    words = dict.fromkeys(EVIDENCE[registry.entries[r]["evidence"]].split(" (")[0] for r in refs)
+    # the plain author-year: "2020a" tells two works apart in a Sources list, and a card has none
+    names = dict.fromkeys(re.sub(r"(\d{4})[a-z]$", r"\1", registry.labels[r]) for r in refs)
+    source = (f"Source: {'; '.join(names)} ({', '.join(words)})" if refs
+              else "Source: our own measurement - method and data on the page" if own
+              else "Every claim on the page linked to its source")
+    return {"name": src.name, "title": src.title, "finding": typeset(finding), "source": typeset(source)}
+
+
+def card_hash(spec: dict, root: Path) -> str:
+    """What a drawn card was drawn from: its spec, the template + the bird (a change to either redraws every card)."""
+    data = (json.dumps(spec, sort_keys=True, ensure_ascii=False) + (root / CARD_TEMPLATE).read_text(encoding="utf-8")
+            + (root / "app" / "install" / "mark.svg").read_text(encoding="utf-8"))
+    return hashlib.sha256(data.encode("utf-8")).hexdigest()
+
+
+def card_specs(root: Path) -> list[dict]:
+    """Every published article's card spec + its hash, for assets.py --only cards. Raises SourceError."""
+    errors: list[str] = []
+    sources = [Source(p, root, errors) for p in sorted((root / SOURCES).glob("*.md"))]
+    registry = Registry(root, errors, [])
+    specs = [spec for s in sources if s.status == "published" and (spec := card(s, registry, errors))]
+    if errors:
+        raise SourceError("\n".join(errors))
+    return [{**spec, "hash": card_hash(spec, root)} for spec in specs]
+
+
+def drawn_cards(root: Path, sources: list[Source], registry: Registry, errors: list[str]) -> dict[str, dict]:
+    """name -> {card, small, alt} for built articles whose card: was drawn from the spec they have now."""
+    path = root / CARD_SYNC
+    sync = json.loads(path.read_text(encoding="utf-8")) if path.is_file() else {}
+    out = {}
+    for src in sources:
+        spec = card(src, registry, errors) if src.built else None
+        if spec is None:
+            continue
+        rec = sync.get(src.name) or {}
+        if rec.get("spec") != card_hash(spec, root):
+            errors.append(f"{src.rel}:{src.line_of(src.text, 'card')}: share card not drawn from this card: line"
+                          " - run uv run app/web/assets.py --only cards")
+            continue
+        out[src.name] = {"card": f"/{CARDS_DIR}/{src.name}.png?v={rec['card'][:8]}",
+                         "small": f"/{CARDS_DIR}/{src.name}-small.png?v={rec['small'][:8]}",
+                         "alt": f"{spec['finding']} {spec['source']}."}
+    return out
+
+
+def share(parts: dict[str, str], home: str, drawn: dict | None) -> dict[str, str]:
+    """parts w/ an article's own card as og:image + its alt (og + twitter); the shared card when none."""
+    if not drawn:
+        return parts
+
+    def swap(text: str) -> str:
+        text = re.sub(r'^(<meta property="og:image" content=")[^"]*', lambda m: m[1] + escape(home + drawn["card"][1:]), text, flags=re.M)
+        return re.sub(r'^(<meta (?:property="og|name="twitter):image:alt" content=")[^"]*', lambda m: m[1] + escape(drawn["alt"]), text, flags=re.M)
+    return {**parts, "og": swap(parts["og"]), "twitter": swap(parts["twitter"])}
 
 
 def reviews(root: Path, sources: list[Source], errors: list[str], warnings: list[str]) -> None:
@@ -1122,6 +1342,11 @@ PAGE_CSS = """
   .more li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .more p { margin: 0 0 8px; }
   .more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+  /* an article's own share card, small, left of its link; the whole row is the link's hit box (::after) */
+  .more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+  /* framed by a shadow, not a border: a border over 100px wide reads as a rule (qa RULES_STACKED) */
+  .more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
+  .more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
   /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
   .toc, .labels { display: none; }
   .labels dl { margin: 0 0 12px; }
@@ -1196,8 +1421,52 @@ PAGE_CSS = """
     .crumbs, .toc, .toc-mini, .more { display: none !important; }
     .page { max-width: none; }
     .sources li { break-inside: avoid; }
+    /* paper can't be tapped: folded method lines + guess answers print open */
+    :is(.sure, .guess details)::details-content { content-visibility: visible; display: contents; }
+    .guess::before { content: none; }
   }
 """
+
+
+# block CSS, only on pages that hold the block (a page pays for what it shows: HTML budget 25 KB gzip)
+CASE_CSS = """
+  /* your-case figure (```case): caption over a 3-column table, the row's label bold; every row shown. Phone: each
+     row stacks, its finding + what to do under their column names (the thead stays for screen readers) */
+  .case { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--text); }
+  .case figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .case table { width: 100%; }
+  .case tbody th { font-weight: 700; }
+  @media (max-width: 600px) {
+    .case thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+    .case tbody tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .case tbody th, .case tbody td { display: block; padding: 0 0 6px; border: 0; }
+    .case td::before { content: attr(data-label); display: block; color: var(--text-2); font-size: 0.9em; }
+  }
+"""
+GUESS_CSS = """
+  /* guess first (```guess): a ruled note - the question, its choices (buttons once GUESS_JS runs), the answer
+     in a closed details under them */
+  .guess { margin: 32px 0; padding: 12px 0 4px; border-top: 2px solid var(--text); border-bottom: 1px solid var(--text); }
+  .guess::before { content: "Guess first"; display: block; font-size: var(--step--1); font-weight: 700; color: var(--text-2); }
+  .guess-q { margin: 4px 0 10px; font-size: var(--step-1); line-height: 1.35; }
+  .guess ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; padding: 0; }
+  .guess li { margin: 0; padding: 8px 14px; box-shadow: inset 0 0 0 1px var(--line); border-radius: 6px; }
+  .guess li:has(button) { padding: 0; box-shadow: none; }
+  /* outlined by an inset shadow, not a border: stacked on a phone, wide borders read as rules (qa RULES_STACKED);
+     forced colours drop shadows, so the border comes back there */
+  .guess button { min-height: 44px; padding: 8px 16px; font: inherit; color: var(--text); background: var(--desk); border: 0; box-shadow: inset 0 0 0 2px var(--text); border-radius: 6px; cursor: pointer; }
+  @media (forced-colors: active) { .guess button { border: 2px solid ButtonText; } }
+  .guess button[aria-pressed="true"] { color: var(--desk); background: var(--text); }
+  .guess summary { padding: 11px 0; font-weight: 700; cursor: pointer; }
+  .guess details p { margin: 0 0 12px; }
+"""
+SURE_CSS = """
+  /* How sure is this? (```sure): method + caveats folded under the section's answer, a quiet rule at its left */
+  .sure { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--line); font-size: var(--step--1); line-height: 1.5; }
+  .sure summary { padding: 11px 0; font-weight: 700; color: var(--text-2); cursor: pointer; }
+  .sure[open] { padding-bottom: 4px; }
+"""
+BLOCK_CSS = {'<figure class="case">': CASE_CSS, '<div class="guess">': GUESS_CSS, '<details class="sure">': SURE_CSS}
 
 
 # On this page: marks the link of the last h2 above the line 15% down the window (aria-current="true", both
@@ -1220,6 +1489,19 @@ CITE_JS = ('(()=>{const d=document.createElement("dialog");d.className="card";do
            'd.innerHTML="<div>"+s.innerHTML+\'<p><a href="#sources">All sources<\\/a>'
            '<button autofocus>Close<\\/button><\\/p><\\/div>\';d.showModal()});'
            'd.addEventListener("click",e=>{if(e.target==d||e.target.closest(\'button,[href="#sources"]\'))d.close()})})()')
+
+
+# Guess first: each choice becomes a button; a tap marks it (aria-pressed) and opens the answer under it. No JS =
+# the choices as text + the answer's own Show the answer. Budget 400 B (test_pages); no "</"
+GUESS_JS = ('(()=>{for(const g of document.querySelectorAll(".guess")){const d=g.querySelector("details");'
+            'for(const l of g.querySelectorAll("li")){const b=document.createElement("button");b.type="button";'
+            'b.setAttribute("aria-pressed","false");b.append(...l.childNodes);l.append(b);b.onclick=()=>{'
+            'for(const x of g.querySelectorAll("button"))x.setAttribute("aria-pressed",x==b);d.open=true}}}})()')
+
+
+def shipped(css: str) -> str:
+    """CSS as sent: the why-comments stay in this file, not in every reader's download (HTML budget 25 KB gzip)."""
+    return re.sub(r"\n{2,}", "\n", re.sub(r"[ \t]*/\*.*?\*/[ \t]*", "", css, flags=re.S)).strip("\n")
 
 
 def jsonld(graph: list[dict]) -> str:
@@ -1269,7 +1551,7 @@ def listing(articles: list[Source]) -> str:
     return '<ul class="list">\n' + "\n".join(items) + "\n</ul>\n"
 
 
-def keep_reading(src: Source, articles: list[Source], linked: dict[str, list[str]]) -> str:
+def keep_reading(src: Source, articles: list[Source], linked: dict[str, list[str]], drawn: dict | None = None) -> str:
     """A page's way on, last in <article>: 3 articles - the ones it links to, then the ones linking to it, then
     the next in hub order (wrapping round) - each w/ its one-line answer (description); then the hub, the install
     line, back to top. Related beat "most popular" + end-of-article links got more clicks than mid-article ones in
@@ -1281,7 +1563,13 @@ def keep_reading(src: Source, articles: list[Source], linked: dict[str, list[str
     names = [*linked.get(src.name, []), *(s.name for s in order if src.name in linked.get(s.name, [])),
              *(s.name for s in ring)]
     picks = [others[n] for n in dict.fromkeys(names) if n in others][:3]
-    items = [f'<li><a href="{s.url}">{escape(s.title)}</a><p>{escape(s.description)}</p></li>' for s in picks]
+    drawn = drawn or {}
+    # an article's own card, small, beside its link (related links w/ images got 63% more clicks, same test);
+    # alt empty: the link's title says it, the card repeats it
+    w, h = THUMB
+    items = [(f'<li class="thumb"><img src="{drawn[s.name]["small"]}" alt="" width="{w}" height="{h}" loading="lazy"'
+              f' decoding="async">' if s.name in drawn else "<li>")
+             + f'<a href="{s.url}">{escape(s.title)}</a><p>{escape(s.description)}</p></li>' for s in picks]
     return "\n".join(['<nav class="more" aria-label="Keep reading">', "<p>Keep reading</p>", "<ul>", *items,
                       '<li><a href="/research/">All research</a></li>', "</ul>",
                       f'<p class="try">Try it: <a href="/#install">install <span translate="no">{BRAND}</span> on Windows or Mac</a></p>',
@@ -1456,7 +1744,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         *head,
         "<style>",
         parts["css"],
-        PAGE_CSS.rstrip("\n"),
+        *(shipped(css) for css in [PAGE_CSS, *(css for mark, css in BLOCK_CSS.items() if mark in body)]),
         "</style>",
         "</head>",
         "<body>",
@@ -1477,6 +1765,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         parts["footer"],
         *([f"<script>{TOC_JS}</script>"] if toc else []),
         *([f"<script>{CITE_JS}</script>"] if 'href="#src-' in body else []),
+        *([f"<script>{GUESS_JS}</script>"] if '<div class="guess">' in body else []),
         "</body>",
         "</html>",
         "",
@@ -1502,6 +1791,7 @@ def dated(root: Path, site_files: set[str], warnings: list[str] | None = None) -
     lint(sources, errors, warnings)
     citations(sources, registry, errors, warnings)
     reviews(root, sources, errors, warnings)
+    drawn = drawn_cards(root, sources, registry, errors)
     if errors:  # an unknown [@id] can't be drawn
         raise SourceError("\n".join(errors))
     by_name = {s.name: s for s in sources}
@@ -1539,8 +1829,8 @@ def dated(root: Path, site_files: set[str], warnings: list[str] | None = None) -
             if src.data:
                 body = download(src) + body
                 out[src.data_out] = src.csv
-            more = keep_reading(src, articles, linked) if hub and src.name not in ("index", "about") else ""
-            out[src.out] = page(src, root, body, parts, hub, side, after, more, hub_name)
+            more = keep_reading(src, articles, linked, drawn) if hub and src.name not in ("index", "about") else ""
+            out[src.out] = page(src, root, body, share(parts, site(root), drawn.get(src.name)), hub, side, after, more, hub_name)
         if hub:
             out[FEED] = feed(root, by_name["index"], articles)
     if errors:
@@ -1774,7 +2064,15 @@ def main():
     ap.add_argument("--links", nargs="?", const="", metavar="SOURCES_YML",
                     help="check every source's DOI (doi.org + Crossref), arXiv id and url over the network;"
                          " exit 1 on a broken one (default app/web/research/sources.yml)")
+    ap.add_argument("--cards", action="store_true", help="print every article's share card spec as JSON (for assets.py --only cards)")
     args = ap.parse_args()
+    if args.cards:
+        try:
+            print(json.dumps(card_specs(ROOT), ensure_ascii=False))
+        except SourceError as e:
+            print(e, file=sys.stderr)
+            sys.exit(1)
+        return
     if args.links is not None:  # a path given is read from where you are; none = the repo's sources.yml
         sys.exit(links(ROOT, Path(args.links).resolve() if args.links else None))
     warnings: list[str] = []

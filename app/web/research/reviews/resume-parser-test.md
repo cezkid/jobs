@@ -216,3 +216,27 @@ Findings (verdict revise):
 - B2: resolved. "**One hiring-system maker warns against most of the same layouts.**" The next sentence names Greenhouse; matches evidence bullet 4.
 - Changes: "two section answers now match their sections: only the layouts that broke failed in their own way, and the warnings come from one hiring-system maker" - accurate; generic line records the rename. Only those two sentences changed words vs main; the other 4 bold lines unchanged (script).
 - No new finding. Verdict: publish.
+
+## Re-review 2026-10-07: fold-outs, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` (Style: two layers, worked example, share card), `git diff main` of the article, the whole article, the data page, `resume-parser-test-2026-10.csv` and the sidebar readings in `resume-parser-test-2026-10/readings.json`. No source text addressed an AI.
+
+Changed: header `card:`; worked example after the bars (main finding's section); Greenhouse fake-name note and Enhancv AI-test limits each in a `sure` block (Enhancv sentence now cited); one Changes line.
+
+- Card: supported. CSV: one-column 0 of 5 broke, spaced-headings 5 of 5; 82 chars; "Our" scopes it, source line "our own measurement"; same strength as the description ("never broke ... always did"). Both numbers in `uncited:`.
+- Worked example: numbers right. Sidebar broke in `pymupdf-sort` + `pypdf-layout` only; both read the two columns side by side, line by line (readings.json). "PresentCity" in `pymupdf-sort` only (merged_words 1): job line "Mar 2021 – Present" ran into sidebar "City, State" - "a sidebar word can run into a job line, as PresentCity did" accurate. One-column 0 of 5. Framing is conditional ("Say ... reads text the way ..."), but nothing beside it says we don't know whether any employer's system reads that way, and "It reads across" uses "it" across sentences (Style rule). R1.
+- Greenhouse `sure`: verbatim + cited. A limit of our test, so the fold fits the rule; the same limit stays visible in What we don't know ("Whether placeholder names changed the results"). OK.
+- Enhancv `sure`: verbatim + citation added (Enhancv page: 10 customer resumes; seller of the templates - stated in body). "Seller's test" also visible in body ("a resume builder that sells two-column templates") and in the evidence label. But the sample size is what keeps "shrank to about three points" from reading as a general result, and it is now hidden. R2.
+- Changes line: accurate (worked example + two fold-outs; findings unchanged). Card is header only; no line needed.
+- `pages.py --check`: this article parses clean; the only error is `employment-gaps.md` card not drawn (another bead).
+
+Findings (verdict revise):
+- **R1 (low)** Worked example: "It reads across" names no subject; and the hypothetical sits without the article's own limit next to it, so a skimmer can read it as how employer systems behave. Fix - replace the paragraph with: "Say you send our sidebar page to an employer whose system reads text the way 2 of our 5 readings did. That system reads across both columns one line at a time, so a sidebar word can run into a job line, as "PresentCity" did. We don't know how any employer's system reads it. Our plain one-column page came through all 5 readings whole."
+- **R2 (low)** Enhancv AI test size folded away from the claim it limits. Fix - body: "Enhancv also had AI models read the scrambled text of 10 resumes. The gap in whole sections shrank to about three points. Employer names still dropped from 100% to 83% [@enhancv-2026]." Fold: "That AI test is a seller's test of its own templates, not peer-reviewed [@enhancv-2026]." No Changes line needed beyond the existing one.
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+- R1: resolved. l. 66 matches the fix word for word: subject named ("That system"), limit beside the example ("We don't know how any employer's system reads it.").
+- R2: resolved. l. 126 carries "of 10 resumes" in the body; the fold (l. 128-130) keeps the seller / not peer-reviewed label, cited.
+- `pages.py --check`: this article clean (only another article's card-not-drawn line).
+- No new finding. Verdict: publish

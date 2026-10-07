@@ -1358,3 +1358,166 @@ def test_bars_problems_are_reported_with_file_and_line(tmp_path, block, problem)
     line = 14 if "statistic" in problem else 11
     with pytest.raises(pages.SourceError, match=f"ai-bias.md:{line}: .*{problem}"):
         pages.build(tmp_path)
+
+
+CASE = ("```case\nWhat replies did, by gap length (Big study) [@quillian-2017]\nYour gap | What studies found | What to do\n"
+        "Under 6 months | No clear change | Nothing special\nOver a year | Replies 36% lower | Add a reason line\n```")
+
+
+def test_case_block_is_a_figure_whose_rows_all_show_and_whose_caption_cites_every_row(tmp_path):
+    research_site(tmp_path, body("Answer first.\n\n" + CASE))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    figure = html[html.index('<figure class="case">'):html.index("</figure>")]
+    assert '<figcaption>What replies did, by gap length <small>(Big study; <a href="#src-quillian-2017">' in figure
+    assert '<th scope="col">What to do</th>' in figure and '<th scope="row">Over a year</th>' in figure
+    # each cell names its column (a phone stacks the row and shows it); nothing behind a tap, no scroll box
+    assert '<td data-label="What studies found">Replies 36% lower</td>' in figure
+    assert '<td data-label="What to do">Add a reason line</td>' in figure
+    assert "<details" not in figure and 'role="region"' not in figure
+    assert '<li id="src-quillian-2017">' in html
+
+
+@pytest.mark.parametrize("block, line, problem", [
+    ("```case\nCaption [@quillian-2017]\nGap | Found | Do\n```", 13, "case block needs a caption line"),
+    ("```case\nCaption [@quillian-2017]\nGap | Found | Do\nA | 5%\n```", 13, "case block needs a caption line"),
+    ("```case\nCaption [@quillian-2017]\nGap | Found | Do\nA | | do\n```", 13, "case block needs a caption line"),
+    # an uncited caption leaves each row's statistic uncited, at its own line
+    ("```case\nReplies by gap\nGap | Found | Do\nLong | 36% lower | Say why\n```", 16, "statistic '36%' without a citation"),
+])
+def test_case_problems_are_reported_with_file_and_line(tmp_path, block, line, problem):
+    research_site(tmp_path, body("Answer first.\n\n" + block))
+    with pytest.raises(pages.SourceError, match=f"ai-bias.md:{line}: .*{problem}"):
+        pages.build(tmp_path)
+
+
+GUESS = ("```guess\nWhat share of tests called back the first name?\n- 25%\n- 50%\n- 85%\n"
+         "Answer: 85% of tests, in one lab study [@quillian-2017].\n```")
+
+
+def test_guess_block_works_without_script_and_its_answer_cites_the_choices(tmp_path):
+    research_site(tmp_path, body("Answer first.\n\n" + GUESS))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    guess = html[html.index('<div class="guess">'):html.index("</div>", html.index('<div class="guess">'))]
+    assert '<p class="guess-q">What share of tests called back the first name?</p>' in guess
+    assert "<ul>\n<li>25%</li>\n<li>50%</li>\n<li>85%</li>\n</ul>" in guess
+    # the answer closed in a <details>: no JS still opens it; its citation covers the choices' numbers
+    assert "<details>\n<summary>Show the answer</summary>\n<p>85% of tests, in one lab study <small>(" in guess
+    assert html.count(f"<script>{pages.GUESS_JS}</script>") == 1 and html.index("</footer>") < html.index(pages.GUESS_JS)
+    assert pages.GUESS_JS not in pages.build(tmp_path)["research/ats-myth/index.html"]
+
+
+def test_guess_script_fits_its_budget():
+    assert len(pages.GUESS_JS.encode()) <= 400
+    assert "</" not in pages.GUESS_JS and "aria-pressed" in pages.GUESS_JS and "d.open=true" in pages.GUESS_JS
+
+
+@pytest.mark.parametrize("block, line, problem", [
+    ("```guess\nQuestion?\n- 25%\nAnswer: 85% [@quillian-2017].\n```", 13, "guess block needs a question line"),
+    ("```guess\nQuestion?\n- 25%\n- 50%\n85% [@quillian-2017].\n```", 13, "guess block needs a question line"),
+    ("```guess\nQuestion?\n- 25%\n- 50%\nAnswer:\n```", 13, "guess block needs a question line"),
+    ("```guess\nQuestion?\n- low\n- high\nAnswer: high, in one lab study.\n```", 13, "guess answer needs its citation"),
+    # the answer's citation covers the choices; none at all = the choices' numbers uncited
+    ("```guess\nQuestion?\n- 25%\n- 50%\nAnswer: the second one.\n```", 13, "guess answer needs its citation"),
+])
+def test_guess_problems_are_reported_with_file_and_line(tmp_path, block, line, problem):
+    research_site(tmp_path, body("Answer first.\n\n" + block))
+    with pytest.raises(pages.SourceError, match=f"ai-bias.md:{line}: .*{problem}"):
+        pages.build(tmp_path)
+
+
+SURE = "```sure\nThe 36% is not adjusted for age [@quillian-2017].\n\n- One study only.\n```"
+
+
+def test_sure_block_folds_method_lines_under_the_answer_and_lints_still_read_them(tmp_path):
+    research_site(tmp_path, body("**Callbacks fell.** More text.\n\n" + SURE))
+    html = pages.build(tmp_path)["research/ai-bias/index.html"]
+    fold = html[html.index('<details class="sure">'):html.index("</details>")]
+    assert fold.startswith('<details class="sure">\n<summary>How sure is this?</summary>\n<p>The 36% is not adjusted')
+    assert "<li>One study only.</li>" in fold and '<a href="#src-quillian-2017">' in fold
+    assert html.index("<strong>Callbacks fell.</strong>") < html.index('<details class="sure">')
+    # a statistic inside is linted like any other, at its own source line
+    research_site(tmp_path / "b", body("Answer.\n\n```sure\nIntro.\n\nReplies fell 36% overall.\n```"))
+    with pytest.raises(pages.SourceError, match="ai-bias.md:16: statistic '36%' without a citation"):
+        pages.build(tmp_path / "b")
+
+
+@pytest.mark.parametrize("block, line, problem", [
+    ("```sure\nMethod [@quillian-2017].\n```", 11, "'How sure is this\\?' right under a heading"),
+    ("Answer.\n\n```sure\n**The answer** folded.\n```", 14, "bold inside 'How sure is this\\?'"),
+    ("Answer.\n\n```sure\n## Hidden\n```", 14, "heading inside 'How sure is this\\?'"),
+    ("Answer.\n\n```sure\n```", 13, "sure block needs the method or caveat text"),
+])
+def test_sure_problems_are_reported_with_file_and_line(tmp_path, block, line, problem):
+    research_site(tmp_path, body(block))
+    with pytest.raises(pages.SourceError, match=f"ai-bias.md:{line}: .*{problem}"):
+        pages.build(tmp_path)
+
+
+def card_site(root, card, sync=True):
+    """research_site w/ ai-bias carrying card: + the card template, bird and (sync) a record of it drawn."""
+    research_site(root, {"ai-bias.md": BIAS.replace("status: published", f"status: published\ncard: {card}")})
+    for rel in (pages.CARD_TEMPLATE, pages.Path("app/install/mark.svg")):
+        (root / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(cfg.ROOT / rel, root / rel)
+    specs = pages.card_specs(root)
+    if sync:
+        record = {s["name"]: {"spec": s["hash"], "card": "a" * 64, "small": "b" * 64} for s in specs}
+        (root / pages.CARD_SYNC).write_text(json.dumps(record))
+    return specs
+
+
+def test_article_card_becomes_its_share_image_and_a_thumbnail_in_keep_reading(tmp_path):
+    specs = card_site(tmp_path, '"Callbacks were 36% lower [@quillian-2017]."')
+    assert specs[0]["finding"] == "Callbacks were 36% lower." and specs[0]["title"] == "AI screening and bias"
+    assert specs[0]["source"] == "Source: Quillian et al. 2017 (Big study)"
+    built = pages.build(tmp_path)
+    head = Head(built["research/ai-bias/index.html"])
+    assert head.meta("og:image") == "https://jobs.enrriquez.com/cards/ai-bias.png?v=aaaaaaaa"
+    assert head.meta("og:image:alt") == head.meta("twitter:image:alt") == "Callbacks were 36% lower. Source: Quillian et al. 2017 (Big study)."
+    ld = json.loads(re.search(r'<script type="application/ld\+json">(.*?)</script>', built["research/ai-bias/index.html"], re.S).group(1))
+    assert next(n for n in ld["@graph"] if n["@type"] == "Article")["image"] == head.meta("og:image")
+    # pages without a card keep the shared one; a page whose Keep reading lists ai-bias shows its small card
+    assert urlsplit(Head(built["research/ats-myth/index.html"]).meta("og:image")).path == "/" + pages.CARD
+    more = built["research/ats-myth/index.html"].split('aria-label="Keep reading"')[1]
+    assert ('<li class="thumb"><img src="/cards/ai-bias-small.png?v=bbbbbbbb" alt="" width="120" height="63"'
+            ' loading="lazy" decoding="async"><a href="/research/ai-bias/">') in more
+
+
+def test_card_number_from_our_own_count_names_our_measurement(tmp_path):
+    research_site(tmp_path, {"ai-bias.md": BIAS.replace("status: published", 'status: published\ncard: "We counted 99 of 143 forms."\nuncited:\n  - "99 of 143"')})
+    for rel in (pages.CARD_TEMPLATE, pages.Path("app/install/mark.svg")):
+        (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(cfg.ROOT / rel, tmp_path / rel)
+    assert pages.card_specs(tmp_path)[0]["source"] == "Source: our own measurement – method and data on the page"
+
+
+def test_card_changed_since_it_was_drawn_fails_the_build(tmp_path):
+    card_site(tmp_path, "Callbacks fell [@quillian-2017].")
+    folder = tmp_path / pages.SOURCES
+    text = (folder / "ai-bias.md").read_text().replace("Callbacks fell", "Callbacks dropped")
+    (folder / "ai-bias.md").write_text(text)
+    with pytest.raises(pages.SourceError, match="ai-bias.md:6: share card not drawn from this card: line - run"):
+        pages.build(tmp_path)
+
+
+@pytest.mark.parametrize("card, problem", [
+    ("Callbacks were 36% lower.", "a number on the card needs its source"),
+    ("Two in three were called.", "a number on the card needs its source"),
+    ("Fell [@nobody-2020].", r"card cites \[@nobody-2020\]"),
+    ("Fell [see below].", None),
+    ("As of October 2026, no ban.", None),
+    ("In 2026, 7 laws.", "a number on the card needs its source"),
+    ("x" * 101, "card is 101 characters without its citation, max 100"),
+])
+def test_card_problems_are_reported(tmp_path, card, problem):
+    if problem is None:  # brackets w/o @ are text, not a citation: fine, no number
+        card_site(tmp_path, card)
+        return
+    with pytest.raises(pages.SourceError, match=f"ai-bias.md:6: {problem}"):
+        card_site(tmp_path, card, sync=False)
+
+
+def test_card_on_a_page_that_is_not_an_article_is_an_error(tmp_path):
+    research_site(tmp_path, {"methods.md": SOURCES["methods.md"].replace("status: published", "status: published\ncard: Fell.")})
+    with pytest.raises(pages.SourceError, match="methods.md:6: card goes on an article"):
+        pages.build(tmp_path)

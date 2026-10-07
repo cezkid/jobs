@@ -19,9 +19,12 @@ records the art's hashes + every file made from it; test_site_icons_follow_the_a
 when the art changed and the site didn't follow.
 
 Share image changed => bump its ?v=N in every page's og:image (LinkedIn caches a preview ~7
-days, keyed by URL).
+days, keyed by URL). Per-article cards (--only cards): docs/cards/<slug>.png + <slug>-small.png from
+app/web/og-article.html, one per article w/ a card: header (pages.py --cards gives the text);
+app/web/card-sync.json records what each was drawn from - no ?v= to bump, pages.py puts each PNG's own
+hash there, and fails the build when a card: line changed since its card was drawn.
 
-Run from repo root: uv run app/web/assets.py [--only fonts|icons|og]
+Run from repo root: uv run app/web/assets.py [--only fonts|icons|og|cards]
 Own deps (inline above), so the project's deps stay untouched. Icons + og use Google Chrome.
 """
 
@@ -55,6 +58,8 @@ DISC = '<circle class="disc" cx="16" cy="16" r="16"/>'
 PUPIL = '<circle cx="156" cy="36" r="5.5" fill="#000000"/>\n'  # icon.svg's, dropped under the 128 px icon
 INK = "#0c0c0e"  # outer stop of the app tile's ink gradient: plate under full-bleed icons
 CARDS = [(WEB / "og.html", DOCS / "og.png"), (WEB / "og-research.html", DOCS / "og-research.png")]
+CARD_SYNC = WEB / "card-sync.json"  # per-article cards: name -> spec hash (pages.card_hash) + PNG hashes
+CARD_SMALL = (240, 126)  # Keep reading thumbnail file (pages.THUMB at 2x)
 SUPPLEMENTAL = Path("/System/Library/Fonts/Supplemental")
 # Caladea style -> the Georgia face standing in for it until the web font loads
 GEORGIA = {"Regular": SUPPLEMENTAL / "Georgia.ttf", "Italic": SUPPLEMENTAL / "Georgia Italic.ttf"}
@@ -325,17 +330,25 @@ def card_art(name):
     return base64.b64encode(svg.encode()).decode()
 
 
-def render_card(template, out):
+def render_card(template, out, fill=None, small=None):
     """One share card: template (HTML, fonts + app art inlined - Chrome blocks file:// fonts) ->
-    out PNG, 1200x630 exactly, clipped; fails on unloaded fonts or overflow (OVERFLOW_JS)."""
+    out PNG, 1200x630 exactly, clipped; fails on unloaded fonts or overflow (OVERFLOW_JS). fill: {{key}} ->
+    HTML-escaped text; small: (path, w, h) = also the card scaled down to that PNG (a thumbnail)."""
+    from html import escape
+
     from playwright.sync_api import sync_playwright
 
     def inline(m):
         b64 = base64.b64encode((DOCS / "fonts" / m[1]).read_bytes()).decode()
         return f'url("data:font/woff2;base64,{b64}")'
 
-    name = template.name
-    html, n = re.subn(r'url\("/fonts/([\w.-]+\.woff2)"\)', inline, template.read_text(encoding="utf-8"))
+    name = template.name if fill is None else f"{template.name} ({out.name})"
+    text = template.read_text(encoding="utf-8")
+    for key, value in (fill or {}).items():
+        text = text.replace("{{" + key + "}}", escape(value))
+    if "{{" in text:
+        raise SystemExit(f"og: {name}: unfilled {re.search(r'{{[^}]*}}', text)[0]}")
+    html, n = re.subn(r'url\("/fonts/([\w.-]+\.woff2)"\)', inline, text)
     if not n:
         raise SystemExit(f"og: no /fonts/*.woff2 url() in {name} to inline")
     # the app's own art files, never a copy of the mark: the card follows the desktop icon
@@ -363,10 +376,17 @@ def render_card(template, out):
             if overflow:
                 raise SystemExit(f"og: {name}: outside the card or its bottom 90px: " + "; ".join(overflow))
             png = page.screenshot(clip={"x": 0, "y": 0, "width": 1200, "height": 630})
+            if small:
+                path, w, h = small
+                page.set_viewport_size({"width": w, "height": h})
+                page.set_content(f'<body style="margin:0"><img style="display:block;width:{w}px;height:{h}px"'
+                                 f' src="data:image/png;base64,{base64.b64encode(png).decode()}"></body>')
+                page.wait_for_function("document.images[0].complete")
+                path.write_bytes(page.screenshot(clip={"x": 0, "y": 0, "width": w, "height": h}))
         finally:
             browser.close()
     out.write_bytes(png)
-    print(f"docs/{out.name}: {len(png) / 1024:.1f} KB ({', '.join(faces)})")
+    print(f"{out.relative_to(ROOT)}: {len(png) / 1024:.1f} KB ({', '.join(faces)})")
 
 
 def og():
@@ -376,12 +396,44 @@ def og():
     record_sync([out for _, out in CARDS])
 
 
+def cards():
+    """docs/cards/<slug>.png (1200x630, og:image) + <slug>-small.png (240x126: Keep reading's 120x63 thumbnail
+    at 2x) for each published article w/ a card: header, from og-article.html + pages.py --cards. Records each
+    card's spec hash + PNG hashes in card-sync.json (pages.py: a stale spec = build error; ?v= = PNG hash);
+    cards of articles that lost theirs are deleted."""
+    import subprocess
+
+    # the project env (yaml, markdown-it), not this script's own
+    out = subprocess.run(["uv", "run", "app/web/pages.py", "--cards"], capture_output=True, text=True, cwd=ROOT)
+    if out.returncode:
+        raise SystemExit(f"cards: pages.py --cards failed:\n{out.stderr}")
+    specs = json.loads(out.stdout)
+    folder = DOCS / "cards"
+    folder.mkdir(exist_ok=True)
+    old = json.loads(CARD_SYNC.read_text()) if CARD_SYNC.exists() else {}
+    sync = {}
+    for spec in specs:
+        name = spec["name"]
+        card, small = folder / f"{name}.png", folder / f"{name}-small.png"
+        rec = old.get(name, {})
+        if rec.get("spec") != spec["hash"] or not card.exists() or not small.exists():
+            render_card(WEB / "og-article.html", card, {k: spec[k] for k in ("title", "finding", "source")},
+                        (small, *CARD_SMALL))
+        sync[name] = {"spec": spec["hash"], "card": _sha(card), "small": _sha(small)}
+    keep = {f"{n}.png" for n in sync} | {f"{n}-small.png" for n in sync}
+    for stale in folder.glob("*.png"):
+        if stale.name not in keep:
+            stale.unlink()
+            print(f"deleted: {stale.relative_to(ROOT)}")
+    CARD_SYNC.write_text(json.dumps(dict(sorted(sync.items())), indent=2) + "\n")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Build the install site's generated files in docs/.")
-    ap.add_argument("--only", choices=["fonts", "icons", "og"])
+    ap.add_argument("--only", choices=["fonts", "icons", "og", "cards"])
     ap.add_argument("--qa", type=Path, help="also write the 16/32/48 favicon frames here")
     args = ap.parse_args()
-    steps = {"fonts": fonts, "icons": lambda: icons(args.qa), "og": og}
+    steps = {"fonts": fonts, "icons": lambda: icons(args.qa), "og": og, "cards": cards}
     for name, step in steps.items():
         if args.only in (None, name):
             step()

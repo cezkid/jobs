@@ -243,3 +243,33 @@ Changes: new section, one line, accurate. It leaves out the Short answer rename.
 No finding. Verdict: publish.
 
 Changes-line edit after this re-review (2026-10-07): the generic line now also says "renamed the Short answer box "What the evidence says""; accurate, no other article change. Verdict: publish (unchanged).
+
+## Re-review 2026-10-07: description, fold-out, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` Style, `git diff main` of the article, the whole article, `sources.yml` entries; re-read google-gemini-privacy live by curl (page "Last updated: September 24, 2026") and openai-data-controls from the Internet Archive capture 2026-09-25 20:03 (2026-09-30 capture = bot-check page, unusable). No source text addressed an AI.
+
+Changed: description rewritten to answer; header `card:`; leak-study caveat paragraph moved into a ```sure fold; one worked example (thumbs-down after the switch is off) in "What doesn't the switch do?"; one Changes line.
+
+- Worked example, ChatGPT: "the entire conversation associated with that feedback may be used to train OpenAI models", under "What happens if I submit feedback after opting out of training?" (Archive). "That whole chat may still be used to train models" = supported, "may" kept.
+- Worked example, Gemini: "If Keep Activity is off and you choose to submit feedback, Google collects ... the last 24 hours of your chats"; "Reviewed feedback, associated conversations, and related data are retained for up to 3 years, disconnected from your Google Account" (live). Supported. Example sits two paragraphs below the feedback paragraph it illustrates and repeats its Gemini facts - placement nit only.
+- Description: 153 chars, unique, answers. "past training stays" is stated for all four apps; body says "Anthropic says so outright; the others don't say." Overreach (R1).
+- Sure fold: sentences 2-6 (no study on chats; companies' own claims) = skippable detail. Sentence 1 "Both studies used text from public web pages, not users' chats." = the label "Training data can come back out" needs to stay fair for a job seeker reading about a resume; the What the evidence says box carries it ("web text, not chats"), the section body no longer does (R2).
+- Card: 98 chars, no number, no citation needed. "can train on your chats" drops "personal plans"; work/school plans don't train by default (body section). Mild overreach (R3).
+- Changes line: accurate; card not named (share image only, not page text) - fine. Plain words, no app jargon.
+
+Findings (verdict revise):
+- R1 | medium | Description says "past training stays" for all four apps; only Anthropic says it (body F17 wording). | Replace description with: "ChatGPT, Claude, GitHub Copilot and Gemini can train on personal-plan chats. One switch in each app's settings turns most of it off from now on." (144 chars)
+- R2 | medium | Fold hides the label the leak claim needs ("research.md": never a label the claim needs to stay true). | Move the first sentence out of the fold, to the end of the paragraph before it: "... with a special trick [@nasr-2023]. Both studies used text from public web pages, not users' chats." The ```sure block then starts "No study we found shows a chat from one user coming out in another user's answers."
+- R3 | low | Card drops "personal plans". | card: "Personal ChatGPT, Claude, Copilot and Gemini plans can train on chats. One switch each stops most." (98 chars)
+- R4 | low, optional | Worked example is detached from "Feedback can send the whole chat." and repeats its Gemini line. | Move the "Say you turned ChatGPT's switch off ..." paragraph to directly after the Feedback paragraph (before **Safety review goes on.**); wording unchanged.
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+Re-read header, leak paragraph + fold, "What doesn't the switch do?"; `pages.py --check` clean (share-card lines ignored).
+- R1 fixed: description "... turns most of it off from now on." (144 chars); true for all four, no past-training claim.
+- R2 fixed: "Both studies used text from public web pages, not users' chats." visible at the end of the leak paragraph; fold starts "No study we found ..."; no bold, not under a heading.
+- R3 fixed: card "Personal ChatGPT, Claude, Copilot and Gemini plans can train on chats. One switch each stops most." (98 chars).
+- R4 fixed: worked example directly after the feedback paragraph, wording unchanged.
+- No new finding. Nit only: "Skip the thumbs buttons ..." now sits after "Your name still reaches the AI", one paragraph away from the example; reads fine.
+- Changes line still accurate (the leak notes fold; their one label line stays visible).
+Verdict: publish

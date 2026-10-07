@@ -4,6 +4,7 @@ description: "US tests find little or no drop in employer replies at 40; it show
 published: 2026-10-04
 modified: 2026-10-07
 status: published
+card: "Older applicants got about 42% fewer positive employer replies across 17 field tests [@lippens-2023]."
 uncited:
   - "no field test has removed it alone"
   - "We found no field test"
@@ -27,13 +28,25 @@ uncited:
 
 **Yes. Field tests in many countries find it.**
 
-A field test sends employers made-up applications that differ only in age. A callback means the employer answers and asks for an interview or more details. The largest review combined 306 field tests published from 2005 to 2020. Nineteen of them tested age, and 17 of those tested older age. In the 17, older applicants were about 42% less likely to get a positive reply than younger ones. Across all 19 age tests the gap was about 40%. For older applicants the gap was about 49% in European tests and about 31% in US tests. The review's authors say published tests may overstate such gaps to some extent [@lippens-2023]. We read the review's open working-paper copy, so the printed figures may differ slightly.
+A field test sends employers made-up applications that differ only in age. A callback means the employer answers and asks for an interview or more details. The largest review combined 306 field tests published from 2005 to 2020. Nineteen of them tested age, and 17 of those tested older age. In the 17, older applicants were about 42% less likely to get a positive reply than younger ones. Across all 19 age tests the gap was about 40%. For older applicants the gap was about 49% in European tests and about 31% in US tests [@lippens-2023].
+
+```sure
+The review's authors say published tests may overstate such gaps to some extent [@lippens-2023]. We read the review's open working-paper copy, so the printed figures may differ slightly.
+```
 
 A rating study points the same way (Lab study). A 2025 study showed 5,017 Danish employers made-up applicants aged 45 to 75. No other trait of an applicant weighed more than age [@qvist-larsen-2025]. That study asked employers to rate descriptions; it did not watch real hiring.
 
 ## At what age does the hiring penalty start?
 
 **In US tests, somewhere between the mid-40s and mid-50s.** In the largest US test built to study age, the drop was already there for women at 49 to 51. In a Swedish test where the resume stated age, in the early 40s.
+
+```case
+Your age, what field tests found, what to do (Big studies and one Small study, from Belgium; US numbers are for women applying to office jobs unless named)
+Your age | What tests found | What to do
+Early 40s | US: no clear drop in two tests of women in office jobs [@farber-2017, p. 180; @farber-2019, p. 16]. Sweden, age stated: replies start to fall [@carlsson-eriksson-2019, pp. 3, 7] | Name the current tools you really use
+Around 50 | US: women got 10.3% callbacks at 49-51, against 14.4% at 29-31; men in sales got 21.1% against 20.9%, no drop [@neumark-2019, p. 26]. No clear drop at 51-52 in the six-age test [@farber-2019, p. 16]; no clear gap at 50 in Belgium [@dalle-2025, pp. 22-23] | Degree 20 or more years old: taking off graduation and certificate years is your call
+Mid-50s and older | Lower in each test that tried it, not always clearly: 8.9% at 55-58 against 11.0% at 35-37, clear only in the last of four rounds [@farber-2017, p. 180]; 7.6% at 64-66 [@neumark-2019, p. 26]; about 28% fewer at 56 in Belgium [@dalle-2025, pp. 22-23] | If you take the year off, consider shortening the oldest jobs too; never change a date
+```
 
 | Study | Country | Ages tested | How age showed | What happened to employer replies |
 |---|---|---|---|---|
@@ -50,6 +63,8 @@ Forty is the legal line in the US, not the measured start. Federal age law prote
 A US test aimed mainly at race and gender also tested age. That test sent more than 83,000 applications to 108 of the largest US employers [@kline-2022, pp. 2-4]. The test's made-up applicants were aged 22 to 58, shown by a high school graduation year [@kline-2022, pp. 4, 9-10]. About 24% of all applications got a reply within 30 days. In that test, applicants over 40, counted as one group, got 0.6 points fewer replies than applicants under 40. In the 72 firms tested in every round, the gap was about as large but could be chance. Replies fell a little and steadily with each older age group; the authors call that slide borderline. The authors say their test confirms age bias in US hiring, though smaller than in the largest US test built to study age [@kline-2022, pp. 11, 13]. The age groups in that test differed too little to show where the drop starts.
 
 The largest US test built to study age sent 40,223 applications at three ages and tested nothing between 31 and 49. So that test cannot say where the drop begins. Women applying to office jobs got callbacks 14.4% of the time at 29 to 31, 10.3% at 49 to 51 and 7.6% at 64 to 66. Men applying to sales jobs got 20.9%, 21.1% and 14.7% [@neumark-2019, p. 26]. In this test the drop at 49 to 51 showed for women and not for men in sales. The authors say their evidence for men is weaker than for women [@neumark-2019, p. 37].
+
+Say you are a woman aged 50 applying for office jobs, as in that test, with age shown by a high school graduation year. Women aged 49 to 51 got callbacks 10.3% of the time, against 14.4% at 29 to 31 [@neumark-2019, p. 26]. Out of 100 applications, that is about 10 callbacks instead of about 14, by our arithmetic.
 
 One US test covered six ages in the same kind of job. Its applicants were women applying to office support jobs.
 
@@ -157,3 +172,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 - October 2026 - added a US test of more than 83,000 applications at 108 large employers. Applicants over 40, counted together, got slightly fewer replies [@kline-2022]. So the short answer, the description and one body sentence no longer say US tests found no drop at 40. Neumark 2019 is now called the largest US test built to study age, not the largest US test. The other findings are unchanged.
 - October 2026 - the background-check survey line now says the share is of the businesses asked, over the past 12 months. The 2026 model test is now described as it ran: each prompt asked a model to pick one of two applicants [@bone-2026]. CEZ Job Finder's age offer is now described as it works: it offers at 15 years, recommends at 20. The findings are unchanged.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - added a chart by age with what to do, and a worked example of 100 applications at 50; the caveats on the largest review now fold under "How sure is this?". The findings are unchanged.

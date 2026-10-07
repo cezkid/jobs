@@ -5,6 +5,7 @@ published: 2026-10-03
 modified: 2026-10-07
 status: published
 og_title: "What makes a good resume? Each rule and the evidence behind it"
+card: "Two spelling errors cut recruiters' rated interview chance by 7.3 points out of 100 [@sterkens-2023]."
 uncited:
   - "98 characters"
   - "91 characters"
@@ -60,7 +61,9 @@ Most rules in the table rest on convention or a company's own survey, test or he
 
 **Yes. Many employers check work history, and mismatches turn up.** HireRight, a background-check company, ran a survey in 2025. More than three-quarters of the businesses it asked found a mismatch in the past 12 months. The most common were undisclosed criminal records, education and work history [@hireright-2025]. A later release on the same survey found work history checks turned up mismatches most often in every region: 72% of respondents in Asia-Pacific and 64% in Europe, the Middle East and Africa [@hireright-2025-sept].
 
+```sure
 HireRight sells background checks, and the people it asked work at firms that run checks. The survey's question wording is not published. The finding shows those firms check, not how often a mismatch costs a job.
+```
 
 Each employer name, job title and dates should match what a past employer would confirm. Anything on the page can also come up in an interview. A title line at the top that names the job you want is not a past job; it has its own section below.
 
@@ -130,7 +133,13 @@ For you, a one-line reason is your call, and the evidence is mixed. It helped fo
 
 **Probably, though no study has tested them in real hiring.** Every typo study we found asked people to rate resumes. In a 2023 study, 445 recruiters in Belgium rated made-up graduate resumes. Two spelling errors lowered the rated chance of an interview by 7.3 points out of 100 [@sterkens-2023]. Five errors lowered it by 18.5 points [@sterkens-2023, p. 10].
 
-About half of that penalty came from recruiters judging the applicant as less careful, less able or worse with people [@sterkens-2023]. The study asked recruiters to rate resumes, not to hire, so it is a lab study. The resumes were in Dutch, for recent graduates, so US results may differ.
+About half of that penalty came from recruiters judging the applicant as less careful, less able or worse with people [@sterkens-2023].
+
+Say two spelling errors slipped into your resume. Recruiters in that study rated the interview chance 7.3 points lower, out of 100. The two-error drop was about the size of the rise for listing volunteer work. Five errors cost 18.5 points [@sterkens-2023, p. 10].
+
+```sure
+The study asked recruiters to rate resumes, not to hire, so it is a lab study. The resumes were in Dutch, for recent graduates, so US results may differ [@sterkens-2023].
+```
 
 A careful proofread, by you and someone else, is one of the cheapest fixes there is.
 
@@ -218,3 +227,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 - October 2026 - the review of time out of work now cites its 2026 journal version, not the 2024 draft; its figures are unchanged. The US health-reason study now cites its published summary, which calls the gain significant.
 - October 2026 - a one-line gap reason is now "your call", since studies disagree on whether it helps. The typo figure now reads 7.3 points in every line [@sterkens-2023]. The background-check survey lines now say the share is of the businesses asked, over the past 12 months.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
+- October 2026 - added a worked example of two spelling errors; the background-check survey's limits and the typo study's limits now fold under "How sure is this?". The findings are unchanged.

@@ -515,3 +515,33 @@ Findings (verdict revise):
 - W1: resolved. Line 1 now "Still searching? For the first six months, there is no gap to explain." L10's scope is back, matching the item's dhert-2026 sentence.
 - Generic Changes line records the rename; accurate.
 - No new finding. Verdict: publish.
+
+## Re-review 2026-10-07: guess, your case, fold-outs, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` Style, `git diff main` of the article, the whole article, the earlier sections here, and dhert-2026 (Ghent open copy) printed pp. 1381-1382 again. Effect = ratio of positive-callback rates, unemployed vs employed (relative risk, methods section), so "100 -> about 79" is a fair reading. No source text addressed an AI.
+
+Changed: header `card:`; one ```guess under section 1's heading; one ```case (5 rows) in section 1; worked example (14 months) in section 1; two ```sure folds (section 1: adjustment note, overall -7%, per-month 1.7%, limits; Namingit: 2018-summary copy, cancer, registration); two citations added where the split left sentences bare; one Changes line. Description unchanged.
+
+Per item:
+- Card "Out of work 13 to 18 months: about 21% fewer employer replies [@dhert-2026]." -21.38%, covariate-adjusted, p. 1382: number supported; no comparison group named. R1.
+- Guess: answer "about a fifth less often ... about 21% lower" = p. 1382 -21.38%; "no clear cost up to six months" = +8.23% [-5.31, 23.69], p. 1382. Distractors plain wrong answers, not circulating claims. Reveal no stronger than body. Supported.
+- Case caption: (Big study), pp. 1380-1382 cover all rows (row 5 p. 1380, row 2 p. 1381, rows 1/3/4 p. 1382). Supported.
+- Case rows 1-4 findings = body + length table; row 5 = p. 1380 "report null findings", "in field tests" keeps the lab-study split. Supported.
+- Case "What to do": row 1 = What helps 1; row 2 = What helps 2 (your call kept); rows 3-4 = What helps 3 + 2 (your call kept); row 5 = What helps 6. No new fact, no stronger wording. Supported.
+- Worked example: in main section; numbers only from p. 1382; 100 x (1 - 0.2138) = 78.6 -> "about 79", labelled by our arithmetic. Scope: the review tested people out of work now; "Say you were out of work for 14 months" also fits a gap that ended, where field tests found no clear effect (row 5). Last sentence uncited. R2.
+- Sure fold 1: text verbatim; 21%/27% sentence gained its own [@dhert-2026, p. 1382]. Holds method only; the adjusted/unadjusted label stays visible in the length table (rows 1-6 and 13-36 months). Placed after the worked example, not right after the claim it qualifies. R3.
+- Sure fold 2 (Namingit): verbatim; "won back about half" sentence gained [@namingit-2021]; "The half is our arithmetic" stays outside. Copy-we-read note = allowed fold content. Supported.
+- Changes line: accurate (does not mention the share card; optional). `modified` 2026-10-07 fine.
+- Plain words, US English, bias framing unchanged. `pages.py --check`: docs up to date.
+
+Findings (verdict revise):
+- **R1 (low)** Card names no comparison: "21% fewer" than whom? A reader can take it as fewer than short gaps. Fix (83 chars w/o citation): `card: "Out of work 13 to 18 months: about 21% fewer employer replies than people in a job [@dhert-2026]."` Redraw (`assets.py --only cards`).
+- **R2 (medium)** Worked example stronger than the study for a past gap: the review compared applicants out of work now; a reader whose 14-month gap ended applies a 21% cut the field tests did not find (case row 5). Last sentence has no citation. Fix: "Say you have been out of work for 14 months and are still searching. Applicants out of work 13 to 18 months got about 21% fewer positive replies than applicants with a job [@dhert-2026, p. 1382]. Where applicants with a job got 100 replies, that is about 79 for applicants out that long, by our arithmetic. Four months out and still searching, you would be in the group with no clear cost [@dhert-2026, p. 1382]."
+- **R3 (low)** Section 1 fold not right after the claim it qualifies: the worked example sits between "Length made the difference ..." and the fold whose first line explains the 8% figure. Fix: move the ```sure block up to directly after the "Length made the difference" paragraph; worked example after it, then "The review's summary says ...".
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+- R1: resolved. Card now "... than people in a job [@dhert-2026]." (83 chars w/o citation). PNG redraw pending a later batch (build line expected).
+- R2: resolved. Worked example reads "still searching" in both cases; last sentence cited p. 1382; wording matches the fix text.
+- R3: resolved. Section 1 order: "Length made the difference" -> fold -> worked example -> "The review's summary says ...".
+- No new finding. Verdict: publish

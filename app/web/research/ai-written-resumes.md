@@ -1,10 +1,11 @@
 ---
 title: "Can employers tell if AI wrote your resume?"
-description: "Mostly no, in tests with older AI models: most people couldn't spot AI writing. About half of hiring managers say they'd care. What studies show."
+description: "Mostly no, in tests with older AI models: most people couldn't spot AI writing. About half of hiring managers say they'd care."
 published: 2026-10-03
 modified: 2026-10-07
 status: published
 og_title: "Can employers tell if AI wrote your resume? What studies show"
+card: "In tests with older AI, 4,600 people guessed AI or human writer right only 50% to 52% of the time [@jakesch-2023]."
 uncited:
   - "No study found that tests"
   - "We found no study"
@@ -25,11 +26,25 @@ uncited:
 
 ## Can people tell if a resume was written by AI?
 
+```guess
+4,600 people read short self-descriptions and guessed: written by a person or by AI? How often were they right?
+- About 9 times in 10
+- About 7 times in 10
+- About half the time
+Answer: About half the time - 50% to 52%, about as good as a coin toss. The AI models in that test were older ones, GPT-2 and GPT-3 [@jakesch-2023].
+```
+
 **Most people couldn't, in the largest test.** In 2023, 4,600 people judged short self-descriptions written by people or by AI. The texts included freelancer profiles of the kind used to win work. People picked the right source only 50% to 52% of the time, about as good as a coin toss. Paying people for right answers barely helped, at 51.6%. Telling them after each answer whether they were right gave 51.2% [@jakesch-2023].
+
+Say a reader judges 12 short profiles like the ones in that test, half of them written by AI. Readers there were right 50% to 52% of the time [@jakesch-2023]. By our arithmetic, that is about 6 right calls and 6 wrong ones - the same as flipping a coin.
 
 People relied on wrong clues. They took first-person words, contractions and family topics as signs of a human writer. AI text tuned to those clues was judged human more often than real human text, 65.7% against 51.7%. The AI models in that study were older ones, GPT-2 and GPT-3 [@jakesch-2023].
 
-The strongest counter-evidence comes from a 2025 study of practiced readers. Nine paid readers labeled 300 articles as human or AI. Four readers who rarely used AI for writing did about as well as chance. They flagged 56.7% of AI articles but also about half of human ones. Five readers who used AI for writing often were far better. Their majority vote got 299 of the 300 articles right. Those five were picked because they resembled the best reader in a first round. Their most common clue was "AI vocabulary," words like "vibrant" and "crucial". The AI articles were written wholly by AI, not human drafts edited with AI. They were news-style articles, not resumes [@russell-2025].
+The strongest counter-evidence comes from a 2025 study of practiced readers. Nine paid readers labeled 300 articles as human or AI. Four readers who rarely used AI for writing did about as well as chance. They flagged 56.7% of AI articles but also about half of human ones. Five readers who used AI for writing often, picked for resembling the best reader in a first round, were far better. Their majority vote got 299 of the 300 articles right. Their most common clue was "AI vocabulary," words like "vibrant" and "crucial" [@russell-2025].
+
+```sure
+The AI articles were written wholly by AI, not human drafts edited with AI. They were news-style articles, not resumes [@russell-2025].
+```
 
 For you, a reader who uses AI often may notice text written wholly by AI. Most readers will guess, and some will guess wrong about text you wrote yourself.
 
@@ -136,3 +151,4 @@ CEZ Job Finder is a free job-search app for Windows and Mac: [see how CEZ Job Fi
 - October 2026 - the hiring survey now names its sample as HR and talent leaders, as its method section does. The 54% line now reads as a share of everyone asked [@insight-global-2025]. The numbers are unchanged.
 - October 2026 - added a short What to do list at the top, renamed the Short answer box "What the evidence says" and set each section's answer in bold. The findings are unchanged.
 - October 2026 - the line under the title now says the tests used older AI models.
+- October 2026 - the line under the title now ends on the answer. Added a guess-first question, a worked example of 12 profiles and a share card; which texts the practiced readers saw now folds under "How sure is this?". The findings are unchanged.

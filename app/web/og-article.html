@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CEZ Job Finder Research article share image</title>
+<!-- Source of docs/cards/<slug>.png (1200x630), one per article with a card: header (its key finding):
+     uv run app/web/assets.py --only cards fills {{title}}, {{finding}} and {{source}} (HTML-escaped) from
+     uv run app/web/pages.py --cards. Masthead, tokens + brand mark as og-research.html. The source line names
+     the study behind the finding: a number on the card always carries it (pages.card()).
+     Bottom 90px kept clear (X lays its headline there; the render fails if anything lands there).
+     Mark = the app's own bare bird (src="/app/install/mark*.svg"), inlined at render - never a copy. -->
+<style>
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-regular.woff2") format("woff2"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "Caladea"; src: url("/fonts/caladea-bold.woff2") format("woff2"); font-weight: 700; font-style: normal; }
+  :root { --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    position: relative; background: var(--paper); color: var(--ink);
+    font: 24px/1.4 "Caladea", serif; font-kerning: normal;
+  }
+  p { margin: 0; }
+
+  /* masthead: brand + site, full-bleed thick + thin double rule (as og.html) */
+  .top {
+    position: absolute; left: 0; right: 0; top: 0; height: 104px; padding: 0 50px;
+    display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid var(--ink);
+  }
+  .top::after { content: ""; position: absolute; left: 0; right: 0; bottom: -10px; border-bottom: 1px solid var(--ink); }
+  .brand { display: flex; align-items: center; gap: 14px; font-size: 30px; font-weight: 700; }
+  .brand img { width: 48px; height: 48px; }
+  .site { font-size: 24px; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
+
+  /* the article's question, then its finding in display type, then the source under a hairline */
+  .body { position: absolute; left: 50px; right: 50px; top: 140px; }
+  .kicker { font-size: 26px; line-height: 1.3; color: var(--ink-2); }
+  .finding { margin-top: 16px; font-size: 62px; line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+  .finding span { background: linear-gradient(transparent 62%, var(--mark) 62%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+  .source { margin-top: 22px; padding-top: 12px; border-top: 1px solid var(--ink); font-size: 24px; color: var(--ink-2); }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <img src="/app/install/mark.svg" alt="">
+    CEZ Job Finder Research
+  </div>
+  <div class="site">jobs.enrriquez.com/research</div>
+</header>
+
+<div class="body">
+  <p class="kicker">{{title}}</p>
+  <p class="finding"><span>{{finding}}</span></p>
+  <p class="source">{{source}}</p>
+</div>
+</body>
+</html>

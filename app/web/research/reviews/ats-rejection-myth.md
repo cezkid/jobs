@@ -417,3 +417,41 @@ Changes line: accurate. It leaves out the Short answer rename. Optional; no fix 
 No finding. Verdict: publish.
 
 Changes-line edit after this re-review (2026-10-07): the generic line now also says "renamed the Short answer box "What the evidence says""; accurate, no other article change. Verdict: publish (unchanged).
+
+## Re-review 2026-10-07: guess, fold-outs, worked example, card (plan-ngk.9-.14)
+
+Fresh AI session; made none of the edits. Read `app/docs/research.md` (Style: two layers, worked example, guess first, share card), `git diff main` of the article, the whole article, the CSV (recounted by script), `sources.yml` entries; reopened greenhouse-rules + levinson-2012-cio (2026-10-07). No source text addressed an AI.
+
+Changed:
+- header `card:` line (share image)
+- `guess` block under "Where does the 75% number come from?"
+- worked example ("Say you apply to 10 jobs ...") in the knockout section
+- two `sure` folds: sample limits + freehire count note; Resume Genius survey note
+- one Changes line
+
+Numbers (CSV, 143 rows): permit or sponsorship 99 (69.2% -> "about 7 of 10" ok); location 45 (31.5% -> "about 3" ok); any 109; years 21; license/clearance 13; zero 22. All match.
+
+Verdicts:
+- Card: "No study shows ATS reject 75% of resumes: it traces to a 2012 sales claim" (73 chars w/o cite) = section 1 bold answer + description; CIO credits the figure to Preptel, "job search services provider" that "aims to help job seekers penetrate these systems". Supported.
+- Guess: right answer "None we could find" = body; distractors plain, not misleading. Reveal states the trail firmer than the body + one cite short - R2.
+- Worked example: arithmetic right, own count. Not labelled "by our arithmetic"; last sentence widens one vendor's help page to every employer's rule, and "not on your layout" is not in the source (Enhancv: 2-3 of 25 reject on resume content) - R1.
+- Fold 1 (limits + freehire count): method/caveat only, verbatim (diff = fence lines only), no answer, no bold; "A question on a form is not a rejection" stays outside. Placement: now after the worked example, not right after the bars claim it qualifies - R3.
+- Fold 2 (Resume Genius note): verbatim, caveat only; section sentences keep "said", so the self-report label survives outside. Supported.
+- Citations after split: every outside sentence still carries its marker or is our own count. Supported.
+- Changes line: accurate (card not a reader-visible text change; no mention needed). Plain words, US English.
+- `pages.py --check`: parses; no line for this article.
+
+Findings (verdict revise):
+- **R1 (medium)** Worked example overstates its source + lacks the "by our arithmetic" label. Replace the paragraph with: "Say you apply to 10 jobs like the ones in our sample. By our arithmetic from our count, about 7 of their forms would ask about a work permit or visa sponsorship, and about 3 whether you can work on site or live nearby. A question is not a rejection. On Greenhouse, an employer that turns on auto-reject sets it on answers like those, not on resume text [@greenhouse-rules]."
+- **R2 (low)** Guess reveal says "The earliest copy is"; body says "earliest copy we found". "Neither says" covers Preptel's own page, uncited here. Replace the Answer line with: "Answer: None we could find. The earliest copy we found is a 2012 magazine article quoting a company that sold help to beat these systems; neither says how the number was measured [@levinson-2012-cio; @preptel-2012]." (Use the repo's multi-cite form if it differs.)
+- **R3 (low)** Fold 1 should sit right after the claim it qualifies. Move the worked example paragraph to just after the closing ``` of fold 1 (before "Our share of 109 of the 143 forms ..."); the example stays in the main finding's section.
+
+### Resolution check 2026-10-07 (plan-ngk.9-.14)
+
+Re-read the article; `pages.py --check` parses (no line for this article besides the card-drawing note).
+- R1: fixed - paragraph matches the fix text word for word; "by our arithmetic" label in; scoped to Greenhouse; "resume text", not layout. Numbers unchanged (99, 45 of 143).
+- R2: fixed - reveal says "earliest copy we found", cites levinson-2012-cio + preptel-2012.
+- R3: fixed - fold 1 now sits right after the bars + on-site note; worked example follows the fold, still in the main finding's section.
+- R4 (low, optional): the new "A question is not a rejection." repeats the next paragraph's "A question on a form is not a rejection" two lines later. Could drop it from the example; harmless as is, and it keeps the example from being read alone as a rejection rate. No fix needed.
+
+Verdict: publish
