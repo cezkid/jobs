@@ -207,9 +207,24 @@ def dated_years(master: dict, today: date) -> int | None:
     return (months + high - low + 1) // 12
 
 
+def enrollment_asked(text: str) -> str | None:
+    """Level a line asks a student to be working toward ("currently pursuing a bachelor's degree"),
+    or None. degree_asked skips these lines: they ask what you study, not what you hold."""
+    if not STUDENT.search(text) or EQUIVALENT.search(text) or PROFESSIONAL.search(text):
+        return None
+    asked = " ".join(c for c in re.split(r"[;,()]|\s-\s", text) if not WISH.search(c))
+    found = [level for level, pattern in ASKED if re.search(pattern, asked, re.I)]
+    return found[-1] if found else None
+
+
 def shortfalls(master: dict, job: dict, today: date) -> list[str]:
     """Plain lines: each minimum ask the resume details visibly miss, quoting the posting."""
     have_years = dated_years(master, today)
+    studying = [degree_held(e) for e in master.get("education") or [] if schema.in_progress(e, today)]
+    graduation = schema.graduation(master, today)
+    school = next((s for s in master.get("education") or [] if s.get("end") == graduation), {})
+    if school.get("hide_year"):
+        graduation = None
     levels = [degree_held(e) for e in master.get("education") or []]
     # an entry read as no level (a diploma program, a JD) may be the higher one: can't tell
     known = None not in levels
@@ -227,4 +242,12 @@ def shortfalls(master: dict, job: dict, today: date) -> list[str]:
             mine = LADDER[held] if held is not None else "none listed"
             what = "a high school diploma" if level == "high school" else f"{'an' if level[0] in 'aeiou' else 'a'} {level} degree"
             out.append(f'Asks {what} ("{text}"). Your highest in your resume details: {mine}.')
+        # a student's eligibility: what they're studying for, and when they finish
+        level = enrollment_asked(text)
+        if level and studying and None not in studying and max(LADDER.index(lv) for lv in studying) < LADDER.index(level):
+            out.append(f'Asks to be studying for {"an" if level[0] in "aeiou" else "a"} {level} degree ("{text}"). '
+                       f'Yours in progress: {LADDER[max(LADDER.index(lv) for lv in studying)]}.')
+        if graduation and (window := graduation_window(text, today)) and outside(window, graduation, today):
+            mine = window_label((schema.month_index(graduation, today), schema.month_index(graduation, today, end=True)))
+            out.append(f'Asks graduating {window_label(window)} ("{text}"). Your resume details say {mine}.')
     return out

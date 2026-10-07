@@ -141,3 +141,19 @@ def test_only_a_graduation_clearly_outside_the_window_is_said():
     assert asked(job, None, GRAD_TODAY) is None
     preferred = {"requirements": [{"text": "Graduating in 2030", "priority": "preferred"}]}
     assert asked(preferred, "2027-05", GRAD_TODAY) is None
+
+
+def test_student_shortfalls_name_the_window_and_the_level_they_study_for():
+    master = {"roles": [], "education": [{"institution": "Columbus State Community College", "degree": "AA",
+                                          "end": "2027-05"}]}
+    job = {"requirements": [
+        {"text": "Currently pursuing a Bachelor's degree in Business", "priority": "required"},
+        {"text": "Graduating between December 2027 and June 2028", "priority": "required"}]}
+    assert knockout.shortfalls(master, job, GRAD_TODAY) == [
+        'Asks to be studying for a bachelor\'s degree ("Currently pursuing a Bachelor\'s degree in Business"). '
+        "Yours in progress: associate's.",
+        'Asks graduating Dec 2027 - Jun 2028 ("Graduating between December 2027 and June 2028"). '
+        "Your resume details say May 2027."]
+    master["education"][0]["degree"] = "BS"
+    master["education"][0]["end"] = "2028-05"
+    assert knockout.shortfalls(master, job, GRAD_TODAY) == []
