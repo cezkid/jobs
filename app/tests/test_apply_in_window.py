@@ -1045,15 +1045,25 @@ def test_in_window_page_at_says_restart_when_the_window_runs_the_old_extension(t
     assert ext.opened == [] and ext.attached == []
 
 
-def test_in_window_page_at_refuses_a_multi_page_form_before_opening_a_tab(tmp_path, monkeypatch):
-    # a fresh tab is page 1 again: the user's place after Next would be lost, silently
+def test_in_window_multipage_page_at_in_the_holder_keeps_the_users_tab(tab, site, tmp_path, monkeypatch):
+    # a fresh tab is page 1 again: inside the holder the user's own tab comes back - one attach, no let go
     window_setup(tmp_path, monkeypatch)
-    with FakeExtension(tmp_path, {}) as ext, pytest.raises(SystemExit) as stop:
-        with window.page_at("https://acme.example/apply/1", match=lambda url: True):
-            pytest.fail("no page for a multi-page form in the window")
-    assert str(stop.value).startswith("not filled: this form has several pages")
-    assert str(stop.value).endswith("run fill without --in-window to fill it in Chrome")
-    assert ext.opened == [] and ext.attached == []
+    monkeypatch.setattr(window.inside, "on", True, raising=False)
+    match = lambda url: url.startswith(site)
+    with FakeExtension(tmp_path, tab) as ext:
+        try:
+            with window.page_at(site, match=match) as first:
+                first.evaluate("window.mark = 'kept'")
+            with window.page_at(site + "?again", match=match) as again:
+                assert again is first and again.evaluate("window.mark") == "kept"
+            assert len(ext.attached) == 1 and ext.detached == []
+            with window.page_at(site, match=lambda url: False) as other:  # another form: a tab of its own
+                assert other is not first
+            assert len(ext.attached) == 2 and len(window.held) == 2
+        finally:
+            for held in list(window.held):
+                window.drop(held)
+        assert sorted(ext.detached) == ["s-1", "s-1"]
 
 
 def fill_setup(tmp_path, monkeypatch, name):
@@ -1112,4 +1122,209 @@ def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
     assert str(stop.value) == "in the window: Greenhouse, Ashby, Lever, JazzHR, Workable only for now - run fill without --in-window"
+    assert opened == []
+
+
+# a form over two pages, each its own document on the same site: Next is a plain link the user
+# clicks; a `debugger;` line as each page loads + every 100 ms (a held tab must never freeze on it)
+MP_PAGE = """<!doctype html><meta charset=utf-8><title>Step {n}</title>
+<form><label for="{id}">Question {id}</label><input id="{id}" name="{id}" required>{next}</form>
+<script>window.ticks = 0; debugger; setInterval(() => {{ debugger; window.ticks++; }}, 100);</script>"""
+
+
+@pytest.fixture(scope="module")
+def pages_site():
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            n = urlsplit(self.path).path.rsplit("/", 1)[-1]
+            body = MP_PAGE.format(n=n, id="ab"[int(n) - 1], next='<a id="next" href="/mp/2">Next</a>' if n == "1" else "")
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self.end_headers()
+            self.wfile.write(body.encode())
+
+        def log_message(self, *args):
+            pass
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    server.daemon_threads = True
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    yield f"http://127.0.0.1:{server.server_address[1]}"
+    server.shutdown()
+
+
+class MultiPage:
+    """A multi-page system on pages_site: reads + fills the page the tab shows."""
+    NAME, READY, PER_PAGE = "MultiPage", "form", True
+
+    def __init__(self, base):
+        self.base = base
+
+    def application_url(self, url):
+        return url
+
+    def on_tab(self, url, tab_url):
+        return tab_url.startswith(self.base + "/mp/")
+
+    def read(self, page):
+        return [questions.question(id, f"Question {id}", "text", True, page=page.evaluate("document.title"))
+                for id in self.ids_on_page(page)]
+
+    def ids_on_page(self, page):
+        return page.eval_on_selector_all("form input", "els => els.map(e => e.id)")
+
+    def fill(self, page, q, resume_file):
+        box = page.locator(f"#{q['id']}")
+        if not box.count():
+            return f"{questions.LATER} on {q['page']}"
+        box.fill(q["answer"])
+        return "ok"
+
+    def holds(self, page, q):
+        return page.locator(f"#{q['id']}").input_value() == q["answer"]
+
+
+class JsDebugCDP(CDP):
+    """js-debug's proxy: its own session has the debugger on - a `debugger;` line pauses the page unless skipped."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.send("Debugger.enable")
+
+
+def multipage_run(tmp_path, monkeypatch, capsys, system, name, in_window, user_next):
+    """prepare, the user's answers, fill, the user's Next, prepare, answers, fill -> (printed per step, answers file per prepare)."""
+    folder = tmp_path / name / "7 - Acme - Analyst"
+    saved = folder / ".data" / questions.FILE
+    monkeypatch.setattr(form, "job_dir", lambda config, slug: folder)
+    outs, files = [], []
+
+    def answer():
+        data = questions.load(saved)
+        for a in data["questions"]:
+            if questions.blank(a.get("answer")):
+                a.update(answer="Test Applicant", source=questions.USER_SAID)
+        questions.save(saved, data)
+    for step in (1, 2):
+        form.prepare("7", f"{system.base}/mp/1", in_window=in_window)
+        files.append(questions.load(saved))
+        answer()
+        form.fill("7", in_window=in_window)
+        outs.append(capsys.readouterr().out)
+        if step == 1:
+            user_next()
+    return outs, files
+
+
+def test_in_window_multipage_fills_both_pages_on_one_held_tab_as_playwright_does(tab, playwright_chrome, pages_site, tmp_path,
+                                                                                monkeypatch, capsys):
+    system = MultiPage(pages_site)
+    window_setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(form.cfg, "load", lambda: {"resume": {"master": "Resume details.yml"}})
+    monkeypatch.setattr(form.schema, "load", lambda path: {"contact": {"name": "Test Applicant", "email": "test@example.com"}})
+    monkeypatch.setattr(form, "resume_for", lambda config, folder: None)
+    monkeypatch.setattr(form.systems, "for_url", lambda url: system)
+    monkeypatch.setattr(form, "system_for", lambda url: system)
+    monkeypatch.setattr(form, "SETTLE_MS", 50)
+    monkeypatch.setattr(window, "SYSTEMS", window.SYSTEMS + (system.NAME,))
+    monkeypatch.setattr(window, "CDP", JsDebugCDP)
+
+    # Chrome: Playwright's tab, the user's own between runs (browser.page_at's match)
+    context = playwright_chrome.new_context()
+    pw = context.new_page()
+
+    @contextlib.contextmanager
+    def chrome_tab(url, match=None):
+        if not (match and match(pw.url)):
+            pw.goto(url)
+        yield pw
+    monkeypatch.setattr(form.browser, "page_at", chrome_tab)
+
+    def pw_next():
+        pw.click("#next")
+        pw.wait_for_url("**/mp/2")
+    try:
+        chrome = multipage_run(tmp_path, monkeypatch, capsys, system, "chrome", False, pw_next)
+        assert pw.input_value("#b") == "Test Applicant"
+    finally:
+        context.close()
+
+    # the window: one holder attached throughout; the user's Next through a CDP of their own (no debugger)
+    state = tmp_path / ".data" / window.HOLD_STATE
+    ctl = CDP(**tab)
+
+    def page2():
+        try:
+            return ctl.evaluate("location.pathname + ' ' + document.readyState", 3) == "/mp/2 complete"
+        except (RuntimeError, TimeoutError):
+            return False
+
+    def user_next():
+        assert ctl.evaluate("document.getElementById('a').value") == "Test Applicant"
+        ctl.evaluate("document.getElementById('next').click()")
+        deadline = time.monotonic() + 15
+        while not page2():
+            assert time.monotonic() < deadline, "page 2 never loaded"
+            time.sleep(0.1)
+    with FakeExtension(tmp_path, tab) as ext:
+        holder = threading.Thread(target=window.hold, daemon=True)
+        holder.start()
+        try:
+            deadline = time.monotonic() + 10
+            while not state.exists():
+                assert time.monotonic() < deadline, "the holder never started"
+                time.sleep(0.05)
+            inside = multipage_run(tmp_path, monkeypatch, capsys, system, "window", True, user_next)
+            assert ctl.evaluate("document.getElementById('b').value") == "Test Applicant"
+            # not frozen on page 2's `debugger;` lines: its ticks go on
+            ticks = ctl.evaluate("ticks", 5)
+            time.sleep(0.5)
+            assert ctl.evaluate("ticks", 5) > ticks
+            assert len(ext.opened) == 1 and ext.attached == ext.opened and ext.detached == []
+        finally:
+            window.let_go_all()
+            holder.join(10)
+            ctl.close()
+        assert not holder.is_alive() and not state.exists() and ext.detached == ["s-1"]
+    assert "let go of 1 tab(s)" in capsys.readouterr().out
+
+    # same answers files, same reports - the window's lines carry --in-window
+    def plain(out):
+        return (out.replace(" --in-window", "").replace("The Job Finder window shows", "Chrome is open on")
+                .replace(f"{tmp_path}/window/", f"{tmp_path}/chrome/"))
+    assert [plain(o) for o in inside[0]] == chrome[0]
+    assert inside[1] == chrome[1]
+    assert [(q["id"], q["page"]) for q in inside[1][1]["questions"]] == [("a", "Step 1"), ("b", "Step 2")]
+    assert "  [ok] Question a\n" in inside[0][0] and "  [ok] Question b\n" in inside[0][1]
+    assert "apply-form fill 7 --in-window\n" in inside[0][0]
+
+
+def test_in_window_multipage_next_steps_keep_in_window(tmp_path, monkeypatch, capsys):
+    # the user's Next, then prepare + fill again: still in the window, never Chrome by default
+    opened = fill_setup(tmp_path, monkeypatch, "MultiPage")
+    system = form.system_for("")
+    system.PER_PAGE, system.read = True, lambda page: []
+    system.fill = lambda page, q, file: f"{questions.LATER} on Step 2" if q["id"] == "later" else "ok"
+    data = questions.load(form.job_dir({}, "7") / ".data" / questions.FILE)
+    data["questions"].append({**ANSWERS[0], "id": "later", "title": "Later", "page": "Step 2"})
+    questions.save(form.job_dir({}, "7") / ".data" / questions.FILE, data)
+    monkeypatch.setattr(form.systems, "tab_match", lambda system, url: lambda tab_url: True)
+    monkeypatch.setattr(window, "SYSTEMS", window.SYSTEMS + ("MultiPage",))
+    monkeypatch.setattr(window.inside, "on", True, raising=False)
+    form.fill("7", in_window=True)
+    out = capsys.readouterr().out
+    assert opened == ["window"]
+    assert ('then: uv run app/jobs.py apply-form prepare 7 "https://jobs.example/1" --in-window, then '
+            "uv run app/jobs.py apply-form fill 7 --in-window") in out
+
+
+@pytest.mark.parametrize("step", ["fill", "prepare"])
+def test_in_window_multipage_ukg_refused_plainly(tmp_path, monkeypatch, step):
+    # UKG's sign-in lives in Job Finder's Chrome: a window tab would land signed out
+    opened = fill_setup(tmp_path, monkeypatch, "UKG")
+    monkeypatch.setattr(form.systems, "for_url", lambda url: form.system_for(url))
+    monkeypatch.setattr(form.schema, "load", lambda path: {"contact": {}})
+    monkeypatch.setattr(form.cfg, "resume_path", lambda config, which: tmp_path / "r.yml")
+    with pytest.raises(SystemExit) as stop:
+        form.fill("7", in_window=True) if step == "fill" else form.prepare("7", "https://jobs.example/1", in_window=True)
+    assert str(stop.value) == f"not in the window: UKG - {window.REFUSED['UKG']}; run {step} without --in-window"
     assert opened == []

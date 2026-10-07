@@ -25,6 +25,8 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
   multipage   local form only (plan-k8n.12): page 1 filled, Next, page 2 filled - (a) debug session kept
            between runs w/ no client, (c) one process attached throughout; same site / other site / in place;
            a `debugger;` line every second; the user closes the tab; window reload
+  toolbar  local form only (plan-k8n.15): (c) as built, debug.toolBarLocation floating vs hidden - screenshots
+           of page 1 + page 2 while attached
   raw      route 2 on ONE public posting of any system `systems.for_url` knows (plan-nko.6 Ashby, .13 Lever):
            level-3 block (+ lab.NAMED_READS, the owner's one exception) + canary first in the same tab;
            the page's `debugger;` pauses counted (skip off once, resumed in the handler, cap 20, then
@@ -1667,13 +1669,53 @@ def multipage(result):
         result["siteLog"] = [{k: e[k] for k in ("t", "host", "path")} for e in formsite.log]
 
 
+# ---------------------------------------------------------------- debug toolbar between pages (plan-k8n.15)
+def toolbar(result):
+    """(c) as built: does user setting debug.toolBarLocation 'hidden' keep the debug toolbar off the window while
+    one process stays attached across pages? Default ('floating') first, then hidden - local form only."""
+    user = D / "data" / "User" / "settings.json"
+    before = user.read_text() if user.exists() else None
+    user.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        for loc in ("floating", "hidden"):
+            user.write_text(json.dumps({"debug.toolBarLocation": loc}))
+            proc, row = {}, {}
+            proc, row["launch"] = launch()
+            home, other, close = formsite.serve(TITLE)
+            try:
+                child, c, open_row = mp_open(home, f"t-{loc}", "same")
+                row.update(open_row)
+                row["fixes"] = keep_quiet(c)
+                time.sleep(1)
+                row["shotPage1"] = screenshot(f"mp-toolbar-{loc}-page1", proc)
+                c.evaluate(f"autoNext({NEXT_MS})")
+                t = time.time()
+                row["onPage2"] = bool(wait_for(lambda: on_page2("same", t), 15, 0.2))
+                time.sleep(3)
+                row["shotPage2"] = screenshot(f"mp-toolbar-{loc}-page2", proc)
+                row["page2"] = {}
+                fill_page2(c, row["page2"])
+                c.close()
+                end_all()
+            finally:
+                row["quit"] = quit_(proc)
+                close()
+            result[loc] = row
+    finally:
+        if before is None:
+            user.unlink(missing_ok=True)
+        else:
+            user.write_text(before)
+        result["siteWrites"] = [e for e in formsite.log if e["write"]]
+
+
 if __name__ == "__main__":
     if running():
         sys.exit("a scratch VS Code on this dir is already running")
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw, "multipage": multipage}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw, "multipage": multipage, "toolbar": toolbar}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

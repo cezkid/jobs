@@ -516,8 +516,11 @@ owner's list.
 `uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR + Workable only (owner's yes
 for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5, Workable 2026-10-06 plan-k8n.8; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
-Multi-page form (`PER_PAGE`, `form.fill` passes `match`) refused by `window.page_at` before any tab opens, one line
-ending in the Chrome way: a fresh tab is page 1 again, the user's place lost (plan-k8n.2, 2026-10-06; keep-place measured: "Multi-page (keep the user's place)" below, plan-k8n.12).
+Multi-page form (`PER_PAGE`, `form.fill` passes `match`): no longer refused (plan-k8n.15, owner's pick (c)) - one
+holder process keeps the user's tab between runs, see "Built (c)" below. Which multi-page systems are offered in the
+window = `window.SYSTEMS`, unchanged until plan-k8n.20. UKG refused in the window (`window.REFUSED`, `fill` +
+`prepare --in-window`): its sign-in lives in Job Finder's Chrome, a window tab isn't signed in - one plain line + the
+Chrome way. `prepare` takes `--in-window` too; next-step lines keep the flag.
 
 - Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
   the window opens it (plain open request), then `attach-form` w/ that link as urlFilter. Never the
@@ -741,3 +744,26 @@ reload, Submit page, or a time limit); the debug toolbar stays visible the whole
 `debug.toolBarLocation: hidden` may hide it - untested); a page whose script runs `debugger;` before
 the navigation event lands pauses until the handler resumes it (0 of 3 here). Reload or closed tab
 = place lost in both: say so plainly, Chrome way as today. Owner decides: plan-k8n.13.
+
+### Built (c) (plan-k8n.15, 2026-10-07)
+
+Owner picked (c) (plan-k8n.13, 2026-10-07). `apply/window.py`:
+- `fill` / `prepare --in-window` on a multi-page form (fill: `PER_PAGE`; prepare: system reads per page) forward to
+  one holder (`apply-form hold`, started detached on first need, lock `.data/window-form.lock`): 127.0.0.1, random
+  port + token in `.data/window-form.json`, one request at a time, its output + exit code printed by the caller.
+- Holder's `page_at`: a held tab whose URL still fits the form's `match` -> that tab, the user's place (no new tab,
+  no detach); else a fresh holding-page tab, kept. Each kept tab: re-skip pauses on every main-frame navigation
+  (`Page.frameNavigated` / `navigatedWithinDocument`), resume any pause (measured handler above).
+- Let go (detach, tab kept): tab left the form, tab closed, `apply-form let-go`; exits idle 30 s w/ nothing held,
+  or 2 h after the last request (lets go of all). State file removed on exit.
+- Tests (`uv run pytest -k 'in_window and multipage'`): local 2-page form (Next = new document, `debugger;` on
+  load + every second), page 1 + page 2 filled through the holder (fake extension, one open + one attach across
+  prepare/fill/Next/prepare/fill, page not frozen) and through Playwright - same answers + same reports. With
+  the re-skip handler off the test hangs (checked) - it is what keeps page 2 alive. A2's refusal test replaced by
+  a keep-place test (`page_at` twice in the holder -> same tab, one attach).
+
+Debug toolbar: shown while attached by default (`mp-c-other-page2.png`: floating over the tab bar, Pause button).
+`debug.toolBarLocation: hidden` tried (stage `toolbar`, local form, 0 employer loads, 2026-10-07): fill + page 2
+the same as floating (6 ticks, 0 ms held, both) - whether it hides the bar NOT seen: screen capture failed in that
+run (display unavailable). Not added to the window's settings until a screenshot shows it (follow-up bead).
+

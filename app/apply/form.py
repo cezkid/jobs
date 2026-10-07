@@ -9,7 +9,9 @@ questions were read ahead (apply/readahead.py): `prepare` drafts from those, `pa
 the answers as a page to paste from.
 A form spread over pages: `fill` works on the user's own tab, fills what this page shows (the rest
 reported LATER), the user clicks Next / Continue, then `prepare` again (systems that read the page)
-and `fill` again.
+and `fill` again. `--in-window` (trial): the window's tab instead of Chrome's; a multi-page form there
+runs in one holder process that stays on the user's tab between runs (apply/window.py hold);
+`let-go` ends it.
 `measure <link>` (developers): a safe look at a live form - apply/lab.py; `try <link> [--next] [--no-upload]`: a
 system's filler on it with synthetic answers - apply/trial.py.
 `survey <links file>` (developers): question kinds on many Ashby + Lever forms, plain reads - apply/survey.py.
@@ -118,11 +120,22 @@ def ai_note(answers: list[dict]) -> str:
     return ""
 
 
-def prepare(slug: str, url: str) -> None:
+def window_opener(system, step: str):
+    """window.page_at for a system the window fills, else one plain line + the Chrome way."""
+    from apply import window
+    if why := window.REFUSED.get(system.NAME):
+        sys.exit(f"not in the window: {system.NAME} - {why}; run {step} without --in-window")
+    if system.NAME not in window.SYSTEMS:
+        sys.exit(f"in the window: {', '.join(window.SYSTEMS)} only for now - run {step} without --in-window")
+    return window.page_at
+
+
+def prepare(slug: str, url: str, in_window: bool = False) -> None:
     config = cfg.load()
     master = schema.load(cfg.resume_path(config, "master"))
     folder = job_dir(config, slug)
     system = systems.for_url(url)
+    opener = window_opener(system, "prepare") if in_window and system is not None else browser.page_at
     form = None if system else readahead.load(folder / tailor.JOB_DATA)
     if system is None and not (form and form.get("found")):
         system_for(url)  # says why: filled another way, or not supported
@@ -132,9 +145,14 @@ def prepare(slug: str, url: str) -> None:
     same_form = old and old.get("url") == app_url
     before = old["questions"] if same_form else []
     reads = hasattr(system, "read")
+    if in_window and reads:
+        from apply import window
+        if not window.holding():  # read off the tab the holder keeps
+            return window.forward("prepare", slug, url)
+    flag = " --in-window" if in_window else ""
     schools = master.get("education") or []
     if reads:  # a form read page by page, off the tab the user is on
-        with browser.page_at(app_url, match=systems.tab_match(system, url)) as page:
+        with opener(app_url, match=systems.tab_match(system, url)) as page:
             asked = system.read(page)
     elif system is None:
         asked = readahead.as_questions(form)
@@ -168,7 +186,7 @@ def prepare(slug: str, url: str) -> None:
     print("Write answers into the file (file kind: answer = true only after the user said yes to uploading; a "
           f"question marked '{questions.YOURS}' or 'sensitive': the user's own answer, its source set to "
           f"'{questions.USER_SAID}'; one marked '{questions.SIGN_ON_PAGE}': left blank, the user ticks or signs it "
-          f"there), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}")
+          f"there), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}{flag if system else ''}")
 
 
 def paste(slug: str) -> None:
@@ -225,13 +243,13 @@ def fill(slug: str, in_window: bool = False) -> None:
     refuse(data["questions"])
     system = system_for(data["url"])
     # trial, off by default (apply/window.py): only systems checked in the window's tab
-    opener = browser.page_at
+    opener = window_opener(system, "fill") if in_window else browser.page_at
+    per_page = getattr(system, "PER_PAGE", False)
     if in_window:
         from apply import window
-        if system.NAME not in window.SYSTEMS:
-            sys.exit(f"in the window: {', '.join(window.SYSTEMS)} only for now - run fill without --in-window")
-        opener = window.page_at
-    per_page = getattr(system, "PER_PAGE", False)
+        if per_page and not window.holding():  # the user's own tab, kept by the holder between pages
+            return window.forward("fill", slug)
+    flag = " --in-window" if in_window else ""
     if not per_page and (gaps := questions.missing(data["questions"])):
         sys.exit("required questions still blank: " + "; ".join(a["title"] for a in gaps))
     resume = resume_for(config, folder)
@@ -258,8 +276,8 @@ def fill(slug: str, in_window: bool = False) -> None:
     if other:
         blank = [q["title"] for q in questions.missing(other)]
         print(f"{len(other)} question(s) on other pages - the user checks this page and clicks Next / Continue "
-              "themselves (never us), then: " + (f"uv run app/jobs.py apply-form prepare {slug} \"{data['url']}\", then " if hasattr(system, "read") else "")
-              + f"uv run app/jobs.py apply-form fill {slug}"
+              "themselves (never us), then: " + (f"uv run app/jobs.py apply-form prepare {slug} \"{data['url']}\"{flag}, then " if hasattr(system, "read") else "")
+              + f"uv run app/jobs.py apply-form fill {slug}{flag}"
               + (f"; still blank there: {'; '.join(blank)}" if blank else ""))
     if extra:
         print(f"  {len(extra)} question(s) on the page not in the answers file - user answers them on screen")
@@ -388,10 +406,15 @@ def main() -> None:
     p = sub.add_parser("prepare", help="read the form's questions, answer what the resume states")
     p.add_argument("slug")
     p.add_argument("url")
+    p.add_argument("--in-window", action="store_true", help="(trial) read a multi-page form off the Job Finder "
+                   "window's tab, as fill --in-window fills it")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
     f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby, Lever, JazzHR + Workable, off by default) fill in a tab "
                    "of the Job Finder window instead of Chrome")
+    sub.add_parser("hold", help="(started by fill / prepare --in-window) stay on a multi-page form's window tab "
+                   "between runs")
+    sub.add_parser("let-go", help="the window's form helper lets go of the tabs it keeps and stops")
     t = sub.add_parser("paste", help="a form that can't be filled here: answers to paste -> Application answers.md")
     t.add_argument("slug")
     m = sub.add_parser("measure", help="(developers) safe look at a live form: throwaway Chrome, every write "
@@ -425,7 +448,10 @@ def main() -> None:
     if args.step == "try":
         from apply import trial
         return trial.trial(args.url, args.next, upload=not args.no_upload, probe=args.upload_errors)
-    {"prepare": lambda: prepare(args.slug, args.url), "fill": lambda: fill(args.slug, args.in_window),
+    if args.step in ("hold", "let-go"):
+        from apply import window
+        return window.hold() if args.step == "hold" else window.let_go_all()
+    {"prepare": lambda: prepare(args.slug, args.url, args.in_window), "fill": lambda: fill(args.slug, args.in_window),
      "paste": lambda: paste(args.slug)}[args.step]()
 
 

@@ -10,10 +10,12 @@ Measured costs this follows (vscode-browser.md): skip every pause on attach (a s
 line would freeze the fill), scroll `instant` (smooth scrolling moved the box under the click), only
 our own sessions let go - never every debug session (that closes the tab), the tab picked by a
 holding page only this run knows (the posting's own link may already be open in another tab: two
-matches = js-debug's picker), and Restricted Mode refuses it.
+matches = js-debug's picker), and Restricted Mode refuses it. A form over several pages: one holder process stays attached between
+runs (hold below), so the user's own tab keeps its place.
 """
 import contextlib
 import json
+import os
 import re
 import secrets
 import sys
@@ -25,6 +27,8 @@ from pathlib import Path
 from apply.cdp import CDP, Closed, ScriptError
 
 SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR", "Workable")
+# never in the window, whatever SYSTEMS says: why, in plain words
+REFUSED = {"UKG": "its sign-in lives in Job Finder's Chrome - a tab in the window isn't signed in"}
 ATTACH, DETACH = "attach-form", "detach-form"
 # holding page: the window's open-link wait + the tab's first request
 OPEN_WAIT = 20
@@ -951,13 +955,41 @@ def let_go(session: str) -> None:
 @contextlib.contextmanager
 def page_at(url: str, match=None, before_load=None):
     """A tab on `url` in the Job Finder window, as browser.page_at gives one in Chrome. `match` (a
-    multi-page form: the user's own tab, where they are) is refused - a fresh tab here is page 1
-    again, their place lost, until the window can keep it; `before_load(cdp)` runs before the form opens (measuring)."""
+    multi-page form: the user's own tab, where they are) inside the holder: a held tab it fits ->
+    that tab, their place kept; else a fresh tab, held after this run (a fresh tab is page 1 again).
+    `before_load(cdp)` runs before the form opens (measuring)."""
+    keep = match is not None and holding()
+    if keep:
+        for tab in [t for t in held if not fits(t)]:  # the user closed it or left the form
+            drop(tab)
+        if tab := next((t for t in held if fits(t, match)), None):
+            try:
+                yield tab["page"]
+            finally:
+                tab["page"].release()
+            return
+    cdp, session = attach()
+    page, tab = Page(cdp), None
+    try:
+        page.quiet()
+        if keep:
+            tab = keep_tab(page, session, match)
+        if before_load:
+            before_load(cdp)
+        page.goto(url)
+        yield page
+    finally:
+        page.release()
+        if tab is None:
+            cdp.close()
+            let_go(session)
+
+
+def attach() -> tuple[CDP, str]:
+    """A new tab in the window, our debugger on it -> (its CDP, the session to let go of)."""
     import cfg
     import jobs
     import launch
-    if match is not None:  # SYSTEMS holds one-page forms only; this keeps a later SYSTEMS edit honest
-        sys.exit(f"not filled: this form has several pages and the window can't keep your place between them yet - {FALLBACK}")
     if not launch.vscode_running():
         sys.exit(f"not filled: the Job Finder window isn't open - open CEZ Job Finder, or {FALLBACK}")
     # extension from before an update => no link watcher or debugger hand-off: say so, not a timeout
@@ -972,18 +1004,213 @@ def page_at(url: str, match=None, before_load=None):
             sys.exit(f"not filled: {WHY.get(error, 'the window could not reach the tab')} - {FALLBACK}")
         session, proxy = answer["session"], answer.get("proxy") or {}
         try:
-            cdp = CDP(proxy["host"], int(proxy["port"]), proxy["path"])
+            return CDP(proxy["host"], int(proxy["port"]), proxy["path"]), session
         except (KeyError, ValueError, TypeError, OSError, Closed):
             let_go(session)
             sys.exit(f"not filled: the window's debugger didn't let us in - {FALLBACK}")
-    page = Page(cdp)
+
+
+# --- the holder: a multi-page form in the window (plan-k8n.13 F2 = (c), owner 2026-10-07) ---
+# One background process stays attached to the form tab between runs, so the user's Next never
+# loses their place and no debug session starts or ends under them (each attach / let go flashed
+# VS Code's debug toolbar + status bar, measured plan-k8n.12). It skips pauses again after each
+# new page and resumes any pause (a site's `debugger;` line would freeze the page while nobody
+# runs). `apply-form fill / prepare --in-window` on a multi-page system hand their run to it.
+HOLD_STATE, HOLD_LOCK, HOLD_LOG = "window-form.json", "window-form.lock", "window-form.log"
+HOLD_IDLE = 30  # s: nothing held + no request -> it exits
+HOLD_MAX = 2 * 3600  # s since the last request: lets go of every tab + exits
+HOLD_START = 15  # s for a started holder to answer
+HOLD_TICK = 1  # s between looks at the held tabs while idle
+HELPER = "the window's form helper"
+QUIET_ON = ("Debugger.paused", "Page.frameNavigated", "Page.navigatedWithinDocument")
+
+held: list[dict] = []  # tabs kept between runs: {page, session, match}
+inside = threading.local()  # set in the thread serving the holder's requests
+
+
+def holding() -> bool:
+    return getattr(inside, "on", False)
+
+
+def fits(tab: dict, match=None) -> bool:
+    """Its tab still open and on the form `match` (default: its own) checks for."""
+    if tab["page"].cdp.closed:
+        return False
     try:
-        page.quiet()
-        if before_load:
-            before_load(cdp)
-        page.goto(url)
-        yield page
+        return bool((match or tab["match"])(tab["page"].cdp.evaluate("location.href", 5)))
+    except (RuntimeError, TimeoutError, Closed, OSError):
+        return False
+
+
+def keep_tab(page: Page, session: str, match) -> dict:
+    """Hold this tab: pauses skipped again on each new main-frame page, any pause resumed (measured
+    keep_quiet, vscode-browser/measure.py)."""
+    cdp = page.cdp
+    cdp.keep_events = False  # held for hours: no event log growing
+
+    def requiet(params, msg):
+        if msg["method"] == "Debugger.paused":
+            cdp.post("Debugger.setSkipAllPauses", {"skip": True})
+            cdp.post("Debugger.resume")
+        elif not (params.get("frame") or {}).get("parentId"):
+            cdp.post("Debugger.setSkipAllPauses", {"skip": True})
+    for name in QUIET_ON:
+        cdp.on(name, requiet)
+    for method, params in (("JsDebug.subscribe", {"events": list(QUIET_ON)}), ("Page.enable", {})):
+        with contextlib.suppress(RuntimeError, TimeoutError, Closed):
+            cdp.send(method, params, 5)
+    tab = {"page": page, "session": session, "match": match}
+    held.append(tab)
+    return tab
+
+
+def drop(tab: dict) -> None:
+    held.remove(tab)
+    tab["page"].cdp.close()
+    let_go(tab["session"])
+
+
+def serve(request: dict) -> tuple[str, "str | int | None"]:
+    """One run of form.fill / form.prepare here -> (what it printed, its exit)."""
+    import io
+    from apply import form
+    out, code = io.StringIO(), 0
+    try:
+        with contextlib.redirect_stdout(out):
+            if request.get("step") == "fill":
+                form.fill(request["slug"], in_window=True)
+            elif request.get("step") == "prepare":
+                form.prepare(request["slug"], request["url"], in_window=True)
+            else:
+                code = f"{HELPER} doesn't know {request.get('step')!r}"
+    except SystemExit as e:
+        code = e.code
+    except Exception as e:  # never a traceback to the user: one line + the Chrome way
+        code = f"not filled: {HELPER} hit a problem ({type(e).__name__}) - {FALLBACK}"
+    return out.getvalue(), code
+
+
+def hold() -> None:
+    """The holder (`apply-form hold`, started by forward): requests one at a time on this computer
+    only, each carrying the token in its state file; exits idle, after HOLD_MAX, or on let-go."""
+    import socket
+    import cfg
+    import locks
+    state = cfg.ROOT / ".data" / HOLD_STATE
+    server = socket.create_server(("127.0.0.1", 0))
+    server.settimeout(HOLD_TICK)
+    token = secrets.token_hex(16)
+    me = {"pid": os.getpid(), "port": server.getsockname()[1], "token": token}
+    state.parent.mkdir(parents=True, exist_ok=True)
+    locks.write_atomic(state, json.dumps(me))
+    inside.on, last = True, time.monotonic()
+    try:
+        while True:
+            idle = time.monotonic() - last
+            if idle > HOLD_MAX or (not held and idle > HOLD_IDLE):
+                break
+            try:
+                conn, _ = server.accept()
+            except TimeoutError:
+                for tab in [t for t in held if not fits(t)]:
+                    drop(tab)
+                continue
+            with conn:
+                conn.settimeout(10)
+                try:
+                    conn.sendall(b'{"holder": true}\n')
+                    request = json.loads(conn.makefile("rb").readline())
+                except (OSError, ValueError):
+                    continue
+                if not isinstance(request, dict) or not secrets.compare_digest(str(request.get("token")), token):
+                    continue
+                if request.get("step") == "let-go":
+                    with contextlib.suppress(OSError):
+                        conn.sendall(json.dumps({"out": f"{HELPER} let go of {len(held)} tab(s)\n", "exit": 0}).encode() + b"\n")
+                    break
+                out, code = serve(request)
+                last = time.monotonic()
+                with contextlib.suppress(OSError):
+                    conn.sendall(json.dumps({"out": out, "exit": code}).encode() + b"\n")
     finally:
-        page.release()
-        cdp.close()
-        let_go(session)
+        for tab in list(held):
+            drop(tab)
+        inside.on = False
+        server.close()
+        with contextlib.suppress(OSError, ValueError):
+            if json.loads(state.read_text(encoding="utf-8")) == me:
+                state.unlink()
+
+
+def reach(wait: float = 600):
+    """The running holder -> (its socket, token), None when none answers. A busy one (another
+    chat's fill) takes up to `wait` s to say hello."""
+    import socket
+    import cfg
+    try:
+        known = json.loads((cfg.ROOT / ".data" / HOLD_STATE).read_text(encoding="utf-8"))
+        conn = socket.create_connection(("127.0.0.1", int(known["port"])), 2)
+    except (OSError, ValueError, KeyError, TypeError):
+        return None
+    try:
+        conn.settimeout(wait)
+        if json.loads(conn.makefile("rb").readline()).get("holder") is True:
+            conn.settimeout(None)
+            return conn, known["token"]
+    except (OSError, ValueError, AttributeError):
+        pass
+    conn.close()
+    return None
+
+
+def start() -> None:
+    """The holder as its own process, outliving this run (the terminal's run ends; the tab stays held)."""
+    import subprocess
+    import cfg
+    detach = ({"creationflags": subprocess.DETACHED_PROCESS | subprocess.CREATE_NEW_PROCESS_GROUP} if os.name == "nt"
+              else {"start_new_session": True})
+    log = cfg.ROOT / ".data" / HOLD_LOG
+    log.parent.mkdir(parents=True, exist_ok=True)
+    with open(log, "ab") as err:
+        subprocess.Popen([sys.executable, str(Path(__file__).resolve().parents[1] / "jobs.py"), "apply-form", "hold"],
+                         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=err, cwd=cfg.ROOT, **detach)
+
+
+def forward(step: str, slug: str, url: str | None = None) -> None:
+    """This run, done by the holder (started first when none runs): its lines printed, its exit ours."""
+    import cfg
+    import locks
+    found = reach()
+    if found is None:
+        with locks.held(cfg.ROOT / ".data" / HOLD_LOCK, f"another chat is starting {HELPER} - try again in a minute", 30):
+            if (found := reach()) is None:
+                start()
+                deadline = time.monotonic() + HOLD_START
+                while (found := reach(5)) is None and time.monotonic() < deadline:
+                    time.sleep(0.2)
+    if found is None:
+        sys.exit(f"not filled: {HELPER} didn't start - {FALLBACK}")
+    conn, token = found
+    with conn:
+        conn.sendall(json.dumps({"token": token, "step": step, "slug": slug, "url": url}).encode() + b"\n")
+        try:
+            reply = json.loads(conn.makefile("rb").readline())
+        except (OSError, ValueError):
+            reply = None
+    if not isinstance(reply, dict):
+        sys.exit(f"not filled: {HELPER} stopped before it answered - {FALLBACK}")
+    print(reply.get("out", ""), end="")
+    if reply.get("exit") not in (None, 0):
+        sys.exit(reply["exit"])
+
+
+def let_go_all() -> None:
+    """`apply-form let-go`: the holder lets go of every tab it keeps and exits."""
+    if (found := reach(30)) is None:
+        print(f"{HELPER} isn't running - nothing held")
+        return
+    conn, token = found
+    with conn:
+        conn.sendall(json.dumps({"token": token, "step": "let-go"}).encode() + b"\n")
+        with contextlib.suppress(OSError, ValueError):
+            print(json.loads(conn.makefile("rb").readline()).get("out", ""), end="")
