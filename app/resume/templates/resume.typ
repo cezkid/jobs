@@ -39,6 +39,9 @@
   #block(below: if e.bullets.len() > 0 { 0.74em + 2.5pt } else { 0pt }, sticky: true)[
     #text(weight: 600)[#e.heading]#if e.at("org", default: none) != none [#sep#text(weight: 600)[#e.org]]
     #if e.at("subline", default: none) != none [ \ #text(number-width: "tabular")[#e.subline]]
+    // a school's relevant courses: its own row under the degree line, never a bullet (a bullet is
+    // tailored text; this is the user's list, printed as written)
+    #if e.at("note", default: none) != none [ \ #e.note]
   ]
   #if e.bullets.len() > 0 { list(..e.bullets.map(b => [#b])) }
 ]

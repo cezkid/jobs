@@ -27,7 +27,31 @@ def test_student_file_loads_and_education_leads_with_expected_date_gpa_and_cours
     assert [s["title"] for s in model["sections"]][0] == "Education"
     entry = education(student)["entries"][0]
     assert entry["subline"] == "Bachelor of Science, Statistics | Dean's List | GPA 3.62/4.00 | Expected May 2027"
-    assert entry["bullets"] == ["Relevant coursework: Regression Analysis, Database Systems, Data Visualization"]
+    assert entry["bullets"] == []
+    assert entry["note"] == "Relevant coursework: Regression Analysis, Database Systems, Data Visualization"
+
+
+def test_student_page_passes_every_render_gate(student, tmp_path):
+    model = render.page_model(student, TODAY)
+    path = tmp_path / "r.pdf"
+    path.write_bytes(render.compile_pdf(model))
+    assert {name: detail for name, ok, detail in render.check(path, model, budget=False) if not ok} == {}
+    assert "Relevant coursework: Regression Analysis" in " ".join(render.page_strings(model))
+
+
+def test_hidden_year_on_a_degree_in_progress_says_in_progress(student):
+    student["education"][0]["hide_year"] = True
+    assert education(student)["entries"][0]["subline"].endswith("| In progress")
+
+
+@pytest.mark.parametrize("end, studying", [("2026", False), ("2027", True), ("2026-12", True), ("2026-05", False)])
+def test_in_progress_reads_a_year_alone_as_maybe_finished(end, studying):
+    assert schema.in_progress({"end": end}, TODAY) is studying
+
+
+def test_unquoted_gpa_is_refused_with_how_to_fix_it(student):
+    student["education"][0]["gpa"] = 3.5
+    assert schema.validate(student) == ['education[0].gpa: put it in quotes, exactly as the transcript gives it: "3.5"']
 
 
 def test_campus_job_during_school_still_lets_the_degree_lead(student):

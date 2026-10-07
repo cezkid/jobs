@@ -15,6 +15,9 @@ DATE_FIELDS = {"roles": ("start", "end"), "projects": ("start", "end"), "career_
 # a GPA as a transcript writes it, any scale - never converted: "3.62", "3.62/4.00", "9.2/10",
 # "86%", "3.62 (Major 3.80)". A UK class ("First Class Honours") is no number: it goes in details
 GPA = re.compile(r"^\d{1,3}(?:\.\d{1,3})?\s*%?(?:\s*/\s*\d{1,3}(?:\.\d{1,3})?)?(?:\s*\(.+\))?$")
+# relevant coursework is a short list (career centres: the courses the job asks about); a long
+# one fills a block past render's no-prose-block cap of 57 words
+MAX_COURSES = 10
 # a GPA a 4-point box can take as is: no scale written, or out of 4 / 4.0 / 4.00
 FOUR_POINT = re.compile(r"^(?P<gpa>[0-4](?:\.\d{1,3})?)(?:\s*/\s*4(?:\.0{1,2})?)?(?:\s*\(.+\))?$")
 ID = re.compile(r"^[a-z0-9][a-z0-9-]*$")
@@ -369,9 +372,14 @@ def validate(master) -> list[str]:
             end = month(school, "end", where, errors, required=False)
             if start and end and month_index(end, date.today(), end=True) < month_index(start, date.today()):
                 errors.append(f"{where}: end {end} before start {start}")
-            if (gpa := optional(school, "gpa", str, where, errors)) and not GPA.match(gpa.strip()):
+            gpa = school.get("gpa")
+            if gpa is not None and not isinstance(gpa, str):
+                # YAML reads 3.50 as the number 3.5: the transcript's own figure needs quotes
+                errors.append(f"{where}.gpa: put it in quotes, exactly as the transcript gives it: \"{gpa}\"")
+            elif gpa is not None and not GPA.match(gpa.strip()):
                 errors.append(f"{where}.gpa: {gpa!r} - write it as the transcript does, e.g. 3.62 or 3.62/4.00")
-            strings(school, "coursework", where, errors)
+            if len(strings(school, "coursework", where, errors)) > MAX_COURSES:
+                errors.append(f"{where}.coursework: {MAX_COURSES} courses at most - the ones these jobs ask about")
             optional(school, "expected", bool, where, errors)
             optional(school, "hide_year", bool, where, errors)
         else:

@@ -24,6 +24,15 @@ TODAY = date(2026, 10, 1)
     ("Two years of college or equivalent", None),
     ("Completed at least two years of a four-year degree program", None),
     ("2+ years of work experience in retail", 2),
+    ("Enrolled in a Bachelor's degree program and 3 years of experience in sales", 3),
+    ("Must be enrolled and have at least finished one year of a Master's or PhD degree in Chemical Engineering", None),
+    ("Completion of one to two years of a BS in Mechanical or Aerospace Engineering program", None),
+    ("Recent graduate or up to 2 years of engineering experience through internships", None),
+    ("5 years of experience after your degree in accounting", 5),
+    # live lines a first try read as school (2026-10-07): the experience said later wins
+    ("Minimum 5+ years of high school and/or club basketball coaching experience", 5),
+    ("5+ years of enterprise sales and/or relevant consulting or program management experience", 5),
+    ("Three years of full-time teaching in a public school", 3),
 ])
 def test_years_asked_reads_the_lower_bound_never_age_or_deadlines(text, years):
     assert knockout.years_asked(text) == years

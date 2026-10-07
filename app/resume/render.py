@@ -212,11 +212,12 @@ def degree_name(degree: str) -> str:
 
 def graduation_label(school: dict, today: date) -> str:
     """The year a degree was earned; "Expected May 2027" while it is still being earned - an
-    unfinished degree never reads as held. "" when they chose hide_year."""
+    unfinished degree never reads as held, so with its year hidden it says "In progress".
+    "" for a finished degree whose year they chose to hide."""
     end = schema.shown_end(school)
-    if not end or not schema.in_progress(school, today):
+    if not schema.in_progress(school, today):
         return end[:4]
-    return f"Expected {month_label(end)}"
+    return f"Expected {month_label(end)}" if end else "In progress"
 
 
 def education_entry(school: dict, today: date | None = None) -> dict:
@@ -229,8 +230,10 @@ def education_entry(school: dict, today: date | None = None) -> dict:
     degree = ", ".join(p for p in (degree_name(school["degree"]), school.get("field")) if p)
     gpa = school.get("gpa") and f"GPA {school['gpa']}"
     courses = school.get("coursework") or []
-    return {"heading": school["institution"], "subline": joined(degree, school.get("details"), gpa, year),
-            "bullets": [f"Relevant coursework: {', '.join(courses)}"] if courses else []}
+    entry = {"heading": school["institution"], "subline": joined(degree, school.get("details"), gpa, year), "bullets": []}
+    if courses:
+        entry["note"] = f"Relevant coursework: {', '.join(courses)}"
+    return entry
 
 
 def page_model(master: dict, today: date | None = None) -> dict:
@@ -299,6 +302,8 @@ def page_strings(model: dict) -> list[str]:
             out.append(joined(e["heading"], e.get("org")))
             if e.get("subline"):
                 out.append(e["subline"])
+            if e.get("note"):
+                out.append(e["note"])
             out.extend(e["bullets"])
         for line in s.get("lines", []):
             out.append(f"{line['label']}: {line['text']}" if line.get("label") else line["text"])

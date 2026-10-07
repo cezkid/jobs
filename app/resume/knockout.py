@@ -17,7 +17,7 @@ craft", "MBA a plus", "currently pursuing", "experience within an e-commerce env
 import re
 from datetime import date
 
-from resume import render, schema
+from resume import schema
 
 WORDS = {"one": 1, "two": 2, "three": 3, "four": 4, "five": 5, "six": 6, "seven": 7, "eight": 8, "nine": 9,
          "ten": 10, "twelve": 12, "fifteen": 15}
@@ -26,10 +26,15 @@ YEARS = re.compile(rf"\b{NUM}\s*(?:\+|plus)?\s*(?:(?:-|–|to|or)\s*{NUM}\s*\+?\
                    r"(?!\s+(?:of\s+age|old|ago))", re.I)
 NOT_WORK = re.compile(rf"\bwithin\s+(?:\(?{NUM}\)?\s*)+(?:years?|months?)|\bevery\b|\bper\b|of age\b|\byears? old\b|"
                       r"\bago\b|\bcommit", re.I)
-# school, not work: "2 years of undergraduate study", "two years of college", "coursework" ("work" in it)
-STUDY = re.compile(r"\bcoursework\b|\bdegree program\b|\b(?:undergraduate|college|university|graduate|academic)\s+"
-                   r"(?:study|studies|education|program)\b|\byears?\s+of\s+(?:college|university|school|study|"
-                   r"undergraduate|graduate school)\b", re.I)
+# school, not work, right after the years: "2 years of undergraduate study", "two years of college",
+# "one year of a Master's degree", "of coursework" ("work" inside it). Only the words that follow the
+# number, and never a line that goes on to say experience: "5+ years of high school coaching
+# experience", "a degree program and 3 years of experience" still ask years. A doing-word in between
+# ("of teaching in a school") is work, not study
+STUDY = re.compile(r"^\W*(?:of|in)\s+(?:(?:a|an|the|your)\s+)?(?:(?![\w'’/.-]*ing\b)[\w'’/.-]+\s+){0,6}?"
+                   r"(?:coursework|degree|program|college|university|school|study|studies|undergraduate|education)\b", re.I)
+# "up to 2 years" caps the experience; it asks no minimum
+UP_TO = re.compile(r"\bup to\s*$", re.I)
 WORK = re.compile(r"experience|working|\bwork\b|professional|industry|background|practice|clinical", re.I)
 AFTER = re.compile(r"\s*(?:of|in|as|with|working|doing|building|developing|leading|managing|designing|teaching|"
                    r"supporting|selling|providing)\b", re.I)
@@ -52,10 +57,13 @@ HELD = {"associate": "associate's", "bachelor": "bachelor's", "master": "master'
 
 
 def years_asked(text: str) -> int | None:
-    if NOT_WORK.search(text) or STUDY.search(text):
+    if NOT_WORK.search(text):
         return None
     m = YEARS.search(text)
-    if not m or not (WORK.search(text) or AFTER.match(text[m.end():])):
+    rest = re.split(r"[;.](?:\s|$)", text[m.end():], maxsplit=1)[0] if m else ""
+    school = STUDY.match(rest) and not re.search(r"\bexperience\b", rest, re.I)
+    if not m or school or UP_TO.search(text[:m.start()]) \
+            or not (WORK.search(text) or AFTER.match(text[m.end():])):
         return None
     return int(m[1]) if m[1].isdigit() else WORDS[m[1].lower()]
 
@@ -73,8 +81,8 @@ def degree_asked(text: str) -> str | None:
 # intern / new grad / entry level / co-op / early career rows: 116 carried one on a required line.
 # Read wide on purpose - a season spans its months, "A or B" its whole stretch - so only a date
 # clearly outside is ever said. "if graduating before ..." is a condition, not a window.
-MONTH_NUM = {m: i for i, m in enumerate(("jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov",
-                                         "dec"), 1)}
+MONTH_ABBR = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+MONTH_NUM = {m.casefold(): i for i, m in enumerate(MONTH_ABBR, 1)}
 # a season's widest reading: spring commencements run March-June, fall's September-December;
 # "winter" is December at some schools, a January-March term at others, so it spans both
 SEASONS = {"spring": (3, 6), "summer": (6, 8), "fall": (9, 12), "autumn": (9, 12), "winter": (1, 15)}
@@ -138,7 +146,7 @@ def graduation_window(text: str, today: date) -> tuple[int | None, int | None] |
 def window_label(window: tuple[int | None, int | None]) -> str:
     """"Dec 2027 - Jun 2028", "2027-2028", "by Jun 2028", "Dec 2027 or later"."""
     def month(i: int) -> str:
-        return f"{render.MONTH_NAMES[i % 12][:3]} {i // 12}"
+        return f"{MONTH_ABBR[i % 12]} {i // 12}"
     low, high = window
     if low is not None and high is not None and low % 12 == 0 and high % 12 == 11:
         return str(low // 12) if low // 12 == high // 12 else f"{low // 12}-{high // 12}"
@@ -169,6 +177,7 @@ def graduation_asked(job: dict, graduation: str | None, today: date) -> tuple[st
 
 def degree_held(entry: dict) -> str | None:
     """Level of one education entry, or None (a certificate program, a professional doctorate)."""
+    from resume import render  # pymupdf + typst: only where a degree name is read
     written = (entry.get("degree") or "").strip()
     # "BS", "B.S. in Computer Science", "Bachelor of Science": the first word names the level
     spelled = render.DEGREES.get(re.sub(r"[\s.]", "", written).upper()) or render.degree_name(written)
