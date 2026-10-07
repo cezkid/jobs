@@ -82,8 +82,7 @@ def degree_asked(text: str) -> str | None:
 # intern / new grad / entry level / co-op / early career rows: 116 carried one on a required line.
 # Read wide on purpose - a season spans its months, "A or B" its whole stretch - so only a date
 # clearly outside is ever said. "if graduating before ..." is a condition, not a window.
-MONTH_ABBR = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
-MONTH_NUM = {m.casefold(): i for i, m in enumerate(MONTH_ABBR, 1)}
+MONTH_NUM = {m.casefold(): i for i, m in enumerate(schema.MONTH_NAMES, 1)}
 # a season's widest reading: spring commencements run March-June, fall's September-December;
 # "winter" is December at some schools, a January-March term at others, so it spans both
 SEASONS = {"spring": (3, 6), "summer": (6, 8), "fall": (9, 12), "autumn": (9, 12), "winter": (1, 15)}
@@ -147,7 +146,7 @@ def graduation_window(text: str, today: date) -> tuple[int | None, int | None] |
 def window_label(window: tuple[int | None, int | None]) -> str:
     """"Dec 2027 - Jun 2028", "2027-2028", "by Jun 2028", "Dec 2027 or later"."""
     def month(i: int) -> str:
-        return f"{MONTH_ABBR[i % 12]} {i // 12}"
+        return f"{schema.MONTH_NAMES[i % 12]} {i // 12}"
     low, high = window
     if low is not None and high is not None and low % 12 == 0 and high % 12 == 11:
         return str(low // 12) if low // 12 == high // 12 else f"{low // 12}-{high // 12}"

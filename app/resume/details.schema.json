@@ -107,14 +107,16 @@
     },
     "projects": {
       "type": "array",
-      "description": "Worth showing but not a job: side projects, teaching. Dates may be left out; give both or neither.",
+      "description": "Worth showing but not a job: side projects, class projects, teaching - and clubs, teams or student groups. Dates may be left out; give both or neither.",
       "items": {
         "type": "object",
         "required": ["name", "bullets"],
         "additionalProperties": false,
         "properties": {
           "id": { "type": "string" },
-          "name": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1, "description": "The project, or the group exactly as it's called. How a group shows is your call: its full name, a general description you write here, or left off." },
+          "role": { "type": "string", "description": "Your part in a club or group: Treasurer, Captain, Member. Prints like a job title." },
+          "section": { "type": "string", "description": "The heading it prints under, like Leadership & Activities. Leave it out for Projects." },
           "location": { "type": "string" },
           "blurb": { "type": "string" },
           "start": { "$ref": "#/definitions/month" },

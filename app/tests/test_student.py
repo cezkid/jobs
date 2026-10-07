@@ -137,3 +137,58 @@ def test_graduation_is_the_degree_in_progress_else_the_latest(student):
 def test_fixture_is_plain_user_facts():
     raw = yaml.safe_load(STUDENT.read_text(encoding="utf-8"))
     assert "id" not in raw["roles"][0] and isinstance(raw["roles"][0]["bullets"][0], str)
+
+
+def with_club(student: dict) -> dict:
+    student["projects"].append({"name": "Black Student Union", "role": "Treasurer", "section": "Leadership & Activities",
+                                "start": "2024-09", "end": "present",
+                                "bullets": ["Managed a $12,000 budget for 30 campus events a year"]})
+    return schema.expand(student, {})
+
+
+def test_a_club_prints_under_its_own_heading_like_a_job(student):
+    student = with_club(student)
+    assert schema.validate(student) == []
+    sections = {s["title"]: s for s in render.page_model(student, TODAY)["sections"]}
+    club = sections["Leadership & Activities"]["entries"][0]
+    assert (club["heading"], club["org"]) == ("Treasurer", "Black Student Union")
+    assert [e["heading"] for e in sections["Projects"]["entries"]] == ["Course Scheduler"]
+
+
+def test_a_tailored_page_may_never_rename_a_group(student):
+    student = with_club(student)
+    model = render.page_model(student, TODAY)
+    club = next(s for s in model["sections"] if s["title"] == "Leadership & Activities")["entries"][0]
+    assert "employer-changed" not in {f.rule for f in lint.lint(model, student)}
+    club["org"] = "Student Union"  # generalised by a writer: the user's call, never the AI's
+    assert "employer-changed" in {f.rule for f in lint.lint(model, student) if f.severity == lint.FAIL}
+
+
+def test_activities_order_newest_first_apart_from_projects(student):
+    student = with_club(student)
+    student["projects"][0].update(start="2026-01", end="2026-05")  # newer than the club, listed first
+    assert schema.validate(student) == []
+    student["projects"].append({**student["projects"][1], "name": "Chess Club", "start": "2025-09", "end": "present"})
+    assert any("Leadership & Activities" in e for e in schema.validate(schema.expand(student, {})))
+
+
+def test_leadership_is_asked_about_a_club_when_few_jobs():
+    from resume import gaps
+    master = schema.expand({"contact": {"name": "A B", "email": "a@b.co", "location": "Columbus, OH"}, "roles": [],
+                            "projects": [{"name": "Robotics Club", "role": "Captain", "section": "Activities",
+                                          "bullets": ["Built a 40 kg robot for regional contests"]}]}, {})
+    asked = [q for q in gaps.questions(master) if q["kind"] == "leadership"]
+    assert [q["ask"][:30] for q in asked] == ["In Robotics Club (Captain), di"]
+
+
+def test_degree_in_progress_never_reads_as_held_in_evidence_or_a_letter(student):
+    from resume import letter
+    assert schema.degree_words(student["education"][0], TODAY) == \
+        "B.S., Statistics, The Ohio State University (expected May 2027)"
+    assert letter.facts_of(student)["education[0]"].endswith("(expected May 2027)")
+
+
+def test_expected_may_2027_in_a_tailored_summary_is_the_users_own_fact(student):
+    model = render.page_model(student, TODAY)
+    model["summary"] = "Statistics student, expected May 2027, GPA 3.62; Python, SQL and Tableau"
+    assert "unresolved-entity" not in {f.rule for f in lint.lint(model, student)}

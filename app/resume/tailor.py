@@ -113,7 +113,8 @@ def system(font: str, mirror_always: bool = False) -> str:
     return f"""You tailor one candidate's resume to one job posting. Input JSON: `master` (candidate facts, stable ids), `job` (posting + indexed requirements), `budget`. You emit selection + rewrite JSON; code lays out the page and checks every rule below.
 
 Entries
-- `entries` lists every master role id, plus any project ids worth page space. Keep every role: dates must stay contiguous. One exception: roles at the END of the master list (the oldest) that ended {OLD_ROLE_YEARS}+ years ago may be dropped when they prove nothing this posting requires. Never drop a role while an older one stays on the page.
+- `entries` lists every master role id, plus any project ids worth page space. Keep every role: dates must stay contiguous.
+- A project with `role` is a club, team or student group the candidate held that role in. Its `name` prints exactly as written - never renamed, shortened or generalised. Leave one out only when it proves nothing this job asks, like any project; never because of what kind of group it is (cultural, religious, identity, political). One exception: roles at the END of the master list (the oldest) that ended {OLD_ROLE_YEARS}+ years ago may be dropped when they prove nothing this posting requires. Never drop a role while an older one stays on the page.
 - `career_break` and `other` in master go on the page exactly as written: never list, reword or drop them.
 - Each bullet's `sources` = ids of master bullets from the SAME entry that it restates. Never move a claim into another role or project. Order bullets by relevance to this job: strongest first, since the opening bullet is the one always read. A bullet carrying a number outranks one without it; the weakest ends the entry.
 - Every requirement with priority `required` that a master claim proves gets that claim on the page, and it leads its entry.
@@ -140,7 +141,7 @@ Wording
 - No "successfully", "actively", or first person (I, my, we, our).
 
 Summary
-- `summary`: at most {render.MAX_BLOCK_WORDS} words and {render.MAX_SUMMARY_LINES} lines, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. It may name a licence or certification the posting requires and the candidate holds. Build it only from facts in master. It sits in a narrower column than the bullets, and its last line follows the bullet rule: well filled, never a stub.
+- `summary`: at most {render.MAX_BLOCK_WORDS} words and {render.MAX_SUMMARY_LINES} lines, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. A candidate still studying (an education entry with `expected` true, or an `end` after today) leads with the degree they are earning and when ("Statistics student, expected May 2027"), unless their current job is the work this posting is for - never a title they don't hold. It may name a licence or certification the posting requires and the candidate holds. Build it only from facts in master. It sits in a narrower column than the bullets, and its last line follows the bullet rule: well filled, never a stub.
 - A `headline` in master prints above the summary; the summary need not repeat it.
 - `headline_title`: null, or whole words of the posting's title copied exactly (same capitals), when the candidate's CURRENT work genuinely matches it. It replaces the title part of the headline, the words before "{HEADLINE_BAR}": "Software Engineer {HEADLINE_BAR} Python, SQL" becomes "Backend Engineer {HEADLINE_BAR} Python, SQL"; the words after the bar print as written. No headline in master: the title alone becomes one. A master headline without "{HEADLINE_BAR}", or whose part before it is no job title (skills first), is the candidate's own sentence: null. Never abbreviate, never a level their current title or the headline's own title lacks ({", ".join(SENIORITY)}). The headline stays one row: drop words such as a location or team rather than wrap. Its words count as generated words, in place of the title words they replace. The user confirms it on every job.
 - When the posting's requirements name a certification the candidate holds, code moves Certifications up to sit under the summary.
@@ -151,7 +152,7 @@ Skills
 
 Honesty
 - Implied-but-unwritten claims are allowed only when master bullets support them. Each one gets an `inferences` entry: `claim` = the exact added wording, `sources` = supporting master bullet ids. Any company, tool, number or credential absent from master must appear in an inference.
-- Never change employer, title, dates, degrees or certifications.
+- Never change employer, title, dates, degrees or certifications. A degree still in progress (`expected` true, or an `end` after today) is never written as held: "B.S. in Statistics, expected May 2027", never "B.S. in Statistics" alone or "graduated".
 - Accuracy outranks relevance: never add a term, number or grade to match a requirement or fill a line. A requirement with no master claim behind it is a coverage gap, not a word to insert.
 
 Coverage
@@ -470,7 +471,7 @@ def evidence_text(master: dict, tailored: dict, ref: str) -> str:
     """What the page shows for one evidence ref, in the words the candidate reads."""
     if m := EVIDENCE_REF.match(ref):
         fact = master[m.group(1)][int(m.group(2))]
-        return fact.get("name") or render.joined(fact.get("degree"), fact.get("field"), fact.get("institution"))
+        return fact.get("name") or schema.degree_words(fact, date.today())
     if ref.startswith(SKILL_REF):
         return f"Skills: {ref[len(SKILL_REF):]}"
     return " / ".join(b["text"] for t in tailored["entries"] for b in t["bullets"] if ref in b["sources"])
@@ -479,7 +480,7 @@ def evidence_text(master: dict, tailored: dict, ref: str) -> str:
 def unsourced_entities(entry: dict, bullet: dict, inferences: list[dict]) -> list[str]:
     """Entity resolving only elsewhere in master = claim moved between entries."""
     facts = [b for b in entry["bullets"] if b["id"] in bullet["sources"]]
-    header = {k: entry.get(k) for k in ("company", "title", "name", "blurb", "location")}
+    header = {k: entry.get(k) for k in ("company", "title", "name", "role", "blurb", "location")}
     corpus = lint.master_strings([facts, header])
     corpus += [i["claim"] for i in inferences if set(i["sources"]) & set(bullet["sources"])]
     known = {lint.entity_key(t) for t in lint.TOKEN.findall(" ".join(corpus))}

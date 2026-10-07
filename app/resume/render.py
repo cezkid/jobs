@@ -17,7 +17,7 @@ from resume import schema, typeface
 
 HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE / "templates" / "resume.typ"
-MONTH_NAMES = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+MONTH_NAMES = schema.MONTH_NAMES
 SEP = " | "
 WORD = re.compile(r"\w+")
 LIGATURE = re.compile("[\ufb00-\ufb06]")
@@ -242,12 +242,15 @@ def page_model(master: dict, today: date | None = None) -> dict:
     sections = []
     if entries := experience(master):
         sections.append({"title": "Experience", "entries": entries})
-    if master.get("projects"):
-        sections.append({"title": "Projects", "entries": [{
-            # same detail line as a job: the schema takes location + blurb, so they print
-            "id": p["id"], "heading": p["name"], "subline": joined(span_label(p), p.get("location"), p.get("blurb")),
+    # projects, then each heading of their own (a student's Activities) in the order the file gives
+    for title in dict.fromkeys(schema.section_of(p) for p in master.get("projects") or []):
+        sections.append({"title": title, "entries": [{
+            # same detail line as a job: the schema takes location + blurb, so they print. With a
+            # role, the two-line shape of a job: "Treasurer | Women in Computing"
+            "id": p["id"], "heading": p.get("role") or p["name"], **({"org": p["name"]} if p.get("role") else {}),
+            "subline": joined(span_label(p), p.get("location"), p.get("blurb")),
             "bullets": [b["claim"] for b in p["bullets"]],
-        } for p in master["projects"]]})
+        } for p in master["projects"] if schema.section_of(p) == title]})
     if master.get("skills"):
         sections.append({"title": "Skills", "lines": [
             {"label": g["group"], "text": ", ".join(g["items"])} for g in master["skills"]

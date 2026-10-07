@@ -8,6 +8,7 @@ import cfg
 from resume import facts
 
 PRESENT = "present"
+MONTH_NAMES = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 # year-month, or a year alone: a resume that gave only years keeps only years, never an invented month
 MONTH = re.compile(r"^\d{4}(-(0[1-9]|1[0-2]))?$")
 DATE_FIELDS = {"roles": ("start", "end"), "projects": ("start", "end"), "career_break": ("start", "end"),
@@ -170,6 +171,14 @@ def in_ai_era(entry: dict) -> bool:
                                   and month_index(end, date.today(), end=True) >= month_index(AI_ERA_FROM, date.today()))
 
 
+PROJECTS = "Projects"
+
+
+def section_of(project: dict) -> str:
+    """The heading a project prints under: its own `section` (a student's Activities), else Projects."""
+    return (project.get("section") or "").strip() or PROJECTS
+
+
 def in_progress(school: dict, today: date) -> bool:
     """Degree still being earned: `expected` set (import sets it; it stays until the user says they
     finished, so a date that slips past never turns into a degree held), or an end after this month.
@@ -193,6 +202,17 @@ def graduation(master: dict, today: date) -> str | None:
     studying = [e for s, e in ((s, s.get("end")) for s in master.get("education") or []) if e and in_progress(s, today)]
     pick = studying or ends
     return max(pick, key=lambda e: month_index(e, today, end=True)) if pick else None
+
+
+def degree_words(school: dict, today: date) -> str:
+    """A degree as evidence or a letter's fact: "B.S., Statistics, The Ohio State University",
+    "(expected May 2027)" added while it is still being earned - never read as one held."""
+    words = ", ".join(p for p in (school.get("degree"), school.get("field"), school.get("institution")) if p)
+    if in_progress(school, today):
+        end = shown_end(school)
+        when = f"{MONTH_NAMES[int(end[5:7]) - 1]} {end[:4]}" if end and not year_only(end) else end[:4]
+        words += f" (expected {when})" if when else " (in progress)"
+    return words
 
 
 def shown_end(school: dict) -> str:
@@ -333,7 +353,15 @@ def validate(master) -> list[str]:
     projects = optional(master, "projects", list, "master", errors) or []
     for i, project in enumerate(projects):
         validate_entry(project, f"projects[{i}]", ("name",), bullet_ids, errors, dated=False)
-    check_reverse_chronological(projects, "projects", errors)
+        if isinstance(project, dict):
+            # a club, team or student group: `section` = its own heading ("Leadership & Activities"),
+            # `role` = their part in it ("Treasurer"); the group's name is never changed on a page
+            optional(project, "role", str, f"projects[{i}]", errors)
+            optional(project, "section", str, f"projects[{i}]", errors)
+    # newest first within each heading: projects and activities are two lists on the page
+    for heading in dict.fromkeys(section_of(p) for p in projects if isinstance(p, dict)):
+        check_reverse_chronological([p for p in projects if isinstance(p, dict) and section_of(p) == heading],
+                                    "projects" if heading == PROJECTS else f"projects under {heading!r}", errors)
     for i, gap in enumerate(optional(master, "career_break", list, "master", errors) or []):
         where = f"career_break[{i}]"
         if isinstance(gap, dict):

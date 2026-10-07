@@ -45,6 +45,10 @@ NUMBER_ASK = ("Can you put a real number on this - how many (people, users, scre
 LEADERSHIP_ASK = ("At {company} ({title}), did you lead, mentor or train anyone, or start something "
                   "others then used - a process, tool, event or program? Only what really happened, "
                   "and how many people if you know.")
+# a student with fewer jobs than that: their clubs and teams are where leadership shows
+ACTIVITY_ASK = ("In {name} ({role}), did you lead, organise or train anyone, or start something others "
+                "then used - an event, a project, a program? Only what really happened, and how many "
+                "people if you know.")
 FACT_ASK = ("Something real you said in practice that {at} doesn't show yet - add it, in your own words? "
             "Only what happened, never something you tried out.")
 ANSWER_SCHEMA = obj(answers=array(obj(id=STRING, said=NULLABLE, claim=NULLABLE)))
@@ -81,6 +85,12 @@ def questions(master: dict) -> list[dict]:
                     "line": None, "ask": LEADERSHIP_ASK.format(company=role["company"], title=role["title"]),
                     "job": role["title"], "at": role["company"],
                     "already": [b["claim"] for b in role["bullets"]]})
+    room = LEADERSHIP_ROLES - len(master["roles"][:LEADERSHIP_ROLES])
+    groups = [(i, p) for i, p in enumerate(master.get("projects") or []) if p.get("role")][:max(room, 0)]
+    for i, group in groups:
+        out.append({"id": f"q{len(out) + 1}", "kind": "leadership", "section": "projects", "entry": i, "bullet": None,
+                    "line": None, "ask": ACTIVITY_ASK.format(name=group["name"], role=group["role"]),
+                    "job": group["role"], "at": group["name"], "already": [b["claim"] for b in group["bullets"]]})
     return out
 
 

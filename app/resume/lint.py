@@ -374,11 +374,14 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
     """`posting` = the job's own text: a style or grade word it uses is its term, not the writer's."""
     inferences = inferences or []
     findings: list[Finding] = []
-    master_page = [norm(s) for s in render.page_strings(render.page_model(master))]
+    untailored = render.page_strings(render.page_model(master))
+    master_page = [norm(s) for s in untailored]
     facts = master_strings(master)
     verbatim = set(master_page) | {norm(s) for s in facts}
     corpus = " ".join(facts)
-    known = {entity_key(t) for t in TOKEN.findall(corpus)}
+    # what the untailored page prints from those facts counts too: "Expected May 2027", "GPA",
+    # "Bachelor of Science" are the page's words for "2027-05", gpa, "B.S."
+    known = {entity_key(t) for t in TOKEN.findall(" ".join([corpus, *untailored]))}
     known_terms = {norm(s) for e in [*master["roles"], *master.get("projects", [])] for b in e["bullets"] for s in b.get("stack", [])}
     known_terms |= {norm(i) for g in master.get("skills", []) for i in g["items"]}
     entries = {e["id"]: e for e in [*master["roles"], *master.get("projects", [])]}
@@ -546,11 +549,14 @@ def check_entry_identity(entry: dict, where: str, entries: dict, findings: list[
     if source is None:
         findings.append(Finding(FAIL, "unknown-entry", where, f"id {entry.get('id')!r} not in master roles/projects"))
         return
-    name = source.get("title", source.get("name"))
+    name = source.get("title") or source.get("role") or source.get("name")
     if not entry["heading"].startswith(name):
         findings.append(Finding(FAIL, "title-changed", where, f"{entry['heading']!r} does not start with master {name!r}"))
-    if source.get("company") and entry.get("org") != source["company"]:
-        findings.append(Finding(FAIL, "employer-changed", where, f"{entry.get('org')!r} != master {source['company']!r}"))
+    # a club or student group under its role: its name is checked like an employer's - never
+    # renamed, shortened or generalised on a tailored page (an affinity group's name is the user's call)
+    org = source.get("company") or (source.get("role") and source.get("name"))
+    if org and entry.get("org") != org:
+        findings.append(Finding(FAIL, "employer-changed", where, f"{entry.get('org')!r} != master {org!r}"))
     span = render.span_label(source)
     if span and span not in (entry.get("subline") or ""):
         findings.append(Finding(FAIL, "dates-changed", where, f"subline {entry.get('subline')!r} lacks {span!r}"))
