@@ -1253,23 +1253,151 @@ def home_parts(root: Path) -> dict[str, str]:
 # first paint + a 510 ms long frame (measured 2026-10-07; GitHub Pages caches it 10 min only, then each view asks
 # again). Comments cut on the way (the why stays in the source): ~3 KB gzip off every page
 CSS_DIR = Path("app") / "web" / "css"
-CSS_MARK = {"site.css": "shared", "doc.css": "doc"}
-CSS_BLOCK = re.compile(r"/\* (shared|doc) \*/\n.*?/\* /\1 \*/\n", re.S)
+# source -> its markers in a page; home / legal / lost = the hand-written pages' own (index; privacy + terms; 404)
+CSS_MARK = {"site.css": "shared", "doc.css": "doc", "home.css": "home", "legal.css": "legal", "lost.css": "lost"}
+CSS_BLOCK = re.compile(r"/\* (shared|doc|home|legal|lost) \*/\n.*?/\* /\1 \*/\n", re.S)
 
 
-def css(root: Path, name: str) -> str:
-    """app/web/css/<name> as the pages carry it: comments + blank lines cut, between its markers, LF."""
+def css(root: Path, name: str, html: str | None = None) -> str:
+    """app/web/css/<name> as a page carries it, between its markers: minified to one line (owner 2026-10-08: "i don't
+    like such large diffs for css" - a CSS edit was ~300 changed lines in each of 21 pages; now 1), and, given the
+    page's html, only the rules that can match in it (prune)."""
     path = root / CSS_DIR / name
     if not path.is_file():
         raise SystemExit(f"{(CSS_DIR / name).as_posix()} is missing: every page's <style> is built from it")
-    mark = CSS_MARK[name]
-    return f"/* {mark} */\n" + shipped(path.read_bytes().decode("utf-8").replace("\r\n", "\n")) + f"\n/* /{mark} */\n"
+    mark, text = CSS_MARK[name], minify(path.read_bytes().decode("utf-8"))
+    return f"/* {mark} */\n" + (prune(text, html) if html is not None else text) + f"\n/* /{mark} */\n"
 
 
 def restyle(root: Path, text: str) -> str:
-    """A hand-written page w/ its built-in CSS blocks (site.css, doc.css) as the sources say now."""
+    """A hand-written page w/ its built-in CSS blocks as the sources say now, pruned to the page."""
     names = {v: k for k, v in CSS_MARK.items()}
-    return CSS_BLOCK.sub(lambda m: css(root, names[m[1]]), text)
+    marks = CSS_BLOCK.findall(text)
+    blocks = iter(styles(root, [names[m] for m in marks], text))
+    return CSS_BLOCK.sub(lambda m: next(blocks), text)
+
+
+def styles(root: Path, names: list[str], html: str, extra: list[str] = ()) -> list[str]:
+    """The page's built-in blocks (sources by name, then extra minified CSS): pruned to its markup, tokens nobody
+    reads dropped across all of them, each source between its markers."""
+    bodies = [css(root, n, html).split("\n")[1] for n in names] + [prune(minify(x), html) for x in extra]
+    bodies = drop_unused_tokens(bodies)
+    marks = [CSS_MARK[n] for n in names]
+    return [f"/* {m} */\n{b}\n/* /{m} */\n" for m, b in zip(marks, bodies)] + [b + "\n" for b in bodies[len(names):]]
+
+
+# minify: comments + whitespace out, strings untouched; a selector's space before ":is(" is a combinator, so only a
+# declaration's "prop: value" loses its space. ">" and "~" never sit in a value here; "+" does (calc) and keeps its
+CSS_STRING = re.compile(r""""(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'""")
+
+
+def minify(text: str) -> str:
+    strings = []
+
+    def hold(m):
+        strings.append(m[0])
+        return f"\0{len(strings) - 1}\0"
+
+    # comments first: their apostrophes ("page's") would open a string; no string here holds "/*"
+    text = re.sub(r"/\*.*?\*/", "", text.replace("\r\n", "\n"), flags=re.S)
+    text = CSS_STRING.sub(hold, text)
+    text = re.sub(r"\s+", " ", text)
+    text = re.sub(r" ?([{};,>~]) ?", r"\1", text)
+    text = re.sub(r"([{;])(--?[\w-]+|[a-z][\w-]*): ", r"\1\2:", text)
+    text = text.replace(";}", "}").strip()
+    return re.sub(r"\0(\d+)\0", lambda m: strings[int(m[1])], text)
+
+
+# prune: a rule ships only if one of its selectors can match the page - every class, id + tag it names is in the page
+# (pseudo-classes, attributes, :not() + :has() ignored, so a state never drops a rule; :is() / :where() need one
+# alternative). Script-made states count as present: the source card dialog (CITE_JS), Guess buttons (GUESS_JS),
+# home's html.seen / is-mac / is-phone + Copy's .copied. @font-face, @keyframes + the like always ship
+SCRIPT_MADE = {"class": {"card", "seen", "is-mac", "is-phone", "copied"}, "tag": {"dialog", "button", "html", "body"}}
+
+
+def blocks_of(text: str) -> list[tuple[str, str]]:
+    """Minified CSS -> [(prelude, body)] at its top level."""
+    out, i = [], 0
+    while i < len(text):
+        open_ = text.index("{", i)
+        depth, j = 1, open_ + 1
+        while depth:
+            depth += {"{": 1, "}": -1}.get(text[j], 0)
+            j += 1
+        out.append((text[i:open_], text[open_ + 1:j - 1]))
+        i = j
+    return out
+
+
+def page_tokens(html: str) -> dict[str, set[str]]:
+    body = re.sub(r"<style>.*?</style>", "", html, flags=re.S)
+    return {"tag": {t.lower() for t in re.findall(r"<([a-zA-Z][\w-]*)", body)} | SCRIPT_MADE["tag"],
+            "class": {c for v in re.findall(r'\sclass="([^"]*)"', body) for c in v.split()} | SCRIPT_MADE["class"],
+            "id": set(re.findall(r'\sid="([^"]*)"', body))}
+
+
+def top_split(text: str, sep: str = ",") -> list[str]:
+    parts, depth, cur = [], 0, ""
+    for ch in text:
+        depth += {"(": 1, ")": -1}.get(ch, 0)
+        if ch == sep and not depth:
+            parts.append(cur)
+            cur = ""
+        else:
+            cur += ch
+    return parts + [cur]
+
+
+def can_match(selector: str, tokens: dict[str, set[str]]) -> bool:
+    sel = re.sub(r"::[\w-]+(\([^()]*\))?", "", selector)
+    while (m := re.search(r":(is|where|not|has|nth-[\w-]+|lang|dir)\(", sel)):
+        depth, j = 1, m.end()
+        while depth:
+            depth += {"(": 1, ")": -1}.get(sel[j], 0)
+            j += 1
+        inner = sel[m.end():j - 1]
+        keep = m[1] not in ("is", "where") or any(can_match(alt, tokens) for alt in top_split(inner))
+        sel = sel[:m.start()] + ("" if keep else ".\0none") + sel[j:]
+    sel = re.sub(r"\[[^\]]*\]|:[\w-]+", "", sel)
+    for compound in re.split(r"[\s>+~]+", sel):
+        if not compound:
+            continue
+        tag = re.match(r"[a-zA-Z][\w-]*", compound)
+        if tag and tag[0].lower() not in tokens["tag"]:
+            return False
+        if any(c not in tokens["class"] for c in re.findall(r"\.([\w\0-]+)", compound)):
+            return False
+        if any(i not in tokens["id"] for i in re.findall(r"#([\w-]+)", compound)):
+            return False
+    return True
+
+
+def prune(text: str, html: str, tokens: dict[str, set[str]] | None = None) -> str:
+    tokens = tokens or page_tokens(html)
+    out = []
+    for prelude, body in blocks_of(text):
+        if prelude.startswith(("@media", "@supports")):
+            inner = prune(body, html, tokens)
+            if inner:
+                out.append(f"{prelude}{{{inner}}}")
+        elif prelude.startswith("@"):
+            out.append(f"{prelude}{{{body}}}")
+        elif (kept := [sel for sel in top_split(prelude) if can_match(sel, tokens)]):
+            out.append(f"{','.join(kept)}{{{body}}}")  # a list keeps only its selectors that can match
+    return "".join(out)
+
+
+def drop_unused_tokens(texts: list[str]) -> list[str]:
+    """Custom properties no kept rule reads (var(--x)), across all of a page's blocks; again until none drop -
+    a token read only by a dropped token goes next round. Nothing outside the CSS reads them (checked 2026-10-08)."""
+    while True:
+        used = set(re.findall(r"var\((--[\w-]+)", "".join(texts)))
+        out = [re.sub(r"(?<=[{;])(--[\w-]+):[^;}]*(;|(?=\}))", lambda m: m[0] if m[1] in used else "", t) for t in texts]
+        out = [re.sub(r"[^{}]*\{;?\}", "", t.replace(";}", "}")) for t in out]  # emptied rules + blocks go too
+        out = [re.sub(r"@[^{}]*\{\}", "", t) for t in out]
+        if out == texts:
+            return out
+        texts = out
 
 
 
@@ -1342,11 +1470,6 @@ GUESS_JS = ('(()=>{for(const g of document.querySelectorAll(".guess")){const d=g
             'for(const l of g.querySelectorAll("li")){const b=document.createElement("button");b.type="button";'
             'b.setAttribute("aria-pressed","false");b.append(...l.childNodes);l.append(b);b.onclick=()=>{'
             'for(const x of g.querySelectorAll("button"))x.setAttribute("aria-pressed",x==b);d.open=true}}}})()')
-
-
-def shipped(css: str) -> str:
-    """CSS as sent: the why-comments stay in this file, not in every reader's download (HTML budget 25 KB gzip)."""
-    return re.sub(r"\n{2,}", "\n", re.sub(r"[ \t]*/\*.*?\*/[ \t]*", "", css, flags=re.S)).strip("\n")
 
 
 def jsonld(graph: list[dict]) -> str:
@@ -1580,7 +1703,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         body, mini = body[:cut] + "\n".join(mini) + "\n" + body[cut:], []
     # the answer in a sentence (the description, the line a search result shows) right under the h1
     answer = escape(src.description).replace(BRAND, f'<span translate="no">{BRAND}</span>')
-    return "\n".join([
+    html = "\n".join([
         "<!doctype html>",
         '<html lang="en">',
         "<head>",
@@ -1588,8 +1711,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
         *head,
         "<style>",
-        css(root, "site.css") + css(root, "doc.css")
-        + "".join(shipped(block) + "\n" for mark, block in BLOCK_CSS.items() if mark in body) + "</style>",
+        "\0css\0</style>",
         "</head>",
         "<body>",
         parts["header"],
@@ -1614,6 +1736,9 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         "</html>",
         "",
     ])
+    # the CSS last: each block keeps only the rules that can match this page's markup
+    extra = [block for mark, block in BLOCK_CSS.items() if mark in body]
+    return html.replace("\0css\0", "".join(styles(root, ["site.css", "doc.css"], html, extra)), 1)
 
 
 def research(root: Path, site_files: set[str], warnings: list[str] | None = None) -> dict[str, str]:

@@ -246,10 +246,11 @@ def test_an_edited_css_source_rebuilds_every_page_that_carries_it(tmp_path):
     research_site(tmp_path)
     pages.write(tmp_path)
     docs, src = tmp_path / "docs", tmp_path / "app" / "web" / "css"
-    for name, rule, carriers, not_on in (("site.css", ".x-site { color: red; }", ["index.html", "privacy.html", "404.html",
-                                          "research/ats-myth/index.html"], []),
-                                         ("doc.css", ".x-doc { color: red; }", ["privacy.html", "404.html",
-                                          "research/ats-myth/index.html"], ["index.html"])):
+    # rules every carrier can use (a rule for a class a page lacks is pruned off it), checked as shipped: minified
+    for name, rule, shipped, carriers, not_on in (("site.css", "body { outline-color: red; }", "body{outline-color:red}",
+                                                   ["index.html", "privacy.html", "404.html", "research/ats-myth/index.html"], []),
+                                                  ("doc.css", "main { outline-offset: 1px; }", "main{outline-offset:1px}",
+                                                   ["privacy.html", "404.html", "research/ats-myth/index.html"], ["index.html"])):
         path = src / name
         path.write_text(path.read_text(encoding="utf-8") + f"\n/* zz-cut-comment */\n{rule}\n", encoding="utf-8", newline="\n")
         assert {f"stale: docs/{n}" for n in carriers} <= set(pages.problems(tmp_path)), name
@@ -257,9 +258,9 @@ def test_an_edited_css_source_rebuilds_every_page_that_carries_it(tmp_path):
         assert pages.problems(tmp_path) == []
         for n in carriers:
             text = (docs / n).read_text(encoding="utf-8")
-            assert rule in text and "zz-cut-comment" not in text, (name, n)  # comments cut on the way
+            assert shipped in text and "zz-cut-comment" not in text, (name, n)  # comments cut on the way
         for n in not_on:
-            assert rule not in (docs / n).read_text(encoding="utf-8"), (name, n)
+            assert shipped not in (docs / n).read_text(encoding="utf-8"), (name, n)
     # a CRLF checkout builds the same bytes (Windows git autocrlf)
     path = src / "site.css"
     before = pages.css(tmp_path, "site.css")
@@ -316,7 +317,6 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
     home = Head((docs / "index.html").read_text(encoding="utf-8"))
     raw = {n: (docs / n).read_text(encoding="utf-8") for n in found if n.endswith(".html") and n.split("/")[0] in ("research", "about")}
     assert len(raw) == 5
-    blocks = pages.css(tmp_path, "site.css") + pages.css(tmp_path, "doc.css")
     for name, text in raw.items():
         head = Head(text)
         assert [a["href"] for a in head.links("canonical")] == [own_url(name, "https://jobs.enrriquez.com/")], name
@@ -325,7 +325,9 @@ def test_generated_pages_keep_the_site_rules(tmp_path):
             assert head.links(rel) == home.links(rel), (name, rel)
         assert head.meta("og:image") == f"https://jobs.enrriquez.com/{pages.CARD}?v={pages.CARD_V}" and head.meta("twitter:card") == "summary_large_image"
         assert head.meta("og:image:alt") == head.meta("twitter:image:alt") == pages.CARD_ALT, name
-        assert "<style>\n" + blocks + "</style>" in text and 'rel="stylesheet"' not in text, name
+        built = "".join(pages.styles(tmp_path, ["site.css", "doc.css"], text,
+                                     [b for mark, b in pages.BLOCK_CSS.items() if mark in text]))
+        assert "<style>\n" + built + "</style>" in text and 'rel="stylesheet"' not in text, name
         for tag in "header", "footer":
             assert re.findall(rf"<{tag}\b.*?</{tag}>", text, re.S) == re.findall(
                 rf"<{tag}\b.*?</{tag}>", (docs / "index.html").read_text(encoding="utf-8"), re.S), (name, tag)
@@ -1553,3 +1555,30 @@ def test_card_on_a_page_that_is_not_an_article_is_an_error(tmp_path):
     research_site(tmp_path, {"methods.md": SOURCES["methods.md"].replace("status: published", "status: published\ncard: Fell.")})
     with pytest.raises(pages.SourceError, match="methods.md:6: card goes on an article"):
         pages.build(tmp_path)
+
+
+def test_built_in_css_is_minified_and_pruned_to_the_page():
+    # one line per block (owner 2026-10-08: "such large diffs for css"), only what the page can use ("cut the css")
+    src = """/* the page's own: an apostrophe in a comment must not open a string */
+@font-face { font-family: "X"; src: url("/x.woff2"); }
+:root { --used: red; --chain: var(--used2); --used2: blue; --unused: green; --dead-chain: var(--unused); }
+.a, .gone { color: var(--used); }
+.b :is(.c, .nope) > span::before { content: "keep  two spaces"; color: var(--chain); }
+.only-gone { color: var(--dead-chain); }
+.card, html.seen .x { margin: calc(1rem + 2vw) 0; }
+a:hover:not(.nope) { color: red; }
+@media (min-width: 600px) { .gone { color: red; } .a { padding: 0; } }
+"""
+    html = '<html><body><p class="a">x</p><div class="b"><i class="c"><span>y</span></i></div><a href="/">z</a></body></html>'
+    text = pages.minify(src)
+    assert "\n" not in text and "/*" not in text and '"keep  two spaces"' in text and "calc(1rem + 2vw)" in text
+    assert ".b :is(.c,.nope)>span::before{" in text  # the descendant space before :is stays, ">" closes up
+    out = pages.drop_unused_tokens([pages.prune(text, html)])[0]
+    assert '@font-face{font-family:"X"' in out  # at-rules ship whole
+    assert ".a{color:var(--used)}" in out and ".gone" not in out and ".only-gone" not in out  # list + rule pruned
+    assert ".b :is(.c,.nope)>span::before" in out  # one :is() alternative is enough
+    assert ".card{" in out and ".x{" not in out  # script-made (the source card dialog) counts; .x is nowhere
+    assert "a:hover:not(.nope)" in out  # states + :not() never drop a rule
+    assert "@media (min-width: 600px){.a{padding:0}}" in out
+    assert "--used:red" in out and "--used2:blue" in out and "--chain:" in out  # read directly or through a token
+    assert "--unused" not in out and "--dead-chain" not in out  # read only by a dropped rule, then by nothing

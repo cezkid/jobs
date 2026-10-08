@@ -198,28 +198,37 @@ def test_nothing_in_docs_trips_jekyll():
 
 CSS_SRC = cfg.ROOT / "app" / "web" / "css"
 SITE_CSS = (CSS_SRC / "site.css").read_text(encoding="utf-8")
+HOME_CSS = (CSS_SRC / "home.css").read_text(encoding="utf-8")
+DOC_CSS = (CSS_SRC / "doc.css").read_text(encoding="utf-8")
+LOST_CSS = (CSS_SRC / "lost.css").read_text(encoding="utf-8")
+# each page's built-in blocks, by marker: site.css everywhere, doc.css on the reading pages, a hand page's own last
+OWN_BLOCK = {"index.html": "home", "privacy.html": "legal", "terms.html": "legal", "404.html": "lost"}
 
 
 def test_every_page_carries_the_shared_css_built_in_from_one_source():
     # one source per rule (owner 2026-10-07: "more reusable css shared"): app/web/css/site.css on every page, doc.css
-    # on the reading pages, built into each <style> by pages.py (fresh: test_generated_files_are_fresh) - never
-    # linked: a linked sheet cost a slow phone ~220 ms before first paint (owner: "do what is best for speed")
-    blocks = {name: re.findall(r"/\* (shared|doc) \*/\n.*?/\* /\1 \*/\n", (DOCS / name).read_text(encoding="utf-8"), re.S)
-              for name in PAGES}
-    texts = {name: re.findall(r"/\* (?:shared|doc) \*/\n.*?/\* /(?:shared|doc) \*/\n", (DOCS / name).read_text(encoding="utf-8"), re.S)
-             for name in PAGES}
+    # on the reading pages, a hand page's own (home / legal / lost.css) last, built into each <style> by pages.py
+    # (fresh: test_generated_files_are_fresh) - never linked: a linked sheet cost a slow phone ~220 ms before first
+    # paint (owner: "do what is best for speed"). Each block one line (owner 2026-10-08: "i don't like such large diffs
+    # for css") and pruned to the page: a rule for a class the page doesn't have isn't there
     for name in PAGES:
-        assert blocks[name] == (["shared"] if name == "index.html" else ["shared", "doc"]), name
+        raw = (DOCS / name).read_text(encoding="utf-8")
+        blocks = re.findall(r"/\* (shared|doc|home|legal|lost) \*/\n(.*?)\n/\* /\1 \*/\n", raw, re.S)
+        want = (["shared"] if name == "index.html" else ["shared", "doc"]) + ([OWN_BLOCK[name]] if name in OWN_BLOCK else [])
+        assert [m for m, _ in blocks] == want, name
+        assert all("\n" not in body and "/*" not in body for _, body in blocks), name
         assert not page(name).links("stylesheet"), name
-    assert len({t[0] for t in texts.values()}) == 1 and len({t[1] for n, t in texts.items() if n != "index.html"}) == 1
+    hub = (DOCS / "research" / "index.html").read_text(encoding="utf-8")
+    assert ".sources li" in DOC_CSS and ".sources li" not in hub  # an article's Sources rules stay off the hub
     # the reading pages' box rules for bare elements (h1 size, p + li margins ...) stay out of site.css: the home
     # page's scenes never inherit them (base type - text-wrap - is shared)
     assert element_box_rules(SITE_CSS) == []
     assert element_box_rules("@media (max-width: 600px) {\n  .x, main h2 { margin-top: 36px; }\n}") == ["main h2"]
-    # both sources committed: on disk only, every check here passes and a fresh clone can't build the pages
-    tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", "app/web/css/site.css", "app/web/css/doc.css"],
+    # every source committed: on disk only, every check here passes and a fresh clone can't build the pages
+    names = [f"app/web/css/{n}" for n in ("doc.css", "home.css", "legal.css", "lost.css", "site.css")]
+    tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", *names],
                              capture_output=True, text=True, check=True).stdout.split()
-    assert tracked == ["app/web/css/doc.css", "app/web/css/site.css"], tracked
+    assert tracked == names, tracked
 
 
 def element_box_rules(css: str) -> list[str]:
@@ -265,7 +274,7 @@ def test_404_offers_install_and_research():
 
 def test_404_cut_line_shows_on_the_paper_in_both_schemes():
     # the dashed cut crosses the white sheet; --text turns near-white in dark mode and the line vanishes (A17)
-    raw = (DOCS / "404.html").read_text(encoding="utf-8")
+    raw = LOST_CSS
     assert all(r >= 3 for r in stroke_on_paper(raw, ".cut .dash", SITE_CSS).values()), stroke_on_paper(raw, ".cut .dash", SITE_CSS)
     faint = raw.replace(".cut .dash { fill: none; stroke: var(--ink)", ".cut .dash { fill: none; stroke: var(--text)", 1)
     assert faint != raw and stroke_on_paper(faint, ".cut .dash", SITE_CSS)["dark"] < 3
@@ -381,7 +390,7 @@ def test_inline_bird_is_black_on_a_paper_disc_with_a_two_tone_beak():
     assert re.search(r"\.bird \{[^}]*fill: var\(--ink\)", css)
     assert ".bird .disc { fill: var(--disc); }" in css
     assert tokens(css)["light"]["--disc"] == "var(--desk)" and tokens(css)["dark"]["--disc"] == "var(--paper)"
-    assert re.search(r"\.window \{[^}]*--disc: var\(--paper\)", raw)
+    assert re.search(r"\.window \{[^}]*--disc: var\(--paper\)", HOME_CSS)
     assert re.search(r"\.bird :is\(\.beak, \.eye\) \{ fill: var\(--mark\); \}", css)
     assert ".bird .beak-low { fill: var(--beak-low); }" in css
     assert "@media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }" in css
@@ -663,10 +672,9 @@ def test_home_resume_scene_shows_the_correction_as_del_and_ins():
 def test_copy_is_the_only_filled_yellow_control_on_home():
     # the highlighter marks words; one filled yellow control (Copy) says "press this" - the illustrated
     # Submit stays an ink sketch, never filled (A21), so a juror never takes it for a working button
-    raw = (DOCS / "index.html").read_text(encoding="utf-8")
-    css = raw[raw.index("<style>"):raw.index("</style>")]
+    css = HOME_CSS
     assert yellow_fills(css) == ["#copy"]
-    submit = re.search(r"\n  \.submit \{([^}]*)\}", css)
+    submit = re.search(r"\n\.submit \{([^}]*)\}", css)
     assert submit and "background: none" in submit.group(1) and "border: 2px solid var(--heading)" in submit.group(1)
 
 

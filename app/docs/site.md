@@ -19,10 +19,18 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   marks, `.grid` + `.wrap`, skip link, header, footer, touch boxes, print, page change), `doc.css` for the reading
   pages (research articles, hub, About, methods, privacy, 404: editorial type, notes, tables, citations + the source
   card, Sources, On this page, Keep reading; `main.plain` = privacy, terms + 404's smaller h1). `pages.py` builds them into
-  each page's `<style>` - `/* shared */ ... /* /shared */` then `/* doc */ ... /* /doc */`, comments + blank lines
-  cut (~3 KB gzip off every page) - the hand-written pages' blocks too (their only generated part); one-off styles
-  follow in the same `<style>` (home's scenes, privacy's ledger, 404's drawing). Element box rules (h1 size, p + li
-  margins) live in doc.css only, so home never inherits them (test); both sources must be tracked by git (test).
+  each page's `<style>` - `/* shared */ ... /* /shared */` then `/* doc */ ... /* /doc */`, then a hand page's own:
+  `home.css` (index), `legal.css` (privacy + terms), `lost.css` (404) between `home` / `legal` / `lost` markers - the
+  hand-written pages' only generated part. Each block shipped as one minified line (owner 2026-10-08: "i don't like
+  such large diffs for css" - a CSS edit was ~300 changed lines in each of 21 pages, 94% of a PR's CSS diff) and
+  pruned to its page ("what tricks can you use to cut the css more than half"): a rule or a selector in a list ships
+  only if every class, id + tag it names is in the page (states, attributes, `:not()` + `:has()` never drop one;
+  `:is()` needs one alternative; script-made classes - the source card dialog, html.seen / is-mac / is-phone, .copied -
+  count as present), then custom properties no kept rule reads go. CSS per page, raw / gzip before -> after: home
+  42.7 / 11.6 -> 29.1 / 7.3 KB, an article 24.9 / 5.9 -> 18.2 / 4.8, hub 22.6 / 5.5 -> 11.1 / 3.4, privacy 25.1 / 6.1
+  -> 11.0 / 3.5, 404 24.3 / 6.0 -> 9.0 / 3.0 (articles + home use most of their rules). Generated pages are
+  `linguist-generated` (`.gitattributes`): GitHub collapses them in PR diffs. Element box rules (h1 size, p + li
+  margins) live in doc.css only, so home never inherits them (test); every source must be tracked by git (test).
   Never linked: a linked `site.css` (+ `doc.css`) measured ~220 ms later LCP on the phone profile (home 784 vs 568
   built in, an article 788 vs 568) and a 510 ms long load frame (gate < 300) - a render-blocking request on a 150 ms
   line, while GitHub Pages caches every file 10 min only (`cache-control: max-age=600`, read 2026-10-07), so the

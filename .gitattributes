@@ -5,3 +5,7 @@
 # so updaters (update.py, install-mac.sh, install-windows.ps1 replace only entries present) keep a
 # stale docs/ forever; "/docs/**" leaves an empty docs/ entry => next update swaps in empty folder.
 /docs/** export-ignore
+# generated (app/web/pages.py), never hand-edited: GitHub collapses them in PR diffs (owner 2026-10-08: CSS diffs too large)
+/docs/research/** linguist-generated=true
+/docs/about/** linguist-generated=true
+/docs/sitemap.xml linguist-generated=true
