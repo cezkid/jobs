@@ -189,7 +189,7 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
     print("Write answers into the file (file kind: answer = true only after the user said yes to uploading; a "
           f"question marked '{questions.YOURS}' or 'sensitive': the user's own answer, its source set to "
           f"'{questions.USER_SAID}'; one marked '{questions.SIGN_ON_PAGE}': left blank, the user ticks or signs it "
-          f"there), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}{flag if system else ''}")
+          f"there; one the user chooses to type on the page: blank, source '{questions.SIGN_ON_PAGE}'), then: uv run app/jobs.py apply-form {'fill' if system else 'paste'} {slug}{flag if system else ''}")
 
 
 def paste(slug: str) -> None:

@@ -89,7 +89,14 @@ Never values / personal here (`AGENTS.md` #About me).
    Why each rule: `app/docs/resume/cover-letter.md`.
 7. Open PDF for them; say it's in My Jobs, in the To apply folder, under its job number - private
    to this computer, ready to upload. Passing check already marked it "resume made" - nothing
-   for them to record. Offer `job-apply`; its last step asks whether they sent it.
+   for them to record. Then ONE clickable question (after step 6's letter question, never with it):
+   "Job 12 - Acme: resume ready. Fill the application now?"
+   - Fill it now (Recommended) - "I fill what I can, you check + click Submit"; name when that
+     system gets their details (Ashby: each box as filled, before Submit; `job-apply` #Hard limits)
+     -> `job-apply`; its last step asks whether they sent it.
+   - I'll apply myself -> `jobs.py open` the posting link; name the resume's folder.
+   - Later -> nothing; it stays on Today under best to apply next.
+   Several jobs in one ask: all resumes first, then this question per job, one after another.
 
 Wording the user asks about:
 - Industry term: keep it spelled exactly as the field writes it - screeners match the string. Put its

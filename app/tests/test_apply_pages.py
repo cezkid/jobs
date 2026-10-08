@@ -286,3 +286,13 @@ def test_just_started_chrome_takes_its_only_tab_else_opens_its_own(monkeypatch):
     assert browser.first_tab(9222, POSTING) == "A"
     listed[:] = [{"id": "A", "type": "page"}, {"id": "B", "type": "page"}]  # restored tabs beside it
     assert browser.first_tab(9222, POSTING) == "NEW"
+
+
+def test_required_question_the_user_types_on_the_page_does_not_block(job, capsys):
+    class OnePage:
+        NAME, READY = "Fake", "form"
+        fill = staticmethod(lambda page, q, resume_file: "ok")
+        ids_on_page = staticmethod(lambda page: ["a", "b"])
+    mine = {**q("b", None), "source": "yours to do on the page"}
+    job(OnePage, [q("a", None, "x"), mine], None)
+    assert "still to do on the page: Question b" in capsys.readouterr().out

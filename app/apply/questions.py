@@ -698,8 +698,10 @@ def merge(old: list[dict], read: list[dict]) -> list[dict]:
 
 
 def missing(answers: list[dict]) -> list[dict]:
-    """Required and blank - not counting the ones the user ticks or signs on the page."""
-    return [a for a in answers if a["required"] and blank(a.get("answer")) and not signs(a["title"])]
+    """Required and blank - not counting the ones the user ticks, signs or chose to type on the page
+    (source marked SIGN_ON_PAGE: 2026-10-08, a user writing their own "why join us" on the page)."""
+    return [a for a in answers if a["required"] and blank(a.get("answer")) and not signs(a["title"])
+            and SIGN_ON_PAGE not in (a.get("source") or "")]
 
 
 def load(path: Path) -> dict | None:
