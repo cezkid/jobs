@@ -1,0 +1,31 @@
+/* lost.css - 404.html's own, after site.css + doc.css (the reading pages' type): the note beside a cut sheet.
+   Built in by app/web/pages.py (lost markers). */
+/* the note beside a cut sheet: the page that was here has been cut away */
+.lost { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-m) var(--gutter); align-items: center; max-width: 60rem; }
+.ways { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-l); }
+.ways li { margin: 0; }
+p { max-width: 34rem; }
+.go { font-size: var(--step-1); font-weight: var(--semibold); }
+.cut { width: clamp(150px, 30vw, 230px); }
+.cut svg { display: block; width: 100%; height: auto; overflow: visible; }
+.cut .sheet { fill: var(--paper); stroke: var(--ink); stroke-width: 1.5; stroke-linejoin: round; }
+.cut .line { stroke: var(--rule); stroke-width: 6; stroke-linecap: round; }
+.cut .head { stroke: var(--ink); }
+/* the cut runs over paper only (sheet edge to sheet edge): ink, never --text, which turns white in dark mode */
+.cut .dash { fill: none; stroke: var(--ink); stroke-width: 1.5; stroke-dasharray: 6 5; }
+@media (min-width: 720px) {
+  .lost { grid-template-columns: minmax(0, 1fr) auto; }
+}
+/* wide screens: note + drawing share the whole column box, the drawing centred in its half */
+@media (min-width: 1024px) {
+  .lost { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: none; }
+  .cut { width: min(100%, 400px); justify-self: center; }
+}
+@media (max-width: 600px) {
+  .lost .cut { order: -1; width: 130px; }
+}
+@media (forced-colors: active) {
+  .cut .sheet { fill: Canvas; stroke: CanvasText; }
+  .cut .line, .cut .head, .cut .dash { stroke: CanvasText; }
+}
+@media print { .cut { display: none; } }

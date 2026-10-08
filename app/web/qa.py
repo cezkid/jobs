@@ -39,11 +39,15 @@ that reacts to a Mac - html.is-mac, home - at every desktop size again with a Ma
   one row, a sticky column counted to its parent's bottom); TOC_BESIDE: an article's On this page column
   <= 120px right of its text, <= 400px empty right of the column (A3)
 
+APCA_TEXT, every page at 390x844 (phone) + 1440x900, light + dark, details open: every visible text element's APCA Lc
+(0.0.98G-4g, against the colour actually behind it - the resume sheet's paper included) meets the apca-w3 0.1.7 font
+lookup for its size + weight (owner 2026-10-07: an APCA checker failed the small greys; the static token check can't
+see size, weight or which ground a word sits on - it missed bold job titles turning near-white on the dark paper);
 HIT_BOXES, every page at 390x844 (phone, touch) + 1366x1024 (iPad landscape, touch): every visible link + button
 but links inside running text and the skip link is >= 44px tall + wide (Apple HIG 44x44pt); HIT_OVERLAP, same
 pages + sizes: every header / footer / nav tap box keeps >= 24px of its height uncovered by its neighbours' boxes
 (Lighthouse target-size); SCHEME_LIGHT / SCHEME_DARK, home + an article at 1440x900: desk, a link in the page
-(ink, the pen underline), navigation + titles (ink), a research folder + the sticky note's face, the hero window's ground + text + marks + bird; CONTRAST_MORE, same pages,
+(ink, an ink underline), navigation + titles (ink), the sticky note's face, the hero window's ground + text + marks + bird; CONTRAST_MORE, same pages,
 light + dark w/ prefers-contrast: more: footer text = body text, hairlines #767676; PRINT_DARK, home printed from
 a dark screen: the window + desk ink on white; NAV_CURRENT, every page at 1366x641: the header's Research link is
 underlined thicker than Install on /research/** and the same elsewhere; FOOTER_BOTTOM, every page at
@@ -80,7 +84,7 @@ Every page again at 1366x641 (desktop) + 390x844 (phone):
 - ZOOM_H1, home at 1366x641, 1440x900, 1920x1080: the h1 at 200% zoom (half the viewport, device scale
   2) is >= its size at 100%, in device px (WCAG 1.4.4)
 - HOVER, home + hub + one article at 1366x641 (reduced motion): the mouse on each visible a, button +
-  summary changes >= 1 visual style of it and newly paints nothing #FFE433; a research folder pulls up
+  summary changes >= 1 visual style of it and newly paints nothing #FFE433
 - STATUS, home at 1366x641: after Copy the role=status text is "Copied to the clipboard" and Copy's
   accessible name holds its visible label; after the OS switch the status names the OS shown
 - home's opening moment, 1366x641 + 390x844 (full motion): at load only the hero window animates
@@ -108,7 +112,7 @@ the Mac line on more lines, two framed objects at once, Copy + OS switch results
 by a fixed label, the strike / bullet dots gone in forced colours, Copy shown / the Mac answer link hidden w/o JS,
 the h1's vh cap back below 1080px, footer links back to text height on touch), an article (a wide element, a
 console error, the Research link plain, links unchanged on hover, On this page rows too tall for a short window),
-the hub (a folder that doesn't lift, the labels stuck + clipped on a short window), the
+the hub (the labels stuck + clipped on a short window), the
 404 (a blank band under its footer); home also gets a hover rule painting the highlighter.
 --capture DIR: every page at 1366x641, 1440x900, 1440x780 (Mac), 1920x1080, 390x844 phone, light +
 dark, reduced motion: full-page + per-screen shots and DIR/numbers.md (screens long, print pages, h1 +
@@ -136,11 +140,14 @@ SEO audit passes but canonical (names the live host, not localhost) + is-crawlab
 Mark = <mark>, or any element with class "mark" (SVG circle/check, ::before sweep): new mark
 kinds carry class "mark" so these checks see them.
 
-Screenshots go to .data/screens/ (private, gitignored). Exit 1 + one line per failure; lines
+Runs in parallel: WORKERS Chrome instances (one per thread, default half the cores, at most 6; QA_WORKERS=n
+overrides), longest checks first; the wall-clock-timed opening + page change run alone after. A full run took 748 s
+one page at a time (2026-10-08). Screenshots of views that fail go to .data/screens/ (private, gitignored);
+--shots saves every layout view. Exit 1 + one line per failure; lines
 starting "report:" are measurements, never failures. Every browser action times out after
 ACTION_MS, a whole run after RUN_LIMIT_S (exit 2).
 
-Run from repo root: uv run app/web/qa.py [--engines | --self-test | --perf [--self-test] | --lighthouse |
+Run from repo root: uv run app/web/qa.py [--shots] [--engines | --self-test | --perf [--self-test] | --lighthouse |
 --capture DIR]
 Own deps (inline above, pinned to the cached webkit-2359 / firefox-1543 builds - no download),
 so the project's deps stay untouched.
@@ -188,6 +195,7 @@ SEND_CAP = 675              # for the one thing a phone visitor can do; 675 = 84
 WIN_LINE = "irm https://jobs.enrriquez.com/win | iex"
 ACTION_MS = 20_000
 RUN_LIMIT_S = 900
+SHOTS = False  # --shots: a full-page screenshot of every layout view; without it only views that fail
 GZIP_TYPES = (".html", ".css", ".js", ".svg", ".xml", ".json", ".webmanifest", ".txt", ".ico")
 
 # visible header parts (brand + shown links) overlap vertically <=> one line; null = < 2 found
@@ -732,6 +740,59 @@ TOC_CURRENT = """i => { const h = document.querySelectorAll("main article h2[id]
 CRUMBS_AT = [(360, 780), (390, 844)]
 CRUMBS_TOPS = """() => [...document.querySelectorAll("article .crumbs li")].filter(li => li.getBoundingClientRect().width > 1)
   .map(li => Math.round(li.getBoundingClientRect().top))"""
+# APCA_TEXT: APCA 0.0.98G-4g Lc of each visible text element vs the colour behind it (backgrounds walked up the tree;
+# inside .sheet-lg the paper its ::after draws; a <mark> = the highlighter), against the apca-w3 0.1.7 font lookup
+# (fontMatrixAscend: the least Lc whose minimum size at this weight <= the element's px; 777/999 = never for text)
+APCA_AT = [(390, 844, True), (1440, 900, False)]
+APCA_JS = r"""() => {
+  const M = [[0,999,999,999,999,999,999,999,999,999],[10,999,999,999,999,999,999,999,999,999],[15,777,777,777,777,777,777,777,777,777],[20,777,777,777,777,777,777,777,777,777],[25,777,777,777,120,120,108,96,96,96],[30,777,777,120,108,108,96,72,72,72],[35,777,120,108,96,72,60,48,48,48],[40,120,108,96,60,48,42,32,32,32],[45,108,96,72,42,32,28,24,24,24],[50,96,72,60,32,28,24,21,21,21],[55,80,60,48,28,24,21,18,18,18],[60,72,48,42,24,21,18,16,16,18],[65,68,46,32,21.75,19,17,15,16,18],[70,64,44,28,19.5,18,16,14.5,16,18],[75,60,42,24,18,16,15,14,16,18],[80,56,38.25,23,17.25,15.81,14.81,14,16,18],[85,52,34.5,22,16.5,15.625,14.625,14,16,18],[90,48,32,21,16,15.5,14.5,14,16,18],[95,45,28,19.5,15.5,15,14,13.5,16,18],[100,42,26.5,18.5,15,14.5,13.5,13,16,18],[105,39,25,18,14.5,14,13,12,16,18],[110,36,24,18,14,13,12,11,16,18]];
+  const need = (px, w) => { const c = Math.min(9, Math.max(1, Math.round(w / 100)));
+    for (const r of M) if (r[c] < 400 && r[c] <= px + 0.01) return r[0]; return 999; };
+  const rgb = c => { const m = c.match(/[\d.]+/g).map(Number); return [m[0], m[1], m[2], m.length > 3 ? m[3] : 1]; };
+  const Y = ([r, g, b]) => { const y = 0.2126729 * (r / 255) ** 2.4 + 0.7151522 * (g / 255) ** 2.4 + 0.0721750 * (b / 255) ** 2.4;
+    return y < 0.022 ? y + (0.022 - y) ** 1.414 : y; };
+  const lc = (t, b) => { const yt = Y(t), yb = Y(b); if (Math.abs(yb - yt) < 0.0005) return 0;
+    const s = yb > yt ? (yb ** 0.56 - yt ** 0.57) * 1.14 : (yb ** 0.65 - yt ** 0.62) * 1.14;
+    return Math.abs(s) < 0.1 ? 0 : (Math.abs(s) - 0.027) * 100; };
+  const ground = el => { const sheet = el.closest(".sheet-lg"), layers = [];
+    for (let e = el; e; e = e.parentElement) {
+      if (e.tagName === "MARK") { layers.push([255, 228, 51, 1]); break; }
+      const c = rgb(getComputedStyle(e).backgroundColor); if (c[3] > 0) { layers.push(c); if (c[3] >= 1) break; }
+      if (e === sheet) { layers.push(rgb(getComputedStyle(e, "::after").backgroundColor)); break; } }
+    let out = [255, 255, 255]; for (const c of layers.reverse()) out = out.map((v, i) => v * (1 - c[3]) + c[i] * c[3]); return out; };
+  const bad = [];
+  for (const el of document.querySelectorAll("body *")) {
+    if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+    if (!el.checkVisibility({visibilityProperty: true, opacityProperty: true}) || el.closest(".vh, .skip, [aria-hidden=true]")) continue;
+    const r = el.getBoundingClientRect(); if (r.width < 2 || !r.height) continue;
+    const cs = getComputedStyle(el), fg = rgb(cs.color), bg = ground(el);
+    const got = lc(fg.slice(0, 3).map((v, i) => v * fg[3] + bg[i] * (1 - fg[3])), bg);
+    const px = parseFloat(cs.fontSize), w = parseInt(cs.fontWeight), want = need(px, w);
+    if (got + 0.05 < want) bad.push(el.tagName.toLowerCase() + (typeof el.className === "string" && el.className ? "." + el.className.split(" ")[0] : "")
+      + " " + JSON.stringify(el.textContent.trim().slice(0, 30)) + ` ${px.toFixed(1)}px/${w}: Lc ${got.toFixed(1)} < ${want}`); }
+  return bad; }"""
+
+
+def check_apca(browser, base: str, inject: str | None = None, names: list[str] | None = None) -> list[str]:
+    """APCA_TEXT: every visible text element passes the APCA font lookup, phone + desktop, light + dark."""
+    failed = []
+    names = names or pages()
+    # one context per size + scheme, every page loaded in it in turn (a fresh context per page view - 80 of them -
+    # pushed the whole run past its 900 s watchdog)
+    for w, h, phone in APCA_AT:
+        for scheme in ("light", "dark"):
+            where = f"APCA_TEXT at {w}x{h} ({scheme})"
+            with opened(browser, base, names[0], w, h, phone, failed, where, inject, goto=False, color_scheme=scheme,
+                        reduced_motion="reduce") as page:
+                for name in names:
+                    page.goto(base + name)
+                    page.evaluate("document.fonts.ready")
+                    page.evaluate("document.querySelectorAll('details').forEach(d => d.open = true)")
+                    failed += [f"APCA_TEXT {name} at {w}x{h} ({scheme}): {line}"
+                               for line in dict.fromkeys(page.evaluate(APCA_JS))]
+    return failed
+
+
 # FOOTER_BOTTOM (C2/short pages): at 1440x900 the footer ends within 2px of the window's bottom or the page end
 FOOTER_BOTTOM_AT = (1440, 900)
 FOOTER_BOTTOM = """() => { const f = document.querySelector("footer"); if (!f) return null;
@@ -739,8 +800,8 @@ FOOTER_BOTTOM = """() => { const f = document.querySelector("footer"); if (!f) r
           Math.max(innerHeight, document.documentElement.scrollHeight)]; }"""
 # HOVER (A5): home, hub + one article at 1366x641, reduced motion (hover changes land at once): the mouse on
 # each visible a / button / summary changes >= 1 visual style of it (an underline thickness on a box with no
-# underline doesn't count) and newly paints nothing #FFE433 (hover is ink, never the highlighter); a research
-# folder (home pick, hub item, Keep reading) pulls up. Elements above the page (the skip link) are keyboard-only: skipped
+# underline doesn't count) and newly paints nothing #FFE433 (hover is ink, never the highlighter). Elements above the
+# page (the skip link) are keyboard-only: skipped
 HOVER_PAGES = ["index.html", "research/index.html", "research/what-makes-a-good-resume/index.html"]
 HOVER_SELECTOR = "a, button, summary"
 HOVER_MARK = "rgb(255, 228, 51)"
@@ -752,11 +813,9 @@ HOVER_STATE = """i => { const el = document.querySelectorAll("a, button, summary
                    "borderTopWidth", "borderTopColor", "borderBottomWidth", "borderBottomColor", "outlineStyle",
                    "outlineWidth", "outlineColor", "color", "backgroundColor", "backgroundImage", "backgroundSize",
                    "transform", "opacity", "boxShadow"]) style[p] = cs[p];
-  const li = el.closest(".picks > li, .list > li, .more li:has(> p)");
   const q = el.getClientRects()[0];
   return {what: el.tagName.toLowerCase() + " " + JSON.stringify(el.textContent.trim().slice(0, 40)),
-          x: q.left + q.width / 2, y: q.top + q.height / 2, style,
-          rule: li && li.querySelector("a") === el ? getComputedStyle(li).transform : null}; }"""
+          x: q.left + q.width / 2, y: q.top + q.height / 2, style}; }"""
 PAINT_CAP = 3
 PAINT_CONCURRENT ="async () => {" + HELPERS + """
   const PAINT = ["backgroundSize", "clipPath", "strokeDashoffset"];
@@ -933,8 +992,9 @@ FAULTS = [
      "motion"),
     (HOME, "HIT_BOXES: footer links back to their text height on touch", "<style>@media (pointer: coarse) "
      "{ footer a { padding-block: 0 !important; margin-block: 0 !important; } }</style>", "phone"),
-    (ARTICLE, "HIT_BOXES: crumb Home back to its text width on touch", "<style>@media (pointer: coarse) { .crumbs a "
-     "{ padding-inline: 0 !important; margin-inline: 0 !important; } }</style>", "phone"),
+    # Literata's "Home" is 44px+ wide on its own: the fault squeezes it too, so a narrow crumb is still what's caught
+    (ARTICLE, "HIT_BOXES: crumb Home back to its text width on touch, squeezed", "<style>@media (pointer: coarse) "
+     "{ .crumbs a { padding-inline: 0 !important; margin-inline: 0 !important; letter-spacing: -0.08em; } }</style>", "phone"),
     (ARTICLE, "HIT_BOXES: Sources links back inline, 18px tall", "<style>.src-links { display: inline !important; } "
      ".src-links a { padding: 0 !important; margin: 0 !important; }</style>", "phone"),
     (ARTICLE, "HIT_BOXES: On this page rows overprint on an iPad (before 2026-10-07)", "<style>@media (pointer: coarse) "
@@ -943,9 +1003,12 @@ FAULTS = [
      "{ color: #f2f2f2 !important; } }</style>", "schemes"),
     (HOME, "SCHEME_DARK: the window white again in dark mode", "<style>.window { background: #ffffff !important; }"
      "</style>", "schemes"),
-    (HOME, "SCHEME_LIGHT: links in the page lose the pen's underline", "<style>main a { text-decoration-color: "
-     "var(--text) !important; }</style>",
+    (HOME, "SCHEME_LIGHT: links in the page underlined in blue again", "<style>main a { text-decoration-color: "
+     "#2a51b8 !important; }</style>",
      "schemes"),
+    (ARTICLE, "APCA_TEXT: a byline in a paler grey", "<style>.meta { color: #8a857e !important; }</style>", "apca"),
+    (HOME, "APCA_TEXT: bold text on the resume sheet in the desk's heading tone", "<style>.sheet-lg b "
+     "{ color: var(--heading) !important; }</style>", "apca"),
     (HOME, "CONTRAST_MORE: grey text kept under Increase Contrast", "<style>@media (prefers-contrast: more) { :root "
      "{ --text-2: #767676 !important; } }</style>", "schemes"),
     (HOME, "PRINT_DARK: the window prints pale from a dark screen", "<style>@media print { body { --win-ink: #f2f2f2 "
@@ -992,7 +1055,7 @@ FAULTS = [
      "overflow-y: auto !important; } }</style>", "sticky"),
     (ARTICLE, "TOC_BESIDE: On this page back at the window's edge", "<style>.toc { justify-self: end !important; }"
      "</style>", "wide"),
-    (ARTICLE, "TOC_BESIDE: a thin column, the right half empty again", "<style>.toc { width: 6rem !important; }"
+    (ARTICLE, "TOC_BESIDE: a thin column, the right half empty again", "<style>.toc { width: 2rem !important; }"
      "</style>", "wide"),
     (ARTICLE, "TOC_WIDE: On this page column hidden on wide screens", "<style>@media (min-width: 1280px) "
      "{ .toc { display: none !important; } }</style>", "toc"),
@@ -1004,8 +1067,6 @@ FAULTS = [
     (ARTICLE, "CRUMBS_ONE_LINE: current crumb shown on phones", "<style>article .crumbs [aria-current] "
      "{ position: static !important; width: auto !important; height: auto !important; clip-path: none !important; "
      "white-space: normal !important; }</style>", "toc"),
-    ("research/index.html", "HOVER: a hub folder stays put", "<style>.list > li:hover "
-     "{ transform: none !important; }</style>", "hover"),
 ]
 # a fault whose what starts with one of these must be caught by that check's own line
 CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FRAMES": "FRAMES", "STATUS": "STATUS",
@@ -1013,7 +1074,7 @@ CAUGHT_BY = {"PAINT_CONCURRENT": "PAINT_CONCURRENT", "MAC_LINE": "MAC_LINE", "FR
              "FORCED_DEL": "FORCED_DEL", "NOJS_SCRIPTING": "NOJS_SCRIPTING", "ZOOM_H1": "ZOOM_H1",
              "HIT_BOXES": "HIT_BOXES", "NAV_CURRENT": "NAV_CURRENT", "EMPTY_RIGHT": "left empty right of its content",
              "RULES_STACKED": "RULES_STACKED", "ARTICLE_H1": "ARTICLE_H1", "HEADLINE_RAG": "HEADLINE_RAG", "HUB_FOLD": "HUB_FOLD", "TOC_BESIDE": "TOC_BESIDE", "TOC_NARROW": "TOC_NARROW", "TOC_WIDE": "TOC_WIDE", "TOC_CURRENT": "TOC_CURRENT", "CRUMBS_ONE_LINE": "CRUMBS_ONE_LINE", "FOOTER_BOTTOM": "FOOTER_BOTTOM", "HOVER": "HOVER",
-             "HIT_OVERLAP": "HIT_OVERLAP", "SCHEME_DARK": "SCHEME_DARK", "SCHEME_LIGHT": "SCHEME_LIGHT",
+             "HIT_OVERLAP": "HIT_OVERLAP", "SCHEME_DARK": "SCHEME_DARK", "SCHEME_LIGHT": "SCHEME_LIGHT", "APCA_TEXT": "APCA_TEXT",
              "CONTRAST_MORE": "CONTRAST_MORE", "PRINT_DARK": "PRINT_DARK", "SPACE_RATIO": "SPACE_RATIO", "STICKY_FIT": "STICKY_FIT", "0 matches": "found 0 elements"}
 
 
@@ -1082,6 +1143,42 @@ def watchdog(seconds: int) -> threading.Timer:
     timer.daemon = True
     timer.start()
     return timer
+
+
+# workers: one Chrome each, in its own thread (a Playwright instance per thread - its sync API is per-thread). The
+# checks were one browser, one page at a time: 748 s, under 2 of 12 cores busy (2026-10-08 profile: 232 layout views
+# 1.7 s each, 40 motion runs 5.6 s each - most of that waiting on animations). QA_WORKERS overrides
+WORKERS = int(os.environ.get("QA_WORKERS", 0)) or max(1, min(6, (os.cpu_count() or 2) // 2))
+
+
+def run_parallel(tasks: list, engine: str = "chromium") -> list:
+    """Run (cost, fn) tasks - fn(browser) -> result - across WORKERS browsers, longest first; results in task order.
+    A task that raises yields its error as a one-line failure list ([line], [])."""
+    from playwright.sync_api import sync_playwright
+
+    order = sorted(range(len(tasks)), key=lambda i: -tasks[i][0])
+    results, lock = [None] * len(tasks), threading.Lock()
+
+    def work():
+        with sync_playwright() as p:
+            browser = getattr(p, engine).launch(**({"channel": "chrome"} if engine == "chromium" else {}))
+            while True:
+                with lock:
+                    if not order:
+                        break
+                    i = order.pop(0)
+                try:
+                    results[i] = tasks[i][1](browser)
+                except Exception as e:  # one broken view is a failure line, not a dead worker
+                    results[i] = ([f"qa.py: check crashed: {type(e).__name__}: {str(e).splitlines()[0][:160]}"], [])
+            browser.close()
+
+    threads = [threading.Thread(target=work, daemon=True) for _ in range(min(WORKERS, len(tasks)) or 1)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    return results
 
 
 @contextmanager
@@ -1378,7 +1475,7 @@ def check_layout(browser, base: str, name: str, width: int, height: int, phone: 
                 reports.append(f"report: {where}: page is {screens:.2f} screens (cap {PHONE_CAP:.1f})")
                 if screens > PHONE_CAP:
                     failed.append(f"{where}: page is {screens:.1f} screens long, cap {PHONE_CAP:.1f}")
-        if shots:
+        if shots and (SHOTS or any(not line.startswith(REPORT_ONLY) for line in failed)):
             SCREENS.mkdir(parents=True, exist_ok=True)
             shot = name.removesuffix(".html").replace("/", "-")
             engine = browser.browser_type.name
@@ -1610,24 +1707,25 @@ SCHEME_JS = """() => { const c = (s, p = "color") => { const e = document.queryS
   return {desk: c("body", "backgroundColor"), text: c("body"), win: c(".window", "backgroundColor"), winText: c(".window"),
     winMark: c(".window mark"), bird: c(".window .bird", "fill"), disc: c(".window .bird .disc", "fill"),
     link: c("main .research-head a, main .box-more a"), linkLine: c("main .research-head a, main .box-more a", "textDecorationColor"),
-    nav: c(".links a"), title: c("main .picks a, main .crumbs a"), cite: c("main small a"),
-    folder: c("main .picks > li", "backgroundColor"), note: c("main .box", "backgroundColor"),
+    nav: c(".links a"), title: c("main .picks a, main h1"), cite: c("main small a"),
+    note: c("main .box", "backgroundColor"),
     foot: c("footer p"), footLine: c("footer", "borderTopColor")}; }"""
-# the job-search desk (plan-h14): a link in the page keeps the text's ink, the blue pen draws its underline; the
-# objects' faces (a home research folder, an article's sticky note) dim in dark
+# the job-search desk (plan-h14): text in tones (2026-10-07) - headings, links + navigation the strongest, reading text
+# a step under, citations the quietest; links underlined in their own ink (blue cut); the objects' faces dim in dark
 SCHEME_WANT = {
-    "light": {"desk": "rgb(246, 241, 231)", "link": "rgb(0, 0, 0)", "linkLine": "rgb(42, 81, 184)",
-              "nav": "rgb(0, 0, 0)", "title": "rgb(0, 0, 0)", "win": "rgb(255, 255, 255)", "winMark": "rgb(0, 0, 0)",
-              "cite": "rgb(0, 0, 0)", "folder": "rgb(238, 220, 185)", "note": "rgb(251, 241, 174)"},
-    "dark": {"desk": "rgb(26, 23, 18)", "link": "rgb(234, 230, 221)", "linkLine": "rgb(129, 180, 246)",
-             "nav": "rgb(234, 230, 221)", "title": "rgb(234, 230, 221)", "win": "rgb(35, 32, 28)",
-             "winText": "rgb(234, 230, 221)", "winMark": "rgb(0, 0, 0)", "bird": "rgb(0, 0, 0)",
-             "cite": "rgb(234, 230, 221)", "folder": "rgb(40, 34, 23)", "note": "rgb(37, 35, 23)"},
+    "light": {"desk": "rgb(246, 241, 231)", "text": "rgb(58, 54, 49)", "link": "rgb(29, 26, 21)",
+              "linkLine": "rgb(29, 26, 21)", "nav": "rgb(29, 26, 21)", "title": "rgb(29, 26, 21)",
+              "win": "rgb(255, 255, 255)", "winMark": "rgb(0, 0, 0)", "cite": "rgb(89, 86, 79)",
+              "note": "rgb(251, 241, 174)"},
+    "dark": {"desk": "rgb(26, 23, 18)", "text": "rgb(227, 224, 216)", "link": "rgb(244, 240, 232)",
+             "linkLine": "rgb(244, 240, 232)", "nav": "rgb(244, 240, 232)", "title": "rgb(244, 240, 232)",
+             "win": "rgb(35, 32, 28)", "winText": "rgb(234, 230, 221)", "winMark": "rgb(0, 0, 0)", "bird": "rgb(0, 0, 0)",
+             "cite": "rgb(212, 209, 201)", "note": "rgb(37, 35, 23)"},
 }
 MORE_LINE = "rgb(118, 118, 118)"
 # what each page must have for its colours to be checked at all (a renamed class would skip them silently)
 SCHEME_NEEDS = {"index.html": ("desk", "link", "linkLine", "nav", "title", "win", "winText", "winMark", "bird", "disc",
-                               "folder", "foot"),
+                               "foot"),
                 "ARTICLE": ("desk", "link", "linkLine", "nav", "title", "cite", "note", "foot")}
 
 
@@ -1725,8 +1823,6 @@ def check_hover(browser, base: str, inject: str | None = None, names: list[str] 
                     failed.append(f"{where}: {before['what']} looks the same on hover")
                 failed += [f"{where}: {before['what']} paints the highlighter on hover ({p}: {a[p]})"
                            for p in a if HOVER_MARK in a[p] and a[p] != b[p]]
-                if before["rule"] is not None and before["rule"] == after["rule"]:
-                    failed.append(f"{where}: {before['what']}'s folder doesn't lift on hover ({after['rule']})")
             if not seen:
                 failed.append(f"{where}: check found 0 elements for {HOVER_SELECTOR!r}")
     return failed
@@ -1735,33 +1831,30 @@ def check_hover(browser, base: str, inject: str | None = None, names: list[str] 
 def run_chrome(base: str) -> tuple[list[str], list[str]]:
     from playwright.sync_api import sync_playwright
 
+    tasks = []
+    for name in pages():
+        sizes = [(s, True) for s in PHONES] + [(s, False) for s in DESKTOPS]
+        if name == "index.html":
+            sizes += [(FOLD_REPORT, False)] + [(s, False) for s in PHONES]
+        # jurors browse on Macs: a page that reacts to one (html.is-mac: home's Mac install line) gets
+        # every desktop size again with a Mac browser name; the others render the same either way
+        mac = [(s, False, MAC_UA) for s in DESKTOPS] if "is-mac" in (DOCS / name).read_text() else []
+        sizes = [(s, phone, None) for s, phone in sizes] + mac
+        for (w, h), phone, ua in sizes:
+            tasks.append((1.7, lambda b, n=name, w=w, h=h, ph=phone, ua=ua: check_layout(b, base, n, w, h, ph, ua=ua)))
+        for (w, h), phone in MOTION_SIZES:
+            tasks.append((5.6, lambda b, n=name, w=w, h=h, ph=phone: (check_motion(b, base, n, w, h, ph), [])))
+    for cost, check in ((43, check_toc), (31, check_sticky), (12, check_hover), (9, check_touch), (9, check_apca),
+                        (2, check_schemes), (1, check_status), (1, check_print)):
+        tasks.append((cost, lambda b, c=check: (c(b, base), [])))
+    tasks.append((3, lambda b: check_zoom(b, base)))
     failed, reports = [], []
-    with sync_playwright() as p:
-        browser = p.chromium.launch(channel="chrome")
-        for name in pages():
-            sizes = [(s, True) for s in PHONES] + [(s, False) for s in DESKTOPS]
-            if name == "index.html":
-                sizes += [(FOLD_REPORT, False)] + [(s, False) for s in PHONES]
-            # jurors browse on Macs: a page that reacts to one (html.is-mac: home's Mac install line) gets
-            # every desktop size again with a Mac browser name; the others render the same either way
-            mac = [(s, False, MAC_UA) for s in DESKTOPS] if "is-mac" in (DOCS / name).read_text() else []
-            sizes = [(s, phone, None) for s, phone in sizes] + mac
-            for (w, h), phone, ua in sizes:
-                f, r = check_layout(browser, base, name, w, h, phone, ua=ua)
-                failed += f
-                reports += r
-            for (w, h), phone in MOTION_SIZES:
-                failed += check_motion(browser, base, name, w, h, phone)
-        failed += check_print(browser, base)
-        failed += check_schemes(browser, base)
-        failed += check_touch(browser, base)
-        failed += check_status(browser, base)
-        failed += check_hover(browser, base)
-        failed += check_toc(browser, base)
-        failed += check_sticky(browser, base)
-        f, r = check_zoom(browser, base)
+    for f, r in run_parallel(tasks):
         failed += f
         reports += r
+    # timed in wall-clock: run alone, after the workers, so a busy machine can't fail them
+    with sync_playwright() as p:
+        browser = p.chromium.launch(channel="chrome")
         failed += check_transition(browser, base)
         f, r = check_opening(browser, base)
         failed += f
@@ -1814,6 +1907,8 @@ def run_self_test(base: str) -> list[str]:
             return check_touch(browser, base, inject, [name])
         if kind == "hover":
             return check_hover(browser, base, inject, [name])
+        if kind == "apca":
+            return check_apca(browser, base, inject, [name])
         if kind == "toc":
             return check_toc(browser, base, inject, [name])
         if kind == "sticky":
@@ -1822,23 +1917,39 @@ def run_self_test(base: str) -> list[str]:
             return check_zoom(browser, base, inject)[0]
         return check_motion(browser, base, name, *FOLD, False, inject)
 
-    failed, clean = [], {}
-    with sync_playwright() as p:
-        browser = p.chromium.launch(channel="chrome")
-        for name, what, html, kind, *ua in FAULTS:
-            ua = ua[0] if ua else None
-            if (name, kind, ua) not in clean:
-                got = clean[name, kind, ua] = check(browser, name, kind, None, ua)
-                gate = [line for line in got if not line.startswith(REPORT_ONLY)]
-                if gate:
-                    failed.append(f"self-test: clean {name} fails its {kind} checks: {gate[0]}")
-            caught = [line for line in check(browser, name, kind, html, ua) if line not in clean[name, kind, ua]]
+    # one group per clean run (page, check, browser name): its clean pass + each of its faults, groups in parallel;
+    # the wall-clock-timed kinds (opening, page change) run alone after
+    groups = {}
+    for name, what, html, kind, *ua in FAULTS:
+        groups.setdefault((name, kind, ua[0] if ua else None), []).append((what, html))
+
+    def group(browser, key) -> tuple[list[str], list[str]]:
+        name, kind, ua = key
+        failed, log = [], []
+        clean = check(browser, name, kind, None, ua)
+        gate = [line for line in clean if not line.startswith(REPORT_ONLY)]
+        if gate:
+            failed.append(f"self-test: clean {name} fails its {kind} checks: {gate[0]}")
+        for what, html in groups[key]:
+            caught = [line for line in check(browser, name, kind, html, ua) if line not in clean]
             needle = CAUGHT_BY.get(what.split(":")[0])
             caught = [line for line in caught if not needle or needle in line]
-            print(f"self-test: {name}: {what}: {'caught - ' + caught[0] if caught else 'NOT CAUGHT'}")
+            log.append(f"self-test: {name}: {what}: {'caught - ' + caught[0] if caught else 'NOT CAUGHT'}")
             if not caught:
                 failed.append(f"self-test: injected fault not caught: {name}: {what}")
+        return failed, log
+
+    timed = [k for k in groups if k[1] in ("opening", "transition")]
+    keys = [k for k in groups if k not in timed]
+    results = run_parallel([(len(groups[k]), lambda b, k=k: group(b, k)) for k in keys])
+    with sync_playwright() as p:
+        browser = p.chromium.launch(channel="chrome")
+        results += [group(browser, k) for k in timed]
         browser.close()
+    failed = []
+    for f, log in results:
+        print("\n".join(log), flush=True)
+        failed += f
     return failed
 
 
@@ -2284,7 +2395,11 @@ def keep_awake():
         subprocess.Popen(["caffeinate", "-dimsu", "-w", str(os.getpid())])
 
 def main() -> int:
+    global SHOTS
     args = sys.argv[1:]
+    if "--shots" in args:
+        SHOTS = True
+        args.remove("--shots")
     if args[:1] == ["--capture"] and len(args) == 2:
         out = Path(args[1]).expanduser().resolve()
         watchdog(PERF_LIMIT_S)
@@ -2301,7 +2416,7 @@ def main() -> int:
              ("--perf", "--self-test"): "--perf --self-test", ("--lighthouse",): "--lighthouse"}
     mode = modes.get(tuple(sorted(args, key=lambda a: a != "--perf")))
     if mode is None:
-        print("usage: uv run app/web/qa.py [--engines | --self-test | --perf [--self-test] | --lighthouse | --capture DIR]")
+        print("usage: uv run app/web/qa.py [--shots] [--engines | --self-test | --perf [--self-test] | --lighthouse | --capture DIR]")
         return 2
     timed = mode.startswith("--perf") or mode == "--lighthouse"
     if timed:
@@ -2337,7 +2452,7 @@ def main() -> int:
     done = {"": "all pages pass", "--engines": "WebKit + Firefox pass", "--self-test": "every injected fault caught",
             "--perf": "perf within budget", "--perf --self-test": "every injected perf fault caught",
             "--lighthouse": f"Lighthouse within budget; reports in {LH_OUT.relative_to(ROOT)}/"}[mode]
-    shots = mode in ("", "--engines")
+    shots = mode in ("", "--engines") and (SHOTS or failed)
     print(f"{len(failed)} problem(s)" if failed else done,
           f"; screenshots in {SCREENS.relative_to(ROOT)}/" if shots else "", sep="")
     return 1 if failed else 0

@@ -198,28 +198,37 @@ def test_nothing_in_docs_trips_jekyll():
 
 CSS_SRC = cfg.ROOT / "app" / "web" / "css"
 SITE_CSS = (CSS_SRC / "site.css").read_text(encoding="utf-8")
+HOME_CSS = (CSS_SRC / "home.css").read_text(encoding="utf-8")
+DOC_CSS = (CSS_SRC / "doc.css").read_text(encoding="utf-8")
+LOST_CSS = (CSS_SRC / "lost.css").read_text(encoding="utf-8")
+# each page's built-in blocks, by marker: site.css everywhere, doc.css on the reading pages, a hand page's own last
+OWN_BLOCK = {"index.html": "home", "privacy.html": "legal", "terms.html": "legal", "404.html": "lost"}
 
 
 def test_every_page_carries_the_shared_css_built_in_from_one_source():
     # one source per rule (owner 2026-10-07: "more reusable css shared"): app/web/css/site.css on every page, doc.css
-    # on the reading pages, built into each <style> by pages.py (fresh: test_generated_files_are_fresh) - never
-    # linked: a linked sheet cost a slow phone ~220 ms before first paint (owner: "do what is best for speed")
-    blocks = {name: re.findall(r"/\* (shared|doc) \*/\n.*?/\* /\1 \*/\n", (DOCS / name).read_text(encoding="utf-8"), re.S)
-              for name in PAGES}
-    texts = {name: re.findall(r"/\* (?:shared|doc) \*/\n.*?/\* /(?:shared|doc) \*/\n", (DOCS / name).read_text(encoding="utf-8"), re.S)
-             for name in PAGES}
+    # on the reading pages, a hand page's own (home / legal / lost.css) last, built into each <style> by pages.py
+    # (fresh: test_generated_files_are_fresh) - never linked: a linked sheet cost a slow phone ~220 ms before first
+    # paint (owner: "do what is best for speed"). Each block one line (owner 2026-10-08: "i don't like such large diffs
+    # for css") and pruned to the page: a rule for a class the page doesn't have isn't there
     for name in PAGES:
-        assert blocks[name] == (["shared"] if name == "index.html" else ["shared", "doc"]), name
+        raw = (DOCS / name).read_text(encoding="utf-8")
+        blocks = re.findall(r"/\* (shared|doc|home|legal|lost) \*/\n(.*?)\n/\* /\1 \*/\n", raw, re.S)
+        want = (["shared"] if name == "index.html" else ["shared", "doc"]) + ([OWN_BLOCK[name]] if name in OWN_BLOCK else [])
+        assert [m for m, _ in blocks] == want, name
+        assert all("\n" not in body and "/*" not in body for _, body in blocks), name
         assert not page(name).links("stylesheet"), name
-    assert len({t[0] for t in texts.values()}) == 1 and len({t[1] for n, t in texts.items() if n != "index.html"}) == 1
+    hub = (DOCS / "research" / "index.html").read_text(encoding="utf-8")
+    assert ".sources li" in DOC_CSS and ".sources li" not in hub  # an article's Sources rules stay off the hub
     # the reading pages' box rules for bare elements (h1 size, p + li margins ...) stay out of site.css: the home
     # page's scenes never inherit them (base type - text-wrap - is shared)
     assert element_box_rules(SITE_CSS) == []
     assert element_box_rules("@media (max-width: 600px) {\n  .x, main h2 { margin-top: 36px; }\n}") == ["main h2"]
-    # both sources committed: on disk only, every check here passes and a fresh clone can't build the pages
-    tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", "app/web/css/site.css", "app/web/css/doc.css"],
+    # every source committed: on disk only, every check here passes and a fresh clone can't build the pages
+    names = [f"app/web/css/{n}" for n in ("doc.css", "home.css", "legal.css", "lost.css", "site.css")]
+    tracked = subprocess.run(["git", "-C", str(cfg.ROOT), "ls-files", *names],
                              capture_output=True, text=True, check=True).stdout.split()
-    assert tracked == ["app/web/css/doc.css", "app/web/css/site.css"], tracked
+    assert tracked == names, tracked
 
 
 def element_box_rules(css: str) -> list[str]:
@@ -265,7 +274,7 @@ def test_404_offers_install_and_research():
 
 def test_404_cut_line_shows_on_the_paper_in_both_schemes():
     # the dashed cut crosses the white sheet; --text turns near-white in dark mode and the line vanishes (A17)
-    raw = (DOCS / "404.html").read_text(encoding="utf-8")
+    raw = LOST_CSS
     assert all(r >= 3 for r in stroke_on_paper(raw, ".cut .dash", SITE_CSS).values()), stroke_on_paper(raw, ".cut .dash", SITE_CSS)
     faint = raw.replace(".cut .dash { fill: none; stroke: var(--ink)", ".cut .dash { fill: none; stroke: var(--text)", 1)
     assert faint != raw and stroke_on_paper(faint, ".cut .dash", SITE_CSS)["dark"] < 3
@@ -381,7 +390,7 @@ def test_inline_bird_is_black_on_a_paper_disc_with_a_two_tone_beak():
     assert re.search(r"\.bird \{[^}]*fill: var\(--ink\)", css)
     assert ".bird .disc { fill: var(--disc); }" in css
     assert tokens(css)["light"]["--disc"] == "var(--desk)" and tokens(css)["dark"]["--disc"] == "var(--paper)"
-    assert re.search(r"\.window \{[^}]*--disc: var\(--paper\)", raw)
+    assert re.search(r"\.window \{[^}]*--disc: var\(--paper\)", HOME_CSS)
     assert re.search(r"\.bird :is\(\.beak, \.eye\) \{ fill: var\(--mark\); \}", css)
     assert ".bird .beak-low { fill: var(--beak-low); }" in css
     assert "@media (forced-colors: active) { .bird { fill: CanvasText; } .bird .disc { fill: Canvas; } }" in css
@@ -662,12 +671,11 @@ def test_home_resume_scene_shows_the_correction_as_del_and_ins():
 
 def test_copy_is_the_only_filled_yellow_control_on_home():
     # the highlighter marks words; one filled yellow control (Copy) says "press this" - the illustrated
-    # Submit stays a pen sketch, never filled (A21), so a juror never takes it for a working button
-    raw = (DOCS / "index.html").read_text(encoding="utf-8")
-    css = raw[raw.index("<style>"):raw.index("</style>")]
+    # Submit stays an ink sketch, never filled (A21), so a juror never takes it for a working button
+    css = HOME_CSS
     assert yellow_fills(css) == ["#copy"]
-    submit = re.search(r"\n  \.submit \{([^}]*)\}", css)
-    assert submit and "background: none" in submit.group(1) and "border: 2px solid var(--pen)" in submit.group(1)
+    submit = re.search(r"\n\.submit \{([^}]*)\}", css)
+    assert submit and "background: none" in submit.group(1) and "border: 2px solid var(--heading)" in submit.group(1)
 
 
 def test_yellow_fill_check_trips_on_a_second_filled_control():
@@ -773,10 +781,9 @@ def test_site_md_tokens_table_is_the_shared_root():
 
 PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>
   /* shared */
-  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; --desk: #ffffff; --text: #000000; --line: #c8c8c8; --pen: #2a51b8; --pen-text: var(--pen); --pen-paper: #23459d; --raised: #ffffff; --sticky: #fbf1ae; --folder: #eedcb9; --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule); --text-2: #3a3a3a; }}
-  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1a1712; --text: #eae6dd; --text-2: #d7d0c6; --line: #5f5a52; --paper: #ebe8e2; --pen: #81b4f6; --pen-text: #afd1fc; --raised: #23201c; --sticky: #252317; --folder: #282217; --win: var(--raised); --win-ink: var(--text); --win-ink-2: #d4cfc5; --win-rule: #6a645b; }} }}
-  @media (prefers-contrast: more) {{ :root {{ --text-2: var(--text); --line: #767676; --pen: #1f3c9c; --pen-text: var(--pen); }} }}
-  @media (prefers-contrast: more) and (prefers-color-scheme: dark) {{ :root {{ --pen: #a9cdfb; --pen-text: #cfe2fd; }} }}
+  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; --desk: #ffffff; --heading: #1d1a15; --text: #3a3631; --text-3: #59564f; --line: #c8c8c8; --raised: #ffffff; --sticky: #fbf1ae; --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule); --text-2: #4d4943; }}
+  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1a1712; --heading: #f4f0e8; --text: #e3e0d8; --text-2: #dcd9d1; --text-3: #d4d1c9; --line: #5f5a52; --paper: #ebe8e2; --raised: #23201c; --sticky: #252317; --win: var(--raised); --win-ink: var(--text); --win-ink-2: #d4cfc5; --win-rule: #6a645b; }} }}
+  @media (prefers-contrast: more) {{ :root {{ --text: var(--heading); --text-2: var(--text); --text-3: var(--text); --line: #767676; }} }}
   :focus-visible {{ outline: 3px solid var(--text); box-shadow: 0 0 0 3px var(--desk); }}
   ::selection {{ background: var(--text); color: var(--desk); }}
   .window ::selection {{ background: var(--win-ink); color: var(--win); }}
@@ -843,10 +850,13 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
 
 
 @pytest.mark.parametrize("old, new, trips", [
-    ("--text-2: #3a3a3a; }}", "--text-2: #999999; }}", "light: --text-2 on --desk"),
-    ("--text-2: #d7d0c6;", "--text-2: #555555;", "dark: --text-2 on --desk"),
+    ("--text-2: #4d4943; }}", "--text-2: #999999; }}", "light: --text-2 on --desk"),
+    ("--text-2: #dcd9d1;", "--text-2: #555555;", "dark: --text-2 on --desk"),
     # passes WCAG 2 (8.6:1), reads weak: a warm grey the APCA check stops (Lc 61)
-    ("--text-2: #d7d0c6;", "--text-2: #bab3a8;", "dark: text --text-2 on --desk APCA"),
+    ("--text-2: #dcd9d1;", "--text-2: #bab3a8;", "dark: text --text-2 on --desk APCA"),
+    # the quietest tone: under WCAG's 4.5:1 in light; in dark 8.9:1 passes WCAG but reads dim at 17px (Lc 62)
+    ("--text-3: #59564f;", "--text-3: #8a857e;", "light: --text-3 on --desk"),
+    ("--text-3: #d4d1c9;", "--text-3: #bab7b0;", "dark: quiet text --text-3 on --desk APCA"),
     ("--line: #5f5a52;", "--line: #49443d;", "dark: hairline --line on --desk APCA"),
     ("--rule: #c8c8c8;", "--rule: #f4f4f4;", "light: hairline --rule on --paper APCA"),
     ("--mark: #ffe433;", "--mark: #333333;", "--ink on --mark"),
@@ -861,26 +871,19 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
      "light: selection on the sheet .proof"),
     ("background: var(--win-ink); color: var(--win)", "background: #3a3a3c; color: var(--win-ink)",
      "dark: selection on the sheet .window"),
-    # the blue pen: its stroke on the desk (a pale blue on white), its dark-mode ink (the light-mode blue on the
-    # dark desk), its ink on a sheet; the objects' faces under their text
-    ("--pen: #2a51b8;", "--pen: #c9daf8;", "light: --pen on --desk"),
-    ("--pen-text: #afd1fc;", "--pen-text: #2a51b8;", "dark: --pen-text on --desk"),
-    ("--pen-paper: #23459d;", "--pen-paper: #8fa8e0;", "light: --pen-paper on --paper"),
+    # the objects' faces under their text
     ("--sticky: #252317;", "--sticky: #8a8460;", "dark: --text on --sticky"),
-    ("--folder: #eedcb9;", "--folder: #5a4a30;", "light: --text on --folder"),
     # the hero window, raised in dark mode
     ("--win-ink-2: #d4cfc5;", "--win-ink-2: #555555;", "dark: --win-ink-2 on --win"),
     ("--win-rule: #6a645b;", "--win-rule: #333335;", "dark: hairline --win-rule on --win APCA"),
     # Increase Contrast: grey left grey, a faint hairline, the tint not deepened, the block gone
-    ("--text-2: var(--text);", "--text-2: #3a3a3a;", "light more: --text-2 is not --text"),
+    ("--text-2: var(--text);", "--text-2: #3a3a3a;", "light more: --text-2 is not --heading"),
     ("--line: #767676;", "--line: #c8c8c8;", "light more: --line on --desk"),
-    ("--pen: #1f3c9c;", "--pen: #3a65b8;", "light more: --pen-text on --desk"),
-    ("--pen-text: #cfe2fd;", "--pen-text: #4a7fd0;", "dark more: --pen-text on --desk"),
     ("@media (prefers-contrast: more) {", "@media (prefers-contrast: less) {", "no @media (prefers-contrast: more)"),
-], ids=["text-light", "text-dark", "text-dark-apca", "line-dark-apca", "rule-light-apca", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
+], ids=["text-light", "text-dark", "text-dark-apca", "quiet-light", "quiet-dark-apca", "line-dark-apca", "rule-light-apca", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
         "selection-faint", "selection-on-sheet-gone", "selection-on-sheet-faint", "selection-on-window-faint",
-        "pen-light", "pen-text-dark", "pen-paper-light", "sticky-dark", "folder-light", "window-text-dark",
-        "window-rule-dark", "more-text-2", "more-line", "more-pen-light", "more-pen-dark", "more-block-gone"])
+        "sticky-dark", "window-text-dark",
+        "window-rule-dark", "more-text-2", "more-line", "more-block-gone"])
 def test_each_contrast_rule_trips_on_its_fixture(tmp_path, old, new, trips):
     template = PAGE.format(**dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), ""))
     old, new = old.replace("}}", "}"), new.replace("}}", "}")
@@ -895,4 +898,4 @@ def test_token_table_check_trips_on_a_stale_row():
                    for k, v in tokens(css)["light"].items())
     table = "| Token | Light | Dark | Use |\n|---|---|---|---|\n" + rows
     assert token_table(table) == tokens(css)
-    assert token_table(table.replace("`#3a3a3a` | `#d7d0c6`", "`#3a3a3a` | same", 1)) != tokens(css)
+    assert token_table(table.replace("`#4d4943` | `#dcd9d1`", "`#4d4943` | same", 1)) != tokens(css)

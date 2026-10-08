@@ -237,25 +237,26 @@ HEAD_SCRIPT_MAX = 600         # <head> script: html classes before first paint, 
 ANIMATABLE = {"transform", "opacity", "clip-path", "stroke-dashoffset", "background-size"}
 TEXT_MIN, NON_TEXT_MIN = 4.5, 3.0  # WCAG 1.4.3 text, 1.4.11 controls + focus ring
 # (foreground, background) token pairs; tokens resolved per colour scheme from the shared :root
-TEXT_PAIRS = [("--text", "--desk"), ("--text-2", "--desk"), ("--desk", "--text"),  # step numbers
-              ("--pen-text", "--desk"),  # a word written in pen: a hovered link, the OS switch, Submit
+TEXT_PAIRS = [("--heading", "--desk"), ("--text", "--desk"), ("--text-2", "--desk"), ("--desk", "--heading"),  # step numbers
               ("--ink", "--paper"), ("--ink-2", "--paper"), ("--ink", "--mark"),  # sheets + marks keep ink
-              ("--pen-paper", "--paper"),  # the pen on a sheet: "You approved this line"
-              ("--text", "--raised"), ("--text-2", "--raised"),  # memo + index card
-              ("--text", "--sticky"), ("--text-2", "--sticky"), ("--text", "--folder"), ("--text-2", "--folder"),
+              ("--heading", "--raised"), ("--text", "--raised"), ("--text-2", "--raised"),  # memo + index card
+              ("--heading", "--sticky"), ("--text", "--sticky"), ("--text-2", "--sticky"),
               ("--win-ink", "--win"), ("--win-ink-2", "--win")]  # the hero window (raised in dark mode)
-NON_TEXT_PAIRS = [("--text", "--desk"), ("--ink", "--paper"), ("--ink", "--mark"),  # control borders, frames
-                  ("--pen", "--desk"), ("--pen", "--raised"), ("--pen", "--sticky"), ("--pen", "--folder"),  # pen strokes
-                  ("--pen-paper", "--paper"), ("--win-ink", "--win")]
+NON_TEXT_PAIRS = [("--heading", "--desk"), ("--ink", "--paper"), ("--ink", "--mark"),  # control borders, frames
+                  ("--win-ink", "--win")]
 # Increase Contrast (prefers-contrast: more; Apple HIG: a higher-contrast variant of every custom colour): secondary
-# text = text, hairlines 3:1 (WCAG 1.4.11), the pen's ink 7:1 (WCAG 1.4.6)
-MORE_SAME = [("--text-2", "--text")]
-MORE_PAIRS = [(("--line", "--desk"), 3.0), (("--pen-text", "--desk"), 7.0)]
+# text tones = the heading's ink, hairlines 3:1 (WCAG 1.4.11)
+MORE_SAME = [("--text", "--heading"), ("--text-2", "--heading"), ("--text-3", "--heading")]
+MORE_PAIRS = [(("--line", "--desk"), 3.0)]
 RING_BACKGROUNDS = ["--desk", "--paper"]  # focus ring on the desk and on a white sheet, both schemes
 # APCA (perceptual lightness contrast, WCAG 3 drafts): text pairs >= Lc 75, its floor for body-size text (the
 # secondary grey sets 12-17px bylines, footer + Sources); hairlines >= Lc 15, its floor for a line still seen.
 # WCAG 2 rated dark mode too kindly: #bdbdbd on #1c1c1e passed at 9.1:1 but read at Lc 65 (light: Lc 96)
 APCA_TEXT_MIN, APCA_LINE_MIN = 75, 15
+# the quietest tone (labels, dates, crumbs, citations, numbers) sets 17px medium text: APCA's font lookup asks Lc 75 there
+# (owner 2026-10-07: an APCA checker failed the greys - the per-element check is qa.py APCA_TEXT)
+QUIET_PAIRS = [("--text-3", "--desk"), ("--text-3", "--raised"), ("--text-3", "--sticky")]
+APCA_QUIET_MIN = APCA_TEXT_MIN
 LINE_PAIRS = [("--line", "--desk"), ("--line", "--raised"), ("--rule", "--paper"), ("--win-rule", "--win")]  # sections, cards, sheets, window
 
 
@@ -510,7 +511,7 @@ def contrasts(raw: str) -> list[str]:
                 ratio = contrast(colour(scheme[fg], scheme)[0], colour(scheme[bg], scheme)[0])
                 if ratio < least:
                     problems.append(f"{mode}: {fg} on {bg} {ratio:.2f}:1 < {least}:1")
-        for pairs, least in (TEXT_PAIRS, TEXT_MIN), (NON_TEXT_PAIRS, NON_TEXT_MIN):
+        for pairs, least in (TEXT_PAIRS + QUIET_PAIRS, TEXT_MIN), (NON_TEXT_PAIRS, NON_TEXT_MIN):
             for fg, bg in pairs:
                 if fg not in scheme or bg not in scheme:
                     problems.append(f"{mode}: token {fg if fg not in scheme else bg} missing")
@@ -518,7 +519,8 @@ def contrasts(raw: str) -> list[str]:
                 ratio = contrast(colour(scheme[fg], scheme)[0], colour(scheme[bg], scheme)[0])
                 if ratio < least:
                     problems.append(f"{mode}: {fg} on {bg} {ratio:.2f}:1 < {least}:1")
-        for pairs, least, kind in (TEXT_PAIRS, APCA_TEXT_MIN, "text"), (LINE_PAIRS, APCA_LINE_MIN, "hairline"):
+        for pairs, least, kind in ((TEXT_PAIRS, APCA_TEXT_MIN, "text"), (QUIET_PAIRS, APCA_QUIET_MIN, "quiet text"),
+                                   (LINE_PAIRS, APCA_LINE_MIN, "hairline")):
             for fg, bg in pairs:
                 if fg not in scheme or bg not in scheme:
                     problems.append(f"{mode}: token {fg if fg not in scheme else bg} missing")

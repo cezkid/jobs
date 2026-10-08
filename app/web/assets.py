@@ -4,7 +4,9 @@
 # ///
 """Build the install site's generated files in docs/.
 
-Makes: docs/fonts/caladea-{regular,bold,italic}.woff2 + OFL.txt (Latin subset of the resume font),
+Makes: docs/fonts/literata.woff2 + literata-italic.woff2 + OFL-literata.txt (the site's text: Latin subset of the
+Literata variable font, app/web/fonts/Literata - weight axis 400-700 kept, optical size fixed at 18 to stay inside
+the 100 KB first load), docs/fonts/caladea-{regular,bold,italic}.woff2 + OFL.txt (the resume font: share cards),
 docs/icon.svg (browser tab: the bare bird, app/install/mark-32.svg, pale on a dark tab strip),
 icon-192.png, icon-512.png, apple-touch-icon.png, icon-maskable-512.png and favicon.ico (the
 Desktop icon, bird on its dark tile: app/install/icon*.svg), and the share images docs/og.png
@@ -41,6 +43,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 DOCS = ROOT / "docs"
 CALADEA = ROOT / "app" / "resume" / "fonts" / "Caladea"
+LITERATA = ROOT / "app" / "web" / "fonts" / "Literata"
+# source -> (web file, axis limits): the roman keeps weights 400-700 (regular .. bold, every step between), the italic
+# regular only (emphasis); optical size fixed at 18 (body + small text's own setting): the full 7-72 axis cost 77 + 79 KB
+LITERATA_FILES = {"Literata[opsz,wght].ttf": ("literata.woff2", {"wght": (400, 700), "opsz": 18}),
+                  "Literata-Italic[opsz,wght].ttf": ("literata-italic.woff2", {"wght": 400, "opsz": 18})}
 WEB = ROOT / "app" / "web"
 APP_ICONS = ROOT / "app" / "install"
 # art file -> hash; files made from it -> hash (test_site.py recomputes both)
@@ -107,11 +114,40 @@ def fonts():
         font.save(dest)
         print(f"{dest.relative_to(ROOT)}: {dest.stat().st_size / 1024:.1f} KB")
     shutil.copyfile(CALADEA / "OFL.txt", out / "OFL.txt")
+    literata(out)
     for style, georgia in GEORGIA.items():
         if georgia.exists():
             fallback_metrics(style, georgia)
         else:
             print(f"{georgia} missing - {style} fallback metrics not printed")
+
+
+def literata(out):
+    """The site's text face: Literata, Latin subset, axes limited (LITERATA_FILES), unhinted (variable outlines). Subset
+    before the axes are cut: the other way round fontTools drops the soft hyphen's variations and fails on it."""
+    from fontTools import subset
+    from fontTools.ttLib import TTFont
+    from fontTools.varLib import instancer
+
+    for src, (name, limits) in LITERATA_FILES.items():
+        font = TTFont(LITERATA / src, recalcTimestamp=False, lazy=False)
+        opts = subset.Options()
+        opts.hinting = False
+        opts.layout_features = [f for f in FEATURES if f != "case"]
+        opts.name_IDs = ["*"]
+        opts.name_languages = ["*"]
+        opts.flavor = "woff2"
+        sub = subset.Subsetter(opts)
+        sub.populate(unicodes=UNICODES)
+        sub.subset(font)
+        font = instancer.instantiateVariableFont(font, limits)
+        font.flavor = "woff2"
+        font.save(out / name)
+        print(f"{(out / name).relative_to(ROOT)}: {(out / name).stat().st_size / 1024:.1f} KB")
+        georgia = GEORGIA["Italic" if "Italic" in src else "Regular"]
+        if georgia.exists():
+            fallback_metrics(name, georgia, TTFont(out / name))
+    shutil.copyfile(LITERATA / "OFL.txt", out / "OFL-literata.txt")
 
 
 def _avg_advance(font):
@@ -120,15 +156,17 @@ def _avg_advance(font):
     return total / sum(FREQ.values()) / font["head"].unitsPerEm
 
 
-def fallback_metrics(style, georgia):
-    """@font-face overrides that make Georgia take Caladea's space, so the swap moves nothing."""
+def fallback_metrics(style, georgia, web=None):
+    """@font-face overrides that make Georgia take the web font's space (Caladea's, or web: a built face), so the
+    swap moves nothing."""
     from fontTools.ttLib import TTFont
 
-    cal, geo = TTFont(CALADEA / f"Caladea-{style}.ttf"), TTFont(georgia)
+    cal, geo = web or TTFont(CALADEA / f"Caladea-{style}.ttf"), TTFont(georgia)
     size = _avg_advance(cal) / _avg_advance(geo)
     upm, hhea = cal["head"].unitsPerEm, cal["hhea"]
     pct = lambda v: f"{v / upm / size * 100:.2f}%"
-    print(f"{georgia.stem} fallback for Caladea {style} (Cambria is metric-compatible: no overrides):")
+    print(f"{georgia.stem} fallback for {style}:" if web else
+          f"{georgia.stem} fallback for Caladea {style} (Cambria is metric-compatible: no overrides):")
     print(f"  size-adjust: {size * 100:.2f}%;")
     print(f"  ascent-override: {pct(hhea.ascent)};")
     print(f"  descent-override: {pct(abs(hhea.descent))};")
