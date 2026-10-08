@@ -1437,6 +1437,12 @@ def chrome():
         b.close()
 
 
+@pytest.fixture(autouse=True)
+def no_save_wait(monkeypatch):
+    """Test pages save nothing (ashby-saves.html aside): no box waits for a save that never starts."""
+    monkeypatch.setattr(ashby, "SAVE_START_MS", 0)
+
+
 @pytest.fixture
 def fixture_page(chrome):
     """A page from fixtures/dom/ in real headless Chrome; every other request refused."""
@@ -1653,6 +1659,26 @@ def test_workable_upload_reads_the_live_shaped_resume_box(fixture_page, monkeypa
         .observe(row, {childList: true}); }""")
     assert workable.fill(short, resume, str(good)) == "ok"
     assert workable.resume_says(short)[0] == "* Resume Ada_Lov...sume.pdf"
+
+
+def test_ashby_waits_for_each_answers_save_and_says_when_ashby_refuses(fixture_page, monkeypatch):
+    """Two saves in flight lost answers that still showed filled (2 users, 2026-10): a box is done only
+    once the save it fired came back - one sent 300 ms after the box is left too; an error = FAIL."""
+    monkeypatch.setattr(ashby, "SAVE_START_MS", 1000)
+    page = fixture_page("ashby-saves.html")
+    kept, refuse = [], []
+
+    def save(route):
+        kept.append(route.request.post_data_json["variables"]["path"])
+        body = {"errors": [{"message": "not saved"}]} if refuse else {"data": {"setFormValue": True}}
+        route.fulfill(status=200, content_type="application/json", body=json.dumps(body))
+    page.route("**/api/non-user-graphql*", save)
+    assert ashby.fill(page, answered("q_salary", "text", "$100,000"), None) == "ok" and kept == ["q_salary"]
+    assert ashby.fill(page, answered("q_remote", "yesno", True), None) == "ok" and kept == ["q_salary", "q_remote"]
+    assert ashby.fill(page, answered("q_remote", "yesno", True), None) == "ok" and len(kept) == 2  # chosen: no click, no save
+    refuse.append(True)
+    assert ashby.fill(page, answered("q_salary", "text", "$110,000"), None) == \
+        "FAIL Ashby didn't keep this answer - choose it again on the page"
 
 
 def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_page, monkeypatch, tmp_path):

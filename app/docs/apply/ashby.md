@@ -123,7 +123,8 @@ and an empty PDF.
 ## Read back (2026-10)
 
 A user saw Preferred First Name + a Yes/No flagged empty at Submit though both showed filled
-(2026-10); not reproduced - a clean form kept all 14 answers 12 s later. `fill` now waits 2.5 s, reads
+(2026-10); not reproduced - a clean form kept all 14 answers 12 s later. Again 2026-10-08:
+see "Saves, one box at a time". `fill` now waits 2.5 s, reads
 each answer back (`holds`), fills a dropped one once more, else FAILs it for the user.
 
 How each widget shows its answer, read after `fill` + the 2.5 s settle (`try` readout, 2026-10-05):
@@ -153,6 +154,25 @@ How each widget shows its answer, read after `fill` + the 2.5 s settle (`try` re
   text, so the consent words name the box -> left for the applicant by `try`, `prepare` and `fill`.
   A box still w/o words = the applicant's own step on every system (`questions.signs`): what it agrees
   to is unknown.
+
+## Saves, one box at a time (2026-10-08)
+
+Second user report (2026-10-08): Submit flagged salary + address line 1 (text) and a remote
+Yes / No empty, all three showing filled and read back ok by `holds`. Clicking into each text box and
+out, and the Yes / No again, let it through. With the first report (Preferred First Name + a Yes / No),
+5 boxes of 2 kinds on 2 forms, no order to which: not a widget quirk.
+
+- Cause, inferred (not reproduced - a live save can't be watched w/o sending a real application):
+  Ashby saves each box as it is filled (`ApiSetFormValue`, table above) and `fill` moved to the next
+  box at once - saves overlapping, faster than any person fills. Whatever Ashby checks at Submit lost
+  answers the page still drew.
+- Now: `ashby.fill` returns only once the save its box fired came back (`saved`: up to
+  `SAVE_START_MS` 1 s for one to start - a debounced save too - then `SAVE_WAIT_MS` 8 s for it to
+  come back). Error status or GraphQL `errors` -> FAIL "Ashby didn't keep this answer"; no reply in
+  time -> FAIL "hasn't said it kept". Blocked (`apply-form try`) or none fired -> result as filled.
+  `--in-window` (window.Page has no per-request events): unwaited, as before.
+- Cost: one save's round trip per box. Test: `ashby-saves.html` (save 300 ms after the box is left).
+- Still drops at Submit after this -> the next suspect is the save's own reply; keep its body then.
 
 ## Closed posting (2026-10-05)
 

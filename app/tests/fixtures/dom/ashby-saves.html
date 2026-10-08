@@ -1,0 +1,19 @@
+<!doctype html>
+<!-- Ashby saves each answer to its own site as the box is filled (`ApiSetFormValue`, ashby.md "Saves, one box
+at a time"): here a text box saves 300 ms after it is left, a Yes / No as it is clicked - POST to the
+same path + op as Ashby's. test_apply_form.py answers each save itself. -->
+<html><head><meta charset="utf-8"><title>Apply - Acme</title></head><body><form>
+<div data-field-path="q_salary"><label for="salary">What are your salary expectations?</label><input type="text" id="salary"></div>
+<div data-field-path="q_remote" class="yesno"><label>Are you able and willing to work remotely?</label>
+  <button type="button" aria-pressed="false">Yes</button><button type="button" aria-pressed="false">No</button></div>
+</form>
+<script>
+const save = (path, value) => fetch("/api/non-user-graphql?op=ApiSetFormValue", {method: "POST",
+  headers: {"content-type": "application/json"},
+  body: JSON.stringify({operationName: "ApiSetFormValue", variables: {path, value}})});
+document.getElementById("salary").addEventListener("change", (ev) => setTimeout(() => save("q_salary", ev.target.value), 300));
+for (const b of document.querySelectorAll(".yesno button")) b.addEventListener("click", () => {
+  for (const o of document.querySelectorAll(".yesno button")) o.setAttribute("aria-pressed", String(o === b));
+  save("q_remote", b.textContent === "Yes");
+});
+</script></body></html>
