@@ -23,6 +23,15 @@ demerit. Ties: listing id order => same list reads the same every time.
 | fresh (0.15) | 1 posted today, linear to 0 at `fresh_days` (21); posting date = freehire's first sighting, else when it reached their list | Owner: "newer jobs are better". Old postings are more often filled or ghost (`freehire.md` reality, stale). Convention |
 | demerit (-0.15 each) | rank's own: likely ghost, level/hours mismatch, no sponsor, clearance they can't hold, a student's "asks 3+ years" / graduation window missed (`rank.asks_beyond`) | Same signals rank already demotes by |
 
+## Freshest first
+
+Before the score: jobs posted in the last day (`fresh_windows[0]`) go first, best first among them.
+Fewer than `fresh_enough` (5) there => the window widens - 2, 3, 5, 7, 14, 21 days - until it holds
+that many; then the next group starts the same way. Older than the last window or age unknown = last.
+Why: owner 2026-10-08, "start with 1 day and if not keep expanding" - top picks sat 5-7 days old while
+19 open jobs had gone up in the last day; the `fresh` weight alone (0.15) let pay + match outvote a
+week. Old postings are more often filled (`freehire.md` reality). Convention, not a study.
+
 No resume yet, or a posting w/ no required asks listed => match + asks neutral 0.5; Today says once
 "Add your resume for a better order".
 

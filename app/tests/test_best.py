@@ -92,6 +92,20 @@ def test_fresh_beats_twenty_days_old():
     assert "posted 20 days ago" in best.reasons(best.score([old], CONFIG, NOW, None)[0], CONFIG, NOW)
 
 
+# top picks 5-7 days old while 19 went up in the last day (owner 2026-10-08): last day first,
+# widened only when it holds too few
+def test_last_day_first_widens_when_too_few():
+    pay = dict(salary_min=250000, salary_max=250000, salary_currency="USD", salary_period="year")
+    week = [job(f"week{i}", STRONG, days=6, **pay) for i in range(5)]
+    day = [job(f"day{i}", days=1) for i in range(5)]
+    assert order(week + day, facts())[:5] == [f"day{i}" for i in range(5)]
+    # only 2 from the last day: widen to 2, 3, 5, 7 days until 5 => the strong week-old ones join, by score
+    assert set(best.windows(week + day[:2], NOW, [1, 2, 3, 5, 7, 14, 21], 5).values()) == {0}
+    assert order(week + day[:2], facts())[:5] == [f"week{i}" for i in range(5)]
+    # age unknown => after every dated group
+    assert best.windows(day + [job("undated", posted_at=None)], NOW, [1, 2], 5)["undated"] == 1
+
+
 # pay below their floor ranked like pay above it
 def test_pay_higher_first_floor_halves():
     pay = lambda lo: dict(salary_min=lo, salary_max=lo, salary_currency="USD", salary_period="year")

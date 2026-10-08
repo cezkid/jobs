@@ -165,6 +165,11 @@ rank:
     # newer posting first: 1 posted today, 0 at fresh_days
     fresh: 0.15
     fresh_days: 21
+    # posted within the first window (days) go first, best first among them; fewer than
+    # fresh_enough there => widen to the next until it holds that many, then the next group
+    # (owner 2026-10-08: top picks sat 5-7 days old while 19 went up in the last day)
+    fresh_windows: [1, 2, 3, 5, 7, 14, 21]
+    fresh_enough: 5
     # taken off per demerit rank already counts (likely ghost, level/hours mismatch, no sponsor,
     # clearance they can't hold)
     demerit: 0.15
