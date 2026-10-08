@@ -37,6 +37,13 @@ ENTRY_TITLE_KEEP = re.compile(r"\bshift (?:lead|leader|supervisor)\b", re.I)
 # title can keep a job its tag would hide or sort lower, never hide one ("Intern Program Manager")
 TITLE_TYPES = (("internship", re.compile(r"(?<!\w)(?:interns?|internships?|co-?op|co op)(?!\w)", re.I)),
                ("part_time", re.compile(r"(?<!\w)part[- ]time(?!\w)", re.I)))
+# a student programme titled without an intern word ("2027 Summer Analyst Program", "Rotational
+# Program", "Fellowship", "University New Hire"): 16 of 133 such titles on 442 intern-tagged
+# business rows, 2026-10-08; the other 117 were ordinary jobs (Account Executive, a VP)
+STUDENT_PROGRAM = (r"fellows?|fellowships?|students?|scholars?|rotational|rotation|campus|career fair"
+                   r"|university (?:new )?(?:hire|grad|graduate|recruit)s?|new hires?|summer (?:analyst|associate)s?"
+                   r"|(?:summer|analyst|associate|development|leadership|graduate|trainee|early talent|emerging talent)"
+                   r" program(?:me)?s?|20\d\d grads?|class of 20\d\d")
 # entry level: a required line asking this many years or more is a job for someone further on
 # (knockout.years_asked reads the posting's own line; the job search's experience_years_min tag read
 # 10 on "Software Engineer - New Grad" and 7 on "18+ years old", 2026-10-07)
@@ -296,6 +303,12 @@ def mismatches(job: dict, rc: dict) -> list[str]:
     if wanted and kind and kind not in wanted and "title below your level" not in out:
         human = lambda t: t.replace("_", " ")
         out.append(f"{human(kind)}, you asked {' or '.join(map(human, wanted))}")
+    # internships only: the job search tags ordinary jobs intern too - 117 of 442 intern-tagged
+    # business rows (2026-10-08), 8 of a student's top 15; none whose posting called it an
+    # internship but 2 SkillBridge (service members). Title naming none => sorted lower, never hidden
+    elif wanted and set(wanted) <= {"internship", "fellowship"} and kind in (None, *wanted) \
+            and not title_type(job) and not words(rf"{EARLY_CAREER}|{STUDENT_PROGRAM}").search(title):
+        out.append("title doesn't say internship")
     return out
 
 
@@ -429,7 +442,8 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
     tiers = {t: i for i, t in enumerate(cfg.tier_order(config))}
     now = now or datetime.now(timezone.utc)
     kept = pay_filter(collapse([dict(j, stale=stale_for(j, rc, now)) for j in jobs
-                                if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)]), rc, now)
+                                if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)
+                                and not far(j, config)]), rc, now)
     # read once per list, kept on each row: the sort key, its reasons and best's demerits all read it
     graduation = student_graduation(config, now.date())
     kept = [dict(j, beyond=asks_beyond(j, config, graduation, now.date())) for j in kept]
@@ -464,6 +478,51 @@ def too_old(job: dict, rc: dict, now: datetime) -> bool:
     """User's own cutoff (rank.max_age_days): first seen longer ago hides. Age unknown stays."""
     limit, days = rc.get("max_age_days"), age(job, now)
     return limit is not None and days is not None and days > limit
+
+
+US_STATES = {
+    "AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas", "CA": "California", "CO": "Colorado",
+    "CT": "Connecticut", "DE": "Delaware", "FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+    "IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas", "KY": "Kentucky", "LA": "Louisiana",
+    "ME": "Maine", "MD": "Maryland", "MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota",
+    "MS": "Mississippi", "MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+    "NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York", "NC": "North Carolina",
+    "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma", "OR": "Oregon", "PA": "Pennsylvania",
+    "RI": "Rhode Island", "SC": "South Carolina", "SD": "South Dakota", "TN": "Tennessee", "TX": "Texas",
+    "UT": "Utah", "VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+    "WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia", "PR": "Puerto Rico"}
+# "Washington, DC", "Washington D.C.", "District of Columbia" - read before the state named Washington
+DC_FORMS = re.compile(r"\bWashington,?\s*(?:D\.?\s?C\b\.?|District of Columbia)|\bD\.C\.|\bDC\b|District of Columbia", re.I)
+STATE_CODE = re.compile(r"(?<![A-Za-z])([A-Z]{2})(?![A-Za-z])")
+# longest first: "West Virginia" before "Virginia". Washington the state only after a comma
+# ("Seattle, Washington", "United States, Washington, Redmond"); "Washington, United States" can't tell
+STATE_NAME = re.compile(r"\b(" + "|".join(sorted((n for c, n in US_STATES.items() if c not in ("DC", "WA")),
+                                                  key=len, reverse=True)) + r")\b|,\s*(Washington)\b", re.I)
+NAME_STATE = {n.lower(): c for c, n in US_STATES.items()}
+
+
+def states_named(location: str | None) -> set[str]:
+    """US states a row's location names, as two-letter codes; none written => empty."""
+    text = location or ""
+    found = {"DC"} if DC_FORMS.search(text) else set()
+    text = DC_FORMS.sub(" ", text)
+    found |= {c for c in STATE_CODE.findall(text) if c in US_STATES}
+    found |= {NAME_STATE[(a or b).lower()] for a, b in STATE_NAME.findall(text)}
+    return found
+
+
+def far(job: dict, config: dict) -> bool:
+    """A city tier's row whose location names only states outside the tier's `states` (or only
+    places outside the US): the job search's cities match by name alone - "Washington" brought
+    Seattle and Redmond into a DC search, "Newark" more Newark CA than NJ (2026-10-08). Remote
+    rows, and rows naming no state, stay: can't tell."""
+    wanted = {s.upper() for p in config["passes"] if p["tier"] == job.get("tier") for s in p.get("states") or []}
+    if not wanted or job.get("work_mode") == "remote":
+        return False
+    if named := states_named(job.get("location")):
+        return not named & wanted
+    countries = job.get("countries") or []
+    return bool(countries) and "us" not in countries
 
 
 def age(job: dict, now: datetime) -> int | None:

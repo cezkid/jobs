@@ -31,6 +31,18 @@ knowledge understanding familiarity familiar working work proficiency proficient
 preferred must have has having must should will can using use used new etc e.g ie well highly advanced basic
 environment fast paced team teams across multiple various""".split())
 STEM = 6
+# languages a required ask can name ("Fluent in Spanish", "Bilingual English/Mandarin"): read
+# apart from other words, since one shared word ("English") would back the whole ask
+LANGUAGE = re.compile(r"\b(?:spanish|mandarin|cantonese|chinese|french|german|portuguese|italian|japanese|korean|"
+                      r"arabic|hindi|urdu|bengali|punjabi|gujarati|tamil|telugu|russian|ukrainian|polish|vietnamese|"
+                      r"tagalog|filipino|thai|indonesian|malay|turkish|farsi|persian|hebrew|greek|dutch|swedish|"
+                      r"norwegian|danish|finnish|czech|romanian|hungarian|creole|swahili|amharic|somali|"
+                      r"american sign language|asl|english)\b", re.I)
+SAME_LANGUAGE = {"mandarin": "chinese", "cantonese": "chinese", "farsi": "persian", "filipino": "tagalog",
+                 "asl": "american sign language"}
+# levels setup offers: Native / Fluent / Professional / Conversational / Basic. Below working level
+# backs no required ask ("Fluent Spanish required"); a line with no level counts (lint asks it)
+LANGUAGE_BELOW_WORK = re.compile(r"\((?:[^)]*\W)?(?:conversational|basic|beginner|elementary|limited|learning)\b", re.I)
 
 
 def stems(text: str) -> set[str]:
@@ -42,6 +54,10 @@ def stems(text: str) -> set[str]:
 def named(text: str) -> set[str]:
     """Tools + products a requirement names (capitalised mid-sentence: Excel, SAP, SQL)."""
     return {stems(t).pop() for t in tailor.NAMED_TERM.findall(text) if stems(t)}
+
+
+def languages(text: str) -> set[str]:
+    return {SAME_LANGUAGE.get(n, n) for n in (m.lower() for m in LANGUAGE.findall(text))}
 
 
 def resume_facts(config: dict, today: date) -> dict | None:
@@ -63,8 +79,9 @@ def resume_facts(config: dict, today: date) -> dict | None:
     parts += [c if isinstance(c, str) else " ".join(map(str, c.values())) for c in master.get("certifications") or []]
     levels = [knockout.degree_held(e) for e in master.get("education") or []]
     held = max((knockout.LADDER.index(lv) for lv in levels if lv), default=None)
+    spoken = " ".join(l.split("(")[0] for l in master.get("languages") or [] if not LANGUAGE_BELOW_WORK.search(l))
     return {"stems": stems(" ".join(parts)), "years": knockout.dated_years(master, today),
-            "degree": held if None not in levels else "unknown"}
+            "degree": held if None not in levels else "unknown", "languages": languages(spoken)}
 
 
 def backed(text: str, facts: dict) -> bool | None:
@@ -77,6 +94,12 @@ def backed(text: str, facts: dict) -> bool | None:
     if degree:
         held = facts["degree"]
         return None if held == "unknown" else held is not None and held >= knockout.LADDER.index(degree)
+    # every language it names, at working level on their Languages line; English alone can't tell
+    # (the resume is written in it). Before this, "Fluent in Spanish" never matched a native speaker
+    if asked := languages(text) - {"english"}:
+        return asked <= facts.get("languages", set())
+    if languages(text):
+        return None
     if tailor.is_trait(text):
         return None
     tools = named(text)

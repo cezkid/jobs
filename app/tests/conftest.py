@@ -71,6 +71,35 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "real_vscode: test may find the real code command (still only w/ --user-data-dir)")
 
 
+def pytest_addoption(parser):
+    parser.addoption("--changed", nargs="?", const="HEAD", default=None, metavar="REF",
+                     help="only test files a change since REF (default HEAD: uncommitted work) can reach; "
+                          "affected.py says how. Full run before sending a fix")
+    parser.addoption("--changed-depth", type=int, default=None, metavar="N",
+                     help="import steps followed back from a change (default 2: its tests + its users' tests)")
+
+
+def pytest_collection_modifyitems(config, items):
+    ref = config.getoption("--changed")
+    if ref is None:
+        return
+    import affected
+    changed = affected.changed_files(ref)
+    keep, why = affected.select(changed, config.getoption("--changed-depth") or affected.DEPTH)
+    reporter = config.pluginmanager.get_plugin("terminalreporter")
+    if keep is None:
+        reporter and reporter.write_line(f"--changed: {why[0]}: all {len(items)} tests")
+        return
+    picked = [i for i in items if i.path.name in keep]
+    dropped = [i for i in items if i.path.name not in keep]
+    if dropped:
+        config.hook.pytest_deselected(items=dropped)
+        items[:] = picked
+    if reporter:
+        reporter.write_line(f"--changed {ref}: {len(changed)} files changed -> {len(keep)} test files, "
+                            f"{len(picked)} of {len(picked) + len(dropped)} tests: {', '.join(sorted(keep)) or 'none'}")
+
+
 def make_job(slug: str, **over) -> dict:
     job = {c: None for c in store.COLS}
     job.update(

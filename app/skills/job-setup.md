@@ -130,6 +130,11 @@ Then narrowing what they picked:
   the US." Offer: keep going anyway / widen to related roles - never pretend the count is bigger.
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
   the `cities` facet; "Other" covers the rest
+- Student (entry level or internship picked) whose school isn't in their hometown: ask once
+  "Look near home too, for summer?" (Yes - name it / No). Yes -> a second city tier, school first
+  (they're there most of the year) unless they say summer is what they're after; live counts for each.
+  A hometown next to a big city (North Jersey -> New York City): offer that city in the same tier, w/
+  its count - measured 2026-10-08: 3 of 54 home-tier internships were in North Jersey itself, 49 NYC.
 - career level (entry - "student, new graduate or first job" / mid / senior / leader) -
   `rank.career_level`: titles clearly above or below it sort lower, never hidden; entry also sorts
   lower a job whose required line asks 3+ years (the posting's own words, not the job search's
@@ -184,6 +189,10 @@ showing jobs from <company>" any time.
   (unknown slug answers 0, not error - a guess loop is silent and slow).
 - One tier per location group, preferred first: remote tier `work_mode=remote` +
   `countries=us`; city tier `cities=` ALONE (geography facets OR together, `cfg` rejects mix).
+  Each city tier also gets `states:` - the state codes it spans (DC area [DC, MD, VA]; North
+  Jersey + NYC [NJ, NY]): city names match in any state ("Washington" brought Seattle into a DC
+  search, 29 of 78 rows; `freehire.md`). Pick cities from the area's own suburbs, check each
+  `probe --city` value is that town, not a namesake.
   Exact city values: `uv run app/jobs.py probe --city <text>`.
 - `q=` only as one exact title phrase w/ `q_fields: title` (`cfg` rejects any other use) - for a
   role its category is too wide for (RN inside healthcare). The job search has no OR: one form
@@ -194,6 +203,11 @@ showing jobs from <company>" any time.
   up to a third). Co-ops wanted -> a third pass `q: "co-op"` + `q_fields: title`. Internship only
   -> these passes only; with full-time jobs too -> add their plain pass (a row in two passes keeps
   the last one's tier: put the plain pass first in the same tier, or say the order).
+- A major that cuts across fields (international business, general business): their business
+  families' categories carry the internships; the specialist entry roles don't - "trade
+  compliance", import / export, customs sit in legal + management untagged (0 of 157 caught,
+  2026-10-08, `app/docs/students.md`). New-grad or entry search: count each w/ `probe --title`,
+  offer a title pass (`q` + `q_fields: title`) for the one they want most, say which it leaves out.
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).

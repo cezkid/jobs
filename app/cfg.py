@@ -60,6 +60,9 @@ def load(path: Path | None = None) -> dict:
         geo = GEOGRAPHY_PARAMS & p["params"].keys()
         if len(geo) > 1:
             raise ValueError(f"pass {p['tier']}: {sorted(geo)} OR together, keep one (docs/jobs/freehire.md)")
+        # read here only (rank.far), never sent: two-letter US state codes
+        if bad := [s for s in p.get("states") or [] if not (isinstance(s, str) and len(s) == 2 and s.isalpha())]:
+            raise ValueError(f"pass {p['tier']}: states {bad} - two-letter US state codes, e.g. [DC, MD, VA]")
     for stage, days in (config.get("follow_up") or {}).items():
         if not isinstance(days, int) or days < MIN_FOLLOW_UP_DAYS:
             raise ValueError(f"follow_up.{stage}: {days!r} - at least {MIN_FOLLOW_UP_DAYS} days (a weekend can take 3)")

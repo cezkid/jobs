@@ -71,6 +71,10 @@ hidden; `true` never boosted. Tailoring reads the full posting and quotes the li
 
 ## Closing + stale rows
 
+Passes sharing a tier close together (`freehire.run`): only rows none of them returned, inside the
+shortest window they fetched. Closed per pass (2026-10-07 to -08), an internship search's second tag
+pass closed every row only the first found - 40 of 214 open on one fresh check.
+
 `close_missing` closes only rows posted inside a pass's `posted_within_days` window: older rows
 are never re-fetched, so never closed. Window = the one the pass actually fetched at: each pass starts at
 `window.days` (7) or its own `posted_within_days`, widens through `window.widen_to` while it
@@ -109,6 +113,14 @@ else open. Request fails -> the list's own signals above.
 - **Geography facets OR together** (2026-09-19). `regions` `countries` `cities` in one pass widen,
   never narrow: `countries=us` + `cities=new york,...` returned all-US hybrid/onsite (461 rows vs
   93 real). `cfg.load` rejects two in one pass; city tier uses `cities` alone.
+- **City names carry no state** (2026-10-08). `cities=` matches the name in any state or country, and
+  the row's `cities` list is loose (a Milford CT row under `Newark`; chain postings list 60 cities).
+  100 newest: `Newark` CA 40, NJ 11; `Wayne` PA 32, MI 16, NJ 11; `Washington` pulls Washington state.
+  A DC-area search (8 cities, internship passes): 29 of 78 rows named only other states (Seattle,
+  Redmond, Arlington TX, Alexandria NSW). `regions` holds continents, no state filter. => a city pass
+  carries `states:` (local only, `cfg` checks the codes); `rank.far` drops a row whose `location`
+  names only other states or `countries` lacks us. No state written / remote => kept (can't tell):
+  0 wrong drops on 151 rows read by hand.
 - **Reposter pollution** (2026-09-15). `jobgether` re-lists other employers' postings, held 4 of
   top 12 rows. Every profile blocklists it; `uv run app/jobs.py rank --suspects` lists companies spanning
   `rank.suspect_min_categories` enrichment categories.

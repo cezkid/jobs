@@ -19,6 +19,9 @@ passes:
       order: desc
   - tier: local
     label: Springfield area
+    # states the area spans; a row whose location names only others is dropped (cities match by
+    # name alone: "Springfield" is in 30+ states). Read here, never sent (rank.far)
+    states: [IL]
     params:
       category: [finance]
       # exact /geo/cities values (uv run app/jobs.py probe --city springfield); cities alone -

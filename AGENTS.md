@@ -336,7 +336,9 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   editorial rules `app/docs/research.md`.
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.
-Tests: `uv run pytest` (live gates hit freehire API).
+Tests: while working `uv run pytest --changed` - only tests a change can reach (its own + its
+users'; seconds for most changes, `app/tests/affected.py`); `uv run pytest` whole (~14 min, live
+gates hit freehire API) once before a fix is sent upstream.
 
 ## Students
 

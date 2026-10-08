@@ -57,6 +57,22 @@ def test_passes_fetched_together_land_in_own_tier(conn):
     assert {j["public_slug"]: j["tier"] for j in store.all_jobs(conn)} == {"a": "remote", "b": "local"}
 
 
+def test_two_passes_in_one_tier_close_only_what_neither_returned(conn):
+    # internship search: one pass per tag, same tier. Closed per pass, the second pass closed
+    # every row only the first found (40 of 214 on one fresh check, 2026-10-08)
+    config = {**CONFIG, "passes": [{"tier": "local", "params": {"seniority": ["intern"]}},
+                                   {"tier": "local", "params": {"employment_type": ["internship"]}}]}
+    store.upsert(conn, [make_job("gone", tier="local", posted_at=days_ago(1))], "2026-09-15T00:00:00Z")
+
+    def handler(request):
+        slugs = ["tag-a", "both"] if "seniority" in request.url.params else ["tag-b", "both"]
+        return httpx.Response(200, json={"data": [raw(s) for s in slugs], "meta": {"total": 2}})
+    with httpx.Client(transport=httpx.MockTransport(handler)) as c:
+        summary = freehire.run(config, conn, c)
+    assert summary["local"] == {"fetched": 3, "closed": 1, "truncated": False, "days": 7}
+    assert {j["public_slug"] for j in store.all_jobs(conn)} == {"tag-a", "tag-b", "both"}
+
+
 def test_ignored_filter_stops_before_anything_is_stored(conn):
     """The job search answers a filter it doesn't know w/ every job, flagged only in meta."""
     def handler(request):

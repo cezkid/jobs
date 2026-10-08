@@ -16,7 +16,9 @@ to change, and `git diff --cached` carries no name, email, phone or address of y
 
 1. Reproduce; fix cause, not symptom (config, schema, upstream call - not the call site).
 2. Add or adjust test in `app/tests/` covering it.
-3. `uv run pytest` green (live gates hit freehire API; note in PR if API was down).
+3. While fixing, `uv run pytest --changed` runs only the tests your change can reach. Before the
+   PR, the whole `uv run pytest` green (~14 min; live gates hit freehire API; note in PR if API was
+   down).
 4. Branch + commit, staging paths explicitly (never `git add -A`):
 
    ```sh
