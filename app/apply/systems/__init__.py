@@ -27,6 +27,8 @@ Optional, what leaves when:
                                  (measured): prepare tells the AI to say so in the upload yes
     SEARCHED_AS_TYPED = (keys)   boxes (by key or kind) that search the system's own list with each keystroke
                                  (measured): prepare tells the AI those words go out before Submit
+    SEARCHED_WITH = "Google"     whose list those boxes search when it isn't the system's own (Breezy's
+                                 address box: Google's place suggestions)
 
 Optional, a closed posting whose page says nothing closed:
 

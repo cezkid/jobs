@@ -7,7 +7,7 @@ Header, footer, icon + font links and og:image size are copied from docs/index.h
 card itself is CARD (docs/og-research.png). CSS: app/web/css/site.css (every page) + doc.css (reading pages), one
 source per rule, built into each page's <style> (comments cut) - the hand-written pages' blocks too.
 
-Hand-written pages (index.html, privacy.html, 404.html) stay as they are but for their built-in CSS blocks
+Hand-written pages (index.html, privacy.html, terms.html, 404.html) stay as they are but for their built-in CSS blocks
 (/* shared */ ... /* /shared */, /* doc */ ... /* /doc */); this script reads them for the sitemap. Everything else
 it writes is generated and committed - never hand-edit those files; change this script or its sources and rerun.
 In the hand-written pages edit anything but those blocks (their source: app/web/css/). A test (test_site.py) fails when a committed file is

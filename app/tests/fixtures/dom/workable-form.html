@@ -1,7 +1,9 @@
 <!doctype html>
-<!-- Workable's form as measured (workable.md "Widgets", tenants A-G, 2026-10-03) + its resume box as its own
-     form script draws it (2026-10-06): no live page's markup. Upload goes to /workable-upload.json on this
-     host - the test's stand-in for Workable's storage. -->
+<!-- Workable's form as measured (workable.md "Widgets", tenants A-G, 2026-10-03); its sections + file boxes
+     as the live page draws them (writes blocked, 1 tenant, 2026-10-07): `data-ui` on the file input itself,
+     inside its field under `[data-ui=section-fields]`. What the box shows once stored, as its form script
+     draws it (2026-10-06; live markup after an upload unmeasured). Upload goes to /workable-upload.json on
+     this host - the test's stand-in for Workable's storage. -->
 <html><head><meta charset="utf-8"><title>Acme - Analyst</title>
 <style>
   .opt { position: relative; display: flex; gap: 6px; }
@@ -12,7 +14,8 @@
   [role=listbox].open { display: block; }
 </style></head>
 <body>
-<form id="application">
+<form id="application" data-ui="application-form">
+ <section data-ui="section"><h3>Personal information</h3><div data-ui="section-fields">
   <label for="firstname">First name</label><input id="firstname" name="firstname" required>
   <label for="lastname">Last name</label><input id="lastname" name="lastname" required>
   <label for="email">Email</label><input id="email" name="email" type="email" required>
@@ -20,13 +23,21 @@
   <label for="address">Address</label><input id="address" name="address" value="Example City">
   <input id="city"><input id="postcode"><input id="country">
 
-  <div data-ui="resume">
-    <label>Resume</label>
-    <span class="hint">Maximum file size 5 MB - acceptable file types .pdf, .doc, .docx, .odt, .rtf.</span>
-    <input type="file" id="input_files_input_r4nd0m" accept=".pdf,.doc,.docx,.odt,.rtf">
-    <div class="file"></div>
-  </div>
-  <div><label>Photo</label><input type="file" id="input_files_input_ph0t0" accept=".jpg,.gif,.png"></div>
+  <div><div><div><label id="ph0t0_label">Photo (Optional)</label>
+    <div data-role="dropzone"><div><label role="button" for="input_files_input_ph0t0">Choose file</label>
+      <span>or drag and drop here</span></div>
+      <input data-ui="avatar" tabindex="-1" id="input_files_input_ph0t0" type="file" accept=".jpg,.gif,.png"></div>
+  </div></div></div>
+ </div></section>
+
+ <section data-ui="section"><h3>Profile</h3><div data-ui="section-fields">
+  <div><div><div><label id="r4nd0m_label"><strong>*</strong> Resume</label>
+    <div data-role="dropzone"><div class="prompt"><label role="button" for="input_files_input_r4nd0m">Choose file</label>
+      <span>or drag and drop here</span></div><div class="file"></div>
+      <input data-ui="resume" tabindex="-1" id="input_files_input_r4nd0m" type="file"
+             aria-labelledby="r4nd0m_label" accept=".pdf,.doc,.docx,.odt,.rtf" required></div>
+  </div></div></div>
+ </div></section>
 
   <label for="summary">Summary</label><textarea id="summary" name="summary"></textarea>
   <label for="QA_1">Why Acme?</label><textarea id="QA_1" name="QA_1"></textarea>
@@ -86,15 +97,16 @@
   });
   // resume: too big is the page's own check before anything goes; else it goes to storage at once and the
   // name shows only once stored; a failed upload shows Workable's own words
-  const wrap = document.querySelector('[data-ui="resume"]'), row = wrap.querySelector('.file');
-  wrap.querySelector('input[type=file]').addEventListener('change', e => {
+  const box = document.querySelector('input[type=file][data-ui="resume"]').closest('[data-role=dropzone]');
+  const row = box.querySelector('.file'), prompt = box.querySelector('.prompt');
+  box.querySelector('input[type=file]').addEventListener('change', e => {
     const f = e.target.files[0];
-    row.textContent = '';
+    row.textContent = ''; prompt.hidden = false;
     if (!f) return;
     if (f.size > 5242880) { row.textContent = 'File is too big'; return; }
     fetch('/workable-upload.json', {method: 'POST', body: f}).then(r => {
       if (!r.ok) throw new Error(r.status);
-      setTimeout(() => { row.textContent = f.name; }, 300);
+      setTimeout(() => { row.textContent = f.name; prompt.hidden = true; }, 300);
     }).catch(() => { row.textContent = 'Something went wrong. We are working on this, please try again later.'; });
   });
 </script>

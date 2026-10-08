@@ -14,6 +14,12 @@ job count is low should lower paying jobs be allowed."
   postings outside tech list none, and pay-transparency laws differ by state. Owner's list
   2026-10-04 (floor $130k): open 1,589 = 665 meet / 58 below / 866 none listed; last 7 days
   194 / 23 / 316. Owner turned it on for themselves after the push-back above (their call).
+- Hourly floor (an internship or part-time search): `salary_floor_unit: hour`. The floor stays
+  yearly (hourly x 2080, `rank.parse_floor`: `rank --pay-floor 18/hr`) so every comparison is one
+  sum; lists, the probe count and What Job Finder knows say it back per hour ("$18/hr"). A
+  part-time job (title or tag) listing only a yearly or monthly sum is never hidden by it - the
+  hours behind the sum are unknown ($25,000 for 20 hours a week is $24/hr) - and its pay line names
+  no verdict. 2026-10-07, 308 intern-titled US rows: pay listed on 74 - 62 hourly, 9 yearly, 2 monthly.
 - Hidden = left off every list; row stays in `jobs.db` (dedupe, relax, a later settings change
   shows it again, never announced as new before it is shown).
 

@@ -132,3 +132,17 @@ def test_clearance_flag_kept_true_or_none():
     """The job search sends true or nothing - nothing is not 'no clearance needed'."""
     assert freehire.normalize({**raw("a"), "requires_clearance": True}, "remote")["requires_clearance"] is True
     assert freehire.normalize(raw("b"), "remote")["requires_clearance"] is None
+
+
+def test_work_permit_and_student_answers_never_reach_the_job_search():
+    # privacy table: search filters only - not the resume, not the work-permit answer
+    sent = []
+
+    def handler(request):
+        sent.append(dict(request.url.params))
+        return httpx.Response(200, json={"data": [], "meta": {"total": 0}})
+    config = {**CONFIG, "work_authorization": {"student_visa": True, "needs_sponsorship": True},
+              "rank": {"career_level": "entry", "salary_floor_usd": 45760, "salary_floor_unit": "hour"}}
+    conn = store.connect(":memory:")
+    freehire.run(config, conn, httpx.Client(transport=httpx.MockTransport(handler)))
+    assert sent and all(set(p) <= {"category", "limit", "offset", "posted_within_days"} for p in sent), sent

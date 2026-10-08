@@ -53,7 +53,8 @@ resume:
 # Setup answers to the work-permit questions US applications ask. Stay on this computer:
 # no job search sends them (only `passes` params go to freehire). null = not asked -> apply asks.
 work_authorization:
-  # allowed to work in the US for any employer, without restriction
+  # allowed to work in the US for any employer, without restriction. A visa holder (F-1 CPT/OPT,
+  # H-1B) is not: their "without restriction" questions are asked each time (apply/questions.work_permit)
   authorized_us: null
   # needs an employer to sponsor a visa, now or later (H-1B; OPT/STEM OPT ending counts).
   # true => jobs freehire marks "no visa sponsorship" sort lower, never hidden
@@ -65,6 +66,10 @@ work_authorization:
   # asking for one sort lower, never hidden; "needs a security clearance" shows on them either way.
   # null + citizen_or_permanent_resident false counts as false
   can_hold_clearance: null
+  # international student (F-1) working through CPT or OPT. true => "authorized ... without
+  # restriction" asked on every form (a CPT/OPT permit has limits), "no visa sponsorship" jobs say
+  # CPT/OPT may still work, and setup notes off-campus jobs need CPT first. Never sent anywhere
+  student_visa: null
 
 # Days w/ no reply before a job shows under Follow up on the Today page, by where it stands.
 # Basis + strength: app/docs/apply/follow-up.md. At least 5 (a weekend can take 3). A logged
@@ -116,6 +121,10 @@ rank:
   # yearly USD; a job whose top of range reaches it ranks above those that don't. 0 = no floor
   # (pay_filter then hides nothing)
   salary_floor_usd: 0
+  # how they gave it: year, or hour (an internship or part-time job). Kept yearly above either way
+  # (hourly x 2080) so every comparison is one sum; hour = said back as "$22/hr", and a part-time
+  # job listing only a yearly sum (hours unknown) is never hidden by it
+  salary_floor_unit: year
   # hides jobs by pay on every list (Today, chat, email, find); rows stay saved. Owner 2026-10-04:
   # "only if job count is low should lower paying jobs be allowed". Why + measured counts:
   # app/docs/jobs/pay-filter.md

@@ -17,7 +17,7 @@ from resume import schema, typeface
 
 HERE = Path(__file__).resolve().parent
 TEMPLATE = HERE / "templates" / "resume.typ"
-MONTH_NAMES = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+MONTH_NAMES = schema.MONTH_NAMES
 SEP = " | "
 WORD = re.compile(r"\w+")
 LIGATURE = re.compile("[\ufb00-\ufb06]")
@@ -87,6 +87,7 @@ PT_PER_IN = 72
 # over less than this much work is the strongest thing on the page (NACE, most career centres)
 FRESH_GRAD_MONTHS = 12
 EARLY_CAREER_MONTHS = 24
+
 BREAK_HEADING = "Career break - "
 # first word of a degree, dots dropped + upper-cased -> the name forms list. Not an abbreviation
 # of its own (GED, "Certificate") => printed as written
@@ -165,15 +166,39 @@ def experience(master: dict) -> list[dict]:
     return entries
 
 
+def months_worked(roles: list[dict], today: date, before: int | None = None) -> int:
+    """Months covered by jobs up to today (an incoming internship counts none yet), overlaps once:
+    a campus job held through two summer internships is one stretch, not three. `before` = only
+    months earlier than that month (work done before school started)."""
+    now = schema.month_index(schema.PRESENT, today)
+    cap = now if before is None else min(now, before - 1)
+    spans = sorted((schema.month_index(r["start"], today), min(schema.month_index(r["end"], today, end=True), cap))
+                   for r in roles if r.get("start") and r.get("end"))
+    total, high = 0, -1
+    for start, end in spans:
+        if end > high and end >= start:
+            total += end - max(start, high + 1) + 1
+            high = end
+    return total
+
+
 def education_first(master: dict, today: date) -> bool:
-    """No jobs, or a degree finished within a year over under two years of work."""
+    """`education_first` in their file wins (their call, convention either way). Otherwise: no
+    jobs; a degree in progress over under two years of work done before it began (part-time,
+    campus and summer jobs during school are a student's, so the degree leads - career centres;
+    a returning adult's or a master's student's earlier years lead with the work); or a degree
+    finished within a year over under two years of work."""
+    if isinstance(master.get("education_first"), bool):
+        return master["education_first"]
     if not master["roles"]:
         return True
-    ends = [schema.month_index(s["end"], today, end=True) for s in master.get("education") or [] if s.get("end")]
-    worked = sum(schema.month_index(r["end"], today, end=True) - schema.month_index(r["start"], today) + 1
-                 for r in master["roles"])
+    schools = [s for s in master.get("education") or [] if s.get("end")]
+    if studying := [s for s in schools if schema.in_progress(s, today)]:
+        starts = [schema.month_index(s["start"], today) for s in studying if s.get("start")]
+        return months_worked(master["roles"], today, before=min(starts) if starts else None) < EARLY_CAREER_MONTHS
+    ends = [schema.month_index(s["end"], today, end=True) for s in schools]
     return bool(ends) and schema.month_index(schema.PRESENT, today) - max(ends) <= FRESH_GRAD_MONTHS \
-        and worked < EARLY_CAREER_MONTHS
+        and months_worked(master["roles"], today) < EARLY_CAREER_MONTHS
 
 
 def degree_name(degree: str) -> str:
@@ -185,14 +210,33 @@ def degree_name(degree: str) -> str:
     return f"{full} {rest}".strip() if full else degree
 
 
-def education_entry(school: dict) -> dict:
+def graduation_label(school: dict, today: date) -> str:
+    """The year a degree was earned; "Expected May 2027" while it is still being earned - an
+    unfinished degree never reads as held, so with its year hidden it says "In progress".
+    "" for a finished degree whose year they chose to hide."""
+    end = schema.shown_end(school)
+    if not schema.in_progress(school, today):
+        return end[:4]
+    return f"Expected {month_label(end)}" if end else "In progress"
+
+
+def education_entry(school: dict, today: date | None = None, span: bool = False) -> dict:
     """School on its own heading line, degree line under it: the same two-line shape as a job,
-    so a parser splits institution from degree instead of reading one line as the school name."""
+    so a parser splits institution from degree instead of reading one line as the school name.
+    GPA as the transcript gives it; relevant courses as one line under it, the way career centres
+    lay a student's page out."""
     # hide_year: the user's choice to leave an old graduation year off; the degree still shows
-    year = schema.shown_end(school)[:4]
+    year = graduation_label(school, today or date.today())
+    # span: its months explain a break between jobs, so the start shows (schema.closes_gap)
+    if span and year:
+        year = f"{month_label(school['start'], years=schema.year_only(school.get('end') or ''))} - {year}"
     degree = ", ".join(p for p in (degree_name(school["degree"]), school.get("field")) if p)
-    return {"heading": school["institution"], "subline": joined(degree, school.get("details"), year),
-            "bullets": []}
+    gpa = school.get("gpa") and f"GPA {school['gpa']}"
+    courses = school.get("coursework") or []
+    entry = {"heading": school["institution"], "subline": joined(degree, school.get("details"), gpa, year), "bullets": []}
+    if courses:
+        entry["note"] = f"Relevant coursework: {', '.join(courses)}"
+    return entry
 
 
 def page_model(master: dict, today: date | None = None) -> dict:
@@ -201,18 +245,23 @@ def page_model(master: dict, today: date | None = None) -> dict:
     sections = []
     if entries := experience(master):
         sections.append({"title": "Experience", "entries": entries})
-    if master.get("projects"):
-        sections.append({"title": "Projects", "entries": [{
-            # same detail line as a job: the schema takes location + blurb, so they print
-            "id": p["id"], "heading": p["name"], "subline": joined(span_label(p), p.get("location"), p.get("blurb")),
+    # projects, then each heading of their own (a student's Activities) in the order the file gives
+    for title in dict.fromkeys(schema.section_of(p) for p in master.get("projects") or []):
+        sections.append({"title": title, "entries": [{
+            # same detail line as a job: the schema takes location + blurb, so they print. With a
+            # role, the two-line shape of a job: "Treasurer | Women in Computing"
+            "id": p["id"], "heading": p.get("role") or p["name"], **({"org": p["name"]} if p.get("role") else {}),
+            "subline": joined(span_label(p), p.get("location"), p.get("blurb")),
             "bullets": [b["claim"] for b in p["bullets"]],
-        } for p in master["projects"]]})
+        } for p in master["projects"] if schema.section_of(p) == title]})
     if master.get("skills"):
         sections.append({"title": "Skills", "lines": [
             {"label": g["group"], "text": ", ".join(g["items"])} for g in master["skills"]
         ]})
     if master.get("education"):
-        education = {"title": "Education", "entries": [education_entry(s) for s in master["education"]]}
+        day = today or date.today()
+        education = {"title": "Education", "entries": [education_entry(s, day, schema.closes_gap(master, s, day))
+                                                       for s in master["education"]]}
         if education_first(master, today or date.today()):
             sections.insert(0, education)
         else:
@@ -261,6 +310,8 @@ def page_strings(model: dict) -> list[str]:
             out.append(joined(e["heading"], e.get("org")))
             if e.get("subline"):
                 out.append(e["subline"])
+            if e.get("note"):
+                out.append(e["note"])
             out.extend(e["bullets"])
         for line in s.get("lines", []):
             out.append(f"{line['label']}: {line['text']}" if line.get("label") else line["text"])

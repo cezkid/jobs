@@ -30,6 +30,9 @@ curl -fsSL https://jobs.enrriquez.com/mac | bash
 
 Read the script first: [Windows](app/install/install-windows.ps1) · [Mac](app/install/install-mac.sh) - the exact file the line runs.
 
+Free and open source ([MIT](LICENSE)), provided as is, with no warranty. Installing means you accept the
+[terms](https://jobs.enrriquez.com/terms.html).
+
 ## Everyday
 
 Double-click **CEZ Job Finder** on your Desktop, or click the morning notification. Opens VS
@@ -88,3 +91,19 @@ sudo uv run python app/deploy/render_units.py --out /etc/systemd/system
 sudo systemctl daemon-reload
 sudo systemctl enable --now jobs-poll.timer jobs-digest.timer
 ```
+
+## License
+
+[MIT](LICENSE) - free to use, copy and change; provided as is, no warranty. Terms of use in plain
+words: https://jobs.enrriquez.com/terms.html
+
+Not covered by the MIT License:
+
+- Fonts: SIL Open Font License 1.1, in the OFL file next to each (`app/resume/fonts/<family>/`,
+  `docs/fonts/`, `app/vscode/media/fonts/`).
+- Research data files: the licence named on each data page.
+- Libraries the installer downloads from PyPI (`pyproject.toml`) keep their own licences. PyMuPDF
+  is AGPL-3.0: `uv sync` downloads it onto the user's computer; never shipped in this repository.
+- Other companies' and products' names (Anthropic, Claude, OpenAI, ChatGPT, GitHub, Copilot,
+  Microsoft, VS Code, Workday, Greenhouse and others) belong to their owners. CEZ Job Finder is an
+  independent project, not affiliated with or endorsed by any of them.

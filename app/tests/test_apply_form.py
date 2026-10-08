@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import adp, ashby, bamboohr, greenhouse, icims, jazzhr, lever, oracle, paycom, paylocity, smartrecruiters, ukg, workable
+from apply.systems import adp, ashby, bamboohr, breezy, greenhouse, icims, jazzhr, lever, manatal, oracle, paycom, paylocity, smartrecruiters, teamtailor, ukg, workable
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -52,7 +52,7 @@ def test_optional_members_take_what_the_shared_code_passes(system):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom]
+IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom, manatal, breezy, teamtailor]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
@@ -1632,6 +1632,29 @@ def test_workable_upload_waits_for_storage_and_says_the_pages_words(fixture_page
                                                       "please try again later.' - choose the file again on the page, or check the resume box")
 
 
+def test_workable_upload_reads_the_live_shaped_resume_box(fixture_page, monkeypatch, tmp_path):
+    """Live box (2026-10-07, plan-k8n.33): `data-ui="resume"` sits on the file input, which holds no text -
+    the read takes its field's words, so a taken upload reads ok once the name shows; the input drawn away,
+    the field its label names; a name the box shortens counts on a box that showed none."""
+    monkeypatch.setattr(workable, "ERROR_WAIT_MS", 500)
+    page = fixture_page("workable-form.html")
+    resume = answered("resume", "file", True, title="Resume") | {"key": "resume"}
+    good = tmp_path / "Ada_Lovelace_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    assert page.locator('[data-ui="resume"]').evaluate("e => e.tagName + ':' + e.innerText") == "INPUT:"
+    assert workable.resume_says(page) == ("* Resume Choose file or drag and drop here", "")
+    assert workable.fill(page, resume, str(good)) == "ok" and workable.holds(page, resume)
+    assert workable.resume_says(page) == ("* Resume Ada_Lovelace_Resume.pdf", "")
+    page.locator('[data-ui="resume"]').evaluate("e => e.remove()")
+    assert workable.resume_says(page)[0] == "* Resume Ada_Lovelace_Resume.pdf" and workable.holds(page, resume)
+    short = fixture_page("workable-form.html")
+    short.evaluate("""() => { const row = document.querySelector('[data-role=dropzone] .file');
+      new MutationObserver(() => { if (row.textContent.includes('Lovelace')) row.textContent = 'Ada_Lov...sume.pdf'; })
+        .observe(row, {childList: true}); }""")
+    assert workable.fill(short, resume, str(good)) == "ok"
+    assert workable.resume_says(short)[0] == "* Resume Ada_Lov...sume.pdf"
+
+
 def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_page, monkeypatch, tmp_path):
     """A failed upload still shows the file name + Replace (3 of 3 employers, 2026-10-05): ok only once
     the page has said nothing failed for a while after the name; its own error words otherwise."""
@@ -1691,6 +1714,36 @@ def test_bamboohr_upload_waits_for_the_block_and_says_the_pages_words(fixture_pa
         "FAIL the page says 'Request failed with status code 500' - choose the file again on the page, or check the Resume box"
 
 
+def test_bamboohr_upload_failing_between_reads_says_its_own_words(fixture_page, monkeypatch, tmp_path):
+    """The page takes the file off the block + draws its banner between the loop's banner read and its block
+    read (flaky in the full suite, plan-k8n.37): the words are this failure's, never the earlier banner's."""
+    monkeypatch.setattr(bamboohr, "ERROR_WAIT_MS", 500)
+    page = fixture_page("bamboohr-form.html")
+    resume = answered("resumeFileId", "file", True, title="Resume") | {"key": "resume", "native": "bamboohr:file 2 of 2"}
+    good = tmp_path / "Ada_Lovelace_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(
+        status=200, content_type="application/json", body='{"status": "ERROR", "errorType": "invalid_file_size"}'))
+    assert bamboohr.fill(page, resume, str(good)).startswith("FAIL the page says 'Whoa, this is a big file")
+    page.unroute("**/bamboohr-upload.json")
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(status=500, body=""))
+    page.clock.install()  # the page's own timer holds the failure until the block read lets it run
+    reads, calls = bamboohr.block_says, []
+
+    def late(upload):  # the page's change lands after the loop's banner read, before this one
+        if calls:
+            for _ in range(40):
+                page.clock.run_for(1000)
+                if not upload.locator(".name").count():
+                    break
+                page.wait_for_timeout(50)
+        calls.append(1)
+        return reads(upload)
+    monkeypatch.setattr(bamboohr, "block_says", late)
+    assert bamboohr.fill(page, resume, str(good)) == \
+        "FAIL the page says 'Request failed with status code 500' - choose the file again on the page, or check the Resume box"
+
+
 def test_survey_tally_is_counts_only():
     from apply import survey
     f = lambda **k: {"type": "t", "required": False, "survey": False, "resume": False, "file": False, "known": True,
@@ -1702,3 +1755,62 @@ def test_survey_tally_is_counts_only():
     assert (got["other_file_boxes"], got["employers_with_other_file"], got["unknown"]) == (1, 1, ["card:file-upload"])
     assert got["types"]["standard:resume:file"] == {"employers": 1, "fields": 1, "required": 1}
     assert "Acme" not in json.dumps(got)  # question text never in the counts
+
+
+def test_without_restriction_asked_every_time_for_a_visa_holder():
+    # CMU + UCI international offices: an F-1 student answers No; setup's old option saved Yes
+    title = "Are you legally authorized to work in the U.S. without restriction for any employer?"
+    for wa in ({"authorized_us": True, "needs_sponsorship": True}, {"student_visa": True, "needs_sponsorship": True}):
+        got = questions.draft([q(title, "yesno")], CONTACT, config={"work_authorization": wa})[0]
+        assert got["answer"] is None and got["source"] == questions.ASK, wa
+    sponsor = q("Will you now or in the future require immigration sponsorship to work in the U.S.?", "yesno")
+    f1 = {"work_authorization": {"student_visa": True, "needs_sponsorship": True, "authorized_us": None}}
+    assert questions.draft([sponsor], CONTACT, config=f1)[0]["answer"] == "Yes"
+
+
+STUDYING = [{"institution": "The Ohio State University", "degree": "B.S.", "field": "Statistics", "end": "2027-05",
+             "gpa": "3.62/4.00"}]
+
+
+def drafted(title, kind="text", options=(), schools=STUDYING):
+    return questions.draft([q(title, kind, options=options)], CONTACT, schools=schools)[0]
+
+
+def test_expected_graduation_filled_only_for_one_degree_in_progress():
+    got = drafted("Expected graduation date")
+    assert (got["answer"], got["source"]) == ("May 2027", f"resume - {questions.READ_FIRST}")
+    assert drafted("When do you expect to graduate?", "choice", ["Dec 2026", "May 2027", "Dec 2027"])["answer"] == "May 2027"
+    # a finished degree's date stays the user's (age); a bare "graduation date" may mean high school
+    done = [{**STUDYING[0], "end": "2019-05"}]
+    assert drafted("Expected graduation date", schools=done)["answer"] is None
+    assert drafted("Graduation date")["source"] == f"{questions.ASK} - sensitive: graduation date"
+    two = [STUDYING[0], {**STUDYING[0], "institution": "Columbus State Community College", "degree": "AA"}]
+    assert drafted("Expected graduation date", schools=two)["answer"] is None
+
+
+def test_gpa_box_gets_the_transcript_figure_never_converted():
+    assert drafted("Cumulative GPA")["answer"] == "3.62/4.00"
+    assert drafted("GPA", "number")["answer"] == "3.62"
+    assert drafted("What is your GPA?", "choice", ["Below 3.0", "3.0 - 3.49", "3.5 - 3.74", "3.75+"])["answer"] == "3.5 - 3.74"
+    assert drafted("Major GPA")["answer"] is None
+    ten = [{**STUDYING[0], "gpa": "9.2/10"}]
+    got = drafted("GPA", "number", schools=ten)
+    assert got["answer"] is None and "never converted" in got["source"]
+    assert drafted("GPA", schools=[{**STUDYING[0], "gpa": None}])["answer"] is None
+
+
+def test_currently_enrolled_yes_only_while_a_degree_is_in_progress():
+    assert drafted("Are you currently enrolled in a degree program?", "yesno")["answer"] == "Yes"
+    assert drafted("Are you currently enrolled in a degree program?", "yesno",
+                   schools=[{**STUDYING[0], "end": "2019-05"}])["answer"] is None
+    assert drafted("Will you be returning to school full-time after the internship?", "yesno")["answer"] is None
+
+
+def test_school_start_boxes_from_the_start_on_file_never_with_years_hidden():
+    school = {**STUDYING[0], "start": "2023-08"}
+    asked = [q("Start month", "choice", key="school_start_month", options=questions.MONTHS),
+             q("Start year", "text", key="school_start_year")]
+    got = questions.draft(asked, CONTACT, schools=[school])
+    assert [a["answer"] for a in got] == ["August", "2023"]
+    hidden = questions.draft(asked, CONTACT, schools=[{**school, "hide_year": True}])
+    assert [a["answer"] for a in hidden] == [None, None]

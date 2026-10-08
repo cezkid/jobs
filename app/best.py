@@ -93,13 +93,15 @@ def required(job: dict) -> list[str]:
 
 def match(job: dict, facts: dict | None) -> tuple[float, tuple[int, int] | None]:
     """Share of required asks the resume backs; years asked (experience_years_min) one more ask
-    when no line said it. No resume or no asks => neutral 0.5."""
+    when no line said it - never on an early-career title, where that tag misreads (rank.EARLY_CAREER).
+    No resume or no asks => neutral 0.5."""
     if facts is None:
         return 0.5, None
     asks = required(job)
     verdicts = [backed(t, facts) for t in asks]
     years = (job.get("enrichment") or {}).get("experience_years_min")
-    if years and facts["years"] is not None and not any(knockout.years_asked(t) is not None for t in asks):
+    if years and facts["years"] is not None and not rank.early_career(job) \
+            and not any(knockout.years_asked(t) is not None for t in asks):
         verdicts.append(facts["years"] >= years)
     counted = [v for v in verdicts if v is not None]
     if not counted:
@@ -162,7 +164,8 @@ def demerits(job: dict, config: dict) -> int:
     """Same count rank.rank demotes by: likely ghost (once), level/hours mismatch, no sponsor,
     clearance they can't hold."""
     rc = config["rank"]
-    return (bool(rank.doubts(job, rc)) + len(rank.mismatches(job, rc)) + len(rank.sponsorship(job, config))
+    return (bool(rank.doubts(job, rc)) + len(rank.mismatches(job, rc)) + len(job.get("beyond") or [])
+            + len(rank.sponsorship(job, config))
             + (bool(rank.clearance(job)) and rank.can_hold_clearance(config) is False))
 
 
@@ -217,5 +220,6 @@ def reasons(job: dict, config: dict, now: datetime) -> str:
         parts.append(f"{job['seniority'].replace('_', '-')} level, above yours")
     place = "remote" if job.get("work_mode") == "remote" else next(iter(job.get("cities") or []), job.get("location") or "")
     parts += [rank.pay_words(job, rc), place, ago(posted_days(job, now))]
-    parts += rank.doubts(job, rc) + rank.mismatches(job, rc) + rank.sponsorship(job, config) + rank.clearance(job)
+    parts += (rank.doubts(job, rc) + rank.mismatches(job, rc) + (job.get("beyond") or []) + rank.sponsorship(job, config)
+              + rank.clearance(job))
     return " · ".join(p for p in parts if p)

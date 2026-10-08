@@ -47,7 +47,20 @@ WORDING = ("spelling", "compound-modifier", "overused-opening", "same-verb-openi
            "markdown", "invisible-unicode", "canonical-casing", "uniform-bullet-length")
 EVIDENCE = ("lead-bullet-weak",)
 AGE = ("old-graduation-year", "old-certification-year")
-PERSONAL = ("street-address", "personal-details", *AGE, "abbreviated-school", "language-level")
+PERSONAL = ("street-address", "personal-details", *AGE, "abbreviated-school", "language-level", "expected-date-passed")
+# once to every student (a degree in progress), the same words whatever the GPA - never only to a
+# low one (a nudge only they get would talk them out of their own choice). NACE Job Outlook 2026,
+# 183 employers, surveyed Aug-Sep 2025: 42% screen by GPA (73% in 2019) - employer survey
+GPA_NOTE = ("GPA: your call whether it shows. In a 2026 survey of 183 US employers, 42% said they screen by GPA "
+            "(73% did in 2019), and many applications ask for it anyway. When it shows, it's exactly your "
+            "transcript's figure - never rounded up or converted from another scale.")
+# once to every file with a club or group under its role, never triggered by a group's name
+# (docs/resume/fair-screening.md, affinity items: their call). Kang 2016: field experiment
+GROUPS_NOTE = ("Clubs and groups: how each shows is your call - its full name, a general description you write "
+               "(\"Treasurer, 40-member student group\"), or left off. One US study found describing student groups "
+               "in general terms, instead of naming a racial or ethnic group, raised callbacks for Black and Asian "
+               "applicants - but it renamed the groups, which on a real resume would be false. Leaving one off also "
+               "drops real leadership. Job Finder never renames one.")
 DATES = ("role-dates-overlap", "bullet-taper")
 # once per report, not per year: the years only help left off together (docs/resume/fair-screening.md "Age cues")
 BUNDLE = ("Your degree is {years}+ years old, so we recommend leaving off, together, every year that lets a reader "
@@ -104,7 +117,10 @@ def assess(master: dict, today: date) -> dict:
     }
     return {"date": today.isoformat(), "areas": areas, "bare": bare, "shown": shown, "gaps": gaps,
             "notes": [(f.rule, f.where, f.detail) for f in counted], "bundle": {"old_jobs": len(old_jobs)} if bundle else None,
-            "unlisted": unlisted_tools(master)}
+            "unlisted": unlisted_tools(master),
+            "student": any(schema.in_progress(e, today) for e in master.get("education") or []),
+            "groups": any(p.get("role") for p in master.get("projects") or []),
+            "lines": len(lines)}
 
 
 def changes(now: dict, before: dict | None) -> list[str]:
@@ -162,6 +178,10 @@ def report_md(result: dict, moved: list[str]) -> str:
     if result.get("unlisted"):
         out += ["", "## Tools your lines name, not in your Skills list", "",
                 "Add any you'd want a search to find there - your call: " + ", ".join(result["unlisted"]) + "."]
+    if result.get("student") or result.get("groups"):
+        out += ["", "## For students", ""]
+        out += [f"- {GPA_NOTE}"] if result.get("student") else []
+        out += [f"- {GROUPS_NOTE}"] if result.get("groups") else []
     out += ["", "## What your lines show", ""]
     for quality, found in result["shown"].items():
         out.append(f"**{quality}** - {len(found)} line(s)" + (":" if found else
@@ -169,6 +189,9 @@ def report_md(result: dict, moved: list[str]) -> str:
         out += [f"- {claim} ({where})" for where, claim in found]
         out.append("")
     steps = []
+    if not result.get("lines", 1):
+        steps.append("\"Add a class project to my resume\" (or a club, a team, a part-time job) - your own words "
+                     "about something you really did; projects and activities fill a student's page.")
     if result["bare"]:
         steps.append("\"Help me add numbers to my resume\" - asks about each line above; skip any you don't know.")
     if wording:

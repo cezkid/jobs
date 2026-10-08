@@ -39,7 +39,7 @@ COMMANDS = {
     "apply": ("apply.profile", "application answers -> script the Chrome extension runs on a Workday form"),
     "about": ("about", "what Job Finder knows about the user + their notes beyond the resume: show | list | read KIND | add KIND WORDS | forget KIND N"),
     "answers": ("apply.answers", "the user's saved answers from application forms: list | forget N"),
-    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR; a multi-page form: one helper keeps its tab, let-go ends it); measure | try LINK, workday-fixture FILE (developers)"),
+    "apply-form": ("apply.form", "fill a job application in Chrome (not Workday), stops before Submit: prepare | fill (--in-window: trial, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, Breezy, Teamtailor, Oracle, iCIMS, Paylocity; a multi-page form: one helper keeps its tab, let-go ends it); measure | try LINK, workday-fixture FILE (developers)"),
     "attribution": ("attribution", "Claude credit on fixes sent upstream: status | off | on | strip FILE | hook"),
     "ai": ("ai", "which AI the user chats with: prints it; ai claude | chatgpt | copilot saves it"),
     "look": ("look", "window look: prints it; look auto | light | dark saves it + switches the open window"),
@@ -214,7 +214,13 @@ def open_for_user(target: str, outside: bool = False, wait: float = LINK_WAIT) -
 def check_settings() -> None:
     import cfg
     import launch
-    cfg.load()
+    config = cfg.load()
+    wa = config.get("work_authorization") or {}
+    if wa.get("authorized_us") and wa.get("needs_sponsorship"):
+        # setup's old "allowed now, will need sponsorship later" option saved this pair; a CPT/OPT or
+        # H-1B permit has limits, so "without restriction" forms now ask each time
+        print("ask once: work permit says 'allowed without restriction' and 'needs sponsorship later' - "
+              "CPT, OPT and H-1B work has limits. Ask the work-permit question again (job-setup)")
     # setup runs this right after saving search settings => START HERE ("type set me up") leaves
     # the open window's file list now, not at next launch; no-op when nothing changed
     launch.write_workspace(launch.chosen_ai())

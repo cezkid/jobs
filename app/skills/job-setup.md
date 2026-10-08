@@ -8,10 +8,16 @@ their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGE
 #Private vs shared): their file list (My Jobs, My Resume, My Settings) stays on this computer;
 job searches send only their search settings to freehire.me (a resume made for a listed job, or
 "still open?", sends that job's listing id - nothing about them); resume is read here in this AI
-chat; nothing goes to CEZ Job Finder's maintainer without asking first.
+chat; nothing goes to CEZ Job Finder's maintainer without asking first. Same opening, one line:
+free + provided as is - AI can get things wrong, so they read every resume + answer before sending;
+it never clicks Submit; general information, not legal advice. Terms: `jobs.py open
+"https://jobs.enrriquez.com/terms.html"` only if they ask.
 On Copilot (`.data/ai`): in the same opening, one line - pick Claude Sonnet in the model list
 under the chat box, the automatic model can't make tailored resumes (`AGENTS.md` #User = not
 technical). Copilot's free tier can't either: say Copilot Pro ($10 a month) if they're on it.
+Copilot Student (free for verified students) has had only the automatic model since 2026-06-24 -
+untested here, same model Free failed 3 of 3 on: say Copilot Pro lets them pick a stronger AI and
+keeps the rest of their Student Pack, and that Pro chats may train unless switched off.
 Copilot, already set up: `.data/profile-migrated` reads `model: not copied` (window moved to its
 own space, model pick stayed behind) => say that same line once, then add `told` to that file.
 
@@ -20,7 +26,8 @@ chat too), AI training, one question. Personal Claude (Free/Pro/Max), ChatGPT (F
 Pro) and GitHub Copilot (Free/Pro) plans may train on chats unless the user switches it off; work
 plans (Claude Team/Enterprise, ChatGPT Business/Enterprise/Edu, Copilot Business/Enterprise),
 Copilot Student and developer (API key) sign-ins don't by default. Copilot chats may be shared
-with Microsoft. Only the user
+with Microsoft. A school account (ChatGPT Edu, Claude for Education) is the school's: say what its
+admins can see is up to the school, and it may end after graduation. Only the user
 can change it - no setting here reaches their account. Ask: "What you tell me and your resume are
 read in this chat. Want your chats kept out of AI training? One switch, 30 seconds." Options: Yes,
 show me / Already off, or a work account / Leave it on. Yes -> open
@@ -46,13 +53,22 @@ a time, in this order (never batched - shows as tabs).
 First, broad:
 - what kind of work - 4 grouped families of `category` values, `multiSelect`
 - where: remote only / remote first / local first / local only
-- full time / part time / contract, `multiSelect` + "doesn't matter". Types they didn't pick ->
-  `blocklist.employment_types` (hidden, by the job search's own tag; untagged jobs stay) - say the
-  count each hides from `probe --facets employment_type <their params>` before saving
+- full time / part time / internship or co-op / contract, `multiSelect` + "doesn't matter", each
+  with its count in their field (`probe --facets employment_type <their params>`; internship also
+  `--facets seniority`). Types they didn't pick -> `blocklist.employment_types` (hidden, by the job
+  search's own tag; untagged jobs stay, and a title saying intern / co-op / part-time keeps a job
+  whose tag says otherwise - 87 of 300 real internships are tagged full time) - say the count each
+  hides before saving. Internship or co-op picked -> `rank.employment_types` gets `internship`, and
+  the search gets internship passes (#2). Student or recent graduate (internship picked, or they
+  say so) -> the student notes below apply.
 - lowest yearly pay - 4 bands + "doesn't matter". Say in the question: jobs paying less are hidden
   unless few new jobs come in that week; jobs with no pay listed stay. Before saving, count it:
   `uv run app/jobs.py rank --pay-floor <band>` (once jobs are in; before that, `probe` counts of
-  `salary_min`) and say "hides N, keeps M" (AGENTS.md, narrowing). Want no-pay-listed jobs hidden
+  `salary_min`) and say "hides N, keeps M" (AGENTS.md, narrowing). Internship or part-time picked
+  -> lowest hourly pay instead: 4 hourly bands (e.g. $15 / $18 / $22 / $28 an hour) + "doesn't
+  matter"; count with `rank --pay-floor 18/hr`; save the yearly number it prints as
+  `rank.salary_floor_usd` + `rank.salary_floor_unit: hour` - every list says it back per hour, and a
+  part-time job listing only a yearly sum (hours unknown) is never hidden by it. Want no-pay-listed jobs hidden
   too -> push back once (unlisted pay isn't low pay; most fields outside tech list none; count
   with `--hide-unlisted`), then `rank.pay_filter.hide_unlisted: true` if they still want it.
   `app/docs/jobs/pay-filter.md`
@@ -67,9 +83,11 @@ Then narrowing what they picked:
   the US." Offer: keep going anyway / widen to related roles - never pretend the count is bigger.
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
   the `cities` facet; "Other" covers the rest
-- career level (entry / mid / senior / leader) - `rank.career_level`: titles clearly above or
-  below it sort lower, never hidden; never a `seniority` filter (facet null on 30-45% of rows,
-  junior lives in title string)
+- career level (entry - "student, new graduate or first job" / mid / senior / leader) -
+  `rank.career_level`: titles clearly above or below it sort lower, never hidden; entry also sorts
+  lower a job whose required line asks 3+ years (the posting's own words, not the job search's
+  years tag - it read 10 on "Software Engineer - New Grad"). Never a `seniority` filter for
+  everyone (facet null on 30-45% of rows, junior lives in title string) - internship passes only (#2)
 - work permit, one question - nearly every US application asks both "legally authorized to work
   in the US without restriction?" and "will you now or in the future require sponsorship?", and
   employers that require it (government work, security products) ask "US citizen or permanent
@@ -78,9 +96,20 @@ Then narrowing what they picked:
   `citizen_or_permanent_resident`):
   - US citizen or green card holder -> true, false, true
   - Other status, never need sponsorship (refugee, asylee) -> true, false, false
-  - Allowed now, will need it later (OPT, STEM OPT, H-1B transfer) -> true, true, false
+  - International student (F-1): CPT/OPT now, will need a work visa later -> null, true, false, +
+    `student_visa: true`
+  - Allowed now with an employer-tied visa, will need sponsorship later (H-1B transfer) -> null,
+    true, false
   - Need sponsorship to start -> false, true, false
   - "Ask me on each application" (typed under Other) -> leave all null
+  Visa holders' `authorized_us` stays null: "authorized ... without restriction" is asked on every
+  form (Carnegie Mellon + UC Irvine international offices say No on F-1; H-1B is one employer;
+  `questions.work_permit` asks even over an old saved Yes). `check-settings` printing "ask once:
+  work permit ..." = an old setup saved Yes there - ask this question again, once.
+  F-1 + part-time picked -> one line, general information: "On F-1, off-campus jobs need CPT or OPT
+  approval first; on-campus jobs up to 20 hours a week while classes are in session don't - your
+  international student office has the final word." Point them to their school's own job board
+  for campus jobs (paste a posting there to tailor a resume).
   Say in the question it's saved only on this computer (no job search sends it). Needs sponsorship ->
   count from `probe --facets visa_sponsorship` on their category: "freehire marks 36,846 US jobs
   'no visa sponsorship' - they'll sort lower, never hidden". Never guess it from name, school
@@ -112,6 +141,12 @@ showing jobs from <company>" any time.
 - `q=` only as one exact title phrase w/ `q_fields: title` (`cfg` rejects any other use) - for a
   role its category is too wide for (RN inside healthcare). The job search has no OR: one form
   per pass, the one w/ most postings; say which other forms it leaves out.
+- Internship or co-op picked: per location tier, two passes with the SAME `tier` - one with
+  `seniority: [intern]`, one with `employment_type: [internship]` (2026-10-07, either tag: 199 of
+  200 "internship" titles, 156 of 171 "summer analyst", 153 of 200 "co-op"; one tag alone misses
+  up to a third). Co-ops wanted -> a third pass `q: "co-op"` + `q_fields: title`. Internship only
+  -> these passes only; with full-time jobs too -> add their plain pass (a row in two passes keeps
+  the last one's tier: put the plain pass first in the same tier, or say the order).
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).
@@ -155,7 +190,14 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   Read every "left out" line it prints to user; real facts go back in (awards, volunteering,
   clearances -> `other`), never silently dropped.
 - Read `My Resume/Resume details.yml`; confirm w/ user in plain words: jobs + dates, schools,
-  contact details. Year-only dates stay years (never guess months). Header `# assumed` lines =
+  contact details. A student's: degree in progress = `expected: true` + the expected `end` (page
+  says "Expected May 2027" until they say they finished - lint `expected-date-passed` = ask
+  "Did you finish your <degree>?" Finished -> remove `expected`; not yet -> the new date); `gpa` in
+  quotes exactly as the transcript gives it (Hold: never rounded up, never converted from another
+  scale - ask, keep theirs); `coursework` = a few courses as their school names them; clubs and
+  groups = `projects` with `role` + `section` (the heading they gave, e.g. Leadership & Activities)
+  - the group's name exactly as written, never shortened or generalised (their call how each shows:
+  `resume-feedback` says it once, same words for everyone - never prompted by a group's name). Year-only dates stay years (never guess months). Header `# assumed` lines =
   dates import couldn't read, or jobs re-sorted newest first - check each w/ user.
   Corrections -> edit that file yourself (wording theirs; employer, title, dates only to fix a
   real mistake - `AGENTS.md` #Lead, explain, push back).
@@ -171,7 +213,10 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
   against saying nothing". ONE clickable question: Family care /
   Health matter, now resolved or managed / Study or training / Something else - I'll say ("Leave
   it off" under Other). Answer -> `career_break` entry (dates + their reason; on the page, closes
-  the gap); work, study or volunteering they really did -> its own entry. Never suggest paying for
+  the gap); work, study or volunteering they really did -> its own entry. Studying at a school
+  already in their Education (between summer internships, a degree in progress) is no break: ask
+  when they started there -> `education[i].start` (a fact; the gap closes and, while it explains
+  one, the page shows the school's dates) - never a "Study or training" career break for it. Never suggest paying for
   a course (no US study behind it). Layoff, when true -> one line under the last job instead:
   "Role cut in company-wide layoff, Jul 2025". Time in custody: the page needn't name it - real
   work, training or study done there under its real name; "personal leave" for it -> push back
@@ -230,7 +275,9 @@ Email too (only if they say yes):
   sender uses implicit TLS only).
 - Gmail needs app password: 2-Step Verification on, then https://myaccount.google.com/apppasswords
   -> create "CEZ Job Finder" -> 16-letter code. Open that page for them; walk through it. Tell
-  them: code stays in hidden file on this computer, used only to send their own email.
+  them: the code goes through this chat, so it reaches their AI account (Claude also keeps a copy
+  on this computer 30 days); then it's kept in a hidden file here, used only to send their own
+  email; they can cancel it any time on that same Google page.
 - Write `.data/email.env` from `app/email.env.example`: `SMTP_USER`, `SMTP_PASSWORD` (spaces
   removed), `ALERT_TO` if different inbox. Yahoo: also `alert.smtp_host: smtp.mail.yahoo.com`
   in search settings.

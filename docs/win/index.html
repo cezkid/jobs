@@ -51,13 +51,14 @@ function Pick-Ai {
     Write-Host '  2 = ChatGPT (Plus or Pro)'
     Write-Host '  3 = GitHub Copilot Pro ($10 a month)'
     while ($true) {
-        $word = Ai-Word (Read-Host 'Type 1, 2 or 3, then press Enter')
+        $word = Ai-Word (Read-Host 'Type 1, 2 or 3, then press Enter (this accepts the terms above)')
         if ($word) { return $word }
     }
 }
 
 try {
     Write-Host "`nInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
+    Write-Host 'Free and open source, provided as is, with no warranty. Installing means you accept the terms: https://jobs.enrriquez.com/terms.html'
     Refresh-Path
     $Ai = Pick-Ai
     # explicit per AI; copilot => none (Copilot Chat built into VS Code 1.140)

@@ -106,6 +106,10 @@ own act - `read` says so), `TCOptinEnabledFlag` 3 of 4, `OptinEnabledFlag` 2 of 
 `read` takes whatever page shows as plain boxes (`dom.questions`), page = its first heading, and
 prints "unmeasured system - check every box". Owner's first real application = the live check.
 
+Window: offered since the owner's yes 2026-10-07 (plan-k8n.20): `fill --in-window`, off by default, one holder
+keeps the user's tab between pages; its note says pages after Next, the resume upload + any check at Submit are
+untested there (`vscode-browser.md` "Oracle - route 2").
+
 ## Form definition
 
 None public for the questions: they come after the applicant's profile is made, behind Next -

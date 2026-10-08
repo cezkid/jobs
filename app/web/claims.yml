@@ -17,11 +17,11 @@ installer-ai-choice:
     contains: Type 1, 2 or 3, then press Enter
 apply-systems:
   page: index.html
-  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
   why: hiring systems the app fills (bold) or starts (plain)
   rests_on:
   - apply_systems: true
-    filled: [Ashby, BambooHR, Greenhouse, JazzHR, Lever, Paylocity, SmartRecruiters, UKG, Workable, Workday]
+    filled: [Ashby, BambooHR, Breezy, Greenhouse, JazzHR, Lever, Manatal, Paylocity, SmartRecruiters, Teamtailor, UKG, Workable, Workday]
     # [name in the code, name on the page]
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
@@ -52,8 +52,8 @@ home-ai:
   - file: AGENTS.md
     rows: ^\| .* \| this AI chat
     are:
-    - '| Resume + postings you work on; interview practice answers; a saved note about you, when it''s used; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User''s own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |'
-    - '| Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User''s own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |'
+    - '| Resume + postings you work on; interview practice answers; a saved note about you, when it''s used; Today summary (job numbers, titles, companies - Claude, as a chat opens); what browser history shows for jobs not marked sent (`status sent`, when asked); email app password, if they turn on email (typed in chat) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User''s own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |'
+    - '| Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications); titles + addresses of their open Chrome tabs | this AI chat (Claude) | User''s own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |'
     - '| Text + screenshots of Job Finder window pages Copilot reads (VS Code''s browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User''s own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |'
 first-window:
   page: index.html
@@ -93,18 +93,18 @@ privacy-freehire:
     - '| Companies on your job list (their listing names, nothing about you) | freehire.me job search | At each morning check, to find each company''s website |'
 privacy-ai:
   page: privacy.html
-  text: Your AI (Claude, ChatGPT or GitHub Copilot)Your resume, the postings you work on and what you tell it, on your own account – a note you saved about yourself only when it’s used. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application. GitHub Copilot gets the words and screenshots of pages in the CEZ Job Finder window that it opens or you share with it.While you chat. Personal plans may train on chats unless you switch it off.
+  text: Your AI (Claude, ChatGPT or GitHub Copilot)Your resume, the postings you work on and what you tell it, on your own account – a note you saved about yourself only when it’s used. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application, plus the titles and addresses of your open Chrome tabs. GitHub Copilot gets the words and screenshots of pages in the CEZ Job Finder window that it opens or you share with it. When you ask which jobs you sent, your AI gets what your browser history on this computer shows for those jobs. If you turn on email alerts, the app password you type goes through the chat too.While you chat. Personal plans may train on chats unless you switch it off.
   why: 'privacy table: what the AI account gets'
   rests_on:
   - file: AGENTS.md
     rows: ^\| .* \| this AI chat
     are:
-    - '| Resume + postings you work on; interview practice answers; a saved note about you, when it''s used; Today summary (job numbers, titles, companies - Claude, as a chat opens) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User''s own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |'
-    - '| Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications) | this AI chat (Claude) | User''s own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |'
+    - '| Resume + postings you work on; interview practice answers; a saved note about you, when it''s used; Today summary (job numbers, titles, companies - Claude, as a chat opens); what browser history shows for jobs not marked sent (`status sent`, when asked); email app password, if they turn on email (typed in chat) | this AI chat (Claude, ChatGPT or GitHub Copilot) | User''s own AI account (Copilot: GitHub; may be shared with Microsoft); personal plans may train on it unless switched off |'
+    - '| Text + screenshots of pages Claude reads in Chrome (Claude in Chrome tools: Workday applications); titles + addresses of their open Chrome tabs | this AI chat (Claude) | User''s own Claude account, each time Claude reads the page; personal plans may train on it unless switched off |'
     - '| Text + screenshots of Job Finder window pages Copilot reads (VS Code''s browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User''s own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |'
 privacy-employers:
   page: privacy.html
-  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.'
+  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed; Breezy: the address you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.'
   why: 'privacy table: what employers get, per system'
   rests_on:
   - file: AGENTS.md
@@ -130,6 +130,13 @@ privacy-employers:
     - '| Email, resume, contact details, answers you apply with | that employer''s Paylocity site | That employer: email as you leave its box, resume as you pick the file (both measured), the rest by Submit |'
     - '| Resume file you apply with | that employer''s SmartRecruiters site | That employer, as soon as it is chosen (only after you say yes) |'
     - '| Contact details, answers you apply with | that employer''s SmartRecruiters site | That employer, once you click Submit |'
+    - '| Contact details, answers, resume you apply with | that employer''s Manatal site | That employer, once you click Submit |'
+    - '| Resume you apply with | that employer''s Breezy site | That employer, as soon as you choose the file (Breezy reads it to fill the form) |'
+    - '| Address you type in the address box | that employer''s Breezy site (the box asks Google for place suggestions) | Google, letter by letter as it''s typed - before Submit |'
+    - '| Contact details, answers you apply with | that employer''s Breezy site | That employer, once you click Submit |'
+    - '| Resume you apply with | that employer''s Teamtailor site | That employer, as soon as you choose the file (it goes to Teamtailor''s storage then) |'
+    - '| Town or city you type in the address box | that employer''s Teamtailor site (the box searches Teamtailor''s own list) | That employer, letter by letter as it''s typed - before Submit |'
+    - '| Contact details, answers you apply with | that employer''s Teamtailor site | That employer, once you click Submit |'
     - '| Name, email, phone you start with | that employer''s Paycom site | That employer, when you click Continue on its start box - before the form |'
     - '| Name, email, phone you start with | that employer''s ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |'
     - '| Email you start with | that employer''s Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |'
@@ -147,16 +154,16 @@ privacy-email:
     - '| Follow-up email you send | your own email | The person you send it to, when you click Send |'
 privacy-maintainer:
   page: privacy.html
-  text: The maintainerA fix to the program’s code. Never your files.Only if you say yes.
+  text: The maintainerA fix to the program’s code, posted publicly on GitHub under your GitHub account. Never your files.Only if you say yes.
   why: 'privacy table: code fix only, after a yes'
   rests_on:
   - file: AGENTS.md
     rows: ^\| .* \| maintainer \|
     are:
-    - '| Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder |'
+    - '| Code fix only, after user says yes | maintainer | Everyone who uses CEZ Job Finder; public on GitHub under the user''s own GitHub account name |'
 privacy-hiring-analytics:
   page: privacy.html
-  text: 'Employers’ hiring sites run their own analytics. JazzHR sends your name, email, phone and town to its analytics company, Gainsight, when you click Submit – for about 1 in 100 applicants.'
+  text: 'Employers’ hiring sites run their own analytics. JazzHR sends your name, email, phone and town to its analytics company, Gainsight, when you click Submit – for about 1 in 100 applicants, as we read JazzHR’s page script (not measured live).'
   why: 'privacy table: JazzHR page script identifies a sampled share of applicants to Gainsight at Submit'
   rests_on:
   - file: AGENTS.md
@@ -225,3 +232,91 @@ privacy-delete-later:
     contains: data = home / "Library" / "Application Support" / "Code"
   - file: app/docs/app-window.md
     contains: 'One dir: `<data>/User/workspaceStorage/<id>/browserStorage` - not under `User/profiles/` even w/ the profile; its `workspace.json` = `{"folder": "file:///<the folder>"}`'
+install-terms:
+  page: index.html
+  text: Free and open source, provided as is, with no warranty. Installing means you accept the terms.
+  why: the installer shows the same notice before its AI question
+  rests_on:
+  - file: app/install/install-mac.sh
+    contains: 'Free and open source, provided as is, with no warranty. Installing means you accept the terms: https://jobs.enrriquez.com/terms.html'
+  - file: app/install/install-windows.ps1
+    contains: 'Free and open source, provided as is, with no warranty. Installing means you accept the terms: https://jobs.enrriquez.com/terms.html'
+terms-never-submit:
+  page: terms.html
+  text: You read and send everything yourself. The app is built to fill forms and stop before Submit.
+  why: job-apply never clicks Submit (UKG saves each entry only after the user says yes, so not "Save")
+  rests_on:
+  - file: AGENTS.md
+    contains: '`job-apply` fill an application, never Save/Submit'
+terms-honest:
+  page: terms.html
+  text: 'The app is built not to make up a skill, job, date or degree for you, or shade a work-permit answer – but AI can slip, which is why you read every word. Employers check, and a false answer can cost you the job after you’re hired.'
+  why: Hold tier (AGENTS.md Lead, explain, push back)
+  rests_on:
+  - file: AGENTS.md
+    contains: invent a skill, number, tool or credential
+  - file: AGENTS.md
+    contains: invented job, course or freelance to fill one
+  - file: AGENTS.md
+    contains: shade a work-authorization or sponsorship answer
+terms-jobs-source:
+  page: terms.html
+  text: Jobs come from freehire.me’s job search and the employers who post them. We don’t check them. A posting can be wrong, closed or fake.
+  why: job list = freehire's keyless job API, + postings the user pastes
+  rests_on:
+  - file: AGENTS.md
+    contains: Polls freehire's keyless job API
+terms-updates:
+  page: terms.html
+  text: The app updates itself from GitHub each time it starts. An update replaces the program and its guides, never your resume, jobs, settings or job list.
+  why: start scripts run jobs.py update (GitHub main.zip) before launch; private folders never swapped
+  rests_on:
+  - file: app/install/start-mac.sh
+    contains: uv run app/jobs.py update
+  - file: app/install/start-windows.bat
+    contains: uv run app/jobs.py update
+  - file: app/update.py
+    contains: ZIP_URL = "https://github.com/cezkid/jobs/archive/refs/heads/main.zip"
+  - file: app/update.py
+    contains: 'PRIVATE = {*cfg.PRIVATE_DIRS, ".data", ".venv"}'
+  - file: app/cfg.py
+    contains: PRIVATE_DIRS = ("My Resume", "My Jobs", "My Settings")
+terms-as-is:
+  page: terms.html
+  text: Free and open source. Provided as is, with no warranty.
+  why: MIT License text in LICENSE
+  rests_on:
+  - file: LICENSE
+    contains: THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND
+terms-information:
+  page: terms.html
+  text: General information, not legal or immigration advice.
+  why: AGENTS.md rule for laws, records, work permits
+  rests_on:
+  - file: AGENTS.md
+    contains: 'Laws, records, work permits, discrimination: general information, never legal advice.'
+terms-advice:
+  page: terms.html
+  text: The app and the research pages give general information. They are not legal, immigration or tax advice, and no lawyer checks them. Laws differ by place and change. For your own case – a criminal record, a work permit, discrimination – ask a free legal aid office, your school’s international student office or a lawyer.
+  why: AGENTS.md rule names who has the final word
+  rests_on:
+  - file: AGENTS.md
+    contains: free legal
+  - file: AGENTS.md
+    contains: aid, their school's international student office, a lawyer
+terms-ai-writes:
+  page: terms.html
+  text: Your AI writes resumes, letters and form answers. AI makes mistakes. Read every word before you send it – what you submit is yours.
+  why: AI writing steps = the user's own AI; no other program writes resume content
+  rests_on:
+  - file: AGENTS.md
+    contains: No other program writes resume content.
+terms-install:
+  page: terms.html
+  text: The install line adds the programs CEZ Job Finder needs. Read the script first if you like.
+  why: the install line runs app/install/install-*.{sh,ps1}, public on GitHub
+  rests_on:
+  - file: app/install/install-mac.sh
+    contains: Installing CEZ Job Finder
+  - file: app/install/install-windows.ps1
+    contains: Installing CEZ Job Finder

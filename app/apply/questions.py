@@ -31,9 +31,10 @@ ADDRESS = {"street", "city", "state", "zip"}
 ASK = "ask the user"
 # a plain Name box when the page name is not the legal one: the user picks once, contact.form_name keeps it
 ASK_FORM_NAME = "ask the user once - legal name or the name on your resume"
-# a name box about someone else (a referrer, a manager, the school) is never theirs to fill from contact
+# a name box about someone else (a referrer, a manager, the school) is never theirs to fill from contact;
+# pronouns ask how to address them ("... just my first name", Manatal tenant 2026-10-06), not a name
 OTHER_PERSON = re.compile(r"\brefer|manager|supervisor|emergency|reference|recruiter|employer|company|school|"
-                          r"universit|college|spouse|relative|user ?name|business|organi[sz]ation")
+                          r"universit|college|spouse|relative|user ?name|business|organi[sz]ation|pronoun")
 PLAIN_NAME = {"name", "first_name", "middle_name", "last_name"}
 # questions only the user answers, however well a saved answer seems to fit: the AI names the kind and
 # asks (fair-screening.md). "Are you 18 or older?" is not one - a plain yes/no, answered truthfully.
@@ -50,6 +51,19 @@ SENSITIVE = [
     ("disability or health", re.compile(r"\bdisabilit|\bdisabled\b|\bimpairment|reasonable accommodation|"
                                         r"\b(medical|health|mental health) (condition|history|issue|problem)s?\b")),
 ]
+# a student's questions, answered from the school in progress on their resume. The expected date
+# is on the page ("Expected May 2027") and career centres keep it early in career
+# (fair-screening.md); a finished degree's date stays sensitive (age), and so does a bare "graduation
+# date" - it may mean high school or an older degree
+EXPECTED_GRADUATION = re.compile(r"\b(?:expected|anticipated|projected|estimated|planned) (?:\w+ ){0,2}?graduat|"
+                                 r"\bexpect(?:ing)? to graduate\b|\bgraduat\w* (?:date|year)? ?\(?(?:expected|anticipated)")
+GPA_QUESTION = re.compile(r"\bgpa\b|\bgrade point average\b")
+# a GPA the resume doesn't hold: the major's, high school's, a weighted or one term's
+GPA_OTHER = re.compile(r"\bmajor\b|high school|weighted|\bsemester\b|\bterm\b|\bquarter\b|\bgraduate school\b|\bscale\b")
+ENROLLED = re.compile(r"\b(?:currently|presently) (?:enrolled|attending|a student|pursuing)\b|"
+                      r"\bare you (?:a |currently a |currently )?(?:current )?(?:college |university )?student\b|\bstill (?:a )?student\b")
+# enrolled how, or later: full or half time, returning after the internship - theirs to say
+ENROLLED_OTHER = re.compile(r"full[- ]time|part[- ]time|half[- ]time|\breturn|next (?:semester|term|fall|year)|after the|\bduring\b")
 # the time a work-break question asks about: "in the last 5 years", "past ten years", "since 2019"
 WORD_NUMBER = {w: n for n, w in enumerate("one two three four five six seven eight nine ten".split(), 1)}
 LAST_YEARS = re.compile(r"\b(?:last|past) (\d{1,2}|" + "|".join(WORD_NUMBER) + r") years?\b")
@@ -314,6 +328,11 @@ def work_permit(q: dict, config: dict):
     if q["kind"] != "yesno":
         return None
     if "authorized to work in the u" in title and "without restriction" in title:
+        # a visa holder's permit has limits - CPT/OPT their field and dates, H-1B one employer - and
+        # international offices (CMU, UCI) say "No" here: asked every time, even over a Yes saved
+        # before this rule (setup's old "allowed now, sponsorship later" option saved one)
+        if wa.get("needs_sponsorship") or wa.get("student_visa"):
+            return None
         return wa.get("authorized_us")
     if "sponsorship" in title and "future" in title and us:
         return wa.get("needs_sponsorship")
@@ -394,8 +413,8 @@ def major_option(field: str, options: list[str]) -> str | None:
 def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
     """One Education box from school q["entry"] on the resume -> (answer, source). Degree and
     discipline as the form's list words them (a free-text box: as written); the graduation date only as the page shows it (hidden
-    by the user's choice -> left blank, or asked as sensitive when required); start dates aren't on
-    the resume."""
+    by the user's choice -> left blank, or asked as sensitive when required); a start date from the
+    school's start when on file (never with its years hidden), else asked."""
     entry = q.get("entry") or 0
     school = schools[entry] if entry < len(schools) else {}
     unsaid = (None, f"{ASK} - not on your resume") if q["required"] else (None, "not on your resume - left blank")
@@ -413,6 +432,10 @@ def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
             return None, f"{ASK} - '{written}' isn't on the form's list: the nearest option is theirs to pick"
         return pick, "resume" if pick.casefold() == written.casefold() else \
             f"resume - '{written}' as the form's nearest option - name it to the user"
+    if key in ("school_start_month", "school_start_year") and schema.shown_start(school):
+        year, _, month = schema.shown_start(school).partition("-")
+        value = year if key == "school_start_year" else MONTHS[int(month) - 1] if month.isdigit() else None
+        return (value, "resume") if value else unsaid
     if key in ("school_end_month", "school_end_year"):
         if school.get("hide_year") and school.get("end"):
             return (None, f"{ASK} - sensitive: graduation date") if q["required"] else \
@@ -421,6 +444,58 @@ def school_answer(q: dict, schools: list[dict]) -> tuple[str | None, str]:
         value = year if key == "school_end_year" else MONTHS[int(month) - 1] if month.isdigit() else None
         return (value, "resume") if year.isdigit() and value else unsaid
     return unsaid
+
+
+def student_answer(q: dict, schools: list[dict], today: date) -> tuple | None:
+    """(answer, source) for an expected graduation date, a GPA or "currently enrolled?", from the
+    school in progress (else, for a GPA, the latest one carrying it); None = not one of these, or
+    nothing to answer from - the question goes on as any other (asked)."""
+    title = " ".join(q["title"].casefold().split())
+    studying = [s for s in schools if schema.in_progress(s, today)]
+    if EXPECTED_GRADUATION.search(title):
+        if len(studying) != 1 or not schema.shown_end(studying[0]):
+            return None if len(studying) == 1 else (None, f"{ASK} - expected graduation: "
+                                                         f"{'none in progress' if not studying else 'two degrees in progress'} on your resume")
+        end = schema.shown_end(studying[0])
+        words = [render.month_label(end), end[:4]]
+        if q["kind"] in ("choice", "multichoice"):
+            pick = next((o for w in words for o in q["options"] if o.casefold() == w.casefold()), None)
+            return (pick, f"resume - {READ_FIRST}") if pick else (None, f"{ASK} - expected graduation: "
+                                                                         f"{words[0]} isn't on the form's list")
+        if q["kind"] not in ("text", "longtext"):
+            return None, f"{ASK} - expected graduation {words[0]} (a date box: theirs to enter)"
+        return words[0], f"resume - {READ_FIRST}"
+    if GPA_QUESTION.search(title) and not GPA_OTHER.search(title):
+        school = next((s for s in [*studying, *schools] if s.get("gpa")), None)
+        if school is None:
+            return None
+        gpa, four = school["gpa"].strip(), schema.FOUR_POINT.match(school["gpa"].strip())
+        # the transcript's own figure, never converted from another scale or rounded
+        if q["kind"] == "number":
+            return (four["gpa"], "resume - name it to the user") if four else \
+                (None, f"{ASK} - GPA {gpa!r} is on another scale: never converted")
+        if q["kind"] in ("choice", "multichoice"):
+            pick = gpa_option(float(four["gpa"]), q["options"]) if four else None
+            return (pick, "resume - name it to the user") if pick else (None, f"{ASK} - GPA {gpa!r}: no option holds it")
+        return gpa, "resume - name it to the user"
+    if q["kind"] == "yesno" and ENROLLED.search(title) and not ENROLLED_OTHER.search(title):
+        return ("Yes", "resume - degree in progress - name it to the user") if studying else None
+    return None
+
+
+def gpa_option(gpa: float, options: list[str]) -> str | None:
+    """The one option whose range holds the GPA: "3.5 - 3.74", "3.0-3.49", "3.5+", "Below 3.0"."""
+    fits = []
+    for o in options:
+        nums = [float(n) for n in re.findall(r"\d(?:\.\d+)?", o)]
+        low = o.casefold()
+        if len(nums) == 2 and nums[0] <= gpa <= nums[1]:
+            fits.append(o)
+        elif len(nums) == 1 and (("+" in o or "above" in low or "higher" in low or "or more" in low) and gpa >= nums[0]
+                                 or ("below" in low or "under" in low or "less" in low) and gpa < nums[0]
+                                 or abs(gpa - nums[0]) < 1e-9):
+            fits.append(o)
+    return fits[0] if len(fits) == 1 else None
 
 
 def blank(answer) -> bool:
@@ -467,6 +542,9 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
         if q["key"] in EDUCATION:
             answer, source = school_answer(q, schools or [])
             out.append({**q, "answer": answer, "source": source})
+            continue
+        if (said := student_answer(q, schools or [], date.today())) is not None:
+            out.append({**q, "answer": said[0], "source": said[1]})
             continue
         if tag == "work break" and (saved := break_answer(q, breaks or [])):
             out.append({**q, "answer": saved, "source": f"resume - sensitive: {tag} - {READ_FIRST}"})

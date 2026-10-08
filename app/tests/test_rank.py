@@ -335,3 +335,87 @@ def test_posting_says_named_only_when_asked_never_hides_or_sorts():
 def test_posting_says_kinds_match_the_defaults_comment():
     assert set(rank.POSTING_SAYS) == {"faith", "defense"}
     assert cfg.defaults()["rank"]["posting_says"] == []
+
+
+# --- students (plan-students) ---------------------------------------------------------------
+
+def req(*lines):
+    return {"requirements": [{"text": t, "priority": "required"} for t in lines]}
+
+
+def test_internship_tagged_full_time_is_kept_and_not_demoted_for_an_internship_search():
+    # 87 of 300 real internships carry the full_time tag (summer hours), 2026-10-07
+    config = cfg.merge(CONFIG, {"blocklist": {"employment_types": ["full_time", "part_time", "contract"]},
+                                "rank": {"employment_types": ["internship"]}})
+    jobs = [make_job("summer", title="Data Analyst Intern (Summer 2027)", employment_type="full_time"),
+            make_job("coop", title="Engineering Co-op", employment_type="full_time"),
+            make_job("job", title="Data Analyst", employment_type="full_time")]
+    ranked = rank.rank(jobs, config, NOW)
+    assert slugs(ranked) == ["summer", "coop"]
+    assert all("you asked" not in rank.reasons(j, config, NOW) for j in ranked)
+
+
+def test_title_never_hides_a_job_its_tag_keeps():
+    config = cfg.merge(CONFIG, {"blocklist": {"employment_types": ["internship"]}})
+    jobs = [make_job("pm", title="Intern Program Manager", employment_type="full_time"),
+            make_job("intern", title="Audit Intern", employment_type="internship")]
+    assert slugs(rank.rank(jobs, config, NOW)) == ["pm"]
+
+
+def test_mid_level_user_gets_one_doubt_for_an_intern_title_not_two():
+    config = cfg.merge(CONFIG, {"rank": {"career_level": "mid", "employment_types": ["full_time"]}})
+    assert rank.mismatches(make_job("i", title="Finance Interns", employment_type="internship"),
+                           config["rank"]) == ["title below your level"]
+
+
+def test_entry_level_sorts_a_3_plus_years_ask_lower_never_hides_it():
+    config = cfg.merge(CONFIG, {"rank": {"career_level": "entry"}})
+    jobs = [make_job("asks", enrichment=req("5+ years of experience in financial analysis"), **usd(120000)),
+            make_job("fits", enrichment=req("0-2 years of experience; new graduates welcome"), **usd(60000)),
+            make_job("lead", title="Shift Lead", enrichment=req("Customer service skills"), **usd(65000))]
+    ranked = rank.rank(jobs, config, NOW)
+    assert slugs(ranked) == ["lead", "fits", "asks"]
+    assert "asks 5+ years" in rank.reasons(ranked[2], config, NOW)
+    mid = cfg.merge(CONFIG, {"rank": {"career_level": "mid"}})
+    assert slugs(rank.rank(jobs, mid, NOW))[0] == "asks"
+
+
+def test_graduation_window_their_date_misses_sorts_lower_and_says_both(monkeypatch):
+    monkeypatch.setattr(rank, "student_graduation", lambda config, today: "2027-05")
+    jobs = [make_job("later", enrichment=req("Graduating between December 2027 and June 2028"), **usd(90000)),
+            make_job("fits", enrichment=req("Graduating May/June 2027"), **usd(60000))]
+    ranked = rank.rank(jobs, CONFIG, NOW)
+    assert slugs(ranked) == ["fits", "later"]
+    assert "asks graduating Dec 2027 - Jun 2028; yours May 2027" in rank.reasons(ranked[1], CONFIG, NOW)
+
+
+def test_graduation_read_only_while_studying_or_just_after(tmp_path, monkeypatch):
+    import yaml
+    from datetime import date
+    path = tmp_path / "Resume details.yml"
+    config = cfg.merge(CONFIG, {"resume": {"master": str(path)}})
+    monkeypatch.setattr(cfg, "resume_path", lambda c, key: path)
+    base = {"contact": {"name": "A B", "email": "a@b.co", "location": "Columbus, OH"}, "roles": []}
+    today = date(2026, 10, 7)
+    for school, want in (({"end": "2027-05"}, "2027-05"), ({"end": "2025-12"}, "2025-12"),
+                         ({"end": "2019-05"}, None), ({"end": "2027-05", "hide_year": True}, None)):
+        path.write_text(yaml.safe_dump({**base, "education": [{"institution": "State U", "degree": "BS", **school}]}))
+        assert rank.student_graduation(config, today) == want, school
+
+
+def test_hourly_floor_reads_and_says_its_own_unit():
+    assert rank.parse_floor("22/hr") == (45760, "hour")
+    assert rank.parse_floor("$17 an hour") == (35360, "hour")
+    assert rank.parse_floor("60000") == (60000, "year")
+    rc = cfg.merge(CONFIG, {"rank": {"salary_floor_usd": 35360, "salary_floor_unit": "hour"}})["rank"]
+    assert rank.floor_words(rc) == "$17/hr"
+    # a part-time job listing a yearly sum (hours unknown) is never read as under an hourly floor
+    yearly = make_job("pt", title="Part-time Library Assistant", **usd(25000))
+    assert rank.pay_hidden(yearly, rc) is None
+    assert rank.pay_hidden(make_job("hr", title="Barista", **usd(15, 16, "hour")), rc) == "below"
+    assert rank.pay_words(yearly, rc) == "$25k"
+
+
+def test_two_passes_may_fill_one_tier():
+    config = {"passes": [{"tier": "remote"}, {"tier": "remote"}, {"tier": "local"}]}
+    assert cfg.tier_order(config) == ["remote", "local"]

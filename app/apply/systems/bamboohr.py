@@ -298,6 +298,16 @@ def banner_says(page) -> str:
     return said[-1] if said else ""
 
 
+def new_banner(page, before: str) -> str:
+    """Error words other than the earlier banner's, waiting up to ERROR_WAIT_MS for them to draw, or ""."""
+    deadline = time.monotonic() + ERROR_WAIT_MS / 1000
+    while True:
+        said = banner_says(page)
+        if (said and said != before) or time.monotonic() >= deadline:
+            return said if said != before else ""
+        page.wait_for_timeout(250)
+
+
 def block_says(upload) -> tuple[str, bool]:
     """(the upload block's words, still sending = a progress bar in it)."""
     if not upload.count():
@@ -326,7 +336,8 @@ def put_file(page, q: dict, path: str) -> str:
         words, sending = block_says(upload)
         if name in words:
             seen = True
-        elif seen:  # a failed upload leaves the block (Fabric's FileUpload)
+        elif seen:  # a failed upload leaves the block (Fabric's FileUpload); its banner may have come after
+            said = new_banner(page, before)  # the read above - that one was the earlier upload's (plan-k8n.37)
             why = f"the page says '{said}'" if said else "the page took the file back off the box"
             return f"FAIL {why} - choose the file again on the page, or check the {q['title']} box"
         if name not in words or sending:

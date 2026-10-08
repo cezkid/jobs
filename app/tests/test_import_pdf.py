@@ -560,3 +560,66 @@ def test_text_a_box_clips_is_in_the_docx_not_its_pdf():
     pdf = import_pdf.extract(WORD_MADE / "word-resume-clipped.pdf")
     assert "OSHA 30-Hour General Industry, 2021" in docx and "OSHA" not in pdf
     assert words(docx) - words(pdf) == Counter({"osha": 1, "30": 1, "hour": 1, "general": 1, "industry": 1, "2021": 1})
+
+
+STUDENT_SOURCE = """Sam Rivera
+Columbus, OH | sam.rivera@example.com
+EDUCATION
+The Ohio State University
+B.S. Statistics, Dean's List
+Aug 2023 - Expected May 2027
+GPA: 3.62/4.00
+Relevant Coursework: Regression Analysis, Database Systems
+LEADERSHIP & ACTIVITIES
+Black Student Union
+Treasurer    Sep 2024 - Present
+Managed a $12,000 budget for 30 campus events a year
+"""
+
+
+def student_mapped() -> dict:
+    return {
+        "contact": {"name": "Sam Rivera", "email": "sam.rivera@example.com", "phone": None, "location": "Columbus, OH",
+                    "links": []},
+        "summary": None, "roles": [], "skills": [], "certifications": [], "languages": [], "other": [],
+        "projects": [{"name": "Black Student Union", "role": "Treasurer", "section": "LEADERSHIP & ACTIVITIES",
+                      "dates": "Sep 2024 - Present", "bullets": [{
+                          "claim": "Managed a $12,000 budget for 30 campus events a year",
+                          "metrics": ["$12,000", "30 campus events"], "stack": [], "ai_work": False}]}],
+        "education": [{"institution": "The Ohio State University", "degree": "B.S.", "field": "Statistics",
+                       "details": "Dean's List", "start": "Aug 2023", "end": "Expected May 2027", "gpa": "3.62/4.00",
+                       "coursework": ["Regression Analysis", "Database Systems"]}],
+    }
+
+
+def test_student_resume_imports_whole_with_expected_date_gpa_courses_and_club():
+    mapped = student_mapped()
+    assert import_pdf.untraced(mapped, STUDENT_SOURCE) == []
+    ratio, dropped = import_pdf.recovery(mapped, STUDENT_SOURCE)
+    assert ratio >= import_pdf.MIN_RECOVERY and dropped == []
+    master, assumptions = import_pdf.build(mapped, date(2026, 10, 7))
+    assert assumptions == [] and schema.validate(master) == []
+    assert master["education"][0] | {} == {
+        "institution": "The Ohio State University", "degree": "B.S.", "field": "Statistics", "details": "Dean's List",
+        "gpa": "3.62/4.00", "coursework": ["Regression Analysis", "Database Systems"], "start": "2023-08",
+        "end": "2027-05", "expected": True}
+    club = master["projects"][0]
+    assert (club["name"], club["role"], club["section"], club["start"]) == \
+        ("Black Student Union", "Treasurer", "LEADERSHIP & ACTIVITIES", "2024-09")
+
+
+@pytest.mark.parametrize("text, end, expected", [
+    ("Expected May 2027", "2027-05", True), ("May 2027 (expected)", "2027-05", True), ("Class of 2027", "2027", True),
+    ("Class of 2025", "2025", None), ("Expected May 2025", "2025-05", True), ("May 2027", "2027-05", True)])
+def test_graduation_words_parse_and_say_whether_still_studying(text, end, expected):
+    mapped = student_mapped()
+    mapped["education"][0].update(start=None, end=text)
+    master, assumptions = import_pdf.build(mapped, date(2026, 10, 7))
+    school = master["education"][0]
+    assert (school["end"], school.get("expected")) == (end, expected)
+    assert assumptions == []
+
+
+def test_an_answer_without_the_student_fields_still_checks(mapped):
+    import jsonschema
+    jsonschema.validate(mapped, import_pdf.MAPPED_SCHEMA)

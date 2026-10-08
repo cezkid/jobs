@@ -122,6 +122,33 @@ else open. Request fails -> the list's own signals above.
 - **Enrichment tags leak across categories** (2026-09-15). freehire tags `react` onto marketing
   roles => `skills=` search needs `blocklist.categories: [marketing, sales]` locally.
 
+## Internships + early career (2026-10-07, `countries=us`)
+
+- Facets: `employment_type` internship 17,726 of 813,575 rows (~52% untagged); `seniority` intern
+  15,622 (~75% untagged). Titles open: "intern" 7,979, "entry level" 2,728, "summer intern" 2,094,
+  "junior" 1,974, "internship" 1,895, "co-op" 952, "new grad" 539, "early career" 303.
+- 300 newest intern-titled rows: tagged internship 196, full_time 87, part_time 17 => the title
+  decides the type (`rank.title_type`; one way - it keeps a job, never hides one); `seniority`
+  intern on 297. Either tag (`seniority=intern` or `employment_type=internship`, two passes, one
+  tier) covers 199 of 200 "internship", 156 of 171 "summer analyst", 70 of 90 "summer associate",
+  153 of 200 "co-op" titles; "student assistant" / "student worker" (campus jobs) 9 + 18 of 344.
+  Each tag alone misses up to a third. 300 newest `seniority=intern`: 200 intern/co-op titles, the
+  rest trainee, new grad and a few mislabels (AI Engineer II, a Director) - `career_level: entry`
+  sorts those lower.
+- `enrichment.experience_years_min`: on 990 of 1,600 rows (8 categories), 749 >= 3; but 407 of
+  990 have no years line in the required asks, and on early-career titles it reads wild ("Software
+  Engineer - New Grad" 10, "Entry Level Sales Representative" 20, "18+ years old" 7). => a
+  student's years demerit reads the required lines (`knockout.years_asked`: 1,149 reads on 10,360
+  lines, 1 changed by the school-study rule, a true fix), never the tag.
+- Graduation windows on required lines: 92 of 616 unique student required lines (2,268 intern /
+  new grad / entry level / co-op / early career rows); 0 on 11,719 required lines of ordinary
+  postings except 2 real summer-analyst programmes (`knockout.graduation_window`, hand-checked:
+  1 misread - a line the source cut mid-date, now read open-ended). 144 of 308 intern rows state an
+  enrolment or graduation requirement; 133 titles carry the year ("Summer 2027") - the
+  internship's year, not a graduation window, never read as one.
+- Pay on 74 of 308 intern rows (62 hourly, median top $49/hr on this tech-heavy source - never
+  typical); 1 says "unpaid" in its first 1,000 characters.
+
 ## Null facets outside tech (2026-09-19)
 
 Healthcare sample: `seniority` null ~95% of rows, `work_mode` ~85%, `employment_type` ~30%.

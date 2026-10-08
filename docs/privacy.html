@@ -381,7 +381,7 @@ th, td { text-align: left; vertical-align: top; padding: 0.5rem 1rem 0.5rem 0; b
 <div class="page">
   <div class="head">
   <h1>Privacy</h1>
-  <p class="meta">Updated <time datetime="2026-10-06">October 6, 2026</time></p>
+  <p class="meta">Updated <time datetime="2026-10-07">October 7, 2026</time></p>
   </div>
 
   <section class="summary" aria-labelledby="short">
@@ -401,10 +401,10 @@ th, td { text-align: left; vertical-align: top; padding: 0.5rem 1rem 0.5rem 0; b
     </thead>
     <tbody>
       <tr data-claim="privacy-freehire"><th scope="row">freehire.me</th><td>Your search words; the company names on your job list; which job from your list you make a resume for or ask about. Not your resume.</td><td class="when">To find jobs, get the whole posting, or see if it’s still open. Each morning, to find each listed company’s website.</td></tr>
-      <tr data-claim="privacy-ai"><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume, the postings you work on and what you tell it, on your own account – a note you saved about yourself only when it’s used. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application. GitHub Copilot gets the words and screenshots of pages in the CEZ Job Finder window that it opens or you share with it.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</td></tr>
-      <tr data-claim="privacy-employers"><th scope="row">Employers</th><td>What you apply with.</td><td class="when">When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</td></tr>
+      <tr data-claim="privacy-ai"><th scope="row">Your AI (Claude, ChatGPT or GitHub Copilot)</th><td>Your resume, the postings you work on and what you tell it, on your own account – a note you saved about yourself only when it’s used. Claude also gets your Today page’s job titles and companies as a chat opens, and the words and screenshots of pages it reads in your Chrome to fill a Workday application, plus the titles and addresses of your open Chrome tabs. GitHub Copilot gets the words and screenshots of pages in the CEZ Job Finder window that it opens or you share with it. When you ask which jobs you sent, your AI gets what your browser history on this computer shows for those jobs. If you turn on email alerts, the app password you type goes through the chat too.</td><td class="when">While you chat. Personal plans may train on chats unless you <a href="/research/keep-chats-out-of-ai-training/">switch it off</a>.</td></tr>
+      <tr data-claim="privacy-employers"><th scope="row">Employers</th><td>What you apply with.</td><td class="when">When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed; Breezy: the address you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.</td></tr>
       <tr data-claim="privacy-email"><th scope="row">Your email provider</th><td>The morning email, sent to yourself.</td><td class="when">Only if you turn on email alerts.</td></tr>
-      <tr data-claim="privacy-maintainer"><th scope="row">The maintainer</th><td>A fix to the program’s code. Never your files.</td><td class="when">Only if you say yes.</td></tr>
+      <tr data-claim="privacy-maintainer"><th scope="row">The maintainer</th><td>A fix to the program’s code, posted publicly on GitHub under your GitHub account. Never your files.</td><td class="when">Only if you say yes.</td></tr>
     </tbody>
   </table>
   <p>Nothing else from the app leaves your computer.</p>
@@ -413,8 +413,8 @@ th, td { text-align: left; vertical-align: top; padding: 0.5rem 1rem 0.5rem 0; b
   <ul>
     <li><strong>Your AI’s VS Code add-on</strong> follows that company’s privacy policy.</li>
     <li data-claim="vscode-usage-data"><strong>VS Code</strong> (Microsoft) sends usage data by default. If the installer put VS Code on your computer, the app turns that off. On a VS Code you already had: Settings, search “telemetry”.</li>
-    <li data-claim="privacy-hiring-analytics"><strong>Employers’ hiring sites</strong> run their own analytics. JazzHR sends your name, email, phone and town to its analytics company, Gainsight, when you click Submit – for about 1 in 100 applicants.</li>
-    <li><strong>Installing and updating</strong> downloads from GitHub, Microsoft and Astral. They see your IP address.</li>
+    <li data-claim="privacy-hiring-analytics"><strong>Employers’ hiring sites</strong> run their own analytics. JazzHR sends your name, email, phone and town to its analytics company, Gainsight, when you click Submit – for about 1 in 100 applicants, as we read JazzHR’s page script (not measured live).</li>
+    <li><strong>Installing and updating</strong> downloads from GitHub, Microsoft, Astral and the Python Package Index. They see your IP address.</li>
     <li><strong>This site</strong> is hosted by GitHub, which logs visits. We add no cookies, analytics or files from other sites.</li>
   </ul>
 
@@ -425,13 +425,13 @@ th, td { text-align: left; vertical-align: top; padding: 0.5rem 1rem 0.5rem 0; b
   <p data-claim="privacy-claude-copies">Claude also keeps a copy of each chat on your computer, outside the folder, for its chat history. It deletes each one after 30 days.</p>
 
   <h2>Questions</h2>
-  <p><a href="https://github.com/cezkid/jobs/issues">Ask on GitHub</a>. The code is public, so anyone can check this.</p>
+  <p><a href="https://github.com/cezkid/jobs/issues">Ask on GitHub</a>. The code is public, so anyone can check this. The rules for using the app: <a href="/terms.html">Terms</a>.</p>
   </div>
 </div>
 </main>
 <footer>
   <div class="wrap row">
-    <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
+    <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a> · <a href="/terms.html">Terms</a></p>
     <nav aria-label="Footer">
       <a href="/">Home</a>
       <a href="/research/">Research</a>

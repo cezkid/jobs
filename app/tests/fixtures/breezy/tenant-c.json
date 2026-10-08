@@ -1,0 +1,73 @@
+{
+ "build": "angular",
+ "position": {
+  "_id": "posc",
+  "name": "Software Engineer",
+  "friendly_id": "0a1b2c3d4e5f-software-engineer",
+  "application_form": {
+   "name": "required",
+   "headline": "optional",
+   "summary": "optional",
+   "profile_photo": "optional",
+   "address": "hidden",
+   "salary": "hidden",
+   "email_address": "required",
+   "phone_number": "optional",
+   "resume": "optional",
+   "work_history": "optional",
+   "education": "optional",
+   "cover_letter": "optional",
+   "preferred_location": "hidden",
+   "questionnaire_in_experience": true
+  },
+  "locations": [
+   {
+    "name": "Remote, SC",
+    "id": "loc0"
+   }
+  ]
+ },
+ "questions": [
+  {
+   "_id": 3000,
+   "title": "",
+   "questions": [
+    {
+     "_id": "q30000",
+     "text": "Are you a U.S. Citizen?",
+     "body": "<p>Our client requires resume submittals of candidates be U.S. Citizens</p>",
+     "type": {
+      "id": "checkboxes",
+      "name": "Checkboxes"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "YES"
+      },
+      {
+       "text": "NO",
+       "actions": {
+        "add_tags": [
+         {
+          "tag": "auto disqualified"
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "_id": "q30001",
+     "text": "Dual Citizenship",
+     "body": "<p>Do you have Dual Citizenship in another country? If answer is No - Type No, if answer is yes, type yes and the name of the country</p>",
+     "type": {
+      "id": "text",
+      "name": "Text"
+     },
+     "required": true
+    }
+   ]
+  }
+ ]
+}
