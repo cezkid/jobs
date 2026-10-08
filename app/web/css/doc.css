@@ -3,34 +3,37 @@
    card, Sources, On this page, Keep reading. Element rules (h1, p, li ...) live here, not in site.css, so the home
    page's scenes never inherit them. */
 /* main.wrap: .wrap's own padding shorthand would otherwise win and zero the top + bottom */
-main.wrap { padding-top: clamp(24px, 4vh, 48px); padding-bottom: clamp(56px, 9vh, 104px); }
+main.wrap { padding-top: var(--space-m); padding-bottom: var(--space-2xl); }
 /* editorial measure: one column of reading text, never wider than 68ch */
 .page { max-width: 68ch; }
-.crumbs ol { list-style: none; margin: 0 0 20px; padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); color: var(--text-2); }
+.crumbs ol { list-style: none; margin: 0 0 var(--space-s); padding: 0; display: flex; flex-wrap: wrap; font-size: var(--step--1); font-weight: var(--medium); color: var(--text-3); }
 .crumbs li { margin: 0; }
 .crumbs li + li::before { content: "/"; padding: 0 0.5em; }
 /* display scale, like the home page's section heads (>= 72px at 1440 wide); a two-part title's deck on its own line */
-h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: 700; margin: 0 0 20px; }
+h1 { font-size: clamp(2.25rem, 1rem + 4.2vw, 5rem); line-height: 1.08; letter-spacing: -0.015em; font-weight: var(--bold); margin: 0 0 var(--space-s); }
 /* plain pages (privacy, 404: main.plain): a smaller h1 - no display scale for a policy or a missing page */
-.plain h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; margin: 0 0 16px; }
-.deck { display: block; margin-top: 0.3em; font-size: 0.55em; font-weight: 400; line-height: 1.2; letter-spacing: -0.005em; }
+.plain h1 { font-size: clamp(2.25rem, 1.4rem + 2.6vw, 4rem); line-height: 1.04; letter-spacing: -0.012em; margin: 0 0 var(--space-s); }
+.deck { display: block; margin-top: 0.3em; color: var(--text-2); font-size: 0.55em; font-weight: var(--regular); line-height: 1.2; letter-spacing: -0.005em; }
 .list .deck { margin-top: 2px; font-size: 0.8em; }
-h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: 48px 0 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-h3 { font-size: var(--step-1); line-height: 1.3; margin: 32px 0 8px; }
-h2, h3 { scroll-margin-top: 16px; }
+h2 { font-size: clamp(1.5rem, 1.25rem + 0.8vw, 2rem); line-height: 1.2; letter-spacing: -0.005em; margin: var(--space-l) 0 var(--space-xs); padding-top: var(--space-xs); border-top: 1px solid var(--line); }
+h3 { font-size: var(--step-1); line-height: 1.3; margin: var(--space-l) 0 var(--space-2xs); }
+h2, h3 { scroll-margin-top: var(--space-s); }
 /* the answer in a sentence under the h1, then the byline: on a phone the first screen holds the answer + what to do */
-.answer { margin: 0 0 14px; font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem); line-height: 1.35; text-wrap: pretty; }
-.meta { margin: 0 0 32px; color: var(--text-2); font-size: var(--step--1); }
-p { margin: 0 0 16px; }
-ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
-li { margin: 0 0 8px; }
-li::marker { color: var(--text-2); }
+/* weight + tone pairs (owner 2026-10-07: "play with boldness to give different color effects"; Caladea has only 400 +
+   700): the answer regular in the heading's ink, a note's label bold a tone down, small labels (On this page, Keep
+   reading, evidence labels) bold in the quietest tone, the figures + table labels bold in the heading's ink */
+.answer { margin: 0 0 var(--space-xs); color: var(--heading); font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.625rem); line-height: 1.35; text-wrap: pretty; }
+.meta { margin: 0 0 var(--space-m); color: var(--text-2); font-size: var(--step--1); font-weight: var(--medium); }
+p { margin: 0 0 1rem; }
+ul, ol { margin: 0 0 1rem; padding-left: 1.3em; }
+li { margin: 0 0 0.5rem; }
+li::marker { color: var(--text-3); }
 /* real italics: the Caladea Italic face, never a slanted roman */
 i, em, cite { font-style: italic; font-synthesis: none; }
-strong, b { font-weight: 700; }
-blockquote { margin: 24px 0; padding-left: 20px; border-left: 3px solid var(--heavy); font-size: var(--step-1); line-height: 1.45; }
-code { font-family: var(--mono); font-size: 0.85em; }
-pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
+strong, b { font-weight: var(--semibold); }
+blockquote { margin: var(--space-m) 0; padding-left: var(--space-s); border-left: 3px solid var(--heavy); font-size: var(--step-1); line-height: 1.45; }
+code { font-family: var(--mono); font-size: max(0.85em, 1rem); color: var(--heading); }
+pre { overflow-x: auto; padding: var(--space-xs) var(--space-s); border: 1px solid var(--line); }
 /* notes at the top (boxes(): a bold label + its list; "More in What helps" closes the first) = two objects on the
    desk: the first a sticky note ("What to do", a data page's "Short answer"), the next a memo card (raised paper).
    One rounded card each, label + list + link as its parts; in dark the faces dim, the sticky keeps its yellow on
@@ -39,12 +42,13 @@ pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
 .box:not(.box ~ .box), .box:not(.box ~ .box) + .box-list, .box:not(.box ~ .box) + .box-list + .box-more {
   --note: var(--sticky); --note-edge: var(--sticky-edge);
 }
-.box { margin: 0; padding: 18px 24px 2px; border-top: 3px solid var(--note-edge); border-radius: var(--radius) var(--radius) 0 0; font-size: var(--step-1); }
-.box-list { margin: 0 0 32px; padding: 8px 24px 20px calc(24px + 1.3em); border-radius: 0 0 var(--radius) var(--radius); }
+.box strong { color: var(--text-2); }
+.box { margin: 0; padding: var(--space-s) var(--space-m) 2px; border-top: 3px solid var(--note-edge); border-radius: var(--radius) var(--radius) 0 0; font-size: var(--step-1); }
+.box-list { margin: 0 0 var(--space-m); padding: var(--space-2xs) var(--space-m) var(--space-s) calc(var(--space-m) + 1.3em); border-radius: 0 0 var(--radius) var(--radius); }
 .box-list li::marker { color: currentColor; }
-.box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: 6px; border-radius: 0; }
+.box-list:has(+ .box-more) { margin-bottom: 0; padding-bottom: var(--space-3xs); border-radius: 0; }
 /* the link a 46px tap box (qa HIT_BOXES); negative margins keep the line where it was */
-.box-more { margin: 0 0 32px; padding: 0 24px 18px; border-radius: 0 0 var(--radius) var(--radius); font-size: var(--step--1); }
+.box-more { margin: 0 0 var(--space-m); padding: 0 var(--space-m) var(--space-s); border-radius: 0 0 var(--radius) var(--radius); font-size: var(--step--1); font-weight: var(--medium); }
 .box-more a { display: inline-block; padding: 12px 0; margin: -12px 0; }
 @media (forced-colors: active) { .box { border: 1px solid CanvasText; border-bottom: 0; } .box-list, .box-more { border: 1px solid CanvasText; border-top: 0; } .box-list:has(+ .box-more) { border-bottom: 0; } }
 /* On this page right under a note: no hairline of its own; the heading after a note (On this page hidden or
@@ -53,55 +57,56 @@ pre { overflow-x: auto; padding: 12px 16px; border: 1px solid var(--line); }
 :is(.box-list, .box-more) + h2 { padding-top: 0; border-top: 0; }
 /* citations: the (label; Author year) parenthetical small + grey, so a skimming eye lands on the findings, not
    on names (linked words draw it); still links - a tap opens the source card (CITE_JS) */
-small { font-size: 0.85em; color: var(--text-2); }
+small { font-size: max(0.85em, var(--step--1)); font-weight: var(--medium); color: var(--text-3); }
 /* source card (CITE_JS): one Sources entry over the page, centred - an index card: a raised card, its label
-   over a pen-blue head rule (forced colours: a plain frame) */
+   over a thick head rule (forced colours: a plain frame) */
 .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 0; border-radius: var(--radius); background: var(--raised); color: var(--text); }
 @media (forced-colors: active) { .card { border: 2px solid CanvasText; } }
 .card::backdrop { background: rgb(0 0 0 / 0.45); }
-.card > div { padding: 18px 22px; font-size: var(--step--1); line-height: 1.5; overflow-wrap: anywhere; }
-.card .evidence { display: block; font-weight: 700; color: var(--text-2); padding-bottom: 8px; margin-bottom: 10px; border-bottom: 2px solid var(--pen); }
-.card p { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 14px 0 0; }
-.card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: 700; color: var(--text); background: none; border: 2px solid var(--text); border-radius: 6px; cursor: pointer; }
+.card > div { padding: var(--space-s) var(--space-m); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; overflow-wrap: anywhere; }
+.card .evidence { display: block; font-weight: var(--semibold); color: var(--text-3); padding-bottom: var(--space-2xs); margin-bottom: var(--space-2xs); border-bottom: 2px solid var(--heavy); }
+.card p { display: flex; align-items: center; justify-content: space-between; gap: var(--space-s); margin: var(--space-xs) 0 0; }
+.card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: var(--semibold); color: var(--heading); background: none; border: 2px solid var(--heading); border-radius: 6px; cursor: pointer; }
 /* tables: lining, tabular figures so columns of numbers line up */
-.table { overflow-x: auto; margin: 24px 0; }
-table { border-collapse: collapse; font-size: var(--step--1); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
+.table { overflow-x: auto; margin: var(--space-m) 0; }
+table { border-collapse: collapse; font-size: var(--step--1); font-weight: var(--medium); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
 thead th { border-bottom: 2px solid var(--heavy); }
-th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-bottom: 1px solid var(--line); }
+th, td { text-align: left; vertical-align: top; padding: 0.5rem 1rem 0.5rem 0; border-bottom: 1px solid var(--line); }
 /* a table right before a heading: the heading's rule closes it (two hairlines 49px apart read as a double rule) */
 :is(.table, .bars):has(+ h2) tbody > tr:last-child > * { border-bottom: 0; }
 /* evidence labels (methods table): the label column set bold, kept on one line where it fits */
-.table td:first-child { font-weight: 700; }
+.table td:first-child { font-weight: var(--semibold); color: var(--heading); }
 /* bar figures (A15): caption over a two-column table, a highlighter bar from zero under each value - the app's
    yellow marks the number (a border, so print + forced colours paint it; ink there); no motion */
-.bars { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--heavy); }
-.bars figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+.bars { margin: var(--space-l) 0; padding-top: var(--space-2xs); border-top: 2px solid var(--heavy); }
+.bars figcaption { margin: 0 0 0.25rem; color: var(--text-2); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.45; }
 .bars table { width: 100%; }
-.bars tbody th { width: 42%; font-weight: 400; }
-.bars td { font-weight: 700; }
+.bars tbody th { width: 42%; font-weight: var(--regular); }
+.bars td { font-weight: var(--semibold); color: var(--heading); }
 .bars .bar { display: block; height: 0; min-width: 2px; margin: 6px 0 2px; border-top: 10px solid var(--mark); border-radius: 2px; }
 @media print { .bars .bar { border-top-color: var(--ink); } }
 @media (forced-colors: active) { .bars .bar { border-top-color: CanvasText; } }
 /* Sources: hanging numbers in tabular lining figures, smaller set, hairline between entries */
-#sources { margin-top: 64px; border-top: 3px solid var(--heavy); }
-.sources { list-style: none; padding: 0; counter-reset: src; font-size: var(--step--1); line-height: 1.5; }
-.sources li { position: relative; margin: 0; padding: 10px 0 10px 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: 16px; }
-.sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-2); }
-.sources li:target { outline: 2px solid var(--text); outline-offset: 2px; }
-.sources a { text-decoration-color: var(--text-2); }
-.sources .evidence { display: block; font-size: 0.8em; font-weight: 700; color: var(--text-2); }
+#sources { margin-top: var(--space-2xl); border-top: 3px solid var(--heavy); }
+.sources { list-style: none; padding: 0; counter-reset: src; color: var(--text-2); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; }
+.sources li { position: relative; margin: 0; padding: 0.625rem 0 0.625rem 2.6em; border-bottom: 1px solid var(--line); counter-increment: src; overflow-wrap: anywhere; scroll-margin-top: var(--space-s); }
+.sources li::before { content: counter(src) "."; position: absolute; left: 0; width: 2em; text-align: right; font-variant-numeric: lining-nums tabular-nums; color: var(--text-3); }
+.sources li:target { outline: 2px solid var(--heading); outline-offset: 2px; }
+.sources .evidence { display: block; font-size: var(--step--1); font-weight: var(--semibold); color: var(--text-3); }
 /* an entry's links on their own row, apart (HIG: spacing matters as much as size) */
-.src-links { display: flex; flex-wrap: wrap; gap: 0 28px; }
+.src-links { display: flex; flex-wrap: wrap; gap: 0 var(--space-m); }
 /* On this page below 1280px: a closed list after the notes at the top, a hairline over it (none right under a note) */
-.toc-mini details { margin: 0 0 24px; border-top: 1px solid var(--line); }
-.toc-mini summary { padding: 10px 40px 10px 0; font-weight: 700; }
-.toc-mini ol { margin: 0; padding: 0 0 12px 1.3em; font-size: var(--step--1); line-height: 1.5; }
+.toc-mini details { margin: 0 0 var(--space-m); border-top: 1px solid var(--line); }
+.toc-mini summary { padding: 0.625rem 40px 0.625rem 0; font-weight: var(--semibold); }
+.toc-mini ol { margin: 0; padding: 0 0 var(--space-xs) 1.3em; font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; }
 .toc-mini li { margin: 0; }
-.toc-mini a { display: block; padding: 5px 0; text-decoration-line: none; }
+.toc-mini a { display: block; padding: 0.3125rem 0; text-decoration-line: none; }
 /* On this page: plain rows (a list of links in a nav says "link" by itself; 15 underlines read as noise), the
-   pointer's row underlined; the section in view (TOC_JS marks it): bold, a pen stroke under it; no JS = none */
-@media (hover: hover) { :is(.toc, .toc-mini) a:hover { text-decoration-line: underline; text-decoration-color: var(--pen); } }
-:is(.toc, .toc-mini) a[aria-current] { font-weight: 700; text-decoration: underline 3px var(--pen); text-underline-offset: 0.2em; }
+   pointer's row underlined; the section in view (TOC_JS marks it): bold, a 3px underline; no JS = none */
+/* the rows a tone under the page's links, the pointer's row + the section in view in the heading's ink */
+:is(.toc, .toc-mini) ol a { color: var(--text-2); }
+@media (hover: hover) { :is(.toc, .toc-mini) a:hover { color: var(--heading); text-decoration-line: underline; } }
+:is(.toc, .toc-mini) a[aria-current] { color: var(--heading); font-weight: var(--bold); text-decoration: underline 3px; text-underline-offset: 0.2em; }
 /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
 @media (pointer: coarse) {
   .toc-mini a { padding-block: 12px; margin-block: 0; }
@@ -109,23 +114,23 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   :is(.src-links, .card p) a { padding: calc((45px - 1lh) / 2) 12px; margin: calc((1lh - 45px) / 2) -12px; }
 }
 /* Keep reading: the article's way on, under a thick rule like Sources */
-.more { margin-top: 64px; padding-top: 12px; border-top: 3px solid var(--heavy); }
-.more > p:first-child { margin: 0 0 4px; font-weight: 700; }
-.more ul { list-style: none; margin: 0 0 16px; padding: 0; }
-.more li:has(> p) { margin-top: 30px; }
-.more li:not(:has(> p)) { margin: 20px 0 0; }
-.more p { margin: 0 0 8px; }
-.more li p { margin: 2px 0 4px; color: var(--text-2); font-size: var(--step--1); line-height: 1.45; }
+.more { margin-top: var(--space-2xl); padding-top: var(--space-xs); border-top: 3px solid var(--heavy); }
+.more > p:first-child { margin: 0 0 0.25rem; font-weight: var(--semibold); color: var(--text-3); }
+.more ul { list-style: none; margin: 0 0 var(--space-s); padding: 0; }
+.more li:has(> p) { margin: var(--space-m) 0 0; }
+.more li:not(:has(> p)) { margin: var(--space-s) 0 0; }
+.more p { margin: 0 0 0.5rem; }
+.more li p { margin: 0.125rem 0 0.25rem; color: var(--text-2); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.45; }
 /* an article's own share card, small, left of its link; the whole row is the link's hit box (::after) */
-.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: 16px; align-items: start; }
+.more li.thumb { position: relative; display: grid; grid-template-columns: 120px minmax(0, 1fr); column-gap: var(--space-s); align-items: start; }
 /* framed by a shadow, not a border: a border over 100px wide reads as a rule (qa RULES_STACKED) */
 .more li.thumb img { grid-row: 1 / span 2; width: 120px; height: auto; box-shadow: 0 0 0 1px var(--line); }
 .more li.thumb > a::after { content: ""; position: absolute; inset: 0; }
 /* On this page: a second column on wide screens (sticky, the article's h2s); hidden below 1280px */
 .toc, .labels { display: none; }
-.labels dl { margin: 0 0 12px; }
-.labels dt { font-weight: 700; padding-top: 8px; border-top: 1px solid var(--line); }
-.labels dd { margin: 0 0 8px; color: var(--text-2); }
+.labels dl { margin: 0 0 var(--space-xs); }
+.labels dt { font-weight: var(--semibold); padding-top: var(--space-2xs); border-top: 1px solid var(--line); }
+.labels dd { margin: 0 0 var(--space-2xs); color: var(--text-2); }
 .labels p { margin: 0; }
 @media (min-width: 1280px) {
   main.wrap:has(> .toc), main.wrap:has(> .side) { display: grid; grid-template-columns: minmax(0, 68ch) minmax(0, 1fr); column-gap: var(--gutter); align-items: start; }
@@ -134,17 +139,17 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   main.wrap > .side { grid-column: 2; grid-row: 1 / span 2; justify-self: end; width: min(100%, 36rem); margin-top: 2.5rem; }
   .side > h2:first-child { margin-top: 0; }
   /* hub: the labels stay beside the list as it scrolls, like an article's On this page */
-  .labels { display: block; position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; font-size: var(--step--1); line-height: 1.5; }
-  .labels > h2 { margin: 0; padding: 0 0 8px; border-top: 0; border-bottom: 2px solid var(--heavy); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
-  .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; }
-  .labels dt, .labels dd { margin: 0; padding: 7px 0; border-top: 1px solid var(--line); }
+  .labels { display: block; position: sticky; top: var(--space-m); max-height: calc(100vh - 2 * var(--space-m)); overflow-y: auto; font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; }
+  .labels > h2 { margin: 0; padding: 0 0 var(--space-2xs); border-top: 0; border-bottom: 2px solid var(--heavy); font-size: var(--step-0); line-height: 1.5; letter-spacing: normal; }
+  .labels dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: var(--space-s); }
+  .labels dt, .labels dd { margin: 0; padding: 0.4375rem 0; border-top: 1px solid var(--line); }
   .labels dt:first-of-type, .labels dd:first-of-type { border-top: 0; }
   main.wrap > .list { grid-column: 1; grid-row: 2; }
   /* hub (A16): the method lines beside the h1, the labels beside the list, the articles as 2-column clippings,
      so 4 titles show in a 1440x900 first screen */
-  main.wrap > .intro { grid-row: 1; align-self: start; padding-top: 12px; border-top: 2px solid var(--heavy); font-size: var(--step--1); line-height: 1.5; }
+  main.wrap > .intro { grid-row: 1; align-self: start; padding-top: var(--space-xs); border-top: 2px solid var(--heavy); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; }
   .intro p:last-child { margin-bottom: 0; }
-  main.wrap > .intro ~ .labels { grid-row: 2; margin-top: 32px; }
+  main.wrap > .intro ~ .labels { grid-row: 2; margin-top: var(--space-l); }
   main.wrap:has(> .intro) > .list { display: grid; grid-template-columns: 1fr 1fr; column-gap: var(--gutter); }
   .toc-mini { display: none; }
   /* On this page hidden: the first heading sits right under a note's rule, the next note's rule closes the first */
@@ -152,13 +157,14 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .toc {
     /* beside the text, one gutter from it (A3): pushed to the window's edge it sat ~300px off at 1440 */
     display: block; grid-column: 2; grid-row: 1; justify-self: start; align-self: start; width: min(100%, 20rem);
-    position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto;
-    margin-top: 2.5rem; font-size: var(--step--1); line-height: 1.5;
+    position: sticky; top: var(--space-m); max-height: calc(100vh - 2 * var(--space-m)); overflow-y: auto;
+    /* 16px medium (APCA Lc 75 at 500; the rows' grey is 81): at 17px the longest list hid 95px at 1440x900 */
+    margin-top: 2.5rem; font-size: 1rem; font-weight: var(--medium); line-height: 1.3;
   }
-  .toc p { margin: 0; padding-bottom: 8px; font-weight: 700; border-bottom: 2px solid var(--heavy); }
+  .toc p { margin: 0; padding-bottom: var(--space-2xs); font-weight: var(--semibold); color: var(--text-3); border-bottom: 2px solid var(--heavy); }
   .toc ol { list-style: none; margin: 0; padding: 0; }
   .toc li { margin: 0; border-bottom: 1px solid var(--line); }
-  .toc a { display: block; padding: 8px 0 9px; text-decoration-line: none; }
+  .toc a { display: block; padding: 6px 0 7px; text-decoration-line: none; }
 }
 /* short windows (laptops: 1366x641, 1280x720): On this page rows tighten so the longest list fits (18 rows
    at 30px; at 32px the 18th hid 25px + its link took no hover), a list of 19+ scrolls with the page, and so
@@ -169,29 +175,28 @@ th, td { text-align: left; vertical-align: top; padding: 8px 16px 8px 0; border-
   .labels { position: static; max-height: none; overflow: visible; }
 }
 /* wide touch screens (iPad): real 44px rows (the shared rule's margin overprinted them); short ones scroll */
-@media (min-width: 1280px) and (pointer: coarse) { .toc a { padding-block: 11px; margin-block: 0; } }
+@media (min-width: 1280px) and (pointer: coarse) { .toc a { padding-block: calc((45px - 1lh) / 2); margin-block: 0; } }
 @media (min-width: 1280px) and (max-height: 819px) and (pointer: coarse) {
   .toc { position: static; max-height: none; overflow: visible; }
 }
-/* hub: each article a manila folder (site.css), like the home page's research picks */
-.list { list-style: none; margin: 8px 0 0; padding: 0; }
+/* hub: each article a ruled entry (site.css), like the home page's research picks */
+.list { list-style: none; margin: var(--space-2xs) 0 0; padding: 0; }
+.list > li { margin: var(--space-m) 0 0; }
 /* each title a heading for screen readers, set like the clipping it was (no h2 rule, size or spacing) */
 .list h2 { margin: 0; padding: 0; border: 0; font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); line-height: 1.2; letter-spacing: normal; text-wrap: pretty; }
-.list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: 700; line-height: 1.2; }
-.list p { margin: 6px 0 0; color: var(--text-2); }
-.list .date { margin-top: 4px; }
+.list a { font-size: clamp(1.375rem, 1.2rem + 0.7vw, 1.75rem); font-weight: var(--semibold); line-height: 1.2; }
+.list p { margin: 0.375rem 0 0; color: var(--text-2); }
+.list .date { margin-top: 0.25rem; }
 /* hub: the method lines after the list (beside the h1 on wide screens) */
-.intro { margin-top: 32px; font-size: var(--step--1); line-height: 1.5; }
-.date { color: var(--text-2); font-size: var(--step--1); }
+.intro { margin-top: var(--space-l); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; }
+.date { color: var(--text-3); font-size: var(--step--1); font-weight: var(--medium); }
 @media (max-width: 600px) {
-  main.wrap { padding-top: 22px; }
   /* phones: the notes reach 10px into the side margin, so their text keeps nearly the column's width (a 24px
      inset each side re-wrapped a data page's Short answer 96px taller, qa TOC_NARROW) */
   .box, .box-list, .box-more { margin-inline: -10px; }
-  .box { padding: 14px 16px 0; }
-  .box-list { padding: 6px 16px 14px calc(16px + 1.2em); }
-  .box-more { padding: 0 16px 14px; }
-  h2 { margin-top: 36px; }
+  .box { padding: var(--space-xs) var(--space-s) 0; }
+  .box-list { padding: var(--space-3xs) var(--space-s) var(--space-xs) calc(var(--space-s) + 1.2em); }
+  .box-more { padding: 0 var(--space-s) var(--space-xs); }
   .sources li { padding-left: 2.2em; }
   .sources li::before { width: 1.7em; }
   /* an article's current crumb repeats the h1 just below: hidden (screen readers keep it) so the crumbs fit one line */

@@ -661,12 +661,12 @@ def test_home_resume_scene_shows_the_correction_as_del_and_ins():
 
 def test_copy_is_the_only_filled_yellow_control_on_home():
     # the highlighter marks words; one filled yellow control (Copy) says "press this" - the illustrated
-    # Submit stays a pen sketch, never filled (A21), so a juror never takes it for a working button
+    # Submit stays an ink sketch, never filled (A21), so a juror never takes it for a working button
     raw = (DOCS / "index.html").read_text(encoding="utf-8")
     css = raw[raw.index("<style>"):raw.index("</style>")]
     assert yellow_fills(css) == ["#copy"]
     submit = re.search(r"\n  \.submit \{([^}]*)\}", css)
-    assert submit and "background: none" in submit.group(1) and "border: 2px solid var(--pen)" in submit.group(1)
+    assert submit and "background: none" in submit.group(1) and "border: 2px solid var(--heading)" in submit.group(1)
 
 
 def test_yellow_fill_check_trips_on_a_second_filled_control():
@@ -772,10 +772,9 @@ def test_site_md_tokens_table_is_the_shared_root():
 
 PAGE = """<!doctype html><html lang="en"><head><title>x</title>{head}<style>
   /* shared */
-  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; --desk: #ffffff; --text: #000000; --line: #c8c8c8; --pen: #2a51b8; --pen-text: var(--pen); --pen-paper: #23459d; --raised: #ffffff; --sticky: #fbf1ae; --folder: #eedcb9; --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule); --text-2: #3a3a3a; }}
-  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1a1712; --text: #eae6dd; --text-2: #d7d0c6; --line: #5f5a52; --paper: #ebe8e2; --pen: #81b4f6; --pen-text: #afd1fc; --raised: #23201c; --sticky: #252317; --folder: #282217; --win: var(--raised); --win-ink: var(--text); --win-ink-2: #d4cfc5; --win-rule: #6a645b; }} }}
-  @media (prefers-contrast: more) {{ :root {{ --text-2: var(--text); --line: #767676; --pen: #1f3c9c; --pen-text: var(--pen); }} }}
-  @media (prefers-contrast: more) and (prefers-color-scheme: dark) {{ :root {{ --pen: #a9cdfb; --pen-text: #cfe2fd; }} }}
+  :root {{ --paper: #ffffff; --ink: #000000; --ink-2: #3a3a3a; --mark: #ffe433; --rule: #c8c8c8; --desk: #ffffff; --heading: #1d1a15; --text: #3a3631; --text-3: #59564f; --line: #c8c8c8; --raised: #ffffff; --sticky: #fbf1ae; --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule); --text-2: #4d4943; }}
+  @media (prefers-color-scheme: dark) {{ :root {{ --desk: #1a1712; --heading: #f4f0e8; --text: #e3e0d8; --text-2: #dcd9d1; --text-3: #d4d1c9; --line: #5f5a52; --paper: #ebe8e2; --raised: #23201c; --sticky: #252317; --win: var(--raised); --win-ink: var(--text); --win-ink-2: #d4cfc5; --win-rule: #6a645b; }} }}
+  @media (prefers-contrast: more) {{ :root {{ --text: var(--heading); --text-2: var(--text); --text-3: var(--text); --line: #767676; }} }}
   :focus-visible {{ outline: 3px solid var(--text); box-shadow: 0 0 0 3px var(--desk); }}
   ::selection {{ background: var(--text); color: var(--desk); }}
   .window ::selection {{ background: var(--win-ink); color: var(--win); }}
@@ -842,10 +841,13 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
 
 
 @pytest.mark.parametrize("old, new, trips", [
-    ("--text-2: #3a3a3a; }}", "--text-2: #999999; }}", "light: --text-2 on --desk"),
-    ("--text-2: #d7d0c6;", "--text-2: #555555;", "dark: --text-2 on --desk"),
+    ("--text-2: #4d4943; }}", "--text-2: #999999; }}", "light: --text-2 on --desk"),
+    ("--text-2: #dcd9d1;", "--text-2: #555555;", "dark: --text-2 on --desk"),
     # passes WCAG 2 (8.6:1), reads weak: a warm grey the APCA check stops (Lc 61)
-    ("--text-2: #d7d0c6;", "--text-2: #bab3a8;", "dark: text --text-2 on --desk APCA"),
+    ("--text-2: #dcd9d1;", "--text-2: #bab3a8;", "dark: text --text-2 on --desk APCA"),
+    # the quietest tone: under WCAG's 4.5:1 in light; in dark 8.9:1 passes WCAG but reads dim at 17px (Lc 62)
+    ("--text-3: #59564f;", "--text-3: #8a857e;", "light: --text-3 on --desk"),
+    ("--text-3: #d4d1c9;", "--text-3: #bab7b0;", "dark: quiet text --text-3 on --desk APCA"),
     ("--line: #5f5a52;", "--line: #49443d;", "dark: hairline --line on --desk APCA"),
     ("--rule: #c8c8c8;", "--rule: #f4f4f4;", "light: hairline --rule on --paper APCA"),
     ("--mark: #ffe433;", "--mark: #333333;", "--ink on --mark"),
@@ -860,26 +862,19 @@ def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
      "light: selection on the sheet .proof"),
     ("background: var(--win-ink); color: var(--win)", "background: #3a3a3c; color: var(--win-ink)",
      "dark: selection on the sheet .window"),
-    # the blue pen: its stroke on the desk (a pale blue on white), its dark-mode ink (the light-mode blue on the
-    # dark desk), its ink on a sheet; the objects' faces under their text
-    ("--pen: #2a51b8;", "--pen: #c9daf8;", "light: --pen on --desk"),
-    ("--pen-text: #afd1fc;", "--pen-text: #2a51b8;", "dark: --pen-text on --desk"),
-    ("--pen-paper: #23459d;", "--pen-paper: #8fa8e0;", "light: --pen-paper on --paper"),
+    # the objects' faces under their text
     ("--sticky: #252317;", "--sticky: #8a8460;", "dark: --text on --sticky"),
-    ("--folder: #eedcb9;", "--folder: #5a4a30;", "light: --text on --folder"),
     # the hero window, raised in dark mode
     ("--win-ink-2: #d4cfc5;", "--win-ink-2: #555555;", "dark: --win-ink-2 on --win"),
     ("--win-rule: #6a645b;", "--win-rule: #333335;", "dark: hairline --win-rule on --win APCA"),
     # Increase Contrast: grey left grey, a faint hairline, the tint not deepened, the block gone
-    ("--text-2: var(--text);", "--text-2: #3a3a3a;", "light more: --text-2 is not --text"),
+    ("--text-2: var(--text);", "--text-2: #3a3a3a;", "light more: --text-2 is not --heading"),
     ("--line: #767676;", "--line: #c8c8c8;", "light more: --line on --desk"),
-    ("--pen: #1f3c9c;", "--pen: #3a65b8;", "light more: --pen-text on --desk"),
-    ("--pen-text: #cfe2fd;", "--pen-text: #4a7fd0;", "dark more: --pen-text on --desk"),
     ("@media (prefers-contrast: more) {", "@media (prefers-contrast: less) {", "no @media (prefers-contrast: more)"),
-], ids=["text-light", "text-dark", "text-dark-apca", "line-dark-apca", "rule-light-apca", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
+], ids=["text-light", "text-dark", "text-dark-apca", "quiet-light", "quiet-dark-apca", "line-dark-apca", "rule-light-apca", "mark", "ring-on-sheet-dark", "no-ring", "no-selection", "selection-yellow",
         "selection-faint", "selection-on-sheet-gone", "selection-on-sheet-faint", "selection-on-window-faint",
-        "pen-light", "pen-text-dark", "pen-paper-light", "sticky-dark", "folder-light", "window-text-dark",
-        "window-rule-dark", "more-text-2", "more-line", "more-pen-light", "more-pen-dark", "more-block-gone"])
+        "sticky-dark", "window-text-dark",
+        "window-rule-dark", "more-text-2", "more-line", "more-block-gone"])
 def test_each_contrast_rule_trips_on_its_fixture(tmp_path, old, new, trips):
     template = PAGE.format(**dict.fromkeys(("head", "css", "header", "body", "footer", "scripts"), ""))
     old, new = old.replace("}}", "}"), new.replace("}}", "}")
@@ -894,4 +889,4 @@ def test_token_table_check_trips_on_a_stale_row():
                    for k, v in tokens(css)["light"].items())
     table = "| Token | Light | Dark | Use |\n|---|---|---|---|\n" + rows
     assert token_table(table) == tokens(css)
-    assert token_table(table.replace("`#3a3a3a` | `#d7d0c6`", "`#3a3a3a` | same", 1)) != tokens(css)
+    assert token_table(table.replace("`#4d4943` | `#dcd9d1`", "`#4d4943` | same", 1)) != tokens(css)

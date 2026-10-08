@@ -1277,38 +1277,38 @@ def restyle(root: Path, text: str) -> str:
 CASE_CSS = """
   /* your-case figure (```case): caption over a 3-column table, the row's label bold; every row shown. Phone: each
      row stacks, its finding + what to do under their column names (the thead stays for screen readers) */
-  .case { margin: 32px 0; padding-top: 10px; border-top: 2px solid var(--heavy); }
-  .case figcaption { margin: 0 0 4px; font-size: var(--step--1); line-height: 1.45; }
+  .case { margin: var(--space-l) 0; padding-top: var(--space-2xs); border-top: 2px solid var(--heavy); }
+  .case figcaption { margin: 0 0 0.25rem; color: var(--text-2); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.45; }
   .case table { width: 100%; }
-  .case tbody th { font-weight: 700; }
+  .case tbody th { font-weight: var(--semibold); }
   @media (max-width: 600px) {
     .case thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-    .case tbody tr { display: block; padding: 10px 0; border-bottom: 1px solid var(--line); }
-    .case tbody th, .case tbody td { display: block; padding: 0 0 6px; border: 0; }
-    .case td::before { content: attr(data-label); display: block; color: var(--text-2); font-size: 0.9em; }
+    .case tbody tr { display: block; padding: 0.625rem 0; border-bottom: 1px solid var(--line); }
+    .case tbody th, .case tbody td { display: block; padding: 0 0 0.375rem; border: 0; }
+    .case td::before { content: attr(data-label); display: block; color: var(--text-3); font-size: var(--step--1); font-weight: var(--medium); }
   }
 """
 GUESS_CSS = """
   /* guess first (```guess): a ruled note - the question, its choices (buttons once GUESS_JS runs), the answer
      in a closed details under them */
-  .guess { margin: 32px 0; padding: 12px 0 4px; border-top: 2px solid var(--heavy); border-bottom: 1px solid var(--line); }
-  .guess::before { content: "Guess first"; display: block; font-size: var(--step--1); font-weight: 700; color: var(--text-2); }
-  .guess-q { margin: 4px 0 10px; font-size: var(--step-1); line-height: 1.35; }
-  .guess ul { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 6px; padding: 0; }
+  .guess { margin: var(--space-l) 0; padding: var(--space-xs) 0 var(--space-3xs); border-top: 2px solid var(--heavy); border-bottom: 1px solid var(--line); }
+  .guess::before { content: "Guess first"; display: block; font-size: var(--step--1); font-weight: var(--semibold); color: var(--text-3); }
+  .guess-q { margin: 0.25rem 0 0.625rem; font-size: var(--step-1); line-height: 1.35; }
+  .guess ul { list-style: none; display: flex; flex-wrap: wrap; gap: var(--space-2xs); margin: 0 0 0.375rem; padding: 0; }
   .guess li { margin: 0; padding: 8px 14px; box-shadow: inset 0 0 0 1px var(--line); border-radius: 6px; }
   .guess li:has(button) { padding: 0; box-shadow: none; }
   /* outlined by an inset shadow, not a border: stacked on a phone, wide borders read as rules (qa RULES_STACKED);
      forced colours drop shadows, so the border comes back there */
-  .guess button { min-height: 44px; padding: 8px 16px; font: inherit; color: var(--text); background: var(--desk); border: 0; box-shadow: inset 0 0 0 2px var(--text); border-radius: 6px; cursor: pointer; }
+  .guess button { min-height: 44px; padding: 8px 16px; font: inherit; color: var(--heading); background: var(--desk); border: 0; box-shadow: inset 0 0 0 2px var(--heading); border-radius: 6px; cursor: pointer; }
   @media (forced-colors: active) { .guess button { border: 2px solid ButtonText; } }
-  .guess button[aria-pressed="true"] { color: var(--desk); background: var(--pen); box-shadow: inset 0 0 0 2px var(--pen); }
-  .guess summary { padding: 11px 0; font-weight: 700; cursor: pointer; }
-  .guess details p { margin: 0 0 12px; }
+  .guess button[aria-pressed="true"] { color: var(--desk); background: var(--heading); box-shadow: inset 0 0 0 2px var(--heading); }
+  .guess summary { padding: 11px 0; font-weight: var(--semibold); cursor: pointer; }
+  .guess details p { margin: 0 0 0.75rem; }
 """
 SURE_CSS = """
   /* How sure is this? (```sure): method + caveats folded under the section's answer, a quiet rule at its left */
-  .sure { margin: 0 0 16px; padding-left: 14px; border-left: 3px solid var(--line); font-size: var(--step--1); line-height: 1.5; }
-  .sure summary { padding: 11px 0; font-weight: 700; color: var(--text-2); cursor: pointer; }
+  .sure { margin: 0 0 1rem; padding-left: var(--space-xs); border-left: 3px solid var(--line); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; }
+  .sure summary { padding: 11px 0; font-weight: var(--semibold); color: var(--text-2); cursor: pointer; }
   .sure[open] { padding-bottom: 4px; }
 """
 BLOCK_CSS = {'<figure class="case">': CASE_CSS, '<div class="guess">': GUESS_CSS, '<details class="sure">': SURE_CSS}
