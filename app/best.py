@@ -169,9 +169,25 @@ def demerits(job: dict, config: dict) -> int:
             + (bool(rank.clearance(job)) and rank.can_hold_clearance(config) is False))
 
 
+def windows(jobs: list[dict], now: datetime, steps: list[int], enough: int) -> dict[str, int]:
+    """Freshest first (owner 2026-10-08: "start with 1 day and if not keep expanding"): jobs
+    posted within steps[0] days are one group; fewer than `enough` there => the window widens
+    to the next step until it holds enough, then the next group starts. Slug -> group number;
+    age unknown => last group."""
+    ages = {j["public_slug"]: posted_days(j, now) for j in jobs}
+    group, size, out = 0, 0, {}
+    for step in steps:
+        for slug, days in ages.items():
+            if slug not in out and days is not None and days <= step:
+                out[slug], size = group, size + 1
+        if size >= enough:
+            group, size = group + 1, 0
+    return {slug: out.get(slug, group) for slug in ages}
+
+
 def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None) -> list[dict]:
-    """Each job + `best` (0-1 weighted mean less demerits) + `best_parts`, best first. Ties:
-    slug order, so the same list always reads the same."""
+    """Each job + `best` (0-1 weighted mean less demerits) + `best_parts`, freshest window first
+    (`windows`), best first inside it. Ties: slug order, so the same list always reads the same."""
     bn = config["rank"]["best_next"]
     weights = {k: bn[k] for k in ("match", "asks", "pay", "where", "fresh")}
     tiers, floor = cfg.tier_order(config), config["rank"]["salary_floor_usd"]
@@ -186,7 +202,8 @@ def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None) -> 
         total -= bn["demerit"] * demerits(j, config)
         out.append(dict(j, best=round(total, 6), best_parts=parts,
                         best_facts={"matched": counted, "asks": n_asks, "lead": lead, "above": above_level(j, config)}))
-    return sorted(out, key=lambda j: (-j["best"], j["public_slug"]))
+    group = windows(out, now, bn["fresh_windows"], bn["fresh_enough"])
+    return sorted(out, key=lambda j: (group[j["public_slug"]], -j["best"], j["public_slug"]))
 
 
 def candidates(conn, config: dict, now: datetime, ranked: list[dict] | None = None) -> list[dict]:
