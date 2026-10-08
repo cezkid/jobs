@@ -1,4 +1,5 @@
 import copy
+from datetime import date
 
 import pytest
 
@@ -37,3 +38,21 @@ def test_pay_stated_or_said_to_be_missing_and_text_marked_untrusted(master):
 def test_without_a_tailored_resume_lists_requirements_only(master):
     out = interview.context(master, JOB, None, None)
     assert "no tailored resume for it - requirements only:" in out and "- (preferred) GraphQL" in out
+
+
+def test_a_degree_in_progress_marks_a_student_and_a_finished_one_does_not(master):
+    today = date(2026, 10, 8)
+    assert not any(line.startswith("student:") for line in interview.context(master, JOB, None, None, today))
+    master["education"].append({"institution": "City College", "degree": "M.S.", "field": "Statistics",
+                                "end": "2027-05", "expected": True})
+    out = interview.context(master, JOB, None, None, today)
+    assert out[1] == "student: M.S., Statistics, City College (expected May 2027) (job-interview #Students)"
+    assert out[2].startswith("pay:")
+
+
+def test_a_hidden_year_or_a_passed_date_is_never_practised_as_a_date(master):
+    today = date(2026, 10, 8)
+    master["education"][0].update(end="2027-05", expected=True, hide_year=True)
+    assert interview.student(master, today) == "student: B.S., Computer Science, State University (in progress) (job-interview #Students)"
+    master["education"][0].update(end="2026-05", hide_year=False)
+    assert "(expected May 2026) - date passed: ask if they finished" in interview.student(master, today)

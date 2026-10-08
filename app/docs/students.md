@@ -61,6 +61,13 @@ want most (`job-setup` #2). Languages count toward match (`best.backed`).
 | A student's status never kept | `answers.NEVER`, `NEVER_IN_ANSWER` | It changes: a kept "Yes, enrolled" would fill the next form after graduation |
 | Ashby "Still Student?" not ticked by the filler | `job-apply` | Unmeasured: ticking may clear End date and fail the read-back - named at handover instead |
 
+## Interviews
+
+Practice for a student: `job-interview` #Formats, #Never during the real thing, #Students; basis +
+sources `app/docs/apply/interview.md` (plan-ueh, 2026-10-08). `interview` prints `student:` when a
+degree is in progress, so the student rounds apply. A Handshake or career-fair interview needs no
+tailored resume: the pasted posting alone, or the resume + the role they name.
+
 ## AI plans
 
 - Copilot Student: model picker removed 2026-03-13 (changelog), Auto only since 2026-06-24
