@@ -875,3 +875,116 @@ test("restart line shows under the date only when given, never as a task", () =>
   assert.doesNotMatch(html(m), /class="note restart"/);
   assert.doesNotMatch(page, /data-a="[^"]*restart/i);
 });
+
+test("welcome: sign in, resume second, the form, then one button named for what it does in their AI", () => {
+  const form = require("../setup-form.json");
+  const nonce = "abc123";
+  for (const [ai, mode, label] of [["claude", "new", "Put my answers in Claude's chat"], ["chatgpt", "copy", "Copy my answers for ChatGPT"],
+    ["copilot", "send", "Send my answers to Copilot"]]) {
+    const html = today.welcome({ mode, ai, nonce, form });
+    assert.ok(html.includes(today.SIGN_IN[ai]), ai);
+    // steps in order (owner 2026-10-08: "2 should be resume upload or no resume")
+    const steps = [...html.matchAll(/<li><h2>([^<]+)<\/h2>/g)].map((m) => m[1]);
+    assert.deepStrictEqual(steps, ["Sign in to your AI", "Your resume", "What you want", "Start setup"]);
+    // yellow = a thing to do: the resume file, then the button that says what it does in their AI
+    const yellow = [...html.matchAll(/<button[^>]*class="go[^"]*"[^>]*>([^<]*)</g)].map((m) => m[1]);
+    assert.deepStrictEqual(yellow, ["Choose my resume file", label.replace("'", "&#39;")]);
+    assert.match(html, /<button type="button" id="no-resume" aria-pressed="false">I don't have one yet<\/button>/);
+    // before the press: one line + the button; the exact words one click away, never a bare "set me up"
+    assert.match(html, /<details class="peek"><summary>See what goes in the chat<\/summary><p class="preview" id="preview">Set me up - I left the welcome page empty, so ask me.<\/p><\/details>/);
+    assert.doesNotMatch(html, /class="diagram"|id="to-chat"/);
+    // after the press: one block per outcome, all hidden until the extension says which ran
+    assert.deepStrictEqual([...html.matchAll(/data-after="(\w+)" hidden/g)].map((m) => m[1]), ["send", "words", "copy"]);
+    assert.ok(html.includes(`script-src 'nonce-${nonce}'`) && !/<script(?![^>]*nonce=)/.test(html));
+    assert.strictEqual((html.match(/acquireVsCodeApi\(\)/g) || []).length, 1);
+    assert.ok(html.includes("<title>Welcome</title>") && html.includes("icon on your Desktop"));
+    // training with signing in: before the resume + any question about them
+    assert.ok(html.indexOf('name="training"') < html.indexOf(`data-a="${today.CHOOSE_RESUME}"`));
+    assert.ok(html.indexOf(`data-a="${today.CHOOSE_RESUME}"`) < html.indexOf('name="work"'));
+  }
+  assert.ok(today.welcome({ mode: "copy", ai: null, nonce, form }).includes(today.SIGN_IN_ANY));
+  // a picked resume: marked on the form + named in what it sends; saved "none" comes back pressed
+  const picked = today.welcome({ mode: "new", ai: "claude", nonce, form, resume: "Jane.pdf" });
+  assert.match(picked, /<form id="setup" novalidate data-resume="picked">/);
+  assert.match(picked, /My resume: Jane.pdf - read the job, my career level, my town or city and my languages from it\./);
+  const none = today.welcome({ mode: "new", ai: "claude", nonce, form, saved: { no_resume: true } });
+  assert.match(none, /data-resume="none"/);
+  assert.match(none, /id="no-resume" aria-pressed="true"/);
+});
+
+test("start button label: their AI by name, the verb it really does; never 'prompt', 'Send' only where it sends", () => {
+  assert.equal(today.startLabel("claude", "new"), "Put my answers in Claude's chat");
+  assert.equal(today.startLabel("claude", "copy"), "Copy my answers for Claude");
+  assert.equal(today.startLabel("chatgpt", "copy"), "Copy my answers for ChatGPT");
+  assert.equal(today.startLabel("copilot", "send"), "Send my answers to Copilot");
+  assert.equal(today.startLabel("copilot", "fill"), "Put my answers in Copilot's chat");
+  assert.equal(today.startLabel(null, "new"), "Put my answers in the chat");
+  assert.equal(today.startLabel("other", "copy"), "Copy my answers for the chat");
+  for (const [mode, label] of Object.entries(today.START_LABELS)) {
+    assert.doesNotMatch(label, /prompt/i);
+    assert.equal(/^Send/.test(label), mode === "send", mode);
+  }
+});
+
+test("after the press: one next step per outcome - Claude clicks send, ChatGPT pastes, Copilot answers", () => {
+  const html = today.afterStart("darwin");
+  const block = (kind) => html.match(new RegExp(`<div class="after" data-after="${kind}"[\\s\\S]*?</p></div>`))[0];
+  // Claude: its words drawn in the box + the send button; one move, no keyboard (focus stays on our page, #j)
+  const words = block("words");
+  assert.match(words, /Your answers are in the chat/);
+  assert.match(words, /<div class="mock"><span class="mock-text" data-words="1"><\/span><span class="mock-send"/);
+  assert.match(words, /<p class="after-steps">Click the send button at the right end of that box.<\/p>/);
+  assert.match(words, /Or click in the box and press <kbd>Enter<\/kbd>\./);
+  assert.match(words, /Put my answers in again/);
+  // ChatGPT: copy only - click, paste (keys per computer), send
+  const copy = block("copy");
+  assert.match(copy, /Your answers are copied/);
+  assert.deepStrictEqual([...copy.matchAll(/<li>(.*?)<\/li>/g)].map((m) => m[1]),
+    ["Click in that box.", "Paste: press Cmd and V together.", "Click the send button at the right end of the box."]);
+  assert.match(today.afterStart("win32"), /Paste: press Ctrl and V together\./);
+  // Copilot: already sent - nothing to find, never "again" (a 2nd setup in the same chat)
+  const send = block("send");
+  assert.match(send, /Setup has started in the chat/);
+  assert.doesNotMatch(send, /mock|again/);
+  // every block points toward the chat + can bring it back
+  for (const b of [words, copy, send]) {
+    assert.match(b, /class="arrow" aria-hidden="true">→</);
+    assert.ok(b.includes(`data-a="${today.SHOW_CHAT}"`));
+  }
+  assert.equal(today.setupLine("send"), "Your answers go to the chat on the right, and setup starts by itself.");
+  assert.equal(today.setupLine("new"), "Your answers go into the chat on the right.");
+});
+
+// Copilot from the welcome page: fill first (never waits on a signed-out Copilot), then VS Code's own send
+test("say send: fill, then VS Code's send; send fails => the words stay, said as a fill; fill fails => copy", async () => {
+  const run = async (failOn) => {
+    const seen = [];
+    const mode = await today.say({
+      ai: "copilot", mode: "send", words: "Set me up with my answers: Job: nurse.", platform: "darwin",
+      exec: async (cmd, arg) => { seen.push([cmd, arg]); if (cmd === failOn) throw new Error("no"); },
+      copy: async (w) => seen.push(["copy", w]), status: () => {}, busy: () => {}, wait: () => 0, clear: () => {},
+    });
+    return { mode, seen };
+  };
+  const ok = await run(null);
+  assert.equal(ok.mode, "send");
+  assert.deepStrictEqual(ok.seen, [["workbench.action.chat.open", { query: "Set me up with my answers: Job: nurse.", isPartialQuery: true }],
+    ["workbench.action.chat.submit", undefined]]);
+  assert.equal((await run("workbench.action.chat.submit")).mode, "fill");
+  const noChat = await run("workbench.action.chat.open");
+  assert.equal(noChat.mode, "copy");
+  assert.ok(noChat.seen.some(([k]) => k === "copy"));
+});
+
+test("welcome: profile + Restricted Mode lines shown on the page, Allow it here only with the latter", () => {
+  const html = today.welcome({ mode: "new", ai: "claude", nonce: "n",
+    notes: [{ text: "One more step: quit <VS Code>" }, { text: "The AI panel can't run", allow: "Allow it here" }] });
+  assert.ok(html.includes("One more step: quit &lt;VS Code&gt;"));
+  assert.strictEqual((html.match(new RegExp(`data-a="${today.ALLOW_HERE}"`, "g")) || []).length, 1);
+  // fixed actions never collide with Today's model actions (0 up) or its fallback's
+  const fixed = [today.SHOW_PAGE, today.TRY_AGAIN, today.SHOW_CHAT, today.ALLOW_HERE, today.CHOOSE_RESUME,
+    ...today.WELCOME_GUIDES.map((g) => g.action)];
+  assert.strictEqual(new Set(fixed).size, fixed.length);
+  assert.ok(fixed.every((n) => n < 0));
+  for (const g of today.WELCOME_GUIDES) assert.ok(today.cleanPath(g.path), g.path);
+});

@@ -11,6 +11,8 @@ const start = require("./start");
 const today = require("./today");
 const jobs = require("./jobs");
 const say = require("./say.json");
+const setup = require("./setup");
+const setupForm = require("./setup-form.json");
 
 // probe: set only by a scratch window measurement (app/docs/app-window.md "Measured"). Writes
 // what the window holds to this path, then quits the window. Never set on a user's computer.
@@ -47,6 +49,10 @@ function activate(context) {
   context.subscriptions.push(vscode.window.registerCustomEditorProvider(today.VIEW_TYPE, { resolveCustomTextEditor: (document, panel) =>
     showToday(document, panel, vscode.Uri.joinPath(context.extensionUri, ...today.FONT_DIR)) },
     { webviewOptions: { enableFindWidget: true }, supportsMultipleEditorsPerDocument: false }));
+  context.subscriptions.push(vscode.window.registerCustomEditorProvider(today.WELCOME_TYPE, { resolveCustomTextEditor: (document, panel) =>
+    showWelcome(document, panel, vscode.Uri.joinPath(context.extensionUri, ...today.FONT_DIR)) },
+    // kept alive while another tab is in front: half-typed answers survive a look at the chat
+    { webviewOptions: { retainContextWhenHidden: true }, supportsMultipleEditorsPerDocument: false }));
   jobsTree = showJobs(context);
   watchLinks(context);
   noteRunning(context);
@@ -99,12 +105,6 @@ function markReady(root) {
 }
 
 async function openPage(root, at) {
-  // launcher found VS Code running => its own profile waits for one cold start; say how, once a window
-  if (fs.existsSync(at(start.PROFILE_PENDING))) {
-    vscode.window.showInformationMessage(start.PROFILE_PENDING_LINE[process.platform === "darwin" ? "darwin" : "other"]);
-  }
-  // opened w/o the Desktop icon, folder not yet trusted => say how to get the AI panel back
-  if (!vscode.workspace.isTrusted) noteUntrusted();
   let marker = null;
   try {
     marker = fs.readFileSync(at(start.MARKER), "utf8");
@@ -113,11 +113,22 @@ async function openPage(root, at) {
   const settingsExist = fs.existsSync(at(start.SETTINGS));
   const todayMtime = mtime(at(start.TODAY));
   const page = start.choosePage({ marker, settingsExist, todayExists: todayMtime != null });
+  // welcome page says these itself, above its steps; Today gets them as corner lines
+  if (page === start.TODAY) {
+    // launcher found VS Code running => its own profile waits for one cold start; say how, once a window
+    if (fs.existsSync(at(start.PROFILE_PENDING))) vscode.window.showInformationMessage(profilePendingLine());
+    // opened w/o the Desktop icon, folder not yet trusted => say how to get the AI panel back
+    if (!vscode.workspace.isTrusted) noteUntrusted();
+  } else if (!vscode.workspace.isTrusted) untrustedShown = start.UNTRUSTED_LINE;
   if (start.needsRefresh({ marker, settingsExist, todayMtime, stampMtime: mtime(at(start.STAMP)), now: Date.now() })) {
     refreshToday(root);  // not awaited: the page shows now, its preview redraws once rewritten
   }
-  await showPage(vscode.Uri.file(at(page)), page === start.TODAY);
+  await showPage(vscode.Uri.file(at(page)), page === start.TODAY ? today.VIEW_TYPE : today.WELCOME_TYPE);
   return root;
+}
+
+function profilePendingLine() {
+  return start.PROFILE_PENDING_LINE[process.platform === "darwin" ? "darwin" : "other"];
 }
 
 let untrustedShown = null;
@@ -178,17 +189,16 @@ function tabSeen(tab) {
   return { kind: "other", label: tab.label, tab };
 }
 
-async function showPage(uri, isToday) {
+// viewType = the page's own view: Today's dashboard, START HERE's welcome page
+async function showPage(uri, viewType) {
   const tabs = vscode.window.tabGroups.all.flatMap((group) => group.tabs.map(tabSeen));
   const { formatted, text } = start.pageTabs(tabs, uri.fsPath, process.platform);
   const stale = [];
-  // Today restored as the plain page view (window before the dashboard) => dashboard instead
-  const dashboard = isToday && !(formatted && formatted.viewType === today.VIEW_TYPE);
-  if (dashboard && formatted) stale.push(formatted.tab);
-  if (formatted && !dashboard && formatted.kind === "custom") await vscode.commands.executeCommand("vscode.openWith", uri, formatted.viewType);
-  else if (formatted && !dashboard) await vscode.commands.executeCommand("markdown.showPreview", uri);
-  // Today: the dashboard; START HERE: always the formatted page
-  else await vscode.commands.executeCommand("vscode.openWith", uri, isToday ? today.VIEW_TYPE : start.PREVIEW_EDITOR, { preview: false });
+  // restored as the plain page view (a window from before its own view) => its own view instead
+  const fresh = !(formatted && formatted.viewType === viewType);
+  if (fresh && formatted) stale.push(formatted.tab);
+  if (fresh) await vscode.commands.executeCommand("vscode.openWith", uri, viewType, { preview: false });
+  else await vscode.commands.executeCommand("vscode.openWith", uri, viewType);
   // a plain-text copy from an older launch would come back on every start; the page is generated
   stale.push(...text.map((t) => t.tab).filter((tab) => !tab.isDirty));
   if (stale.length) await vscode.window.tabGroups.close(stale, true);
@@ -234,11 +244,7 @@ function keeperFor(root, refresh, tellFn) {
 function showToday(document, panel, fontDir) {
   const root = path.dirname(document.uri.fsPath);
   const at = (rel) => path.join(root, ...rel.split("/"));
-  panel.webview.options = { enableScripts: true, localResourceRoots: [fontDir] };
-  const fonts = { source: panel.webview.cspSource, files: {} };
-  for (const [weight, file] of Object.entries(today.FONTS)) {
-    fonts.files[weight] = panel.webview.asWebviewUri(vscode.Uri.joinPath(fontDir, file)).toString();
-  }
+  const fonts = pageFonts(panel, fontDir);
   let m = null;
   const draw = () => {
     const nonce = crypto.randomBytes(16).toString("base64");
@@ -276,6 +282,172 @@ function showToday(document, panel, fontDir) {
   });
 }
 
+// scripts on, fonts from the extension's media/fonts only => today.fontFaces input
+function pageFonts(panel, fontDir) {
+  panel.webview.options = { enableScripts: true, localResourceRoots: [fontDir] };
+  const fonts = { source: panel.webview.cspSource, files: {} };
+  for (const [weight, file] of Object.entries(today.FONTS)) {
+    fonts.files[weight] = panel.webview.asWebviewUri(vscode.Uri.joinPath(fontDir, file)).toString();
+  }
+  return fonts;
+}
+
+// lines the welcome page shows above its steps: profile waiting on a cold start, Restricted Mode
+function welcomeNotes(root) {
+  const notes = [];
+  if (fs.existsSync(path.join(root, start.PROFILE_PENDING))) notes.push({ text: profilePendingLine() });
+  if (!vscode.workspace.isTrusted) notes.push({ text: start.UNTRUSTED_LINE, allow: start.UNTRUSTED_BUTTON });
+  return notes;
+}
+
+// chat panel back on screen (closed once => VS Code keeps it closed): the AI's own view command;
+// Copilot's chat is built in. Never a new chat, never words
+async function showChat(root) {
+  const ai = currentAi(root);
+  const command = ai === "copilot" ? "workbench.action.chat.open" : today.CHAT_OPEN[ai];
+  try {
+    await vscode.commands.executeCommand(command || "workbench.action.focusAuxiliaryBar");
+  } catch {
+    try { await vscode.commands.executeCommand("workbench.action.focusAuxiliaryBar"); } catch {}
+  }
+}
+
+// answers saved earlier (.data/setup-form.json), {} when none or unreadable
+function savedAnswers(root) {
+  try {
+    const raw = JSON.parse(fs.readFileSync(path.join(root, setup.ANSWERS), "utf8"));
+    return raw && typeof raw === "object" ? raw : {};
+  } catch {
+    return {};
+  }
+}
+
+// answers file rewritten whole: what the page sent (setup.clean) + the resume picked, if any
+function saveAnswers(root, answers, resume) {
+  const file = path.join(root, setup.ANSWERS);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(`${file}.tmp`, setup.answersFile(answers, { resume, now: Date.now() }));
+  fs.renameSync(`${file}.tmp`, file);
+}
+
+// Choose my resume file: the system's own file picker; never read here, never sent anywhere. Read at
+// once by resume import's first step on this computer (`resume-import prepare --file`: copies it to My
+// Resume/Original resume.<ext> + takes its text out) => a scan or a Pages file is said on this page,
+// not minutes into setup, and setup starts from a resume already read. Resume details already made
+// (setup run before) or no uv => copied into My Resume as it is. Returns its path inside the folder
+const RESUME_MAX_BYTES = 30 * 1024 * 1024;
+const RESUME_UNREADABLE = "Couldn't read the words in that file - it may be a scan or a picture of a resume. Choose a PDF saved from Word or Google Docs, or click I don't have one yet - the chat can help.";
+
+async function chooseResume(root, busy = () => {}) {
+  const picked = await vscode.window.showOpenDialog({
+    canSelectMany: false, canSelectFolders: false, openLabel: "Use this resume", title: "Choose your resume",
+    filters: { "Resume (PDF or Word)": setup.RESUME_KINDS },
+  });
+  const from = picked && picked[0] && picked[0].fsPath;
+  if (!from) return { cancelled: true };
+  if (!setup.isResumeKind(from)) return { error: "That isn't a PDF or Word file - choose your resume as a PDF or Word file." };
+  if (fs.statSync(from).size > RESUME_MAX_BYTES) return { error: "That file is too big for a resume - choose your resume as a PDF or Word file." };
+  const uv = findUv();
+  if (uv && !fs.existsSync(path.join(root, setup.RESUME_DIR, setup.DETAILS))) {
+    busy(true, "Reading your resume…");
+    try {
+      return await readResume(root, uv, from);
+    } finally {
+      busy(false);
+    }
+  }
+  const dir = path.join(root, setup.RESUME_DIR);
+  fs.mkdirSync(dir, { recursive: true });
+  if (path.dirname(path.resolve(from)) === path.resolve(dir)) return { rel: `${setup.RESUME_DIR}/${path.basename(from)}` };
+  const taken = new Set(fs.readdirSync(dir).map((n) => n.toLowerCase()));
+  const name = setup.resumeName(path.basename(from), taken);
+  fs.copyFileSync(from, path.join(dir, name), fs.constants.COPYFILE_EXCL);
+  return { rel: `${setup.RESUME_DIR}/${name}` };
+}
+
+// resume import's first step on the picked file; {rel} = where it put the copy (its own record), or
+// {error} in plain words: its refusal line for a Pages / older Word file, else RESUME_UNREADABLE
+function readResume(root, uv, from) {
+  return new Promise((done) => {
+    childProcess.execFile(uv, ["run", "app/jobs.py", "resume-import", "prepare", "--file", from],
+      { cwd: root, windowsHide: true, timeout: 120000 }, (err, stdout, stderr) => {
+        if (err) return done({ error: setup.readError(String(stderr || ""), path.basename(from)) || RESUME_UNREADABLE });
+        try {
+          const file = JSON.parse(fs.readFileSync(path.join(root, setup.SOURCE), "utf8")).file;
+          const rel = path.relative(root, file).split(path.sep).join("/");
+          if (!rel.startsWith(`${setup.RESUME_DIR}/`)) return done({ error: RESUME_UNREADABLE });
+          return done({ rel });
+        } catch {
+          return done({ error: RESUME_UNREADABLE });
+        }
+      });
+  });
+}
+
+// Welcome page (custom editor on START HERE.md, association app/workspace.py): sign in, a short form
+// (setup-form.json), the resume file, then the yellow button (today.startLabel) = answers saved to
+// .data/setup-form.json + their answers in plain words (setup.summary) into the chat by the Today
+// buttons' own path (sayOnce -> say); job-setup reads the file and asks only what's missing. Buttons send a fixed number; what it does is decided here.
+// W/o this extension VS Code drops the association => START HERE.md as the formatted page
+function showWelcome(document, panel, fontDir) {
+  const root = path.dirname(document.uri.fsPath);
+  const at = (rel) => path.join(root, ...rel.split("/"));
+  const fonts = pageFonts(panel, fontDir);
+  const saved = savedAnswers(root);
+  let resume = typeof saved.resume === "string" && fs.existsSync(at(saved.resume)) ? saved.resume : null;
+  // drawn once: a redraw would wipe what they typed (the panel stays alive while hidden)
+  const ai = currentAi(root);
+  // Copilot: its start button sends (today.say "send"); Claude + ChatGPT fill only (app-window.md #v)
+  const mode = () => (ai === "copilot" ? "send" : sayModeNow(root));
+  panel.webview.html = today.welcome({ mode: mode(), ai, nonce: crypto.randomBytes(16).toString("base64"), fonts,
+    ready: chatWarm(ai), notes: welcomeNotes(root), platform: process.platform, form: setupForm,
+    saved: setup.clean(saved, setupForm), resume: resume ? path.basename(resume) : "" });
+  const ui = {
+    tell: (text, how) => tell(panel, text, how),
+    busy: (on, label) => panel.webview.postMessage({ type: "busy", on, label }),
+    keeper: null,
+  };
+  const act = async (msg) => {
+    if (msg && msg.form && typeof msg.form === "object") {
+      const answers = setup.clean(msg.form, setupForm);
+      try {
+        saveAnswers(root, answers, resume);
+      } catch {
+        ui.busy(false);
+        return ui.tell("Couldn't save your answers here. Type set me up in the chat instead - it asks them there.", { hold: true });
+      }
+      // the words rebuilt here from what was cleaned + saved, never the page's own text
+      const words = setup.summary(answers, setupForm, resume ? path.basename(resume) : "");
+      const ran = await sayOnce(root, words, ui, (how) => today.setupReady(how, process.platform), mode());
+      // what really ran (send / fill / new / copy) => the page shows that next step where the button was
+      if (ran) panel.webview.postMessage({ type: "started", mode: ran });
+      return ran;
+    }
+    const index = msg && Number.isInteger(msg.action) ? msg.action : null;
+    if (index === today.SHOW_CHAT) return showChat(root);
+    if (index === today.ALLOW_HERE) return vscode.commands.executeCommand(start.UNTRUSTED_COMMAND);
+    if (index === today.CHOOSE_RESUME) {
+      let got;
+      try {
+        got = await chooseResume(root, ui.busy);
+      } catch {
+        got = { error: "Couldn't copy that file. Drag your resume onto My Resume in the file list instead." };
+      }
+      if (got.error) return ui.tell(got.error, { hold: true });
+      if (!got.rel) return;
+      resume = got.rel;
+      // on file at once: "set me up" typed by hand (no button) still finds it
+      try { saveAnswers(root, setup.clean(savedAnswers(root), setupForm), resume); } catch {}
+      panel.webview.postMessage({ type: "resume", name: path.basename(resume) });
+      return ui.tell(`Resume read: ${path.basename(resume)} - in My Resume, on this computer only. You can skip the questions it answers.`);
+    }
+    const guide = today.WELCOME_GUIDES.find((g) => g.action === index);
+    if (guide) return doAction(root, at, { type: "open", path: guide.path, how: "page" }, ui);
+  };
+  const subs = [panel.webview.onDidReceiveMessage((msg) => act(msg).catch(() => ui.busy(false)))];
+  panel.onDidDispose(() => subs.forEach((s) => s.dispose()));
+}
+
 // Jobs side panel (jobs.js, view at the top of the file list): same model + actions as the
 // dashboard, redrawn when Today's data or a job folder changes. Rows carry the model's generation +
 // an action index; a click on a row drawn from an older model does nothing
@@ -294,6 +466,7 @@ function showJobs(context) {
     if (root && start.isJobFinder((rel) => fs.existsSync(at(rel)))) {
       state.m = readModel(root).m;
       state.groups = jobs.tree(state.m, listApplied(at(jobs.APPLIED_DIR)));
+      state.setUp = fs.existsSync(at(start.SETTINGS.split(path.sep).join("/")));
       state.ready = true;
     }
     changed.fire();
@@ -303,7 +476,7 @@ function showJobs(context) {
     onDidChangeTreeData: changed.event,
     getChildren(el) {
       if (!root || !state.ready) return [];
-      if (!el) return state.groups.length ? state.groups.map((g) => ({ group: g })) : [{ job: jobs.emptyRow(state.m) }];
+      if (!el) return state.groups.length ? state.groups.map((g) => ({ group: g })) : [{ job: jobs.emptyRow(state.m, state.setUp) }];
       if (el.group) return el.group.items.map((j) => ({ job: j }));
       if (el.job) return el.job.rows.map((r) => ({ row: r, parent: el.job.id }));
       return [];
@@ -325,7 +498,7 @@ function showJobs(context) {
         item.tooltip = j.tooltip;
         item.accessibilityInformation = { label: j.accessible };
         if (j.icon) item.iconPath = new vscode.ThemeIcon(j.icon);
-        item.command = run(j.action);
+        item.command = j.setup ? { command: jobs.RUN, title: "", arguments: [{ setup: true }] } : run(j.action);
         return item;
       }
       const r = el.row;
@@ -360,12 +533,17 @@ function showJobs(context) {
   const soon = () => { clearTimeout(timer); timer = setTimeout(load, 300); };
   const subs = [view, changed,
     vscode.commands.registerCommand(jobs.RUN, (arg) => {
+      // not set up yet: the panel's one row opens the welcome page (sign in, the form, Set me up)
+      if (root && arg && arg.setup === true && !state.setUp) {
+        return vscode.commands.executeCommand("vscode.openWith", vscode.Uri.file(at(start.START_HERE)), today.WELCOME_TYPE).then(undefined, () => {});
+      }
       if (!root || !state.m || !arg || arg.gen !== state.gen || !Number.isInteger(arg.action)) return;
       const action = state.m.actions[arg.action];
       if (action) return doAction(root, at, action, ui).catch(() => {});
     })];
   if (root) {
-    for (const glob of [today.DATA.split(path.sep).join("/"), `${jobs.APPLIED_DIR.split("/")[0]}/**`]) {
+    // search settings saved by setup => the Set me up row goes
+    for (const glob of [today.DATA.split(path.sep).join("/"), `${jobs.APPLIED_DIR.split("/")[0]}/**`, start.SETTINGS.split(path.sep).join("/")]) {
       const w = vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(folder.uri, glob));
       subs.push(w, w.onDidChange(soon), w.onDidCreate(soon), w.onDidDelete(soon));
     }
@@ -709,14 +887,22 @@ async function doAction(root, at, action, ui) {
   if (action.type === "status") return ui.keeper.set(action.num, action.id, action.words);
   if (action.type === "say") {
     if (!today.templateFor(action.words, today.templates(say))) return;
-    // one at a time: a 2nd click would open a 2nd new chat => said, never silently dropped
-    if (saying) return ui.tell(today.STILL_OPENING);
-    saying = true;
-    try {
-      return await sayWords(root, action.words, ui.tell, ui.busy);
-    } finally {
-      saying = false;
-    }
+    return sayOnce(root, action.words, ui);
+  }
+}
+
+// one at a time: a 2nd click would open a 2nd new chat => said, never silently dropped.
+// lines = the page's own ready words (today.say)
+async function sayOnce(root, words, ui, lines = null, mode = null) {
+  if (saying) {
+    ui.busy(false);
+    return ui.tell(today.STILL_OPENING);
+  }
+  saying = true;
+  try {
+    return await sayWords(root, words, ui.tell, ui.busy, lines, mode);
+  } finally {
+    saying = false;
   }
 }
 
@@ -745,14 +931,14 @@ function chatWarm(ai) {
 }
 
 // words into the chat, never sent (today.say); returns the mode that ran (probe reads it)
-async function sayWords(root, words, status, busy = () => {}) {
+async function sayWords(root, words, status, busy = () => {}, lines = null, how = null) {
   const ai = currentAi(root);
   const mode = await today.say({
-    ai, mode: sayModeNow(root), words, platform: process.platform, status, busy, warm: chatWarm(ai),
+    ai, mode: how || sayModeNow(root), words, platform: process.platform, status, busy, warm: chatWarm(ai), lines,
     exec: (command, ...args) => vscode.commands.executeCommand(command, ...args),
     copy: (text) => vscode.env.clipboard.writeText(text),
   });
-  if (mode === "new") vscode.window.setStatusBarMessage(today.readyLine(mode, today.jobOf(words)), today.CLEAR_MS);
+  if (mode === "new") vscode.window.setStatusBarMessage(lines ? lines(mode).text : today.readyLine(mode, today.jobOf(words)), today.CLEAR_MS);
   return mode;
 }
 

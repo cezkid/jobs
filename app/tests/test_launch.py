@@ -49,6 +49,7 @@ def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
     monkeypatch.setattr(launch, "ensure_mac_icon", lambda: None)
     monkeypatch.setattr(launch, "ensure_profile", lambda: True)
     monkeypatch.setattr(launch, "ensure_folder_trusted", lambda: None)
+    monkeypatch.setattr(launch, "ensure_sign_in_sites_trusted", lambda: None)
     monkeypatch.setattr(launch, "vscode_running", lambda: running)
     monkeypatch.setattr(launch, "code", lambda args, quiet=False: calls.append(args))
     monkeypatch.setattr(launch.time, "sleep", lambda s: calls.append(("sleep", s)))
@@ -60,7 +61,7 @@ def launch_calls(tmp_path, monkeypatch, running: bool) -> list:
 def ready_after_launch(tmp_path, monkeypatch, running=False, current=True, code=lambda args, quiet=False: 0) -> bool:
     """main() w/ every machine step stubbed; True = the launcher wrote the splash's ready signal."""
     for name in ("ensure_claude_trust", "ensure_chat_sidebar", "ensure_yaml_checker", "ensure_mac_icon",
-                 "ensure_folder_trusted", "keep_out_of_sync", "ensure_quiet_vscode"):
+                 "ensure_folder_trusted", "ensure_sign_in_sites_trusted", "keep_out_of_sync", "ensure_quiet_vscode"):
         monkeypatch.setattr(launch, name, lambda: None)
     monkeypatch.setattr(launch.cfg, "ROOT", tmp_path)
     monkeypatch.setattr(launch, "has_claude", lambda: True)
@@ -1504,3 +1505,34 @@ def test_open_link_says_restart_when_the_window_runs_the_old_extension(tmp_path,
     assert capsys.readouterr().out == f"{jobs.IN_BROWSER}\n{launch.BEHIND}. {launch.RESTART_LINE}\n"
     jobs.open_for_user(POSTING, outside=True, wait=0.2)  # asked for the browser => nothing to explain
     assert capsys.readouterr().out == f"{jobs.IN_BROWSER}\n"
+
+
+def test_sign_in_sites_trusted_so_no_open_website_box(tmp_path, monkeypatch):
+    # VS Code's "Do you want Code to open the external website?" box stopped people at sign-in
+    paths = profile_paths(tmp_path, monkeypatch)
+    default = paths.global_storage / "state.vscdb"
+    launch.ensure_sign_in_sites_trusted(paths)
+    assert json.loads(state_rows(default)[launch.LINK_TRUST_KEY]) == list(launch.SIGN_IN_SITES)
+    launch.ensure_sign_in_sites_trusted(paths)  # once: nothing added twice
+    assert json.loads(state_rows(default)[launch.LINK_TRUST_KEY]) == list(launch.SIGN_IN_SITES)
+    # key moved to the shared store => written there, their own entries kept first
+    state_db(shared_state(paths), [(launch.MIGRATED_KEY, json.dumps([launch.LINK_TRUST_KEY])),
+                                   (launch.LINK_TRUST_KEY, json.dumps(["https://example.org", "https://claude.ai"]))])
+    launch.ensure_sign_in_sites_trusted(paths)
+    got = json.loads(state_rows(shared_state(paths))[launch.LINK_TRUST_KEY])
+    assert got[:2] == ["https://example.org", "https://claude.ai"] and set(got) == {"https://example.org", *launch.SIGN_IN_SITES}
+    # only AI sign-in sites + this app's site: never a wildcard for everything
+    assert all(s.startswith("https://") and s != "https://*" and "*" not in s.split("//")[1][1:] for s in launch.SIGN_IN_SITES)
+
+
+def test_sign_in_sites_never_touch_a_running_or_unreadable_store(tmp_path, monkeypatch):
+    paths = profile_paths(tmp_path, monkeypatch)
+    state_db(shared_state(paths), [(launch.MIGRATED_KEY, json.dumps([launch.LINK_TRUST_KEY])),
+                                   (launch.LINK_TRUST_KEY, "not json")])
+    launch.ensure_sign_in_sites_trusted(paths)
+    assert state_rows(shared_state(paths))[launch.LINK_TRUST_KEY] == "not json"
+    shared_state(paths).unlink()
+    paths.data.mkdir(parents=True, exist_ok=True)
+    (paths.data / "code.lock").write_text(str(launch.os.getpid()), encoding="utf-8")
+    launch.ensure_sign_in_sites_trusted(paths)
+    assert not (paths.global_storage / "state.vscdb").exists()

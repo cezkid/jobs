@@ -1,0 +1,77 @@
+{
+ "_": "Welcome page form (app/vscode/setup.js draws it; short = its name in the chat message; from_resume = what a resume answers instead (marked skippable once one is picked); extension.js saves the answers to .data/setup-form.json, then puts \"set me up\" in the chat). job-setup reads the file and asks only what's missing (app/skills/job-setup.md #0). Every field optional. value = what the file holds; label = what the user reads.",
+ "sections": [
+  {
+   "id": "privacy",
+   "title": "Before you start",
+   "fields": [
+    {"id": "training", "type": "choice", "short": "AI training", "label": "Your answers and your resume are read by your AI. Keep your chats out of AI training?",
+     "guide": {"title": "Show me how - 30 seconds", "path": "Guides/Keep your chats out of AI training.md"},
+     "options": [
+      {"value": "switched_off", "label": "I switched it off"},
+      {"value": "already_off", "label": "Already off, or a work or school account"},
+      {"value": "leave_on", "label": "Leave it as it is"}
+     ]}
+   ]
+  },
+  {
+   "id": "search",
+   "title": "The jobs you want",
+   "fields": [
+    {"id": "work", "type": "text", "short": "Job", "from_resume": "the job", "label": "What job are you looking for?", "max": 200,
+     "hint": "In your own words - a summer internship in marketing, registered nurse, warehouse supervisor, VP of finance."},
+    {"id": "level", "type": "choice", "short": "Career", "from_resume": "my career level", "label": "Where are you in your career?",
+     "options": [
+      {"value": "entry", "label": "Student, new graduate or first job"},
+      {"value": "mid", "label": "A few years in"},
+      {"value": "senior", "label": "Senior or expert"},
+      {"value": "leader", "label": "Manager, director or executive"}
+     ]},
+    {"id": "hours", "type": "multi", "short": "Kind of job", "label": "What kind of job? Tick all that fit.",
+     "options": [
+      {"value": "full_time", "label": "Full time"},
+      {"value": "part_time", "label": "Part time"},
+      {"value": "internship", "label": "Internship or co-op"},
+      {"value": "contract", "label": "Contract"}
+     ]},
+    {"id": "where", "type": "choice", "short": "Where", "label": "Where?",
+     "options": [
+      {"value": "remote_only", "label": "Remote only"},
+      {"value": "remote_first", "label": "Remote first, near me too"},
+      {"value": "local_first", "label": "Near me first, remote too"},
+      {"value": "local_only", "label": "Near me only"}
+     ]},
+    {"id": "city", "type": "text", "short": "Town or city", "from_resume": "my town or city", "label": "Your town or city", "max": 100, "hint": "For jobs near you, and the right time zone."},
+    {"id": "pay", "type": "pay", "short": "Lowest pay", "label": "Lowest pay you'd take", "max": 12,
+     "hint": "Jobs paying less are hidden; jobs with no pay listed stay. Leave it empty if it doesn't matter.",
+     "units": [
+      {"value": "year", "label": "a year"},
+      {"value": "hour", "label": "an hour"}
+     ]},
+    {"id": "avoid", "type": "text", "short": "Never show", "label": "Companies you never want to see", "max": 300, "hint": "Optional. Separate them with commas."}
+   ]
+  },
+  {
+   "id": "about",
+   "title": "About you",
+   "note": "Saved on this computer and read by your AI when you click Set me up. The job search never gets it. Each application form still shows your answer before you send it.",
+   "fields": [
+    {"id": "work_permit", "type": "choice", "short": "Work in the US", "label": "Can you work in the US?",
+     "options": [
+      {"value": "citizen_or_green_card", "label": "US citizen or green card holder"},
+      {"value": "other_no_sponsorship", "label": "Other status, never need sponsorship (refugee, asylee)"},
+      {"value": "f1_student", "label": "International student (F-1): CPT or OPT now, a work visa later"},
+      {"value": "visa_sponsorship_later", "label": "Allowed now on an employer's visa, need sponsorship later (H-1B)"},
+      {"value": "needs_sponsorship", "label": "I need sponsorship to start"},
+      {"value": "ask_each_time", "label": "Ask me on each application"}
+     ]},
+    {"id": "languages", "type": "text", "short": "Other languages", "from_resume": "my languages", "label": "Other languages you speak, and how well", "max": 200, "hint": "Optional. For example: Spanish - fluent."},
+    {"id": "news", "type": "choice", "short": "New jobs", "label": "New jobs are checked each morning. How should we tell you?",
+     "options": [
+      {"value": "popup", "label": "A pop-up on this computer"},
+      {"value": "email", "label": "Email too (the chat helps you set it up)"}
+     ]}
+   ]
+  }
+ ]
+}

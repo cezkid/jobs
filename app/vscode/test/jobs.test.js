@@ -128,3 +128,13 @@ test("extension runs panel rows and page buttons through the one doAction", () =
   assert.strictEqual(jobs.tree.length, 1);
   assert.match(fs.readFileSync(path.join(__dirname, "..", "jobs.js"), "utf8"), /require\("\.\/today"\)/);
 });
+
+test("empty panel before setup: one Set me up row, never 'made at the next start'", () => {
+  const row = jobs.emptyRow(null, false);
+  assert.strictEqual(row.label, "Start setup");
+  assert.strictEqual(row.setup, true);
+  assert.doesNotMatch(`${row.label} ${row.description} ${row.tooltip}`, /next start/);
+  // set up: the old rows as before
+  assert.match(jobs.emptyRow(null).label, /isn't ready yet/);
+  assert.notStrictEqual(jobs.emptyRow(null, false), jobs.SETUP_ROW);
+});

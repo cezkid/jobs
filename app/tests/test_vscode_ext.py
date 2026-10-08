@@ -49,7 +49,8 @@ def test_vsix_holds_a_manifest_vscode_accepts(tmp_path):
         assert sorted(z.namelist()) == ["[Content_Types].xml", "extension.vsixmanifest", "extension/extension.js", "extension/jobs.js",
                                         "extension/media/fonts/OFL.txt", "extension/media/fonts/caladea-bold.woff2",
                                         "extension/media/fonts/caladea-regular.woff2", "extension/package.json",
-                                        "extension/say.json", "extension/start.js", "extension/today.js"]
+                                        "extension/say.json", "extension/setup-form.json", "extension/setup.js",
+                                        "extension/start.js", "extension/today.js"]
         identity = ElementTree.fromstring(z.read("extension.vsixmanifest")).find("v:Metadata/v:Identity", NS)
         ElementTree.fromstring(z.read("[Content_Types].xml"))
         packed = json.loads(z.read("extension/package.json"))
@@ -74,12 +75,17 @@ def test_extension_never_reads_files_from_the_program_folder():
         assert all("joinPath(context.extensionUri, ...today.FONT_DIR)" in u for u in uses), uses
         # files read: launcher's start-page marker, the dashboard's data, the look, which AI, a
         # link jobs.py hands over (taken = renamed in start.LINK_DIR) - all under .data/, never app/;
-        # a scratch probe driver's request (reqFile, JOBS_VSCODE_PROBE_HOLD's folder)
-        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root", "path.join(root", "taken", "reqFile"] if name == "extension.js" else []
+        # the welcome page's saved answers (setup.ANSWERS); a scratch probe driver's request (reqFile,
+        # JOBS_VSCODE_PROBE_HOLD's folder)
+        # + resume import's own record of the file it just read (setup.SOURCE)
+        reads = ["at(start.MARKER", "at(today.DATA", "path.join(root", "path.join(root", "path.join(root", "path.join(root",
+                 "path.join(root", "taken", "reqFile"] if name == "extension.js" else []
         assert re.findall(r"readFile\w*\(([^,)]+)", source) == reads
     starts = (vscode_ext.SOURCE / "start.js").read_text(encoding="utf-8")
     assert 'MARKER = path.join(".data", ' in starts and 'AI_FILE = path.join(".data", ' in starts
     assert 'LINK_DIR = path.join(".data", ' in starts
+    setups = (vscode_ext.SOURCE / "setup.js").read_text(encoding="utf-8")
+    assert 'ANSWERS = path.join(".data", ' in setups and 'SOURCE = path.join(".data", ' in setups
     todays = (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8")
     assert 'DATA = path.join(".data", ' in todays and 'LOOK_FILE = path.join(".data", ' in todays
 
@@ -170,12 +176,18 @@ def test_today_dashboard_takes_today_md_only_in_job_finder_folder():
     # names out of step => Today.md opens as the plain page; association w/o the extension => same, by VS Code
     import workspace
     pkg = vscode_ext.manifest()
-    editor, = pkg["contributes"]["customEditors"]
-    view = re.search(r'VIEW_TYPE = "([^"]+)"', (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8"))[1]
-    assert editor["viewType"] == view == workspace.COMMON["workbench.editorAssociations"]["Today.md"]
-    assert f"onCustomEditor:{view}" in pkg["activationEvents"]
-    # option: other folders' Today.md files open as usual; only the workspace association picks it
-    assert editor["priority"] == "option" and editor["selector"] == [{"filenamePattern": "Today.md"}]
+    editors = {e["selector"][0]["filenamePattern"]: e for e in pkg["contributes"]["customEditors"]}
+    source = (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8")
+    # Today.md => the dashboard; START HERE.md => the welcome page (Set me up button)
+    views = {"Today.md": re.search(r'\bVIEW_TYPE = "([^"]+)"', source)[1],
+             "START HERE.md": re.search(r'\bWELCOME_TYPE = "([^"]+)"', source)[1]}
+    assert set(editors) == set(views)
+    for name, view in views.items():
+        editor = editors[name]
+        assert editor["viewType"] == view == workspace.COMMON["workbench.editorAssociations"][name]
+        assert f"onCustomEditor:{view}" in pkg["activationEvents"]
+        # option: other folders' files of that name open as usual; only the workspace association picks it
+        assert editor["priority"] == "option" and editor["selector"] == [{"filenamePattern": name}]
 
 
 def test_vsix_carries_caladea_and_its_licence(tmp_path):
@@ -259,3 +271,26 @@ def test_dashboard_sent_click_moves_the_folder_and_undo_moves_it_back(tmp_path):
     assert out["sent"] == ["2 Applied"] and out["back"] == ["1 To apply"], out
     assert out["told"] == [[f"Job {num} marked as sent.", True], [f"Undone - Job {num} is back where it was.", False]]
     assert [d.name for d in (jobs / "1 To apply").iterdir()] == [made.name]
+
+
+def test_setup_form_and_job_setup_agree():
+    # welcome page form answers feed job-setup (#0): a field or value it doesn't know = asked again,
+    # or worse, mapped wrong (work permit)
+    form = json.loads((vscode_ext.SOURCE / "setup-form.json").read_text(encoding="utf-8"))
+    skill = (vscode_ext.cfg.APP / "skills" / "job-setup.md").read_text(encoding="utf-8")
+    section = skill.split("## 0. Setup form", 1)[1].split("\n## 1.", 1)[0]
+    fields = [f for s in form["sections"] for f in s["fields"]]
+    assert len({f["id"] for f in fields}) == len(fields)
+    for f in fields:
+        assert f"`{f['id']}`" in section, f["id"]
+        if f["id"] in ("work_permit", "level", "training", "news", "hours"):
+            for o in f["options"]:
+                assert f"`{o['value']}`" in section, (f["id"], o["value"])
+    assert "`resume`" in section and "`no_resume: true`" in section and ".data/setup-form.json" in section
+    # the page reads a picked resume with import's first step, before search settings exist
+    import resume.import_pdf as imp
+    assert "cfg.load_or_defaults()" in Path(imp.__file__).read_text(encoding="utf-8").split("def main(", 1)[1]
+    assert "resume-import prepare --file" in section
+    # privacy: the training question comes first, before anything about them
+    assert fields[0]["id"] == "training"
+    assert (vscode_ext.cfg.ROOT / fields[0]["guide"]["path"]).exists()

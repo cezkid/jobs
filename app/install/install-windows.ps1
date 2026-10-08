@@ -58,14 +58,17 @@ function Pick-Ai {
 
 try {
     Write-Host "`nInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open." -ForegroundColor Cyan
+    # Windows 10's console pauses the script while text is selected: a stray click looked like a hang
+    Write-Host 'A click inside this window pauses it - press Esc if it seems stuck.'
     Write-Host 'Free and open source, provided as is, with no warranty. Installing means you accept the terms: https://jobs.enrriquez.com/terms.html'
     Refresh-Path
     $Ai = Pick-Ai
     # explicit per AI; copilot => none (Copilot Chat built into VS Code 1.140)
+    # SignIn = what to do in the window, said once the install ends (nothing here waits for a key)
     $AiExtension, $SignIn = switch ($Ai) {
-        'claude' { 'anthropic.claude-code', 'Click Sign in on the chat panel on the right, then press Enter.' }
-        'chatgpt' { 'openai.chatgpt', 'Click the ChatGPT icon at the top left, then Sign in, then press Enter.' }
-        'copilot' { '', 'Click Sign in on the chat panel on the right, then pick Claude Sonnet in the model list under the chat box, then press Enter. No GitHub account? Make one with your Google or Apple account.' }
+        'claude' { 'anthropic.claude-code', 'In the chat on the right, click Sign in and use your Claude Pro or Max account.' }
+        'chatgpt' { 'openai.chatgpt', 'In the chat on the right, click Sign in and use your ChatGPT Plus or Pro account.' }
+        'copilot' { '', 'In the chat on the right, click Sign in, then pick Claude Sonnet in the model list under the chat box. No GitHub account? Make one with your Google or Apple account.' }
     }
 
     # uv's installer refuses Windows' default policy (Restricted) => this window only, nothing saved
@@ -73,7 +76,7 @@ try {
 
     Step 1 'installing uv (runs CEZ Job Finder)...'
     if (-not (Have 'uv')) {
-        try { Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression } catch {}
+        try { Invoke-RestMethod https://astral.sh/uv/install.ps1 | Invoke-Expression *> $null } catch {}
         Refresh-Path
     }
     # policy locked by computer's owner (work laptop) => uv's installer still refuses; winget doesn't check
@@ -143,9 +146,14 @@ try {
     $link.WindowStyle = 7
     $link.Save()
 
-    Write-Host "`nDone. Next time, open 'CEZ Job Finder' on your Desktop." -ForegroundColor Green
-    Write-Host "VS Code opens now. $SignIn" -ForegroundColor Green
+    # "Done" only once the window is on its way: closing this window earlier stopped the start
+    Write-Host "`nOpening CEZ Job Finder - keep this window open until it appears." -ForegroundColor Cyan
     if (-not $env:JOBS_NO_LAUNCH) { & $start }
+    Write-Host "`nAll set. You can close this window." -ForegroundColor Green
+    Write-Host 'In the CEZ Job Finder window:'
+    Write-Host "  1. $SignIn"
+    Write-Host '  2. Fill in its first page, then click the yellow button at the bottom to put your answers in the chat.'
+    Write-Host 'Next time, double-click "CEZ Job Finder" on your Desktop.'
 } catch {
     Write-Host "`nInstall stopped: $($_.Exception.Message)" -ForegroundColor Red
     Write-Host 'Run the same steps again. If it fails twice, send a photo of this window to whoever shared CEZ Job Finder with you.'

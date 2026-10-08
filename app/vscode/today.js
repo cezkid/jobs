@@ -4,8 +4,11 @@
 // own buttons only (posting / company website): the page sends an index, never a URL.
 // Tests: node --test app/vscode/test/*.test.js
 const path = require("path");
+const setup = require("./setup");
 
 const VIEW_TYPE = "cezJobFinder.today";
+// first page before setup (START HERE.md): welcome + the setup form + one button putting the answers in their AI's chat (welcome below)
+const WELCOME_TYPE = "cezJobFinder.start";
 const DATA = path.join(".data", "today.json");
 const VERSION = 1;
 // files a button may open: the user's own folders + our guides, nothing above the Job Finder folder
@@ -377,12 +380,34 @@ function statusKeeper({ run, refresh, tell, now = () => Date.now() }) {
 // exec(command, ...args) + copy(text) = vscode calls; busy(on) + status(text, { done, hold }) =
 // page feedback (done = the pressed button's label after; hold = line stays until the next one).
 // busy at once; starting line if still waiting after SLOW_MS; then ready line, or copy fallback
-async function say({ ai, mode, words, platform, exec, copy, status, busy, wait = setTimeout, clear = clearTimeout, warm = false }) {
+// lines(ran) => { text, done }: a page's own words once they're in (the welcome page's), else Today's
+async function say({ ai, mode, words, platform, exec, copy, status, busy, wait = setTimeout, clear = clearTimeout, warm = false, lines = null }) {
   const num = jobOf(words);
-  const ready = (ran) => status(readyLine(ran, num, platform), { done: doneLabel(ran) });
+  const ready = (ran) => {
+    const own = lines ? lines(ran) : null;
+    status(own ? own.text : readyLine(ran, num, platform), { done: own ? own.done : doneLabel(ran) });
+  };
   busy(true, busyLabel(ai, warm));
   const slow = wait(() => status(startingLine(ai, warm), { hold: true }), SLOW_MS);
   try {
+    // send = Copilot from the welcome page's start button (owner 2026-10-08: "automatic"): fill first -
+    // a fill never waits on a signed-out Copilot (a send w/o isPartialQuery waits up to 60 s for its
+    // agent) - then VS Code's own Send on what's in the box. Send failed => the words stay, said as a fill.
+    // Claude + ChatGPT can't: their chat boxes fill only (app-window.md #v)
+    if (mode === "send") {
+      let filled = false;
+      try {
+        await exec("workbench.action.chat.open", { query: words, isPartialQuery: true });
+        filled = true;
+        await exec("workbench.action.chat.submit");
+        ready(mode);
+        return mode;
+      } catch {}
+      if (filled) {
+        ready("fill");
+        return "fill";
+      }
+    }
     if (mode === "fill") {
       try {
         // fills the box, never sends: isPartialQuery
@@ -506,6 +531,17 @@ body.vscode-high-contrast .look button[aria-pressed="true"] { text-decoration: u
   padding: 10px 14px; border-radius: 8px; border: 1px solid var(--text); background: var(--desk); color: var(--text); }
 .bar:has(#status:empty) { display: none; }
 #status { margin: 0; font-weight: 700; flex: 1 1 16rem; }
+.steps { list-style: none; counter-reset: step; margin: 28px 0 0; padding: 0; display: grid; gap: 26px; }
+.steps > li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 0 14px; }
+.steps > li::before { content: counter(step); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--text); color: var(--desk); font-weight: 700; font-size: 1.05rem; }
+.steps > li > * { grid-column: 2; }
+.steps h2 { font-size: 1.25rem; line-height: 1.2; margin: 3px 0 6px; }
+.steps p { margin: 0; max-width: 62ch; }
+.steps .acts { padding-top: 12px; }
+button.big { font-size: 1.15rem; padding: 10px 24px; }
+.alert { border: 1px solid var(--text); border-radius: 8px; padding: 12px 16px; margin: 20px 0 0; }
+.alert p { margin: 0; }
 `;
 
 // webview URI of each shipped face + the webview's own source (extension.js: asWebviewUri, cspSource)
@@ -524,12 +560,12 @@ function csp(nonce, fontSource = "") {
   return `default-src 'none'; style-src 'nonce-${nonce}'; script-src 'nonce-${nonce}';${fonts}`;
 }
 
-// <head> both pages share
-function head(nonce, fonts) {
+// <head> every page shares
+function head(nonce, fonts, title = "Today", css = "") {
   return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="${csp(nonce, fonts && fonts.source)}">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Today</title><style nonce="${nonce}">${fontFaces(fonts)}${CSS}</style></head>`;
+<title>${escapeHtml(title)}</title><style nonce="${nonce}">${fontFaces(fonts)}${CSS}${css}</style></head>`;
 }
 
 // page side, sent as its source text (runs in the webview, nothing from this file in scope).
@@ -808,9 +844,199 @@ ${BAR}</main>
 // fallback buttons' own action numbers (data actions are 0 up)
 const SHOW_PAGE = -1;
 const TRY_AGAIN = -2;
+// welcome page's buttons (fixed: no model behind the page)
+const SHOW_CHAT = -4;
+const ALLOW_HERE = -5;
+const CHOOSE_RESUME = -6;
+const WELCOME_GUIDES = [
+  { action: -7, title: "What you can ask", path: "Guides/What you can ask.md" },
+  { action: -8, title: "Who sees what", path: "Guides/Who sees what.md" },
+  { action: -9, title: "Keep your chats out of AI training", path: "Guides/Keep your chats out of AI training.md" },
+];
+
+function guideAction(rel) {
+  const g = WELCOME_GUIDES.find((x) => x.path === rel);
+  if (!g) throw new Error(`no welcome guide for ${rel}`);
+  return g.action;
+}
+
+// where to sign in, per AI (.data/ai): the chat panel sits on the right for all three
+// (app/workspace.py secondary sidebar; ChatGPT app-window.md #e). Unknown AI => the plain line
+const SIGN_IN = {
+  claude: "Look at the chat on the right. Asked to sign in? Click Sign in and use your Claude Pro or Max account.",
+  chatgpt: "Look at the chat on the right. Asked to sign in? Click Sign in and use your ChatGPT Plus or Pro account.",
+  copilot: "Look at the chat on the right. Asked to sign in? Click Sign in with your GitHub account, then pick Claude Sonnet in the model list under the chat box.",
+};
+const SIGN_IN_ANY = "Look at the chat on the right. Asked to sign in? Sign in with your AI account.";
+
+// the start button's own words: what it really does, to which AI by name (owner 2026-10-08: "Set me up"
+// + a bare "set me up" in the chat box was "not clear or intuitive"; "Start setup in the chat" promised a
+// start Claude + ChatGPT can't make - the user still sends). Never "prompt" (jargon); "Send" only where
+// it sends (Copilot)
+const AI_NAMES = { claude: "Claude", chatgpt: "ChatGPT", copilot: "Copilot" };
+const START_LABELS = {
+  send: "Send my answers to {ai}",
+  new: "Put my answers in {ai}'s chat",
+  fill: "Put my answers in {ai}'s chat",
+  copy: "Copy my answers for {ai}",
+};
+
+function startLabel(ai, mode) {
+  const name = AI_NAMES[ai];
+  if (!name) return mode === "copy" ? "Copy my answers for the chat" : "Put my answers in the chat";
+  return (START_LABELS[mode] || START_LABELS.new).replace("{ai}", name);
+}
+
+// before the press: one short line (owner 2026-10-08: the drawing + several instructions were "not
+// intuitive at all" - one thing at a time). send = Copilot: it starts by itself
+function setupLine(mode) {
+  return mode === "send" ? "Your answers go to the chat on the right, and setup starts by itself."
+    : "Your answers go into the chat on the right.";
+}
+
+// after the press, by what really ran (a send that failed fills; a new chat that failed copies): the
+// button's place turns into the one next step. text = the bottom status line (empty: the step says it)
+function setupReady(mode, platform = "darwin") {
+  const keys = platform === "darwin" ? "Cmd and V" : "Ctrl and V";
+  if (mode === "send") return { text: "", done: "Started", title: "Setup has started in the chat", box: null, steps: ["Answer its questions there."] };
+  if (mode === "copy") {
+    return { text: "", done: "Copied", title: "Your answers are copied", box: "empty",
+      steps: ["Click in that box.", `Paste: press ${keys} together.`, "Click the send button at the right end of the box."], or: "Or press Enter instead of the send button." };
+  }
+  // one click, no keyboard: the new chat opens w/o the keyboard in it (focus stays on this page, #j), so
+  // Enter alone would land here; Claude's box has its own send button (its label: "Send message", 2.1.292)
+  return { text: "", done: "Ready", title: "Your answers are in the chat", box: "words", steps: ["Click the send button at the right end of that box."],
+    or: "Or click in the box and press Enter." };
+}
+
+// the next step, drawn where the button was: a title w/ an arrow toward the chat (it really sits right
+// of this page), a plain drawing of the one thing to find - the chat's typing box, w/ their own words in
+// it - and the moves left. Never a screenshot: the AIs' own panels change often + carry their makers'
+// marks. One block per outcome, hidden; the page shows the one that ran (setup.page)
+function afterStart(platform = "darwin") {
+  const h = escapeHtml;
+  return ["send", "words", "copy"].map((kind) => {
+    const r = setupReady(kind === "words" ? "new" : kind, platform);
+    const find = '<p class="find">Look for this box at the bottom of the chat on the right:</p>';
+    // the send button drawn plainly (circle + up arrow) and marked: the one thing to click
+    const send = '<span class="mock-send" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 18V6M6.5 11.5 12 6l5.5 5.5"/></svg></span>';
+    const box = r.box === "words" ? `${find}<div class="mock"><span class="mock-text" data-words="1"></span>${send}</div>`
+      : r.box === "empty" ? `${find}<div class="mock empty"><span class="mock-text">(empty)</span>${send}</div>` : "";
+    // one move left => a plain line; several => numbered
+    const steps = r.steps.length > 1
+      ? `<ol class="after-steps">${r.steps.map((x) => `<li>${h(x).replace("Enter", "<kbd>Enter</kbd>")}</li>`).join("")}</ol>`
+      : `<p class="after-steps">${h(r.steps[0])}</p>`;
+    const or = r.or ? `<p class="after-or">${h(r.or).replace("Enter", "<kbd>Enter</kbd>")}</p>` : "";
+    // sent already => never "again" (a 2nd setup in the same chat)
+    const again = kind === "send" ? "" : ' · <button type="submit" class="link again">Put my answers in again</button>';
+    return `<div class="after" data-after="${kind}" hidden tabindex="-1"><p class="after-title">${h(r.title)}<span class="arrow" aria-hidden="true">→</span></p>`
+      + `${box}${steps}${or}`
+      + `<p class="after-help">Can't see the chat? <button type="button" class="link" data-a="${SHOW_CHAT}">Show me the chat</button>${again}</p></div>`;
+  }).join("");
+}
+
+const FORM_CSS = `
+.form-part { margin: 22px 0 0; }
+.form-part h3 { font-size: 1.05rem; margin: 0 0 4px; padding: 0 0 4px; border-bottom: 1px solid var(--line); }
+.field { border: 0; margin: 14px 0 0; padding: 0; min-width: 0; }
+.field > label, .field legend { display: block; font-weight: 700; padding: 0; margin: 0 0 4px; }
+.hint { color: var(--text-2); font-size: 0.92rem; margin: 0 0 6px; max-width: 62ch; }
+.opts { display: grid; gap: 4px; }
+.opt { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; padding: 2px 0; }
+.opt input { margin: 3px 0 0; width: 16px; height: 16px; flex: none; accent-color: var(--text); }
+input[type="text"], select { font: inherit; color: var(--text); background: var(--desk); border: 1px solid var(--edge);
+  border-radius: 6px; padding: 6px 10px; }
+input[type="text"] { width: 100%; max-width: 34rem; }
+input:focus-visible, select:focus-visible { outline: 3px solid var(--text); outline-offset: 1px; }
+.pay { display: flex; align-items: center; gap: 8px; }
+.pay input[type="text"] { width: 9rem; }
+.resume { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+#resume-name { font-weight: 700; margin: 0; }
+button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--text); }
+/* a picked resume answers these: said under each (owner 2026-10-08: resume first, so less to fill) */
+.rnote { display: none; }
+form[data-resume="picked"] .rnote { display: block; font-weight: 700; color: var(--text); }
+.preview-label { font-weight: 700; margin: 10px 0 4px; }
+.preview { margin: 0; padding: 10px 14px; max-width: 62ch; border-left: 3px solid var(--text); background: var(--tint);
+  border-radius: 0 6px 6px 0; overflow-wrap: anywhere; }
+button.go.done { color: var(--text); }
+.peek { margin: 8px 0 0; color: var(--text-2); font-size: 0.92rem; }
+.peek summary { cursor: pointer; width: fit-content; }
+.peek .preview { margin-top: 6px; color: var(--text); font-size: 1rem; }
+/* after the press: the one next step where the button was */
+.after { margin: 12px 0 0; padding: 16px 18px; border: 2px solid var(--text); border-radius: 10px; max-width: 34rem; }
+.after:focus { outline: none; }
+.after:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+.after-title { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 1.35rem; font-weight: 700; line-height: 1.2; }
+.after-title .arrow { margin-left: auto; font-size: 2.4rem; line-height: 1; padding: 0 6px; background: var(--mark); color: var(--mark-text); border-radius: 8px; }
+@media (prefers-reduced-motion: no-preference) { .after:not([hidden]) .arrow { animation: nudge 1.2s ease-in-out 3; } }
+@keyframes nudge { 50% { transform: translateX(8px); } }
+.find { margin: 14px 0 6px; }
+.mock { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 3px solid var(--mark-2); border-radius: 10px;
+  background: var(--desk); box-shadow: 0 0 0 4px var(--mark); margin: 4px 4px 0; }
+.mock-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mock.empty .mock-text { color: var(--text-2); font-style: italic; }
+.mock-send { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--text);
+  box-shadow: 0 0 0 4px var(--desk), 0 0 0 8px var(--mark); }
+.mock-send svg { width: 20px; height: 20px; fill: none; stroke: var(--desk); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.after-or { margin: 6px 0 0; color: var(--text-2); }
+.after-steps { margin: 16px 0 0; padding-left: 1.5em; font-size: 1.1rem; font-weight: 700; }
+p.after-steps { padding-left: 0; }
+.after-steps li + li { margin-top: 4px; }
+kbd { font: inherit; padding: 1px 8px; border: 1px solid var(--text); border-bottom-width: 3px; border-radius: 6px; background: var(--tint); }
+.after-help { margin: 18px 0 0; color: var(--text-2); font-size: 0.92rem; }
+body.vscode-high-contrast .mock { border-color: var(--text); box-shadow: none; }
+body.vscode-high-contrast .after-title .arrow { background: none; border: 2px solid var(--text); }
+`;
+
+// owner 2026-10-08: people didn't know what to do or where to type after install, and setup asked
+// question after question in the chat. First page before setup: 1 sign in (+ the AI-training
+// question), 2 the resume - a file or "I don't have one yet" (a file answers some questions, marked
+// skippable), 3 the rest of the form (all optional, setup-form.json), 4 the start button - answers
+// saved here, their answers in plain words put in the chat (setup.summary, shown live above the
+// button; say(), as on Today; owner: a bare "set me up" in the box "not clear or intuitive"); the
+// chat asks only what's left.
+// notes = lines the window must say first ({text, allow}: allow => "Allow it here");
+// saved = answers already saved (prefilled); resume = file already picked (its name)
+function welcome({ mode, nonce, ai = null, fonts = null, ready = false, notes = [], platform = "darwin", form = null, saved = {}, resume = "" }) {
+  const h = escapeHtml;
+  const alerts = notes.map((n) => `<div class="alert" role="note"><p>${h(n.text)}</p>`
+    + (n.allow ? `<div class="acts"><button type="button" data-a="${ALLOW_HERE}">${h(n.allow)}</button></div>` : "") + "</div>").join("");
+  const guides = WELCOME_GUIDES.slice(0, 2).map((g) => `<li><button type="button" class="link" data-a="${g.action}">${h(g.title)}</button></li>`).join("");
+  const f = form || { sections: [] };
+  // the AI-account question sits with signing in; the rest after the resume (it answers some of them)
+  const part = (ids) => setup.render(f, { saved, esc: h, guideAction, only: ids });
+  const aiPart = part(["privacy"]);
+  const rest = part(f.sections.map((x) => x.id).filter((id) => id !== "privacy"));
+  const none = saved.no_resume === true && !resume;
+  return `${head(nonce, fonts, "Welcome", FORM_CSS)}
+<body><main><h1>Welcome to CEZ Job Finder</h1>
+<p class="sub">Four short steps, about 3 minutes. Then the chat checks how many jobs match and shows your first jobs. Skip anything you like - the chat asks about it.</p>
+${alerts}<form id="setup" novalidate data-resume="${resume ? "picked" : none ? "none" : ""}"><ol class="steps">
+<li><h2>Sign in to your AI</h2><p>${h(SIGN_IN[ai] || SIGN_IN_ANY)}</p>
+<div class="acts"><button type="button" data-a="${SHOW_CHAT}">Show me the chat</button></div>${aiPart}</li>
+<li><h2>Your resume</h2><p>A PDF or Word file. A copy goes in My Resume, on this computer only. With it, you can skip the questions it answers.</p>
+<div class="acts resume"><button type="button" class="go" data-a="${CHOOSE_RESUME}">Choose my resume file</button>
+<button type="button" id="no-resume" aria-pressed="${none}">I don't have one yet</button>
+<p id="resume-name" role="status" data-name="${h(resume)}">${resume ? `Added: ${h(resume)}` : ""}</p></div></li>
+<li><h2>What you want</h2>${rest}</li>
+<li><h2>Start setup</h2><div id="start"><p id="how">${h(setupLine(mode))}</p>
+<div class="acts"><button type="submit" id="go" class="go big" aria-describedby="how" data-busy="${h(busyLabel(ai, ready))}">${h(startLabel(ai, mode))}</button></div>
+<details class="peek"><summary>See what goes in the chat</summary><p class="preview" id="preview">${h(setup.summary(saved, f, resume))}</p></details></div>
+${afterStart(platform)}</li>
+</ol></form>
+<section class="later" aria-labelledby="s-after"><h2 id="s-after">After that</h2>
+<p class="note">Next time, open CEZ Job Finder from its icon on your Desktop. This page becomes Today: your new jobs each morning, with buttons for what to do next.</p>
+<h3>Guides</h3><ul class="guides">${guides}</ul></section>
+${BAR}</main>
+<script nonce="${nonce}">const cezApi = acquireVsCodeApi();
+(${page})(cezApi, document, window, ${CLEAR_MS}, ${UNDO_MS});
+(${setup.page})(cezApi, document, ${JSON.stringify(f).replace(/</g, "\\u003c")}, ${setup.summary}, ${CLEAR_MS});</script></body></html>`;
+}
 
 module.exports = {
-  VIEW_TYPE, DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, BEST_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
+  VIEW_TYPE, WELCOME_TYPE, AI_NAMES, START_LABELS, startLabel, setupReady, afterStart, SHOW_CHAT, ALLOW_HERE, CHOOSE_RESUME, WELCOME_GUIDES, guideAction, SIGN_IN, SIGN_IN_ANY, setupLine, welcome,
+  DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, BEST_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
   escapeHtml, templates, templateFor, cleanUrl, cleanSite, openLink, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say, STILL_OPENING, STILL_SAVING,
   STATUS_SET, UNDO_MS, statusLine, undoneLine, statusFailed, UNDO_FAILED, statusKeeper,

@@ -3,6 +3,52 @@
 `AGENTS.md` #User = not technical binds every step.
 Read `app/docs/jobs/freehire.md` first: geography, null-facet and `q=` rules below come from it.
 
+## 0. Setup form - read it first
+
+The welcome page (first page before setup): sign in (+ the AI-training question), the resume (a file,
+or "I don't have one yet"), the rest of a short form; its yellow button ("Put my answers in Claude's chat", per AI)
+saves the answers to `.data/setup-form.json`, then puts them in the chat in plain words, starting
+"Set me up with my answers:" (the user sees what they send). Read that file before anything else
+(no search settings yet, or the file newer than them) - it holds the exact values; the message is
+their summary. Fields + values:
+`app/vscode/setup-form.json`. Every field is optional - a field missing = ask it as below; a field
+there = never ask it again, only confirm (owner 2026-10-08: setup asked too many questions).
+- `training` there (`switched_off` / `already_off` / `leave_on`) -> skip the AI-training question
+  below; never re-open the guide.
+- `work` = their words for the job -> measure it (#1 "which exact roles": every way the title is
+  written) and map it to categories yourself; ask the family question only when their words fit
+  two families equally.
+- `level` -> `rank.career_level` (`entry` / `mid` / `senior` / `leader`). `entry` = student
+  notes below apply.
+- `hours` -> employment types (`full_time`, `part_time`, `internship` = internship or co-op,
+  `contract`); none ticked = "doesn't matter".
+- `where` + `city` -> location tiers; a city they typed still goes through `probe --city`.
+- `pay` = `{amount, per: year | hour}` -> the pay floor (#1 lowest pay rules: count it first).
+- `avoid` -> `blocklist` companies (their names; find each one's listing name, say any not found).
+- `work_permit` -> `work_authorization` per the table in #1: `citizen_or_green_card`,
+  `other_no_sponsorship`, `f1_student` (+ `student_visa: true`), `visa_sponsorship_later`,
+  `needs_sponsorship`, `ask_each_time` (all null).
+- `languages` -> the languages question in #3 is answered; still ask the level when they gave
+  none, never guess it.
+- `news` -> `popup` = no email question in #5; `email` = walk them through email in #5. The
+  morning time stays 08:00 unless they ask - say they can change it any time.
+- `resume` = path of the file they picked, inside `My Resume/` (the page already ran
+  `resume-import prepare --file` on it here: its text came out, so it reads). Resume FIRST: do #3's
+  import + confirm before #1 - then take the job, career level, town or city and languages from it
+  for whatever the form left empty (the message says which: "read ... from it"), and say what you
+  took in the one confirm question. Never ask for the drag.
+- `no_resume: true` ("I don't have a resume yet") -> build the search from the form; at #3, no file
+  to ask for: offer to make one together - ONE question at a time (latest job or school first:
+  name, title, dates, then what they did), their words only, never a skill or number they didn't
+  say (`AGENTS.md` #Lead, Hold); write `My Resume/Resume details.yml` in the shape of
+  `app/resume/master.example.yml`, then on from #3's "Read `My Resume/Resume details.yml`".
+  Skip -> search without one; tailoring needs it later, say so once.
+Then measure everything at once and confirm the whole search in ONE clickable question, with
+live counts: "Remote accounting jobs, full time, $60,000 a year or more, US citizen - about 170
+match (132 remote, 36 near Springfield). Looks right / Change something". Narrowing they chose
+still gets its "hides N, keeps M" in that same message (`AGENTS.md` #Lead, narrowing). Ask only
+what the form left empty, one at a time, in #1's order.
+
 Open w/ short paragraph: you'll ask what they're looking for, check how many jobs match, read
 their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGENTS.md`
 #Private vs shared): their file list (My Jobs, My Resume, My Settings) stays on this computer;
@@ -22,7 +68,8 @@ Copilot, already set up: `.data/profile-migrated` reads `model: not copied` (win
 own space, model pick stayed behind) => say that same line once, then add `told` to that file.
 
 Then, BEFORE any interview question (their answers - work permit, pay - are typed into this
-chat too), AI training, one question. Personal Claude (Free/Pro/Max), ChatGPT (Free/Go/Plus/
+chat too), AI training, one question - unless the form answered it (#0: the welcome page offers
+the guide before anything is sent). Personal Claude (Free/Pro/Max), ChatGPT (Free/Go/Plus/
 Pro) and GitHub Copilot (Free/Pro) plans may train on chats unless the user switches it off; work
 plans (Claude Team/Enterprise, ChatGPT Business/Enterprise/Edu, Copilot Business/Enterprise),
 Copilot Student and developer (API key) sign-ins don't by default. Copilot chats may be shared

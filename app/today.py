@@ -399,11 +399,18 @@ def brief(conn, config: dict, jobs_dir: Path, now: datetime, todo: list[str]) ->
     return "\n".join(out)
 
 
+# before setup: their first message may be "hi", "help" or "what now" instead of "set me up" -
+# setup starts anyway (AGENTS.md "Not set up yet")
+NOT_SET_UP = ("Job Finder is not set up yet (no search settings). Whatever the user's first message says"
+              " - a greeting, \"help\", a question - start the job-setup skill now.")
+
+
 def print_brief() -> None:
-    """Hook entry: prints nothing before setup (START HERE covers it) or on any failure - a new
-    chat must never open on an error."""
+    """Hook entry: the not-set-up line before setup; nothing on any failure - a new chat must
+    never open on an error."""
     try:
         if not cfg.config_path().exists():
+            print(NOT_SET_UP)
             return
         config = cfg.load()
         conn = store.connect(cfg.db_path(config))

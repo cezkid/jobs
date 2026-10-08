@@ -12,7 +12,7 @@ STEP_COUNT=5
 VSCODE_APP="/Applications/Visual Studio Code.app"
 [ -d "$VSCODE_APP" ] || VSCODE_APP="$HOME/Applications/Visual Studio Code.app"
 
-step() { printf '\n\033[36mStep %s of %s: %s\033[0m\n' "$1" "$STEP_COUNT" "$2"; }
+step() { printf '\n\033[1mStep %s of %s: %s\033[0m\n' "$1" "$STEP_COUNT" "$2"; }
 fail() {
   printf '\n\033[31mInstall stopped: %s\033[0m\n' "$1"
   echo "Run the same steps again. If it fails twice, send a photo of this window to whoever shared CEZ Job Finder with you."
@@ -43,16 +43,16 @@ pick_ai() {
   if [ -n "$word" ]; then echo "$word"; return; fi
   if ! { : >/dev/tty; } 2>/dev/null; then
     printf '\n\033[31mInstall stopped: could not ask which AI you use.\033[0m\n' >&2
-    echo "Open the Terminal app, paste the install line there and press Enter." >&2
+    echo "Open the Terminal app, paste the install line there and press Return." >&2
     return 1
   fi
-  printf '\n\033[36mWhich AI do you use?\033[0m\n  1 = Claude (Pro or Max)\n  2 = ChatGPT (Plus or Pro)\n  3 = GitHub Copilot Pro ($10 a month)\n' >/dev/tty
+  printf '\n\033[1mWhich AI do you use?\033[0m\n  1 = Claude (Pro or Max)\n  2 = ChatGPT (Plus or Pro)\n  3 = GitHub Copilot Pro ($10 a month)\n' >/dev/tty
   local answer
   while true; do
-    printf 'Type 1, 2 or 3, then press Enter (this accepts the terms above): ' >/dev/tty
+    printf 'Type 1, 2 or 3, then press Return (this accepts the terms above): ' >/dev/tty
     if ! read -r answer </dev/tty; then
       printf '\n\033[31mInstall stopped: no answer to which AI you use.\033[0m\n' >&2
-      echo "Open the Terminal app, paste the install line there and press Enter." >&2
+      echo "Open the Terminal app, paste the install line there and press Return." >&2
       return 1
     fi
     word=$(ai_word "$answer")
@@ -60,17 +60,18 @@ pick_ai() {
   done
 }
 
-printf '\n\033[36mInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open.\033[0m\n'
+printf '\n\033[1mInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open.\033[0m\n'
 echo 'Free and open source, provided as is, with no warranty. Installing means you accept the terms: https://jobs.enrriquez.com/terms.html'
 ai=$(pick_ai "${1:-}") || exit 1
 # explicit per AI; copilot => none (Copilot Chat built into VS Code 1.140)
+# sign_in = what to do in the window, said once the install ends (nothing here waits for a key)
 case "$ai" in
   claude) ai_extension=anthropic.claude-code
-    sign_in="Click Sign in on the chat panel on the right, then press Enter." ;;
+    sign_in="In the chat on the right, click Sign in and use your Claude Pro or Max account." ;;
   chatgpt) ai_extension=openai.chatgpt
-    sign_in="Click the ChatGPT icon at the top left, then Sign in, then press Enter." ;;
+    sign_in="In the chat on the right, click Sign in and use your ChatGPT Plus or Pro account." ;;
   copilot) ai_extension=
-    sign_in="Click Sign in on the chat panel on the right, then pick Claude Sonnet in the model list under the chat box, then press Enter. No GitHub account? Make one with your Google or Apple account." ;;
+    sign_in="In the chat on the right, click Sign in, then pick Claude Sonnet in the model list under the chat box. No GitHub account? Make one with your Google or Apple account." ;;
 esac
 
 step 1 "installing uv (runs CEZ Job Finder)..."
@@ -120,8 +121,19 @@ if ! (cd "$DIR" && uv run app/jobs.py window-setup); then
   fi
 fi
 
-bash "$DIR/app/install/make-icon-mac.sh"
+bash "$DIR/app/install/make-icon-mac.sh" || true
+# Desktop folder needs the Mac's OK for Terminal: "Don't Allow" => no icon, so never promise one
+if [ -d "$HOME/Desktop/CEZ Job Finder.app" ]; then
+  next_time='Next time, double-click "CEZ Job Finder" on your Desktop.'
+else
+  next_time="Your Mac didn't let the installer put an icon on your Desktop. To open CEZ Job Finder next time, paste the same line in Terminal again - your files are kept."
+fi
 
-printf '\n\033[32mDone. Next time, double-click "CEZ Job Finder" on your Desktop.\033[0m\n'
-printf '\033[32mVS Code opens now. %s\033[0m\n' "$sign_in"
-[ -n "${JOBS_NO_LAUNCH:-}" ] || exec bash "$DIR/app/install/start-mac.sh"
+# "Done" only once the window is on its way: closing this window earlier stopped the start
+printf '\n\033[1mOpening CEZ Job Finder - keep this window open until it appears.\033[0m\n'
+[ -n "${JOBS_NO_LAUNCH:-}" ] || bash "$DIR/app/install/start-mac.sh" || true
+printf '\n\033[1mAll set. You can close this window.\033[0m\n'
+echo "In the CEZ Job Finder window:"
+echo "  1. $sign_in"
+echo "  2. Fill in its first page, then click the yellow button at the bottom to put your answers in the chat."
+echo "$next_time"
