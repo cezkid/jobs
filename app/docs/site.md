@@ -39,7 +39,7 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   (every element, phone + desktop, light + dark + print, diffed); privacy's h2 took the articles' line-height
   (1.15 -> 1.2) + 16px scroll-margin (an anchor jump, e.g. /privacy.html#delete, stops 16px short of the edge, as
   on articles) and the 404 prints w/o its padding.
-- Generated, committed, never hand-edited: `fonts/` (Caladea WOFF2 + `OFL.txt`), `icon.svg`, `icon-*.png`,
+- Generated, committed, never hand-edited: `fonts/` (Literata + Caladea WOFF2, their OFLs), `icon.svg`, `icon-*.png`,
   `apple-touch-icon.png`, `favicon.ico` (PNG frames 16/32/48), `og.png`, `og-research.png`.
   Icons = the app's own mark, the blackbird, one home `app/install/` (owner 2026-10-04: site
   always shows what the desktop shows; crop system: site = bare bird beside the name, Desktop =
@@ -335,6 +335,7 @@ questions, install). Real behaviour only: employers, titles, dates never change;
 | `--win-ink-2` | `var(--ink-2)` | `#d7d0c6` | window secondary text |
 | `--win-rule` | `var(--rule)` | `#6a645b` | hairlines between the window's jobs |
 | `--face` | `"Literata", "Literata Fallback", Georgia, serif` | same | all text: Literata (variable, 400-700), Georgia resized to it until it loads |
+| `--face-display` | `"Literata Display", var(--face)` | same | h1 + home's scene h2s: Literata bold cut at optical size 60 (`literata-display.woff2`, 18 KB, preloaded, `font-display: optional`) |
 | `--regular` | `400` | same | reading text, decks, bylines |
 | `--medium` | `500` | same | every 16px line (bylines, dates, crumbs, citations, footer, tables, On this page): APCA asks Lc 75 there, 90 at regular |
 | `--semibold` | `600` | same | h2-h4, bold, labels, titles, summaries, controls |
@@ -425,7 +426,12 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
 - Hover + press (audit A5; before it the site had 0 `:hover` rules - jurors hover every control):
   in the link's own colour (ink), never yellow, inside `@media (hover: hover)`
   so a tap leaves nothing stuck. Links + summaries underline 2px (instant), the current Research link 3 -> 4px; Copy a 3px ink border (padding gives the 1px
-  back: nothing moves), `:active` 1px into the paper; picks, hub items + Keep reading: the title's underline 2px. No rotating +/- (details
+  back: nothing moves), `:active` 1px into the paper; picks, hub items + Keep reading: the title's underline 2px.
+  Press (Apple design audit 2026-10-08, WWDC 2018 "Designing Fluid Interfaces": feedback on pointer-down): every
+  link + summary underlines 3px on `:active` (the current Research link 5px, contents rows 3px), instant, outside
+  `(hover: hover)` so a touch answers too; boxed buttons (Copy, Send this page, the source card's Close, Guess
+  choices) 1px into the paper; the card's Close + Guess choices also hover (3px ink edge). Before it only Copy
+  answered a press. iOS Safari shows the ink tap tint instead (`:active` there waits for a touch listener). No rotating +/- (details
   motion was cut). qa HOVER: every visible link/button/summary on home, hub + an article changes
   on hover and newly paints no `--mark`.
   Home print adds the desktop install steps, no buttons: 3 Letter pages (cap 5).
@@ -435,10 +441,14 @@ each display heading (>= 48px) >= 0.5x its size clear of the next column.
   fixed + automatic optical size, Literata, Merriweather, Source Serif 4, Newsreader + Inter for small text): Literata
   is Google's e-reading face, drawn for small screen text - x-height 0.51 em (Newsreader 0.43), so 16px bylines,
   crumbs + contents rows read clearly. One file holds weights 400-700, so regular, medium (500), semibold (600) + bold
-  are real cuts. OFL, from google/fonts (`app/web/fonts/Literata/`, source TTFs + OFL); `assets.py --only fonts`
+  are real cuts. The app window's pages use it too (`app/vscode/media/fonts`, wider Latin: `app/docs/app-window.md`).
+  OFL, from google/fonts (`app/web/fonts/Literata/`, source TTFs + OFL); `assets.py --only fonts`
   builds `docs/fonts/literata.woff2` (weight axis 400-700, optical size fixed at 18 - body + small text's own setting:
   36 KB; the full 7-72 axis cost 77 KB, 79 KB the italic - past the 100 KB first load; headlines lose a little display
-  refinement) + `literata-italic.woff2` (regular only: 20 KB). Subset before cutting the axes (the other way round
+  refinement - since 2026-10-08 given back to the headlines by a third file, `literata-display.woff2`: one static bold
+  cut at optical size 60, kern + liga + lnum only, 18 KB; h1 + home's scene h2s (36-96px) set in it; preloaded with
+  the text cut, `font-display: optional` so the page's biggest paint never reflows - a slow first visit keeps the
+  text cut; Apple design audit, WWDC 2020 "The Details of UI Typography") + `literata-italic.woff2` (regular only: 20 KB). Subset before cutting the axes (the other way round
   fontTools fails on the soft hyphen). The roman preloaded; Georgia stands in until it lands, resized to its advance
   + line box (assets.py prints the overrides). Latin subset, name table kept (licence), unhinted (variable outlines).
   Caladea (the resume font) stays in `docs/fonts/` for the share cards only - no page declares it; the home page's
@@ -511,10 +521,19 @@ Native CSS only - no animation library, no 3D, no WebGL. Text never waits for mo
 - Copy click: sweep on the command line + "Copied". Page change (PICK P-d2, "page laid down"):
   cross-document View Transition, header holds (`view-transition-name: masthead`), `main` is the
   `sheet` - old lifts 8px + fades (300ms), new rises from 12px (340ms, 40ms late), `--ease-mark`;
-  keyframes move `transform` + `opacity` only, each done by 400ms (test). No-preference only: all of
-  it lives in site.css inside `@media (prefers-reduced-motion: no-preference)` (test fails
-  any of it outside), so every page opts in and reduced motion changes page instantly. Browsers w/o
-  cross-document transitions (Firefox) change page instantly.
+  keyframes move `transform` + `opacity` only, each done by 400ms (test). Back runs it in reverse (Apple:
+  things return the way they went; audit 2026-10-08): `TURN_JS` (pages.py; in every page's `<head>`, the hand pages'
+  too - test) marks a history step to an earlier entry `back` on `pageswap` + `pagereveal`, and
+  `html:active-view-transition-type(back)` swaps in `sheet-off-back` (drops 12px) + `sheet-on-back` (comes down
+  from -8px); w/o the Navigation API or transition types the forward path plays. The sheet + names live in
+  `@media (prefers-reduced-motion: no-preference)` only (test); reduced motion cross-fades the whole page in 150 ms,
+  opacity only, no names (`@media (prefers-reduced-motion: reduce)`, gate: anything else in there fails) - Apple:
+  a gentler equivalent, not none; an instant swap was the abrupt brightness jump between a light + dark page.
+  Browsers w/o cross-document transitions (Firefox) change page instantly.
+- Source card open + close: grows from the citation clicked (`CITE_JS` sets `transform-origin` there, measured
+  from the dialog's untransformed box) from 0.94 + transparent, the dim fades with it, closing runs back into the
+  citation; 200 ms, `@starting-style` + `overlay` / `display` `allow-discrete` (discrete: allowed in ANIMATABLE).
+  Reduced motion: the fades alone. Before it the card + a 45% dim snapped on.
 - Animated properties only `transform`, `opacity`, `clip-path`, `stroke-dashoffset` (SVG circle /
   check), `background-size` (wrapping marks + Copy line): compositor-cheap or small paints; any
   other property relayouts or repaints big areas every frame (test fails `@keyframes` +

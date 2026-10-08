@@ -1315,7 +1315,7 @@ def test_articles_end_with_keep_reading_and_on_this_page_comes_before_the_articl
             assert html.count(f"<script>{pages.TOC_JS}</script>") == 1
             assert html.index("</footer>") < html.index(pages.TOC_JS)
         else:
-            assert "<script>(" not in html, name
+            assert pages.TOC_JS not in html, name
         ids = re.findall(r'\sid="([^"]+)"', html)
         assert len(ids) == len(set(ids)), name
     # related first: ai-bias links to ats-myth, so ats-myth leads though third comes next in hub order

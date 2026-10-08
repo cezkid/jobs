@@ -1,3 +1,4 @@
+import io
 import json
 import re
 import shutil
@@ -47,8 +48,8 @@ def test_vsix_holds_a_manifest_vscode_accepts(tmp_path):
     assert path.name == f"cez-job-finder.window-{pkg['version']}.vsix"
     with zipfile.ZipFile(path) as z:
         assert sorted(z.namelist()) == ["[Content_Types].xml", "extension.vsixmanifest", "extension/extension.js", "extension/jobs.js",
-                                        "extension/media/fonts/OFL.txt", "extension/media/fonts/caladea-bold.woff2",
-                                        "extension/media/fonts/caladea-regular.woff2", "extension/package.json",
+                                        "extension/media/fonts/OFL-literata.txt", "extension/media/fonts/literata-italic.woff2",
+                                        "extension/media/fonts/literata.woff2", "extension/package.json",
                                         "extension/say.json", "extension/setup-form.json", "extension/setup.js",
                                         "extension/start.js", "extension/today.js"]
         identity = ElementTree.fromstring(z.read("extension.vsixmanifest")).find("v:Metadata/v:Identity", NS)
@@ -190,22 +191,29 @@ def test_today_dashboard_takes_today_md_only_in_job_finder_folder():
         assert editor["priority"] == "option" and editor["selector"] == [{"filenamePattern": name}]
 
 
-def test_vsix_carries_caladea_and_its_licence(tmp_path):
+def test_vsix_carries_literata_and_its_licence(tmp_path):
     # no font in the vsix => the page falls back to Georgia (old-style figures dip "Job 46");
-    # fonts w/o OFL.txt break the licence they ship under
+    # fonts w/o their OFL break the licence they ship under
     path = vscode_ext.build(tmp_path)
-    names = re.findall(r'\d+: "([^"]+)"', (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8").split("const FONTS = ", 1)[1].split("\n", 1)[0])
-    assert names == ["caladea-regular.woff2", "caladea-bold.woff2"]
-    site = vscode_ext.cfg.ROOT / "docs" / "fonts"  # developer checkout only (not in the app zip)
+    styles = re.findall(r'(\w+): "([^"]+)"', (vscode_ext.SOURCE / "today.js").read_text(encoding="utf-8").split("const FONTS = ", 1)[1].split("\n", 1)[0])
+    assert styles == [("normal", "literata.woff2"), ("italic", "literata-italic.woff2")]
     with zipfile.ZipFile(path) as z:
-        for name in names:
-            data = z.read(f"extension/media/fonts/{name}")
-            assert data[:4] == b"wOF2"
-            # same face as the install site + resume, not a stray copy
-            assert not site.exists() or data == (site / name).read_bytes()
-        assert b"SIL Open Font License" in z.read("extension/media/fonts/OFL.txt")
+        files = {style: z.read(f"extension/media/fonts/{name}") for style, name in styles}
+        assert b"SIL Open Font License" in z.read("extension/media/fonts/OFL-literata.txt")
         types = z.read("[Content_Types].xml").decode()
     assert 'Extension=".woff2" ContentType="font/woff2"' in types
+    assert all(data[:4] == b"wOF2" for data in files.values())
+    # the install site's face (same family, weights, optical size), not the resume's Caladea; reading a woff2
+    # needs fontTools + brotli (site build tools, not test deps): `uv run --with fonttools --with brotli pytest`
+    ttlib = pytest.importorskip("fontTools.ttLib")
+    pytest.importorskip("brotli")
+    for style, data in files.items():
+        font = ttlib.TTFont(io.BytesIO(data))
+        assert font["name"].getDebugName(1) == "Literata"
+        assert [(a.axisTag, a.minValue, a.maxValue) for a in font["fvar"].axes] == [("wght", 400, 700)]
+        assert bool(font["head"].macStyle & 2) == (style == "italic")
+        # names reach past Western Europe: Polish, Czech, Turkish, Vietnamese
+        assert all(ord(c) in font.getBestCmap() for c in "łŁčřşğőệ€")
 
 
 def test_dashboard_colors_are_brand_tokens():

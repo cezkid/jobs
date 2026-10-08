@@ -48,6 +48,17 @@ LITERATA = ROOT / "app" / "web" / "fonts" / "Literata"
 # regular only (emphasis); optical size fixed at 18 (body + small text's own setting): the full 7-72 axis cost 77 + 79 KB
 LITERATA_FILES = {"Literata[opsz,wght].ttf": ("literata.woff2", {"wght": (400, 700), "opsz": 18}),
                   "Literata-Italic[opsz,wght].ttf": ("literata-italic.woff2", {"wght": 400, "opsz": 18})}
+# headlines (h1, home's scene h2s: 36-96px): a static bold cut at optical size 60 - finer joins + tighter fit than
+# the text cut's 18 at display sizes (Apple, WWDC 2020 "The Details of UI Typography": type changes shape with size).
+# 18 KB; the full axis cost 77 KB (past the 100 KB first load), a 600-700 range 30 KB, opsz 36-72 32 KB
+LITERATA_DISPLAY = ("Literata[opsz,wght].ttf", "literata-display.woff2", {"wght": 700, "opsz": 60})
+DISPLAY_FEATURES = ["kern", "liga", "lnum"]  # a headline sets no fractions, old-style or table figures
+# the window's copy (Today, welcome, Guides - app/vscode/media/fonts, also read by app/window/pages.css): same face +
+# optical size as the site, so site and app read as one; read off the computer, so no first-load budget: italic keeps
+# every weight (Guides set bold italic) and Latin reaches past Western Europe (company names, people's names)
+APP_FONTS = ROOT / "app" / "vscode" / "media" / "fonts"
+APP_LITERATA_FILES = {"Literata[opsz,wght].ttf": ("literata.woff2", {"wght": (400, 700), "opsz": 18}),
+                      "Literata-Italic[opsz,wght].ttf": ("literata-italic.woff2", {"wght": (400, 700), "opsz": 18})}
 WEB = ROOT / "app" / "web"
 APP_ICONS = ROOT / "app" / "install"
 # art file -> hash; files made from it -> hash (test_site.py recomputes both)
@@ -78,6 +89,9 @@ UNICODES = [
     # combining accents: Caladea's case feature only swaps these, so without them it subsets away
     *range(0x300, 0x305), *range(0x306, 0x309), 0x30A, 0x30B, 0x30C, 0x327, 0x328,
 ]
+# + Latin Extended-A/B, Vietnamese, combining marks, general punctuation, euro + other currency signs
+APP_UNICODES = [*UNICODES, *range(0x100, 0x250), *range(0x300, 0x370), *range(0x1E00, 0x1F00), *range(0x2000, 0x2070),
+                *range(0x20A0, 0x20C1)]
 FEATURES = ["kern", "liga", "lnum", "onum", "tnum", "case", "frac"]
 
 # English letter frequencies (per cent), space included: weights the average lowercase advance
@@ -115,6 +129,8 @@ def fonts():
         print(f"{dest.relative_to(ROOT)}: {dest.stat().st_size / 1024:.1f} KB")
     shutil.copyfile(CALADEA / "OFL.txt", out / "OFL.txt")
     literata(out)
+    literata(out, {LITERATA_DISPLAY[0]: LITERATA_DISPLAY[1:]}, metrics=False, features=DISPLAY_FEATURES)
+    literata(APP_FONTS, APP_LITERATA_FILES, APP_UNICODES, metrics=False)
     for style, georgia in GEORGIA.items():
         if georgia.exists():
             fallback_metrics(style, georgia)
@@ -122,30 +138,31 @@ def fonts():
             print(f"{georgia} missing - {style} fallback metrics not printed")
 
 
-def literata(out):
-    """The site's text face: Literata, Latin subset, axes limited (LITERATA_FILES), unhinted (variable outlines). Subset
+def literata(out, files=LITERATA_FILES, unicodes=UNICODES, metrics=True, features=None):
+    """The site's text face (and the window's: APP_LITERATA_FILES): Literata, Latin subset, axes limited (LITERATA_FILES), unhinted (variable outlines). Subset
     before the axes are cut: the other way round fontTools drops the soft hyphen's variations and fails on it."""
     from fontTools import subset
     from fontTools.ttLib import TTFont
     from fontTools.varLib import instancer
 
-    for src, (name, limits) in LITERATA_FILES.items():
+    out.mkdir(parents=True, exist_ok=True)
+    for src, (name, limits) in files.items():
         font = TTFont(LITERATA / src, recalcTimestamp=False, lazy=False)
         opts = subset.Options()
         opts.hinting = False
-        opts.layout_features = [f for f in FEATURES if f != "case"]
+        opts.layout_features = features or [f for f in FEATURES if f != "case"]
         opts.name_IDs = ["*"]
         opts.name_languages = ["*"]
         opts.flavor = "woff2"
         sub = subset.Subsetter(opts)
-        sub.populate(unicodes=UNICODES)
+        sub.populate(unicodes=unicodes)
         sub.subset(font)
         font = instancer.instantiateVariableFont(font, limits)
         font.flavor = "woff2"
         font.save(out / name)
         print(f"{(out / name).relative_to(ROOT)}: {(out / name).stat().st_size / 1024:.1f} KB")
         georgia = GEORGIA["Italic" if "Italic" in src else "Regular"]
-        if georgia.exists():
+        if metrics and georgia.exists():
             fallback_metrics(name, georgia, TTFont(out / name))
     shutil.copyfile(LITERATA / "OFL.txt", out / "OFL-literata.txt")
 

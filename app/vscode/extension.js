@@ -240,7 +240,7 @@ function keeperFor(root, refresh, tellFn) {
 // Today dashboard (custom editor on Today.md, workspace association app/workspace.py): drawn from
 // .data/today.json, redrawn when the page is rewritten. Buttons send an index; what it does is
 // looked up here, checked again, never taken from the page. fontDir = the installed extension's
-// media/fonts (Caladea): the one folder the page may load from
+// media/fonts (Literata): the one folder the page may load from
 function showToday(document, panel, fontDir) {
   const root = path.dirname(document.uri.fsPath);
   const at = (rel) => path.join(root, ...rel.split("/"));
@@ -286,8 +286,8 @@ function showToday(document, panel, fontDir) {
 function pageFonts(panel, fontDir) {
   panel.webview.options = { enableScripts: true, localResourceRoots: [fontDir] };
   const fonts = { source: panel.webview.cspSource, files: {} };
-  for (const [weight, file] of Object.entries(today.FONTS)) {
-    fonts.files[weight] = panel.webview.asWebviewUri(vscode.Uri.joinPath(fontDir, file)).toString();
+  for (const [style, file] of Object.entries(today.FONTS)) {
+    fonts.files[style] = panel.webview.asWebviewUri(vscode.Uri.joinPath(fontDir, file)).toString();
   }
   return fonts;
 }

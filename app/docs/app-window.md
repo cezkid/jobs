@@ -14,8 +14,9 @@ the owner's own.
   >= 4.5:1 per pair, tested.
 - Pages: `markdown.styles: ["app/window/pages.css"]` - relative path joined to the first workspace
   folder (1.140 bundle read). Content sits in `.markdown-body`; body carries `vscode-light` /
-  `vscode-dark` / `vscode-high-contrast`. Caladea via relative `url()` from `app/resume/fonts`
-  loads (preview CSP font-src = webview source); seen live, scratch window, 2026-10-03.
+  `vscode-dark` / `vscode-high-contrast`. Fonts via relative `url()` from inside the workspace
+  load (preview CSP font-src = webview source); seen live w/ Caladea from `app/resume/fonts`, scratch window,
+  2026-10-03; now Literata from `app/vscode/media/fonts` (same mechanism, same folder rule).
 - Scratch dir path must stay short: VS Code's IPC socket `<data>/1.14-main.sock` over 103 chars
   => window never opens, launch still exits 0. Use `mktemp -d /tmp/jfv.XXXX`.
 
@@ -114,7 +115,8 @@ Still stock VS Code, on the user's own install + subscriptions; only settings + 
 
 - Brand look: `workbench.colorCustomizations` per stock theme (`app/window/brand.py`), written to
   the workspace => only this folder's window changes, their own theme elsewhere untouched.
-- Pages: `app/window/pages.css` (`markdown.styles`) - Caladea, 68ch measure, list items as cards.
+- Pages: `app/window/pages.css` (`markdown.styles`) - Literata (the site's face + weights: headings + bold
+  600, quiet lines 500; the resume keeps Caladea), 68ch measure, list items as cards.
   Reads as one program's pages, not a code editor's Markdown preview. No remote loads.
 - Today: job title = link to the posting, company = its website (none on record => plain name), "Open its
   resume" link text, never a bare 100-char URL; separate "Open the posting" dropped 2026-10-04
@@ -158,8 +160,12 @@ the user's own install + subscriptions.
   the window starts and deletes the marker - no 6 s wait, one `code` call. Opened from the Dock
   (no marker): extension runs `today --refresh` itself, same as the launcher.
 - Today = dashboard (`today.js`, #i): paper look like the install site (heading + rule, jobs split
-  by rules, Next up alone framed), tiles, real buttons. Caladea shipped in the vsix
-  (`app/vscode/media/fonts`, OFL.txt w/ it): `localResourceRoots` = that folder, CSP `font-src` =
+  by rules, Next up alone framed), tiles, real buttons. Literata shipped in the vsix
+  (`app/vscode/media/fonts`, OFL-literata.txt w/ it; `app/web/assets.py --only fonts` builds it): the site's face, so
+  site and window read as one (owner 2026-10-08: "app font match the website", resume left in Caladea). Same
+  optical size (18) + weight axis (400-700) as the site's file, its weights too (display bold, headings + controls
+  600, quiet lines 500); wider Latin than the site's subset (names w/ ł č ş ệ; local, so no first-load budget,
+  60 KB a file), italic w/ every weight (Guides set bold italic). `localResourceRoots` = that folder, CSP `font-src` =
   `cspSource` only, `@font-face` via `asWebviewUri` - w/o it the page fell back to Georgia. Data =
   `.data/today.json`, same model as `Today.md`; words from `say.json`, shared w/ the page. W/o
   the extension the folder's association drops => formatted `Today.md`, words to type.
