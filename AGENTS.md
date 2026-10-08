@@ -234,7 +234,7 @@ when asked, at setup, and before any step sending something new off computer.
 | What | Where | Who sees it |
 |---|---|---|
 | Resume, job folders, search settings, saved form answers, notes about you (About me), Today page | `My Resume/`, `My Jobs/`, `My Settings/`, `Today.md` | Private - only this computer |
-| Job list, logs, email password (email optional), What Job Finder knows about you page | `.data/` (hidden) | Private - only this computer |
+| Job list, logs, email password (email optional), What Job Finder knows about you page, welcome page form answers | `.data/` (hidden) | Private - only this computer |
 | Copy of each Claude chat (resume, notes read in it) | Claude Code's chat history, `~/.claude/projects/` (outside the folder) | Private - only this computer; deleted after 30 days |
 | Sign-ins + site data of pages opened in the Job Finder window | the window's own browser storage, kept by VS Code outside the folder (this folder only, not their usual browser or other VS Code windows; `uv run app/jobs.py clear-signins` empties it, `app/docs/app-window.md`) | Private - only this computer; the page's own site sees the visit, as in any browser |
 | CEZ Job Finder program | `app/` (hidden) | Public, open source - same for everyone |
@@ -290,8 +290,14 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 
 ## Layout
 
-- `START HERE.md` - first-run steps only ("type set me up"); launcher opens it until search
-  settings exist, then `Today.md`, and hides it from the file list. Plain words only.
+- `START HERE.md` - first-run steps only ("type set me up"); in the window it shows as the welcome
+  page (sign in, resume or none, setup form, Start setup button; `app/vscode/today.js` welcome), the file = its words w/o the
+  extension. Launcher opens it until search settings exist, then `Today.md`, and hides it from the
+  file list. Plain words only.
+- Not set up yet (no `My Settings/Search settings.yml`): whatever their first message says ("hi",
+  "help", "what do I do"), start `job-setup`. Their first page (START HERE) is a welcome page w/ a
+  form + Start setup button that puts their answers in the chat ("Set me up with my answers: ...");
+  Claude's new chats get the same line (`today --brief`).
 - `Today.md` - generated (`today`): waiting on you, follow up, best to apply next (`app/docs/jobs/best-next.md`;
   same order in brief + email), not finished; each item ends w/ the words to say (window: a button, from `.data/today.json`;
   w/o the extension: highlighted, user types them) + "Open its resume"; job title opens the posting, company its website (job search's record, cached 30 d, `app/companies.py`), none on record = plain name; employer text inert, no other links from it. Rebuilt at launch + after each morning check.
@@ -312,7 +318,7 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
 - `My Jobs/<stage>/N - Company - Title/` - one per tailored job, under where it stands
   (`1 To apply` ... `4 Closed`, `app/docs/jobs/job-folders.md`): `First_Last_Resume.pdf`,
   `Job posting.md`, `Check before sending.md`, `.data/` (AI task + answer files).
-- `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `today.json` (Today as data for the window), `resume-source.json` (text the last import handed the AI), `What Job Finder knows about you.md` (`about show`), `start-page`
+- `.data/` - `jobs.db`, `daily.log`, `email.env`, `ai` (claude | chatgpt | copilot), `setup-form.json` (welcome page form answers, read by `job-setup` #0), `today.json` (Today as data for the window), `resume-source.json` (text the last import handed the AI), `What Job Finder knows about you.md` (`about show`), `start-page`
   (launcher -> extension: page to open, then deleted), `splash-start` (loading splash began), `window-ready` (page up: splash closes), `window-running.json` (window extension version the open window runs), `window-installed` (version in its profile: newer => Today says restart), `profile-migrated`, `vscode/` (built vsix), `vscode-ours` (installer downloaded VS Code => app-wide quiet settings ok), `resume-index.yml`, AI task files for import,
   pasted postings + `resume-gaps`.
 - `app/` - all code: `jobs.py` single entry, `launch.py` (Desktop launcher), `workspace.py` (VS Code settings per AI, written at launch, gitignored), `vscode/` (window

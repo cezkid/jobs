@@ -94,7 +94,11 @@ COMMON = {
         "*.md": "vscode.markdown.preview.editor",
         # longer pattern wins; dropped by VS Code when the window's extension is missing => page view
         "Today.md": "cezJobFinder.today",
+        # first page before setup: welcome + Set me up button (app/vscode/today.js welcome)
+        "START HERE.md": "cezJobFinder.start",
     },
+    # double-click on a page opened its raw text: users typed "set me up" into the file, not the chat
+    "markdown.preview.doubleClickToSwitchToEditor": False,
     # brand look over VS Code's two stock themes: light by default, dark when the computer is dark;
     # light / dark chosen (.data/look, app/look.py) => LOOK below. High contrast always follows the computer
     "window.autoDetectColorScheme": True,

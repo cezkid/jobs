@@ -21,7 +21,7 @@ OUT = cfg.DATA / "vscode"
 RELEASES = SOURCE / "releases.txt"
 # packed into the vsix; releases.txt stays out (build bookkeeping, not extension content).
 # Caladea + its licence (OFL asks the licence travel w/ the fonts): the Today page's typeface
-SHIPPED = ("package.json", "extension.js", "start.js", "today.js", "jobs.js", "say.json",
+SHIPPED = ("package.json", "extension.js", "start.js", "today.js", "jobs.js", "setup.js", "say.json", "setup-form.json",
            "media/fonts/caladea-regular.woff2", "media/fonts/caladea-bold.woff2", "media/fonts/OFL.txt")
 
 CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>

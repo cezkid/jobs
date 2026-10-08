@@ -482,7 +482,9 @@ def main() -> None:
     ap.add_argument("--keep", help="finish, re-import: groups of the old file to keep - "
                                    f"{', '.join(carry.GROUPS)}, all or none (finish lists them first)")
     args = ap.parse_args()
-    config = cfg.load()
+    # resume paths only: runs before search settings exist (the welcome page reads a picked resume at
+    # once; setup may import it first) - shipped defaults then, the same paths
+    config = cfg.load_or_defaults()
     if args.step == "prepare":
         prepare(config, args.file, args.force)
     else:

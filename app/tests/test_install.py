@@ -106,7 +106,7 @@ def script(name: str) -> str:
 def mac_pick(tmp_path, answer=None, env=None, extensions="", saved=None, arg=""):
     # mac installer's own ai_word + pick_ai, run in bash w/ a stub `code` and no real install
     body = script("install-mac.sh")
-    funcs = body[body.index("ai_word() {"):body.index("printf '\\n\\033[36mInstalling")]
+    funcs = body[body.index("ai_word() {"):body.index("printf '\\n\\033[1mInstalling")]
     (tmp_path / "bin").mkdir(exist_ok=True)
     stub = tmp_path / "bin" / "code"
     stub.write_text(f"#!/bin/bash\nprintf '%s' '{extensions}'\n")
@@ -166,12 +166,14 @@ def test_installer_three_way_choice_copilot_installs_nothing_choice_saved(name):
     assert "github.copilot" not in body  # never installed, never used to guess
     assert re.search(r"\.data[/\\]ai", body)
     assert "No GitHub account? Make one with your Google or Apple account." in body
-    assert "Click the ChatGPT icon at the top left, then Sign in" in body
+    # ChatGPT's chat sits in the right-hand sidebar (app-window.md #e), never "top left"
+    assert "In the chat on the right, click Sign in and use your ChatGPT Plus or Pro account." in body
+    assert "top left" not in body
 
 
 def test_unknown_answer_asks_again_and_no_window_stops():
     body = script("install-mac.sh")
-    loop = body[body.index("  while true; do"):body.index("printf '\\n\\033[36mInstalling")]
+    loop = body[body.index("  while true; do"):body.index("printf '\\n\\033[1mInstalling")]
     assert 'word=$(ai_word "$answer")' in loop and 'if [ -n "$word" ]; then echo "$word"; return; fi' in loop
     assert "ai=$(pick_ai \"${1:-}\") || exit 1" in body
     body = script("install-windows.ps1")
@@ -222,7 +224,7 @@ def test_ai_panel_step_sets_up_the_window_after_the_program_is_ready_and_falls_b
 def test_mac_repair_finds_ai_in_job_finders_profile_only(tmp_path):
     # AI installed into the profile only => re-run asked again which AI the user has
     body = script("install-mac.sh")
-    funcs = body[body.index("ai_word() {"):body.index("printf '\\n\\033[36mInstalling")]
+    funcs = body[body.index("ai_word() {"):body.index("printf '\\n\\033[1mInstalling")]
     (tmp_path / "bin").mkdir()
     stub = tmp_path / "bin" / "code"
     stub.write_text('#!/bin/bash\n[ "$2" = "--profile" ] && echo openai.chatgpt || true\n')
@@ -231,3 +233,27 @@ def test_mac_repair_finds_ai_in_job_finders_profile_only(tmp_path):
     out = subprocess.run(["bash", "-c", run], capture_output=True, text=True, stdin=subprocess.DEVNULL,
                          env={"PATH": f"{tmp_path / 'bin'}:/usr/bin:/bin"}, start_new_session=True)
     assert out.stdout.strip() == "chatgpt"
+
+
+@pytest.mark.parametrize("name, launch", [("install-mac.sh", 'bash "$DIR/app/install/start-mac.sh"'),
+                                          ("install-windows.ps1", "& $start")])
+def test_all_set_said_only_once_the_window_is_on_its_way(name, launch):
+    # "Done" came before update + launch: a user who closed the window there never saw the app open.
+    # Sign-in lines ended "then press Enter" with nothing waiting for it (adversarial review 2026-10-08)
+    body = script(name)
+    opening = body.index("Opening CEZ Job Finder - keep this window open until it appears.")
+    assert opening < body.index(launch) < body.index("All set. You can close this window.")
+    assert "Done." not in body
+    signs = [l for l in body.splitlines() if "In the chat on the right, click Sign in" in l]
+    assert len(signs) == 3 and not any("press Enter" in l for l in signs), signs
+    assert "Fill in its first page, then click the yellow button at the bottom to put your answers in the chat." in body
+    assert 'Next time, double-click "CEZ Job Finder" on your Desktop.' in body
+
+
+def test_mac_promises_the_desktop_icon_only_when_it_is_there():
+    # Terminal needs the Mac's OK to write to the Desktop; "Don't Allow" = no icon (set -e stopped the
+    # install there before, silently, the window never opened)
+    body = script("install-mac.sh")
+    assert 'bash "$DIR/app/install/make-icon-mac.sh" || true' in body
+    check = body[body.index('if [ -d "$HOME/Desktop/CEZ Job Finder.app" ]; then'):body.index("Opening CEZ Job Finder")]
+    assert "double-click" in check and "paste the same line in Terminal again" in check

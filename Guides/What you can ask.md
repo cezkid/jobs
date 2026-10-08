@@ -1,7 +1,7 @@
 # What you can ask
 
-Type in the chat box on the right, in your own words. (Using ChatGPT? Click its icon on the left
-first.) You never type commands or edit files.
+Type in the chat box on the right, in your own words: click the empty box at the bottom of the
+chat, type, press Enter. You never type commands or edit files.
 
 ## Just ask
 

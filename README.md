@@ -36,7 +36,7 @@ Free and open source ([MIT](LICENSE)), provided as is, with no warranty. Install
 ## Everyday
 
 Double-click **CEZ Job Finder** on your Desktop, or click the morning notification. Opens VS
-Code with the **Today** page (START HERE on first run) and the chat. Ask "any new jobs?", "make my resume for job 3".
+Code with the **Today** page (on first run: a welcome page - sign in, a short form, Start setup) and the chat. Ask "any new jobs?", "make my resume for job 3".
 
 ## Private
 

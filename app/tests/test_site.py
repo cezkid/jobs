@@ -580,7 +580,7 @@ def test_home_ledger_names_the_same_recipients_as_privacy_in_order():
 
 # every file a claim rests on (app/web/claims.yml) + the pages: enough for a scratch copy
 CLAIM_FILES = ("docs/index.html", "docs/privacy.html", "docs/terms.html", "app/web/claims.yml", "AGENTS.md", "START HERE.md",
-               "app/vscode/say.json", "app/install/install-mac.sh", "app/install/install-windows.ps1",
+               "app/vscode/say.json", "app/vscode/today.js", "app/vscode/setup-form.json", "app/install/install-mac.sh", "app/install/install-windows.ps1",
                "app/alert.py", "app/launch.py", "app/workspace.py", "app/docs/app-window.md", "app/jobs.py",
                "app/vscode/extension.js", "app/docs/about-me.md", "app/update.py", "app/install/start-mac.sh",
                "app/install/start-windows.bat", "app/cfg.py", "LICENSE")
@@ -899,3 +899,16 @@ def test_token_table_check_trips_on_a_stale_row():
     table = "| Token | Light | Dark | Use |\n|---|---|---|---|\n" + rows
     assert token_table(table) == tokens(css)
     assert token_table(table.replace("`#4d4943` | `#dcd9d1`", "`#4d4943` | same", 1)) != tokens(css)
+
+
+def test_install_step_shows_the_desktop_icon_as_drawn():
+    # users never knew the Desktop icon existed (owner 2026-10-08): step 3 shows it, so it must be the
+    # icon the installer puts there - icon-32.svg's shapes, its <desc> + the tile's id dropped
+    art = (cfg.APP / "install" / "icon-32.svg").read_text(encoding="utf-8")
+    shapes = re.sub(r"<desc>.*?</desc>\n", "", art, flags=re.S).split(">", 1)[1].rsplit("</svg>", 1)[0].strip()
+    shapes = shapes.replace('<rect id="tile" ', "<rect ").replace("\n", "")
+    home = (DOCS / "index.html").read_text(encoding="utf-8")
+    drawn = re.search(r'<svg class="app tile" viewBox="0 0 32 32" aria-hidden="true" focusable="false">(.*?)</svg>', home)
+    assert drawn and drawn.group(1) == shapes, "copy app/install/icon-32.svg's shapes into docs/index.html step 3"
+    step = home[home.index('<ol class="steps">'):home.index("</ol>", home.index('<ol class="steps">'))]
+    assert "Desktop" in step and "first page" in step and "Type 1" not in step

@@ -112,7 +112,14 @@ function tree(m, applied = []) {
 }
 
 // nothing to show: the page's own empty line + its button, else a plain note
-function emptyRow(m) {
+// setUp false = no search settings yet: one row that opens the welcome page (extension.js) - a
+// brand-new user was told to restart ("made at the next start", adversarial review 2026-10-08)
+const SETUP_ROW = { id: "empty", label: "Start setup", description: "Not set up yet",
+  tooltip: "Opens the welcome page: a few answers, then the chat finds your first jobs", accessible: "Not set up yet. Start setup",
+  rows: [], setup: true, icon: ICONS.say };
+
+function emptyRow(m, setUp = true) {
+  if (setUp === false) return { ...SETUP_ROW };
   if (m && m.empty && m.empty.say) {
     return { id: "empty", label: m.empty.say.label, description: m.empty.text, tooltip: m.empty.text,
       accessible: `${m.empty.text} ${m.empty.say.label}`, rows: [], action: m.empty.say.action, icon: ICONS.say };
@@ -121,4 +128,4 @@ function emptyRow(m) {
   return { id: "empty", label: text, description: "", tooltip: text, accessible: text, rows: [] };
 }
 
-module.exports = { VIEW_ID, RUN, APPLIED_DIR, GROUPS, ICONS, jobLabel, appliedFolders, tree, emptyRow };
+module.exports = { VIEW_ID, RUN, APPLIED_DIR, GROUPS, ICONS, SETUP_ROW, jobLabel, appliedFolders, tree, emptyRow };

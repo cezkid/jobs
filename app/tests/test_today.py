@@ -378,9 +378,12 @@ def test_chat_brief_never_reads_resume_or_settings(conn, tmp_path):
     assert "Nothing new since the last check." in today.brief(conn, CONFIG, tmp_path, NOW, [])
 
 
-def test_chat_brief_silent_before_setup_or_on_failure(tmp_path, monkeypatch, capsys):
+def test_chat_brief_starts_setup_before_setup_silent_on_failure(tmp_path, monkeypatch, capsys):
+    # a "hi" before setup got no help: the first chat waited for the exact words "set me up"
     monkeypatch.setattr(cfg, "config_path", lambda: tmp_path / "missing.yml")
     today.print_brief()
+    assert capsys.readouterr() == (today.NOT_SET_UP + "\n", "")
+    assert "job-setup" in today.NOT_SET_UP
     (tmp_path / "missing.yml").write_text("{", encoding="utf-8")
     today.print_brief()
     assert capsys.readouterr() == ("", "")

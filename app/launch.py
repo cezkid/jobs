@@ -429,6 +429,22 @@ def trust_uri(folder: str, windows: bool | None = None) -> dict:
     return {"$mid": 1, "path": path, "scheme": "file"}
 
 
+def app_store(paths: VSCodePaths, key: str) -> Path | None:
+    """Where VS Code reads an app-wide key: its shared store once the key moved there, else the
+    default state db (moved over together on first read). None = can't tell (unreadable)."""
+    shared = paths.shared / "sharedStorage" / "state.vscdb"
+    target = paths.global_storage / "state.vscdb"
+    if shared.exists():
+        rows = state_values(shared, (key, MIGRATED_KEY))
+        try:
+            moved = key in json.loads(rows.get(MIGRATED_KEY) or "[]")
+        except (ValueError, TypeError):
+            return None  # VS Code's own value unreadable: never guess where it reads the key
+        if key in rows or moved:
+            target = shared
+    return target
+
+
 def ensure_folder_trusted(root: Path | None = None, paths: VSCodePaths | None = None) -> None:
     """Cold start: Job Finder's folder on VS Code's trusted list => opened from the Dock, recent
     folders or File > Open it still runs the AI panel + PDF viewer (no Restricted Mode). This
@@ -436,18 +452,56 @@ def ensure_folder_trusted(root: Path | None = None, paths: VSCodePaths | None = 
     paths, root = paths or vscode_paths(), root or cfg.ROOT
     if vscode_running(paths):
         return  # VS Code holds the store + writes its own copy back on quit
-    shared = paths.shared / "sharedStorage" / "state.vscdb"
     try:
-        target = paths.global_storage / "state.vscdb"
-        if shared.exists():
-            rows = state_values(shared, (TRUST_KEY, MIGRATED_KEY))
-            try:
-                moved = TRUST_KEY in json.loads(rows.get(MIGRATED_KEY) or "[]")
-            except (ValueError, TypeError):
-                return  # VS Code's own value unreadable: never guess where it reads trust
-            if TRUST_KEY in rows or moved:
-                target = shared
-        add_trusted(target, trust_uri(str(root)))
+        target = app_store(paths, TRUST_KEY)
+        if target:
+            add_trusted(target, trust_uri(str(root)))
+    except (sqlite3.Error, OSError):
+        pass
+
+
+# VS Code's "Do you want Code to open the external website?" box (Open / Copy / Configure Trusted
+# Domains) stopped people at sign-in (owner 2026-10-08). It asks for a link an add-on opens (the
+# AI's sign-in page) unless the site is on this app-wide list (read in VS Code 1.140's
+# workbench.desktop.main.js: storage key below, application scope; product.json already trusts
+# auth.openai.com + *.github.com). Links clicked on a page in a trusted folder never ask
+# (workbench.trustedDomains.promptInTrustedWorkspace, default off). Added: the three AIs' sign-in +
+# settings sites and this app's own site - nothing else; every entry already there kept
+LINK_TRUST_KEY = "http.linkProtectionTrustedDomains"
+SIGN_IN_SITES = ("https://claude.ai", "https://*.claude.ai", "https://*.anthropic.com",
+                 "https://chatgpt.com", "https://*.chatgpt.com", "https://*.openai.com",
+                 "https://github.com", "https://jobs.enrriquez.com")
+
+
+def ensure_sign_in_sites_trusted(paths: VSCodePaths | None = None) -> None:
+    """Cold start: the AI sign-in sites on VS Code's trusted list => signing in opens the browser
+    without VS Code's "open the external website?" box. VS Code running or a value we can't read
+    => untouched."""
+    paths = paths or vscode_paths()
+    if vscode_running(paths):
+        return
+    try:
+        target = app_store(paths, LINK_TRUST_KEY)
+        if not target:
+            return
+        target.parent.mkdir(parents=True, exist_ok=True)
+        db = sqlite3.connect(target, timeout=2)
+        try:
+            with db:
+                db.execute(ITEM_TABLE)
+                row = db.execute("SELECT value FROM ItemTable WHERE key = ?", (LINK_TRUST_KEY,)).fetchone()
+                try:
+                    sites = json.loads(row[0]) if row else []
+                except (ValueError, TypeError):
+                    return  # VS Code's own value unreadable: never overwrite it
+                if not isinstance(sites, list):
+                    return
+                missing = [s for s in SIGN_IN_SITES if s not in sites]
+                if missing:
+                    db.execute("INSERT OR REPLACE INTO ItemTable (key, value) VALUES (?, ?)",
+                               (LINK_TRUST_KEY, json.dumps([*sites, *missing])))
+        finally:
+            db.close()
     except (sqlite3.Error, OSError):
         pass
 
@@ -1141,6 +1195,8 @@ def open_window() -> None:
         mark_profile_pending()
     # opened later w/o the Desktop icon (Dock, recent folders) => still trusted: AI panel runs
     ensure_folder_trusted()
+    # signing in to the AI opens its site w/o VS Code's "open the external website?" box
+    ensure_sign_in_sites_trusted()
     choice = chosen_ai()
     # before VS Code opens, into its profile once made => the window comes up with the chat panel,
     # the first click on a resume shows the page, a typo in the resume facts is underlined

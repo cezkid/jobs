@@ -2,8 +2,8 @@
   "name": "window",
   "publisher": "cez-job-finder",
   "displayName": "CEZ Job Finder window",
-  "description": "Job Finder's own window: start page, Today dashboard, Jobs panel and app look. Local only, never on the Marketplace.",
-  "version": "0.26.0",
+  "description": "Job Finder's own window: welcome page, Today dashboard, Jobs panel and app look. Local only, never on the Marketplace.",
+  "version": "0.27.0",
   "license": "MIT",
   "engines": {
     "vscode": "^1.100.0"
@@ -13,6 +13,7 @@
     "onStartupFinished",
     "workspaceContains:app/jobs.py",
     "onCustomEditor:cezJobFinder.today",
+    "onCustomEditor:cezJobFinder.start",
     "onView:cezJobFinder.jobs"
   ],
   "capabilities": {
@@ -29,6 +30,16 @@
         "selector": [
           {
             "filenamePattern": "Today.md"
+          }
+        ],
+        "priority": "option"
+      },
+      {
+        "viewType": "cezJobFinder.start",
+        "displayName": "Welcome",
+        "selector": [
+          {
+            "filenamePattern": "START HERE.md"
           }
         ],
         "priority": "option"

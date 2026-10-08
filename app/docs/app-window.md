@@ -70,6 +70,7 @@ Scripts: [measure/5-*.sh](app-window/measure/); results: [probes/](app-window/pr
 | s | Where a window tab's sign-ins live + how to remove them (plan-29g.10) | as #r (scratch, program copy + demo, ai = claude, extension 0.22.0 probe hold, local site logging the Cookie header). Cold `jobs.py launch` (profile CEZ Job Finder), `jobs.py open /signin` (1-year cookie) -> `/whoami`; every `browserStorage` dir under the scratch data + its `workspace.json`; command palette filtered to "Clear Storage" (screenshot, window only); `workbench.action.browser.clearWorkspaceStorage` w/ the sign-in tab still open -> `/whoami`; quit, `jobs.py launch` again -> `/whoami` ([5-s-clear.py](app-window/measure/5-s-clear.py)). VS Code 1.140.0, macOS 26.4.1 x86_64, 2026-10-05 | One dir: `<data>/User/workspaceStorage/<id>/browserStorage` - not under `User/profiles/` even w/ the profile; its `workspace.json` = `{"folder": "file:///<the folder>"}` => outside the folder, deleting the folder leaves it. Palette in the Job Finder window lists Browser: Clear Storage (Global) + (Workspace) (`.data/probe-shots/s-palette.png`, ignored). Before: cookie sent. Clear (Workspace): 0 errors, next `/whoami` sent no cookie; after a restart still none. Dir + 51 files (2 MB: cache, prefs) stay after it - `clearData` empties cookies + site storage, not the dir. Numbers: [s](app-window/probes/s-clear.json). |
 | t | AI clears the window's sign-ins: `jobs.py clear-signins` (plan-29g.14) | as #s (scratch `mktemp -d /tmp/jfv.XXXX`, program copy + demo, ai = claude, extension 0.23.0 probe hold, local site logging the Cookie header, `BROWSER` stubbed). `jobs.py clear-signins` drops `{"do": "clear-signins"}` in the link folder; extension runs `workbench.action.browser.clearWorkspaceStorage`, answers `<name>.done`. Cold `jobs.py launch`, `/signin` -> `/whoami`, every tab closed, quit; `jobs.py launch` again w/ no tab restored -> clear before any page loads (server log) -> screenshot (window only) -> `/whoami`; `/signin` again -> clear w/ 2 tabs open -> `/whoami`; quit -> clear w/ the window closed; launch -> `/whoami` ([5-t-clear-cmd.py](app-window/measure/5-t-clear-cmd.py)). VS Code 1.140.0, macOS 26.4.1 x86_64, 2026-10-05 | No tab open, no page loaded since start (0 site requests, cookie row `jf_signin` on disk): "cleared", exit 0, 1.1 s => next `/whoami` sent no cookie, 0 cookie rows left. No dialog, no notice (`.data/probe-shots/t-cold-clear.png`, ignored). 2 tabs open (cookie sent before): "cleared", 1.6 s, cookie gone. Window closed: "not cleared: the Job Finder window isn't open", exit 1, 0.3 s. After a restart still none. Two earlier runs dropped: a cold window ~9 min late on a loaded Mac (nothing signed in to clear); a restored tab reloading before the clear. Run 1's first `/signin` fell back to the owner's own browser (cold window not taking links yet) => driver stubs `BROWSER`. Numbers: [t](app-window/probes/t-clear-cmd.json). |
 | u | Update ships window extension N+1 while the window runs N: `jobs.py update` -> `window-update` (plan-29g.19) | as #t (scratch `mktemp -d /tmp/jfv.XXXX`, program copy + demo, ai = copilot, probe hold). Cold `jobs.py launch` on 0.25.0; copy's `app/vscode/package.json` -> 0.25.1; `jobs.py window-update` while it runs; Today's last draw read through the hold (`{"do": "today"}`); close the window only (VS Code left running) -> `window-update` again; `jobs.py launch` warm; quit; cold launch ([5-u-update-notice.py](app-window/measure/5-u-update-notice.py)). macOS 26.4.1 x86_64, 2026-10-05 | Window ran 0.25.0 (`.data/window-running.json`). `window-update` installed 0.25.1 (1.4 s, exit 0, `.data/window-installed` = 0.25.1) and printed the restart line; the open window kept running 0.25.0 and Today redrew with the line 0.2 s later, no reload. Window closed, VS Code still running: `window-update` said nothing (extension host gone). `jobs.py launch` on that VS Code: new window ran 0.25.1, no line => closing the window is enough, no full quit (the bead's "Quit, not the red button" was wrong; Windows not measured). Cold relaunch: 0.25.1, no line. Numbers: [u](app-window/probes/u-update-notice.json). |
+| v | Start the chat by itself (no paste, no Enter) - owner 2026-10-08 | bundle read: Claude 2.1.292 extension.js + webview/index.js, VS Code 1.140 workbench.desktop.main.js; web: code.claude.com vs-code + deep-links + cli-reference, anthropics/claude-code #42000 (2026-04-01, open, no reply), learn.chatgpt.com commands, openai/codex session_flow.rs, microsoft/vscode chatActions.ts | Copilot: `workbench.action.chat.open` w/o `isPartialQuery` (or a plain string) = setInput + acceptInput = SENT, but waits for its default agent (60 s, then throws) => welcome uses fill (`isPartialQuery: true`) + `workbench.action.chat.submit` (`today.say` mode `send`; send failed => words stay, said as a fill). Claude: every prompt path (`editor.open`, `primaryEditor.open`, `sidebar.open`, `vscode://anthropic.claude-code/open?prompt=`) ends in the webview's `setInputText` - fill only, docs: "pre-filled but not submitted automatically"; our extension can't type into another's webview (`type` = focused code editor only). Only `claude-vscode.terminal.open(prompt, args, location)` (undocumented) or `claude "prompt"` runs at once - in the terminal UI, a new session. ChatGPT: no command takes text, `codex://` links fill only; `codex "prompt"` (terminal) runs at once. Picked: Copilot sends; Claude + ChatGPT keep their chat panel + fill (one familiar chat > a terminal UI for setup + the panel after) + a drawn guide on the page (diagram + arrow toward the chat; never screenshots - their panels change, carry their makers' marks). Re-check #42000 + Claude's changelog for a submit option (plan-dsu.4). Live: Copilot send signed in + signed out, owner: pending. |
 
 ### Today dashboard - what a click does
 
@@ -192,7 +193,41 @@ the user's own install + subscriptions.
 - Buttons put words in the chat, never send: Copilot fills its box; Claude + ChatGPT can't be
   filled w/o a new chat (#d, #e) => copy + open + one paste line. No `vscode://` handler.
 
+- Welcome page (owner 2026-10-08, adversarial review of install -> first chat): START HERE
+  read as a document - typing on it did nothing, a double-click opened the raw file
+  (`markdown.preview.doubleClickToSwitchToEditor` now off), ChatGPT users were sent "left", setup
+  then asked ~12 questions one by one. Now START HERE.md opens as `cezJobFinder.start` (custom
+  editor, `today.welcome`), four steps: 1 sign in (their AI's line + Show me the chat + the AI-training
+  question w/ its guide), 2 the resume - Choose my resume file or I don't have one yet (owner
+  2026-10-08: "2 should be resume upload or no resume ... speed to get results"): the picked file
+  goes straight to `resume-import prepare --file` (system picker; copied to My Resume/Original
+  resume.<ext>, its text taken out here - a scan or Pages file said on the page, not minutes into
+  setup; never read by the extension itself; resume details already made or no uv => plain copy),
+  then the questions a resume answers (`from_resume`: job, career level, town, languages) read "You
+  can skip this", 3 the rest of the form (`app/vscode/setup-form.json`, every field optional), 4 one
+  yellow button named for what it does in their AI (`today.startLabel`: "Put my answers in Claude's chat", "Copy my answers for ChatGPT", "Send my answers to Copilot"; owner 2026-10-08) = answers to `.data/setup-form.json` + their answers in plain words
+  into the chat by Today's say path ("Set me up with my answers: ..."; `setup.summary`, shown live
+  above the button under "What goes in the chat" - owner 2026-10-08: a bare "Set me up" button +
+  "set me up" in the chat box was "not clear or intuitive"); after, the page says where the words
+  went + "Press Enter there to start". `job-setup` #0 reads the file, asks only what's missing, confirms the search in one
+  question. Drawn once + `retainContextWhenHidden`: a redraw or a look at another tab wiped typed
+  answers. Profile-pending + Restricted Mode lines on the page itself (corner pop-ups contradicted
+  it); Today keeps the pop-ups. Jobs panel before setup: one Start setup row opening this page (was
+  "made at the next start"). W/o the extension: START HERE.md formatted, same steps in words.
+- AI sign-in sites trusted (`launch.ensure_sign_in_sites_trusted`, cold start): VS Code's "Do you
+  want Code to open the external website?" box asks for any link an add-on opens unless the site
+  is on the app-wide list `http.linkProtectionTrustedDomains` (read in 1.140's
+  workbench.desktop.main.js; product.json already trusts auth.openai.com + *.github.com; page links
+  in a trusted folder never ask - `workbench.trustedDomains.promptInTrustedWorkspace` default off).
+  Adds claude.ai, *.claude.ai, *.anthropic.com, chatgpt.com, *.chatgpt.com, *.openai.com,
+  github.com, jobs.enrriquez.com; every entry kept; same store routing as folder trust (#n).
+
 Owner checks still open (beyond the button checks above):
+- Welcome page, each AI, signed out then signed in (plan-dsu.1): Start setup lands
+  their answers in the chat (Claude new chat, Copilot box, ChatGPT copy + paste); Choose my resume
+  file copies the file; Show me the chat reopens a closed panel; job-setup skips what the form
+  answered. owner: pending.
+- Claude sign-in after a cold start: no "open the external website?" box (plan-dsu.2). owner: pending.
 - Windows: folder key + profile on a real Windows install (#1w). owner: pending.
 - Settings Sync skips ours on a signed-in account (#5, #8). owner: pending.
 - First cold launch on the live install: profile made, AI panel + sign-in carried over, Today
