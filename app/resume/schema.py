@@ -330,6 +330,7 @@ def check_legal_name(contact: dict, errors: list[str]) -> None:
     elif legal["middle"] and not legal["first"]:
         errors.append("contact.legal_middle: needs legal_first and legal_last")
     strings(contact, "other_names", "contact", errors)
+    strings(contact, "form_links", "contact", errors)
     form_name = contact.get("form_name")
     if form_name is not None and form_name not in FORM_NAMES:
         errors.append(f"contact.form_name: one of {', '.join(FORM_NAMES)}")

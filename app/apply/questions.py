@@ -214,7 +214,8 @@ def key_from_title(title: str, kind: str) -> str | None:
 
 
 def link(contact: dict, host: str) -> str:
-    for url in contact.get("links") or []:
+    """A profile link from the page's links, else one kept for forms only (contact.form_links)."""
+    for url in (contact.get("links") or []) + (contact.get("form_links") or []):
         if host in url.casefold():
             return url if url.startswith("http") else "https://www." + url.removeprefix("www.")
     return ""
