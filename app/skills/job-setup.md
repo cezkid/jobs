@@ -8,7 +8,10 @@ their resume, then show first matches; ~10 minutes. Privacy in plain words (`AGE
 #Private vs shared): their file list (My Jobs, My Resume, My Settings) stays on this computer;
 job searches send only their search settings to freehire.me (a resume made for a listed job, or
 "still open?", sends that job's listing id - nothing about them); resume is read here in this AI
-chat; nothing goes to CEZ Job Finder's maintainer without asking first.
+chat; nothing goes to CEZ Job Finder's maintainer without asking first. Same opening, one line:
+free + provided as is - AI can get things wrong, so they read every resume + answer before sending;
+it never clicks Submit; general information, not legal advice. Terms: `jobs.py open
+"https://jobs.enrriquez.com/terms.html"` only if they ask.
 On Copilot (`.data/ai`): in the same opening, one line - pick Claude Sonnet in the model list
 under the chat box, the automatic model can't make tailored resumes (`AGENTS.md` #User = not
 technical). Copilot's free tier can't either: say Copilot Pro ($10 a month) if they're on it.
@@ -272,7 +275,9 @@ Email too (only if they say yes):
   sender uses implicit TLS only).
 - Gmail needs app password: 2-Step Verification on, then https://myaccount.google.com/apppasswords
   -> create "CEZ Job Finder" -> 16-letter code. Open that page for them; walk through it. Tell
-  them: code stays in hidden file on this computer, used only to send their own email.
+  them: the code goes through this chat, so it reaches their AI account (Claude also keeps a copy
+  on this computer 30 days); then it's kept in a hidden file here, used only to send their own
+  email; they can cancel it any time on that same Google page.
 - Write `.data/email.env` from `app/email.env.example`: `SMTP_USER`, `SMTP_PASSWORD` (spaces
   removed), `ALERT_TO` if different inbox. Yahoo: also `alert.smtp_host: smtp.mail.yahoo.com`
   in search settings.

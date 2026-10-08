@@ -49,7 +49,7 @@ pick_ai() {
   printf '\n\033[36mWhich AI do you use?\033[0m\n  1 = Claude (Pro or Max)\n  2 = ChatGPT (Plus or Pro)\n  3 = GitHub Copilot Pro ($10 a month)\n' >/dev/tty
   local answer
   while true; do
-    printf 'Type 1, 2 or 3, then press Enter: ' >/dev/tty
+    printf 'Type 1, 2 or 3, then press Enter (this accepts the terms above): ' >/dev/tty
     if ! read -r answer </dev/tty; then
       printf '\n\033[31mInstall stopped: no answer to which AI you use.\033[0m\n' >&2
       echo "Open the Terminal app, paste the install line there and press Enter." >&2
@@ -61,6 +61,7 @@ pick_ai() {
 }
 
 printf '\n\033[36mInstalling CEZ Job Finder. This takes about 5 minutes - keep this window open.\033[0m\n'
+echo 'Free and open source, provided as is, with no warranty. Installing means you accept the terms: https://jobs.enrriquez.com/terms.html'
 ai=$(pick_ai "${1:-}") || exit 1
 # explicit per AI; copilot => none (Copilot Chat built into VS Code 1.140)
 case "$ai" in

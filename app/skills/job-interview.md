@@ -32,8 +32,8 @@ had. Basis + what each rule rests on: `app/docs/apply/interview.md`.
   than none.
 - Pay talk: the posting's stated pay or their own figures only; none stated -> say so, never a
   market figure.
-- Never ask what US law keeps out of interviews (age, family plans, religion, national origin,
-  disability). They want to practise handling one -> coach a polite redirect; general information,
+- Never ask what US equal-employment rules discourage asking (age, family plans, religion,
+  national origin) or bar before an offer (disability). They want to practise handling one -> coach a polite redirect; general information,
   not legal advice (`app/docs/resume/fair-screening.md`).
 - Every ~6 questions, ONE clickable question: Two more / Stop - give me the summary. Summary: 2-3
   lines - strongest answer, one or two fixes. Never a score.

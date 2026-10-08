@@ -11,7 +11,9 @@ me?" to see it all on one page.
 | What you're searching for (not your resume) | freehire.me, to find jobs |
 | Which job from your list you make a resume for or ask about (not your resume) | freehire.me, to get the whole posting, what its application asks, or if it's still open |
 | Your resume + jobs you ask about, what you say in interview practice, a note about you when it's used, and the jobs on your Today page when a Claude chat opens | Your own AI chat account (Claude, ChatGPT or GitHub Copilot - Copilot's may be shared with Microsoft) |
-| Pages Claude reads in your Chrome browser while it fills a Workday application (the page's words and pictures of it) | Your own Claude account, each time it reads the page |
+| The email app password, if you turn on the morning email (you type it in the chat; it's then kept on this computer) | Your own AI chat account |
+| Which of your jobs your browser history shows you applied to, when you ask "which did I send?" (read on this computer; only the answer goes to the chat) | Your own AI chat account |
+| Pages Claude reads in your Chrome browser while it fills a Workday application (the page's words and pictures of it), and the titles and addresses of your open Chrome tabs | Your own Claude account, each time it reads the page |
 | Pages GitHub Copilot reads inside the CEZ Job Finder window - ones it opens itself, or ones you agree to share when VS Code asks (the page's words and pictures of it) | Your own GitHub account (may be shared with Microsoft), each time it reads the page |
 | What you apply with | That employer, when you click Submit - many sites get your resume as soon as you choose it, a few get other parts as they're filled (Ashby: each answer as you fill its box, and a town or school letter by letter as you type it; Breezy: the address you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as you type it), and on some your email (on some also your name and phone) goes when you click Continue or Next on their first box, before the form; the AI tells you first |
 | Your name, email, phone and town, on a JazzHR application | Gainsight, JazzHR's analytics company, when you click Submit - for about 1 in 100 applicants, picked by JazzHR's page |
@@ -32,4 +34,4 @@ can see is up to your school.
 
 **If CEZ Job Finder itself breaks:** the AI can repair the program and asks before sharing that
 repair with its maker. Only the repaired program code is sent - never your resume, jobs,
-settings or anything personal.
+settings or anything personal. It's posted publicly on GitHub under your GitHub account name.

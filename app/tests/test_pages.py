@@ -273,7 +273,8 @@ def test_published_sources_become_pages_and_drafts_do_not(tmp_path):
     # + the hand-written pages: their stylesheet links (hash) are this script's
     assert [k for k in built if k != "sitemap.xml"] == [
         "404.html", "about/index.html", "index.html", "privacy.html", "research/ai-bias/index.html",
-        "research/ats-myth/index.html", "research/feed.xml", "research/index.html", "research/methods/index.html"]
+        "research/ats-myth/index.html", "research/feed.xml", "research/index.html", "research/methods/index.html",
+        "terms.html"]
     assert "next-one" not in built["sitemap.xml"]
     assert "https://jobs.enrriquez.com/research/ats-myth/" in built["sitemap.xml"]
     assert pages.write(tmp_path) and pages.problems(tmp_path) == [] and pages.write(tmp_path) == []

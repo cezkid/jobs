@@ -48,8 +48,8 @@ form over, fix the program after.
 - **F-1 student** (`student_visa: true`) or another visa holder: "authorized ... without
   restriction" is always asked (`prepare` leaves it blank). Ask with choices, saying first:
   "General information, not legal advice. Two universities' international offices (Carnegie Mellon,
-  UC Irvine) say: 'without restriction?' No; 'legally authorized?' Yes if you have or will apply for
-  CPT or OPT; 'sponsorship now or in the future?' Yes for most F-1 students. Your international
+  UC Irvine) say: 'without restriction?' No; 'legally authorized?' Yes if CPT or OPT will cover the job's
+  dates; 'sponsorship now or in the future?' Yes for most F-1 students. Your international
   student office has the final word. Which do you pick?" A box asking which visa, OPT dates or an
   EAD number: theirs to type, never saved (`answers.NEVER`). An off-campus job without CPT/OPT
   approval yet: say once that F-1 off-campus work needs it first.
