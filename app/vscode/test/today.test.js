@@ -38,19 +38,22 @@ test("page loads nothing: CSP default-src none, no http(s) source, nonce'd scrip
 });
 
 // fonts from anywhere but the extension's own folder could tell a server when the user looked
-test("Caladea comes from the webview's own source only: font-src = cspSource, @font-face per weight", () => {
+test("Literata comes from the webview's own source only: font-src = cspSource, @font-face per style", () => {
   const fonts = { source: "https://file+.vscode-resource.vscode-cdn.net",
-    files: { 400: "https://file+.vscode-resource.vscode-cdn.net/ext/media/fonts/caladea-regular.woff2",
-      700: "https://file+.vscode-resource.vscode-cdn.net/ext/media/fonts/caladea-bold.woff2" } };
+    files: { normal: "https://file+.vscode-resource.vscode-cdn.net/ext/media/fonts/literata.woff2",
+      italic: "https://file+.vscode-resource.vscode-cdn.net/ext/media/fonts/literata-italic.woff2" } };
   for (const page of [today.render(today.model(RAW, say), { mode: "copy", nonce: "abc123", fonts }), today.fallback({ nonce: "abc123", fonts })]) {
     const meta = page.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/)[1];
     assert.match(meta, /^default-src 'none';/);
     assert.deepEqual(meta.match(/font-src ([^;]*);/)[1].split(" "), [fonts.source]);
-    assert.equal((page.match(/@font-face \{ font-family: Caladea; src: url\("https:\/\/file\+\.vscode-resource/g) || []).length, 2);
-    assert.match(page, /font-weight: 700/);
+    assert.equal((page.match(/@font-face \{ font-family: Literata; src: url\("https:\/\/file\+\.vscode-resource/g) || []).length, 2);
+    assert.match(page, /font-weight: 400 700; font-style: italic/);
+    assert.match(page, /font-family: Literata, Georgia/);
   }
+  // a style the page doesn't know => no rule for it (its value lands inside the CSS)
+  assert.doesNotMatch(today.fontFaces({ files: { "normal; } body { color: red": "x:a" } }), /@font-face/);
   // a source or file that could break out of the rule => no font-src, no @font-face (Georgia)
-  const bad = { source: "https://x 'unsafe-inline'", files: { 400: 'x:a") ; } body { color: red' } };
+  const bad = { source: "https://x 'unsafe-inline'", files: { normal: 'x:a") ; } body { color: red' } };
   const page = today.render(today.model(RAW, say), { mode: "copy", nonce: "abc123", fonts: bad });
   assert.doesNotMatch(page, /font-src|@font-face/);
   assert.equal(today.FONT_DIR.join("/"), "media/fonts");
@@ -343,7 +346,7 @@ test("best jobs carry their why; follow-up note one line + its guide; figures un
   const top = page.split('<div class="top">')[1].split('<p class="how"')[0];
   assert.match(top, /<p class="sub">[^<]*<\/p><ul class="figures" aria-label="So far">/);
   const css = page.match(/<style[^>]*>([\s\S]*?)<\/style>/)[1];
-  assert.match(css, /\.num \{ display: block; font-size: 1rem; font-weight: 700; color: var\(--text\); \}/);
+  assert.match(css, /\.num \{ display: block; font-size: 1rem; font-weight: 600; color: var\(--text\); \}/);
   assert.match(css, /\.note \{[^}]*max-width: 65ch/);
 });
 

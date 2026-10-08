@@ -25,7 +25,7 @@ if not (cfg.ROOT / ".git").exists():
 
 import pymupdf  # noqa: E402
 
-from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, Head, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts, linked_css,  # noqa: E402
+from site_checks import (HEAD_SCRIPT_MAX, NO_PREFERENCE, REDUCE, Head, media_bodies, budgets, contrasts, crumb_clashes, crumbs, files, head_scripts, linked_css,  # noqa: E402
                          loaded_urls, more_table, more_tokens, outside_no_preference, own_url, png_size, shared, structured_data,
                          target, token_table, tokens, run_together, wide_table, wide_tokens, stroke_on_paper, typewriter, yellow_fills, claim_problems)
 
@@ -711,7 +711,7 @@ def test_install_line_shows_without_javascript_and_matches_the_script():
 def test_head_script_sets_html_classes_before_first_paint():
     # OS + phone classes on <html> before first paint (no flash of the wrong OS, no layout shift);
     # html.seen = opening moment once per session, skipped after a page-change crossfade
-    [code] = head_scripts((DOCS / "index.html").read_text(encoding="utf-8"))
+    [code] = [c for c in head_scripts((DOCS / "index.html").read_text(encoding="utf-8")) if "is-phone" in c]
     assert len(code.encode()) <= HEAD_SCRIPT_MAX and "LINES" not in code
     for part in ('"is-phone"', '"is-mac"', '"seen"', "sessionStorage", "pagereveal", "viewTransition"):
         assert part in code, part
@@ -744,12 +744,40 @@ def test_shared_colours_meet_contrast_in_both_schemes():
 
 def test_every_page_lays_its_sheet_down_only_without_reduced_motion():
     # page change (PICK P-d2) opted in by every page (each links site.css: the test above): masthead held, main =
-    # the sheet that is laid down; reduced motion => no transition at all
+    # the sheet that is laid down; reduced motion => no sheet, no names (a plain cross-fade: the test below)
     for name, css in {"site.css": SITE_CSS}.items():
         assert re.search(NO_PREFERENCE + r"[^}]*@view-transition\s*\{\s*navigation:\s*auto", css), name
         assert re.search(r"\.masthead\s*\{\s*view-transition-name:\s*masthead", css), name
         assert re.search(r"(?<![\w.-])main\s*\{\s*view-transition-name:\s*sheet", css), name
-        assert not re.search(r"@view-transition|view-transition-name", outside_no_preference(css)), name
+        assert not re.search(r"view-transition-name", outside_no_preference(css)), name
+        assert not re.search(r"@view-transition", outside_no_preference(outside_no_preference(css), REDUCE)), name
+
+
+def test_back_runs_the_page_change_in_reverse_on_every_page():
+    # Back = the sheet's path reversed (Apple: things return the way they went): every page, hand-written ones too,
+    # marks a history step back in <head> (pagereveal fires before the first frame), and site.css has a reversed
+    # rule for each forward one
+    spec = importlib.util.spec_from_file_location("pages", cfg.APP / "web" / "pages.py")
+    pages = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(pages)
+    for name in PAGES:
+        assert pages.TURN_JS in head_scripts((DOCS / name).read_text(encoding="utf-8")), name
+    for part in ('"pageswap"', '"pagereveal"', '"traverse"', 'types?.add("back")'):
+        assert part in pages.TURN_JS, part
+    assert len(pages.TURN_JS.encode()) <= HEAD_SCRIPT_MAX
+    motion = media_bodies(SITE_CSS, NO_PREFERENCE)
+    for pseudo in ("old", "new"):
+        assert any(re.search(rf"html:active-view-transition-type\(back\)::view-transition-{pseudo}\(sheet\)", b) for b in motion), pseudo
+
+
+def test_reduced_motion_cross_fades_the_page_without_moving_it():
+    # Apple: reduced motion = a gentler equivalent, not none: the whole page fades, nothing moves, nothing named
+    [reduce] = [b for b in media_bodies(SITE_CSS) if "@view-transition" in b]
+    assert re.search(r"@view-transition\s*\{\s*navigation:\s*auto", reduce)
+    assert "view-transition-name" not in reduce
+    assert re.findall(r"::view-transition-(old|new)\(root\)", reduce) == ["old", "new"]
+    frames = dict(re.findall(r"@keyframes\s+([\w-]+)\s*\{((?:[^{}]*\{[^}]*\})*)\s*\}", reduce))
+    assert frames and all(set(re.findall(r"([\w-]+)\s*:", re.sub(r"[^{};]*\{", ";", f))) == {"opacity"} for f in frames.values())
 
 
 def test_page_change_moves_only_transform_and_opacity_within_400ms():
@@ -836,11 +864,14 @@ NOISE = random.Random(0).randbytes(30_000).hex()  # 60 KB of hex = 30 KB of entr
     ({"css": "@view-transition { navigation: auto; }"}, {}, "view transition outside"),
     ({"css": "@media (prefers-reduced-motion: no-preference) { .x { opacity: 1; } }"
              " header { view-transition-name: top; }"}, {}, "view transition outside"),
+    ({"css": "@media (prefers-reduced-motion: reduce) { @view-transition { navigation: auto; }"
+             " @keyframes in { from { transform: translateY(8px); } } }"}, {}, "reduced motion moves"),
+    ({"css": "@media (prefers-reduced-motion: reduce) { main { view-transition-name: sheet; } }"}, {}, "reduced motion moves"),
 ], ids=["html-gzip", "inline-js", "elements", "first-load", "critical", "script-src", "will-change",
         "keyframes", "transition", "transition-all", "use-target", "header-id", "footer-style", "lines-twice",
         "head-script-size", "head-script-lines", "body-class", "figure-control", "bars-control", "figcaption-middle",
         "figure-heading", "vector-effect-css", "view-transition",
-        "view-transition-name"])
+        "view-transition-name", "reduce-moves", "reduce-names"])
 def test_each_budget_rule_trips_on_its_fixture(tmp_path, parts, files, trips):
     for rel, size in files.items():
         (tmp_path / rel).parent.mkdir(parents=True, exist_ok=True)

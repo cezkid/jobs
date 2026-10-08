@@ -1430,6 +1430,9 @@ GUESS_CSS = """
   .guess button { min-height: 44px; padding: 8px 16px; font: inherit; color: var(--heading); background: var(--desk); border: 0; box-shadow: inset 0 0 0 2px var(--heading); border-radius: 6px; cursor: pointer; }
   @media (forced-colors: active) { .guess button { border: 2px solid ButtonText; } }
   .guess button[aria-pressed="true"] { color: var(--desk); background: var(--heading); box-shadow: inset 0 0 0 2px var(--heading); }
+  /* hover: the ring 3px; press: 1px into the paper, at once (home's Copy) */
+  @media (hover: hover) { .guess button:hover { box-shadow: inset 0 0 0 3px var(--heading); } }
+  .guess button:active { transform: translate(1px, 1px); }
   .guess summary { padding: 11px 0; font-weight: var(--semibold); cursor: pointer; }
   .guess details p { margin: 0 0 0.75rem; }
 """
@@ -1452,15 +1455,25 @@ TOC_JS = ('(()=>{const h=[...document.querySelectorAll("article h2[id]")],m=()=>
           '".toc a,.toc-mini a"))c&&a.hash=="#"+c.id?a.setAttribute("aria-current","true"):a.removeAttribute('
           '"aria-current")},o=new IntersectionObserver(m,{rootMargin:"99999px 0px -85% 0px"});h.forEach(x=>o.observe(x))})()')
 
+# Back: a history step to an earlier page marks the page change "back" on both documents (pageswap on the one left,
+# pagereveal on the one shown), so site.css runs the sheet's path in reverse. In <head> of every page, hand-written
+# ones too (test): pagereveal fires before the first frame. Browsers w/o the Navigation API or transition types skip
+# it and keep the forward path. No "</"
+TURN_JS = ('(()=>{const b=a=>a&&a.navigationType=="traverse"&&a.from&&a.entry&&a.entry.index<a.from.index,'
+           't=e=>e.viewTransition?.types?.add("back");addEventListener("pageswap",e=>b(e.activation)&&t(e));'
+           'addEventListener("pagereveal",e=>b(self.navigation?.activation)&&t(e))})()')
+
 # Source card: a click on a citation (#src-<id>) shows that Sources entry in a modal <dialog> instead of jumping
 # ~4,000 words down; Esc, the backdrop, Close or "All sources" close it and
-# focus goes back to the citation. A modified click, or no JS, still jumps. Budget 1 KB (test_pages); no "</"
+# focus goes back to the citation. It grows from the citation and shrinks back into it (doc.css .card). A modified click, or no JS, still jumps. Budget 1 KB (test_pages); no "</"
 CITE_JS = ('(()=>{const d=document.createElement("dialog");d.className="card";document.body.append(d);'
            'document.addEventListener("click",e=>{const l=e.target.closest(\'a[href^="#src-"]\');'
            'if(!l||e.button||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;'
            'const s=document.getElementById(l.hash.slice(1));if(!s)return;e.preventDefault();'
            'd.innerHTML="<div>"+s.innerHTML+\'<p><a href="#sources">All sources<\\/a>'
-           '<button autofocus>Close<\\/button><\\/p><\\/div>\';d.showModal()});'
+           '<button autofocus>Close<\\/button><\\/p><\\/div>\';d.showModal();'
+           'const r=l.getBoundingClientRect();'
+           'd.style.transformOrigin=r.left+r.width/2-d.offsetLeft+"px "+(r.top+r.height/2-d.offsetTop)+"px"});'
            'd.addEventListener("click",e=>{if(e.target==d||e.target.closest(\'button,[href="#sources"]\'))d.close()})})()')
 
 
@@ -1709,6 +1722,7 @@ def page(src: Source, root: Path, body: str, parts: dict[str, str], hub: bool, s
         "<head>",
         '<meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
+        f"<script>{TURN_JS}</script>",
         *head,
         "<style>",
         "\0css\0</style>",

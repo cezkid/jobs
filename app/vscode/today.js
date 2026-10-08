@@ -34,10 +34,11 @@ const BEST_SHOWN = 5;
 // outlined: options (new jobs), status changes; closing quietest of all (re-critique 2026-10-04 P1)
 const LEADS = new Set(["waiting"]);
 const QUIET = new Set(["closed"]);
-// Caladea, shipped in the vsix (OFL, media/fonts/OFL.txt): the webview may load only from there.
-// Italic left out: the page sets none
+// Literata = the install site's face (one look from site to window; the resume keeps Caladea), shipped in
+// the vsix (OFL, media/fonts/OFL-literata.txt; built by app/web/assets.py): the webview may load only from
+// there. Variable: each file holds weights 400-700, so 500 + 600 are real cuts
 const FONT_DIR = ["media", "fonts"];
-const FONTS = { 400: "caladea-regular.woff2", 700: "caladea-bold.woff2" };
+const FONTS = { normal: "literata.woff2", italic: "literata-italic.woff2" };
 // window look (app/look.py, .data/look): word -> switch label + status line once switched.
 // Clicked here => extension runs `jobs.py look WORD`; never through the chat
 const LOOKS = [
@@ -449,12 +450,16 @@ body.vscode-high-contrast { --desk: var(--vscode-editor-background); --text: var
   --mark-2: transparent; --mark-text: var(--vscode-editor-foreground); }
 * { box-sizing: border-box; }
 body { margin: 0; padding: 0 20px; background: var(--desk); color: var(--text);
-  font-family: Caladea, Georgia, "Times New Roman", serif; font-size: 16px; line-height: 1.45;
+  font-family: Literata, Georgia, "Times New Roman", serif; font-size: 16px; line-height: 1.45;
   font-variant-numeric: lining-nums; }
 ::selection { background: var(--text); color: var(--desk); }
 main { max-width: 52rem; margin: 0 auto; padding: 24px 0 48px; }
-h1 { font-size: 2rem; line-height: 1.1; margin: 0 0 4px; }
+h1 { font-size: 2rem; line-height: 1.1; font-weight: 700; letter-spacing: -0.012em; margin: 0 0 4px; }
 h1, h2, h3 { text-wrap: balance; }
+/* the site's weights (app/docs/site.md): display line bold, headings + bold + labels + controls semibold, quiet
+   small lines medium (thin strokes in grey read faint at regular) */
+h2, h3, b, strong { font-weight: 600; }
+.sub, .look, .how, .note, .figures span, .detail, .meta, .later, .hint, .peek, .after-help, .after-or { font-weight: 500; }
 [tabindex="-1"]:focus { outline: 3px solid var(--text); outline-offset: 4px; }
 .skip { position: absolute; left: -10000px; top: 0; }
 .skip:focus-within { position: static; display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0 0 12px; }
@@ -479,7 +484,7 @@ section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1p
 .next .card { border: 1px solid var(--edge); border-radius: 8px; padding: 14px 18px; margin-top: 12px; }
 .next .card h3 { font-size: 1.3rem; }
 .card h3 { font-size: 1.05rem; line-height: 1.3; margin: 0; overflow-wrap: anywhere; }
-.num { display: block; font-size: 1rem; font-weight: 700; color: var(--text); }
+.num { display: block; font-size: 1rem; font-weight: 600; color: var(--text); }
 .card p { margin: 0; overflow-wrap: anywhere; }
 .detail { color: var(--text-2); font-size: 0.92rem; }
 .acts { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: auto; padding-top: 8px; }
@@ -494,32 +499,35 @@ section > h2 { font-size: 1.2rem; margin: 0; padding: 0 0 6px; border-bottom: 1p
 .rows .detail { display: inline-block; }
 .rows .acts { padding-top: 0; }
 .rows h3 { display: inline; font: inherit; margin: 0; }
-.rows h3 b { font-weight: 700; }
+.rows h3 b { font-weight: 600; }
 .list { list-style: none; padding: 0; margin: 12px 0 0; display: grid; gap: 8px; }
 .list li { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
 .more { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
 .later { font-size: 0.92rem; color: var(--text-2); }
 .later .acts { padding-top: 12px; }
 .says { color: var(--text-2); margin: 12px 0 0; }
-.says q { color: var(--text); font-weight: 700; }
+.says q { color: var(--text); font-weight: 600; }
 .later h3 { font-size: 0.92rem; color: var(--text); margin: 18px 0 0; }
 .guides { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 20px; }
-button { font: inherit; font-size: 0.92rem; font-weight: 700; line-height: 1.3; cursor: pointer; border-radius: 6px;
+button { font: inherit; font-size: 0.92rem; font-weight: 600; line-height: 1.3; cursor: pointer; border-radius: 6px;
   padding: 5px 12px; border: 1px solid var(--edge); background: transparent; color: var(--text); text-align: center; }
 button:hover { background: var(--tint); box-shadow: inset 0 0 0 1px var(--text); }
 button:active { box-shadow: inset 0 0 0 2px var(--text); transform: translateY(1px); }
 button.go { background: var(--mark); color: var(--mark-text); border-color: var(--go-edge); }
 button.go:hover { background: var(--mark-2); box-shadow: inset 0 0 0 1px var(--mark-text); }
 button.go:active { background: var(--mark-2); box-shadow: inset 0 0 0 2px var(--mark-text); }
-button.quiet { color: var(--text-2); font-weight: 400; }
-button.link { border: 0; padding: 0; background: none; font-weight: 400; color: var(--text); text-align: left;
+button.quiet { color: var(--text-2); font-weight: 500; }
+button.link { border: 0; padding: 0; background: none; font-weight: inherit; color: var(--text); text-align: left;
   text-decoration: underline; text-underline-offset: 2px; }
+/* text-link buttons + summaries: 19px of text, a 25px box to hit (WCAG 2.2 target size 24px) - padding out, the same
+   margin back in, so nothing on the page moves */
+button.link, summary { padding: 3px 2px; margin: -3px -2px; }
 button.link:hover { background: none; box-shadow: none; text-decoration-thickness: 2px; }
 button.link:active { box-shadow: none; text-decoration-thickness: 3px; }
 button.named { font-size: inherit; font-weight: inherit; line-height: inherit; overflow-wrap: anywhere; }
 button[disabled] { cursor: progress; opacity: 0.75; }
 button.done, button.done:hover, button.done:active { border-color: transparent; background: none; box-shadow: none;
-  transform: none; color: var(--text-2); font-weight: 400; cursor: default; }
+  transform: none; color: var(--text-2); font-weight: 500; cursor: default; }
 button:focus-visible { outline: 3px solid var(--text); outline-offset: 2px; }
 body.vscode-high-contrast button { border-color: var(--edge); }
 body.vscode-high-contrast button.go { border-width: 3px; padding: 3px 10px; }
@@ -530,11 +538,23 @@ body.vscode-high-contrast .look button[aria-pressed="true"] { text-decoration: u
 .bar { position: sticky; bottom: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 16px 0 0;
   padding: 10px 14px; border-radius: 8px; border: 1px solid var(--text); background: var(--desk); color: var(--text); }
 .bar:has(#status:empty) { display: none; }
-#status { margin: 0; font-weight: 700; flex: 1 1 16rem; }
+/* the line rises into place + fades in, and leaves the way it came (Apple: exit along the entry path), its last words
+   still on it (data-gone, set as it clears) until it has gone. 180 ms; reduced motion: the fade alone */
+.bar { transition: opacity 180ms ease-out, display 180ms allow-discrete; }
+.bar:has(#status:empty) { opacity: 0; }
+@starting-style { .bar { opacity: 0; } }
+.bar:has(#status:empty)::before { content: attr(data-gone); flex: 1 1 16rem; font-weight: 600; }
+.bar:has(#status:empty) #status { display: none; }
+@media (prefers-reduced-motion: no-preference) {
+  .bar { transition: opacity 180ms ease-out, transform 180ms ease-out, display 180ms allow-discrete; }
+  .bar:has(#status:empty) { transform: translateY(8px); }
+  @starting-style { .bar { transform: translateY(8px); } }
+}
+#status { margin: 0; font-weight: 600; flex: 1 1 16rem; }
 .steps { list-style: none; counter-reset: step; margin: 28px 0 0; padding: 0; display: grid; gap: 26px; }
 .steps > li { counter-increment: step; display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 0 14px; }
 .steps > li::before { content: counter(step); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--text); color: var(--desk); font-weight: 700; font-size: 1.05rem; }
+  background: var(--text); color: var(--desk); font-weight: 600; font-size: 1.05rem; }
 .steps > li > * { grid-column: 2; }
 .steps h2 { font-size: 1.25rem; line-height: 1.2; margin: 3px 0 6px; }
 .steps p { margin: 0; max-width: 62ch; }
@@ -548,8 +568,8 @@ button.big { font-size: 1.15rem; padding: 10px 24px; }
 // => @font-face rules; a URI that could break out of url("") => left out, Georgia instead
 function fontFaces(fonts) {
   const safe = (u) => typeof u === "string" && /^[a-z][a-z0-9+.-]*:[^\s"'()\\<>;{}]+$/i.test(u);
-  return Object.entries((fonts && fonts.files) || {}).filter(([, u]) => safe(u)).map(([weight, u]) =>
-    `@font-face { font-family: Caladea; src: url("${u}") format("woff2"); font-weight: ${Number(weight)}; font-style: normal; font-display: swap; }`)
+  return Object.entries((fonts && fonts.files) || {}).filter(([style, u]) => style in FONTS && safe(u)).map(([style, u]) =>
+    `@font-face { font-family: Literata; src: url("${u}") format("woff2"); font-weight: 400 700; font-style: ${style}; font-display: swap; }`)
     .join("\n");
 }
 
@@ -587,6 +607,9 @@ function page(vscode, doc, win, clearMs, undoMs, now = () => Date.now()) {
   // button shows as long as the line. Line gone => pressed button's done state goes too
   const show = (text, until, undo = false) => {
     win.clearTimeout(timer);
+    // leaving: the bar keeps its last words drawn while it fades (CSS reads data-gone; the live line itself is empty)
+    const bar = box.parentElement;
+    if (bar && bar.dataset && !text && box.textContent) bar.dataset.gone = box.textContent;
     box.textContent = text;
     state.status = text;
     state.until = until;
@@ -939,7 +962,7 @@ const FORM_CSS = `
 .form-part { margin: 22px 0 0; }
 .form-part h3 { font-size: 1.05rem; margin: 0 0 4px; padding: 0 0 4px; border-bottom: 1px solid var(--line); }
 .field { border: 0; margin: 14px 0 0; padding: 0; min-width: 0; }
-.field > label, .field legend { display: block; font-weight: 700; padding: 0; margin: 0 0 4px; }
+.field > label, .field legend { display: block; font-weight: 600; padding: 0; margin: 0 0 4px; }
 .hint { color: var(--text-2); font-size: 0.92rem; margin: 0 0 6px; max-width: 62ch; }
 .opts { display: grid; gap: 4px; }
 .opt { display: flex; align-items: flex-start; gap: 8px; cursor: pointer; padding: 2px 0; }
@@ -951,12 +974,12 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--text); outl
 .pay { display: flex; align-items: center; gap: 8px; }
 .pay input[type="text"] { width: 9rem; }
 .resume { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
-#resume-name { font-weight: 700; margin: 0; }
+#resume-name { font-weight: 600; margin: 0; }
 button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--text); }
 /* a picked resume answers these: said under each (owner 2026-10-08: resume first, so less to fill) */
 .rnote { display: none; }
-form[data-resume="picked"] .rnote { display: block; font-weight: 700; color: var(--text); }
-.preview-label { font-weight: 700; margin: 10px 0 4px; }
+form[data-resume="picked"] .rnote { display: block; font-weight: 600; color: var(--text); }
+.preview-label { font-weight: 600; margin: 10px 0 4px; }
 .preview { margin: 0; padding: 10px 14px; max-width: 62ch; border-left: 3px solid var(--text); background: var(--tint);
   border-radius: 0 6px 6px 0; overflow-wrap: anywhere; }
 button.go.done { color: var(--text); }
@@ -967,7 +990,7 @@ button.go.done { color: var(--text); }
 .after { margin: 12px 0 0; padding: 16px 18px; border: 2px solid var(--text); border-radius: 10px; max-width: 34rem; }
 .after:focus { outline: none; }
 .after:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
-.after-title { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 1.35rem; font-weight: 700; line-height: 1.2; }
+.after-title { display: flex; align-items: center; gap: 12px; margin: 0; font-size: 1.35rem; font-weight: 600; line-height: 1.2; }
 .after-title .arrow { margin-left: auto; font-size: 2.4rem; line-height: 1; padding: 0 6px; background: var(--mark); color: var(--mark-text); border-radius: 8px; }
 @media (prefers-reduced-motion: no-preference) { .after:not([hidden]) .arrow { animation: nudge 1.2s ease-in-out 3; } }
 @keyframes nudge { 50% { transform: translateX(8px); } }
@@ -980,7 +1003,7 @@ button.go.done { color: var(--text); }
   box-shadow: 0 0 0 4px var(--desk), 0 0 0 8px var(--mark); }
 .mock-send svg { width: 20px; height: 20px; fill: none; stroke: var(--desk); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .after-or { margin: 6px 0 0; color: var(--text-2); }
-.after-steps { margin: 16px 0 0; padding-left: 1.5em; font-size: 1.1rem; font-weight: 700; }
+.after-steps { margin: 16px 0 0; padding-left: 1.5em; font-size: 1.1rem; font-weight: 600; }
 p.after-steps { padding-left: 0; }
 .after-steps li + li { margin-top: 4px; }
 kbd { font: inherit; padding: 1px 8px; border: 1px solid var(--text); border-bottom-width: 3px; border-radius: 6px; background: var(--tint); }

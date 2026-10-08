@@ -232,9 +232,10 @@ INLINE_JS_MAX = 5 * KB        # raw bytes of every inline script but JSON-LD (2.
 BODY_ELEMENTS_MAX = 800       # 162 at start
 FIRST_LOAD_MAX = 100 * KB     # gzip HTML + every @font-face woff2 + icon.svg (colophon promises "under 100 KB")
 CRITICAL_MAX = 5              # HTML + preloads + stylesheets + icon.svg
-HEAD_SCRIPT_MAX = 600         # <head> script: html classes before first paint, nothing else
-# paint-free or cheap properties only; anything else animates layout or repaints big areas
-ANIMATABLE = {"transform", "opacity", "clip-path", "stroke-dashoffset", "background-size"}
+HEAD_SCRIPT_MAX = 600         # each <head> script: html classes / the Back mark before first paint, nothing else
+# paint-free or cheap properties only; anything else animates layout or repaints big areas. overlay + display are
+# discrete (no frames): they hold a closing dialog in the top layer until its fade ends
+ANIMATABLE = {"transform", "opacity", "clip-path", "stroke-dashoffset", "background-size", "overlay", "display"}
 TEXT_MIN, NON_TEXT_MIN = 4.5, 3.0  # WCAG 1.4.3 text, 1.4.11 controls + focus ring
 # (foreground, background) token pairs; tokens resolved per colour scheme from the shared :root
 TEXT_PAIRS = [("--heading", "--desk"), ("--text", "--desk"), ("--text-2", "--desk"), ("--desk", "--heading"),  # step numbers
@@ -299,12 +300,25 @@ def animated(css: str) -> set[str]:
 
 
 NO_PREFERENCE = r"@media\s*\(\s*prefers-reduced-motion\s*:\s*no-preference\s*\)\s*\{"
+REDUCE = r"@media\s*\(\s*prefers-reduced-motion\s*:\s*reduce\s*\)\s*\{"
 
 
-def outside_no_preference(css: str) -> str:
-    """css w/ every `@media (prefers-reduced-motion: no-preference) { ... }` body cut out."""
+def media_bodies(css: str, pattern: str = REDUCE) -> list[str]:
+    """Bodies of every `@media` block the pattern opens."""
+    found = []
+    for m in re.finditer(pattern, css):
+        depth, i = 1, m.end()
+        while depth and i < len(css):
+            depth += {"{": 1, "}": -1}.get(css[i], 0)
+            i += 1
+        found.append(css[m.end():i - 1])
+    return found
+
+
+def outside_no_preference(css: str, pattern: str = NO_PREFERENCE) -> str:
+    """css w/ every `@media (prefers-reduced-motion: no-preference) { ... }` body cut out (or the pattern's)."""
     out, last = [], 0
-    for m in re.finditer(NO_PREFERENCE, css):
+    for m in re.finditer(pattern, css):
         if m.start() < last:
             continue
         depth, i = 1, m.end()
@@ -349,8 +363,12 @@ def budgets(docs: Path, name: str) -> list[str]:
     problems += [f"{name}: <script src={a['src']}> (inline only)" for a in head.all("script") if "src" in a]
     if re.search(r"will-change", css, re.I):
         problems.append(f"{name}: will-change (layers every frame; motion stays on cheap properties)")
-    if re.search(r"@view-transition\b|view-transition-name", outside_no_preference(css)):
-        problems.append(f"{name}: view transition outside @media (prefers-reduced-motion: no-preference)")
+    # page change: moves only w/o reduced motion; reduced motion may cross-fade the whole page (opacity, no names)
+    if re.search(r"@view-transition\b|view-transition-name", outside_no_preference(outside_no_preference(css), REDUCE)):
+        problems.append(f"{name}: view transition outside @media (prefers-reduced-motion: no-preference | reduce)")
+    for body in media_bodies(css):
+        if "view-transition-name" in body or not animated(body) <= {"opacity"}:
+            problems.append(f"{name}: reduced motion moves something (opacity only, whole page)")
     problems += [f"{name}: animates {p} (allowed: {sorted(ANIMATABLE)})" for p in sorted(animated(css) - ANIMATABLE)]
     ids = head.ids()
     for t, a in head.tags:

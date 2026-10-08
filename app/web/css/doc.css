@@ -63,10 +63,25 @@ small { font-size: max(0.85em, var(--step--1)); font-weight: var(--medium); colo
 .card { width: min(34rem, calc(100% - 32px)); max-width: none; padding: 0; border: 0; border-radius: var(--radius); background: var(--raised); color: var(--text); }
 @media (forced-colors: active) { .card { border: 2px solid CanvasText; } }
 .card::backdrop { background: rgb(0 0 0 / 0.45); }
+/* open + close (Apple: anchor a surface to what opened it; dim to focus without an abrupt brightness jump): the card
+   fades in + grows from the citation clicked (CITE_JS sets transform-origin there), the dim fades with it, and
+   closing runs the same path back into the citation. 200 ms; overlay + display hold it in the top layer until the
+   fade ends. Reduced motion: the fades alone */
+.card, .card::backdrop { transition: opacity 200ms var(--ease-mark), overlay 200ms allow-discrete, display 200ms allow-discrete; }
+.card:not([open]), .card:not([open])::backdrop { opacity: 0; }
+@starting-style { .card[open], .card[open]::backdrop { opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .card { transition: opacity 200ms var(--ease-mark), transform 200ms var(--ease-mark), overlay 200ms allow-discrete, display 200ms allow-discrete; }
+  .card:not([open]) { transform: scale(0.94); }
+  @starting-style { .card[open] { transform: scale(0.94); } }
+}
 .card > div { padding: var(--space-s) var(--space-m); font-size: var(--step--1); font-weight: var(--medium); line-height: 1.5; overflow-wrap: anywhere; }
 .card .evidence { display: block; font-weight: var(--semibold); color: var(--text-3); padding-bottom: var(--space-2xs); margin-bottom: var(--space-2xs); border-bottom: 2px solid var(--heavy); }
 .card p { display: flex; align-items: center; justify-content: space-between; gap: var(--space-s); margin: var(--space-xs) 0 0; }
 .card button { min-height: 44px; padding: 8px 18px; font: inherit; font-weight: var(--semibold); color: var(--heading); background: none; border: 2px solid var(--heading); border-radius: 6px; cursor: pointer; }
+/* hover: the ink edge 3px (padding gives the 1px back: nothing moves); press: 1px into the paper (home's Copy) */
+@media (hover: hover) { .card button:hover { border-width: 3px; padding: 7px 17px; } }
+.card button:active { transform: translate(1px, 1px); }
 /* tables: lining, tabular figures so columns of numbers line up */
 .table { overflow-x: auto; margin: var(--space-m) 0; }
 table { border-collapse: collapse; font-size: var(--step--1); font-weight: var(--medium); line-height: 1.45; font-variant-numeric: lining-nums tabular-nums; }
@@ -106,6 +121,7 @@ th, td { text-align: left; vertical-align: top; padding: 0.5rem 1rem 0.5rem 0; b
 /* the rows a tone under the page's links, the pointer's row + the section in view in the heading's ink */
 :is(.toc, .toc-mini) ol a { color: var(--text-2); }
 @media (hover: hover) { :is(.toc, .toc-mini) a:hover { color: var(--heading); text-decoration-line: underline; } }
+:is(.toc, .toc-mini) a:active { color: var(--heading); text-decoration-line: underline; text-decoration-thickness: 3px; }
 :is(.toc, .toc-mini) a[aria-current] { color: var(--heading); font-weight: var(--bold); text-decoration: underline 3px; text-underline-offset: 0.2em; }
 /* touch: each row a 45px hit box (block links: real padding, not the shared rule's negative margin) */
 @media (pointer: coarse) {

@@ -20,9 +20,9 @@ SOURCE = cfg.APP / "vscode"
 OUT = cfg.DATA / "vscode"
 RELEASES = SOURCE / "releases.txt"
 # packed into the vsix; releases.txt stays out (build bookkeeping, not extension content).
-# Caladea + its licence (OFL asks the licence travel w/ the fonts): the Today page's typeface
+# Literata + its licence (OFL asks the licence travel w/ the fonts): the Today + welcome pages' typeface
 SHIPPED = ("package.json", "extension.js", "start.js", "today.js", "jobs.js", "setup.js", "say.json", "setup-form.json",
-           "media/fonts/caladea-regular.woff2", "media/fonts/caladea-bold.woff2", "media/fonts/OFL.txt")
+           "media/fonts/literata.woff2", "media/fonts/literata-italic.woff2", "media/fonts/OFL-literata.txt")
 
 CONTENT_TYPES = """<?xml version="1.0" encoding="utf-8"?>
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension=".json" ContentType="application/json"/><Default Extension=".js" ContentType="application/javascript"/><Default Extension=".vsixmanifest" ContentType="text/xml"/><Default Extension=".woff2" ContentType="font/woff2"/><Default Extension=".txt" ContentType="text/plain"/></Types>

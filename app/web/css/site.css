@@ -11,6 +11,11 @@
    Literata's advance + line box (assets.py prints the overrides) so the swap moves nothing */
 @font-face { font-family: "Literata"; src: url("/fonts/literata.woff2") format("woff2"); font-weight: 400 700; font-style: normal; font-display: swap; }
 @font-face { font-family: "Literata"; src: url("/fonts/literata-italic.woff2") format("woff2"); font-weight: 400; font-style: italic; font-display: swap; }
+/* headlines: the same face cut at optical size 60, bold only (app/web/assets.py) - at 36-96px the text cut's 18 reads
+   loose + blunt. Preloaded beside the text cut; "optional" = used only if it is there for the first frame, so a
+   headline never reflows (it is the page's biggest paint): a slow first visit keeps the text cut, cached pages after
+   it get this one */
+@font-face { font-family: "Literata Display"; src: url("/fonts/literata-display.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: optional; }
 @font-face { font-family: "Literata Fallback"; src: local("Georgia"); font-weight: 400;
   size-adjust: 107.9%; ascent-override: 109.08%; descent-override: 28.54%; line-gap-override: 0%; }
 @font-face { font-family: "Literata Fallback"; src: local("Georgia Bold"), local("Georgia-Bold"); font-weight: 700;
@@ -24,7 +29,7 @@
   --raised: #ffffff; --sticky: #fbf1ae; --sticky-edge: var(--sticky);
   --radius: 14px;
   --win: var(--paper); --win-ink: var(--ink); --win-ink-2: var(--ink-2); --win-rule: var(--rule);
-  --face: "Literata", "Literata Fallback", Georgia, serif;
+  --face: "Literata", "Literata Fallback", Georgia, serif; --face-display: "Literata Display", var(--face);
   --regular: 400; --medium: 500; --semibold: 600; --bold: 700;
   --mono: ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
   --gutter: clamp(16px, 2.5vw, 32px); --side: var(--gutter); --max: 1320px;
@@ -84,7 +89,7 @@ h1, h2, h3, h4, strong, b, th, dt { color: var(--heading); }
    on paper it vanished (owner screenshot, 2026-10-07) */
 :is(.sheet-lg, .window) :is(h1, h2, h3, h4, strong, b, th, dt) { color: inherit; }
 /* weights: the display lines bold, every other heading, label + control semibold, text regular */
-h1 { font-weight: var(--bold); }
+h1 { font-weight: var(--bold); font-family: var(--face-display); }
 h2, h3, h4, strong, b, th, dt, summary { font-weight: var(--semibold); }
 a { color: var(--heading); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 0.15em; }
 /* links: ink words, an ink underline 1px (no colour of their own: the blue pen was cut, owner 2026-10-07); hover
@@ -119,6 +124,13 @@ details[open] > summary::after { transform: none; }
   main :is(.crumbs, .sources, small, .meta) a:hover { text-decoration-color: currentColor; text-decoration-thickness: 2px; }
   :root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:hover { text-decoration-thickness: 4px; }
 }
+/* press (Apple, WWDC 2018 "Designing Fluid Interfaces": feedback on pointer-down, not on release): a link or summary
+   answers the press at once, one step past its hover - underline 3px (the current Research link 5px), instant, in
+   its own ink, never yellow; boxed buttons sit 1px into the paper (their own page's CSS). Outside (hover: hover):
+   a press is a touch too. iOS Safari keeps the ink tap tint instead (:active waits for a touch listener there) */
+:is(a, summary):active { text-decoration: underline 3px; text-underline-offset: 0.15em; }
+main :is(.crumbs, .sources, small, .meta) a:active { text-decoration-color: currentColor; }
+:root:has(link[rel="canonical"][href*="/research/"]) .links a[href="/research/"]:active { text-decoration-thickness: 5px; }
 /* research listed (home's picks, the hub list, Keep reading): plain ruled entries, no object drawn - a hairline over
    each, the title in ink, its underline thickened on hover. The manila folders before it read as costume (owner
    2026-10-07) */
@@ -204,13 +216,29 @@ footer nav { display: flex; flex-wrap: wrap; gap: var(--space-2xs) var(--space-m
   footer .row { padding-bottom: 0; }
 }
 /* page change (PICK P-d2, page laid down): the old sheet lifts off, the new one is set down from below,
-   transform + opacity only, done by 380 ms; the masthead holds still; reduced motion = instant */
+   transform + opacity only, done by 380 ms; the masthead holds still. Back (TURN_JS marks it "back") runs the same
+   path in reverse - the sheet you left comes back down from where it went (Apple: "if something disappears one
+   way, we expect it to emerge from where it came"). Browsers w/o transition types keep the forward path */
 @media (prefers-reduced-motion: no-preference) {
   @view-transition { navigation: auto; }
   .masthead { view-transition-name: masthead; }
   main { view-transition-name: sheet; }
   @keyframes sheet-off { to { opacity: 0; transform: translateY(-8px); } }
   @keyframes sheet-on { from { opacity: 0; transform: translateY(12px); } }
+  @keyframes sheet-off-back { to { opacity: 0; transform: translateY(12px); } }
+  @keyframes sheet-on-back { from { opacity: 0; transform: translateY(-8px); } }
   ::view-transition-old(sheet) { animation: sheet-off 300ms var(--ease-mark) both; }
   ::view-transition-new(sheet) { animation: sheet-on 340ms var(--ease-mark) 40ms both; }
+  html:active-view-transition-type(back)::view-transition-old(sheet) { animation: sheet-off-back 300ms var(--ease-mark) both; }
+  html:active-view-transition-type(back)::view-transition-new(sheet) { animation: sheet-on-back 340ms var(--ease-mark) 40ms both; }
+}
+/* reduced motion: nothing moves, the page cross-fades in 150 ms (Apple: reduced motion is a gentler equivalent,
+   not none - an instant swap is the abrupt brightness jump it warns about, worst between a light + a dark page).
+   Opacity only, no names: the whole page, masthead included, fades as one */
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: auto; }
+  @keyframes page-out { to { opacity: 0; } }
+  @keyframes page-in { from { opacity: 0; } }
+  ::view-transition-old(root) { animation: page-out 150ms ease both; }
+  ::view-transition-new(root) { animation: page-in 150ms ease both; }
 }
