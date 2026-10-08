@@ -10,14 +10,15 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
 
 ## What is where
 
-- Hand-written: `index.html`, `privacy.html`, `404.html`, `robots.txt`,
+- Hand-written: `index.html`, `privacy.html`, `terms.html` (terms of use: as is, no warranty, not advice; installers + home
+  install box show the same notice, claim `install-terms`), `404.html`, `robots.txt`,
   `manifest.webmanifest`; share card sources `app/web/og.html` (home) +
   `og-research.html` (every generated page); the CSS sources (below).
 - CSS (owner 2026-10-07: "more reusable css shared ... can be multiple css files", then "do what is best for
   speed"): one source per rule in `app/web/css/` - `site.css` for every page (fonts, tokens, base type, links,
   marks, `.grid` + `.wrap`, skip link, header, footer, touch boxes, print, page change), `doc.css` for the reading
   pages (research articles, hub, About, methods, privacy, 404: editorial type, notes, tables, citations + the source
-  card, Sources, On this page, Keep reading; `main.plain` = privacy + 404's smaller h1). `pages.py` builds them into
+  card, Sources, On this page, Keep reading; `main.plain` = privacy, terms + 404's smaller h1). `pages.py` builds them into
   each page's `<style>` - `/* shared */ ... /* /shared */` then `/* doc */ ... /* /doc */`, comments + blank lines
   cut (~3 KB gzip off every page) - the hand-written pages' blocks too (their only generated part); one-off styles
   follow in the same `<style>` (home's scenes, privacy's ledger, 404's drawing). Element box rules (h1 size, p + li
@@ -45,7 +46,7 @@ Not in the app download: `/docs/** export-ignore` (`.gitattributes`) keeps the s
   to `--paper`: white in light, the softened paper on its dark grey; CanvasText + Canvas in forced colours), beak +
   eye `--mark`, lower beak `--beak-low` (2.62:1 on the cream: a logo, WCAG 1.4.11 exempts it);
   the 16px title-bar bird's whole beak `--beak-low` (`desktop-icon.md`). `assets.py --only
-  icons` rewrites the inline bird in the 3 hand-written pages from `mark-32.svg` (fills cut, disc
+  icons` rewrites the inline bird in the hand-written pages (`assets.HAND_PAGES`) from `mark-32.svg` (fills cut, disc
   added), then `pages.py` copies the header on. `icon.svg` (tab only) = `mark-32.svg` w/ `<desc>`
   cut, on the white disc, whole beak orange (a tab draws 16 px); one drawing for light + dark tab
   strips. `favicon.ico`, PNGs = the Desktop tile icon (an .ico can't follow a
@@ -560,8 +561,8 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
   `--gutter`, side margin `--side`, max `--max`, for composed pages (home); `.wrap` = the same outer box w/o columns
   (generated pages, privacy, 404), so every edge lines up with the header.
 - Header (`<header class="masthead">`: skip link to `<main id="main">`, brand, Research
-  `/research/`, Install `/#install`, Source code) + bare `<footer>` (Made by -> www.enrriquez.com,
-  then `<nav aria-label="Footer">` Home, Research, Install, About, Privacy, Source code - owner,
+  `/research/`, Install `/#install`, Source code) + bare `<footer>` (Made by -> www.enrriquez.com
+  · Terms `/terms.html` - in the credit line, so the nav keeps 6 links; then `<nav aria-label="Footer">` Home, Research, Install, About, Privacy, Source code - owner,
   plan-dxn: no dead end at the bottom of a 20-screen article, About one click from home)
   byte-identical on every page; test guards. Every page's `<main>` carries `id="main"`. Under the
   header a full-bleed double rule (3px + 1px, 4px apart) - the newspaper masthead.
@@ -613,7 +614,7 @@ Awwwards jury: Design 40 / Usability 30 / Creativity 20 / Content 10 (checked 20
 - `og:title` w/o brand suffix (`og:site_name` carries it). Cards 1200x630, < 300 KB (WhatsApp
   drops larger). `assets.render_card()` screenshots a 1200x630 clip and fails loudly on an element
   outside the card, in its bottom 90px (X lays its headline there) or clipped by an overflow-hidden
-  box. Changed -> bump `og.png?v=N` (home, privacy) or `pages.CARD_V` (tests follow it) (LinkedIn caches a preview ~7 days).
+  box. Changed -> bump `og.png?v=N` (home, privacy, terms) or `pages.CARD_V` (tests follow it) (LinkedIn caches a preview ~7 days).
 - 404.html: root paths only (served at any depth), noindex, no canonical.
 - No front matter in any file, no `.md`, no path segment starting `_` `.` `#` or ending `~`:
   GitHub Pages runs Jekyll, which would template or drop them (test checks tracked `docs/` files).

@@ -543,7 +543,7 @@ BAND_AT = [(1440, 900), (1920, 1080)]  # 1920 too: bigger display type wraps to 
 BAND_W, BAND_H = 400, 200
 # hub, about, methods: main itself is the one row (their columns are main's children); a sticky element
 # (methods' On this page) stays beside the text, so it counts down to its parent's bottom
-WIDE_PAGES = {"research/index.html", "about/index.html", "research/methods/index.html", "privacy.html", "404.html"}
+WIDE_PAGES = {"research/index.html", "about/index.html", "research/methods/index.html", "privacy.html", "terms.html", "404.html"}
 EMPTY_RIGHT = """(rows) => {
   const out = [];
   for (const row of document.querySelectorAll(rows)) {
@@ -2150,7 +2150,7 @@ def run_perf_self_test(base: str, baseline: str) -> list[str]:
 
 LIGHTHOUSE = "lighthouse@12.8.2"
 LH_PAGES = [("home", ""), ("research", "research/"), ("article", "research/what-makes-a-good-resume/"),
-            ("about", "about/"), ("privacy", "privacy.html"), ("404", "404.html")]
+            ("about", "about/"), ("privacy", "privacy.html"), ("terms", "terms.html"), ("404", "404.html")]
 LH_RUNS = 3
 LH_PERF = {"mobile": 99, "desktop": 100}   # Performance, median of LH_RUNS
 LH_EVERY_RUN = ("accessibility", "best-practices")  # 100 on every run

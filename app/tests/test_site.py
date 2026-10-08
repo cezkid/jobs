@@ -525,7 +525,7 @@ def test_home_says_what_it_is_and_what_it_costs_in_search_results():
     assert "One page, set to fit" not in raw
 
 
-HAND_WRITTEN = ("index.html", "privacy.html", "404.html")
+HAND_WRITTEN = ("index.html", "privacy.html", "terms.html", "404.html")
 
 
 def test_hand_written_pages_use_typographic_quotes_and_dashes():
@@ -570,10 +570,11 @@ def test_home_ledger_names_the_same_recipients_as_privacy_in_order():
 
 
 # every file a claim rests on (app/web/claims.yml) + the pages: enough for a scratch copy
-CLAIM_FILES = ("docs/index.html", "docs/privacy.html", "app/web/claims.yml", "AGENTS.md", "START HERE.md",
+CLAIM_FILES = ("docs/index.html", "docs/privacy.html", "docs/terms.html", "app/web/claims.yml", "AGENTS.md", "START HERE.md",
                "app/vscode/say.json", "app/install/install-mac.sh", "app/install/install-windows.ps1",
                "app/alert.py", "app/launch.py", "app/workspace.py", "app/docs/app-window.md", "app/jobs.py",
-               "app/vscode/extension.js", "app/docs/about-me.md")
+               "app/vscode/extension.js", "app/docs/about-me.md", "app/update.py", "app/install/start-mac.sh",
+               "app/install/start-windows.bat", "app/cfg.py", "LICENSE")
 
 
 def claim_copy(tmp_path):

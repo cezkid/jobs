@@ -1,5 +1,8 @@
 # Contributing
 
+A pull request is licensed under the repo's [MIT License](../LICENSE), like the rest of the code -
+send only code you wrote or may share that way.
+
 Defect = bug, crash, wrong result or misleading doc in TRACKED code, profile example, skill or
 doc. Your own search settings being too wide or narrow is tuning, not defect.
 

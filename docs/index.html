@@ -273,6 +273,8 @@ footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
     .switch { row-gap: calc(45px - 1lh); }
     .switch :is(button, a), .closing .go { padding-block: calc((45px - 1lh) / 2); margin-block: calc((1lh - 45px) / 2); }
   }
+  /* the terms notice by the install line: shown wherever the line is (Berman v. Freedom Financial: a notice next to the act) */
+  .terms-note { margin: 14px 0 0 46px; font-size: 1.0625rem; line-height: 1.5; color: var(--text-2); }
   .need { display: none; margin: 26px 0 0 46px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 1.0625rem; line-height: 1.5; color: var(--text-2); }
   .mac-only { display: none; }
   html.is-mac .mac-only { display: revert; }
@@ -758,6 +760,7 @@ footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
           <a class="nojs-mac" href="#mac">On a Mac: see “How do I install on a Mac?” below</a>
           <a id="script" href="https://github.com/cezkid/jobs/blob/main/app/install/install-windows.ps1">Read the script first</a>
         </p>
+        <p class="terms-note" data-claim="install-terms">Free and open source, provided as is, with no warranty. Installing means you accept the <a href="/terms.html">terms</a>.</p>
         <p class="vh" role="status" id="install-status"></p>
         <p class="need">You need Windows&nbsp;10 or 11 or a Mac, and one AI plan: Claude&nbsp;Pro or Max, ChatGPT&nbsp;Plus or Pro, or GitHub Copilot&nbsp;Pro. No administrator password.</p>
       </div>
@@ -862,7 +865,7 @@ footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
       <p class="names" data-claim="apply-systems"><span class="vh">Filled from your resume: </span><span translate="no"><b>Greenhouse</b> <b>Ashby</b> <b>Lever</b> <b>Workable</b> <b>UKG</b> <b>JazzHR</b> <b>BambooHR</b> <b>Paylocity</b> <b>SmartRecruiters</b> <b>Manatal</b> <b>Breezy</b> <b>Teamtailor</b> <b>Workday</b></span> <span class="vh">First box filled, next steps named: </span><span translate="no"><span class="part">Paycom</span> <span class="part">ADP</span> <span class="part">Oracle</span> <span class="part">iCIMS</span></span></p>
       <p class="key">Bold: filled from your resume in a window the app opens (Workday: with Claude, in Chrome). Plain: the app fills the start box, then tells you each next step. Any other form: answers ready to paste.</p>
       <p class="submit-line"><span class="submit" aria-hidden="true">Submit<svg viewBox="0 0 200 60" preserveAspectRatio="none"><path pathLength="100" d="M30 8 C 90 0, 190 4, 195 28 C 199 50, 120 58, 60 55 C 18 53, 3 42, 6 28 C 9 14, 44 6, 100 6"/></svg></span>
-        <span>It stops before Save and Submit. You check the form and press it yourself.</span></p>
+        <span>It stops before Submit. You check the form and press it yourself.</span></p>
       </div>
     </div>
     <div class="half">
@@ -999,7 +1002,7 @@ footer nav { display: flex; flex-wrap: wrap; gap: 8px 28px; }
 </main>
 <footer>
   <div class="wrap row">
-    <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a></p>
+    <p>Made by <a href="https://www.enrriquez.com">Cesar Enrriquez-Zuniga</a> · <a href="/terms.html">Terms</a></p>
     <nav aria-label="Footer">
       <a href="/">Home</a>
       <a href="/research/">Research</a>

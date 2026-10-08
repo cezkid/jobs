@@ -16,3 +16,4 @@ you, the newest jobs, and buttons for what to say next.
 
 - **[What you can ask](Guides/What%20you%20can%20ask.md)** - things to say, where the jobs come from, how your resume is made
 - **[Who sees what](Guides/Who%20sees%20what.md)** - everything in the file list stays on this computer
+- **[Terms](https://jobs.enrriquez.com/terms.html)** - free, provided as is; read everything the AI writes before you send it
