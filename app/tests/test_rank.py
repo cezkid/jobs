@@ -355,6 +355,26 @@ def test_internship_tagged_full_time_is_kept_and_not_demoted_for_an_internship_s
     assert all("you asked" not in rank.reasons(j, config, NOW) for j in ranked)
 
 
+def test_internships_only_sorts_lower_an_ordinary_job_tagged_intern():
+    # 117 of 442 intern-tagged business rows were ordinary jobs, 2026-10-08
+    config = cfg.merge(CONFIG, {"rank": {"career_level": "entry", "employment_types": ["internship"]}})
+    jobs = [make_job("fa", title="Financial Analyst", seniority="intern", employment_type=None, category="finance"),
+            make_job("int", title="Payroll Intern", seniority="intern", employment_type="internship", category="finance"),
+            make_job("prog", title="2027 Summer Analyst Program - Sales", seniority="intern", employment_type=None,
+                     category="finance"),
+            make_job("rot", title="Finance & Accounting Rotational Program - May 2027 Grads", category="finance",
+                     employment_type="internship"),
+            make_job("fel", title="Integrated Marketing Fellowship (Spring 2027)", employment_type="internship",
+                     category="finance")]
+    ranked = rank.rank(jobs, config, NOW)
+    assert slugs(ranked)[-1] == "fa" and len(ranked) == 5
+    assert "title doesn't say internship" in rank.reasons(ranked[-1], config, NOW)
+    assert all(rank.mismatches(j, config["rank"]) == [] for j in ranked[:-1])
+    # full-time jobs wanted too: an analyst title is what they asked for
+    both = cfg.merge(config, {"rank": {"employment_types": ["internship", "full_time"]}})
+    assert rank.mismatches(jobs[0], both["rank"]) == []
+
+
 def test_title_never_hides_a_job_its_tag_keeps():
     config = cfg.merge(CONFIG, {"blocklist": {"employment_types": ["internship"]}})
     jobs = [make_job("pm", title="Intern Program Manager", employment_type="full_time"),
@@ -419,3 +439,23 @@ def test_hourly_floor_reads_and_says_its_own_unit():
 def test_two_passes_may_fill_one_tier():
     config = {"passes": [{"tier": "remote"}, {"tier": "remote"}, {"tier": "local"}]}
     assert cfg.tier_order(config) == ["remote", "local"]
+
+
+# the job search's cities match by name alone: "Washington" brought Seattle into a DC search,
+# Arlington TX into Arlington VA (29 of 78 rows, 2026-10-08)
+def test_city_tier_drops_rows_naming_only_other_states():
+    config = cfg.merge(CONFIG, {"passes": [{"tier": "school", "label": "DC area", "states": ["DC", "MD", "VA"],
+                                            "params": {"cities": ["Washington", "Arlington"]}}]})
+    place = lambda slug, loc, **kw: make_job(slug, tier="school", location=loc, work_mode=None, **kw)
+    jobs = [place("dc", "Washington, District of Columbia, United States"), place("dc2", "Washington DC Office - WASHINGTON, DC 20024"),
+            place("va", "Arlington, Virginia"), place("md", "Bethesda, MD"), place("multi", "Chicago; Dallas; Washington, D.C."),
+            place("unsure", "Washington, United States"), place("bare", "Wayne"),
+            place("sea", "Seattle, Washington, United States"), place("redmond", "United States, Washington, Redmond"),
+            place("tx", "Arlington, TX, US"), place("wv", "Charleston, West Virginia"),
+            place("au", "Alexandria, New South Wales", countries=["au"]),
+            place("remote", "Seattle, Washington")]
+    jobs[-1]["work_mode"] = "remote"
+    kept = {j["public_slug"] for j in jobs if not rank.far(j, config)}
+    assert kept == {"dc", "dc2", "va", "md", "multi", "unsure", "bare", "remote"}
+    # a tier with no states is never read this way
+    assert not rank.far(dict(jobs[7], tier="remote"), config)

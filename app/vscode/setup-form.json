@@ -41,7 +41,7 @@
       {"value": "local_first", "label": "Near me first, remote too"},
       {"value": "local_only", "label": "Near me only"}
      ]},
-    {"id": "city", "type": "text", "short": "Town or city", "from_resume": "my town or city", "label": "Your town or city", "max": 100, "hint": "For jobs near you, and the right time zone."},
+    {"id": "city", "type": "text", "short": "Town or city", "from_resume": "my town or city", "label": "Your town or city", "max": 100, "hint": "For jobs near you, and the right time zone. Student? Your school town - and your hometown too, if you'd work there in summer."},
     {"id": "pay", "type": "pay", "short": "Lowest pay", "label": "Lowest pay you'd take", "max": 12,
      "hint": "Jobs paying less are hidden; jobs with no pay listed stay. Leave it empty if it doesn't matter.",
      "units": [

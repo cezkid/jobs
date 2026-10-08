@@ -131,15 +131,24 @@ def run(config: dict, conn, client: httpx.Client) -> dict[str, dict]:
     with ThreadPoolExecutor(max_workers=len(passes) or 1) as pool:
         fetched = list(pool.map(
             lambda p: fetch_widening(client, api["base"], p["params"], api["page_limit"], config["window"]), passes))
+    tiers = {}
     for p, (raw, truncated, days) in zip(passes, fetched):
         rows = [normalize(r, p["tier"]) for r in raw]
         with conn:
             store.upsert(conn, rows, now)
-            # truncated pass never saw rows past the ceiling => absence proves nothing
-            closed = 0 if truncated else store.close_missing(
-                conn, p["tier"], {r["public_slug"] for r in rows}, posted_since({"posted_within_days": days}, now_dt), now
-            )
-        summary[p["tier"]] = {"fetched": len(rows), "closed": closed, "truncated": truncated, "days": days}
+        t = tiers.setdefault(p["tier"], {"slugs": set(), "truncated": False, "days": []})
+        t["slugs"] |= {r["public_slug"] for r in rows}
+        t["truncated"] |= truncated
+        t["days"].append(days)
+    # a tier filled by several passes (an internship search: one per tag) closes only what none of
+    # them returned, inside the window all of them fetched. Closed per pass, the second closed every
+    # row only the first found - 40 of 214 open internships on one fresh check (2026-10-08).
+    # A truncated pass never saw rows past the ceiling => absence proves nothing
+    for tier, t in tiers.items():
+        with conn:
+            closed = 0 if t["truncated"] else store.close_missing(
+                conn, tier, t["slugs"], posted_since({"posted_within_days": min(t["days"])}, now_dt), now)
+        summary[tier] = {"fetched": len(t["slugs"]), "closed": closed, "truncated": t["truncated"], "days": max(t["days"])}
     return summary
 
 

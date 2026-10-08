@@ -55,6 +55,27 @@ def test_strong_match_beats_weak():
     assert order([weak, strong], f) == ["strong", "weak"]
 
 
+# "Fluent in Spanish" never matched a native speaker: Languages wasn't read (2026-10-08, 88 of
+# 1,966 live required lines name a language)
+def test_language_ask_backed_only_by_a_working_level_language():
+    f = {**facts(), "languages": best.languages("Spanish Mandarin")}
+    assert best.backed("Bilingual English/Spanish required", f) is True
+    assert best.backed("Fluency in both Mandarin Chinese and English.", f) is True
+    # English they share doesn't back the other half
+    assert best.backed("Professional fluency in English and Korean", f) is False
+    assert best.backed("Must be fluent in English", f) is None
+    assert best.backed("Fluent in Spanish", facts()) is False
+
+
+def test_resume_languages_below_working_level_back_nothing(tmp_path, monkeypatch):
+    monkeypatch.setattr(cfg, "ROOT", tmp_path)
+    path = cfg.resume_path(CONFIG, "master")
+    path.parent.mkdir(parents=True)
+    path.write_text(RESUME + "languages: [English (Native), Spanish (Fluent), French (Conversational), Portuguese]\n",
+                    encoding="utf-8")
+    assert best.resume_facts(CONFIG, NOW.date())["languages"] == {"english", "spanish", "portuguese"}
+
+
 # a 15-line list of duties ranked like a 4-line one (owner: "some ask a lot")
 def test_heavy_asks_score_lower_and_say_so():
     light = job("light", ["Excel", "Month-end close", "Reconciliations", "Journal entries"])

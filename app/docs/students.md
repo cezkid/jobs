@@ -18,12 +18,22 @@ adult finishing a degree after years of work; a community college student workin
 | Internship or co-op is a type the setup offers, with live counts | `job-setup` #1 | Setup offered full time / part time / contract only |
 | The title decides the type, one way | `rank.title_type`, `blocked`, `mismatches` | 87 of 300 real internships tagged full time, 17 part time (measured, `freehire.md` #Internships) - a blocked full_time hid them. Never hides by title ("Intern Program Manager") |
 | Internship passes: `seniority=intern` + `employment_type=internship`, same tier | `job-setup` #2, `cfg.tier_order` (a tier once) | Either tag covers 199/200 "internship", 156/171 "summer analyst", 153/200 "co-op" titles; one alone misses up to a third (measured). Never a seniority filter for other searches |
+| Internships only: an ordinary job the job search tags intern sorts lower ("title doesn't say internship") | `rank.mismatches`, `STUDENT_PROGRAM` | 117 of 442 intern-tagged business rows were ordinary jobs (Account Executive, Financial Analyst, a VP); 8 of a student's top 15 on Today; of the 117 only 2 SkillBridge postings (service members) called themselves internships. 16 student programmes titled w/o an intern word kept (Summer Analyst Program, Rotational Program, Fellowship, University New Hire) (2026-10-08). Never hidden |
+| School town + hometown: two city tiers, school first; a hometown beside a big city offers it too | `job-setup` #1 | School in DC, home North Jersey: setup and the form asked one town. Home tier 2026-10-08: 49 of 54 internships NYC, 3 North Jersey |
 | Entry level: a required line asking 3+ years sorts lower | `rank.asks_beyond`, `ENTRY_MAX_YEARS` | 749 of 990 rows stating years ask 3+ (measured); the threshold is convention (entry postings commonly ask 0-2) - shown, never hidden |
 | Years read from the posting's lines, never the job search's tag | `knockout.years_asked`; `best.match` skips the tag on early-career titles | Tag read 10 on "Software Engineer - New Grad", 7 on "18+ years old" (measured) |
 | School years aren't work years; "up to 2 years" asks no minimum | `knockout.STUDY`, `UP_TO` | "2 years of undergraduate study" read as experience; 0 other changed reads on 10,360 live lines |
 | Graduation window vs theirs | `knockout.graduation_window`, `rank.student_graduation` | 92 of 616 student required lines carry one; 0 false on 11,719 others (measured, hand-checked). Read wide (a season spans its months) so only a clear miss is said. Their date only while studying or within 24 months, never `hide_year` (`fair-screening.md` #What the program does) |
 | Hourly pay floor | `rank.parse_floor`, `salary_floor_unit` | Interns + part-time are paid by the hour (62 of 74 intern rows listing pay); NACE 2026: bachelor's interns averaged $23.35/hr (employer survey, 284 orgs) |
 | Before tailoring: a window missed, a degree level not being studied for | `knockout.shortfalls` | Same report-only rule as years + degree: quoted, their call |
+
+International business (and other majors that cut across fields) - measured 2026-10-08, US, posted in the
+last 30 days: business internship passes (`business_analysis operations logistics finance sales marketing`,
+either intern tag) catch 99 of 100 "marketing intern", 98 "sales intern", 74 of 78 "finance intern", 64 of 65
+"procurement intern", 20 of 30 "supply chain intern" - but 0 of 157 "trade compliance" / "global trade" /
+"import" / "export" titles (legal + management, no intern tag: entry jobs, not internships) and 17 of 87
+rotational / leadership development programmes. A new-grad search adds a title pass for the one role they
+want most (`job-setup` #2). Languages count toward match (`best.backed`).
 
 ## Resume
 
