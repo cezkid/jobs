@@ -1814,3 +1814,9 @@ def test_school_start_boxes_from_the_start_on_file_never_with_years_hidden():
     assert [a["answer"] for a in got] == ["August", "2023"]
     hidden = questions.draft(asked, CONTACT, schools=[{**school, "hide_year": True}])
     assert [a["answer"] for a in hidden] == [None, None]
+
+
+def test_profile_box_fills_from_a_forms_only_link_never_the_website_box():
+    contact = {"links": ["linkedin.com/in/your-name", "example.com"], "form_links": ["github.com/your-name"]}
+    assert questions.from_resume({"key": "github", "kind": "url"}, contact) == "https://www.github.com/your-name"
+    assert questions.from_resume({"key": "website", "kind": "url"}, contact) == "https://www.example.com"
