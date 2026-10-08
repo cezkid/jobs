@@ -1,0 +1,210 @@
+{
+ "build": "angular",
+ "position": {
+  "_id": "posb",
+  "name": "Software Engineer",
+  "friendly_id": "0a1b2c3d4e5f-software-engineer",
+  "application_form": {
+   "name": "required",
+   "headline": "optional",
+   "summary": "hidden",
+   "profile_photo": "optional",
+   "address": "hidden",
+   "salary": "required",
+   "email_address": "required",
+   "phone_number": "required",
+   "resume": "required",
+   "work_history": "hidden",
+   "education": "hidden",
+   "cover_letter": "hidden",
+   "preferred_location": "hidden",
+   "questionnaire_in_experience": true,
+   "eeoc": "optional",
+   "ccpa": "required",
+   "salary_currency": [
+    {
+     "name": "US Dollar",
+     "symbol": "$",
+     "symbolNative": "$",
+     "decimalDigits": 2,
+     "rounding": 0,
+     "code": "USD",
+     "namePlural": "US dollars"
+    }
+   ],
+   "all_currency": false
+  },
+  "locations": [
+   {
+    "name": "Tampa, FL",
+    "id": "loc0"
+   }
+  ]
+ },
+ "questions": [
+  {
+   "_id": 2000,
+   "title": "",
+   "questions": [
+    {
+     "_id": "q20000",
+     "text": "Location (City/State)",
+     "body": "",
+     "type": {
+      "id": "text",
+      "name": "Text"
+     },
+     "required": true
+    },
+    {
+     "_id": "q20001",
+     "text": "In compliance with federal law, all persons hired will be required to verify identity and eligibility to work in the United States and to complete the required employment eligibility verification form upon hire. Are you authorized to work legally in the United States?",
+     "body": "",
+     "type": {
+      "id": "dropdown",
+      "name": "Dropdown List"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "No"
+      },
+      {
+       "text": "Yes"
+      }
+     ]
+    },
+    {
+     "_id": "q20002",
+     "text": "Will you now or in the future require visa sponsorship for employment with Acme?",
+     "body": "",
+     "type": {
+      "id": "dropdown",
+      "name": "Dropdown List"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "Yes"
+      },
+      {
+       "text": "No"
+      }
+     ]
+    },
+    {
+     "_id": "q20003",
+     "text": "Are you willing to undergo a security clearance process?",
+     "body": "",
+     "type": {
+      "id": "dropdown",
+      "name": "Dropdown List"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "Yes"
+      },
+      {
+       "text": "No"
+      }
+     ]
+    },
+    {
+     "_id": "q20004",
+     "text": "Are you a veteran of any branch of the United States Armed Forces?",
+     "body": "",
+     "type": {
+      "id": "dropdown",
+      "name": "Dropdown List"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "Yes"
+      },
+      {
+       "text": "No"
+      }
+     ]
+    },
+    {
+     "_id": "q20005",
+     "text": "Are you willing to work as a full-time W2 employee?",
+     "body": "",
+     "type": {
+      "id": "dropdown",
+      "name": "Dropdown List"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "Yes"
+      },
+      {
+       "text": "No"
+      }
+     ]
+    },
+    {
+     "_id": "q20006",
+     "text": "Do you currently have your own business or LLC?",
+     "body": "",
+     "type": {
+      "id": "dropdown",
+      "name": "Dropdown List"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "Yes"
+      },
+      {
+       "text": "No"
+      }
+     ]
+    },
+    {
+     "_id": "q20007",
+     "text": "What is the highest level of education you have completed?",
+     "body": "",
+     "type": {
+      "id": "dropdown",
+      "name": "Dropdown List"
+     },
+     "required": true,
+     "options": [
+      {
+       "text": "High School"
+      },
+      {
+       "text": "Some College"
+      },
+      {
+       "text": "Associate’s Degree"
+      },
+      {
+       "text": "Bachelor’s Degree"
+      },
+      {
+       "text": "Master’s Degree"
+      },
+      {
+       "text": "Doctorate"
+      }
+     ]
+    },
+    {
+     "_id": "q20008",
+     "text": "LinkedIn/Social Profile Link",
+     "body": "",
+     "type": {
+      "id": "text",
+      "name": "Text"
+     },
+     "required": true
+    }
+   ]
+  }
+ ]
+}

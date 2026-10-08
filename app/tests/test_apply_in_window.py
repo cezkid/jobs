@@ -22,7 +22,8 @@ import cfg
 import launch
 from apply import browser, dom, form, questions, window
 from apply.cdp import CDP
-from apply.systems import ashby, greenhouse, jazzhr, lever, workable
+from apply.systems import (adp, ashby, breezy, greenhouse, icims, jazzhr, lever, manatal, oracle, paycom, paylocity,
+                           smartrecruiters, teamtailor, workable)
 
 FORM = Path(__file__).parent / "fixtures" / "dom" / "greenhouse-form.html"
 ASHBY_FORM = FORM.with_name("ashby-form.html")
@@ -74,6 +75,13 @@ WORKABLE_BEHAVES = """<div data-ui="cookie-consent" role="dialog" aria-modal="tr
     <button type="button">Cookies settings</button></div></div>"""
 BAMBOOHR_FORM = FORM.with_name("bamboohr-form.html")
 BAMBOOHR_PATH = "/careers/101"
+MANATAL_FORM = FORM.parent.parent / "manatal" / "apply.html"
+MANATAL_PATH = "/acme/job/AB12CD34/apply"
+BREEZY_FORM = FORM.parent.parent / "breezy" / "apply.html"
+BREEZY_PATH = "/p/0a1b2c3d4e5f-software-engineer/apply"
+TEAMTAILOR = FORM.parent.parent / "teamtailor"
+# tenant -> its form's link; each frame wrapped as test_apply_teamtailor's open_form does, page.js beside it
+TEAMTAILOR_PATHS = {t: f"/jobs/70000{n}-software-engineer/applications/new" for n, t in enumerate("abc", 1)}
 # a same-site frame, another site's frame (the same server by its other name), open + closed shadow roots
 FRAMES_PATH = "/dom/frames-shadow.html"
 HOLDING = re.compile(r"^http://127\.0\.0\.1:\d{1,5}/jf-[0-9a-f]{32}$")
@@ -123,6 +131,7 @@ def site():
             else:
                 page = {"/acme/jobs/1": FORM, ASHBY_PATH: ASHBY_FORM,
                         ASHBY_EDUCATION_PATH: FORM.with_name("ashby-education.html"), BAMBOOHR_PATH: BAMBOOHR_FORM,
+                        MANATAL_PATH: MANATAL_FORM, BREEZY_PATH: BREEZY_FORM,
                         FRAMES_PATH: FORM.with_name("frames-shadow.html"),
                         FRAMES_PATH.replace("shadow", "inner"): FORM.with_name("frames-inner.html")}.get(self.path)
                 body, kind = (page.read_bytes() if page else None), "text/html; charset=utf-8"
@@ -131,6 +140,13 @@ def site():
                             f"{JAZZHR_FORM.read_text()}{JAZZHR_BEHAVES}</body></html>").encode()
                 if self.path == WORKABLE_PATH:
                     body = WORKABLE_FORM.read_text().replace("</body>", f"{WORKABLE_BEHAVES}</body>").encode()
+                if self.path == "/page.js":
+                    body, kind = (TEAMTAILOR / "page.js").read_bytes(), "text/javascript"
+                for tenant, path in TEAMTAILOR_PATHS.items():
+                    if self.path == path:
+                        body = ('<html><head><style>.hidden{display:none}</style></head><body>'
+                                + (TEAMTAILOR / f"tenant-{tenant}.html").read_text()
+                                + '<script src="/page.js"></script></body></html>').encode()
                 if self.path == LEVER_PATH:
                     body = ("<!doctype html><html><head><meta charset=utf-8><title>Apply - Acme</title></head><body>"
                             f"{LEVER_FORM.read_text()}{LEVER_BEHAVES}</body></html>").encode()
@@ -480,7 +496,7 @@ WORKABLE_ANSWERS = [
 # the page, never the filler's word
 WORKABLE_SHOWN = ("es => es.map(e => ['checkbox', 'radio'].includes(e.type) ? e.checked : e.type === 'file' ? e.files.length : e.value)"
                   ".concat([...document.querySelectorAll('[role=radio]')].map(r => r.getAttribute('aria-checked')),"
-                  " [document.querySelector('[data-ui=\"resume\"] .file').textContent])")
+                  " [document.querySelector('[data-ui=\"section-fields\"] > :has([data-ui=\"resume\"]) .file').textContent])")
 WORKABLE_BOXES = "#application input:not([type=hidden]), #application textarea"
 
 
@@ -702,6 +718,33 @@ def test_in_window_locator_waits_then_says_what_never_came(tab, site):
         assert page.locator("#email").input_value() == ""  # read without waiting to be shown
     finally:
         cdp.close()
+
+
+def test_in_window_wait_for_states_as_playwright(tab, site, playwright_chrome):
+    # attached / visible / hidden / detached, each met or timed out alike; a box drawn late is waited for
+    # (Teamtailor's drop box draws its hidden file box after load - plan-k8n.38)
+    def outcome(page, selector, state):
+        try:
+            page.locator(selector).first.wait_for(state=state, timeout=400)
+            return "met"
+        except Exception as e:
+            return type(e).__name__ if isinstance(e, (TypeError, ValueError)) else "timeout"
+
+    got = {}
+    with both(tab, playwright_chrome, site) as tabs:
+        for name, page in tabs.items():
+            page.evaluate("() => { document.getElementById('email').style.display = 'none'; }")
+            got[name] = [outcome(page, sel, state) for sel in ("#email", "#first_name", "#nowhere")
+                         for state in ("attached", "visible", "hidden", "detached")]
+            page.evaluate("""() => setTimeout(() => { const b = Object.assign(document.createElement('input'),
+                {type: 'file', id: 'late'}); b.style.display = 'none'; document.body.append(b); }, 300)""")
+            page.locator("#late").wait_for(state="attached", timeout=3000)
+            page.evaluate("() => setTimeout(() => document.getElementById('late').remove(), 300)")
+            page.locator("#late").wait_for(state="detached", timeout=3000)
+            assert page.locator("#late").count() == 0
+    assert got["window"] == got["playwright"]
+    assert got["window"] == ["met", "timeout", "met", "timeout", "met", "met", "timeout", "timeout",
+                             "timeout", "timeout", "met", "met"]
 
 
 def frames_url(site):
@@ -955,13 +998,31 @@ def test_in_window_parity_type_delay(tab, site, playwright_chrome):
     assert got["window"][2] == ["Austin, Texas, United States", "Austin, Minnesota, United States"]
 
 
+
+def test_in_window_parity_fill_date_box(tab, site, playwright_chrome):
+    # a date box takes the value whole, input + change once per fill, a second fill keeps it, a bad date throws
+    # (typed letters land in one part of the box: the second fill emptied it, plan-k8n.35)
+    got = {}
+    with both(tab, playwright_chrome, site.replace("/acme/jobs/1", BREEZY_PATH)) as tabs:
+        for name, page in tabs.items():
+            page.evaluate("""() => { window.seen = []; const d = document.querySelector('[name=section_1000_question_4]');
+                for (const k of ['input', 'change']) d.addEventListener(k, () => seen.push(k)); }""")
+            box = page.locator("[name=section_1000_question_4]")
+            box.fill("2026-11-02")
+            box.fill(" 2026-11-02 ")
+            row = [box.input_value(), page.evaluate("seen")]
+            with pytest.raises(Exception, match="Malformed value"):
+                box.fill("next month")
+            got[name] = row + [box.input_value()]
+    assert got["window"] == got["playwright"] == ["2026-11-02", ["input", "change"] * 2, ""]
+
 class FakeExtension:
     """Job Finder's window as window.py sees it: opens the holding page (a GET, as its tab would),
     answers attach-form / detach-form in <name>.done, as extension.js does."""
 
-    def __init__(self, root, proxy, attach=None):
+    def __init__(self, root, proxy, attach=None, detach=None):
         import jobs
-        self.dir, self.proxy, self.attach = root / jobs.LINK_DIR, proxy, attach
+        self.dir, self.proxy, self.attach, self.detach = root / jobs.LINK_DIR, proxy, attach, detach
         self.opened, self.attached, self.detached = [], [], []
 
     def answer(self, request, answer):
@@ -984,7 +1045,8 @@ class FakeExtension:
                     self.answer(request, self.attach or {"ok": True, "session": "s-1", "proxy": self.proxy})
                 elif req.get("do") == window.DETACH:
                     self.detached.append(req["session"])
-                    self.answer(request, {"ok": True, "left": 0})
+                    if self.detach != "silent":
+                        self.answer(request, self.detach or {"ok": True, "left": 0})
                 else:
                     self.opened.append(req["url"])
                     urllib.request.urlopen(req["url"], timeout=5).read()
@@ -1017,6 +1079,24 @@ def test_in_window_page_at_attaches_to_its_own_holding_page_and_lets_go(tab, sit
         assert len(ext.opened) == 1 and HOLDING.match(ext.opened[0]) and ext.attached == ext.opened
         assert ext.detached == ["s-1"] and len(hooked) == 1 and isinstance(hooked[0], CDP)
     assert list((tmp_path / ".data" / "open-link").iterdir()) == []
+
+
+# plan-k8n.34: Workable's Submit failed 2 of 2 w/ the debugger likely still on the tab => a let go
+# that isn't clean says what the user does before Submit, never a quiet note
+@pytest.mark.parametrize("detach", [{"ok": True, "left": 1}, {"error": "boom"}, "silent", None])
+def test_in_window_let_go_not_clean_tells_the_user_to_close_the_tab_before_submit(tab, site, tmp_path, monkeypatch, capsys, detach):
+    window_setup(tmp_path, monkeypatch)
+    monkeypatch.setattr(window, "DETACH_WAIT", 0.5)
+    with FakeExtension(tmp_path, tab, detach=detach) as ext:
+        with window.page_at(site) as page:
+            assert page.url == site
+        assert ext.detached == ["s-1"]
+    out = capsys.readouterr().out
+    if detach is None:
+        assert out == ""
+    else:
+        assert out.strip() == window.LET_GO_FAILED
+        assert "close that tab without clicking Submit" in out and out.strip().endswith(window.FALLBACK)
 
 
 @pytest.mark.parametrize("running, attach, said", [
@@ -1105,7 +1185,7 @@ def test_in_window_off_by_default_fill_stays_in_chrome(tmp_path, monkeypatch, ca
     assert capsys.readouterr().out.endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
 
 
-@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever", "JazzHR", "Workable", "BambooHR"])
+@pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", "Manatal", "Breezy", "Teamtailor"])
 def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, capsys, name):
     opened = fill_setup(tmp_path, monkeypatch, name)
     monkeypatch.setattr(form.sys, "argv", ["form.py", "fill", "7", "--in-window"])
@@ -1113,16 +1193,54 @@ def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, ca
     out = capsys.readouterr().out
     assert opened == ["window"] and "  [ok] First Name\n" in out
     said = "The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
-    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name in ("Lever", "JazzHR", "Workable", "BambooHR") else ""))
+    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name not in ("Greenhouse", "Ashby") else ""))
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
-    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever", "JazzHR", "Workable", "BambooHR")
-    opened = fill_setup(tmp_path, monkeypatch, "SmartRecruiters")
+    assert window.SYSTEMS == ("Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", oracle.NAME, icims.NAME,
+                              paylocity.NAME, manatal.NAME, breezy.NAME, teamtailor.NAME)
+    # owner 2026-10-07 (plan-k8n.20): these multi-page systems stay in Chrome
+    assert not {smartrecruiters.NAME, adp.NAME, paycom.NAME} & set(window.SYSTEMS)
+    opened = fill_setup(tmp_path, monkeypatch, smartrecruiters.NAME)
     with pytest.raises(SystemExit) as stop:
         form.fill("7", in_window=True)
-    assert str(stop.value) == "in the window: Greenhouse, Ashby, Lever, JazzHR, Workable, BambooHR only for now - run fill without --in-window"
+    assert str(stop.value) == ("in the window: Greenhouse, Ashby, Lever, JazzHR, BambooHR, Oracle Recruiting Cloud, "
+                               "iCIMS, Paylocity, Manatal, Breezy, Teamtailor only for now - run fill without --in-window")
     assert opened == []
+
+
+@pytest.mark.parametrize("module", [manatal, breezy, teamtailor])
+def test_in_window_offers_manatal_breezy_teamtailor_with_a_chrome_fallback(module):
+    # owner's yes 2026-10-07 (plan-k8n.39, .40, .41): one page each, Submit untested in the window
+    assert module.NAME in window.SYSTEMS and not getattr(module, "PER_PAGE", False)
+    note = window.AT_SUBMIT[module.NAME]
+    assert "Submit" in note and "untested in the window" in note and note.endswith("without --in-window (Chrome)")
+
+
+def test_in_window_workable_refused_plainly(tmp_path, monkeypatch):
+    # owner 2026-10-07 (plan-k8n.34): Submit failed 2 of 2 from the window, went through in Chrome
+    assert "Workable" not in window.SYSTEMS and "Workable" not in window.AT_SUBMIT
+    opened = fill_setup(tmp_path, monkeypatch, "Workable")
+    with pytest.raises(SystemExit) as stop:
+        form.fill("7", in_window=True)
+    assert str(stop.value) == f"not in the window: Workable - {window.REFUSED['Workable']}; run fill without --in-window"
+    assert "2 of 2" in window.REFUSED["Workable"] and opened == []
+
+
+@pytest.mark.parametrize("module", [oracle, icims, paylocity])
+def test_in_window_fills_the_owners_multipage_systems_on_the_held_tab(tmp_path, monkeypatch, capsys, module):
+    # owner's yes 2026-10-07 (plan-k8n.20): filled on the user's held tab, w/ the note on what's untested there
+    assert module.PER_PAGE and module.NAME in window.AT_SUBMIT
+    opened = fill_setup(tmp_path, monkeypatch, module.NAME)
+    form.system_for("").PER_PAGE = True
+    monkeypatch.setattr(form.systems, "tab_match", lambda system, url: lambda tab_url: True)
+    monkeypatch.setattr(window.inside, "on", True, raising=False)
+    form.fill("7", in_window=True)
+    out = capsys.readouterr().out
+    assert opened == ["window"] and "  [ok] First Name\n" in out
+    assert out.endswith("The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
+                        f"note: {window.AT_SUBMIT[module.NAME]}\n")
+    assert "from the start without --in-window (Chrome)" in window.AT_SUBMIT[module.NAME]
 
 
 # a form over two pages, each its own document on the same site: Next is a plain link the user

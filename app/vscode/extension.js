@@ -646,18 +646,38 @@ async function attachForm(url) {
 
 // let the tab go, never close it: stop on an attach = disconnect w/ terminateDebuggee (closes the
 // tab, measured), and stopDebugging() w/o a session ends every one - so disconnect each of ours
-// w/ terminateDebuggee false, child first
+// w/ terminateDebuggee false, deepest first. Ours = the attach's whole tree: a cross-site frame in
+// the form (reCAPTCHA, Turnstile) is a session under the tab's; left on, it kept the attach itself
+// alive after the tab's let go - 3 of 3 on the local form (plan-k8n.34). Frames still loading get
+// a session after the first pass => look again
+const DETACH_PASSES = 3;
+
+function under(s, rootId) {
+  for (let p = s; p; p = p.parentSession) if (p.id === rootId) return true;
+  return false;
+}
+
+function depth(s) {
+  let n = 0;
+  for (let p = s.parentSession; p; p = p.parentSession) n++;
+  return n;
+}
+
 async function detachForm(id) {
   const child = debugSessions.get(id);
   if (!child) return { ok: true, left: 0 };
-  const mine = [child, child.parentSession].filter(Boolean);
-  for (const s of mine) {
-    try {
-      await Promise.race([s.customRequest("disconnect", { terminateDebuggee: false }), late(PROXY_MS)]);
-    } catch {}
+  const rootId = (child.parentSession || child).id;
+  const ours = () => [...debugSessions.values(), child, child.parentSession]
+    .filter((s, i, all) => s && under(s, rootId) && all.findIndex((t) => t && t.id === s.id) === i && debugSessions.has(s.id));
+  for (let pass = 0; pass < DETACH_PASSES && ours().length; pass++) {
+    for (const s of ours().sort((a, b) => depth(b) - depth(a))) {
+      try {
+        await Promise.race([s.customRequest("disconnect", { terminateDebuggee: false }), late(PROXY_MS)]);
+      } catch {}
+    }
+    await late(DETACH_SETTLE_MS);
   }
-  await late(DETACH_SETTLE_MS);
-  return { ok: true, left: mine.filter((s) => debugSessions.has(s.id)).length };
+  return { ok: true, left: ours().length };
 }
 
 // one action of today.model's list, from the dashboard or the Jobs panel: the only place a click

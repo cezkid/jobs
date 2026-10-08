@@ -1,10 +1,13 @@
 """Trial, off by default (plan-29g.9): fill a form in a tab of the Job Finder window instead of Chrome -
-`apply-form fill <job> --in-window`, Greenhouse, Ashby, Lever, JazzHR, Workable + BambooHR (owner's yes for Ashby +
-Lever 2026-10-05, plan-nko.7, plan-nko.14; JazzHR + Workable 2026-10-06, plan-k8n.5, plan-k8n.8; BambooHR 2026-10-07,
-plan-k8n.11). Route 2 of app/docs/apply/vscode-browser.md: the
+`apply-form fill <job> --in-window`, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, Breezy, Teamtailor + the
+multi-page Oracle, iCIMS, Paylocity (owner's yes for Ashby + Lever 2026-10-05, plan-nko.7, plan-nko.14; JazzHR 2026-10-06,
+plan-k8n.5; BambooHR 2026-10-07, plan-k8n.11; Oracle, iCIMS + Paylocity 2026-10-07, plan-k8n.20; Manatal, Breezy +
+Teamtailor 2026-10-07, plan-k8n.39, .40, .41). Workable pulled 2026-10-07
+(owner, plan-k8n.34): Submit failed 2 of 2 in the window, went through in Chrome. Route 2 of app/docs/apply/vscode-browser.md: the
 window's extension attaches VS Code's JavaScript debugger to the tab and hands back its CDP proxy;
 Playwright can't use that proxy (one page, no browser), so Page + Locator below speak CDP and cover
-only what greenhouse.py, ashby.py, lever.py, jazzhr.py, workable.py, bamboohr.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
+only what greenhouse.py, ashby.py, lever.py, jazzhr.py, workable.py, bamboohr.py, oracle.py, icims.py, paylocity.py,
+manatal.py, breezy.py, teamtailor.py and form.fill call. Every hard limit of the Chrome path stays: never Submit,
 a file chosen only after the user's yes (form.fill decides that, not this file).
 
 Measured costs this follows (vscode-browser.md): skip every pause on attach (a site's own `debugger;`
@@ -27,15 +30,19 @@ from pathlib import Path
 
 from apply.cdp import CDP, Closed, ScriptError
 
-SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR", "Workable", "BambooHR")
+SYSTEMS = ("Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", "Oracle Recruiting Cloud", "iCIMS", "Paylocity",
+           "Manatal", "Breezy", "Teamtailor")
 # never in the window, whatever SYSTEMS says: why, in plain words
-REFUSED = {"UKG": "its sign-in lives in Job Finder's Chrome - a tab in the window isn't signed in"}
+REFUSED = {"UKG": "its sign-in lives in Job Finder's Chrome - a tab in the window isn't signed in",
+           "Workable": "Submit didn't go through from the window (2 of 2 tries, 2026-10-07) - in Chrome it did"}
 ATTACH, DETACH = "attach-form", "detach-form"
 # holding page: the window's open-link wait + the tab's first request
 OPEN_WAIT = 20
 # extension.js: picker 15 s + child session 10 s + proxy 5 s, w/ margin
 ATTACH_WAIT = 45
-DETACH_WAIT = 15
+# extension.js: up to 3 passes over the form's sessions (5 s each at worst + 2 s settle); 5-6 s measured
+# on the local form w/ one cross-site frame, 3 of 3 (plan-k8n.34)
+DETACH_WAIT = 30
 TIMEOUT_MS = 30000
 POLL = 0.1
 # no network for this long = settled, as Playwright's "networkidle"
@@ -48,11 +55,27 @@ AT_SUBMIT = {"Lever": "Lever's hCaptcha check at Submit is untested in the windo
                       "fill it again without --in-window (Chrome)",
              "JazzHR": "JazzHR's Human Check at Submit is untested in the window - if it doesn't show or Submit doesn't "
                        "go through, fill it again without --in-window (Chrome)",
-             "Workable": "Workable's Turnstile check at Submit and the resume upload are untested in the window - if the "
-                         "resume doesn't show as attached or Submit doesn't go through, fill it again without --in-window (Chrome)",
              "BambooHR": "BambooHR's reCAPTCHA tick-box at Submit and the resume upload are untested in the window - if "
                          "the resume doesn't show as attached, the tick-box doesn't show or take a click, or Submit doesn't "
-                         "go through, fill it again without --in-window (Chrome)"}
+                         "go through, fill it again without --in-window (Chrome)",
+             # multi-page: only the start box / page 1 measured in the tab (plan-k8n.16, .18); Chrome starts at page 1
+             "Oracle Recruiting Cloud": "Oracle's pages after Next, its resume upload and any check at Submit are untested in the "
+                                        "window - if a page doesn't fill, a check doesn't show or take a click, or Submit "
+                                        "doesn't go through, fill it again from the start without --in-window (Chrome)",
+             "iCIMS": "iCIMS's hCaptcha check, its pages after Next and the resume upload are untested in the window - if a "
+                      "page doesn't fill, the check doesn't show or take a click, the resume doesn't show as attached, or "
+                      "Submit doesn't go through, fill it again from the start without --in-window (Chrome)",
+             "Paylocity": "Paylocity's resume upload and its steps after the first are untested in the window - if the resume "
+                          "doesn't show as attached, a step doesn't fill, or Submit doesn't go through, fill it again from the "
+                          "start without --in-window (Chrome)",
+             # one page; each measured in the tab up to the resume chosen, never Submit (plan-k8n.32, .35, .38)
+             "Manatal": "Manatal's Submit is untested in the window - it sends the resume, then the answers, only then; if "
+                        "Submit doesn't go through or shows an error, fill it again without --in-window (Chrome)",
+             "Breezy": "Breezy's resume upload, the boxes it fills from the resume and any emailed code at Submit are "
+                       "untested in the window - if the resume doesn't show as attached, a code box doesn't show, or "
+                       "Submit doesn't go through, fill it again without --in-window (Chrome)",
+             "Teamtailor": "Teamtailor's resume upload and its Submit are untested in the window - if the resume doesn't "
+                           "show as attached or Submit doesn't go through, fill it again without --in-window (Chrome)"}
 WHY = {"untrusted": "the Job Finder window is in Restricted Mode (opened without its Desktop icon)",
        "picker": "the window couldn't tell which tab to use",
        "no proxy": "the window's debugger didn't hand over the tab",
@@ -740,8 +763,28 @@ class Locator:
     def evaluate(self, fn: str, arg=None):
         return self._one(f"(e, arg) => ({fn})(e, arg)", arg)
 
-    def wait_for(self, timeout: float | None = None) -> None:
-        self._one("(e) => true", visible=True, timeout=timeout)
+    def wait_for(self, timeout: float | None = None, state: str = "visible") -> None:
+        """As Playwright's: attached = on the page, visible = shown, detached = gone, hidden = gone or not shown."""
+        if state == "visible":
+            return self._one("(e) => true", visible=True, timeout=timeout)
+        if state == "attached":
+            return self._one("(e) => true", timeout=timeout)
+        if state not in ("detached", "hidden"):
+            raise ValueError(f'state: expected one of (attached|detached|visible|hidden), got "{state}"')
+        timeout = TIMEOUT_MS if timeout is None else timeout
+        gone = "(els) => els.length === 0" + ("" if state == "detached" else f" || !({VISIBLE})(els[0])")
+        deadline = time.monotonic() + timeout / 1000
+        while True:
+            try:
+                if self._all(gone):
+                    return
+            except ScriptError:
+                raise
+            except (RuntimeError, TimeoutError):  # page mid-navigation
+                pass
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"{self.steps}: still {'on the page' if state == 'detached' else 'shown'} after {timeout} ms")
+            time.sleep(POLL)
 
     def inner_text(self, timeout: float | None = None) -> str:
         return self._one("(e) => e.innerText", timeout=timeout)
@@ -803,7 +846,16 @@ class Locator:
         self._one(DISPATCH, [type, event_init], timeout=timeout)
 
     def fill(self, value: str, timeout: float | None = None) -> None:
-        self._one("(e) => { e.focus(); if (e.select) e.select(); }", visible=True, timeout=timeout)
+        # date / time / color / range boxes take the value as Playwright's fill gives it: set, then input + change -
+        # typed letters land in one part of the box (a second fill emptied a date box, plan-k8n.35)
+        if self._one("""(e, v) => { if (!(e instanceof HTMLInputElement) || !SET_VALUE.has(e.type.toLowerCase())) {
+              e.focus(); if (e.select) e.select(); return false; }
+              v = v.trim(); e.focus(); e.value = v; if (e.value !== v) throw new Error("Malformed value");
+              e.dispatchEvent(new Event("input", {bubbles: true, composed: true}));
+              e.dispatchEvent(new Event("change", {bubbles: true})); return true; }""".replace(
+                "SET_VALUE", "new Set(['color', 'date', 'time', 'datetime-local', 'month', 'range', 'week'])"),
+                value, visible=True, timeout=timeout):
+            return
         if value:
             self.page.cdp.send("Input.insertText", {"text": value})
         else:
@@ -950,10 +1002,17 @@ def ask(request: dict, wait: float):
         return None
 
 
+# a debugger left on the tab: Workable's Submit failed there 2 of 2, the same job went through in
+# Chrome 1 of 1 (owner, 2026-10-07) => never Submit on it. The user closing the tab ends every session
+# on it (0 left, 6 of 6, multipage-local.json)
+LET_GO_FAILED = ("not let go: the window's debugger may still be on the form tab, and a site's robot check can refuse "
+                 "Submit there - tell the user to close that tab without clicking Submit, then " + FALLBACK)
+
+
 def let_go(session: str) -> None:
     answer = ask({"do": DETACH, "session": session}, DETACH_WAIT)
     if not isinstance(answer, dict) or answer.get("ok") is not True or answer.get("left"):
-        print("note: the window may still be holding the form tab - closing that tab after Submit lets it go")
+        print(LET_GO_FAILED)
 
 
 @contextlib.contextmanager

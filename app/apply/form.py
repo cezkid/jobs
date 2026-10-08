@@ -106,6 +106,9 @@ def typed_note(system, answers: list[dict]) -> str:
     """A system whose boxes search its own list as they're typed: those words leave before Submit.
     By key or kind: an Ashby Location box of the employer's own has no key."""
     typed = [k for k in getattr(system, "SEARCHED_AS_TYPED", ()) if any(k in (a.get("key"), a["kind"]) for a in answers)]
+    if typed and (other := getattr(system, "SEARCHED_WITH", "")):
+        return (f"{system.NAME}: the {', '.join(typed)} boxes search {other}'s list as they're typed - "
+                f"those words reach {other} during the fill, before Submit; say so when naming them")
     if typed:
         return (f"{system.NAME}: the {', '.join(typed)} boxes search {system.NAME}'s own list as they're typed - "
                 "those words reach its site during the fill, before Submit; say so when naming them")
@@ -410,8 +413,9 @@ def main() -> None:
                    "window's tab, as fill --in-window fills it")
     f = sub.add_parser("fill", help="open Chrome and fill the form from the answers file")
     f.add_argument("slug")
-    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby, Lever, JazzHR, Workable + BambooHR, off by default) fill in a tab "
-                   "of the Job Finder window instead of Chrome")
+    f.add_argument("--in-window", action="store_true", help="(trial, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, "
+                   "Breezy, Teamtailor, Oracle, iCIMS + Paylocity, off by default) fill in a tab of the Job Finder window "
+                   "instead of Chrome")
     sub.add_parser("hold", help="(started by fill / prepare --in-window) stay on a multi-page form's window tab "
                    "between runs")
     sub.add_parser("let-go", help="the window's form helper lets go of the tabs it keeps and stops")

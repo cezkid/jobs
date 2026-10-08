@@ -223,7 +223,38 @@ Readings:
 - Cookie dialog = the employer's own; the user answers it.
 
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab
-urlFilter). In `window.SYSTEMS` since the owner's yes 2026-10-06 (plan-k8n.8).
+urlFilter). In `window.SYSTEMS` from the owner's yes 2026-10-06 (plan-k8n.8) to 2026-10-07: pulled, Submit failed
+2 of 2 in the window ("Workable Submit in the window" below).
+
+## Workable Submit in the window (plan-k8n.34)
+
+Submit failed 2 of 2 in the window, 2026-10-07 - owner's real application (1 job, `fill --in-window`): filled 7/8 +
+read back, resume uploaded; Submit -> Workable's "Something went wrong" twice (2nd after its own resume autofill), no
+confirmation email. Same job in Job Finder's Chrome (no debugger): Submit went through after a "verify you are human"
+check, 1 of 1. The fill printed "the window may still be holding the form tab" = `let_go` got no clean detach, so
+js-debug's session was likely still on the tab at Submit. Suspects: Turnstile at Submit refusing a tab w/ a debugger
+attached, or the leftover session itself - unmeasured (never Submit while measuring). JazzHR's reCAPTCHA passed in
+the window the same day (1 of 1, w/ a picture puzzle). Workable pulled from `window.SYSTEMS` (owner, "Pull it").
+Upload in the window, same run: took (file name shown in the box), 1 of 1; the fill's "upload not confirmed" ASK
+was a read-back miss in `workable.put_file`, Chrome too (`data-ui="resume"` sits on the file input, no text) -
+fixed plan-k8n.33 (`workable.md` Read back).
+
+Why the let go wasn't clean - measured, local form only (`measure.py shipext` + `detach`: the shipped fill path,
+`window.page_at` + the shipped extension through the link folder, then probe-ext lists the debug sessions), 3 runs
+each, macOS 26.4.1 x86_64, 2026-10-07, 0 employer pages:
+- Extension 0.25.0: detach answered `left: 1` (10.4-10.9 s), 2 sessions stayed at +0, +3, +10 s - the attach
+  itself and a session for the form's cross-site frame, which sits under the tab's own. `detachForm` disconnected
+  only the tab + the attach; the frame's session was never asked, and the attach won't end while it lives. 3 of 3.
+  A real form has such frames (Workable's Turnstile, JazzHR's reCAPTCHA) - the same "may still be holding" note
+  the owner saw on both, 2 of 2. Earlier `multipage` baseline (0 left) had no cross-site frame.
+- 0.26.0: every session under the attach disconnected, deepest first, up to 3 passes (a frame still loading gets
+  its session late): `left: 0` (5.3-6.4 s), 0 sessions at +0, +3, +10 s, the form tab kept. 3 of 3.
+- Still unclean (an answer w/ `left`, an error, none in 30 s) -> `window.LET_GO_FAILED`: tell the user to close
+  the tab without clicking Submit, then fill in Chrome. Closing the tab ends every session on it (0 left, 6 of 6,
+  `multipage`).
+- Whether Workable's Submit passes w/ no session left - unmeasured (never Submit while measuring); Workable stays
+  out of `window.SYSTEMS` until a real Submit in the window passes (owner). Numbers:
+  [detach-local.json](vscode-browser/detach-local.json).
 
 ## BambooHR - route 2 (plan-k8n.10)
 
@@ -291,7 +322,7 @@ Readings:
   box. No frame, no pause, no captcha on these 2 (Chrome saw an invisible hCaptcha on 2 of 7, `oracle.md`).
 - Cookie banner = the employer's own; the user answers it.
 - Pages after Next: unmeasured (never Next) - the owner's real application (plan-6oq.6.6, .6.8). Oracle's flow is
-  multi-page, so whether it fills in the window waits on the multi-page decision (plan-k8n.20).
+  multi-page: in `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.20), `AT_SUBMIT` note for the rest.
 
 ## iCIMS - route 2 (plan-k8n.16)
 
@@ -321,7 +352,8 @@ Readings:
   Next - unmeasured (never Next), same open question as Oracle and BambooHR's reCAPTCHA.
 - Upload in the frame (`DOM.setFileInputFiles` on a frame element from the top session): unmeasured - no file box
   on the start box; pages after Next unmeasured (the owner's real application, plan-6oq.6.6, .6.8).
-- `window.SYSTEMS` unchanged: iCIMS is multi-page (start box -> Next -> account), so it waits on plan-k8n.20.
+- iCIMS is multi-page (start box -> Next -> account): in `window.SYSTEMS` since the owner's yes 2026-10-07
+  (plan-k8n.20), `AT_SUBMIT` note for the rest.
 
 Route-2 costs otherwise as Greenhouse (debug chrome, stop only the page session, trusted folder, one-tab urlFilter).
 
@@ -393,8 +425,8 @@ Readings:
   An unblocked upload in the tab: unmeasured (would send the file).
 - Cookie banner + "Apply with resume" dialog = the user's (never "Accept All"; dialog: `paylocity.md`).
 - Later steps (Step 2 of N ...): Paylocity is multi-step on one page, Next blocked by the resume dialog under the
-  block (`paylocity.md`) - unmeasured here; filling it in the window waits on plan-k8n.20.
-- `window.SYSTEMS` unchanged: Paylocity stays in Job Finder's own Chrome.
+  block (`paylocity.md`) - unmeasured here.
+- In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.20), `AT_SUBMIT` note for the upload + later steps.
 
 ## UKG - route 2 (plan-k8n.18)
 
@@ -474,6 +506,134 @@ Readings:
   its privacy-policy read came back empty there). The start box in the window: unmeasured.
 - `window.SYSTEMS` unchanged: Paycom stays in Job Finder's own Chrome (multi-page after Continue: plan-k8n.20).
 
+## Manatal - route 2 (plan-k8n.32)
+
+Same `measure.py raw`, level 3, no named read. Box = `input[type=text]` (full name), file = `input[type=file]`
+(resume), dummy PDF chosen. 2 employers (tenants A, B; one host for all), 2026-10-07; page loads: 1 each = 2.
+`raw` now also reads AWS WAF marks (`awsWafApi`, `aws-waf-token` cookie, `awswaf` script), native + select2 lists,
+and the resume box's label + error words after the choice. Numbers:
+[manatal-tenant-a.json](vscode-browser/manatal-tenant-a.json), [manatal-tenant-b.json](vscode-browser/manatal-tenant-b.json)
+(host, org, posting + field ids scrubbed).
+
+| Step | A | B |
+|---|---|---|
+| Canary first | received none | none |
+| Attach | 8.1 s | 8.0 s |
+| `READY` (Vue mount) from navigate | 1.3 s | 1.3 s |
+| Fields listed | 7 | 7 |
+| Widgets | pay box + 2 native `select`s (currency, frequency), 1 checkbox (terms); 0 select2 | 3 checkboxes (Yes / No array + terms), 0 `select`, 0 select2 |
+| `debugger;` pauses | 0 | 0 |
+| Captcha / AWS WAF | none: no reCAPTCHA, hCaptcha, Turnstile; `awsWafApi` undefined, no `aws-waf-token` cookie, no `awswaf` script | same |
+| Frames | 0 iframes, 0 frame targets | same |
+| Page load writes (failed) | Google Analytics `g/collect` x3 | x2 |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant" | same |
+| Dummy PDF chosen | label `.custom-file-label` shows "Test_Resume.pdf", no error words, file held, nothing sent on choice | same |
+| Window screenshot | failed ("could not create image from window"); tab shot only | same |
+
+Readings:
+- Every box + the file box is in the page; no `debugger;`, no frame, no captcha to meet before Submit.
+- Resume stays on the computer on choice, window as Chrome (`manatal.md`: the form script uploads it only at Submit).
+- What Submit does in the tab (presigned upload, then S3, then the answers): unmeasured (never Submit).
+- Adapter gaps: none. The parity test (`test_in_window_fills_manatal_as_playwright_does`, page copy fixture,
+  Playwright vs `window.Page` in one headless Chrome) passes: same report, same page after, every answer read back,
+  a second fill changes nothing - every call `manatal.fill` + `holds` + `form.fill_page` make already exists in
+  `window.py` (xpath ancestor, `select_option(value=[...])`, `set_input_files`, `evaluate_all`).
+
+Route-2 costs otherwise as Greenhouse. In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.39), `AT_SUBMIT`
+note for Submit (resume + answers sent only then).
+
+## Breezy - route 2 (plan-k8n.35)
+
+Same `measure.py raw`, level 3, no named read. Box = `input[name=cName]` (full name; `raw` now looks for it before any
+text box), file = `input[type=file]` (hidden `#main-attachment`), dummy PDF chosen; `raw` now reads Breezy's resume
+header after the choice (name shown, "Uploading Resume", error words). 2 employers (tenant A: React build, B: Angular;
+one host each), 2026-10-07; page loads: 1 each = 2, `app.breezy.hr` 0 (1 blocked upload each). Numbers:
+[breezy-tenant-a.json](vscode-browser/breezy-tenant-a.json), [breezy-tenant-b.json](vscode-browser/breezy-tenant-b.json)
+(host, org, posting scrubbed).
+
+| Step | A (React build) | B (Angular) |
+|---|---|---|
+| Canary first | received none | none |
+| Attach | 8.0 s | 8.0 s |
+| `READY` (`form[name=form] input[name=cName]`) from navigate | 1.8 s - the Angular form, as in Chrome | 2.1 s |
+| Widgets | 6 `select`s, 11 radios, 1 checkbox, 1 file box; no combobox, no select2 | 2 `select`s, 29 radios, 1 checkbox, 1 file box |
+| `debugger;` pauses | 0 | 0 |
+| Captcha / AWS WAF | none: no reCAPTCHA, hCaptcha, Turnstile; no AWS WAF marks | same |
+| Frames | 0 iframes, 0 frame targets | same |
+| Page load writes (failed) | Ziggeo video session x2, LogRocket x2 | Ziggeo x2 |
+| Name: click + `Input.insertText` | focused, read back "Test Applicant"; Ziggeo POST after it | same |
+| Dummy PDF chosen | file held; upload POST to `app.breezy.hr/api/portal/<org>/upload` at once (blocked), + Ziggeo, LogRocket | same, no LogRocket |
+| Resume header after it | no name, no error words, not "Uploading Resume" (blocked send = silent, `breezy.md`: ASK) | same |
+| Window screenshot | failed ("could not create image from window"); tab shot only | same |
+
+Readings:
+- Every box + the file box is in the page; no `debugger;`, no frame, no captcha to meet before Submit.
+- Resume leaves on choice, window as Chrome (`breezy.md`: the page uploads it at once, then refills from it).
+  Its live answer in the tab + the refill: unmeasured (the upload is blocked at level 3).
+- Address box (Google Places) not typed in here: its letters going to Google is the same page script either way.
+- What Submit does in the tab (email code, bot signals): unmeasured (never Submit).
+- Adapter gap, fixed: `Locator.fill` typed into a date box - the first fill held, a second one (as `form.recheck`
+  or a re-run does) emptied it. Now date / time / color / range / month / week boxes take the value whole + input +
+  change, a bad value throws "Malformed value" - as Playwright's fill (`test_in_window_parity_fill_date_box`).
+- Parity test (`test_in_window_fills_breezy_as_playwright_does`, page copy fixture, Playwright vs `window.Page` in
+  one headless Chrome) then passes: same report, same page after, every answer read back (18 kinds: resume, contact,
+  address, pay + currency + per, location, summary, letter, text, list, radios, ticks, date, 2 EEO), a second fill
+  changes nothing, honeypot + SMS + CCPA untouched.
+
+Route-2 costs otherwise as Greenhouse. In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.40), `AT_SUBMIT`
+note for the upload + its refill and Submit (possible emailed code).
+
+## Teamtailor - route 2 (plan-k8n.38)
+
+Same `measure.py raw`, level 3, no named read. Box = `input[name="candidate[first_name]"]`, file = the drop box's own
+file box (`#upload_resume_field input[type=file]`, drawn after load), dummy PDF chosen; `raw` now reads Teamtailor's
+drop box after the choice (name, link, error words), the cookie notice (shown, where focus sits), the proof-of-work box,
+and sets the box by script with its events when typing left it empty. 3 employers (tenant A, B, C on its own domain;
+one host each), 2026-10-07; page loads: 1 each = 3 (with plan-k8n.31's: A 5, B 8, C 4 of 10). Numbers:
+[teamtailor-tenant-a.json](vscode-browser/teamtailor-tenant-a.json),
+[teamtailor-tenant-b.json](vscode-browser/teamtailor-tenant-b.json),
+[teamtailor-tenant-c.json](vscode-browser/teamtailor-tenant-c.json) (host, org, posting scrubbed).
+
+| Step | A | B | C (own domain) |
+|---|---|---|---|
+| Canary first | received none | none | none |
+| Attach | 8.1 s | 8.0 s | 8.1 s |
+| `READY` (`form#job-application-form input[name="candidate[first_name]"]`) from navigate | 1.6 s | 2.1 s | 3.3 s |
+| Widgets | 2 file boxes, 2 radios, 4 checkboxes, 2 comboboxes; no `select` | 2 file boxes, 17 radios, 1 slider, 3 checkboxes, 1 combobox | 2 file boxes, 2 checkboxes, 1 combobox |
+| `debugger;` pauses | 0 | 0 | 0 |
+| Captcha / AWS WAF | none: no reCAPTCHA, hCaptcha, Turnstile; no AWS WAF marks | same | same |
+| Proof-of-work box | answered by the page, 80 ms | 975 ms | 2200 ms |
+| Frames | 0 iframes, 0 frame targets | same | same |
+| Page load writes (failed) | `POST /pageview` x1 | same | same |
+| Cookie notice | shown small, focus on its link | takeover shown, focus trapped in it | shown small, focus on its link |
+| Name: click + `Input.insertText` | never focused, nothing held | same | same |
+| Name: focus by script + `Input.insertText` | held "Test Applicant" | nothing held (focus back in the notice) | held "Test Applicant" |
+| Name: set by script + input / change | - | held "Test Applicant", focus still in the notice | - |
+| Dummy PDF chosen | `POST <host>/uploads/presigned_data` at once (blocked) | same | same |
+| Drop box after it | "TypeError: Failed to fetch", no name, no link (= Chrome try: FAIL with the page's words) | same | same |
+| Window screenshot | failed ("could not create image from window"); tab shot only | same | same |
+
+Readings:
+- Every box + both file boxes are in the page; no `debugger;`, no frame, no captcha to meet before Submit.
+- Click-to-focus never lands on these pages, takeover notice or not: the filler's `write` (value + the box's own events
+  when typing doesn't hold) is what fills, window as Chrome.
+- Resume leaves on choice, window as Chrome (`teamtailor.md`: presigned request, then S3). Its live answer in the tab:
+  unmeasured (blocked at level 3).
+- Address box (Teamtailor's place list) not typed in here: same page script either way.
+- What Submit does in the tab: unmeasured (never Submit).
+- Adapter gap, fixed: `Locator.wait_for` took no `state` - `teamtailor.put_file` waits for the drop box's file box with
+  `state="attached"` (hidden box), the TypeError was swallowed, so no wait: a drop box drawn late read ASK "didn't
+  load". Now attached / visible / hidden / detached as Playwright's (`test_in_window_wait_for_states_as_playwright`,
+  fails without the fix).
+- Parity test (`test_in_window_fills_teamtailor_as_playwright_does`, saved tenant A + B forms + `page.js`, Playwright vs
+  `window.Page` in one headless Chrome) passes: same report, same page after, every answer read back (A: resume,
+  contact, phone, address from the place list, requirement radio, texts, number, letter; B: resume, contact, slider,
+  choice, 7 yes / no radios, letter - with a cookie notice holding the keyboard, never clicked), a second fill
+  changes nothing, consent never ticked.
+
+Route-2 costs otherwise as Greenhouse. In `window.SYSTEMS` since the owner's yes 2026-10-07 (plan-k8n.41), `AT_SUBMIT`
+note for the upload's live answer + Submit.
+
 ## Recommendation
 
 Route 1: never - one open port hands the whole window (commands, terminal, Claude's chat) to any
@@ -490,8 +650,10 @@ Route 2 fills Greenhouse's own boxes + upload in the tab. Costs, all measured:
 - urlFilter must match one tab; two matching tabs => a picker
 
 Job Finder's own Chrome has none of these. Keep filling there; if the owner wants it in the
-window, Greenhouse, Ashby, Lever, JazzHR, Workable + BambooHR only, off by default (plan-29g.9, Ashby plan-nko.8,
-Lever plan-nko.15, JazzHR plan-k8n.5, Workable plan-k8n.8, BambooHR plan-k8n.11).
+window, Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, Breezy, Teamtailor, Oracle, iCIMS + Paylocity only, off
+by default (plan-29g.9, Ashby plan-nko.8, Lever plan-nko.15, JazzHR plan-k8n.5, BambooHR plan-k8n.11, Oracle + iCIMS +
+Paylocity plan-k8n.20, Manatal plan-k8n.39, Breezy plan-k8n.40, Teamtailor plan-k8n.41; Workable plan-k8n.8, pulled
+plan-k8n.34).
 
 ## Owner decision (plan-29g.8)
 
@@ -511,22 +673,46 @@ Submit + the resume upload in the tab unmeasured (upload goes to Workable's stor
 real application, plan-k8n.9) => `AT_SUBMIT` note + Chrome fallback. Workable = 46 open jobs / 28 employers on the
 owner's list.
 
+2026-10-07 (plan-k8n.34): Workable pulled ("Pull it", owner) - Submit failed 2 of 2 in the window on the owner's
+real application, 1 of 1 ok in Chrome (same job). Refused in one line (`window.REFUSED`) until a fix passes a real
+Workable Submit in the window.
+
 2026-10-07 (plan-k8n.11): BambooHR added - one page, no frames, no `debugger;` pauses, adapter parity passes with no
 new code (plan-k8n.10). Gaps: the resume upload (sent on choice; blocked in the measure, so only the page's failure
 banner seen) + the reCAPTCHA v2 tick-box at Submit (frame blank under the block), both unmeasured unblocked in the
 tab => `AT_SUBMIT` note + Chrome fallback. BambooHR = 3 open jobs / 3 employers on the owner's list.
 
+2026-10-07 (plan-k8n.20): owner picked Oracle, iCIMS + Paylocity of the multi-page systems (recommended option) - each
+filled clean on its start box / page 1 in the tab, 2 of 2 tenants, held on the user's tab between pages ("Built (c)").
+Gaps, all unmeasured (never Next): pages after Next, any check at Next or Submit (Oracle: invisible hCaptcha on 2 of 7
+in Chrome; iCIMS: hCaptcha frames blank under the block), the resume upload in the tab (iCIMS: in its same-site frame;
+Paylocity: sent on choice, blocked = no words) => `AT_SUBMIT` note + Chrome fallback from the first page. Oracle =
+26 open jobs / 21 employers, iCIMS 16 / 12, Paylocity 3 / 2 on the owner's list. Stay in Chrome: ADP + Paycom (start
+box never shown in the window under the block, unmeasured), SmartRecruiters (DataDome device check replaces the form,
+2 of 2), UKG (`window.REFUSED`).
+
+2026-10-07 (plan-k8n.39, .40, .41): Manatal, Breezy + Teamtailor added ("Manatal (recommended), Breezy (recommended),
+Teamtailor (recommended)", owner) - one page each, no frames, no `debugger;` pauses, no captcha or AWS WAF on load,
+adapter parity passes (Manatal no new code, plan-k8n.32; Breezy after the date-box fix, plan-k8n.35; Teamtailor after
+`wait_for(state=)`, 2 tenants incl. a keyboard-trapping cookie notice, plan-k8n.38). Gaps, all unmeasured (never
+Submit; uploads blocked at level 3): Manatal's Submit (presigned upload, S3, answers POST - the resume is held until
+then); Breezy's upload answer + the refill from it, possible emailed code at Submit; Teamtailor's upload answer
+(presigned, S3) + Submit => `AT_SUBMIT` note each + Chrome fallback.
+
 ## Trial (plan-29g.9)
 
-`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, Workable + BambooHR only
-(owner's yes for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR 2026-10-06 plan-k8n.5, Workable 2026-10-06
-plan-k8n.8, BambooHR 2026-10-07 plan-k8n.11; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
+`uv run app/jobs.py apply-form fill <job> --in-window` - Greenhouse, Ashby, Lever, JazzHR, BambooHR, Manatal, Breezy,
+Teamtailor, Oracle, iCIMS + Paylocity only (owner's yes for Ashby 2026-10-05, plan-nko.7, Lever plan-nko.14, JazzHR
+2026-10-06 plan-k8n.5, BambooHR 2026-10-07 plan-k8n.11, Oracle + iCIMS + Paylocity 2026-10-07 plan-k8n.20, Manatal +
+Breezy + Teamtailor 2026-10-07 plan-k8n.39, .40, .41; Workable 2026-10-06 plan-k8n.8,
+pulled 2026-10-07 plan-k8n.34; other systems refused in one line), off by default; w/o the flag `fill` opens Chrome exactly as before. `job-apply` hard
 limits unchanged: never Submit, a file only after the user's yes (`form.fill` decides, not the window).
 Multi-page form (`PER_PAGE`, `form.fill` passes `match`): no longer refused (plan-k8n.15, owner's pick (c)) - one
-holder process keeps the user's tab between runs, see "Built (c)" below. Which multi-page systems are offered in the
-window = `window.SYSTEMS`, unchanged until plan-k8n.20. UKG refused in the window (`window.REFUSED`, `fill` +
+holder process keeps the user's tab between runs, see "Built (c)" below. Multi-page systems offered in the window
+(`window.SYSTEMS`): Oracle, iCIMS + Paylocity (plan-k8n.20). UKG refused in the window (`window.REFUSED`, `fill` +
 `prepare --in-window`): its sign-in lives in Job Finder's Chrome, a window tab isn't signed in - one plain line + the
-Chrome way. `prepare` takes `--in-window` too; next-step lines keep the flag.
+Chrome way. Workable refused the same way since 2026-10-07: Submit failed 2 of 2 from the window (plan-k8n.34).
+`prepare` takes `--in-window` too; next-step lines keep the flag.
 
 - Tab = a holding page only this run knows: Python serves `http://127.0.0.1:<port>/jf-<32 hex>`,
   the window opens it (plain open request), then `attach-form` w/ that link as urlFilter. Never the
@@ -576,7 +762,7 @@ a second fill changes nothing, attestation tick left to the applicant in both. A
 (no wait, nothing there = False, Playwright's shown rule), `select_option(value=)` (Playwright's signature:
 value or `label=`), each checked against Playwright's on that page. The fill says the Human Check at Submit is
 untested in the window (`AT_SUBMIT`). Unmeasured: JazzHR filled live in the window tab; Human Check unblocked there.
-Workable (plan-k8n.7, 2026-10-06; in `--in-window` since the owner's yes, plan-k8n.8): `workable.fill` + `holds` +
+Workable (plan-k8n.7, 2026-10-06; in `--in-window` from the owner's yes, plan-k8n.8, to 2026-10-07, plan-k8n.34): `workable.fill` + `holds` +
 `form.fill_page` on `fixtures/dom/workable-form.html` (hand-built from measured widgets: radios, ticks, lists, the
 resume box + a storage stand-in) + the cookie dialog as measured over the whole form, through Playwright AND
 `window.Page`: same report, same read-back (boxes, `[role=radio]` picks, ticks, list picks, stored file's name), a
@@ -586,8 +772,8 @@ Added: `click(force=)` + Playwright's hit check (waits until nothing else sits o
 TimeoutError; force clicks whatever is on top - before, a covered click landed on the overlay silently),
 `dispatch_event` (MouseEvent etc., bubbles + cancelable + composed, as Playwright), `page.keyboard.press`,
 ArrowDown + Space by name, `page.evaluate` (a function called w/ its arg, else evaluated), `:visible` closing a
-selector part; each checked against Playwright's on that page. The fill says Turnstile at Submit + the resume upload
-are untested in the window (`AT_SUBMIT`). Unmeasured: Workable filled live in the window tab; its upload + Turnstile there.
+selector part; each checked against Playwright's on that page. Live (owner's real application, 2026-10-07): filled
+7/8 + read back, resume uploaded; Submit failed 2 of 2 in the window - pulled (plan-k8n.34).
 Generic reader + the rest of the fillers' calls (plan-k8n.14, 2026-10-06; `window.SYSTEMS` unchanged):
 `fixtures/dom/frames-shadow.html` (same-site frame w/ a list, another site's frame, open + closed shadow roots,
 `.form-group`, xpath shapes) through Playwright AND `window.Page` - `dom.snapshot` equal, `dom.fill` same reports +
@@ -747,7 +933,7 @@ Recommendation: (c). It is the only way that kept the place on a new page withou
 on the systems measured above so far) - the user would face a stopped form + a code tab. Costs of (c), all unmeasured live:
 the fill process must stay alive while the user reads + clicks Next (end on tab closed, window
 reload, Submit page, or a time limit); the debug toolbar stays visible the whole time (VS Code's
-`debug.toolBarLocation: hidden` may hide it - untested); a page whose script runs `debugger;` before
+`debug.toolBarLocation: hidden` hides it - measured below); a page whose script runs `debugger;` before
 the navigation event lands pauses until the handler resumes it (0 of 3 here). Reload or closed tab
 = place lost in both: say so plainly, Chrome way as today. Owner decides: plan-k8n.13.
 
@@ -769,7 +955,8 @@ Owner picked (c) (plan-k8n.13, 2026-10-07). `apply/window.py`:
   a keep-place test (`page_at` twice in the holder -> same tab, one attach).
 
 Debug toolbar: shown while attached by default (`mp-c-other-page2.png`: floating over the tab bar, Pause button).
-`debug.toolBarLocation: hidden` tried (stage `toolbar`, local form, 0 employer loads, 2026-10-07): fill + page 2
-the same as floating (6 ticks, 0 ms held, both) - whether it hides the bar NOT seen: screen capture failed in that
-run (display unavailable). Not added to the window's settings until a screenshot shows it (follow-up bead).
+`debug.toolBarLocation: hidden` measured (stage `toolbar`, local form, 0 employer loads, 0 site writes, screen
+unlocked, 2026-10-07): floating -> bar over the tab bar on page 2 (`mp-toolbar-floating-page2.png`); hidden -> no
+bar, still attached (Run badge 1, `mp-toolbar-hidden-page2.png`); fill + page 2 the same both (6 ticks, 0 ms held).
+Set in the window's settings (`app/workspace.py`, plan-k8n.28).
 

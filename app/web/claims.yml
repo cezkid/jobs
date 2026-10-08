@@ -17,11 +17,11 @@ installer-ai-choice:
     contains: Type 1, 2 or 3, then press Enter
 apply-systems:
   page: index.html
-  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
   why: hiring systems the app fills (bold) or starts (plain)
   rests_on:
   - apply_systems: true
-    filled: [Ashby, BambooHR, Greenhouse, JazzHR, Lever, Paylocity, SmartRecruiters, UKG, Workable, Workday]
+    filled: [Ashby, BambooHR, Breezy, Greenhouse, JazzHR, Lever, Manatal, Paylocity, SmartRecruiters, Teamtailor, UKG, Workable, Workday]
     # [name in the code, name on the page]
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
@@ -104,7 +104,7 @@ privacy-ai:
     - '| Text + screenshots of Job Finder window pages Copilot reads (VS Code''s browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User''s own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |'
 privacy-employers:
   page: privacy.html
-  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.'
+  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed; Breezy: the address you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.'
   why: 'privacy table: what employers get, per system'
   rests_on:
   - file: AGENTS.md
@@ -130,6 +130,13 @@ privacy-employers:
     - '| Email, resume, contact details, answers you apply with | that employer''s Paylocity site | That employer: email as you leave its box, resume as you pick the file (both measured), the rest by Submit |'
     - '| Resume file you apply with | that employer''s SmartRecruiters site | That employer, as soon as it is chosen (only after you say yes) |'
     - '| Contact details, answers you apply with | that employer''s SmartRecruiters site | That employer, once you click Submit |'
+    - '| Contact details, answers, resume you apply with | that employer''s Manatal site | That employer, once you click Submit |'
+    - '| Resume you apply with | that employer''s Breezy site | That employer, as soon as you choose the file (Breezy reads it to fill the form) |'
+    - '| Address you type in the address box | that employer''s Breezy site (the box asks Google for place suggestions) | Google, letter by letter as it''s typed - before Submit |'
+    - '| Contact details, answers you apply with | that employer''s Breezy site | That employer, once you click Submit |'
+    - '| Resume you apply with | that employer''s Teamtailor site | That employer, as soon as you choose the file (it goes to Teamtailor''s storage then) |'
+    - '| Town or city you type in the address box | that employer''s Teamtailor site (the box searches Teamtailor''s own list) | That employer, letter by letter as it''s typed - before Submit |'
+    - '| Contact details, answers you apply with | that employer''s Teamtailor site | That employer, once you click Submit |'
     - '| Name, email, phone you start with | that employer''s Paycom site | That employer, when you click Continue on its start box - before the form |'
     - '| Name, email, phone you start with | that employer''s ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |'
     - '| Email you start with | that employer''s Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |'

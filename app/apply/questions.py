@@ -31,9 +31,10 @@ ADDRESS = {"street", "city", "state", "zip"}
 ASK = "ask the user"
 # a plain Name box when the page name is not the legal one: the user picks once, contact.form_name keeps it
 ASK_FORM_NAME = "ask the user once - legal name or the name on your resume"
-# a name box about someone else (a referrer, a manager, the school) is never theirs to fill from contact
+# a name box about someone else (a referrer, a manager, the school) is never theirs to fill from contact;
+# pronouns ask how to address them ("... just my first name", Manatal tenant 2026-10-06), not a name
 OTHER_PERSON = re.compile(r"\brefer|manager|supervisor|emergency|reference|recruiter|employer|company|school|"
-                          r"universit|college|spouse|relative|user ?name|business|organi[sz]ation")
+                          r"universit|college|spouse|relative|user ?name|business|organi[sz]ation|pronoun")
 PLAIN_NAME = {"name", "first_name", "middle_name", "last_name"}
 # questions only the user answers, however well a saved answer seems to fit: the AI names the kind and
 # asks (fair-screening.md). "Are you 18 or older?" is not one - a plain yes/no, answered truthfully.

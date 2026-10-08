@@ -64,9 +64,14 @@ RESUME_INPUT = """() => [...document.querySelectorAll('input[type=file]')].findI
 # label isn't clickable (2026-10-03, every YES / NO on 1 page). The clickable part is the [role=radio]
 # beside it in the question's fieldset (role=radiogroup), its pick in aria-checked (measure, 4 of 4)
 OPTIONS = 'fieldset:has(input[name="{id}"]) [role=radio]'
-# the resume box's own wrapper: `data-ui` = the field id, as each dropdown's (Workable's form script,
-# 2026-10-06); its words, read off the page (not the file input - the box may draw a new one)
-RESUME_BOX = """() => { const w = document.querySelector('[data-ui="resume"]');
+# the resume box's words: its field = the child of `[data-ui=section-fields]` around the file input, which
+# carries `data-ui="resume"` itself - no text of its own (live, writes blocked, 1 tenant, 2026-10-07; the
+# 2026-10-06 reading of the script put it on a wrapper: every live read was empty -> ASK, plan-k8n.33). The
+# input gone (the box may draw a new one): the field its label names resume / CV
+RESUME_BOX = """() => { const fields = [...document.querySelectorAll('[data-ui="section-fields"] > *')];
+  const input = document.querySelector('input[type=file][data-ui="resume"]');
+  const w = (input && fields.find(f => f.contains(input)))
+    || fields.find(f => /^[\\s*]*(resume|r\u00e9sum\u00e9|cv)\\b/i.test(f.innerText || ''));
   return w ? (w.innerText || '').replace(/\\s+/g, ' ').trim() : null; }"""
 # what Workable's form script writes in the resume box when a file isn't kept (2026-10-06): too big
 # (checked by the page before anything goes), the upload failed, a type it doesn't take
@@ -200,6 +205,8 @@ def put_file(page, path: str) -> str:
     i = page.evaluate(RESUME_INPUT)
     if i < 0:
         return "FAIL no resume box on page"
+    # a file name already in the box (an earlier choose) -> only this file's own name says it took
+    named = bool(FILE_SHOWN.search(resume_says(page)[0]))
     page.locator("input[type=file]").nth(i).set_input_files(path)
     name, since = Path(path).name, None
     deadline = time.monotonic() + SHOWN_WAIT_MS / 1000
@@ -207,7 +214,8 @@ def put_file(page, path: str) -> str:
         words, said = resume_says(page)
         if said:
             return f"FAIL the page says '{said}' - choose the file again on the page, or check the resume box"
-        if since is None and name in words:
+        # a name the box shortens still counts on an empty box (shown in full or not: unmeasured)
+        if since is None and (name in words or not named and FILE_SHOWN.search(words)):
             since = time.monotonic()
         if since is not None and time.monotonic() - since >= ERROR_WAIT_MS / 1000:
             return "ok"

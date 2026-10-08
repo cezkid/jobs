@@ -27,6 +27,10 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            a `debugger;` line every second; the user closes the tab; window reload
   toolbar  local form only (plan-k8n.15): (c) as built, debug.toolBarLocation floating vs hidden - screenshots
            of page 1 + page 2 while attached
+  shipext  $D/f/app re-copied from the checkout, the SHIPPED window extension built from it + installed (plan-k8n.34)
+  detach   local form only (plan-k8n.34): the shipped fill path (window.page_at, shipped extension's attach + detach
+           through the link folder) in a subprocess, JF_RUNS times; the detach answer + how long it took, then the
+           debug sessions probe-ext still sees (must be 0), the window's tabs (the form tab must stay)
   raw      route 2 on ONE public posting of any system `systems.for_url` knows (plan-nko.6 Ashby, .13 Lever):
            level-3 block (+ lab.NAMED_READS, the owner's one exception) + canary first in the same tab;
            the page's `debugger;` pauses counted (skip off once, resumed in the handler, cap 20, then
@@ -43,6 +47,14 @@ tabs, starts js-debug's "Integrated Browser: Attach", asks for its CDP proxy).
            read after the upload (name shown, its own error words) (plan-k8n.17)
            a sign-in page in place of the form (SIGN_IN, UKG) is never typed in; file box `btn-resume` (Paylocity); the
            page's own upload error words read every 0.5 s for 6 s (a toast goes in 5 s) (plan-k8n.18)
+           a system's FILE_LABEL (Manatal) read back after the file is chosen + the error words under it; select2 lists +
+           AWS WAF marks (its script, AwsWafIntegration, aws-waf-token cookie) counted (plan-k8n.32)
+           Breezy's full-name box (cName) before any text box; a system's RESUME_BOX read after the choice: name shown,
+           still sending (UPLOADING), error words (plan-k8n.35)
+           Teamtailor's first-name box by its name, before any text box; its drop box's file box
+           (RESUME_BOX), then the name + link it shows + its error words (PREVIEW / ERROR); the takeover cookie box + where
+           focus sits; a box still empty after both typings set by script with its events (teamtailor.write); the
+           proof-of-work answer box (plan-k8n.38)
 
 usage: measure.py <stage> <$D> <checkout> <out json> <shots dir> [posting url]
 $D must hold f/ (folder copy), ext/ (probe-ext + Claude installed), hold/ - see setup in the doc.
@@ -353,6 +365,16 @@ SET = """((e, v) => { const proto = e instanceof HTMLTextAreaElement ? HTMLTextA
   : e instanceof HTMLSelectElement ? HTMLSelectElement.prototype : HTMLInputElement.prototype;
   Object.getOwnPropertyDescriptor(proto, 'value').set.call(e, v);
   e.dispatchEvent(new Event('input', {bubbles: true})); e.dispatchEvent(new Event('change', {bubbles: true})); return e.value; })"""
+
+
+# Teamtailor's cookie box as a takeover (an attribute ending takeover-modal-value = "true"), where focus sits (plan-k8n.38)
+TAKEOVER = """(() => { const all = [...document.querySelectorAll('*')].filter((e) => [...e.attributes].some((a) => a.name.endsWith('takeover-modal-value')));
+  const on = all.filter((e) => [...e.attributes].some((a) => a.name.endsWith('takeover-modal-value') && a.value === 'true'));
+  return {boxes: all.length, takeover: on.length, shown: on.some((e) => !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length)),
+    focus: (document.activeElement || {}).tagName || null} })()"""
+# Teamtailor's proof-of-work, solved in the page on load: its answer box filled + how long it took (plan-k8n.38)
+POW = """(() => { const r = document.querySelector('[name=challenge_response]'), ms = document.querySelector('[name=challenge_solve_ms]');
+  return r ? {answered: !!r.value, solveMs: ms ? ms.value : null} : null })()"""
 
 
 def set_value(c, sel, v):
@@ -1152,9 +1174,10 @@ FRAME_KIND = (("recaptcha", r"recaptcha\.net|google\.com/recaptcha|gstatic\.com/
               ("turnstile", r"challenges\.cloudflare\.com"), ("linkedin", r"linkedin\.com"), ("google sign-in", r"accounts\.google\.com"))
 # what the page carries before Submit: captcha + Cloudflare scripts, Lever's Apply with LinkedIn widget
 MARKS = """(() => ({hcaptchaApi: typeof window.hcaptcha, grecaptchaApi: typeof window.grecaptcha, turnstileApi: typeof window.turnstile,
+  awsWafApi: typeof window.AwsWafIntegration, awsWafCookie: /aws-waf-token/.test(document.cookie),
   hiddenCaptchaButton: !!document.querySelector('#hcaptchaSubmitBtn, .h-captcha, [data-hcaptcha-widget-id]'),
   linkedinWidget: !!document.querySelector('script[type="IN/AwliWidget"]'),
-  scripts: [...new Set([...document.scripts].map((s) => s.src).filter((u) => /hcaptcha|recaptcha|challenge-platform|turnstile|linkedin|licdn/.test(u))
+  scripts: [...new Set([...document.scripts].map((s) => s.src).filter((u) => /hcaptcha|recaptcha|challenge-platform|turnstile|linkedin|licdn|awswaf/.test(u))
     .map((u) => { try { const x = new URL(u); return x.host + x.pathname.replace(/[0-9a-f]{16,}/gi, '<h>').slice(0, 80) } catch (e) { return '?' } }))]}))()"""
 # the upload's own words: Ashby's toast, Lever's label states (lever.md)
 VERDICT = """(() => { const m = document.body.innerText.match(/failed to upload|couldn.t auto-read resume\\.?|analyzing resume\\.*|success!/i);
@@ -1185,6 +1208,8 @@ WIDGETS = """(() => { const boxes = [...document.querySelectorAll('[role=combobo
     checkboxes: document.querySelectorAll('input[type=checkbox]').length, combobox: boxes.length,
     comboboxInDataUi: boxes.filter((b) => b.closest('[data-ui]')).length, options: document.querySelectorAll('[role=option]').length,
     fileInputs: document.querySelectorAll('input[type=file]').length, resumeWrapper: !!document.querySelector('[data-ui="resume"]'),
+    selects: document.querySelectorAll('select').length, select2: document.querySelectorAll('.select2-container').length,
+    select2Hidden: document.querySelectorAll('select.select2-hidden-accessible').length,
     onTopAtListMiddle: boxes.slice(0, 8).map(top),
     dialogs: [...document.querySelectorAll('[role=dialog]')].filter((d) => d.getClientRects().length).map((d) => ({ui: d.getAttribute('data-ui'),
       modal: d.getAttribute('aria-modal'), text: (d.innerText || '').replace(/\\s+/g, ' ').slice(0, 60)}))}; })()"""
@@ -1297,8 +1322,11 @@ def raw(result):
         # a sign-in page in place of the form (UKG, plan-k8n.18): its boxes are never typed in
         fill["signIn"] = bool(getattr(system, "SIGN_IN", None)) and bool(quietly(lambda: c.evaluate(f"!!{q(system.SIGN_IN)}")))
         box = None if fill["signIn"] else next((s for s in ('[id="_systemfield_name"]', '#application-form input[name=name]', 'input[name=firstname]', '#firstName',
-                                'input[name^="primary-email"]', '#first-name-input', '#guestFirstName', '#legalFirstName', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
+                                'input[name^="primary-email"]', '#first-name-input', '#guestFirstName', '#legalFirstName', 'input[name=cName]', 'input[name="candidate[first_name]"]', 'input[type=text]') if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["box"] = box
+        # Teamtailor's takeover cookie box (holds the keyboard on 2 of 10 postings) + its proof-of-work boxes (plan-k8n.38)
+        fill["takeover"] = quietly(lambda: c.evaluate(TAKEOVER))
+        result["proofOfWork"] = quietly(lambda: c.evaluate(POW))
         if box:
             block.step = "type"
 
@@ -1320,6 +1348,9 @@ def raw(result):
                     return {"focused": c.evaluate(f"document.activeElement === {q(box)}")}
                 fill["type: focused by script + Input.insertText"] = attempt(focused_typed)
                 fill["readBackAfterFocus"] = quietly(lambda: c.evaluate(f"{q(box)}.value"))
+                if not fill["readBackAfterFocus"]:  # still trapped: set with the box's own events, as teamtailor.write does
+                    fill["setByScript"] = quietly(lambda: set_value(c, box, "Test Applicant"))
+                    fill["focusedAfterSet"] = quietly(lambda: c.evaluate("(document.activeElement || {}).tagName || null"))
         if not box and not fill["signIn"]:  # the start box in the page's own same-site frame (iCIMS ?in_iframe=1, plan-k8n.16): reached through
             # contentDocument from the top page's session, focused by script + Input.insertText (no click: frame offset)
             fill["frameBox"] = quietly(lambda: c.evaluate(f"!!{FRAME_BOX}"))
@@ -1338,7 +1369,8 @@ def raw(result):
                                                                 f"tick: !!d.querySelector('#accept_gdpr'), "
                                                                 f"boxes: d.querySelectorAll('input:not([type=hidden]), select, textarea').length}} }})()"))
         # SmartRecruiters: its resume field = the file box after the name (FILES), never the parsing box above it
-        files = (f"js:({system.FILES})()",) if hasattr(system, "FILES") else ()
+        files = ((f"js:({system.FILES})()",) if isinstance(getattr(system, "FILES", None), str)
+                 else (f"{system.RESUME_BOX} input[type=file]",) if hasattr(system, "PREVIEW") else ())  # Teamtailor's drop box
         fbox = next((s for s in (*files, '[id="_systemfield_resume"]', '#resume-upload-input', 'input[type=file][id="btn-resume"]', 'input[type=file]')
                      if quietly(lambda: c.evaluate(f"!!{q(s)}"))), None)
         fill["fileBox"] = fbox
@@ -1363,6 +1395,20 @@ def raw(result):
                 fill["nameShownDeep"] = RESUME.name in text
                 fill["pageErrors"] = system.UPLOAD_ERRORS.findall(text) if hasattr(system, "UPLOAD_ERRORS") else None
             fill["fileHeld"] = quietly(lambda: c.evaluate(f"({q(fbox)}.files[0] || {{}}).name || ''") == RESUME.name)
+            if label := getattr(system, "FILE_LABEL", None):  # the box's own label + error words under it (Manatal, plan-k8n.32)
+                near = f"{q(fbox)}.closest('.custom-file')"
+                fill["fileLabel"] = quietly(lambda: c.evaluate(f"(({near} || document).querySelector({json.dumps(label)}) || {{}}).innerText || null"))
+                fill["fileError"] = quietly(lambda: c.evaluate(f"(({near} || document).querySelector('small.text-danger') || {{}}).innerText || ''"))
+            if preview := getattr(system, "PREVIEW", None):  # Teamtailor: the drop box's file name, its link, error words (plan-k8n.38)
+                fill["dropBox"] = quietly(lambda: c.evaluate(f"""(() => {{ const p = document.querySelector({json.dumps(preview)}),
+                  e = document.querySelector({json.dumps(system.ERROR)}), link = p && p.querySelector('input[name="{system.RESUME}"]');
+                  return {{name: p ? [...p.querySelectorAll('[data-dz-name]')].map((n) => n.innerText.trim()).join(' ') : null,
+                    link: link ? !!link.value : null, error: e && !e.classList.contains('hidden') ? e.innerText.trim() : ''}} }})()"""))
+            elif rbox := getattr(system, "RESUME_BOX", None):  # Breezy: the resume header's file name, 'Uploading Resume', error words (plan-k8n.35)
+                fill["resumeBox"] = quietly(lambda: c.evaluate(f"""(() => {{ const b = document.querySelector({json.dumps(rbox)}); if (!b) return null;
+                  const t = (s) => [...b.querySelectorAll(s)].map((e) => e.innerText.trim()).join(' ');
+                  return {{name: t('a.bzyLinkColor'), error: t('.error-container:not(.ng-hide) span.error'),
+                    sending: [...document.querySelectorAll({json.dumps(getattr(system, "FORM", "form") + " .apply-buttons")})].some((e) => e.innerText.includes({json.dumps(getattr(system, "UPLOADING", ""))}))}} }})()"""))
             fill["sentOnChoice"] = [{"method": b["method"], "url": short(b["url"]), "type": b["type"],
                                      "contentType": b.get("contentType"), "body": b.get("body")}
                                     for b in block.log if b["after"] == "upload"]
@@ -1709,13 +1755,70 @@ def toolbar(result):
         result["siteWrites"] = [e for e in formsite.log if e["write"]]
 
 
+# ---------------------------------------------------------------- shipped fill's let-go (plan-k8n.34)
+def shipext(result):
+    """$D/f/app from the checkout again, the shipped window extension built from it + installed."""
+    subprocess.run(["rsync", "-a", "--delete", "--exclude", "__pycache__", f"{SRC}/app", f"{F}/"], check=True)
+    build = run(["uv", "run", "python", "-c", "import sys; sys.path.insert(0, 'app'); import vscode_ext; print(vscode_ext.build())"])
+    base = [CLI, "--user-data-dir", D / "data", "--extensions-dir", D / "ext", "--shared-data-dir", D / "shared"]
+    result["steps"] = [build, run([*base, "--install-extension", next(x for x in build["tail"].splitlines() if x.endswith(".vsix")), "--force"]),
+                       run([*base, "--list-extensions", "--show-versions"])]
+
+
+FILL = """import json, sys, time
+sys.path.insert(0, "app")
+from apply import window
+asked = window.ask
+def ask(req, wait):
+    t = time.time()
+    a = asked(req, wait)
+    print(json.dumps({"do": req.get("do"), "answer": a, "s": round(time.time() - t, 2)}), flush=True)
+    return a
+window.ask = ask
+with window.page_at(sys.argv[1]) as page:
+    page.evaluate("() => { first_name.value = 'Test'; return first_name.value; }")
+print(json.dumps({"filled": True}), flush=True)
+"""
+
+
+def detach(result):
+    """The shipped fill path end to end on the local form: what's attached once it ends."""
+    proc, result["launch"] = launch()
+    home, other, close = formsite.serve(TITLE)
+    env = {**os.environ, "JOBS_VSCODE_DIR": str(D)}
+    runs = result["runs"] = []
+    try:
+        time.sleep(5)  # the shipped extension's link watcher up
+        for i in range(int(os.environ.get("JF_RUNS", "3"))):
+            row = {}
+            t = time.time()
+            r = subprocess.run(["uv", "run", "python", "-c", FILL, f"{home}/form"], cwd=F, env=env,
+                               capture_output=True, text=True, timeout=180)
+            row["s"] = round(time.time() - t, 1)
+            row["rc"] = r.returncode
+            row["out"] = [json.loads(x) if x.startswith("{") else x for x in r.stdout.splitlines()]
+            row["err"] = r.stderr.strip()[-400:]
+            for wait in (0, 3, 10):
+                time.sleep(wait)
+                s = ask({"do": "sessions"})
+                row[f"sessions+{wait}s"] = s.get("sessions")
+            row["tabs"] = [t["label"] for g in s.get("tabs") or [] for t in g["tabs"]]
+            row["shot"] = screenshot(f"detach-{i}", proc)
+            runs.append(row)
+            end_all()
+    finally:
+        result["quit"] = quit_(proc)
+        close()
+        result["siteWrites"] = [e for e in formsite.log if e["write"]]
+
+
 if __name__ == "__main__":
     if running():
         sys.exit("a scratch VS Code on this dir is already running")
     out = {"stage": STAGE, "at": now(), "uniq": UNIQ, "mac": f"macOS {platform.mac_ver()[0]} {platform.machine()}",
            "scratch": "$D = mktemp -d /tmp/jfv.XXXX"}
     try:
-        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw, "multipage": multipage, "toolbar": toolbar}[STAGE](out)
+        {"setup": setup, "ext": ext, "route1": route1, "route2": route2, "gh": gh, "ghfill": ghfill, "ghupload": ghupload, "score": score, "restricted": restricted, "raw": raw, "multipage": multipage, "toolbar": toolbar, "shipext": shipext, "detach": detach}[STAGE](out)
     finally:
         if running():
             subprocess.run(["pkill", "-f", f"{D.name}/data"])

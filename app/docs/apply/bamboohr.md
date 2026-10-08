@@ -174,5 +174,7 @@ try blocks the upload):
   storage, backup. Else the error's own message: files_api_v2 path (tenant B) "Upload failed"; v1 path
   (`attachTemporary.php`, A C D) HTTP error "Request failed with status code N" / "Network Error".
 - `put_file`: page idle (15 s cap), file chosen, ok = name in its block + no bar for 2 s with no new
-  banner; banner words -> FAIL with BambooHR's words; file taken off the block -> FAIL; nothing in 20 s
-  -> ASK. A banner already up before the choice = an earlier try's, not counted.
+  banner; banner words -> FAIL with BambooHR's words; file taken off the block -> FAIL (the banner read
+  again then, up to 2 s: it can draw after the loop's last banner read - that read gave the earlier try's
+  words, flaky test plan-k8n.37); nothing in 20 s -> ASK. A banner already up before the choice = an
+  earlier try's, not counted.

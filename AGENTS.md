@@ -252,6 +252,13 @@ when asked, at setup, and before any step sending something new off computer.
 | Email, resume, contact details, answers you apply with | that employer's Paylocity site | That employer: email as you leave its box, resume as you pick the file (both measured), the rest by Submit |
 | Resume file you apply with | that employer's SmartRecruiters site | That employer, as soon as it is chosen (only after you say yes) |
 | Contact details, answers you apply with | that employer's SmartRecruiters site | That employer, once you click Submit |
+| Contact details, answers, resume you apply with | that employer's Manatal site | That employer, once you click Submit |
+| Resume you apply with | that employer's Breezy site | That employer, as soon as you choose the file (Breezy reads it to fill the form) |
+| Address you type in the address box | that employer's Breezy site (the box asks Google for place suggestions) | Google, letter by letter as it's typed - before Submit |
+| Contact details, answers you apply with | that employer's Breezy site | That employer, once you click Submit |
+| Resume you apply with | that employer's Teamtailor site | That employer, as soon as you choose the file (it goes to Teamtailor's storage then) |
+| Town or city you type in the address box | that employer's Teamtailor site (the box searches Teamtailor's own list) | That employer, letter by letter as it's typed - before Submit |
+| Contact details, answers you apply with | that employer's Teamtailor site | That employer, once you click Submit |
 | Name, email, phone you start with | that employer's Paycom site | That employer, when you click Continue on its start box - before the form |
 | Name, email, phone you start with | that employer's ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |
 | Email you start with | that employer's Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |

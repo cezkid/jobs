@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import pytest
 
 from apply import browser, form, questions, systems
-from apply.systems import adp, ashby, bamboohr, greenhouse, icims, jazzhr, lever, oracle, paycom, paylocity, smartrecruiters, ukg, workable
+from apply.systems import adp, ashby, bamboohr, breezy, greenhouse, icims, jazzhr, lever, manatal, oracle, paycom, paylocity, smartrecruiters, teamtailor, ukg, workable
 
 CONTACT = {"name": "Ada King Lovelace", "email": "ada@example.com", "phone": "555-0100",
            "links": ["linkedin.com/in/ada", "github.com/ada"]}
@@ -52,7 +52,7 @@ def test_optional_members_take_what_the_shared_code_passes(system):
 
 # systems whose answers form.recheck reads back off the page (shown value, never the filler's word);
 # the other systems are left as filled until they join this list
-IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom]
+IN_SCOPE = [greenhouse, ashby, lever, jazzhr, workable, bamboohr, oracle, icims, smartrecruiters, ukg, paylocity, adp, paycom, manatal, breezy, teamtailor]
 
 
 @pytest.mark.parametrize("system", IN_SCOPE, ids=lambda s: s.__name__.rsplit(".", 1)[-1])
@@ -1632,6 +1632,29 @@ def test_workable_upload_waits_for_storage_and_says_the_pages_words(fixture_page
                                                       "please try again later.' - choose the file again on the page, or check the resume box")
 
 
+def test_workable_upload_reads_the_live_shaped_resume_box(fixture_page, monkeypatch, tmp_path):
+    """Live box (2026-10-07, plan-k8n.33): `data-ui="resume"` sits on the file input, which holds no text -
+    the read takes its field's words, so a taken upload reads ok once the name shows; the input drawn away,
+    the field its label names; a name the box shortens counts on a box that showed none."""
+    monkeypatch.setattr(workable, "ERROR_WAIT_MS", 500)
+    page = fixture_page("workable-form.html")
+    resume = answered("resume", "file", True, title="Resume") | {"key": "resume"}
+    good = tmp_path / "Ada_Lovelace_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    assert page.locator('[data-ui="resume"]').evaluate("e => e.tagName + ':' + e.innerText") == "INPUT:"
+    assert workable.resume_says(page) == ("* Resume Choose file or drag and drop here", "")
+    assert workable.fill(page, resume, str(good)) == "ok" and workable.holds(page, resume)
+    assert workable.resume_says(page) == ("* Resume Ada_Lovelace_Resume.pdf", "")
+    page.locator('[data-ui="resume"]').evaluate("e => e.remove()")
+    assert workable.resume_says(page)[0] == "* Resume Ada_Lovelace_Resume.pdf" and workable.holds(page, resume)
+    short = fixture_page("workable-form.html")
+    short.evaluate("""() => { const row = document.querySelector('[data-role=dropzone] .file');
+      new MutationObserver(() => { if (row.textContent.includes('Lovelace')) row.textContent = 'Ada_Lov...sume.pdf'; })
+        .observe(row, {childList: true}); }""")
+    assert workable.fill(short, resume, str(good)) == "ok"
+    assert workable.resume_says(short)[0] == "* Resume Ada_Lov...sume.pdf"
+
+
 def test_ashby_upload_waits_for_the_pages_verdict_and_says_its_words(fixture_page, monkeypatch, tmp_path):
     """A failed upload still shows the file name + Replace (3 of 3 employers, 2026-10-05): ok only once
     the page has said nothing failed for a while after the name; its own error words otherwise."""
@@ -1687,6 +1710,36 @@ def test_bamboohr_upload_waits_for_the_block_and_says_the_pages_words(fixture_pa
     assert not bamboohr.holds(page, resume)
     page.unroute("**/bamboohr-upload.json")
     page.route("**/bamboohr-upload.json", lambda route: route.fulfill(status=500, body=""))
+    assert bamboohr.fill(page, resume, str(good)) == \
+        "FAIL the page says 'Request failed with status code 500' - choose the file again on the page, or check the Resume box"
+
+
+def test_bamboohr_upload_failing_between_reads_says_its_own_words(fixture_page, monkeypatch, tmp_path):
+    """The page takes the file off the block + draws its banner between the loop's banner read and its block
+    read (flaky in the full suite, plan-k8n.37): the words are this failure's, never the earlier banner's."""
+    monkeypatch.setattr(bamboohr, "ERROR_WAIT_MS", 500)
+    page = fixture_page("bamboohr-form.html")
+    resume = answered("resumeFileId", "file", True, title="Resume") | {"key": "resume", "native": "bamboohr:file 2 of 2"}
+    good = tmp_path / "Ada_Lovelace_Resume.pdf"
+    good.write_bytes(b"%PDF-1.4\n%%EOF\n")
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(
+        status=200, content_type="application/json", body='{"status": "ERROR", "errorType": "invalid_file_size"}'))
+    assert bamboohr.fill(page, resume, str(good)).startswith("FAIL the page says 'Whoa, this is a big file")
+    page.unroute("**/bamboohr-upload.json")
+    page.route("**/bamboohr-upload.json", lambda route: route.fulfill(status=500, body=""))
+    page.clock.install()  # the page's own timer holds the failure until the block read lets it run
+    reads, calls = bamboohr.block_says, []
+
+    def late(upload):  # the page's change lands after the loop's banner read, before this one
+        if calls:
+            for _ in range(40):
+                page.clock.run_for(1000)
+                if not upload.locator(".name").count():
+                    break
+                page.wait_for_timeout(50)
+        calls.append(1)
+        return reads(upload)
+    monkeypatch.setattr(bamboohr, "block_says", late)
     assert bamboohr.fill(page, resume, str(good)) == \
         "FAIL the page says 'Request failed with status code 500' - choose the file again on the page, or check the Resume box"
 

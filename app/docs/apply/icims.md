@@ -91,6 +91,10 @@ Sign in, a password, a new account with the employer, more boxes: per tenant, no
 takes whatever page shows as plain boxes (`dom.questions`), page = its first heading, and prints
 "unmeasured system - check every box". Owner's first real application = the live check.
 
+Window: offered since the owner's yes 2026-10-07 (plan-k8n.20): `fill --in-window`, off by default, one holder
+keeps the user's tab between pages; its note says the hCaptcha check, pages after Next + the resume upload are
+untested there (`vscode-browser.md` "iCIMS - route 2").
+
 ## Form definition
 
 None public found: the questions come after Next, per employer - unmeasured.
