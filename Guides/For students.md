@@ -46,8 +46,33 @@ summer internship" is enough.
 - Your expected graduation date, GPA and "Are you currently enrolled?" are filled from your
   resume. You see each one before you press Submit.
 - None of these is saved for the next form: they change.
-- Practice interviews work for you too: stories can come from a class project, a club, a team or a
-  part-time job. Say "practise my interview for job 3".
+
+## Interviews
+
+- **Practise first:** "practise my interview for job 3". Stories can come from a class project, a
+  club, a team or a part-time job - anything real on your resume.
+- **Interview from Handshake or a career fair?** Paste the posting into the chat. No posting? Say
+  the company and role - practice then comes from your resume.
+- **Recorded video interviews** (HireVue and others): each employer sets the thinking time, the
+  answer time and whether you get a retake - read the screen before each question. Practise out
+  loud with a timer.
+- **Online tests and case interviews:** practise the kind they name, before the day.
+- **Not during the real thing:** Job Finder won't help while an interview, a take-home task or a
+  test is under way - breaks between rounds too. Employers that publish a rule allow AI to prepare
+  but not during, and some say they may disqualify for it.
+- **"Are you authorized to work in the US?" and "Will you need sponsorship?"** are questions
+  employers may ask. Practise a short, true answer. F-1: see below.
+- **Need a change for a disability** - extra time on a test, a sign language interpreter? You can ask the employer, in
+  writing or out loud, as soon as you know - before you start the test. How much you say is up to you. General information, not
+  legal advice - the EEOC or your state's agency has the final word.
+- **Your questions for them:** have two ready, from the posting.
+- **Past pay:** many states and cities don't let employers ask. You can always offer what you're
+  looking for instead.
+- **Thank-you note:** the chat can help you write a short one in your words. You send it yourself.
+- **Offer deadline too short?** Employers' own association (NACE) calls 1 to 2 weeks common - you
+  can ask for more time. Once you accept, career centres often advise you to stop interviewing
+  elsewhere, and some schools have a rule on backing out - ask yours.
+- **Your career centre** runs practice interviews too, usually free.
 
 ## International students (F-1)
 
@@ -64,6 +89,8 @@ word on your case.
     UC Irvine) say No. Job Finder asks you on every form, never answers it for you.
   - "Will you need sponsorship now or in the future?" - Yes for most F-1 students: a work visa
     after OPT ends.
+  - Same questions in an interview: a short, true answer - CPT or OPT, and when it starts. Not
+    approved yet? Say when you expect it, never that you already have it.
 - **"No visa sponsorship" jobs** sort lower for you. CPT and OPT need no sponsorship from the
   employer, so read the posting before you rule one out.
 - **Plan ahead:** 12 months or more of full-time CPT ends your OPT; STEM OPT needs an employer
