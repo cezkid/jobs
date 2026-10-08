@@ -6,7 +6,7 @@ import contextlib
 import re
 import time
 from pathlib import Path
-from urllib.parse import quote, unquote
+from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 import httpx
 
@@ -59,6 +59,10 @@ SEARCHED_AS_TYPED = ("location", "school")
 # shows its name too, so the page gets this long after the name to say it failed (ashby.md "Upload errors")
 IDLE_WAIT_MS, SHOWN_WAIT_MS, ERROR_WAIT_MS = 15000, 20000, 3000
 UPLOAD_FAILED = re.compile(r"failed to upload", re.I)
+# each box's answer is saved to Ashby as it is filled (ashby.md "Saves, one box at a time"): the next box
+# waits for that save to come back - how soon one starts, how long it gets to come back
+SAVE_OP = "ApiSetFormValue"
+SAVE_START_MS, SAVE_WAIT_MS = 1000, 8000
 SYSTEM_KEY = {"_systemfield_name": "name", "_systemfield_email": "email",
               "_systemfield_location": "location", "_systemfield_resume": "resume"}
 
@@ -411,7 +415,65 @@ def holds(page, q: dict) -> bool:
     return digits(got) == digits(str(value)) if kind == "phone" else got == str(value)
 
 
+def is_save(request) -> bool:
+    if parse_qs(urlsplit(request.url).query).get("op") == [SAVE_OP]:
+        return True
+    with contextlib.suppress(Exception):
+        body = request.post_data_json
+        return isinstance(body, dict) and body.get("operationName") == SAVE_OP
+    return False
+
+
+def refused(request) -> bool:
+    """The save came back and Ashby said no: an error status or GraphQL errors. Never sent or blocked
+    (apply-form try blocks every write) = not refused - holds() + recheck read what the page shows."""
+    response = request.response()
+    if response is None:
+        return False
+    if response.status >= 400:
+        return True
+    with contextlib.suppress(Exception):
+        body = response.json()
+        return isinstance(body, dict) and bool(body.get("errors"))
+    return False
+
+
+def saved(page, fill_box) -> str:
+    """fill_box() -> its result, returned once the save(s) it fired came back: two saves in flight at
+    once lost answers that still showed filled (ashby.md "Saves, one box at a time"). No save within
+    SAVE_START_MS = nothing to wait for (an answer already chosen is never clicked again). Job Finder's
+    window (`--in-window` trial) hears no requests per box: filled as before, unwaited."""
+    if not hasattr(page, "on"):
+        return fill_box()
+    started, back = [], []
+    listeners = {"request": lambda r: is_save(r) and started.append(r),
+                 "requestfinished": lambda r: is_save(r) and back.append(r),
+                 "requestfailed": lambda r: is_save(r) and back.append(None)}
+    for event, f in listeners.items():
+        page.on(event, f)
+    try:
+        result = fill_box()
+        for wait_ms, waiting in ((SAVE_START_MS, lambda: not started), (SAVE_WAIT_MS, lambda: len(back) < len(started))):
+            deadline = time.monotonic() + wait_ms / 1000
+            while waiting() and time.monotonic() < deadline:
+                page.wait_for_timeout(50)
+    finally:
+        for event, f in listeners.items():
+            page.remove_listener(event, f)
+    if result != "ok":
+        return result
+    if any(r is not None and refused(r) for r in back):
+        return "FAIL Ashby didn't keep this answer - choose it again on the page"
+    if len(back) < len(started):
+        return "FAIL Ashby hasn't said it kept this answer - check it on the page"
+    return result
+
+
 def fill(page, q: dict, resume_file: str | None) -> str:
+    return saved(page, lambda: fill_box(page, q, resume_file))
+
+
+def fill_box(page, q: dict, resume_file: str | None) -> str:
     if q.get("native") == "EducationHistory":  # school 2's boxes show once its block is added
         return put_education(page, q)
     box = box_of(page, q)
