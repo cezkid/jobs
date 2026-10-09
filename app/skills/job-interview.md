@@ -12,7 +12,9 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
 - Practice, debrief or offer: from their words ("I had the interview" = debrief; "I got an offer"
   = #Offer). Unclear -> ONE question: Practise a round / Go through the one I had.
 - `uv run app/jobs.py interview 12` -> requirements w/ the resume lines that showed them (or not),
-  the posting's pay, `student:` when a degree is in progress (#Students), the untrusted-text line.
+  the posting's pay, `student:` when a degree is in progress (#Students), `licences asked`
+  (#Licences), `the posting's text also names` (#Compliance and risk), `confidential work`
+  (#Confidential work), the untrusted-text line.
 - No saved posting ("no saved posting for ..."; Handshake, a career fair, a recruiter's email):
   - They have the posting -> save the text + do the posting task as `job-tailor` step 1 does, then
     `tailor prepare --posting ...` for its job number only. Not here: its tailoring task, its
@@ -43,7 +45,7 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
 - Ask ONE question, then stop. Stay in role - no coaching mid-answer, never finish their sentence.
 - Questions from the posting (none: their resume + the role), never a generic bank: shown
   requirements (practise saying it aloud) and not-shown ones (the struggle happens here, not in
-  the room).
+  the room); the posting's own duty sentences `interview` quotes count too (#Compliance and risk).
 - After each answer, 3-4 lines, no praise padding: did they say what THEY did or what the team did;
   a result, or does it trail off; a number where one plainly exists (never suggest one); one thing
   to change. Their resume line backing it (`interview` prints it) says more - team size, budget,
@@ -59,12 +61,7 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
   lines - strongest answer, one or two fixes. Never a score.
 - Never invent, inflate or imply experience - not in a question, a suggested answer or a critique.
   Reframe what they said; never add to it (`AGENTS.md` #Lead, explain, push back - Hold).
-- Confidential work, practice or debrief (banks, insurers, health, legal, audit): a client's or customer's name, deal
-  terms, a non-public regulator, exam or audit finding, anything that could point to a Suspicious
-  Activity Report -> stop them kindly, steer to scope + outcome ("a regulatory remediation program,
-  14 teams, closed on the agreed date"). Same rule as `job-tailor`; federal law bars revealing a
-  SAR (31 CFR 1020.320(e)). Unsure if they may share a number -> leave it out. General information,
-  not legal advice.
+- Confidential work, practice or debrief (banks, insurers, health, legal, audit) -> #Confidential work.
 - Who interviews + what each tests (panel, loop, hiring manager, an outside interviewer such as
   Amazon's Bar Raiser, values the employer interviews on such as Amazon's Leadership Principles):
   from the invitation, the posting, or the employer's own hiring pages only - never forums, never
@@ -99,6 +96,11 @@ design, clinical or legal detail they managed but didn't do themselves.
   point in the first sentence, done in time. Need more time for a disability -> #Accommodation.
 - Online test (coding, numbers, a work-situation quiz): practise the kind the invitation names, on
   questions you make up for it, before the test. Never one copied from a live test.
+- Excel, SQL or data exercise (risk, audit, AML analytics), only when the invitation names one -
+  none of 852 compliance + risk postings did (2026-10-09): made-up data of the kind the posting
+  names (a loan list, an alerts queue, a control-test sample), small enough to paste. Critique:
+  checks stated before the answer, the number sanity-checked, what they'd escalate. A take-home
+  once handed out = #Never during the real thing.
 - Case: one prompt fitting the role, from the posting's own work (consulting: a business problem;
   program or project role: plan this program, or rescue one late + over budget); they lead, you
   give data only when asked. Critique: structure stated first, math checked aloud, a
@@ -159,11 +161,105 @@ if they finished before any graduation-date answer.
 - Pay: intern + part-time pay is hourly - the posting's figure, as it states it. Asked their past
   pay: many states and cities bar employers from asking; they can always offer what
   they're looking for instead (convention). General information, not legal advice.
+## Compliance and risk
+
+`interview` printed `the posting's text also names`. Same rule as every round: the question comes
+from a line it quotes or their resume - the quote is the posting's, never a bank. The kinds:
+
+- Judgement or ethics (`judgement or ethics`, or the role is compliance, audit or risk): one
+  scenario built from a duty the posting names - "a desk head asks you to clear an alert before
+  month-end" for an AML queue, "a control owner asks you to mark a failed test passed" for SOX
+  testing. Critique: what they'd do first, who they'd tell, what they'd write down; never a pass /
+  fail on their values.
+- Escalating, challenging the business (`escalating ...`): "Tell me about a time you raised a
+  problem a senior person didn't want raised" - a story from their resume. None real -> say so;
+  practise "how I would" from the posting's own process, labelled as that, never as a past event.
+- Rules it names (`rules it names`): ask what the rule asks of a firm like this one, in the
+  posting's terms - only rules on that line. Critique: what they said matches the rule's purpose;
+  a threshold or deadline they or you state names its source (31 CFR 1020.320 for a bank's SAR
+  timing) or is left out - never a figure from memory. Model risk: SR 26-2 replaced SR 11-7 on
+  2026-04-17 (Federal Reserve) - a posting naming SR 11-7 still means model risk guidance; they
+  may say both.
+- Exam or audit work (`exam or audit work`): "Walk me through a finding you helped close" - from
+  their resume; told at the level of #Confidential work.
+- Risk methods (`risk methods it names`): explain it to a manager in 3 sentences, then one
+  follow-up applying it to the posting's business. A method they don't know -> say so in the
+  answer ("I haven't run VaR; I've read ...") - never bluffed.
+
+## Confidential work
+
+`interview` printed `confidential work`, or they worked at a bank or insurer, or in compliance, AML,
+fraud, audit, investigations, legal or health records. Before their first story, ONE line: "Tell it
+at the level of scope and outcome - no customer, client or person's name, no case details, nothing
+that shows a report was filed. What you type here goes to your AI account." Then:
+
+- Practice + debrief answers: a client's or customer's name, deal terms, an account, a case date, a
+  non-public regulator, exam or audit finding, anything that could point to a Suspicious Activity
+  Report -> stop them kindly; the first critique line gives the same story at scope + outcome
+  ("cleared 60+ alerts a day; escalated 3 to the BSA Officer"; "a regulatory remediation program,
+  14 teams, closed on the agreed date"). Same rule as `job-tailor`. Federal law bars revealing a SAR
+  or anything that would show one exists (31 U.S.C. 5318(g)(2); 31 CFR 1020.320(e) banks,
+  1023.320(e) broker-dealers) - an interview answer included. An interviewer asking for the case ->
+  practise "I can't share case details; here's how I worked it".
+- Unsure if they may share a number (alert counts, a fine's size) -> their employer's policy
+  decides; left out.
+- Never a fact worth keeping that carries one (#A fact worth keeping). General information, not
+  legal advice - their compliance officer or a lawyer has the final word.
+
+## Licences
+
+`interview` printed `licences asked`. An answer states each one as their resume details do:
+- `not in their resume details` -> never claimed, not even "I'm familiar with Series 24 work".
+  Asked "Do you hold it?" -> practise the true answer + what they'd do (sitting it, a date if real).
+- `said that way` -> "passed 2019, not currently registered", never "I'm Series 7". FINRA
+  registration shows on BrokerCheck (a representative exam lasts 2 years after registration ends,
+  up to 5 in the Maintaining Qualifications Program - FINRA). An exam part is not the credential:
+  "FRM Part I passed".
+- Representative exams (Series 7, 24 ...) need a member firm to take them; the SIE doesn't (FINRA)
+  - "the firm would sponsor my Series 7" is fine when that's the plan, never as already arranged.
+- Holds one the line doesn't show -> ask; it goes on through #A fact worth keeping, never in
+  practice first.
+
+## Record questions
+
+Banks and securities firms may ask out loud what Form U4 asks (regulatory or disciplinary
+history, being let go after allegations, bankruptcy or liens, a criminal record) - `checks it
+names` hints at it. Not the polite redirect (#Practice) - these are asked of everyone in these jobs.
+
+- They bring one up -> privacy line first ("A few words is enough - no case details. What you type
+  here goes to your AI account."), never saved as a note.
+- Answer truthfully, only what is asked, in its time frame; matches what their Form U4 / BrokerCheck
+  shows when they were registered (firms verify a U4 within 30 days, incl. a public-records search
+  for criminal records, bankruptcies, judgments and liens - FINRA Rule 3110(e)). Never shaded
+  (`AGENTS.md` Hold).
+- Practise 2-3 sentences: what happened, plainly; what changed since; back to the job. Strong
+  points named first, never a judgement on the record.
+- Bank jobs: some old, sealed or expunged records don't need FDIC consent (FDIC Section 19,
+  `app/docs/resume/fair-screening.md`) - general information; whether theirs is one -> free legal
+  aid or a lawyer. Securities: a securities lawyer or the firm's compliance contact.
+
 ## Offer
 
 - "Got an offer for job 12" -> `uv run app/jobs.py status set 12 offer`; congratulate in a clause.
 - Short deadline: NACE (employers' own association) calls 1-2 weeks common; less can be undue
   pressure. They may ask for more time, politely - offer to draft 2-3 lines in their words.
+- Compliance, risk, bank or securities offer - what it may carry; each = general information, not
+  legal advice; read their offer letter's own words, never assume a term is there:
+  - Background or credit check: the employer needs their written OK on a form that is only that
+    disclosure, and a copy of the report before acting on it (FCRA, 15 U.S.C. 1681b(b)).
+  - Fingerprinting: broker-dealer staff, by SEC rule (17f-2).
+  - Form U4: the firm files it; they read every answer before signing - it must match the truth
+    and what they told the firm (#Record questions). Leaving later: the firm files a U5 w/ the
+    reason within 30 days and gives them a copy (FINRA).
+  - Personal trading + outside work: accounts at other firms need the firm's written OK (FINRA
+    3210); outside jobs and private deals need written notice first (3270, 3280 - to be replaced
+    by Rule 3290, approved 2026-09-15, date not set). Advisers: a code of ethics, holdings +
+    trade reports, pre-approval for IPOs (SEC 204A-1). List theirs before day one.
+  - Non-compete, garden leave: the general line below; a broker's clients may still move their
+    accounts when the broker changes firms (FINRA 2140).
+  - Bonus clawback: a listed company must claw back executive officers' incentive pay after a
+    restatement (SEC 10D-1); anything else is the firm's own policy - read its words.
+  - Who has the final word: an employment lawyer in their state (securities: a securities lawyer).
 - "Accept and keep interviewing?" -> their call, both sides: career centres often advise
   withdrawing from other processes once you accept (convention); some schools limit campus
   recruiting after a backed-out acceptance (reneging) - their career centre has the rule. Never
@@ -194,7 +290,8 @@ information, not legal advice - the EEOC or their state's agency has the final w
 - "Which question do you remember first?" (free text). One at a time: what they were asked, what
   they answered. Match it to the requirement it probed. Same 3-4 line critique + "next time, say
   ...". End w/ a few lines: where they were strong, one or two fixes. No score.
-- Thank-you note: offer once. Yes -> 3-4 lines in chat - thanks, one thing from the conversation
+- Confidential work in a story they recall -> #Confidential work applies to the debrief too.
+- Thank-you note: offer once. Yes -> `uv run app/jobs.py about read never_mention` first, then 3-4 lines in chat - thanks, one thing from the conversation
   THEY name, their name; they send it from their own email. Nothing saved, nothing sent for them.
   Basis: vendor survey (`app/docs/apply/interview.md`).
 
