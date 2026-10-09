@@ -4,6 +4,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 
 import cfg
+import software
 import store
 
 PERIODS_PER_YEAR = {"year": 1, "month": 12, "week": 52, "day": 260, "hour": 2080}
@@ -84,6 +85,9 @@ def blocked(job: dict, blocklist: dict) -> bool:
             and not ((t := title_type(job)) and t not in hidden_types):
         return True
     if blocklist.get("clearance") and job.get("requires_clearance"):
+        return True
+    # kinds of software work they chose to hide, by title only: "Java Full Stack" stays when only back-end is
+    if software.hidden(job, blocklist.get("software_kinds")):
         return True
     return title_blocked(job.get("title") or "", blocklist)
 
@@ -309,7 +313,8 @@ def mismatches(job: dict, rc: dict) -> list[str]:
     elif wanted and set(wanted) <= {"internship", "fellowship"} and kind in (None, *wanted) \
             and not title_type(job) and not words(rf"{EARLY_CAREER}|{STUDENT_PROGRAM}").search(title):
         out.append("title doesn't say internship")
-    return out
+    # another kind of software work than theirs (front-end user, back-end title): one reason, sorted lower
+    return out + software.mismatch(job, rc.get("software_kinds"))
 
 
 def required_lines(job: dict) -> list[str]:
@@ -590,6 +595,12 @@ def would_hide(jobs: list[dict], phrase: str, blocklist: dict) -> list[dict]:
     return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
 
 
+def would_hide_kind(jobs: list[dict], kind: str, blocklist: dict) -> list[dict]:
+    """Rows hiding one more kind of software work would hide that nothing hides today."""
+    probe = {"software_kinds": [*(blocklist.get("software_kinds") or []), kind]}
+    return [j for j in jobs if not blocked(j, blocklist) and blocked(j, probe)]
+
+
 def suspects(jobs: list[dict], min_categories: int) -> list[tuple[str, set[str]]]:
     cats = defaultdict(set)
     for j in jobs:
@@ -612,6 +623,8 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=30)
     ap.add_argument("--suspects", action="store_true", help="list companies spanning unrelated categories")
     ap.add_argument("--would-hide", metavar="PHRASE", help="count + sample titles a title phrase would hide")
+    ap.add_argument("--would-hide-kind", metavar="KIND", choices=list(software.KINDS),
+                    help="count + sample titles hiding one kind of software work would hide (software.KINDS)")
     ap.add_argument("--pay-floor", metavar="PAY", help="count what a pay floor would hide - yearly (45000) or"
                     " hourly (22/hr) - all open + last 7 days, before the thin-week relax, to say before saving it")
     ap.add_argument("--hide-unlisted", action="store_true", help="with --pay-floor: no pay listed hides too")
@@ -628,6 +641,12 @@ def main() -> None:
     if args.would_hide:
         hidden = would_hide(jobs, args.would_hide, config["blocklist"])
         print(f'"{args.would_hide}" would hide {len(hidden)} of {len(jobs)} open jobs')
+        for j in hidden[:10]:
+            print(f"  {j['title']} | {j['company']}")
+        return
+    if args.would_hide_kind:
+        hidden = would_hide_kind(jobs, args.would_hide_kind, config["blocklist"])
+        print(f'{software.label(args.would_hide_kind)} titles would hide {len(hidden)} of {len(jobs)} open jobs')
         for j in hidden[:10]:
             print(f"  {j['title']} | {j['company']}")
         return

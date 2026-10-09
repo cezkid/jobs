@@ -17,7 +17,7 @@ SYSTEM_APP_SUFFIXES = {".docx", ".docm", ".doc", ".rtf", ".odt", ".pages"}
 COMMANDS = {
     "find": (None, "check for new jobs, then list ranked matches (rank args pass through)"),
     "poll": ("ingest.freehire", "check for new jobs only"),
-    "rank": ("rank", "list ranked matches + why; --limit N, --best (Today order), --suspects, --would-hide PHRASE"),
+    "rank": ("rank", "list ranked matches + why; --limit N, --best (Today order), --suspects, --would-hide PHRASE, --would-hide-kind KIND"),
     "probe": ("ingest.probe", "count jobs a candidate search would match"),
     "check-settings": (None, "validate search settings"),
     "email": ("alert", "email unseen matches; --dry-run prints instead"),

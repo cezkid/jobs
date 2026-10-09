@@ -118,6 +118,12 @@ rank:
   # any of full_time part_time contract internship fellowship; [] = doesn't matter.
   # Rows w/o employment_type (~30-45%) never demoted.
   employment_types: []
+  # software work only: kinds they do, any of frontend fullstack backend mobile systems infra data qa
+  # (app/software.py). A title naming only other kinds - or a plain "Software Engineer" whose skill
+  # tags list another kind's stack and none of theirs - sorts lower w/ the reason, never hidden;
+  # blocklist.software_kinds hides by title. [] = any. 2026-10-09, front-end + full-stack: 2,000 of
+  # 2,000 titles in those categories kept, 97-99% of back-end / mobile / embedded flagged
+  software_kinds: []
   # yearly USD; a job whose top of range reaches it ranks above those that don't. 0 = no floor
   # (pay_filter then hides nothing)
   salary_floor_usd: 0

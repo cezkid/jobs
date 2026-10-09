@@ -3,6 +3,8 @@ from pathlib import Path
 
 import yaml
 
+import software
+
 # what the user sees: Desktop icon, notifications, guides; installers + docs spell it out
 NAME = "CEZ Job Finder"
 APP = Path(__file__).resolve().parent
@@ -63,6 +65,9 @@ def load(path: Path | None = None) -> dict:
         # read here only (rank.far), never sent: two-letter US state codes
         if bad := [s for s in p.get("states") or [] if not (isinstance(s, str) and len(s) == 2 and s.isalpha())]:
             raise ValueError(f"pass {p['tier']}: states {bad} - two-letter US state codes, e.g. [DC, MD, VA]")
+    for where in (config["rank"], config.get("blocklist") or {}):
+        if bad := software.unknown(where.get("software_kinds")):
+            raise ValueError(f"software_kinds {bad} - any of {', '.join(software.KINDS)} (app/software.py)")
     for stage, days in (config.get("follow_up") or {}).items():
         if not isinstance(days, int) or days < MIN_FOLLOW_UP_DAYS:
             raise ValueError(f"follow_up.{stage}: {days!r} - at least {MIN_FOLLOW_UP_DAYS} days (a weekend can take 3)")

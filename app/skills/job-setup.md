@@ -130,6 +130,14 @@ Then narrowing what they picked:
   "registered nurse" 50, RN ~19,800). Every form under 30 posted in the last 30 days -> one plain
   line: "The job search we use carries few <role> jobs - about N posted in the last month across
   the US." Offer: keep going anyway / widen to related roles - never pretend the count is bigger.
+- Software engineering picked (or their words name it): which kinds of software work, `multiSelect`
+  (`app/software.py` KINDS): front-end, full-stack, back-end, mobile apps, systems / embedded, DevOps
+  / cloud, data / AI, testing - each w/ its category count (`probe --facets category <their place
+  params>`). "Tick all you'd take - other kinds sort lower, never hidden. Tick all that fit, then
+  Submit" -> `rank.software_kinds`. Their words already say it ("front-end, can do full stack") ->
+  confirm in one line, no question. Why it matters: 58% of `software_engineering` jobs are titled
+  plainly ("Senior Software Engineer") - back-end, embedded and front-end alike (`freehire.md`
+  #Software engineering kinds).
 - which city - offer 4 real metros from THEIR timezone (`readlink /etc/localtime`), counts from
   the `cities` facet; "Other" covers the rest
 - Student (entry level or internship picked) whose school isn't in their hometown: ask once
@@ -244,14 +252,28 @@ showing jobs from <company>" any time.
   (`skills=react` 2026-09-20 leaked Sales Consultant, Payment Operations Analyst, Product
   Designer, Product Manager), never guess the list. Then the titles: a skill tag also lands on
   roles outside their kind of work (`skills=react` 2026-10-01, 1,275 rows: back-end 127, data /
-  AI 108, managers 99, mobile 28, testing 13). Count each group w/ `rank --would-hide "<word>"`,
+  AI 108, managers 99, mobile 28, testing 13). Software kinds -> `rank.software_kinds` +
+  `blocklist.software_kinds` above, not phrases. Other groups (managers): count each group w/ `rank --would-hide "<word>"`,
   read its titles (a full-stack or front-end title caught -> `title_keep`), then ONE clickable
   multiSelect w/ counts: "Which kinds should I hide? Tick all that fit, then Submit" ->
   `blocklist.title_phrases`.
-- Rank has NO per-skill boost (`rank.py`: tier, likely-ghost/level/hours mismatch, pay,
-  employer lists, age - `app/defaults.yml` #rank), and a row matching two passes keeps the LAST
-  pass's tier. So "X first, everything else after" is NOT expressible w/ overlapping passes -
-  narrow to X or leave it wide. Say which you did.
+- Software kinds picked: per location tier, the shape of `app/profiles/frontend.yml`, all passes
+  in that tier - (1) the kinds' own categories (`software.KINDS`, 4th field); (2)
+  `software_engineering` + their kinds' stack in `skills=` (tags OR together; their resume's own
+  stack first) - plain "Software Engineer" titles are found only this way (1,323 of 1,896 remote
+  front-end rows, 2026-10-09); (3) title passes for the kind's titles filed elsewhere - front-end:
+  ui developer, ui engineer, ux engineer, web developer (UI titles sit mostly in design). Probe
+  each, count what it adds. `rank.software_kinds` = their kinds: the other kinds the skills pass
+  drags in sort below theirs, each w/ its reason ("title says back-end"). After the first job
+  check: kinds they didn't pick, each counted w/ `uv run app/jobs.py rank --would-hide-kind
+  <kind>`, ONE clickable multiSelect "These already sort below your kinds - hide any outright?
+  Tick all that fit, then Submit" (counts in labels) -> `blocklist.software_kinds`. A title naming
+  one of their kinds stays ("Java Full Stack").
+- Rank has NO per-skill boost outside `rank.software_kinds` (`rank.py`: tier, likely-ghost /
+  level / hours / kind-of-work mismatch, pay, employer lists, age - `app/defaults.yml` #rank), and a
+  row matching two passes keeps the LAST pass's tier. So "X first, everything else after" is NOT
+  expressible w/ overlapping passes, except kinds of software work - narrow to X or leave it wide.
+  Say which you did.
 
 Write `My Settings/Search settings.yml`: `profile.name` (their words, e.g. "accounting jobs" -
 heads notification + email), `passes`, `blocklist` (keep `jobgether` + their companies),
