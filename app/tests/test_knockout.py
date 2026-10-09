@@ -1,3 +1,4 @@
+import time
 from datetime import date
 
 import pytest
@@ -184,6 +185,18 @@ def test_student_shortfalls_name_the_window_and_the_level_they_study_for():
     ("Certified in Risk and Information Systems Control (CRISC), Certified Information Security Manager (CISM), "
      "Certified Internal Auditor (CIA), Certified Information Systems Security Professional (CISSP),",
      ["CRISC", "CISM", "CIA", "CISSP"], True),
+    # project + program management (2026-10-09): mixed-case short forms, the name in brackets, a bare line
+    ("PMP (Project Management Professional) certification", ["PMP"], False),
+    ("PMP", ["PMP"], False),
+    ("Current PMI Project Management Professional (PMP) or Program Management Professional (PgMP) certification",
+     ["PMP", "PgMP"], True),
+    ("• Scaled Agile Framework (SAFe) Certification", ["SAFe"], False),
+    ("Active ITILv4 certification", ["ITILv4"], False),
+    ("Licensures and Certifications - PMP, ITILF.", ["PMP", "ITILF"], False),
+    # the issuing body in brackets is not the ask; both spelled-out names are
+    ("2. Current BLS (ARC/AHA) certificate upon hire and maintain current.", ["BLS"], True),
+    ("Basic Life Support (BLS) and Advanced Cardiovascular Life Support (ACLS) certifications required",
+     ["BLS", "ACLS"], False),
 ])
 def test_credentials_asked_reads_what_a_line_asks_to_hold(text, named, any_one):
     got = knockout.credentials_asked(text)
@@ -217,6 +230,10 @@ def test_credentials_asked_reads_what_a_line_asks_to_hold(text, named, any_one):
     "CRM experience required; Salesforce experience preferred.",
     "Relevant certifications (CISA, CISM, CRISC, or CISSP) are beneficial",
     "Degree in a quantitative discipline required; professional designations such as CFA or FRM preferred.",
+    # project management sample: a recommendation, an either-or w/ experience, a course after hire
+    "Recommended certification: CSM, PSM, PMI-ACP, SAFe, or comparable Agile delivery credential.",
+    "Active PMP certification (or equivalent program management credential)",
+    "Upon hire: National Institutes of Health Stroke Scale Certificate - NIH Stroke Scale Training Course",
 ])
 def test_credentials_asked_skips_lines_that_ask_no_credential_held_now(text):
     assert knockout.credentials_asked(text) is None
@@ -234,6 +251,24 @@ def test_a_credential_is_held_by_its_short_form_anywhere_or_a_certifications_ini
     assert knockout.credentials_missing("Series 63 license", have) == []
     assert knockout.credentials_missing("Active CAMS certification", have) == ["CAMS"]
     assert knockout.credentials_missing("5+ years of compliance experience", have) is None
+
+
+# a long list of short forms failed in hours, not microseconds: every rank stalled on one such line
+def test_a_long_list_of_short_forms_reads_at_once():
+    states = ", ".join("AL AR AZ CA CO CT DC FL GA IL KS KY MA MD ME MI MN MO NC NH NJ NV NY OH OR PA SC TN TX UT "
+                       "VA WA WI".split())
+    started = time.perf_counter()
+    assert knockout.credentials_asked(f"Must reside in one of Point's states of operation ({states})") is None
+    assert time.perf_counter() - started < 0.5
+
+
+def test_a_spelled_out_certification_holds_its_initials_unless_it_names_its_own():
+    have = knockout.credential_text({"certifications": [{"name": "Project Management Professional"},
+                                                        {"name": "Program Management Professional (PgMP)"}]})
+    assert knockout.credentials_missing("Active PMP certification", have) == []
+    assert knockout.credentials_missing("PgMP certification required", have) == []
+    have = knockout.credential_text({"certifications": [{"name": "Program Management Professional (PgMP)"}]})
+    assert knockout.credentials_missing("Active PMP certification", have) == ["PMP"]
 
 
 # an exam part passed or a candidacy is on the way to the credential, not the credential

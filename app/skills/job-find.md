@@ -25,6 +25,11 @@ missing -> `job-setup` skill instead.
      as a note (one clickable Save / Don't save). Religious employers / defense work named on
      each job -> `rank.posting_says` (`app/docs/about-me.md`), after their yes
    - wrong field -> `blocklist.categories` (enrichment.category, local only)
+   - project / program manager getting business analyst (or other analyst) jobs -> the cause is a
+     category pass (`business_analysis`, `data_analytics`, `finance`, `management`): count what
+     each brings, then swap it for title passes (`job-setup` #2 Project + program management) -
+     say "drops N analyst jobs, keeps M". A PM title pass brings no analysts (0 in 1,000 TPM).
+     Want the category kept -> `title_phrases` "business analyst" / "business systems analyst"
    - misleading title -> `blocklist.title_phrases` (whole words, case-insensitive); first
      `uv run app/jobs.py rank --would-hide "<phrase>"`, tell user the count it hides; read
      the titles - phrase also inside a wider title ("Member of Technical Staff", "Senior/Staff")
