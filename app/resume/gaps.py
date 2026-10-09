@@ -65,6 +65,7 @@ Answer
 - Never write what the answer denies: "I didn't lead the 4 new hires" puts neither "led" nor "4" in a line.
 - For `fact` (interview practice): only a fact the user said happened AND agreed to add - never something they improvised, hedged or tried out ("I could say ..."). `claim` = one new line in their words; null for every job they added nothing to.
 - Every number, name and tool in `claim` must appear in the original line or in `said` - the check fails anything else.
+- Confidential work (compliance, AML, fraud, audit, investigations, legal, health records): never a customer's, client's or investigated person's name, a case detail, a non-public exam finding, or anything that could point to one Suspicious Activity Report (31 U.S.C. 5318(g)(2)) - volume and outcome only ("Cleared 60+ alerts a day"). An answer carrying one -> ask them for the same fact without it; never write it.
 - One sentence, US spelling, no em dash. Aim for one full line or two (`uv run app/jobs.py resume-fit "<line>"` tells you which)."""
 
 

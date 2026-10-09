@@ -67,6 +67,58 @@ Share of descriptions, TPM / all / finance:
   depth + case rounds stay posting-led, no finance question bank. Regex counts, rough (`onsite`
   also = work location; finance by company name).
 
+## Compliance and risk (measured 2026-10-09)
+
+852 US postings, 100 newest per title (compliance, AML, KYC, risk manager, risk analyst, credit
+risk, model risk, third-party risk, internal audit, SOX; KYC 38, SOX 61), full text from the job
+search; 498 carried a requirement list (the rest not yet read by the job search - newest rows).
+What `interview` printed before this change = the requirement list only (14 at most, what to HAVE).
+Same 498, a topic in the requirement list vs anywhere in the posting's text:
+
+| Topic | Requirement list | Posting text |
+|---|---|---|
+| exam or audit work (regulatory exams, findings, remediation) | 47 | 179 |
+| escalating, challenging the business | 113 | 341 |
+| ethics, integrity, judgement | 63 | 212 |
+| Basel / CCAR / CECL / stress tests | 10 | 35 |
+| RCSA / KRIs / risk appetite | 11 | 36 |
+| BSA / AML | 51 | 83 |
+| background / credit check, fingerprinting | 3 | 26 |
+| case study, take-home, written exercise | 0 | 0 |
+
+=> `interview` quotes the posting's own sentence per kind (`posting_says`) - the "from the posting,
+never a bank" rule stood; the input was the gap. After the change, hand-read 44 outputs: misreads
+fixed before shipping - "data accuracy and integrity", "sample integrity" read as ethics (now a
+person's integrity only), "regulatory issues" as exam work, "credit history" in a lending duty as a
+check, drug screens (no record question). Left in: boilerplate "highest ethical standards" quotes,
+an escalation that is a product's workflow - the posting's words, the AI picks.
+Of the 498: rules named 260, risk methods 127, escalating 114, exam or audit 84, judgement 73,
+checks 28; confidential work (posting or title) 275.
+No posting named a case or take-home -> the Excel / SQL format is keyed to the invitation only.
+
+| Rule | Basis | Strength |
+|---|---|---|
+| Duty sentences quoted from the posting, beside the requirement list | measurement above | our measurement |
+| Ethics, escalation, rules, exam work, methods each tied to a quoted line | the posting's own duty; interviewers work from the same posting | convention |
+| Confidential work: volume + outcome, no name, case or anything showing a SAR - in an answer too | 31 U.S.C. 5318(g)(2)(A)(i): no notice to anyone involved that a transaction was reported; 31 CFR 1020.320(e) (banks), 1023.320(e) (broker-dealers): "A SAR, and any information that would reveal the existence of a SAR, are confidential" | law (checked 2026-10-09) |
+| Licences said as the resume says them | FINRA: representative exam valid 2 years after registration ends, up to 5 in MQP (`app/docs/resume/fair-screening.md`); BrokerCheck public | law (FINRA rules) |
+| A firm sponsors representative exams; SIE needs none | FINRA SIE page: "Association with a firm is not required to take the SIE ... The individual must be associated with a member firm to take a qualification exam" | Maker's docs (`vendor docs`, regulator's page, checked 2026-10-09) |
+| Record questions answered truthfully, matching U4 | FINRA Rule 3110(e): firm verifies a Form U4 within 30 calendar days, incl. a public-records search; Notice 15-05: at least criminal records, bankruptcies, judgments, liens (effective 2015-07-01). Form U4 Q14 areas: `fair-screening.md` | law |
+| Bank record: FDIC consent, some records excluded | FDI Act Section 19 (12 U.S.C. 1829), FDIC page; 7-year + sealed / expunged exclusions (`fair-screening.md`) | law |
+| Background / credit check consent | 15 U.S.C. 1681b(b)(2): standalone written disclosure + written OK; (b)(3): copy of the report + rights before adverse action. EEOC/FTC "Background Checks: What Employers Need to Know" (2014-03-11): same standards for everyone | law; agency guidance |
+| Fingerprinting | 17 CFR 240.17f-2: broker-dealers' partners, directors, officers, employees (exceptions in (a)) | law |
+| Form U5 | FINRA Form U5 page: filed within 30 days of the end date, states why they left, copy to the individual within 30 days | Maker's docs (regulator's page) |
+| Personal trading, outside work | FINRA 3210 (prior written consent, accounts elsewhere; amended 2026-06-17, Notice 26-13); 3270 + 3280 (prior written notice) - Rule 3290 replaces both, SEC approved 2026-09-15, effective date to come (FINRA weekly archive 2026-09-16); 17 CFR 275.204A-1 (code of ethics, holdings report within 10 days, quarterly transactions within 30, pre-approval for IPOs + limited offerings) | law (recheck 3290's date) |
+| Non-compete | FTC: "The Noncompete Rule is not in effect and it is not enforceable" (set aside 2024-08-20; appeal dropped 2025-09-05; removal notice 2026-02-12, title read only); FINRA 2140: no interfering w/ a customer's account transfer when the rep moves | law |
+| Clawback | 17 CFR 240.10D-1: executive officers of listed issuers, accounting restatement, 3 prior fiscal years. Dodd-Frank 956 incentive-pay rule: not final (SEC agenda 2025, long-term actions; 2024 re-proposal by FDIC, OCC, NCUA, FHFA) | law |
+| Model risk guidance | SR 26-2 (2026-04-17, Fed + OCC + FDIC) "supersedes and replaces SR letter 11-7" | law (agency guidance) |
+| No pay or negotiation figure | as above: the offer's own figures; no dated source for compliance pay negotiation found or searched for in chat | convention |
+
+Not covered: bankruptcy and private employers' hiring (11 U.S.C. 525(b) bars firing or discrimination
+"with respect to employment" by a debtor's private employer; "deny employment" sits only in (a),
+government) - courts split on hiring; never said in chat. Banks fingerprinting staff for Section
+19: not verified from a primary page - never said.
+
 ## During - never help in a live interview or open test
 
 | Employer | Rule | Source |
@@ -106,7 +158,7 @@ would find out. Rule = Hold: the help itself is the risk, whatever the odds of b
   16600, 16600.5) wouldn't open to check (2026-10-09) - say "states set their own rules", one example.
 - **A count of states banning pay-history questions in chat.** Trackers disagree (20-22 states, DC counted in some); "many".
 
-## Sources (checked 2026-10-08; program managers 2026-10-09)
+## Sources (checked 2026-10-08; program managers + compliance and risk 2026-10-09)
 
 amazon.jobs/content/en/how-we-hire/tpm-interview-prep (five 55-min interviews, system design, STAR);
 amazon.jobs/content/en/how-we-hire/interview-loop; aboutamazon.com/news/workplace/amazon-bar-raiser
@@ -122,4 +174,8 @@ eeoc.gov/laws/guidance/job-applicants-and-ada; 29 CFR 1630.13-.14; NACE: student
 Job Outlook 2026 spring update (2026-04-23), advisory opinion on offer deadlines, 2024 Recruiting
 Compensation Report; practice.hirevue.com; natlawreview.com on the 2013 OSC letter + Virginia's law;
 Robert Half / Accountemps press release 2017-11-20; Heimbaugh 2016 (irl.umsl.edu/dissertation/46);
-fitsmallbusiness.com/salary-history-ban (2024-11).
+fitsmallbusiness.com/salary-history-ban (2024-11). 2026-10-09: law.cornell.edu 31 U.S.C. 5318, 31 CFR
+1020.320 + 1023.320, 15 U.S.C. 1681b, 17 CFR 240.17f-2, 17 CFR 275.204A-1, 17 CFR 240.10D-1, 11 U.S.C.
+525; finra.org Rules 3110, 3210, 3270, 3280, 2140, Notices 15-05 + 26-13, weekly archive 2026-09-16,
+SIE + Form U5 pages; fdic.gov Section 19; ftc.gov noncompete rule page; eeoc.gov background checks;
+federalreserve.gov SR 26-2; reginfo.gov RIN 3235-AL06.
