@@ -12,4 +12,4 @@
 
 ## Test run
 
-<!-- `uv run pytest` tail; note if live gates skipped/failed on API -->
+<!-- `uv run pytest --touched` tail; note if live gates skipped/failed on API -->

@@ -1063,6 +1063,18 @@ def test_greenhouse_education_boxes_per_school_as_the_form_page_sets_them(monkey
     assert got == {"school--0": True, "degree--0": True, "discipline--0": False}
 
 
+def test_greenhouse_eu_posting_read_from_its_own_job_board_host(monkeypatch):
+    """EU postings (job-boards.eu.greenhouse.io) read from boards.eu.greenhouse.io, the host their own page
+    reads from: boards-api.eu.greenhouse.io has no address - the newest US list's first link crashed the live
+    gate (2026-10-09). US links keep the documented boards-api host."""
+    asked = []
+    monkeypatch.setattr(greenhouse.httpx, "get", gh_get(asked, education=None))
+    greenhouse.questions("https://JOB-BOARDS.EU.greenhouse.io/acme/jobs/4001234005?utm_source=x")
+    greenhouse.questions("https://job-boards.greenhouse.io/embed/job_app?for=acme&token=4001234005")
+    assert [u for u, _ in asked] == ["https://boards.eu.greenhouse.io/v1/boards/acme/jobs/4001234005",
+                                     "https://boards-api.greenhouse.io/v1/boards/acme/jobs/4001234005"]
+
+
 def test_education_answers_from_resume_details_in_the_forms_words():
     """Each school's boxes from Resume details: degree as the list words it (BA -> Bachelor's Degree, named to
     the user), discipline exact or the longest option it starts with, the graduation date only as the page

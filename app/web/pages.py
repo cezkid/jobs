@@ -43,6 +43,7 @@ import subprocess
 import sys
 import time
 import xml.etree.ElementTree as ET
+from functools import lru_cache
 from html import escape, unescape
 from html.parser import HTMLParser
 from pathlib import Path
@@ -1291,6 +1292,8 @@ def styles(root: Path, names: list[str], html: str, extra: list[str] = ()) -> li
 CSS_STRING = re.compile(r""""(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'""")
 
 
+# minify + blocks_of: pure, and each page re-reads the same sources - cached (site build + test_pages ~2x, 2026-10-09)
+@lru_cache(maxsize=256)
 def minify(text: str) -> str:
     strings = []
 
@@ -1315,8 +1318,9 @@ def minify(text: str) -> str:
 SCRIPT_MADE = {"class": {"card", "seen", "is-mac", "is-phone", "copied"}, "tag": {"dialog", "button", "html", "body"}}
 
 
-def blocks_of(text: str) -> list[tuple[str, str]]:
-    """Minified CSS -> [(prelude, body)] at its top level."""
+@lru_cache(maxsize=1024)
+def blocks_of(text: str) -> tuple[tuple[str, str], ...]:
+    """Minified CSS -> ((prelude, body), ...) at its top level."""
     out, i = [], 0
     while i < len(text):
         open_ = text.index("{", i)
@@ -1326,7 +1330,7 @@ def blocks_of(text: str) -> list[tuple[str, str]]:
             j += 1
         out.append((text[i:open_], text[open_ + 1:j - 1]))
         i = j
-    return out
+    return tuple(out)
 
 
 def page_tokens(html: str) -> dict[str, set[str]]:
@@ -1393,7 +1397,8 @@ def drop_unused_tokens(texts: list[str]) -> list[str]:
     while True:
         used = set(re.findall(r"var\((--[\w-]+)", "".join(texts)))
         out = [re.sub(r"(?<=[{;])(--[\w-]+):[^;}]*(;|(?=\}))", lambda m: m[0] if m[1] in used else "", t) for t in texts]
-        out = [re.sub(r"[^{}]*\{;?\}", "", t.replace(";}", "}")) for t in out]  # emptied rules + blocks go too
+        # emptied rules + blocks go too; a prelude starts after a brace - anchored there, never rescanned per character
+        out = [re.sub(r"(?:^|(?<=[{}]))[^{}]*\{;?\}", "", t.replace(";}", "}")) for t in out]
         out = [re.sub(r"@[^{}]*\{\}", "", t) for t in out]
         if out == texts:
             return out

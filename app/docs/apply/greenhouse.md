@@ -8,8 +8,19 @@ employer; add yours as a new line.
 
 ## Form definition
 
-`GET https://boards-api.greenhouse.io/v1/boards/<board>/jobs/<id>?questions=true`, no key (EU:
-`boards-api.eu.`). Only the listing id goes out - same as opening the posting.
+`GET https://boards-api.greenhouse.io/v1/boards/<board>/jobs/<id>?questions=true`, no key. Only the
+listing id goes out - same as opening the posting.
+
+EU postings (`job-boards.eu.greenhouse.io`): `GET https://boards.eu.greenhouse.io/v1/boards/...`
+(`JOB_BOARD`). Measured 2026-10-09:
+- `boards-api.eu.greenhouse.io`, `boards-api-eu.greenhouse.io`: no DNS address - the live gate crashed
+  (ConnectError) on the newest US list's first link, an EU one (4 of the newest 50 were EU).
+- Greenhouse's Job Board API docs (docs.greenhouse.io/job-board.html) name only `boards-api.greenhouse.io`,
+  no EU host.
+- The EU job page + embed form name `"JBEN_URL":"https://boards.eu.greenhouse.io"` - the host the page
+  reads its own data from; answers `x-farm-id: eu`, 200 for 4 of 4 EU jobs, 404 for a US job.
+- `boards-api.greenhouse.io` also answered the 4 EU jobs (`x-farm-id: us`), same body (one listed its
+  EEOC options in another order) - undocumented, so not relied on.
 
 | Part | Holds | Filler rule |
 |---|---|---|

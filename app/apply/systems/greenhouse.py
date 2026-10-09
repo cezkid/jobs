@@ -24,6 +24,9 @@ EMBED_URL = re.compile(r"https?://(?:job-)?boards(\.eu)?\.greenhouse\.io/embed/j
 EMPLOYER_URL = re.compile(r"https?://[^?#]+\?(?:[^#]*&)?gh_jid=(\d+)", re.I)
 # Greenhouse sends an embed link w/o the board on to the one naming it - the listing id is all that goes out
 LOOKUP = "https://boards.greenhouse.io/embed/job_app?token={}"
+# job board read, by host suffix: EU = the host its own job page reads from (JBEN_URL); boards-api.eu. has
+# no address (2026-10-09)
+JOB_BOARD = {"": "https://boards-api.greenhouse.io", ".eu": "https://boards.eu.greenhouse.io"}
 # freehire `source` whose links land here (test_systems_live.py); link shapes, anonymised
 SOURCES = ("greenhouse",)
 EXAMPLES = ("https://job-boards.greenhouse.io/acme/jobs/4001234005",
@@ -86,14 +89,14 @@ def board_for(job: str) -> tuple[str, str]:
     m = r.is_redirect and EMBED_URL.match(r.headers.get("location", ""))
     if not m:
         raise ValueError("posting not found on Greenhouse - it may have closed")
-    return m.group(1) or "", m.group(2)
+    return (m.group(1) or "").lower(), m.group(2)
 
 
 def parse_url(url: str) -> tuple[str, str, str]:
     """(host suffix "" or ".eu", board, job id)."""
     url = url.strip()
     if m := POSTING_URL.match(url) or EMBED_URL.match(url):
-        return m.group(1) or "", m.group(2), m.group(3)
+        return (m.group(1) or "").lower(), m.group(2), m.group(3)
     if m := EMPLOYER_URL.match(url):
         return *board_for(m.group(1)), m.group(1)
     raise ValueError(f"not a Greenhouse posting link: {url}")
@@ -201,8 +204,7 @@ def education(eu: str, board: str, job: str, said: str | None, schools: int) -> 
 
 def questions(url: str, schools: int = 1) -> list[dict]:
     eu, board, job = parse_url(url)
-    r = httpx.get(f"https://boards-api{eu}.greenhouse.io/v1/boards/{board}/jobs/{job}", params={"questions": "true"},
-                  timeout=30)
+    r = httpx.get(f"{JOB_BOARD[eu]}/v1/boards/{board}/jobs/{job}", params={"questions": "true"}, timeout=30)
     if r.status_code == 404:
         raise ValueError("posting not found - it may have closed")
     r.raise_for_status()
