@@ -377,6 +377,37 @@ def credential_words(missing: list[str], text: str) -> str:
     return ", ".join(missing[:-1]) + " and " + missing[-1]
 
 
+# A required line asking to see their work: a portfolio, a reel, work samples. 2026-10-09, US: 217 of 551
+# video / editor / motion postings w/ required lines ask one (210 of 3,828 unique lines), creative 123 of
+# 2,490, marketing 24 of 1,985 (copywriters, social), finance + software 2 each ("prior projects, portfolio
+# of work"), healthcare 0. Singular only: "portfolios" is money ("cash portfolios", "managing
+# portfolios"); "Reels" is Instagram's; "reel spins" a slot machine. Every hit + cut read by hand.
+PORTFOLIO = re.compile(r"(?<![\w-])(?:portfolio|porfolio|show ?reel|demo reel|reel|work samples|"
+                       r"samples? of (?:your |relevant |past |previous |recent )?work|"
+                       r"examples of (?:your |relevant |past |previous |recent )?work)(?![\w-])", re.I)
+NOT_PORTFOLIO = re.compile(
+    r"\b(?:manag\w*|investment|loan|credit|asset|cash|client|customer|product|project|program|patent|property|"
+    r"media|brand|account|deal|insurance|fund|equity|mortgage|vendor|application|enterprise|business|solutions?)\s+portfolio\b|"
+    r"\bportfolio\s+(?:manag\w*|analy\w*|marketing|consolidation|narratives?|work and live deals)\b|"
+    r"\bportfolio of [\w/ -]{0,30}?\b(?:investments|loans|assets|clients|accounts|products|properties|brands|"
+    r"patents|companies|funds)\b|\bthe [A-Z]\w+ portfolio\b|\breel (?:spins?|strips?)\b|"
+    r"\b(?:instagram|ig|facebook|fb|youtube) reel\b", re.I)
+# not their own site: a link here is a profile, not work to look at
+PROFILE_ONLY = ("linkedin.",)
+
+
+def portfolio_asked(text: str) -> bool:
+    return bool(PORTFOLIO.search(text)) and not NOT_PORTFOLIO.search(text)
+
+
+def portfolio_link(master: dict) -> str:
+    """A link their work can be seen at: any on the page or kept for forms that isn't LinkedIn
+    (Vimeo, YouTube, Behance, their own site; GitHub for code)."""
+    contact = master.get("contact") or {}
+    return next((u for u in (contact.get("links") or []) + (contact.get("form_links") or [])
+                 if not any(h in u.casefold() for h in PROFILE_ONLY)), "")
+
+
 def shortfalls(master: dict, job: dict, today: date) -> list[str]:
     """Plain lines: each minimum ask the resume details visibly miss, quoting the posting."""
     have_years = dated_years(master, today)
@@ -390,11 +421,17 @@ def shortfalls(master: dict, job: dict, today: date) -> list[str]:
     known = None not in levels
     held = max((LADDER.index(lv) for lv in levels if lv), default=None)
     have = credential_text(master)
+    no_link = bool(master) and not portfolio_link(master)
     out = []
     for req in job.get("requirements") or []:
         if req.get("priority") != "required":
             continue
         text = req["text"]
+        # once per posting: one link answers every line asking to see their work
+        if no_link and portfolio_asked(text):
+            no_link = False
+            out.append(f"Asks to see your work - a portfolio or reel (\"{text}\"). No link to one in your resume "
+                       "details - if you have one (Vimeo, YouTube, your own site), it can go there.")
         if master and (missing := credentials_missing(text, have)):
             them, they = ("it", "it") if len(missing) == 1 else ("them", "they")
             out.append(f"Asks {credential_words(missing, text)} (\"{text}\"). Not in your resume details - "

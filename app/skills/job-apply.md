@@ -99,6 +99,10 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
 - **Work-break box.** A saved explanation (`career_break[i].explain`) fills it marked "read it
   before Submit" -> read it back before Submit. "Help me explain my break" -> privacy line, draft
   1-2 sentences from their facts only, they approve each word, save to `explain` (never on the page).
+- **Portfolio, reel, work-sample boxes.** Filled from their resume details' links: a portfolio site
+  first (Vimeo, YouTube, Behance, Dribbble, ArtStation ...), else their own site (`questions.portfolio`).
+  None -> ASK for the link, never one made up. A reel password box: they type it themselves - never
+  saved, never filled. A file box titled Portfolio is never the resume box: they upload their own file.
 - **Old jobs on forms.** `apply` / `prepare` prints "ask the user once: same N jobs as your resume,
   or all M" (the rest ended 15+ years ago; a form adds each with its dates) -> ONE clickable
   question w/ those counts, save `contact.form_jobs` (page / all). A form asking for complete or

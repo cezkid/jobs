@@ -287,3 +287,32 @@ def test_a_credential_shortfall_is_said_quoting_the_posting_only_with_resume_det
         'Asks Series 7 and Series 24 ("FINRA Series 7 and Series 24 licenses (required)"). '
         "Not in your resume details - if you hold them, they can go in there."]
     assert knockout.shortfalls({}, job, TODAY) == []
+
+
+# 204 of 551 video postings w/ requirements ask to see work; "portfolio" is also money and "Reels"
+# Instagram's (2026-10-09, required lines of 6 fields read by hand)
+def test_portfolio_asked_reads_work_samples_not_money_or_instagram():
+    asked = ["Strong portfolio or demo reel showcasing cinematic storytelling", "Please include a link to your reel",
+             "Portfolio of 3-5 edited and published clips", "A portfolio or examples of previous video editing work",
+             "Evidence of exceptional ability (prior projects, portfolio of work, completed products, etc)"]
+    not_asked = ["Experience managing complex banking structures and global cash portfolios",
+                 "Have owned the accounting for a portfolio of minority/strategic investments",
+                 "messaging frameworks for a dedicated product line or enterprise portfolio.",
+                 "Familiarity with TODAY, NBC News and the NBCUniversal portfolio",
+                 "Strong understanding of EGM-specific animation elements (reel spins, transitions)",
+                 "Experience editing TikTok, Instagram Reels and YouTube Shorts",
+                 "3+ years drafting and prosecuting patents, managing portfolios"]
+    assert [knockout.portfolio_asked(t) for t in asked] == [True] * len(asked)
+    assert [knockout.portfolio_asked(t) for t in not_asked] == [False] * len(not_asked)
+
+
+def test_a_portfolio_ask_without_a_link_is_said_once():
+    job = {"requirements": [{"text": "Portfolio or reel required", "priority": "required"},
+                            {"text": "Reel and portfolio of work", "priority": "required"},
+                            {"text": "A strong portfolio", "priority": "preferred"}]}
+    short = knockout.shortfalls(master(9, "BS"), job, TODAY)
+    assert len(short) == 1 and short[0].startswith('Asks to see your work - a portfolio or reel ("Portfolio or reel required")')
+    linked = {**master(9, "BS"), "contact": {"links": ["linkedin.com/in/you", "vimeo.com/you"]}}
+    assert knockout.shortfalls(linked, job, TODAY) == []
+    profile_only = {**master(9, "BS"), "contact": {"links": ["linkedin.com/in/you"]}}
+    assert len(knockout.shortfalls(profile_only, job, TODAY)) == 1

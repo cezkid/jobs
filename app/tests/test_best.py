@@ -175,3 +175,32 @@ def test_a_licence_or_certification_ask_is_backed_only_by_that_one():
     assert best.backed("FINRA Series 63 license", f) is True
     assert best.backed("CAMS, CFE, or CRCM certification", f) is True
     assert best.backed("Bachelor's degree in Accounting and an active CFE designation", f) is True
+
+
+# 2026-10-09, 3,828 video / editor / motion required lines: "Adobe" or "Pro" on a resume (Photoshop,
+# Final Cut Pro) backed 60+ asks for Premiere Pro or After Effects; "sound effects" backed After
+# Effects; "editing" never met "edited" (6-letter stems); a portfolio ask counted against everyone
+def test_video_asks_read_by_tool_word_ending_and_portfolio_link():
+    f = {**facts(), "stems": best.stems("Edited videos in Final Cut Pro; retouched in Adobe Photoshop; "
+                                        "sound effects; resolved tickets; Microsoft Word; 30-bed unit")}
+    assert best.backed("Expert in Adobe Premiere Pro", f) is False
+    assert best.backed("Advanced After Effects skills", f) is False
+    assert best.backed("Experience in DaVinci Resolve", f) is False
+    assert best.backed("Must know Final Cut Pro", f) is True
+    assert best.backed("Proficiency in the Adobe Creative Suite", f) is True
+    assert best.backed("Good knowledge of Microsoft Office and Adobe Suites", f) is True
+    assert best.backed("Experience editing video", f) is True
+    assert best.backed("Legal authorization to work in the United States", f) is False
+    asks = "Strong portfolio or demo reel showcasing commercial editing"
+    assert best.backed(asks, {**f, "portfolio": True}) is True
+    assert best.backed(asks, {**f, "portfolio": False}) is False
+    assert best.backed(asks, f) is None  # resume details not read: can't tell
+
+
+def test_resume_facts_reads_a_portfolio_link(tmp_path, monkeypatch):
+    path = tmp_path / "Resume details.yml"
+    path.write_text(RESUME.replace("location:", "links: [vimeo.com/yourname], location:"))
+    monkeypatch.setattr(cfg, "resume_path", lambda config, key: path)
+    assert best.resume_facts(CONFIG, NOW.date())["portfolio"] is True
+    path.write_text(RESUME)
+    assert best.resume_facts(CONFIG, NOW.date())["portfolio"] is False

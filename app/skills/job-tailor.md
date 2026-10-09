@@ -36,6 +36,12 @@ Never values / personal here (`AGENTS.md` #About me).
      their Certifications, written as they give it + the short form in brackets ("Certified
      Anti-Money Laundering Specialist (CAMS)"), the issue date only if they say it; never one they
      don't hold or one that lapsed shown as current (below).
+   - "Asks to see your work - a portfolio or reel" (204 of 551 video postings w/ requirements,
+     2026-10-09; design, motion, copywriting too) -> ask for the link: Vimeo, YouTube, Behance or their
+     own site. Given -> `contact.links` in their resume details (the page prints it, forms' Portfolio
+     and Reel boxes take it). Never a link they didn't give, never one guessed from their name. A
+     password-protected reel: the password goes in the application's own box, typed by them - never
+     on the page. None yet -> their call to apply anyway; most such postings say "required".
 2. `prepare` makes `My Jobs/1 To apply/N - Company - Title/` + task file (job already sent ->
    folder stays in its stage; a closed one reopens - prepare says "back in 1 To apply", tell
    them). Do task yourself (`AGENTS.md` #AI writing steps), then

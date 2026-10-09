@@ -29,6 +29,7 @@ BY_KEY = {"name": "Test Applicant", "legal_name": "Test Applicant", "preferred_n
           "last_name": "Applicant", "legal_last": "Applicant",
           "email": "test@example.com", "phone": "555-0100", "location": "New York",
           "linkedin": "https://www.linkedin.com/in/test", "github": "https://example.com", "website": "https://example.com",
+          "portfolio": "https://example.com",
           "street": "1 Test St", "city": "New York", "zip": "10001"}
 EDUCATION = {"school": "New York University", "degree": "Bachelor of Science", "discipline": "Economics",
              "school_start_month": "September", "school_start_year": "2016", "school_end_month": "May",

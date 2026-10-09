@@ -35,7 +35,7 @@ STANDARD = {"resume": ("Resume/CV", "file", "resume"), "name": ("Full name", "te
             "email": ("Email", "email", "email"), "phone": ("Phone", "phone", "phone"),
             "location": ("Current location", "location", "location"), "org": ("Current company", "text", None),
             "urls[LinkedIn]": ("LinkedIn URL", "url", "linkedin"), "urls[GitHub]": ("GitHub URL", "url", "github"),
-            "urls[Portfolio]": ("Portfolio URL", "url", "website"), "urls[Twitter]": ("Twitter URL", "url", None),
+            "urls[Portfolio]": ("Portfolio URL", "url", "portfolio"), "urls[Twitter]": ("Twitter URL", "url", None),
             "urls[Other]": ("Other website", "url", None)}
 # the disability form's signature boxes are labelled plain "Name" / "Date" (tenant A): the applicant signs, never a name box
 SIGNATURE = {"eeo[disabilitySignature]": "Disability form signature (your full name)",
