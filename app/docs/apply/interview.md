@@ -22,7 +22,50 @@ when a degree is in progress (read off the resume - never the saved work-permit 
 | Their questions for the interviewer | Heimbaugh 2016 (UMSL dissertation): 353 employed business + psychology students, as interviewers, rated a management-trainee candidate from a resume + video; asking questions shaped ratings, but interview performance before them mattered more | lab study, not peer-reviewed; the practice itself is convention |
 | Thank-you note offered once, in their words, sent by them | Accountemps 2017 (300+ US HR managers): 80% take them into account (22% very helpful, 58% somewhat); they got notes from 24% of applicants; email fine for 94%. The Canadian release of the same survey: 42% | vendor survey |
 | Offer deadline: 1-2 weeks common; reneging their call | NACE advisory opinion "Setting Reasonable Deadlines for Job Offers" ("one- to two-week time frame ... is common"; links rushed or early commitments to reneging) | convention |
+| Depth round + honest framing for work they led, not built | TPM postings: 46% name architecture / system design, 18% technical depth by name; Amazon's TPM prep page: "at least one question on software systems design", judged on practicality, reliability, scalability ... (#Program managers) | maker's docs (Amazon) + measured postings; the framing = Hold (`AGENTS.md`) |
+| Program case (plan / rescue) + stakeholder role-play | stakeholders / cross-functional in 87% of TPM descriptions, conflict or influence 27%, at-risk / turnaround programs 26 of 812 | measured postings; the format = convention |
+| Critique against their own resume line + the posting's words | `interview` prints the backing line; an answer thinner than the page it was hired from wastes the line | judgement |
+| Who's on the loop from the employer's own pages only | Amazon publishes its loop (five 55-min interviews for TPM), Bar Raiser (outside the hiring team) + Leadership Principles; 3 of 2,858 PM postings name leadership principles => the posting rarely says, the employer's page does; forum accounts vary | maker's docs |
+| No confidential detail in practice answers | SAR confidentiality, 31 CFR 1020.320(e) (`app/docs/resume/fair-screening.md`); answers said in interview reach the employer just as a resume line does | law (general information) |
+| Offer: level, pay parts, non-compete read before signing | equity / RSUs named in 468 of 812 TPM postings, bonus 333; FTC page: nationwide non-compete rule "not in effect" (set aside 2024-08-20, appeal dropped 2025-09-05); Massachusetts M.G.L. c.149 s.24L: 12 months max, garden leave (50% of base) or other agreed pay, given with the offer or 10 business days before start; titles + bonus terms: convention | law (general information) + convention |
 | Reneging happens; schools + employers expect it rare | NACE 2024 Recruiting Compensation Report: employers report ~10% of accepted internship offers reneged, ~7% of all; career centres commonly advise withdrawing from other processes once you accept (their policies, no study) | survey (employer-reported) + convention |
+
+## Program managers (2026-10-09, `countries=us`, freehire `/agent/jobs/search`, full descriptions)
+
+Newest ~1,000 per title (TPM 984, program manager 976, technical project manager 845, IT project
+manager 725), 2,858 after dedupe; 812 TPM titles; 173 at banks / card networks / fintech / insurers
+by name or domain (Stripe 21, JPMorgan Chase 20, Fidelity 7, Mastercard 5 ...; name match rough).
+Share of descriptions, TPM / all / finance:
+
+| Asks | TPM | all | finance |
+|---|---|---|---|
+| delivery, milestones, roadmap, execution | 94% | 84% | 92% |
+| stakeholders / cross-functional | 87% | 79% | 92% |
+| risk, dependencies, escalation | 88% | 76% | 86% |
+| prioritise, trade-offs, ambiguity | 70% | 44% | 61% |
+| executive updates, steering | 58% | 48% | 60% |
+| architecture / system design | 46% | 29% | 36% |
+| APIs, integration | 42% | 33% | 33% |
+| regulatory / compliance (any) | 46% | 47% | 51% |
+| vendor, third party | 40% | 42% | 39% |
+| metrics, KPIs, OKRs | 35% | 29% | 38% |
+| budget, cost | 30% | 45% | 40% |
+| Agile / Scrum (SAFe) | 27% (11%) | 32% (13%) | 46% (14%) |
+| conflict, influence w/o authority | 27% | 24% | 24% |
+| change management, adoption | 26% | 25% | 37% |
+| incident, outage, root cause | 12% | 11% | 13% |
+| audit, remediation | 9% | 10% | 13% |
+| AML / KYC / fraud | 11% | 7% | 9% |
+| SOX; Basel / CCAR / stress testing | 1%; 1% | 1%; 1% | 0; 0 |
+
+- Required lines (521 of 812 TPM postings have them) carry far less: stakeholders 33%, delivery
+  25%, risk 20%, system design 14%. Engineering background named in 256 TPM descriptions; "no
+  coding" / "non-engineering role" said outright in 3 of 2,858.
+- Interview format named in the posting: "panel interview" 0, "leadership principles" 3 => the
+  employer's own hiring pages, not the posting, say who's on the loop.
+- Finance-specific regulation is rare by name (SOX 0, Basel / CCAR 0 of 173 finance) - so the
+  depth + case rounds stay posting-led, no finance question bank. Regex counts, rough (`onsite`
+  also = work location; finance by company name).
 
 ## During - never help in a live interview or open test
 
@@ -55,9 +98,21 @@ would find out. Rule = Hold: the help itself is the risk, whatever the odds of b
 - **Model answers w/ facts filled in.** Words they could say may reframe their own facts, never add one.
 - **Help during a live interview or open test, "just a hint".** Hold (#During).
 - **A generic question bank for students.** Same as everyone: the posting or, without one, their resume.
+- **A TPM / finance question bank** (SOX, Basel, CCAR cases). Rare in postings (above); questions stay
+  posting-led for every occupation.
+- **"System design for non-engineers" scripts from prep sites + forums** (Blind, Glassdoor, prep
+  vendors): accounts disagree (coding asked or not, which level's bar); employer's own pages only.
+- **A state-by-state non-compete list in chat.** Changes often; California's statute page (B&P
+  16600, 16600.5) wouldn't open to check (2026-10-09) - say "states set their own rules", one example.
 - **A count of states banning pay-history questions in chat.** Trackers disagree (20-22 states, DC counted in some); "many".
 
-## Sources (checked 2026-10-08)
+## Sources (checked 2026-10-08; program managers 2026-10-09)
+
+amazon.jobs/content/en/how-we-hire/tpm-interview-prep (five 55-min interviews, system design, STAR);
+amazon.jobs/content/en/how-we-hire/interview-loop; aboutamazon.com/news/workplace/amazon-bar-raiser
+(outside the hiring team, 16 Leadership Principles; undated); ftc.gov/legal-library/browse/rules/noncompete-rule;
+malegislature.gov M.G.L. c.149 s.24L; freehire `/agent/jobs/search` 2026-10-09.
+
 
 HireVue AI Explainability Statement (2022, 29 pages, served at hirevue.com/wp-content/uploads/2022/04/HV_AI_Short-Form_Explainability_1pager.pdf);
 anthropic.com/candidate-ai-guidance (2025-07-10); mckinsey.com/careers/interviewing; ITPro on Amazon's

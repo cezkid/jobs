@@ -197,6 +197,9 @@ Charlotte: program manager 101, TPM 3.
   name CS / engineering in a required line, nearly all a degree "or equivalent" or a "TPM or
   software engineering" menu; a hard "N years as a software engineer" w/o alternative 20 of 1,249
   PM postings. PMP / PgMP / SAFe / ITIL asks are read (`knockout.credentials_asked`).
+- What the interviews test (2,858 postings' full descriptions, TPM / finance split): delivery,
+  stakeholders, risk 86-94%; system design 46% of TPM; SOX / Basel / CCAR ~0 =>
+  `app/docs/apply/interview.md` #Program managers.
 Shape: `app/profiles/program-manager.yml`.
 
 ## Work with no category: compliance + risk (2026-10-09, `countries=us`)
