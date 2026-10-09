@@ -231,6 +231,34 @@ Required lines asking to hold a licence or certification (`knockout.credentials_
 24 / 57 / 63, CAMS, CPA, CIA, CISA, CRISC, CISSP, CPHRM, CTPRP, CBCP, RN. FRM, PRM, CFA, ARM, CPCU
 show up as wishes ("preferred", "a plus") - never read as asked.
 
+## Video work: editing, shooting, motion (2026-10-09, `countries=us`)
+
+Titled jobs, open / posted in the last 30 days (remote open): video 817 / 334 (143), editor 556 / 223
+(138), content creator 459 / 158, video editor 263 / 111, videographer 221 / 61 (14), multimedia 198,
+video producer 149 / 77, motion designer 135 / 61 (32), animator 84, video content 61, media producer
+41, videographer/editor 35, VFX 33, motion graphics 32, creative producer 31, post-production 18,
+assistant editor 6, colorist 4, film editor 1. A slash joins words ("videographer/editor" 35, not in
+"videographer"). City: New York City video 122, editor 68; Los Angeles proper video 20 (its studios
+sit in Burbank, Santa Monica, Culver City).
+`category=creative` 1,270 US, its 500 newest: video producer 22, video editor 19, photographers 50+,
+game artists + animators; 500 newest "video" titles: creative 223, marketing 58, management 43, design
+32, software_engineering 22, project_management 17, sales 14, 25+ others => title passes
+(`app/profiles/video.yml`), never the category alone. Noise in the "video" pass (500 newest): engineer
+/ developer 67 (streaming, Prime Video), sales 15, software / product manager 13, network / AV 11,
+scientist 7; in "editor": technical writer 64, photo editor 48, social media editor 19, news 15, copy 8.
+1,023 video / editor / motion rows: `employment_type` null 486, full_time 214, contract 182, part_time
+104; `work_mode` null 584, remote 191; `salary_period` set on 161 (year 120, hour 37, month 4), no day rates seen.
+Required asks (4,253 lines on 551 rows): portfolio / reel on 204 rows (`knockout.portfolio_asked`; hand
+check below), Premiere 231 lines, After Effects 193, social formats 315, camera / shooting 287,
+storytelling 173, broadcast / news 172, years 297, degree 125, AI tools 105, DaVinci 56, Final Cut 54,
+color grading 38, edit test 37, drone / Part 107 12, union / guild 4.
+Portfolio reader, hand-checked on 6 fields' required lines (video 3,828, creative 2,490, marketing
+1,985, software 2,272, finance 1,759, healthcare 763): hits 209 / 121 / 23 / 2 / 1 / 0. Cut before:
+"managing portfolios", "cash portfolios", "a portfolio of strategic investments", "enterprise
+portfolio", "the NBCUniversal portfolio", Instagram "Reels", slot-machine "reel spins".
+Freelance / temporary titles, 3,000 newest rows over 6 fields: 63; tagged contract 38, part_time 15,
+full_time 5, internship 4 => `rank.TITLE_TYPES` reads them contract.
+
 ## Software engineering kinds
 
 2026-10-09, `countries=us`. Software engineering = many jobs under one name. Categories split it

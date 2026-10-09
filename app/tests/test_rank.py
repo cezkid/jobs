@@ -474,3 +474,20 @@ def test_a_required_licence_their_resume_never_names_sorts_lower_and_says_which(
     # no resume details yet: nothing to compare, nothing said
     monkeypatch.setattr(rank, "resume_credentials", lambda config: None)
     assert slugs(rank.rank(jobs, CONFIG, NOW))[0] == "principal"
+
+
+# 63 freelance / temporary titles on 3,000 newest rows of 6 fields: tagged contract 38, part time 15,
+# full time 5, internship 4 (2026-10-09) - the title says what the job is
+def test_freelance_or_temporary_title_reads_as_contract():
+    full_time_only = cfg.merge(CONFIG, {"rank": {"employment_types": ["full_time"]}})
+    gig = make_job("gig", title="YouTube Editor - Freelance", employment_type="full_time")
+    temp = make_job("temp", title="Assistant Video Editor, Temporary", employment_type="full_time")
+    staff = make_job("staff", title="Video Editor", employment_type="full_time")
+    assert rank.job_type(gig) == rank.job_type(temp) == "contract"
+    assert rank.mismatches(gig, full_time_only["rank"]) == ["contract, you asked full time"]
+    assert rank.mismatches(staff, full_time_only["rank"]) == []
+    assert rank.title_type(make_job("t", title="Temperature Controls Technician")) is None
+    # contract work wanted: a freelance gig the job search tagged part time is kept
+    contract_only = cfg.merge(CONFIG, {"blocklist": {"employment_types": ["part_time", "full_time"]}})
+    part = make_job("part", title="Freelance Video Editor", employment_type="part_time")
+    assert slugs(rank.rank([part], contract_only, NOW)) == ["part"]

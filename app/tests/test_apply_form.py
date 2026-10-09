@@ -97,7 +97,8 @@ def test_resume_answers_only_what_it_states():
 
 def test_link_questions_recognised_by_title():
     assert questions.key_from_title("LinkedIn Profile URL", "text") == "linkedin"
-    assert questions.key_from_title("Portfolio or website", "url") == "website"
+    assert questions.key_from_title("Portfolio or website", "url") == "portfolio"
+    assert questions.key_from_title("Personal website", "url") == "website"
     assert questions.key_from_title("Why LinkedIn?", "longtext") is None
 
 
@@ -503,7 +504,8 @@ def test_ashby_types_from_real_forms_url_and_education_history():
     assert {q["native"] for q in got.values()} <= set(ashby.KIND)
     assert (got["LinkedIn Profile"]["kind"], got["LinkedIn Profile"]["key"]) == ("url", "linkedin")
     samples = next(q for t, q in got.items() if t.startswith("Please provide relevant work samples"))
-    assert (samples["kind"], samples["key"], samples["required"]) == ("url", None, False)
+    # a link box asking for work samples takes their portfolio link (2026-10-09; blank before)
+    assert (samples["kind"], samples["key"], samples["required"]) == ("url", "portfolio", False)
     # one block of boxes per school, never one answer: school required, start dates left out (not on a resume)
     boxes = [(q["id"], q["kind"], q["required"]) for q in ashby.from_form(job, 2) if q["native"] == "EducationHistory"]
     path = ashby.EDUCATION_PATH
@@ -1435,6 +1437,23 @@ def test_no_message_piece_prints_its_placeholder_raw():
               and getattr(call.func, "id", None) in ("print", "exit")
               for s in ast.walk(call) if isinstance(s, ast.Constant) and isinstance(s.value, str)]
     assert not [s.value for s in pieces if "{slug}" in s.value or "{'fill'" in s.value]
+
+
+# a Behance-only portfolio left the Portfolio box blank: the box took website(), which skips Behance;
+# reel boxes weren't recognised at all (2026-10-09: 204 of 551 video postings ask to see work)
+def test_portfolio_and_reel_boxes_get_a_portfolio_site_first():
+    key = questions.key_from_title
+    assert key("Demo reel link", "text") == "portfolio" and key("Reel", "url") == "portfolio"
+    assert key("Link to your work samples", "text") == "portfolio" and key("Vimeo", "url") == "portfolio"
+    assert key("Website, Blog, or Portfolio", "url") == "portfolio"
+    assert key("How many Reels have you edited?", "text") is None
+    q = {"key": "portfolio", "kind": "url"}
+    both = {"links": ["linkedin.com/in/your-name", "example.com", "vimeo.com/yourname"]}
+    assert questions.from_resume(q, both) == "https://www.vimeo.com/yourname"
+    assert questions.from_resume(q, {"links": ["behance.net/yourname"]}) == "https://www.behance.net/yourname"
+    assert questions.from_resume(q, {"links": ["example.com"]}) == "https://www.example.com"
+    assert questions.from_resume(q, {"links": ["linkedin.com/in/your-name"]}) == ""
+    assert questions.from_resume({"key": "website", "kind": "url"}, {"links": ["behance.net/yourname"]}) == ""
 
 
 def test_website_box_gets_the_resumes_own_site_never_a_profile():
