@@ -223,11 +223,16 @@ def enrollment_asked(text: str) -> str | None:
 # and 24 licenses", "Certified Internal Auditor (CIA)", "CISSP, CISM, or CISA". Measured 2026-10-09 on
 # 6,990 unique required lines of 2,112 compliance-titled US postings (compliance, AML, KYC, BSA,
 # regulatory, GRC, internal audit, privacy, financial crimes) + 7,069 from healthcare, finance, legal,
-# software, education, security, management: 31 + 46 reads, every one hand-checked; the misreads a
+# software, education, security, management: 38 + 64 reads (risk below: 41), every one hand-checked; the misreads a
 # first try made are tests now (a firm "Registered Investment Adviser (RIA)", "IAR registrations" as a
 # duty, "CLI credential", Level II, "license applications", TLS/SSL certificates, a state code, wishes
 # worded "an asset" / "advantageous" / "highly valued", DoD 8570 levels any of dozens of certs meet).
-CRED_WORD = r"(?:certifications?|certificates?|certified|licen[cs]es?|licensure|licensed|designations?)"
+# Risk management added (2026-10-09, 5,003 required lines of 1,768 postings titled risk, risk
+# management, SOX, internal controls, ERM): "CPA required" / "Active CPA." name no credential word ->
+# KNOWN_CRED; "Professional Certification, such as CIA or CPA required" was missed on its capital C.
+# lower case or Capitalised, never a SHOUTED heading ("MINIMUM LICENSURE/CERTIFICATION REQUIRED")
+CRED_WORD = (r"(?:[Cc]ertifications?|[Cc]ertificates?|[Cc]ertified|[Ll]icen[cs]es?|[Ll]icensure|[Ll]icensed|"
+             r"[Dd]esignations?|[Cc]harter(?:holder)?s?)")
 # a credential word naming a topic, not something held: "license applications", "certification programs"
 CRED_TOPIC = (r"(?!\s+(?:applications?|requirements?|renewals?|programs?|process\w*|management|compliance|audits?|"
               r"regulations?|reviews?|filings?|tracking|status|fundamentals|infrastructure)\b)")
@@ -235,24 +240,34 @@ _ACR = r"(?!(?:I{1,3}|IV|VI{0,3}|IX|X)\b)[A-Z][A-Z0-9&]{1,7}(?:-[A-Z0-9]{1,4})?"
 _SEP = r"\s*(?:,\s*(?:or|and)?|/|\bor\b|\band\b|&)\s*"
 _LIST = rf"{_ACR}(?:{_SEP}{_ACR})*"
 CRED_BEFORE = re.compile(rf"(?<![\w-])({_LIST})\)?\s+{CRED_WORD}\b{CRED_TOPIC}")
-CRED_AFTER = re.compile(rf"\b{CRED_WORD}\s*(?:\(|:|,?\s*(?:such as|e\.g\.,?|eg;?|like|including)\s+)\s*(?:an?\s+|the\s+)?"
+CRED_AFTER = re.compile(rf"\b{CRED_WORD}\s*(?:\(|:|,?\s*(?i:such as:?|e\.g\.,?|eg;?|like|including|as)\s+)\s*(?i:an?\s+|the\s+)?"
                         rf"({_LIST})(?![\w-])")
-CRED_SPELLED = re.compile(rf"\b(?:Certified|Chartered)\s+[A-Z][\w&-]*(?:\s+[\w&-]+){{0,6}}?\s*\(({_ACR})\)")
+CRED_SPELLED = re.compile(rf"\b(?:Certified|Chartered)\s+(?:in\s+)?[A-Z][\w&-]*(?:\s+[\w&-]+){{0,6}}?\s*\(({_ACR})\)")
+# credentials whose short form means nothing else, named on a line that requires them w/o a credential
+# word ("CPA required", "Active CPA.", "CPA or CIA is required"). Not CRM / ARM: also a sales system
+# and a cloud tool ("CRM experience required" - 9 such lines in the risk sample)
+# ... and never years of the work ("7 years of RN or clinical professional experience")
+KNOWN_CRED = re.compile(r"(?<![\w-])(CPA|CIA|CISA|CISM|CISSP|CRISC|CGEIT|CAMS|CFE|CFA|FRM|PRM|CPCU|CRCM|CCEP|CHC|"
+                        r"CIPP|CIPM|CIPT|CRMA|CPHRM|CTPRP|CBCP|CERA|RN)(?![\w-])(?!(?:\s+\S+){0,4}\s+experience)")
+MUST = re.compile(r"\brequired\b|\bmust\b|\bactive\b|\bcurrent\b|\bvalid\b|\bhold\b|\bpossess|\bmandatory\b|"
+                  r"in good standing", re.I)
 # FINRA / NASAA exams, numbered: "Series 7, 24 and 63", "Series 66(63/65)", "Series 9/10"
 SERIES = re.compile(r"\bSeries\s+\d{1,2}(?:\s*(?:\(|\)|,|/|&|\band\b|\bor\b)\s*(?:Series\s+)?\d{1,2}\b)*")
 ANY_ACR = re.compile(rf"(?<![\w-]){_ACR}(?![\w-])")
 # says nothing about holding it now: a wish, something to earn after hire, an alternative to a degree,
 # a category many certs meet, a line about knowing or handling licences rather than holding one
 CRED_SAYS_NOTHING = re.compile(
-    r"\bplus\b|prefer|nice to have|desir|bonus|ideal|asset|advantag|helpful|not required|a benefit|valued|"
+    r"\bplus\b|prefer|nice to have|desir|bonus|ideal|asset|advantag|helpful|not required|benefi|valued|optional|"
     r"in (?:place|lieu) of|equivalent|or similar|\bobtain|\bacquir|\battain|\bearn|\bpursu|\bcomplet|"
     r"\bwithin (?:\d+|one|two|three|six|twelve|the first)\b|progress|working toward|\bwilling|considered|"
     r"\b8570\b|\b8140\b|^\W*(?:\w+\s+)?(?:experience|knowledge|familiarity|understanding)\b", re.I)
 # "or", "one of", "such as": any one held answers the line; else each named one is asked
 CRED_ANY = re.compile(r"\bor\b|/|one of|such as|e\.g|\blike\b|\betc\b|one or more|at least one|any of", re.I)
-# rules, regulators, programs: never a credential however framed
+# rules, regulators, programs, the bodies that issue credentials ("Regulatory Affairs Certification
+# (RAPS)"): never a credential however framed
 NOT_CRED = set("US USA UK EU IT ISO PCI DSS SOC SOX HIPAA GDPR NIST AML BSA KYC OFAC SEC FINRA NFA CFTC OCC FDIC "
-               "GED ID HR QA QC FAA DOT DOD CDL TLS SSL PKI".split())
+               "GED ID HR QA QC FAA DOT DOD CDL TLS SSL PKI RAPS ISACA IIA ACAMS ACFE GARP PRMIA IAPP AHA ASQ "
+               "ISC2 AICPA RIMS".split())
 # a state before a licence ("TN active RN license") is never named as the ask; still accepted on an
 # either/or line, where MD is the doctor's ("NYSED MD/DO license")
 STATES = set("AL AK AZ AR CA CO CT DE DC FL GA HI IA IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE NH NJ NM NV "
@@ -274,10 +289,13 @@ def credentials_asked(text: str) -> tuple[list[str], list[str], bool] | None:
     named += ["SIE"] if re.search(r"\bSIE\b", text) else []
     named += [a for pattern in (CRED_BEFORE, CRED_AFTER, CRED_SPELLED) for m in pattern.finditer(text)
               for a in _named(m.group(1))]
+    named += KNOWN_CRED.findall(text) if MUST.search(text) else []
     named = list(dict.fromkeys(named))
     if not named:
         return None
-    any_one = bool(CRED_ANY.search(text))
+    # a long plain list ("CRISC, CISM, CIA, CISSP,") is a menu; "BLS, ACLS, and PALS" asks all three
+    plain = [c for c in named if not c.startswith("Series ")]
+    any_one = bool(CRED_ANY.search(text)) or (len(plain) >= 3 and not re.search(r"(?:\band|&)\s+[A-Z]{2,}", text))
     accepted = list(dict.fromkeys(named + ([a for a in ANY_ACR.findall(text) if a not in NOT_CRED] if any_one else [])))
     return named, accepted, any_one
 
@@ -304,11 +322,16 @@ def credential_text(master: dict) -> str:
     return "\n".join(_strings({k: v for k, v in master.items() if k != "contact"}) + initials)
 
 
+# an exam part passed or a candidacy is not the credential: "FRM Part I", "CFA Level II Candidate"
+ON_THE_WAY = re.compile(r"\s*(?:\(|-|,)?\s*(?i:part|level|candidate|exam|in progress|expected|pending)\b")
+
+
 def holds(credential: str, text: str) -> bool:
     if credential.startswith("Series "):
         number = credential.split()[1]
         return any(number in re.findall(r"\d{1,2}", m.group(0)) for m in SERIES.finditer(text))
-    return bool(re.search(rf"(?<![\w-]){re.escape(credential)}(?![\w-])", text))
+    return any(not ON_THE_WAY.match(text, m.end())
+               for m in re.finditer(rf"(?<![\w-]){re.escape(credential)}(?![\w-])", text))
 
 
 def credentials_missing(text: str, have: str) -> list[str] | None:

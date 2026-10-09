@@ -117,6 +117,10 @@ Wording the user asks about:
   ago - 5 in FINRA's Maintaining Qualifications Program; a licence not renewed) -> written as it
   stands: "Series 7 (passed 2019; not currently registered)". Employers check FINRA's BrokerCheck /
   CRD and licensing boards. Shown as current = Hold. Unsure -> ask them, never guess.
+- An exam part or candidacy is not the credential: "FRM Part I passed", "CFA Level II
+  Candidate", "CPA exam: 3 of 4 sections" - never "FRM" or "CFA" alone (GARP certifies FRM after
+  both parts + 2 years' work; CFA Institute's charter after all three levels + work). The ranking
+  reads "FRM Part I" as not holding FRM.
 - Confidential work (compliance, AML, investigations, audit, legal, health records): never a
   client's, customer's or investigated person's name, a case or exam finding that isn't public, or
   anything that could point to one Suspicious Activity Report - federal law bars revealing a SAR or

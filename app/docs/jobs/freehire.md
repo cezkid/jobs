@@ -166,7 +166,7 @@ else open. Request fails -> the list's own signals above.
 - Pay on 74 of 308 intern rows (62 hourly, median top $49/hr on this tech-heavy source - never
   typical); 1 says "unpaid" in its first 1,000 characters.
 
-## Work with no category: compliance (2026-10-09, `countries=us`)
+## Work with no category: compliance + risk (2026-10-09, `countries=us`)
 
 No `compliance` (or risk, audit, privacy) category among the 47. Titled jobs, open / posted in the
 last 30 days: compliance 3,562 / 1,408 (manager 1,494, analyst 815, officer 396, specialist 177,
@@ -180,8 +180,20 @@ government 66, engineer 45, tax / payroll 37, quality / validation 35, attorney 
 healthcare 26, broker-dealer / investment 19, AML / BSA / KYC / fraud 15, product manager 13;
 515 general (Compliance Analyst / Manager / Officer). => title passes, one phrase each, one tier
 (`app/profiles/compliance.yml`); a category pass would drop half and add lawyers.
-Required lines of 2,112 compliance-titled postings: 31 ask to hold a licence or certification
-(Series 7 / 24 / 63, CAMS, CPA, CIA, CISA, CRISC, CISSP, CPC, RN) - read by `knockout.credentials_asked`.
+Risk, open / last 30 days: risk 2,283 / 826 (259 remote), risk manager 1,223, risk & compliance 316,
+risk and compliance 136, risk analyst 286, credit risk 133, technology risk 89, enterprise risk 85,
+IT risk 71, SOX 60, insurance risk 59, operational / fraud risk 47 each, model risk 46, market risk 43,
+third-party risk 42, clinical risk 39, risk adjustment 27 (medical coding), ERM 25. 1,000 newest
+"risk": management 422, security 153, project_management 44, legal 42, sales 37; 135 say compliance
+too; remote 120, clearance 36. By word: security / cyber / IT 193, data / analytics 96, engineer 75
+(insurance risk engineers = loss control), insurance / clinical / patient 70, operational /
+enterprise 65, software / product 57, credit / lending 52, market / treasury / quant 44, third-party
+/ vendor 37, sales 35, fraud / AML 27, model 22, risk adjustment 17; 338 general (Risk Manager).
+Hospital Risk Manager posts often ask an active RN licence.
+Required lines asking to hold a licence or certification (`knockout.credentials_asked`): 38 of
+6,990 compliance, 41 of 5,003 risk (risk, risk management, SOX, internal controls, ERM): Series 7 /
+24 / 57 / 63, CAMS, CPA, CIA, CISA, CRISC, CISSP, CPHRM, CTPRP, CBCP, RN. FRM, PRM, CFA, ARM, CPCU
+show up as wishes ("preferred", "a plus") - never read as asked.
 
 ## Null facets outside tech (2026-09-19)
 

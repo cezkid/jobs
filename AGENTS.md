@@ -180,7 +180,8 @@ every request into one tier:
     answer to what a criminal-history question legally covers; a degree still being earned shown
     as held; a GPA above the transcript's or converted from another scale.
   - Also Hold: a lapsed licence or registration shown as current (a FINRA exam past its 2-year
-    window says "passed 2019", not "holds"); a client, case or Suspicious Activity Report detail
+    window says "passed 2019", not "holds"); an exam part or candidacy shown as the credential
+    ("FRM Part I passed", never "FRM"); a client, case or Suspicious Activity Report detail
     from confidential work (`job-tailor`).
   - NOT Hold: lawful "No" for a sealed / expunged record (state law decides; legal aid confirms), a work name they go by, a break line
     left off.

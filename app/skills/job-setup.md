@@ -212,20 +212,27 @@ showing jobs from <company>" any time.
   offer a title pass (`q` + `q_fields: title`) for the one they want most, say which it leaves out.
 - Work with no category of its own - compliance, risk, internal audit, privacy, regulatory
   affairs: search by title, never by the category its jobs seem to sit in. "compliance" titles
-  sit in 25+ categories, legal about half - and legal alone also brings lawyers and paralegals
-  (2026-10-09). Shape: `app/profiles/compliance.yml`. Steps: `probe --title` every way their work
-  is titled (compliance, their branch's own words - AML, BSA, KYC, "financial crimes", GRC,
-  privacy, "regulatory affairs", "internal audit", "trade compliance"); one pass per phrase they
+  sit in 25+ categories, legal about half - and legal alone also brings lawyers and paralegals;
+  "risk" titles: management 42%, security 15%, the rest spread (2026-10-09). Shape:
+  `app/profiles/compliance.yml` (compliance + risk). Steps: `probe --title` every way their work
+  is titled (compliance, risk, their branch's own words - AML, BSA, KYC, "financial crimes", GRC,
+  privacy, "regulatory affairs", "internal audit", "trade compliance", SOX, "internal controls",
+  ERM); a broad word ("compliance", "risk") already holds every title it's in - "risk manager",
+  "credit risk" need no pass of their own, only words the broad one lacks (AML); one pass per phrase they
   want, all in the same tier (no OR); `probe --facets q=<phrase> q_fields=title countries=us` shows
   where those jobs sit (read off the newest 500 rows - the job search's own counts read any text).
   Then ONE clickable multiSelect, their branch first, with counts: "Compliance has several kinds -
   which are yours? Tick all that fit, then Submit": financial (AML, BSA, KYC, broker-dealer),
   healthcare, security / GRC / privacy, trade / import / export, environmental / safety, corporate
-  ethics, quality / regulatory affairs. Kinds left unticked + other work titled compliance
-  (engineers, attorneys, product managers) -> after the first job check, count each w/ `rank
+  ethics, quality / regulatory affairs. Risk too -> its own ONE question the same way: enterprise /
+  operational, credit / lending, market / liquidity / model (quant), third-party / vendor,
+  technology / cyber, fraud, insurance + hospital risk (patient safety - often asks an RN licence),
+  internal audit / SOX. Kinds left unticked + other work titled compliance or risk (engineers -
+  insurance "risk engineers" are loss-control inspectors -, attorneys, product managers, software,
+  "risk adjustment" = medical coding) -> after the first job check, count each w/ `rank
   --would-hide "<word>"`, say the count, `blocklist.title_phrases` on their yes (`title_keep` for a
   title they'd want: "compliance engineer" for a GRC user). 6% of compliance titles need a security
-  clearance (30 of 500): the clearance question below applies.
+  clearance (30 of 500), risk 4% (36 of 1,000): the clearance question below applies.
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).

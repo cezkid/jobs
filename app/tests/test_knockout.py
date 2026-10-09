@@ -173,7 +173,17 @@ def test_student_shortfalls_name_the_window_and_the_level_they_study_for():
     ("Current CMMC certification required: RP, CCP, or CCA.", ["CMMC"], True),
     ("Current Texas Registered Nurse (RN) with at least four (4) years of full-time emergency care experience "
      "and an active Texas RN license.", ["RN"], False),
-    ("Required certifications: ACLS, BLS, NIHSS, TN active RN license.", ["RN", "ACLS", "BLS", "NIHSS"], False),
+    ("Required certifications: ACLS, BLS, NIHSS, TN active RN license.", ["RN", "ACLS", "BLS", "NIHSS"], True),
+    ("BLS, ACLS, and PALS certification (as required by individual ASC policy)", ["BLS", "ACLS", "PALS"], False),
+    # risk management (2026-10-09): no credential word, a capital C, a menu with "and" inside a name
+    ("CPA required", ["CPA"], False),
+    ("Active CPA.", ["CPA"], False),
+    ("A certification as CPA or CIA is required", ["CPA", "CIA"], True),
+    ("Professional Certification, such as CIA or CPA required", ["CIA", "CPA"], True),
+    ("SIE, Series 7, Series 57 required", ["Series 7", "Series 57", "SIE"], False),
+    ("Certified in Risk and Information Systems Control (CRISC), Certified Information Security Manager (CISM), "
+     "Certified Internal Auditor (CIA), Certified Information Systems Security Professional (CISSP),",
+     ["CRISC", "CISM", "CIA", "CISSP"], True),
 ])
 def test_credentials_asked_reads_what_a_line_asks_to_hold(text, named, any_one):
     got = knockout.credentials_asked(text)
@@ -199,6 +209,14 @@ def test_credentials_asked_reads_what_a_line_asks_to_hold(text, named, any_one):
     "Series 65 license must be obtained within 90 days of hire",
     "Working knowledge of HIPAA security requirements, ISO 27001:2022 (including recertification audits), and PCI DSS.",
     "Valid driver's license and satisfactory driving record",
+    # risk management sample: a shouted heading, years of the work, an issuing body, a sales system
+    "REQUIRED CERTIFICATES, LICENSES, REGISTRATIONS",
+    "7 years of RN or clinical professional experience, 5 yrs of risk management experience required",
+    "· Regulatory Affairs Certification (RAPS).",
+    "· Regulatory Affairs Certification (RAC) (Optional)",
+    "CRM experience required; Salesforce experience preferred.",
+    "Relevant certifications (CISA, CISM, CRISC, or CISSP) are beneficial",
+    "Degree in a quantitative discipline required; professional designations such as CFA or FRM preferred.",
 ])
 def test_credentials_asked_skips_lines_that_ask_no_credential_held_now(text):
     assert knockout.credentials_asked(text) is None
@@ -216,6 +234,15 @@ def test_a_credential_is_held_by_its_short_form_anywhere_or_a_certifications_ini
     assert knockout.credentials_missing("Series 63 license", have) == []
     assert knockout.credentials_missing("Active CAMS certification", have) == ["CAMS"]
     assert knockout.credentials_missing("5+ years of compliance experience", have) is None
+
+
+# an exam part passed or a candidacy is on the way to the credential, not the credential
+def test_an_exam_part_or_candidacy_does_not_hold_the_credential():
+    have = knockout.credential_text({"certifications": [{"name": "FRM Part I (passed 2025)"},
+                                                        {"name": "CFA Level II Candidate"}, {"name": "CPA"}]})
+    assert knockout.credentials_missing("FRM certification required", have) == ["FRM"]
+    assert knockout.credentials_missing("Active CFA charterholder", have) == ["CFA"]
+    assert knockout.credentials_missing("CPA required", have) == []
 
 
 def test_a_credential_shortfall_is_said_quoting_the_posting_only_with_resume_details():
