@@ -94,7 +94,7 @@ home_address:
   zip: null
 
 # Ranking (rank.py). Order: tier > not seen lately (may be closed) > likely ghost / level /
-# hours / sponsorship mismatch > pay floor > pay > employer lists > first seen. Only max_age_days
+# hours / sponsorship mismatch / required licence not on the resume > pay floor > pay > employer lists > first seen. Only max_age_days
 # and pay_filter hide a job.
 rank:
   # open job no check has returned in more than this many days sorts to the bottom of its tier

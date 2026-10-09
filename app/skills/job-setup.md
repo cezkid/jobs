@@ -98,7 +98,9 @@ countries=us` gives all 47 categories + every other facet in one call. Then ask 
 a time, in this order (never batched - shows as tabs).
 
 First, broad:
-- what kind of work - 4 grouped families of `category` values, `multiSelect`
+- what kind of work - 4 grouped families of `category` values, `multiSelect`. Work with no
+  category of its own (compliance, risk, internal audit, privacy, regulatory affairs) -> no family
+  question: title search (#2)
 - where: remote only / remote first / local first / local only
 - full time / part time / internship or co-op / contract, `multiSelect` + "doesn't matter", each
   with its count in their field (`probe --facets employment_type <their params>`; internship also
@@ -208,6 +210,22 @@ showing jobs from <company>" any time.
   compliance", import / export, customs sit in legal + management untagged (0 of 157 caught,
   2026-10-08, `app/docs/students.md`). New-grad or entry search: count each w/ `probe --title`,
   offer a title pass (`q` + `q_fields: title`) for the one they want most, say which it leaves out.
+- Work with no category of its own - compliance, risk, internal audit, privacy, regulatory
+  affairs: search by title, never by the category its jobs seem to sit in. "compliance" titles
+  sit in 25+ categories, legal about half - and legal alone also brings lawyers and paralegals
+  (2026-10-09). Shape: `app/profiles/compliance.yml`. Steps: `probe --title` every way their work
+  is titled (compliance, their branch's own words - AML, BSA, KYC, "financial crimes", GRC,
+  privacy, "regulatory affairs", "internal audit", "trade compliance"); one pass per phrase they
+  want, all in the same tier (no OR); `probe --facets q=<phrase> q_fields=title countries=us` shows
+  where those jobs sit (read off the newest 500 rows - the job search's own counts read any text).
+  Then ONE clickable multiSelect, their branch first, with counts: "Compliance has several kinds -
+  which are yours? Tick all that fit, then Submit": financial (AML, BSA, KYC, broker-dealer),
+  healthcare, security / GRC / privacy, trade / import / export, environmental / safety, corporate
+  ethics, quality / regulatory affairs. Kinds left unticked + other work titled compliance
+  (engineers, attorneys, product managers) -> after the first job check, count each w/ `rank
+  --would-hide "<word>"`, say the count, `blocklist.title_phrases` on their yes (`title_keep` for a
+  title they'd want: "compliance engineer" for a GRC user). 6% of compliance titles need a security
+  clearance (30 of 500): the clearance question below applies.
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).

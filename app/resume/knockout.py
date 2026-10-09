@@ -1,4 +1,5 @@
-"""Minimum asks a resume visibly doesn't meet: years of experience, a degree. Report only.
+"""Minimum asks a resume visibly doesn't meet: years of experience, a degree, a licence or
+certification. Report only.
 
 Knock-out questions are real but narrow (docs/resume/bullets.md Tier 3): work authorisation,
 licences, location, minimum qualifications. Before tailoring, the user hears which minimum asks
@@ -8,6 +9,8 @@ block, never said when either side has no data.
 Read off a required line only. Years: the lower bound of what's asked ("3-5 years" -> 3) vs whole
 years the dated jobs add up to, overlaps merged - short in total means short in any specialty, so
 the statement is always true; "18 years of age", "within 1 year of hire" are not experience.
+Credential: a licence or certification a line asks to hold (CPA, CAMS, Series 7) that no part of their
+resume details names - `credentials_asked`, measured below it.
 Degree: the lowest level a line names vs the highest listed; "or equivalent", professional
 doctorates (JD, MD...), students ("currently pursuing") and wishes ("MBA a plus") say nothing.
 Measured 2026-10-01 on 104 live postings (healthcare, finance, education, software): 668 required
@@ -216,6 +219,117 @@ def enrollment_asked(text: str) -> str | None:
     return found[-1] if found else None
 
 
+# Licences + certifications a required line asks to hold: "Active CAMS certification", "FINRA Series 7
+# and 24 licenses", "Certified Internal Auditor (CIA)", "CISSP, CISM, or CISA". Measured 2026-10-09 on
+# 6,990 unique required lines of 2,112 compliance-titled US postings (compliance, AML, KYC, BSA,
+# regulatory, GRC, internal audit, privacy, financial crimes) + 7,069 from healthcare, finance, legal,
+# software, education, security, management: 31 + 46 reads, every one hand-checked; the misreads a
+# first try made are tests now (a firm "Registered Investment Adviser (RIA)", "IAR registrations" as a
+# duty, "CLI credential", Level II, "license applications", TLS/SSL certificates, a state code, wishes
+# worded "an asset" / "advantageous" / "highly valued", DoD 8570 levels any of dozens of certs meet).
+CRED_WORD = r"(?:certifications?|certificates?|certified|licen[cs]es?|licensure|licensed|designations?)"
+# a credential word naming a topic, not something held: "license applications", "certification programs"
+CRED_TOPIC = (r"(?!\s+(?:applications?|requirements?|renewals?|programs?|process\w*|management|compliance|audits?|"
+              r"regulations?|reviews?|filings?|tracking|status|fundamentals|infrastructure)\b)")
+_ACR = r"(?!(?:I{1,3}|IV|VI{0,3}|IX|X)\b)[A-Z][A-Z0-9&]{1,7}(?:-[A-Z0-9]{1,4})?"
+_SEP = r"\s*(?:,\s*(?:or|and)?|/|\bor\b|\band\b|&)\s*"
+_LIST = rf"{_ACR}(?:{_SEP}{_ACR})*"
+CRED_BEFORE = re.compile(rf"(?<![\w-])({_LIST})\)?\s+{CRED_WORD}\b{CRED_TOPIC}")
+CRED_AFTER = re.compile(rf"\b{CRED_WORD}\s*(?:\(|:|,?\s*(?:such as|e\.g\.,?|eg;?|like|including)\s+)\s*(?:an?\s+|the\s+)?"
+                        rf"({_LIST})(?![\w-])")
+CRED_SPELLED = re.compile(rf"\b(?:Certified|Chartered)\s+[A-Z][\w&-]*(?:\s+[\w&-]+){{0,6}}?\s*\(({_ACR})\)")
+# FINRA / NASAA exams, numbered: "Series 7, 24 and 63", "Series 66(63/65)", "Series 9/10"
+SERIES = re.compile(r"\bSeries\s+\d{1,2}(?:\s*(?:\(|\)|,|/|&|\band\b|\bor\b)\s*(?:Series\s+)?\d{1,2}\b)*")
+ANY_ACR = re.compile(rf"(?<![\w-]){_ACR}(?![\w-])")
+# says nothing about holding it now: a wish, something to earn after hire, an alternative to a degree,
+# a category many certs meet, a line about knowing or handling licences rather than holding one
+CRED_SAYS_NOTHING = re.compile(
+    r"\bplus\b|prefer|nice to have|desir|bonus|ideal|asset|advantag|helpful|not required|a benefit|valued|"
+    r"in (?:place|lieu) of|equivalent|or similar|\bobtain|\bacquir|\battain|\bearn|\bpursu|\bcomplet|"
+    r"\bwithin (?:\d+|one|two|three|six|twelve|the first)\b|progress|working toward|\bwilling|considered|"
+    r"\b8570\b|\b8140\b|^\W*(?:\w+\s+)?(?:experience|knowledge|familiarity|understanding)\b", re.I)
+# "or", "one of", "such as": any one held answers the line; else each named one is asked
+CRED_ANY = re.compile(r"\bor\b|/|one of|such as|e\.g|\blike\b|\betc\b|one or more|at least one|any of", re.I)
+# rules, regulators, programs: never a credential however framed
+NOT_CRED = set("US USA UK EU IT ISO PCI DSS SOC SOX HIPAA GDPR NIST AML BSA KYC OFAC SEC FINRA NFA CFTC OCC FDIC "
+               "GED ID HR QA QC FAA DOT DOD CDL TLS SSL PKI".split())
+# a state before a licence ("TN active RN license") is never named as the ask; still accepted on an
+# either/or line, where MD is the doctor's ("NYSED MD/DO license")
+STATES = set("AL AK AZ AR CA CO CT DE DC FL GA HI IA IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE NH NJ NM NV "
+             "NY OH OK OR PA RI SC SD TN TX UT VA VT WA WI WV WY".split())
+
+
+def _named(group: str) -> list[str]:
+    return [a for a in re.split(_SEP, group) if a and a not in NOT_CRED | STATES]
+
+
+def credentials_asked(text: str) -> tuple[list[str], list[str], bool] | None:
+    """A licence or certification a required line asks to hold: (named, accepted, any_one), or None.
+    named = what the line frames as the credential (said to the user); accepted = named plus every
+    other short form on an either/or line ("AWS Certified Solutions Architect, CISSP, or CISA"), so
+    any one held answers it; any_one False = each named one asked ("Series 7 and 24")."""
+    if CRED_SAYS_NOTHING.search(text):
+        return None
+    named = [f"Series {n}" for m in SERIES.finditer(text) for n in re.findall(r"\d{1,2}", m.group(0))]
+    named += ["SIE"] if re.search(r"\bSIE\b", text) else []
+    named += [a for pattern in (CRED_BEFORE, CRED_AFTER, CRED_SPELLED) for m in pattern.finditer(text)
+              for a in _named(m.group(1))]
+    named = list(dict.fromkeys(named))
+    if not named:
+        return None
+    any_one = bool(CRED_ANY.search(text))
+    accepted = list(dict.fromkeys(named + ([a for a in ANY_ACR.findall(text) if a not in NOT_CRED] if any_one else [])))
+    return named, accepted, any_one
+
+
+def _strings(value) -> list[str]:
+    if isinstance(value, dict):
+        return [s for v in value.values() for s in _strings(v)]
+    if isinstance(value, list):
+        return [s for v in value for s in _strings(v)]
+    return [value] if isinstance(value, str) else []
+
+
+def credential_text(master: dict) -> str:
+    """Their resume details as text, for finding a credential's short form anywhere - a
+    Certifications line, the skills list, a summary - plus the initials of each certification
+    written out in full ("Certified Internal Auditor" -> CIA). Contact details stay out, all but
+    the letters after a name ("Jane Doe, CPA" -> CPA): ranking reads no name (fair-screening.md)."""
+    name = (master.get("contact") or {}).get("name") or ""
+    initials = [name.split(",", 1)[1]] if "," in name else []
+    for cert in master.get("certifications") or []:
+        full = re.sub(r"\s*\([^)]*\)", "", cert.get("name") or "")
+        for words in (re.split(r"[\s/]+", full), re.split(r"[\s/-]+", full)):
+            initials.append("".join(w[0] for w in words if w[:1].isupper()))
+    return "\n".join(_strings({k: v for k, v in master.items() if k != "contact"}) + initials)
+
+
+def holds(credential: str, text: str) -> bool:
+    if credential.startswith("Series "):
+        number = credential.split()[1]
+        return any(number in re.findall(r"\d{1,2}", m.group(0)) for m in SERIES.finditer(text))
+    return bool(re.search(rf"(?<![\w-]){re.escape(credential)}(?![\w-])", text))
+
+
+def credentials_missing(text: str, have: str) -> list[str] | None:
+    """None = the line asks no credential; [] = theirs answers it; else the ones it asks they don't list."""
+    if not (asked := credentials_asked(text)):
+        return None
+    named, accepted, any_one = asked
+    if any_one:
+        return [] if any(holds(c, have) for c in accepted) else named
+    return [c for c in named if not holds(c, have)]
+
+
+def credential_words(missing: list[str], text: str) -> str:
+    """"Series 24", "one of CISSP, CISA", "Series 7 and Series 24" - the ask in the posting's terms."""
+    if len(missing) == 1:
+        return missing[0]
+    if credentials_asked(text)[2]:
+        return "one of " + ", ".join(missing)
+    return ", ".join(missing[:-1]) + " and " + missing[-1]
+
+
 def shortfalls(master: dict, job: dict, today: date) -> list[str]:
     """Plain lines: each minimum ask the resume details visibly miss, quoting the posting."""
     have_years = dated_years(master, today)
@@ -228,11 +342,16 @@ def shortfalls(master: dict, job: dict, today: date) -> list[str]:
     # an entry read as no level (a diploma program, a JD) may be the higher one: can't tell
     known = None not in levels
     held = max((LADDER.index(lv) for lv in levels if lv), default=None)
+    have = credential_text(master)
     out = []
     for req in job.get("requirements") or []:
         if req.get("priority") != "required":
             continue
         text = req["text"]
+        if master and (missing := credentials_missing(text, have)):
+            them, they = ("it", "it") if len(missing) == 1 else ("them", "they")
+            out.append(f"Asks {credential_words(missing, text)} (\"{text}\"). Not in your resume details - "
+                       f"if you hold {them}, {they} can go in there.")
         asked = years_asked(text)
         if asked is not None and have_years is not None and have_years < asked:
             out.append(f'Asks {asked}+ years ("{text}"). Your dated jobs add up to {have_years}.')

@@ -84,11 +84,18 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
   name they chose -> tick "I have a preferred name" and enter it. Say once: their email address or
   LinkedIn may still show their full name.
 - **Sensitive questions** (`prepare` prints `sensitive: <kind>` - birth date, graduation date,
-  criminal history, work break, disability or health, other names): read the exact wording back,
+  criminal history, work break, disability or health, regulatory or disciplinary history, being let
+  go from a job, credit or bankruptcy, other names): read the exact wording back,
   never pick for them (their saved disability answer after their yes aside - above). Required -> answer truthfully; optional -> blank is fine. Criminal history:
   "Answer only what it asks - a conviction or any arrest, how many years back. Sealed or expunged
   records often don't count - rules differ by state; free legal aid can check." Never save a
-  record answer unless they ask.
+  record answer unless they ask. Regulatory history, being let go, credit or bankruptcy (banks and
+  securities firms ask Form U4's questions on the application): answer only what it asks, its own
+  years back; a registered person's answer is checked against their FINRA record (CRD /
+  BrokerCheck), so it must match what was reported there. Never shaded (`AGENTS.md` Hold). Bank
+  jobs: a record's old offences, sealed or expunged ones may not count under FDIC Section 19
+  (`fair-screening.md`). General information, not legal advice - the firm's compliance contact
+  or a securities lawyer has the final word.
 - **Work-break box.** A saved explanation (`career_break[i].explain`) fills it marked "read it
   before Submit" -> read it back before Submit. "Help me explain my break" -> privacy line, draft
   1-2 sentences from their facts only, they approve each word, save to `explain` (never on the page).

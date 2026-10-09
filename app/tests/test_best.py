@@ -162,3 +162,16 @@ def test_resume_file_read_and_match_said(tmp_path, monkeypatch):
     assert f["years"] >= 6 and f["degree"] == 2
     top = best.score([job("strong", STRONG)], CONFIG, NOW, f)[0]
     assert best.reasons(top, CONFIG, NOW).startswith("Matches 5 of 5 asks · pay not listed · remote · posted 1 day ago")
+
+
+# "Active CAMS certification" counted as backed by any certificate ("certification" = half its
+# words), and Series 63 backed Series 24 - numbers never read (2026-10-09)
+def test_a_licence_or_certification_ask_is_backed_only_by_that_one():
+    f = {**facts(), "stems": best.stems(RESUME + " Certified Fraud Examiner (CFE) certification. FINRA Series 63"),
+         "credentials": knockout.credential_text({"certifications": [{"name": "Certified Fraud Examiner (CFE)"},
+                                                                     {"name": "FINRA Series 63"}]})}
+    assert best.backed("Active CAMS certification", f) is False
+    assert best.backed("FINRA Series 24 license", f) is False
+    assert best.backed("FINRA Series 63 license", f) is True
+    assert best.backed("CAMS, CFE, or CRCM certification", f) is True
+    assert best.backed("Bachelor's degree in Accounting and an active CFE designation", f) is True

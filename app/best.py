@@ -81,12 +81,18 @@ def resume_facts(config: dict, today: date) -> dict | None:
     held = max((knockout.LADDER.index(lv) for lv in levels if lv), default=None)
     spoken = " ".join(l.split("(")[0] for l in master.get("languages") or [] if not LANGUAGE_BELOW_WORK.search(l))
     return {"stems": stems(" ".join(parts)), "years": knockout.dated_years(master, today),
+            "credentials": knockout.credential_text(master),
             "degree": held if None not in levels else "unknown", "languages": languages(spoken)}
 
 
 def backed(text: str, facts: dict) -> bool | None:
     """Does the resume back one required ask? None = can't tell from words (a trait everyone
     claims: tailoring shows it w/ a line, bullets.md) => not counted either way."""
+    # a licence or certification is held or not: before this, "Active CAMS certification" counted as
+    # backed by any certificate ("certification" = half its words) and Series 63 backed Series 24
+    missing = knockout.credentials_missing(text, facts["credentials"]) if "credentials" in facts else None
+    if missing:
+        return False
     years = knockout.years_asked(text)
     if years is not None:
         return None if facts["years"] is None else facts["years"] >= years
@@ -100,6 +106,8 @@ def backed(text: str, facts: dict) -> bool | None:
         return asked <= facts.get("languages", set())
     if languages(text):
         return None
+    if missing == []:
+        return True
     if tailor.is_trait(text):
         return None
     tools = named(text)
@@ -185,7 +193,7 @@ def fresh(job: dict, now: datetime, fresh_days: int) -> float:
 
 def demerits(job: dict, config: dict) -> int:
     """Same count rank.rank demotes by: likely ghost (once), level/hours mismatch, no sponsor,
-    clearance they can't hold."""
+    clearance they can't hold, what rank.asks_beyond names (a required licence not on their resume ...)."""
     rc = config["rank"]
     return (bool(rank.doubts(job, rc)) + len(rank.mismatches(job, rc)) + len(job.get("beyond") or [])
             + len(rank.sponsorship(job, config))

@@ -157,3 +157,71 @@ def test_student_shortfalls_name_the_window_and_the_level_they_study_for():
     master["education"][0]["degree"] = "BS"
     master["education"][0]["end"] = "2028-05"
     assert knockout.shortfalls(master, job, GRAD_TODAY) == []
+
+
+# required lines from live compliance, healthcare, finance and security postings (2026-10-09)
+@pytest.mark.parametrize("text, named, any_one", [
+    ("FINRA Series 7 and Series 24 licenses (required)", ["Series 7", "Series 24"], False),
+    ("FINRA Series 24, 7 and 63 licenses", ["Series 24", "Series 7", "Series 63"], False),
+    ("Active SIE, Series 7, and Series 24 licenses", ["Series 7", "Series 24", "SIE"], False),
+    ("FINRA Series 14 or 24", ["Series 14", "Series 24"], True),
+    ("Active CAMS certification", ["CAMS"], False),
+    ("Active CPA license required.", ["CPA"], False),
+    ("Bachelor's degree in Accounting, Finance, or related field and an active Certified Internal Auditor (CIA) designation",
+     ["CIA"], True),
+    ("CISSP, CRISC, CISM, or CISA certification", ["CISSP", "CRISC", "CISM", "CISA"], True),
+    ("Current CMMC certification required: RP, CCP, or CCA.", ["CMMC"], True),
+    ("Current Texas Registered Nurse (RN) with at least four (4) years of full-time emergency care experience "
+     "and an active Texas RN license.", ["RN"], False),
+    ("Required certifications: ACLS, BLS, NIHSS, TN active RN license.", ["RN", "ACLS", "BLS", "NIHSS"], False),
+])
+def test_credentials_asked_reads_what_a_line_asks_to_hold(text, named, any_one):
+    got = knockout.credentials_asked(text)
+    assert (got[0], got[2]) == (named, any_one)
+
+
+# each a first try misread: a firm, a duty, a tool, a level, a topic, a wish, a category, a later step
+@pytest.mark.parametrize("text", [
+    "At least two (2) years of direct compliance experience working for, or providing dedicated compliance "
+    "support to, a Registered Investment Adviser (RIA).",
+    "Support critical day-to-day responsibilities including IAR registrations, communication reviews, OBA's, "
+    "and regulatory filings (ADV's).",
+    "Claude Code: System prompt construction, tool-use permission hardening, CLI credential isolation",
+    "DoD 8570/8140 IAM Level II certification",
+    "Direct experience preparing, reviewing, and submitting spacecraft and/or ground station FCC and NOAA "
+    "license applications to tight timelines.",
+    "TLS/SSL certificates and public key infrastructure fundamentals",
+    "It's an asset if you hold a Certified Anti-Money Laundering Specialist (CAMS) certification",
+    "Additional certifications like RAC (Regulatory Affairs Certification) advantageous",
+    "Relevant certifications (CISA, CISSP, CISM, CIPP, etc.) are helpful but not required",
+    "Professional designation such as CPA, CIA, CISA, etc. or progress towards designation",
+    "Active SIE, Series 7, 24, and 63 or 66 licenses, or attainment of required licenses within the first year",
+    "Series 65 license must be obtained within 90 days of hire",
+    "Working knowledge of HIPAA security requirements, ISO 27001:2022 (including recertification audits), and PCI DSS.",
+    "Valid driver's license and satisfactory driving record",
+])
+def test_credentials_asked_skips_lines_that_ask_no_credential_held_now(text):
+    assert knockout.credentials_asked(text) is None
+
+
+def test_a_credential_is_held_by_its_short_form_anywhere_or_a_certifications_initials():
+    have = knockout.credential_text({"contact": {"name": "Jane Doe, CPA"},
+                                     "certifications": [{"name": "Certified Internal Auditor"},
+                                                        {"name": "FINRA Series 7, 63"}],
+                                     "skills": [{"group": "Tools", "items": ["CISA"]}]})
+    assert knockout.credentials_missing("Active CPA license required.", have) == []
+    assert knockout.credentials_missing("Active CIA designation required.", have) == []
+    assert knockout.credentials_missing("CISSP, CRISC, CISM, or CISA certification", have) == []
+    assert knockout.credentials_missing("FINRA Series 7 and Series 24 licenses (required)", have) == ["Series 24"]
+    assert knockout.credentials_missing("Series 63 license", have) == []
+    assert knockout.credentials_missing("Active CAMS certification", have) == ["CAMS"]
+    assert knockout.credentials_missing("5+ years of compliance experience", have) is None
+
+
+def test_a_credential_shortfall_is_said_quoting_the_posting_only_with_resume_details():
+    job = {"requirements": [{"text": "FINRA Series 7 and Series 24 licenses (required)", "priority": "required"},
+                            {"text": "CAMS certification preferred", "priority": "preferred"}]}
+    assert knockout.shortfalls(master(9, "BS"), job, TODAY) == [
+        'Asks Series 7 and Series 24 ("FINRA Series 7 and Series 24 licenses (required)"). '
+        "Not in your resume details - if you hold them, they can go in there."]
+    assert knockout.shortfalls({}, job, TODAY) == []
