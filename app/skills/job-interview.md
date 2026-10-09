@@ -35,16 +35,21 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
 
 - ONE clickable question, counts from `interview`: "First call - why this job, your background,
   timing" / "Your past work - stories behind the 6 things they ask for" / "Your resume - questions
-  about its lines" / "Skills for this job - 9 asked for, 3 not on your resume". Other covers pay
-  talk or a case question. Another round = a new session; finish this one first.
+  about its lines" / "Skills for this job - 9 asked for, 3 not on your resume". Requirements ask
+  depth in a field (architecture, system design, APIs, clinical, legal ...) -> add "How the work
+  works - 4 lines ask technical depth" (#Depth). Other covers pay talk, a case, or a role-play
+  (you play the stakeholder the posting names - an executive pushing a date, a team refusing work;
+  stay in role, critique after). Another round = a new session; finish this one first.
 - Ask ONE question, then stop. Stay in role - no coaching mid-answer, never finish their sentence.
 - Questions from the posting (none: their resume + the role), never a generic bank: shown
   requirements (practise saying it aloud) and not-shown ones (the struggle happens here, not in
   the room).
 - After each answer, 3-4 lines, no praise padding: did they say what THEY did or what the team did;
   a result, or does it trail off; a number where one plainly exists (never suggest one); one thing
-  to change. Strong -> say so in a clause, move on. Inflating a weak answer makes practice worse
-  than none.
+  to change. Their resume line backing it (`interview` prints it) says more - team size, budget,
+  scope, the result - than the answer did -> say which part it left out. Name the posting's own
+  words the answer met or missed. Strong -> say so in a clause, move on. Inflating a weak answer
+  makes practice worse than none.
 - Pay talk: the posting's stated pay or their own figures only; none stated -> say so, never a
   market figure.
 - Never ask what US equal-employment rules discourage asking (age, family plans, religion,
@@ -54,6 +59,34 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
   lines - strongest answer, one or two fixes. Never a score.
 - Never invent, inflate or imply experience - not in a question, a suggested answer or a critique.
   Reframe what they said; never add to it (`AGENTS.md` #Lead, explain, push back - Hold).
+- Confidential work, practice or debrief (banks, insurers, health, legal, audit): a client's or customer's name, deal
+  terms, a non-public regulator, exam or audit finding, anything that could point to a Suspicious
+  Activity Report -> stop them kindly, steer to scope + outcome ("a regulatory remediation program,
+  14 teams, closed on the agreed date"). Same rule as `job-tailor`; federal law bars revealing a
+  SAR (31 CFR 1020.320(e)). Unsure if they may share a number -> leave it out. General information,
+  not legal advice.
+- Who interviews + what each tests (panel, loop, hiring manager, an outside interviewer such as
+  Amazon's Bar Raiser, values the employer interviews on such as Amazon's Leadership Principles):
+  from the invitation, the posting, or the employer's own hiring pages only - never forums, never
+  your memory of the company. `jobs.py open` the employer's careers page for them; they paste
+  what it says about interviews. Nothing found -> practise the posting; say so.
+
+## Depth - work they led, not built
+
+TPMs, project managers, nurse managers, team leads: postings ask them to talk architecture, system
+design, clinical or legal detail they managed but didn't do themselves.
+- Question at the level they really worked: how the system they delivered fits together, the
+  trade-off the team chose and why, what broke and what they did, the risks + dependencies they
+  tracked. Posting or employer's page asks system design (Amazon's TPM loop does) -> a design
+  prompt from the posting's own work ("design a payments retry service"): they lead with questions,
+  name the parts + what each depends on, scale + failure, trade-offs, how they'd know it works;
+  you answer only what they ask.
+- Honest framing, never pretend hands-on work: "I didn't write the code; I ran the design review
+  where the team chose X over Y because ...". Critique flags any answer that implies they built,
+  coded or diagnosed what they managed (Hold). A gap they can't answer from real work -> say "I'd
+  ask the engineer who owns it", then what they'd do with the answer; never coach a bluff.
+- A posting that asks coding or an engineering degree as a must -> say once what it asks
+  (`interview` lines), never coach around it.
 
 ## Formats
 
@@ -66,9 +99,11 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
   point in the first sentence, done in time. Need more time for a disability -> #Accommodation.
 - Online test (coding, numbers, a work-situation quiz): practise the kind the invitation names, on
   questions you make up for it, before the test. Never one copied from a live test.
-- Case: one prompt fitting the role; they lead, you give data only when asked. Critique: structure
-  stated first, math checked aloud, a recommendation at the end. Convention (consulting firms' own
-  prep pages), not a study.
+- Case: one prompt fitting the role, from the posting's own work (consulting: a business problem;
+  program or project role: plan this program, or rescue one late + over budget); they lead, you
+  give data only when asked. Critique: structure stated first, math checked aloud, a
+  recommendation at the end; a program case adds scope, dependencies, risks, who decides, how
+  they'd know it's back on track. Convention (consulting firms' own prep pages), not a study.
 - Superday or assessment day: several rounds back to back - one round per session, as above. A
   group exercise can't be played in a chat: say so; practise the solo parts.
 - Career fair: a 30-second intro from their resume + the role they want, then one question for
@@ -123,6 +158,16 @@ if they finished before any graduation-date answer.
   withdrawing from other processes once you accept (convention); some schools limit campus
   recruiting after a backed-out acceptance (reneging) - their career centre has the rule. Never
   decide for them. Pay or terms: the offer's own figures; no market figure.
+- Title + level: titles don't line up across employers (Senior at one, Staff at another). Ask the
+  level, who they report to, the scope in writing; compare scope, not the word. Convention.
+- Pay parts: base, bonus, equity - from the offer only. Ask what's guaranteed vs discretionary
+  (bonus target or a promise), the equity vesting schedule + what happens to unvested on leaving.
+  Never estimate what a bonus or stock will be worth.
+- Non-compete, garden leave, notice period, non-solicit: read what they sign before accepting;
+  ask for the agreement now if it isn't with the offer. The FTC's nationwide ban isn't in effect;
+  states set their own rules (Massachusetts: 12 months at most, paid garden leave or other agreed
+  pay, given with the offer). General information, not legal advice - an employment lawyer or
+  their state's labour agency has the final word.
 
 ## Accommodation
 

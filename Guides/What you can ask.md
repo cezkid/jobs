@@ -13,7 +13,8 @@ chat, type, press Enter. You never type commands or edit files.
   "Help me apply to job 3"
 - **Several jobs:** "Make my resume for jobs 2, 5 and 7" - one chat does them in turn
 - **Interviews:** "Practise my interview for job 3" · "I had the interview for job 3 - go through it with me" ·
-  "I have a recorded video interview with Acme - here's the posting" · "Help me practise for a career fair"
+  "I have a recorded video interview with Acme - here's the posting" · "Help me practise for a career fair" ·
+  "Practise the technical round for job 3 - I managed engineers but never coded" · "I got an offer for job 3 - what should I check before I sign?"
 - **No reply yet:** "Write a follow-up for job 3" · "I followed up on job 3"
 - **Where things stand:** "I sent job 3" · "I heard back from job 3" · "Is job 3 still open?" ·
   "Job 3 is closed"
