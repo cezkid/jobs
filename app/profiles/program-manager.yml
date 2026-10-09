@@ -1,0 +1,86 @@
+# Example search for project + program management: a technical program manager (TPM) who comes from
+# delivery, not engineering, looking at banks + fintech. Searched by title, one phrase per pass (the job
+# search has no OR), several passes sharing a tier. Swap phrases + city for the user's.
+# Why not a category: project_management (40,139 US) is mostly plain + construction project managers and
+# coordinators - TPM 66 of its 1,000 newest; business_analysis is a different job (490 of 500 newest
+# titled analyst) and is how analyst jobs reach a PM's list. 2026-10-09, docs/jobs/freehire.md
+# #Project + program management. Count each phrase first (uv run app/jobs.py probe --title ...).
+
+profile:
+  name: technical program manager jobs
+
+passes:
+  # 2026-10-09, US, open: 2,105 (212 remote); Senior / Staff / Principal TPM titles hold the phrase.
+  # "program manager" (12,203, 1,062 remote) holds these too - use it instead only when they'd also take
+  # non-technical program roles (a quarter software / IT; the rest operations, defense, social services)
+  - tier: remote
+    label: Remote US
+    params:
+      q: technical program manager
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # not inside "program manager": technical project manager 844 open (115 remote), IT project manager
+  # 727 (84 remote); IT program manager 170 (16 remote) is
+  - tier: remote
+    label: Remote US - technical project manager
+    params:
+      q: technical project manager
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  - tier: remote
+    label: Remote US - IT project manager
+    params:
+      q: IT project manager
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # New York City 2026-10-09: TPM 152, technical project manager 55, IT project manager 31
+  - tier: local
+    label: New York area
+    states: [NY, NJ]
+    params:
+      q: technical program manager
+      q_fields: title
+      cities: [New York City]
+      sort: posted_at
+      order: desc
+  - tier: local
+    label: New York area - technical project manager
+    states: [NY, NJ]
+    params:
+      q: technical project manager
+      q_fields: title
+      cities: [New York City]
+      sort: posted_at
+      order: desc
+
+blocklist:
+  companies: [jobgether, builtin-integration-sandbox]
+  sources: []
+  # never a category for industry: no filter says "bank" (domains null on half the rows, every JPMorgan
+  # Chase TPM untagged) - their banking work counts through resume match instead
+  categories: []
+  # other kinds of work under these titles - hidden only once the user ticks them, counts said first
+  # (1,000 newest TPM titles, by word: hardware / manufacturing / defense / space ~115 - silicon, vehicle,
+  # mission systems, NPI). Kept a category pass? its analysts: "business analyst", "business systems
+  # analyst" (rank --would-hide each first). Titles match every word in any order (freehire.md #Title
+  # search): this search's first check, 184 open, brought 1 "Non-Technical", 1 "(Non IT)", 1 hardware,
+  # 1 "IT Project Manager, Business Analyst"
+  title_phrases: []
+  title_keep: []
+  employment_types: []
+  # need a US security clearance: 112 of 1,000 newest TPM (defense, space, government)
+  clearance: false
+
+rank:
+  boost_collections: [fortune500]
+  salary_floor_usd: 120000
+  career_level: senior
