@@ -228,6 +228,38 @@ Required lines asking to hold a licence or certification (`knockout.credentials_
 24 / 57 / 63, CAMS, CPA, CIA, CISA, CRISC, CISSP, CPHRM, CTPRP, CBCP, RN. FRM, PRM, CFA, ARM, CPCU
 show up as wishes ("preferred", "a plus") - never read as asked.
 
+## Software engineering kinds
+
+2026-10-09, `countries=us`. Software engineering = many jobs under one name. Categories split it
+by title: newest 1,000 each, `frontend` 1,000 titled front-end, `fullstack` 881 full-stack + 119
+front-end, `backend` 982 back-end, `mobile` 919 mobile, `embedded` 949 systems.
+`software_engineering` (42,421) holds the
+rest: 582 of 1,000 titled plainly ("Senior Software Engineer"), 163 systems, 132 back-end, 49
+infra, 41 data / AI, 16 front-end. A plain title's kind shows only in `skills`: of 582, front-end
+tags (react, typescript, css ...) on 201, back-end / systems tags w/o any front-end one on 225,
+neither 152. Titles filed elsewhere (500 newest each): "ui developer" design 375, frontend 65;
+"ui engineer" design 174, frontend 45; "web developer" software_engineering 308, fullstack 98,
+frontend 43 - real developer jobs (react / javascript / css tags), so a `category=frontend` search
+misses most UI and web developers.
+`skills=` values OR together (react 15,528, typescript 26,504, both 33,981).
+
+Front-end search, remote US: `category=frontend,fullstack` 1,279; `software_engineering` +
+`skills=react,typescript,javascript,angular,vue,nextjs` 1,896, none overlapping, 1,323 plain
+titles; title passes new to both: ui developer 19 of 29, ui engineer 20 of 26, ux engineer 19 of
+22, web developer 24 of 112. `design` + front-end skills: 151, half product designers => title
+passes instead. Shape: `app/profiles/frontend.yml`.
+
+`rank.software_kinds` (`app/software.py`): a title's role words decide (front-end, back-end,
+embedded, mobile, platform, data ...), its language words only when it has none - "Senior Backend
+Engineer (TypeScript)" is back-end (19 of 1,000 `backend` rows read front-end on the language
+alone); plain titles are read off skill tags, sorted lower only on another kind's stack w/ none of
+theirs. As front-end + full-stack: `frontend` + `fullstack` 2,000 of 2,000 kept; `backend` 992 of
+1,000 flagged, `mobile` 993, `embedded` 997 - every one kept names front-end work too ("Front-End/
+Back-End Engineer", "Embedded UI Engineer"). The remote skills pass above: 1,418 kept, 478 lower.
+Plain titles lowered by tags: 18 of 250 mention front-end words anywhere, read by hand mostly
+in passing ("integrate backend services with frontend applications"). Sorted lower, never hidden;
+`blocklist.software_kinds` hides by title only, after the user sees the count.
+
 ## Null facets outside tech (2026-09-19)
 
 Healthcare sample: `seniority` null ~95% of rows, `work_mode` ~85%, `employment_type` ~30%.
@@ -248,6 +280,7 @@ Hard filter drops rows w/ NO data, not rows that fail:
   demote clear mismatches (title words, stated type); null never demoted.
 - `category=frontend,fullstack` cut 247 -> 103, dropped React roles filed under
   `software_engineering`. => tech search by one skill uses `skills=` alone, no `category=`.
+  Kind of software work (front-end, not back-end): [Software engineering kinds](#software-engineering-kinds).
 - `seniority` facet skewed (senior 168, junior 3, middle 6): junior levels live in title string,
   not facet.
 

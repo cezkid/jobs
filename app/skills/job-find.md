@@ -34,6 +34,13 @@ missing -> `job-setup` skill instead.
      `uv run app/jobs.py rank --would-hide "<phrase>"`, tell user the count it hides; read
      the titles - phrase also inside a wider title ("Member of Technical Staff", "Senior/Staff")
      -> `blocklist.title_keep` spares those, say count kept
+   - software jobs of the wrong kind ("I'm front-end, I keep getting back-end / embedded / app
+     jobs") -> `rank.software_kinds` = the kinds they do (any of `app/software.py` KINDS): others
+     sort lower w/ the reason. Missing from their settings -> add it, say so in one line. Want
+     them gone -> each other kind counted w/ `rank --would-hide-kind <kind>`, ONE clickable
+     multiSelect w/ counts -> `blocklist.software_kinds`. Their search has only a category pass
+     -> also the passes of `app/profiles/frontend.yml` (`job-setup` #2): plain "Software
+     Engineer" and UI / web developer titles sit outside the kind's category
    - "too many irrelevant jobs" -> group the open titles by kind of work (back-end, data / AI,
      managers, mobile, testing), count each w/ `rank --would-hide`, ONE clickable multiSelect w/
      counts, then `blocklist.title_phrases` (+ `title_keep` for full-stack / front-end titles caught)

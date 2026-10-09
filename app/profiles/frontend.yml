@@ -1,0 +1,71 @@
+# Software engineering by kind of work: front-end first, full-stack welcome, the rest sorted lower.
+# Software engineering is many jobs under one name, filed four ways (docs/jobs/freehire.md
+# #Software engineering kinds): titles naming front-end / full-stack under their own categories, plain
+# "Software Engineer" titles under software_engineering (their kind shows only in skill tags), UI /
+# UX developer titles mostly under design (75% of "ui developer"), web developers under
+# software_engineering (62%). One category pass finds the first only. Counts: remote US, open, 2026-10-09.
+# Another kind (back-end, mobile ...): same shape w/ its categories + stack (app/software.py KINDS).
+
+profile:
+  name: front-end jobs
+
+# One tier: every pass is the same search seen from another side. Row in two passes keeps the
+# last one's tier - same tier, so order inside it comes from rank.
+passes:
+  - tier: remote
+    label: Remote US
+    params:
+      # 1,279 - titles naming the kind
+      category: [frontend, fullstack]
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  - tier: remote
+    label: Remote US
+    params:
+      # 1,896, none in the pass above; 1,323 plain titles ("Senior Software Engineer"). skills OR
+      # together. Back-end titles tagged react come too (219) - rank.software_kinds sorts them lower
+      category: [software_engineering]
+      skills: [react, typescript, javascript, angular, vue, nextjs]
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # titles filed outside both passes above (design category mostly), new to them: ui developer 19
+  # of 29, ui engineer 20 of 26, ux engineer 19 of 22, web developer 24 of 112. One phrase per pass (no OR)
+  - tier: remote
+    label: Remote US
+    params: {q: ui developer, q_fields: title, work_mode: [remote], countries: [us], sort: posted_at, order: desc}
+  - tier: remote
+    label: Remote US
+    params: {q: ui engineer, q_fields: title, work_mode: [remote], countries: [us], sort: posted_at, order: desc}
+  - tier: remote
+    label: Remote US
+    params: {q: ux engineer, q_fields: title, work_mode: [remote], countries: [us], sort: posted_at, order: desc}
+  - tier: remote
+    label: Remote US
+    params: {q: web developer, q_fields: title, work_mode: [remote], countries: [us], sort: posted_at, order: desc}
+
+blocklist:
+  # jobgether reposter; builtin-integration-sandbox test postings w/o requirements (docs/jobs/freehire.md)
+  companies: [jobgether, builtin-integration-sandbox]
+  sources: []
+  # skill tags leak onto non-engineering roles (skills=react 2026-09-20: Sales Consultant, Payment
+  # Operations Analyst); measure the user's own list before adding more
+  categories: [marketing, sales]
+  title_phrases: []
+  title_keep: []
+  employment_types: []
+  clearance: false
+  # kinds hidden outright by title - only on the user's yes, after rank --would-hide-kind counts it.
+  # Empty: rank.software_kinds already sorts them below every front-end / full-stack job
+  software_kinds: []
+
+rank:
+  # kinds they do; a title naming only others, or a plain title tagged only w/ another kind's stack,
+  # sorts lower w/ the reason ("title says back-end"). Of the 1,896 above: 1,418 kept, 478 lower
+  software_kinds: [frontend, fullstack]
+  # tech employer lists mean something here
+  boost_collections: [fortune500, bigtech, unicorn, yc]
+  salary_floor_usd: 100000

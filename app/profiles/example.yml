@@ -48,6 +48,9 @@ blocklist:
   employment_types: []
   # true = hide jobs the job search flags as needing a US security clearance (government, defense)
   clearance: false
+  # software work: kinds hidden outright by title (app/software.py; preview: uv run app/jobs.py
+  # rank --would-hide-kind backend). A title naming one kind they keep stays ("Java Full Stack")
+  software_kinds: []
 
 # other rank keys + what they do: app/defaults.yml
 rank:
