@@ -18,6 +18,9 @@ there = never ask it again, only confirm (owner 2026-10-08: setup asked too many
 - `work` = their words for the job -> measure it (#1 "which exact roles": every way the title is
   written) and map it to categories yourself; ask the family question only when their words fit
   two families equally.
+  A role whose words also name an industry or a background ("technical program manager at banks",
+  "came up through finance") -> the role is the search; the industry and background are not
+  categories (#2 Project + program management).
 - `level` -> `rank.career_level` (`entry` / `mid` / `senior` / `leader`). `entry` = student
   notes below apply.
 - `hours` -> employment types (`full_time`, `part_time`, `internship` = internship or co-op,
@@ -210,6 +213,31 @@ showing jobs from <company>" any time.
   compliance", import / export, customs sit in legal + management untagged (0 of 157 caught,
   2026-10-08, `app/docs/students.md`). New-grad or entry search: count each w/ `probe --title`,
   offer a title pass (`q` + `q_fields: title`) for the one they want most, say which it leaves out.
+- Project + program management - project manager, program manager, technical program manager
+  (TPM), technical / IT project manager, delivery manager, PMO: title passes, never a category.
+  `project_management` (40,139 US) is mostly plain + construction project managers and
+  coordinators - TPM 66 of its 1,000 newest. Never add `business_analysis`: a different job (490 of
+  its 500 newest titled analyst), and how business analyst jobs reach a PM's list (a PM title pass
+  brings none). Never `category=finance` or `domains=fintech` for "at banks / in finance": finance =
+  analyst + accountant jobs, and `domains` is null on half the rows (every JPMorgan Chase TPM
+  untagged, 2026-10-09) - their industry counts through resume match; say so in one line.
+  Shape: `app/profiles/program-manager.yml`. `probe --title` each form: "technical program
+  manager" (holds Senior / Staff / Principal TPM), "technical project manager", "IT project
+  manager", "program manager" (holds every TPM title - a quarter software / IT, the rest
+  operations, defense, supply chain, social services), "project manager" (26,000+, about a fifth
+  construction / facilities). ONE clickable question with counts: technical program + project
+  roles only (TPM, technical / IT project manager passes) / any program manager role (the broad
+  pass) / project manager roles too. Background they didn't come from ("not an engineer",
+  "never coded") -> nothing to filter: 1 in 3 TPM postings name computer science or engineering in a
+  required line, almost always a degree "or equivalent experience"; a hard "N years as a software engineer" is about 2 in 100 -
+  say that once, no setting. PMP / PgMP / SAFe asks are read: a job asking one their resume lacks
+  sorts lower ("asks PMP, not in your resume"). After the first job check, kinds they don't do,
+  counted w/ `rank --would-hide`: hardware / manufacturing / defense / space (about 1 in 9 TPM
+  titles: silicon, vehicle, mission systems), construction / facilities (project manager passes),
+  "portfolio manager" (at banks = investment management, not a PMO), "non-technical" / "non IT"
+  (a title search matches every word in any order) -> ONE multiSelect,
+  `blocklist.title_phrases` on their yes. Clearance: 112 of 1,000 TPM, 168 of 1,000 program
+  manager - the clearance question below applies.
 - Work with no category of its own - compliance, risk, internal audit, privacy, regulatory
   affairs: search by title, never by the category its jobs seem to sit in. "compliance" titles
   sit in 25+ categories, legal about half - and legal alone also brings lawyers and paralegals;

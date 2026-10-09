@@ -166,6 +166,39 @@ else open. Request fails -> the list's own signals above.
 - Pay on 74 of 308 intern rows (62 hourly, median top $49/hr on this tech-heavy source - never
   typical); 1 says "unpaid" in its first 1,000 characters.
 
+## Project + program management (2026-10-09, `countries=us`)
+
+Titled jobs, open / posted in the last 30 days: project manager 26,319 / 8,749, program manager 12,203 /
+5,379, technical program manager 2,105 / 1,150 (212 remote), delivery manager 1,288, technical project
+manager 844 / 354 (115 remote), program management 746, IT project manager 727 (84 remote), program
+director 311, PMO 300, IT program manager 170. "program manager" holds every TPM title; "technical
+project manager" + "IT project manager" are not in it. New York City: TPM 152, program manager 556;
+Charlotte: program manager 101, TPM 3.
+- Categories: `project_management` 40,139, its 1,000 newest: project manager titles 556, program
+  manager 213, coordinators + assistants 105, TPM 66, technical project manager 21; about a fifth
+  construction / facilities / field by title word. 1,000 newest TPM titles: project_management 902,
+  hardware 33, management 17; "program manager": project_management 878, management 56.
+- Business analysts are a separate job: `business_analysis` 6,859, 490 of its 500 newest titled
+  analyst. 1,000 newest "business analyst" titles: business_analysis 747, data_analytics 95,
+  operations 34, finance 21, project_management 13. A PM title pass brings none (0 analyst titles
+  in 1,000 TPM, 2 "Program Analyst" in 1,000 program manager) => a PM who gets analyst jobs has a
+  `business_analysis` (or data_analytics / finance) pass: never add one for a PM.
+- Kinds by title word (1,000 newest, rough): TPM - software / IT / data / cloud / security ~790,
+  hardware / manufacturing / defense / space ~115; "project manager" - construction / facilities /
+  field ~260, software / IT ~150, plain ~490; "program manager" - 254 software / IT, the rest
+  operations, defense, supply chain, social services (youth, day programs), HR, marketing. Need a
+  clearance: TPM 112 of 1,000, program manager 168, project manager 36. "Portfolio manager" (1,370)
+  in finance = investment management, not a PMO.
+- Industry has no filter. `category=finance` = finance jobs (analysts, accountants), not jobs at
+  banks. `domains` (fintech 15,513 US) is null on 47-56% of PM rows; of 57 TPM rows at banks, card
+  networks, insurers by name, 42 untagged (every JPMorgan Chase row) => never a `domains` filter.
+  Their industry counts through resume match (`best.py`).
+- Engineering background asks, rejected as a rank rule: 225 of 702 TPM postings w/ requirements
+  name CS / engineering in a required line, nearly all a degree "or equivalent" or a "TPM or
+  software engineering" menu; a hard "N years as a software engineer" w/o alternative 20 of 1,249
+  PM postings. PMP / PgMP / SAFe / ITIL asks are read (`knockout.credentials_asked`).
+Shape: `app/profiles/program-manager.yml`.
+
 ## Work with no category: compliance + risk (2026-10-09, `countries=us`)
 
 No `compliance` (or risk, audit, privacy) category among the 47. Titled jobs, open / posted in the
@@ -222,7 +255,7 @@ Hard filter drops rows w/ NO data, not rows that fail:
 
 `q=<words>&q_fields=title` matches titles only. Measured 2026-10-01, `countries=us`:
 
-| title | unquoted | quoted (exact phrase) |
+| title | unquoted | quoted (every word) |
 |---|---|---|
 | nurse | 269 | 111 |
 | registered nurse | 240 | 50 |
@@ -238,6 +271,12 @@ several words match any of them ("staff accountant" 12,818, mostly Staff ... Eng
 `freehire.phrase` always quotes. No OR: `"registered nurse" OR "rn"` -> 24 (titles holding both)
 => one phrase per pass (`cfg.q_problem` rejects a list). `probe --title A --title B` counts each
 form, open + posted in the last 30 days.
+Quoted is every word, any order, word stems - not the phrase as written (2026-10-09): titles not
+holding it literally, "technical project manager" 149 of 844, "IT project manager" 210 of 727,
+"technical program manager" 53 of 1,000, "program manager" 85 of 1,000. Mostly the same job
+("Project Manager - Technical", "Technical Project/Program Manager", "Technical Program
+Management"); a few the opposite ("Non-Technical Project/Program Manager", "Project Manager (Non
+IT)") or another job ("Program Security Manager") - `blocklist.title_phrases` once counted.
 
 ## Companies (2026-10-03)
 

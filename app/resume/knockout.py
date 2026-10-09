@@ -230,25 +230,45 @@ def enrollment_asked(text: str) -> str | None:
 # Risk management added (2026-10-09, 5,003 required lines of 1,768 postings titled risk, risk
 # management, SOX, internal controls, ERM): "CPA required" / "Active CPA." name no credential word ->
 # KNOWN_CRED; "Professional Certification, such as CIA or CPA required" was missed on its capital C.
+# Project + program management added (2026-10-09, 15,562 required lines of 3,700 postings titled
+# program / project manager): 465 name PMP, PgMP, CAPM, Scrum, SAFe, ITIL or Lean - mostly as a method
+# or a wish; 38 now read as asked. Missed before: "PMP" alone, "PMP (Project Management Professional)
+# certification", PgMP / SAFe / ITILv4 (mixed case), two spelled-out names before one "certification",
+# "Certifications - PMP, ITILF". Re-read over 34,284 lines (+ compliance, risk, finance, healthcare,
+# software, security): 16 reads changed, each checked - BLS / ACLS / PALS now named, not "ARC" in brackets.
 # lower case or Capitalised, never a SHOUTED heading ("MINIMUM LICENSURE/CERTIFICATION REQUIRED")
 CRED_WORD = (r"(?:[Cc]ertifications?|[Cc]ertificates?|[Cc]ertified|[Ll]icen[cs]es?|[Ll]icensure|[Ll]icensed|"
              r"[Dd]esignations?|[Cc]harter(?:holder)?s?)")
 # a credential word naming a topic, not something held: "license applications", "certification programs"
 CRED_TOPIC = (r"(?!\s+(?:applications?|requirements?|renewals?|programs?|process\w*|management|compliance|audits?|"
               r"regulations?|reviews?|filings?|tracking|status|fundamentals|infrastructure)\b)")
-_ACR = r"(?!(?:I{1,3}|IV|VI{0,3}|IX|X)\b)[A-Z][A-Z0-9&]{1,7}(?:-[A-Z0-9]{1,4})?"
-_SEP = r"\s*(?:,\s*(?:or|and)?|/|\bor\b|\band\b|&)\s*"
+# PgMP, SAFe, ITILv4: project management credentials written in mixed case (2026-10-09)
+_ACR = r"(?:PgMP|SAFe|ITILv\d|(?!(?:I{1,3}|IV|VI{0,3}|IX|X)\b)[A-Z][A-Z0-9&]{1,7}(?:-[A-Z0-9]{1,4})?)"
+# one way to read each gap: ", " split between two \s* made a long list of short forms ("states of
+# operation (AL, AR, AZ ... WI)", 33 codes) take hours to fail - every rank stalled on it (2026-10-09)
+_SEP = r"\s*(?:,(?:\s*(?:or|and)\b)?|/|\bor\b|\band\b|&)\s*"
 _LIST = rf"{_ACR}(?:{_SEP}{_ACR})*"
-CRED_BEFORE = re.compile(rf"(?<![\w-])({_LIST})\)?\s+{CRED_WORD}\b{CRED_TOPIC}")
+# its name spelled out between may sit in brackets: "PMP (Project Management Professional) certification"
+CRED_BEFORE = re.compile(rf"(?<![\w-])({_LIST})\)?(?:\s*\([A-Z][^()]{{2,60}}\))?\s+{CRED_WORD}\b{CRED_TOPIC}")
 CRED_AFTER = re.compile(rf"\b{CRED_WORD}\s*(?:\(|:|,?\s*(?i:such as:?|e\.g\.,?|eg;?|like|including|as)\s+)\s*(?i:an?\s+|the\s+)?"
                         rf"({_LIST})(?![\w-])")
 CRED_SPELLED = re.compile(rf"\b(?:Certified|Chartered)\s+(?:in\s+)?[A-Z][\w&-]*(?:\s+[\w&-]+){{0,6}}?\s*\(({_ACR})\)")
+# a heading run into its list: "Licensures and Certifications - PMP, ITILF." (plural only: "Certificate -
+# NIH Stroke Scale Training" names a course)
+CRED_HEADING = re.compile(rf"\b(?:[Cc]ertifications|[Ll]icen[cs]es|[Ll]icensures)\s+[-–]\s+({_LIST})(?![\w-])")
+# a name spelled out w/ its short form, then the credential word, maybe after another such name: "Project
+# Management Professional (PMP) or Program Management Professional (PgMP) certification"
+_SPELLED_OUT = r"[A-Z][\w&-]*(?:\s+[A-Z][\w&-]*){1,6}\s*\("
+CRED_NAMED = re.compile(rf"\b{_SPELLED_OUT}({_ACR})\)(?=(?:{_SEP}{_SPELLED_OUT}{_ACR}\))*\s+{CRED_WORD}\b{CRED_TOPIC})")
 # credentials whose short form means nothing else, named on a line that requires them w/o a credential
-# word ("CPA required", "Active CPA.", "CPA or CIA is required"). Not CRM / ARM: also a sales system
-# and a cloud tool ("CRM experience required" - 9 such lines in the risk sample)
+# word ("CPA required", "Active CPA.", "CPA or CIA is required"), or alone on a required line ("PMP").
+# Not CSM / PSM: also Customer Success Manager, Process Safety Management. Not CRM / ARM: also a sales
+# system and a cloud tool ("CRM experience required" - 9 such lines in the risk sample)
 # ... and never years of the work ("7 years of RN or clinical professional experience")
 KNOWN_CRED = re.compile(r"(?<![\w-])(CPA|CIA|CISA|CISM|CISSP|CRISC|CGEIT|CAMS|CFE|CFA|FRM|PRM|CPCU|CRCM|CCEP|CHC|"
-                        r"CIPP|CIPM|CIPT|CRMA|CPHRM|CTPRP|CBCP|CERA|RN)(?![\w-])(?!(?:\s+\S+){0,4}\s+experience)")
+                        r"CIPP|CIPM|CIPT|CRMA|CPHRM|CTPRP|CBCP|CERA|RN|PMP|PgMP|CAPM)(?![\w-])(?!(?:\s+\S+){0,4}\s+experience)")
+# the line is nothing but the credential(s): "PMP", "PMP / CAPM."
+KNOWN_ALONE = re.compile(rf"^\W*{KNOWN_CRED.pattern}(?:{_SEP}{KNOWN_CRED.pattern})*\W*$")
 MUST = re.compile(r"\brequired\b|\bmust\b|\bactive\b|\bcurrent\b|\bvalid\b|\bhold\b|\bpossess|\bmandatory\b|"
                   r"in good standing", re.I)
 # FINRA / NASAA exams, numbered: "Series 7, 24 and 63", "Series 66(63/65)", "Series 9/10"
@@ -257,7 +277,7 @@ ANY_ACR = re.compile(rf"(?<![\w-]){_ACR}(?![\w-])")
 # says nothing about holding it now: a wish, something to earn after hire, an alternative to a degree,
 # a category many certs meet, a line about knowing or handling licences rather than holding one
 CRED_SAYS_NOTHING = re.compile(
-    r"\bplus\b|prefer|nice to have|desir|bonus|ideal|asset|advantag|helpful|not required|benefi|valued|optional|"
+    r"\bplus\b|prefer|recommend|nice to have|desir|bonus|ideal|asset|advantag|helpful|not required|benefi|valued|optional|"
     r"in (?:place|lieu) of|equivalent|or similar|\bobtain|\bacquir|\battain|\bearn|\bpursu|\bcomplet|"
     r"\bwithin (?:\d+|one|two|three|six|twelve|the first)\b|progress|working toward|\bwilling|considered|"
     r"\b8570\b|\b8140\b|^\W*(?:\w+\s+)?(?:experience|knowledge|familiarity|understanding)\b", re.I)
@@ -267,7 +287,7 @@ CRED_ANY = re.compile(r"\bor\b|/|one of|such as|e\.g|\blike\b|\betc\b|one or mor
 # (RAPS)"): never a credential however framed
 NOT_CRED = set("US USA UK EU IT ISO PCI DSS SOC SOX HIPAA GDPR NIST AML BSA KYC OFAC SEC FINRA NFA CFTC OCC FDIC "
                "GED ID HR QA QC FAA DOT DOD CDL TLS SSL PKI RAPS ISACA IIA ACAMS ACFE GARP PRMIA IAPP AHA ASQ "
-               "ISC2 AICPA RIMS".split())
+               "ISC2 AICPA RIMS PMI".split())
 # a state before a licence ("TN active RN license") is never named as the ask; still accepted on an
 # either/or line, where MD is the doctor's ("NYSED MD/DO license")
 STATES = set("AL AK AZ AR CA CO CT DE DC FL GA HI IA IL IN KS KY LA MA MD ME MI MN MO MS MT NC ND NE NH NJ NM NV "
@@ -287,9 +307,9 @@ def credentials_asked(text: str) -> tuple[list[str], list[str], bool] | None:
         return None
     named = [f"Series {n}" for m in SERIES.finditer(text) for n in re.findall(r"\d{1,2}", m.group(0))]
     named += ["SIE"] if re.search(r"\bSIE\b", text) else []
-    named += [a for pattern in (CRED_BEFORE, CRED_AFTER, CRED_SPELLED) for m in pattern.finditer(text)
+    named += [a for pattern in (CRED_NAMED, CRED_BEFORE, CRED_AFTER, CRED_HEADING, CRED_SPELLED) for m in pattern.finditer(text)
               for a in _named(m.group(1))]
-    named += KNOWN_CRED.findall(text) if MUST.search(text) else []
+    named += KNOWN_CRED.findall(text) if MUST.search(text) or KNOWN_ALONE.match(text) else []
     named = list(dict.fromkeys(named))
     if not named:
         return None
@@ -316,7 +336,11 @@ def credential_text(master: dict) -> str:
     name = (master.get("contact") or {}).get("name") or ""
     initials = [name.split(",", 1)[1]] if "," in name else []
     for cert in master.get("certifications") or []:
-        full = re.sub(r"\s*\([^)]*\)", "", cert.get("name") or "")
+        written = cert.get("name") or ""
+        # its own short form in brackets says it: "Program Management Professional (PgMP)" is no PMP
+        if re.search(rf"\((?:{_ACR})\)", written):
+            continue
+        full = re.sub(r"\s*\([^)]*\)", "", written)
         for words in (re.split(r"[\s/]+", full), re.split(r"[\s/-]+", full)):
             initials.append("".join(w[0] for w in words if w[:1].isupper()))
     return "\n".join(_strings({k: v for k, v in master.items() if k != "contact"}) + initials)
