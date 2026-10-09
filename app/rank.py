@@ -36,8 +36,11 @@ ENTRY_TITLE_KEEP = re.compile(r"\bshift (?:lead|leader|supervisor)\b", re.I)
 # the job search tags 87 of 300 real internships full time (summer hours) and 17 part time
 # (2026-10-07, newest intern-titled US rows): the title says what the job is. One way only - a
 # title can keep a job its tag would hide or sort lower, never hide one ("Intern Program Manager")
+# Freelance / temporary titles (2026-10-09, 63 on 3,000 newest video, creative, finance, software,
+# healthcare, marketing US rows): tagged contract 38, part time 15, full time 5, internship 4 => contract
 TITLE_TYPES = (("internship", re.compile(r"(?<!\w)(?:interns?|internships?|co-?op|co op)(?!\w)", re.I)),
-               ("part_time", re.compile(r"(?<!\w)part[- ]time(?!\w)", re.I)))
+               ("part_time", re.compile(r"(?<!\w)part[- ]time(?!\w)", re.I)),
+               ("contract", re.compile(r"(?<!\w)(?:freelancer?|temporary|temp)(?!\w)", re.I)))
 # a student programme titled without an intern word ("2027 Summer Analyst Program", "Rotational
 # Program", "Fellowship", "University New Hire"): 16 of 133 such titles on 442 intern-tagged
 # business rows, 2026-10-08; the other 117 were ordinary jobs (Account Executive, a VP)

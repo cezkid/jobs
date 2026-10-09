@@ -102,7 +102,8 @@ a time, in this order (never batched - shows as tabs).
 
 First, broad:
 - what kind of work - 4 grouped families of `category` values, `multiSelect`. Work with no
-  category of its own (compliance, risk, internal audit, privacy, regulatory affairs) -> no family
+  category of its own (compliance, risk, internal audit, privacy, regulatory affairs) or whose
+  category holds under half of it (video editing, videography, motion graphics) -> no family
   question: title search (#2)
 - where: remote only / remote first / local first / local only
 - full time / part time / internship or co-op / contract, `multiSelect` + "doesn't matter", each
@@ -269,6 +270,29 @@ showing jobs from <company>" any time.
   --would-hide "<word>"`, say the count, `blocklist.title_phrases` on their yes (`title_keep` for a
   title they'd want: "compliance engineer" for a GRC user). 6% of compliance titles need a security
   clearance (30 of 500), risk 4% (36 of 1,000): the clearance question below applies.
+- Video work - editing, shooting, producing, motion graphics, post-production: title passes, never
+  `category=creative` alone. Creative holds 1,270 US jobs, half photographers + game artists, and
+  only 223 of the 500 newest "video" titles (marketing 58, management 43, design 32, the rest in 25+
+  others, 2026-10-09). Shape: `app/profiles/video.yml`. "video" is the broad pass (817 US open,
+  143 remote) - "video editor", "video producer" need no pass of their own; "editor" adds YouTube /
+  short-form / Photographer-Editor titles (556); their branch's own word when its titles skip
+  "video": "videographer" (221, only 14 remote - shooting is on site: offer their city first),
+  "motion designer" (135), "motion graphics", "animator" (mostly games), "content creator" (459 -
+  film-and-post-yourself social roles). Ask ONE clickable multiSelect, 4 options, counts in each:
+  "Which kinds of video work? Tick all that fit, then Submit": editing (long-form, social, news) /
+  shooting (videographer) / producing / motion graphics + animation; social roles that film, edit
+  and post -> "content creator" pass on their yes. Freelance is common: 182 of 1,023 video rows
+  tagged contract, 104 part time (214 full time, 486 untagged) - say the counts at the hours
+  question; freelance / temporary titles count as contract whatever their tag. After the first
+  job check, count what else those words bring w/ `rank --would-hide` and offer ONE multiSelect,
+  4 options w/ counts: video tech + sales (engineer, software, scientist, network / AV technician,
+  sales - streaming + Prime Video teams; about 1 in 4 "video" titles) / technical writers + copy
+  editors / photo editors / news editors -> `blocklist.title_phrases` on their yes (`title_keep` for
+  a title they'd want: "video engineer" for broadcast work). City: New York 122 "video" titles, Los
+  Angeles proper 20 - LA's are in Burbank, Santa Monica, Culver City, Glendale: `probe --city` each,
+  one tier.
+  Their resume should link a reel or portfolio (asked on 204 of 551 video postings w/ requirements):
+  no link in `contact.links` -> ask for it at #3, never make one up.
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).

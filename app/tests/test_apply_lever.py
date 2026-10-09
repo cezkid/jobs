@@ -51,7 +51,7 @@ def test_lever_standard_boxes_keys_and_required_per_tenant():
     assert not a["phone"]["required"] and b["phone"]["required"]  # Phone optional on tenant A only
     assert read("c")["location"]["required"] and not a["location"]["required"]
     assert [a[f"urls[{n}]"]["key"] for n in ("LinkedIn", "GitHub", "Portfolio", "Twitter", "Other")] == \
-        ["linkedin", "github", "website", None, None]
+        ["linkedin", "github", "portfolio", None, None]
     assert a["org"]["key"] is None
     assert "selectedLocation" not in a and "h-captcha-response" not in a  # Lever's own, the captcha
 

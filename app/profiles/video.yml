@@ -1,0 +1,92 @@
+# Example search for video work: editing, shooting, producing, motion graphics. Searched by title, one
+# phrase per pass (the job search has no OR), several passes sharing a tier. Swap phrases + city for
+# the user's.
+# Why not category=creative: 1,270 US jobs, about half photographers + game artists, and only 223 of the
+# 500 newest "video" titles sit there - marketing 58, management 43, design 32, software 22, the rest
+# spread over 25+ (2026-10-09). Count each phrase first (uv run app/jobs.py probe --title ...).
+
+profile:
+  name: video editing jobs
+
+passes:
+  # 2026-10-09, US open / remote: "video" 817 / 143 - Video Editor 263, Video Producer 149, social video,
+  # post-production, Video & Motion Designer. Also titles about video tech (streaming engineers, Prime
+  # Video scientists, video sales) - about 1 in 4 of the 500 newest; hidden only on the user's yes
+  - tier: remote
+    label: Remote US
+    params:
+      q: video
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # "editor" 556 / 138: YouTube Editor, Short-Form Editor, Photographer/Editor + every "Video Editor"
+  # again (one row, same tier). Also technical writer/editors (64 of the 500 newest), photo editors
+  # (48), news and copy editors - offered for hiding after the first check
+  - tier: remote
+    label: Remote US - editor
+    params:
+      q: editor
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # the user's branch when its titles skip "video": "motion designer" 135 / 32, "motion graphics" 32,
+  # "animator" 84 (games mostly), "content creator" 459 (often film-and-post-yourself social roles)
+  - tier: remote
+    label: Remote US - motion
+    params:
+      q: motion designer
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # New York City 2026-10-09: video 122, editor 68, videographer 10. Shooting is mostly on site:
+  # "videographer" 221 US, 14 remote
+  - tier: local
+    label: New York area
+    states: [NY, NJ]
+    params:
+      q: video
+      q_fields: title
+      cities: [New York City]
+      sort: posted_at
+      order: desc
+  - tier: local
+    label: New York area - editor
+    states: [NY, NJ]
+    params:
+      q: editor
+      q_fields: title
+      cities: [New York City]
+      sort: posted_at
+      order: desc
+  - tier: local
+    label: New York area - videographer
+    states: [NY, NJ]
+    params:
+      q: videographer
+      q_fields: title
+      cities: [New York City]
+      sort: posted_at
+      order: desc
+
+blocklist:
+  companies: [jobgether, builtin-integration-sandbox]
+  sources: []
+  categories: []
+  # other work titled video or editor - hidden only once the user ticks them, counts said first
+  # (500 newest US "video" titles 2026-10-09: engineer / developer 67, sales / account 15, software /
+  # product manager 13, network / AV technician 11, scientist 7; 500 newest "editor": technical writer
+  # 64, photo editor 48, social media editor 19, news editor 15, copy editor 8)
+  title_phrases: []
+  title_keep: []
+  employment_types: []
+  clearance: false
+
+rank:
+  boost_collections: [fortune500]
+  salary_floor_usd: 55000

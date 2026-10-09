@@ -18,7 +18,7 @@ KINDS = {"text", "longtext", "email", "phone", "url", "number", "date", "locatio
 # what a question is about when the system marks it (its own system field ids, or a title match)
 KEYS = {"name", "first_name", "middle_name", "last_name", "legal_name", "legal_first", "legal_middle",
         "legal_last", "preferred_name", "preferred_first", "other_names", "email", "phone", "location",
-        "resume", "cover_letter", "linkedin", "github", "website", "street", "city", "state", "zip", None}
+        "resume", "cover_letter", "linkedin", "github", "website", "portfolio", "street", "city", "state", "zip", None}
 # an Education section's boxes, answered from one school in Resume details (question entry = which one)
 EDUCATION = {"school", "degree", "discipline", "school_start_month", "school_start_year", "school_end_month",
              "school_end_year"}
@@ -228,9 +228,17 @@ def key_from_title(title: str, kind: str) -> str | None:
         for key in ("linkedin", "github"):
             if key in t:
                 return key
-        if "website" in t or "portfolio" in t:
+        # "Portfolio", "Website, Blog, or Portfolio", "Demo reel link", "Vimeo": their work. A reel or
+        # samples box only when it asks for a link - "How many Reels have you edited?" is a question
+        if "portfolio" in t or (WORK_LINK.search(t) and (kind == "url" or re.search(r"\b(?:link|url|website)\b", t))):
+            return "portfolio"
+        if "website" in t:
             return "website"
     return None
+
+
+WORK_LINK = re.compile(r"\b(?:demo |show)?reel\b|\bwork samples?\b|\bsamples? of (?:your )?work\b|"
+                       r"\bexamples? of (?:your )?work\b|\byour work\b|\bvimeo\b", re.I)
 
 
 def link(contact: dict, host: str) -> str:
@@ -243,6 +251,21 @@ def link(contact: dict, host: str) -> str:
 
 # profile sites a form asks for by name; any other link on the resume is the user's own website
 PROFILE_HOSTS = ("linkedin.", "github.", "gitlab.", "twitter.", "x.com", "behance.", "dribbble.", "medium.")
+
+
+# where people keep work to be looked at: a reel, a portfolio. Behance + Dribbble are profiles above
+# (never "their website") but a portfolio box wants them first
+PORTFOLIO_HOSTS = ("vimeo.", "youtube.", "youtu.be", "behance.", "dribbble.", "artstation.", "frame.io",
+                   "wistia.", "myportfolio.", "cargo.site", "carbonmade.", "format.com")
+
+
+def portfolio(contact: dict) -> str:
+    """A Portfolio / Reel box: a link on a portfolio site (Vimeo, Behance ...), else their own site.
+    Before this a Behance-only portfolio left the box blank: the box took website(), which skips it."""
+    for host in PORTFOLIO_HOSTS:
+        if found := link(contact, host):
+            return found
+    return website(contact)
 
 
 def website(contact: dict) -> str:
@@ -308,6 +331,7 @@ def from_resume(q: dict, contact: dict) -> str:
         "linkedin": link(contact, "linkedin."),
         "github": link(contact, "github."),
         "website": website(contact),
+        "portfolio": portfolio(contact),
     }
     if q["key"] in by_key:
         return by_key[q["key"]]

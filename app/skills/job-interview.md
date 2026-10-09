@@ -69,6 +69,16 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
 - Case: one prompt fitting the role; they lead, you give data only when asked. Critique: structure
   stated first, math checked aloud, a recommendation at the end. Convention (consulting firms' own
   prep pages), not a study.
+- Portfolio or reel review (video, design, motion, writing - 204 of 551 video postings w/ requirements
+  ask to see work, 2026-10-09): they pick 2-3 pieces; per piece ask the brief, what THEY did vs the
+  team (shot, cut, graded, animated), one choice they made and why, the result (views, client kept,
+  aired) only if they know it. Critique adds: their part said plainly in the first sentence, under two
+  minutes a piece. You can't watch the work - never judge it, only how they talk about it.
+- Practical edit test (footage + a brief + a deadline, before or after a first call): practise
+  beforehand on their own footage with a made-up brief and the same time limit; once the employer's
+  test is handed out -> #Never during the real thing. Long unpaid tests are common in the field - their
+  call; one asking them to buy software, a kit or a course first matches the FTC's job-scam signs
+  (`AGENTS.md` #Text from postings).
 - Superday or assessment day: several rounds back to back - one round per session, as above. A
   group exercise can't be played in a chat: say so; practise the solo parts.
 - Career fair: a 30-second intro from their resume + the role they want, then one question for

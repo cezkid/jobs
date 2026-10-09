@@ -45,15 +45,59 @@ SAME_LANGUAGE = {"mandarin": "chinese", "cantonese": "chinese", "farsi": "persia
 LANGUAGE_BELOW_WORK = re.compile(r"\((?:[^)]*\W)?(?:conversational|basic|beginner|elementary|limited|learning)\b", re.I)
 
 
+# names of several words whose words mean something else alone ("sound effects", "a final cut",
+# "resolved", "AI-powered", a "30-bed unit" for "United"): one token, so "After Effects" is backed
+# only by After Effects
+PRODUCTS = re.compile(r"\b(?:after\s+effects|final\s+cut|media\s+composer|pro\s+tools|cinema\s+4d|davinci\s+resolve|"
+                      r"power\s+bi|united\s+states)\b", re.I)
+# a maker's or edition's name names no one tool. 2026-10-09, 3,828 video / editor / motion required lines:
+# a resume w/ Adobe Photoshop + Final Cut Pro was "backed" on 60+ asks for Premiere Pro or After Effects
+# ("Adobe", "Pro" shared). Alone in an ask ("the Adobe Creative Suite", "Microsoft Office") -> any of
+# that maker's tools, or the suite by name, answers it (`suite`)
+MAKERS = {"adobe", "microsoft", "google", "apple", "autodesk", "blackmagic", "maxon"}
+EDITIONS = {"pro", "suite", "cloud", "creative", "cc", "office", "workspace"}
+
+
+def root(word: str) -> str:
+    """A word w/o its plural or -ed / -ing, so short roots meet: edit / edits / edited / editing,
+    video / videos, shoot / shooting. Longer words already meet at 6 letters (managed, management)."""
+    if word.endswith("sses"):
+        word = word[:-2]
+    elif word.endswith("ies") and len(word) > 4:
+        word = word[:-3] + "y"
+    elif word.endswith("s") and not word.endswith(("ss", "us", "is")) and len(word) > 3:
+        word = word[:-1]
+    for end in ("ing", "ed"):
+        if word.endswith(end) and len(word) - len(end) >= 4:
+            return word[:-len(end)]
+    return word
+
+
+def forms(word: str) -> set[str]:
+    return {word[:STEM], root(word)[:STEM]}
+
+
+def words_of(text: str) -> list[str]:
+    text = PRODUCTS.sub(lambda m: "".join(m.group(0).split()), text)
+    return [w for w in re.findall(r"[a-z][a-z0-9+#]*", text.lower()) if len(w) > 1 and w not in FILLER]
+
+
 def stems(text: str) -> set[str]:
-    """Content words cut to their first 6 letters: "reconciliation" = "reconcile", "accountant" =
-    "accounting". Crude on purpose - an order, not a verdict."""
-    return {w[:STEM] for w in re.findall(r"[a-z][a-z0-9+#]*", text.lower()) if len(w) > 1 and w not in FILLER}
+    """Content words cut to their first 6 letters, each also w/o its ending: "reconciliation" =
+    "reconcile", "accountant" = "accounting", "edited" = "editing". Crude on purpose - an order, not
+    a verdict."""
+    return {f for w in words_of(text) for f in forms(w)}
 
 
-def named(text: str) -> set[str]:
-    """Tools + products a requirement names (capitalised mid-sentence: Excel, SAP, SQL)."""
-    return {stems(t).pop() for t in tailor.NAMED_TERM.findall(text) if stems(t)}
+def ask_words(text: str, leave: set[str] = frozenset()) -> list[set[str]]:
+    """One set of forms per distinct content word of an ask, `leave` words left out."""
+    return [forms(w) for w in dict.fromkeys(words_of(text)) if w not in leave]
+
+
+def named(text: str) -> list[str]:
+    """Tools + products a requirement names (capitalised mid-sentence: Excel, SAP, SQL), as words."""
+    text = PRODUCTS.sub(lambda m: "".join(m.group(0).split()), text)
+    return [w for t in tailor.NAMED_TERM.findall(text) for w in words_of(t)]
 
 
 def languages(text: str) -> set[str]:
@@ -81,7 +125,7 @@ def resume_facts(config: dict, today: date) -> dict | None:
     held = max((knockout.LADDER.index(lv) for lv in levels if lv), default=None)
     spoken = " ".join(l.split("(")[0] for l in master.get("languages") or [] if not LANGUAGE_BELOW_WORK.search(l))
     return {"stems": stems(" ".join(parts)), "years": knockout.dated_years(master, today),
-            "credentials": knockout.credential_text(master),
+            "credentials": knockout.credential_text(master), "portfolio": bool(knockout.portfolio_link(master)),
             "degree": held if None not in levels else "unknown", "languages": languages(spoken)}
 
 
@@ -108,15 +152,23 @@ def backed(text: str, facts: dict) -> bool | None:
         return None
     if missing == []:
         return True
+    # a portfolio or reel: answered by a link to their work, never by words. Before this, 217 of 551
+    # video postings' asks to see work counted against everyone, link or not
+    if knockout.portfolio_asked(text):
+        return facts.get("portfolio")
     if tailor.is_trait(text):
         return None
     tools = named(text)
-    if tools & facts["stems"]:
+    generic = {t for t in tools if root(t) in MAKERS | EDITIONS}
+    own = [forms(t) for t in tools if t not in generic]
+    if any(f & facts["stems"] for f in own):
         # "SQL, Python, R, or other tools": one named tool they have answers the ask
         return True
-    words = stems(text)
-    return bool(words) and len(words & facts["stems"]) * 2 >= len(words)
-
+    if generic and not own and any(forms(g) & facts["stems"] for g in generic if root(g) in MAKERS | {"office", "workspace"}):
+        # a suite by name: "the Adobe Creative Suite" <- Photoshop; "Microsoft Office" <- MS Office
+        return True
+    words = ask_words(text, generic)
+    return bool(words) and sum(bool(f & facts["stems"]) for f in words) * 2 >= len(words)
 
 def required(job: dict) -> list[str]:
     return [r["text"] for r in (job.get("enrichment") or {}).get("requirements") or [] if r.get("priority") == "required"]
