@@ -182,7 +182,8 @@ every request into one tier:
   - Also Hold: a lapsed licence or registration shown as current (a FINRA exam past its 2-year
     window says "passed 2019", not "holds"); an exam part or candidacy shown as the credential
     ("FRM Part I passed", never "FRM"); a client, case or Suspicious Activity Report detail
-    from confidential work (`job-tailor`).
+    from confidential work (`job-tailor`); a film or TV credit above the role held (Assistant
+    Editor shown as Editor - IMDb and end titles list it); a client under NDA named.
   - NOT Hold: lawful "No" for a sealed / expunged record (state law decides; legal aid confirms), a work name they go by, a break line
     left off.
 - **Push back, then respect** - evidence-backed practice they want to override: deleting a job

@@ -19,8 +19,9 @@ import pymupdf
 import typst
 import yaml
 
+import best
 import cfg
-from resume import gaps, handoff, lint, render, report, schema, tailor, typeface
+from resume import gaps, handoff, knockout, lint, render, report, schema, tailor, typeface
 
 WHY_FILE, TASK_FILE, ANSWER_FILE = "letter-why.txt", "letter-task.md", "letter.json"
 MD_FILE = "Cover letter.md"
@@ -79,10 +80,13 @@ def headers_of(master: dict, ids: list[str]) -> list[str]:
 
 
 def never_shows(job: dict, master: dict) -> list[str]:
-    """Requirement words absent from every fact - what the resume has not shown."""
-    corpus = set(re.findall(r"[a-z0-9+#]+", " ".join(lint.master_strings({k: v for k, v in master.items() if k != "contact"})).casefold()))
+    """Requirement words absent from every fact - what the resume has not shown. A word's plural or
+    -ed / -ing form counts as shown (best.root): "edits" and "captions" were barred on a resume
+    saying "Edit" and "caption" (2026-10-09)."""
+    corpus = {best.root(w) for w in re.findall(r"[a-z0-9+#]+", " ".join(
+        lint.master_strings({k: v for k, v in master.items() if k != "contact"})).casefold())}
     words = re.findall(r"[A-Za-z][A-Za-z0-9+#]{2,}", " ".join(r["text"] for r in job["requirements"]))
-    return sorted({w.casefold() for w in words} - corpus - STOPWORDS)
+    return sorted({w.casefold() for w in words if best.root(w.casefold()) not in corpus} - STOPWORDS)
 
 
 def payload(master: dict, job: dict, tailored: dict, why: str) -> str:
@@ -189,9 +193,21 @@ def gates(path: Path, font: str) -> list[tuple[str, bool, str]]:
                 ("typeface", not foreign, f"drawn in another typeface: {foreign}" if foreign else f"every letter in {font}")]
 
 
-def paste_text(master: dict, paragraphs: list[str]) -> str:
-    """For a text box: no contact block (the form has its own fields), no date."""
-    return "\n\n".join([GREETING, *paragraphs, f"{CLOSING}\n{master['contact']['name']}"]) + "\n"
+def paste_text(master: dict, paragraphs: list[str], job: dict | None = None) -> str:
+    """For a text box: no contact block (the form has its own fields), no date. A posting asking to
+    see their work gets the link under the letter - the PDF carries it in its contact block, a box
+    has none ("send your reel and a short note")."""
+    work = [] if job is None else work_line(master, job)
+    return "\n\n".join([GREETING, *paragraphs, *work, f"{CLOSING}\n{master['contact']['name']}"]) + "\n"
+
+
+def work_line(master: dict, job: dict) -> list[str]:
+    """"Reel: vimeo.com/name" when the posting asks to see their work and a link shows it, else none."""
+    asks = [r["text"] for r in job.get("requirements") or [] if knockout.portfolio_asked(r["text"])]
+    link = knockout.portfolio_link({"contact": {"links": master["contact"].get("links") or []}})
+    if not (asks and link):
+        return []
+    return [f"{'Reel' if any(re.search(r'\breel\b', a, re.I) for a in asks) else 'Portfolio'}: {link}"]
 
 
 def job_folder(config: dict, job: str) -> Path:
@@ -234,7 +250,8 @@ def run_check(config: dict, job: str) -> int:
         handoff.failed(data / ANSWER_FILE)
         return 1
     paragraphs = [p["text"].strip() for p in answer["paragraphs"]]
-    (folder / MD_FILE).write_text(paste_text(master, paragraphs), encoding="utf-8")
+    job_data = json.loads((data / "jd.json").read_text(encoding="utf-8"))
+    (folder / MD_FILE).write_text(paste_text(master, paragraphs, job_data), encoding="utf-8")
     font = cfg.resume_font(config)
     pdf = folder / file_name(master)
     pdf.write_bytes(compile_letter(page(master, paragraphs, date.today()), font))

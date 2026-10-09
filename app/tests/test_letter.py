@@ -99,3 +99,24 @@ def test_paste_text_has_no_contact_block(master):
     text = letter.paste_text(master, [p["text"] for p in GOOD["paragraphs"]])
     assert text.startswith("Dear Hiring Team,") and master["contact"]["email"] not in text
     assert text.rstrip().endswith(master["contact"]["name"])
+
+
+def test_a_word_the_resume_says_in_another_form_is_no_gap(master):
+    master["roles"][0]["bullets"][0]["claim"] = "Edit short-form video and caption every clip"
+    job = {**JOB, "requirements": [{"text": "Edits with captions, never seen GraphQL", "priority": "required"}]}
+    never = letter.never_shows(job, master)
+    assert "edits" not in never and "captions" not in never and "graphql" in never
+
+
+def test_a_text_box_letter_points_to_the_reel_the_posting_asks_for(master):
+    master["contact"]["links"] = ["linkedin.com/in/jane", "vimeo.com/janedoe"]
+    paragraphs = [p["text"] for p in GOOD["paragraphs"]]
+    reel = {**JOB, "requirements": [{"text": "Please include a link to your reel", "priority": "required"}]}
+    text = letter.paste_text(master, paragraphs, reel)
+    assert "\n\nReel: vimeo.com/janedoe\n\nSincerely," in text
+    folio = {**JOB, "requirements": [{"text": "Portfolio required", "priority": "required"}]}
+    assert "Portfolio: vimeo.com/janedoe" in letter.paste_text(master, paragraphs, folio)
+    # no ask, or only LinkedIn: nothing added
+    assert "vimeo" not in letter.paste_text(master, paragraphs, JOB)
+    master["contact"]["links"] = ["linkedin.com/in/jane"]
+    assert "linkedin" not in letter.paste_text(master, paragraphs, reel)

@@ -41,6 +41,14 @@ OTHER_FORMATS = {
     ".gdoc": "a Google Docs shortcut",
 }
 SAVE_AS = "Open it and save a copy as Word Document (.docx) or PDF, then drag that onto My Resume."
+# a web address hidden behind a word ("Reel", "Portfolio", "LinkedIn" - the way resume templates and
+# Canva link them): the text alone loses it, and a printed or pasted copy shows the word only. Marked
+# after the word, the AI copies the address into contact.links (import_pdf.SYSTEM); a word that
+# already shows an address keeps no mark
+LINK_MARK = " <link: {}>"
+LINKED = re.compile(r"<link: (\S+?)>")
+SHOWS_ADDRESS = re.compile(r"\w\.[a-z]{2,}", re.I)
+FIELD_LINK = re.compile(r'^\s*HYPERLINK\s+"([^"]+)"', re.I)
 
 
 class NotReadable(ValueError):
@@ -70,9 +78,37 @@ def placeholder(sdt: ElementTree.Element) -> bool:
     return props is not None and any(local(c.tag) == "showingPlcHdr" for c in props)
 
 
-def walk(el: ElementTree.Element, out: list[str]) -> None:
+def address(url: str) -> str:
+    """Web address as a resume writes it: vimeo.com/name, never https://www.vimeo.com/name/."""
+    return re.sub(r"^https?://(?:www\.)?", "", url.strip(), flags=re.I).rstrip("/")
+
+
+def link_mark(label: str, url: str | None) -> str:
+    """Mark for a web link behind `label`, "" when the label already shows an address (or no web link)."""
+    if not url or not url.strip().lower().startswith(("http://", "https://")) or not label.strip():
+        return ""
+    return "" if SHOWS_ADDRESS.search(label) else LINK_MARK.format(address(url))
+
+
+def attr(el: ElementTree.Element, name: str) -> str | None:
+    return next((v for k, v in el.attrib.items() if local(k) == name), None)
+
+
+def walk(el: ElementTree.Element, out: list[str], rels: dict[str, str] | None = None) -> None:
     tag = local(el.tag)
     if tag in SKIP or (tag == "r" and hidden(el)) or (tag == "sdt" and placeholder(el)):
+        return
+    if tag in ("hyperlink", "fldSimple"):
+        # Insert > Link writes <w:hyperlink r:id>, its address in the part's .rels; a pasted link
+        # may come as a simple HYPERLINK field. Its words read as usual, the address marked after them
+        url = (rels or {}).get(attr(el, "id") or "") if tag == "hyperlink" else \
+            (m[1] if (m := FIELD_LINK.match(attr(el, "instr") or "")) else None)
+        inner: list[str] = []
+        for child in el:
+            walk(child, inner, rels)
+        out += inner
+        if mark := link_mark("".join(inner), url):
+            out.append(mark)
         return
     if tag == "p" and out and not out[-1].endswith("\n"):
         # a text box's paragraph sits inside the page's paragraph: its words start a line of their own
@@ -87,7 +123,7 @@ def walk(el: ElementTree.Element, out: list[str]) -> None:
         if re.fullmatch(r"[0-9A-Fa-f]{4}", code):
             out.append(chr(int(code, 16)))
     for child in el:
-        walk(child, out)
+        walk(child, out, rels)
     if tag == "p":
         out.append("\n")
 
@@ -102,8 +138,22 @@ def part_lines(z: zipfile.ZipFile, name: str) -> list[str]:
     if b"<!DOCTYPE" in data[:4096] or b"<!ENTITY" in data:
         raise NotReadable(f"{name} declares XML entities - not a file Word made")
     out: list[str] = []
-    walk(ElementTree.fromstring(data), out)
+    walk(ElementTree.fromstring(data), out, link_targets(z, name))
     return [line.strip() for line in "".join(out).splitlines() if line.strip()]
+
+
+def link_targets(z: zipfile.ZipFile, name: str) -> dict[str, str]:
+    """Relationship id -> address for a part's external links (word/_rels/document.xml.rels)."""
+    folder, _, base = name.rpartition("/")
+    rels = f"{folder}/_rels/{base}.rels"
+    if rels not in z.namelist():
+        return {}
+    with z.open(rels) as f:
+        data = f.read(MAX_PART_BYTES + 1)
+    if len(data) > MAX_PART_BYTES or b"<!DOCTYPE" in data[:4096] or b"<!ENTITY" in data:
+        return {}
+    return {attr(r, "Id"): attr(r, "Target") for r in ElementTree.fromstring(data)
+            if (attr(r, "Type") or "").endswith("/hyperlink") and attr(r, "TargetMode") == "External"}
 
 
 def numbered(z: zipfile.ZipFile, pattern: re.Pattern) -> list[str]:

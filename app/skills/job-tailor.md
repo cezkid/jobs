@@ -74,8 +74,8 @@ Never values / personal here (`AGENTS.md` #About me).
      number, term or grade to fill a line or match a requirement. A bullet with no evidence is a
      question for the user, never a line to fill in.
 3. Read `Check before sending.md` in job folder: "Ready to send?", "What they ask vs your
-   resume" (each need shown by a certificate or degree, a line with a number, a line, or the
-   Skills list only), "What the application asks" (read ahead: questions, written answers,
+   resume" (each need shown by a certificate or degree, a link to their work, a line with a number,
+   a line, or the Skills list only), "What the application asks" (read ahead: questions, written answers,
    topics like pay or sponsorship, a cover letter box), "Asked for, not shown", "In your Skills list only", "Soft skills they ask
    for", "Wording notes", "What changed from your resume". Walk them through "To confirm - is each of these true?" item by item, mirrored title
    + top line included: "New version says you 'led team of 5'; your resume says 'coordinated 5 nurses'. Is
@@ -127,6 +127,17 @@ Wording the user asks about:
   Candidate", "CPA exam: 3 of 4 sections" - never "FRM" or "CFA" alone (GARP certifies FRM after
   both parts + 2 years' work; CFA Institute's charter after all three levels + work). The ranking
   reads "FRM Part I" as not holding FRM.
+- A film or TV credit keeps its role exactly as held: "Assistant Editor, Night Shift" never becomes
+  "Editor" or "edited Night Shift"; Camera Operator is not Director of Photography. Credits are
+  public - IMDb, festival catalogues, a show's end titles - so a reader checks them in a minute. A
+  Credits or Filmography section in their resume details (`other`) prints as written, right after
+  the jobs; tailoring cites a credit as evidence (`other[i].lines[j]`), never rewords one. Guild or
+  union membership (Motion Picture Editors Guild, IATSE Local 700) is an affiliation, not a
+  certification: an `other` line, as they write it.
+- Client under NDA, or a project not out yet: in general terms ("a national beverage brand", "an
+  unreleased streaming docuseries"), never the client's name or the title; saying "under NDA" on
+  the page is their call. A cut from that work goes on their reel only if the client allows it -
+  their contract decides; unsure -> ask them.
 - Confidential work (compliance, AML, investigations, audit, legal, health records): never a
   client's, customer's or investigated person's name, a case or exam finding that isn't public, or
   anything that could point to one Suspicious Activity Report - federal law bars revealing a SAR or

@@ -136,3 +136,23 @@ def test_fact_from_practice_goes_in_their_words_only_once(tmp_path):
     assert "already a line" in gaps.problems(asked, again, master)[0]
     gaps.merge(path, asked, ok, notes)
     assert schema.load(path, notes)["roles"][0]["bullets"][-1]["claim"] == "Cut checkout errors from 30 a week to 5."
+
+
+def test_a_line_whose_only_digits_name_a_camera_or_a_date_is_asked_for_a_number(tmp_path):
+    path = tmp_path / "Resume details.yml"
+    path.write_text("""
+contact: {name: Sam Rivera, email: sam@example.com, location: "Los Angeles, CA"}
+roles:
+- company: Self-employed
+  title: Freelance Video Editor
+  start: 2021-04
+  end: present
+  bullets:
+  - "Kestrel Studios (Jan 2022 - Jun 2023): Assistant Editor on the feature documentary The Long Water"
+  - Shot interviews on Sony FX6 for 30+ clients
+  - Color corrected footage shot on Sony FX3
+""", encoding="utf-8")
+    asked = gaps.questions(schema.load(path, tmp_path / "data" / "resume-index.yml"))
+    assert [q["line"] for q in asked if q["kind"] == "number"] == [
+        "Kestrel Studios (Jan 2022 - Jun 2023): Assistant Editor on the feature documentary The Long Water",
+        "Color corrected footage shot on Sony FX3"]

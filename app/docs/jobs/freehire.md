@@ -255,6 +255,7 @@ Portfolio reader, hand-checked on 6 fields' required lines (video 3,828, creativ
 portfolio", "the NBCUniversal portfolio", Instagram "Reels", slot-machine "reel spins".
 Freelance / temporary titles, 3,000 newest rows over 6 fields: 63; tagged contract 38, part_time 15,
 full_time 5, internship 4 => `rank.TITLE_TYPES` reads them contract.
+Resume side (import, numbers, credits, reel link, letters): `docs/resume/bullets.md` #Video resumes.
 
 ## Software engineering kinds
 

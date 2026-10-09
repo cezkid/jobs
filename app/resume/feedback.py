@@ -28,6 +28,8 @@ STRONG, GOOD, LOOK = "Strong", "Good", "Worth a look"
 # share of lines carrying a number or scope. Career guidance asks for evidence on most lines,
 # not all (docs/resume/bullets.md: "every bullet needs a metric" did not survive) - convention, not measured
 NUMBER_STRONG, NUMBER_GOOD = 0.80, 0.60
+# a maker's name in front of a tool: "Adobe Premiere Pro" and "Premiere Pro" are one tool
+MAKERS = {"adobe", "microsoft", "google", "apple", "autodesk", "blackmagic", "maxon", "avid", "sony", "canon", "dji"}
 # lines showing a quality across the page: two or more reads as a pattern, one as a mention
 SHOWN_STRONG = 2
 # words that show the quality when a line uses them for the candidate's own act. Counted, never
@@ -85,19 +87,29 @@ def unlisted_tools(master: dict) -> list[str]:
     """Tools the lines name (their stack notes) that the Skills list leaves out - a search for one
     finds it only in a line. Measured 2026-10-01 on a real resume: 4, all real tools. The reverse,
     skills no line names (27 of 60 there), is never reported: the full list is where search terms
-    land (docs/resume/page-format.md #Advice declined, "Cut skills to 6-12")."""
-    listed = {lint.norm(p) for g in master.get("skills") or [] for i in g["items"]
-              for p in [i, *re.split(r"\s*/\s*", i)]}
+    land (docs/resume/page-format.md #Advice declined, "Cut skills to 6-12"). A maker's name is no
+    part of the tool: "Premiere Pro" is listed by "Adobe Premiere Pro" and by "Adobe Creative Cloud
+    (Premiere Pro, After Effects)" (2026-10-09: 1 of 6 video tools read as missing that way)."""
+    listed = " | ".join(lint.norm(i) for g in master.get("skills") or [] for i in g["items"])
     tools = [s for e in [*master["roles"], *master.get("projects", [])] for b in e["bullets"] for s in b.get("stack", [])]
-    return sorted({t for t in tools if lint.norm(t) not in listed}, key=str.casefold)
+    return sorted({t for t in tools if not re.search(rf"(?<!\w){re.escape(core(t))}(?!\w)", listed)}, key=str.casefold)
+
+
+def core(tool: str) -> str:
+    """A tool's name w/o its maker in front: "Adobe Premiere Pro" -> "premiere pro"."""
+    words = lint.norm(tool).split()
+    while len(words) > 1 and words[0] in MAKERS:
+        words = words[1:]
+    return " ".join(words)
 
 
 def assess(master: dict, today: date) -> dict:
     lines = bullets(master)
     findings = lint.lint(render.page_model(master), master) + lint.master_findings(master, today)
     counted = [f for f in findings if f.rule in (*WORDING, *EVIDENCE, *PERSONAL, *DATES)]
-    numbered = [(w, c) for w, c in lines if lint.NUMBER.search(c)]
-    bare = [(w, c) for w, c in lines if not lint.NUMBER.search(c)]
+    named = lint.names(master)
+    numbered = [(w, c) for w, c in lines if lint.has_count(c, named)]
+    bare = [(w, c) for w, c in lines if not lint.has_count(c, named)]
     share = len(numbered) / len(lines) if lines else 0.0
     shown = {q: [(w, c) for w, c in lines if re.search(p, c, re.I)] for q, p in QUALITIES.items()}
     gaps = schema.employment_gaps(master, today)

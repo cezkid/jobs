@@ -18,6 +18,8 @@ repo github.com/strelov1/freehire, internal/candidate/coverletter/AGENTS.md) - a
 | 3-4 paragraphs, 250-400 words, one page; "Dear Hiring Team" | Harvard FAS career guide (2026): one page, 3-4 short paragraphs, 250-400 words, shorter usually better; MIT CAPD: at most a page, 3-4 paragraphs | convention |
 | Add what the resume doesn't show; never restate a line | career guides: a letter is not a resume summary | convention |
 | Every number, tool, name from the facts each paragraph cites; never a word the resume never shows | `bullets.md` Tier 1 - anything on paper gets asked about | policy (FAIL) |
+| A word the resume says in another form is shown ("edits" for "Edit", "captions" for "caption") | 22 of 552 gap words on 9 video postings were such forms (2026-10-09, `best.root`) | measured |
+| Posting asks to see their work -> "Reel: vimeo.com/name" (or Portfolio) under a text-box letter, by code | the PDF's contact block carries the link, a form's box has none; video postings ask for "your reel and a short note" (204 of 551 ask to see work, `freehire.md` #Video work) | convention |
 | At most 5 facts | more reads as the resume again | judgement |
 | No "passionate", "excited to apply", "To Whom It May Concern" | generic, unverifiable self-description (Insight Global 2025: generic content is what readers reject) | vendor survey + convention |
 
