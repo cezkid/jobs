@@ -28,7 +28,8 @@ for the user to paste. Options weren't captured: the user picks the matching one
 
 Pay expected, where you live, voluntary questions about you (gender, race, veteran...), and the
 sensitive kinds (date of birth, graduation date, criminal history, work break, disability or
-health - `fair-screening.md`) are marked "ask the user" when prepared. An answer to one must come
+health, regulatory or disciplinary history, being let go from a job, credit or bankruptcy -
+`fair-screening.md`) are marked "ask the user" when prepared. An answer to one must come
 from the user, marked `source: "you said"`; `fill` and `paste` refuse any other - a guess at a
 salary is the user's number on the employer's file. Work permit + sponsorship come only from
 setup's answers, the US question asked the same way (`questions.work_permit`) - and "authorized

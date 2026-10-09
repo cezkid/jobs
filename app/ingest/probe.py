@@ -25,8 +25,51 @@ def probe(client: httpx.Client, base: str, params: dict) -> dict:
             "titles": [f"{r['title'].strip()} | {r.get('company') or '?'}" for r in rows[:SAMPLE_TITLES]]}
 
 
+# A title search's facets, read off the rows themselves: /jobs/facets ignores q_fields (2026-10-09,
+# meta.ignored_params), so its counts match the words anywhere in a posting - "compliance" in titles
+# 3,562 US jobs, its facet counts summed to 61,000+ (management alone 13,666). Newest rows, so a
+# sample: enough to see where a title's jobs sit and which filters drop most of them.
+TITLE_TALLY_ROWS = 500
+ROW_FACETS = {
+    "category": lambda r: (r.get("enrichment") or {}).get("category"),
+    "seniority": lambda r: (r.get("enrichment") or {}).get("seniority"),
+    "employment_type": lambda r: (r.get("enrichment") or {}).get("employment_type"),
+    "visa_sponsorship": lambda r: (r.get("enrichment") or {}).get("visa_sponsorship"),
+    "work_mode": lambda r: r.get("work_mode"),
+    "requires_clearance": lambda r: r.get("requires_clearance"),
+    "cities": lambda r: r.get("cities") or [],
+    "collections": lambda r: r.get("collections") or [],
+}
+
+
+def title_facets(client: httpx.Client, base: str, params: dict) -> dict[str, Counter]:
+    """Tally per facet over the newest TITLE_TALLY_ROWS a title search returns."""
+    rows = []
+    while len(rows) < TITLE_TALLY_ROWS:
+        resp = client.get(f"{base}/jobs/search", params={**freehire.query_params(params), "sort": "posted_at",
+                                                          "order": "desc", "limit": SAMPLE_SIZE, "offset": len(rows)})
+        resp.raise_for_status()
+        body = freehire.understood(resp.json())
+        rows += body["data"]
+        if not body["data"] or len(rows) >= body["meta"]["total"]:
+            break
+    tallies = {}
+    for name, read in ROW_FACETS.items():
+        values = [v for r in rows for v in (read(r) if isinstance(read(r), list) else [read(r)])]
+        tallies[name] = Counter(str(v).lower() if isinstance(v, bool) else v for v in values)
+    return tallies
+
+
 def facet_values(client: httpx.Client, base: str, params: dict, facet: str = "") -> dict[str, list[tuple[str, int]]]:
-    """Every valid value + live count in one call. Beats guessing slugs: unknown slug answers 0, not error."""
+    """Every valid value + live count in one call. Beats guessing slugs: unknown slug answers 0, not error.
+    A title search (q) is tallied off its rows instead (title_facets); None = no value on the row."""
+    if params.get("q"):
+        tallies = title_facets(client, base, params)
+        if facet and facet not in tallies:
+            raise SystemExit(f"{facet!r}: not tallied for a title search. available: {', '.join(sorted(tallies))}")
+        names = [facet] if facet else sorted(tallies)
+        return {n: sorted((("-" if v is None else v, c) for v, c in tallies[n].items()), key=lambda kv: (-kv[1], kv[0]))
+                for n in names}
     resp = client.get(f"{base}/jobs/facets", params=freehire.query_params(params))
     resp.raise_for_status()
     facets = freehire.understood(resp.json())["data"]["facets"]
@@ -108,6 +151,9 @@ def main() -> None:
                 print(f'"{form}": {open_now} open, {recent} posted in the last {RECENT_DAYS} days')
             return
         if args.facets is not None:
+            if params.get("q"):
+                print(f"titles only: tallied over the newest {TITLE_TALLY_ROWS} (the job search's own facet counts "
+                      f"read the words anywhere in a posting); - = not tagged")
             for name, values in facet_values(client, api["base"], params, args.facets).items():
                 shown = values if args.facets else values[:FACET_PREVIEW]
                 line = ", ".join(f"{v} {n}" for v, n in shown)

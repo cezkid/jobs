@@ -104,6 +104,11 @@ else open. Request fails -> the list's own signals above.
 - **`q=` alone matches prose** (2026-09-15). `q=react` returned "Lifecycle Marketing Manager".
   Same for any occupation keyword. `cfg.q_problem` rejects `q` w/o `q_fields: title` - see
   [Title search](#title-search).
+- **Facets ignore `q_fields`** (2026-10-09). `/jobs/facets?q=...&q_fields=title` answers with
+  `meta.ignored_params: [{"param": "q_fields"}]`; without q_fields its counts read the words anywhere
+  in a posting - "compliance" (3,562 US jobs titled it) summed to 61,000+ across categories,
+  management alone 13,666. `probe --facets` with `q` tallies the newest 500 rows itself
+  (`probe.title_facets`); `-` = untagged.
 - **Unknown filter = every job** (2026-09-30). A misspelled param is ignored, not refused:
   `bogus_param=1` -> 798,143 US rows, flagged only in `meta.ignored_params` (`[{"param": ...}]`,
   search + facets). `freehire.understood` stops the pass before anything is stored.
@@ -160,6 +165,35 @@ else open. Request fails -> the list's own signals above.
   internship's year, not a graduation window, never read as one.
 - Pay on 74 of 308 intern rows (62 hourly, median top $49/hr on this tech-heavy source - never
   typical); 1 says "unpaid" in its first 1,000 characters.
+
+## Work with no category: compliance + risk (2026-10-09, `countries=us`)
+
+No `compliance` (or risk, audit, privacy) category among the 47. Titled jobs, open / posted in the
+last 30 days: compliance 3,562 / 1,408 (manager 1,494, analyst 815, officer 396, specialist 177,
+associate 77), regulatory affairs 965, GRC 376, privacy 300, risk analyst 286, internal audit 218,
+regulatory compliance 187, trade compliance 162, AML 124, BSA 61, KYC 37, financial crimes 57,
+sanctions 29, healthcare compliance 30, chief compliance officer 68. 500 newest "compliance": legal
+248, management 73, security 43, project_management 34, finance 15, rest across 20+;
+`work_mode` null 308, remote 94; `requires_clearance` 30. 1,000 newest by title word: security / GRC /
+cyber 112, environmental / safety / fleet 77, trade / import / export 70, housing / grants /
+government 66, engineer 45, tax / payroll 37, quality / validation 35, attorney / counsel 24,
+healthcare 26, broker-dealer / investment 19, AML / BSA / KYC / fraud 15, product manager 13;
+515 general (Compliance Analyst / Manager / Officer). => title passes, one phrase each, one tier
+(`app/profiles/compliance.yml`); a category pass would drop half and add lawyers.
+Risk, open / last 30 days: risk 2,283 / 826 (259 remote), risk manager 1,223, risk & compliance 316,
+risk and compliance 136, risk analyst 286, credit risk 133, technology risk 89, enterprise risk 85,
+IT risk 71, SOX 60, insurance risk 59, operational / fraud risk 47 each, model risk 46, market risk 43,
+third-party risk 42, clinical risk 39, risk adjustment 27 (medical coding), ERM 25. 1,000 newest
+"risk": management 422, security 153, project_management 44, legal 42, sales 37; 135 say compliance
+too; remote 120, clearance 36. By word: security / cyber / IT 193, data / analytics 96, engineer 75
+(insurance risk engineers = loss control), insurance / clinical / patient 70, operational /
+enterprise 65, software / product 57, credit / lending 52, market / treasury / quant 44, third-party
+/ vendor 37, sales 35, fraud / AML 27, model 22, risk adjustment 17; 338 general (Risk Manager).
+Hospital Risk Manager posts often ask an active RN licence.
+Required lines asking to hold a licence or certification (`knockout.credentials_asked`): 38 of
+6,990 compliance, 41 of 5,003 risk (risk, risk management, SOX, internal controls, ERM): Series 7 /
+24 / 57 / 63, CAMS, CPA, CIA, CISA, CRISC, CISSP, CPHRM, CTPRP, CBCP, RN. FRM, PRM, CFA, ARM, CPCU
+show up as wishes ("preferred", "a plus") - never read as asked.
 
 ## Null facets outside tech (2026-09-19)
 

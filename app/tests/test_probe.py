@@ -123,3 +123,27 @@ def test_title_counts_per_form_open_and_last_30_days():
         got = probe.title_counts(client, BASE, {"countries": ["us"]}, ["registered nurse", "RN"])
     assert got == [("registered nurse", 50, 11), ("RN", 19827, 6400)]
     assert all(a["q_fields"] == "title" and a["countries"] == "us" and a["limit"] == "1" for a in asked)
+
+
+# /jobs/facets ignores q_fields (meta.ignored_params, 2026-10-09): a title search's facets came back
+# as an error, and without q_fields they count the words anywhere in a posting. Tallied off the rows
+def test_title_search_facets_are_tallied_off_its_rows_never_the_facets_endpoint():
+    pages = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/v1/jobs/search"
+        assert request.url.params["q"] == '"compliance"' and request.url.params["q_fields"] == "title"
+        pages.append(int(request.url.params["offset"]))
+        rows = [dict(row("Compliance Analyst", category="legal"), work_mode="remote", requires_clearance=True),
+                row("Trade Compliance Manager", category="management"),
+                row("Compliance Officer", category="legal")]
+        return httpx.Response(200, json={"data": rows if pages[-1] == 0 else [], "meta": {"total": 3}})
+
+    with httpx.Client(transport=httpx.MockTransport(handler)) as client:
+        got = probe.facet_values(client, BASE, {"q": "compliance", "q_fields": "title", "countries": "us"})
+        assert got["category"] == [("legal", 2), ("management", 1)]
+        assert got["work_mode"] == [("-", 2), ("remote", 1)]
+        assert got["requires_clearance"] == [("-", 2), ("true", 1)]
+        assert pages == [0], "3 of 3 read: no second page"
+        assert probe.facet_values(client, BASE, {"q": "compliance", "q_fields": "title"}, "category") == {
+            "category": [("legal", 2), ("management", 1)]}

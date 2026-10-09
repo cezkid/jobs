@@ -28,10 +28,14 @@ Never values / personal here (`AGENTS.md` #About me).
    - posting requires US citizenship or a green card and `citizen_or_permanent_resident` is
      false -> same: quote the line first. Unset -> ask once, save the answer.
    - `prepare` prints "minimum asks the resume details don't meet" (years asked vs dated jobs, a
-     degree level vs the highest listed; for a student, a graduation window theirs misses, a degree
+     degree level vs the highest listed; a licence or certification asked - CPA, CAMS, Series 24 - no
+     part of their resume details names; for a student, a graduation window theirs misses, a degree
      level they aren't studying for) -> say each in plain words, quoting the posting, before
      writing; ONE clickable question: Tailor anyway / Skip this job. Never say they'd be screened
-     out - how firm a minimum is varies by employer; their call.
+     out - how firm a minimum is varies by employer; their call. A licence they say they hold ->
+     their Certifications, written as they give it + the short form in brackets ("Certified
+     Anti-Money Laundering Specialist (CAMS)"), the issue date only if they say it; never one they
+     don't hold or one that lapsed shown as current (below).
 2. `prepare` makes `My Jobs/1 To apply/N - Company - Title/` + task file (job already sent ->
    folder stays in its stage; a closed one reopens - prepare says "back in 1 To apply", tell
    them). Do task yourself (`AGENTS.md` #AI writing steps), then
@@ -109,6 +113,21 @@ Wording the user asks about:
   a role opens w/o a number while a later bullet carries one.
 - Licence or certification the posting requires and they hold -> Certifications moves up under
   the summary automatically; the summary may name it too, spelled as the posting spells it.
+- A registration or licence no longer active (a FINRA exam whose registration ended over 2 years
+  ago - 5 in FINRA's Maintaining Qualifications Program; a licence not renewed) -> written as it
+  stands: "Series 7 (passed 2019; not currently registered)". Employers check FINRA's BrokerCheck /
+  CRD and licensing boards. Shown as current = Hold. Unsure -> ask them, never guess.
+- An exam part or candidacy is not the credential: "FRM Part I passed", "CFA Level II
+  Candidate", "CPA exam: 3 of 4 sections" - never "FRM" or "CFA" alone (GARP certifies FRM after
+  both parts + 2 years' work; CFA Institute's charter after all three levels + work). The ranking
+  reads "FRM Part I" as not holding FRM.
+- Confidential work (compliance, AML, investigations, audit, legal, health records): never a
+  client's, customer's or investigated person's name, a case or exam finding that isn't public, or
+  anything that could point to one Suspicious Activity Report - federal law bars revealing a SAR or
+  anything that would reveal one exists (31 U.S.C. 5318(g)(2); 31 CFR 1020.320(e) for banks).
+  Volume and outcome without them read the same: "Cleared 60+ alerts a day; escalated cases to
+  the BSA Officer". A number they aren't sure they may share -> leave it off, their employer's
+  policy decides. General information, not legal advice.
 
 User asks to... (`AGENTS.md` #Lead, explain, push back - say why in plain words, once):
 - Add a skill, tool, number or certification they don't have, or a bigger title -> Hold.

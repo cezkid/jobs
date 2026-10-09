@@ -36,6 +36,10 @@ ASK_FORM_NAME = "ask the user once - legal name or the name on your resume"
 OTHER_PERSON = re.compile(r"\brefer|manager|supervisor|emergency|reference|recruiter|employer|company|school|"
                           r"universit|college|spouse|relative|user ?name|business|organi[sz]ation|pronoun")
 PLAIN_NAME = {"name", "first_name", "middle_name", "last_name"}
+# a question about the applicant's own record ("Have you ever been ...", "Do you have any ..."),
+# never a job duty ("Experience with ...")
+ABOUT_YOU = (r".*\b(?:have you|were you|are you|did you|do you have|has your|ever been|you ever|against you|"
+             r"your (?:credit|personal|finances))\b")
 # questions only the user answers, however well a saved answer seems to fit: the AI names the kind and
 # asks (fair-screening.md). "Are you 18 or older?" is not one - a plain yes/no, answered truthfully.
 SENSITIVE = [
@@ -50,6 +54,22 @@ SENSITIVE = [
                               r"\bexplain any gaps\b")),
     ("disability or health", re.compile(r"\bdisabilit|\bdisabled\b|\bimpairment|reasonable accommodation|"
                                         r"\b(medical|health|mental health) (condition|history|issue|problem)s?\b")),
+    # Form U4's disclosure areas (FINRA Q14: regulatory action, customer complaints, terminations,
+    # bankruptcy, judgments + liens); banks and broker-dealers ask them on the application too. Only
+    # when asked of the applicant: "experience handling customer complaints", "garnishments
+    # processing", "FINRA investigations you supported" are someone's job, not their record
+    ("regulatory or disciplinary history", re.compile(
+        rf"\bstatutory disqualification|\bform u-?[45]\b|(?={ABOUT_YOU}).*(?:\bdisciplin\w* (?:action|proceeding|history)|"
+        r"\b(?:finra|sec|nfa|cftc|regulator|regulatory|self-regulatory|state securities)\b.{0,80}"
+        r"\b(?:action|sanction|bar|barred|fine|fined|censure|suspend|investigat|enforcement)|"
+        r"\bcustomer complaint|\barbitration|"
+        r"\b(?:license|licence|registration|certification)s? (?:\w+ ){0,3}(?:revoked|suspended|denied|surrendered))")),
+    ("being let go from a job", re.compile(
+        rf"(?={ABOUT_YOU}).*\b(?:terminat\w*|discharg\w*|fired|dismissed|let go|"
+        r"(?:asked|permitted|allowed|forced) to resign|resign\w* in lieu)\b")),
+    ("credit or bankruptcy", re.compile(
+        rf"(?={ABOUT_YOU}).*(?:\bbankrupt|\bcredit (?:history|check|report|score)|\bjudgments?\b|\bliens?\b|"
+        r"\bcompromise with (?:your )?creditors|\bdelinquen|\bgarnish|\bdefault\w* on)")),
 ]
 # a student's questions, answered from the school in progress on their resume. The expected date
 # is on the page ("Expected May 2027") and career centres keep it early in career

@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import cfg
 import rank
 from conftest import make_job
+from resume import knockout
 
 CONFIG = cfg.merge(cfg.load(cfg.PROFILES / "example.yml"), {"blocklist": {
     "categories": ["marketing", "sales"], "title_phrases": ["sales and marketing"]}})
@@ -459,3 +460,17 @@ def test_city_tier_drops_rows_naming_only_other_states():
     assert kept == {"dc", "dc2", "va", "md", "multi", "unsure", "bare", "remote"}
     # a tier with no states is never read this way
     assert not rank.far(dict(jobs[7], tier="remote"), config)
+
+
+def test_a_required_licence_their_resume_never_names_sorts_lower_and_says_which(monkeypatch):
+    have = knockout.credential_text({"certifications": [{"name": "Certified Anti-Money Laundering Specialist (CAMS)"}]})
+    monkeypatch.setattr(rank, "resume_credentials", lambda config: have)
+    jobs = [make_job("principal", enrichment=req("FINRA Series 7 and Series 24 licenses (required)"), **usd(150000)),
+            make_job("aml", enrichment=req("Active CAMS certification"), **usd(90000)),
+            make_job("any", enrichment=req("CAMS, CFE, or CRCM certification"), **usd(80000))]
+    ranked = rank.rank(jobs, CONFIG, NOW)
+    assert slugs(ranked) == ["aml", "any", "principal"]
+    assert "asks Series 7 and Series 24, not in your resume" in rank.reasons(ranked[2], CONFIG, NOW)
+    # no resume details yet: nothing to compare, nothing said
+    monkeypatch.setattr(rank, "resume_credentials", lambda config: None)
+    assert slugs(rank.rank(jobs, CONFIG, NOW))[0] == "principal"

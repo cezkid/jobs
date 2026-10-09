@@ -1,0 +1,85 @@
+# Example search for work with no category of its own: compliance + risk management. Searched by
+# title, one phrase per pass (the job search has no OR), several passes sharing a tier. Swap phrases
+# + city for the user's.
+# Why: "compliance" titles sit in 25+ categories - legal holds about half (2026-10-09, 500 newest US:
+# legal 248, management 73, security 43, project_management 34, finance 15), and legal alone also
+# brings lawyers + paralegals. Count each phrase first (uv run app/jobs.py probe --title ...);
+# see where its jobs sit (uv run app/jobs.py probe --facets q=... q_fields=title countries=us).
+
+profile:
+  name: compliance and risk jobs
+
+passes:
+  # 2026-10-09, US, open: "compliance" 3,562 (435 tagged remote) - catches Compliance Analyst / Officer /
+  # Manager / Specialist, trade, healthcare, GRC titles that say compliance
+  - tier: remote
+    label: Remote US
+    params:
+      q: compliance
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # the user's own branch, when its titles skip the word: AML 124 open (8 remote), BSA 61, KYC 37,
+  # "financial crimes" 57, "regulatory affairs" 965, GRC 376, privacy 300, "internal audit" 218
+  - tier: remote
+    label: Remote US - AML
+    params:
+      q: AML
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # "risk" 2,283 open (259 remote): Risk Manager 1,223, Risk Analyst 286, credit / market / model /
+  # operational / third-party / technology risk, "Risk & Compliance" 316 (135 of 1,000 "risk" titles
+  # say compliance too - one row, same tier). 1,000 newest: management 422, security 153, legal 42
+  - tier: remote
+    label: Remote US - risk
+    params:
+      q: risk
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # Chicago 2026-10-09: compliance 93, risk 85
+  - tier: local
+    label: Chicago area
+    states: [IL]
+    params:
+      q: compliance
+      q_fields: title
+      cities: [Chicago]
+      sort: posted_at
+      order: desc
+  - tier: local
+    label: Chicago area - risk
+    states: [IL]
+    params:
+      q: risk
+      q_fields: title
+      cities: [Chicago]
+      sort: posted_at
+      order: desc
+
+blocklist:
+  companies: [jobgether, builtin-integration-sandbox]
+  sources: []
+  categories: []
+  # other kinds of work titled compliance - hidden only once the user ticks them, counts said first
+  # (1,000 newest US "compliance" titles, 2026-10-09: engineer 45, attorney/counsel 24, product
+  # manager 13; branches by word: security/GRC/cyber 112, environmental/safety/fleet 77, trade/import/
+  # export 70, housing/grants/government 66, tax/payroll 37, quality/validation 35. 1,000 newest
+  # "risk": engineer 75 (insurance risk engineers, security), product manager 19, software 21, data
+  # scientist 17, risk adjustment 17 - medical coding, not risk management)
+  title_phrases: []
+  title_keep: []
+  employment_types: []
+  # need a US security clearance: 30 of 500 newest compliance, 36 of 1,000 risk (government work)
+  clearance: false
+
+rank:
+  boost_collections: [fortune500]
+  salary_floor_usd: 70000

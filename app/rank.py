@@ -316,11 +316,16 @@ def required_lines(job: dict) -> list[str]:
     return [r["text"] for r in (job.get("enrichment") or {}).get("requirements") or [] if r.get("priority") == "required"]
 
 
-def asks_beyond(job: dict, config: dict, graduation: str | None, today) -> list[str]:
-    """What a posting's own required lines ask that a student or first-job seeker clearly lacks:
-    3+ years (entry level only) and a graduation window theirs misses. Sorted lower, never hidden."""
+def asks_beyond(job: dict, config: dict, graduation: str | None, today, credentials: str | None = None) -> list[str]:
+    """What a posting's own required lines ask that the user clearly lacks: 3+ years (entry level
+    only), a graduation window theirs misses, a licence or certification their resume details never
+    name ("asks Series 24" - compliance, finance and nursing posts ask these outright; one held from
+    an either/or list answers it). Sorted lower, never hidden."""
     from resume import knockout  # light: the posting's lines only
     out = []
+    if credentials is not None:
+        out += [f"asks {knockout.credential_words(missing, t)}, not in your resume"
+                for t in required_lines(job) if (missing := knockout.credentials_missing(t, credentials))]
     if config["rank"].get("career_level") == "entry":
         asked = [y for t in required_lines(job) if (y := knockout.years_asked(t)) is not None]
         if asked and max(asked) >= ENTRY_MAX_YEARS:
@@ -334,6 +339,16 @@ def asks_beyond(job: dict, config: dict, graduation: str | None, today) -> list[
 def graduation_span(graduation: str, today) -> tuple[int, int]:
     from resume import schema
     return schema.month_index(graduation, today), schema.month_index(graduation, today, end=True)
+
+
+def resume_credentials(config: dict) -> str | None:
+    """Their resume details as text a credential is looked for in; none yet or unreadable => None
+    (nothing to compare: no job is told it asks something they lack)."""
+    from resume import knockout, schema
+    try:
+        return knockout.credential_text(schema.load(cfg.resume_path(config, "master")))
+    except (OSError, ValueError, KeyError):
+        return None
 
 
 def student_graduation(config: dict, today) -> str | None:
@@ -445,14 +460,14 @@ def rank(jobs: list[dict], config: dict, now: datetime | None = None) -> list[di
                                 if not blocked(j, config["blocklist"]) and not too_old(j, rc, now)
                                 and not far(j, config)]), rc, now)
     # read once per list, kept on each row: the sort key, its reasons and best's demerits all read it
-    graduation = student_graduation(config, now.date())
-    kept = [dict(j, beyond=asks_beyond(j, config, graduation, now.date())) for j in kept]
+    graduation, credentials = student_graduation(config, now.date()), resume_credentials(config)
+    kept = [dict(j, beyond=asks_beyond(j, config, graduation, now.date(), credentials)) for j in kept]
     # Order, most decisive first:
     # tier - user's own where-first choice;
     # stale - no fetch returned it in rank.stale_days: probably filled, so below every live row,
     #   yet shown - hiding an open job costs a chance, showing a closed one costs a click;
     # demerits - likely ghost / wrong level / wrong hours / no sponsor for a user who needs one /
-    #   a clearance the user can't hold:
+    #   a clearance the user can't hold / a required licence their resume never names:
     #   a trustworthy fitting job beats any pay;
     # pay floor - user's stated minimum (top of range, so a range spanning it counts);
     # pay - a fact about this job, so it outranks employer lists;

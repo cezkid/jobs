@@ -207,6 +207,14 @@ SENSITIVE = [
     ("Do you have a disability or medical condition we should know about?", "yesno", "disability or health"),
     ("Voluntary Self-Identification of Disability", "choice", "disability or health"),
     ("Will you need a reasonable accommodation to complete the interview?", "yesno", "disability or health"),
+    ("Have you ever been the subject of a FINRA disciplinary action?", "yesno", "regulatory or disciplinary history"),
+    ("Are you subject to a statutory disqualification?", "yesno", "regulatory or disciplinary history"),
+    ("Have you ever been named in a customer complaint or arbitration?", "yesno", "regulatory or disciplinary history"),
+    ("Has your securities license ever been revoked or suspended?", "yesno", "regulatory or disciplinary history"),
+    ("Have you ever been terminated or asked to resign from a job?", "yesno", "being let go from a job"),
+    ("Were you ever discharged or permitted to resign after allegations?", "yesno", "being let go from a job"),
+    ("Have you filed for bankruptcy in the past 10 years?", "yesno", "credit or bankruptcy"),
+    ("Do you have any unsatisfied judgments or liens against you?", "yesno", "credit or bankruptcy"),
     ("Other names used", "text", "other names"),
     ("Have you ever been known by any other names?", "text", "other names"),
 ]
@@ -215,7 +223,13 @@ NEAR_MISSES = ["Are you at least 18 years of age?", "Does your date of birth mak
                "Years of experience with criminal defense cases", "BLS certification for cardiac arrest",
                "Describe a gap analysis you led", "Are you available over spring break?",
                "Experience with medical devices", "Tell us about your health and safety training",
-               "Previous employer name", "Why us?"]
+               "Previous employer name", "Why us?",
+               # someone's job, not their record: compliance, payroll, HR, credit and paralegal postings
+               "Experience handling customer complaints", "Garnishments processing",
+               "Describe FINRA investigations you supported", "Experience with bankruptcy filings",
+               "Years of experience reviewing credit reports", "Why are you leaving your current role?",
+               "Have you ever been employed by Acme?", "Experience with SEC filings",
+               "Describe your experience with disciplinary actions as an HR partner"]
 
 
 @pytest.mark.parametrize("title, kind, want", SENSITIVE)
