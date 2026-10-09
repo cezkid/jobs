@@ -1,8 +1,8 @@
 """Which test files a change can reach: `uv run pytest --changed` runs only those.
 
-The full suite takes ~14 minutes (2,220 tests, 2026-10-08): 75% browser form-filler tests. They
-can't run side by side - 9 timing comparisons failed under 8 workers (pytest-xdist) - so speed comes
-from running fewer. A test file is picked when it changed, or a file it imports (at the top or inside
+The full suite took 16:41 one at a time (2,295 tests, 2026-10-09), 75% browser form-filler tests. In
+parallel (6 workers, a file per worker, conftest xdist_groups; Chrome needs the real home - conftest
+JOBS_TEST_REAL_HOME) it takes ~5 min; the rest of the speed comes from running fewer. A test file is picked when it changed, or a file it imports (at the top or inside
 a function) changed, or a file one of those imports changed (DEPTH). Reaches past imports, each erring wide:
 - a command a test runs through jobs.py (argv "jobs.py", "today" or `jobs.py today`) -> that command's module;
   a test naming `app/launch.py` or another top-level file run as a process -> that module;
@@ -10,7 +10,11 @@ a function) changed, or a file one of those imports changed (DEPTH). Reaches pas
   it counts as changed;
 - any `.md`: test_docs (every link checked); `docs/` or `app/web/`: the site tests;
 - conftest, pyproject.toml, uv.lock, this file: everything.
-An estimate to work fast: the full `uv run pytest` still runs before a fix is sent (CONTRIBUTING).
+An estimate to work fast: the whole suite for the parts touched (`--touched`) still runs before a fix is sent
+(CONTRIBUTING).
+
+`--app` / `--site` split the suite: the rest vs the website's tests (SITE_TESTS); `--touched` = the parts the
+branch changed since main (`parts`). The site's claims about the app run in both (BOTH).
 """
 import ast
 import subprocess
@@ -22,13 +26,36 @@ APP = ROOT / "app"
 TESTS = APP / "tests"
 SKIP = {"tests", "docs", "__pycache__"}
 EVERYTHING = {"app/tests/conftest.py", "app/tests/affected.py", "pyproject.toml", "uv.lock"}
-SITE_TESTS = ("test_site.py", "test_web.py", "test_claims.py")
+# the website's tests (docs/ + app/web/): `--site` runs these, `--app` the rest + BOTH
+SITE_TESTS = ("test_site.py", "test_pages.py", "test_knockout_count.py", "test_letter_count.py")
+SITE_PATHS = ("docs/", "app/web/")
+# the site's sentences about the app (app/web/claims.yml): an app change can break one - in both parts
+BOTH = {"test_site.py::test_site_claims_still_match_the_app"}
 # import steps followed back from a change: 2 = the changed file's own tests + the tests of every
 # file that uses it. Measured on the 2026-10-08 suite (841s): a rank.py change picks 13 test files,
 # 31s, at 2; 31 files, 335s, at 3; 64, 716s, unlimited - the browser form fillers reach rank only
 # 4 steps away (filler -> questions -> tailor -> report -> rank), never through what they test.
 # --changed-depth N widens it
 DEPTH = 2
+
+
+def parts(changed: list[str]) -> set[str]:
+    """Which parts a change touches: "site" (docs/, app/web/), "app" (anything else); none -> both."""
+    out = {"site" if f.startswith(SITE_PATHS) else "app" for f in changed}
+    return out or {"app", "site"}
+
+
+def in_part(nodeid: str, part: str) -> bool:
+    """Test (node id, from app/tests/ or the repo root) belongs to part "app" or "site"."""
+    if nodeid.split("[")[0].rsplit("/", 1)[-1] in BOTH:
+        return True
+    return (nodeid.split("::")[0].rsplit("/", 1)[-1] in SITE_TESTS) == (part == "site")
+
+
+def branch_base(main: str = "main") -> str:
+    """Where this branch left main: --touched compares the whole branch, not only uncommitted work."""
+    return subprocess.run(["git", "-C", str(ROOT), "merge-base", main, "HEAD"], capture_output=True, text=True,
+                          check=True).stdout.strip()
 
 
 def changed_files(ref: str = "HEAD") -> list[str]:
@@ -114,7 +141,7 @@ def select(changed: list[str], depth: int = DEPTH) -> tuple[set[str] | None, lis
         hit |= named
         if f.endswith(".md"):
             tests.add("test_docs.py")
-        if f.startswith(("docs/", "app/web/")):
+        if f.startswith(SITE_PATHS):
             tests |= {t for t in SITE_TESTS if (TESTS / t).exists()}
     users = defaultdict(set)
     for n, p in known.items():

@@ -7,7 +7,10 @@ from pathlib import Path
 
 # before any app module is imported: paths built from the home folder at import time land in a
 # throwaway one, never the owner's ~/.claude.json, VS Code settings or Desktop icon
-REAL_HOME = os.environ.get("HOME", "")
+# a parallel worker (pytest-xdist) starts from the main process's env, HOME already the throwaway one: the real
+# home comes down through JOBS_TEST_REAL_HOME - else Chrome under the throwaway home hangs (8 of 8, 2026-10-09)
+REAL_HOME = os.environ.get("JOBS_TEST_REAL_HOME") or os.environ.get("HOME", "")
+os.environ["JOBS_TEST_REAL_HOME"] = REAL_HOME
 FAKE_HOME = Path(tempfile.mkdtemp(prefix="jobs-test-home-"))
 for _name in ("HOME", "USERPROFILE"):
     os.environ[_name] = str(FAKE_HOME)
@@ -77,16 +80,50 @@ def pytest_addoption(parser):
                           "affected.py says how. Full run before sending a fix")
     parser.addoption("--changed-depth", type=int, default=None, metavar="N",
                      help="import steps followed back from a change (default 2: its tests + its users' tests)")
+    # flags, not --part <name>: a separate word is read as a test path before this file loads (option unknown)
+    parser.addoption("--app", action="store_true", help="all but the website's tests (affected.SITE_TESTS)")
+    parser.addoption("--site", action="store_true", help="only the website's tests (docs/, app/web/)")
+    parser.addoption("--touched", action="store_true",
+                     help="--app, --site or both: the parts this branch changed since main (affected.parts)")
 
 
+# parallel (pyproject: --dist loadgroup): a file's tests share a worker, so its module browser starts once - but
+# test_apply_in_window alone ran ~270 s, the whole run's floor: its tests go round 2 workers. Measured 2026-10-09,
+# 6-core Mac, full suite: 1 worker 16:41; 8 workers 6:00; 8 + split in 3 7:34 (CPU-bound: each worker runs a
+# Chrome, 3 s page waits ran out); 6 workers 5:33; 6 + split in 2 4:49
+SPLIT = {"test_apply_in_window.py": 2}
+
+
+def xdist_groups(items):
+    seen = {}
+    for item in items:
+        name = item.path.name
+        if name in SPLIT:
+            seen[name] = seen.get(name, -1) + 1
+            name = f"{name}#{seen[name] % SPLIT[name]}"
+        item.add_marker(pytest.mark.xdist_group(name))
+
+
+@pytest.hookimpl(tryfirst=True)  # before xdist's own, which reads the groups
 def pytest_collection_modifyitems(config, items):
+    import affected
+    reporter = config.pluginmanager.get_plugin("terminalreporter")
+    chosen = {p for p in ("app", "site") if config.getoption(f"--{p}")}
+    if config.getoption("--touched"):
+        chosen |= affected.parts(affected.changed_files(affected.branch_base()))
+    if chosen:
+        dropped = [i for i in items if not any(affected.in_part(i.nodeid, p) for p in chosen)]
+        if dropped:
+            config.hook.pytest_deselected(items=dropped)
+            gone = set(dropped)
+            items[:] = [i for i in items if i not in gone]
+        reporter and reporter.write_line(f"parts: {' + '.join(sorted(chosen))}: {len(items)} tests")
+    xdist_groups(items)
     ref = config.getoption("--changed")
     if ref is None:
         return
-    import affected
     changed = affected.changed_files(ref)
     keep, why = affected.select(changed, config.getoption("--changed-depth") or affected.DEPTH)
-    reporter = config.pluginmanager.get_plugin("terminalreporter")
     if keep is None:
         reporter and reporter.write_line(f"--changed: {why[0]}: all {len(items)} tests")
         return

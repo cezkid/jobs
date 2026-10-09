@@ -340,9 +340,13 @@ maintainer or other users - git ignores them, `/report-defect` gates check it.
   editorial rules `app/docs/research.md`.
 
 Every command: `uv run app/jobs.py <command>`; bare `uv run app/jobs.py` lists them.
-Tests: while working `uv run pytest --changed` - only tests a change can reach (its own + its
-users'; seconds for most changes, `app/tests/affected.py`); `uv run pytest` whole (~14 min, live
-gates hit freehire API) once before a fix is sent upstream.
+Tests (parallel by default, 6 workers; one test or a debugger: `-n 0`): while working `uv run pytest
+--changed` - only tests a change can reach (its own + its users'; seconds for most changes,
+`app/tests/affected.py`); before a fix is sent upstream, `uv run pytest --touched` - whole suite
+for the parts the branch changed (`--app`: program, `--site`: website `docs/` + `app/web/`; both
+~5 min, live gates hit freehire API). Before any suite run: look for a speed-up first (slow
+setup repeated per test, fixed waits, a cache) - owner allows merging, combining or dropping
+tests for dev speed, coverage kept (`pytest --durations=30` shows where time goes).
 
 ## Students
 
@@ -442,7 +446,7 @@ Defect = bug, crash, wrong result or misleading doc in TRACKED file (code, `app/
 `app/defaults.yml`, skill, doc). User's own search settings too wide or narrow = not defect.
 
 On finding one:
-1. Fix cause locally, add/adjust test, run `uv run pytest`.
+1. Fix cause locally, add/adjust test, run `uv run pytest --touched`.
 2. ASK user, plain words: "I found and fixed a problem in CEZ Job Finder itself. Want me to send the
    fix to the maintainer so everyone gets it? Only the code change goes - none of your resume or
    search details."

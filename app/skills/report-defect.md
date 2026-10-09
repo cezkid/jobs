@@ -62,7 +62,7 @@ settings baked into tests or docs; replace w/ neutral values.
 
 ## Gate 3 - green
 
-`uv run pytest` green on branch. Tail goes into PR template `Test run`.
+`uv run pytest --touched` green on branch. Tail goes into PR template `Test run`.
 
 ## Ship
 

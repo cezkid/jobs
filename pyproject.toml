@@ -19,8 +19,11 @@ dev = [
     # app/web/pages.py (site build); already locked through rich, declared so it can't drop out
     "markdown-it-py>=4.2",
     "pytest>=9.1.1",
+    "pytest-xdist>=3.8.0",
 ]
 
 [tool.pytest.ini_options]
 pythonpath = ["app"]
 testpaths = ["app/tests"]
+# parallel, a file per worker (conftest xdist_groups: why 6); one test or a debugger: add -n 0
+addopts = "-n auto --maxprocesses 6 --dist loadgroup"

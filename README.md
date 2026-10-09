@@ -59,7 +59,8 @@ uv run app/jobs.py find
 ```
 
 Every command: `uv run app/jobs.py <command>`; bare call lists them.
-Tests: `uv run pytest` (live gates hit freehire API).
+Tests: `uv run pytest` (parallel, ~5 min; live gates hit freehire API); `--changed` only what a change
+reaches, `--app` / `--site` / `--touched` one part of the suite.
 Search settings merge over `app/defaults.yml`; `JOBS_CONFIG=<path>` points elsewhere.
 All code under `app/`; root = user folders, `Guides/`, `docs/` (install page, GitHub Pages).
 

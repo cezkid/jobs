@@ -26,3 +26,20 @@ def test_data_files_docs_and_test_setup():
     assert "test_docs.py" in picked("app/skills/job-setup.md")
     assert picked("app/tests/conftest.py") is None and picked("pyproject.toml") is None
     assert picked("app/tests/test_rank.py") == {"test_rank.py"}
+
+
+def test_a_site_change_runs_every_site_test():
+    # SITE_TESTS named two files that never existed and left test_pages out (2026-10-09)
+    assert all((affected.TESTS / t).exists() for t in affected.SITE_TESTS)
+    assert set(affected.SITE_TESTS) <= picked("docs/index.html")
+
+
+def test_parts_split_the_suite_site_vs_app_claims_in_both():
+    assert affected.parts(["app/rank.py", "AGENTS.md"]) == {"app"}
+    assert affected.parts(["docs/index.html", "app/web/pages.py"]) == {"site"}
+    assert affected.parts(["docs/index.html", "app/rank.py"]) == affected.parts([]) == {"app", "site"}
+    site, app = "app/tests/test_pages.py::test_x", "app/tests/test_rank.py::test_y[a]"
+    assert affected.in_part(site, "site") and not affected.in_part(site, "app")
+    assert affected.in_part(app, "app") and not affected.in_part(app, "site")
+    claims = "app/tests/test_site.py::test_site_claims_still_match_the_app"
+    assert affected.in_part(claims, "app") and affected.in_part(claims, "site")

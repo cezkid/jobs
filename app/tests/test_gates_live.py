@@ -61,6 +61,7 @@ def test_tui_launches_and_filters_senior_plus(polled):
     async def scenario():
         app = tui.JobsApp(db_file, config)
         async with app.run_test(size=(160, 50)) as pilot:
+            await pilot.pause()  # screen fully drawn first: under a parallel run's load, #detail-body wasn't yet
             levels = app.query_one("#seniority", SelectionList)
             levels.deselect_all()
             for i in range(levels.option_count):

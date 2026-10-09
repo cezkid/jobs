@@ -92,9 +92,13 @@ def test_dates_spelled_in_english_without_the_clock():
 
 # --- articles from Markdown: a copy of the real site + throwaway sources in tmp_path ---
 
+import atexit  # noqa: E402
+import functools  # noqa: E402
 import re  # noqa: E402
 import shutil  # noqa: E402
 import subprocess  # noqa: E402
+import tempfile  # noqa: E402
+from pathlib import Path  # noqa: E402
 
 import pytest  # noqa: E402
 
@@ -208,13 +212,31 @@ REGISTRY = """\
 REGISTRY = REGISTRY.replace("authors: [Quillian, Lincoln,", 'authors: ["Quillian, Lincoln",')
 
 
-def research_site(root, extra=None, reviews=None, registry=REGISTRY):
-    """Real docs/ (minus what pages.py builds) + sources in app/web/research + one repo doc to link.
-    Every published source gets a publish review unless reviews names it (None = no review file)."""
+@functools.cache
+def site_template() -> Path:
+    """Real docs/ (minus what pages.py builds) + the css sources + one git-tracked repo doc to link, made once per
+    run: ~220 tests copied docs/ and ran git init + add each (39 s of git, 2026-10-09)."""
+    root = Path(tempfile.mkdtemp(prefix="jobs-site-template-"))
+    atexit.register(shutil.rmtree, root, ignore_errors=True)
     shutil.copytree(cfg.ROOT / "docs", root / "docs",
                     ignore=lambda d, names: [n for n in names if n.startswith(".") or
                                              (d == str(cfg.ROOT / "docs") and n in ("research", "about", "sitemap.xml"))])
     shutil.copytree(cfg.ROOT / "app" / "web" / "css", root / "app" / "web" / "css")
+    (root / "app" / "docs").mkdir()
+    (root / "app" / "docs" / "site.md").write_text("# Site\n\n## Look\n")
+    # repo links must name a file git tracks
+    subprocess.run(["git", "init", "-q", str(root)], check=True)
+    subprocess.run(["git", "-C", str(root), "add", "app/docs/site.md"], check=True)
+    return root
+
+
+def research_site(root, extra=None, reviews=None, registry=REGISTRY):
+    """Real docs/ (minus what pages.py builds) + sources in app/web/research + one repo doc to link.
+    Every published source gets a publish review unless reviews names it (None = no review file)."""
+    # called twice on one root: its .git is the template's already (git's objects are read-only - never copied over)
+    template, has_git = site_template(), (root / ".git").exists()
+    shutil.copytree(template, root, dirs_exist_ok=True,
+                    ignore=lambda d, names: [".git"] if has_git and d == str(template) else [])
     folder = root / "app" / "web" / "research"
     folder.mkdir(parents=True)
     (folder / "reviews").mkdir()
@@ -232,11 +254,6 @@ def research_site(root, extra=None, reviews=None, registry=REGISTRY):
             path.write_text(text, encoding="utf-8")
     if registry is not None:
         (folder / "sources.yml").write_text(registry, encoding="utf-8")
-    (root / "app" / "docs").mkdir()
-    (root / "app" / "docs" / "site.md").write_text("# Site\n\n## Look\n")
-    # repo links must name a file git tracks
-    subprocess.run(["git", "init", "-q", str(root)], check=True)
-    subprocess.run(["git", "-C", str(root), "add", "app/docs/site.md"], check=True)
     return folder
 
 
