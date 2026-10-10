@@ -29,6 +29,11 @@ LEADS = r"manager|director|head|chief|vp|svp|evp|vice[- ]president|officer|presi
         r"supervisor|superintendent|dean|executive director"
 # support roles even beside a leader's title: "Executive Assistant to the Chief People Officer"
 SUPPORT_ALWAYS = r"executive assistants?|assistants? to|administrative (?:assistant|coordinator)s?|admin coordinators?"
+# a first-rung title, numbered: "Information Security Analyst I", "Tier 1 SOC Analyst", "Help Desk Level 1",
+# "L1". 2026-10-09, 5,248 US security rows: 85 (76 end in "I"). Below senior + leader unless the title also
+# says senior or leads ("Sr. Cybersecurity Engineer I"); a DoD cert level in a title ("IAT Level I") is no rung
+FIRST_RUNG = re.compile(r"(?<![\w&-])I(?=\s*(?:$|[-,(|/–:]))|(?i:\btier[\s-]*(?:1|i)\b|\blevel[\s-]*(?:1|i)\b|\bL1\b)")
+DOD_LEVEL_IN_TITLE = re.compile(r"(?i)\b(?:IAT|IAM|IASAE)[\s-]*(?:Level[\s-]*)?(?:III|II|I|[123])\b")
 # level -> (words above it, words below it)
 LEVEL_MISMATCH = {
     "entry": (rf"senior|sr|principal|lead|{_TOP}", None),
@@ -313,6 +318,11 @@ def below_leader(title: str) -> bool:
     return bool(words(SUPPORT_ALWAYS).search(title)) or bool(words(_SUPPORT).search(title)) and not words(LEADS).search(title)
 
 
+def first_rung(title: str) -> bool:
+    """"Security Analyst I", "Tier 1 SOC Analyst" - not "Sr. Engineer I", "Analyst II", "IAT Level I"."""
+    return bool(FIRST_RUNG.search(DOD_LEVEL_IN_TITLE.sub(" ", title))) and not words(rf"senior|sr|principal|lead|staff|manager|{_TOP}|{LEADS}").search(title)
+
+
 def mismatches(job: dict, rc: dict) -> list[str]:
     out = []
     level = rc.get("career_level") or ""
@@ -320,7 +330,8 @@ def mismatches(job: dict, rc: dict) -> list[str]:
     title = job.get("title") or ""
     if above and words(above).search(ENTRY_TITLE_KEEP.sub(" ", title) if level == "entry" else title):
         out.append("title above your level")
-    if below and words(below).search(title) or level == "leader" and below_leader(title):
+    if below and words(below).search(title) or level == "leader" and below_leader(title) \
+            or level in ("senior", "leader") and first_rung(title):
         out.append("title below your level")
     wanted, kind = rc.get("employment_types") or [], job_type(job)
     # an intern title below a mid-level user's level already says it: one doubt, not two
@@ -345,12 +356,19 @@ def asks_beyond(job: dict, config: dict, graduation: str | None, today, credenti
     """What a posting's own required lines ask that the user clearly lacks: 3+ years (entry level
     only), a graduation window theirs misses, a licence or certification their resume details never
     name ("asks Series 24" - compliance, finance and nursing posts ask these outright; one held from
-    an either/or list answers it; one their resume says lapsed is "not current"). Sorted lower, never hidden."""
+    an either/or list answers it; one their resume says lapsed is "not current"), an active clearance above
+    the one their resume shows ("asks an active TS/SCI clearance, your resume shows a Secret clearance").
+    Sorted lower, never hidden."""
     from resume import knockout  # light: the posting's lines only
     out = []
     if credentials is not None:
         out += [f"asks {knockout.credential_words(missing, t)}, {knockout.missing_words(missing, credentials)}"
                 for t in required_lines(job) if (missing := knockout.credentials_missing(t, credentials))]
+        # an active clearance at a level (or a polygraph) their resume doesn't show - once per job. Not for one
+        # who can't hold any: the clearance demerit already says it
+        if can_hold_clearance(config) is not False and \
+                (short := next(filter(None, (knockout.clearance_short(t, credentials) for t in required_lines(job))), None)):
+            out.append(f"asks {short[0]}, {short[1]}")
     if config["rank"].get("career_level") == "entry":
         asked = [y for t in required_lines(job) if (y := knockout.years_asked(t)) is not None]
         if asked and max(asked) >= ENTRY_MAX_YEARS:
@@ -407,8 +425,13 @@ def sponsorship(job: dict, config: dict) -> list[str]:
 
 def clearance(job: dict) -> list[str]:
     """Job asks for a US security clearance (the job search's own flag: Secret, TS/SCI,
-    polygraph...; 45,763 US jobs 2026-10-01). Named on every such job, so a user can see it."""
-    return ["needs a security clearance"] if job.get("requires_clearance") else []
+    polygraph...; 45,763 US jobs 2026-10-01), or a required line does where the flag is missing (10 of
+    549 senior security postings asking one, 2026-10-09). Named on every such job, so a user can see it."""
+    from resume import knockout  # light: the posting's lines only
+    if job.get("requires_clearance") or any(knockout.SECURITY_CLEARANCE.search(t) and not knockout.CLEARANCE_WISH.search(t)
+                                            for t in required_lines(job)):
+        return ["needs a security clearance"]
+    return []
 
 
 # What a posting says about its employer, named on the job when the user asked for that kind

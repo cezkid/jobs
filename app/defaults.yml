@@ -115,7 +115,8 @@ rank:
   # setup answers; a title/type that clearly contradicts them sorts lower, never hidden.
   # career_level: entry | mid | senior | leader | null (any). Titles w/o level words untouched;
   # leader also sorts lower individual-contributor + support titles (coordinator, generalist,
-  # specialist, assistant ...) unless the title names a role that leads (rank.below_leader).
+  # specialist, assistant ...) unless the title names a role that leads (rank.below_leader);
+  # senior + leader sort numbered first rungs lower ("Analyst I", "Tier 1" - rank.first_rung).
   career_level: null
   # any of full_time part_time contract internship fellowship; [] = doesn't matter.
   # Rows w/o employment_type (~30-45%) never demoted.

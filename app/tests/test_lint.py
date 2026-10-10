@@ -401,7 +401,8 @@ def test_typo_named_with_its_likely_word_and_field_terms_left_alone(master, mode
     for fine in ("Precepted 6 nurses on a 32-bed med-surg unit in Epic",
                  "Advertised expertise across the enterprise in Vue",
                  "Won 2 sponsors: Rockin' Robin Diner, Globex",
-                 "Helped onboard 3 engineers to Vue"):
+                 "Helped onboard 3 engineers to Vue",
+                 "Led a 12-person cyber protection team; ran pentest and smishing drills in Vue"):
         assert found(lint.lint(with_bullet(copy.deepcopy(model), fine), master), "spelling") == [], fine
 
 

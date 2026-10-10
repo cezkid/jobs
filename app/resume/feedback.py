@@ -39,7 +39,9 @@ QUALITIES = {
     "Leadership": r"\b(led|lead|leading|mentor\w*|coach\w*|train(ed|ing)?|onboard\w*|manag(ed|ing)|"
                   r"supervis\w*|direct(ed|ing)|head(ed|ing)|hired|delegat\w*)\b",
     "Initiative": r"\b(launch\w*|start(ed|ing)|found(ed|ing)|introduc\w*|propos\w*|initiat\w*|"
-                  r"establish\w*|pioneer\w*|set up|creat(ed|ing))\b",
+                  # "stood up the vulnerability management program": security + government for starting one
+                  # (2026-10-09, a made-up director of cyber defense read 0 initiative lines); never a stand-up meeting
+                  r"establish\w*|pioneer\w*|set up|stood up|stand(ing)? up (a|an|the)|creat(ed|ing))\b",
     "Teamwork": r"\b(collaborat\w*|partner\w*|align\w*|coordinat\w*|cross-functional|"
                 r"teams?|stakeholders?|with (the )?(designers?|engineers?|product))\b",
 }

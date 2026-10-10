@@ -188,6 +188,14 @@ Then narrowing what they picked:
   `work_authorization.can_hold_clearance` true / false / null. No -> they sort lower, never
   hidden; every such job says "needs a security clearance" either way. Can hold one but don't
   want government / defense work -> `blocklist.clearance: true` hides them (say the count).
+  Yes and they hold one now (a cyber search: 1 in 4 jobs need one): its level goes on their
+  resume as they'd say it on a form - their own `other` section, heading "Security Clearance",
+  one line ("Active TS/SCI with CI polygraph", "Secret, inactive since 2024") - never guessed,
+  never higher (`AGENTS.md` Hold). Their resume says none -> ask once at #3 ("Do you hold a
+  clearance now? Level and active or not - it goes on your resume as you'd say it on a form").
+  Why: 503 of 5,248 security postings ask one already held, at a level (TS/SCI 174, Top Secret
+  140, Secret 189; a polygraph 59); the list sorts a job asking more than theirs lower and says so
+  ("asks an active TS/SCI clearance, your resume shows a Secret clearance"), never hidden.
 
 Companies they never want to see: don't ask up front - nothing to name yet. Blocklist
 `jobgether` + `builtin-integration-sandbox` w/o asking, but say why in one sentence when you
@@ -315,6 +323,33 @@ showing jobs from <company>" any time.
   the first job check, other work the words bring, counted w/ `rank --would-hide` ("people":
   engineers, product, designers, data scientists, "People Solutions" sales) -> ONE multiSelect,
   `blocklist.title_phrases` on their yes.
+- Cybersecurity / information security - security engineer, architect, SOC + incident response,
+  threat hunting, red team / pentest, GRC, identity, product + application security, CISO track:
+  `category=security` is the base (unlike compliance or video, it holds the field: 4,904 of its
+  4,976 US jobs in 30 days carry a security title, 2026-10-09). Shape: `app/profiles/cybersecurity.yml`
+  - per tier the category + title passes "cyber" (207 of 688 outside it: Cyber SOC Manager, Sr
+  Manager - Cyber Defense) and "information security" (65 of 620: ISO / ISSM titles in management).
+  Never a plain "security" title pass: 2,368 of its 5,347 rows sit outside the category, ~400 of
+  them cyber - the rest physical security, guards, security sales, "Employment Security", and
+  "... with Security Clearance" (a job board's tag on any cleared job - the job check drops a
+  title whose word is only in it). Product / application security engineers filed under software
+  (+83 "product security", +64 "security engineering" titles) -> a pass each on their yes, counted.
+  Level: "senior" for an expert who does the work (Senior / Staff / Principal / Architect - analyst I
+  and Tier 1 titles sort lower), "leader" for director / head / CISO (analyst + specialist titles sort
+  lower). Kinds, ONE clickable multiSelect w/ counts from `probe --facets` or the titles: security
+  engineering + architecture / detection + incident response (SOC, threat hunting, DFIR) / offensive
+  (red team, pentest) / GRC + audit / identity / product + application security / leadership -
+  kinds they don't pick: nothing to filter (one category), say they all stay; after the first job
+  check, other work counted w/ `rank --would-hide` ("Security Operations Center Officer" = hospital
+  + guard dispatch, "Armed", sales titles) -> `blocklist.title_phrases` on their yes. Remote 841 of
+  4,976 (122 need a clearance); cleared work sits around DC (Washington 310, Arlington 93, McLean 58,
+  Reston 56, Fort Meade - the job search calls it "Maryland City" - 53): offer their area as a tier.
+  The clearance question below always applies (1 in 4 jobs). Pay: postings that state a yearly range
+  top out around $202k for senior / staff / principal titles (median; p25 $172k), $250k for
+  director / VP / chief (p25 $204k) - bands around theirs, counted. Certifications are read off
+  their resume: Security+, CySA+, CISSP and its concentrations (ISSAP / ISSEP / ISSMP), GIAC, OSCP,
+  DoD 8570 levels ("IAT Level II" - any cert on DoD's chart for it answers) - a missing one sorts a
+  job lower ("asks a DoD IAM Level II certification, not in your resume").
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).

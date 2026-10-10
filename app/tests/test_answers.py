@@ -26,7 +26,9 @@ def test_age_gate_apart_from_an_age_range_and_how_you_heard_one_topic():
 
 def test_work_permit_sensitive_and_demographics_never_kept():
     for title in ("Are you authorized to work in the United States?", "Will you require visa sponsorship?",
-                  "What is your date of birth?", "What is your gender?", "Where are you currently located?"):
+                  "What is your date of birth?", "What is your gender?", "Where are you currently located?",
+                  "Do you have an active TS/SCI clearance?", "What level of security clearance do you hold?",
+                  "Have you completed a polygraph?"):
         assert answers.key(q(title)) is None, title
 
 

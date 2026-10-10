@@ -21,7 +21,7 @@ demerit. Ties: listing id order => same list reads the same every time.
 | pay (0.2) | place among the listed pay of the jobs scored; under their pay floor halves it; not listed 0.25 | Their own floor (setup answer). Unknown pay sits below a listed middle, not favoured. Under the floor = hidden unless let back in a thin week (`pay-filter.md`) |
 | where (0.15) | their own where-first order (search settings passes): first 1, last 0 | Their stated preference, nothing inferred |
 | fresh (0.15) | 1 posted today, linear to 0 at `fresh_days` (21); posting date = freehire's first sighting, else when it reached their list | Owner: "newer jobs are better". Old postings are more often filled or ghost (`freehire.md` reality, stale). Convention |
-| demerit (-0.15 each) | rank's own: likely ghost, level/hours mismatch (internships only: a title naming no internship, early-career level or student programme), no sponsor, clearance they can't hold, a student's "asks 3+ years" / graduation window missed, a required licence or certification their resume details never name - "asks Series 24" (`rank.asks_beyond`, `knockout.credentials_asked`) | Same signals rank already demotes by |
+| demerit (-0.15 each) | rank's own: likely ghost, level/hours mismatch (internships only: a title naming no internship, early-career level or student programme), no sponsor, clearance they can't hold, a student's "asks 3+ years" / graduation window missed, a required licence or certification their resume details never name - "asks Series 24" (`rank.asks_beyond`, `knockout.credentials_asked`), an active clearance above the one their resume shows (`knockout.clearance_short`) | Same signals rank already demotes by |
 
 ## Freshest first
 

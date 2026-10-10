@@ -1,0 +1,95 @@
+# Example search for cybersecurity / information security at senior or leader level: security engineers +
+# architects, detection + response, red team, GRC, identity, product security, CISO track. The job search's
+# own `security` category is the base - unlike compliance or video work, it holds the field: 4,904 of its
+# 4,976 US jobs posted in 30 days carry a security title (2026-10-09; the rest hospital "Security Operations
+# Center Officer" dispatch + armed incident-response guards). Two title passes add cyber jobs filed elsewhere
+# (management, software, architecture): "cyber" 207 of 688 (Cyber SOC Manager, Sr Manager - Cyber Defense),
+# "information security" 65 of 620 (ISO / ISSM titles in management). Swap passes + city for the user's.
+# Why not a plain "security" title pass: 2,368 of its 5,347 rows sit outside the category and only ~400 are
+# cyber work - physical security managers, guards, security sales, Social / Employment Security, and 763
+# "... with Security Clearance" titles (a job board's tag on any cleared job; dropped at the job check).
+# docs/jobs/freehire.md #Cybersecurity.
+
+profile:
+  name: cybersecurity jobs
+
+passes:
+  # 2026-10-09, US, posted in 30 days: security category 4,976 (841 tagged remote)
+  - tier: remote
+    label: Remote US
+    params:
+      category: [security]
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # "cyber" titles 688 in 30 days (82 remote) - 207 outside the category; "cybersecurity" is its own word
+  # (1,098) and sits in the category 1,068 times: no pass of its own
+  - tier: remote
+    label: Remote US - cyber
+    params:
+      q: cyber
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # "information security" 620 in 30 days (86 remote), 65 outside the category (Information Security Manager,
+  # ISSM in management)
+  - tier: remote
+    label: Remote US - information security
+    params:
+      q: information security
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # Washington DC area 2026-10-09, security category in 30 days: Washington 310, Arlington 93, McLean 58,
+  # Reston 56, Maryland City (the job search's name for Fort Meade) 53, Ashburn 32, Bethesda 30, Herndon 30,
+  # Alexandria 23. City names match in any state (Arlington TX, Columbia SC): states keeps the area's own
+  - tier: local
+    label: DC area
+    states: [DC, VA, MD]
+    params:
+      category: [security]
+      cities: [Washington, Arlington, McLean, Reston, Herndon, Chantilly, Ashburn, Alexandria, Bethesda, Maryland City, Columbia]
+      sort: posted_at
+      order: desc
+  - tier: local
+    label: DC area - cyber
+    states: [DC, VA, MD]
+    params:
+      q: cyber
+      q_fields: title
+      cities: [Washington, Arlington, McLean, Reston, Herndon, Chantilly, Ashburn, Alexandria, Bethesda, Maryland City, Columbia]
+      sort: posted_at
+      order: desc
+
+blocklist:
+  companies: [jobgether, builtin-integration-sandbox]
+  sources: []
+  categories: []
+  # other work these words bring - hidden only once the user ticks them, counts said first: hospital + guard
+  # "Security Operations Center Officer" dispatch, "Incident Response Manager (Armed)", "Executive Assistant -
+  # CISO" (sorts below a leader anyway); "cyber" titles: Cyber sales + account executives
+  title_phrases: []
+  title_keep: []
+  employment_types: []
+  # 1 in 4 need a US security clearance: 1,181 of 4,976 category jobs, 122 of the 841 remote (2026-10-09).
+  # true only for one who can hold one but doesn't want government / defense work
+  clearance: false
+
+rank:
+  boost_collections: [fortune500]
+  # postings stating a yearly range in their text, top of range (2026-10-09): senior / staff / principal /
+  # lead / architect titles median $202k (p25 $172k, 1,108 of 1,964), director / VP / chief / head $250k
+  # (p25 $204k, 149 of 290)
+  salary_floor_usd: 160000
+  # senior: intern / junior / "Analyst I" / "Tier 1" titles sort lower (85 numbered first-rung titles in 5,248);
+  # leader also sorts analyst + specialist titles lower unless they lead
+  career_level: senior
+
+work_authorization:
+  # setup asks it for a cyber search every time it matters (1 in 4 jobs): true = has one or can get one
+  can_hold_clearance: null

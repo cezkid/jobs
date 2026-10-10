@@ -116,6 +116,11 @@ else open. Request fails -> the list's own signals above.
 - **Unknown filter = every job** (2026-09-30). A misspelled param is ignored, not refused:
   `bogus_param=1` -> 798,143 US rows, flagged only in `meta.ignored_params` (`[{"param": ...}]`,
   search + facets). `freehire.understood` stops the pass before anything is stored.
+- **A job board's clearance tag in titles** (2026-10-09). adzuna appends "with Security Clearance" to any
+  cleared job's title ("Software Developer III with Security Clearance"): 814 of 5,347 US "security" titles
+  in 30 days, 734 of them not security work; 392 of 2,320 "security engineer" titles; the job search's
+  `requires_clearance` on 279 of the 814. `freehire.pay_word_only` drops a row whose searched word sits only
+  in the tag; `normalize` sets the clearance flag from it.
 - **Every link tagged** (2026-09-30). `url` carries `utm_source=freehire.me` (1431 of 1431 stored
   rows); a link copied from the employer's page doesn't. `store.link_key` drops `utm_*` before
   comparing; links stay as served.
@@ -272,6 +277,42 @@ Required lines asking to hold a licence or certification (`knockout.credentials_
 6,990 compliance, 41 of 5,003 risk (risk, risk management, SOX, internal controls, ERM): Series 7 /
 24 / 57 / 63, CAMS, CPA, CIA, CISA, CRISC, CISSP, CPHRM, CTPRP, CBCP, RN. FRM, PRM, CFA, ARM, CPCU
 show up as wishes ("preferred", "a plus") - never read as asked.
+
+## Cybersecurity + information security (2026-10-09, `countries=us`)
+
+Titled jobs, open / posted in the last 30 days: security 12,205 / 5,347, security engineer 4,815 / 2,320,
+cybersecurity 2,727 / 1,098, cyber 2,000 / 688, information security 1,483 / 620, security analyst 1,348,
+cyber security 1,053, identity 719, security architect 670, cloud security 652, devsecops 638, security
+operations 625, product security 468, IAM 467, threat 441, application security 423, GRC 373, incident
+response 285, security director 285, vulnerability 259, detection 226, red team 132, penetration tester 129,
+SOC analyst 114, infosec 108, CISO 83, chief information security officer 80, director of security 79, head of
+security 41, VP security 33. "cyber" does not hold "cybersecurity" (word stems).
+- `category=security` 12,100 open, 4,976 posted in 30 days: 4,904 security titles; the rest hospital / guard
+  "Security Operations Center Officer" dispatch, "Incident Response Manager (Armed)", "Executive Assistant -
+  CISO". Every CISO, head and director title found by a title pass was already in it. => the base pass
+  (`app/profiles/cybersecurity.yml`).
+- Outside it: "cyber" adds 207 of 688 (management 30, software 26, untagged 22: Cyber SOC Manager, Sr Manager -
+  Cyber Defense), "information security" 65 of 620 (54 management: ISO, ISSM), "cybersecurity" 30 of 1,098.
+  "security engineer" adds 745 - 392 of them the clearance tag above, the rest security software engineers
+  and plain software engineers ("Software Engineer (Security)"); "product security" 83, "security
+  engineering" 64 (Security Engineering Manager), "security program manager" 84 - a pass each on the user's
+  yes. A plain "security" pass: 2,368 outside the category, ~400 cyber - physical security managers, guards,
+  security sales, "Employment Security", the clearance tag.
+- Need a clearance: 1,181 of 4,976 category jobs (122 of 841 remote). Required lines: 707 of 5,248 postings
+  name one, 503 ask one held (Secret 189, Top Secret 140, TS/SCI 174; a polygraph 59) - `knockout.clearance_asked`
+  vs the level their resume shows (`rank.asks_beyond`). The flag is missing on 10 of 549 senior postings w/ a
+  required clearance line - read off the line (`rank.clearance`).
+- Certifications on required lines: 557 of 23,420 unique lines name a cyber cert - CISSP 282, Security+ 203,
+  CISM 138, CISA 96, CySA+ 65, CCSP 55, CEH 51, CASP+ 51, GSEC 50, GCIH 43, CCNA 42, SSCP 36, OSCP 29; DoD
+  8570 / 8140 named on 626, a category + level ("IAT Level II") read off DoD's chart on 156 postings
+  (`knockout.dod_asked`). Before: 118 read; Security+ never (a word ending "+").
+- Level: senior IC titles 1,964 of 5,248, director / VP / chief / head 290; numbered first rungs ("Analyst I",
+  "Tier 1") 85 (`rank.first_rung`). Pay stated in the text: senior median top of range $202k (p25 $172k, 1,108
+  of 1,964), leaders $250k (p25 $204k, 149 of 290).
+- Where: Washington 310, New York City 309, San Francisco 184, Austin 114, Seattle 113, Arlington 93,
+  McLean 58, Reston 56, "Maryland City" (Fort Meade) 53, Huntsville 37, Colorado Springs 26.
+Resume side (certs, clearance, ask match): `docs/resume/bullets.md` #Security resumes; interviews:
+`docs/apply/interview.md` #Security.
 
 ## Video work: editing, shooting, motion (2026-10-09, `countries=us`)
 

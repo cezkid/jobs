@@ -79,6 +79,8 @@ def forms(word: str) -> set[str]:
 
 def words_of(text: str) -> list[str]:
     text = PRODUCTS.sub(lambda m: "".join(m.group(0).split()), text)
+    for rx, short in SAME_WORDS:
+        text = rx.sub(short, text)
     return [w for w in re.findall(r"[a-z][a-z0-9+#]*", text.lower()) if len(w) > 1 and w not in FILLER]
 
 
@@ -87,7 +89,31 @@ def words_of(text: str) -> list[str]:
 # 566 unbacked HR leader asks named HRIS against a resume that moved payroll to Workday (2026-10-09)
 SAME_THING = ((re.compile(r"\bhuman resources?\b", re.I), "hr"), (re.compile(r"\bhr\b", re.I), "human resources"),
               (re.compile(r"\b(?:workday|ukg|ultipro|kronos|adp|dayforce|ceridian|successfactors|oracle hcm|peoplesoft|"
-                          r"bamboohr|paylocity|paycom|paycor|rippling|namely|hibob|isolved)\b", re.I), "hris"))
+                          r"bamboohr|paylocity|paycom|paycor|rippling|namely|hibob|isolved)\b", re.I), "hris"),
+              # security: the tool a resume names backs the kind it is (2026-10-09, a made-up director of cyber
+              # defense - Splunk, CrowdStrike, Okta, CyberArk - on 12,351 senior security required lines)
+              (re.compile(r"\b(?:okta|sailpoint|entra|azure ad|active directory|ping ?identity|forgerock|saviynt)\b", re.I), "iam"),
+              (re.compile(r"\b(?:cyberark|beyondtrust|delinea|thycotic)\b", re.I), "pam"),
+              (re.compile(r"\b(?:crowdstrike|sentinelone|carbon black|defender for endpoint|cortex xdr|cylance|tanium)\b", re.I),
+               "edr"),
+              (re.compile(r"\b(?:splunk|sentinel|qradar|arcsight|logrhythm|exabeam|chronicle|sumo logic|elastic security)\b",
+                          re.I), "siem"),
+              (re.compile(r"\b(?:xsoar|phantom|splunk soar|tines|swimlane)\b", re.I), "soar"),
+              (re.compile(r"\b(?:tenable|nessus|qualys|rapid7|insightvm)\b", re.I), "vulnerability"))
+# one name, its short form: folded to the short form on both sides before words are read, so "identity and
+# access management" meets "IAM" without "identity", "access" or "management" backing anything else
+# (short -> words put "information" + "event" from "SIEM" on the resume: a degree "in information
+# systems" read as backed). 28 identity / endpoint / SIEM / pen-test asks were unbacked against a resume saying both
+SAME_WORDS = ((re.compile(r"\bidentity (?:and|&) access management\b", re.I), "iam"),
+              (re.compile(r"\bprivileged access management\b", re.I), "pam"),
+              (re.compile(r"\bendpoint detection (?:and|&) response\b", re.I), "edr"),
+              (re.compile(r"\bsecurity information (?:and|&) event management\b", re.I), "siem"),
+              (re.compile(r"\bsecurity orchestration,? automation,? (?:and|&) response\b", re.I), "soar"),
+              (re.compile(r"\bsecurity operations cent(?:er|re)s?\b", re.I), "soc"),
+              (re.compile(r"\bgovernance,? risk,? (?:and|&) compliance\b", re.I), "grc"),
+              (re.compile(r"\bdata loss prevention\b", re.I), "dlp"),
+              (re.compile(r"\bapplication security\b", re.I), "appsec"),
+              (re.compile(r"\bpen(?:etration)?[ -]?test(?:ing|s|er|ers)?\b", re.I), "pentest"))
 
 
 def stems(text: str) -> set[str]:
@@ -130,12 +156,19 @@ def resume_facts(config: dict, today: date) -> dict | None:
     for e in master.get("education") or []:
         parts += [e.get("degree") or "", e.get("field") or "", e.get("details") or ""]
     parts += [c if isinstance(c, str) else " ".join(map(str, c.values())) for c in master.get("certifications") or []]
+    # their own headings: awards, publications, credits. A clearance line is read by its level (knockout,
+    # via credentials), never as words: the "CI" in "Active TS/SCI with CI polygraph" backed "CI/CD" asks
+    parts += [x for o in master.get("other") or [] for x in [o.get("heading") or "", *(o.get("lines") or [])]
+              if not knockout.clearance_held(x)[0] and not knockout.clearance_held(x)[2]]
     levels = [knockout.degree_held(e) for e in master.get("education") or []]
     held = max((knockout.LADDER.index(lv) for lv in levels if lv), default=None)
     spoken = " ".join(l.split("(")[0] for l in master.get("languages") or [] if not LANGUAGE_BELOW_WORK.search(l))
     return {"stems": stems(" ".join(parts)), "years": knockout.dated_years(master, today),
             "credentials": knockout.credential_text(master), "portfolio": bool(knockout.portfolio_link(master)),
             "degree": held if None not in levels else "unknown", "languages": languages(spoken)}
+
+
+CITIZEN = re.compile(r"(?i)\bcitizen(?:ship)?\b|\bU\.?S\.? persons?\b|\blawful permanent resident\b|\bITAR\b|\bexport[- ]control")
 
 
 def backed(text: str, facts: dict) -> bool | None:
@@ -161,6 +194,13 @@ def backed(text: str, facts: dict) -> bool | None:
         return None
     if missing == []:
         return True
+    # a clearance held or not, at its level: before this a Secret holder "backed" "Active TS/SCI with polygraph"
+    if knockout.clearance_asked(text):
+        return knockout.clearance_short(text, facts["credentials"]) is None if "credentials" in facts else None
+    # citizenship is the work-permit answer, never in a resume: 73 of 12,351 senior security asks counted
+    # against everyone ("Must be a U.S. citizen")
+    if CITIZEN.search(text) and not knockout.SECURITY_CLEARANCE.search(text):
+        return None
     # a portfolio or reel: answered by a link to their work, never by words. Before this, 217 of 551
     # video postings' asks to see work counted against everyone, link or not
     if knockout.portfolio_asked(text):

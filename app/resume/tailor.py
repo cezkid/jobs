@@ -140,6 +140,7 @@ Wording
 - A client the master calls confidential or under NDA, or a project it calls unreleased, stays described the way master describes it: never a name or title for it.
 - HR work: never an employee's name, health condition, accommodation, complaint, investigation finding, discipline or settlement amount; scope and outcome only ("Ran 140 workplace investigations a year with counsel").
 - Never revenue, P&L, stock or equity plans, M&A, donors or grants the source does not state, whatever the posting asks; a nonprofit's "programs" or "development" (fundraising) is said as what it was.
+- Security work: never anything classified (a program, system, codeword, location or capability), a penetration-test or red-team client's name or finding, a breach or incident detail, or an unpatched vulnerability; scope and outcome only ("Led 30 external penetration tests a year for financial clients"). A security clearance, certification or polygraph is said exactly as the source states it - never a higher level, never "active" for one the source calls inactive, never "CISSP" for "Associate of ISC2".
 - Bullet punctuation follows master: if its claims end in a period every bullet does, if none do none do.
 - Every clause adds something the reader did not have. Cut a clause that is true of any instance of the thing named ("a component library, so screens reuse existing pieces"), restates the bullet's own opening, or would be true of anyone in the role.
 - No "not only X but also Y", no filler lists of three, no two consecutive bullets opening with the same word.

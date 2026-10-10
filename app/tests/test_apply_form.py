@@ -191,6 +191,22 @@ def test_citizen_or_green_card_answered_only_for_the_us():
     assert unset[0]["answer"] is None and unset[0]["source"] == questions.ASK
 
 
+
+# "Are you eligible to obtain a clearance?" is setup's clearance answer; one held now (its level, "current") is
+# theirs to say each time - a clearance stops being current 2 years after leaving it
+def test_clearance_to_get_from_settings_one_held_always_asked():
+    config = {"work_authorization": {"can_hold_clearance": True}}
+    get = [q("Are you eligible for a clearance?", "yesno"),
+           q("This position requires a U.S. security clearance. Successful applicants must demonstrate that they can "
+             "obtain the necessary government security clearance. Are you eligible to obtain a clearance based on "
+             "these requirements?", "yesno")]
+    assert [a["answer"] for a in questions.draft(get, CONTACT, config=config)] == ["Yes", "Yes"]
+    held = [q("Do you have a current DoD security clearance?", "yesno"),
+            q("Are you willing to undergo a security clearance process?", "yesno")]
+    assert [a["answer"] for a in questions.draft(held, CONTACT, config=config)] == [None, None]
+    no_citizen = {"work_authorization": {"citizen_or_permanent_resident": False}}
+    assert questions.draft(get[:1], CONTACT, config=no_citizen)[0]["answer"] == "No"
+
 SENSITIVE = [
     ("Date of birth", "date", "date of birth"),
     ("Birthdate (MM/DD/YYYY)", "text", "date of birth"),

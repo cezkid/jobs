@@ -368,7 +368,8 @@ def test_nonprofit_employer_named_from_its_own_words_or_the_record():
 def test_leader_sorts_support_and_individual_titles_lower(title, below):
     job = make_job("j", title=title)
     assert ("title below your level" in rank.mismatches(job, {"career_level": "leader"})) is below
-    assert "title below your level" not in rank.mismatches(job, {"career_level": "senior"}) or "Intern" in title
+    assert "title below your level" not in rank.mismatches(job, {"career_level": "senior"}) or "Intern" in title \
+        or rank.first_rung(title)
 
 
 def test_posting_says_kinds_match_the_defaults_comment():
@@ -534,3 +535,39 @@ def test_freelance_or_temporary_title_reads_as_contract():
     contract_only = cfg.merge(CONFIG, {"blocklist": {"employment_types": ["part_time", "full_time"]}})
     part = make_job("part", title="Freelance Video Editor", employment_type="part_time")
     assert slugs(rank.rank([part], contract_only, NOW)) == ["part"]
+
+
+# a numbered first rung ("Information Security Analyst I", "Tier 1 SOC Analyst"): 85 of 5,248 US security
+# rows, 2026-10-09 - below a senior or leader list, never a DoD cert level or a title that also says senior
+@pytest.mark.parametrize("title, below", [
+    ("Information Security Analyst I", True), ("Tier 1 SOC Analyst", True), ("Help Desk Level 1", True),
+    ("Cybersecurity Engineer I", True), ("Sr. Cybersecurity Engineer I (6861)", False), ("Security Analyst II", False),
+    ("Cyber Analyst - IAT Level I", False), ("Phase I Program Analyst", False), ("Chief Information Security Officer", False)])
+def test_first_rung_titles_below_senior(title, below):
+    job = make_job("j", title=title)
+    assert ("title below your level" in rank.mismatches(job, {"career_level": "senior"})) is below
+    assert "title below your level" not in rank.mismatches(job, {"career_level": "mid"})
+
+
+def reqs(*lines):
+    return {"requirements": [{"text": t, "priority": "required"} for t in lines]}
+
+
+# the job search's clearance flag is yes / no: a Secret holder's list read the same as a TS/SCI one's
+def test_an_active_clearance_above_theirs_is_said_and_sorted_lower():
+    config = {**CONFIG, "rank": {**CONFIG["rank"]}, "work_authorization": {"can_hold_clearance": True}}
+    job = make_job("ts", requires_clearance=True, enrichment=reqs("Active TS/SCI clearance with CI polygraph"))
+    assert rank.asks_beyond(job, config, None, NOW.date(), "Security Clearance\nActive Secret") == \
+        ["asks an active TS/SCI clearance with a polygraph, your resume shows a Secret clearance"]
+    assert rank.asks_beyond(job, config, None, NOW.date(), "Active TS/SCI with CI polygraph") == []
+    getting = make_job("get", enrichment=reqs("Ability to obtain a Secret clearance post start"))
+    assert rank.asks_beyond(getting, config, None, NOW.date(), "") == []
+    # one who can't hold any: the clearance demerit already says it, once
+    cannot = {**config, "work_authorization": {"can_hold_clearance": False}}
+    assert rank.asks_beyond(job, cannot, None, NOW.date(), "") == []
+
+
+def test_a_required_clearance_line_names_it_when_the_flag_is_missing():
+    assert rank.clearance(make_job("a", enrichment=reqs("Active Secret clearance required"))) == ["needs a security clearance"]
+    assert rank.clearance(make_job("b", enrichment=reqs("Some assignments may require a Secret clearance"))) == []
+    assert rank.clearance(make_job("c", enrichment=reqs("Customs clearance experience required"))) == []

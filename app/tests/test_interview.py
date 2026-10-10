@@ -143,3 +143,22 @@ def test_context_carries_the_compliance_lines_before_the_untrusted_line(master):
     assert out[-1] == interview.UNTRUSTED
     joined = "\n".join(out)
     assert joined.index("licences asked") < joined.index("the posting's text also names") < joined.index("confidential work")
+
+
+SECURITY_JOB = {"title": "Director, Cyber Defense", "company": "Northwind Federal", "requirements": [
+    {"text": "Active TS/SCI clearance with CI polygraph", "priority": "required"},
+    {"text": "CISSP required", "priority": "required"}],
+    "text": "Lead incident response mapped to MITRE ATT&CK; move systems through RMF to an Authority to Operate in "
+            "eMASS with NIST 800-53 controls; Zero Trust architecture; STIG compliance; OWASP Top 10 reviews."}
+
+
+def test_security_rules_clearance_and_confidential_work(master):
+    out = "\n".join(interview.posting_says(SECURITY_JOB))
+    assert "- rules it names: MITRE ATT&CK, RMF, Authority to Operate, eMASS, NIST 800-53, Zero Trust, STIG, OWASP Top 10" in out
+    master["other"] = [{"heading": "Security Clearance", "lines": ["Active Secret"]}]
+    master["certifications"] = [{"name": "CISSP-ISSMP"}]
+    lines = interview.licences(master, SECURITY_JOB)
+    assert ("- asks an active TS/SCI clearance with a polygraph: their resume shows a Secret clearance - never claimed "
+            "higher or as active (job-interview #Clearances)") in lines
+    assert not any("asks CISSP: not in" in l for l in lines)
+    assert "incident response" in interview.confidential(master, SECURITY_JOB)
