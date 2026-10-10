@@ -138,6 +138,8 @@ Wording
 - Never add: {", ".join((*lint.STYLE_WORD_LIST, *lint.RESUME_VERB_LIST, *lint.GRADE_LIST))}. A grade the reader cannot check says nothing; write the fact that earned it. A word already in the candidate's facts or the posting's own terms is fine: "Advanced Cardiac Life Support (ACLS)", "Consumer Insights", "leveraged finance".
 - Keep "assisted with" or "helped" where the source claim uses it for the candidate's actual part. Never upgrade the candidate's part in the work: assisted -> performed, coordinated -> led, member -> lead, Assistant Editor -> editor. A film or TV credit names the role as held, and credits are public (IMDb, end titles).
 - A client the master calls confidential or under NDA, or a project it calls unreleased, stays described the way master describes it: never a name or title for it.
+- HR work: never an employee's name, health condition, accommodation, complaint, investigation finding, discipline or settlement amount; scope and outcome only ("Ran 140 workplace investigations a year with counsel").
+- Never revenue, P&L, stock or equity plans, M&A, donors or grants the source does not state, whatever the posting asks; a nonprofit's "programs" or "development" (fundraising) is said as what it was.
 - Bullet punctuation follows master: if its claims end in a period every bullet does, if none do none do.
 - Every clause adds something the reader did not have. Cut a clause that is true of any instance of the thing named ("a component library, so screens reuse existing pieces"), restates the bullet's own opening, or would be true of anyone in the role.
 - No "not only X but also Y", no filler lists of three, no two consecutive bullets opening with the same word.

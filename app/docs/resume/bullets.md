@@ -276,6 +276,26 @@ work) - an `other` line as they write it; a "views / subscribers" number rule - 
 asks for how many, how often, what changed; a credits schema of its own - one `other` line per credit
 is the conventional one-line shape (title, role, network or festival, year) and parses as text.
 
+## HR leader resumes (2026-10-09)
+
+Audit for a head of HR at a large nonprofit, open to companies + nonprofits: a made-up Chief People
+Officer resume (9,000-staff human services nonprofit, VP HR at a hospital system, plant HR manager;
+SHRM-SCP + SPHR) through lint, feedback and the ask match against the 1,714 required lines of 559
+live director / VP / chief HR postings (freehire 2026-10-09).
+
+| Seen | Count | Now |
+|---|---|---|
+| Asks for SHRM-CP / PHR marked missing for a SHRM-SCP + SPHR holder | 4 of 16 HR certification lines asked outright (182 name one, most "preferred") | `knockout.ANSWERED_BY`: a senior credential answers its junior one, a body's name ("SHRM and/or HRCI") any of its own |
+| "HRIS" ask unbacked by a resume naming Workday HCM | 18 of 566 unbacked asks | `best.SAME_THING`: an HR system by name backs "HRIS"; "HR" + "human resources" back each other. Backed 821 -> 839 |
+| Every ask to lead counted twice for someone who leads | 49 of 680 leader postings read "asks a lot" vs 22 w/ lead duties counted once | `best.asks`: once for `career_level: leader` |
+| HR case detail on the page (an employee's name, accommodation, investigation, settlement) | no rule (SAR + client rules only) | Hold: scope + outcome only - `job-tailor`, `job-interview`, `AGENTS.md`, the tailoring prompt. ADA keeps medical + accommodation records confidential (29 CFR 1630.14) |
+| Nonprofit facts tailored for a company posting asking P&L, revenue, equity pay | 10 of 566 unbacked asks name P&L / financial or business acumen / commercial experience | Hold: a gap to tell them, never a word to add; their own facts in words both sides read (headcount, budget owned, board committee). "Development" = fundraising, said as such |
+| Numbers, wording, leadership | feedback: 8 of 10 lines numbered, 4 leadership, 0 wording notes | nothing to change - HR scale (headcount, turnover %, time-to-fill, $ under budget) already counts |
+
+Declined: a nonprofit-only or company-only filter (none exists - `jobs/freehire.md` #HR + people
+leadership; named on each job instead); a "DEI" wording rule - the posting's term for what their
+experience backs is the existing keyword rule, nothing HR-specific to add.
+
 ## Reviewed 2026-09-24
 
 Adversarial review as a nurse, new graduate, finance analyst: rules pushing invention or failing a

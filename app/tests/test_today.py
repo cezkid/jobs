@@ -460,8 +460,8 @@ def test_every_job_has_link_text_and_a_say_chip(conn, tmp_path):
 def test_company_links_its_website_else_plain_name(conn, tmp_path):
     store.upsert(conn, [job("a", company="Notion", company_slug="notion"), job("b", company="Sample & Co", company_slug="sample")],
                  CHECK)
-    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?)", (CHECK,))
-    conn.execute("INSERT INTO companies VALUES ('sample', NULL, ?)", (CHECK,))
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?, 0)", (CHECK,))
+    conn.execute("INSERT INTO companies VALUES ('sample', NULL, ?, 0)", (CHECK,))
     m = today.model(conn, CONFIG, tmp_path, NOW, [], tmp_path)
     cards = {c["company"]: c for c in m["sections"][0]["cards"]}
     assert cards["Notion"]["company_url"] == "https://notion.so"
@@ -476,7 +476,7 @@ def test_company_links_its_website_else_plain_name(conn, tmp_path):
 def test_company_link_found_through_the_listed_job(conn, tmp_path):
     store.upsert(conn, [job("old", company="Notion", company_slug="notion")], "2026-08-01T12:00:00Z")
     applied(conn, "old", "2026-08-31T12:00:00Z")
-    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?)", (CHECK,))
+    conn.execute("INSERT INTO companies VALUES ('notion', 'https://notion.so', ?, 0)", (CHECK,))
     assert "[Notion](<https://notion.so>)" in page(conn, tmp_path)
 
 

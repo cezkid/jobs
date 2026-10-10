@@ -340,3 +340,14 @@ def test_a_portfolio_ask_without_a_link_is_said_once():
     assert knockout.shortfalls(linked, job, TODAY) == []
     profile_only = {**master(9, "BS"), "contact": {"links": ["linkedin.com/in/you"]}}
     assert len(knockout.shortfalls(profile_only, job, TODAY)) == 1
+
+
+# a head of HR w/ SHRM-SCP + SPHR was told a posting asks SHRM-CP or PHR they lack (2026-10-09)
+@pytest.mark.parametrize("line", ["SHRM-CP or PHR certification for CALIFORNIA required",
+                                  "Professional in Human Resources Certification (PHR)",
+                                  "PHR/SPHR or SHRM-CP/SCP certification, or related certification(s).",
+                                  "SHRM and/or HRCI certification."])
+def test_senior_hr_credential_answers_its_junior_one(line):
+    have = "SHRM Senior Certified Professional (SHRM-SCP)\nSenior Professional in Human Resources (SPHR)"
+    assert knockout.credentials_missing(line, have) == []
+    assert knockout.credentials_missing(line, "PMP")

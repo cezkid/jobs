@@ -80,7 +80,10 @@ learn.chatgpt.com/docs/config-file/config-reference. OpenAI help center unreacha
 ## What the posting says (`rank.posting_says`)
 
 Opt-in, per kind: `faith` -> "posting says: religious employer", `defense` -> "posting says: defense
-or military work", on the job's reason line (list, Today, email). Set only when the user asks to
+or military work", `nonprofit` -> "posting says: nonprofit employer" (or "listed as a nonprofit
+employer" when only the job search's company record says it), on the job's reason line (list, Today,
+email). Nonprofit is also offered at setup when their resume shows nonprofit work - a sector, not a
+value (`job-setup` #2 HR + people leadership). Set only when the user asks to
 see it after a note ("tell me when a job is with a religious employer" / "... defense work"), their
 yes first. Never hides, never sorts lower - they decide per job, or hide a company (`job-find`).
 The employer's own words in its posting; nothing looked up.
@@ -95,6 +98,8 @@ categories, 30 days (`rank.POSTING_SAYS` words, every match read):
 | politics ("advocacy", "progressive", party names) | 21 | 12 | ~all | patient advocacy, legal aid, "progressive approaches" - declined |
 | tobacco / vape, fossil fuels | 0 | 0 | - | the job search carries few such employers (IT board, `jobs/freehire.md` #What the job source leaves out) |
 | gambling, alcohol / cannabis | 1, 3 | - | 2 of 3 cannabis false (drug screen, behavioral health) | too few to name |
+
+| nonprofit (2026-10-09, HR-titled, full text) | 107 of 4,790 | 92 | 0 of 40 read; an ask ("nonprofit experience preferred") or a client ("our clients run ... a large nonprofit") isn't it | company record adds 3x the employers, 2 of 20 recruiting firms misfiled (`jobs/freehire.md` #HR + people leadership) |
 
 Small sample, one day: re-measure before adding a kind.
 - **A settings section for values.** Search settings reach the job search; values must not.

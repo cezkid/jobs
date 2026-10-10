@@ -23,6 +23,23 @@ job count is low should lower paying jobs be allowed."
 - Hidden = left off every list; row stays in `jobs.db` (dedupe, relax, a later settings change
   shows it again, never announced as new before it is shown).
 
+## Pay read from the posting
+
+Pay-transparency laws put the range in the posting's text; the job search's own pay field often
+misses it outside tech, and is stale when it differs. `paytext.stated` (at the job check,
+`freehire.pay`) reads the posting's own range; it wins over the field when both are there.
+Measured 2026-10-09 on 4,790 US HR-titled + chief rows, full descriptions:
+- field set on 190; text range read on 1,915 more. Of 190 w/ the field: same range 138, different
+  38, text read none 14 (an amount only in the title, "$15/hr"). Different, read by hand: a range per
+  city / level read as one span (the field took one band), or the field a stale or other band on every
+  one checked ($22k-32k on a posting saying "$80,000-$82,000"; $125k-170k vs "$195,000 to $251,000").
+- Hand check, 50 random text reads: 49 right, 1 a base + OTE pair read as one span (base $140k-152k,
+  OTE to $178k). 40 single amounts: right, incl. GS step + bi-weekly county pay (said per year).
+- Never read as pay: budgets, revenue, funding raised, bonuses, sign-on, stipends, tuition,
+  reimbursements, a benefit's cost ("Medical starts at $8/week"), millions, $0 placeholders, day rates.
+  One amount counts only next to a pay word or a period; a range also w/ "USD" after it.
+- Stored description is now the whole posting (`freehire.SEARCH`): 3.3x the bytes per row.
+
 ## Thin week - closest come back
 
 Live (not stale) jobs that pass and reached their list (`first_fetched_at`) in the last 7 days

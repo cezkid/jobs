@@ -15,8 +15,12 @@ before trusting count.
   slugs one probe at a time (unknown slug answers 0, never error, so a guess loop is silent
   and slow). 47 `category` values, 2026-09-20.
 - `GET /jobs/<slug>` -> one posting, description whole (search rows carry ~1,000 chars); also
-  serves closed postings (search never does). `GET /agent/jobs/search` = same filters, full
-  description (5,343 chars vs 994, 2026-10-01) - unused: tailoring fetches one job.
+  serves closed postings (search never does). `GET /agent/jobs/search` = same filters + rows, full
+  description (5,343 chars vs 994, 2026-10-01; 5,855 vs 986, same speed, 2026-10-09) - the job check
+  uses it (`freehire.SEARCH`): pay ranges + "About us" sit past the first 1,000 chars
+  ([HR + people leadership](#hr--people-leadership), `pay-filter.md` #Pay read from the posting).
+- `company_slug=<slug>` filters to one employer (undocumented, accepted - not in `ignored_params`;
+  `american-red-cross` 99 US, 2026-10-09). Unused.
 - `GET /geo/cities?q=<text>` -> exact `cities=` values (`uv run app/jobs.py probe --city <text>`).
   `cities=` matches exact value only: `new york` misses `New York City`.
 - Row fields: `public_slug` `title` `company` `company_slug` `url` `source` `location` `cities`
@@ -201,6 +205,44 @@ Charlotte: program manager 101, TPM 3.
   stakeholders, risk 86-94%; system design 46% of TPM; SOX / Basel / CCAR ~0 =>
   `app/docs/apply/interview.md` #Program managers.
 Shape: `app/profiles/program-manager.yml`.
+
+## HR + people leadership
+
+2026-10-09, `countries=us`. Titled jobs, open / posted in the last 30 days: HR 12,744 / 5,216, human resources 8,823 / 3,652,
+people 3,553 / 1,656, HR business partner 2,490, people operations 1,240, HR director 395, director of
+human resources 394, head of people 218, people director 175, vice president human resources 116,
+people and culture 106, head of HR 50, chief human resources officer 45, CHRO 43, VP human resources
+34, VP people 18, VP HR 16, chief people officer 10, SVP human resources 5. Tagged remote: human
+resources 194, HR 271, people 165, head of people 8 - `work_mode` null on 53-76% of these rows.
+- `category=hr` 8,780: newest 1,000 by title word - leading (director / VP / chief / head / officer)
+  130, manager / lead / partner 357, coordinator / generalist / specialist / assistant ... 472.
+  `seniority=c_level` in hr 475 (315 leading titles, 65 support titles mis-tagged); the three title
+  passes "human resources" + "HR" + "people" hold 466 of them, the rest learning + development heads.
+  Leading titles per 1,000 newest: human resources 148, people 151, HR 48. => title passes +
+  `career_level: leader` (`rank.below_leader`: 1,301 of 3,341 unique HR rows carry a support word w/o
+  a leading one - generalist 430, specialist 227, coordinator 181, analyst 97, assistant 85; "Executive
+  Assistant to the CHRO" counts as support). Shape: `app/profiles/hr-leader.yml`.
+- "HR" also matches a rate or shift in a title: 184 of 1,000 newest ("$20.25/hr", "Staff RN 12 Hr",
+  "26/hr to start") => `freehire.pay_word_only` drops them at the job check; "Payroll/HR", "2027 HR
+  Intern" keep it.
+- "people" brings other work, ~1 in 7: People Products / People Tech engineers + designers, "People
+  Solutions" account managers, "Helping People" consumer jobs => `blocklist.title_phrases` after a count.
+- Pay: the job search's pay field on 1-8% of these rows per phrase, a dollar amount in the full text
+  on 28-50%; leading titles 559: field 17, text range 237 (director median top $180k, VP / head
+  $225k, chief $240k). => `paytext` (`pay-filter.md` #Pay read from the posting).
+- Nonprofits: no filter (`domains`, `company_type` hold none; `company_type=nonprofit` answers 0).
+  The employer calls itself one ("is a 501(c)(3) nonprofit organization") on 107 of 4,790 HR-titled
+  rows' full text, 27 of 559 leading titles; another ~175 mention it otherwise (asks for nonprofit
+  experience, clients, volunteer perks). `GET /companies/<slug>` carries `organization_type` ("Non-Profit", "Private", "Public",
+  "Government" ... set on 123 of 250 random HR employers) + `industries` (`nonprofit`): 20 of 250 say
+  nonprofit vs 6 by text, 4 both; 2 of the 20 are recruiting firms (misfiled). => `rank.posting_says:
+  [nonprofit]` names it from either, never filters (`companies.nonprofit`). Big charities are thin
+  here (freehire prunes non-tech roles at employers w/o tech evidence): American Red Cross 105 jobs,
+  Salvation Army 214, YMCA 12, Habitat 3, Goodwill 0, Planned Parenthood 0 - say so if they want a
+  nonprofit move.
+- HR certification asks: 182 lines name SHRM / HRCI credentials on 9,768 unique required lines; 16
+  ask one outright, the rest "preferred". A senior one answers its junior one (`knockout.ANSWERED_BY`:
+  SHRM-SCP -> SHRM-CP, SPHR -> PHR).
 
 ## Work with no category: compliance + risk (2026-10-09, `countries=us`)
 

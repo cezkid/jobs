@@ -1,0 +1,99 @@
+# Example search for HR + people leadership: a head of HR (VP / director / chief people officer) open
+# to companies and nonprofits alike. Searched by title, one phrase per pass (the job search has no OR),
+# several passes sharing a tier; career_level leader sorts the many generalist / coordinator /
+# specialist jobs these words also bring below the leading ones. Swap phrases + city for the user's.
+# Why not category=hr: 8,780 US jobs, its 1,000 newest: 130 titled director / VP / chief / head, 472
+# coordinator / generalist / specialist / assistant ... (2026-10-09). The three phrases below hold
+# 466 of the 475 jobs the job search tags c_level in hr; the rest are learning + development heads.
+# Count each phrase first (uv run app/jobs.py probe --title ...). docs/jobs/freehire.md #HR + people
+# leadership.
+
+profile:
+  name: HR leadership jobs
+
+passes:
+  # 2026-10-09, US, open: "human resources" 8,823 (194 tagged remote) - holds VP / Director of Human
+  # Resources, Chief Human Resources Officer; 148 of its 1,000 newest titled director / VP / chief / head
+  - tier: remote
+    label: Remote US
+    params:
+      q: human resources
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # "HR" 12,744 (271 remote) - HR Director, Head of HR, VP HR, HR Business Partner. 184 of 1,000 newest
+  # held HR only as a rate or shift ("$19/hr", "12 Hr Nights"): dropped at the job check
+  - tier: remote
+    label: Remote US - HR
+    params:
+      q: HR
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # "people" 3,553 (165 remote) - Head of People, Chief People Officer, VP People, People & Culture,
+  # People Operations; about 1 in 7 of its titles are other work (People Products engineers, "People
+  # Solutions" sales) - hidden only on their yes after the first check
+  - tier: remote
+    label: Remote US - people
+    params:
+      q: people
+      q_fields: title
+      work_mode: [remote]
+      countries: [us]
+      sort: posted_at
+      order: desc
+  # New York City 2026-10-09: human resources 195, HR 177, people 182
+  - tier: local
+    label: New York area
+    states: [NY, NJ]
+    params:
+      q: human resources
+      q_fields: title
+      cities: [New York City]
+      sort: posted_at
+      order: desc
+  - tier: local
+    label: New York area - HR
+    states: [NY, NJ]
+    params:
+      q: HR
+      q_fields: title
+      cities: [New York City]
+      sort: posted_at
+      order: desc
+  - tier: local
+    label: New York area - people
+    states: [NY, NJ]
+    params:
+      q: people
+      q_fields: title
+      cities: [New York City]
+      sort: posted_at
+      order: desc
+
+blocklist:
+  companies: [jobgether, builtin-integration-sandbox]
+  sources: []
+  categories: []
+  # other work under these words - hidden only once the user ticks them, counts said first ("people":
+  # engineer, product, designer, data scientist, account manager, sales; "talent": a talent pass is
+  # mostly recruiters + talent acquisition - add one only for a head of talent)
+  title_phrases: []
+  title_keep: []
+  employment_types: []
+  # need a US security clearance: government + defense HR offices
+  clearance: false
+
+rank:
+  boost_collections: [fortune500]
+  # director / VP / chief HR postings stating a yearly range in their text, top of range: director
+  # median $180k (p25 $135k), VP / head $225k, chief $240k (2026-10-09, 237 of 559 postings)
+  salary_floor_usd: 150000
+  career_level: leader
+  # names "nonprofit employer" on each job (posting's words or the job search's company record) -
+  # never hides or sorts: open to both, they decide per job. Set at setup after their yes
+  posting_says: [nonprofit]

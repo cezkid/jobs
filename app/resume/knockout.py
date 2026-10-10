@@ -371,8 +371,18 @@ def _found(credential: str, text: str) -> list[re.Match]:
             if not ON_THE_WAY.match(text, m.end())]
 
 
+# a senior credential answers an ask for its junior one from the same body, and a body's name answers
+# any of its credentials: "SHRM-CP required" <- SHRM-SCP, "PHR" <- SPHR, "SHRM and/or HRCI" <- SPHR.
+# Postings also write "SHRM-CP/SCP" and "SHRMSCP". 2026-10-09, 182 HR certification lines on 9,768
+# unique required lines of US HR-titled jobs: 16 ask one outright, 4 name a junior one a senior holder
+# was marked missing on
+ANSWERED_BY = {"SHRM-CP": ("SHRM-SCP",), "SCP": ("SHRM-SCP",), "SHRMSCP": ("SHRM-SCP",), "PHR": ("SPHR",),
+               "aPHR": ("PHR", "SPHR"), "SHRM": ("SHRM-CP", "SHRM-SCP"), "HRCI": ("aPHR", "PHR", "SPHR", "GPHR", "PHRi", "SPHRi")}
+
+
 def holds(credential: str, text: str) -> bool:
-    return any(not _lapsed_after(text, m.end()) for m in _found(credential, text))
+    return any(not _lapsed_after(text, m.end()) for m in _found(credential, text)) \
+        or any(holds(other, text) for other in ANSWERED_BY.get(credential, ()))
 
 
 def lapsed(credential: str, text: str) -> bool:

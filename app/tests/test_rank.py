@@ -1,5 +1,7 @@
 from datetime import datetime, timezone
 
+import pytest
+
 import cfg
 import rank
 from conftest import make_job
@@ -333,8 +335,44 @@ def test_posting_says_named_only_when_asked_never_hides_or_sorts():
     assert slugs(rank.rank(jobs, asked, NOW)) == slugs(rank.rank(jobs, CONFIG, NOW))
 
 
+# a head of HR at a nonprofit wants to see which employers are nonprofits - the posting's own words or the
+# job search's company record; an ask for nonprofit experience or a nonprofit client is no such word
+def test_nonprofit_employer_named_from_its_own_words_or_the_record():
+    says = make_job("ymca", title="VP, People", description="<p>About us</p><p>The YMCA of Metro Denver is a "
+                    "501(c)(3) nonprofit organization serving ...</p>")
+    comma = make_job("hospice", title="HR Director", description="As a Benefit of working at Kansas City Hospice and "
+                     "Palliative Care, a qualified employer non-profit organization, you may ...")
+    ask = make_job("ask", title="HR Director", description="Nonprofit experience preferred. Experience in a nonprofit, "
+                   "advocacy or mission-driven organization a plus.")
+    client = make_job("client", title="HR Director", description="Whether our clients run a coffee shop, a large "
+                      "nonprofit, or a government agency, they depend on us.")
+    record = dict(make_job("record", title="Chief People Officer", description="We help kids."), company_nonprofit=1)
+    asked = level_config(posting_says=["nonprofit"])
+    assert "posting says: nonprofit employer" in rank.reasons(says, asked, NOW)
+    assert "posting says: nonprofit employer" in rank.reasons(comma, asked, NOW)
+    assert all("nonprofit" not in rank.reasons(j, asked, NOW) for j in (ask, client))
+    assert "listed as a nonprofit employer" in rank.reasons(record, asked, NOW)
+    assert "nonprofit" not in rank.reasons(record, CONFIG, NOW)
+    both = dict(says, company_nonprofit=1)
+    assert rank.reasons(both, asked, NOW).count("nonprofit") == 1
+
+
+# a head of HR saw HR Generalist, Coordinator and Assistant jobs as high as Director ones (1,301 of
+# 3,341 HR titles, 2026-10-09): below their level now, never hidden; a title that also leads stays
+@pytest.mark.parametrize("title, below", [
+    ("Human Resources Generalist", True), ("People Operations Coordinator", True),
+    ("Talent Acquisition Specialist I", True), ("Executive Assistant to the Chief Human Resources Officer (CHRO)", True),
+    ("Chief Executive Assistant", True), ("HR Business Partner", False), ("Assistant Director of Human Resources", False),
+    ("Associate Director, Human Resources Business Partner", False), ("Founding Senior HR Generalist / People Operations Lead", False),
+    ("Vice President, Human Resources", False), ("Chief People Officer", False), ("Director of Human Resources", False)])
+def test_leader_sorts_support_and_individual_titles_lower(title, below):
+    job = make_job("j", title=title)
+    assert ("title below your level" in rank.mismatches(job, {"career_level": "leader"})) is below
+    assert "title below your level" not in rank.mismatches(job, {"career_level": "senior"}) or "Intern" in title
+
+
 def test_posting_says_kinds_match_the_defaults_comment():
-    assert set(rank.POSTING_SAYS) == {"faith", "defense"}
+    assert set(rank.POSTING_SAYS) == {"faith", "defense", "nonprofit"}
     assert cfg.defaults()["rank"]["posting_says"] == []
 
 
