@@ -225,3 +225,34 @@ def test_hr_asks_read_both_names_and_the_system_by_name():
     other = {**facts, "stems": best.stems("Led HR for 4,000 staff")}
     assert best.backed("Human resources leadership", other)
     assert not best.backed("HRIS implementation", other)
+
+
+# security, 2026-10-09, a made-up director of cyber defense on 12,351 senior security required lines
+def test_security_asks_read_by_short_form_tool_clearance_and_never_citizenship():
+    resume = ("Ran the SOC on Splunk Enterprise Security and CrowdStrike Falcon; moved identity to Okta; "
+              "vaulted admin accounts in CyberArk.")
+    f = {**facts(), "stems": best.stems(resume), "languages": set(),
+         "credentials": knockout.credential_text({"other": [{"heading": "Security Clearance",
+                                                             "lines": ["Active TS/SCI with CI polygraph"]}]})}
+    assert best.backed("Experience with identity and access management platforms", f)
+    assert best.backed("Hands-on EDR and SIEM experience", f)
+    assert best.backed("Privileged access management tooling", f)
+    assert best.backed("Experience running a security operations center", f)
+    # the folded name adds no words: a SIEM on the page backs no "information systems" degree words
+    assert not best.backed("Experience in information systems event planning", f)
+    assert best.backed("Active TS/SCI clearance with polygraph", f) is True
+    assert best.backed("Active TS/SCI clearance with polygraph", {**f, "credentials": "Active Secret clearance"}) is False
+    assert best.backed("Must be a U.S. citizen", f) is None
+    assert best.backed("Legal authorization to work in the United States", f) is False
+
+
+def test_resume_facts_read_their_own_sections_but_not_a_clearance_as_words(tmp_path, monkeypatch):
+    path = tmp_path / "Resume details.yml"
+    path.write_text(RESUME + "other:\n  - heading: Security Clearance\n    lines: [Active TS/SCI with CI polygraph]\n"
+                             "  - heading: Awards\n    lines: [Splunk Boss of the SOC winner]\n")
+    monkeypatch.setattr(cfg, "resume_path", lambda config, key: path)
+    f = best.resume_facts(CONFIG, NOW.date())
+    assert best.backed("Splunk administration", f)
+    # "CI" in "CI polygraph" is no CI/CD
+    assert not best.backed("CI/CD pipelines", f)
+    assert best.backed("Active TS/SCI with polygraph", f) is True

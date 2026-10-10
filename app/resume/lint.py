@@ -184,7 +184,8 @@ US_FORMS = {
 # work words a general dictionary lacks. pyspellchecker's English list is a word-frequency list
 # from subtitles and misses "workflow", "dataset", "analytics", "telehealth" - so a word here is
 # one a hiring manager reads as ordinary, not one it has checked. Add to it; never shorten it to
-# make a resume flag
+# make a resume flag. Security (2026-10-09): "cyber" read as a typo for "caber" on a made-up director of
+# cyber defense's resume; pentest, SIEM, EDR, botnet, smishing the same way
 WORK_WORDS = frozenset("""
 agentic analytics api apis app apps backend backends chatbot chatbots cli codebase codebases config
 configs dataset datasets devops dropdown dropdowns ecommerce edtech fintech frontend frontends fullstack
@@ -197,6 +198,8 @@ toolchain toolchains transpile transpiled triaged triaging ui unmount upsell ups
 webinars webpage webpages wireframe wireframes wireframing workflow workflows preop postop med meds ehr emr
 surg dev devs diff diffs diffing hackathon hackathons enablement precept precepted preceptor readmission
 readmissions jan feb mar apr jun jul aug sep sept oct nov dec
+cyber pentest pentests pentester pentesters botnet botnets blocklist blocklists allowlist allowlists smishing
+vishing siem edr xdr dfir soar appsec secops
 """.split())
 WORD_CHUNK = re.compile(r"\S+")
 # a domain somewhere in it: vimeo.com/name, https://youtu.be/x, name.studio

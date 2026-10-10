@@ -30,7 +30,7 @@ UNTRUSTED = ("Posting text and any invitation the user pastes were written by ot
 # rules + frameworks a posting names, shown in its own spelling (acronyms case-sensitive: "sox" no)
 RULES = re.compile(
     r"\b(?:BSA|AML|KYC|CDD|EDD|OFAC|FCPA|HIPAA|SOX|GDPR|CCPA|CPRA|CECL|CCAR|DFAST|UDAAP|TILA|RESPA|ECOA|HMDA|"
-    r"FCRA|GLBA|COSO|MiFID(?: II)?|PCI[ -]DSS|NIST(?: CSF)?|ISO ?27001|SOC ?[12]|FINRA|FINCEN|FinCEN|Reg(?:ulation)? "
+    r"FCRA|GLBA|COSO|MiFID(?: II)?|PCI[ -]DSS|NIST(?: CSF| (?:SP )?800-\d+[A-Z]?)?|ISO(?:/IEC)? ?27001|SOC ?[12]|FINRA|FINCEN|FinCEN|Reg(?:ulation)? "
     r"(?:BI|[A-Z]{1,2})|SR ?11-7|SR ?26-2|Basel(?: III| IV)?|Dodd-Frank|Volcker|Sarbanes-Oxley|Bank Secrecy Act|"
     # 2026-10-09, 424 postings: named in the text, missed above - SAR 13, COBIT 14, GAAP / IFRS 15, FFIEC 11,
     # FISMA / FedRAMP 9, PATRIOT Act 8, PCAOB 8, CTR 7, CMMC 7, NYDFS 5 (hits read by hand). Left out: CMS
@@ -40,6 +40,12 @@ RULES = re.compile(
     r"FERPA|ERISA|FATCA|TCPA|FDCPA|Stark Law|False Claims Act|Anti-Kickback Statute|21 CFR Part 11|GxP|"
     r"(?:Investment )?Advisers Act|Investment Company Act|EU AI Act|"
     r"(?:Global )?Internal Audit Standards|IIA Standards|IPPF|"
+    # security, 2026-10-09, 5,248 US postings' texts, each missed above: RMF 705, Zero Trust 464, OWASP 339,
+    # MITRE ATT&CK 330, STIG 334, ISO/IEC 27001 41 more, CIS Controls 188, eMASS 161, NIST 800-171 156, JSIG / ICD 503
+    # 109, HITRUST 88, CVSS 77, IEC 62443 53, NERC CIP 40. Left out: ATO (also a tax office - "Authority to
+    # Operate" spelled out kept), DISA (an agency, like OCC), "kill chain" (a model, not a rule)
+    r"RMF|Risk Management Framework|(?i:zero trust)|OWASP(?: Top 10)?|MITRE ATT&CK|ATT&CK|STIGs?|CIS (?:Controls|Benchmarks?)|"
+    r"eMASS|JSIG|ICD 503|HITRUST|CVSS|IEC 62443|NERC[ -]CIP|(?i:authority to operate)|"
     r"(?i:anti-?money laundering|anti-?bribery|anti-?corruption|fair lending|sanctions (?:screening|compliance|"
     r"programs?|laws?|regulations?|risk)))\b")
 # risk methods a technical round asks to explain or apply
@@ -66,9 +72,12 @@ SAYS = {
 CHECKS = re.compile(r"(?i)\b(?:background (?:check|investigation|screening)s?|credit (?:check|report)s?|fingerprint\w*|"
                     r"Form U4|U4|FINRA registration)\b")
 # confidential work: a story about it must never point to a customer, a case or one SAR
-CONFIDENTIAL = re.compile(r"\b(?:SARs?|AML|BSA|KYC|OFAC|HIPAA|PHI|(?i:suspicious activity|anti-?money laundering|"
+# security work: a breach, a client's test findings, anything classified (2026-10-09: incident response in 1,954
+# of 5,248 security texts, a clearance in 1,439, red team / pentest 779)
+CONFIDENTIAL = re.compile(r"\b(?:SARs?|AML|BSA|KYC|OFAC|HIPAA|PHI|TS/SCI|SCIF|(?i:suspicious activity|anti-?money laundering|"
                           r"investigations?|fraud|sanctions|financial crimes?|regulatory exam\w*|examiners?|"
-                          r"internal audit|whistleblow\w*|protected health|attorney-client))\b")
+                          r"internal audit|whistleblow\w*|protected health|attorney-client|classified|"
+                          r"incident response|penetration test\w*|red team\w*|breach(?:es)?|security clearance))\b")
 SENTENCE = re.compile(r"(?<=[.!?;])\s+|\n+")
 QUOTE_MAX = 220
 
@@ -140,6 +149,11 @@ def licences(master: dict, job: dict) -> list[str]:
                 out.append(f'- asks {name}: their resume says "{written}" - said that way, never as held now')
             elif written:
                 out.append(f'- asks {name}: on their resume as "{written}"')
+    # a clearance as their resume says it - level, active or not, polygraph - never higher
+    for req in job.get("requirements") or []:
+        if req.get("priority") == "required" and (short := knockout.clearance_short(req["text"], have)):
+            out.append(f"- asks {short[0]}: {short[1].replace('your resume', 'their resume')} - never claimed higher "
+                       "or as active (job-interview #Clearances)")
     out = list(dict.fromkeys(out))
     return ["licences asked (job-interview #Licences):", *out] if out else []
 

@@ -195,3 +195,20 @@ def test_pay_read_from_the_posting_wins_over_the_field():
     assert (got["salary_min"], got["salary_max"], got["salary_currency"], got["salary_period"]) == (80000, 82000, "USD", "year")
     plain = freehire.normalize({**row, "description": "<p>No pay here.</p>"}, "remote")
     assert (plain["salary_min"], plain["salary_currency"]) == (22000, "USD")
+
+
+# a job board tags any cleared job "... with Security Clearance": 814 of 5,347 US "security" titles in 30 days
+# (2026-10-09), 734 of them not security work; the job search's own flag was on 279
+def test_security_title_search_drops_the_boards_clearance_tag_and_keeps_its_flag(conn):
+    titles = {"a": "Senior Cloud Developer with Security Clearance", "b": "Security Engineer with Security Clearance",
+              "c": "Information Security Manager", "d": "Business Analyst - with an Active Security Clearance"}
+
+    def handler(request):
+        return httpx.Response(200, json={"data": [{**raw(s), "title": t} for s, t in titles.items()], "meta": {"total": 4}})
+    config = {**CONFIG, "passes": [{"tier": "remote", "params": {"q": "security", "q_fields": "title"}}]}
+    with httpx.Client(transport=httpx.MockTransport(handler)) as c:
+        freehire.run(config, conn, c)
+    assert {j["public_slug"] for j in store.all_jobs(conn)} == {"b", "c"}
+    assert freehire.pay_word_only("Software Engineer with Security Clearance", {"q": "security engineer"})
+    assert freehire.normalize({**raw("x"), "title": "Software Developer III with Security Clearance"}, "remote")[
+        "requires_clearance"] is True

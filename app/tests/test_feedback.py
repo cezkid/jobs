@@ -1,3 +1,4 @@
+import re
 from datetime import date
 
 import yaml
@@ -126,3 +127,12 @@ def test_camera_names_and_ratios_are_no_numbers_and_a_maker_is_no_part_of_a_tool
     assert result["areas"]["Numbers and scope"][1] == "1 of 4 lines say how many, how much or what changed"
     # Premiere Pro listed as Adobe Premiere Pro, After Effects inside the bracketed suite, FX3 under Sony
     assert result["unlisted"] == ["Canon C70", "LucidLink"]
+
+
+# "stood up" starts a program in security + government wording; a stand-up meeting starts nothing
+def test_standing_up_a_program_shows_initiative():
+    initiative = feedback.QUALITIES["Initiative"]
+    assert re.search(initiative, "Stood up the vulnerability management program on Tenable", re.I)
+    assert re.search(initiative, "Standing up a 24x7 SOC for 3 agencies", re.I)
+    assert not re.search(initiative, "Ran daily stand-ups for 6 engineers", re.I)
+    assert not re.search(initiative, "Stand up straight", re.I)

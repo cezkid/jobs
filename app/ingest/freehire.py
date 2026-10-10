@@ -88,11 +88,19 @@ def pay(raw: dict) -> dict:
 HOURS_IN_TITLE = re.compile(r"(?:\$\s?\d[\d.,]*|\b\d{1,3}(?:\.\d+)?)\s*[*+]?\s*(?:/|per|an?)?\s*(?:hrs?|hours?)\b\.?", re.I)
 
 
+# a job board's tag on the end of the title, not the employer's words: "Software Developer III with Security
+# Clearance" (adzuna). 814 of the 5,347 US titles a "security" search found in 30 days, 2026-10-09 - 734 of
+# them not security work - and 379 of the 745 a "security engineer" search added; the job search's own
+# clearance flag was on 279 of the 814
+CLEARANCE_TAG = re.compile(r"\s*[-–,]?\s*with (?:a |an )?(?:active )?security clearance\s*$", re.I)
+
+
 def pay_word_only(title: str, params: dict) -> bool:
-    """A title search's word found in this title only as a pay or hours unit - not the job searched for."""
+    """A title search's word found in this title only as a pay or hours unit, or in a job board's
+    "with Security Clearance" tag - not the job searched for."""
     q = (params.get("q") or "").strip('" ').lower().split()
     found = lambda text, w: re.search(rf"(?<!\w){re.escape(w)}", text, re.I)
-    stripped = HOURS_IN_TITLE.sub(" ", title)
+    stripped = CLEARANCE_TAG.sub(" ", HOURS_IN_TITLE.sub(" ", title))
     return any(found(title, w) and not found(stripped, w) for w in q)
 
 
@@ -125,7 +133,8 @@ def normalize(raw: dict, tier: str) -> dict:
         "enrichment": e,
         "reality": raw.get("reality") or {},
         # true or absent, never false: absent = no clearance wording found, not "none needed"
-        "requires_clearance": True if raw.get("requires_clearance") else None,
+        # ... or the board's own title tag says one is needed (535 of 814 tagged rows lacked the flag)
+        "requires_clearance": True if raw.get("requires_clearance") or CLEARANCE_TAG.search(raw["title"]) else None,
     }
 
 

@@ -35,7 +35,10 @@ salary is the user's number on the employer's file. Work permit + sponsorship co
 setup's answers, the US question asked the same way (`questions.work_permit`) - and "authorized
 ... without restriction" is asked every time for a visa holder (`needs_sponsorship` or
 `student_visa`: a CPT/OPT or H-1B permit has limits; CMU + UCI international offices say No on F-1),
-even over a Yes an older setup saved.
+even over a Yes an older setup saved. "Are you eligible to obtain a security clearance?" comes from setup's
+clearance answer (`can_hold_clearance`; neither citizen nor green card = No); one held now ("Do you have a
+current DoD security clearance?", its level, a polygraph) is never filled or kept - the user says it as
+their resume does, each time (a clearance stops being current about 2 years after leaving access).
 
 ## A student's boxes
 
@@ -105,7 +108,7 @@ one per topic or question, newest wins. The next form:
 |---|---|---|
 | Filled, named before Submit | 18 or older, notice period, how you heard, the same question word for word | true on any form; a wrong one is cheap |
 | Offered first, never filled | pay expected (beside the posting's pay), moving for the job, start date, written answers | each depends on this job |
-| Never kept | work permit + sponsorship, current pay, sensitive kinds, voluntary questions about them, where they live, agreeing / consenting / signing, two topics in one question; a student's status (enrolled, current student, graduation, GPA, OPT / CPT / F-1 / EAD, eligibility, immigration) - by question, and any answer naming a permit or a GPA | setup answers the US permit questions; a kept "I agree" would tick the next form's box; a student's status changes (a saved "Yes, enrolled" would fill the next form after graduation); the rest are the user's every time |
+| Never kept | work permit + sponsorship, current pay, sensitive kinds, voluntary questions about them, where they live, agreeing / consenting / signing, two topics in one question; a student's status (enrolled, current student, graduation, GPA, OPT / CPT / F-1 / EAD, eligibility, immigration), a clearance or polygraph held - by question, and any answer naming a permit or a GPA | setup answers the US permit questions; a kept "I agree" would tick the next form's box; a student's status changes (a saved "Yes, enrolled" would fill the next form after graduation); the rest are the user's every time |
 
 Basis: freehire.me's captured forms, 647,795 (Greenhouse, Lever, Ashby, Recruitee, Workable;
 measured 2026-09-09, github.com/strelov1/freehire, docs/superpowers/plans/measurements/ 01 + 03) - how you heard 61,762, 18+ 30,337, salary 24,762,

@@ -171,7 +171,9 @@ def test_student_shortfalls_name_the_window_and_the_level_they_study_for():
     ("Bachelor's degree in Accounting, Finance, or related field and an active Certified Internal Auditor (CIA) designation",
      ["CIA"], True),
     ("CISSP, CRISC, CISM, or CISA certification", ["CISSP", "CRISC", "CISM", "CISA"], True),
-    ("Current CMMC certification required: RP, CCP, or CCA.", ["CMMC"], True),
+    ("Current CMMC certification required: RP, CCP, or CCA.", ["CMMC", "RP", "CCP", "CCA"], True),
+    # DoD 8570 levels, read off the baseline chart (any cert on it, or a higher level's, answers the line)
+    ("DoD 8570/8140 IAM Level II certification", ["a DoD IAM Level II certification"], True),
     ("Current Texas Registered Nurse (RN) with at least four (4) years of full-time emergency care experience "
      "and an active Texas RN license.", ["RN"], False),
     ("Required certifications: ACLS, BLS, NIHSS, TN active RN license.", ["RN", "ACLS", "BLS", "NIHSS"], True),
@@ -210,7 +212,6 @@ def test_credentials_asked_reads_what_a_line_asks_to_hold(text, named, any_one):
     "Support critical day-to-day responsibilities including IAR registrations, communication reviews, OBA's, "
     "and regulatory filings (ADV's).",
     "Claude Code: System prompt construction, tool-use permission hardening, CLI credential isolation",
-    "DoD 8570/8140 IAM Level II certification",
     "Direct experience preparing, reviewing, and submitting spacecraft and/or ground station FCC and NOAA "
     "license applications to tight timelines.",
     "TLS/SSL certificates and public key infrastructure fundamentals",
@@ -351,3 +352,123 @@ def test_senior_hr_credential_answers_its_junior_one(line):
     have = "SHRM Senior Certified Professional (SHRM-SCP)\nSenior Professional in Human Resources (SPHR)"
     assert knockout.credentials_missing(line, have) == []
     assert knockout.credentials_missing(line, "PMP")
+
+
+# Security certs, 2026-10-09 (557 of 23,420 US security required lines name one): Security+ (203 lines) was
+# never read - a word ending in "+", not initials; "CISSP-ISSMP" hid the CISSP behind its hyphen
+@pytest.mark.parametrize("line, named", [
+    ("Security+ certification", ["Security+"]),
+    ("Active CompTIA Security+ certification.", ["Security+"]),
+    ("CompTIA Security+", ["Security+"]),
+    ("ISC2 CISSP", ["CISSP"]),
+    ("CISSP-ISSEP or CISSP-ISSAP certification", ["CISSP-ISSEP", "CISSP-ISSAP"]),
+    ("One of the following certifications required: Security +, CASP, PenTest +, GSEC, SecurityX",
+     ["Security+", "CASP", "PenTest+", "GSEC", "SecurityX"]),
+    ("Linux+ certification", ["Linux+"]),
+    ("Certificates Required: ACLS, BLS, NIHSS", ["ACLS", "BLS", "NIHSS"]),
+])
+def test_security_certs_read(line, named):
+    assert knockout.credentials_asked(line)[0] == named
+
+
+@pytest.mark.parametrize("line", ["Hands-on experience with CISA HVA assessment procedures",
+                                  "Vulnerability management and remediation (CVSS, EPSS, CISA KEV) required",
+                                  "Security+ preferred", "Must obtain Security+ within 6 months of hire"])
+def test_the_cisa_agency_and_wishes_ask_no_cert(line):
+    assert knockout.credentials_asked(line) is None
+
+
+def test_one_cert_by_its_old_or_short_name_and_isc2_concentrations_answer_the_cissp():
+    assert knockout.credentials_missing("CISSP required", "CISSP-ISSMP") == []
+    assert knockout.credentials_missing("Active Security+ certification", "CompTIA Sec+ CE") == []
+    # CASP+ is SecurityX since 2024-12-17 (CompTIA); CAP is CGRC since 2023-02-15 (ISC2)
+    assert knockout.credentials_missing("SecurityX certification required", "CASP+ CE") == []
+    assert knockout.credentials_missing("CGRC certification", "CAP (ISC2)") == []
+    # passed the exam w/o the years of work: an Associate of ISC2, not the CISSP
+    assert knockout.credentials_missing("CISSP required", "Associate of ISC2 (CISSP exam passed)") == ["CISSP"]
+    assert knockout.credentials_missing("Security+ certification", "Security+ (in progress)") == ["Security+"]
+
+
+# DoD 8570 levels: any cert on the baseline chart answers the line, a higher IAT / IAM level's too; IASAE
+# levels don't carry over; "obtain within 6 months" asks nothing held
+@pytest.mark.parametrize("line, have, missing", [
+    ("Current DoD IAT Level II certification prior to start date; no exceptions", "CompTIA Security+ CE", []),
+    ("Current DoD IAT Level II certification prior to start date; no exceptions", "CISSP", []),
+    ("MUST have IAM level 2 Certification on Day 1", "CompTIA Security+ CE", ["a DoD IAM Level II certification"]),
+    ("MUST have IAM level 2 Certification on Day 1", "CISM", []),
+    ("DoD 8570 IAT Level II certification (Security+, CySA+, CND, CCNA Security, or equivalent)", "GSEC", []),
+    ("Must possess current DoD 8570 IAT II or IAM II certification", "CISM", []),
+    ("CISSP or CISM (DoD 8140 IAM Level II/III)", "CGRC", []),
+    ("DoD 8140.03 IASAE Level 2 certification", "CCSP", ["a DoD IASAE Level II certification"]),
+])
+def test_dod_levels_read_off_the_baseline_chart(line, have, missing):
+    assert knockout.credentials_missing(line, have) == missing
+
+
+@pytest.mark.parametrize("line", ["Ability to obtain DoD 8570 IAT Level II within 6 months of hire",
+                                  "8+ years in IAM with principal/staff-level ownership of an identity control plane",
+                                  "DoD Manual 8140.03 qualification for DCWF Work Role 511, Cyber Defense Analyst"])
+def test_a_dod_level_to_earn_identity_work_and_an_8140_work_role_ask_no_cert(line):
+    assert knockout.credentials_asked(line) is None
+
+
+# Clearances, 2026-10-09: 707 of 5,248 US security postings carry a required clearance line, 503 ask one held
+@pytest.mark.parametrize("line, asked", [
+    ("Active TS/SCI clearance with polygraph", (2, True, True)),
+    ("Active DoD SECRET security clearance.", (0, False, True)),
+    ("Must hold Top Secret security clearance. Counterintelligence polygraph desired.", (1, False, True)),
+    ("Must have and be able to maintain an Active Top Secret clearance", (1, False, True)),
+    ("Clearance requirement: Active/current Secret (TS/SCI preferred).", (0, False, True)),
+    ("Active Secret or Top Secret clearance", (0, False, True)),
+    ("US Citizenship and Top Secret clearance with SCI eligibility", (1, False, True)),
+    ("Must be a US Citizen possessing an active TS/SCI security clearance. Bachelor's degree in CS, or a related field",
+     (2, False, True)),
+    ("Current active TS/SCI clearance, with the ability to obtain and maintain a CI polygraph", (2, False, True)),
+    ("Top Secret security clearance, CI poly eligible", (1, False, True)),
+    ("Active DoD security clearance", (0, False, False)),
+    ("U.S. Citizen with an active DoD Secret clearance", (0, False, True)),
+])
+def test_clearance_asked_to_hold(line, asked):
+    assert knockout.clearance_asked(line) == asked
+
+
+@pytest.mark.parametrize("line", [
+    "Ability to obtain a DoD Secret Clearance post start for which the U.S. Government requires U.S. Citizenship",
+    "Possess or be able to obtain and maintain a Secret clearance",
+    "Active Secret clearance or ability to obtain",
+    "Must be able to obtain and hold a U.S. Top Secret security clearance",
+    "Willingness to submit to a full scope polygraph investigation",
+    "Must be able to obtain a Public Trust clearance",
+    "CLEARANCE REQUIREMENTS: Department of Defense Secret security clearance is obtainable within a reasonable time after hire",
+    "Some assignments may require Secret or Top Secret clearance",
+    "U.S. citizenship (required for security clearance eligibility)",
+    "Experience with secrets management (Vault) and secret scanning",
+    "Current medical clearance required", "Customs clearance experience required",
+    "The salary range is based on experience, education, certifications, security clearance and location",
+])
+def test_clearance_to_get_a_wish_or_another_kind_asks_none_held(line):
+    assert knockout.clearance_asked(line) is None
+
+
+def test_clearance_held_read_off_their_lines_never_eligible_as_held():
+    assert knockout.clearance_held("Security Clearance\nActive TS/SCI with CI polygraph") == (2, True, None)
+    assert knockout.clearance_held("Security Clearance\nActive Secret") == (0, False, None)
+    assert knockout.clearance_held("TS/SCI (inactive since 2024)") == (None, False, 2)
+    assert knockout.clearance_held("Eligible for a Secret clearance") == (None, False, None)
+    assert knockout.clearance_held("Built a secret-scanning pipeline") == (None, False, None)
+
+
+def test_a_clearance_short_says_where_they_stand():
+    line = "Active TS/SCI clearance with polygraph"
+    assert knockout.clearance_short(line, "Active TS/SCI with CI polygraph") is None
+    assert knockout.clearance_short(line, "Active Secret clearance") == \
+        ("an active TS/SCI clearance with a polygraph", "your resume shows a Secret clearance")
+    assert knockout.clearance_short(line, "Active TS/SCI clearance")[1] == "no polygraph on your resume"
+    assert knockout.clearance_short(line, "TS/SCI (inactive since 2024)")[1] == "not current on your resume"
+    assert knockout.clearance_short("Active DoD security clearance", "")[0] == "an active security clearance"
+    assert knockout.clearance_short("Ability to obtain a Secret clearance", "") is None
+    job = {"requirements": [{"text": line, "priority": "required"}]}
+    m = {**master(9, "BS"), "other": [{"heading": "Security Clearance", "lines": ["Active Secret"]}]}
+    assert knockout.shortfalls(m, job, TODAY) == [
+        f'Asks an active TS/SCI clearance with a polygraph ("{line}"). Your resume details show a Secret '
+        "clearance - said as held, never higher."]

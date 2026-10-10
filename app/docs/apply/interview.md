@@ -138,6 +138,18 @@ Second pass (2026-10-09, fresh fetch: 743 postings, same 10 titles; 424 w/ a req
   Series ask; Excel 25, graduation timing 21, work authorization 16, GPA 12, ethics or integrity 11
   (text + requirements). Existing #Students rounds cover these; no new rule.
 
+## Security (measured 2026-10-09)
+
+5,248 US security postings (category + "cyber" / "information security" titles), full text. What the text
+names, postings: hands-on logs / SIEM / scripting 2,204, incident response or on-call 1,954, red team /
+pentest 779, architecture or design reviews 752, threat modeling 649, board or executive reporting 593,
+budget 345, tabletop exercises 174; a clearance 1,439. Frameworks named, missed by `interview.RULES`
+before: RMF 705, Zero Trust 464, OWASP 339, STIG 334, MITRE ATT&CK 330, CIS Controls 188, eMASS 161, NIST
+800-171 156, JSIG / ICD 503 109, HITRUST 88, CVSS 77, IEC 62443 53, NERC CIP 40 - now named. Rounds
+(`job-interview` #Security rounds): incident walk-through, design / threat model, hands-on on made-up data,
+leader (risk to a board); convention from the postings' own duties, not a study. Classified detail is never
+practised - the nondisclosure agreement binds for life (SF-312); clearance said as held (#Clearances).
+
 ## During - never help in a live interview or open test
 
 | Employer | Rule | Source |

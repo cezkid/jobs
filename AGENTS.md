@@ -185,7 +185,10 @@ every request into one tier:
     from confidential work (`job-tailor`); a film or TV credit above the role held (Assistant
     Editor shown as Editor - IMDb and end titles list it); a client under NDA named; an employee's
     name, health, accommodation, investigation or settlement from HR work (`job-tailor`); P&L,
-    revenue or equity plans a nonprofit role never had, written for a company posting.
+    revenue or equity plans a nonprofit role never had, written for a company posting; a security
+    clearance above the one held, "active" when it lapsed, a polygraph never taken; anything
+    classified, a pen-test client or finding, a breach detail not made public (`job-tailor`);
+    "Associate of ISC2" shown as CISSP.
   - NOT Hold: lawful "No" for a sealed / expunged record (state law decides; legal aid confirms), a work name they go by, a break line
     left off.
 - **Push back, then respect** - evidence-backed practice they want to override: deleting a job

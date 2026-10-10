@@ -384,7 +384,17 @@ def work_permit(q: dict, config: dict):
     # another country's "citizen or permanent resident" is a different question
     if "citizen" in title and ("green card" in title or ("permanent resident" in title and us)):
         return wa.get("citizen_or_permanent_resident")
+    # "Are you eligible to obtain a clearance?" is setup's clearance answer; one they hold now ("Do you have a
+    # current DoD security clearance?", its level) is never filled - asked each time, as their resume says it
+    if "clearance" in title and CAN_GET_CLEARANCE.search(title) and not HOLD_CLEARANCE.search(title):
+        held = wa.get("can_hold_clearance")
+        return False if held is None and wa.get("citizen_or_permanent_resident") is False else held
     return None
+
+
+CAN_GET_CLEARANCE = re.compile(r"eligib\w* (?:to obtain|for (?:a |an )?(?:u\.?s\.? |us )?(?:security |government )?clearance)|"
+                               r"(?:able|ability) to obtain")
+HOLD_CLEARANCE = re.compile(r"\b(?:currently|current|active|do you (?:have|hold|possess)|what level|interim)\b")
 
 
 def sensitive(q: dict, contact: dict) -> str | None:

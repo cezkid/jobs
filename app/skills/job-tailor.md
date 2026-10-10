@@ -150,6 +150,22 @@ Wording the user asks about:
   discipline or settlement amount - medical and accommodation records are confidential by law
   (ADA, 29 CFR 1630.14), and a named case points to a person. Scope + outcome read the same:
   "Ran 140 workplace investigations a year with counsel; no finding overturned on appeal".
+- Security clearance: written as it stands - level, active or current, polygraph only if they had
+  one ("Active TS/SCI with CI polygraph"; "Top Secret, inactive since 2024"). Never a higher level,
+  "active" for one they left (commonly "current" up to about 2 years after leaving access, then
+  a new investigation - general information; their security office has the final word), a polygraph they never took, or "clearable" / "eligible" as held:
+  employers verify it in the government's own system (DISS) before an offer stands. The job list
+  says it the same way ("asks an active TS/SCI clearance, your resume shows a Secret clearance").
+  It lives in their own `other` section; tailoring never moves or rewords it.
+- Security work: never anything classified - a program's or system's name, codeword, location,
+  capability or mission detail (the nondisclosure agreement they signed binds for life; a resume is
+  no exception; unsure -> leave it off, their security office reviews it). Never a client's name or
+  finding from a penetration test or red team engagement, a breach or incident detail the employer
+  hasn't made public, or an unpatched vulnerability. Scope + outcome read the same: "Led 30
+  external penetration tests a year for financial clients; 4 critical findings each fixed within
+  the engagement". A CVE they're credited on is public - fine as written.
+- DoD 8570 / 8140 certs: as held ("CompTIA Security+ CE"); "Associate of ISC2" (passed the CISSP
+  exam, years of work still to come) is never "CISSP" - ISC2 grants the CISSP only after them.
 - Moving between a nonprofit and a company (either way): the same facts, in words the reader's side
   reads - headcount, budget they owned, sites or states, who they reported to (CEO, board
   committee), cost or turnover moved. Never revenue, P&L, stock or equity plans, M&A, donors or

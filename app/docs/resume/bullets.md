@@ -296,6 +296,33 @@ Declined: a nonprofit-only or company-only filter (none exists - `jobs/freehire.
 leadership; named on each job instead); a "DEI" wording rule - the posting's term for what their
 experience backs is the existing keyword rule, nothing HR-specific to add.
 
+## Security resumes (2026-10-09)
+
+Audit for a cybersecurity expert: a made-up director of cyber defense (24x7 SOC at a federal contractor,
+principal security architect, Army cyber officer; CISSP-ISSMP, Security+ CE, GCIH, CCSP; Active TS/SCI with
+CI polygraph) against the 12,351 unique required lines of 2,586 senior / leader US security postings, and
+the same resume with only a Secret clearance + Security+ (freehire 2026-10-09, 5,248 postings).
+
+| Seen | Count | Now |
+|---|---|---|
+| Security+, CySA+, CASP+ / SecurityX never read as asked (a word ending "+", not initials) | 203 + 65 + 69 of 557 cert lines | `knockout._COMPTIA`; "Sec+", "Security +", CAP = CGRC, CASP+ = SecurityX are one cert (`SAME_AS`) |
+| "CISSP required" marked missing for a CISSP-ISSMP holder (the hyphen hid it) | 27 lines ask ISSAP / ISSEP / ISSMP | concentrations answer the CISSP (`ANSWERED_BY`); "Associate of ISC2" never counts as CISSP |
+| DoD 8570 / 8140 lines skipped whole ("MUST have IAM level 2 Certification on Day 1") | 156 postings name a category + level | read off DoD's baseline chart (`DOD_BASELINE`): any cert there, or a higher IAT / IAM level's, answers it; 8140 work roles alone still say nothing (a degree or training also qualifies) |
+| A clearance read as yes / no: a Secret holder's list = a TS/SCI holder's | 503 postings ask one held, at a level | `knockout.clearance_short`: "asks an active TS/SCI clearance, your resume shows a Secret clearance" - sorted lower, never hidden; 124 of 2,586 senior jobs for the Secret holder; 590 clearance lines read by hand |
+| The resume's own "Active TS/SCI with CI polygraph" unread by the match (`other` sections skipped) | 102 clearance asks unbacked for a holder | `best.resume_facts` reads `other`; a clearance line only by its level - its "CI" backed "CI/CD" asks |
+| "Must be a U.S. citizen" counted as unbacked for everyone | 73 asks | can't tell from a resume (the work-permit answer, setup) |
+| "identity and access management", EDR, SIEM, PAM, SOAR, pen testing unbacked by a resume naming IAM / Okta / CrowdStrike / Splunk / CyberArk | 28 asks | `best.SAME_WORDS` folds the long name to its short form on both sides (expanding a short form instead put "information" + "event" on the page from "SIEM"); a tool backs its kind. Unbacked 5,058 -> 4,858 (10 newly unbacked: "Application security" etc. had been backed by "security" alone) |
+| "cyber" flagged as a typo for "caber"; pentest, SIEM, EDR, botnet, smishing too | 1 of 12 lines | `lint.WORK_WORDS` |
+| "Stood up the vulnerability management program" not read as initiative | feedback: initiative 0 lines | `feedback.QUALITIES`: "stood up", "standing up a" - never a stand-up meeting |
+| Classified detail, a pen-test client or finding, a breach on the page | no rule | Hold - `job-tailor`, `job-interview`, `AGENTS.md`, the tailoring prompt; clearance said as held (level, active or not, polygraph) |
+
+Lint + feedback otherwise: 12 of 12 lines numbered, 4 leadership; rule-of-three warns on two tool lists
+("Okta, Zscaler and device posture checks") left - report-only, the user's call.
+
+Declined: a per-level clearance filter (the job search's flag is yes / no; sorted by the posting's own
+line instead); reading Public Trust as a clearance (a suitability check, often open to green-card holders);
+Q / L DOE clearances by name beyond "Q clearance" (3 lines).
+
 ## Reviewed 2026-09-24
 
 Adversarial review as a nurse, new graduate, finance analyst: rules pushing invention or failing a

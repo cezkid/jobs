@@ -9,7 +9,8 @@ chat, type, press Enter. You never type commands or edit files.
   "Tell me which employers are nonprofits"
 - **Pay:** jobs paying less than your lowest pay are hidden, unless few new jobs come in that week -
   then the closest come back, marked. "Change my lowest pay" · "Hide jobs with no pay listed"
-- **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number"
+- **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number" ·
+  "Add my security clearance - active Secret" · "Add my Security+ certification"
 - **One job:** "Make my resume for job 3" · "What does job 3's application ask?" · "Write a cover letter for job 3" · "Why did you change that?" ·
   "Help me apply to job 3"
 - **Several jobs:** "Make my resume for jobs 2, 5 and 7" - one chat does them in turn

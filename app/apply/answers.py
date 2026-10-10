@@ -47,7 +47,9 @@ NEVER = re.compile(r"authori[sz]|right to work|sponsor|\bvisa\b|citizen|green ca
                    # a student's status changes: enrolled now, graduated by the next form; an F-1 permit
                    # (OPT, CPT, its EAD card) has dates; a GPA is the transcript's, read off the resume
                    r"\bopt\b|\bcpt\b|\bf-?1\b|\bead\b|eligib|immigration|enrol|current(?:ly)? (?:a )?student|"
-                   r"\bgpa\b|grade point|graduat")
+                   r"\bgpa\b|grade point|graduat|"
+                   # a clearance or polygraph held now: active today, not current 2 years after leaving
+                   r"clearance|polygraph|\bpoly\b|ts/sci|top secret")
 # an answer naming a permit or a grade is never kept, whatever the question looked like
 NEVER_IN_ANSWER = re.compile(r"\bopt\b|\bcpt\b|\bf-?1\b|\bead\b|\bvisa\b|sponsor|green card|citizen|immigration|"
                              r"\bgpa\b", re.I)

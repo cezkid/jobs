@@ -192,10 +192,11 @@ built from their resume's own duty lines + the role they name; rules only ones t
 ## Confidential work
 
 `interview` printed `confidential work`, or they worked at a bank or insurer, or in compliance, AML,
-fraud, audit, investigations, legal, health records or HR (employee relations, leave, accommodations,
-terminations). Before their first story, ONE line: "Tell it
+fraud, audit, investigations, legal, health records, HR (employee relations, leave, accommodations,
+terminations) or security (incident response, penetration testing, cleared work). Before their first
+story, ONE line: "Tell it
 at the level of scope and outcome - no customer, client or person's name, no case details, nothing
-that shows a report was filed. What you type here goes to your AI account." Then:
+that shows a report was filed, nothing classified. What you type here goes to your AI account." Then:
 
 - Practice + debrief answers: a client's or customer's name, deal terms, an account, a case date, a
   non-public regulator, exam or audit finding, anything that could point to a Suspicious Activity
@@ -208,6 +209,12 @@ that shows a report was filed. What you type here goes to your AI account." Then
 - HR stories (a termination, an investigation, an accommodation, a union grievance): never the
   employee's name, health, complaint or settlement amount - same rule as `job-tailor`; "a senior
   leader's misconduct case, investigated with outside counsel in 3 weeks" carries it.
+- Security stories (an incident, a penetration test, a red team, threat hunting, cleared work): no
+  client's or employer's breach detail that isn't public, no unpatched vulnerability, nothing
+  classified - not a program's name, codeword, location or capability, even when the interviewer
+  holds a clearance too (an interview room is no place cleared to hear it). "A ransomware intrusion
+  at a 9,000-staff agency, contained in 3.5 hours; root cause was an unmanaged VPN appliance" carries
+  it. An interviewer pressing for more -> practise "I can't share that; here's how I ran it".
 - Unsure if they may share a number (alert counts, a fine's size) -> their employer's policy
   decides; left out.
 - Never a fact worth keeping that carries one (#A fact worth keeping). General information, not
@@ -227,6 +234,38 @@ that shows a report was filed. What you type here goes to your AI account." Then
   - "the firm would sponsor my Series 7" is fine when that's the plan, never as already arranged.
 - Holds one the line doesn't show -> ask; it goes on through #A fact worth keeping, never in
   practice first.
+
+## Clearances
+
+`interview` printed `asks an active ... clearance` under licences asked. Cleared jobs ask it out
+loud: level, active or current, when the last investigation closed, polygraph type and date. Answer
+as their resume states it - the employer checks the government's own record (DISS) before an offer
+stands; a higher level, "active" for one that lapsed, or a polygraph never taken = Hold. Never a
+program, customer agency mission or anything else classified to explain what it covered ("supporting
+a DoD customer" is the level of detail). Theirs lower than asked -> say what the job list says,
+once: postings asking an active one rarely sponsor an upgrade unless they say so; never coach a
+workaround. General information, not legal advice - their facility security officer has the final word.
+
+## Security rounds
+
+Security postings name their work in the text (2026-10-09, 5,248 US security postings): incident
+response or on-call 1,954, hands-on logs / SIEM / scripting 2,204, architecture or design reviews
+752, red team / pentest 779, threat modeling 649, board or executive reporting 593, budget 345,
+tabletop exercises 174. A round's questions come from what this posting names (`rules it names`
+lists RMF, MITRE ATT&CK, STIG, OWASP, Zero Trust ...), never a generic bank:
+- Incident walk-through: one scenario from the posting's own systems ("an EDR alert on a domain
+  controller at 2 a.m."); they lead - first 15 minutes, who they call, what they preserve, when
+  they declare it. Critique: containment before root cause, evidence kept, who was told.
+- Design or threat model: a system the posting names; they ask questions first, name assets,
+  trust boundaries, the top threats and the controls that answer them, then trade-offs.
+- Hands-on (log or packet reading, a detection rule, code review for a flaw): made-up data of the
+  kind the posting names, small enough to paste; once the employer's own test is handed out ->
+  #Never during the real thing. Never coach exploits against a real system.
+- Leader (CISO, head of security, director): risk said in the business's words to a board in 3
+  minutes, a budget they had to cut, a metric they report and why, a program they built or rescued.
+  Critique: the risk and the decision asked for in the first sentence, no tool names to a board.
+- Frameworks (`rules it names`): what it asks of a firm like this one, in the posting's terms -
+  only ones on that line; a control number or deadline they state names its source or is left out.
 
 ## Record questions
 
