@@ -67,6 +67,9 @@ Practice for a student: `job-interview` #Formats, #Never during the real thing, 
 sources `app/docs/apply/interview.md` (plan-ueh, 2026-10-08). `interview` prints `student:` when a
 degree is in progress, so the student rounds apply. A Handshake or career-fair interview needs no
 tailored resume: the pasted posting alone, or the resume + the role they name.
+Compliance / risk / audit internships (44 postings w/ requirements, 2026-10-09): none asked the SIE or a
+Series exam; Excel 25, graduation timing 21, work authorization 16, GPA 12 - the student rounds cover
+them. A student asked about the SIE: true answer only; it needs no firm (FINRA, `job-interview` #Licences).
 
 ## AI plans
 

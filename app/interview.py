@@ -32,6 +32,14 @@ RULES = re.compile(
     r"\b(?:BSA|AML|KYC|CDD|EDD|OFAC|FCPA|HIPAA|SOX|GDPR|CCPA|CPRA|CECL|CCAR|DFAST|UDAAP|TILA|RESPA|ECOA|HMDA|"
     r"FCRA|GLBA|COSO|MiFID(?: II)?|PCI[ -]DSS|NIST(?: CSF)?|ISO ?27001|SOC ?[12]|FINRA|FINCEN|FinCEN|Reg(?:ulation)? "
     r"(?:BI|[A-Z]{1,2})|SR ?11-7|SR ?26-2|Basel(?: III| IV)?|Dodd-Frank|Volcker|Sarbanes-Oxley|Bank Secrecy Act|"
+    # 2026-10-09, 424 postings: named in the text, missed above - SAR 13, COBIT 14, GAAP / IFRS 15, FFIEC 11,
+    # FISMA / FedRAMP 9, PATRIOT Act 8, PCAOB 8, CTR 7, CMMC 7, NYDFS 5 (hits read by hand). Left out: CMS
+    # ("Compliance Management System"), SCRA (a job title's initials), CRA, DORA (software delivery metrics),
+    # Export Administration Regulations (hiring boilerplate), regulators (OCC, SEC). ITAR: 1 of 3 boilerplate
+    r"SARs?|CTRs?|(?:USA )?PATRIOT Act|FFIEC|PCAOB|COBIT|GAAP|IFRS|FedRAMP|FISMA|CMMC|ITAR|NYDFS|23 NYCRR(?: Part)? 500|"
+    r"FERPA|ERISA|FATCA|TCPA|FDCPA|Stark Law|False Claims Act|Anti-Kickback Statute|21 CFR Part 11|GxP|"
+    r"(?:Investment )?Advisers Act|Investment Company Act|EU AI Act|"
+    r"(?:Global )?Internal Audit Standards|IIA Standards|IPPF|"
     r"(?i:anti-?money laundering|anti-?bribery|anti-?corruption|fair lending|sanctions (?:screening|compliance|"
     r"programs?|laws?|regulations?|risk)))\b")
 # risk methods a technical round asks to explain or apply
@@ -121,10 +129,12 @@ def licences(master: dict, job: dict) -> list[str]:
         if req.get("priority") != "required" or not (asked := knockout.credentials_asked(req["text"])):
             continue
         missing = knockout.credentials_missing(req["text"], have)
-        if missing:
-            out.append(f"- asks {knockout.credential_words(missing, req['text'])}: not in their resume details - "
+        # on the page but no longer current: said as the page says it, below - not "not in their resume"
+        gone = [c for c in missing or [] if knockout.lapsed(c, have)]
+        if absent := [c for c in missing or [] if c not in gone]:
+            out.append(f"- asks {knockout.credential_words(absent, req['text'])}: not in their resume details - "
                        "never claimed in an answer")
-        for name in [] if missing and asked[2] else [c for c in asked[1] if c not in missing]:
+        for name in gone + ([] if missing and asked[2] else [c for c in asked[1] if c not in missing]):
             written = next((c for c in certs if re.search(rf"(?<![\w-]){re.escape(name.split()[-1])}(?![\w-])", c)), None)
             if written and (LAPSED.search(written) or knockout.ON_THE_WAY.search(written)):
                 out.append(f'- asks {name}: their resume says "{written}" - said that way, never as held now')

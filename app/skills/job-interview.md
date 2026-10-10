@@ -164,7 +164,10 @@ if they finished before any graduation-date answer.
 ## Compliance and risk
 
 `interview` printed `the posting's text also names`. Same rule as every round: the question comes
-from a line it quotes or their resume - the quote is the posting's, never a bank. The kinds:
+from a line it quotes or their resume - the quote is the posting's, never a bank. No posting (a
+career fair, a first chat) and their resume is compliance, AML, audit or risk work -> the same kinds,
+built from their resume's own duty lines + the role they name; rules only ones their resume names;
+#Confidential work + #Record questions apply. The kinds:
 
 - Judgement or ethics (`judgement or ethics`, or the role is compliance, audit or risk): one
   scenario built from a duty the posting names - "a desk head asks you to clear an alert before
@@ -211,7 +214,8 @@ that shows a report was filed. What you type here goes to your AI account." Then
 `interview` printed `licences asked`. An answer states each one as their resume details do:
 - `not in their resume details` -> never claimed, not even "I'm familiar with Series 24 work".
   Asked "Do you hold it?" -> practise the true answer + what they'd do (sitting it, a date if real).
-- `said that way` -> "passed 2019, not currently registered", never "I'm Series 7". FINRA
+- `said that way` -> "passed 2019, not currently registered", never "I'm Series 7". The job list
+  says the same ("asks Series 7, not current on your resume") and sorts it lower, never hidden. FINRA
   registration shows on BrokerCheck (a representative exam lasts 2 years after registration ends,
   up to 5 in the Maintaining Qualifications Program - FINRA). An exam part is not the credential:
   "FRM Part I passed".

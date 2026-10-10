@@ -119,6 +119,25 @@ Not covered: bankruptcy and private employers' hiring (11 U.S.C. 525(b) bars fir
 government) - courts split on hiring; never said in chat. Banks fingerprinting staff for Section
 19: not verified from a primary page - never said.
 
+Second pass (2026-10-09, fresh fetch: 743 postings, same 10 titles; 424 w/ a requirement list):
+- Rule names the list missed, in the text: SAR 13, COBIT 14, GAAP / IFRS 15, FFIEC 11, FISMA / FedRAMP
+  9, PATRIOT Act 8, PCAOB 8, CTR 7, CMMC 7, NYDFS 5; 21 of 424 got no `rules it names` line for it.
+  Added, each hit read by hand; left out: CMS ("Compliance Management System"), SCRA (a job title's
+  initials), the spelled-out Export Administration Regulations (hiring boilerplate), CRA, DORA,
+  regulators. ITAR kept: 1 of 3 hits boilerplate. After: 251 of 424 carry the line (245 before).
+- Lapsed licence (plan-2tk): "Series 7 (passed 2019; not currently registered)", "CPA (inactive)"
+  counted as held - the job list said the ask was met. Now held = named w/o a lapse word in its own
+  bracket or clause; ranking says "not current on your resume" + sorts it lower (never hidden), the
+  pre-tailoring check + `interview` say it as the page does. A FINRA exam inside its 2-year window
+  could count once a firm re-registers them (Rule 1210.08) - the resume carries no end date, so
+  "not current" is what it says. Decision: our judgement, reversible.
+- Rule 3290: no effective date yet - finra.org weekly archive 2026-09-16 ("FINRA will issue a
+  regulatory notice to announce the effective date"), Regulatory Notices list read 2026-10-09 (latest
+  26-17, on Rule 4515.01). 3270 + 3280 still apply.
+- Students: 63 compliance / risk / audit internship + co-op postings, 44 w/ requirements: no SIE or
+  Series ask; Excel 25, graduation timing 21, work authorization 16, GPA 12, ethics or integrity 11
+  (text + requirements). Existing #Students rounds cover these; no new rule.
+
 ## During - never help in a live interview or open test
 
 | Employer | Rule | Source |

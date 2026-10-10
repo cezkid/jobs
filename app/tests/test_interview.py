@@ -84,6 +84,29 @@ def test_the_postings_own_duty_sentences_and_named_rules_are_quoted():
     assert "- checks it names: background check, credit check, fingerprinting" in out
 
 
+# rule names real postings used that the first list missed (2026-10-09, 424 postings w/ requirements)
+@pytest.mark.parametrize("text, named", [
+    ("ensuring the accurate, timely submission of CTRs, SARs, FinCEN 314(a)/314(b), and OFAC reporting", "CTRs, SARs, FinCEN, OFAC"),
+    ("At least 6 months of working experience with USA PATRIOT Act and Bank Secrecy Act (BSA) regulations.",
+     "USA PATRIOT Act, Bank Secrecy Act, BSA"),
+    ("FinCEN guidance, OFAC sanctions, and FFIEC BSA/AML examination expectations", "FinCEN, OFAC, FFIEC, BSA, AML"),
+    ("SOX IT requirements, COSO, COBIT, NIST Cybersecurity Framework (CSF), PCAOB, and PCI-DSS standards.",
+     "SOX, COSO, COBIT, NIST, PCAOB, PCI-DSS"),
+    ("such as IFRS, US GAAP, SOX, and ICFR.", "IFRS, GAAP, SOX"),
+    ("the Institute of Internal Auditors' Global Internal Audit Standards and industry best practices.",
+     "Global Internal Audit Standards"),
+    ("NY DFS 23 NYCRR Part 500, StateRAMP / FedRAMP readiness; Lead CMMC Level 1 and Level 2 readiness",
+     "23 NYCRR Part 500, FedRAMP, CMMC"),
+    ("Corporate Practice of Medicine (CPOM) doctrine, Anti-Kickback Statute, Stark Law, and telemedicine",
+     "Anti-Kickback Statute, Stark Law"),
+    # a job title's initials, hiring boilerplate: no rule
+    ("hiring for a Senior Cybersecurity Risk Analyst (\u201cSCRA\u201d) at its Headquarters", ""),
+    ("may require access to technology subject to the U.S. Export Administration Regulations.", ""),
+])
+def test_rules_named_in_their_own_spelling(text, named):
+    assert ", ".join(interview._named(interview.RULES, text)) == named
+
+
 def test_a_sentence_already_in_the_requirements_is_not_repeated_and_a_bare_posting_adds_nothing():
     job = {**AML_JOB, "text": "3+ years of BSA/AML experience, escalating alerts to the BSA Officer.",
            "requirements": [{"text": "3+ years of BSA/AML experience, escalating alerts to the BSA Officer.",
