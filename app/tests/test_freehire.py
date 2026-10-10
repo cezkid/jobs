@@ -162,3 +162,36 @@ def test_work_permit_and_student_answers_never_reach_the_job_search():
     conn = store.connect(":memory:")
     freehire.run(config, conn, httpx.Client(transport=httpx.MockTransport(handler)))
     assert sent and all(set(p) <= {"category", "limit", "offset", "posted_within_days"} for p in sent), sent
+
+
+# an "HR" title search brought "Server Assistant - $20.25/hr" and "Staff RN - 12 Hr" (184 of 1,000 newest,
+# 2026-10-09): the HR there is a rate or a shift, never the job searched for
+def test_hr_title_search_drops_pay_and_shift_hours_titles(conn):
+    titles = {"a": "Server Assistant - $20.25/hr", "b": "Staff RN 12 Hr - Obstetrics", "c": "Payroll/HR Specialist",
+              "d": "2027 HR Intern - Garland, TX", "e": "VP, HR", "f": "Costco Sales Rep | 26/hr to start"}
+
+    def handler(request):
+        return httpx.Response(200, json={"data": [{**raw(s), "title": t} for s, t in titles.items()], "meta": {"total": 6}})
+    config = {**CONFIG, "passes": [{"tier": "remote", "params": {"q": "HR", "q_fields": "title"}}]}
+    with httpx.Client(transport=httpx.MockTransport(handler)) as c:
+        freehire.run(config, conn, c)
+    assert {j["public_slug"] for j in store.all_jobs(conn)} == {"c", "d", "e"}
+    assert not freehire.pay_word_only("Server Assistant - $20.25/hr", {"category": ["hr"]})
+
+
+# pay sits at the end of a posting, past the ~1,000 characters /jobs/search keeps: the search asks the
+# endpoint w/ whole descriptions, and the range the posting states wins over the job search's field
+def test_pay_read_from_the_posting_wins_over_the_field():
+    sent = []
+
+    def handler(request):
+        sent.append(request.url.path)
+        return httpx.Response(200, json={"data": [], "meta": {"total": 0}})
+    freehire.run(CONFIG, store.connect(":memory:"), httpx.Client(transport=httpx.MockTransport(handler)))
+    assert sent and set(sent) == {"/agent/jobs/search"}
+    row = {**raw("a"), "description": "<p>Annual Salary Range $80,000—$82,000 USD</p>",
+           "enrichment": {"salary_min": 22000, "salary_max": 32000, "salary_currency": "usd", "salary_period": "year"}}
+    got = freehire.normalize(row, "remote")
+    assert (got["salary_min"], got["salary_max"], got["salary_currency"], got["salary_period"]) == (80000, 82000, "USD", "year")
+    plain = freehire.normalize({**row, "description": "<p>No pay here.</p>"}, "remote")
+    assert (plain["salary_min"], plain["salary_currency"]) == (22000, "USD")

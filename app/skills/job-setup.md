@@ -293,6 +293,28 @@ showing jobs from <company>" any time.
   one tier.
   Their resume should link a reel or portfolio (asked on 204 of 551 video postings w/ requirements):
   no link in `contact.links` -> ask for it at #3, never make one up.
+- HR + people leadership - head of HR, VP / director of HR, chief people / human resources officer,
+  HR business partner leaders: title passes, never `category=hr` alone (8,780 US; its 1,000 newest
+  130 leading titles, 472 coordinator / generalist / specialist / assistant, 2026-10-09). Shape:
+  `app/profiles/hr-leader.yml`: "human resources" (holds VP / Director of Human Resources, CHRO
+  spelled out), "HR" (HR Director, Head of HR, VP HR), "people" (Head of People, Chief People Officer,
+  People & Culture) - one pass each, same tier; together they hold 466 of 475 hr jobs the job search
+  tags c_level. Count each w/ `probe --title`; "CHRO" (43), "head of people" (218) etc. need no pass
+  of their own. Level "Manager, director or executive" (`career_level: leader`) is what keeps the list
+  usable: generalist, coordinator, specialist, assistant titles sort below the leading ones, never
+  hidden. Few are tagged remote (194 "human resources" of 8,823): offer their city first. Open to
+  companies and nonprofits alike unless they say otherwise - never a filter for either (none exists:
+  no industry facet). Resume shows nonprofit work or they mention it -> ONE question "Name nonprofit
+  employers on each job? It never hides or moves a job." Yes / No -> `rank.posting_says: [nonprofit]`
+  (the posting's own words, or the job search's company record - about 1 in 11 HR employers
+  2026-10-09). Want only nonprofits, or only companies -> say there's no such filter; the name on
+  each job lets them skip, and a company they never want goes on the blocklist. Pay: director
+  postings that state a range top out around $180k (median), VP / head $225k, chief $240k - offer
+  bands around theirs (`rank --pay-floor` counts). Other leadership moves they name (COO 430 open,
+  chief of staff 1,110, "human capital" 115 - federal CHCO titles) -> a pass each on their yes. After
+  the first job check, other work the words bring, counted w/ `rank --would-hide` ("people":
+  engineers, product, designers, data scientists, "People Solutions" sales) -> ONE multiSelect,
+  `blocklist.title_phrases` on their yes.
 - Probe base pass, then once per added filter. Facet w/ many nulls (`-` in tally) drops those
   rows, not only mismatches => outside tech skip `seniority`, `employment_type` unless tally
   shows few nulls. Keep total under 10k (pagination ceiling).

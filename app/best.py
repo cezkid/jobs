@@ -82,10 +82,19 @@ def words_of(text: str) -> list[str]:
     return [w for w in re.findall(r"[a-z][a-z0-9+#]*", text.lower()) if len(w) > 1 and w not in FILLER]
 
 
+# one thing, two names: an ask in one backed by a resume in the other. HR asks: "HR" vs "human
+# resources" both ways; "HRIS" backed by the HR system a resume names (Workday HCM, UKG ...) - 18 of
+# 566 unbacked HR leader asks named HRIS against a resume that moved payroll to Workday (2026-10-09)
+SAME_THING = ((re.compile(r"\bhuman resources?\b", re.I), "hr"), (re.compile(r"\bhr\b", re.I), "human resources"),
+              (re.compile(r"\b(?:workday|ukg|ultipro|kronos|adp|dayforce|ceridian|successfactors|oracle hcm|peoplesoft|"
+                          r"bamboohr|paylocity|paycom|paycor|rippling|namely|hibob|isolved)\b", re.I), "hris"))
+
+
 def stems(text: str) -> set[str]:
     """Content words cut to their first 6 letters, each also w/o its ending: "reconciliation" =
     "reconcile", "accountant" = "accounting", "edited" = "editing". Crude on purpose - an order, not
     a verdict."""
+    text += "".join(f" {also}" for rx, also in SAME_THING if rx.search(text))
     return {f for w in words_of(text) for f in forms(w)}
 
 
@@ -200,9 +209,12 @@ def above_level(job: dict, config: dict) -> bool:
 
 def asks(job: dict, config: dict, bn: dict) -> tuple[float, int, int]:
     """1 = light, 0 = heavy: required asks + lead/manage duties (each counts twice) between
-    asks_light and asks_heavy; a level 2+ rungs above theirs halves it. No asks listed => 0.5."""
+    asks_light and asks_heavy; a level 2+ rungs above theirs halves it. No asks listed => 0.5.
+    A leader (career_level) leads for a living: their lead duties count once, like any ask. 2026-10-09,
+    680 US director / VP / chief postings w/ required asks (HR-titled + chief searches): median 7 asks,
+    1 to lead; counted twice, 49 read heavy (16+), counted once 22."""
     texts = required(job)
-    lead = sum(bool(LEAD.search(t)) for t in texts)
+    lead = 0 if config["rank"].get("career_level") == "leader" else sum(bool(LEAD.search(t)) for t in texts)
     if not texts:
         score = 0.5
     else:

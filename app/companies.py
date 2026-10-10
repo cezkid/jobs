@@ -37,21 +37,32 @@ def due(conn, now: datetime, limit: int = BATCH) -> list[str]:
     return [r[0] for r in conn.execute(
         "SELECT DISTINCT j.company_slug FROM jobs j LEFT JOIN companies c ON c.slug = j.company_slug"
         " WHERE j.closed_at IS NULL AND j.company_slug IS NOT NULL AND j.company_slug != ''"
-        " AND (c.fetched_at IS NULL OR c.fetched_at < ?) ORDER BY j.company_slug LIMIT ?", (old, limit))]
+        " AND (c.fetched_at IS NULL OR c.fetched_at < ? OR c.nonprofit IS NULL) ORDER BY j.company_slug LIMIT ?",
+        (old, limit))]
 
 
-def ask(client: httpx.Client, base: str, slug: str) -> tuple[bool, str | None]:
-    """(answered, website). 404 = no record => answered, none. Any other failure => not answered:
-    try again next check."""
+def nonprofit(company: dict) -> bool:
+    """The record calls the employer a nonprofit: organization_type "Non-Profit" or industry
+    "nonprofit". 2026-10-09, 250 random employers of US HR-titled jobs: 20 so (the posting's own
+    words said it on 6); set on about half of records, so "no" here says little."""
+    industries = company.get("industries")
+    return company.get("organization_type") == "Non-Profit" or (isinstance(industries, list) and "nonprofit" in industries)
+
+
+def ask(client: httpx.Client, base: str, slug: str) -> tuple[bool, str | None, bool]:
+    """(answered, website, nonprofit). 404 = no record => answered, none. Any other failure => not
+    answered: try again next check."""
     try:
         resp = client.get(f"{base}/companies/{quote(slug, safe='')}")
         if resp.status_code == 404:
-            return True, None
+            return True, None, False
         resp.raise_for_status()
-        info = (((resp.json() or {}).get("data") or {}).get("company") or {}).get("company_info") or {}
+        company = ((resp.json() or {}).get("data") or {}).get("company") or {}
+        info = company.get("company_info") or {}
+        np = nonprofit(company)
     except (httpx.HTTPError, ValueError, AttributeError):
-        return False, None
-    return True, website(info.get("website") if isinstance(info, dict) else None)
+        return False, None, False
+    return True, website(info.get("website") if isinstance(info, dict) else None), np
 
 
 def refresh(conn, client: httpx.Client, base: str, now: datetime | None = None, limit: int = BATCH) -> int:
@@ -60,13 +71,13 @@ def refresh(conn, client: httpx.Client, base: str, now: datetime | None = None, 
     stamp = now.strftime(store.ISO)
     answered = 0
     for slug in due(conn, now, limit):
-        ok, site = ask(client, base, slug)
+        ok, site, np = ask(client, base, slug)
         if not ok:
             continue
         with conn:
-            conn.execute("INSERT INTO companies (slug, website, fetched_at) VALUES (?, ?, ?) ON CONFLICT (slug)"
-                         " DO UPDATE SET website = excluded.website, fetched_at = excluded.fetched_at",
-                         (slug, site, stamp))
+            conn.execute("INSERT INTO companies (slug, website, fetched_at, nonprofit) VALUES (?, ?, ?, ?) ON CONFLICT (slug)"
+                         " DO UPDATE SET website = excluded.website, fetched_at = excluded.fetched_at,"
+                         " nonprofit = excluded.nonprofit", (slug, site, stamp, int(np)))
         answered += 1
     return answered
 

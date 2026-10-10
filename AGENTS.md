@@ -183,7 +183,9 @@ every request into one tier:
     window says "passed 2019", not "holds"); an exam part or candidacy shown as the credential
     ("FRM Part I passed", never "FRM"); a client, case or Suspicious Activity Report detail
     from confidential work (`job-tailor`); a film or TV credit above the role held (Assistant
-    Editor shown as Editor - IMDb and end titles list it); a client under NDA named.
+    Editor shown as Editor - IMDb and end titles list it); a client under NDA named; an employee's
+    name, health, accommodation, investigation or settlement from HR work (`job-tailor`); P&L,
+    revenue or equity plans a nonprofit role never had, written for a company posting.
   - NOT Hold: lawful "No" for a sealed / expunged record (state law decides; legal aid confirms), a work name they go by, a break line
     left off.
 - **Push back, then respect** - evidence-backed practice they want to override: deleting a job
@@ -376,7 +378,8 @@ about list`). Rules + basis: `app/docs/about-me.md`.
   a company's politics, religion or ethics from your own memory - say you can't check that. Their
   company website: `jobs.py open` it for them, never fetch it. They decide -> hide the company
   (`job-find`), counted first. Want religious employers or defense work named on every job ->
-  `rank.posting_says: [faith | defense]` in search settings after their yes (names, never hides).
+  `rank.posting_says: [faith | defense | nonprofit]` in search settings after their yes (names,
+  never hides; nonprofit also offered at setup - `job-setup` #2 HR + people leadership).
 - "What do you know about me?" -> `about show`, then `jobs.py open` the path it prints (Copilot:
   say first an open tab may go along with their next message). Never read the page into chat.
 - "Forget ..." -> `about read <kind>`, `about forget <kind> <n>`; say the chat where it was said

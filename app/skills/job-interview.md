@@ -192,7 +192,8 @@ built from their resume's own duty lines + the role they name; rules only ones t
 ## Confidential work
 
 `interview` printed `confidential work`, or they worked at a bank or insurer, or in compliance, AML,
-fraud, audit, investigations, legal or health records. Before their first story, ONE line: "Tell it
+fraud, audit, investigations, legal, health records or HR (employee relations, leave, accommodations,
+terminations). Before their first story, ONE line: "Tell it
 at the level of scope and outcome - no customer, client or person's name, no case details, nothing
 that shows a report was filed. What you type here goes to your AI account." Then:
 
@@ -204,6 +205,9 @@ that shows a report was filed. What you type here goes to your AI account." Then
   or anything that would show one exists (31 U.S.C. 5318(g)(2); 31 CFR 1020.320(e) banks,
   1023.320(e) broker-dealers) - an interview answer included. An interviewer asking for the case ->
   practise "I can't share case details; here's how I worked it".
+- HR stories (a termination, an investigation, an accommodation, a union grievance): never the
+  employee's name, health, complaint or settlement amount - same rule as `job-tailor`; "a senior
+  leader's misconduct case, investigated with outside counsel in 3 weeks" carries it.
 - Unsure if they may share a number (alert counts, a fine's size) -> their employer's policy
   decides; left out.
 - Never a fact worth keeping that carries one (#A fact worth keeping). General information, not

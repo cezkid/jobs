@@ -76,8 +76,9 @@ def test_tui_launches_and_filters_senior_plus(polled):
     asyncio.run(scenario())
 
 
-def test_detail_jd_beats_stored_truncation(polled):
-    """Detail endpoint carries the whole JD; the stored description is cut at 999 chars.
+def test_stored_description_is_the_whole_posting(polled):
+    """The job check stores the whole posting (/agent/jobs/search): pay ranges + "About us" sit past
+    the ~1,000 chars /jobs/search keeps. The detail endpoint, which tailoring reads, says the same.
 
     Which live posting ranks first is not this test's subject, and some real listings carry no
     requirement bullets at all - asserting on whichever row sorted top made a passing suite
@@ -91,7 +92,7 @@ def test_detail_jd_beats_stored_truncation(polled):
                 full = jd.fetch(client, config["api"]["base"], job["public_slug"])
             except jd.NoRequirements:
                 continue
-            assert len(full["text"]) > len(html_to_text(job["description"]))
+            assert len(html_to_text(job["description"])) >= 0.95 * len(full["text"]) > 1000
             assert full["requirements"]
             return
     pytest.skip(f"no requirements on any of the top {len(ranked[:10])} remote postings today")

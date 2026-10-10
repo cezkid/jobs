@@ -19,6 +19,16 @@ POSTING_AGE_GAP = 7
 # title words that clearly contradict a stated career level; a title without any is never demoted
 _JUNIOR = r"interns?|internships?|co-?op|junior|jr|entry[ -]level|trainee|apprentice"
 _TOP = r"director|vp|vice president|chief|head of"
+# individual-contributor + support titles: below "Manager, director or executive" (leader) unless the
+# title also names a role that leads (LEADS). 2026-10-09, 3,341 US HR-titled rows: 1,301 carry one of
+# these and no leading word - generalist 430, specialist 227, coordinator 181, analyst 97, assistant 85,
+# associate 46, recruiter 37 ... For a head of HR they filled half the list
+_SUPPORT = (r"coordinators?|assistants?|specialists?|generalists?|associates?|clerks?|representatives?|reps?|"
+            r"analysts?|recruiters?|sourcers?|technicians?|aides?|schedulers?|processors?|receptionists?")
+LEADS = r"manager|director|head|chief|vp|svp|evp|vice[- ]president|officer|president|lead|leader|principal|partner|" \
+        r"supervisor|superintendent|dean|executive director"
+# support roles even beside a leader's title: "Executive Assistant to the Chief People Officer"
+SUPPORT_ALWAYS = r"executive assistants?|assistants? to|administrative (?:assistant|coordinator)s?|admin coordinators?"
 # level -> (words above it, words below it)
 LEVEL_MISMATCH = {
     "entry": (rf"senior|sr|principal|lead|{_TOP}", None),
@@ -296,6 +306,13 @@ def job_type(job: dict) -> str | None:
     return title_type(job) or job.get("employment_type")
 
 
+def below_leader(title: str) -> bool:
+    """An individual-contributor or support title, for someone who leads: "HR Generalist", "People
+    Operations Coordinator", "Executive Assistant to the CHRO" - never "Assistant Director of HR",
+    "Associate Director", "Lead Generalist"."""
+    return bool(words(SUPPORT_ALWAYS).search(title)) or bool(words(_SUPPORT).search(title)) and not words(LEADS).search(title)
+
+
 def mismatches(job: dict, rc: dict) -> list[str]:
     out = []
     level = rc.get("career_level") or ""
@@ -303,7 +320,7 @@ def mismatches(job: dict, rc: dict) -> list[str]:
     title = job.get("title") or ""
     if above and words(above).search(ENTRY_TITLE_KEEP.sub(" ", title) if level == "entry" else title):
         out.append("title above your level")
-    if below and words(below).search(title):
+    if below and words(below).search(title) or level == "leader" and below_leader(title):
         out.append("title below your level")
     wanted, kind = rc.get("employment_types") or [], job_type(job)
     # an intern title below a mid-level user's level already says it: one doubt, not two
@@ -401,6 +418,7 @@ def clearance(job: dict) -> list[str]:
 # schools, dioceses, a church university; defense 41 rows / 8 employers, 0 false ("national
 # security" left out: an energy association's goals; 2 defense employers said only that). Politics measured + declined: "advocacy",
 # "progressive" matched patient care and legal aid, no party stance (app/docs/about-me.md).
+_NONPROFIT = r"(?:non-?profit|not-for-profit|not for profit|501\s*\(\s*c\s*\)\s*\(?\s*3\s*\)?)"
 POSTING_SAYS = {
     "faith": ("religious employer", re.compile(
         r"\b(faith[- ]based|christ[- ]centered|catholic|lutheran|baptist|methodist|presbyterian|episcopal|"
@@ -411,14 +429,25 @@ POSTING_SAYS = {
         r"\b(defen[cs]e (?:technology|technologies|contractor|industry|industrial base|systems|company|programs?)|"
         r"department of (?:defense|war)|DoD|munitions|missiles?|weapons? systems?|warfighters?|"
         r"military (?:capabilities|customers|programs?|systems|applications|contracts?))\b", re.I)),
+    # the employer calling itself one ("X is a nonprofit", "X, a 501(c)(3)", "we are a ... not-for-profit"),
+    # never an ask ("nonprofit experience preferred") or a client ("clients run ... a large nonprofit")
+    "nonprofit": ("nonprofit employer", re.compile(
+        rf"\b(?:is|are|as|become|became)\s+(?:a|an|the|one of the)\s+(?:[\w,'’&-]+\s+){{0,6}}?{_NONPROFIT}|"
+        rf"(?-i:[A-Z][\w.&'’-]*)\s*,\s+(?:a|an)\s+(?:[\w'’&-]+\s+){{0,4}}?{_NONPROFIT}|"
+        rf"\b(?:we are|we're)\s+(?:a|an)?\s*(?:[\w,'’&-]+\s+){{0,5}}?{_NONPROFIT}", re.I)),
 }
 TAG = re.compile(r"<[^>]+>")
 
 
 def posting_says(job: dict, rc: dict) -> list[str]:
-    text = TAG.sub(" ", job.get("description") or "")
-    return [f"posting says: {words}" for kind, (words, rx) in POSTING_SAYS.items()
-            if kind in (rc.get("posting_says") or []) and rx.search(text)]
+    """Named in the posting's own words; a nonprofit also when the job search's company record
+    calls it one (companies.nonprofit - 3x the employers the text names, about 1 in 7 a misfile:
+    two recruiting firms in 20) - said as the record's word, not the posting's."""
+    text, wanted = TAG.sub(" ", job.get("description") or ""), rc.get("posting_says") or []
+    out = [f"posting says: {words}" for kind, (words, rx) in POSTING_SAYS.items() if kind in wanted and rx.search(text)]
+    if "nonprofit" in wanted and job.get("company_nonprofit") and not any("nonprofit" in o for o in out):
+        out.append("listed as a nonprofit employer")
+    return out
 
 
 def can_hold_clearance(config: dict) -> bool | None:

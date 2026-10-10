@@ -1,4 +1,5 @@
 import argparse
+import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
@@ -7,9 +8,14 @@ import httpx
 
 import cfg
 import companies
+import paytext
 import store
 
 API_OFFSET_CEILING = 10000
+# same filters + rows as /jobs/search, description whole (5,855 chars vs 986 per row, 2026-10-09; same
+# speed): the pay range + "About us" sit at the end, past the ~1,000 chars /jobs/search keeps - pay in
+# the first 1,000 on 71 of 1,000 HR-titled rows, in the whole text on 279 (paytext)
+SEARCH = "/agent/jobs/search"
 # posted_at compared against local clock; margin keeps window-edge rows from false close
 WINDOW_EDGE_MARGIN = timedelta(hours=1)
 
@@ -50,7 +56,7 @@ def fetch_pass(client: httpx.Client, base: str, params: dict, page_limit: int) -
     rows, offset = [], 0
     while True:
         limit = min(page_limit, API_OFFSET_CEILING - offset)
-        resp = client.get(f"{base}/jobs/search", params={**query_params(params), "limit": limit, "offset": offset})
+        resp = client.get(f"{base}{SEARCH}", params={**query_params(params), "limit": limit, "offset": offset})
         resp.raise_for_status()
         body = understood(resp.json())
         rows += body["data"]
@@ -62,9 +68,36 @@ def fetch_pass(client: httpx.Client, base: str, params: dict, page_limit: int) -
             return rows, total > API_OFFSET_CEILING
 
 
+def pay(raw: dict) -> dict:
+    """Pay fields: the range the posting states in its own words (paytext), else the job search's
+    own field. The words win when both are there: of 38 HR-titled rows where they differed
+    (2026-10-09), the field was a stale or other band on every one read by hand ($22k-32k on a
+    posting saying $80,000-$82,000)."""
+    e = raw.get("enrichment") or {}
+    if said := paytext.stated(raw.get("description")):
+        return {"salary_min": said[0], "salary_max": said[1], "salary_currency": "USD", "salary_period": said[2]}
+    currency = e.get("salary_currency")
+    return {"salary_min": e.get("salary_min"), "salary_max": e.get("salary_max"),
+            "salary_currency": currency.upper() if currency else None, "salary_period": e.get("salary_period")}
+
+
+# pay or hours said in a title ("Server Assistant - $20.25/hr", "$24.65*/HR - Shift Manager", "36 hrs./wk."):
+# the job search matches its "hr" to a title search for HR - 184 of the 1,000 newest US "HR" titles,
+# 2026-10-09 ("Payroll/HR Specialist" keeps its HR: no number before it)
+# ("2027 HR Intern" keeps it: a year is no rate or shift length)
+HOURS_IN_TITLE = re.compile(r"(?:\$\s?\d[\d.,]*|\b\d{1,3}(?:\.\d+)?)\s*[*+]?\s*(?:/|per|an?)?\s*(?:hrs?|hours?)\b\.?", re.I)
+
+
+def pay_word_only(title: str, params: dict) -> bool:
+    """A title search's word found in this title only as a pay or hours unit - not the job searched for."""
+    q = (params.get("q") or "").strip('" ').lower().split()
+    found = lambda text, w: re.search(rf"(?<!\w){re.escape(w)}", text, re.I)
+    stripped = HOURS_IN_TITLE.sub(" ", title)
+    return any(found(title, w) and not found(stripped, w) for w in q)
+
+
 def normalize(raw: dict, tier: str) -> dict:
     e = raw.get("enrichment") or {}
-    currency = e.get("salary_currency")
     return {
         "public_slug": raw["public_slug"],
         "tier": tier,
@@ -83,10 +116,7 @@ def normalize(raw: dict, tier: str) -> dict:
         "employment_type": e.get("employment_type"),
         "seniority": e.get("seniority"),
         "category": e.get("category"),
-        "salary_min": e.get("salary_min"),
-        "salary_max": e.get("salary_max"),
-        "salary_currency": currency.upper() if currency else None,
-        "salary_period": e.get("salary_period"),
+        **pay(raw),
         "posted_at": raw.get("posted_at"),
         "created_at": raw.get("created_at"),
         "last_seen_at": raw.get("last_seen_at"),
@@ -133,7 +163,7 @@ def run(config: dict, conn, client: httpx.Client) -> dict[str, dict]:
             lambda p: fetch_widening(client, api["base"], p["params"], api["page_limit"], config["window"]), passes))
     tiers = {}
     for p, (raw, truncated, days) in zip(passes, fetched):
-        rows = [normalize(r, p["tier"]) for r in raw]
+        rows = [normalize(r, p["tier"]) for r in raw if not pay_word_only(r["title"], p["params"])]
         with conn:
             store.upsert(conn, rows, now)
         t = tiers.setdefault(p["tier"], {"slugs": set(), "truncated": False, "days": []})

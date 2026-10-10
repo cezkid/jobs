@@ -87,6 +87,16 @@ def test_heavy_asks_score_lower_and_say_so():
     assert "Asks a lot: 15 requirements, 15 to lead or manage" in why
 
 
+# a head of HR saw every director posting called heavy for asking them to lead - leading is the job
+def test_leader_lead_duties_count_once():
+    posting = job("vp", [f"Lead the {w} program" for w in "abcdefghij"])
+    bn = CONFIG["rank"]["best_next"]
+    leader = cfg.merge(CONFIG, {"rank": {"career_level": "leader"}})
+    assert best.asks(posting, CONFIG, bn)[1:] == (10, 10) and best.asks(posting, CONFIG, bn)[0] == 0.0
+    assert best.asks(posting, leader, bn) == (0.75, 10, 0)
+    assert "to lead or manage" not in best.reasons(best.score([posting], leader, NOW, None)[0], leader, NOW)
+
+
 # a level far above theirs listed as an easy pick
 def test_seniority_two_rungs_up_halves_asks():
     config = cfg.merge(CONFIG, {"rank": {"career_level": "mid"}})
@@ -204,3 +214,14 @@ def test_resume_facts_reads_a_portfolio_link(tmp_path, monkeypatch):
     assert best.resume_facts(CONFIG, NOW.date())["portfolio"] is True
     path.write_text(RESUME)
     assert best.resume_facts(CONFIG, NOW.date())["portfolio"] is False
+
+
+# "HR" in the ask, "Human Resources" on the page (or the reverse); "HRIS" asked of a resume that names Workday
+def test_hr_asks_read_both_names_and_the_system_by_name():
+    facts = {"stems": best.stems("Vice President, Human Resources. Moved payroll to Workday HCM."), "years": None,
+             "degree": None, "languages": set()}
+    assert best.backed("Progressive HR leadership", facts)
+    assert best.backed("HRIS implementation", facts)
+    other = {**facts, "stems": best.stems("Led HR for 4,000 staff")}
+    assert best.backed("Human resources leadership", other)
+    assert not best.backed("HRIS implementation", other)

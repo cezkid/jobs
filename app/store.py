@@ -81,11 +81,13 @@ CREATE TABLE IF NOT EXISTS asked (
     at TEXT NOT NULL
 );
 -- company website from the job search's company record (companies.py); website NULL = none on
--- record. Asked at the job check, never at click time
+-- record. Asked at the job check, never at click time. nonprofit: 1 = the record calls it one
+-- (organization_type Non-Profit or industry nonprofit), 0 = it doesn't, NULL = not asked yet
 CREATE TABLE IF NOT EXISTS companies (
     slug TEXT PRIMARY KEY,
     website TEXT,
-    fetched_at TEXT NOT NULL
+    fetched_at TEXT NOT NULL,
+    nonprofit INTEGER
 );
 -- job number the user sees in chat, email, Today page: given the first time a job is shown,
 -- never changed or reused (AUTOINCREMENT). key = slug, or the applications key of a job w/o one
@@ -129,11 +131,10 @@ def connect(path: Path | str) -> sqlite3.Connection:
 
 def add_columns(conn: sqlite3.Connection) -> None:
     """Columns newer than a user's database: CREATE TABLE IF NOT EXISTS never adds them."""
-    have = {r[1] for r in conn.execute("PRAGMA table_info(jobs)")}
-    for col, kind in (("requires_clearance", "INTEGER"),):
-        if col not in have:
+    for table, col, kind in (("jobs", "requires_clearance", "INTEGER"), ("companies", "nonprofit", "INTEGER")):
+        if col not in {r[1] for r in conn.execute(f"PRAGMA table_info({table})")}:
             try:
-                conn.execute(f"ALTER TABLE jobs ADD COLUMN {col} {kind}")
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {kind}")
             except sqlite3.OperationalError:  # another chat added it a moment ago
                 pass
 
@@ -187,7 +188,8 @@ def close_missing(
 
 
 def all_jobs(conn: sqlite3.Connection, include_closed: bool = False) -> list[dict]:
-    sql = "SELECT jobs.*, seen.alerted_at FROM jobs LEFT JOIN seen USING (public_slug)"
+    sql = ("SELECT jobs.*, seen.alerted_at, companies.nonprofit AS company_nonprofit FROM jobs"
+           " LEFT JOIN seen USING (public_slug) LEFT JOIN companies ON companies.slug = jobs.company_slug")
     if not include_closed:
         sql += " WHERE closed_at IS NULL"
     return [_decode(r) for r in conn.execute(sql)]

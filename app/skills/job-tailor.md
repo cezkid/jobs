@@ -145,6 +145,18 @@ Wording the user asks about:
   Volume and outcome without them read the same: "Cleared 60+ alerts a day; escalated cases to
   the BSA Officer". A number they aren't sure they may share -> leave it off, their employer's
   policy decides. General information, not legal advice.
+- HR work (employee relations, investigations, leave, accommodations, terminations, pay equity):
+  never an employee's name, health condition, accommodation, complaint, investigation finding,
+  discipline or settlement amount - medical and accommodation records are confidential by law
+  (ADA, 29 CFR 1630.14), and a named case points to a person. Scope + outcome read the same:
+  "Ran 140 workplace investigations a year with counsel; no finding overturned on appeal".
+- Moving between a nonprofit and a company (either way): the same facts, in words the reader's side
+  reads - headcount, budget they owned, sites or states, who they reported to (CEO, board
+  committee), cost or turnover moved. Never revenue, P&L, stock or equity plans, M&A, donors or
+  grants the source doesn't state: a company posting asking "P&L" or "equity compensation" of a
+  nonprofit HR head is a gap to tell them (Hold), never a word to add. "Mission", "programs" and
+  "development" (fundraising) read differently to a company reader - keep their fact, say what it
+  was ("fundraising team", "youth services across 12 sites").
 
 User asks to... (`AGENTS.md` #Lead, explain, push back - say why in plain words, once):
 - Add a skill, tool, number or certification they don't have, or a bigger title -> Hold.
