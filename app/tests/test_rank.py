@@ -471,6 +471,11 @@ def test_a_required_licence_their_resume_never_names_sorts_lower_and_says_which(
     ranked = rank.rank(jobs, CONFIG, NOW)
     assert slugs(ranked) == ["aml", "any", "principal"]
     assert "asks Series 7 and Series 24, not in your resume" in rank.reasons(ranked[2], CONFIG, NOW)
+    # on the page as lapsed: sorted lower all the same, said as it stands
+    lapsed = knockout.credential_text({"certifications": [{"name": "Series 7 (passed 2019; not currently registered)"},
+                                                          {"name": "Series 24 (lapsed)"}]})
+    monkeypatch.setattr(rank, "resume_credentials", lambda config: lapsed)
+    assert "asks Series 7 and Series 24, not current on your resume" in rank.reasons(next(j for j in rank.rank(jobs, CONFIG, NOW) if j["public_slug"] == "principal"), CONFIG, NOW)
     # no resume details yet: nothing to compare, nothing said
     monkeypatch.setattr(rank, "resume_credentials", lambda config: None)
     assert slugs(rank.rank(jobs, CONFIG, NOW))[0] == "principal"

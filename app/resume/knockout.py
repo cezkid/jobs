@@ -350,12 +350,39 @@ def credential_text(master: dict) -> str:
 ON_THE_WAY = re.compile(r"\s*(?:\(|-|,)?\s*(?i:part|level|candidate|exam|in progress|expected|pending)\b")
 
 
-def holds(credential: str, text: str) -> bool:
+# a licence or registration their resume says is no longer current: "Series 7 (passed 2019; not currently
+# registered)" (job-tailor's wording), "CPA (inactive)", "CAMS - expired 2022". Read in its own bracket, or
+# up to the next ; or . on its line - "Series 7 and 63; Series 24 lapsed" lapses 24 only. Shown as held
+# = Hold (AGENTS.md); a FINRA exam counts again only once a firm re-registers them (Rule 1210.08)
+LAPSED = re.compile(r"(?i)\b(?:not currently|no longer|lapsed|expired|inactive)\b")
+
+
+def _lapsed_after(text: str, end: int) -> bool:
+    rest = text[end:].split("\n", 1)[0]
+    bracket = re.match(r"[^()\n;.]{0,40}?\(([^)]*)\)", rest)
+    return bool(LAPSED.search(bracket.group(1) if bracket else re.split(r"[;.]", rest, maxsplit=1)[0][:40]))
+
+
+def _found(credential: str, text: str) -> list[re.Match]:
     if credential.startswith("Series "):
         number = credential.split()[1]
-        return any(number in re.findall(r"\d{1,2}", m.group(0)) for m in SERIES.finditer(text))
-    return any(not ON_THE_WAY.match(text, m.end())
-               for m in re.finditer(rf"(?<![\w-]){re.escape(credential)}(?![\w-])", text))
+        return [m for m in SERIES.finditer(text) if number in re.findall(r"\d{1,2}", m.group(0))]
+    return [m for m in re.finditer(rf"(?<![\w-]){re.escape(credential)}(?![\w-])", text)
+            if not ON_THE_WAY.match(text, m.end())]
+
+
+def holds(credential: str, text: str) -> bool:
+    return any(not _lapsed_after(text, m.end()) for m in _found(credential, text))
+
+
+def lapsed(credential: str, text: str) -> bool:
+    """On their resume, but only as no longer current - said "not current", never "not in your resume"."""
+    return not holds(credential, text) and bool(_found(credential, text))
+
+
+def missing_words(missing: list[str], have: str) -> str:
+    """How the ones a line asks stand on their resume: absent, or there but not current."""
+    return "not current on your resume" if all(lapsed(c, have) for c in missing) else "not in your resume"
 
 
 def credentials_missing(text: str, have: str) -> list[str] | None:
@@ -434,8 +461,12 @@ def shortfalls(master: dict, job: dict, today: date) -> list[str]:
                        "details - if you have one (Vimeo, YouTube, your own site), it can go there.")
         if master and (missing := credentials_missing(text, have)):
             them, they = ("it", "it") if len(missing) == 1 else ("them", "they")
-            out.append(f"Asks {credential_words(missing, text)} (\"{text}\"). Not in your resume details - "
-                       f"if you hold {them}, {they} can go in there.")
+            if all(lapsed(c, have) for c in missing):
+                out.append(f"Asks {credential_words(missing, text)} (\"{text}\"). Your resume details show {them} "
+                           "as no longer current - said that way on the page, never as held now.")
+            else:
+                out.append(f"Asks {credential_words(missing, text)} (\"{text}\"). Not in your resume details - "
+                           f"if you hold {them}, {they} can go in there.")
         asked = years_asked(text)
         if asked is not None and have_years is not None and have_years < asked:
             out.append(f'Asks {asked}+ years ("{text}"). Your dated jobs add up to {have_years}.')

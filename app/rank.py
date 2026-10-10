@@ -328,11 +328,11 @@ def asks_beyond(job: dict, config: dict, graduation: str | None, today, credenti
     """What a posting's own required lines ask that the user clearly lacks: 3+ years (entry level
     only), a graduation window theirs misses, a licence or certification their resume details never
     name ("asks Series 24" - compliance, finance and nursing posts ask these outright; one held from
-    an either/or list answers it). Sorted lower, never hidden."""
+    an either/or list answers it; one their resume says lapsed is "not current"). Sorted lower, never hidden."""
     from resume import knockout  # light: the posting's lines only
     out = []
     if credentials is not None:
-        out += [f"asks {knockout.credential_words(missing, t)}, not in your resume"
+        out += [f"asks {knockout.credential_words(missing, t)}, {knockout.missing_words(missing, credentials)}"
                 for t in required_lines(job) if (missing := knockout.credentials_missing(t, credentials))]
     if config["rank"].get("career_level") == "entry":
         asked = [y for t in required_lines(job) if (y := knockout.years_asked(t)) is not None]

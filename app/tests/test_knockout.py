@@ -280,6 +280,30 @@ def test_an_exam_part_or_candidacy_does_not_hold_the_credential():
     assert knockout.credentials_missing("CPA required", have) == []
 
 
+# a licence the resume says lapsed holds nothing now: job-tailor writes "Series 7 (passed 2019; not currently
+# registered)"; before this the ranking read it as held (plan-2tk)
+def test_a_lapsed_licence_is_on_the_resume_but_not_held():
+    have = knockout.credential_text({"certifications": [
+        {"name": "Series 7 (passed 2019; not currently registered)"}, {"name": "CPA (inactive)"},
+        {"name": "CAMS - expired 2022"}, {"name": "Series 63"}],
+        "summary": "Series 66 and 65 holder; Series 24 lapsed.",
+        "roles": [{"bullets": ["Cut expired-document backlog 40% for CISA audits"]}]})
+    assert knockout.credentials_missing("FINRA Series 7 and Series 24 licenses (required)", have) == ["Series 7", "Series 24"]
+    assert knockout.credentials_missing("Active CPA license required.", have) == ["CPA"]
+    assert knockout.credentials_missing("Active CAMS certification", have) == ["CAMS"]
+    assert knockout.credentials_missing("Series 63 license", have) == []
+    assert knockout.credentials_missing("Series 66 license required", have) == []
+    # a lapse word further along a bullet is no lapse of the credential
+    assert knockout.credentials_missing("CISA certification required", have) == []
+    assert knockout.lapsed("Series 7", have) and not knockout.lapsed("FRM", have)
+    assert knockout.missing_words(["Series 7", "Series 24"], have) == "not current on your resume"
+    assert knockout.missing_words(["Series 7", "FRM"], have) == "not in your resume"
+    job = {"requirements": [{"text": "Active CPA license required.", "priority": "required"}]}
+    assert knockout.shortfalls({"certifications": [{"name": "CPA (inactive)"}]}, job, TODAY) == [
+        'Asks CPA ("Active CPA license required."). Your resume details show it as no longer current - '
+        "said that way on the page, never as held now."]
+
+
 def test_a_credential_shortfall_is_said_quoting_the_posting_only_with_resume_details():
     job = {"requirements": [{"text": "FINRA Series 7 and Series 24 licenses (required)", "priority": "required"},
                             {"text": "CAMS certification preferred", "priority": "preferred"}]}

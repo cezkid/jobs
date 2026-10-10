@@ -29,7 +29,7 @@ Never values / personal here (`AGENTS.md` #About me).
      false -> same: quote the line first. Unset -> ask once, save the answer.
    - `prepare` prints "minimum asks the resume details don't meet" (years asked vs dated jobs, a
      degree level vs the highest listed; a licence or certification asked - CPA, CAMS, Series 24 - no
-     part of their resume details names; for a student, a graduation window theirs misses, a degree
+     part of their resume details names, or names only as no longer current; for a student, a graduation window theirs misses, a degree
      level they aren't studying for) -> say each in plain words, quoting the posting, before
      writing; ONE clickable question: Tailor anyway / Skip this job. Never say they'd be screened
      out - how firm a minimum is varies by employer; their call. A licence they say they hold ->
