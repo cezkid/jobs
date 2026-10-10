@@ -239,6 +239,10 @@ def education_entry(school: dict, today: date | None = None, span: bool = False)
     return entry
 
 
+# an `other` heading naming film or TV credits ("Selected Credits", "Filmography")
+CREDITS = re.compile(r"\b(?:credits?|filmography)\b", re.I)
+
+
 def page_model(master: dict, today: date | None = None) -> dict:
     """Master facts -> exactly what lands on page, in page order. Tailorer emits same shape."""
     contact = master["contact"]
@@ -254,6 +258,11 @@ def page_model(master: dict, today: date | None = None) -> dict:
             "subline": joined(span_label(p), p.get("location"), p.get("blurb")),
             "bullets": [b["claim"] for b in p["bullets"]],
         } for p in master["projects"] if schema.section_of(p) == title]})
+    # film / TV credits are the work itself for an editor or camera operator: right after the jobs
+    # (convention in film and TV resumes, unmeasured), never under Certifications at the foot
+    for other in master.get("other") or []:
+        if CREDITS.search(other["heading"]):
+            sections.append({"title": other["heading"], "lines": [{"text": line} for line in other["lines"]]})
     if master.get("skills"):
         sections.append({"title": "Skills", "lines": [
             {"label": g["group"], "text": ", ".join(g["items"])} for g in master["skills"]
@@ -273,7 +282,7 @@ def page_model(master: dict, today: date | None = None) -> dict:
             for c in master["certifications"]
         ]})
     # volunteer work, awards, clearances, publications: the user's own heading and lines, verbatim
-    for other in master.get("other") or []:
+    for other in (o for o in master.get("other") or [] if not CREDITS.search(o["heading"])):
         sections.append({"title": other["heading"], "lines": [{"text": line} for line in other["lines"]]})
     if master.get("languages"):
         sections.append({"title": "Languages", "lines": [{"text": ", ".join(master["languages"])}]})

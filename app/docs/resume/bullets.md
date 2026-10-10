@@ -26,7 +26,7 @@ Can cost the offer, not just the interview. Claims a third party checks.
 | Rule | Basis | |
 |---|---|---|
 | Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of businesses asked found discrepancies in the past 12 months; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of respondents APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. Headline title (top line) may become the posting's: a label, not a record - same limits, level vs the role(s) held now, asked on every job (`page-format.md` #The headline). | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a level word (`tailor.SENIORITY`: Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor, Architect, VP ...; grade numeral at the end, upward only); `check_headline_title` the same for the top line |
-| Overlap fine; **unlabelled** overlap isn't | National Resume Writers' Association: "concurrent roles are not frowned upon." Same employer -> stacked titles; different -> marker (part-time, freelance, contract), else reads as date mistake. | enforce: `role-dates-overlap`, incl. same-employer case |
+| Overlap fine; **unlabelled** overlap isn't | National Resume Writers' Association: "concurrent roles are not frowned upon." Same employer -> stacked titles; different -> marker (part-time, freelance, contract), else reads as date mistake. | enforce: `role-dates-overlap`, incl. same-employer case; a marker in either title or employer (`lint.CONCURRENT`: freelance, part-time, contract, self-employed, consultant, per diem ...) is the label - no warning (2026-10-09: it warned on a "Freelance Video Editor" overlapping the news job it grew out of) |
 | Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US HR + talent leaders, Oct 2024): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
 | Year in a bullet inside the role's dates | No external source; internal consistency. Jobscan 2026 runs against it (dates on header, not bullets). | **report only** - see [Considered, not mechanised](#considered-not-mechanised) |
 | No uncheckable grade | Berkeley: "minimize the use of adjectives and adverbs"; Arizona: "better to be clear than be complicated". *Advanced, best-in-class, world-class, industry-leading* carry nothing; the fact behind them does. Word-ban lists = resume-product blogs; defensible core is substitution. **Grade word inside a term isn't a grade** (*Advanced Cardiac Life Support*, *advanced practice nurse*). | enforce: `unmeasurable-grade`, skipped when facts or posting use the word |
@@ -42,7 +42,7 @@ What earns the line its space.
 
 | Rule | Basis | |
 |---|---|---|
-| Bullet carries **evidence**: outcome metric, else scope (how many / large / often, source known to writer) or named qualitative result (approval won, process adopted, audit passed). None -> reported, never filled. | Most contested point. MIT PAR ends in a result; Emory: "Action Verb + task, resulting in quantitative outcome". But **Arizona: not every bullet needs a numeric result** ("whenever possible"). Emory splits *scale* from *results* questions: scope alone = quantified. | **report** - proxy `specificity` |
+| Bullet carries **evidence**: outcome metric, else scope (how many / large / often, source known to writer) or named qualitative result (approval won, process adopted, audit passed). None -> reported, never filled. A digit is no evidence by itself: a date, clock time, ratio, picture size or name (Sony FX3, 9:16, 4K, "Jan 2022 - Jun 2023") says no how many (`lint.has_count`, [Video resumes](#video-resumes-2026-10-09)). | Most contested point. MIT PAR ends in a result; Emory: "Action Verb + task, resulting in quantitative outcome". But **Arizona: not every bullet needs a numeric result** ("whenever possible"). Emory splits *scale* from *results* questions: scope alone = quantified. | **report** - proxy `specificity` |
 | **Every clause adds something new.** Fails when true of any instance ("a component library, so new screens assemble from existing pieces"), restates the opening, or true of anyone in the role ("shipping features end to end"). | Mirror of Tier 1: true by definition -> conveys nothing, spent words at 7 s. Arizona warns against bullets to "sound professional". Duty dressed as outcome - Harvard, Emory, Berkeley rank last. | **report**: `empty-clause` WARNs, purpose-clause form only (*names nothing specific*, not *adds nothing*); other forms report |
 | Achievements over duties | Most consistent rule found, no dissent. Harvard: "not demonstrating results" a top mistake; Emory: "daily job duties and tasks" heads "do not include"; Berkeley: "the impact that your work had". | **report** - lives in facts, not shape |
 | Scope vs change numbers differ; all-one-kind role worth noticing | Emory "Scale" vs "Results" questions; MIT scale ("over 100,000 data points", "size of your department, event, budget") vs % change. Both quantify. | **report only** - enforcing demands a scope number; Tier 1 wins |
@@ -133,8 +133,9 @@ one instance.
 | `unknown-entry`, `inference-source` | entry or added claim w/o master source | FAIL |
 | `unresolved-entity` | generated number, tool, company in no master fact; "1,000" = "1000" | FAIL |
 | `ai-era` | AI wording / tool before its release in an older role. `RAG` capitals only, never red-amber-green; bare *evals*, *embeddings*, *fine-tuning* excluded | FAIL generated, WARN own |
-| `role-dates-overlap` | role ends after next starts; same-employer named | WARN |
-| `company-legal-id` | employer missing Inc./LLC | WARN |
+| `role-dates-overlap` | role ends after next starts; same-employer named; skipped when either is labelled concurrent (freelance, part-time, contract ...) at different employers | WARN |
+| `company-legal-id` | employer missing Inc./LLC; never "Self-employed" / "Freelance" | WARN |
+| `contact-link` | a contact link w/ no web address in it ("Reel") - prints as a link to nowhere | WARN, own file |
 | `round-metric` | generated `10|15|20|25|30|40|50|100%` not in master (`N%`, `N percent`, `N per cent`) | via `hit()` |
 | `unmeasurable-grade` | uncheckable grade, bullet or summary, unless posting/fact uses it | via `hit()` |
 | `empty-clause` | purpose clause (so, allowing, enabling, ...) w/o number, proper noun, known tool | WARN |
@@ -142,10 +143,10 @@ one instance.
 | `style-word` | 17 words over-represented in generated prose, unless posting/fact uses it | via `hit()` |
 | `hedge` | helped, contributed to, assisted with, played a key role - unless a fact uses it | WARN |
 | `resume-verb` | leveraged, spearheaded, orchestrated, synergized, drove innovation - unless posting/fact uses it | WARN |
-| `rule-of-three`, `not-only-but-also` | two generated-prose shapes | WARN |
+| `rule-of-three`, `not-only-but-also` | two generated-prose shapes; three names or numbers in a row ("TikTok, Reels and YouTube Shorts", "the 5, 6 and 11 p.m. newscasts") are facts, not the shape | WARN |
 | `same-verb-opening` | consecutive bullets, same first word | WARN |
 | `uniform-bullet-length` | word-count spread below craft floor (unmeasured) | WARN |
-| `lead-bullet-weak` | opener no number, later one has | WARN |
+| `lead-bullet-weak` | opener no number that counts (`has_count`), later one has | WARN |
 | `bullet-taper` | older role more bullets than newer above | WARN |
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
 | `em-dash`, `markdown`, `invisible-unicode` | generated-text characters | via `hit()` |
@@ -177,6 +178,7 @@ Mirrored from `lint.WHY`; `test_lint` keeps them in step.
 | `ai-era` | AI wording on a job that ended before those tools existed reads as backdated. |
 | `role-dates-overlap` | Two jobs overlap in dates - fine if both were real, but a checker will ask. |
 | `company-legal-id` | Employer names are often written with Inc. or LLC in official records. |
+| `contact-link` | A link on your contact line needs its web address, like vimeo.com/yourname - a word alone opens nothing, and a printed page shows only the word. |
 | `round-metric` | A round percentage your resume never states looks made up. |
 | `unmeasurable-grade` | Words like 'world-class' can't be checked; the fact behind them says more. |
 | `empty-clause` | Part of this line may explain something the reader already knows. |
@@ -245,6 +247,34 @@ the reader *can't* check, not what they *already know* - same failure, opposite 
 False positive: *"Added Storybook so designers review components before merge"* - real workflow
 change, no number or proper noun. Limit: detects *names nothing specific*, not *adds nothing* ->
 WARN, on generated text too since 2026-09-24.
+
+## Video resumes (2026-10-09)
+
+Audit for video editors, videographers, motion designers: 3 made-up resumes (staff short-form social
+editor, 4 yrs; freelancer w/ 6 concurrent clients + a broadcast news job; videographer w/ a BFA +
+festival credits), each imported from PDF and .docx, run through render, lint, feedback, gaps, then
+tailored to 9 live postings (3 each: short-form, freelance long-form, assistant editor, videographer;
+freehire 2026-10-09). Import findings: [resume-file.md](resume-file.md).
+
+| Seen | Count | Now |
+|---|---|---|
+| Digit read as a number (`NUMBER = \d`) | 4 of 23 video lines "numbered" only by a camera, ratio, client dates or newscast times; feedback said "9 of 9 lines say how many", resume-gaps asked 0 of them; checklist "Yes - a line with a number" on a credit's dates | `lint.has_count` (feedback, gaps, `lead-bullet-weak`, checklist strength). Digits in a tool or credential they list name it ("Office 365"). 298 digit strings in tests + fixtures: 49 read as no count, every one a date, year, grade or name. "15-90 second ads", "6-part series" still count - length of the work is scope |
+| Labelled overlap warned | 1 of 1 freelancer | skipped when labelled ([Tier 1](#tier-1---accuracy)) |
+| "Self-employed" asked for Inc./LLC | 2 of 3 resumes, in every checklist | skipped |
+| Rule-of-three on lists of names / numbers | 4 hits on 3 resumes: 2 platform or newscast lists; 2 prose ("documentary, branded and music video work", "weddings, concerts and corporate events" - still flagged) | names + numbers skipped |
+| "Premiere Pro" reported missing from Skills beside "Adobe Premiere Pro" | 1 of 6 tools on resume A | a maker's name is no part of the tool (`feedback.core`) |
+| Portfolio / reel ask "Not shown" w/ a reel on the contact line | 2 of 9 postings asked, both read "Not shown" (204 of 551 video postings w/ requirements ask) | `links[i]` evidence, filled in by code ("Yes - a link to your work"); never LinkedIn |
+| Credits in an `other` section | uncitable as evidence; printed under Certifications at the page foot | `other[i].lines[j]` evidence; a Credits / Filmography heading prints right after the jobs (convention in film + TV resumes, unmeasured). Lines stay verbatim, never chosen per posting - a long credit list is theirs to trim |
+| Credit role upgraded | 0 seen (the AI was this audit's author), no rule existed | Hold: role as held (Assistant Editor never "Editor"; IMDb, end titles), `job-tailor` + `AGENTS.md` + the tailoring prompt |
+| Client under NDA | 2 of 3 resumes name one ("national beverage brand", "unreleased streaming docuseries") | prompt: described as master describes it, never a name or title; `job-tailor` |
+| Letter barred from words the resume says in another form | 22 of 552 gap words on 9 postings: edits, captions, interviews, shooting ... | `best.root` on both sides |
+| Letter for a text box w/o the reel | every portfolio posting | "Reel: vimeo.com/name" (the posting's word, else Portfolio) under the letter, by code |
+| Soft skill read as a gap to fill | 12 of 1,233 video requirement lines: taking feedback, "creative, enthusiastic, solution-oriented mindset" | `tailor.TRAITS`; "feedback" alone stays a craft word in motion design |
+
+Declined: a knockout for guild or union membership (4 required lines of 4,253 - `freehire.md` #Video
+work) - an `other` line as they write it; a "views / subscribers" number rule - resume-gaps already
+asks for how many, how often, what changed; a credits schema of its own - one `other` line per credit
+is the conventional one-line shape (title, role, network or festival, year) and parses as text.
 
 ## Reviewed 2026-09-24
 

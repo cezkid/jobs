@@ -623,3 +623,60 @@ def test_graduation_words_parse_and_say_whether_still_studying(text, end, expect
 def test_an_answer_without_the_student_fields_still_checks(mapped):
     import jsonschema
     jsonschema.validate(mapped, import_pdf.MAPPED_SCHEMA)
+
+
+def linked_pdf(tmp_path, line: str, links: dict[str, str], ligature: str = "") -> Path:
+    """One contact line, each word in `links` w/ its address behind it, the way Canva / Word templates link."""
+    path = tmp_path / "linked.pdf"
+    with pymupdf.open() as doc:
+        page = doc.new_page()
+        page.insert_text((72, 72), "Jordan Lee", fontname="helv")
+        page.insert_text((72, 90), line, fontname="helv")
+        if ligature:
+            # an embedded font that has the ligature glyphs, as LaTeX and design apps set them
+            writer = pymupdf.TextWriter(page.rect)
+            writer.append((72, 108), ligature, font=pymupdf.Font("tiro"))
+            writer.write_text(page)
+        for word, uri in links.items():
+            for rect in page.search_for(word):
+                page.insert_link({"kind": pymupdf.LINK_URI, "from": rect, "uri": uri})
+        doc.save(path)
+    return path
+
+
+def test_address_behind_a_word_is_marked_after_it(tmp_path):
+    path = linked_pdf(tmp_path, "Brooklyn, NY | jordan@example.com | Reel | LinkedIn | vimeo.com/jl/b-roll",
+                      {"Reel": "https://vimeo.com/jordanleeedits/", "LinkedIn": "https://www.linkedin.com/in/jl-example",
+                       "jordan@example.com": "mailto:jordan@example.com", "vimeo.com/jl/b-roll": "https://vimeo.com/jl/b-roll"})
+    line = import_pdf.extract(path).splitlines()[1]
+    # a word gets its address; an address already shown and an email get no mark
+    assert line == ("Brooklyn, NY | jordan@example.com | Reel <link: vimeo.com/jordanleeedits> | "
+                    "LinkedIn <link: linkedin.com/in/jl-example> | vimeo.com/jl/b-roll")
+
+
+def test_linked_word_counts_as_kept_once_its_address_is_a_link(mapped):
+    source = "Jane Doe\nSpringfield, IL | jane@example.com | Reel <link: vimeo.com/janedoe>\n"
+    mapped = {**mapped, "roles": [], "education": [], "skills": [], "languages": []}
+    mapped["contact"]["links"] = ["vimeo.com/janedoe"]
+    assert import_pdf.untraced(mapped, source) == []
+    assert import_pdf.recovery(mapped, source) == (1.0, [])
+    # the word alone ("Reel" as a link) leaves the address out: the line is reported
+    mapped["contact"]["links"] = ["Reel"]
+    assert import_pdf.recovery(mapped, source)[1]
+
+
+def test_typeset_ligatures_read_as_letters(tmp_path):
+    text = import_pdf.extract(linked_pdf(tmp_path, "Skills", {}, "After Eﬀects, Workﬂow, ﬁlm"))
+    assert "After Effects, Workflow, film" in text and not any("ﬀ" <= c <= "ﬆ" for c in text)
+
+
+def test_a_link_password_is_masked_and_said_to_be_kept_off(capsys):
+    import_pdf.left_out(["Los Angeles, CA | vimeo.com/sam/reel | (password: cutfast24)", "pw=reel24 for the cut"])
+    out = capsys.readouterr().out
+    assert "cutfast24" not in out and "reel24" not in out
+    assert "(password: ****)" in out and "pw=****" in out and out.count("kept off the page on purpose") == 2
+
+
+def test_import_rules_keep_bracketed_skills_and_credits_whole():
+    assert '"Adobe Creative Cloud (Premiere Pro, After Effects)" is one item' in import_pdf.SYSTEM
+    assert "film or TV credits" in import_pdf.SYSTEM and "<link: ADDRESS>" in import_pdf.SYSTEM

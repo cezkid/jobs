@@ -1,3 +1,4 @@
+from datetime import date
 import copy
 import re
 
@@ -457,3 +458,71 @@ def test_undated_project_lints_and_may_name_ai_work(master):
     assert schema.validate(master) == []
     findings = lint.lint(render.page_model(master), master)
     assert "ai-era" not in {f.rule for f in findings}
+
+
+@pytest.mark.parametrize("title, company", [
+    ("Freelance Video Editor", "Self-employed"), ("Video Editor (Part-Time)", "Harbor Lane Films"),
+    ("Contract Editor", "Kestrel Studios"), ("Editor", "Independent Contractor"),
+])
+def test_overlap_its_own_label_calls_concurrent_is_not_flagged(master, title, company):
+    master["roles"][0].update(title=title, company=company)
+    master["roles"][1]["end"] = master["roles"][0]["start"]
+    assert "role-dates-overlap" not in rules(lint.lint(render.page_model(master), master), lint.WARN)
+
+
+def test_labelled_overlap_at_the_same_employer_still_warns(master):
+    master["roles"][1]["company"] = master["roles"][0]["company"]
+    master["roles"][0]["title"] = "Freelance Video Editor"
+    master["roles"][1]["end"] = master["roles"][0]["start"]
+    assert "role-dates-overlap" in rules(lint.lint(render.page_model(master), master), lint.WARN)
+
+
+@pytest.mark.parametrize("company", ["Self-employed", "Freelance", "self employed", "Independent Contractor"])
+def test_self_employed_needs_no_legal_suffix(master, company):
+    master["roles"][1]["company"] = company
+    assert "company-legal-id" not in rules(lint.lint(render.page_model(master), master), lint.WARN)
+
+
+@pytest.mark.parametrize("text, counted", [
+    ("Cut 20+ stories a week on Avid iNEWS", True),
+    ("Grew the channel from 40K to 310K subscribers", True),
+    ("Shot 8K followers' worth of reels", True),
+    ("Managed 2000 accounts and 2000+ clients", True),
+    ("Cut a 6-part 60-second explainer series", True),
+    ("Color corrected footage shot on Sony FX3 and Canon C70 in DaVinci Resolve", False),
+    ("Delivered every campaign in 9:16, 1:1 and 16:9 versions", False),
+    ("Edited social ads in 4K and 1080p", False),
+    ("Kestrel Studios (Jan 2022 - Jun 2023): Assistant Editor on The Long Water", False),
+    ("Edited packages for the 5, 6 and 11 p.m. newscasts", False),
+    ("Encoded H.264 masters since 2019 for COVID-19 updates", False),
+])
+def test_a_number_counts_only_when_it_says_how_many_much_or_long(text, counted):
+    assert lint.has_count(text) is counted
+
+
+def test_digits_in_a_tool_the_user_lists_name_it(master):
+    master["skills"] = [{"group": "Tools", "items": ["Microsoft Office 365"]}]
+    assert "Microsoft Office 365" in lint.names(master)
+    assert not lint.has_count("Built reports in Microsoft Office 365", lint.names(master))
+    assert lint.has_count("Built 12 reports in Microsoft Office 365", lint.names(master))
+
+
+def test_opening_line_named_by_a_camera_alone_is_still_weak(master, model):
+    acme(model)["bullets"] = ["Shot interviews on Sony FX3", "Cut 20+ stories a week"]
+    assert "lead-bullet-weak" in rules(lint.lint(model, master), lint.WARN)
+
+
+@pytest.mark.parametrize("text, flagged", [
+    ("Edit short-form video for TikTok, Reels and YouTube Shorts", False),
+    ("Edited packages for the 5, 6 and 11 p.m. newscasts", False),
+    ("Delivered fast, reliable and scalable services", True),
+])
+def test_three_names_or_numbers_are_facts_not_a_rule_of_three(master, model, text, flagged):
+    acme(model)["bullets"] = [text]
+    assert ("rule-of-three" in rules(lint.lint(model, master), lint.WARN)) is flagged
+
+
+def test_a_contact_link_with_no_address_warns(master):
+    master["contact"]["links"] = ["Reel", "vimeo.com/jordanleeedits", "https://youtu.be/x1"]
+    found = [f for f in lint.master_findings(master, date(2026, 10, 9)) if f.rule == "contact-link"]
+    assert [(f.where, f.detail) for f in found] == [("contact.links[0]", "'Reel' is no web address")]

@@ -42,6 +42,10 @@ TITLE_FILLER = {"and", "the", "for", "with"}
 ABBREVIATED = re.compile(r"\b(Sr|Jr|Snr|Jnr|Mgr)\b\.?", re.I)
 # coverage evidence beyond on-page bullets: facts that always render, and copied skills items
 EVIDENCE_REF = re.compile(r"^(certifications|education)\[(\d+)\]$")
+# a link on the contact line (a reel, a portfolio) answers an ask to see their work; a line of an
+# `other` section (a film credit, an award) always prints as written
+LINK_REF = re.compile(r"^links\[(\d+)\]$")
+OTHER_REF = re.compile(r"^other\[(\d+)\]\.lines\[(\d+)\]$")
 SKILL_REF = "skills:"
 # prose the character guides are read off: a writer thinks in characters, so the prompt has to
 # quote some, but how many fit is a property of the font. Wrapping this in the configured font
@@ -132,7 +136,8 @@ Wording
 - A specialist term stays spelled exactly as the field writes it - screeners match the string, so never swap it for a plain paraphrase. Carry its meaning in the same sentence instead ("WCAG 2.1 AA accessibility", "CI/CD build and release time"), so a non-specialist reader loses nothing. Gloss a term once per page, not in every bullet; `skills` items stay bare.
 - Plain text: no markdown, no em dashes, no non-breaking or zero-width spaces.
 - Never add: {", ".join((*lint.STYLE_WORD_LIST, *lint.RESUME_VERB_LIST, *lint.GRADE_LIST))}. A grade the reader cannot check says nothing; write the fact that earned it. A word already in the candidate's facts or the posting's own terms is fine: "Advanced Cardiac Life Support (ACLS)", "Consumer Insights", "leveraged finance".
-- Keep "assisted with" or "helped" where the source claim uses it for the candidate's actual part. Never upgrade the candidate's part in the work: assisted -> performed, coordinated -> led, member -> lead.
+- Keep "assisted with" or "helped" where the source claim uses it for the candidate's actual part. Never upgrade the candidate's part in the work: assisted -> performed, coordinated -> led, member -> lead, Assistant Editor -> editor. A film or TV credit names the role as held, and credits are public (IMDb, end titles).
+- A client the master calls confidential or under NDA, or a project it calls unreleased, stays described the way master describes it: never a name or title for it.
 - Bullet punctuation follows master: if its claims end in a period every bullet does, if none do none do.
 - Every clause adds something the reader did not have. Cut a clause that is true of any instance of the thing named ("a component library, so screens reuse existing pieces"), restates the bullet's own opening, or would be true of anyone in the role.
 - No "not only X but also Y", no filler lists of three, no two consecutive bullets opening with the same word.
@@ -156,7 +161,7 @@ Honesty
 - Accuracy outranks relevance: never add a term, number or grade to match a requirement or fill a line. A requirement with no master claim behind it is a coverage gap, not a word to insert.
 
 Coverage
-- `coverage`: exactly one entry per job requirement index. `evidence` = what on the page alone proves it: ids of master bullets you placed on the page, `certifications[i]` or `education[i]` (index into master), or `skills:<item>` for a skills item you kept. Empty = gap. `note` = short phrase: how it is proven, or what is missing.
+- `coverage`: exactly one entry per job requirement index. `evidence` = what on the page alone proves it: ids of master bullets you placed on the page, `certifications[i]` or `education[i]` (index into master), `other[i].lines[j]` for a line of an `other` section (a film credit, an award), `links[i]` (index into master `contact.links`) for a portfolio or reel the posting asks to see, or `skills:<item>` for a skills item you kept. Empty = gap. `note` = short phrase: how it is proven, or what is missing.
 
 Reasons
 - `reasons`: one per master bullet, role and skills item left off the page: `id` = bullet id, role id, or the skills item as written; `reason` = a few plain words the candidate would accept ("older, and this job does not ask for it"). The candidate reads these and may overrule any.
@@ -420,6 +425,11 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
     if tailored["summary"] and (rows := measure.fit(font, tailored["summary"], measure.SUMMARY)[0]) > render.MAX_SUMMARY_LINES:
         violations.append(f"summary: renders {rows} lines (max {render.MAX_SUMMARY_LINES}) - shorten it")
 
+    # an older import split "Adobe Creative Cloud (Premiere Pro, After Effects)" at its comma: moved
+    # apart, the bracket opens in one place and closes in another on the page
+    violations += [f"skills: group {g['group']!r} opens a bracket it never closes - keep the items of "
+                   "one bracketed list together, in their order" for g in tailored["skills"]
+                   if ", ".join(g["items"]).count("(") != ", ".join(g["items"]).count(")")]
     master_items = {lint.norm(i) for g in master.get("skills", []) for i in g["items"]}
     violations += [f"skills: {i!r} not in the candidate's skills - items are copied, never added"
                    for g in tailored["skills"] for i in g["items"] if lint.norm(i) not in master_items]
@@ -456,6 +466,15 @@ def claims(title: str, held: list[str]) -> list[str]:
 
 def evidence_problem(master: dict, tailored: dict, ref: str, on_page: set[str]) -> str | None:
     """Why one coverage evidence ref proves nothing on this page, or None when it stands."""
+    if m := LINK_REF.match(ref):
+        links = master["contact"].get("links") or []
+        return None if int(m[1]) < len(links) else f"out of range: {len(links)} contact links in master"
+    if m := OTHER_REF.match(ref):
+        sections = master.get("other") or []
+        if int(m[1]) >= len(sections):
+            return f"out of range: {len(sections)} other sections in master"
+        lines = sections[int(m[1])]["lines"]
+        return None if int(m[2]) < len(lines) else f"out of range: {len(lines)} lines in other[{m[1]}]"
     if m := EVIDENCE_REF.match(ref):
         held = master.get(m.group(1)) or []
         return None if int(m.group(2)) < len(held) else f"out of range: {len(held)} {m.group(1)} in master"
@@ -469,6 +488,10 @@ def evidence_problem(master: dict, tailored: dict, ref: str, on_page: set[str]) 
 
 def evidence_text(master: dict, tailored: dict, ref: str) -> str:
     """What the page shows for one evidence ref, in the words the candidate reads."""
+    if m := LINK_REF.match(ref):
+        return master["contact"]["links"][int(m[1])]
+    if m := OTHER_REF.match(ref):
+        return master["other"][int(m[1])]["lines"][int(m[2])]
     if m := EVIDENCE_REF.match(ref):
         fact = master[m.group(1)][int(m.group(2))]
         return fact.get("name") or schema.degree_words(fact, date.today())
@@ -499,33 +522,49 @@ TRAITS = re.compile(r"communicat|collaborat|interpersonal|team ?player|teamwork|
                     r"attention to detail|organi[sz]ed|organi[sz]ational|time management|prioriti|problem[- ]solv|"
                     r"adaptab|flexib|motivated|proactive|passion|curio|empath|growth mindset|work ethic|"
                     r"positive attitude|fast[- ]paced|multi-?task|independently|accountab|integrity|initiative|"
-                    r"ambigu|bias (?:for|to) action|resourceful", re.I)
+                    r"ambigu|bias (?:for|to) action|resourceful|enthusias|solution[- ]oriented|"
+                    # taking notes on a cut: 12 of 1,233 video requirement lines (2026-10-09); "feedback"
+                    # alone stays out - motion design names UI feedback as a craft
+                    r"(?:receiv|tak|incorporat|open|receptive|accept)\w*(?:\W+\w+){0,3}?\W+feedback", re.I)
 NAMED_TERM = re.compile(r"(?<!^)(?<![.!?]\s)\b[A-Z][\w+#./-]*")
 # how strongly a requirement is shown, strongest first (bullets.md Tier 2: evidence > a keyword)
-STRENGTH = ("certificate or degree", "a line with a number", "a line", "Skills list only")
+STRENGTH = ("certificate or degree", "a link to your work", "a line with a number", "a line", "Skills list only")
+CERT, LINK, NUMBERED, LINE, SKILLS_ONLY = STRENGTH
 
 
 def is_trait(text: str) -> bool:
     return bool(TRAITS.search(text)) and not re.search(r"\d", text) and not NAMED_TERM.search(text)
 
 
-def evidence_strength(tailored: dict, ref: str) -> str:
+def evidence_strength(master: dict, tailored: dict, ref: str, named: list[str] = ()) -> str:
     if EVIDENCE_REF.match(ref):
-        return STRENGTH[0]
+        return CERT
+    if LINK_REF.match(ref):
+        return LINK
     if ref.startswith(SKILL_REF):
-        return STRENGTH[3]
-    lines = [b["text"] for t in tailored["entries"] for b in t["bullets"] if ref in b["sources"]]
-    return STRENGTH[1] if any(lint.NUMBER.search(line) for line in lines) else STRENGTH[2]
+        return SKILLS_ONLY
+    lines = [evidence_text(master, tailored, ref)] if OTHER_REF.match(ref) else \
+        [b["text"] for t in tailored["entries"] for b in t["bullets"] if ref in b["sources"]]
+    return NUMBERED if any(lint.has_count(line, named) for line in lines) else LINE
+
+
+def work_link(master: dict) -> str | None:
+    """`links[i]` of the first contact link a reel or portfolio can be seen at (never LinkedIn)."""
+    link = knockout.portfolio_link({"contact": {"links": master["contact"].get("links") or []}})
+    return f"links[{master['contact']['links'].index(link)}]" if link else None
 
 
 def coverage_rows(job: dict, tailored: dict, master: dict) -> list[dict]:
     by_index = {c["requirement"]: c for c in tailored["coverage"]}
-    on_page = on_page_sources(tailored)
+    on_page, named = on_page_sources(tailored), lint.names(master)
     rows = []
     for i, requirement in enumerate(job["requirements"]):
         claimed = by_index.get(i, {"evidence": [], "note": "not addressed"})
         evidence = [s for s in claimed["evidence"] if not evidence_problem(master, tailored, s, on_page)]
-        strengths = sorted((evidence_strength(tailored, s) for s in evidence), key=STRENGTH.index)
+        # their reel on the contact line is what a portfolio ask wants: shown, whoever cited it
+        if knockout.portfolio_asked(requirement["text"]) and (link := work_link(master)) and link not in evidence:
+            evidence.insert(0, link)
+        strengths = sorted((evidence_strength(master, tailored, s, named) for s in evidence), key=STRENGTH.index)
         rows.append({**requirement, "index": i, "evidence": evidence, "note": claimed["note"],
                      "shown": [evidence_text(master, tailored, s) for s in evidence],
                      "status": "met" if evidence else "gap", "strength": strengths[0] if strengths else None,

@@ -23,6 +23,18 @@ user. The copy kept is `My Resume/Original resume.pdf` or `.docx`; `.data/resume
 the file `prepare` read + the exact text it handed out, and `finish` checks against that text. A second format never replaces or
 deletes the first.
 
+### Links behind a word, ligatures, passwords (2026-10-09)
+
+Measured on 3 made-up video resumes, each as PDF + .docx (contact line "Reel | LinkedIn",
+"Portfolio | YouTube" - the way Canva and Word templates link):
+
+| Seen | Before | Now |
+|---|---|---|
+| Address hidden behind a word | 4 of 6 files lost every such address: text only. The AI copied "Reel" into `contact.links`; the page printed it as a link to `https://Reel`, and forms got "Reel" for a Portfolio box | `word.link_mark`: the address marked after its word (`Reel <link: vimeo.com/name>`), read off the PDF's link list or the .docx's relationships (`w:hyperlink`, a simple HYPERLINK field). The AI copies the address; the word counts as kept once it is. An address already shown and mailto: links get no mark. The page then prints the address itself - a printed or pasted copy shows only the word. `resume-lint` `contact-link` warns on a link with no address in it |
+| Typeset ligatures (PDF) | "After E\ufb00ects", "Work\ufb02ow": After Effects matched no ask, the page's ligature gate failed, the email "film" carried one | spelled out on extract (`PDF_TEXT`, `FOLD`) |
+| A reel's password on the contact line | AI told to land every line somewhere | left out on purpose (`SYSTEM`); the "left out" list masks it and says why: a resume is copied into every system it's uploaded to; they type it in the application's own box |
+| "Adobe Creative Cloud (Premiere Pro, After Effects, Photoshop)" | split at its commas: "...(Premiere Pro" / "Photoshop)" - any reorder broke the brackets on the page | one item (`SYSTEM`); `check_selection` fails a skills group that opens a bracket it never closes (an older import) |
+
 ## Word-made test files
 
 `app/tests/fixtures/word/` (plan-xku.2, 2026-10-06): a fake-data resume built by python-docx (page

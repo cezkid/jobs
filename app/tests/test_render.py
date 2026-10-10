@@ -300,6 +300,15 @@ def test_other_sections_follow_certifications_verbatim(master):
     assert model["sections"][titles.index("Volunteer Work")]["lines"] == [{"text": "Riverside Food Bank, driver, 2020 - 2022"}]
 
 
+def test_film_credits_print_right_after_the_jobs(master):
+    master["certifications"] = [{"name": "FAA Part 107 Remote Pilot Certificate"}]
+    master["other"] = [{"heading": "Affiliations", "lines": ["Motion Picture Editors Guild (IATSE Local 700)"]},
+                       {"heading": "Selected Credits", "lines": ["Editor, Saltwater (short film) - SXSW 2022"]}]
+    titles = [s["title"] for s in render.page_model(master)["sections"]]
+    assert titles == ["Experience", "Projects", "Selected Credits", "Skills", "Education", "Certifications",
+                      "Affiliations", "Languages"]
+
+
 def test_undated_project_renders_without_a_date(master):
     del master["projects"][0]["start"], master["projects"][0]["end"]
     project = render.page_model(master)["sections"][1]["entries"][0]

@@ -107,3 +107,22 @@ def test_tools_named_in_lines_but_missing_from_skills_are_listed(tmp_path):
     master["roles"][0]["bullets"][0]["stack"] = ["Mailchimp", "Vue"]
     master["skills"] = [{"group": "Tools", "items": ["Vue/Vuex", "Figma"]}]
     assert feedback.unlisted_tools(master) == ["Mailchimp"]
+
+
+VIDEO = {
+    "contact": {"name": "Jordan Lee", "email": "jl@example.com", "location": "Brooklyn, NY"},
+    "roles": [{"company": "Brightline Media", "title": "Social Video Editor", "start": "2023-03", "end": "present", "bullets": [
+        {"claim": "Edit 12-15 short-form videos a week in Premiere Pro", "stack": ["Premiere Pro"]},
+        {"claim": "Color corrected footage shot on Sony FX3 and Canon C70", "stack": ["Sony FX3", "Canon C70", "LucidLink"]},
+        {"claim": "Delivered every campaign in 9:16, 1:1 and 16:9 versions"},
+        {"claim": "Built caption templates in After Effects", "stack": ["After Effects"]},
+    ]}],
+    "skills": [{"group": "Post", "items": ["Adobe Premiere Pro", "Adobe Creative Cloud (After Effects, Photoshop)", "FX3"]}],
+}
+
+
+def test_camera_names_and_ratios_are_no_numbers_and_a_maker_is_no_part_of_a_tool(tmp_path):
+    _, result, _ = feedback.run(write(tmp_path, VIDEO), TODAY, tmp_path / "state.json")
+    assert result["areas"]["Numbers and scope"][1] == "1 of 4 lines say how many, how much or what changed"
+    # Premiere Pro listed as Adobe Premiere Pro, After Effects inside the bracketed suite, FX3 under Sony
+    assert result["unlisted"] == ["Canon C70", "LucidLink"]

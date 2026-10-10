@@ -25,8 +25,19 @@ FOLD = str.maketrans({
     "\u2013": "-", "\u2014": "-", "\u00a0": " ", "\u202f": " ",
     # Word's non-breaking hyphen (phones, date ranges), hyphen, minus sign; soft hyphen shows only at a line end
     "\u2010": "-", "\u2011": "-", "\u2212": "-", "\u00ad": "",
+    # typeset ligatures (LaTeX, design apps): "After E\ufb00ects" matches no "After Effects" ask and
+    # fails the page's ligature gate; one character each, so the AI's copy can't spell them out
+    "\ufb00": "ff", "\ufb01": "fi", "\ufb02": "fl", "\ufb03": "ffi", "\ufb04": "ffl", "\ufb05": "st", "\ufb06": "st",
 })
+# PDF text w/ ligatures spelled out (pymupdf keeps them by default)
+PDF_TEXT = pymupdf.TEXTFLAGS_TEXT & ~pymupdf.TEXT_PRESERVE_LIGATURES
 WHITESPACE = re.compile(r"\s+")
+# a reel's password ("password: cutfast24", "pw = reel24"): never a fact, never printed (SYSTEM)
+PASSWORD = re.compile(r"(\b(?:password|passcode|pass|pwd|pw)\s*[:=]\s*)[^\s,;|)]+", re.I)
+PASSWORD_NOTE = ("  <- a link password, kept off the page on purpose: a resume is copied into every system it's "
+                 "uploaded to. They type it in the application's own box; an unlisted link needs none")
+# "Reel <link: vimeo.com/name>": the word(s) back to the last separator, then the mark
+LABELLED = re.compile(r"([^|\t\n,;]*?)\s*<link: (\S+?)>")
 WORD = re.compile(r"\w+")
 # subset font w/o ToUnicode map extracts glyph ids => text mostly non-letters
 MIN_ALPHA_RATIO = 0.5
@@ -73,16 +84,18 @@ SYSTEM = """You map resume text extracted from the user's resume file (PDF or Wo
 Rules:
 - Every string you emit is copied character-for-character from the source text. Only allowed change: joining a line wrapped across a line break with one space, and dropping bullet glyphs.
 - Never add words: no legal suffixes on company names, no https:// on links, no expanded abbreviations, no fixed typos or capitalization.
+- `<link: ADDRESS>` after a word = a web address the file hid behind that word ("Reel <link: vimeo.com/name>"): ADDRESS goes in `contact.links`, copied as written; the word itself only where it belongs anyway (a name stays the name; "Reel", "Portfolio", "LinkedIn" go nowhere). Never copy the mark into another field.
+- A password for a link ("password: ...", "pw: ...") is no link and no fact: leave it out. It is never printed; the user types it into an application's own box.
 - `dates` = the exact calendar date range from the source (e.g. "Feb 2023 - Oct 2026", "2019 - 2021"); null when the source gives none. Durations ("6 Summers") stay inside the claim, never in `dates`.
 - Two titles under one company = two roles, each with its own dates and bullets.
 - `blurb` = company description line (industry, product, website) exactly as written.
 - `metrics` = verbatim number phrases inside the claim. `stack` = verbatim technology names inside the claim.
 - `ai_work` true only when the claim itself describes AI/LLM work.
-- Skills: `group` is your short label; `items` = each pipe- or comma-separated entry copied verbatim.
+- Skills: `group` is your short label; `items` = each pipe- or comma-separated entry copied verbatim. A comma inside brackets splits nothing: "Adobe Creative Cloud (Premiere Pro, After Effects)" is one item.
 - `dates` on a project may be null when the source gives none.
 - Education: `start` / `end` = the source's own date words ("Aug 2023", "Expected May 2027", "Class of 2027"); a range splits into start and end. `gpa` = the GPA figure exactly as written ("3.62/4.00", "9.2/10"), never rounded or converted. `coursework` = each course listed under that school, copied verbatim. Honors and minors stay in `details`.
 - Clubs, student organisations, teams, sororities and fraternities, student government, volunteering with a role: one `projects` entry each - `name` = the group exactly as written, `role` = the position held ("Treasurer"), `section` = the heading it sits under, as written ("Leadership & Activities"). Class or academic projects: `projects` with `section` only if the source gives them their own heading. Never leave out, shorten, generalise or reword a group because of what kind of group it is (cultural, religious, identity, political): copy every one.
-- `other` = every section fitting none of the fields above (volunteer work, awards, clearances, publications, licences outside a certifications list): `heading` as written, `lines` each source line copied verbatim, dates left inside the line.
+- `other` = every section fitting none of the fields above (volunteer work, awards, clearances, publications, licences outside a certifications list, film or TV credits, guild or union memberships): `heading` as written, `lines` each source line copied verbatim, dates left inside the line.
 - Every non-heading source line must land in some field."""
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
@@ -119,14 +132,32 @@ def extract(path: Path) -> str:
         return text
     # content-stream order, never pymupdf4llm: its column detection interleaved two-column page 2 (measured 2026-09-16)
     with pymupdf.open(path) as doc:
-        raw = "\n".join(page.get_text() for page in doc)
-    text = LINE_BULLET.sub("", ZERO_WIDTH.sub("", raw))
+        raw = "\n".join(marked_links(page) for page in doc)
+    text = LINE_BULLET.sub("", ZERO_WIDTH.sub("", raw)).translate(FOLD)
     visible = [c for c in text if not c.isspace()]
     if not visible:
         raise ValueError(f"{path}: no text layer (scanned?)")
     alpha = sum(c.isalpha() for c in visible) / len(visible)
     if alpha < MIN_ALPHA_RATIO:
         raise ValueError(f"{path}: {alpha:.0%} letters - fonts lack ToUnicode map, text is glyph ids")
+    return text
+
+
+def marked_links(page: pymupdf.Page) -> str:
+    """Page text, each web address hidden behind words marked after them (word.LINK_MARK)."""
+    text = page.get_text(flags=PDF_TEXT)
+    words = page.get_text("words", flags=PDF_TEXT)
+    links = [(pymupdf.Rect(link["from"]), link["uri"]) for link in page.get_links() if link.get("uri")]
+    cursor = 0
+    for rect, url in sorted(links, key=lambda pair: (pair[0].y0, pair[0].x0)):
+        label = [w[4] for w in words if rect.contains(pymupdf.Point((w[0] + w[2]) / 2, (w[1] + w[3]) / 2))]
+        if not (mark := word.link_mark(" ".join(label), url)):
+            continue
+        # first showing of those words after the last mark: text runs in the order links are read
+        found = re.compile(r"\s+".join(re.escape(w) for w in label)).search(text, cursor)
+        if found:
+            text = text[:found.end()] + mark + text[found.end():]
+            cursor = found.end() + len(mark)
     return text
 
 
@@ -203,7 +234,10 @@ def recovery(mapped: dict, source: str) -> tuple[float, list[str]]:
     got.update(w for group in mapped["skills"] for w in WORD.findall(normalize(group["group"])))
     if any(s.get("gpa") or s.get("coursework") or s.get("end") or s.get("start") for s in mapped["education"]):
         got.update(EDUCATION_LABELS)
-    lines = content_lines(source)
+    # the word a link hid behind ("Reel <link: vimeo.com/name>") is the address's label, kept once it is
+    links = {normalize(link) for link in mapped["contact"].get("links") or []}
+    lines = [LABELLED.sub(lambda m: "" if normalize(m[2]) in links else f"{m[1]} {m[2]}", line)
+             for line in content_lines(source)]
     want = Counter(w for line in lines for w in WORD.findall(normalize(line)))
     ratio = sum((want & got).values()) / max(sum(want.values()), 1)
     dropped = [line for line in lines if any(w not in got for w in WORD.findall(normalize(line)))]
@@ -463,14 +497,16 @@ def finish(config: dict, keep: str | None = None) -> None:
 
 
 def left_out(dropped: list[str]) -> None:
-    """Every resume-file line not fully in the details file, pass or fail: the user decides, not the floor."""
+    """Every resume-file line not fully in the details file, pass or fail: the user decides, not the floor.
+    A link's password is masked and named as kept off on purpose - never read back into the chat."""
     if not dropped:
         print("left out: nothing - every line of the resume file is in the resume details")
         return
     print(f"left out: {len(dropped)} line(s) of the resume file are not fully in the resume details. "
           "Read each one to the user; any that is a real fact goes back in:")
     for line in dropped:
-        print(f"  - {line}")
+        masked = PASSWORD.sub(lambda m: f"{m[1]}{'*' * 4}", line)
+        print(f"  - {masked}" + (PASSWORD_NOTE if masked != line else ""))
 
 
 def main() -> None:

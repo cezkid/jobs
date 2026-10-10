@@ -160,3 +160,28 @@ def test_other_formats_get_one_plain_step(tmp_path, name, what, no_textutil):
 
 def test_pdf_and_docx_pass(tmp_path):
     assert word.refusal(tmp_path / "a.PDF") is None and word.refusal(tmp_path / "a.docx") is None
+
+
+R_NS = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+
+
+def linked_docx(tmp_path, body: str, rels: dict[str, str]):
+    path = docx(tmp_path, body.replace("<w:hyperlink ", f'<w:hyperlink xmlns:r="{R_NS}" '))
+    with zipfile.ZipFile(path, "a") as z:
+        z.writestr("word/_rels/document.xml.rels",
+                   '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+                   + "".join(f'<Relationship Id="{i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/'
+                             f'relationships/hyperlink" Target="{t}" TargetMode="External"/>' for i, t in rels.items())
+                   + "</Relationships>")
+    return path
+
+
+def test_address_behind_a_word_is_marked_and_a_shown_one_is_not(tmp_path):
+    body = p(r("Brooklyn, NY | "), '<w:hyperlink r:id="rId1">' + r("Reel") + "</w:hyperlink>", r(" | "),
+             '<w:hyperlink r:id="rId2">' + r("vimeo.com/jl") + "</w:hyperlink>", r(" | "),
+             '<w:hyperlink r:id="rId3">' + r("Email me") + "</w:hyperlink>", r(" | "),
+             '<w:fldSimple w:instr=" HYPERLINK &quot;https://www.behance.net/jl/&quot; ">' + r("Portfolio") + "</w:fldSimple>")
+    path = linked_docx(tmp_path, body, {"rId1": "https://vimeo.com/jordanleeedits", "rId2": "https://vimeo.com/jl",
+                                        "rId3": "mailto:jl@example.com"})
+    assert word.extract(path).splitlines() == [
+        "Brooklyn, NY | Reel <link: vimeo.com/jordanleeedits> | vimeo.com/jl | Email me | Portfolio <link: behance.net/jl>"]

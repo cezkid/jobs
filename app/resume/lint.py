@@ -50,7 +50,10 @@ GRADES = any_phrase(GRADE_LIST)
 EMPTY_CLAUSE = re.compile(
     r",?\s+\b(so that|so|allowing|enabling|letting|helping|ensuring|giving|making|thereby|which)\b", re.I)
 NOT_ONLY = re.compile(r"\bnot only\b.*\bbut also\b", re.I)
-TRIAD = re.compile(r"\b[\w-]+, [\w-]+,? and [\w-]+\b")
+TRIAD = re.compile(r"\b([\w-]+), ([\w-]+),? and ([\w-]+)\b")
+# three names or numbers in a row are facts, not the prose habit: "TikTok, Reels and YouTube Shorts",
+# "the 5, 6 and 11 p.m. newscasts" (video resumes, 2026-10-09)
+NAMED_ITEM = re.compile(r"^(?:[A-Z0-9]|\d)")
 # pre-AI role (ai_era false) naming any of these = backdated AI claim. Words other fields use
 # for other things stay out: evals (clinical, performance), embeddings (maths), fine-tuning (any tuning)
 AI_TERMS = re.compile(
@@ -71,6 +74,29 @@ TOOL_RELEASED = {
     re.compile(r"\bClaude\b", re.I): "2023-03",
 }
 NUMBER = re.compile(r"\d")
+# a label that says the work ran alongside other work: an overlap with it is no date mistake
+# (National Resume Writers' Association, bullets.md Tier 1). A freelancer's clients overlap by nature
+CONCURRENT = re.compile(r"\b(?:freelance|freelancer|part[- ]time|contract|contractor|self[- ]employed|"
+                        r"independent|consultant|consulting|per diem|prn|adjunct|on[- ]call|seasonal|weekend)\b", re.I)
+# no registered name to add Inc. or LLC to
+SELF_EMPLOYED = re.compile(r"^\s*(?:self[- ]employed|freelance|freelancer|independent(?: contractor)?|"
+                           r"various clients|sole proprietor)\s*$", re.I)
+# digits that say no how many, how much, how often or how long (bullets.md Tier 2): a date, a clock
+# time, a ratio, a resolution, a model or format name. Measured 2026-10-09 on 3 video resumes: 4 of 23
+# lines read as numbered only through these ("Sony FX3 and Canon C70", "9:16, 1:1 and 16:9", a client's
+# "Jan 2022 - Jun 2023", "the 5, 6 and 11 p.m. newscasts"); 298 digit strings in tests + fixtures: 49 now
+# read as no count, every one a date, year, grade or name
+MONTH = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?"
+NOT_A_COUNT = re.compile(
+    rf"\b{MONTH}\s+(?:19|20)\d\d\b"
+    # a year alone, unless it counts something ("2000+ clients", "2000 users")
+    r"|\b(?:19[5-9]\d|20[0-4]\d)\b(?!\s*\+|\s+[a-z]+s\b)"
+    r"|\b\d{1,2}(?:,\s*\d{1,2})*(?:,?\s*(?:and|or|to)\s*\d{1,2})?(?::\d\d)?\s*[ap]\.?m\b\.?"
+    r"|\b\d+(?:\.\d+)?:\d+\b|\b24/7\b"
+    # 4K / 1080p is a picture size; "4K views" still counts
+    r"|\b[2-8]K\b(?!\s+[a-z]+s\b)|\b(?:480|720|1080|1440|2160|4320)[pi]\b"
+    # digits inside a name: Sony FX3, Canon C70, H.264, EC2, COVID-19, W-2
+    r"|\b[A-Za-z][A-Za-z.-]*\d[\w.]*", re.I)
 PERCENT_WORDS = r"\s*(%|percent\b|per cent\b)"
 # tech names w/ exactly one correct spelling - drift between bullets reads as carelessness
 CANONICAL = {re.compile(rf"\b{p}\b", re.I): c for p, c in (
@@ -173,6 +199,8 @@ surg dev devs diff diffs diffing hackathon hackathons enablement precept precept
 readmissions jan feb mar apr jun jul aug sep sept oct nov dec
 """.split())
 WORD_CHUNK = re.compile(r"\S+")
+# a domain somewhere in it: vimeo.com/name, https://youtu.be/x, name.studio
+WEB_ADDRESS = re.compile(r"\w\.[a-z]{2,}", re.I)
 EDGE_PUNCT = "()[]{}\"'“”‘’,.;:!?"
 
 # rule -> one plain sentence a non-technical user reads in "Check before sending.md", and the
@@ -187,6 +215,7 @@ WHY = {
     "ai-era": "AI wording on a job that ended before those tools existed reads as backdated.",
     "role-dates-overlap": "Two jobs overlap in dates - fine if both were real, but a checker will ask.",
     "company-legal-id": "Employer names are often written with Inc. or LLC in official records.",
+    "contact-link": "A link on your contact line needs its web address, like vimeo.com/yourname - a word alone opens nothing, and a printed page shows only the word.",
     "round-metric": "A round percentage your resume never states looks made up.",
     "unmeasurable-grade": "Words like 'world-class' can't be checked; the fact behind them says more.",
     "empty-clause": "Part of this line may explain something the reader already knows.",
@@ -369,6 +398,27 @@ def open_compounds(text: str) -> list[str]:
             for m in COMPOUND.finditer(text) if m.group(2).lower() not in NOT_A_NOUN]
 
 
+def names(master: dict) -> list[str]:
+    """Tools, skills and credentials the user lists: digits inside one ("Office 365", "Series 7") name it."""
+    entries = [*(master.get("roles") or []), *(master.get("projects") or [])]
+    listed = [s for e in entries for b in e["bullets"] if isinstance(b, dict) for s in b.get("stack", [])]
+    listed += [i for g in master.get("skills") or [] for i in g["items"]]
+    listed += [c["name"] for c in master.get("certifications") or []]
+    return sorted({n for n in listed if NUMBER.search(n)}, key=len, reverse=True)
+
+
+def has_count(text: str, named: list[str] = ()) -> bool:
+    """A number that says how many, how much, how often or how long - not a date, time, ratio or name."""
+    for name in named:
+        text = re.sub(re.escape(name), " ", text, flags=re.I)
+    return bool(NUMBER.search(NOT_A_COUNT.sub(" ", text)))
+
+
+def labelled_concurrent(role: dict) -> bool:
+    """Work its own title or employer marks as running alongside other work (bullets.md Tier 1)."""
+    return bool(CONCURRENT.search(f"{role['title']} {role['company']}"))
+
+
 def lint(model: dict, master: dict, inferences: list[dict] | None = None, posting: str = "",
          font: str = typeface.DEFAULT) -> list[Finding]:
     """`posting` = the job's own text: a style or grade word it uses is its term, not the writer's."""
@@ -392,7 +442,7 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
     vouched_words = listed | set(plain_words(corpus)) | set(plain_words(posting))
 
     for role in master["roles"]:
-        if not schema.LEGAL_IDENTIFIER.search(role["company"].strip()):
+        if not schema.LEGAL_IDENTIFIER.search(role["company"].strip()) and not SELF_EMPLOYED.search(role["company"]):
             findings.append(Finding(WARN, "company-legal-id", f"roles/{role['id']}", f"{role['company']!r} lacks Inc./LLC/...; add if employer has one"))
 
     # dates are verified w/ HR; roles are newest-first, so an end past the next start is a claim to check
@@ -400,8 +450,12 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
     for newer, older in zip(master["roles"], master["roles"][1:]):
         if older["end"] == schema.PRESENT or not overlaps(older["end"], newer["start"], today):
             continue
+        # marked freelance, part-time, contract: concurrent by its own label, nothing to check
+        same = older["company"].strip().casefold() == newer["company"].strip().casefold()
+        if not same and (labelled_concurrent(older) or labelled_concurrent(newer)):
+            continue
         detail = f"ends {older['end']}, but {newer['company']} starts {newer['start']}"
-        if older["company"].strip().casefold() == newer["company"].strip().casefold():
+        if same:
             detail += " - SAME employer, so a promotion here reads as an error, not concurrent work"
         findings.append(Finding(WARN, "role-dates-overlap", f"roles/{older['id']}", detail))
 
@@ -465,7 +519,8 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
             if kind in ("bullet", "summary") and (words := unvouched(pattern, text)):
                 findings.append(Finding(WARN, rule, where, f"{words[0]!r}: {text!r}"))
         for rule, pattern in (("not-only-but-also", NOT_ONLY), ("rule-of-three", TRIAD)):
-            if kind in ("bullet", "summary") and (m := pattern.search(text)):
+            m = pattern.search(text) if kind in ("bullet", "summary") else None
+            if m and not (rule == "rule-of-three" and all(NAMED_ITEM.match(w) for w in m.groups())):
                 findings.append(Finding(WARN, rule, where, f"{m.group()!r}: {text!r}"))
         if is_bullet and entry_id in entries:
             check_ai_era(entries[entry_id], where, text, findings, own)
@@ -483,6 +538,7 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
                 findings.append(Finding(WARN, "filler-word", where, f"{', '.join(filler)}: {text!r}"))
 
     role_ids = {r["id"] for r in master["roles"]}
+    named = names(master)
     for section in model["sections"]:
         # newest role first: an older entry given more space than a newer one buries current work
         counts = [(entry_where(section["title"], e), len(e["bullets"])) for e in section.get("entries", []) if e.get("id") in role_ids]
@@ -501,7 +557,7 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
                     findings.append(Finding(WARN, "same-verb-opening", where, f"consecutive bullets open {a!r}"))
             bullets = entry["bullets"]
             # opening bullet is the one always read; a measured claim there outranks a vague one
-            if len(bullets) > 1 and not NUMBER.search(bullets[0]) and any(NUMBER.search(b) for b in bullets[1:]):
+            if len(bullets) > 1 and not has_count(bullets[0], named) and any(has_count(b, named) for b in bullets[1:]):
                 findings.append(Finding(WARN, "lead-bullet-weak", where, "opening bullet carries no number, a later one does"))
             lengths += [len(b.split()) for b in entry["bullets"]]
     openings: dict[str, int] = {}
@@ -578,6 +634,10 @@ def master_findings(master: dict, today: date) -> list[Finding]:
     """Checks on the user's own file, not any one page: what it discloses, never what it claims."""
     findings = []
     location = master["contact"]["location"]
+    # "Reel" or "Portfolio" w/ the address once hidden behind it: printed as a link to nowhere
+    for i, link in enumerate(master["contact"].get("links") or []):
+        if not WEB_ADDRESS.search(link):
+            findings.append(Finding(WARN, "contact-link", f"contact.links[{i}]", f"{link!r} is no web address"))
     if m := STREET.search(location):
         findings.append(Finding(WARN, "street-address", "contact", f"{m.group().strip()!r} in {location!r}"))
     for text in master_strings(master):

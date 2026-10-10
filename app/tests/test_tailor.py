@@ -651,3 +651,61 @@ def test_headline_title_is_confirmed_on_every_job(master, tailored, tmp_path):
     listed = report.diff_md(master, tailored, model, mirror_ok=True)
     assert "To confirm" in listed and '- Top line shown as "Senior Vue Engineer | Vue, TypeScript"' in listed
     assert "headline" not in tailor.MIRROR_ALWAYS
+
+
+def test_a_reel_on_the_contact_line_shows_a_portfolio_ask_and_a_credit_line_is_evidence(master, tailored):
+    master["contact"]["links"] = ["linkedin.com/in/jane", "vimeo.com/janedoe"]
+    master["other"] = [{"heading": "Selected Credits", "lines": [
+        "Assistant Editor, Night Shift (feature documentary) - Tribeca Festival 2021"]}]
+    job = {**JOB, "requirements": [
+        {"text": "Portfolio or reel required", "priority": "required"},
+        {"text": "Documentary editing experience", "priority": "required"},
+        {"text": "5+ years Vue", "priority": "required"}]}
+    tailored["coverage"] = [
+        {"requirement": 0, "evidence": [], "note": "reel"},
+        {"requirement": 1, "evidence": ["other[0].lines[0]"], "note": "credit"},
+        {"requirement": 2, "evidence": ["acme-inp"], "note": "Vue"}]
+    assert tailor.check_selection(master, job, tailored) == []
+    rows = tailor.coverage_rows(job, tailored, master)
+    # never LinkedIn: the first link their work can be seen at, filled in by code
+    assert [(r["evidence"], r["strength"]) for r in rows[:2]] == [
+        (["links[1]"], "a link to your work"), (["other[0].lines[0]"], "a line")]
+    assert rows[0]["shown"] == ["vimeo.com/janedoe"] and rows[1]["shown"][0].startswith("Assistant Editor, Night Shift")
+    tailored["coverage"][1]["evidence"] = ["other[0].lines[3]", "links[5]"]
+    assert tailor.check_selection(master, job, tailored) == [
+        "coverage: requirement 1 evidence 'other[0].lines[3]' out of range: 1 lines in other[0]",
+        "coverage: requirement 1 evidence 'links[5]' out of range: 2 contact links in master"]
+
+
+def test_no_reel_no_evidence_for_a_portfolio_ask(master, tailored):
+    master["contact"]["links"] = ["linkedin.com/in/jane"]
+    job = {**JOB, "requirements": [{"text": "Portfolio or reel required", "priority": "required"}]}
+    tailored["coverage"] = [{"requirement": 0, "evidence": [], "note": "none"}]
+    assert tailor.coverage_rows(job, tailored, master)[0]["status"] == "gap"
+
+
+def test_a_bracketed_skills_list_split_by_an_older_import_stays_together(master, tailored):
+    master["skills"] = [{"group": "Post", "items": ["Adobe Creative Cloud (Premiere Pro", "After Effects", "Photoshop)",
+                                                    "DaVinci Resolve"]}]
+    tailored["skills"] = [{"group": "Post", "items": ["Adobe Creative Cloud (Premiere Pro", "After Effects", "Photoshop)"]}]
+    assert tailor.check_selection(master, JOB, tailored) == []
+    tailored["skills"] = [{"group": "Post", "items": ["DaVinci Resolve", "Adobe Creative Cloud (Premiere Pro"]},
+                          {"group": "More", "items": ["Photoshop)"]}]
+    assert sum("opens a bracket it never closes" in v for v in tailor.check_selection(master, JOB, tailored)) == 2
+
+
+@pytest.mark.parametrize("text, trait", [
+    ("Comfortable receiving feedback and quickly incorporating notes into edits", True),
+    ("A creative, enthusiastic, and solution-oriented mindset.", True),
+    ("Openness to feedback and revisions", True),
+    ("Motion design principles, including timing, easing, feedback, and transitions", False),
+    ("A digital first mindset to editing on-platform and for social media", False),
+])
+def test_taking_notes_on_a_cut_is_a_soft_skill(text, trait):
+    assert tailor.is_trait(text) is trait
+
+
+def test_credit_roles_and_nda_clients_stay_as_held_in_the_rules():
+    rules = tailor.system(typeface.DEFAULT)
+    assert "Assistant Editor -> editor" in rules and "never a name or title for it" in rules
+    assert "`other[i].lines[j]`" in rules and "`links[i]`" in rules

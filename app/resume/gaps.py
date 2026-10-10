@@ -39,7 +39,7 @@ PART_WORDS = re.compile(rf"{lint.HEDGES.pattern}|\b(?:we|our|ours)\b", re.I)
 # "I didn't lead them" holds "lead them": a name or number the answer only denies never goes in
 NEGATION = re.compile(r"n't\b|\bnot\b|\bnever\b|\bno longer\b|\bwithout ever\b|\bcannot\b", re.I)
 REFUSALS = {"no", "none", "nope", "not really", "n/a", "na", "not sure", "don't know", "dont know", "no idea"}
-NUMBER_ASK = ("Can you put a real number on this - how many (people, users, screens, items, "
+NUMBER_ASK = ("Can you put a real number on this - how many (people, users, projects, videos, items, "
               "locations), how often, how much faster, cheaper or bigger, or what changed after? "
               "Skip it if you don't know the number for sure.")
 LEADERSHIP_ASK = ("At {company} ({title}), did you lead, mentor or train anyone, or start something "
@@ -70,13 +70,14 @@ Answer
 
 
 def questions(master: dict) -> list[dict]:
-    """Bullets without a digit, then leadership for the recent jobs - each with where it lives."""
-    out = []
+    """Bullets without a number that counts (lint.has_count), then leadership for the recent jobs - each
+    with where it lives."""
+    out, named = [], lint.names(master)
     for section in ("roles", "projects"):
         for i, entry in enumerate(master.get(section) or []):
             for j, bullet in enumerate(entry["bullets"]):
                 word = PART_WORDS.search(bullet["claim"])
-                if word or not lint.NUMBER.search(bullet["claim"]):
+                if word or not lint.has_count(bullet["claim"], named):
                     out.append({"id": f"q{len(out) + 1}", "kind": "part" if word else "number", "section": section,
                                 "entry": i, "bullet": j, "line": bullet["claim"],
                                 "ask": PART_ASK.format(word=word[0]) if word else NUMBER_ASK,

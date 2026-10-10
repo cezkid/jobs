@@ -179,7 +179,7 @@
     "languages": { "type": "array", "items": { "type": "string" }, "description": "Languages you speak, one per line, level in brackets: Spanish (Fluent). Levels: Native, Fluent, Professional, Conversational, Basic." },
     "other": {
       "type": "array",
-      "description": "Anything else worth a heading of its own: volunteer work, awards, a security clearance, publications. Printed exactly as written, after your certifications.",
+      "description": "Anything else worth a heading of its own: volunteer work, awards, a security clearance, publications, film or TV credits. Printed exactly as written, after your certifications - a Credits or Filmography heading right after your jobs.",
       "items": {
         "type": "object",
         "required": ["heading", "lines"],
