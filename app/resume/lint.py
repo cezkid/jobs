@@ -37,6 +37,9 @@ def any_phrase(phrases: tuple[str, ...]) -> re.Pattern:
 STYLE_WORDS = any_phrase(STYLE_WORD_LIST)
 EM_DASH = "\u2014"
 MARKDOWN = re.compile(r"\*\*|__|^#+\s|##|`|\[[^\]]*\]\([^)]*\)", re.M)
+# a blank an AI left unfilled ("[insert metric]", "{company}", "<number>") prints as is; "<100ms" is
+# no blank. 0 hits on tracked resume text (2026-10-11); a fact holding one ("[24]7.ai") names something
+PLACEHOLDER = re.compile(r"\[[^\]\n]{1,40}\](?!\()|\{[^}\n]{1,40}\}|<[A-Za-z][A-Za-z _-]{0,30}>")
 INVISIBLE = re.compile("[\u00a0\u202f\u200b\u200c\u200d\u2060\ufeff]")
 ROUND_PERCENT = re.compile(r"\b(10|15|20|25|30|40|50|100)%")
 HEDGES = any_phrase(HEDGE_LIST)
@@ -297,6 +300,12 @@ def master_strings(master) -> list[str]:
     return []
 
 
+def placeholders(text: str, sources: list[str]) -> list[str]:
+    """Unfilled blanks in `text` none of `sources` holds: "[insert metric]", not a name like "[24]7.ai"."""
+    held = " ".join(s for s in sources if s)
+    return sorted({m.group() for m in PLACEHOLDER.finditer(text) if m.group() not in held})
+
+
 def upgraded_verb(text: str, sources: list[str]) -> str | None:
     """The ownership verb opening `text` when none of `sources` uses it: "Assisted with the launch"
     -> "Led the launch" claims a part nobody said (docs/resume/bullets.md Tier 2, ownership)."""
@@ -481,6 +490,10 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
     # the user's facts or the posting do - a typo there is the user's, flagged on their own line
     listed = {w for t in known_terms for w in plain_words(t)}
     vouched_words = listed | set(plain_words(corpus)) | set(plain_words(posting))
+    # a blank a name holds ("[24]7.ai Inc.") is the name; one in their own sentence still warns
+    sentences = {norm(b["claim"]) for e in entries.values() for b in e["bullets"]}
+    sentences |= {norm(s) for k in ("summary", "headline") for s in master_strings(master.get(k))}
+    named_facts = [s for s in facts if norm(s) not in sentences]
 
     for role in master["roles"]:
         if not schema.LEGAL_IDENTIFIER.search(role["company"].strip()) and not SELF_EMPLOYED.search(role["company"]):
@@ -532,6 +545,8 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
                 own or all(c in corpus for c in missing))
         if MARKDOWN.search(text):
             hit("markdown", where, text, f"{MARKDOWN.search(text).group()!r}", own)
+        elif blanks := placeholders(text, named_facts):
+            hit("markdown", where, text, f"{', '.join(blanks)} unfilled blank", own)
         if INVISIBLE.search(text):
             hit("invisible-unicode", where, text, f"U+{ord(INVISIBLE.search(text).group()):04X}", own)
         for m in ROUND_PERCENT.finditer(text):

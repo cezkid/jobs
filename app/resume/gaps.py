@@ -8,7 +8,8 @@ recent job, as an AI task; the AI asks the user in
 chat and writes down only what they said; `finish` checks every number, name and tool in a
 reworded line came from the old line or the user's answer - never from a sentence where the
 answer denies it, never a stronger ownership verb than either used ("co-led" vouches no "led"),
-never a number stripped of the word qualifying it ("about 120" -> "120", "20+" -> "20") - then
+never a number stripped of the word qualifying it ("about 120" -> "120", "20+" -> "20"), never a
+blank left unfilled ("[number]") - then
 merges it into My Resume/Resume details.yml with a backup. A skipped question changes nothing.
 Measured on 5 real answers (2026-10-01): no negation cue, no upgraded verb - guards against a known
 failure, not a measured one; 2 of the 5 were two words, so no minimum answer length. A dropped
@@ -187,6 +188,8 @@ def problems(asked: list[dict], answers: list[dict], master: dict) -> list[str]:
             out.append(f"{a['id']}: {extra} in neither the old line nor the user's answer: {a['claim']!r}")
         if lint.EM_DASH in a["claim"] or "\n" in a["claim"]:
             out.append(f"{a['id']}: one plain line, no em dash: {a['claim']!r}")
+        if blanks := lint.placeholders(a["claim"], [q["line"], a["said"], *header]):
+            out.append(f"{a['id']}: {blanks} is a blank, not the user's words - write what they said: {a['claim']!r}")
         if q["kind"] == "fact" and carry_key(a["claim"]) in {carry_key(c) for c in q["already"]}:
             out.append(f"{a['id']}: already a line under that job: {a['claim']!r}")
         if q["kind"] not in ("leadership", "fact") and master[q["section"]][q["entry"]]["bullets"][q["bullet"]]["claim"] != q["line"]:

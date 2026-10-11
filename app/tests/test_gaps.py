@@ -68,6 +68,16 @@ def test_a_number_the_user_never_said_is_refused(tmp_path):
     assert "['300'] in neither" in found[0] and "only the user's answer" in found[1]
 
 
+def test_a_blank_for_the_number_is_refused(tmp_path):
+    """'[number]' would merge into their file and print on the page as is."""
+    path, notes = setup(tmp_path)
+    master = schema.load(path, notes)
+    asked = gaps.questions(master)
+    found = gaps.problems(asked, [{"id": "q1", "said": "a lot of tests",
+                                   "claim": "Wrote [number] Jest tests for the checkout screens."}], master)
+    assert len(found) == 1 and "['[number]'] is a blank" in found[0]
+
+
 def test_nothing_answered_leaves_the_file_alone(tmp_path):
     path, notes = setup(tmp_path)
     asked = gaps.questions(schema.load(path, notes))

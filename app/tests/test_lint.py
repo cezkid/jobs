@@ -81,6 +81,30 @@ def test_mechanical_rules_fail_generated_text(master, model, text, rule):
     assert rule in rules(lint.lint(with_bullet(model, text), master))
 
 
+@pytest.mark.parametrize("text", [
+    "Built Vue search, cutting INP by [insert metric]",
+    "Built Vue search for {company} checkout",
+    "Built Vue search used by <number> shoppers",
+])
+def test_unfilled_blank_fails_generated_warns_own_wording(master, model, text):
+    assert "markdown" in rules(lint.lint(with_bullet(copy.deepcopy(model), text), master))
+    master["roles"][0]["bullets"][0]["claim"] = text
+    own = lint.lint(render.page_model(master), master)
+    assert "markdown" in rules(own, lint.WARN) and "markdown" not in rules(own)
+
+
+def test_less_than_and_a_name_with_brackets_are_no_blank(master, model):
+    assert "markdown" not in {f.rule for f in lint.lint(with_bullet(copy.deepcopy(model), "Cut INP to <100ms"), master)}
+    master["roles"][0]["company"] = "[24]7.ai Inc."
+    named = with_bullet(render.page_model(master), "Built Vue search for [24]7.ai clients")
+    assert "markdown" not in {f.rule for f in lint.lint(named, master)}
+
+
+@pytest.mark.parametrize("text", ["Built Vue search, cutting INP by XX%", "Built Vue search for [VERIFY] shoppers"])
+def test_capitalised_blank_still_fails(master, model, text):
+    assert "unresolved-entity" in rules(lint.lint(with_bullet(model, text), master))
+
+
 def test_round_metric_present_in_master_passes(master, model):
     master["roles"][0]["bullets"][0]["metrics"] = ["deflected 20% of tier-1 tickets"]
     assert rules(lint.lint(with_bullet(model, "Built Vue search, deflecting 20% of tickets"), master)) == set()
