@@ -414,6 +414,21 @@ Common in resume tools, declined 2026-10-01 (re-propose only w/ new evidence):
 | 3-5 bullets for every role | counts follow relevance, retired 2026-09-24 (Tier 3) |
 | Missing employment dates backfilled from a guess | a date the user never gave can fail a background check (Tier 1) |
 
+Added 2026-10-11 (popular, no written decision until then; same rule):
+
+| Practice | Why not |
+|---|---|
+| STAR / XYZ / CAR shape enforced on every bullet | substance kept: evidence per bullet reported, never demanded (Tier 2, report only). Forcing the result part asks for a figure the writer may lack -> invented (Tier 1 beats Tier 2; [the metric-per-bullet rule](#what-did-not-survive)); every line one template (Tier 2 "No two bullets on one template"); a fixed three-part sentence fights `line-fill`. Convention, no study opened |
+| Functional / skills-first layout (skills grouped up top, jobs bare or left off) | roles newest first, lines under each (`schema.check_reverse_chronological`); forms fill job, title, dates from line shape - a role w/o its own lines leaves fields empty ([What the page cannot fix](#what-the-page-cannot-fix), Workday measured 2026-09). Label convention, no study opened |
+| Page size + spelling tables per country | out of scope: a US job search (home page "counts the US jobs that match"; job search measured w/ `countries=us`, `jobs/freehire.md`); A4 already declined ([page-format.md](page-format.md) #Advice declined); `spelling` uses US forms |
+| Several page designs / themes | every gate + `measure.py` calibrated to one template; typeface already swappable ([typeface.md](typeface.md) #Changing it); no callback evidence for any design found |
+| AI "polish" rewording the master resume | their wording wins (AGENTS.md); lint on their own words shows the fix, their call (WARN); missing numbers + leadership asked via `resume-gaps`, only their answers go in; rewording happens per job, confirmed. Policy |
+| Points for school prestige, job-hopping or gaps in a score | no score exists (the 0-100 score row above); never inferred from school (AGENTS.md); short tenure not a bullet problem, a gap reported w/ its evidence, never scored ([What the page cannot fix](#what-the-page-cannot-fix)) |
+
+Mislabel guard: the "6-second scan" is **downgraded**, not rejected - kept as ~7 s, one vendor (Tier 4).
+Page count by years is **soft-adopted** (`tailor.py` prompt: one page under about 5 years, or when the
+facts fit); only a hard years-to-pages rule is declined - the `budget` windows decide.
+
 ## Sources
 
 HireRight 2025 Global Benchmark Report (June + Sept 15 2025 releases). Insight Global, *2025 AI in Hiring* (Atomik Research,
