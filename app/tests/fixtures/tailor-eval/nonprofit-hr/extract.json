@@ -1,0 +1,11 @@
+{
+  "title": "Director of People",
+  "company": "Quarry Software",
+  "requirements": [
+    {"text": "8+ years of HR experience, 3+ in a leadership role", "priority": "required"},
+    {"text": "Own the people budget as part of the company P&L", "priority": "required"},
+    {"text": "Partner with finance on revenue and headcount planning", "priority": "required"},
+    {"text": "Equity compensation and stock option plans", "priority": "preferred"},
+    {"text": "Running workplace investigations", "priority": "preferred"}
+  ]
+}

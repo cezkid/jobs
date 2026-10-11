@@ -1,0 +1,5 @@
+# Regexes over the answer's page text (summary, headline title, role title brackets, bullets,
+# skills). Eval only: a hit is counted in the grade, never fails tailor check.
+- id: cissp-as-held
+  pattern: (?i)\bCISSP\b(?![- ]exam)
+  why: the candidate is an Associate of ISC2, not a CISSP - an employer's certification check shows which ("passed the CISSP exam" is not counted)

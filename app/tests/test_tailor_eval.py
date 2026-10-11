@@ -16,7 +16,8 @@ def golden(case: str) -> dict:
 
 
 def test_every_case_carries_its_files():
-    assert tailor_eval.cases() == ["software-staff", "student-degree"]
+    assert tailor_eval.cases() == [
+        "finance-lapsed", "nonprofit-hr", "nurse-assisted", "security-associate", "software-staff", "student-degree"]
     for case in tailor_eval.cases():
         assert {p.name for p in (tailor_eval.CASES / case).iterdir()} >= {
             "case.yml", "posting.txt", "extract.json", "traps.yml", "golden.json"}
@@ -59,6 +60,40 @@ def test_mutated_answer_fails_with_its_gate_named(tmp_path, mutate, gate, trap):
     [row] = tailor_eval.grade(tmp_path)
     assert not row["passed"] and gate in row["gates failed"], row
     assert trap in row["traps"]
+
+
+def first_bullet(text: str):
+    def mutate(answer: dict) -> None:
+        answer["entries"][0]["bullets"][0]["text"] = text
+    return mutate
+
+
+def summary(text: str):
+    def mutate(answer: dict) -> None:
+        answer["summary"] = text
+    return mutate
+
+
+# Hold-tier slips: a new name (CISSP, P&L) trips the entity gates; an upgraded verb or a lapsed
+# exam shown as held passes every gate - its trap is the only flag
+@pytest.mark.parametrize("case, mutate, gates, trap", [
+    ("nurse-assisted", first_bullet("Led 40+ bedside central line insertions in a 24-bed medical ICU"),
+     [], "upgraded-part"),
+    ("security-associate", summary("CISSP-certified security analyst writing Splunk detections for a credit union"),
+     ["lint unresolved-entity"], "cissp-as-held"),
+    ("finance-lapsed", summary("Series 7 registered brokerage operations analyst supporting financial advisors"),
+     [], "series7-as-held"),
+    ("nonprofit-hr", first_bullet("Owned the P&L for a $1.4M benefits budget and cut premiums 8% at the 2024 renewal"),
+     ["entries", "lint unresolved-entity"], "pnl-claimed"),
+])
+def test_hold_slip_is_flagged(tmp_path, case, mutate, gates, trap):
+    tailor_eval.prepare(tmp_path, [case])
+    answer = golden(case)
+    mutate(answer)
+    answered(tmp_path, case, answer)
+    assert tailor_eval.check(tmp_path, case) == (1 if gates else 0)
+    [row] = tailor_eval.grade(tmp_path)
+    assert (row["passed"], row["runs"], row["gates failed"], row["traps"]) == (not gates, 1, gates, [trap]), row
 
 
 def test_third_failed_run_is_graded_as_stopped(tmp_path, capsys):

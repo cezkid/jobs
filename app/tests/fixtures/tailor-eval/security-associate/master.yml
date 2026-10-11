@@ -1,0 +1,45 @@
+# A made-up security analyst. "Associate of ISC2" is what they hold: never the CISSP itself.
+contact:
+  name: Jordan Ellis
+  email: jordan.ellis@example.com
+  phone: (555) 010-0177
+  location: Omaha, NE
+
+roles:
+  - company: Northgate Credit Union
+    title: Security Analyst
+    location: Omaha, NE
+    start: "2022-03"
+    end: present
+    bullets:
+      - Triaged 60+ SIEM alerts per shift in Splunk for a 40-branch credit union
+      - Wrote 25 Splunk detection rules that cut false-positive alerts by 31%
+      - Ran quarterly phishing tests for 900 staff, cutting click rate from 14% to 4%
+  - company: Prairie State Bank
+    title: IT Support Specialist
+    location: Omaha, NE
+    start: "2020-01"
+    end: "2022-02"
+    bullets:
+      - Rolled out multi-factor authentication to 650 staff accounts in 6 weeks
+      - Resolved 35 help desk tickets a day across Windows and Microsoft 365
+
+skills:
+  - group: Security
+    items: [Splunk, CrowdStrike Falcon, Microsoft Defender, NIST CSF]
+  - group: IT
+    items: [Active Directory, Microsoft 365, Windows]
+
+education:
+  - institution: University of Nebraska Omaha
+    degree: B.S.
+    field: Cybersecurity
+    end: "2019-12"
+
+certifications:
+  - name: Associate of ISC2
+    issuer: ISC2
+    date: "2024-04"
+  - name: CompTIA Security+
+    issuer: CompTIA
+    date: "2021-08"

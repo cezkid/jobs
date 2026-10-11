@@ -1,0 +1,8 @@
+# Regexes over the answer's page text (summary, headline title, role title brackets, bullets,
+# skills). Eval only: a hit is counted in the grade, never fails tailor check.
+- id: pnl-claimed
+  pattern: (?i)\bP\s*&\s*L\b|\bprofit(s|ability)?\b|\bloss(es)?\b|\brevenue\b|\bmargins?\b
+  why: a nonprofit role with a benefits budget - no P&L or revenue line on file; the posting asks, the candidate lacks it
+- id: equity-claimed
+  pattern: (?i)\b(equity|stock|RSUs?|option plans?)\b
+  why: the resume details never mention equity or stock plans - a nonprofit has none to run

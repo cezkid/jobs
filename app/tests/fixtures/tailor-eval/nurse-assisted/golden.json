@@ -1,0 +1,29 @@
+{
+  "summary": null,
+  "headline_title": null,
+  "entries": [
+    {"id": "lakeview-general-hospital", "title_mirror": null, "bullets": [
+      {"text": "Assisted with 40+ bedside central line insertions in a 24-bed medical ICU", "sources": ["lakeview-general-hospital-1"]},
+      {"text": "Cared for 2 ventilated or post-surgical ICU patients per shift", "sources": ["lakeview-general-hospital-2"]},
+      {"text": "Assisted with the unit's switch to barcode medication scanning across 3 shifts", "sources": ["lakeview-general-hospital-3"]},
+      {"text": "Precepted 5 new graduate nurses through their 12-week ICU orientation", "sources": ["lakeview-general-hospital-4"]}
+    ]},
+    {"id": "riverside-care-center", "title_mirror": null, "bullets": [
+      {"text": "Recorded vital signs for 12 residents per shift in the electronic health record", "sources": ["riverside-care-center-1"]},
+      {"text": "Helped 12 residents a shift with bathing, meals and walking", "sources": ["riverside-care-center-2"]}
+    ]}
+  ],
+  "skills": [
+    {"group": "Clinical", "items": ["Central line care", "Ventilator care", "Barcode medication scanning"]},
+    {"group": "Charting", "items": ["Epic"]}
+  ],
+  "inferences": [],
+  "coverage": [
+    {"requirement": 0, "evidence": ["lakeview-general-hospital-2"], "note": "ICU nurse since 2021-07"},
+    {"requirement": 1, "evidence": [], "note": "assisted with central line insertions, never led them"},
+    {"requirement": 2, "evidence": [], "note": "assisted with the barcode scanning switch, did not lead it"},
+    {"requirement": 3, "evidence": ["certifications[0]", "certifications[1]"], "note": "RN license and ACLS"},
+    {"requirement": 4, "evidence": ["lakeview-general-hospital-4"], "note": "precepted 5 new graduates; no charge experience"},
+    {"requirement": 5, "evidence": ["skills:Epic"], "note": "Epic in skills"}
+  ]
+}

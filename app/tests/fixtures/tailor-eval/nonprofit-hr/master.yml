@@ -1,0 +1,36 @@
+# A made-up nonprofit HR director. A benefits budget, never a P&L: a nonprofit has no profit line.
+contact:
+  name: Taylor Brooks
+  email: taylor.brooks@example.com
+  phone: (555) 010-0128
+  location: Denver, CO
+
+roles:
+  - company: Bright Path Youth Alliance
+    title: Director of People
+    location: Denver, CO
+    start: "2019-10"
+    end: present
+    bullets:
+      - Ran HR for 140 staff across 9 youth program sites in Colorado
+      - Managed a $1.4M benefits budget and cut premiums 8% at the 2024 renewal
+      - Cut time to fill open roles from 62 days to 38 by rebuilding the hiring process
+      - Handled 18 workplace investigations a year with outside counsel
+  - company: Cedar Valley Food Bank
+    title: HR Generalist
+    location: Denver, CO
+    start: "2016-03"
+    end: "2019-09"
+    bullets:
+      - Processed payroll and benefits for 60 staff in ADP Workforce Now
+      - Wrote the first employee handbook, adopted by the board in 2018
+
+skills:
+  - group: HR
+    items: [ADP Workforce Now, BambooHR, Benefits administration, Payroll]
+
+education:
+  - institution: University of Colorado Denver
+    degree: B.A.
+    field: Psychology
+    end: "2015-05"
