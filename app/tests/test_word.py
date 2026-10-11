@@ -128,11 +128,34 @@ def test_tab_stop_definitions_add_no_tab(tmp_path):
 
 @pytest.mark.skipif(sys.platform != "darwin" or not shutil.which("textutil"), reason="macOS textutil only")
 def test_older_word_file_read_on_a_mac(tmp_path):
-    source = docx(tmp_path, p(r("Alex Rivera")) + p(r("Scheduled 40 drivers across two depots")))
+    source = docx(tmp_path, p(r("Alex Rivera")) + p(r("alex.rivera@example.com")) +
+                  p(r("Scheduled 40 drivers across two depots")))
     old = tmp_path / "Resume.doc"
     subprocess.run(["textutil", "-convert", "doc", str(source), "-output", str(old)], check=True)
     assert word.kind(old) != "word" and word.refusal(old) is None
-    assert word.read(old).splitlines() == ["Alex Rivera", "Scheduled 40 drivers across two depots"]
+    assert word.read(old).splitlines() == [
+        "Alex Rivera", "alex.rivera@example.com", "Scheduled 40 drivers across two depots"]
+
+
+@pytest.mark.skipif(sys.platform != "darwin" or not shutil.which("textutil"), reason="macOS textutil only")
+def test_contact_in_page_header_lost_by_textutil_gets_save_as_step(tmp_path):
+    contact = p(r("Alex Rivera")) + p(r("alex.rivera@example.com"))
+    source = docx(tmp_path, p(r("Scheduled 40 drivers across two depots")), headers=[contact])
+    old = tmp_path / "Resume.rtf"
+    subprocess.run(["textutil", "-convert", "rtf", str(source), "-output", str(old)], check=True)
+    with pytest.raises(word.NotReadable, match="page header.*save a copy"):
+        word.read(old)
+
+
+def test_converted_text_without_email_gets_save_as_step(tmp_path, monkeypatch):
+    old = tmp_path / "Resume.doc"
+    old.write_bytes(word.OLE + b"\x00" * 8)
+    monkeypatch.setattr(word, "mac_converts", lambda path: True)
+    monkeypatch.setattr(word, "mac_text", lambda path: "Scheduled 40 drivers\n")
+    with pytest.raises(word.NotReadable, match="save a copy"):
+        word.read(old)
+    monkeypatch.setattr(word, "mac_text", lambda path: "Alex Rivera\nalex@example.com\n")
+    assert word.read(old) == "Alex Rivera\nalex@example.com\n"
 
 
 def test_zip_without_document_refused(tmp_path):

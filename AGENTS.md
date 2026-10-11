@@ -36,7 +36,8 @@ everything: never ask them to type a command, edit a file, open a terminal or in
   Copilot's chat instead: a PDF reaches Claude / GPT-5+ models only, w/o its path; a Word file
   arrives as a few unreadable bytes (`app/docs/app-window.md` #Copilot's chat) - ask for the drag
   onto My Resume. A path that arrives w/ a chat drop still works. Older
-  Word (.doc), Pages, Google Docs: `resume-import` says the one step (save a copy as .docx or PDF).
+  Word (.doc) off a Mac, Pages, Google Docs: `resume-import` says the one step (save a copy as
+  .docx or PDF); on a Mac too when its page header (name, contact) can't be read.
 - Something fails: one plain sentence on what went wrong + what you're doing about it. Never
   show tracebacks or raw command output.
 - Ask w/ clickable choices, not prose questions: 2-4 options, each carrying the real count or

@@ -394,8 +394,9 @@ answer; [] for "doesn't matter"), `work_authorization`; decisive counts + date a
 
 - Ask for their resume - PDF or Word file (drag it onto My Resume in the file list; `AGENTS.md`
   #User), then `uv run app/jobs.py resume-import prepare --file "<path>"` (`--force` if
-  re-importing). Never open the file yourself (`AGENTS.md` #Speed). Older Word, Pages, Google Docs
-  -> it prints the one step to say (save a copy as .docx or PDF).
+  re-importing). Never open the file yourself (`AGENTS.md` #Speed). Older Word off a Mac, Pages,
+  Google Docs -> it prints the one step to say (save a copy as .docx or PDF); on a Mac too when
+  the older Word file's page header (name, contact) can't be read.
   Re-import: `finish` writes nothing yet when the new file lacks things in their resume details -
   it prints up to 3 groups (lines: their wording + added lines and skills; entries: jobs, schools,
   breaks, sections; details: legal name, hidden years, language levels, notes on a job) w/ counts
