@@ -1,0 +1,11 @@
+{
+  "title": "Security Engineer",
+  "company": "Fairview Bank",
+  "requirements": [
+    {"text": "CISSP certification", "priority": "required"},
+    {"text": "3+ years in a security operations or SOC role", "priority": "required"},
+    {"text": "Writing detection rules in Splunk or another SIEM", "priority": "required"},
+    {"text": "Running phishing simulations and security awareness training", "priority": "preferred"},
+    {"text": "EDR tools such as CrowdStrike", "priority": "preferred"}
+  ]
+}

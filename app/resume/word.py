@@ -192,11 +192,18 @@ def mac_text(path: Path) -> str | None:
 
 
 def read(path: Path) -> str:
-    """Text of any resume file but a PDF: Word by its XML, .doc / .rtf / .odt through macOS."""
+    """Text of any resume file but a PDF: Word by its XML, .doc / .rtf / .odt through macOS (body
+    only - page header + footer not read, so a text with no email gets the save-as step)."""
     if kind(path) != "word" and mac_converts(path):
-        if (text := mac_text(path)) is not None:
-            return text
-        raise NotReadable(f"{path.name} could not be read (locked with a password?). {SAVE_AS}")
+        if (text := mac_text(path)) is None:
+            raise NotReadable(f"{path.name} could not be read (locked with a password?). {SAVE_AS}")
+        # textutil reads the body only (2026-10-10): a name + contact in the page header is lost, and
+        # the import would spend its 3 AI tries on it. No email = likely that; every tracked resume
+        # fixture carries one
+        if "@" not in text:
+            raise NotReadable(f"{path.name}: its page header, where your name and contact details may be, "
+                              f"could not be read. {SAVE_AS}")
+        return text
     return extract(path)
 
 

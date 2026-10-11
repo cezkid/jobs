@@ -1,0 +1,12 @@
+{
+  "title": "Data Analyst",
+  "company": "Contoso Retail",
+  "requirements": [
+    {"text": "Completed bachelor's degree in Statistics, Mathematics or a related field", "priority": "required"},
+    {"text": "1+ year of full-time experience as a data analyst", "priority": "required"},
+    {"text": "SQL and Python for cleaning and joining large datasets", "priority": "required"},
+    {"text": "Building dashboards in Tableau or Power BI", "priority": "required"},
+    {"text": "Experience with survey data", "priority": "preferred"},
+    {"text": "Explaining findings to store managers who are not analysts", "priority": "preferred"}
+  ]
+}

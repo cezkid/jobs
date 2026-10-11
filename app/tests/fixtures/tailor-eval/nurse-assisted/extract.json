@@ -1,0 +1,12 @@
+{
+  "title": "ICU Charge Nurse",
+  "company": "Harbor Health",
+  "requirements": [
+    {"text": "2+ years of ICU experience as a Registered Nurse", "priority": "required"},
+    {"text": "Experience leading bedside procedures such as central line insertions", "priority": "required"},
+    {"text": "Led a unit-wide practice change or quality project", "priority": "required"},
+    {"text": "Current RN license and ACLS", "priority": "required"},
+    {"text": "Precepting or charge nurse experience", "priority": "preferred"},
+    {"text": "Epic charting", "priority": "preferred"}
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "summary": null,
+  "headline_title": null,
+  "entries": [
+    {"id": "bright-path-youth-alliance", "title_mirror": null, "bullets": [
+      {"text": "Managed a $1.4M benefits budget and cut premiums 8% at the 2024 renewal", "sources": ["bright-path-youth-alliance-2"]},
+      {"text": "Ran HR for 140 staff across 9 youth program sites in Colorado", "sources": ["bright-path-youth-alliance-1"]},
+      {"text": "Cut time to fill open roles from 62 days to 38 by rebuilding the hiring process", "sources": ["bright-path-youth-alliance-3"]},
+      {"text": "Handled 18 workplace investigations a year with outside counsel", "sources": ["bright-path-youth-alliance-4"]}
+    ]},
+    {"id": "cedar-valley-food-bank", "title_mirror": null, "bullets": [
+      {"text": "Processed payroll and benefits for 60 staff in ADP Workforce Now", "sources": ["cedar-valley-food-bank-1"]},
+      {"text": "Wrote the first employee handbook, adopted by the board in 2018", "sources": ["cedar-valley-food-bank-2"]}
+    ]}
+  ],
+  "skills": [
+    {"group": "HR", "items": ["ADP Workforce Now", "BambooHR", "Benefits administration", "Payroll"]}
+  ],
+  "inferences": [],
+  "coverage": [
+    {"requirement": 0, "evidence": ["bright-path-youth-alliance-1"], "note": "HR since 2016-03, Director of People since 2019-10"},
+    {"requirement": 1, "evidence": ["bright-path-youth-alliance-2"], "note": "a $1.4M benefits budget at a nonprofit - no P&L"},
+    {"requirement": 2, "evidence": [], "note": "nonprofit - no revenue planning on file"},
+    {"requirement": 3, "evidence": [], "note": "no equity or stock plans"},
+    {"requirement": 4, "evidence": ["bright-path-youth-alliance-4"], "note": "18 workplace investigations a year"}
+  ]
+}

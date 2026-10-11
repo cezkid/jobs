@@ -1,0 +1,26 @@
+{
+  "summary": "Senior frontend engineer shipping Vue and TypeScript product UI",
+  "headline_title": null,
+  "entries": [
+    {"id": "acme", "title_mirror": null, "bullets": [
+      {"text": "Cut checkout INP 410ms -> 170ms moving cart recalculation to Web Workers", "sources": ["acme-inp"]},
+      {"text": "Built retrieval search over support docs that deflected 23% of tier-1 tickets", "sources": ["acme-rag-search"]}
+    ]},
+    {"id": "globex", "title_mirror": null, "bullets": [
+      {"text": "Led design system migration across 6 product teams, 42 components in Storybook", "sources": ["globex-design-system"]}
+    ]}
+  ],
+  "skills": [
+    {"group": "Frontend", "items": ["Vue", "TypeScript", "Vite", "TanStack Query", "Playwright"]},
+    {"group": "AI", "items": ["Retrieval-augmented generation (RAG)", "eval harnesses"]}
+  ],
+  "inferences": [],
+  "coverage": [
+    {"requirement": 0, "evidence": ["acme-inp", "globex-design-system"], "note": "Vue roles since 2019"},
+    {"requirement": 1, "evidence": ["skills:TypeScript"], "note": "TypeScript in skills"},
+    {"requirement": 2, "evidence": [], "note": "no GraphQL in the resume details"},
+    {"requirement": 3, "evidence": ["acme-inp"], "note": "INP cut"},
+    {"requirement": 4, "evidence": ["globex-design-system"], "note": "design system across 6 teams"},
+    {"requirement": 5, "evidence": ["acme-rag-search"], "note": "retrieval search for customers"}
+  ]
+}

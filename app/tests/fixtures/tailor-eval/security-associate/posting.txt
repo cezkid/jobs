@@ -1,0 +1,16 @@
+Security Engineer
+Fairview Bank - Omaha, NE
+
+Fairview Bank's security team watches 120 branches and the online bank around the clock. This
+role writes detections, tunes the SIEM and runs the bank's phishing program.
+
+Requirements
+- CISSP certification
+- 3+ years in a security operations or SOC role
+- Writing detection rules in Splunk or another SIEM
+
+Preferred
+- Running phishing simulations and security awareness training
+- EDR tools such as CrowdStrike
+
+Hybrid, three days a week in the Omaha office. Pension and paid certification renewals.

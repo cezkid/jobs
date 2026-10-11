@@ -13,6 +13,7 @@ import cfg
 import store
 from apply import readahead
 from resume import handoff, jd, knockout, lint, measure, render, report, schema, typeface
+from text import strip_hidden
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
 # plan #Visual spec: bullets/role 6 max, 1-2 lines. A bullet is judged on its RENDERED width
@@ -130,7 +131,7 @@ Entries
 Wording
 - Start from the candidate's own claim text. Keep their words where they already fit; change only what this job makes relevant: what leads, emphasis, the posting's term for the same thing.
 - Every bullet names a product, stack item, number or proper noun.
-- Numbers only as written in master claims or metrics. Never invent or round one.
+- Numbers only as written in master claims or metrics. Never invent or round one. A word that qualifies a number (about, over, nearly, up to, ~, +) is part of it: keep it.
 - AI/LLM wording only inside entries whose `ai_era` is true (absent = false).
 - Where the posting names a technology differently from master, spell both forms once, full name then short form: "Electronic Health Record (EHR)", and list the new form in `inferences`.
 - A specialist term stays spelled exactly as the field writes it - screeners match the string, so never swap it for a plain paraphrase. Carry its meaning in the same sentence instead ("WCAG 2.1 AA accessibility", "CI/CD build and release time"), so a non-specialist reader loses nothing. Gloss a term once per page, not in every bullet; `skills` items stay bare.
@@ -165,6 +166,7 @@ Honesty
 
 Coverage
 - `coverage`: exactly one entry per job requirement index. `evidence` = what on the page alone proves it: ids of master bullets you placed on the page, `certifications[i]` or `education[i]` (index into master), `other[i].lines[j]` for a line of an `other` section (a film credit, an award), `links[i]` (index into master `contact.links`) for a portfolio or reel the posting asks to see, or `skills:<item>` for a skills item you kept. Empty = gap. `note` = short phrase: how it is proven, or what is missing.
+- A line related to a requirement but not proving it (another tool for the same job, the same work at a smaller scale) is no evidence: leave it out of `evidence`, and start `note` with "related, not the same: " then that line as the candidate wrote it. It stays a gap the candidate is asked about - never reworded to look the same.
 
 Reasons
 - `reasons`: one per master bullet, role and skills item left off the page: `id` = bullet id, role id, or the skills item as written; `reason` = a few plain words the candidate would accept ("older, and this job does not ask for it"). The candidate reads these and may overrule any.
@@ -447,6 +449,10 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
         for source in c["evidence"]:
             if problem := evidence_problem(master, tailored, source, on_page):
                 violations.append(f"coverage: requirement {c['requirement']} evidence {source!r} {problem}")
+        # a near match is told as a gap: citing it would print "Yes" for what the line does not prove
+        if c["evidence"] and report.related_line(c["note"]) is not None:
+            violations.append(f"coverage: requirement {c['requirement']} note says {report.RELATED.strip()!r} - "
+                              "a related line is no evidence: leave `evidence` empty, keep the note")
     return violations
 
 
@@ -698,11 +704,19 @@ def hold_back(job_dir: Path, pdf: Path) -> None:
           f"{not_ready_path(job_dir, pdf)}")
 
 
+def say_hidden(count: int) -> None:
+    """Smuggled characters removed (text.strip_hidden) => the AI passes it on; the user can't see them."""
+    if count:
+        print(f"this posting had {count} hidden characters a reader can't see - removed before the AI read it. "
+              "Tell the user in one line.")
+
+
 def posting(text_file: Path, url: str) -> None:
     then = f'uv run app/jobs.py tailor prepare --posting "{text_file}"' + (f' --url "{url}"' if url else "")
-    handoff.write_task(*posting_files(text_file), jd.EXTRACT_SYSTEM, jd.EXTRACT_SCHEMA,
-                       text_file.read_text(encoding="utf-8").strip(), then,
+    text, hidden = strip_hidden(text_file.read_text(encoding="utf-8"))
+    handoff.write_task(*posting_files(text_file), jd.EXTRACT_SYSTEM, jd.EXTRACT_SCHEMA, text.strip(), then,
                        untailored(cfg.load_or_defaults()), "the rules for reading the posting")
+    say_hidden(hidden)
 
 
 def by_number(config: dict, job: str) -> str:
@@ -781,6 +795,7 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
     print(f"job {num}, job folder: {job_dir}")
     if reopened:
         print(f"was marked {reopened} - back in {job_dir.parent.name}")
+    say_hidden(job.get(jd.HIDDEN, 0))
     if short := knockout.shortfalls(master, job, date.today()):
         print("minimum asks the resume details don't meet - say each, quoting the posting, before "
               "tailoring; ONE question, tailor anyway / skip:")

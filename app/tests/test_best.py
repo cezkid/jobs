@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import best
 import cfg
+import rank
 import store
 import today
 from conftest import make_job
@@ -187,6 +188,14 @@ def test_a_licence_or_certification_ask_is_backed_only_by_that_one():
     assert best.backed("Bachelor's degree in Accounting and an active CFE designation", f) is True
 
 
+# three lines asking CPA took -0.45 off and said it three times (2026-10-10): once per credential
+def test_a_missing_credential_is_one_demerit_however_many_lines_ask_it():
+    cpa = job("cpa", ["Active CPA license required", "Must hold CPA certification", "CPA required"])
+    beyond = rank.asks_beyond(cpa, CONFIG, None, NOW.date(), knockout.credential_text({}))
+    assert beyond == ["asks CPA, not in your resume"]
+    assert best.demerits(dict(cpa, beyond=beyond), CONFIG) == 1
+
+
 # 2026-10-09, 3,828 video / editor / motion required lines: "Adobe" or "Pro" on a resume (Photoshop,
 # Final Cut Pro) backed 60+ asks for Premiere Pro or After Effects; "sound effects" backed After
 # Effects; "editing" never met "edited" (6-letter stems); a portfolio ask counted against everyone
@@ -200,7 +209,7 @@ def test_video_asks_read_by_tool_word_ending_and_portfolio_link():
     assert best.backed("Proficiency in the Adobe Creative Suite", f) is True
     assert best.backed("Good knowledge of Microsoft Office and Adobe Suites", f) is True
     assert best.backed("Experience editing video", f) is True
-    assert best.backed("Legal authorization to work in the United States", f) is False
+    assert best.backed("Legal authorization to work in the United States", f) is None  # the form's
     asks = "Strong portfolio or demo reel showcasing commercial editing"
     assert best.backed(asks, {**f, "portfolio": True}) is True
     assert best.backed(asks, {**f, "portfolio": False}) is False
@@ -243,7 +252,30 @@ def test_security_asks_read_by_short_form_tool_clearance_and_never_citizenship()
     assert best.backed("Active TS/SCI clearance with polygraph", f) is True
     assert best.backed("Active TS/SCI clearance with polygraph", {**f, "credentials": "Active Secret clearance"}) is False
     assert best.backed("Must be a U.S. citizen", f) is None
-    assert best.backed("Legal authorization to work in the United States", f) is False
+    assert best.backed("Legal authorization to work in the United States", f) is None
+
+
+# "Must be at least 18 years of age", a work permit, "lift 50 pounds" counted against everyone: no resume says
+# them - the form asks (age 18+ on 12 of 143 forms, a work permit on 70). Age-coded wording sorted by itself
+def test_asks_no_resume_answers_never_counted():
+    f = facts()
+    for ask in ("Must be at least 18 years of age", "Must be 18 years or older", "Must be at least 21",
+                "Authorized to work in the US without sponsorship", "Must be eligible to work in the United States",
+                "Will not require visa sponsorship now or in the future", "Must be able to lift 50 pounds",
+                "Lifting up to 50 lbs regularly", "Ability to stand for long periods", "Recent college graduate",
+                "Digital native comfortable with social media", "Young, energetic team player", "Must be under 30"):
+        assert best.backed(ask, f) is None, ask
+    # same words, a real ask: still read
+    assert best.backed("18 years of experience in audit", f) is False
+    assert best.backed("Authorized user of SAP", f) is False
+    assert best.backed("Lift station maintenance", f) is False
+    assert best.backed("Experience working with young children", f) is False
+    assert best.backed("Sponsorship sales experience", f) is False
+    # a real ask on the same line is read first
+    assert best.backed("Authorized to work in the US; 10+ years of accounting experience", f) is False
+    posting = job("x", STRONG + ["Must be at least 18 years of age", "Must be able to lift 50 pounds",
+                                 "Authorized to work in the US without sponsorship", "Recent college graduate"])
+    assert best.match(posting, f)[1] == (5, 5)
 
 
 def test_resume_facts_read_their_own_sections_but_not_a_clearance_as_words(tmp_path, monkeypatch):

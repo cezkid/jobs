@@ -358,12 +358,13 @@ def asks_beyond(job: dict, config: dict, graduation: str | None, today, credenti
     name ("asks Series 24" - compliance, finance and nursing posts ask these outright; one held from
     an either/or list answers it; one their resume says lapsed is "not current"), an active clearance above
     the one their resume shows ("asks an active TS/SCI clearance, your resume shows a Secret clearance").
-    Sorted lower, never hidden."""
+    Sorted lower, never hidden. A credential is counted once per posting: "Active CPA license" + "CPA
+    required" say it once, "Series 7 required" folds into "Series 7 and Series 63 required"."""
     from resume import knockout  # light: the posting's lines only
     out = []
     if credentials is not None:
-        out += [f"asks {knockout.credential_words(missing, t)}, {knockout.missing_words(missing, credentials)}"
-                for t in required_lines(job) if (missing := knockout.credentials_missing(t, credentials))]
+        out += [f"asks {said}, {knockout.missing_words(missing, credentials)}"
+                for missing, said in credential_asks(job, credentials)]
         # an active clearance at a level (or a polygraph) their resume doesn't show - once per job. Not for one
         # who can't hold any: the clearance demerit already says it
         if can_hold_clearance(config) is not False and \
@@ -377,6 +378,26 @@ def asks_beyond(job: dict, config: dict, graduation: str | None, today, credenti
     if hit := knockout.graduation_asked({"requirements": reqs}, graduation, today):
         out.append(f"asks graduating {hit[0]}; yours {knockout.window_label(graduation_span(graduation, today))}")
     return out
+
+
+def credential_asks(job: dict, credentials: str) -> list[tuple[list[str], str]]:
+    """Each distinct set of credentials the required lines ask that their resume lacks, w/ its wording,
+    once per posting. One verdict told on several lines counts once (2026-10-10: three CPA lines were
+    -0.45 and said three times): a set asked whole inside another drops ("Series 7" in "Series 7 and
+    Series 63"); an either/or set drops when getting another ask's credential would answer it."""
+    from resume import knockout
+    asks = {}  # (missing set, any one answers it) -> (missing, wording), first line first
+    for t in required_lines(job):
+        if missing := knockout.credentials_missing(t, credentials):
+            any_one = len(missing) > 1 and knockout.credentials_asked(t)[2]
+            asks.setdefault((frozenset(missing), any_one), (missing, knockout.credential_words(missing, t)))
+
+    def covered(ask, other):
+        (names, any_one), (others, other_any) = ask, other
+        if any_one:  # a menu: answered by another ask's credential, or by any one of a smaller menu
+            return other_any and others < names or not other_any and bool(others & names)
+        return not other_any and names < others
+    return [said for ask, said in asks.items() if not any(covered(ask, other) for other in asks)]
 
 
 def graduation_span(graduation: str, today) -> tuple[int, int]:

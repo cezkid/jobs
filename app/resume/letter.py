@@ -58,7 +58,7 @@ ANSWER_SCHEMA = handoff.obj(paragraphs=handoff.array(handoff.obj(text=handoff.ST
 SYSTEM = f"""You draft one cover letter for one job from the candidate's own facts. Code adds the date, greeting, contact details and sign-off - write only the paragraphs.
 
 - {PARAGRAPHS[0]}-{PARAGRAPHS[1]} short paragraphs, {SHORT_WORDS}-{MAX_WORDS} words in all. First: the role, and the candidate's own sentence (`your_words`) verbatim, exactly once - never add reasons of your own. Middle: what they have done that this job asks for. Last: one line offering to talk.
-- What the candidate has DONE comes only from facts you cite in each paragraph's `sources` (master bullet ids, `certifications[i]`, `education[i]`) - at most {MAX_FACTS} facts in all. Every number, tool and name in a paragraph must be in the facts it cites (code checks).
+- What the candidate has DONE comes only from facts you cite in each paragraph's `sources` (master bullet ids, `certifications[i]`, `education[i]`) - at most {MAX_FACTS} facts in all. Every number, tool and name in a paragraph must be in the facts it cites (code checks). A word that qualifies a number (about, over, nearly, up to, ~, +) is part of it: keep it.
 - Prefer requirements the resume does not show (`on_resume: false`): the letter adds, it never repeats a resume line.
 - Never use a word from `words_resume_never_shows`: those are what the candidate has not shown - a gap, never a claim.
 - No filler: "I am writing to", "To Whom It May Concern", passionate, excited to apply, dream job, perfect fit, hit the ground running, team player, results-driven.

@@ -6,6 +6,9 @@ from resume import knockout, lint, schema
 from text import inert_md
 
 PRIORITY_ORDER = ("required", "preferred")
+# a coverage note naming a line near the ask but not it (another tool, a smaller scale): told as a
+# gap, the line quoted, never counted shown (tailor SYSTEM #Coverage)
+RELATED = "related, not the same: "
 
 
 def cell(text: str) -> str:
@@ -20,6 +23,37 @@ def bullet_texts(tailored: dict) -> dict[str, list[str]]:
             for source in bullet["sources"]:
                 out.setdefault(source, []).append(bullet["text"])
     return out
+
+
+def bullet_sources(entry: dict, bullet: dict) -> list[dict]:
+    """The master entry's bullets a tailored bullet restates."""
+    return [b for b in entry["bullets"] if b["id"] in bullet["sources"]]
+
+
+def kept_as_written(entry: dict, bullet: dict) -> bool:
+    """A tailored bullet that is its one source's claim word for word; anything else was reworded."""
+    sources = bullet_sources(entry, bullet)
+    return len(sources) == 1 and sources[0]["claim"] == bullet["text"]
+
+
+def reworded(master: dict, tailored: dict) -> list[str]:
+    """Tailored bullet texts not kept as written, in resume order - words the user never wrote."""
+    chosen = {t["id"]: t for t in tailored["entries"]}
+    return [bullet["text"] for entry in [*master["roles"], *master.get("projects", [])] if entry["id"] in chosen
+            for bullet in chosen[entry["id"]]["bullets"] if not kept_as_written(entry, bullet)]
+
+
+def related_line(note: str) -> str | None:
+    """The candidate's line a "related, not the same" note quotes, or None for any other note."""
+    head = RELATED.strip()
+    if not note.casefold().startswith(head.casefold()):
+        return None
+    return note[len(head):].strip().strip("'\"")
+
+
+def gap_note(note: str) -> str:
+    line = related_line(note)
+    return f"{RELATED}'{line}'" if line else note
 
 
 def salary_label(job: dict) -> str | None:
@@ -58,20 +92,30 @@ GATE_WHY = {
     "split-words": "Every word reads back whole - no letters spaced so far apart that software splits them",
     "text-color": "All text is black, which resume scanners check for",
     "heading-gap": "The same space sits under every section heading",
-    "headline": "Your headline fits on one row",
-    "contact-line": "Your contact line fits on one row",
     "pages": "One page, or two with the second mostly full",
     "line-fill": "No line ends with a few words alone on a row",
     "budget": "Enough words to fill the page, not so many it overflows",
 }
 
+# an (info) gate never fails, so its line names the thing, not a claim its detail may contradict
+# ("Your contact line fits on one row - wraps to 2 rows")
+GATE_NOTE = {
+    "contact-line": "Contact line",
+    "headline": "Headline",
+    "typeface": "Typeface",
+    "budget": "Page length",
+    "pages": "Pages",
+}
+
 
 def gate_line(name: str, ok: bool, detail: str) -> str:
     key = name.removesuffix(" (info)")
+    if name.endswith("(info)"):
+        return f"- {GATE_NOTE.get(key, key)}: {detail} ({key})"
     said = GATE_WHY.get(key, key)
     if not ok:
         return f"- {said} - not yet: {detail} ({key})"
-    return f"- {said}" + (f" - {detail}" if name.endswith("(info)") else "") + f" ({key})"
+    return f"- {said} ({key})"
 
 
 # marker status.py reads: an older report's "Yes - all ..." line still counts
@@ -114,11 +158,13 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     # not the top line in place of theirs
     confirm = len(tailored.get("inferences") or []) + bool(tailored.get("headline_title")) + (0 if mirror_ok else sum(
         1 for e in tailored.get("entries") or [] if e.get("title_mirror")))
+    # an (info) gate never fails - a note, not a pass: Notes lists it, the count leaves it out
+    passed = sum(ok and not name.endswith("(info)") for name, ok, _ in result["gates"])
     out += ["", *READY.split("\n")[:2],
             f"Not yet - {problems} to fix first." if problems
             else f'Yes, once you confirm the {confirm} line(s) under "To confirm" further down - all '
-                 f"{len(result['gates'])} page checks passed." if confirm
-            else f"Yes - all {len(result['gates'])} page checks passed."]
+                 f"{passed} page checks passed." if confirm
+            else f"Yes - all {passed} page checks passed."]
     if problems:
         out += ["", "### Still to fix", ""]
         out += [gate_line(name, ok, detail) for name, ok, detail in result["gates"] if not ok]
@@ -135,9 +181,12 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     # traits are shown in interview, never a line to add: apart, and out of the count
     asked = [r for r in ordered if not r.get("trait")]
     met = sum(r["status"] == "met" for r in asked)
-    out += ["", "## What they ask vs your resume", "",
-            f"Shown: {met} of {len(asked)}.", "",
-            "| Need | Shown? | They ask | Your line |", "| --- | --- | --- | --- |"]
+    out += ["", "## What they ask vs your resume", ""]
+    # nothing left to count: "0 of 0" over an empty table reads as a miss
+    out += [f"Shown: {met} of {len(asked)}.", "",
+            "| Need | Shown? | They ask | Your line |", "| --- | --- | --- | --- |"] if asked else [
+            "Every ask here is a soft skill - shown in interview and in how your lines read."] if ordered else [
+            "The posting lists no asks to compare."]
     for r in asked:
         must = "Must have" if r["priority"] == "required" else "Nice to have"
         shown = (r.get("shown") or [r["note"]])[0]  # one line proves it; the rest repeat the page
@@ -148,7 +197,7 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     gap_rows = [r for r in asked if r["status"] == "gap"]
     if gap_rows:
         out += ["", "## Asked for, not shown", "", "Have one? Say so - added only if true.", ""]
-        out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {inert_md(r['text'])} - {inert_md(r['note'])}"
+        out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {inert_md(r['text'])} - {inert_md(gap_note(r['note']))}"
                 for r in gap_rows]
     if short := knockout.shortfalls(master or {}, job, today or date.today()):
         out += ["", "## Minimum asks your resume doesn't show", "", "Your call - quoted so you can decide.", ""]
@@ -228,12 +277,11 @@ def diff_md(master: dict, tailored: dict, model: dict, mirror_ok: bool = False) 
             continue
         out += [heading, ""]
         for bullet in t["bullets"]:
-            sources = [b for b in entry["bullets"] if b["id"] in bullet["sources"]]
-            if len(sources) == 1 and sources[0]["claim"] == bullet["text"]:
+            if kept_as_written(entry, bullet):
                 out.append(f"- Kept as written: {bullet['text']}")
                 continue
             out.append(f"- Reworded: {bullet['text']}")
-            out += [f"  - was: {b['claim']}" for b in sources]
+            out += [f"  - was: {b['claim']}" for b in bullet_sources(entry, bullet)]
         dropped = [b for b in entry["bullets"] if b["id"] not in restated]
         out += [f"- Left out: {b['claim']}{because(reasons, b['id'])}" for b in dropped]
         out.append("")

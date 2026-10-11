@@ -14,6 +14,11 @@ Wording rules: `bullets.md`; page geometry (lines, fill, typeface): `typeface.md
 | `heading-gap` | baseline distance heading -> first line under it agrees across sections within 1pt | even spacing after headings = standard format check. A job opened 10pt lower than a skills line -> EXPERIENCE 7.5pt looser than SKILLS | convention |
 | `typeface` | every character on the page drawn by the resume's own typeface, or named first by lint `font-coverage` (then info) | Typst fills a character the family lacks from its own fonts (Libertinus, New Computer Modern) w/o a word: the line mixes typefaces and its width is off from `measure.py`. Fails only on a substitution nothing predicted | measured 2026-10-01: ✓ -> NewCMMath; ị Ạ Ơ μ ⁹ ★ Greek, Cyrillic -> LibertinusSerif |
 | `headline (info)` | optional headline fits one row | read as one line; wrapped = paragraph | convention |
+| `contact-line (info)` | rows the contact line takes, read off page 1 (`measure.py` is up to 4% out on it) | never fails: the user's own facts. A wrap costs a row at the top; on a full page it costs a whole page, which fails `pages` / `budget` | measured |
+| Heading kept with what follows | Typst `sticky: true` on the section heading + entry heading blocks (`resume.typ`): page 1 never ends on a section title, entry heading or a job's detail line | a heading stranded at a page foot wastes the space and reads badly. Layout guarantee, pinned by test (`test_heading_never_ends_a_page_alone`, plus a copy w/o sticky that must strand), not a gate - no line in the report | measured 2026-10-10: 0 of 373 two-page renders strand with sticky, 91 without; page-1 foot space median 22pt, max 66pt |
+
+Info gates go under Notes in "Check before sending.md" as a plain label + the detail ("Contact
+line: wraps to 2 rows - ..."), never a pass claim the detail contradicts; left out of the passed count.
 
 `test_colour_letterspacing_and_heading_gap_fail_their_gates` re-injects old styling, asserts
 exactly these three fail.
@@ -66,6 +71,15 @@ Four lint rules sit beside the page gates - same scorers check them. Plain-words
 - `compound-modifier`: *live-streaming channels*, *full-stack engineer*.
 - `overused-opening`: one opening verb on 4+ bullets.
 - `filler-word`: *successfully*, *actively*, first person.
+
+## Advice in Resume feedback
+
+Lines `feedback.py` adds under "Details and dates" when a fact in the file fires them - same
+words for everyone, never graded, never counted in "At a glance".
+
+| Fires on | Says | Basis |
+|---|---|---|
+| a `linkedin.com` address in contact links (`LINKEDIN_NOTE`) | recruiters check LinkedIn against the application; check titles, employers, dates there match the resume; tailored top line is a label and may differ; fix whichever is wrong | Jobscan State of the Job Search 2025: 46.75% of 384 recruiters check LinkedIn matches the application (Feb-Mar 2025) - vendor survey. A LinkedIn-vs-resume comparison was declined: user steps, posting-style text read from a page, a new privacy row, and it would push "make the resume match LinkedIn" |
 
 ## Advice declined
 

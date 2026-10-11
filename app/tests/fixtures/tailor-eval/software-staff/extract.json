@@ -1,0 +1,12 @@
+{
+  "title": "Staff Software Engineer, Frontend Platform",
+  "company": "Northwind Labs",
+  "requirements": [
+    {"text": "6+ years building production web applications with Vue or React", "priority": "required"},
+    {"text": "Deep TypeScript experience", "priority": "required"},
+    {"text": "Designing and consuming GraphQL APIs (Apollo Client, schema design)", "priority": "required"},
+    {"text": "Track record improving Core Web Vitals on a large app", "priority": "required"},
+    {"text": "Led a design system used by several product teams", "priority": "preferred"},
+    {"text": "Experience shipping LLM features to customers", "priority": "preferred"}
+  ]
+}

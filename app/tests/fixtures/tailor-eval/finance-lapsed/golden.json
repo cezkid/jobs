@@ -1,0 +1,26 @@
+{
+  "summary": null,
+  "headline_title": null,
+  "entries": [
+    {"id": "harborview-bank", "title_mirror": null, "bullets": [
+      {"text": "Reconciled 1,200 brokerage account transfers a month across 3 custodians", "sources": ["harborview-bank-1"]},
+      {"text": "Built an Excel tracker that cut account transfer delays from 9 days to 4", "sources": ["harborview-bank-2"]},
+      {"text": "Answered 30 client calls a day on transfers, statements and tax forms", "sources": ["harborview-bank-3"]}
+    ]},
+    {"id": "crestline-securities", "title_mirror": null, "bullets": [
+      {"text": "Prepared new account paperwork for 3 financial advisors serving 400 households", "sources": ["crestline-securities-1"]},
+      {"text": "Entered 150 trades a week on advisor instruction with no trade errors", "sources": ["crestline-securities-2"]}
+    ]}
+  ],
+  "skills": [
+    {"group": "Operations", "items": ["Account transfers (ACAT)", "Excel", "Salesforce", "Pershing NetX360"]}
+  ],
+  "inferences": [],
+  "coverage": [
+    {"requirement": 0, "evidence": [], "note": "Series 7 passed 2019, not currently registered; no Series 66"},
+    {"requirement": 1, "evidence": ["crestline-securities-1"], "note": "sales assistant to 3 advisors, 2018-06 to 2021-08"},
+    {"requirement": 2, "evidence": ["crestline-securities-1", "harborview-bank-1"], "note": "new account paperwork, 1,200 transfers a month"},
+    {"requirement": 3, "evidence": ["skills:Salesforce"], "note": "Salesforce in skills"},
+    {"requirement": 4, "evidence": ["harborview-bank-3"], "note": "30 client calls a day"}
+  ]
+}

@@ -5,7 +5,7 @@ import httpx
 
 import cfg
 from resume import handoff, import_pdf
-from text import html_to_text
+from text import html_to_text_counted, strip_hidden
 
 PRIORITIES = ("required", "preferred")
 # requirements past this crowd tailor task + coverage table w/o adding signal
@@ -56,40 +56,62 @@ def checked(slug: str, requirements: list[dict], where: str) -> list[dict]:
     return requirements
 
 
+# job dict key: characters a reader can't see, removed from this posting before the AI read it
+# (text.strip_hidden); prepare says so when > 0
+HIDDEN = "hidden_chars"
+
+
+class Unhidden:
+    """Every employer field of one posting through text.strip_hidden, keeping the total removed."""
+
+    def __init__(self) -> None:
+        self.count = 0
+
+    def __call__(self, text: str | None, markup: bool = False) -> str:
+        text, n = (html_to_text_counted if markup else strip_hidden)(text)
+        self.count += n
+        return text.strip()
+
+
 def from_text(text: str, url: str, got: dict) -> dict:
     """Pasted posting + AI's EXTRACT_SCHEMA answer -> same job dict shape fetch() returns."""
-    title, company = got["title"].strip(), got["company"].strip()
+    clean = Unhidden()
+    title, company = clean(got["title"]), clean(got["company"])
     slug = import_pdf.slug(f"{company} {title}") or "pasted"
+    requirements = [{**r, "text": clean(r["text"])} for r in got["requirements"]]
     return {
         "public_slug": slug,
         "title": title,
         "company": company,
         "url": url,
         "source": "pasted",
-        "text": text.strip(),
-        "requirements": checked(slug, got["requirements"], "extracted requirements"),
+        "text": clean(text),
+        "requirements": checked(slug, requirements, "extracted requirements"),
         "enrichment": {},
         "reality": {},
+        HIDDEN: clean.count,
     }
 
 
 def parse(raw: dict) -> dict:
     slug = raw["public_slug"]
     enrichment = raw.get("enrichment") or {}
+    clean = Unhidden()
     requirements = [
-        {"text": html_to_text(r["text"]), "priority": r["priority"]} for r in enrichment.get("requirements") or []
+        {"text": clean(r["text"], markup=True), "priority": r["priority"]} for r in enrichment.get("requirements") or []
     ]
     checked(slug, requirements, "enrichment.requirements")
     return {
         "public_slug": slug,
-        "title": raw["title"].strip(),
-        "company": (raw.get("company") or "").strip(),
+        "title": clean(raw["title"]),
+        "company": clean(raw.get("company")),
         "url": raw["url"],
         "source": raw.get("source"),
-        "text": html_to_text(raw.get("description")),
+        "text": clean(raw.get("description"), markup=True),
         "requirements": requirements,
         "enrichment": enrichment,
         "reality": raw.get("reality") or {},
+        HIDDEN: clean.count,
     }
 
 

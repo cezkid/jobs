@@ -10,7 +10,9 @@ every resume Job Finder makes stays a PDF. Code: `app/resume/word.py` (Word), `i
 |---|---|---|
 | PDF w/ a text layer | PyMuPDF, content-stream order (`import_pdf.extract`) | Word-exported PDFs: bullet glyphs, MM/YY dates, combined headings fixed (plan-8yi, `test_word_resume_imports_whole_and_dated`) |
 | Word .docx | stdlib zip + XML (`word.extract`): header, body, footer; hidden text, tracked deletions, field codes, the old-Word copy of a text box left out | 4 Word resume templates (2026-10-06): name + contact line first in all 4; 2 of 4 hold it in the page header, so the header is read first |
-| .doc, .docm, .dotx, .rtf, .odt, .pages, .txt, Google Docs | refused w/ one step: "save a copy as Word Document (.docx) or PDF" (`word.refusal`) | - |
+| .docm | read as .docx (macros sit in their own part, never run) | - |
+| .doc, .rtf, .odt on macOS | macOS's own textutil (`word.mac_text`): body text only, page header + footer not read; text w/ no email (contact likely in the lost header) refused w/ the one step below (`word.read`). Elsewhere: refused w/ the one step | made-up .docx w/ name + contact in the page header: textutil returned the body only (2026-10-10); 2 of 4 Word templates keep contact there (row above). Every tracked resume fixture carries an email |
+| .dotx, .pages, .txt, Google Docs | refused w/ one step: "save a copy as Word Document (.docx) or PDF" (`word.refusal`) | - |
 | Scanned PDF (no text layer) | refused (no text) | - |
 
 A .docx carries its text as text: no glyph-id fonts, no column interleaving, list bullets kept as
