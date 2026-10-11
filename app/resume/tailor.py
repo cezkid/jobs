@@ -13,6 +13,7 @@ import cfg
 import store
 from apply import readahead
 from resume import handoff, jd, knockout, lint, measure, render, report, schema, typeface
+from text import strip_hidden
 
 STRING, NULLABLE, STRINGS, obj, array = handoff.STRING, handoff.NULLABLE, handoff.STRINGS, handoff.obj, handoff.array
 # plan #Visual spec: bullets/role 6 max, 1-2 lines. A bullet is judged on its RENDERED width
@@ -698,11 +699,19 @@ def hold_back(job_dir: Path, pdf: Path) -> None:
           f"{not_ready_path(job_dir, pdf)}")
 
 
+def say_hidden(count: int) -> None:
+    """Smuggled characters removed (text.strip_hidden) => the AI passes it on; the user can't see them."""
+    if count:
+        print(f"this posting had {count} hidden characters a reader can't see - removed before the AI read it. "
+              "Tell the user in one line.")
+
+
 def posting(text_file: Path, url: str) -> None:
     then = f'uv run app/jobs.py tailor prepare --posting "{text_file}"' + (f' --url "{url}"' if url else "")
-    handoff.write_task(*posting_files(text_file), jd.EXTRACT_SYSTEM, jd.EXTRACT_SCHEMA,
-                       text_file.read_text(encoding="utf-8").strip(), then,
+    text, hidden = strip_hidden(text_file.read_text(encoding="utf-8"))
+    handoff.write_task(*posting_files(text_file), jd.EXTRACT_SYSTEM, jd.EXTRACT_SCHEMA, text.strip(), then,
                        untailored(cfg.load_or_defaults()), "the rules for reading the posting")
+    say_hidden(hidden)
 
 
 def by_number(config: dict, job: str) -> str:
@@ -781,6 +790,7 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
     print(f"job {num}, job folder: {job_dir}")
     if reopened:
         print(f"was marked {reopened} - back in {job_dir.parent.name}")
+    say_hidden(job.get(jd.HIDDEN, 0))
     if short := knockout.shortfalls(master, job, date.today()):
         print("minimum asks the resume details don't meet - say each, quoting the posting, before "
               "tailoring; ONE question, tailor anyway / skip:")
