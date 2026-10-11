@@ -25,6 +25,8 @@ GUIDE = "../Guides/What makes a good resume.md"
 # shown under Details and dates - fires on dates/details in the file, the same line for everyone
 BIAS_GUIDE = "../Guides/Unfair hiring - what's known, what helps.md"
 STRONG, GOOD, LOOK = "Strong", "Good", "Worth a look"
+# no lines to count is not a share of 0: the area says so instead of a grade
+UNGRADED, NO_LINES = "Not graded", "No job or project lines yet"
 # share of lines carrying a number or scope. Career guidance asks for evidence on most lines,
 # not all (docs/resume/bullets.md: "every bullet needs a metric" did not survive) - convention, not measured
 NUMBER_STRONG, NUMBER_GOOD = 0.80, 0.60
@@ -112,15 +114,15 @@ def assess(master: dict, today: date) -> dict:
     named = lint.names(master)
     numbered = [(w, c) for w, c in lines if lint.has_count(c, named)]
     bare = [(w, c) for w, c in lines if not lint.has_count(c, named)]
-    share = len(numbered) / len(lines) if lines else 0.0
     shown = {q: [(w, c) for w, c in lines if re.search(p, c, re.I)] for q, p in QUALITIES.items()}
     gaps = schema.employment_gaps(master, today)
     old_jobs = [r for r in master["roles"]
                 if r["end"] != schema.PRESENT and today.year - int(r["end"][:4]) >= lint.OLD_GRADUATION_YEARS]
     bundle = lint.age_bundle_due(master, today) and any(f.rule in AGE for f in counted)
     areas = {
-        "Numbers and scope": (status(share, NUMBER_STRONG, NUMBER_GOOD),
-                              f"{len(numbered)} of {len(lines)} lines say how many, how much or what changed"),
+        "Numbers and scope": (status(len(numbered) / len(lines), NUMBER_STRONG, NUMBER_GOOD),
+                              f"{len(numbered)} of {len(lines)} lines say how many, how much or what changed")
+                             if lines else (UNGRADED, NO_LINES),
         "Wording": (STRONG if not [f for f in counted if f.rule in WORDING] else LOOK,
                     f"{sum(f.rule in WORDING for f in counted)} note(s): spelling, repetition, filler"),
         **{q: (STRONG if len(s) >= SHOWN_STRONG else GOOD if s else LOOK, f"{len(s)} line(s) show it")

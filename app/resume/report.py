@@ -114,11 +114,13 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     # not the top line in place of theirs
     confirm = len(tailored.get("inferences") or []) + bool(tailored.get("headline_title")) + (0 if mirror_ok else sum(
         1 for e in tailored.get("entries") or [] if e.get("title_mirror")))
+    # an (info) gate never fails - a note, not a pass: Notes lists it, the count leaves it out
+    passed = sum(ok and not name.endswith("(info)") for name, ok, _ in result["gates"])
     out += ["", *READY.split("\n")[:2],
             f"Not yet - {problems} to fix first." if problems
             else f'Yes, once you confirm the {confirm} line(s) under "To confirm" further down - all '
-                 f"{len(result['gates'])} page checks passed." if confirm
-            else f"Yes - all {len(result['gates'])} page checks passed."]
+                 f"{passed} page checks passed." if confirm
+            else f"Yes - all {passed} page checks passed."]
     if problems:
         out += ["", "### Still to fix", ""]
         out += [gate_line(name, ok, detail) for name, ok, detail in result["gates"] if not ok]
@@ -135,9 +137,12 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     # traits are shown in interview, never a line to add: apart, and out of the count
     asked = [r for r in ordered if not r.get("trait")]
     met = sum(r["status"] == "met" for r in asked)
-    out += ["", "## What they ask vs your resume", "",
-            f"Shown: {met} of {len(asked)}.", "",
-            "| Need | Shown? | They ask | Your line |", "| --- | --- | --- | --- |"]
+    out += ["", "## What they ask vs your resume", ""]
+    # nothing left to count: "0 of 0" over an empty table reads as a miss
+    out += [f"Shown: {met} of {len(asked)}.", "",
+            "| Need | Shown? | They ask | Your line |", "| --- | --- | --- | --- |"] if asked else [
+            "Every ask here is a soft skill - shown in interview and in how your lines read."] if ordered else [
+            "The posting lists no asks to compare."]
     for r in asked:
         must = "Must have" if r["priority"] == "required" else "Nice to have"
         shown = (r.get("shown") or [r["note"]])[0]  # one line proves it; the rest repeat the page

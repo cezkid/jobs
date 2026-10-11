@@ -241,6 +241,28 @@ def test_ready_names_lines_to_confirm_and_still_counts_as_made(tailored, tmp_pat
     assert not report.ready("## Ready to send?\n\nNot yet - 2 to fix first.")
 
 
+def test_info_gates_are_notes_not_passed_checks(tailored, tmp_path):
+    """An (info) gate never fails: listed under Notes, left out of the passed count."""
+    gates = [("pages", True, "1")] * 21 + [("contact-line (info)", True, "fits")]
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": gates, "selection": [], "findings": []}
+    tailored["inferences"], tailored["entries"][0]["title_mirror"] = [], None
+    text = report.report_md(JOB, tailored, result, [], [])
+    assert "## Ready to send?\n\nYes - all 21 page checks passed." in text and report.ready(text)
+    assert "Your contact line fits on one row - fits (contact-line)" in text.split("### Notes")[1]
+
+
+def test_all_trait_posting_has_no_zero_of_zero(master, tailored, tmp_path):
+    job = {**JOB, "requirements": [{"text": "Excellent written and verbal communication skills", "priority": "required"}]}
+    tailored["coverage"] = [{"requirement": 0, "evidence": [], "note": "trait"}]
+    rows = tailor.coverage_rows(job, tailored, master)
+    assert [r["trait"] for r in rows] == [True]
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [], "selection": [], "findings": []}
+    text = report.report_md(job, tailored, result, rows, [])
+    assert "0 of 0" not in text and "| Need |" not in text
+    assert "Every ask here is a soft skill - shown in interview and in how your lines read." in text
+    assert "0 of 0" not in report.report_md(JOB, tailored, result, [], [])
+
+
 def test_traits_apart_strength_named_and_skills_only_must_have_asked(master, tailored, tmp_path):
     """A soft trait is no gap to fill w/ a line; a must-have shown only by the Skills list is."""
     job = {**JOB, "requirements": [

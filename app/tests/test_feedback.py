@@ -37,6 +37,16 @@ def test_areas_count_numbers_and_what_the_lines_show(tmp_path):
     assert "Presentation" not in text and "## At a glance" in text
 
 
+def test_no_lines_is_not_graded_as_zero_of_zero(tmp_path):
+    """A resume with no job or project lines yet has nothing to count - not a share of 0."""
+    details = {**DETAILS, "roles": []}
+    report, result, _ = feedback.run(write(tmp_path, details), TODAY, tmp_path / "state.json")
+    assert result["areas"]["Numbers and scope"] == (feedback.UNGRADED, feedback.NO_LINES)
+    text = report.read_text(encoding="utf-8")
+    assert "0 of 0" not in text and "| Numbers and scope | Not graded | No job or project lines yet |" in text
+    assert "Add a class project to my resume" in text
+
+
 def test_links_to_the_guide_that_exists():
     assert (cfg.ROOT / "My Resume" / feedback.GUIDE).resolve() == (cfg.ROOT / "Guides" / "What makes a good resume.md").resolve()
     assert (cfg.ROOT / "Guides" / "What makes a good resume.md").exists()
