@@ -28,6 +28,30 @@ def test_requirements_listed_with_their_backing_lines_and_gaps(master):
     assert "- (preferred) GraphQL [NOT shown]" in out
 
 
+def test_lines_reworded_for_this_job_come_first_and_one_kept_as_written_does_not(master):
+    tailored = copy.deepcopy(TAILORED)
+    tailored["entries"][0]["bullets"].append(
+        {"text": "Built retrieval-augmented search over support docs, eval harness scoring answer grounding",
+         "sources": ["acme-rag-search"]})
+    tailored["inferences"] = [{"claim": "Led frontend performance work", "sources": ["acme-inp"]}]
+    out = interview.context(master, JOB, tailored, None)
+    start = out.index("reworded for this job - ask about these first:")
+    assert out[start + 1:start + 3] == ["- Cut checkout INP 410ms -> 170ms moving cart recalculation to Web Workers",
+                                        "- Led frontend performance work"]
+    assert not any(line.startswith("- Built retrieval-augmented") for line in out)
+    assert not any("reworded for this job" in line for line in interview.context(master, JOB, None, None))
+
+
+def test_reworded_lines_capped_at_six_with_the_rest_counted(master):
+    tailored = {**TAILORED, "inferences": [{"claim": f"Claim {n}", "sources": []} for n in range(8)]}
+    out = interview.reworded(master, tailored)
+    assert len(out) == 1 + interview.REWORDED_MAX + 1 and out[-1] == "- and 3 more"
+    assert out[-2] == "- Claim 4"
+    kept = {**TAILORED, "entries": [{"id": "acme", "title_mirror": None, "bullets": [
+        {"text": "Cut checkout INP by moving cart recalculation off main thread", "sources": ["acme-inp"]}]}]}
+    assert interview.reworded(master, kept) == []
+
+
 def test_pay_stated_or_said_to_be_missing_and_text_marked_untrusted(master):
     out = interview.context(master, JOB, None, None)
     assert "pay: none stated in the posting's data" in out[1] and out[-1] == interview.UNTRUSTED

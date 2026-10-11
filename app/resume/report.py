@@ -25,6 +25,24 @@ def bullet_texts(tailored: dict) -> dict[str, list[str]]:
     return out
 
 
+def bullet_sources(entry: dict, bullet: dict) -> list[dict]:
+    """The master entry's bullets a tailored bullet restates."""
+    return [b for b in entry["bullets"] if b["id"] in bullet["sources"]]
+
+
+def kept_as_written(entry: dict, bullet: dict) -> bool:
+    """A tailored bullet that is its one source's claim word for word; anything else was reworded."""
+    sources = bullet_sources(entry, bullet)
+    return len(sources) == 1 and sources[0]["claim"] == bullet["text"]
+
+
+def reworded(master: dict, tailored: dict) -> list[str]:
+    """Tailored bullet texts not kept as written, in resume order - words the user never wrote."""
+    chosen = {t["id"]: t for t in tailored["entries"]}
+    return [bullet["text"] for entry in [*master["roles"], *master.get("projects", [])] if entry["id"] in chosen
+            for bullet in chosen[entry["id"]]["bullets"] if not kept_as_written(entry, bullet)]
+
+
 def related_line(note: str) -> str | None:
     """The candidate's line a "related, not the same" note quotes, or None for any other note."""
     head = RELATED.strip()
@@ -259,12 +277,11 @@ def diff_md(master: dict, tailored: dict, model: dict, mirror_ok: bool = False) 
             continue
         out += [heading, ""]
         for bullet in t["bullets"]:
-            sources = [b for b in entry["bullets"] if b["id"] in bullet["sources"]]
-            if len(sources) == 1 and sources[0]["claim"] == bullet["text"]:
+            if kept_as_written(entry, bullet):
                 out.append(f"- Kept as written: {bullet['text']}")
                 continue
             out.append(f"- Reworded: {bullet['text']}")
-            out += [f"  - was: {b['claim']}" for b in sources]
+            out += [f"  - was: {b['claim']}" for b in bullet_sources(entry, bullet)]
         dropped = [b for b in entry["bullets"] if b["id"] not in restated]
         out += [f"- Left out: {b['claim']}{because(reasons, b['id'])}" for b in dropped]
         out.append("")
