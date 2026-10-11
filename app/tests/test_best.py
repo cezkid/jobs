@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 import best
 import cfg
+import rank
 import store
 import today
 from conftest import make_job
@@ -185,6 +186,14 @@ def test_a_licence_or_certification_ask_is_backed_only_by_that_one():
     assert best.backed("FINRA Series 63 license", f) is True
     assert best.backed("CAMS, CFE, or CRCM certification", f) is True
     assert best.backed("Bachelor's degree in Accounting and an active CFE designation", f) is True
+
+
+# three lines asking CPA took -0.45 off and said it three times (2026-10-10): once per credential
+def test_a_missing_credential_is_one_demerit_however_many_lines_ask_it():
+    cpa = job("cpa", ["Active CPA license required", "Must hold CPA certification", "CPA required"])
+    beyond = rank.asks_beyond(cpa, CONFIG, None, NOW.date(), knockout.credential_text({}))
+    assert beyond == ["asks CPA, not in your resume"]
+    assert best.demerits(dict(cpa, beyond=beyond), CONFIG) == 1
 
 
 # 2026-10-09, 3,828 video / editor / motion required lines: "Adobe" or "Pro" on a resume (Photoshop,

@@ -567,6 +567,22 @@ def test_an_active_clearance_above_theirs_is_said_and_sorted_lower():
     assert rank.asks_beyond(job, cannot, None, NOW.date(), "") == []
 
 
+# "Active CPA license required" / "Must hold CPA certification" / "CPA required" were 3 entries, -0.45 and
+# said three times (2026-10-10): one verdict told several ways counts once
+def test_a_missing_credential_counts_once_per_posting():
+    cpa = make_job("cpa", enrichment=reqs("Active CPA license required", "Must hold CPA certification", "CPA required"))
+    assert rank.asks_beyond(cpa, CONFIG, None, NOW.date(), "") == ["asks CPA, not in your resume"]
+    series = make_job("series", enrichment=reqs("Series 7 and Series 63 required", "Series 7 required"))
+    assert rank.asks_beyond(series, CONFIG, None, NOW.date(), "") == ["asks Series 7 and Series 63, not in your resume"]
+    # two different credentials stay two; one held drops out of the other line
+    both = make_job("both", enrichment=reqs("CPA required", "Series 7 required"))
+    assert len(rank.asks_beyond(both, CONFIG, None, NOW.date(), "")) == 2
+    assert rank.asks_beyond(series, CONFIG, None, NOW.date(), "Series 7") == ["asks Series 63, not in your resume"]
+    # an either/or line getting the other ask's credential answers drops; one it doesn't stays
+    menu = make_job("menu", enrichment=reqs("CISSP required", "CISSP, CISA, or CISM certification"))
+    assert rank.asks_beyond(menu, CONFIG, None, NOW.date(), "") == ["asks CISSP, not in your resume"]
+
+
 def test_a_required_clearance_line_names_it_when_the_flag_is_missing():
     assert rank.clearance(make_job("a", enrichment=reqs("Active Secret clearance required"))) == ["needs a security clearance"]
     assert rank.clearance(make_job("b", enrichment=reqs("Some assignments may require a Secret clearance"))) == []
