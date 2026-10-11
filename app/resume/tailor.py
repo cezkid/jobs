@@ -351,7 +351,9 @@ def bullet_shape(text: str, where: str, font: str = typeface.DEFAULT) -> list[st
     avail = measure.bullet(font)
     lines, fill = measure.fit(font, text, avail)
     if lines > MAX_BULLET_LINES:
-        over = measure.width(font, text) - avail * MAX_BULLET_LINES
+        # what spills past the last allowed line, not total width less two lines: a long word
+        # that won't break leaves a line short, and that sum came out as "cut -15 chars"
+        over = measure.width(font, " " + " ".join(measure.wrap(font, text, avail)[MAX_BULLET_LINES:]))
         return [f"{where}: renders {lines} lines (max {MAX_BULLET_LINES}) - cut "
                 f"{measure.chars_for(font, text, over)} chars: {text!r}"]
     if lines > 1 and fill < render.MIN_LINE_FILL:
