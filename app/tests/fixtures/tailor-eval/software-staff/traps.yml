@@ -1,0 +1,11 @@
+# Regexes over the answer's page text (summary, headline title, role title brackets, bullets,
+# skills). Eval only: a hit is counted in the grade, never fails tailor check.
+- id: graphql-claimed
+  pattern: (?i)graph\s*ql|apollo
+  why: the resume details never mention GraphQL or Apollo - the posting asks, the candidate lacks it
+- id: staff-level
+  pattern: (?i)\bstaff\b
+  why: the candidate's title is Senior Software Engineer - Staff is a level they have not held
+- id: react-claimed
+  pattern: (?i)\breact\b
+  why: the posting says "Vue or React"; the resume shows Vue only

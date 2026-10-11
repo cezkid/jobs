@@ -1,0 +1,17 @@
+Staff Software Engineer, Frontend Platform
+Northwind Labs - Remote (US)
+
+Northwind Labs builds scheduling software for clinics. Our frontend platform team owns the shared
+Vue component library, the build pipeline and the performance budget every product team ships against.
+
+What you'll need
+- 6+ years building production web applications with Vue or React
+- Deep TypeScript experience
+- Designing and consuming GraphQL APIs (Apollo Client, schema design)
+- Track record improving Core Web Vitals on a large app
+
+Nice to have
+- Led a design system used by several product teams
+- Experience shipping LLM features to customers
+
+We offer remote work across the US, a learning budget and four weeks of paid leave.

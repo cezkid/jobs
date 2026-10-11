@@ -1,0 +1,29 @@
+{
+  "summary": null,
+  "headline_title": null,
+  "entries": [
+    {"id": "buckeye-analytics", "title_mirror": null, "bullets": [
+      {"text": "Cleaned 50,000 rows of survey data in Python before the quarterly review", "sources": ["buckeye-analytics-2"]},
+      {"text": "Built 3 Tableau dashboards tracking weekly sales for 12 regional stores", "sources": ["buckeye-analytics-1"]}
+    ]},
+    {"id": "state-university-library", "title_mirror": null, "bullets": [
+      {"text": "Trained 6 new student assistants on the checkout system", "sources": ["state-university-library-2"]},
+      {"text": "Answered 40+ patron questions per shift at the main circulation desk", "sources": ["state-university-library-1"]}
+    ]},
+    {"id": "course-scheduler", "title_mirror": null, "bullets": [
+      {"text": "Built a Python course scheduler used by 120 classmates to plan their spring terms", "sources": ["course-scheduler-1"]}
+    ]}
+  ],
+  "skills": [
+    {"group": "Data", "items": ["Python", "SQL", "Tableau", "Excel"]}
+  ],
+  "inferences": [],
+  "coverage": [
+    {"requirement": 0, "evidence": [], "note": "B.S. Statistics expected 2027-05 - not completed yet"},
+    {"requirement": 1, "evidence": [], "note": "one summer internship, no full-time analyst year"},
+    {"requirement": 2, "evidence": ["buckeye-analytics-2", "skills:SQL"], "note": "Python cleaning on page, SQL in skills"},
+    {"requirement": 3, "evidence": ["buckeye-analytics-1"], "note": "Tableau dashboards"},
+    {"requirement": 4, "evidence": ["buckeye-analytics-2"], "note": "survey data cleaned"},
+    {"requirement": 5, "evidence": [], "note": "nothing shows explaining findings to non-analysts"}
+  ]
+}

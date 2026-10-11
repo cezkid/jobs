@@ -1,0 +1,11 @@
+# Regexes over the answer's page text (summary, headline title, role title brackets, bullets,
+# skills). Eval only: a hit is counted in the grade, never fails tailor check.
+- id: degree-as-held
+  pattern: (?i)\b(graduate[ds]?|degree holder|holds? a|earned (a|my|the)|completed (a|my|the|their))\b
+  why: the B.S. is expected 2027-05 - written as held, an employer's education check finds it
+- id: full-time-analyst
+  pattern: (?i)\b(full[- ]time|\d+\+?\s+years?)\b
+  why: one summer internship, not a year of full-time work - the posting's ask is a gap to tell, never a phrase to echo
+- id: power-bi-claimed
+  pattern: (?i)power\s*bi
+  why: the resume shows Tableau only; the posting says "Tableau or Power BI"

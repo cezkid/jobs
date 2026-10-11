@@ -24,6 +24,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Resume | [resume/cover-letter.md](resume/cover-letter.md) | Cover letter: when it's offered, the user's own sentence, what the check holds a draft to, basis graded |
 | Resume | [resume/resume-file.md](resume/resume-file.md) | Resume file in: PDF or Word (.docx) read by the program, token cost of an AI opening it (measured), why every made resume stays a PDF |
 | Resume | [resume/typeface.md](resume/typeface.md) | Why Caladea, how widths are measured, adding a font + its cost |
+| Resume | [resume/tailor-evals.md](resume/tailor-evals.md) | Offline eval of the tailoring AI: fixed resumes + postings, any AI chat answers, `tailor check` grades, traps counted (never gates); how to run, results table |
 | Resume | [resume/fair-screening.md](resume/fair-screening.md) | Name, age, work-break, record + AI-screening bias: evidence graded by strength, laws as of 2026-09, what the program carries, advice we don't follow, unverified list |
 | Students | [students.md](students.md) | Internships, new grad, part-time, F-1: what the program does for a student + why (measured search facts, resume + form rules, AI plans), what review declined |
 | About you | [about-me.md](about-me.md) | Notes beyond the resume (goals, workplace, voice, never mention, sensitive values + personal): saved only on a yes, read one kind for its use, company fit w/o guessing a stance; What Job Finder knows page; Claude's own memory off |
