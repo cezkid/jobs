@@ -377,6 +377,14 @@ positives = dead.
 | `skills-without-a-line` - skill item no bullet names | 27 of 60 items on a real resume (2026-10-01), all true | Report would push cutting real skills; the full list is where search terms land ([page-format.md](page-format.md) #Advice declined, "Cut skills to 6-12"). The reverse - tools lines name that Skills leaves out - is reported (`feedback.unlisted_tools`: 4 of 4 real) |
 | `stale-tech-in-skills` - tool as current skill past end of life | 1 true positive, 0 false positives | Judgment, not measurement: needs occupation-specific end-of-life table; tool is for any occupation. Weakest evidence: staffing-firm advice, no measured penalty. Revisit w/ an occupation-neutral source |
 
+Generated-text drift - qualifier dropped ("about 120" -> "120"), co- dropped ("co-led" -> "led"),
+superlative or "first" / "only" no cited fact uses, long copy from the posting, posting's top word
+repeated, bracket placeholder: **not yet measured.** [measure/claim_drift.py](measure/claim_drift.py)
+counts them over real job folders (tailored resumes vs their cited facts, letters vs theirs; the facts
+read from the task file the AI saw), read-only, no network; counts only, `--show` adds the lines.
+Ship rule per kind: >= 1 true hit and 0 false positives -> FAIL in `tailor.check_selection` +
+`letter.check`; 0 hits -> recorded here as unproven, like the rows above.
+
 ## What did not survive
 
 **"Avoid inflated verbs" (`resume-verb`, WARN) - shipped, stated reason wrong.** No survey,
