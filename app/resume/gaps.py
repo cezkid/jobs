@@ -7,10 +7,13 @@ number, every bullet saying "helped" or "we" (whose part was it?), and a leaders
 recent job, as an AI task; the AI asks the user in
 chat and writes down only what they said; `finish` checks every number, name and tool in a
 reworded line came from the old line or the user's answer - never from a sentence where the
-answer denies it, never a stronger ownership verb than either used - then merges it into
-My Resume/Resume details.yml with a backup. A skipped question changes nothing. Measured on 5 real
-answers (2026-10-01): no negation cue, no upgraded verb - guards against a known failure, not a
-measured one; 2 of the 5 were two words, so no minimum answer length.
+answer denies it, never a stronger ownership verb than either used ("co-led" vouches no "led"),
+never a number stripped of the word qualifying it ("about 120" -> "120", "20+" -> "20") - then
+merges it into My Resume/Resume details.yml with a backup. A skipped question changes nothing.
+Measured on 5 real answers (2026-10-01): no negation cue, no upgraded verb - guards against a known
+failure, not a measured one; 2 of the 5 were two words, so no minimum answer length. A dropped
+qualifier is the same kind of guard (probed 2026-10-10: "about 120, maybe" passed as "Wrote 120
+Jest tests"); 0 reports on 2,198 tracked lines checked against themselves.
 """
 import argparse
 import re
@@ -176,6 +179,8 @@ def problems(asked: list[dict], answers: list[dict], master: dict) -> list[str]:
                 out.append(f"{a['id']}: the answer denies {term!r} ({sentence!r}) - write only what they did")
         if verb := lint.upgraded_verb(a["claim"], [q["line"], a["said"]]):
             out.append(f"{a['id']}: {verb!r} claims more than the line or the answer says - use their own verb")
+        for said in lint.dropped_qualifier(a["claim"], [q["line"], a["said"]]):
+            out.append(f"{a['id']}: the user said {said!r} - the claim drops the word that goes with it; keep it as said")
         entry = master[q["section"]][q["entry"]]
         header = [entry.get(k) for k in ("company", "title", "name", "location", "blurb")]
         if extra := invented(a["claim"], [q["line"], a["said"], *header]):

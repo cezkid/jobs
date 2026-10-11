@@ -130,7 +130,7 @@ Entries
 Wording
 - Start from the candidate's own claim text. Keep their words where they already fit; change only what this job makes relevant: what leads, emphasis, the posting's term for the same thing.
 - Every bullet names a product, stack item, number or proper noun.
-- Numbers only as written in master claims or metrics. Never invent or round one.
+- Numbers only as written in master claims or metrics. Never invent or round one. A word that qualifies a number (about, over, nearly, up to, ~, +) is part of it: keep it.
 - AI/LLM wording only inside entries whose `ai_era` is true (absent = false).
 - Where the posting names a technology differently from master, spell both forms once, full name then short form: "Electronic Health Record (EHR)", and list the new form in `inferences`.
 - A specialist term stays spelled exactly as the field writes it - screeners match the string, so never swap it for a plain paraphrase. Carry its meaning in the same sentence instead ("WCAG 2.1 AA accessibility", "CI/CD build and release time"), so a non-specialist reader loses nothing. Gloss a term once per page, not in every bullet; `skills` items stay bare.

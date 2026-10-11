@@ -74,6 +74,12 @@ TOOL_RELEASED = {
     re.compile(r"\bClaude\b", re.I): "2023-03",
 }
 NUMBER = re.compile(r"\d")
+# a word that qualifies a number is part of it: "about 120" -> "120" claims a count nobody made
+QUALIFIER_BEFORE = re.compile(r"(?:\b(?:about|approximately|roughly|around|nearly|almost|over|more than|upwards of|"
+                              r"under|fewer than|less than|up to)\s+|~\s*)[$€£]?$", re.I)
+QUALIFIED_NUMBER = re.compile(r"(?<![\w.,:-])(?<![\w.,:-][$€£])(?P<n>\d+(?:[.,]\d+)*)(?:[kKmMbB]\b)?(?P<plus>\+)?")
+TIME_UNIT = re.compile(r"\s*(?:years?|yrs?|months?|weeks?|days?|hours?|hrs?)\b", re.I)
+CO_WORD = re.compile(r"\bco-([^\W\d_]+)", re.I)
 # a label that says the work ran alongside other work: an overlap with it is no date mistake
 # (National Resume Writers' Association, bullets.md Tier 1). A freelancer's clients overlap by nature
 CONCURRENT = re.compile(r"\b(?:freelance|freelancer|part[- ]time|contract|contractor|self[- ]employed|"
@@ -296,9 +302,41 @@ def upgraded_verb(text: str, sources: list[str]) -> str | None:
     -> "Led the launch" claims a part nobody said (docs/resume/bullets.md Tier 2, ownership)."""
     for root, forms in OWNERSHIP.items():
         if m := re.match(rf"\s*({forms})\b", text, re.I):
-            used = re.compile(rf"\b{forms}\b", re.I)
+            # "co-led" shared the lead: it vouches no bare "led"
+            used = re.compile(rf"(?<![\w-])(?:{forms})\b", re.I)
             return None if any(used.search(s or "") for s in sources) else m[1]
     return None
+
+
+def qualified_numbers(text: str) -> list[tuple[str, str | None]]:
+    """(compare key, qualified form or None) for each number: "about 120" -> ("120", "about 120")."""
+    out = []
+    for m in QUALIFIED_NUMBER.finditer(text):
+        before = QUALIFIER_BEFORE.search(text[:m.start()])
+        if before and TIME_UNIT.match(text, m.end()):
+            before = None  # "over 3 years" says when as often as how long
+        form = text[before.start() if before else m.start():m.end()] if before or m["plus"] else None
+        out.append((entity_key(m["n"]), form))
+    return out
+
+
+def dropped_qualifier(text: str, sources: list[str]) -> list[str]:
+    """What `sources` said that `text` states more strongly: a number every source qualifies
+    ("about 120", "20+") written bare, or a co- word ("co-led") written bare while no source uses
+    it bare. Returned as the sources wrote it (docs/resume/bullets.md Tier 1, every number defensible)."""
+    sources = [s for s in sources if s]
+    said = [n for s in sources for n in qualified_numbers(s)]
+    out = set()
+    for key in {k for k, form in qualified_numbers(text) if form is None}:
+        forms = [form for k, form in said if k == key]
+        if forms and all(forms):
+            out.add(forms[0])
+    for s in sources:
+        for m in CO_WORD.finditer(s):
+            bare = re.compile(rf"(?<![\w-]){re.escape(m[1])}\b", re.I)
+            if bare.search(text) and not any(bare.search(x) for x in sources):
+                out.add(m[0])
+    return sorted(out)
 
 
 def page_items(model: dict):

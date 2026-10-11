@@ -527,3 +527,30 @@ def test_a_contact_link_with_no_address_warns(master):
     master["contact"]["links"] = ["Reel", "vimeo.com/jordanleeedits", "https://youtu.be/x1"]
     found = [f for f in lint.master_findings(master, date(2026, 10, 9)) if f.rule == "contact-link"]
     assert [(f.where, f.detail) for f in found] == [("contact.links[0]", "'Reel' is no web address")]
+
+
+@pytest.mark.parametrize("text, sources, dropped", [
+    ("Wrote about 120 Jest tests", ["Wrote Jest tests", "about 120"], []),
+    ("Wrote about 120 Jest tests", ["Wrote Jest tests", "approximately 120"], []),
+    ("Wrote 120 Jest tests", ["Wrote about 120 Jest tests", "120 of them"], []),
+    ("Trained 40 people in 3 years", ["Trained 40 people over 3 years"], []),
+    ("Served 2000+ clients", ["Served over 2,000 clients"], []),
+    ("Wrote about the 3 releases", ["Wrote 3 release notes"], []),
+    ("Wrote 120 Jest tests", ["Wrote Jest tests", "about 120, maybe"], ["about 120"]),
+    ("Served 2,000 clients", ["Served over 2000 clients"], ["over 2000"]),
+    ("Cut costs $1.2M", ["Cut costs about $1.2M"], ["about $1.2M"]),
+    ("Handled 60 alerts a day", ["Cleared 60+ alerts a day"], ["60+"]),
+    ("Answered 50 calls daily", ["up to 50 calls a day"], ["up to 50"]),
+    ("Grew the list to 5k subscribers", ["~5k subscribers"], ["~5k"]),
+    ("Led the 2024 rebrand", ["Co-led the 2024 rebrand"], ["Co-led"]),
+    ("Co-led the 2024 rebrand", ["Co-led the 2024 rebrand"], []),
+    ("Led the 2024 rebrand", ["Co-led the 2024 rebrand", "I led the design part"], []),
+])
+def test_a_number_keeps_the_word_qualifying_it(text, sources, dropped):
+    """'about 120' written '120' claims a count nobody made; 'over 3 years' often means 'during'."""
+    assert lint.dropped_qualifier(text, sources) == dropped
+
+
+def test_co_led_vouches_no_led():
+    assert lint.upgraded_verb("Led the 2024 rebrand", ["Co-led the 2024 rebrand"]) == "Led"
+    assert lint.upgraded_verb("Led the 2024 rebrand", ["I led it"]) is None
