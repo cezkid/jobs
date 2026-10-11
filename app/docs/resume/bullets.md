@@ -376,14 +376,19 @@ positives = dead.
 | `verb-upgrade` - generated bullet opens led / managed / owned ... while every cited source opens assisted / helped / supported ... | 218 generated bullets: 10 strong-verb openers, **0 upgrades** | Unproven; the prompt bans upgrades. resume-gaps refuses one in a user's answer (`lint.upgraded_verb`) - that path writes from their words, a contract, not a lint guess. "Co-led" no longer vouches "led" (2026-10-10: `\bled\b` matched inside it) |
 | `skills-without-a-line` - skill item no bullet names | 27 of 60 items on a real resume (2026-10-01), all true | Report would push cutting real skills; the full list is where search terms land ([page-format.md](page-format.md) #Advice declined, "Cut skills to 6-12"). The reverse - tools lines name that Skills leaves out - is reported (`feedback.unlisted_tools`: 4 of 4 real) |
 | `stale-tech-in-skills` - tool as current skill past end of life | 1 true positive, 0 false positives | Judgment, not measurement: needs occupation-specific end-of-life table; tool is for any occupation. Weakest evidence: staffing-firm advice, no measured penalty. Revisit w/ an occupation-neutral source |
+| claim_drift (a) number qualifier dropped ("about 120" -> "120") | **0 hits** (2026-10-11, below) | Unproven as a tailoring / letter FAIL. Prompts say keep it; resume-gaps already enforces it (`lint.dropped_qualifier`) |
+| claim_drift (b) co- dropped ("co-led" -> "led") | **0 hits** | Unproven, as (a) |
+| claim_drift (c) superlative, "first" / "only" no cited fact uses | **0 hits** (both) | Unproven; `unmeasurable-grade` covers the grade words |
+| claim_drift (d) long run copied from the posting | 2 lines at 5 tokens, 0 at 6+; **both false positives**: "EC2 and S3" tokenises as 5 (`lint.TOKEN` splits letters from digits) - 3 words, the stack the fact names | Dead as a gate at 5; no line copies posting prose. Re-measure on words, not tokens, before any threshold |
+| claim_drift (e) posting's top word repeated | 23 of 23 tailored pages: same count as untailored, 0 more | Unproven; keyword stuffing not seen |
+| claim_drift (f) bracket placeholder | **0 hits** | Unproven as tailoring FAIL; AI-written text already checked (`lint` bracket placeholder, plan-d4t.7) |
 
-Generated-text drift - qualifier dropped ("about 120" -> "120"), co- dropped ("co-led" -> "led"),
-superlative or "first" / "only" no cited fact uses, long copy from the posting, posting's top word
-repeated, bracket placeholder: **not yet measured.** [measure/claim_drift.py](measure/claim_drift.py)
-counts them over real job folders (tailored resumes vs their cited facts, letters vs theirs; the facts
-read from the task file the AI saw), read-only, no network; counts only, `--show` adds the lines.
-Ship rule per kind: >= 1 true hit and 0 false positives -> FAIL in `tailor.check_selection` +
-`letter.check`; 0 hits -> recorded here as unproven, like the rows above.
+Generated-text drift measured 2026-10-11 by [measure/claim_drift.py](measure/claim_drift.py) on the
+owner's live install: 23 tailored resumes, 534 lines, 0 skipped, **0 letters** (letter side
+unmeasured). Read-only, no network; counts + hand judgement only, no claim text kept. Ship rule per
+kind: >= 1 true hit and 0 false positives -> FAIL in `tailor.check_selection` + `letter.check`;
+0 hits -> unproven row above. **No kind earned a FAIL.** One owner's resumes, one occupation:
+re-run when other occupations' job folders exist, and on letters once any are made.
 
 ## What did not survive
 
