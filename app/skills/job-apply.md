@@ -155,7 +155,9 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    resume or search settings) or `NEEDED`. Rerun keeps answers already written.
 3. Fill each blank `answer` in that file: a question marked "yours to answer" or "sensitive" gets
    only what the user tells you, its `source` set to "you said" (`fill` + `paste` refuse anything
-   else). They'd rather type one on the page themselves -> leave it blank, source "yours to do on
+   else). A question printed "(at most N characters)": draft within N - the page cuts a longer
+   answer off unseen, so `fill` refuses it. They'd rather type one on the page themselves -> leave
+   it blank, source "yours to do on
    the page" (`fill` fills the rest, names it as left). Others: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
    question: `answer: true` only after they said yes to the named file (hard limits). Location: the

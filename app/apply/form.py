@@ -91,7 +91,8 @@ def line(a: dict) -> str:
     opts = f" options={a['options']}" if a["options"] else ""
     tag = f" ({a['source'].split(' - ', 1)[1]})" if " - sensitive: " in a["source"] or \
         f" - {questions.SIGN_ON_PAGE}: " in a["source"] else ""
-    return f"  [{state}] {a['kind']}: {a['title']}{opts}{tag}"
+    room = f" (at most {a['max_chars']} characters)" if a.get("max_chars") else ""
+    return f"  [{state}] {a['kind']}: {a['title']}{opts}{room}{tag}"
 
 
 def upload_note(system, answers: list[dict]) -> str:
@@ -225,6 +226,9 @@ def refuse(qs: list[dict]) -> None:
                  + "; ".join(a["title"] or questions.UNTITLED for a in bad))
     if bad := questions.unvouched(qs):
         sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
+    if bad := questions.too_long(qs):
+        sys.exit("longer than the box takes - the page would cut it off; shorten it (the user's own answer: "
+                 "with them): " + "; ".join(f"{a['title']} ({len(a['answer'])} of {a['max_chars']})" for a in bad))
 
 
 def page_text(page) -> str:
