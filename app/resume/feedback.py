@@ -68,6 +68,12 @@ GROUPS_NOTE = ("Clubs and groups: how each shows is your call - its full name, a
                "applicants - but it renamed the groups, which on a real resume would be false. Leaving one off also "
                "drops real leadership. Job Finder never renames one.")
 DATES = ("role-dates-overlap", "bullet-taper")
+# once to every file whose contact links name linkedin.com, never graded. Jobscan State of the Job
+# Search 2025, 384 recruiters, Feb-Mar 2025: 46.75% check LinkedIn matches the application - vendor
+# survey. Points at the facts a check compares, never "make the two match" (docs/resume/page-format.md)
+LINKEDIN_NOTE = ("Your resume links your LinkedIn. In a 2025 survey of 384 recruiters, about half said they check "
+                 "it matches the application. Check the job titles, employers and dates there match the ones here. "
+                 "The top line made for each job is a label and may differ. If one is wrong, fix whichever is wrong.")
 # once per report, not per year: the years only help left off together (docs/resume/fair-screening.md "Age cues")
 BUNDLE = ("Your degree is {years}+ years old, so we recommend leaving off, together, every year that lets a reader "
           "guess age: the graduation year, certification years from {old}+ years ago{jobs}, and a long count like "
@@ -136,6 +142,7 @@ def assess(master: dict, today: date) -> dict:
             "unlisted": unlisted_tools(master),
             "student": any(schema.in_progress(e, today) for e in master.get("education") or []),
             "groups": any(p.get("role") for p in master.get("projects") or []),
+            "linkedin": any("linkedin.com" in link.lower() for link in master["contact"].get("links") or []),
             "lines": len(lines)}
 
 
@@ -177,7 +184,7 @@ def report_md(result: dict, moved: list[str]) -> str:
         out += ["", "## Wording notes", "", "Worth a look; none block sending.", ""]
         out += [plain(*n) for n in wording]
     personal = [n for n in notes if n[0] in (*PERSONAL, *DATES, *EVIDENCE)]
-    if personal or result["gaps"]:
+    if personal or result["gaps"] or result.get("linkedin"):
         out += ["", "## Details and dates", ""]
         out += [plain(*n) for n in personal]
         today = date.fromisoformat(result["date"])
@@ -185,12 +192,15 @@ def report_md(result: dict, moved: list[str]) -> str:
             current = schema.gap_is_current(g, today)
             span = f"since your last job ({g['after']} to now)" if current else f"between jobs ({g['after']} to {g['before']})"
             out.append(f"- {g['months']}-month break {span}. {schema.gap_note(g['months'], current)}")
+        out += [f"- {LINKEDIN_NOTE}"] if result.get("linkedin") else []
         if result["bundle"]:
             n = result["bundle"]["old_jobs"]
             jobs = f", the {n} job(s) that ended {lint.OLD_GRADUATION_YEARS}+ years ago (kept with no lines, or left off)" if n else ""
             out += ["", BUNDLE.format(years=lint.AGE_BUNDLE_YEARS, old=lint.OLD_GRADUATION_YEARS, jobs=jobs)]
-        out += ["", "Worried about bias - your name, age or a break? Ask any time, or read "
-                    f"[Unfair hiring - what's known, what helps]({BIAS_GUIDE.replace(' ', '%20')})."]
+        # the bias line answers breaks, age and personal details - a LinkedIn link alone raises none
+        if personal or result["gaps"]:
+            out += ["", "Worried about bias - your name, age or a break? Ask any time, or read "
+                        f"[Unfair hiring - what's known, what helps]({BIAS_GUIDE.replace(' ', '%20')})."]
     if result.get("unlisted"):
         out += ["", "## Tools your lines name, not in your Skills list", "",
                 "Add any you'd want a search to find there - your call: " + ", ".join(result["unlisted"]) + "."]

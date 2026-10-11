@@ -85,6 +85,21 @@ def test_breaks_get_a_note_by_length_and_a_running_search_none_as_a_fault(tmp_pa
     assert "- 14-month break since your last job (2025-06 to now). Your search so far" in text
 
 
+def test_a_linkedin_link_gets_the_note_once_and_moves_no_status(tmp_path):
+    """Fired by the link in their file, the same words for everyone; advice only, never graded."""
+    linked = {**DETAILS, "contact": {**DETAILS["contact"], "links": ["https://www.LinkedIn.com/in/ada", "github.com/ada"]}}
+    report, result, _ = feedback.run(write(tmp_path, linked), TODAY, tmp_path / "linked.json")
+    text = report.read_text(encoding="utf-8")
+    assert result["linkedin"] and text.count(feedback.LINKEDIN_NOTE) == 1
+    assert feedback.LINKEDIN_NOTE in text.split("## Details and dates")[1].split("##")[0]
+    assert "Unfair hiring" not in text  # nothing about age, a break or personal details fired it
+    plain_report, plain_result, _ = feedback.run(write(tmp_path, {**DETAILS, "contact": {
+        **DETAILS["contact"], "links": ["github.com/ada"]}}), TODAY, tmp_path / "plain.json")
+    plain_text = plain_report.read_text(encoding="utf-8")
+    assert not plain_result["linkedin"] and "LinkedIn" not in plain_text and "## Details and dates" not in plain_text
+    assert result["areas"] == plain_result["areas"]
+
+
 def aged(end: str, **extra) -> dict:
     return {**DETAILS, "education": [{"institution": "State University", "degree": "BA", "end": end}],
             "certifications": [{"name": "Certified Nursing Assistant", "date": "2004-03"}], **extra}

@@ -71,6 +71,15 @@ Four lint rules sit beside the page gates - same scorers check them. Plain-words
 - `overused-opening`: one opening verb on 4+ bullets.
 - `filler-word`: *successfully*, *actively*, first person.
 
+## Advice in Resume feedback
+
+Lines `feedback.py` adds under "Details and dates" when a fact in the file fires them - same
+words for everyone, never graded, never counted in "At a glance".
+
+| Fires on | Says | Basis |
+|---|---|---|
+| a `linkedin.com` address in contact links (`LINKEDIN_NOTE`) | recruiters check LinkedIn against the application; check titles, employers, dates there match the resume; tailored top line is a label and may differ; fix whichever is wrong | Jobscan State of the Job Search 2025: 46.75% of 384 recruiters check LinkedIn matches the application (Feb-Mar 2025) - vendor survey. A LinkedIn-vs-resume comparison was declined: user steps, posting-style text read from a page, a new privacy row, and it would push "make the resume match LinkedIn" |
+
 ## Advice declined
 
 | Common advice | We do | Why |
