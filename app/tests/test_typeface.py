@@ -94,6 +94,16 @@ def test_a_bullet_written_into_the_gap_is_sent_back():
     assert [v for v in tailor.bullet_shape(middle, "gap", typeface.DEFAULT) if "wraps to a line only" in v]
 
 
+def test_advice_to_cut_an_overlong_bullet_is_never_below_its_spill():
+    # line 1 breaks at 77% before the long hyphenated word (hyphens boxed), so total width less
+    # two full lines came out negative - "cut -15 chars" for a bullet rendering 3 lines
+    text = ("Moved the billing reports onto one shared service that pulls in the warehouse's "
+            "state-of-the-art-inventory feeds and order APIs each night, used daily by a large "
+            "regional operations organization.")
+    violation, = tailor.bullet_shape(text, "spill", typeface.DEFAULT)
+    assert int(re.search(r"cut (-?\d+) chars", violation).group(1)) >= len(" organization.")
+
+
 def test_two_line_window_stays_wide_enough_to_write_in():
     # a second line is capped by what two lines hold, so the window narrows as its low edge
     # rises - measured in Caladea: 49 characters at 40%, 28 at 60%, 4 at 85%, empty at 90%.
