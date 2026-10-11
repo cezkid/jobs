@@ -84,7 +84,7 @@ asked as before (`questions.voluntary_answer`).
 | Key | Saved as | Questions it answers | Options it picks (Greenhouse, 2026-10-05) |
 |---|---|---|---|
 | `gender` | the user's word (`Male`) | title says "gender" (not "transgender") | same word, or Male/Man, Female/Woman |
-| `hispanic_latino` | `true` only | race, ethnic, Hispanic | the one starting "Hispanic" ("Hispanic or Latino", "Hispanic, Latinx or of Spanish Origin") |
+| `hispanic_latino` | `true` / `false` | race, ethnic, Hispanic, Latino/a/x | a list: the one starting "Hispanic" ("Hispanic or Latino", "Hispanic, Latinx or of Spanish Origin"), `true` only; a Hispanic/Latino question w/ Yes / No options (Greenhouse "Are you Hispanic/Latino?", 2026-10-11): Yes or No. Its title wasn't counted voluntary before - left as a plain question |
 | `protected_veteran` | `true` / `false` | the EEOC list ("Veteran Status"): its options ("I am not a protected veteran", "classifications of protected veteran") decide, whatever the title names; else "veteran" without armed-forces words | "I am not a protected veteran"; true: "I identify as one or more of the classifications of ..." |
 | `armed_forces` | `true` / `false` | armed forces, military, active duty / member ("Are you a veteran or active member of the United States Armed Forces?", "What is your military status?"), options not the EEOC list | "No, I am not a veteran or active member", "I have never served in the military", "No military service"; true: "Yes, I am a veteran or active member" / "I am a veteran or active member" |
 | `sexual_orientation` | the user's word (`Queer`) | orientation | that word, alone or joined ("Straight/Heterosexual"); Heterosexual = Straight |

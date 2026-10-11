@@ -43,6 +43,7 @@ multichoice, `input_hidden` skipped.
 | Box | On the page | Filler rule |
 |---|---|---|
 | every question | input whose `id` = field name (`first_name`, `question_<n>`, `1234501`) | find by id via `[id="..."]` - ids can start with a digit, `#1234...` is not a valid selector |
+| text, its length | `input.input__single-line`, `maxLength="255"` (job board's list doesn't say); a 512-char answer kept its first 255, cut mid-sentence, no message (tenant H, 2026-10-11) | `max_chars: 255` on every `input_text` question; `prepare` prints "(at most 255 characters)", `fill` refuses a longer answer before typing anything |
 | text | `input.input__single-line` | focus, wait 400 ms, `fill`, read back, once more on mismatch. Signed in to MyGreenhouse in that Chrome, first focus on First/Last Name drops the saved name in a moment later: typed at once, the two ran together ("JaneAda") |
 | choice / yesno / multichoice / Country | react-select: `input[role=combobox]`, list `.select__menu [role=option]` | type, click option w/ exact text - never the first offered; nothing matches -> clear + ASK. Read back from `single-value` / `multi-value__label`. Always scope to `.select__menu`: the phone box's own hidden country list is also `[role=option]` |
 | Country | options read "United States +1"; chosen it shows flag + "+1" only | match w/o the code, read back the code |
