@@ -248,7 +248,26 @@ def test_info_gates_are_notes_not_passed_checks(tailored, tmp_path):
     tailored["inferences"], tailored["entries"][0]["title_mirror"] = [], None
     text = report.report_md(JOB, tailored, result, [], [])
     assert "## Ready to send?\n\nYes - all 21 page checks passed." in text and report.ready(text)
-    assert "Your contact line fits on one row - fits (contact-line)" in text.split("### Notes")[1]
+    assert "- Contact line: fits (contact-line)" in text.split("### Notes")[1]
+
+
+@pytest.mark.parametrize("name, wrapped", [
+    ("contact-line (info)", "wraps to 2 rows - shorten the location or a link; on a full page this costs a whole page"),
+    ("headline (info)", "wraps to 2 rows - a headline reads as one line; shorten it"),
+])
+def test_gate_line_info_note_never_contradicts_its_detail(name, wrapped):
+    """Notes said "Your contact line fits on one row - wraps to 2 rows": a label, then the detail."""
+    line = report.gate_line(name, True, wrapped)
+    assert "fits on one row" not in line and wrapped in line
+    assert line == f"- {report.GATE_NOTE[name.removesuffix(' (info)')]}: {wrapped} ({name.removesuffix(' (info)')})"
+    for gate in ("typeface (info)", "budget (info)", "pages (info)"):
+        assert report.gate_line(gate, True, "x").startswith(f"- {report.GATE_NOTE[gate.removesuffix(' (info)')]}: x")
+
+
+def test_gate_line_pass_and_fail_keep_their_plain_claim():
+    assert report.gate_line("pages", True, "1 page(s)") == "- One page, or two with the second mostly full (pages)"
+    assert report.gate_line("budget", False, "900 words") == (
+        "- Enough words to fill the page, not so many it overflows - not yet: 900 words (budget)")
 
 
 def test_all_trait_posting_has_no_zero_of_zero(master, tailored, tmp_path):

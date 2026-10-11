@@ -157,7 +157,8 @@ one instance.
 | `compound-modifier` | one of 32 open two-word modifiers before noun (*live streaming channels*, *full stack engineer*); never after (*shipped end to end*) | WARN |
 | `overused-opening` | one opener on 4+ bullets (convention, unmeasured) | WARN |
 | `filler-word` | *successfully*, *actively*, first person (me, my, we, our; *I* only opening a sentence). *the, that, which, their*, *lazy* ("lazy loading") left out | WARN |
-| `pages`, `line-fill`, `contact-line`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
+| `pages`, `line-fill`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
+| `contact-line (info)` | rows the contact line takes, read off page 1; never fails (the user's own facts); a wrap that costs a page fails `pages` / `budget` | info |
 | `split-words`, `text-color`, `heading-gap` | letters 0.04em+ apart; non-black text outside links; unequal heading space - [page-format.md](page-format.md) | FAIL |
 | `budget` | words outside every window: one page 75-100% full, or two w/ second 60%+. Facts too few for lowest window -> info | FAIL / info |
 | `no-abbreviated-title` | Sr./Jr. in role heading - never name ("Robert Hayes Jr.") or employer | FAIL |

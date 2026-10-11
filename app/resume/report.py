@@ -58,20 +58,30 @@ GATE_WHY = {
     "split-words": "Every word reads back whole - no letters spaced so far apart that software splits them",
     "text-color": "All text is black, which resume scanners check for",
     "heading-gap": "The same space sits under every section heading",
-    "headline": "Your headline fits on one row",
-    "contact-line": "Your contact line fits on one row",
     "pages": "One page, or two with the second mostly full",
     "line-fill": "No line ends with a few words alone on a row",
     "budget": "Enough words to fill the page, not so many it overflows",
 }
 
+# an (info) gate never fails, so its line names the thing, not a claim its detail may contradict
+# ("Your contact line fits on one row - wraps to 2 rows")
+GATE_NOTE = {
+    "contact-line": "Contact line",
+    "headline": "Headline",
+    "typeface": "Typeface",
+    "budget": "Page length",
+    "pages": "Pages",
+}
+
 
 def gate_line(name: str, ok: bool, detail: str) -> str:
     key = name.removesuffix(" (info)")
+    if name.endswith("(info)"):
+        return f"- {GATE_NOTE.get(key, key)}: {detail} ({key})"
     said = GATE_WHY.get(key, key)
     if not ok:
         return f"- {said} - not yet: {detail} ({key})"
-    return f"- {said}" + (f" - {detail}" if name.endswith("(info)") else "") + f" ({key})"
+    return f"- {said} ({key})"
 
 
 # marker status.py reads: an older report's "Yes - all ..." line still counts

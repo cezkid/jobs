@@ -14,6 +14,10 @@ Wording rules: `bullets.md`; page geometry (lines, fill, typeface): `typeface.md
 | `heading-gap` | baseline distance heading -> first line under it agrees across sections within 1pt | even spacing after headings = standard format check. A job opened 10pt lower than a skills line -> EXPERIENCE 7.5pt looser than SKILLS | convention |
 | `typeface` | every character on the page drawn by the resume's own typeface, or named first by lint `font-coverage` (then info) | Typst fills a character the family lacks from its own fonts (Libertinus, New Computer Modern) w/o a word: the line mixes typefaces and its width is off from `measure.py`. Fails only on a substitution nothing predicted | measured 2026-10-01: ✓ -> NewCMMath; ị Ạ Ơ μ ⁹ ★ Greek, Cyrillic -> LibertinusSerif |
 | `headline (info)` | optional headline fits one row | read as one line; wrapped = paragraph | convention |
+| `contact-line (info)` | rows the contact line takes, read off page 1 (`measure.py` is up to 4% out on it) | never fails: the user's own facts. A wrap costs a row at the top; on a full page it costs a whole page, which fails `pages` / `budget` | measured |
+
+Info gates go under Notes in "Check before sending.md" as a plain label + the detail ("Contact
+line: wraps to 2 rows - ..."), never a pass claim the detail contradicts; left out of the passed count.
 
 `test_colour_letterspacing_and_heading_gap_fail_their_gates` re-injects old styling, asserts
 exactly these three fail.
