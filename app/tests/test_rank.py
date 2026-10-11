@@ -449,6 +449,17 @@ def test_graduation_window_their_date_misses_sorts_lower_and_says_both(monkeypat
     assert "asks graduating Dec 2027 - Jun 2028; yours May 2027" in rank.reasons(ranked[1], CONFIG, NOW)
 
 
+# "Recent college graduate" is never counted by the resume match (best.NOT_ON_RESUME); the window beside it still is
+def test_graduation_window_read_beside_an_age_coded_ask(monkeypatch):
+    monkeypatch.setattr(rank, "student_graduation", lambda config, today: "2027-05")
+    jobs = [make_job("later", enrichment=req("Recent college graduate", "Graduating between December 2027 and June 2028"),
+                     **usd(90000)),
+            make_job("fits", enrichment=req("Recent college graduate", "Graduating May/June 2027"), **usd(60000))]
+    ranked = rank.rank(jobs, CONFIG, NOW)
+    assert slugs(ranked) == ["fits", "later"]
+    assert "asks graduating Dec 2027 - Jun 2028; yours May 2027" in rank.reasons(ranked[1], CONFIG, NOW)
+
+
 def test_graduation_read_only_while_studying_or_just_after(tmp_path, monkeypatch):
     import yaml
     from datetime import date

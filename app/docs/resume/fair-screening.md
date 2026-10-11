@@ -151,7 +151,7 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 
 | Choice | Where it's carried | State |
 |---|---|---|
-| Ranking sees one resume fact | `rank.py` scores jobs from search settings, plus one fact for a student: the graduation date of a degree in progress or finished in the last 24 months (`rank.student_graduation`; never a `hide_year` one), read only against a posting's own required graduation window ("graduating between Dec 2027 and Jun 2028"); for anyone, the licences + certifications their resume details name, read only against a posting's own required licence lines ("asks Series 24", `rank.resume_credentials` - no contact details but letters after a name). No name, school, address, or any older date reaches it; the reason shows only on the user's own lists | done (plan-0cw.4) |
+| Ranking sees one resume fact | `rank.py` scores jobs from search settings, plus one fact for a student: the graduation date of a degree in progress or finished in the last 24 months (`rank.student_graduation`; never a `hide_year` one), read only against a posting's own required graduation window ("graduating between Dec 2027 and Jun 2028"); for anyone, the licences + certifications their resume details name, read only against a posting's own required licence lines ("asks Series 24", `rank.resume_credentials` - no contact details but letters after a name). No name, school, address, or any older date reaches it; the reason shows only on the user's own lists. Best to apply next's resume match (`best.NOT_ON_RESUME`): age-coded asks ("recent graduate", "digital native", "young") never counted either way, nor a minimum age, a work permit or lifting - answered on the form, never by a resume; before, each counted against everyone | done (plan-0cw.4, plan-d4t.22) |
 | Tailor AI task without name + contact | `tailor.build_request` sends the resume file minus the contact block; resume import still sends the name (reads the PDF text as is) | done (plan-1fw.2) |
 | Graduation year hidden everywhere | `hide_year` -> `schema.shown_end`, used by page, Workday profile, UKG | done (plan-1fw.1) |
 | Name on the page vs legal name | `contact.legal_*` only in boxes labelled legal; plain Name box asks once (`form_name`), never guessed from a 3+ word name | done (plan-1fw.3) |
@@ -191,6 +191,8 @@ A Dec 2025 executive order set up a task force to challenge state AI laws (Color
 - **"Screening software commonly rejects by age or max-years filter."** Exists in lawsuits
   (Kleber, Villarreal); how common: unmeasured.
 - **"The ATS rejects 75% of resumes."** No primary source (see `bullets.md`).
+- **Flag age-coded words in postings to the user.** No source that a flag helps them, and it reads as a
+  legal claim about the employer. Ranking only leaves those asks uncounted.
 
 ## Unverified
 

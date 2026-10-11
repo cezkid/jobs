@@ -169,6 +169,28 @@ def resume_facts(config: dict, today: date) -> dict | None:
 
 
 CITIZEN = re.compile(r"(?i)\bcitizen(?:ship)?\b|\bU\.?S\.? persons?\b|\blawful permanent resident\b|\bITAR\b|\bexport[- ]control")
+# asks no resume answers either way - each answered on the form, or by no one: a minimum age (12 of 143 forms
+# we read ask 18+), a work permit (70 of 143, app/web/research/knockout-questions-2026-10.csv), lifting or
+# standing, and age-coded wording ("recent graduate", "digital native"). Before this each counted against
+# everyone, as citizenship did. A driver's licence or CDL is a credential, read as one (knockout)
+_AGE = r"(?:1[4-9]|2[0-5])"
+NOT_ON_RESUME = re.compile(
+    rf"(?i)\b{_AGE}\s*\+?\s*(?:years?\s+)?(?:of age|years?[- ]old|or older|or over)\b|\bage(?:d| of)?\s+{_AGE}\b|"
+    rf"\bat least {_AGE}(?=\s*(?:$|[.,;:)!]|or older|with\b))|\b(?:be|are|is)\s+{_AGE}\s*\+|\blegal (?:drinking |working )?age\b|"
+    # work permit + sponsorship: never "authorized user of SAP", event "sponsorship sales"
+    r"\b(?:authori[sz]ed|authori[sz]ation|eligib(?:le|ility)|permitted|right|legally able)\s+to\s+work\b|"
+    r"\bwork (?:authori[sz]ation|permit|visa|eligibility)\b|\bemployment (?:authori[sz]ation|eligibility)\b|"
+    r"\bwithout (?:[\w-]+\s+){0,4}?sponsorship\b|\b(?:visa|immigration|employment|h-?1b)\s+sponsorship\b|"
+    r"\brequir\w* (?:(?:visa|employment|immigration|work)\s+)?sponsorship\b(?!\s+(?:sales|deals|packages|revenue))|"
+    r"\bsponsorship\s+(?:now|in the future|for (?:employment|(?:an? )?(?:work )?visa))\b|"
+    # lifting, standing: never "lift station maintenance"
+    r"\b(?:able|ability) to (?:safely )?lift\b|\b(?:lift|carry|push|pull|mov)\w*\s+(?:[\w-]+\s+){0,4}?\d{2,3}\s*(?:pounds|lbs?|kg)\b|"
+    r"\b(?:stand|sit|walk)(?:ing)?\s+for\s+(?:long|extended|prolonged|up to|several|most|\d)|\bable to stand\b|"
+    # age-coded: never "young children", "young adults" (a teacher's or counsellor's ask)
+    r"\brecent (?:college |university |high school )?grad(?:uate)?s?\b|\bdigital natives?\b|\byouthful\b|"
+    r"\byoung\b(?!\s+(?:children|child|kids|people|persons|adults?|learners|students|patients|audiences?|athletes|"
+    r"women|men|readers|families|infants|toddlers|minds))|\b[1-6]\d\s*-?\s*years?[- ]old\b|"
+    r"\bunder (?:the age of )?\d{2}(?:\s+years?(?:\s+(?:of age|old))?)?(?=\s*(?:$|[.,;:)!]))|\bunder the age of \d{2}\b")
 
 
 def backed(text: str, facts: dict) -> bool | None:
@@ -200,6 +222,10 @@ def backed(text: str, facts: dict) -> bool | None:
     # citizenship is the work-permit answer, never in a resume: 73 of 12,351 senior security asks counted
     # against everyone ("Must be a U.S. citizen")
     if CITIZEN.search(text) and not knockout.SECURITY_CLEARANCE.search(text):
+        return None
+    # age, work permit, lifting, age-coded wording: the form's, never the resume's (years + degree read first:
+    # "authorized to work in the US; 3+ years of SQL" still asks the years)
+    if NOT_ON_RESUME.search(text):
         return None
     # a portfolio or reel: answered by a link to their work, never by words. Before this, 217 of 551
     # video postings' asks to see work counted against everyone, link or not
