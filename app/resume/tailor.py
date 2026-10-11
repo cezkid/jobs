@@ -166,6 +166,7 @@ Honesty
 
 Coverage
 - `coverage`: exactly one entry per job requirement index. `evidence` = what on the page alone proves it: ids of master bullets you placed on the page, `certifications[i]` or `education[i]` (index into master), `other[i].lines[j]` for a line of an `other` section (a film credit, an award), `links[i]` (index into master `contact.links`) for a portfolio or reel the posting asks to see, or `skills:<item>` for a skills item you kept. Empty = gap. `note` = short phrase: how it is proven, or what is missing.
+- A line related to a requirement but not proving it (another tool for the same job, the same work at a smaller scale) is no evidence: leave it out of `evidence`, and start `note` with "related, not the same: " then that line as the candidate wrote it. It stays a gap the candidate is asked about - never reworded to look the same.
 
 Reasons
 - `reasons`: one per master bullet, role and skills item left off the page: `id` = bullet id, role id, or the skills item as written; `reason` = a few plain words the candidate would accept ("older, and this job does not ask for it"). The candidate reads these and may overrule any.
@@ -448,6 +449,10 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
         for source in c["evidence"]:
             if problem := evidence_problem(master, tailored, source, on_page):
                 violations.append(f"coverage: requirement {c['requirement']} evidence {source!r} {problem}")
+        # a near match is told as a gap: citing it would print "Yes" for what the line does not prove
+        if c["evidence"] and report.related_line(c["note"]) is not None:
+            violations.append(f"coverage: requirement {c['requirement']} note says {report.RELATED.strip()!r} - "
+                              "a related line is no evidence: leave `evidence` empty, keep the note")
     return violations
 
 

@@ -6,6 +6,9 @@ from resume import knockout, lint, schema
 from text import inert_md
 
 PRIORITY_ORDER = ("required", "preferred")
+# a coverage note naming a line near the ask but not it (another tool, a smaller scale): told as a
+# gap, the line quoted, never counted shown (tailor SYSTEM #Coverage)
+RELATED = "related, not the same: "
 
 
 def cell(text: str) -> str:
@@ -20,6 +23,19 @@ def bullet_texts(tailored: dict) -> dict[str, list[str]]:
             for source in bullet["sources"]:
                 out.setdefault(source, []).append(bullet["text"])
     return out
+
+
+def related_line(note: str) -> str | None:
+    """The candidate's line a "related, not the same" note quotes, or None for any other note."""
+    head = RELATED.strip()
+    if not note.casefold().startswith(head.casefold()):
+        return None
+    return note[len(head):].strip().strip("'\"")
+
+
+def gap_note(note: str) -> str:
+    line = related_line(note)
+    return f"{RELATED}'{line}'" if line else note
 
 
 def salary_label(job: dict) -> str | None:
@@ -163,7 +179,7 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     gap_rows = [r for r in asked if r["status"] == "gap"]
     if gap_rows:
         out += ["", "## Asked for, not shown", "", "Have one? Say so - added only if true.", ""]
-        out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {inert_md(r['text'])} - {inert_md(r['note'])}"
+        out += [f"- {'Must have' if r['priority'] == 'required' else 'Nice to have'}: {inert_md(r['text'])} - {inert_md(gap_note(r['note']))}"
                 for r in gap_rows]
     if short := knockout.shortfalls(master or {}, job, today or date.today()):
         out += ["", "## Minimum asks your resume doesn't show", "", "Your call - quoted so you can decide.", ""]

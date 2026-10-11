@@ -306,6 +306,24 @@ def test_traits_apart_strength_named_and_skills_only_must_have_asked(master, tai
     assert not tailor.is_trait("Strong background in UI/UX design collaboration")
 
 
+def test_related_line_stays_a_gap_named_as_related(master, tailored, tmp_path):
+    """A near match is told as a gap, its line quoted - never a "Yes" for what it does not prove."""
+    related = "related, not the same: Led design system migration across product surfaces"
+    tailored["coverage"][1]["note"] = related
+    assert tailor.check_selection(master, JOB, tailored) == []
+    rows = tailor.coverage_rows(JOB, tailored, master)
+    assert [r["status"] for r in rows] == ["met", "gap"]
+    result = {"pdf": tmp_path / "Jane_Doe_Resume.pdf", "failed": [], "gates": [], "selection": [], "findings": []}
+    text = report.report_md(JOB, tailored, result, rows, [])
+    assert "Shown: 1 of 2." in text and "| Nice to have | Not shown | GraphQL |" in text
+    assert ("- Nice to have: GraphQL - related, not the same: 'Led design system migration across product surfaces'"
+            in text.split("## Asked for, not shown")[1])
+    # cited as evidence too = the inflation the rule exists to stop
+    tailored["coverage"][1]["evidence"] = ["globex-design-system"]
+    assert any("related" in v for v in tailor.check_selection(master, JOB, tailored))
+    assert report.related_line("Vue on page") is None and report.gap_note("no GraphQL") == "no GraphQL"
+
+
 def test_folder_name_leads_with_the_job_number_and_is_filesystem_safe():
     job = {**JOB, "company": 'Acme: "Health"', "title": "RN / ICU?  Nights."}
     assert tailor.folder_name(job, 7) == "7 - Acme Health - RN ICU Nights"

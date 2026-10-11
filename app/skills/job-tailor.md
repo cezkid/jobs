@@ -91,6 +91,10 @@ Never values / personal here (`AGENTS.md` #About me).
 5. "Asked for, not shown" items they can truthfully fill ("Do you have IV certification?") ->
    add fact to `Resume details.yml` as one plain sentence under `bullets:` (`AGENTS.md`
    #Resume details), redo task, rerun check.
+   An item marked "related, not the same: '<their line>'" is a gap, told as one: "They ask for
+   GraphQL; your closest line is about REST APIs - not the same thing." Added only if they say they
+   did the asked thing itself, in their own sentence; never their related line reworded to look the
+   same, never cited as `evidence` (check fails).
 6. Cover letter - only when "What the application asks" shows a cover letter box (or they ask): ONE
    question "Job 12's application has a cover letter box. Write one too?" - Yes, about 5 minutes / No,
    resume only. Yes -> free text: "In one sentence, in your own words: why this job or this company?
