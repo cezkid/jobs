@@ -1,13 +1,16 @@
 """Best to apply next: one score per open job the user hasn't acted on, from how well their resume
-backs the posting's asks, how much it asks, pay, where, and how fresh it is. Orders the Today
+backs the posting's asks, how like their work the title is, how much it asks, pay, where, and how fresh it is. Orders the Today
 page's "Best to apply next", the chat brief and the morning email - one order everywhere.
 
 Weights: settings `rank.best_next`. Why each factor + its basis: app/docs/jobs/best-next.md.
 An estimate for ordering, never a verdict: match is word overlap w/ the resume, not a reading of
 it. Tailoring (job-tailor) judges each ask properly, with the user.
 """
+import heapq
+import html
 import re
 from bisect import bisect_left
+from collections import deque
 from datetime import date, datetime, timezone
 
 import cfg
@@ -30,6 +33,8 @@ experience experienced years year yrs plus minimum least ability able strong exc
 knowledge understanding familiarity familiar working work proficiency proficient skills skill required requirement
 preferred must have has having must should will can using use used new etc e.g ie well highly advanced basic
 environment fast paced team teams across multiple various""".split())
+# the country is where the job is, never a skill: "US payroll regulatory requirements" was met by "US GAAP"
+FILLER |= {"us", "usa", "unitedstates"}
 STEM = 6
 # languages a required ask can name ("Fluent in Spanish", "Bilingual English/Mandarin"): read
 # apart from other words, since one shared word ("English") would back the whole ask
@@ -77,8 +82,19 @@ def forms(word: str) -> set[str]:
     return {word[:STEM], root(word)[:STEM]}
 
 
+# "IT" in capitals is information technology, never the filler "it": "Sr. IT Compliance Analyst" read as a
+# perfect title for an AML analyst (2026-10-12)
+IT = re.compile(r"\bIT\b|\binformation technology\b", re.I)
+
+
+# "React.js", "Node JS" = React, Node: before, "Node.js" was met by "Next.js" (the "js" they share)
+JS = re.compile(r"(?i)\b([a-z][a-z0-9]*)\.js\b|\b(react|node|vue|next|angular|express|nest|nuxt|ember)\s?js\b")
+
+
 def words_of(text: str) -> list[str]:
+    text = IT.sub(lambda m: " infotech " if m.group(0) != "it" and m.group(0) != "It" else m.group(0), text)
     text = PRODUCTS.sub(lambda m: "".join(m.group(0).split()), text)
+    text = JS.sub(lambda m: m.group(1) or m.group(2), text)
     for rx, short in SAME_WORDS:
         text = rx.sub(short, text)
     return [w for w in re.findall(r"[a-z][a-z0-9+#]*", text.lower()) if len(w) > 1 and w not in FILLER]
@@ -113,7 +129,12 @@ SAME_WORDS = ((re.compile(r"\bidentity (?:and|&) access management\b", re.I), "i
               (re.compile(r"\bgovernance,? risk,? (?:and|&) compliance\b", re.I), "grc"),
               (re.compile(r"\bdata loss prevention\b", re.I), "dlp"),
               (re.compile(r"\bapplication security\b", re.I), "appsec"),
-              (re.compile(r"\bpen(?:etration)?[ -]?test(?:ing|s|er|ers)?\b", re.I), "pentest"))
+              (re.compile(r"\bpen(?:etration)?[ -]?test(?:ing|s|er|ers)?\b", re.I), "pentest"),
+              # one word, three spellings: "Front-End Engineer" on the resume, "Frontend Developer" in the
+              # posting (2026-10-11: 9 of 74 front-end titles an AI judged same-field met no resume word)
+              (re.compile(r"\bfront[- ]?end\b", re.I), "frontend"),
+              (re.compile(r"\bback[- ]?end\b", re.I), "backend"),
+              (re.compile(r"\bfull[- ]?stack\b", re.I), "fullstack"))
 
 
 def stems(text: str) -> set[str]:
@@ -129,10 +150,23 @@ def ask_words(text: str, leave: set[str] = frozenset()) -> list[set[str]]:
     return [forms(w) for w in dict.fromkeys(words_of(text)) if w not in leave]
 
 
-def named(text: str) -> list[str]:
-    """Tools + products a requirement names (capitalised mid-sentence: Excel, SAP, SQL), as words."""
+# capitalised words in a row, "of" / "for" / "the" between them, are one name: "Uniform System of Accounts
+# for the Lodging Industry". Read word by word, its "Accounts" backed the ask on any accounting resume
+NAMED_RUN = re.compile(rf"{tailor.NAMED_TERM.pattern}(?:\s+(?:(?:of|for|the)\s+)*[A-Z][\w+#./-]*)*")
+
+
+# "Excel-based", "data-driven": the tool is the first part
+# also a name's kind-of-thing word ("HR Expertise", "NIST Framework", "Security Processes"): the name is the rest
+NAME_SUFFIX = {"based", "driven", "oriented", "focused", "powered", "enabled", "degree", "expertise", "framework",
+               "frameworks", "process", "processes", "methodology", "methodologies", "practices", "principles", "standards"}
+
+
+def named(text: str) -> list[list[str]]:
+    """Tools + products a requirement names (capitalised mid-sentence: Excel, SAP, SQL), each as its
+    words: a name of several words is one entry; "Excel/Google Sheets" is two."""
     text = PRODUCTS.sub(lambda m: "".join(m.group(0).split()), text)
-    return [w for t in tailor.NAMED_TERM.findall(text) for w in words_of(t)]
+    return [w for run in NAMED_RUN.findall(text) for t in run.split("/")
+            if (w := [x for x in words_of(t) if x not in NAME_SUFFIX])]
 
 
 def languages(text: str) -> set[str]:
@@ -163,7 +197,8 @@ def resume_facts(config: dict, today: date) -> dict | None:
     levels = [knockout.degree_held(e) for e in master.get("education") or []]
     held = max((knockout.LADDER.index(lv) for lv in levels if lv), default=None)
     spoken = " ".join(l.split("(")[0] for l in master.get("languages") or [] if not LANGUAGE_BELOW_WORK.search(l))
-    return {"stems": stems(" ".join(parts)), "years": knockout.dated_years(master, today),
+    own = " ".join([master.get("headline") or ""] + [r.get("title") or "" for r in master.get("roles") or []])
+    return {"stems": stems(" ".join(parts)), "titles": stems(own), "years": knockout.dated_years(master, today),
             "credentials": knockout.credential_text(master), "portfolio": bool(knockout.portfolio_link(master)),
             "degree": held if None not in levels else "unknown", "languages": languages(spoken)}
 
@@ -186,6 +221,13 @@ NOT_ON_RESUME = re.compile(
     # lifting, standing: never "lift station maintenance"
     r"\b(?:able|ability) to (?:safely )?lift\b|\b(?:lift|carry|push|pull|mov)\w*\s+(?:[\w-]+\s+){0,4}?\d{2,3}\s*(?:pounds|lbs?|kg)\b|"
     r"\b(?:stand|sit|walk)(?:ing)?\s+for\s+(?:long|extended|prolonged|up to|several|most|\d)|\bable to stand\b|"
+    # when + where they work, an employer's own statement: the form's or no one's ("Eastern Time hours",
+    # "on-site in our New York City office", "Equal Opportunity Employer"); never "time management"
+    r"\b(?:time zone|timezone|(?:eastern|pacific|central|mountain|[ECMP][SD]?T)\s+(?:time\s+)?(?:business\s+|working\s+)?hours)\b|"
+    r"\bcore hours\b|\bon[- ]?call (?:basis|schedule|shifts?)\b|\bnon-work hours\b|\b(?:work|be|report)\s+(?:\w+\s+){0,2}on[- ]?site\b|\bcommut\w*|\brelocat\w*|"
+    r"\bpreferred location\b|\b(?:early mornings|evenings|weekends|overnight)\b|\bequal (?:employment )?opportunity\b|"
+    r"\bwithout regard to\b|\bE-?Verify\b|\b(?:be |reside |located |living )?(?:based|reside|located|living) in (?:the )?(?:US|U\.S\.|USA|United States|[A-Z][a-z]+)\b|"
+    r"(?<!corporate )(?<!coordinate )(?<!coordinating )(?<!book )\btravel\b(?!\s*(?:and|&)\s*expenses?|\s*expenses?|\s*(?:industry|agenc\w+|tech|bookings?|insurance|nurse|nursing|arrangements|policy|policies|programs?|management|coordination|logistics|planning|reimbursements?))|\b\d+\s*(?:\+\s*)?hours? (?:a|per) (?:week|month)\b|"
     # age-coded: never "young children", "young adults" (a teacher's or counsellor's ask)
     r"\brecent (?:college |university |high school )?grad(?:uate)?s?\b|\bdigital natives?\b|\byouthful\b|"
     r"\byoung\b(?!\s+(?:children|child|kids|people|persons|adults?|learners|students|patients|audiences?|athletes|"
@@ -193,7 +235,7 @@ NOT_ON_RESUME = re.compile(
     r"\bunder (?:the age of )?\d{2}(?:\s+years?(?:\s+(?:of age|old))?)?(?=\s*(?:$|[.,;:)!]))|\bunder the age of \d{2}\b")
 
 
-def backed(text: str, facts: dict) -> bool | None:
+def backed(text: str, facts: dict, years_read: bool = False) -> bool | None:
     """Does the resume back one required ask? None = can't tell from words (a trait everyone
     claims: tailoring shows it w/ a line, bullets.md) => not counted either way."""
     # a licence or certification is held or not: before this, "Active CAMS certification" counted as
@@ -201,9 +243,13 @@ def backed(text: str, facts: dict) -> bool | None:
     missing = knockout.credentials_missing(text, facts["credentials"]) if "credentials" in facts else None
     if missing:
         return False
-    years = knockout.years_asked(text)
+    years = None if years_read else knockout.years_asked(text)
     if years is not None:
-        return None if facts["years"] is None else facts["years"] >= years
+        if facts["years"] is None or facts["years"] < years:
+            return None if facts["years"] is None else False
+        # the years are there; what they are years of must be too. Before this "3+ years managing
+        # OneTrust" was met by any 3 years of work (2026-10-12, held-out fields: compliance, security)
+        return backed(knockout.YEARS.sub(" ", text, count=1), facts, years_read=True) is not False
     degree = knockout.degree_asked(text)
     if degree:
         held = facts["degree"]
@@ -234,46 +280,119 @@ def backed(text: str, facts: dict) -> bool | None:
     if tailor.is_trait(text):
         return None
     tools = named(text)
-    generic = {t for t in tools if root(t) in MAKERS | EDITIONS}
-    own = [forms(t) for t in tools if t not in generic]
-    if any(f & facts["stems"] for f in own):
-        # "SQL, Python, R, or other tools": one named tool they have answers the ask
+    generic = {t for name in tools for t in name if root(t) in MAKERS | EDITIONS}
+    own = [[forms(t) for t in name if t not in generic] for name in tools]
+    if any(name and sum(bool(f & facts["stems"]) for f in name) * 2 >= len(name) + (len(name) == 2) for name in own):
+        # "SQL, Python, R, or other tools": one named tool they have answers the ask - half the words of a
+        # name of several, as any ask (never "Uniform System of Accounts for the Lodging Industry" <- accounts);
+        # a name of two needs both: "NIST SP 800-53" was met by NIST CSF, "Full Stack Developer" by any
+        # developer (2026-10-12, 540 lines labelled by an AI: 0.741 => 0.765 agreement; 43 untuned lines
+        # it changes: right on 37)
         return True
-    if generic and not own and any(forms(g) & facts["stems"] for g in generic if root(g) in MAKERS | {"office", "workspace"}):
+    if generic and not any(own) and any(forms(g) & facts["stems"] for g in generic if root(g) in MAKERS | {"office", "workspace"}):
         # a suite by name: "the Adobe Creative Suite" <- Photoshop; "Microsoft Office" <- MS Office
         return True
     words = ask_words(text, generic)
-    return bool(words) and sum(bool(f & facts["stems"]) for f in words) * 2 >= len(words)
+    if not words:
+        # "5+ years of experience": nothing past the years
+        return years_read
+    return sum(bool(f & facts["stems"]) for f in words) * 2 >= len(words)
+
+# a wish inside a line the job search tagged required: "is a plus", "preferred", "ideally" (2026-10-11,
+# 1,200 live rows: about 1 in 20 required lines carry one; finance 1 in 8). Never "5 plus years",
+# "competitive advantage"
+WISH = re.compile(r"(?i)\bpreferred\b|\bpreferabl[ey]\b|\b(?:is|are|a|big|huge|definite)\s+plus\b|\bnice[- ]to[- ]have\b|"
+                  r"\bbonus\b|\bdesirable\b|\bdesired\b|\bideally\b|\b(?:is|are|an|be)\s+(?:an?\s+)?advantage\b|\badvantageous\b")
+MUST = re.compile(r"(?i)\b(?:required|must|mandatory)\b")
+WISH_BRACKET = re.compile(r"\(([^()]*)\)")
+# where a wish clause starts: a semicolon, a sentence, ", with" / ", ideally" / " - "
+WISH_SPLIT = re.compile(r"(?i);|\.\s+(?=[A-Z])|,\s*(?=(?:with|ideally|preferably|especially|and ideally)\b)|\s+[-–—]\s+")
+
+
+def asked(text: str) -> str:
+    """A required line w/o its wishes: "6+ years of payroll (Mexico experience a plus)" asks the years;
+    "Bachelor's in Accounting or related preferred" asks nothing. A part that also says required stays."""
+    if not WISH.search(text):
+        return text
+    text = WISH_BRACKET.sub(lambda m: "" if WISH.search(m.group(1)) and not MUST.search(m.group(1)) else m.group(0), text)
+    return " ".join(q.strip() for q in WISH_SPLIT.split(text)
+                    if q.strip() and (not WISH.search(q) or MUST.search(q))).strip(" ;.,-")
+
 
 def required(job: dict) -> list[str]:
-    return [r["text"] for r in (job.get("enrichment") or {}).get("requirements") or [] if r.get("priority") == "required"]
+    """The posting's required lines, wishes cut out; a line that was all wish is gone."""
+    return [t for r in (job.get("enrichment") or {}).get("requirements") or []
+            if r.get("priority") == "required" and (t := asked(r["text"]))]
 
 
-def match(job: dict, facts: dict | None) -> tuple[float, tuple[int, int] | None]:
+def years_tag(job: dict, facts: dict | None, asks: list[str]) -> int | None:
+    """The job search's years tag (experience_years_min) when it counts as an ask: no line said years, their
+    dated years known, not an early-career title (rank.EARLY_CAREER: the tag read 10 on "New Grad")."""
+    years = (job.get("enrichment") or {}).get("experience_years_min")
+    if years and facts and facts["years"] is not None and not rank.early_career(job) \
+            and not any(knockout.years_asked(t) is not None for t in asks):
+        return years
+    return None
+
+
+def years_only(job: dict, facts: dict | None, counted: tuple[int, int] | None) -> tuple[int, int] | None:
+    """(years asked, theirs) when the one ask counted is the years tag - said as years, never "Matches 1 of 1"."""
+    if counted and counted[1] == 1 and (years := years_tag(job, facts, required(job))):
+        return years, facts["years"]
+    return None
+
+
+def match(job: dict, facts: dict | None, prior: float = 0) -> tuple[float, tuple[int, int] | None]:
     """Share of required asks the resume backs; years asked (experience_years_min) one more ask
     when no line said it - never on an early-career title, where that tag misreads (rank.EARLY_CAREER).
-    No resume or no asks => neutral 0.5."""
+    `prior` asks read as half-backed join the count: a share off few asks stays near the middle
+    (1 of 1 = 0.67 at 2, 8 of 8 = 0.9). No resume or no asks => neutral 0.5."""
     if facts is None:
         return 0.5, None
     asks = required(job)
     verdicts = [backed(t, facts) for t in asks]
-    years = (job.get("enrichment") or {}).get("experience_years_min")
-    if years and facts["years"] is not None and not rank.early_career(job) \
-            and not any(knockout.years_asked(t) is not None for t in asks):
+    if years := years_tag(job, facts, asks):
         verdicts.append(facts["years"] >= years)
     counted = [v for v in verdicts if v is not None]
     if not counted:
         return 0.5, None
-    return sum(counted) / len(counted), (sum(counted), len(counted))
+    return (sum(counted) + prior / 2) / (len(counted) + prior), (sum(counted), len(counted))
 
 
-def above_level(job: dict, config: dict) -> bool:
+# words naming a level, a schedule or a place, not the kind of work: "Senior", "Manager", "II", "Remote"
+TITLE_LEVEL = set("""senior sr junior jr lead principal staff head chief director manager vp vice president associate
+assistant intern internship ii iii iv remote hybrid onsite contract contractor temporary temp part time full us
+level entry mid""".split())
+
+
+# their own past titles (+ headline) weigh half of title fit, the whole resume the rest: "analyst" met
+# "variance analysis" (6-letter stems), so "Financial Analyst" read as a senior accountant's own title
+# (2026-10-12, 1,007 live rows rated by an AI, 4 fields: top-10 nDCG 0.644 => 0.654, finance 0.44 => 0.48;
+# titles alone 0.645)
+TITLE_OWN = 0.5
+
+
+def title_fit(job: dict, facts: dict | None) -> float:
+    """Share of the title's words for the kind of work found anywhere in their resume: "Tableau
+    Developer" against an HR director's, "Payroll Tax Analyst" against a brokerage analyst's. Level
+    words and the bracketed part left out. No resume, or a title of level words only => 0.5."""
+    if facts is None:
+        return 0.5
+    words = ask_words(re.sub(r"\(.*?\)", " ", job.get("title") or ""), TITLE_LEVEL)
+    if not words:
+        return 0.5
+    share = lambda own: sum(bool(f & own) for f in words) / len(words)
+    whole = share(facts["stems"])
+    return whole if "titles" not in facts else TITLE_OWN * share(facts["titles"]) + (1 - TITLE_OWN) * whole
+
+
+def above_level(job: dict, config: dict, facts: dict | None = None) -> bool:
     level = CAREER.get(config["rank"].get("career_level") or "")
     rung = SENIORITY.get(job.get("seniority") or "")
     return level is not None and rung is not None and rung >= level + 2
 
 
-def asks(job: dict, config: dict, bn: dict) -> tuple[float, int, int]:
+def asks(job: dict, config: dict, bn: dict, facts: dict | None = None) -> tuple[float, int, int]:
     """1 = light, 0 = heavy: required asks + lead/manage duties (each counts twice) between
     asks_light and asks_heavy; a level 2+ rungs above theirs halves it. No asks listed => 0.5.
     A leader (career_level) leads for a living: their lead duties count once, like any ask. 2026-10-09,
@@ -286,7 +405,7 @@ def asks(job: dict, config: dict, bn: dict) -> tuple[float, int, int]:
     else:
         load = len(texts) + lead
         score = min(1.0, max(0.0, (bn["asks_heavy"] - load) / (bn["asks_heavy"] - bn["asks_light"])))
-    return (score / 2 if above_level(job, config) else score), len(texts), lead
+    return (score / 2 if above_level(job, config, facts) else score), len(texts), lead
 
 
 def pay(job: dict, ladder: list[float], floor: float) -> float:
@@ -346,25 +465,89 @@ def windows(jobs: list[dict], now: datetime, steps: list[int], enough: int) -> d
     return {slug: out.get(slug, group) for slug in ages}
 
 
+TAG = re.compile(r"<[^>]*>")
+
+
+def posting_keys(job: dict) -> list[tuple]:
+    """Same posting under another company name (an aggregator's copy, a brand + its parent:
+    PlayStation Global / Sony Interactive Entertainment): title + the description's opening, or
+    title + the same required asks word for word (copies whose company intro differs). Markup
+    left out: the two Sony copies differed only in it."""
+    title = " ".join(job["title"].lower().split())
+    text = " ".join(html.unescape(TAG.sub(" ", job.get("description") or "")).split()).lower()[:300]
+    asks = tuple(sorted(" ".join(t.lower().split()) for t in required(job)))
+    return [k for k, ok in ((("text", title, text), text), (("asks", title, asks), len(asks) >= 3)) if ok]
+
+
+def spread(jobs: list[dict], repeat: float, twin: float, seen: dict | None = None) -> list[dict]:
+    """Best first, less `repeat` per job from the same employer already placed above and `twin`
+    per copy of the same posting above (one employer filled 2-4 of the top 10, the same posting
+    sat twice under two names - 2026-10-11, 1,200 live rows). `seen` = counts from jobs placed
+    before these, updated. Order only: `best` stays as scored."""
+    seen = {} if seen is None else seen
+    # one queue per employer, best first: the employer's cut is the same for all its jobs, so only
+    # each queue's head competes (1,400 rows from one employer: 1 s => 0.3 s for the Today page)
+    queues = {}
+    for j in sorted(jobs, key=lambda j: (-j["best"], j["public_slug"])):
+        queues.setdefault(j["company_slug"], deque()).append((j, posting_keys(j)))
+
+    def entry(employer):
+        j, postings = queues[employer][0]
+        return (-(j["best"] - repeat * seen.get(employer, 0) - twin * any(k in seen for k in postings)),
+                j["public_slug"], employer)
+
+    heap = [entry(e) for e in queues]
+    heapq.heapify(heap)
+    placed = []
+    while heap:
+        top = heapq.heappop(heap)
+        if (fresh := entry(top[2])) != top:
+            # a copy of it was placed since: the cut grew
+            heapq.heappush(heap, fresh)
+            continue
+        j, postings = queues[top[2]].popleft()
+        placed.append(j)
+        for k in (top[2], *postings):
+            seen[k] = seen.get(k, 0) + 1
+        if queues[top[2]]:
+            heapq.heappush(heap, entry(top[2]))
+    return placed
+
+
 def score(jobs: list[dict], config: dict, now: datetime, facts: dict | None) -> list[dict]:
     """Each job + `best` (0-1 weighted mean less demerits) + `best_parts`, freshest window first
-    (`windows`), best first inside it. Ties: slug order, so the same list always reads the same."""
+    (`windows`), best first inside it, employers spread (`spread`). Ties: slug order, so the same
+    list always reads the same."""
     bn = config["rank"]["best_next"]
-    weights = {k: bn[k] for k in ("match", "asks", "pay", "where", "fresh")}
+    weights = {k: bn.get(k, 0) for k in ("match", "title", "asks", "pay", "where", "fresh")}
     tiers, floor = cfg.tier_order(config), config["rank"]["salary_floor_usd"]
     ladder = sorted(a for j in jobs if (a := rank.annual_usd(j)) is not None)
     out = []
     for j in jobs:
-        m, counted = match(j, facts)
-        a, n_asks, lead = asks(j, config, bn)
-        parts = {"match": m, "asks": a, "pay": pay(j, ladder, floor), "where": where(j, tiers),
+        m, counted = match(j, facts, bn.get("match_prior", 0))
+        a, n_asks, lead = asks(j, config, bn, facts)
+        parts = {"match": m, "title": title_fit(j, facts), "asks": a, "pay": pay(j, ladder, floor), "where": where(j, tiers),
                  "fresh": fresh(j, now, bn["fresh_days"])}
         total = sum(weights[k] * parts[k] for k in weights) / (sum(weights.values()) or 1)
         total -= bn["demerit"] * demerits(j, config)
         out.append(dict(j, best=round(total, 6), best_parts=parts,
-                        best_facts={"matched": counted, "asks": n_asks, "lead": lead, "above": above_level(j, config)}))
+                        best_facts={"matched": counted, "asks": n_asks, "lead": lead, "above": above_level(j, config, facts),
+                                    "years_only": years_only(j, facts, counted)}))
     group = windows(out, now, bn["fresh_windows"], bn["fresh_enough"])
-    return sorted(out, key=lambda j: (group[j["public_slug"]], -j["best"], j["public_slug"]))
+    out.sort(key=lambda j: (group[j["public_slug"]], -j["best"], j["public_slug"]))
+    repeat, twin = bn.get("repeat", 0), bn.get("twin", 0)
+    if lead := bn.get("fresh_first"):
+        # the first picks come from the freshest window, the rest by score at any age (2026-10-12): with
+        # every job in window order, a 5-day-old perfect fit sat at #152 below 60 weaker last-day posts
+        seen = {}
+        first = spread([j for j in out if group[j["public_slug"]] == 0], repeat, twin, seen)[:lead]
+        taken = {j["public_slug"] for j in first}
+        return first + spread([j for j in out if j["public_slug"] not in taken], repeat, twin, seen)
+    # spread inside each freshness group, counting employers placed in groups above
+    placed, seen = [], {}
+    for g in dict.fromkeys(group[j["public_slug"]] for j in out):
+        placed += spread([j for j in out if group[j["public_slug"]] == g], repeat, twin, seen)
+    return placed
 
 
 def candidates(conn, config: dict, now: datetime, ranked: list[dict] | None = None) -> list[dict]:
@@ -387,10 +570,19 @@ def ago(days: int | None) -> str:
 
 
 def reasons(job: dict, config: dict, now: datetime) -> str:
-    """The score in plain words, the order it weighs: match, a heavy ask, pay, where, age, then
+    """The score in plain words, the order it weighs: match, a title far from theirs, a heavy ask, pay, where, age, then
     anything that pulled it down."""
     rc, f = config["rank"], job["best_facts"]
-    parts = [f"Matches {f['matched'][0]} of {f['matched'][1]} asks" if f["matched"] else ""]
+    if f.get("years_only"):
+        # 4 in 10 postings list no requirements: their one ask is the job search's years tag
+        asked, have = f["years_only"]
+        parts = [f"Asks {asked}+ years, you have them" if have >= asked else f"Asks {asked}+ years, you have {have}"]
+    else:
+        parts = [f"Matches {f['matched'][0]} of {f['matched'][1]} asks" if f["matched"] else ""]
+    if job["best_parts"].get("title", 1) == 0:
+        # only when no word meets: a share in between ("Regional HR Business Partner" for an HR director,
+        # 1 of 3) is the same work worded otherwise as often as not - the score weighs it, the line doesn't say it
+        parts.append("title unlike your past work")
     if job["best_parts"]["asks"] < 0.5 and f["asks"]:
         heavy = f"Asks a lot: {f['asks']} requirements"
         parts.append(heavy + (f", {f['lead']} to lead or manage" if f["lead"] >= 2 else ""))
