@@ -77,7 +77,8 @@ const controls = () => { const out = [], seen = new Set();
         ms.forEach(m => seen.add(m));
         out.push({kind: e.type === 'radio' ? 'radio' : (ms.length > 1 ? 'checkboxes' : 'checkbox'), box, members: ms}); continue; }
       seen.add(e);
-      const combo = role === 'combobox' || /^react-select-\d+-input$/.test(e.id);
+      // a native <select> marked role=combobox (iCIMS, 2026-10-12) is still a select: its options are read + picked
+      const combo = (role === 'combobox' && tag !== 'select') || /^react-select-\d+-input$/.test(e.id);
       out.push({kind: combo ? 'combobox' : tag === 'select' ? 'select' : tag === 'textarea' ? 'textarea'
         : e.isContentEditable && tag !== 'input' ? 'editable' : 'input', box: null, members: [e]});
     } }
