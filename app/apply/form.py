@@ -26,7 +26,7 @@ from pathlib import Path
 
 import cfg
 from apply import answers as saved_answers
-from apply import browser, questions, readahead, systems
+from apply import browser, careers_page, questions, readahead, systems
 from resume import render, schema, tailor
 from text import inert_md
 
@@ -139,8 +139,17 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
     master = schema.load(cfg.resume_path(config, "master"))
     folder = job_dir(config, slug)
     system = systems.for_url(url)
-    opener = window_opener(system, "prepare") if in_window and system is not None else browser.page_at
     form = None if system else readahead.load(folder / tailor.JOB_DATA)
+    if system is None and not systems.elsewhere(url) and not (form and form.get("found")):
+        # an employer's careers page (Radancy): its Apply names the system - a plain read of the posting page
+        try:
+            found = careers_page.apply_link(url)
+        except ValueError as e:
+            sys.exit(f"{e} - nothing read; ask the user, then status set <job> closed if it is")
+        if found:
+            print(f"the posting's Apply leads to {found}")
+            url, system = found, systems.for_url(found)
+    opener = window_opener(system, "prepare") if in_window and system is not None else browser.page_at
     if system is None and not (form and form.get("found")):
         system_for(url)  # says why: filled another way, or not supported
     out = folder / tailor.JOB_DATA / questions.FILE

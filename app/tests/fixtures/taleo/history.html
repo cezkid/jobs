@@ -1,0 +1,58 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Education and Experience</title></head><body>
+<p>Applying for: Test Job (Job Number: 12345)</p><h2>Education and Experience</h2>
+<h3>Education Summary</h3><div id="schools"></div><a href="#" id="addschool">Add Education</a>
+<h3>Work Experience Summary</h3><div id="jobs"></div><a href="#" id="addjob">Add Work Experience</a>
+<h3>Licensure/Certification Summary</h3><div id="lic"></div>
+<input type="button" value="Save and Continue"> <input type="button" value="Save as Draft"> <input type="button" value="Quit">
+<script>
+// the account's old entries (as one tenant's was: a job missing, end dates off, a name spelled otherwise)
+const P = 'editTemplateMultipart-editForm-content-ftf-gp-j_id_id9pc9-page_0-';
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const YEARS = Array.from({length: 40}, (_, i) => String(2026 - i));
+const state = JSON.parse(sessionStorage.getItem('state') || 'null') || {
+  schools: [{school: 'Acme State University', area: 'ARTS', level: "Bachelor's Degree", done: 'Yes'},
+            {school: 'Beta County College (BCC)', area: 'TECHNOLOGY', level: "Associate's Degree/College Diploma", done: 'Yes'}],
+  jobs: [{cur: false, emp: 'Beta Inc', title: 'Software Engineer', sm: 'Mar', sy: '2018', em: 'Jun', ey: '2019'},
+         {cur: false, emp: 'Gamma Partners LLC', title: 'Lead Developer', sm: 'Apr', sy: '2015', em: 'Apr', ey: '2017'},
+         {cur: false, emp: 'Delta Works.', title: 'Lead Developer', sm: 'Feb', sy: '2012', em: 'Feb', ey: '2015'},
+         {cur: false, emp: 'Old Shop', title: 'Clerk', sm: 'Jun', sy: '2008', em: 'Aug', ey: '2009'}],
+  lic: [{}]};
+const opt = (list, v, ph) => `<option value="-1">${ph}</option>` + list.map((o, i) => `<option value="${i}" ${o === v ? 'selected' : ''}>${o}</option>`).join('');
+const req = '<span>.</span> <span>Required</span>';
+function draw() {
+  document.getElementById('schools').innerHTML = state.schools.map((s, i) => `<fieldset><legend>Education ${i + 1}</legend>
+    <label for="${P}ed${i}-n">Name of Educational Institution ${req}</label><input type="text" id="${P}ed${i}-n" value="${s.school || ''}">
+    <label for="${P}ed${i}-a">Area of Study Limit answer to 50 characters ${req}</label><input type="text" id="${P}ed${i}-a" maxlength="50" value="${s.area || ''}">
+    <label for="${P}ed${i}-l">Education Level ${req}</label><select id="${P}ed${i}-l">${opt(["High School Diploma/GED", "Associate's Degree/College Diploma", "Bachelor's Degree", "Master's Degree", "Doctorate"], s.level, 'Not Specified')}</select>
+    <label for="${P}ed${i}-c">Education Level Completed?</label><select id="${P}ed${i}-c">${opt(['Yes', 'No'], s.done, 'Not Specified')}</select>
+    <a href="#">Remove Education</a></fieldset>`).join('');
+  document.getElementById('jobs').innerHTML = state.jobs.map((j, i) => `<fieldset><legend>Work Experience ${i + 1}</legend>
+    <input type="checkbox" id="${P}wk${i}-cur" ${j.cur ? 'checked' : ''}><label for="${P}wk${i}-cur">Current Job</label>
+    <label for="${P}wk${i}-e">Employer ${req}</label><input type="text" id="${P}wk${i}-e" value="${j.emp || ''}">
+    <label for="${P}wk${i}-t">Job Title ${req}</label><input type="text" id="${P}wk${i}-t" value="${j.title || ''}">
+    <fieldset><legend>Start Date ${req}</legend>
+      <label for="${P}wk${i}-sm">Month</label><select id="${P}wk${i}-sm">${opt(MONTHS, j.sm, 'Month')}</select>
+      <label for="${P}wk${i}-sy">Year</label><select id="${P}wk${i}-sy">${opt(YEARS, j.sy, 'Year')}</select></fieldset>
+    <fieldset><legend>End Date</legend>
+      <label for="${P}wk${i}-em">Month</label><select id="${P}wk${i}-em">${opt(MONTHS, j.em, 'Month')}</select>
+      <label for="${P}wk${i}-ey">Year</label><select id="${P}wk${i}-ey">${opt(YEARS, j.ey, 'Year')}</select></fieldset>
+    <a href="#">Remove Work Experience</a></fieldset>`).join('');
+  document.getElementById('lic').innerHTML = state.lic.map((l, i) => `<fieldset><legend>Licensure/Certification ${i + 1}</legend>
+    <label for="${P}lc${i}-n">Licensure/Certification</label><input type="text" id="${P}lc${i}-n">
+    <label for="${P}lc${i}-id">Number/ID</label><input type="text" id="${P}lc${i}-id">
+    <label for="${P}lc${i}-o">Issuing Organization</label><input type="text" id="${P}lc${i}-o">
+    <a href="#">Remove Licensure/Certification</a></fieldset>`).join('');
+}
+const val = id => { const e = document.getElementById(P + id); return e.tagName === 'SELECT' ? (e.selectedIndex > 0 ? e.options[e.selectedIndex].text : '') : e.value; };
+function keep() {
+  state.schools = state.schools.map((s, i) => ({school: val(`ed${i}-n`), area: val(`ed${i}-a`), level: val(`ed${i}-l`), done: val(`ed${i}-c`)}));
+  state.jobs = state.jobs.map((j, i) => ({cur: document.getElementById(`${P}wk${i}-cur`).checked, emp: val(`wk${i}-e`), title: val(`wk${i}-t`),
+    sm: val(`wk${i}-sm`), sy: val(`wk${i}-sy`), em: val(`wk${i}-em`), ey: val(`wk${i}-ey`)}));
+}
+draw();
+// Add posts the step back: it reloads with a blank entry at the bottom, what was typed kept (measured)
+document.getElementById('addjob').onclick = e => { e.preventDefault(); keep(); state.jobs.push({});
+  sessionStorage.setItem('state', JSON.stringify(state)); setTimeout(() => location.reload(), 300); };
+document.getElementById('addschool').onclick = e => { e.preventDefault(); keep(); state.schools.push({});
+  sessionStorage.setItem('state', JSON.stringify(state)); setTimeout(() => location.reload(), 300); };
+</script></body></html>

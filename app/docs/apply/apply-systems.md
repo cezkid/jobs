@@ -23,6 +23,11 @@ small plug-in.
 | Breezy | `<co>.breezy.hr/p/<id>-<slug>` (form `+ /apply`) | `apply-form`, Job Finder's own Chrome; questions from the definition in the apply page (plain HTTP); resume sent on choosing it, address letters to Google as typed, the rest at Submit | `breezy.md` |
 | Teamtailor | `<co>.na.teamtailor.com/jobs/<id>-<slug>` or the employer's own domain, same path (form `+ /applications/new`) | `apply-form`, Job Finder's own Chrome; questions from the form frame (plain HTTP); resume sent on choosing it, town letters to the employer's Teamtailor site as typed, the rest at Submit | `teamtailor.md` |
 | iCIMS | `careers-<co>.icims.com/jobs/<id>/<slug>/job` (any `*.icims.com` host) | `apply-form`, Job Finder's own Chrome; start box filled; form behind it read generically after you continue - unmeasured | `icims.md` |
+| Taleo | `<tenant>.taleo.net/careersection/<section>/jobdetail.ftl?job=<id>` or `jobapply.ftl?job=<id>`; an employer's careers-site posting whose Apply leads there (`careers_page.py`) | `apply-form`, Job Finder's own Chrome; user accepts the privacy agreement + signs in, then each step read off their tab and filled - resume attached + ticked, work history + education made to match the resume; they click Save and Continue | `taleo.md` |
+
+Careers-site postings (freehire `source` radancy): the job list's link is the employer's own page;
+`prepare` reads it once and goes on with the system its Apply leads to (`apply/careers_page.py`,
+[taleo.md](taleo.md) #Careers-site postings) - Taleo, iCIMS and Workday seen.
 
 Not yet: Dayforce (form shows only after a bot check - [dayforce.md](dayforce.md)), Rippling (measured, no filler - [rippling.md](rippling.md)), iCIMS on an employer's own domain. Where the form's questions were read ahead
 (Recruitee - [answers.md](answers.md)), `apply-form prepare` drafts from them and
@@ -36,6 +41,7 @@ plainly -> user gets tailored PDF + answers to paste.
 | `questions.py` | shared question shape (`KINDS`, `KEYS`), answers from resume + setup, answers file | only if the system asks something no kind covers |
 | `browser.py` | Job Finder's Chrome (own profile in `.data/`, no automation flag), reused across applications | no |
 | `form.py` | the `apply-form prepare / fill` steps, report, never Submit | no |
+| `careers_page.py` | an employer's careers-site posting -> the system link behind its Apply | no |
 | `dom.py` | any form page read as plain HTML (frames, open shadow roots), stable hooks, generic fill | only if the page has a control it can't read |
 | `lab.py` | `apply-form measure` (developers): throwaway Chrome, every write blocked, canary first | no |
 | `systems/__init__.py` | picks the system from the link | one line: add to `SYSTEMS` |
