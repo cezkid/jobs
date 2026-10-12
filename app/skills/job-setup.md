@@ -379,7 +379,8 @@ showing jobs from <company>" any time.
   Tick all that fit, then Submit" (counts in labels) -> `blocklist.software_kinds`. A title naming
   one of their kinds stays ("Java Full Stack").
 - Rank has NO per-skill boost outside `rank.software_kinds` (`rank.py`: tier, likely-ghost /
-  level / hours / kind-of-work mismatch, pay, employer lists, age - `app/defaults.yml` #rank), and a
+  level / hours / kind-of-work mismatch, avoided skill, pay, employer lists, age - `app/defaults.yml`
+  #rank); "no Java" sorts lower by `rank.avoid_skills`, never a boost for the rest. And a
   row matching two passes keeps the LAST pass's tier. So "X first, everything else after" is NOT
   expressible w/ overlapping passes, except kinds of software work - narrow to X or leave it wide.
   Say which you did.

@@ -345,7 +345,42 @@ def mismatches(job: dict, rc: dict) -> list[str]:
             and not title_type(job) and not words(rf"{EARLY_CAREER}|{STUDENT_PROGRAM}").search(title):
         out.append("title doesn't say internship")
     # another kind of software work than theirs (front-end user, back-end title): one reason, sorted lower
-    return out + software.mismatch(job, rc.get("software_kinds"))
+    return out + software.mismatch(job, rc.get("software_kinds")) + avoided(job, rc.get("avoid_skills"))
+
+
+# a name another one starts with, written apart: "Java Script" is JavaScript
+SPELLED_APART = {"java": "script"}
+
+
+def skill_named(skill: str) -> re.Pattern:
+    """The skill as a whole name: "Java" never inside "JavaScript" or "Java Script", "C" never in "C++" or "C#"."""
+    apart = rf"|[\s-]?{SPELLED_APART[skill.lower()]}" if skill.lower() in SPELLED_APART else ""
+    return re.compile(rf"(?<![\w+#.]){re.escape(skill)}(?![\w+#]{apart})", re.I)
+
+
+# a line offering a choice: "Python, Node.js, or Java", "at least one of Python, Java or Go", "(e.g. Rust, Java)"
+CHOICE = re.compile(r"(?i)\bor\b|\bat least one\b|\bone or more\b|\bany of\b|\be\.g\.|\bsuch as\b|\blike\b|\bsimilar\b|\betc\b")
+
+
+def avoided(job: dict, skills: list[str] | None) -> list[str]:
+    """One reason when the job asks a skill they'd rather not work in (rank.avoid_skills): a required line
+    naming it, wishes cut ("Java a plus" asks nothing) and never one offering a choice - or, no required
+    lines, the job search's skill tags. A name of two letters or less ("Go", "R") is read off the tags
+    only: "go to market" isn't Go. 2026-10-12, a front-end list, Java: 31 of 161 open jobs flagged, 17 of
+    them only on a choice ("Python, Node.js, or Java") - those cut; no JavaScript line ever read as Java."""
+    if not skills:
+        return []
+    import best  # imports this module
+    listed = required_lines(job)
+    lines = [a for t in listed if (a := best.asked(t)) and not CHOICE.search(a)]
+    tags = {t.lower() for t in job.get("skills") or []}
+    for s in skills:
+        if listed and len(s) > 2:
+            if any(skill_named(s).search(t) for t in lines):
+                return [f"asks {s}"]
+        elif s.lower() in tags:
+            return [f"lists {s}"]
+    return []
 
 
 def required_lines(job: dict) -> list[str]:

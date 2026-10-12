@@ -598,3 +598,42 @@ def test_a_required_clearance_line_names_it_when_the_flag_is_missing():
     assert rank.clearance(make_job("a", enrichment=reqs("Active Secret clearance required"))) == ["needs a security clearance"]
     assert rank.clearance(make_job("b", enrichment=reqs("Some assignments may require a Secret clearance"))) == []
     assert rank.clearance(make_job("c", enrichment=reqs("Customs clearance experience required"))) == []
+
+
+def _asking(slug, *lines, skills=()):
+    return make_job(slug, skills=list(skills),
+                    enrichment={"requirements": [{"priority": "required", "text": t} for t in lines]})
+
+
+@pytest.mark.parametrize("lines, skills, reason", [
+    (["5+ years building web applications with Java and Spring Boot"], (), ["asks Java"]),
+    (["Strong background in Java-based web development"], (), ["asks Java"]),
+    # JavaScript is never Java, however it's written
+    (["Strong JavaScript, TypeScript and React"], ("javascript",), []),
+    (["Expert in Java Script and HTML"], (), []),
+    # one choice of several, or a wish: not asked
+    (["Server-side languages such as Python, Node.js, or Java"], ("java",), []),
+    (["Proficient in React; Java a plus"], (), []),
+    # requirements listed, none naming it: the tag alone (a nice-to-have somewhere) doesn't count
+    (["5+ years of React"], ("java", "react"), []),
+    # no requirements listed: the job search's tags
+    ([], ("java", "react"), ["lists Java"]),
+])
+def test_avoided_skill_sorts_lower_with_reason(lines, skills, reason):
+    assert rank.avoided(_asking("a", *lines, skills=skills), ["Java"]) == reason
+
+
+def test_short_skill_read_off_tags_only():
+    job = _asking("a", "Go to market with the product team", skills=("react",))
+    assert rank.avoided(job, ["Go"]) == []
+    assert rank.avoided(dict(job, skills=["go"]), ["Go"]) == ["lists Go"]
+
+
+def test_avoided_skill_ranks_below_and_says_why():
+    config = cfg.load(cfg.PROFILES / "frontend.yml")
+    config["rank"]["avoid_skills"] = ["Java"]
+    java = _asking("java", "Strong Java and Spring Boot")
+    java.update(salary_min=300000, salary_currency="USD", salary_period="year")
+    ranked = rank.rank([java, _asking("react", "Strong React")], config)
+    assert [j["public_slug"] for j in ranked] == ["react", "java"]
+    assert "asks Java" in rank.reasons(ranked[1], config)

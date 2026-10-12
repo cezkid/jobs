@@ -68,6 +68,8 @@ def load(path: Path | None = None) -> dict:
     for where in (config["rank"], config.get("blocklist") or {}):
         if bad := software.unknown(where.get("software_kinds")):
             raise ValueError(f"software_kinds {bad} - any of {', '.join(software.KINDS)} (app/software.py)")
+    if bad := [s for s in config["rank"].get("avoid_skills") or [] if not (isinstance(s, str) and s.strip())]:
+        raise ValueError(f"rank.avoid_skills {bad} - skill names as words, e.g. [Java]")
     for stage, days in (config.get("follow_up") or {}).items():
         if not isinstance(days, int) or days < MIN_FOLLOW_UP_DAYS:
             raise ValueError(f"follow_up.{stage}: {days!r} - at least {MIN_FOLLOW_UP_DAYS} days (a weekend can take 3)")
