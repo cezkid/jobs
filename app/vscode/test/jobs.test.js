@@ -19,7 +19,7 @@ const RAW = {
       card(2, "FP&A Manager", "Example Co", ["apply to job 2", "I sent job 2"]),
     ] },
     { id: "follow_up", title: "Follow up", cards: [card(3, "Budget Analyst", "Placeholder Inc", ["write a follow-up for job 3", "job 3 is closed"])] },
-    { id: "best", title: "Best to apply next", cards: [4, 5, 6, 7, 8, 9, 10].map((n) => card(n, `Role ${n}`, "Sample Corp", [`resume for job ${n}`])) },
+    { id: "best", title: "Best to apply next", cards: [4, 5, 6, 7, 8, 9, 10, 20, 21, 22, 23, 24].map((n) => card(n, `Role ${n}`, "Sample Corp", [`resume for job ${n}`])) },
   ],
   todo: [], empty: null, examples: [], guides: [],
 };
@@ -50,9 +50,9 @@ test("each job reads 'Job N - Title, Company', its number as stored", () => {
 });
 
 // a long list of new jobs squeezes the file list; the rest are one chat away, as on the page
-test("Best to apply next shows the top 5 only", () => {
+test("Best to apply next shows the top 10 only", () => {
   const { groups } = build();
-  assert.deepStrictEqual(groups.find((g) => g.id === "best").items.map((i) => i.num), [4, 5, 6, 7, 8]);
+  assert.deepStrictEqual(groups.find((g) => g.id === "best").items.map((i) => i.num), [4, 5, 6, 7, 8, 9, 10, 20, 21, 22]);
 });
 
 // a row doing something the dashboard doesn't => two behaviors for one button, one untested

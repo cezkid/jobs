@@ -27,9 +27,9 @@ const CLAUDE_NEW_CHAT = "claude-vscode.editor.open";
 const NEXT_ORDER = [{ section: "interviews" }, { section: "waiting" }, { todo: "import" }, { section: "best" }, { todo: "morning" }];
 // setup steps that stop the job search working => above the job sections, yellow; others stay last, quiet
 const BLOCKERS = new Set(["import", "morning"]);
-// sections past this many jobs draw as one-line rows; new jobs always do, 5 shown, rest in the chat
+// sections past this many jobs draw as one-line rows; new jobs always do, 10 shown, rest in the chat
 const ROWS_AFTER = 4;
-const BEST_SHOWN = 5;
+const BEST_SHOWN = 10;
 // yellow leads: Next up's main button + each Waiting on you job's - tasks. Every other button
 // outlined: options (new jobs), status changes; closing quietest of all (re-critique 2026-10-04 P1)
 const LEADS = new Set(["waiting"]);
