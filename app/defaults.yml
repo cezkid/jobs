@@ -127,6 +127,11 @@ rank:
   # blocklist.software_kinds hides by title. [] = any. 2026-10-09, front-end + full-stack: 2,000 of
   # 2,000 titles in those categories kept, 97-99% of back-end / mobile / embedded flagged
   software_kinds: []
+  # skills they'd rather not work in, as they say them ([Java]): a job whose required lines name one
+  # sorts lower w/ "asks Java", never hidden - a line offering a choice ("Python, Node.js, or Java") and
+  # a wish ("Java a plus") don't count; a posting listing no requirements counts on the job search's own
+  # skill tags ("lists Java"). Whole names: Java never inside JavaScript. [] = none (rank.avoided)
+  avoid_skills: []
   # yearly USD; a job whose top of range reaches it ranks above those that don't. 0 = no floor
   # (pay_filter then hides nothing)
   salary_floor_usd: 0

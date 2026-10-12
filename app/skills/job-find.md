@@ -41,6 +41,10 @@ missing -> `job-setup` skill instead.
      multiSelect w/ counts -> `blocklist.software_kinds`. Their search has only a category pass
      -> also the passes of `app/profiles/frontend.yml` (`job-setup` #2): plain "Software
      Engineer" and UI / web developer titles sit outside the kind's category
+   - jobs asking a skill they don't want ("no Java jobs", "every job wants Java") -> `rank.avoid_skills`
+     (their word, e.g. `[Java]`): a required line naming it sorts the job lower w/ "asks Java", never
+     hidden; whole names only, so JavaScript never counts as Java. Count first: `rank --best` before and
+     after, say "N of M open jobs sort lower"
    - "too many irrelevant jobs" -> group the open titles by kind of work (back-end, data / AI,
      managers, mobile, testing), count each w/ `rank --would-hide`, ONE clickable multiSelect w/
      counts, then `blocklist.title_phrases` (+ `title_keep` for full-stack / front-end titles caught)
