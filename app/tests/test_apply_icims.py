@@ -123,6 +123,23 @@ def test_page_after_next_read_generically_password_consent_left(at, capsys):
     assert "(agreeing or consenting)" in out and "click Next yourself" not in out
 
 
+def test_lists_marked_combobox_read_and_picked_as_lists(at, capsys):
+    """Native selects marked role=combobox (2026-10-12): the plain one picked by its option, iCIMS's own
+    ajax list by typing in its search box and clicking the answer - never the first offered."""
+    page = at("profile.html")
+    by = {q["title"]: q for q in icims.read(page)}
+    work, state = by["Are you legally authorized to work in the United States?"], by["State/Province"]
+    assert work["kind"] == "yesno" and work["native"] == state["native"] == "dom:select:select-one"
+    assert icims.RESUME_READ in capsys.readouterr().out
+    assert icims.fill(page, work | {"answer": "Yes"}, None) == "ok"
+    assert page.locator("#Q43 option:checked").inner_text() == "Yes"
+    assert icims.fill(page, state | {"answer": "Ohio"}, None) == "ok"
+    assert page.locator('[id="-1_PersonProfileFields.AddressState_icimsDropdown"]').inner_text() == "Ohio"
+    assert icims.holds(page, state | {"answer": "Ohio"})
+    assert icims.fill(page, state | {"answer": "Ontario"}, None).startswith("ASK no option 'Ontario'")
+    assert page.locator('[id="-1_PersonProfileFields.AddressState"] option:checked').inner_text() == "Ohio"
+
+
 # --- read back ---
 
 def test_holds_reads_the_email_box_as_shown_in_its_frame_tick_never_ours(at):

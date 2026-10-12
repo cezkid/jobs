@@ -14,7 +14,7 @@ from urllib.parse import urlsplit
 
 import httpx
 
-from apply import browser, dom
+from apply import answers, browser, dom
 from apply.questions import signs
 
 NAME = "iCIMS"
@@ -40,6 +40,16 @@ UNMEASURED = "unmeasured system - check every box"
 # notFound=1 in its address, its frame saying these words - or the employer's own careers site
 NOT_FOUND = re.compile(r"either does not exist or is no longer open", re.I)
 GONE_WAIT_MS = 3000
+# iCIMS's own list on the pages after the start box (one tenant, 2026-10-12): a <select role=combobox
+# icimsdropdown-enabled=1> shown as a link "<id>_icimsDropdown"; its options sit in "<id>_dropdown-results"
+# behind a search box. With icimsdropdown-ajax=1 the select holds only the current pick (State, School):
+# the rest load as the search box is typed in - select_option alone finds nothing to pick
+WIDGET = "icimsdropdown-enabled"
+# once the resume was in, the page came back after Next with City + State read off the resume (a past
+# job's city) and Zip emptied - one application, 2026-10-12; when it happens (upload or Next) unmeasured
+RESUME_READ = ("check City, State and Zip before and after Next - iCIMS may replace them with a place it "
+               "reads off your resume (seen once)")
+WIDGET_WAIT = 8
 
 
 def parse_url(url: str) -> tuple[str, str, str]:
@@ -149,6 +159,8 @@ def steps(snap: dict) -> list[str]:
     said = [q["title"] for q in dom.questions(snap) if signs(q["title"])]
     out = [f"tick '{t}' yourself (agreeing or consenting)" for t in said]
     out += dom.user_steps(snap)
+    if any(c["visible"] and c["type"] == "file" for c in snap["controls"]):
+        out.append(RESUME_READ)
     if start_box(snap):
         out.append("click Next yourself - your email goes to this employer then. What follows (sign in, a "
                    "password, a new account with them) is unmeasured - every password and account is yours")
@@ -188,5 +200,42 @@ def holds(page, q: dict) -> bool:
     return not signs(q["title"]) and dom.holds(page, q)
 
 
+def put_widget(frame, el, value) -> str:
+    """iCIMS's own list (WIDGET): opened by its link, the answer typed into its search box, the
+    option that IS the answer clicked - as a person picks it. Read back off the select itself."""
+    sid, want = el.get_attribute("id"), str(value).strip()
+    frame.locator(f'[id="{sid}_icimsDropdown"]').click()
+    search = frame.locator(f'[id="{sid}_icimsDropdown_ctnr"] input.dropdown-search')
+    search.fill("")
+    search.press_sequentially(want[:40], delay=30)
+    options = frame.locator(f'[id="{sid}_dropdown-results"] li.result-selectable')
+    texts: list[str] = []
+    end = time.monotonic() + WIDGET_WAIT
+    while time.monotonic() < end:
+        texts = [dom.norm(t) for t in options.all_inner_texts()]
+        if any(t.casefold() == want.casefold() for t in texts):
+            break
+        frame.page.wait_for_timeout(250)
+    hit = next((i for i, t in enumerate(texts) if t.casefold() == want.casefold()), None)
+    if hit is None:
+        search.press("Escape")
+        offered = [t for t in texts if not t.startswith("—")][:5]
+        return f"ASK no option '{want}'; offered: {', '.join(offered) or 'nothing'}"
+    options.nth(hit).click()
+    frame.page.wait_for_timeout(200)
+    got = el.evaluate("e => e.selectedIndex < 0 ? '' : e.options[e.selectedIndex].text.replace(/\\s+/g, ' ').trim()")
+    return "ok" if got.casefold() == want.casefold() else f"FAIL shows '{got}'"
+
+
 def fill(page, q: dict, resume_file: str | None) -> str:
+    if q.get("native", "").startswith("dom:select") and not signs(q["title"]) and q.get("answer") not in (None, ""):
+        found = dom.find(page, q["id"])
+        if found and found[2][0].get_attribute(WIDGET) == "1":
+            frame, info, members = found
+            if answers.fold(dom.title(info["label"])) != answers.fold(q["title"]):
+                return f"FAIL box label changed ('{dom.title(info['label'])}') - read the page again"
+            value = q["answer"]
+            if q["kind"] == "yesno":
+                value = "Yes" if dom.yes(value) else "No"
+            return put_widget(frame, members[0], value)
     return dom.fill(page, q, resume_file, later=True)

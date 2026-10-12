@@ -91,6 +91,22 @@ Sign in, a password, a new account with the employer, more boxes: per tenant, no
 takes whatever page shows as plain boxes (`dom.questions`), page = its first heading, and prints
 "unmeasured system - check every box". Owner's first real application = the live check.
 
+### First real application (tenant E, 2026-10-12)
+
+Start box -> one long profile page (resume upload, contact, address, education, work history, AI
+opt-out, interview-recording consent) -> demographic survey (tick boxes) -> US EEO (plain lists) ->
+job-specific questions (work authorization, sponsorship) -> Submit. No password asked on this tenant.
+
+- Lists: native `<select role=combobox>`. Read as a combobox they listed no options and `fill` typed
+  into them (Playwright: "not an input") - 5 of 5 failed. Now read as selects (`dom` controls): a plain one
+  (EEO, Q43/Q44) is picked by its option; iCIMS's own widget (`icimsdropdown-enabled=1`: Country, State,
+  School, Degree, Major) by its link, its search box (`<id>_icimsDropdown_ctnr input.dropdown-search`)
+  and the exact `li.result-selectable` (`put_widget`). `icimsdropdown-ajax=1` = the select holds only
+  the current pick until the search box is typed in. Fixture `profile.html`.
+- Address: once the resume was in, the page came back after Next with City + State read off the resume
+  (a past job's city, not the home address) and Zip emptied - iCIMS's "Invalid Data Error". When it is
+  replaced (on upload or on Next) unmeasured; `steps` tells the user to check City, State and Zip.
+
 Window: offered since the owner's yes 2026-10-07 (plan-k8n.20): `fill --in-window`, off by default, one holder
 keeps the user's tab between pages; its note says the hCaptcha check, pages after Next + the resume upload are
 untested there (`vscode-browser.md` "iCIMS - route 2").
@@ -107,7 +123,7 @@ None public found: the questions come after Next, per employer - unmeasured.
 | Security check config (hCaptcha), analytics + ad tags (B, C), chat widget (C) | page load (blocked in every run) |
 | Listing id (job page read) | only when no box shows, to say why (`closed`) |
 | Email | the user's own click on Next - before the form |
-| Everything after | unmeasured - first real application |
+| Resume, profile, survey + EEO answers, work-authorization answers | each page's Next, the user's own click (tenant E); when the resume file itself goes - unmeasured |
 
 ## Tenant notes
 
@@ -116,3 +132,4 @@ None public found: the questions come after Next, per employer - unmeasured.
 - C (`careers-<co>`): start box headed for new external applicants, chat widget on the page; email
   filled by `try`.
 - D (`careers-<co>`): job page only, measured (no boxes); not tried.
+- E (`careers-<region>`): full application sent by the owner (2026-10-12), lists picked by hand, then fixed.
