@@ -348,9 +348,11 @@ def put_combo(frame, el, value: str, starts: bool) -> str:
     return "ok" if any(chosen.casefold() in norm(s).casefold() for s in shown) else f"FAIL '{chosen}' not selected"
 
 
-def fill(page, q: dict, resume_file: str | None, later: bool = False) -> str:
+def fill(page, q: dict, resume_file: str | None, later: bool = False, worded: bool = False) -> str:
     """Type q["answer"] into the box its hook names -> "ok" | "ASK ..." | "FAIL ..." | "LATER ...".
-    `later`: a multi-page caller - a box not on this page is filled after Next, not a failure."""
+    `later`: a multi-page caller - a box not on this page is filled after Next, not a failure.
+    `worded`: the caller has checked the box is still the same question by its own reading of the words
+    (Taleo: a set's words sit beside it, its label is its JSF name)."""
     if signs(q["title"]):
         return left_on_page(q)
     found = find(page, q["id"])
@@ -360,7 +362,7 @@ def fill(page, q: dict, resume_file: str | None, later: bool = False) -> str:
     if info["password"]:
         return "FAIL password box - the user types it"
     # the hook names a box; the label proves it is still the same question (ids get reused)
-    if answers.fold(title(info["label"])) != answers.fold(q["title"]):
+    if not worded and answers.fold(title(info["label"])) != answers.fold(q["title"]):
         return f"FAIL box label changed ('{title(info['label'])}') - read the page again"
     kind, value, control = q["kind"], q["answer"], info["kind"]
     el = members[0]
@@ -382,17 +384,17 @@ def fill(page, q: dict, resume_file: str | None, later: bool = False) -> str:
     return put_text(el, value, kind, editable=control == "editable")
 
 
-def holds(page, q: dict, snap: dict | None = None) -> bool:
+def holds(page, q: dict, snap: dict | None = None, worded: bool = False) -> bool:
     """The answer still shows, read off the page as a person sees it (form.recheck): the box its hook
     names, shown and still the same question (its label), its value by kind - a box exact (phone by
     digits; a dialling code the page adds in front is the page's), a dropdown by the option text it
     shows, ticks by which are ticked, a list pick by what the box shows, a file by the name the box
-    holds. `snap`: a snapshot the system has cut (Oracle's bot trap). Nothing to read = False."""
+    holds. `snap`: a snapshot the system has cut (Oracle's bot trap); `worded`: as fill. Nothing to read = False."""
     snap = snap or snapshot(page)
     c = next((c for c in snap["controls"] if c["hook"] == q["id"]), None)
     if c is None or c["password"] or not (c["visible"] or c["type"] == "file"):
         return False
-    if answers.fold(title(c["label"])) != answers.fold(q["title"]):
+    if not worded and answers.fold(title(c["label"])) != answers.fold(q["title"]):
         return False
     kind, value, control = q["kind"], q["answer"], c["control"]
     pick = ("Yes" if yes(value) else "No") if kind == "yesno" else str(value).strip()

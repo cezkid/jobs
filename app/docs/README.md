@@ -50,6 +50,7 @@ before changing it: each records what was measured and rejected, so a retired ru
 | Applying | [apply/adp.md](apply/adp.md) | ADP Workforce Now forms - being measured (plan-6oq), nothing filled yet |
 | Applying | [apply/oracle.md](apply/oracle.md) | Oracle Recruiting Cloud forms - start box measured + filled, pages after it unmeasured |
 | Applying | [apply/icims.md](apply/icims.md) | iCIMS forms - start box measured + filled, pages after it unmeasured |
+| Applying | [apply/taleo.md](apply/taleo.md) | Taleo forms - each signed-in step read + filled, resume attached, work history matched to the resume; careers-site postings led to their system |
 | Applying | [apply/manatal.md](apply/manatal.md) | Manatal forms (`careers-page.com/<co>/job/<hash>`): form definition over HTTP, widgets, read back, resume only at Submit |
 | Applying | [apply/rippling.md](apply/rippling.md) | Rippling forms (`ats.rippling.com`) - measured, no filler yet: definition in the posting page, widgets, resume on choosing it |
 | Applying | [apply/breezy.md](apply/breezy.md) | Breezy forms (`breezy.hr`): definition in the apply page, widgets (no labels, honeypot), resume on choosing it, read back, closed check |
