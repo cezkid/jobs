@@ -224,3 +224,18 @@ def test_look_command_round_trip(tmp_path, monkeypatch, capsys):
     with pytest.raises(SystemExit):
         look.main()
     assert look.current() == "auto"
+
+
+# owner 2026-10-13: "the shorter the names in the tabs the better" - every job folder holds the same
+# file names, so VS Code added the folder path to each tab
+def test_tabs_named_by_job_number_wherever_the_folder_is_filed(tmp_path):
+    for rel in ("My Jobs/1 To apply/12 - Acme - Data Analyst", "My Jobs/2 Applied/7", "My Jobs/1 To apply/notes"):
+        (tmp_path / rel).mkdir(parents=True)
+    labels = workspace.tab_labels(tmp_path)
+    assert labels["**/My Jobs/*/{12,12 - *}/*_Resume.pdf"] == "12 resume"
+    assert labels["**/My Jobs/*/{7,7 - *}/Job posting.md"] == "7 posting"
+    assert labels["**/My Resume/*_Resume.pdf"] == "My resume"
+    # a folder made before the next rewrite still gets a short-ish name
+    assert labels["**/My Jobs/*/*/*_Resume.pdf"] == "Resume ${dirname}"
+    assert not any("notes" in k for k in labels)
+    assert workspace.settings("claude", HOME, tmp_path)["workbench.editor.customLabels.patterns"] == labels

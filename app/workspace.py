@@ -99,6 +99,14 @@ COMMON = {
     },
     # double-click on a page opened its raw text: users typed "set me up" into the file, not the chat
     "markdown.preview.doubleClickToSwitchToEditor": False,
+    # every job folder holds the same file names => VS Code adds the folder path to each tab: one resume
+    # tab "Alexandra_Montgomery-Whitfield_Resume.pdf .../3 - Placeholder Inc - Budget Analyst" took most
+    # of the tab row (measured 2026-10-13) => short names per job (tab_labels); every tab capped in
+    # width - web pages too (their title, no rule can rename them) - full name on hover
+    "workbench.editor.tabSizing": "fixed",
+    "workbench.editor.tabSizingFixedMaxWidth": 180,
+    # never squeezed below "12 follow-up" (8 tabs at the 50 default read "Jo...", 130 "Job 2 res...", measured): more tabs scroll
+    "workbench.editor.tabSizingFixedMinWidth": 150,
     # brand look over VS Code's two stock themes: light by default, dark when the computer is dark;
     # light / dark chosen (.data/look, app/look.py) => LOOK below. High contrast always follows the computer
     "window.autoDetectColorScheme": True,
@@ -179,12 +187,37 @@ def copilot(home: Path | None = None, root: Path | None = None) -> dict:
     }
 
 
+# file in a job folder -> its tab name after the job number; owner 2026-10-13: "the shorter the better",
+# "12 resume" (no "Job": the kind word says what it is; icons can't - resume + letter are both PDFs)
+JOB_TABS = {"*_Resume.pdf": "resume", "*_Cover_Letter.pdf": "letter", "Job posting.md": "posting",
+            "Check before sending.md": "check", "Follow-up email.md": "follow-up"}
+
+
+def tab_labels(root: Path | None = None) -> dict:
+    """Tab names: "12 resume", "12 posting", "My resume". VS Code's patterns can't read the
+    number out of a folder name => one rule per job number on disk (tailor.job_dir_for rewrites them
+    when a folder is made); keyed on the number, so a job filed under another stage keeps its name.
+    Folder not covered yet => "Resume 12 - Acme - Data Analyst" (the folder's name)."""
+    root = root or cfg.ROOT
+    out = {"**/My Resume/*_Resume.pdf": "My resume"}
+    out |= {f"**/My Jobs/*/*/{pattern}": f"{kind.capitalize()} ${{dirname}}" for pattern, kind in JOB_TABS.items()}
+    nums = set()
+    for d in (root / "My Jobs").glob("*/*"):
+        m = re.match(r"(\d+)(?: - |$)", d.name)
+        if m and d.is_dir():
+            nums.add(int(m.group(1)))
+    for n in sorted(nums):
+        out |= {f"**/My Jobs/*/{{{n},{n} - *}}/{pattern}": f"{n} {kind}" for pattern, kind in JOB_TABS.items()}
+    return out
+
+
 def settings(ai: str | None, home: Path | None = None, root: Path | None = None, set_up: bool = False,
              look: str = "auto") -> dict:
     """None (nothing chosen yet) => the Claude/ChatGPT window, as before AI choice 3 existed.
     set_up = search settings exist => START HERE ("type set me up") leaves the file list.
     look = auto | light | dark (anything else = auto)."""
     out = {**COMMON, **LOOK.get(look, {}), **(copilot(home, root) if ai == "copilot" else EXTENSION_CHAT)}
+    out["workbench.editor.customLabels.patterns"] = tab_labels(root)
     if set_up:
         out["files.exclude"] = {**out["files.exclude"], START_HERE: True}
     return out
