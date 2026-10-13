@@ -151,10 +151,15 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
 1. Tailored resume check as step 1 above.
 2. `uv run app/jobs.py apply-form prepare <job number> "<posting link>"` -> picks the system
    from the link, writes the job's `.data/application.json`, prints every question: `ok` (from
-   resume or search settings) or `NEEDED`. Rerun keeps answers already written.
+   resume or search settings) or `NEEDED`. Rerun keeps answers already written. The job list's
+   link may be the employer's own careers page (a Radancy careers site): pass it as is -
+   `prepare` reads that page once and follows its Apply ("the posting's Apply leads to ...");
+   Workday there -> Steps above with that link.
 3. Fill each blank `answer` in that file: a question marked "yours to answer" or "sensitive" gets
    only what the user tells you, its `source` set to "you said" (`fill` + `paste` refuse anything
-   else). They'd rather type one on the page themselves -> leave it blank, source "yours to do on
+   else). A question printed "(at most N characters)": draft within N - the page cuts a longer
+   answer off unseen, so `fill` refuses it. They'd rather type one on the page themselves -> leave
+   it blank, source "yours to do on
    the page" (`fill` fills the rest, names it as left). Others: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
    question: `answer: true` only after they said yes to the named file (hard limits). Location: the
@@ -169,6 +174,15 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Chrome; user signs in or creates the account there, then rerun `prepare`. Its
    `resume-sections` question (add work history, education, skills, links from the resume): UKG
    saves each to their account on the site as it is added, before Submit - say so, then ask.
+   Taleo: privacy agreement + sign-in first - `prepare` stops on each; the user accepts and signs
+   in themselves in Job Finder's Chrome, then rerun `prepare`. One step per page (Attachments,
+   About You, Education and Experience, Job Profile Questions): `prepare` reads it, `fill` fills it,
+   the user checks and clicks Save and Continue, repeat. Its resume goes to the employer on Attach,
+   before Submit - say so in the yes; earlier files still ticked Relevant are named, the user
+   decides. `taleo-history` (make work history + education match the resume): Taleo keeps them on
+   their account once they Save - say so, then ask. Its work-permit questions say "the country where
+   the job is located": asked with choices, never filled from setup. eSignature: they type their
+   name themselves. `app/docs/apply/taleo.md`.
    Paylocity: email goes to the site as its box is left (its own email check), resume as the
    file is picked - both before Submit; say so before `fill`. Start date: they pick it in the
    page's calendar (typed keys don't take).
@@ -220,7 +234,7 @@ they answer after. `apply` / `fill` record the fill, so a next chat asks again i
 
 They answer while the tab is still open -> look first (`app/docs/apply/sent.md`): Greenhouse address
 ends `/confirmation`; Workday lands on Candidate Home (`/jobTasks/completed/application`); UKG -> My
-Presence, Applications lists the job. "Not yet" but the sent page shows -> say so, `status set 12
+Presence, Applications lists the job; Taleo says "Process completed" (`prepare` there says so). "Not yet" but the sent page shows -> say so, `status set 12
 applied`. Ashby + any page showing nothing -> their answer stands.
 
 One question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):

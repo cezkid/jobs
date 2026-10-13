@@ -68,6 +68,8 @@ def load(path: Path | None = None) -> dict:
     for where in (config["rank"], config.get("blocklist") or {}):
         if bad := software.unknown(where.get("software_kinds")):
             raise ValueError(f"software_kinds {bad} - any of {', '.join(software.KINDS)} (app/software.py)")
+    if bad := [s for s in config["rank"].get("avoid_skills") or [] if not (isinstance(s, str) and s.strip())]:
+        raise ValueError(f"rank.avoid_skills {bad} - skill names as words, e.g. [Java]")
     for stage, days in (config.get("follow_up") or {}).items():
         if not isinstance(days, int) or days < MIN_FOLLOW_UP_DAYS:
             raise ValueError(f"follow_up.{stage}: {days!r} - at least {MIN_FOLLOW_UP_DAYS} days (a weekend can take 3)")
@@ -105,6 +107,12 @@ def resume_font(config: dict) -> str:
 def title_mirror_always(config: dict) -> bool:
     """User pre-approved the posting's title in brackets after their own: not asked per job."""
     return config["resume"].get("title_mirror") == "always"
+
+
+def top_line_title(config: dict) -> bool:
+    """Tailored copies put the posting's title in the top line (default for everyone, owner 2026-10-12);
+    `off` = the user chose to keep their own top line on every copy."""
+    return config["resume"].get("top_line_title", "always") != "off"
 
 
 def load_or_defaults() -> dict:

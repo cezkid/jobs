@@ -20,6 +20,8 @@
 // no letterspacing of its own: at +0.08em a PDF-to-HTML reader split EXPERIENCE into
 // "EXP E R I ENC E", while body text at the page's +0.015em came back whole - split-words gate
 #let section(heading-text, body) = {
+  // sticky: heading never ends a page alone - 0 of 373 two-page renders with it, 91 without
+  // (2026-10-10); test_heading_never_ends_a_page_alone pins it
   block(above: 14pt, below: 6pt, sticky: true)[
     #text(size: 11.5pt, weight: 600)[#upper(heading-text)]
     #v(-6pt)
@@ -36,6 +38,8 @@
 // dates inline, never h(1fr) right column: pdftotext default mode read it as 2nd column, after bullets
 // no bullets (a school, a career break) => spaced like a line, not a job: two rows, no empty list gap
 #let entry(e, first) = block(above: if first { first-gap } else { 0.74em + if e.bullets.len() > 0 { 10pt } else { 2.5pt } }, below: 0pt, breakable: true)[
+  // sticky: heading never ends a page alone - 0 of 373 two-page renders with it, 91 without
+  // (2026-10-10); test_heading_never_ends_a_page_alone pins it
   #block(below: if e.bullets.len() > 0 { 0.74em + 2.5pt } else { 0pt }, sticky: true)[
     #text(weight: 600)[#e.heading]#if e.at("org", default: none) != none [#sep#text(weight: 600)[#e.org]]
     #if e.at("subline", default: none) != none [ \ #text(number-width: "tabular")[#e.subline]]

@@ -374,6 +374,9 @@ Back-End Engineer", "Embedded UI Engineer"). The remote skills pass above: 1,418
 Plain titles lowered by tags: 18 of 250 mention front-end words anywhere, read by hand mostly
 in passing ("integrate backend services with frontend applications"). Sorted lower, never hidden;
 `blocklist.software_kinds` hides by title only, after the user sees the count.
+A language they don't want ("no Java"): `rank.avoid_skills` reads the required lines, not the tags,
+when there are any - a front-end list, 2026-10-12: 31 of 161 open rows name Java in a required line or
+tag, 17 only as one choice of several ("Python, Node.js, or Java"), so 14 sort lower.
 
 ## Null facets outside tech (2026-09-19)
 

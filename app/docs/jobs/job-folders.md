@@ -21,6 +21,17 @@ title, company, asks, posting + form questions in these pages (+ Today page) are
 hidden image can't tell them when the user looked, a link can't run a VS Code command. Bare
 web addresses stay as plain text, not clickable. The posting's own link line is ours - kept.
 
+Characters a reader can't see go before the posting is stored or handed to the AI
+(`text.strip_hidden`, at intake: `jd.parse` for a listed job, `jd.from_text` + `tailor posting`
+for a pasted one). Removed + counted: Unicode Tags U+E0000-E007F (one tag per letter spells an
+instruction only a model reads), bidi controls U+202A-202E / U+2066-2069 (shown text != read
+text), runs of 5+ variation selectors. Kept: a flag emoji's tag sequence (black flag, 3-6 region
+tags, cancel tag), one selector (FE0F), a joiner between two emoji. Removed, not counted: U+200B-200D,
+U+2060, U+FEFF, a soft hyphen inside a word - common by accident, but "Py<zero-width>thon" misses
+"Python" in coverage + minimum-ask matching. Count > 0 => `prepare` / `posting` prints one line
+the AI passes on: the user can't check what they can't see. Rendering escapes (inert above) and
+CSS-hidden form text (already plain text) are separate - not this step.
+
 ## Name
 
 `<n> - <Company> - <Title>`, e.g. `12 - Acme - Data Analyst` (`tailor.folder_name`); n = the

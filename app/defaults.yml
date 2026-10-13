@@ -47,8 +47,12 @@ resume:
   # posting's title added in brackets after a role's own title ("Software Engineer (Frontend)").
   # ask = user confirms each one; always = user said yes to all, added wherever the work matches.
   # Either way never a level word their title lacks (Senior, Lead ...) - tailor check fails it.
-  # Never covers the top line (headline): the posting's title there is asked on every job.
+  # Never covers the top line (headline): see top_line_title.
   title_mirror: ask
+  # top line (headline) of each tailored copy names the posting's title in place of theirs:
+  # always = default for everyone (owner 2026-10-12), off = user chose to keep their own top line.
+  # Never a level their current title lacks - "Senior" aside, from years in the work (tailor.SENIOR_YEARS)
+  top_line_title: always
 
 # Setup answers to the work-permit questions US applications ask. Stay on this computer:
 # no job search sends them (only `passes` params go to freehire). null = not asked -> apply asks.
@@ -127,6 +131,11 @@ rank:
   # blocklist.software_kinds hides by title. [] = any. 2026-10-09, front-end + full-stack: 2,000 of
   # 2,000 titles in those categories kept, 97-99% of back-end / mobile / embedded flagged
   software_kinds: []
+  # skills they'd rather not work in, as they say them ([Java]): a job whose required lines name one
+  # sorts lower w/ "asks Java", never hidden - a line offering a choice ("Python, Node.js, or Java") and
+  # a wish ("Java a plus") don't count; a posting listing no requirements counts on the job search's own
+  # skill tags ("lists Java"). Whole names: Java never inside JavaScript. [] = none (rank.avoided)
+  avoid_skills: []
   # yearly USD; a job whose top of range reaches it ranks above those that don't. 0 = no floor
   # (pay_filter then hides nothing)
   salary_floor_usd: 0
@@ -162,6 +171,19 @@ rank:
     # share of the posting's required asks their resume backs (word overlap, years, degree);
     # weighs most - an ask they can't show is where most applications stop
     match: 0.35
+    # asks read as half-backed added to every count, so a share read off few asks stays near the
+    # middle: 1 of 1 = 0.67, 8 of 8 = 0.9 (2026-10-11, 1,200 live rows, 4 fields: 4 in 10 list no
+    # requirements, their "1 of 1" was the years tag alone and filled the top)
+    match_prior: 2
+    # share of the title's kind-of-work words found anywhere in their resume (level words left out):
+    # an HR director's list had "Tableau Developer" in its top 10. 2026-10-11, 1,050 live titles
+    # (finance, HR leader, front-end) each judged same field / adjacent / other by an AI against a
+    # fixture resume: top-10 quality (nDCG) 0.55 / 0.97 / 0.82 at 0 => 0.79 / 0.97 / 1.00 at 0.25.
+    # 2026-10-12, 1,007 live rows, 4 fields, every job rated 0-3 for fit by an AI: title alone parts
+    # good from poor picks 0.86 of the time, match 0.78; top-10 nDCG 0.654 at 0.25, 0.685 at 0.5,
+    # 0.695 at 0.7, 0.679 at 0.9 => low end of the plateau. Again w/ Opus ratings + 5 held-out fields:
+    # 0.5 best held out under both AIs (Opus 0.635 at 0.35, 0.687 at 0.5, 0.666 at 0.7)
+    title: 0.5
     # fewer asks scores higher: required asks + lead/manage duties (each twice; once for a leader), full marks at
     # asks_light or fewer, none at asks_heavy (2026-10-04, 944 live US rows, 7 occupations: 449
     # list required asks, median 7, top tenth 12+, 14 at 16+); a level 2+ rungs above career_level halves it
@@ -179,7 +201,17 @@ rank:
     # fresh_enough there => widen to the next until it holds that many, then the next group
     # (owner 2026-10-08: top picks sat 5-7 days old while 19 went up in the last day)
     fresh_windows: [1, 2, 3, 5, 7, 14, 21]
+    # only the first this many come from the freshest window; the rest by score at any age (fresh still
+    # weighs). 2026-10-12, 2,454 live rows, 9 resumes, every job rated for fit by an AI (Sonnet; again by
+    # Opus, high effort): top-10 nDCG held out (security, compliance, PM, junior front-end, FP&A) 0.452 =>
+    # 0.555 / 0.553 => 0.689; the 4 tuning fields w/ their level 0.688 => 0.739 / 0.784 => 0.803; HR leader
+    # loses (0.92 => 0.84 / 0.95 => 0.82). 3 ties held out, 7 loses. null = every job in window order
+    fresh_first: 5
     fresh_enough: 5
     # taken off per demerit rank already counts (likely ghost, level/hours mismatch, no sponsor,
     # clearance they can't hold)
     demerit: 0.15
+    # taken off per job from the same employer placed above it, so one employer doesn't fill the
+    # list; one posting under two company names (an aggregator's copy) sinks as `twin`. Order only
+    repeat: 0.1
+    twin: 0.5

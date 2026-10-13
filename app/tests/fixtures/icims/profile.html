@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- a page after Next, rebuilt from what was read on one tenant (2026-10-12): native selects marked
+     role=combobox - a plain one (Q43, Gender) and iCIMS's own list widget (icimsdropdown-enabled), whose
+     ajax select holds only the current pick until its search box is typed in -->
+<html><body><h2>Candidate Profile</h2>
+<label for="first">First Name*</label><input id="first" required>
+<label for="Q43">Are you legally authorized to work in the United States?*</label>
+<select id="Q43" role="combobox" required><option value="">— Make a Selection —</option><option value="1">Yes</option><option value="2">No</option></select>
+<label for="-1_PersonProfileFields.AddressState">State/Province*</label>
+<select id="-1_PersonProfileFields.AddressState" role="combobox" required icimsdropdown-enabled="1" icimsdropdown-ajax="1"
+        style="position:absolute; opacity:0.01; width:200px; height:20px"><option value="12791" selected>Texas</option></select>
+<a href="#" id="-1_PersonProfileFields.AddressState_icimsDropdown" style="display:inline-block; margin-left:210px">Texas</a>
+<div id="-1_PersonProfileFields.AddressState_icimsDropdown_ctnr" style="display:none">
+  <input type="text" class="dropdown-search" placeholder="— Type to Search —" aria-label="— Type to Search —">
+  <ul id="-1_PersonProfileFields.AddressState_dropdown-results"></ul>
+</div>
+<label for="resume">Please upload your resume*</label><input type="file" id="resume" required>
+<script>
+const STATES = {"12791": "Texas", "12814": "Ohio", "12815": "Oklahoma", "12816": "Oregon"};
+const id = "-1_PersonProfileFields.AddressState", sel = document.getElementById(id);
+const link = document.getElementById(id + "_icimsDropdown"), box = document.getElementById(id + "_icimsDropdown_ctnr");
+const search = box.querySelector("input"), list = document.getElementById(id + "_dropdown-results");
+link.addEventListener("click", e => { e.preventDefault(); box.style.display = "block"; search.focus(); });
+search.addEventListener("input", () => setTimeout(() => {  // the options arrive a moment later, as from the server
+  const q = search.value.toLowerCase();
+  list.innerHTML = '<li class="dropdown-result">— Make a Selection —</li>' + Object.entries(STATES)
+    .filter(([, n]) => n.toLowerCase().includes(q))
+    .map(([v, n]) => `<li class="dropdown-result result-selectable" role="option" data-v="${v}">${n}</li>`).join("");
+}, 300));
+list.addEventListener("click", e => { const li = e.target.closest("li.result-selectable"); if (!li) return;
+  sel.innerHTML = `<option value="${li.dataset.v}" selected>${li.textContent}</option>`;
+  link.textContent = li.textContent; box.style.display = "none"; });
+</script>
+</body></html>

@@ -449,6 +449,17 @@ def test_graduation_window_their_date_misses_sorts_lower_and_says_both(monkeypat
     assert "asks graduating Dec 2027 - Jun 2028; yours May 2027" in rank.reasons(ranked[1], CONFIG, NOW)
 
 
+# "Recent college graduate" is never counted by the resume match (best.NOT_ON_RESUME); the window beside it still is
+def test_graduation_window_read_beside_an_age_coded_ask(monkeypatch):
+    monkeypatch.setattr(rank, "student_graduation", lambda config, today: "2027-05")
+    jobs = [make_job("later", enrichment=req("Recent college graduate", "Graduating between December 2027 and June 2028"),
+                     **usd(90000)),
+            make_job("fits", enrichment=req("Recent college graduate", "Graduating May/June 2027"), **usd(60000))]
+    ranked = rank.rank(jobs, CONFIG, NOW)
+    assert slugs(ranked) == ["fits", "later"]
+    assert "asks graduating Dec 2027 - Jun 2028; yours May 2027" in rank.reasons(ranked[1], CONFIG, NOW)
+
+
 def test_graduation_read_only_while_studying_or_just_after(tmp_path, monkeypatch):
     import yaml
     from datetime import date
@@ -567,7 +578,62 @@ def test_an_active_clearance_above_theirs_is_said_and_sorted_lower():
     assert rank.asks_beyond(job, cannot, None, NOW.date(), "") == []
 
 
+# "Active CPA license required" / "Must hold CPA certification" / "CPA required" were 3 entries, -0.45 and
+# said three times (2026-10-10): one verdict told several ways counts once
+def test_a_missing_credential_counts_once_per_posting():
+    cpa = make_job("cpa", enrichment=reqs("Active CPA license required", "Must hold CPA certification", "CPA required"))
+    assert rank.asks_beyond(cpa, CONFIG, None, NOW.date(), "") == ["asks CPA, not in your resume"]
+    series = make_job("series", enrichment=reqs("Series 7 and Series 63 required", "Series 7 required"))
+    assert rank.asks_beyond(series, CONFIG, None, NOW.date(), "") == ["asks Series 7 and Series 63, not in your resume"]
+    # two different credentials stay two; one held drops out of the other line
+    both = make_job("both", enrichment=reqs("CPA required", "Series 7 required"))
+    assert len(rank.asks_beyond(both, CONFIG, None, NOW.date(), "")) == 2
+    assert rank.asks_beyond(series, CONFIG, None, NOW.date(), "Series 7") == ["asks Series 63, not in your resume"]
+    # an either/or line getting the other ask's credential answers drops; one it doesn't stays
+    menu = make_job("menu", enrichment=reqs("CISSP required", "CISSP, CISA, or CISM certification"))
+    assert rank.asks_beyond(menu, CONFIG, None, NOW.date(), "") == ["asks CISSP, not in your resume"]
+
+
 def test_a_required_clearance_line_names_it_when_the_flag_is_missing():
     assert rank.clearance(make_job("a", enrichment=reqs("Active Secret clearance required"))) == ["needs a security clearance"]
     assert rank.clearance(make_job("b", enrichment=reqs("Some assignments may require a Secret clearance"))) == []
     assert rank.clearance(make_job("c", enrichment=reqs("Customs clearance experience required"))) == []
+
+
+def _asking(slug, *lines, skills=()):
+    return make_job(slug, skills=list(skills),
+                    enrichment={"requirements": [{"priority": "required", "text": t} for t in lines]})
+
+
+@pytest.mark.parametrize("lines, skills, reason", [
+    (["5+ years building web applications with Java and Spring Boot"], (), ["asks Java"]),
+    (["Strong background in Java-based web development"], (), ["asks Java"]),
+    # JavaScript is never Java, however it's written
+    (["Strong JavaScript, TypeScript and React"], ("javascript",), []),
+    (["Expert in Java Script and HTML"], (), []),
+    # one choice of several, or a wish: not asked
+    (["Server-side languages such as Python, Node.js, or Java"], ("java",), []),
+    (["Proficient in React; Java a plus"], (), []),
+    # requirements listed, none naming it: the tag alone (a nice-to-have somewhere) doesn't count
+    (["5+ years of React"], ("java", "react"), []),
+    # no requirements listed: the job search's tags
+    ([], ("java", "react"), ["lists Java"]),
+])
+def test_avoided_skill_sorts_lower_with_reason(lines, skills, reason):
+    assert rank.avoided(_asking("a", *lines, skills=skills), ["Java"]) == reason
+
+
+def test_short_skill_read_off_tags_only():
+    job = _asking("a", "Go to market with the product team", skills=("react",))
+    assert rank.avoided(job, ["Go"]) == []
+    assert rank.avoided(dict(job, skills=["go"]), ["Go"]) == ["lists Go"]
+
+
+def test_avoided_skill_ranks_below_and_says_why():
+    config = cfg.load(cfg.PROFILES / "frontend.yml")
+    config["rank"]["avoid_skills"] = ["Java"]
+    java = _asking("java", "Strong Java and Spring Boot")
+    java.update(salary_min=300000, salary_currency="USD", salary_period="year")
+    ranked = rank.rank([java, _asking("react", "Strong React")], config)
+    assert [j["public_slug"] for j in ranked] == ["react", "java"]
+    assert "asks Java" in rank.reasons(ranked[1], config)

@@ -13,7 +13,8 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
   = #Offer). Unclear -> ONE question: Practise a round / Go through the one I had.
 - `uv run app/jobs.py interview 12` -> requirements w/ the resume lines that showed them (or not),
   the posting's pay, `student:` when a degree is in progress (#Students), `licences asked`
-  (#Licences), `the posting's text also names` (#Compliance and risk), `confidential work`
+  (#Licences), `reworded for this job` (#Practice, Your resume), `the posting's text also names`
+  (#Compliance and risk), `confidential work`
   (#Confidential work), the untrusted-text line.
 - No saved posting ("no saved posting for ..."; Handshake, a career fair, a recruiter's email):
   - They have the posting -> save the text + do the posting task as `job-tailor` step 1 does, then
@@ -36,8 +37,10 @@ had, or weigh an offer. Basis + what each rule rests on: `app/docs/apply/intervi
 ## Practice - one round per session
 
 - ONE clickable question, counts from `interview`: "First call - why this job, your background,
-  timing" / "Your past work - stories behind the 6 things they ask for" / "Your resume - questions
-  about its lines" / "Skills for this job - 9 asked for, 3 not on your resume". Requirements ask
+  timing" / "Your past work - stories behind the 6 things they ask for" / "Your resume - 5 lines
+  reworded for this job" (none reworded: "Your resume - questions about its lines") / "Skills for
+  this job - 9 asked for, 3 not on your resume". Your resume round: the lines `interview` prints
+  under `reworded for this job` first (words the AI wrote they've never said aloud), then the rest. Requirements ask
   depth in a field (architecture, system design, APIs, clinical, legal ...) -> add "How the work
   works - 4 lines ask technical depth" (#Depth). Other covers pay talk, a case, or a role-play
   (you play the stakeholder the posting names - an executive pushing a date, a team refusing work;

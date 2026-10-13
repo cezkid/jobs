@@ -1,0 +1,35 @@
+<!doctype html><html><head><meta charset="utf-8"><title>About You</title></head><body>
+<p>Applying for: Test Job (Job Number: 12345)</p><h2>About You</h2>
+<p>Mandatory fields are marked with an asterisk.</p>
+<h3>Source Tracking</h3>
+<label for="src">Source Type <span>.</span> <span>Required</span></label>
+<select id="src" onchange="document.getElementById('specbox').style.display = this.value === '10' ? '' : 'none'">
+  <option value="-1">Select One...</option><option value="1">Company Web Site</option><option value="2">Job Board</option><option value="10">Other</option></select>
+<div id="specbox" style="display:none"><label for="spec">Please Specify</label><input type="text" id="spec"></div>
+<h3>Personal Information</h3><p>Please provide full legal name</p>
+<label for="fn">First Name <span>.</span> <span>Required</span></label><input type="text" id="fn" value="Jane">
+<label for="mn">Middle Name</label><input type="text" id="mn" value="Q">
+<label for="ln">Last Name <span>.</span> <span>Required</span></label><input type="text" id="ln" value="Doe">
+<label for="ptype">Primary Number <span>.</span> <span>Required</span></label>
+<select id="ptype"><option value="-1">Not Specified</option><option value="1">Home Phone</option><option value="2">Work Phone</option><option value="3" selected>Cellular Phone</option></select>
+<label for="cell">Cellular Number xxx-xxx-xxxx</label><input type="text" id="cell" value="555-555-0100">
+<label for="sms">Opt in to receive text messages from recruiters <span>.</span> <span>Required</span></label>
+<select id="sms"><option value="-1">Not Specified</option><option value="1">Yes Opt In</option><option value="2">Not at this time</option></select>
+<label for="street">Street Address (line 1) <span>.</span> <span>Required</span></label><input type="text" id="street" value="1 Old Rd">
+<label for="city">City <span>.</span> <span>Required</span></label><input type="text" id="city" value="Oldtown">
+<label for="zip">Zip/Postal Code <span>.</span> <span>Required</span></label><input type="text" id="zip" value="00000">
+<label for="email">Email Address <span>.</span> <span>Required</span></label><input type="text" id="email" value="jane@example.com">
+<h3>General Profile Questions</h3>
+<label for="coi1">Are you subject to a restrictive covenant, such as a non-compete or a non-solicit, with a current or former employer? [COI1A] <span>.</span> <span>Required</span></label>
+<select id="coi1"><option value="-1">Not Specified</option><option value="1">Yes</option><option value="2">No</option></select>
+<div class="q">
+  <div>Please indicate the firm(s) which you or a close family member* are presently or previously employed? [COI4C]</div>
+  <div>Choose all applicable fields</div><span>.</span> <span>Required</span>
+  <div><input type="checkbox" name="coi4c" id="coi4c-1"><label for="coi4c-1">Deloitte</label>
+       <input type="checkbox" name="coi4c" id="coi4c-2"><label for="coi4c-2">KPMG</label>
+       <input type="checkbox" name="coi4c" id="coi4c-3"><label for="coi4c-3">None of the above</label></div>
+</div>
+<label for="legal2">Are you legally authorized to work in the country where the job is located without any restrictions? Proof will be required. [LEGAL2] <span>.</span> <span>Required</span></label>
+<select id="legal2"><option value="-1">Not Specified</option><option value="1">Yes</option><option value="2">No</option></select>
+<input type="button" value="Save and Continue"> <input type="button" value="Save as Draft"> <input type="button" value="Quit">
+</body></html>

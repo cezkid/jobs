@@ -37,6 +37,9 @@ def any_phrase(phrases: tuple[str, ...]) -> re.Pattern:
 STYLE_WORDS = any_phrase(STYLE_WORD_LIST)
 EM_DASH = "\u2014"
 MARKDOWN = re.compile(r"\*\*|__|^#+\s|##|`|\[[^\]]*\]\([^)]*\)", re.M)
+# a blank an AI left unfilled ("[insert metric]", "{company}", "<number>") prints as is; "<100ms" is
+# no blank. 0 hits on tracked resume text (2026-10-11); a fact holding one ("[24]7.ai") names something
+PLACEHOLDER = re.compile(r"\[[^\]\n]{1,40}\](?!\()|\{[^}\n]{1,40}\}|<[A-Za-z][A-Za-z _-]{0,30}>")
 INVISIBLE = re.compile("[\u00a0\u202f\u200b\u200c\u200d\u2060\ufeff]")
 ROUND_PERCENT = re.compile(r"\b(10|15|20|25|30|40|50|100)%")
 HEDGES = any_phrase(HEDGE_LIST)
@@ -74,6 +77,12 @@ TOOL_RELEASED = {
     re.compile(r"\bClaude\b", re.I): "2023-03",
 }
 NUMBER = re.compile(r"\d")
+# a word that qualifies a number is part of it: "about 120" -> "120" claims a count nobody made
+QUALIFIER_BEFORE = re.compile(r"(?:\b(?:about|approximately|roughly|around|nearly|almost|over|more than|upwards of|"
+                              r"under|fewer than|less than|up to)\s+|~\s*)[$€£]?$", re.I)
+QUALIFIED_NUMBER = re.compile(r"(?<![\w.,:-])(?<![\w.,:-][$€£])(?P<n>\d+(?:[.,]\d+)*)(?:[kKmMbB]\b)?(?P<plus>\+)?")
+TIME_UNIT = re.compile(r"\s*(?:years?|yrs?|months?|weeks?|days?|hours?|hrs?)\b", re.I)
+CO_WORD = re.compile(r"\bco-([^\W\d_]+)", re.I)
 # a label that says the work ran alongside other work: an overlap with it is no date mistake
 # (National Resume Writers' Association, bullets.md Tier 1). A freelancer's clients overlap by nature
 CONCURRENT = re.compile(r"\b(?:freelance|freelancer|part[- ]time|contract|contractor|self[- ]employed|"
@@ -291,14 +300,52 @@ def master_strings(master) -> list[str]:
     return []
 
 
+def placeholders(text: str, sources: list[str]) -> list[str]:
+    """Unfilled blanks in `text` none of `sources` holds: "[insert metric]", not a name like "[24]7.ai"."""
+    held = " ".join(s for s in sources if s)
+    return sorted({m.group() for m in PLACEHOLDER.finditer(text) if m.group() not in held})
+
+
 def upgraded_verb(text: str, sources: list[str]) -> str | None:
     """The ownership verb opening `text` when none of `sources` uses it: "Assisted with the launch"
     -> "Led the launch" claims a part nobody said (docs/resume/bullets.md Tier 2, ownership)."""
     for root, forms in OWNERSHIP.items():
         if m := re.match(rf"\s*({forms})\b", text, re.I):
-            used = re.compile(rf"\b{forms}\b", re.I)
+            # "co-led" shared the lead: it vouches no bare "led"
+            used = re.compile(rf"(?<![\w-])(?:{forms})\b", re.I)
             return None if any(used.search(s or "") for s in sources) else m[1]
     return None
+
+
+def qualified_numbers(text: str) -> list[tuple[str, str | None]]:
+    """(compare key, qualified form or None) for each number: "about 120" -> ("120", "about 120")."""
+    out = []
+    for m in QUALIFIED_NUMBER.finditer(text):
+        before = QUALIFIER_BEFORE.search(text[:m.start()])
+        if before and TIME_UNIT.match(text, m.end()):
+            before = None  # "over 3 years" says when as often as how long
+        form = text[before.start() if before else m.start():m.end()] if before or m["plus"] else None
+        out.append((entity_key(m["n"]), form))
+    return out
+
+
+def dropped_qualifier(text: str, sources: list[str]) -> list[str]:
+    """What `sources` said that `text` states more strongly: a number every source qualifies
+    ("about 120", "20+") written bare, or a co- word ("co-led") written bare while no source uses
+    it bare. Returned as the sources wrote it (docs/resume/bullets.md Tier 1, every number defensible)."""
+    sources = [s for s in sources if s]
+    said = [n for s in sources for n in qualified_numbers(s)]
+    out = set()
+    for key in {k for k, form in qualified_numbers(text) if form is None}:
+        forms = [form for k, form in said if k == key]
+        if forms and all(forms):
+            out.add(forms[0])
+    for s in sources:
+        for m in CO_WORD.finditer(s):
+            bare = re.compile(rf"(?<![\w-]){re.escape(m[1])}\b", re.I)
+            if bare.search(text) and not any(bare.search(x) for x in sources):
+                out.add(m[0])
+    return sorted(out)
 
 
 def page_items(model: dict):
@@ -443,6 +490,10 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
     # the user's facts or the posting do - a typo there is the user's, flagged on their own line
     listed = {w for t in known_terms for w in plain_words(t)}
     vouched_words = listed | set(plain_words(corpus)) | set(plain_words(posting))
+    # a blank a name holds ("[24]7.ai Inc.") is the name; one in their own sentence still warns
+    sentences = {norm(b["claim"]) for e in entries.values() for b in e["bullets"]}
+    sentences |= {norm(s) for k in ("summary", "headline") for s in master_strings(master.get(k))}
+    named_facts = [s for s in facts if norm(s) not in sentences]
 
     for role in master["roles"]:
         if not schema.LEGAL_IDENTIFIER.search(role["company"].strip()) and not SELF_EMPLOYED.search(role["company"]):
@@ -494,6 +545,8 @@ def lint(model: dict, master: dict, inferences: list[dict] | None = None, postin
                 own or all(c in corpus for c in missing))
         if MARKDOWN.search(text):
             hit("markdown", where, text, f"{MARKDOWN.search(text).group()!r}", own)
+        elif blanks := placeholders(text, named_facts):
+            hit("markdown", where, text, f"{', '.join(blanks)} unfilled blank", own)
         if INVISIBLE.search(text):
             hit("invisible-unicode", where, text, f"U+{ord(INVISIBLE.search(text).group()):04X}", own)
         for m in ROUND_PERCENT.finditer(text):

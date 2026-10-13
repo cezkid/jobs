@@ -157,6 +157,17 @@ def test_backfill_never_overrides_recorded_status_but_upgrades_saved(conn, tmp_p
     assert status.get(conn, "https://acme.com/j/1")["state"] == "resume_made"
 
 
+def test_reports_counting_only_real_passes_still_read_as_made(conn, tmp_path):
+    """Notes left out of the passed count (21, not 22): the Yes marker reads the same, old or new."""
+    new = make_folder(tmp_path, "Acme - Engineer", "https://acme.com/j/1", "Acme", "Engineer", "acme-1", made=False)
+    (new / tailor.CHECK_FILE).write_text("# Engineer - Acme\n\n- Link: https://acme.com/j/1\n\n"
+                                         "## Ready to send?\n\nYes - all 21 page checks passed.\n", encoding="utf-8")
+    make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "globex-data-analyst")
+    status.backfill(conn, tmp_path)
+    assert status.get(conn, "https://acme.com/j/1")["state"] == "resume_made"
+    assert status.get(conn, PASTED_URL)["state"] == "resume_made"
+
+
 def run(monkeypatch, tmp_path, *argv):
     monkeypatch.setattr(sys, "argv", ["status", *argv])
     status.main()

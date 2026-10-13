@@ -1,0 +1,27 @@
+{
+  "summary": null,
+  "headline_title": null,
+  "entries": [
+    {"id": "northgate-credit-union", "title_mirror": null, "bullets": [
+      {"text": "Wrote 25 Splunk detection rules that cut false-positive alerts by 31%", "sources": ["northgate-credit-union-2"]},
+      {"text": "Triaged 60+ SIEM alerts per shift in Splunk for a 40-branch credit union", "sources": ["northgate-credit-union-1"]},
+      {"text": "Ran quarterly phishing tests for 900 staff, cutting click rate from 14% to 4%", "sources": ["northgate-credit-union-3"]}
+    ]},
+    {"id": "prairie-state-bank", "title_mirror": null, "bullets": [
+      {"text": "Rolled out multi-factor authentication to 650 staff accounts in 6 weeks", "sources": ["prairie-state-bank-1"]},
+      {"text": "Resolved 35 help desk tickets a day across Windows and Microsoft 365", "sources": ["prairie-state-bank-2"]}
+    ]}
+  ],
+  "skills": [
+    {"group": "Security", "items": ["Splunk", "CrowdStrike Falcon", "Microsoft Defender", "NIST CSF"]},
+    {"group": "IT", "items": ["Active Directory", "Microsoft 365", "Windows"]}
+  ],
+  "inferences": [],
+  "coverage": [
+    {"requirement": 0, "evidence": [], "note": "Associate of ISC2, not the CISSP itself"},
+    {"requirement": 1, "evidence": ["northgate-credit-union-1"], "note": "security analyst since 2022-03"},
+    {"requirement": 2, "evidence": ["northgate-credit-union-2"], "note": "25 Splunk detection rules"},
+    {"requirement": 3, "evidence": ["northgate-credit-union-3"], "note": "quarterly phishing tests"},
+    {"requirement": 4, "evidence": ["skills:CrowdStrike Falcon"], "note": "CrowdStrike Falcon in skills"}
+  ]
+}

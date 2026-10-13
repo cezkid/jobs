@@ -8,11 +8,11 @@
 # Fails => the app changed: fix the page sentence first, then `text` + the fact here.
 apply-systems:
   page: index.html
-  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
+  text: 'Filled from your resume: Greenhouse Ashby Lever Workable UKG JazzHR BambooHR Paylocity SmartRecruiters Manatal Breezy Teamtailor Taleo Workday First box filled, next steps named: Paycom ADP Oracle iCIMS'
   why: hiring systems the app fills (bold) or starts (plain)
   rests_on:
   - apply_systems: true
-    filled: [Ashby, BambooHR, Breezy, Greenhouse, JazzHR, Lever, Manatal, Paylocity, SmartRecruiters, Teamtailor, UKG, Workable, Workday]
+    filled: [Ashby, BambooHR, Breezy, Greenhouse, JazzHR, Lever, Manatal, Paylocity, SmartRecruiters, Taleo, Teamtailor, UKG, Workable, Workday]
     # [name in the code, name on the page]
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
@@ -70,7 +70,7 @@ privacy-ai:
     - '| Text + screenshots of Job Finder window pages Copilot reads (VS Code''s browser tools: pages it opens itself, or you share when VS Code asks) | this AI chat (GitHub Copilot) | User''s own GitHub account (may be shared with Microsoft), each time Copilot reads the page; personal plans may train on it unless switched off |'
 privacy-employers:
   page: privacy.html
-  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed; Breezy: the address you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. The AI tells you first.'
+  text: 'EmployersWhat you apply with.When you click Save or Submit. Many sites get your resume as soon as it’s chosen; some get other parts as they’re filled (Ashby: each answer as its box is filled, a town or school letter by letter as it’s typed; Breezy: the address you type goes to Google letter by letter, for place suggestions; Teamtailor: a town letter by letter as it’s typed), or your email (some also name and phone) at their first Continue or Next. Taleo keeps what you apply with on your account there for next time. When the app starts from an employer’s careers page, it reads that posting page once to find where Apply leads. The AI tells you first.'
   why: 'privacy table: what employers get, per system'
   rests_on:
   - file: AGENTS.md
@@ -107,6 +107,9 @@ privacy-employers:
     - '| Name, email, phone you start with | that employer''s ADP Workforce Now site | That employer, when you click Continue on its start box - before the form |'
     - '| Email you start with | that employer''s Oracle Recruiting Cloud site | That employer, when you click Next on its start box - before the form |'
     - '| Email you start with | that employer''s iCIMS site | That employer, when you click Next on its start box - before the form |'
+    - '| Resume you apply with | that employer''s Taleo site | That employer, as soon as it''s chosen and attached (only after you say yes) - before Submit; kept on your account there |'
+    - '| Contact details, work history, education, answers you apply with | that employer''s Taleo site | That employer, as you click Save and Continue on each step - before Submit; kept on your account there |'
+    - '| Which posting you''re applying to (its public page read once, nothing about you) | that employer''s careers site (Radancy ...) | That employer, when an application starts from its posting link (to find where Apply leads) |'
 privacy-email:
   page: privacy.html
   text: Your email providerThe morning email, sent to yourself.Only if you turn on email alerts.
