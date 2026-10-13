@@ -824,28 +824,38 @@ def ensure_mac_icon(old: Path | None = None, app: Path | None = None) -> None:
                        env={**os.environ, "HOME": str(paths.home)})
 
 
+OLD_DESKTOP_NAME = "Job Finder"  # installs before 2026-09-26
+
+
 def windows_shortcut_script(launcher: Path = WINDOWS_LAUNCHER, icon: Path = WINDOWS_ICON) -> str:
     launcher, icon = (str(v).replace("'", "''") for v in (launcher, icon))
-    # missing shortcut stays missing; one aimed elsewhere (another copy) is not ours
+    # missing shortcut stays missing; one aimed elsewhere (another copy) is not ours.
+    # Old name renamed to ours unless ours exists => one icon, never two
     return f"""$ErrorActionPreference = 'Stop'
-$p = Join-Path ([Environment]::GetFolderPath('Desktop')) '{cfg.NAME}.lnk'
-if (-not (Test-Path -LiteralPath $p)) {{ exit 0 }}
-$l = (New-Object -ComObject WScript.Shell).CreateShortcut($p)
-if ($l.TargetPath -ne '{launcher}') {{ exit 0 }}
-$l.IconLocation = '{icon},0'
-$l.WindowStyle = 7
-$l.Save()
+$desk = [Environment]::GetFolderPath('Desktop')
+$new = Join-Path $desk '{cfg.NAME}.lnk'
+foreach ($name in @('{cfg.NAME}.lnk', '{OLD_DESKTOP_NAME}.lnk')) {{
+    $p = Join-Path $desk $name
+    if (-not (Test-Path -LiteralPath $p)) {{ continue }}
+    $l = (New-Object -ComObject WScript.Shell).CreateShortcut($p)
+    if ($l.TargetPath -ne '{launcher}') {{ continue }}
+    $l.IconLocation = '{icon},0'
+    $l.WindowStyle = 7
+    $l.Save()
+    if ($p -ne $new -and -not (Test-Path -LiteralPath $new)) {{ Rename-Item -LiteralPath $p -NewName '{cfg.NAME}.lnk' }}
+}}
 """
 
 
 def ensure_windows_icon(done: Path = WINDOWS_ICON_DONE, run=autorun.powershell) -> None:
-    # installs before 2026-10-03 got VS Code's icon + a console window over the screen during
-    # launch. Shortcut re-pointed once (brand icon, minimized); hidden powershell, never a 2nd icon
-    if done.exists():
+    # older installs: VS Code's icon, console over the screen, old name. Re-pointed by hidden
+    # powershell; marker holds the script run => script change or moved install reruns it once
+    script = windows_shortcut_script()
+    if done.is_file() and done.read_text(encoding="utf-8") == script:
         return
-    if run(windows_shortcut_script()).returncode == 0:
+    if run(script).returncode == 0:
         done.parent.mkdir(parents=True, exist_ok=True)
-        done.write_text("")
+        done.write_text(script, encoding="utf-8")
 
 
 def ensure_start_shortcut(path: Path | None = None) -> None:

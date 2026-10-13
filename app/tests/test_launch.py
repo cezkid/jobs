@@ -564,8 +564,8 @@ def test_copilot_window_gets_its_chat_sidebar_without_claude(tmp_path, monkeypat
 def test_windows_shortcut_refresh_only_touches_this_installs_shortcut():
     # re-pointing a shortcut to another copy (or making a new one) would leave two icons / wrong app
     script = launch.windows_shortcut_script(launch.WINDOWS_LAUNCHER, launch.WINDOWS_ICON)
-    guard = f"if ($l.TargetPath -ne '{launch.WINDOWS_LAUNCHER}') {{ exit 0 }}"
-    assert "if (-not (Test-Path -LiteralPath $p)) { exit 0 }" in script
+    guard = f"if ($l.TargetPath -ne '{launch.WINDOWS_LAUNCHER}') {{ continue }}"
+    assert "if (-not (Test-Path -LiteralPath $p)) { continue }" in script
     assert guard in script
     assert script.index("Test-Path") < script.index(guard) < script.index("IconLocation") < script.index("$l.Save()")
     assert f"$l.IconLocation = '{launch.WINDOWS_ICON},0'" in script
@@ -597,6 +597,21 @@ def test_windows_icon_refreshed_once_retried_after_failure(tmp_path):
     launch.ensure_windows_icon(done, run)
     assert done.exists() and len(runs) == 2
     assert runs[0] == launch.windows_shortcut_script()
+
+
+def test_windows_icon_reruns_when_script_changed(tmp_path):
+    # marker from older script (no old-name pass) left "Job Finder" on VS Code's icon
+    runs = []
+    done = tmp_path / "desktop-icon-refreshed"
+    done.write_text("")
+    launch.ensure_windows_icon(done, lambda s: runs.append(s) or type("R", (), {"returncode": 0}))
+    assert len(runs) == 1 and done.read_text(encoding="utf-8") == runs[0]
+
+
+def test_windows_shortcut_script_takes_old_name_too():
+    # installs before 2026-09-26 named it "Job Finder" => never re-pointed, kept VS Code's logo
+    script = launch.windows_shortcut_script()
+    assert f"'{launch.OLD_DESKTOP_NAME}.lnk'" in script and "Rename-Item" in script
 
 
 def test_scratch_vscode_keeps_every_path_and_call_off_the_owners(tmp_path, monkeypatch):
