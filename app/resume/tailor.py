@@ -834,6 +834,15 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
     if posting_file:
         got = handoff.read_answer(posting_files(posting_file)[1], jd.EXTRACT_SCHEMA)
         job = jd.from_text(posting_file.read_text(encoding="utf-8"), url, got)
+        # a listed job whose page text was pasted (job search had no requirements for it) keeps
+        # its row's key => same job number, status and folder as the list shows
+        conn = store.connect(cfg.db_path(config))
+        try:
+            row = store.jobs_by_link(conn, url)
+        finally:
+            conn.close()
+        if row is not None:
+            job["public_slug"] = row["public_slug"]
     else:
         with httpx.Client(timeout=config["api"]["timeout_s"]) as client:
             # what the application asks: same request family as the posting, its listing id only
