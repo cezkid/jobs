@@ -25,6 +25,7 @@ from datetime import date
 from pathlib import Path
 
 import cfg
+import status
 from apply import answers as saved_answers
 from apply import browser, careers_page, questions, readahead, systems
 from resume import render, schema, tailor
@@ -302,6 +303,8 @@ def fill(slug: str, in_window: bool = False) -> None:
           "Nothing is sent until the user clicks Submit.")
     if in_window and (note := window.AT_SUBMIT.get(system.NAME)):
         print(f"note: {note}")
+    if not other:  # last page filled: the ask goes out now, not once they come back
+        status.filled(folder, config)
 
 
 def closed(page, system=None, url: str | None = None) -> str | None:

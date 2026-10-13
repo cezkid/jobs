@@ -132,7 +132,8 @@ Status = saved, resume made, applied, heard back, interview, no, offer, not send
   start. Launch files any folder out of place; one they drag by hand goes back - they tell you
   instead. Never moved on a timer, never deleted. Why + rules: `app/docs/jobs/job-folders.md`.
 - `tailor check` passing records "resume made" itself.
-- `job-apply` ends w/ one clickable "Did you send it?": Sent / Not yet / Not sending.
+- `job-apply` ends w/ one clickable "Did you send it?": Sent / Not yet / Not sending - in the
+  handover reply itself (users click Submit + leave; asked "once done" it never came).
 - First reply of a chat that asks nothing else: `uv run app/jobs.py status ask`. Prints a job ->
   after their request, ONE clickable question naming it ("Job 12 - Acme, Data Analyst: resume
   made 5 days ago. Did you send it?"): Sent -> `status set 12 applied`, Not sending ->

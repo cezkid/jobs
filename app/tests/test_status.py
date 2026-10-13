@@ -572,3 +572,29 @@ def test_undo_of_first_status_leaves_none(conn, tmp_path):
     status.set_state(conn, job, "applied", NOW)
     status.undo(conn, job["key"], "applied")
     assert status.get(conn, job["key"]) is None
+
+
+def test_filled_form_asked_at_next_chat_not_3_days_on(conn, tmp_path):
+    # users click Submit on the page + never come back to say so: the handover ask was missed,
+    # the job sat at resume made (reported 2026-10)
+    made_on(conn, tmp_path, "Acme - Analyst", "https://acme.example/1", "2026-09-22T12:00:00Z")
+    made_on(conn, tmp_path, "Globex - Analyst", "https://globex.example/1", "2026-09-29T09:00:00Z")
+    globex = tmp_path / "Globex - Analyst"
+    assert status.record_filled(conn, globex, "2026-09-29T10:00:00Z") == store.number(conn, "Globex - Analyst")
+    asked = status.to_ask(conn, NOW)
+    assert asked["company"] == "Globex" and asked["filled_at"] == "2026-09-29T10:00:00Z"
+    assert status.to_ask(conn, NOW) is None  # never twice the same day
+    assert status.to_ask(conn, "2026-10-02T12:00:00Z")["company"] == "Acme"  # back to the 3-day rule
+    status.record_filled(conn, globex, "2026-10-02T13:00:00Z")
+    assert status.to_ask(conn, "2026-10-02T14:00:00Z")["company"] == "Globex"  # filled again: news again
+    status.set_state(conn, status.resolve(conn, tmp_path, "https://globex.example/1"), "applied", "2026-10-02T15:00:00Z")
+    assert all(r["company"] != "Globex" for r in status._filled(conn, "2026-10-02T16:00:00Z"))
+    assert ("2026-09-29", "Application filled") in status.history(conn, "https://globex.example/1")
+
+
+def test_fill_prints_the_ask_with_the_job_number(conn, tmp_path, capsys, monkeypatch):
+    d = make_folder(tmp_path, "Globex - Data Analyst", PASTED_URL, "Globex", "Data Analyst", "globex-data-analyst")
+    monkeypatch.setattr(status.cfg, "db_path", lambda config: tmp_path / "jobs.db")
+    status.filled(d, {})
+    out = capsys.readouterr().out
+    assert "same reply as the handover" in out and "Did you send it?" in out and " applied" in out

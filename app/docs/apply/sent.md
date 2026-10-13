@@ -5,9 +5,11 @@ made" and the job keeps asking. Code: `app/sent.py`, run as `uv run app/jobs.py 
 
 ## Two moments to catch it
 
-1. **Right after Submit** (`job-apply` last step): read the tab yourself before asking "Did you
-   send it?". Sent page or applied list shows it -> `status set N applied`, one line saying so,
-   no question. Nothing shows -> ask as before.
+1. **At handover** (`job-apply` last step): "Did you send it?" goes in the handover reply itself -
+   asked once the user said they were done, it never came for most (they click Submit + leave).
+   Answered while the tab is open -> read it: sent page or applied list shows it -> `status set N
+   applied` even on "Not yet". `apply` / `apply-form fill` log the fill (`filled` event), so the
+   next chat's `status ask` puts this job first, not 3 days on.
 2. **Later**, user unsure or a job sat in Waiting on you: `status sent`. Each job not marked
    sent -> `sent` / `likely not sent` / `can't tell` / `no visits`, w/ why. Never records
    anything itself.

@@ -1177,12 +1177,19 @@ def fill_setup(tmp_path, monkeypatch, name):
     return opened
 
 
+def handover(out: str) -> str:
+    """Fill's report up to the handover: the "Did you send it?" ask line after it, checked + dropped."""
+    *rest, ask = out.splitlines(keepends=True)
+    assert ask.startswith("last, in the same reply as the handover") and "naming Job 7" in ask
+    return "".join(rest)
+
+
 def test_in_window_off_by_default_fill_stays_in_chrome(tmp_path, monkeypatch, capsys):
     opened = fill_setup(tmp_path, monkeypatch, "Greenhouse")
     monkeypatch.setattr(form.sys, "argv", ["form.py", "fill", "7"])
     form.main()
     assert opened == ["chrome"]
-    assert capsys.readouterr().out.endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
+    assert handover(capsys.readouterr().out).endswith("Chrome is open on the filled form. Nothing is sent until the user clicks Submit.\n")
 
 
 @pytest.mark.parametrize("name", ["Greenhouse", "Ashby", "Lever", "JazzHR", "BambooHR", "Manatal", "Breezy", "Teamtailor"])
@@ -1193,7 +1200,7 @@ def test_in_window_fills_its_systems_in_the_window_tab(tmp_path, monkeypatch, ca
     out = capsys.readouterr().out
     assert opened == ["window"] and "  [ok] First Name\n" in out
     said = "The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
-    assert out.endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name not in ("Greenhouse", "Ashby") else ""))
+    assert handover(out).endswith(said + (f"note: {window.AT_SUBMIT[name]}\n" if name not in ("Greenhouse", "Ashby") else ""))
 
 
 def test_in_window_refuses_every_other_system(tmp_path, monkeypatch):
@@ -1238,8 +1245,8 @@ def test_in_window_fills_the_owners_multipage_systems_on_the_held_tab(tmp_path, 
     form.fill("7", in_window=True)
     out = capsys.readouterr().out
     assert opened == ["window"] and "  [ok] First Name\n" in out
-    assert out.endswith("The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
-                        f"note: {window.AT_SUBMIT[module.NAME]}\n")
+    assert handover(out).endswith("The Job Finder window shows the filled form. Nothing is sent until the user clicks Submit.\n"
+                                  f"note: {window.AT_SUBMIT[module.NAME]}\n")
     assert "from the start without --in-window (Chrome)" in window.AT_SUBMIT[module.NAME]
 
 

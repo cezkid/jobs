@@ -137,8 +137,7 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
 7. `window.__jf.errors()` must be `[]`. Then tell the user: what was filled (counts), each ASK
    item, what is left (website, questions), and that nothing is saved until they
    click **Save and Continue**. Later steps (questions, disclosures, review) = ask, never guess.
-8. Last, once they're done on the page: `AGENTS.md` #Where each job stands - one clickable
-   "Did you send it?" (below).
+8. Last, in this same reply: one clickable "Did you send it?" (below) - `apply` printed its line.
 
 Token care: poll with the short status call only; no screenshots while the window is hidden
 (they come back black) - use `status()`, `errors()` or `find`.
@@ -221,20 +220,26 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    Greenhouse (Chrome or `--in-window`): also say after Submit it may email them a security code -
    they paste it on the page, then it goes through; the employer's spam setting decides
    (`app/docs/apply/greenhouse.md` #Email security code after Submit).
-6. Last: `AGENTS.md` #Where each job stands - one clickable "Did you send it?" (below).
+6. Last, in this same reply: one clickable "Did you send it?" (below) - `fill` printed its line
+   on the last page. Form over several pages: after the last page's fill.
 
 ## Did you send it?
 
-Look first, ask second (`app/docs/apply/sent.md`). Once they say they're done on the page, read
-the tab yourself: Greenhouse address ends `/confirmation`; Workday lands on Candidate Home
-(`/jobTasks/completed/application`); UKG -> My Presence, Applications lists the job; Taleo says
-"Process completed" (`prepare` there says so). Shown ->
-`status set 12 applied`, say so in one line, no question. Ashby + any page showing nothing ->
-ask below.
+Asked in the handover reply itself, never "once they're done": most users click Submit on the
+page and never come back to the chat, so a question waiting on that never came and the job stayed
+"resume made" (users reported it). The clickable question waits while they check + click Submit;
+they answer after. `apply` / `fill` record the fill, so a next chat asks again if it went unanswered
+(`status ask`). Copilot with no askQuestions tool / ChatGPT: the same three as a numbered list,
+"reply with the number once you've clicked Submit".
 
-End of every apply, one question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):
+They answer while the tab is still open -> look first (`app/docs/apply/sent.md`): Greenhouse address
+ends `/confirmation`; Workday lands on Candidate Home (`/jobTasks/completed/application`); UKG -> My
+Presence, Applications lists the job; Taleo says "Process completed" (`prepare` there says so). "Not yet" but the sent page shows -> say so, `status set 12
+applied`. Ashby + any page showing nothing -> their answer stands.
+
+One question, clickable, naming the job ("Job 12 - Acme, Data Analyst"):
 - **Sent** -> `uv run app/jobs.py status set 12 applied`
-- **Not yet** -> nothing; a later chat asks again in a few days (`status ask`)
+- **Not yet** -> nothing; the next chat asks once more (`status ask`), then every few days
 - **Not sending** -> `uv run app/jobs.py status set 12 not_sending`
 Say what was recorded in one line ("Job 12 marked sent - its folder is now in My Jobs, Applied").
 Never click Submit to make the answer true (hard limits).
