@@ -23,7 +23,7 @@ STATES = {
     "closed": "Closed",
 }
 # what happens to an application w/o changing where it stands: logged beside the states, never one
-EVENTS = {"followed_up": "Followed up"}
+EVENTS = {"followed_up": "Followed up", "filled": "Application filled"}
 LINK_LINE = "- Link: "
 # resume made this many days ago -> asked "did you send it?" at chat start; untouched this long
 # -> drops out of Waiting on you
@@ -171,6 +171,40 @@ def backfill(conn, jobs_dir: Path) -> int:
     return added
 
 
+def record_filled(conn, job_dir: Path, at: str) -> int | None:
+    """An application filled for this job (`apply`, `apply-form fill`): the next chat asks "did you
+    send it?" at once, not 3 days on - users click Submit on the page and never come back to the
+    chat to say so (the question waited on that). Job number back for the ask line; None = not a
+    job folder."""
+    f = folder(job_dir)
+    if f is None:
+        return None
+    _record(conn, f, at)
+    key = folder_key(f)
+    log_event(conn, key, "filled", at)
+    return numbered(conn, [dict(f, key=key)])[0]["num"]
+
+
+def filled(job_dir: Path, config: dict) -> None:
+    """Fill commands' last line: the job recorded as filled + the ask, put in this reply. Asked
+    only once the user said they were done, it never came for most - they click Submit and leave."""
+    num = None
+    try:  # never stops the fill: the ask still goes, w/ the number its folder name carries
+        conn = store.connect(cfg.db_path(config))
+        try:
+            num = record_filled(conn, job_dir, store.utc_now())
+        finally:
+            conn.close()
+    except Exception:
+        pass
+    if num is None and (lead := job_dir.name.split(" - ")[0]).isdigit():
+        num = int(lead)
+    if num is not None:
+        print(f"last, in the same reply as the handover (never wait for them to say they're done): ONE clickable"
+              f" 'Did you send it?' naming Job {num} - Sent -> status set {num} applied, Not yet -> nothing,"
+              f" Not sending -> status set {num} not_sending")
+
+
 def record_made(conn, job_dir: Path, at: str) -> None:
     """`tailor check` passed => resume made, w/o the user saying so."""
     f = folder(job_dir)
@@ -309,19 +343,39 @@ def waiting(conn, now: str) -> list[dict]:
     return [r for r in _made(conn, now) if not posting_closed(conn, r)]
 
 
+def _filled(conn, now: str) -> list[dict]:
+    """Not marked sent, application filled since its stage began and not asked about since -
+    oldest fill first. Its own 14 days: a fill is new news even on an old resume."""
+    out = []
+    for r in conn.execute("SELECT * FROM applications WHERE state IN ('saved', 'resume_made')"):
+        at = last_event(conn, r["key"], "filled", r["state_at"])
+        asked = conn.execute("SELECT at FROM asked WHERE key = ?", (r["key"],)).fetchone()
+        if at and _days(at, now) < QUIET_AFTER_DAYS and not (asked and asked["at"] >= at):
+            out.append(dict(r, filled_at=at))
+    return sorted(out, key=lambda r: r["filled_at"])
+
+
 def to_ask(conn, now: str) -> dict | None:
-    """The one job to ask 'did you send it?' about at chat start: oldest resume made 3+ days
-    ago, unless it was asked in the last 3 days. One job, never a stack; the ask is recorded
-    here, so a second chat opened the same day asks nothing. Posting gone from the job search
-    -> `closed_since` set: asked whether it went before it closed."""
+    """The one job to ask 'did you send it?' about at chat start: an application filled and not
+    asked about since (`filled_at` set) first, else the oldest resume made 3+ days ago, unless it
+    was asked in the last 3 days. One job, never a stack; the ask is recorded here, so a second
+    chat opened the same day asks nothing. Posting gone from the job search -> `closed_since`
+    set: asked whether it went before it closed."""
     with conn:
-        due = [r for r in _made(conn, now) if _days(r["state_at"], now) >= ASK_AFTER_DAYS]
-        if not due:
-            return None
-        oldest = due[0]
-        asked = conn.execute("SELECT at FROM asked WHERE key = ?", (oldest["key"],)).fetchone()
-        if asked and _days(asked["at"], now) < ASK_AFTER_DAYS:
-            return None
+        oldest = next(iter(_filled(conn, now)), None)
+        if oldest is None:
+            due = [r for r in _made(conn, now) if _days(r["state_at"], now) >= ASK_AFTER_DAYS]
+            if not due:
+                return None
+            oldest = due[0]
+            asked = conn.execute("SELECT at FROM asked WHERE key = ?", (oldest["key"],)).fetchone()
+            if asked and _days(asked["at"], now) < ASK_AFTER_DAYS:
+                return None
+            # a filled form asked about today + still unanswered: that was today's one question
+            last = conn.execute("SELECT MAX(asked.at) FROM asked JOIN applications USING (key)"
+                                " WHERE state IN ('saved', 'resume_made')").fetchone()[0]
+            if last and _days(last, now) < 1:
+                return None
         conn.execute("INSERT INTO asked VALUES (?, ?) ON CONFLICT (key) DO UPDATE SET at = excluded.at",
                      (oldest["key"], now))
     return dict(oldest, closed_since=posting_closed(conn, oldest))
@@ -519,7 +573,8 @@ def main() -> None:
                 print("nothing to ask")
                 return
             print(line(numbered(conn, [row])[0]))
-            made = f"resume made {int(_days(row['state_at'], now))} days ago"
+            made = (f"application filled {int(_days(row['filled_at'], now))} days ago, not marked sent"
+                    if row.get("filled_at") else f"resume made {int(_days(row['state_at'], now))} days ago")
             if row["closed_since"]:
                 print(f"{made}; posting gone from the job search since {row['closed_since']} (may be closed)"
                       f" - ask once: did you send it before it closed? (Sent -> applied, Not sent -> closed)")
