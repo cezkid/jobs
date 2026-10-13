@@ -731,6 +731,13 @@ def job_dir_for(root: Path, job: dict, num: int, stage: str) -> Path:
         return found
     path = root / stage / folder_name(job, num)
     path.mkdir(parents=True, exist_ok=True)
+    if root.resolve() == (cfg.ROOT / "My Jobs").resolve():
+        # its tabs named "12 resume" etc. from now on (workspace.tab_labels); VS Code reads it live
+        try:
+            import launch
+            launch.write_workspace(launch.chosen_ai())
+        except Exception:
+            pass  # names come at the next start; never stops the resume
     return path
 
 

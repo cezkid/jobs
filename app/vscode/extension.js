@@ -55,6 +55,7 @@ function activate(context) {
     { webviewOptions: { retainContextWhenHidden: true }, supportsMultipleEditorsPerDocument: false }));
   jobsTree = showJobs(context);
   watchLinks(context);
+  watchPane(context);
   noteRunning(context);
   const out = process.env[PROBE_ENV];
   // probe told which pages to open => measures that alone, not the start page
@@ -681,12 +682,44 @@ async function hasBrowser() {
 
 // posting / company link => a tab in this window, system browser when VS Code has no browser.
 // A string, not a Uri: passed on exactly as written (a Uri re-encodes it; a rebuilt link 404s)
-function openLink(url) {
+// side = a click on Today / the Jobs panel: `{openToSide}` = VS Code's side group, locked once
+// opened so the user's own files never land in it (bundle read 1.141); the pane reuses it
+function openLink(url, side = false) {
+  paneFrom = side ? vscode.window.tabGroups.activeTabGroup : paneFrom;
   return today.openLink(url, {
     hasBrowser,
-    inWindow: (link) => vscode.commands.executeCommand(BROWSER_OPEN, link),
+    inWindow: side ? (link) => pane.show(link, () => vscode.commands.executeCommand(BROWSER_OPEN, { url: link, openToSide: true }))
+      : (link) => vscode.commands.executeCommand(BROWSER_OPEN, link),
     external: (link) => vscode.env.openExternal(link),
   });
+}
+
+// focus to editor group N (1-based, VS Code's own commands; past the 8th: left as is)
+const FOCUS_GROUP = ["First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth"]
+  .map((n) => `workbench.action.focus${n}EditorGroup`);
+
+// job title / company clicked on Today or in the Jobs panel => one pane beside the page
+// (today.readingPane). paneFrom = the group clicked from: focus goes back there
+let paneFrom = null;
+const pane = today.readingPane({
+  tabs: () => vscode.window.tabGroups.all.flatMap((group) => group.tabs),
+  active: () => vscode.window.tabGroups.activeTabGroup && vscode.window.tabGroups.activeTabGroup.activeTab,
+  close: (tab) => vscode.window.tabGroups.close(tab, true),
+  back: () => {
+    const all = vscode.window.tabGroups.all;
+    const at = paneFrom ? all.indexOf(paneFrom) : -1;
+    if (at >= 0 && FOCUS_GROUP[at]) return vscode.commands.executeCommand(FOCUS_GROUP[at]);
+  },
+  wait: (ms) => new Promise((ok) => setTimeout(ok, ms)),
+});
+
+// focus on a pane's page = the user's now (a form maybe started there): never replaced
+function watchPane(context) {
+  const touched = () => {
+    const group = vscode.window.tabGroups.activeTabGroup;
+    pane.touched(group && group.activeTab);
+  };
+  context.subscriptions.push(vscode.window.tabGroups.onDidChangeTabGroups(touched), vscode.window.tabGroups.onDidChangeTabs(touched));
 }
 
 // `jobs.py open "<link>"` (every AI shows a link with it) => a tab here; `jobs.py clear-signins` =>
@@ -864,12 +897,12 @@ async function detachForm(id) {
 async function doAction(root, at, action, ui) {
   if (action.type === "posting") {
     const url = today.cleanUrl(action.url);
-    if (url) await openLink(url);
+    if (url) await openLink(url, true);
     return;
   }
   if (action.type === "company") {
     const url = today.cleanSite(action.url);
-    if (url) await openLink(url);
+    if (url) await openLink(url, true);
     return;
   }
   if (action.type === "open") {

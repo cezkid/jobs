@@ -6,8 +6,10 @@ JOBS_TEST_REAL_HOME) it takes ~5 min; the rest of the speed comes from running f
 a function) changed, or a file one of those imports changed (DEPTH). Reaches past imports, each erring wide:
 - a command a test runs through jobs.py (argv "jobs.py", "today" or `jobs.py today`) -> that command's module;
   a test naming `app/launch.py` or another top-level file run as a process -> that module;
-- a data file (`defaults.yml`, `setup-form.json`, `today.js`): every module or test whose source names
-  it counts as changed;
+- a data file (`defaults.yml`, `setup-form.json`, `today.js`): every module or test whose code names
+  it counts as changed - in a string, never a comment or docstring (`code_strings`): modules cite docs
+  in comments, and that rule picked 50 test files, 4:41, for a doc + window-extension edit (2026-10-13);
+  one step less from it than from a changed module (it already is the file's user);
 - any `.md`: test_docs (every link checked); `docs/` or `app/web/`: the site tests;
 - conftest, pyproject.toml, uv.lock, this file: everything.
 An estimate to work fast: the whole suite for the parts touched (`--touched`) still runs before a fix is sent
@@ -17,6 +19,7 @@ An estimate to work fast: the whole suite for the parts touched (`--touched`) st
 branch changed since main (`parts`). The site's claims about the app run in both (BOTH).
 """
 import ast
+import re
 import subprocess
 from collections import defaultdict
 from pathlib import Path
@@ -117,6 +120,17 @@ def imports(path: Path, known: dict[str, Path]) -> set[str]:
     return out & known.keys()
 
 
+def code_strings(text: str) -> str:
+    """Every string in a file's code, docstrings left out (comments never reach the tree): where a file
+    names another it reads or runs."""
+    tree = ast.parse(text)
+    docs = {id(n.body[0].value) for n in ast.walk(tree)
+            if isinstance(n, (ast.Module, ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and n.body
+            and isinstance(n.body[0], ast.Expr) and isinstance(n.body[0].value, ast.Constant)}
+    return "\n".join(n.value for n in ast.walk(tree)
+                     if isinstance(n, ast.Constant) and isinstance(n.value, str) and id(n) not in docs)
+
+
 def select(changed: list[str], depth: int = DEPTH) -> tuple[set[str] | None, list[str]]:
     """Test file names to run (None = all) and why, for a list of repo-relative changed paths."""
     if EVERYTHING & set(changed):
@@ -124,7 +138,8 @@ def select(changed: list[str], depth: int = DEPTH) -> tuple[set[str] | None, lis
     known = nodes()
     by_path = {p.resolve(): n for n, p in known.items()}
     sources = {n: p.read_text(encoding="utf-8") for n, p in known.items()}
-    hit, why, tests = set(), [], set()
+    strings = {n: code_strings(s) for n, s in sources.items()}
+    hit, read, why, tests = set(), set(), [], set()
     for f in changed:
         path = (ROOT / f).resolve()
         if path in by_path:
@@ -135,10 +150,12 @@ def select(changed: list[str], depth: int = DEPTH) -> tuple[set[str] | None, lis
             hit |= {n for n, s in sources.items() if Path(f).stem in s}
             continue
         name = Path(f).name
-        named = {n for n, s in sources.items() if name in s}
+        # whole name only: "today.js" is no hit in "today.json"
+        whole = re.compile(rf"(?<![\w.-]){re.escape(name)}(?![\w.-])")
+        named = {n for n, s in strings.items() if whole.search(s)}
         if named:
             why.append(f"{f} named in {len(named)} files")
-        hit |= named
+        read |= named
         if f.endswith(".md"):
             tests.add("test_docs.py")
         if f.startswith(SITE_PATHS):
@@ -149,9 +166,12 @@ def select(changed: list[str], depth: int = DEPTH) -> tuple[set[str] | None, lis
             users[m].add(n)
     # conftest is every test's helper, not a user of what it imports: through it all would reach all
     users = {m: u - {"conftest"} for m, u in users.items()}
-    reached = front = set(hit)
-    for _ in range(depth):
-        front = {u for m in front for u in users.get(m, ())} - reached
-        reached |= front
+    # a module reading a changed data file is already one step from the change => one step less from it
+    reached = set(hit) | read
+    for start, steps in ((hit, depth), (read, depth - 1)):
+        front = set(start)
+        for _ in range(steps):
+            front = {u for m in front for u in users.get(m, ())} - reached
+            reached |= front
     tests |= {known[n].name for n in reached if known[n].parent == TESTS and known[n].name.startswith("test_")}
     return tests, why
