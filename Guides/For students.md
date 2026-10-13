@@ -56,7 +56,8 @@ summer internship" is enough.
 - **Recorded video interviews** (HireVue and others): each employer sets the thinking time, the
   answer time and whether you get a retake - read the screen before each question. Practise out
   loud with a timer.
-- **Online tests and case interviews:** practise the kind they name, before the day.
+- **Online tests and case interviews:** practise the kind they name, before the day. Coding tests:
+  [Online coding tests](Online%20coding%20tests.md).
 - **Not during the real thing:** Job Finder won't help while an interview, a take-home task or a
   test is under way - breaks between rounds too. Employers that publish a rule allow AI to prepare
   but not during, and some say they may disqualify for it.

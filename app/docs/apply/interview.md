@@ -151,6 +151,24 @@ before: RMF 705, Zero Trust 464, OWASP 339, STIG 334, MITRE ATT&CK 330, CIS Cont
 leader (risk to a board); convention from the postings' own duties, not a study. Classified detail is never
 practised - the nondisclosure agreement binds for life (SF-312); clearance said as held (#Clearances).
 
+## Online coding tests (research 2026-10-13)
+
+User guide: `Guides/Online coding tests.md` (open it when someone has one). CodeSignal = most detailed
+help pages; candidate accounts thin (Reddit unreachable; Blind, Medium, Trustpilot).
+
+| Rule | Basis | Strength |
+|---|---|---|
+| Practice task made up, same shape: one project, 4 levels unlocking in order, timer never paused, hidden checks at submit | CodeSignal: progressive test 90 min, 4 levels, all 4 not expected (support 19116922232983); no pausing, auto-submit at time-out (360045953873); hidden tests on Submit only (4407377701015) | maker's docs |
+| Length, stack, which AI: from the invitation / first screen, never assumed | employer sets time (360045953873); full-stack test names differ by page, none gives stack or length; Cosmo chat (16957386089879) vs agentic tests w/ Claude Code, Cursor or Codex (39883270333591) | maker's docs |
+| Practise their own practice area first | app.codesignal.com/assessments/practice, companies don't see it (21025134150423); Saivivek, Medium 2026-06-27 | maker's docs; one account |
+| Rules screen = final word | web search: "syntax reference only" (360040370993) vs "will result in disqualification" (GCA, 360051960134) vs "most assessments allow" internet (15171059136407) | maker's docs (disagree) |
+| Outside help can void the result | rejected proctoring shows the employer "Proctoring Rejected" (4409230511767); reasons: not alone, off camera, other devices, external editor, search (4410928668823) | maker's docs |
+| AI helper: small asks, check by running tests | Cosmo sees code, no outright answers, transcript to employer (16957386089879); candidates: ~30 s an answer, can't run code, hallucinates (Blind, one employer's screen) | maker's docs; several accounts |
+| Start days before the deadline | crash + auto-submit on refresh (Blind 2025-10-27); new link = employer's call (360040372833) | one account; maker's docs |
+
+Not found: a multiple-monitor rule, tab-switch detection, whether AI use itself is graded. Cosmo on
+GPT-4o: one page only.
+
 ## During - never help in a live interview or open test
 
 | Employer | Rule | Source |
