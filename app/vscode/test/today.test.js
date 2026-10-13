@@ -167,6 +167,81 @@ test("links open as a tab in the window, system browser when VS Code has no brow
   }
 });
 
+// owner 2026-10-13: "open similar to how emails open" - one pane beside Today, the next job takes
+// its place; a page the user clicked into (a form maybe half-filled) is never closed for them
+test("job pages: one side pane, next job replaces it unless the user worked in it", async () => {
+  let open = [];
+  let late = 0;
+  let focus = null;
+  const calls = [];
+  const pane = today.readingPane({
+    tabs: () => open,
+    active: () => focus,
+    close: async (tab) => { calls.push(["close", tab.url]); open = open.filter((t) => t !== tab); },
+    back: async () => { calls.push(["back"]); focus = todayTab; },
+    wait: (ms) => new Promise((ok) => setTimeout(ok, ms / 10)),
+  });
+  const todayTab = { url: "Today.md" };
+  const opener = (url) => async () => {
+    calls.push(["open", url]);
+    const tab = { url };
+    if (late) setTimeout(() => open.push(tab), late);
+    else open.push(tab);
+  };
+  const show = (url) => pane.show(url, opener(url));
+  open.push(todayTab);
+  await show("https://a.example/1");
+  assert.equal(pane.shown.url, "https://a.example/1");
+  await show("https://a.example/2");
+  // new one opened before the old closed: the pane never empties
+  assert.deepEqual(calls, [["open", "https://a.example/1"], ["back"], ["open", "https://a.example/2"], ["close", "https://a.example/1"], ["back"]]);
+  assert.deepEqual(open.map((t) => t.url), ["Today.md", "https://a.example/2"]);
+  // user clicks into job 2 => kept when job 3 opens
+  pane.touched(todayTab);
+  assert.equal(pane.shown.url, "https://a.example/2");
+  pane.touched(pane.shown);
+  assert.equal(pane.shown, null);
+  await show("https://a.example/3");
+  assert.deepEqual(open.map((t) => t.url), ["Today.md", "https://a.example/2", "https://a.example/3"]);
+  // user closed the pane themselves => nothing to close, the next one opens alone
+  open = [todayTab];
+  calls.length = 0;
+  await show("https://a.example/4");
+  assert.deepEqual(calls, [["open", "https://a.example/4"], ["back"]]);
+  // page grabs focus as it loads => focus put back, still replaced next time
+  const grab = (url) => async () => {
+    const tab = { url };
+    open.push(tab);
+    setTimeout(() => { focus = tab; pane.touched(tab); }, 5);
+  };
+  await pane.show("https://a.example/g1", grab("https://a.example/g1"));
+  assert.equal(focus, todayTab);
+  await pane.show("https://a.example/g2", grab("https://a.example/g2"));
+  assert.deepEqual(open.map((t) => t.url), ["Today.md", "https://a.example/g2"]);
+  // two clicks at once: one after the other, one page left
+  await Promise.all([show("https://a.example/q1"), show("https://a.example/q2")]);
+  assert.deepEqual(open.map((t) => t.url), ["Today.md", "https://a.example/q2"]);
+  // tab turns up after the command returns => still found + replaced next time
+  late = 120;
+  await show("https://a.example/5");
+  assert.equal(pane.shown.url, "https://a.example/5");
+  assert.deepEqual(open.map((t) => t.url), ["Today.md", "https://a.example/5"]);
+  // focus moving to it while it opens = ours, not the user's
+  late = 0;
+  const touching = today.readingPane({
+    tabs: () => open, active: () => null,
+    close: async (tab) => { open = open.filter((t) => t !== tab); }, back: async () => {}, wait: async () => {},
+  });
+  await touching.show("https://a.example/6", async () => { const t = { url: "https://a.example/6" }; open.push(t); touching.touched(t); });
+  assert.equal(touching.shown.url, "https://a.example/6");
+  // open fails => thrown to the caller (system browser then), nothing closed
+  const failing = today.readingPane({
+    tabs: () => open, active: () => null, close: async () => assert.fail("closed"),
+    back: async () => {}, wait: async () => {},
+  });
+  await assert.rejects(failing.show("https://a.example/7", async () => { throw new Error("no browser"); }));
+});
+
 // a path from the data file opening something outside the user's folders
 test("open buttons only for paths under My Jobs, My Resume, Guides", () => {
   for (const bad of ["../.ssh/id_rsa", "My Jobs/../../x", "/etc/passwd", "C:/Windows/x", "My Jobs\\..\\x", ".data/jobs.db",

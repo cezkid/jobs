@@ -130,6 +130,58 @@ async function openLink(url, { hasBrowser, inWindow, external }) {
   return "external";
 }
 
+// a job's page from Today or the Jobs panel: one pane beside the page, like a mail reader (owner
+// 2026-10-13). The next job's page takes its place; the pane closed => the page gets its full
+// width back (VS Code drops an empty group). Replaced only while untouched: a page clicked into may
+// hold a half-filled form => kept, the next opens beside it (VS Code's own preview-tab rule).
+// show(url, open): open() = the page beside. deps: tabs() = every tab now (VS Code keeps one object
+// per tab), active() = the focused tab, close(tab), back() = focus to where the click came from,
+// wait(ms). Clicks taken one at a time (two at once would both close the same page)
+const PANE_POLLS = 40;
+const PANE_POLL_MS = 50;
+// a page grabs focus as it loads, after the open returns (#v: up to ~0.5 s) => focus put back
+// while it settles, never counted as the user's
+const PANE_SETTLE_POLLS = 12;
+
+function readingPane({ tabs, active, close, back, wait }) {
+  let shown = null;
+  let opening = false;
+  let queue = Promise.resolve();
+  const once = async (url, open) => {
+    const before = new Set(tabs());
+    const old = shown;
+    opening = true;
+    try {
+      await open(url);
+      // the tab can turn up a moment after the command returns (#r: within 0.9 s)
+      let fresh = null;
+      for (let n = 0; !(fresh = tabs().find((t) => !before.has(t))) && n < PANE_POLLS; n++) await wait(PANE_POLL_MS);
+      if (!fresh) return;
+      shown = fresh;
+      // new one first, then the old: the pane never empties (no close + reopen flicker)
+      if (old && tabs().includes(old)) await Promise.resolve().then(() => close(old)).catch(() => {});
+      for (let n = 0; n < PANE_SETTLE_POLLS; n++) {
+        if (n === 0 || active() === fresh) await Promise.resolve().then(back).catch(() => {});
+        await wait(PANE_POLL_MS * 2);
+      }
+    } finally {
+      opening = false;
+    }
+  };
+  return {
+    show(url, open) {
+      const run = queue.then(() => once(url, open));
+      queue = run.catch(() => {});
+      return run;
+    },
+    // the user's focus moved to this tab: the one shown is theirs now, never closed for them
+    touched(tab) {
+      if (!opening && tab && tab === shown) shown = null;
+    },
+    get shown() { return shown; },
+  };
+}
+
 // relative path under one of OPENABLE, `/` between parts, no way out of the folder
 function cleanPath(rel) {
   if (typeof rel !== "string" || !rel || rel.length > 500 || rel.includes("\\") || rel.includes("\0")) return null;
@@ -1065,7 +1117,7 @@ ${BAR}</main>
 module.exports = {
   VIEW_TYPE, WELCOME_TYPE, AI_NAMES, START_LABELS, startLabel, setupReady, afterStart, SHOW_CHAT, ALLOW_HERE, CHOOSE_RESUME, WELCOME_GUIDES, guideAction, SIGN_IN, SIGN_IN_ANY, setupLine, welcome,
   DATA, VERSION, OPENABLE, FONT_DIR, FONTS, fontFaces, NEXT_ORDER, BEST_SHOWN, ROWS_AFTER, CHAT_OPEN, CLAUDE_ID, CLAUDE_TESTED, CLAUDE_NEW_CHAT,
-  escapeHtml, templates, templateFor, cleanUrl, cleanSite, openLink, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
+  escapeHtml, templates, templateFor, cleanUrl, cleanSite, openLink, readingPane, cleanPath, model, claudeTested, sayMode, claudeNewChatArgs, sayText, sayTitle,
   howLine, jobOf, readyLine, doneLabel, CLEAR_MS, SLOW_MS, busyLabel, startingLine, say, STILL_OPENING, STILL_SAVING,
   STATUS_SET, UNDO_MS, statusLine, undoneLine, statusFailed, UNDO_FAILED, statusKeeper,
   LOOKS, LOOK_FILE, lookOf, lookDone, lookSwitch, csp, page, render, FALLBACK, SHOW_PAGE, TRY_AGAIN, fallback,

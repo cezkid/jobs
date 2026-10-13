@@ -1,0 +1,129 @@
+{
+ "what": "v: job pages from Today in one side pane",
+ "uniq": "5e328efa",
+ "at": "2026-10-13T05:24:12Z",
+ "mac": "macOS 26.4.1 x86_64",
+ "launch": {
+  "rc": 0,
+  "stdout": ""
+ },
+ "up": [
+  {
+   "group": 1,
+   "active": true,
+   "tabs": [
+    "Today.md*"
+   ]
+  }
+ ],
+ "steps": {
+  "one": {
+   "ms": 1333,
+   "tabs": [
+    {
+     "group": 1,
+     "active": true,
+     "tabs": [
+      "Today.md*"
+     ]
+    },
+    {
+     "group": 2,
+     "active": false,
+     "tabs": [
+      "job-1*"
+     ]
+    }
+   ]
+  },
+  "replace": {
+   "ms": 1336,
+   "tabs": [
+    {
+     "group": 1,
+     "active": true,
+     "tabs": [
+      "Today.md*"
+     ]
+    },
+    {
+     "group": 2,
+     "active": false,
+     "tabs": [
+      "job-2*"
+     ]
+    }
+   ]
+  },
+  "replace2": {
+   "ms": 1293,
+   "tabs": [
+    {
+     "group": 1,
+     "active": true,
+     "tabs": [
+      "Today.md*"
+     ]
+    },
+    {
+     "group": 2,
+     "active": false,
+     "tabs": [
+      "job-2b*"
+     ]
+    }
+   ]
+  },
+  "touched": {
+   "ms": 1268,
+   "tabs": [
+    {
+     "group": 1,
+     "active": true,
+     "tabs": [
+      "Today.md*"
+     ]
+    },
+    {
+     "group": 2,
+     "active": false,
+     "tabs": [
+      "job-2b",
+      "job-3*"
+     ]
+    }
+   ]
+  },
+  "closed": {
+   "tabs": [
+    {
+     "group": 1,
+     "active": true,
+     "tabs": [
+      "Today.md*"
+     ]
+    }
+   ]
+  },
+  "again": {
+   "ms": 1300,
+   "tabs": [
+    {
+     "group": 1,
+     "active": true,
+     "tabs": [
+      "Today.md*"
+     ]
+    },
+    {
+     "group": 2,
+     "active": false,
+     "tabs": [
+      "job-4*"
+     ]
+    }
+   ]
+  }
+ },
+ "screenshot": "/Users/adminuser/code/jobs/.data/probe-shots/v-pane.png"
+}
