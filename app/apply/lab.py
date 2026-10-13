@@ -44,6 +44,12 @@ IDLE_MS = 20000
 DRAW_MS = 10000
 SETTLE_MS = 6000
 SETTLE_STEP_MS = 500
+# a request the page fires reaches the route only when Playwright's sync API next waits: under load
+# after try moved on to the next box (Email's save credited to the box after, 2 of 3 runs,
+# 2026-10-13). A step ends once QUIET_MS pass with no new request, at most QUIET_CAP_MS
+QUIET_MS = 300
+QUIET_CAP_MS = 5000
+CANARY_MS = 10000
 JSON_KEEP = 2048
 DATA_KEEP = 500_000
 # a form defined in the page itself, not fetched: `window.pageData = {...}` in an inline script
@@ -126,6 +132,17 @@ class Block:
         self.log: list[dict] = []
         self.passed: list[dict] = []
         self.step = "start"
+        self.seen = 0  # every request + socket the route got, reads too
+
+    def settle(self, page) -> None:
+        """Wait for what the step set off to reach the route, before the step moves on: until
+        QUIET_MS pass with no new request (each wait pumps the route), at most QUIET_CAP_MS."""
+        end = time.monotonic() + QUIET_CAP_MS / 1000
+        while time.monotonic() < end:
+            n = self.seen
+            page.wait_for_timeout(QUIET_MS)
+            if self.seen == n:
+                return
 
     def install(self, page) -> None:
         context = page.context
@@ -139,6 +156,7 @@ class Block:
         self.session = session  # detaching drops the bypass
 
     def request(self, route) -> None:
+        self.seen += 1
         r = route.request
         if r.method in READS:
             return route.continue_()
@@ -151,6 +169,7 @@ class Block:
     def socket(self, ws) -> None:
         # never connect_to_server: the page talks to a stub, nothing it sends leaves Chrome.
         # ws.close() here deadlocks the sync API (measured 2026-10-03, Playwright 1.63)
+        self.seen += 1
         self.log.append({"method": "WEBSOCKET", "url": ws.url[:300], "type": "websocket", "after": self.step})
 
 
@@ -239,11 +258,17 @@ def canary(page, block: Block | None) -> dict:
         if block:
             block.step = "canary"
         page.goto(listener.home + "/canary.html")
-        page.wait_for_function("window.fired", timeout=10000)
-        page.wait_for_timeout(1500)  # beacon + keepalive leave after the page's own work
+        page.wait_for_function("window.fired", timeout=CANARY_MS)
         if "/canary.html" not in listener.gets:
             raise Refused("canary page never loaded")
-        blocked = [kind(urlsplit(b["url"]).path) for b in (block.log if block else []) if b["after"] == "canary"]
+        # beacon + keepalive leave after the page's own work: wait till every kind arrived or was
+        # blocked (each wait pumps the route), at most CANARY_MS - one missing fails canary_failed
+        end = time.monotonic() + CANARY_MS / 1000
+        while True:
+            blocked = [kind(urlsplit(b["url"]).path) for b in (block.log if block else []) if b["after"] == "canary"]
+            if KINDS <= {kind(p) for _, p in listener.writes} | set(blocked) or time.monotonic() > end:
+                break
+            page.wait_for_timeout(100)
         return {"received": sorted(kind(p) for _, p in listener.writes), "blocked": sorted(blocked)}
     finally:
         page.goto("about:blank")

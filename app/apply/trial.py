@@ -350,8 +350,10 @@ def trial(url: str, go_next: bool = False, headless: bool = False, upload: bool 
         for p in probes:
             print(f"upload probe, {p['probe']}: [{p.get('fill', '')}] page says: {' | '.join(p['said']) or 'nothing new'}"
                   + (f"; blocked: {', '.join(p['blocked'])}" if p.get("blocked") else ""))
-        report, extra = form.fill_page(page, system, qs, resume, letter,
-                                       before=lambda q: setattr(block, "step", f"filling {q['title']!r}" if q else "after filling"))
+        def step(q) -> None:  # the last box's requests credited to it, not to the next
+            block.settle(page)
+            block.step = f"filling {q['title']!r}" if q else "after filling"
+        report, extra = form.fill_page(page, system, qs, resume, letter, before=step)
         lines, other = form.page_report(qs, mark_blocked(qs, report, block.log), shown, per_page)
         print("\n".join(lines))
         if other:
