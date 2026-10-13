@@ -98,7 +98,7 @@ def posting_history(job: dict) -> str:
 
 def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: list[dict],
               today: date | None = None, master: dict | None = None, form: dict | None = None,
-              mirror_ok: bool = False) -> str:
+              mirror_ok: bool = False, top_confirm: bool = False) -> str:
     enrichment = job.get("enrichment") or {}
     facts = [
         ("Link", job["url"]), ("Posted on", inert_md(job.get("source"))), ("Level", inert_md(enrichment.get("seniority"))),
@@ -110,9 +110,8 @@ def report_md(job: dict, tailored: dict, result: dict, rows: list[dict], gaps: l
     problems = len(result["failed"])
     # wording the resume never says in so many words: still the user's to confirm, so "Yes" names it
     # mirror_ok = settings pre-approve the posting's title in brackets, so it is not asked again
-    # the headline title is asked on every job: mirror_ok pre-approved brackets beside a role's title,
-    # not the top line in place of theirs
-    confirm = len(tailored.get("inferences") or []) + bool(tailored.get("headline_title")) + (0 if mirror_ok else sum(
+    # the top line's title is the posting's on every copy (a label): asked only when it names "Senior" from years
+    confirm = len(tailored.get("inferences") or []) + top_confirm + (0 if mirror_ok else sum(
         1 for e in tailored.get("entries") or [] if e.get("title_mirror")))
     out += ["", *READY.split("\n")[:2],
             f"Not yet - {problems} to fix first." if problems
@@ -185,7 +184,7 @@ def because(reasons: dict[str, str], key: str) -> str:
     return f" - why: {reason}" if reason else ""
 
 
-def diff_md(master: dict, tailored: dict, model: dict, mirror_ok: bool = False) -> str:
+def diff_md(master: dict, tailored: dict, model: dict, mirror_ok: bool = False, top_confirm: bool = False) -> str:
     restated = bullet_texts(tailored)
     reasons = reasons_by_id(tailored)
     chosen = {t["id"]: t for t in tailored["entries"]}
@@ -193,8 +192,14 @@ def diff_md(master: dict, tailored: dict, model: dict, mirror_ok: bool = False) 
     out = ["# What changed from your resume", ""]
 
     mirrors = [t for t in tailored["entries"] if t["title_mirror"]]
-    # the posting's title in the top line: a label for the work they do now, asked on every job
+    # the posting's title in the top line: a label for the job applied for, set on every copy - listed;
+    # asked only when it names "Senior" from their years (a level they never held as a title)
     top = model.get("headline") if tailored.get("headline_title") and model.get("headline") != master.get("headline") else None
+    was = f"yours said \"{master['headline']}\"" if master.get("headline") else "your resume had none"
+    if top and not top_confirm:
+        out += ["## Top line", "", f"- Shown as \"{top}\" ({was}): the posting's title, naming the job you apply "
+                "for. Your job titles below stay as they are.", ""]
+        top = None
     if mirror_ok and mirrors:
         out += ["## Job titles", "", "Your settings say yes to the posting's title in brackets - not asked again.", ""]
         out += [f"- Shown as \"{headings[t['id']]}\"" for t in mirrors]
@@ -204,9 +209,9 @@ def diff_md(master: dict, tailored: dict, model: dict, mirror_ok: bool = False) 
         out += ["## To confirm - is each of these true?", "",
                 "Each one is wording your resume does not say in so many words.", ""]
         if top:
-            was = f"yours said \"{master['headline']}\"" if master.get("headline") else "your resume has no top line"
-            out.append(f"- Top line shown as \"{top}\" ({was}). The title there is the posting's - is it a fair "
-                       f"name for the work you do now? Your job titles below stay as they are.")
+            out.append(f"- Top line shown as \"{top}\" ({was}). \"Senior\" comes from your years in this work, "
+                       f"not a title you held - fair for the level you work at now? Your job titles below stay "
+                       f"as they are.")
         for t in mirrors:
             out.append(f"- Job title shown as \"{headings[t['id']]}\". The part in brackets is the posting's "
                        f"title - is it a fair name for the work you did there?")

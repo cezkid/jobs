@@ -33,6 +33,14 @@ OLD_ROLE_YEARS = 15
 SENIORITY = ("senior", "lead", "leader", "principal", "staff", "manager", "director", "head", "chief", "supervisor",
              "supervising", "charge", "superintendent", "foreman", "architect", "vp", "vice", "president", "founder",
              "ceo", "cto", "cfo", "coo", "cio", "ciso")
+# "Senior" in the top line from years in the work, never held as a title (owner 2026-10-12): the
+# posting's own years ask when it states one, never under SENIOR_YEARS_FLOOR; else SENIOR_YEARS.
+# Live 2026-10-12, US "Senior" titles, 30 days: 5 years the commonest ask in every field measured
+# (software 25/61, finance 21/79, sales 22/79, marketing 21/84, healthcare 15/40); 8 covers 57/61
+# software asks. Top line only: work-history titles stay as held. Lead, Staff, Manager ... never by years
+SENIOR = "senior"
+SENIOR_YEARS = 8
+SENIOR_YEARS_FLOOR = 5
 # a grade numeral ends a title ("Engineer III"); anywhere else it is a word ("IV Infusion Nurse" = intravenous)
 GRADES = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5}
 # words two titles share by accident, not by naming the same work
@@ -66,7 +74,7 @@ TAILORED_SCHEMA = obj(
     reasons=array(obj(id=STRING, reason=STRING)),
 )
 # optional: an answer without reasons still checks; the report just has less to show the user.
-# headline_title too: answers written before it existed keep the user's headline as written
+# headline_title too: left out = null, so the page keeps their headline; the check still names an allowed title
 TAILORED_SCHEMA["required"].remove("reasons")
 TAILORED_SCHEMA["required"].remove("headline_title")
 # headline = "Title | main skills" (docs/resume/page-format.md #The headline): the part before the bar
@@ -111,8 +119,15 @@ MIRROR_ALWAYS = ("The user's settings pre-approve mirrors: add one on every role
                  "genuinely matches the posting's title; null only where it does not.")
 
 
+TOP_LINE_ON = ("Always set it: the top line names the job they apply for. Null only when the master headline is the "
+               "candidate's own sentence (below), when no words of the posting's title are a fair, allowed name for "
+               "their current work, or when they repeat the headline's own title - the check names an allowed title "
+               "when null is wrong.")
+TOP_LINE_OFF = "The user's settings keep their own top line: null."
+
+
 @functools.cache
-def system(font: str, mirror_always: bool = False) -> str:
+def system(font: str, mirror_always: bool = False, top_line: bool = True) -> str:
     one_line_chars, two_line_chars = char_guides(font)
     return f"""You tailor one candidate's resume to one job posting. Input JSON: `master` (candidate facts, stable ids), `job` (posting + indexed requirements), `budget`. You emit selection + rewrite JSON; code lays out the page and checks every rule below.
 
@@ -151,7 +166,7 @@ Wording
 Summary
 - `summary`: at most {render.MAX_BLOCK_WORDS} words and {render.MAX_SUMMARY_LINES} lines, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. A candidate still studying (an education entry with `expected` true, or an `end` after today) leads with the degree they are earning and when ("Statistics student, expected May 2027"), unless their current job is the work this posting is for - never a title they don't hold. It may name a licence or certification the posting requires and the candidate holds. Build it only from facts in master. It sits in a narrower column than the bullets, and its last line follows the bullet rule: well filled, never a stub.
 - A `headline` in master prints above the summary; the summary need not repeat it.
-- `headline_title`: null, or whole words of the posting's title copied exactly (same capitals), when the candidate's CURRENT work genuinely matches it. It replaces the title part of the headline, the words before "{HEADLINE_BAR}": "Software Engineer {HEADLINE_BAR} Python, SQL" becomes "Backend Engineer {HEADLINE_BAR} Python, SQL"; the words after the bar print as written. No headline in master: the title alone becomes one. A master headline without "{HEADLINE_BAR}", or whose part before it is no job title (skills first), is the candidate's own sentence: null. Never abbreviate, never a level their current title or the headline's own title lacks ({", ".join(SENIORITY)}). The headline stays one row: drop words such as a location or team rather than wrap. Its words count as generated words, in place of the title words they replace. The user confirms it on every job.
+- `headline_title`: {TOP_LINE_ON if top_line else TOP_LINE_OFF} Whole words of the posting's title copied exactly (same capitals); pick the plain part ("Data Analyst" of "Data Analyst Rockstar - Remote"). It replaces the title part of the headline, the words before "{HEADLINE_BAR}": "Software Engineer {HEADLINE_BAR} Python, SQL" becomes "Backend Engineer {HEADLINE_BAR} Python, SQL"; the words after the bar print as written. No headline in master: the title alone becomes one. A master headline without "{HEADLINE_BAR}", or whose part before it is no job title (skills first), is the candidate's own sentence: null. Never abbreviate, never a level their current title or the headline's own title lacks ({", ".join(SENIORITY)}) - one exception: "Senior" when their years in this kind of work (roles sharing a word with the title) reach the posting's own years ask (at least {SENIOR_YEARS_FLOOR}), or {SENIOR_YEARS} when it states none; without them, leave the level word out ("Software Engineer" of "Senior Software Engineer"). The headline stays one row: drop words such as a location or team rather than wrap. Its words count as generated words, in place of the title words they replace.
 - When the posting's requirements name a certification the candidate holds, code moves Certifications up to sit under the summary.
 
 Skills
@@ -277,10 +292,23 @@ def headline_rows(font: str, text: str) -> int:
     return lines
 
 
-def check_headline_title(master: dict, job: dict, title: str | None, font: str = typeface.DEFAULT) -> list[str]:
-    """Posting's title in the headline: its exact words, never a level the candidate's current title lacks."""
+def check_headline_title(master: dict, job: dict, title: str | None, font: str = typeface.DEFAULT,
+                         today: date | None = None, top_line: bool = True) -> list[str]:
+    """Posting's title in the headline: its exact words, never a level the candidate's current title lacks
+    ("Senior" aside, from years: senior_by_years). Set on every job an allowed one exists (top_line);
+    the user's settings may keep their own top line."""
+    where, own = "headline_title", master.get("headline")
+    if title and not top_line:
+        return [f"{where}: settings keep the user's own top line - leave it null"]
     if not title:
-        return []
+        fit = top_line and suggested_headline_title(master, job, font, today)
+        return [f"{where}: null - the top line names the job applied for: use {fit!r}, or other whole words "
+                "of the posting's title that fit"] if fit else []
+    return headline_title_problems(master, job, title, font, today)
+
+
+def headline_title_problems(master: dict, job: dict, title: str, font: str = typeface.DEFAULT,
+                            today: date | None = None) -> list[str]:
     where, own = "headline_title", master.get("headline")
     parts = headline_parts(master)
     if own and not parts:
@@ -296,7 +324,10 @@ def check_headline_title(master: dict, job: dict, title: str | None, font: str =
         return [f"{where}: {title!r} repeats the headline's own title - leave it null"]
     out = []
     current = current_titles(master)
-    if claimed := claims(title, [*current, *([parts[0]] if parts else [])]):
+    claimed = claims(title, [*current, *([parts[0]] if parts else [])])
+    if SENIOR in claimed and senior_by_years(master, job, title, today or date.today()):
+        claimed.remove(SENIOR)
+    if claimed:
         out.append(f"{where}: {title!r} claims {', '.join(claimed)} - not in the candidate's current title "
                    f"{' / '.join(map(repr, current)) or '(none)'}")
     if ABBREVIATED.search(title):
@@ -305,6 +336,48 @@ def check_headline_title(master: dict, job: dict, title: str | None, font: str =
     if (rows := headline_rows(font, line)) > (headline_rows(font, own) if own else 1):
         out.append(f"{where}: headline {line!r} wraps to {rows} rows - use fewer of the posting title's words")
     return out
+
+
+def related_years(master: dict, title: str, today: date) -> int:
+    """Whole years in roles naming the same work as `title` (a shared title word past its level words),
+    overlaps once: 12 years as Software Engineer back "Senior Software Engineer", 12 as a cook do not."""
+    words = title_words(title) - set(SENIORITY)
+    roles = [r for r in master.get("roles") or [] if words & title_words(r["title"])]
+    return render.months_worked(roles, today) // 12
+
+
+def years_needed(job: dict) -> int:
+    asks = [n for r in job.get("requirements") or [] if (n := knockout.years_asked(r["text"]))]
+    return max(max(asks), SENIOR_YEARS_FLOOR) if asks else SENIOR_YEARS
+
+
+def top_line_confirm(master: dict, title: str | None) -> bool:
+    """Top line asked about only when it names "Senior" from years: a level, not just the posting's label."""
+    if not title:
+        return False
+    parts = headline_parts(master)
+    return SENIOR in claims(title, [*current_titles(master), *([parts[0]] if parts else [])])
+
+
+def senior_by_years(master: dict, job: dict, title: str, today: date) -> bool:
+    """"Senior" in the top line w/o the title ever held: their years in the work meet the posting's own ask."""
+    return SENIOR in levels(title) and related_years(master, title, today) >= years_needed(job)
+
+
+def suggested_headline_title(master: dict, job: dict, font: str = typeface.DEFAULT,
+                             today: date | None = None) -> str | None:
+    """An allowed top-line title from the posting's, or None: its words before a dash, bracket, comma or
+    bar ("Senior Vue Engineer" of "Senior Vue Engineer, Search"), a leading level word the candidate
+    can't claim dropped. None = null is right (their own sentence, a repeat, nothing allowed)."""
+    title = re.split(r"\s[-\u2013\u2014|/]\s|[(,:]", job["title"], maxsplit=1)[0].strip()
+    while title:
+        if not headline_title_problems(master, job, title, font, today):
+            return title
+        first, _, rest = title.partition(" ")
+        if first.casefold() not in SENIORITY:
+            return None
+        title = rest.strip()
+    return None
 
 
 def skeleton(master: dict) -> dict:
@@ -316,7 +389,8 @@ def page_words(model: dict) -> int:
     return sum(len(render.tokens(s)) for s in render.page_strings(model))
 
 
-def build_request(master: dict, job: dict, font: str = typeface.DEFAULT, mirror_always: bool = False) -> dict:
+def build_request(master: dict, job: dict, font: str = typeface.DEFAULT, mirror_always: bool = False,
+                  top_line: bool = True) -> dict:
     """Everything AI tailors from; pure function of master + JD + font => byte-identical per slug.
 
     Master goes without its contact block: rewriting lines never needs the name, email or phone,
@@ -337,7 +411,7 @@ def build_request(master: dict, job: dict, font: str = typeface.DEFAULT, mirror_
                    "generated_words": [[low - fixed, high - fixed] for low, high in windows]},
         "master": {k: v for k, v in master.items() if k != "contact"},
     }
-    return {"system": system(font, mirror_always), "schema": TAILORED_SCHEMA, "prompt": json.dumps(payload, indent=1, ensure_ascii=False)}
+    return {"system": system(font, mirror_always, top_line), "schema": TAILORED_SCHEMA, "prompt": json.dumps(payload, indent=1, ensure_ascii=False)}
 
 
 def bullet_shape(text: str, where: str, font: str = typeface.DEFAULT) -> list[str]:
@@ -385,7 +459,7 @@ def dropped_roles(master: dict, ids: list[str], today: date) -> list[str]:
 
 
 def check_selection(master: dict, job: dict, tailored: dict, font: str = typeface.DEFAULT,
-                    today: date | None = None) -> list[str]:
+                    today: date | None = None, top_line: bool = True) -> list[str]:
     """Rules lint cannot see: entry ids, claim ownership, mirror + headline title source, coverage shape."""
     violations: list[str] = []
     entries = entries_by_id(master)
@@ -423,7 +497,7 @@ def check_selection(master: dict, job: dict, tailored: dict, font: str = typefac
                                   f"not in the candidate's own title {roles[t['id']]['title']!r}")
             if ABBREVIATED.search(mirror):
                 violations.append(f"{where}: title_mirror {mirror!r} abbreviated")
-    violations += check_headline_title(master, job, tailored.get("headline_title"), font)
+    violations += check_headline_title(master, job, tailored.get("headline_title"), font, today, top_line)
 
     if tailored["summary"] and (rows := measure.fit(font, tailored["summary"], measure.SUMMARY)[0]) > render.MAX_SUMMARY_LINES:
         violations.append(f"summary: renders {rows} lines (max {render.MAX_SUMMARY_LINES}) - shorten it")
@@ -583,13 +657,14 @@ def posting_text(job: dict) -> str:
     return " ".join([job["title"], job.get("text") or "", *(r["text"] for r in job["requirements"])])
 
 
-def evaluate(master: dict, job: dict, tailored: dict, out_dir: Path, font: str = typeface.DEFAULT) -> dict:
+def evaluate(master: dict, job: dict, tailored: dict, out_dir: Path, font: str = typeface.DEFAULT,
+             top_line: bool = True) -> dict:
     model = page_model(master, tailored, job)
     # every fact on the page is the most words the truth can reach: below a window, budget reports
     available = page_words(render.page_model(master))
     pdf, gates = render.render(model, out_dir, budget=True, font=font, available=available)
     findings = lint.lint(model, master, lint_inferences(tailored), posting_text(job), font)
-    selection = check_selection(master, job, tailored, font)
+    selection = check_selection(master, job, tailored, font, top_line=top_line)
     failed = [
         *selection,
         *(f"lint {f.rule} at {f.where}: {f.detail}" for f in findings if f.severity == lint.FAIL),
@@ -775,7 +850,8 @@ def prepare(config: dict, slug: str | None, posting_file: Path | None, url: str)
         conn.close()
     data = job_dir / JOB_DATA
     (job_dir / POSTING_FILE).write_text(report.posting_md(job), encoding="utf-8")
-    request = build_request(master, job, cfg.resume_font(config), cfg.title_mirror_always(config))
+    request = build_request(master, job, cfg.resume_font(config), cfg.title_mirror_always(config),
+                            cfg.top_line_title(config))
     handoff.write_task(data / "task.md", data / "tailored.json", request["system"], request["schema"],
                        request["prompt"], check_command(job["public_slug"]), untailored(config, tailoring=True))
     print(f"job {num}, job folder: {job_dir}")
@@ -795,15 +871,16 @@ def check(config: dict, slug: str) -> int:
     data = job_dir / JOB_DATA
     job = json.loads((data / "jd.json").read_text(encoding="utf-8"))
     tailored = handoff.read_answer(data / "tailored.json", TAILORED_SCHEMA)
-    result = evaluate(master, job, tailored, job_dir, cfg.resume_font(config))
+    result = evaluate(master, job, tailored, job_dir, cfg.resume_font(config), cfg.top_line_title(config))
     rows = coverage_rows(job, tailored, master)
     today = date.today()
     gaps = schema.employment_gaps(master, today)
     mirror_ok = cfg.title_mirror_always(config)
+    top_confirm = top_line_confirm(master, tailored.get("headline_title"))
     (job_dir / CHECK_FILE).write_text(
         report.report_md(job, tailored, result, rows, gaps, today, master, readahead.load(job_dir / JOB_DATA),
-                         mirror_ok)
-        + "\n" + report.diff_md(master, tailored, result["model"], mirror_ok),
+                         mirror_ok, top_confirm)
+        + "\n" + report.diff_md(master, tailored, result["model"], mirror_ok, top_confirm),
         encoding="utf-8")
 
     for name, ok, detail in result["gates"]:
