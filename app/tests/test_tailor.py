@@ -607,6 +607,22 @@ def test_pasted_posting_hidden_characters_removed_and_said(tmp_path, monkeypatch
     assert not has_tags(task.with_name("jd.json").read_text(encoding="utf-8"))
 
 
+def test_pasted_page_of_a_listed_job_keeps_its_number(tmp_path, monkeypatch, capsys):
+    """Job search had no requirements, so its page was pasted w/ the row's link: same job number,
+    never a new one (2026-10-12: a listed job came back under a new number)."""
+    from conftest import make_job
+    config, posting = pasted(tmp_path, monkeypatch)
+    conn = store.connect(cfg.db_path(config))
+    with conn:
+        store.upsert(conn, [make_job("listed", url=JOB["url"] + "?utm_source=freehire.me")], store.utc_now())
+        listed = store.number(conn, "listed")
+    conn.close()
+    tailor.prepare(config, None, posting, JOB["url"] + "?utm_source=freehire.me")
+    assert f"job {listed}, job folder:" in capsys.readouterr().out
+    [jd_file] = (tmp_path / "My Jobs").glob("**/.data/jd.json")
+    assert json.loads(jd_file.read_text(encoding="utf-8"))["public_slug"] == "listed"
+
+
 def test_clean_posting_says_nothing_hidden(tmp_path, monkeypatch, capsys):
     config, posting = pasted(tmp_path, monkeypatch)
     tailor.prepare(config, None, posting, JOB["url"])
