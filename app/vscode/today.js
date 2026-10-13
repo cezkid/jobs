@@ -23,7 +23,7 @@ const CLAUDE_ID = "anthropic.claude-code";
 const CLAUDE_TESTED = { from: [2, 1, 288], below: [2, 2, 0] };
 const CLAUDE_NEW_CHAT = "claude-vscode.editor.open";
 // Next up: the one most valuable thing today, first found in this order (data order stays
-// app/today.py's). No resume yet blocks "Make my resume" => before new jobs
+// app/today.py's). No resume yet blocks "Apply" => before new jobs
 const NEXT_ORDER = [{ section: "interviews" }, { section: "waiting" }, { todo: "import" }, { section: "best" }, { todo: "morning" }];
 // setup steps that stop the job search working => above the job sections, yellow; others stay last, quiet
 const BLOCKERS = new Set(["import", "morning"]);
@@ -261,16 +261,21 @@ function claudeNewChatArgs(words) {
   return [undefined, words, undefined, undefined, false, { programmatic: "honor-preferred-location" }];
 }
 
-// what a say button's own text reads: fill/new => the label ("Make my resume"); copy => honest
-// about what it does ("Copy: resume for job 12")
+// what a say button's own text reads: fill/new => the label ("Apply"); copy => honest
+// about what it does ("Copy: apply to job 12")
 // button text = the action, every AI (owner 2026-10-04: no "Copy: ..." labels); how the words reach
 // the chat is said in the how-line, the tooltip and the status line
 function sayText(button) {
   return button.label;
 }
 
+// Apply = resume + form in one run, the resume uploaded w/o another ask when they chose that
+// (job-apply skill, owner 2026-10-13): said before the click, not after
+const APPLY_TITLE = "Makes your resume for this job and fills the employer's form with it - you check the page and click Submit. ";
+
 function sayTitle(button, mode) {
   if (button.status) return "Saves it here, no chat - you can undo it";
+  if (button.id === "apply") return (APPLY_TITLE + sayTitle({ ...button, id: null }, mode)).trim();
   if (mode === "fill") return `Puts "${button.words}" in the chat box`;
   if (mode === "new") return "Opens a new chat with these words typed in - press Enter to start";
   return "";
@@ -282,7 +287,7 @@ function howLine(mode) {
   return "Buttons copy the words. Paste them in the chat box and press Enter.";
 }
 
-// job the words name ("resume for job 12" => 12), null for plain asks
+// job the words name ("apply to job 12" => 12), null for plain asks
 function jobOf(words) {
   const m = /\bjob ([1-9][0-9]{0,5})\b/.exec(String(words || ""));
   return m ? Number(m[1]) : null;
@@ -734,7 +739,7 @@ function render(m, { mode, nonce, ai = null, fonts = null, look = "auto", ready 
     `<button type="button" data-a="${action}"${key ? ` data-k="${h(key)}"` : ""}${busy ? ` data-busy="${h(busy)}"` : ""}`
     + `${cls ? ` class="${cls}"` : ""}${title ? ` title="${h(title)}"` : ""}${name ? ` aria-label="${h(name)}"` : ""}`
     + `${about ? ` aria-describedby="${h(about)}"` : ""}>${h(text)}</button>`;
-  // accessible name carries the job: 10 "Make my resume" buttons read the same to a screen reader
+  // accessible name carries the job: 10 "Apply" buttons read the same to a screen reader
   const named = (text, num) => (num && !text.toLowerCase().includes(`job ${num}`) ? `${text}, Job ${num}` : "");
   // yellow = a task (lead): its first say; status changes outline, closing quieter still
   const say = (b, go, { num = null, name = "", about = "" } = {}) => {

@@ -127,6 +127,8 @@ SIGNING_PATTERN = (r"terms (?:and|&) conditions|terms of (?:use|service)|privacy
                    r"\b(?:may|can) we (?:text|sms) you\b|\bpermission to (?:text|sms|message) you\b|(?<!digital )\bsignature\b|\be-?sign|"
                    r"\bsign (?:here|below|electronically)\b|\btype (?:your )?(?:full |legal )?name to sign\b")
 SIGN_ON_PAGE = "yours to do on the page"
+# resume box: their Apply click was the yes (search settings upload_on_apply: true)
+UPLOAD_ON_APPLY = "search settings - upload on Apply: their click was the yes - name the file at handover"
 # "I confirm that my application materials ... were not generated, edited, or supplemented by AI
 # tools" (2026-10-05, one Greenhouse tenant): a resume tailored here is AI help, so a drafted Yes is a
 # false statement - left on the page like a signature, and prepare tells the AI to say how the resume
@@ -591,8 +593,13 @@ def draft(qs: list[dict], contact: dict, old: list[dict] | None = None, config: 
             continue
         tag = sensitive(q, contact)
         was = kept.get((q["id"], answers.fold(q["title"])))
-        if was and not (tag and was.get("source", "").startswith(AUTO)):
+        # a yes the Apply click gave, setting since switched off: asked again, never kept
+        lapsed = was and was.get("source") == UPLOAD_ON_APPLY and (config or {}).get("upload_on_apply") is not True
+        if was and not lapsed and not (tag and was.get("source", "").startswith(AUTO)):
             out.append({**q, "answer": was["answer"], "source": was.get("source", "")})
+            continue
+        if q["kind"] == "file" and q.get("key") == "resume" and (config or {}).get("upload_on_apply") is True:
+            out.append({**q, "answer": True, "source": UPLOAD_ON_APPLY})
             continue
         if q["key"] in EDUCATION:
             answer, source = school_answer(q, schools or [])

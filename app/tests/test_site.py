@@ -606,10 +606,10 @@ def test_claim_check_names_page_and_claim_when_the_app_changes(tmp_path):
     root = claim_copy(tmp_path)
     assert claim_problems(root) == []
     say = root / "app/vscode/say.json"
-    say.write_text(say.read_text(encoding="utf-8").replace('"Make my resume"', '"Make the resume"'), encoding="utf-8")
+    say.write_text(say.read_text(encoding="utf-8").replace('"label": "Apply"', '"label": "Apply now"'), encoding="utf-8")
     (root / "app/apply/systems/dayforce.py").write_text('NAME = "Dayforce"\n', encoding="utf-8")
     problems = claim_problems(root)
-    assert any(p.startswith("index.html: claim today-page:") and "'Make the resume'" in p for p in problems), problems
+    assert any(p.startswith("index.html: claim today-page:") and "'Apply now'" in p for p in problems), problems
     assert any(p.startswith("index.html: claim apply-systems:") and "Dayforce" in p for p in problems), problems
     assert all("app/web/claims.yml" in p for p in problems), problems
 

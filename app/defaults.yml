@@ -83,6 +83,11 @@ follow_up:
 # each named before Submit; never work permit, pay filled, or sensitive). null = ask once.
 saved_answers: null
 
+# Apply (Today's button, "apply to job N") = the yes to put the resume in the form's resume box: no
+# question before the upload. Asked once at the first Apply (null), on unless they say no; false =
+# a yes asked before each upload. Named at handover either way (owner 2026-10-13).
+upload_on_apply: null
+
 # Home address application forms ask for (UKG requires it). Saved only when the user says to keep
 # it; never on the resume (full street address = privacy risk, no hiring value). null = asked.
 home_address:

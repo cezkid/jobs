@@ -19,7 +19,7 @@ const RAW = {
       card(2, "FP&A Manager", "Example Co", ["apply to job 2", "I sent job 2"]),
     ] },
     { id: "follow_up", title: "Follow up", cards: [card(3, "Budget Analyst", "Placeholder Inc", ["write a follow-up for job 3", "job 3 is closed"])] },
-    { id: "best", title: "Best to apply next", cards: [4, 5, 6, 7, 8, 9, 10].map((n) => card(n, `Role ${n}`, "Sample Corp", [`resume for job ${n}`])) },
+    { id: "best", title: "Best to apply next", cards: [4, 5, 6, 7, 8, 9, 10].map((n) => card(n, `Role ${n}`, "Sample Corp", [`apply to job ${n}`])) },
   ],
   todo: [], empty: null, examples: [], guides: [],
 };
@@ -62,7 +62,7 @@ test("every row runs an action from today.model's own list, same index", () => {
   assert.ok(rows.length > 10);
   for (const r of rows) assert.ok(m.actions[r.action], `row ${r.label} has no action`);
   const next = groups[0].items[0];
-  assert.deepStrictEqual(next.rows.map((r) => r.label), ["Help me apply", "I sent it", "Open the job posting", "Show its folder"]);
+  assert.deepStrictEqual(next.rows.map((r) => r.label), ["Apply", "I sent it", "Open the job posting", "Show its folder"]);
   assert.deepStrictEqual(next.rows.map((r) => m.actions[r.action].type), ["say", "status", "posting", "open"]);
   // same action object the page's button holds
   assert.strictEqual(next.rows[1].action, m.next.card.say[1].action);
