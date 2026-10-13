@@ -25,8 +25,9 @@ from datetime import date
 from pathlib import Path
 
 import cfg
+import status
 from apply import answers as saved_answers
-from apply import browser, questions, readahead, systems
+from apply import browser, careers_page, questions, readahead, systems
 from resume import render, schema, tailor
 from text import inert_md
 
@@ -91,7 +92,8 @@ def line(a: dict) -> str:
     opts = f" options={a['options']}" if a["options"] else ""
     tag = f" ({a['source'].split(' - ', 1)[1]})" if " - sensitive: " in a["source"] or \
         f" - {questions.SIGN_ON_PAGE}: " in a["source"] else ""
-    return f"  [{state}] {a['kind']}: {a['title']}{opts}{tag}"
+    room = f" (at most {a['max_chars']} characters)" if a.get("max_chars") else ""
+    return f"  [{state}] {a['kind']}: {a['title']}{opts}{room}{tag}"
 
 
 def upload_note(system, answers: list[dict]) -> str:
@@ -151,8 +153,17 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
     master = schema.load(cfg.resume_path(config, "master"))
     folder = job_dir(config, slug)
     system = systems.for_url(url)
-    opener = window_opener(system, "prepare") if in_window and system is not None else browser.page_at
     form = None if system else readahead.load(folder / tailor.JOB_DATA)
+    if system is None and not systems.elsewhere(url) and not (form and form.get("found")):
+        # an employer's careers page (Radancy): its Apply names the system - a plain read of the posting page
+        try:
+            found = careers_page.apply_link(url)
+        except ValueError as e:
+            sys.exit(f"{e} - nothing read; ask the user, then status set <job> closed if it is")
+        if found:
+            print(f"the posting's Apply leads to {found}")
+            url, system = found, systems.for_url(found)
+    opener = window_opener(system, "prepare") if in_window and system is not None else browser.page_at
     if system is None and not (form and form.get("found")):
         system_for(url)  # says why: filled another way, or not supported
     out = folder / tailor.JOB_DATA / questions.FILE
@@ -240,6 +251,9 @@ def refuse(qs: list[dict]) -> None:
                  + "; ".join(a["title"] or questions.UNTITLED for a in bad))
     if bad := questions.unvouched(qs):
         sys.exit("only the user answers these - ask them, set source 'you said': " + "; ".join(a["title"] for a in bad))
+    if bad := questions.too_long(qs):
+        sys.exit("longer than the box takes - the page would cut it off; shorten it (the user's own answer: "
+                 "with them): " + "; ".join(f"{a['title']} ({len(a['answer'])} of {a['max_chars']})" for a in bad))
 
 
 def page_text(page) -> str:
@@ -304,6 +318,8 @@ def fill(slug: str, in_window: bool = False) -> None:
           "Nothing is sent until the user clicks Submit.")
     if in_window and (note := window.AT_SUBMIT.get(system.NAME)):
         print(f"note: {note}")
+    if not other:  # last page filled: the ask goes out now, not once they come back
+        status.filled(folder, config)
 
 
 def closed(page, system=None, url: str | None = None) -> str | None:

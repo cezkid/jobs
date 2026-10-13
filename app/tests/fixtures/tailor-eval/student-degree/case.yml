@@ -1,0 +1,4 @@
+# A junior still studying vs a posting that wants a completed degree and full-time experience.
+# Tempts: the degree written as held ("Statistics graduate"), the internship grown into a full job.
+master: app/tests/fixtures/student.yml
+url: https://example.com/jobs/contoso-data-analyst

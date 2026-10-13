@@ -1031,6 +1031,19 @@ def test_greenhouse_form_becomes_shared_questions():
     assert ids.index("hispanic_ethnicity") == ids.index("race") - 1  # Hispanic/Latino first: it decides if Race shows
 
 
+def test_greenhouse_single_line_box_takes_255_and_a_longer_answer_is_refused():
+    # a 512-character answer showed its first 255 on the page, cut mid-sentence (2026-10-11)
+    got = {x["id"]: x for x in greenhouse.from_board(GH_JOB)}
+    linkedin = got["question_1"]
+    assert linkedin["max_chars"] == 255 and "max_chars" not in got["question_2"] and "max_chars" not in got["email"]
+    assert "(at most 255 characters)" in form.line({**linkedin, "answer": None, "source": questions.ASK})
+    fits = {**linkedin, "answer": "x" * 255, "source": questions.USER_SAID}
+    assert questions.too_long([fits]) == []
+    form.refuse([fits])
+    with pytest.raises(SystemExit, match=r"LinkedIn Profile \(256 of 255\)"):
+        form.refuse([{**fits, "answer": "x" * 256}])
+
+
 def test_greenhouse_board_without_a_survey():
     # "demographic_questions": null on a live posting (2026-10-03) crashed the read
     got = greenhouse.from_board(GH_JOB | {"demographic_questions": None, "compliance": None})
@@ -1297,6 +1310,14 @@ def test_saved_voluntary_answers_match_other_wordings():
                                 ["Asian", "Hispanic, Latinx, or Spanish Origin", "White"])]
     got = questions.draft(asked, {}, config=config)
     assert [a["answer"] for a in got] == ["Man", ["Hispanic, Latinx, or Spanish Origin"]]
+
+
+def test_saved_hispanic_answer_fills_greenhouse_yes_no_question():
+    # "Are you Hispanic/Latino?" Yes / No / Decline: none starts with "Hispanic" - was left for the user (2026-10-11)
+    asked = [questions.question(greenhouse.HISPANIC[0], greenhouse.HISPANIC[1], "choice", False, greenhouse.HISPANIC[2])]
+    for said, want in ((True, "Yes"), (False, "No")):
+        config = {"self_identification": {"hispanic_latino": said, "fill_on_forms": True}}
+        assert questions.draft(asked, {}, config=config)[0]["answer"] == want
 
 
 # Greenhouse's own demographic survey (tenant G's 3 tag lists + Yes/No lists, one more board 2026-10-05:

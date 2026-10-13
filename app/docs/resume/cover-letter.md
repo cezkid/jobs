@@ -29,3 +29,7 @@ Over 400 words fails; under 250 is said, never padded.
 
 - **AI-written enthusiasm or reasons.** The user's sentence, or the letter opens with the role + their strongest fact.
 - **A letter for every application.** Only where a box asks; no evidence an unasked one helps.
+- **Company web research for the letter.** Would fetch the employer's site: something new off the
+  computer (privacy table row + user yes first, AGENTS.md); a researched fact is no fact of theirs, so
+  it fails the facts-only check (FAIL above). Evidence-backed lever = the user's own "why" sentence
+  (Cui, Dias & Ye 2025, above). Policy + preprint.

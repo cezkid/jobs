@@ -1,0 +1,39 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Attachments</title></head><body>
+<p>Jane Doe, you are signed in.</p><p>Applying for: Test Job (Job Number: 12345)</p>
+<h2>Attachments</h2>
+<p>You may attach up to 5 documents (e.g.: cover letter, references). Each file must not exceed 1024 kilobytes.</p>
+<label for="f">Select the file to attach</label><input type="file" id="f" name="file">
+<label for="c">Comments about the file</label><input type="text" id="c">
+<input type="button" id="attach" value="Attach">
+<p>Also, please indicate which of the attached documents is your Resume / CV.</p>
+<table><thead><tr><th>Relevant Files</th><th>Resume / CV</th><th>File Name</th><th>Date</th><th>Comments</th><th>Actions</th></tr></thead>
+<tbody id="rows"></tbody></table>
+<p>Tips: You cannot attach a file that exceeds the allocated limit of 2048 kilobytes. You can attach a maximum of 5 files.</p>
+<input type="button" value="Save and Continue"> <input type="button" value="Save as Draft"> <input type="button" value="Quit">
+<script>
+const B = 'editTemplateMultipart-editForm-content-ftf-gp-j_id_id16pc8-page_0-AttachedFilesBlock-j_id_id34pc9:';
+const start = JSON.parse(sessionStorage.getItem('rows') || 'null') || [
+  {name: 'Jane_Doe_resume_2022_11.pdf', date: '11/10/22', rel: false, cv: true},
+  {name: 'Jane_Doe_Resume.pdf', date: '9/30/26', rel: true, cv: false},
+  {name: 'References.pdf', date: '9/30/26', rel: true, cv: false}];
+function draw(list) {
+  document.getElementById('rows').innerHTML = list.map((r, i) =>
+    `<tr><td><input type="checkbox" id="${B}${i}:selectionid" ${r.rel ? 'checked' : ''}></td>` +
+    `<td><input type="checkbox" id="${B}${i}:resumeselectionid" ${r.cv ? 'checked' : ''}></td>` +
+    `<td><a href="#">${r.name}</a></td><td>${r.date}</td><td></td><td><a href="#">Delete</a></td></tr>`).join('');
+}
+function save() {
+  sessionStorage.setItem('rows', JSON.stringify([...document.querySelectorAll('#rows tr')].map((tr, i) => ({
+    name: tr.cells[2].innerText.trim(), date: tr.cells[3].innerText.trim(),
+    rel: document.getElementById(B + i + ':selectionid').checked, cv: document.getElementById(B + i + ':resumeselectionid').checked}))));
+}
+draw(start);
+// Attach posts the step back: it reloads with the new row at the bottom (measured), ticks kept
+document.getElementById('attach').onclick = () => {
+  const f = document.getElementById('f').files[0]; if (!f) return;
+  save(); const list = JSON.parse(sessionStorage.getItem('rows'));
+  const d = new Date(); list.push({name: f.name, date: `${d.getMonth() + 1}/${d.getDate()}/${String(d.getFullYear()).slice(2)}`, rel: true, cv: false});
+  sessionStorage.setItem('rows', JSON.stringify(list));
+  setTimeout(() => location.reload(), 300);
+};
+</script></body></html>

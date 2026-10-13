@@ -1,0 +1,8 @@
+# Regexes over the answer's page text (summary, headline title, role title brackets, bullets,
+# skills). Eval only: a hit is counted in the grade, never fails tailor check.
+- id: upgraded-part
+  pattern: (?i)\b(led|leads?|leading|manag(e|ed|es|ing)|owned|direct(ed|s|ing)|head(ed|s|ing)|oversaw|spearhead\w*|performed|inserted)\b
+  why: the resume says "assisted with" - the posting asks who led; the candidate's part stays as they wrote it
+- id: charge-level
+  pattern: (?i)\bcharge\b
+  why: the candidate's title is Registered Nurse - charge nurse is a role they have not held

@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import cfg
+import status
 from apply import questions
 from resume import render, schema, tailor
 
@@ -119,6 +120,8 @@ def main() -> None:
     if note:
         print(note)
     print(work_authorization(config))
+    if args.slug:  # the fill runs in the page next: the ask goes with the handover, not after
+        status.filled(job_dir, config)
 
 
 if __name__ == "__main__":

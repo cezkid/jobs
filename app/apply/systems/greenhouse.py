@@ -48,6 +48,9 @@ KIND = {"input_text": "text", "textarea": "longtext", "input_file": "file",
 SYSTEM_KEY = {"first_name": "first_name", "last_name": "last_name", "email": "email", "phone": "phone",
               "resume": "resume", "cover_letter": "cover_letter"}
 SYSTEM_KIND = {"email": "email", "phone": "phone"}
+# single-line box (input_text): maxLength 255 on the page, absent from the job board's list - a 512-char
+# answer showed its first 255 only (tenant H, 2026-10-11)
+MAX_CHARS = {"input_text": 255}
 LOCATION = "candidate-location"
 # the phone box's own Country list: required on the page, absent from the job board's list
 COUNTRY = "country"
@@ -133,7 +136,8 @@ def from_board(job: dict) -> list[dict]:
         if kind == "choice" and sorted(options) == ["No", "Yes"]:
             kind = "yesno"
         out.append(question(f["name"], q["label"], kind, bool(q.get("required")), options,
-                            SYSTEM_KEY.get(f["name"]) or key_from_title(q["label"], kind), f["type"]))
+                            SYSTEM_KEY.get(f["name"]) or key_from_title(q["label"], kind), f["type"],
+                            max_chars=MAX_CHARS.get(f["type"]) if kind in ("text", "longtext") else None))
         if f["name"] == "phone":
             out.append(question(COUNTRY, "Country (of your phone number)", "choice", True, native="country"))
     if any(f["name"] == "location" for q in job.get("location_questions") or [] for f in q["fields"]):

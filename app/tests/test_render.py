@@ -1,4 +1,5 @@
 import copy
+import re
 
 import pymupdf
 import pytest
@@ -441,6 +442,69 @@ def test_colour_letterspacing_and_heading_gap_fail_their_gates(master, tmp_path,
     found = failed(results)
     assert set(found) == {"split-words", "text-color", "heading-gap"}
     assert "EXPERIENCE" in found["split-words"] and "#1F3A5F" in found["text-color"]
+
+
+BULLET = "Cut the support ticket backlog by a third with a triage queue the team adopted"
+
+
+def sticky_sweep():
+    """Page models as page_model emits them, first role 4-27 one-line bullets, so page 1 ends
+    at every point down the page in turn."""
+    def job(heading, org, bullets):
+        return {"heading": heading, "org": org, "subline": "Jan 2020 - Dec 2022 | Remote", "bullets": [BULLET] * bullets}
+    for first in range(4, 28):
+        for later in (2, 3):
+            yield {
+                "title": "Jane Doe Resume", "headline": None,
+                "contact": {"name": "Jane Doe", "parts": ["jane@example.com", "555-0100"], "part_urls": ["", ""]},
+                "summary": "Support engineer with seven years on customer platforms.",
+                "sections": [
+                    {"title": "Experience", "entries": [job("Support Engineer", "Acme", first),
+                                                        job("Support Analyst", "Beta", later), job("Agent", "Gamma", 2)]},
+                    {"title": "Projects", "entries": [job("Ticket Tracker", None, later)]},
+                    {"title": "Skills", "lines": [{"label": "Tools", "text": "Zendesk, SQL, Python"},
+                                                  {"label": "Languages", "text": "English, Spanish"}]},
+                    {"title": "Education", "entries": [{"heading": "State University", "subline": "BS, Computer Science | 2019",
+                                                        "bullets": []}]},
+                    {"title": "Certifications", "lines": [{"text": "CompTIA A+ | 2021"}, {"text": "ITIL Foundation | 2022"}]},
+                ],
+            }
+
+
+def page_one_feet() -> list[tuple[str, bool]]:
+    """Each two-page render of the sweep -> page 1's last row, and whether that row is a heading
+    left alone: a section title, an entry heading, or the detail line of an entry with bullets."""
+    def bare(text):
+        return re.sub(r"\s+", "", text)
+    out = []
+    for model in sticky_sweep():
+        with pymupdf.open(stream=render.compile_pdf(model), filetype="pdf") as doc:
+            if doc.page_count < 2:
+                continue
+            spans = [(s["origin"][1], s["origin"][0], s["text"]) for b in doc[0].get_text("dict")["blocks"]
+                     for line in b.get("lines", []) for s in line["spans"] if s["text"].strip()]
+        foot = max(y for y, _, _ in spans)
+        row = "".join(text for y, _, text in sorted(spans, key=lambda s: s[1]) if abs(y - foot) < 1)
+        heads = {bare(s["title"].upper()) for s in model["sections"]}
+        heads |= {bare(render.joined(e["heading"], e.get("org"))) for s in model["sections"] for e in s.get("entries", [])}
+        heads |= {bare(e["subline"]) for s in model["sections"] for e in s.get("entries", []) if e["bullets"]}
+        out.append((row.strip(), bare(row) in heads))
+    return out
+
+
+def test_heading_never_ends_a_page_alone():
+    feet = page_one_feet()
+    assert len(feet) >= 30
+    assert [row for row, strand in feet if strand] == []
+
+
+def test_heading_strand_shows_once_sticky_is_dropped(tmp_path, monkeypatch):
+    """Proves the sweep above can see a strand: the same pages without Typst's sticky."""
+    template = tmp_path / "resume.typ"
+    template.write_text(render.TEMPLATE.read_text(encoding="utf-8").replace("sticky: true", "sticky: false"), encoding="utf-8")
+    assert "sticky: true" not in template.read_text(encoding="utf-8")
+    monkeypatch.setattr(render, "TEMPLATE", template)
+    assert [row for row, strand in page_one_feet() if strand]
 
 
 def test_black_is_the_page_ink_and_navy_is_not():

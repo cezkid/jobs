@@ -150,7 +150,7 @@ TOPICS = (
     ("visa sponsorship", r"sponsor|\bvisa\b"),
     ("where you live", r"where (?:are you|do you) (?:live|located|based)|(?:state|country|city) of residence|"
                        r"currently (?:reside|located|live)"),
-    ("voluntary questions about you", r"\bgender\b|\brace\b|ethnic|veteran|sexual orientation|pronoun|transgender|"
+    ("voluntary questions about you", r"\bgender\b|\brace\b|ethnic|hispanic|\blatin[oax]\b|veteran|sexual orientation|pronoun|transgender|"
                                       r"\blgbt|armed forces|military (?:status|service)|served in the military"),
     ("working on site", r"on[- ]?site|in[- ]office|in the office|days (?:a|per) week|hybrid"),
     ("moving for the job", r"relocat"),
@@ -183,16 +183,18 @@ def never_draft(text: str) -> str | None:
 
 
 def question(id: str, title: str, kind: str, required: bool, options=(), key=None, native=None,
-             page: str | None = None, entry: int | None = None) -> dict:
+             page: str | None = None, entry: int | None = None, max_chars: int | None = None) -> dict:
     """One form question in the shared shape. `native` = the system's own type name, for its filler.
     `page` = which page of a multi-page form shows it: a section name the form's definition gives, or
     what identifies the page a system read it off (its step heading). `entry` = which school on the
-    resume an Education box is for (0 = the first)."""
+    resume an Education box is for (0 = the first). `max_chars` = the most the box takes - the page
+    cuts a longer answer off mid-sentence without a word."""
     assert kind in KINDS, kind
     assert key in KEYS, key
     out = {"id": id, "title": title, "kind": kind, "key": key, "native": native,
            "required": required, "options": list(options)}
     out |= {"page": page} if page else {}
+    out |= {"max_chars": max_chars} if max_chars else {}
     return out | {"entry": entry} if entry is not None else out
 
 
@@ -715,6 +717,10 @@ def voluntary_answer(q: dict, config: dict) -> str | list[str] | None:
         said = str(said).casefold()
         same = {said, *SAME_ORIENTATION.get(said, ())}
         want = lambda o: bool(parts(o) & same)
+    elif key == "hispanic_latino" and isinstance(said, bool) and re.search(r"hispanic|latin", q["title"].casefold()) \
+            and any(says(o.casefold().strip(), True) for o in q["options"]):
+        # Greenhouse "Are you Hispanic/Latino?" Yes / No / Decline To Self Identify (2026-10-11)
+        want = lambda o: says(o, said)
     elif key == "hispanic_latino" and said is True:
         # "Hispanic or Latino" (EEOC), "Hispanic, Latinx, or Spanish Origin" (2026-10)
         want = lambda o: o.startswith("hispanic")
@@ -757,6 +763,12 @@ def merge(old: list[dict], read: list[dict]) -> list[dict]:
         else:
             out.append(a)
     return out if placed else out + read
+
+
+def too_long(answers: list[dict]) -> list[dict]:
+    """Text answers longer than their box takes: typed, the page keeps only the start."""
+    return [a for a in answers if a.get("max_chars") and isinstance(a.get("answer"), str)
+            and len(a["answer"]) > a["max_chars"]]
 
 
 def missing(answers: list[dict]) -> list[dict]:

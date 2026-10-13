@@ -25,7 +25,8 @@ SHARED_HOST = re.compile(r"(?:apply\.workable\.com|jobs\.smartrecruiters\.com|wo
 PATH_WORDS = {"apply", "application", "jobs", "job", "j", "careers", "embed", "job_app", "jobboard", "opportunitydetail",
               "opportunityapply", "hcmui", "candidateexperience", "sites", "email", "login", "recruiting", "details",
               "v4", "ats", "web.php", "portal", "viewjobdetails", "mascsr", "default", "mdf", "recruitment",
-              "recruitment.html", "oneclick-ui", "company", "publication", "en", "es", "en_us", "en-us", "true"}
+              "recruitment.html", "oneclick-ui", "company", "publication", "en", "es", "en_us", "en-us", "true",
+              "careersection", "jobapply.ftl", "jobdetail.ftl", "candidateacquisition", "flow.jsf"}
 # parse_url parts that name the tenant where lab.tenants (host labels, the path's first part) misses
 # it: ADP's cid, Oracle's site, Paycom's portal key. Ids + job slugs never: no name, and a slug
 # ("manager") would hit every grep

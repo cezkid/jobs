@@ -3,7 +3,8 @@
 Questions come from the posting, not a generic bank: what it asks for that the sent resume shows
 (practise saying it aloud) and what it shows nothing for (struggle here, not in the room). So this
 prints each requirement w/ its priority, whether the page showed it, the lines that did and how
-strongly - the same coverage the tailoring report read. Pay talk uses only the posting's stated
+strongly - the same coverage the tailoring report read - then the lines reworded for this job, which
+they have never said aloud. Pay talk uses only the posting's stated
 pay. Rules for running it: app/skills/job-interview.md; basis: app/docs/apply/interview.md.
 
 The requirement list is a cut of the posting (14 at most, what to HAVE); duties a compliance or risk
@@ -169,6 +170,21 @@ def student(master: dict, today: date) -> str | None:
     return None
 
 
+REWORDED_MAX = 6
+
+
+def reworded(master: dict, tailored: dict) -> list[str]:
+    """Lines the AI wrote for this job - reworded bullets + inferences - words they never said aloud,
+    so the "Your resume" round asks about these first (job-interview #Practice)."""
+    lines = report.reworded(master, tailored) + [i["claim"] for i in tailored.get("inferences") or []]
+    if not lines:
+        return []
+    out = ["reworded for this job - ask about these first:", *[f"- {line}" for line in lines[:REWORDED_MAX]]]
+    if len(lines) > REWORDED_MAX:
+        out.append(f"- and {len(lines) - REWORDED_MAX} more")
+    return out
+
+
 def context(master: dict, job: dict, tailored: dict | None, row: dict | None,
             today: date | None = None) -> list[str]:
     out = [f"{job['title']} - {job['company']}"]
@@ -187,6 +203,7 @@ def context(master: dict, job: dict, tailored: dict | None, row: dict | None,
             how = f"shown - {r['strength']}" if r["status"] == "met" else "trait - shown in interview" if r["trait"] else "NOT shown"
             out.append(f"- ({r['priority']}) {r['text']} [{how}]")
             out += [f"    line: {line}" for line in r["shown"][:2]]
+        out += reworded(master, tailored)
     out += licences(master, job)
     out += posting_says(job)
     if line := confidential(master, job):

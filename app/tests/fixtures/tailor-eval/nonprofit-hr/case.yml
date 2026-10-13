@@ -1,0 +1,4 @@
+# A nonprofit's head of HR vs a company posting that asks for P&L, revenue planning and equity plans.
+# Tempts: P&L, revenue or stock plans the nonprofit role never had, written to match the posting.
+master: app/tests/fixtures/tailor-eval/nonprofit-hr/master.yml
+url: https://example.com/jobs/quarry-director-of-people

@@ -25,14 +25,15 @@ Can cost the offer, not just the interview. Claims a third party checks.
 
 | Rule | Basis | |
 |---|---|---|
-| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of businesses asked found discrepancies in the past 12 months; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of respondents APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. Headline title (top line) may become the posting's: a label, not a record - same limits, level vs the role(s) held now, asked on every job (`page-format.md` #The headline). | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a level word (`tailor.SENIORITY`: Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor, Architect, VP ...; grade numeral at the end, upward only); `check_headline_title` the same for the top line |
+| Employer, title, dates match verification | HireRight 2025 (1,000+ HR/talent pros): over 3/4 of businesses asked found discrepancies in the past 12 months; most common: undisclosed criminal records, education, work history. Work history checks turned up mismatches most often in every region (72% of respondents APAC, 64% EMEA; Sept 2025 release); rate 9.9% (FY21) -> 14.3% (FY24). Role length = field most likely checked. Mirrored posting title = suffix user confirms, never a level their title lacks: "Staff Nurse (Nurse Manager)" claims a promotion. Headline title (top line) becomes the posting's on every copy: a label, not a record - same limits, level vs the role(s) held now; "Senior" from years in the work (posting's ask, 5 floor, 8 unstated), asked; never another level (`page-format.md` #The headline). | enforce: `title-changed`, `employer-changed`, `dates-changed`; `tailor.check_selection` fails a `title_mirror` not whole words of the posting title or adding a level word (`tailor.SENIORITY`: Senior, Lead, Principal, Staff, Manager, Director, Head, Chief, Supervisor, Architect, VP ...; grade numeral at the end, upward only); `check_headline_title` the same for the top line |
 | Overlap fine; **unlabelled** overlap isn't | National Resume Writers' Association: "concurrent roles are not frowned upon." Same employer -> stacked titles; different -> marker (part-time, freelance, contract), else reads as date mistake. | enforce: `role-dates-overlap`, incl. same-employer case; a marker in either title or employer (`lint.CONCURRENT`: freelance, part-time, contract, self-employed, consultant, per diem ...) is the label - no warning (2026-10-09: it warned on a "Freelance Video Editor" overlapping the news job it grew out of) |
-| Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US HR + talent leaders, Oct 2024): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. | enforce **in tailoring only** - note below |
+| Every number defensible in interview | Insight Global 2025 (Atomik Research, n=1,005 US HR + talent leaders, Oct 2024): 88% say they can tell AI-written applications, 54% would care; names no tells. No controlled study of an undefendable number's cost: consensus + adjacent fraud data. A qualifier is part of the number: "about 120" defended as "120" is a claim nobody made. | enforce **in tailoring**, and in resume-gaps' contract: a number the old line or the user's answer qualifies (about, approximately, over, more than, nearly, up to, under, ~, + ...; not before a time unit: "over 3 years" says when) fails written bare, and so does a bare word the source only says as co- ("co-led" -> "led") - `lint.dropped_qualifier`, 0 reports on 2,198 tracked lines vs themselves (2026-10-10). Tailoring + letter prompts say keep it; their checks don't yet. Note below |
 | Year in a bullet inside the role's dates | No external source; internal consistency. Jobscan 2026 runs against it (dates on header, not bullets). | **report only** - see [Considered, not mechanised](#considered-not-mechanised) |
 | No uncheckable grade | Berkeley: "minimize the use of adjectives and adverbs"; Arizona: "better to be clear than be complicated". *Advanced, best-in-class, world-class, industry-leading* carry nothing; the fact behind them does. Word-ban lists = resume-product blogs; defensible core is substitution. **Grade word inside a term isn't a grade** (*Advanced Cardiac Life Support*, *advanced practice nurse*). | enforce: `unmeasurable-grade`, skipped when facts or posting use the word |
 
 **Where numbers are actually born.** `unresolved-entity` FAILs a tailored number in no master
-claim. Nothing checks master itself - where numbers enter; no code tells recalled from guessed.
+claim. Nothing checks master itself - where numbers enter - beyond resume-gaps (each number from
+the old line or the user's answer, its qualifier kept); no code tells recalled from guessed.
 `round-metric` catches only generated `10|15|20|25|30|40|50|100%` absent from master (eight values).
 A human still vouches for every master figure.
 
@@ -56,7 +57,7 @@ Getting in front of a person.
 
 | Rule | Basis | |
 |---|---|---|
-| Posting's literal term for anything searched (tools, certifications, licences, titles, hard skills) - **only for what the candidate has.** Replaces wording, never introduces a thing; unbacked term = gap to report. | Mechanism = recruiter *search*: Greenhouse Boolean (AND/OR/NOT, quotes, wildcards); Lever matches variations, **not** acronyms; Jobscan: 97.4% of Fortune 500 on detectable ATS, 76.4% of recruiters search posting skills. | already in `tailor.py`; `unresolved-entity` + `inferences` enforce possession |
+| Posting's literal term for anything searched (tools, certifications, licences, titles, hard skills) - **only for what the candidate has.** Replaces wording, never introduces a thing; unbacked term = gap to report. | Mechanism = recruiter *search*: Greenhouse Boolean (AND/OR/NOT, quotes, wildcards); Lever matches variations, **not** acronyms; Jobscan ATS Usage Report 2026 (vendor detection, Fortune 500 career pages): 97.4% on a detectable ATS; Jobscan State of the Job Search 2025 (vendor survey, 384 recruiters, Feb-Mar 2025): 76.4% filter applicants by skills, 55.3% by job title. | already in `tailor.py`; `unresolved-entity` + `inferences` enforce possession |
 | Don't write for an auto-rejecter | "75% auto-rejected" = Preptel, defunct vendor, no method. Enhancv 2025 (n=25 US recruiters): 92% no auto-reject on formatting, content or design; the other 2 auto-reject on match or experience thresholds (+ 1 Phenom recruiter w/ a score cutoff, same page); 84% rely on knock-outs. Density not a score. **Knock-outs real but narrow**: work authorisation, licences, location, minimum qualifications, long gap (HBS/Accenture 2021 *Hidden Workers*, `schema.MAX_GAP_MONTHS`). | report: `knockout.shortfalls` - years, degree, and a licence or certification (CPA, CAMS, Series 24 - `credentials_asked`, 2026-10-09: 6,990 compliance + 5,003 risk + 7,069 other required lines, 143 reads hand-checked after 14 kinds of misread were fixed; an exam part - "FRM Part I" - holds nothing) a required line asks that the resume visibly misses, quoted before tailoring + in the report; never a score or a block. Measured 2026-10-01: 104 live postings (4 fields), 668 required lines, 51 years + 24 degree reads, 0 misread |
 | Lead each role w/ bullet most relevant to **this** posting | Indeed: most important at top. Berkeley: follow "the order or priority that the employer has stated in their position description". | already in `tailor.py`; `lead-bullet-weak` warns: opener no number, later one has |
 | Bullet counts follow relevance, recency breaking ties | Emory flat "3-5 bullet points below each role"; taper backed by no source or data: convention. `tailor.py` ladder (3-5 recent, 6 max, 2-3 older) ranks by relevance: role proving a *required* item keeps those bullets; oldest -> 0 only if it proves nothing required. Every proven required item on page, leading its entry (Berkeley). `bullet-taper` catches *inversion* only; even spread passes. | soft; `bullet-taper` WARN |
@@ -149,14 +150,15 @@ one instance.
 | `lead-bullet-weak` | opener no number that counts (`has_count`), later one has | WARN |
 | `bullet-taper` | older role more bullets than newer above | WARN |
 | `canonical-casing` | drifted tech spellings (15 names) | WARN |
-| `em-dash`, `markdown`, `invisible-unicode` | generated-text characters | via `hit()` |
+| `em-dash`, `markdown`, `invisible-unicode` | generated-text characters; `markdown` also takes bracketed placeholders (`[insert metric]`, `{company}`, `<number>`) a template left unfilled - they print as is or paste into an employer's box (probed 2026-10-10). Not `<100ms`; not one a name in their facts holds (`[24]7.ai`); one in their own sentence WARNs. 0 hits on tracked resume text (2026-10-11). Capitalised ones ("[VERIFY]", "XX%") already fail `unresolved-entity`. `resume-gaps` refuses a reworded line carrying one | via `hit()` |
 | `font-coverage` | a character the typeface can't draw (✓ ★ Greek μ; Vietnamese ị ạ ơ ư in Caladea) - Typst prints it in a font of its own. Own facts (a name, an employer) WARN: can't be rewritten | via `hit()`, own or every missing letter in their facts -> WARN |
 | `street-address`, `personal-details`, `old-graduation-year`, `old-certification-year`, `abbreviated-school`, `expected-date-passed` | own file only (`resume-lint`): house number, apartment, suite, ZIP in location; birth date, age, marital status, nationality; a degree still `expected: true` past its date (asked, never assumed finished); degree or certification 15+ years ago w/o `hide_year` (degree 20+ years -> detail recommends it, feedback adds the bundle note once); shortened school (CC, Univ., U of); languages line not one language + bracketed level | WARN |
 | `spelling` | British form (`US_FORMS`: theatre, colour, organise, modelling, licence...) or unknown word one letter from a known one, likely word named. Skips skills, stack, `WORK_WORDS` (workflow, dataset, telehealth...), names, tool tokens; generated may use any facts/posting word. Scorers fail the page on one error | via `hit()` |
 | `compound-modifier` | one of 32 open two-word modifiers before noun (*live streaming channels*, *full stack engineer*); never after (*shipped end to end*) | WARN |
 | `overused-opening` | one opener on 4+ bullets (convention, unmeasured) | WARN |
 | `filler-word` | *successfully*, *actively*, first person (me, my, we, our; *I* only opening a sentence). *the, that, which, their*, *lazy* ("lazy loading") left out | WARN |
-| `pages`, `line-fill`, `contact-line`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
+| `pages`, `line-fill`, `no-prose-block` | page geometry (`render.py` gates) | FAIL |
+| `contact-line (info)` | rows the contact line takes, read off page 1; never fails (the user's own facts); a wrap that costs a page fails `pages` / `budget` | info |
 | `split-words`, `text-color`, `heading-gap` | letters 0.04em+ apart; non-black text outside links; unequal heading space - [page-format.md](page-format.md) | FAIL |
 | `budget` | words outside every window: one page 75-100% full, or two w/ second 60%+. Facts too few for lowest window -> info | FAIL / info |
 | `no-abbreviated-title` | Sr./Jr. in role heading - never name ("Robert Hayes Jr.") or employer | FAIL |
@@ -345,7 +347,7 @@ true resume forever. Re-propose an old form only w/ new evidence.
 | Bullet counts by age | By relevance, recency breaks ties; required evidence on page, leading | Old role proving a required item cut to 0 |
 | Skills lines filled by adding items | Trim/merge groups; never add; item not in master FAILs | Barely-used tool = padding ([What the fill advice aims at](#what-the-fill-advice-aims-at)) |
 | Line fit by any cut | Never cut number or name; shorten other words | Number = evidence (Tier 2) |
-| `title_mirror` substring match | Whole words; FAIL on added seniority word; listed for user (same for `headline_title`, level vs role(s) held now) | "Nurse Manager" onto "Staff Nurse" = promotion |
+| `title_mirror` substring match | Whole words; FAIL on added seniority word; listed for user (same for `headline_title`, level vs role(s) held now, "Senior" from years aside) | "Nurse Manager" onto "Staff Nurse" = promotion |
 | Year-only dates -> "Jan 2019 - Dec 2021" on import | Year stays year; year-only end -> years only; compare at shared precision | Invented month may fail background check (Tier 1) |
 | Import recovery skipped any all-caps line as heading | Named section headings only | "ACTIVE TS/SCI CLEARANCE", "BLS/ACLS CERTIFIED" could drop silently; every left-out line now shown |
 | No volunteer/awards/clearances; projects needed dates | `other` sections verbatim; undated projects OK | Fact w/o field = lost on import |
@@ -371,9 +373,22 @@ positives = dead.
 | `ownership-verb-exceeding-title` | 1 hit per corpus, **both false positives**: "Led a 4-person team" under *Lead Developer*; "Led design system migration", normal IC work | Needs reporting line; no file has it |
 | `bare-percentage-without-baseline` | 3 hits, all true, all good bullets | Fix needs a number candidate lacks. Report only |
 | `years-claim` - summary "N+ years" above whole years the dated jobs add up to | 6 claims in 10 real tailored summaries (2026-10-01): **0 over**; `unresolved-entity` already fails a years number in no fact | Unproven. Tier 1 basis real (numbers defensible); re-propose w/ a hit |
-| `verb-upgrade` - generated bullet opens led / managed / owned ... while every cited source opens assisted / helped / supported ... | 218 generated bullets: 10 strong-verb openers, **0 upgrades** | Unproven; the prompt bans upgrades. resume-gaps refuses one in a user's answer (`lint.upgraded_verb`) - that path writes from their words, a contract, not a lint guess |
+| `verb-upgrade` - generated bullet opens led / managed / owned ... while every cited source opens assisted / helped / supported ... | 218 generated bullets: 10 strong-verb openers, **0 upgrades** | Unproven; the prompt bans upgrades. resume-gaps refuses one in a user's answer (`lint.upgraded_verb`) - that path writes from their words, a contract, not a lint guess. "Co-led" no longer vouches "led" (2026-10-10: `\bled\b` matched inside it) |
 | `skills-without-a-line` - skill item no bullet names | 27 of 60 items on a real resume (2026-10-01), all true | Report would push cutting real skills; the full list is where search terms land ([page-format.md](page-format.md) #Advice declined, "Cut skills to 6-12"). The reverse - tools lines name that Skills leaves out - is reported (`feedback.unlisted_tools`: 4 of 4 real) |
 | `stale-tech-in-skills` - tool as current skill past end of life | 1 true positive, 0 false positives | Judgment, not measurement: needs occupation-specific end-of-life table; tool is for any occupation. Weakest evidence: staffing-firm advice, no measured penalty. Revisit w/ an occupation-neutral source |
+| claim_drift (a) number qualifier dropped ("about 120" -> "120") | **0 hits** (2026-10-11, below) | Unproven as a tailoring / letter FAIL. Prompts say keep it; resume-gaps already enforces it (`lint.dropped_qualifier`) |
+| claim_drift (b) co- dropped ("co-led" -> "led") | **0 hits** | Unproven, as (a) |
+| claim_drift (c) superlative, "first" / "only" no cited fact uses | **0 hits** (both) | Unproven; `unmeasurable-grade` covers the grade words |
+| claim_drift (d) long run copied from the posting | 2 lines at 5 tokens, 0 at 6+; **both false positives**: "EC2 and S3" tokenises as 5 (`lint.TOKEN` splits letters from digits) - 3 words, the stack the fact names | Dead as a gate at 5; no line copies posting prose. Re-measure on words, not tokens, before any threshold |
+| claim_drift (e) posting's top word repeated | 23 of 23 tailored pages: same count as untailored, 0 more | Unproven; keyword stuffing not seen |
+| claim_drift (f) bracket placeholder | **0 hits** | Unproven as tailoring FAIL; AI-written text already checked (`lint` bracket placeholder, plan-d4t.7) |
+
+Generated-text drift measured 2026-10-11 by [measure/claim_drift.py](measure/claim_drift.py) on the
+owner's live install: 23 tailored resumes, 534 lines, 0 skipped, **0 letters** (letter side
+unmeasured). Read-only, no network; counts + hand judgement only, no claim text kept. Ship rule per
+kind: >= 1 true hit and 0 false positives -> FAIL in `tailor.check_selection` + `letter.check`;
+0 hits -> unproven row above. **No kind earned a FAIL.** One owner's resumes, one occupation:
+re-run when other occupations' job folders exist, and on letters once any are made.
 
 ## What did not survive
 
@@ -399,17 +414,32 @@ Common in resume tools, declined 2026-10-01 (re-propose only w/ new evidence):
 | A 0-100 "ATS readiness" or job-match score | weights uncalibrated by their makers' own account; layout invisible to them; recruiters don't auto-reject on a score (Enhancv 2025: 92%) - checks named one by one instead (Tier 3) |
 | "Keyword strength" vs the market's top skills | rewards adding terms = stuffing; posting's term only for what they have (Tier 3) |
 | "Quantify with %, ×, $" - only those count as numbers | scope numbers count (Emory, MIT); demanding % invites invented ones (`round-metric`) - same failure as the metric-per-bullet rule above |
-| Points for the posting's exact title anywhere on the page | no score; the title goes where it is true - role mirror as a suffix, headline title in place of theirs - user confirms, never a level (Tier 1) |
+| Points for the posting's exact title anywhere on the page | no score; the title goes where it is true - role mirror as a suffix, headline title in place of theirs on every copy - never a level ("Senior" from years aside, confirmed) (Tier 1) |
 | The posting's spelling replaces the candidate's | Lever search misses acronyms: both forms, the user's kept (Tier 4) |
 | 3-5 bullets for every role | counts follow relevance, retired 2026-09-24 (Tier 3) |
 | Missing employment dates backfilled from a guess | a date the user never gave can fail a background check (Tier 1) |
+
+Added 2026-10-11 (popular, no written decision until then; same rule):
+
+| Practice | Why not |
+|---|---|
+| STAR / XYZ / CAR shape enforced on every bullet | substance kept: evidence per bullet reported, never demanded (Tier 2, report only). Forcing the result part asks for a figure the writer may lack -> invented (Tier 1 beats Tier 2; [the metric-per-bullet rule](#what-did-not-survive)); every line one template (Tier 2 "No two bullets on one template"); a fixed three-part sentence fights `line-fill`. Convention, no study opened |
+| Functional / skills-first layout (skills grouped up top, jobs bare or left off) | roles newest first, lines under each (`schema.check_reverse_chronological`); forms fill job, title, dates from line shape - a role w/o its own lines leaves fields empty ([What the page cannot fix](#what-the-page-cannot-fix), Workday measured 2026-09). Label convention, no study opened |
+| Page size + spelling tables per country | out of scope: a US job search (home page "counts the US jobs that match"; job search measured w/ `countries=us`, `jobs/freehire.md`); A4 already declined ([page-format.md](page-format.md) #Advice declined); `spelling` uses US forms |
+| Several page designs / themes | every gate + `measure.py` calibrated to one template; typeface already swappable ([typeface.md](typeface.md) #Changing it); no callback evidence for any design found |
+| AI "polish" rewording the master resume | their wording wins (AGENTS.md); lint on their own words shows the fix, their call (WARN); missing numbers + leadership asked via `resume-gaps`, only their answers go in; rewording happens per job, confirmed. Policy |
+| Points for school prestige, job-hopping or gaps in a score | no score exists (the 0-100 score row above); never inferred from school (AGENTS.md); short tenure not a bullet problem, a gap reported w/ its evidence, never scored ([What the page cannot fix](#what-the-page-cannot-fix)) |
+
+Mislabel guard: the "6-second scan" is **downgraded**, not rejected - kept as ~7 s, one vendor (Tier 4).
+Page count by years is **soft-adopted** (`tailor.py` prompt: one page under about 5 years, or when the
+facts fit); only a hard years-to-pages rule is declined - the `budget` windows decide.
 
 ## Sources
 
 HireRight 2025 Global Benchmark Report (June + Sept 15 2025 releases). Insight Global, *2025 AI in Hiring* (Atomik Research,
 n=1,005 US HR + talent-acquisition executives it calls hiring managers, fielded Oct 2024; a staffing firm's survey). Enhancv ATS auto-rejection study, 2025 (n=25), via IT Brief. The
 Ladders eye-tracking study, 2018 press release + HR Dive (sample not stated); its 2012 report (30 recruiters, 10 weeks). Jobscan ATS Usage Report 2026 + keyword
-guidance 2026. Greenhouse Boolean search docs. Career centres: Harvard FAS Mignone Center, MIT
+guidance 2026. Jobscan State of the Job Search 2025 (384 recruiters, Feb-Mar 2025). Greenhouse Boolean search docs. Career centres: Harvard FAS Mignone Center, MIT
 CAPD, Emory CPD, UC Berkeley, University of Arizona, UConn. National Resume Writers' Association.
 Indeed Career Guide; Indeed Hiring Lab 2025. HBS/Accenture, *Hidden Workers: Untapped Talent*,
 2021, Fig 7 (cited by `schema.py`). D'hert, Baert, Lippens, Socio-Economic Review 24(3), 2026 (gap meta-analysis). Nunley, Pugh, Romero, Seals, ILR Review 2017.

@@ -1,0 +1,11 @@
+{
+  "title": "Financial Advisor Associate",
+  "company": "Summit Ridge Wealth",
+  "requirements": [
+    {"text": "Active FINRA Series 7 and Series 66 registrations", "priority": "required"},
+    {"text": "2+ years supporting financial advisors", "priority": "required"},
+    {"text": "Opening accounts and processing account transfers", "priority": "required"},
+    {"text": "Salesforce or another CRM", "priority": "preferred"},
+    {"text": "Answering client service calls", "priority": "preferred"}
+  ]
+}

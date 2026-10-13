@@ -1,0 +1,8 @@
+# Regexes over the answer's page text (summary, headline title, role title brackets, bullets,
+# skills). Eval only: a hit is counted in the grade, never fails tailor check.
+- id: series7-as-held
+  pattern: (?i)series\s*7\s*(licen[cs]ed?|registered|registration|holder|representative|rep)\b|\b(holds?|holding|active|current|licen[cs]ed|registered)\b[^.\n]{0,25}\bseries\s*7\b|\bFINRA[- ]registered\b
+  why: passed 2019, not currently registered - a FINRA exam past its 2-year window is "passed 2019", never held; BrokerCheck shows the record
+- id: series66-claimed
+  pattern: (?i)series\s*66
+  why: the resume details never mention a Series 66 - the posting asks, the candidate lacks it

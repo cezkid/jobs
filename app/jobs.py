@@ -19,6 +19,7 @@ COMMANDS = {
     "poll": ("ingest.freehire", "check for new jobs only"),
     "rank": ("rank", "list ranked matches + why; --limit N, --best (Today order), --suspects, --would-hide PHRASE, --would-hide-kind KIND"),
     "probe": ("ingest.probe", "count jobs a candidate search would match"),
+    "coverage": ("ingest.coverage", "which employer job links freehire lacks + board link to submit for each (developers): FILE | --link LINK"),
     "check-settings": (None, "validate search settings"),
     "email": ("alert", "email unseen matches; --dry-run prints instead"),
     "daily": ("daily", "poll + notify (or email if set up), as the daily schedule runs it"),

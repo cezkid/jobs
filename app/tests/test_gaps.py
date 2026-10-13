@@ -68,6 +68,16 @@ def test_a_number_the_user_never_said_is_refused(tmp_path):
     assert "['300'] in neither" in found[0] and "only the user's answer" in found[1]
 
 
+def test_a_blank_for_the_number_is_refused(tmp_path):
+    """'[number]' would merge into their file and print on the page as is."""
+    path, notes = setup(tmp_path)
+    master = schema.load(path, notes)
+    asked = gaps.questions(master)
+    found = gaps.problems(asked, [{"id": "q1", "said": "a lot of tests",
+                                   "claim": "Wrote [number] Jest tests for the checkout screens."}], master)
+    assert len(found) == 1 and "['[number]'] is a blank" in found[0]
+
+
 def test_nothing_answered_leaves_the_file_alone(tmp_path):
     path, notes = setup(tmp_path)
     asked = gaps.questions(schema.load(path, notes))
@@ -111,6 +121,27 @@ def test_negated_answer_refused(tmp_path):
                                    "claim": "Mentored 3 interns on the checkout code."}], master)
     assert "denies '3'" in found[0]
     assert "says no" in gaps.problems(asked, [{"id": "q3", "said": "Not really.", "claim": "Mentored people."}], master)[0]
+
+
+def test_a_number_keeps_the_word_the_user_said_with_it(tmp_path):
+    """'about 120, maybe' is no '120': the qualifier is part of the number."""
+    path, notes = setup(tmp_path)
+    master = schema.load(path, notes)
+    asked = gaps.questions(master)
+    found = gaps.problems(asked, [{"id": "q1", "said": "about 120, maybe",
+                                   "claim": "Wrote 120 Jest tests for the checkout screens."}], master)
+    assert len(found) == 1 and "'about 120'" in found[0] and "keep it" in found[0]
+    kept = [{"id": "q1", "said": "about 120, maybe", "claim": "Wrote about 120 Jest tests for the checkout screens."}]
+    assert gaps.problems(asked, kept, master) == []
+
+
+def test_co_led_is_no_led(tmp_path):
+    path, notes = setup(tmp_path)
+    master = schema.load(path, notes)
+    asked = gaps.questions(master)
+    found = gaps.problems(asked, [{"id": "q3", "said": "I co-led the rebrand", "claim": "Led the rebrand."}], master)
+    assert "'Led' claims more" in found[0] and any("'co-led'" in f for f in found)
+    assert gaps.problems(asked, [{"id": "q3", "said": "I co-led the rebrand", "claim": "Co-led the rebrand."}], master) == []
 
 
 def test_contrast_clause_not_a_negation(tmp_path):

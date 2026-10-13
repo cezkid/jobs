@@ -1,0 +1,40 @@
+# A made-up brokerage operations analyst. The Series 7 lapsed after they left the broker-dealer:
+# "passed 2019", never "holds".
+contact:
+  name: Avery Collins
+  email: avery.collins@example.com
+  phone: (555) 010-0163
+  location: Charlotte, NC
+
+roles:
+  - company: Harborview Bank
+    title: Brokerage Operations Analyst
+    location: Charlotte, NC
+    start: "2021-09"
+    end: present
+    bullets:
+      - Reconciled 1,200 brokerage account transfers a month across 3 custodians
+      - Built an Excel tracker that cut account transfer delays from 9 days to 4
+      - Answered 30 client calls a day on transfers, statements and tax forms
+  - company: Crestline Securities
+    title: Sales Assistant
+    location: Charlotte, NC
+    start: "2018-06"
+    end: "2021-08"
+    bullets:
+      - Prepared new account paperwork for 3 financial advisors serving 400 households
+      - Entered 150 trades a week on advisor instruction with no trade errors
+
+skills:
+  - group: Operations
+    items: [Account transfers (ACAT), Excel, Salesforce, Pershing NetX360]
+
+education:
+  - institution: University of North Carolina at Charlotte
+    degree: B.S.
+    field: Finance
+    end: "2018-05"
+
+certifications:
+  - name: Series 7 (passed 2019; not currently registered)
+    issuer: FINRA
