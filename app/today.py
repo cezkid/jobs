@@ -60,7 +60,7 @@ def words(template: str, n: int | None = None) -> str:
 # "What you can say": example number 12, each one a say.json template
 SAY = (
     (words("find"),),
-    (words("resume", 12),),
+    (words("apply", 12),),
     (words("sent", 12), words("heard_back", 12)),
     (words("still_open", 12),),
     (words("search"),),
@@ -280,8 +280,9 @@ def best_section(conn, config: dict, rows: list[dict], has_resume: bool) -> dict
     check" (owner 2026-10-04) - a job from last week that fits beats today's that doesn't."""
     if not rows:
         return None
-    # facts to decide on before "Make my resume": the why + the posting (critique 2026-10-04)
-    cards = [card(conn, j, "", [words("resume", j["num"])], why=j["why"])
+    # facts to decide on before "Apply": the why + the posting (critique 2026-10-04); Apply = resume +
+    # form in one run (owner 2026-10-13, job-apply skill)
+    cards = [card(conn, j, "", [words("apply", j["num"])], why=j["why"])
              for j in store.numbered(conn, rows[:BEST_MAX])]
     more = ({"text": f"{len(rows) - BEST_MAX} more - ask the chat.", "say": words("more_best")}
             if len(rows) > BEST_MAX else None)

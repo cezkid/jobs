@@ -8,6 +8,11 @@ system (every one listed in `app/docs/apply/apply-systems.md`) through Job Finde
 `apply-form paste <job>` writes `Application answers.md` to paste from - say options weren't read
 ahead. None read ahead: `prepare` says so - offer the tailored PDF + answers by hand, and mention it
 can be taught (`apply-systems.md` #Add a system).
+**Apply = one run** ("apply to job 12", Today's Apply button; owner 2026-10-13): resume made for
+the job, form filled, user checks the page + clicks Submit. Carry straight through - no "shall I
+go on?" between steps. Stop only where a rule below needs the user: tailored lines to confirm
+(`job-tailor` step 3), the upload yes (none when Apply carries it - below), answers only they can give. Several needed -> one after
+another, one question each, all before `fill`, so the form fills in one go.
 User not technical - `AGENTS.md` #User = not technical binds. Why each rule exists (measured):
 `app/docs/apply/workday.md`. New tenant quirk found -> add it there, same PR as the fix.
 
@@ -20,7 +25,14 @@ form over, fix the program after.
 - User signs in / creates the account themselves. Never type a password.
 - Never click **Save and Continue**, **Submit**, or anything irreversible. Fill, then tell them
   to check the page and click it. They say "click it for me" -> still ask once per click.
-- Upload the resume PDF only after they say yes (name the file). Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity and
+- Upload the resume PDF only after they say yes (name the file). `upload_on_apply: true` in search
+  settings = their Apply click is that yes, resume box only (`prepare` answers it; Workday step 6
+  the same): no question, name the file + when it reached the employer at handover. Not yet asked
+  -> `prepare` prints "ask once" -> ONE clickable question before `fill`: "When you click Apply,
+  put your resume in the form without asking each time? It reaches the employer's site then -
+  some sites before Submit." - Yes, upload when I click Apply (Recommended) -> true / No, ask me
+  each time -> false; `prepare` again. "Stop uploading without asking" / "upload without asking"
+  later -> false / true, confirm in one line. Cover letter + any other file: a yes each time. Greenhouse, Ashby, Lever, Workable, BambooHR, Paylocity and
   SmartRecruiters send the file to the employer the moment it is chosen, before Submit (`prepare` says so) - say so in that same question.
   Ashby also takes each answer as its box is filled, and the town or school letter by letter in its location and school boxes - say so before `fill`.
 - Never answer on their behalf: salary, relocation, start date, voluntary disclosures (gender,
@@ -112,7 +124,9 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
 ## Steps
 
 1. Tailored resume for this job exists (`status show 12` prints its `folder:`)? No -> `job-tailor`
-   skill first, or ask whether to use their own resume as is.
+   steps 1-6 now, no question first (its step 7 question is skipped: they already said apply).
+   STOP from its check -> its fallback (untailored resume), then ask once: apply with that / not now.
+   Asked for their own resume as is -> skip tailoring.
 2. `uv run app/jobs.py apply <job number>` (none = own resume) -> writes `apply.js`, prints counts.
 3. Browser: `tabs_context_mcp` (createIfEmpty), new tab, navigate to the posting's apply link.
    Posting page, before Apply or sign-in: send the text of `app/apply/workday.js` +
@@ -130,7 +144,7 @@ call; facts: `app/docs/resume/fair-screening.md`). Privacy line before break or 
    via `read_page`/`find`, fix by hand once, record the new label in `app/docs/apply/workday.md`.
    `answer dropped` = verify found it cleared after filling: FAIL = refilled once, still empty -> fill
    that box by hand; ASK on a skill or field of study -> pick it again by hand, never rerun.
-6. Resume/CV box: after their yes (hard limits; name the file), the extension's file upload puts
+6. Resume/CV box: after their yes or with `upload_on_apply: true` (hard limits; name the file), the extension's file upload puts
    the tailored PDF in the box, then `window.__jf.uploaded("<file name>")` (waits up to 20 s):
    `'ok'` = name shows in the box; other words = Workday's own error -> tell the user plainly;
    `'not confirmed'` -> ask them to look at the box, choose the file by hand if empty.
@@ -162,7 +176,8 @@ Ashby's own "Autofill from resume" fills contact boxes only - tell a user who th
    it blank, source "yours to do on
    the page" (`fill` fills the rest, names it as left). Others: facts from the resume only (honesty rules of
    `AGENTS.md` bind free-text answers too), everything else asked with clickable choices. `file`
-   question: `answer: true` only after they said yes to the named file (hard limits). Location: the
+   question: `answer: true` only after they said yes to the named file, or `prepare` set it from
+   `upload_on_apply` (hard limits). Location: the
    city they live in. Home address: `home_address` in search settings fills it; not set -> ask, offer to
    keep it there (never on the resume). Answers from search settings: name them to the user.
    Cover letter box: upload `First_Last_Cover_Letter.pdf` (`fill` puts it in that box only, after

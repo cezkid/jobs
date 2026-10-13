@@ -17,11 +17,11 @@ apply-systems:
     start_box: [[ADP Workforce Now, ADP], [Oracle Recruiting Cloud, Oracle], Paycom, iCIMS]
 today-page:
   page: index.html
-  text: What’s waiting on you and the newest jobs, with “Make my resume” buttons.
+  text: What’s waiting on you and the newest jobs, with “Apply” buttons.
   why: 'Today dashboard: buttons ready words, never send'
   rests_on:
-  - say: resume
-    label: Make my resume
+  - say: apply
+    label: Apply
   - file: AGENTS.md
     contains: Today page buttons put their words in the chat, never send them
 home-freehire:

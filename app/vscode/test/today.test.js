@@ -189,13 +189,13 @@ test("missing, old or broken data => no dashboard model", () => {
   assert.equal(today.model({ version: 1 }, say), null);
 });
 
-// "Make my resume" that only copied would leave the user waiting for something that never happens
+// "Apply" that only copied would leave the user waiting for something that never happens
 test("button text honest per AI: Copilot fills, ChatGPT + untested Claude copy", () => {
   assert.equal(today.sayMode("copilot"), "fill");
   for (const ai of ["claude", "chatgpt", null, "nova"]) assert.equal(today.sayMode(ai), "copy");
   const m = today.model(RAW, say);
-  assert.match(html(m, "fill"), /class="go"[^>]*>Help me apply</);
-  assert.match(html(m, "copy"), /class="go"[^>]*>Help me apply</);
+  assert.match(html(m, "fill"), /class="go"[^>]*>Apply</);
+  assert.match(html(m, "copy"), /class="go"[^>]*>Apply</);
   assert.doesNotMatch(html(m, "copy"), />Copy: /);
   assert.match(html(m, "copy"), /Paste them in the chat box and press Enter/);
   assert.equal(today.readyLine("copy", null, "darwin"), "Copied - click the chat box, paste (Cmd+V), press Enter.");
@@ -220,7 +220,7 @@ test("Claude on a tested version: new sidebar chat w/ the words, not sent", () =
   assert.equal(today.CLAUDE_NEW_CHAT, "claude-vscode.editor.open");
   const m = today.model(RAW, say);
   const page = html(m, "new");
-  assert.match(page, /class="go" title="Opens a new chat with these words typed in - press Enter to start" aria-label="Help me apply, Job 12">Help me apply</);
+  assert.match(page, /class="go" title="Makes your resume for this job and fills the employer&#39;s form with it - you check the page and click Submit\. Opens a new chat with these words typed in - press Enter to start" aria-label="Apply, Job 12">Apply</);
   assert.match(page, /open a new chat with the words typed in\. Nothing is sent until you press Enter/);
   assert.doesNotMatch(page, /Copy:/);
   assert.equal(today.readyLine("new", 12), "Job 12: new chat ready on the right - press Enter");
@@ -265,7 +265,7 @@ const FULL = {
     sec("waiting", [3, 5].map((n) => job(n, [`apply to job ${n}`, `I sent job ${n}`]))),
     sec("interviews", [job(46, ["practise my interview for job 46", "I had the interview for job 46"])]),
     sec("follow_up", [job(13, ["write a follow-up for job 13", "I heard back from job 13", "job 13 is closed"])]),
-    { ...sec("best", Array.from({ length: 10 }, (_, i) => job(100 + i, [`resume for job ${100 + i}`])),
+    { ...sec("best", Array.from({ length: 10 }, (_, i) => job(100 + i, [`apply to job ${100 + i}`])),
       { text: "2 more - ask the chat.", say: "show me more jobs to apply to" }), total: 12 },
   ],
   todo: [{ text: "Your resume isn't in yet.", say: "import my resume" },
@@ -325,7 +325,7 @@ test("best jobs: one-line rows, 10 shown, the rest in the chat", () => {
   assert.doesNotMatch(html(today.model(few, say), "new"), /more jobs? to apply/);
 });
 
-// "Make my resume" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
+// "Apply" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
 test("best jobs carry their why; follow-up note one line + its guide; figures under the date; job number bold body size", () => {
   const raw = structuredClone(FULL);
   const best = raw.sections.find((s) => s.id === "best");
@@ -350,7 +350,7 @@ test("best jobs carry their why; follow-up note one line + its guide; figures un
   assert.match(css, /\.note \{[^}]*max-width: 65ch/);
 });
 
-// a missing resume at the bottom of the page: every "Make my resume" above it fails first
+// a missing resume at the bottom of the page: every "Apply" above it fails first
 test("setup that blocks sits above the jobs; the rest stays last, quiet", () => {
   const raw = { ...FULL, todo: [...FULL.todo, { text: "The morning job check is off.", say: "turn on the morning job check" }] };
   const page = html(today.model(raw, say), "new");
@@ -409,7 +409,7 @@ test("button busy the moment it's pressed, labelled for the AI", () => {
   assert.equal(today.busyLabel("claude"), "Starting Claude…");
   assert.equal(today.busyLabel("copilot"), "Opening the chat…");
   const page = html(today.model(RAW, say), "new").replace(/^[\s\S]*<body[^>]*>/, "");
-  assert.match(page, /data-busy="Opening the chat…" class="go"[^>]*>Help me apply</);
+  assert.match(page, /data-busy="Opening the chat…" class="go"[^>]*>Apply</);
   const claude = today.render(today.model(RAW, say), { mode: "new", ai: "claude", nonce: "n" });
   assert.match(claude, /data-a="0" data-k="12:apply" data-busy="Starting Claude…"/);
   // open buttons don't wait on the chat => never busy
@@ -491,8 +491,8 @@ function webview(store, day = "Tuesday, September 29") {
   store.clock = store.clock || { t: 1000 };
   const clock = { timers: [], get t() { return store.clock.t; }, set t(v) { store.clock.t = v; } };
   const buttons = [
-    fakeEl({ "data-a": "0", "data-k": "12:apply", "data-busy": "Starting Claude…", "aria-label": "Help me apply, Job 12" }, "Help me apply"),
-    fakeEl({ "data-a": "1", "data-k": "13:resume", "data-busy": "Starting Claude…", "aria-label": "Make my resume, Job 13" }, "Make my resume"),
+    fakeEl({ "data-a": "0", "data-k": "12:apply", "data-busy": "Starting Claude…", "aria-label": "Apply, Job 12" }, "Apply"),
+    fakeEl({ "data-a": "1", "data-k": "13:apply", "data-busy": "Starting Claude…", "aria-label": "Apply, Job 13" }, "Apply"),
     // status change: no data-busy (nothing to wait on in a chat)
     fakeEl({ "data-a": "2", "data-k": "12:sent", "aria-label": "I sent it, Job 12" }, "I sent it"),
   ];
@@ -555,7 +555,7 @@ test("page: busy at once, then job status + inert done label; both clear after 8
   assert.notEqual(w.status.textContent, "");
   w.tick(1);
   assert.equal(w.status.textContent, "", "clears after 8 s");
-  assert.equal(apply.textContent, "Help me apply", "done label goes w/ its line");
+  assert.equal(apply.textContent, "Apply", "done label goes w/ its line");
   assert.equal(apply.getAttribute("aria-disabled"), null);
   assert.ok(!apply.classList.contains("done"));
   w.click(resume);
@@ -570,8 +570,8 @@ test("page: next press resets the done label", () => {
   w.msg({ type: "status", text: "Job 12: new chat ready on the right - press Enter", done: "Ready in chat" });
   w.msg({ type: "busy", on: false });
   w.click(resume);
-  assert.equal(apply.textContent, "Help me apply");
-  assert.equal(apply.getAttribute("aria-label"), "Help me apply, Job 12");
+  assert.equal(apply.textContent, "Apply");
+  assert.equal(apply.getAttribute("aria-label"), "Apply, Job 12");
 });
 
 // the page is redrawn on every show + Today rewrite: scroll, status + done state must survive it
@@ -590,7 +590,7 @@ test("page: redraw keeps scroll, a live status line (rest of its 8 s) and the do
   assert.equal(again.buttons[1].textContent, "Ready in chat");
   again.tick(today.CLEAR_MS);
   assert.equal(again.status.textContent, "");
-  assert.equal(again.buttons[1].textContent, "Make my resume");
+  assert.equal(again.buttons[1].textContent, "Apply");
   // a line already past its 8 s isn't brought back
   store.state.status = "old"; store.state.until = 500;
   assert.equal(webview(store).status.textContent, "");
@@ -608,7 +608,7 @@ test("page: a new day starts clean - no status, done label or scroll kept from T
   const same = webview(store);
   assert.equal(same.buttons[0].textContent, "Ready in chat");
   const next = webview(store, "Wednesday, September 30");
-  assert.equal(next.buttons[0].textContent, "Help me apply");
+  assert.equal(next.buttons[0].textContent, "Apply");
   assert.equal(next.status.textContent, "");
   assert.equal(next.win.scrolledTo, null);
   assert.equal(store.state.day, "Wednesday, September 30");
@@ -655,7 +655,7 @@ test("page: second chat button while one opens isn't marked; extension's answer 
   w.click(apply);
   w.click(resume);
   assert.deepEqual(w.posted, [{ action: 0 }, { action: 1 }]);
-  assert.equal(resume.textContent, "Make my resume");
+  assert.equal(resume.textContent, "Apply");
   assert.equal(resume.disabled, false);
   w.msg({ type: "status", text: today.STILL_OPENING });
   assert.equal(w.status.textContent, "One moment - the last one is still opening.");
@@ -679,7 +679,7 @@ test("fallback says why in plain words, with Try again + Show the Today page", (
 const names = (page) => [...page.matchAll(/<button\b([^>]*)>([^<]*)<\/button>/g)]
   .map(([, attrs, text]) => (/aria-label="([^"]*)"/.exec(attrs) || [, text])[1]);
 
-// 10 buttons all called "Make my resume": a screen reader user can't tell which job each acts on
+// 10 buttons all called "Apply": a screen reader user can't tell which job each acts on
 test("every button's name is its own; job buttons carry the job; headings h1 > h2 > h3", () => {
   for (const mode of ["new", "fill", "copy"]) {
     const page = html(today.model({ ...FULL, sections: [...FULL.sections, sec("follow_up_2", [], { text: "", say: "what is waiting on me" })] }, say), mode);
@@ -690,7 +690,7 @@ test("every button's name is its own; job buttons carry the job; headings h1 > h
     for (let i = 1; i < levels.length; i++) assert.ok(levels[i] <= levels[i - 1] + 1, `h${levels[i - 1]} -> h${levels[i]}`);
   }
   const page = html(today.model(FULL, say), "new");
-  assert.match(page, /aria-label="Make my resume, Job 100">Make my resume</);
+  assert.match(page, /aria-label="Apply, Job 100">Apply</);
   assert.match(page, /aria-label="Open the posting for Job 3: Role 3">Role 3</);
   assert.match(page, /<article class="card" aria-labelledby="j-46"><h3 id="j-46">/);
   // every section named; a line's button described by the line ("Turn it on" - what?)
@@ -860,9 +860,9 @@ test("busy label + starting line honest: Starting Claude only while it isn't run
   assert.equal(today.STILL_OPENING, "One moment - the last one is still opening.");
 });
 
-// "Show more new jobs: New since last check" (now "Show more jobs") read twice the same thing; Help me apply says what it does
-test("labels: Help me apply; more-row named plainly; heading jump target shows focus", () => {
-  assert.equal(say.templates.find((t) => t.id === "apply").label, "Help me apply");
+// "Show more new jobs: New since last check" (now "Show more jobs") read twice the same thing; Apply says what it does
+test("labels: Apply; more-row named plainly; heading jump target shows focus", () => {
+  assert.equal(say.templates.find((t) => t.id === "apply").label, "Apply");
   const page = html(today.model(FULL, say), "new");
   assert.match(page, />Show more jobs</);
   assert.doesNotMatch(page, /aria-label="Show more jobs: /);
@@ -990,4 +990,12 @@ test("welcome: profile + Restricted Mode lines shown on the page, Allow it here 
   assert.strictEqual(new Set(fixed).size, fixed.length);
   assert.ok(fixed.every((n) => n < 0));
   for (const g of today.WELCOME_GUIDES) assert.ok(today.cleanPath(g.path), g.path);
+});
+
+// Apply uploads the resume w/o another ask (when chosen): the button says what it does before the click
+test("Apply's tooltip says it makes the resume + fills the form; other buttons keep theirs", () => {
+  const apply = { id: "apply", words: "apply to job 12", label: "Apply" };
+  assert.match(today.sayTitle(apply, "fill"), /^Makes your resume for this job and fills the employer's form with it - you check the page and click Submit\. Puts "apply to job 12" in the chat box$/);
+  assert.equal(today.sayTitle(apply, "copy"), "Makes your resume for this job and fills the employer's form with it - you check the page and click Submit.");
+  assert.equal(today.sayTitle({ id: "find", words: "find new jobs" }, "copy"), "");
 });

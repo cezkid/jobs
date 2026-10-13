@@ -11,8 +11,8 @@ chat, type, press Enter. You never type commands or edit files.
   then the closest come back, marked. "Change my lowest pay" · "Hide jobs with no pay listed"
 - **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number" ·
   "Add my security clearance - active Secret" · "Add my Security+ certification"
-- **One job:** "Make my resume for job 3" · "What does job 3's application ask?" · "Write a cover letter for job 3" · "Why did you change that?" ·
-  "Help me apply to job 3"
+- **One job:** "Apply to job 3" (makes your resume, fills the form - you check it and click Submit) · "Make my resume for job 3" · "What does job 3's application ask?" · "Write a cover letter for job 3" ·
+  "Why did you change that?" · "Ask me before uploading my resume" (Apply uploads it without asking, if you chose that)
 - **Several jobs:** "Make my resume for jobs 2, 5 and 7" - one chat does them in turn
 - **Interviews:** "Practise my interview for job 3" · "I had the interview for job 3 - go through it with me" ·
   "I have a recorded video interview with Acme - here's the posting" · "Help me practise for a career fair" ·

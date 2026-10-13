@@ -64,10 +64,10 @@ Add your resume for a better order: it then puts the jobs you fit best first.
 
 - **Job 3** - [Senior Vue Engineer paid](<https://boards.greenhouse.io/acme/jobs/paid>), Acme
   - Why: $150k-190k (meets your pay) · remote · posted 1 day ago
-  - Say: `resume for job 3`
+  - Say: `apply to job 3`
 - **Job 4** - [Senior Vue Engineer plain](<https://boards.greenhouse.io/acme/jobs/plain>), Acme
   - Why: pay not listed · remote · posted 1 day ago
-  - Say: `resume for job 4`
+  - Say: `apply to job 4`
 
 ## Not finished
 
@@ -76,7 +76,7 @@ Add your resume for a better order: it then puts the jobs you fit best first.
 ## What you can say
 
 - `find new jobs`
-- `resume for job 12`
+- `apply to job 12`
 - `I sent job 12` / `I heard back from job 12`
 - `is job 12 still open?`
 - `change what I'm looking for`
@@ -108,7 +108,7 @@ def test_dashboard_data_is_the_page(tmp_path):
     assert json.loads(json.dumps(m)) == m
 
 
-# "Make my resume" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
+# "Apply" w/o why the job is there = a decision w/o its facts (AGENTS.md: each job carries its why)
 def test_best_jobs_carry_their_why_as_data(tmp_path):
     m = dashboard_model(tmp_path)
     assert not any(s["id"] == "new" for s in m["sections"])
@@ -232,7 +232,7 @@ def test_best_capped_with_rest_in_the_chat(conn, tmp_path, monkeypatch):
     monkeypatch.setattr(today, "BEST_MAX", 2)
     store.upsert(conn, [job(f"j{i}") for i in range(5)], CHECK)
     text = page(conn, tmp_path)
-    assert text.count("Say: `resume for job") == 2
+    assert text.count("Say: `apply to job") == 2
     assert "- 3 more - ask the chat. Say: `show me more jobs to apply to`" in text
 
 

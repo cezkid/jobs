@@ -103,7 +103,10 @@ Never values / personal here (`AGENTS.md` #About me).
    (FAIL -> fix `letter.json`, rerun; check prints STOP -> pass its lines on, stop). Then per paragraph, ONE
    question: "The letter says '...'. It rests on your line '...'. True as written?" Yes / Change it.
    Why each rule: `app/docs/resume/cover-letter.md`.
-7. Open PDF for them; say it's in My Jobs, in the To apply folder, under its job number - private
+7. Came from "apply to job 12" (Today's Apply button, `job-apply` step 1) -> no question here: one
+   line ("Resume ready - filling the form now"), then straight back to `job-apply`; it opens the
+   PDF + form at handover. Otherwise:
+   Open PDF for them; say it's in My Jobs, in the To apply folder, under its job number - private
    to this computer, ready to upload. Passing check already marked it "resume made" - nothing
    for them to record. Then ONE clickable question (after step 6's letter question, never with it):
    "Job 12 - Acme: resume ready. Fill the application now?"

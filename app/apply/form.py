@@ -97,10 +97,23 @@ def line(a: dict) -> str:
 
 
 def upload_note(system, answers: list[dict]) -> str:
-    """A system that sends a file the moment it is chosen: the yes for the named file says so."""
+    """A system that sends a file the moment it is chosen: the yes for the named file says so - or,
+    the Apply click being that yes (upload_on_apply), the handover does."""
     if getattr(system, "FILE_ON_CHOICE", False) and any(a["kind"] == "file" for a in answers):
+        if all(a.get("source") == questions.UPLOAD_ON_APPLY for a in answers if a["kind"] == "file"):
+            return (f"{system.NAME}: the resume goes to the employer's site as soon as it is chosen, before Submit - "
+                    "their Apply click was the yes (upload_on_apply); say so at handover, naming the file")
         return (f"{system.NAME}: a file goes to the employer's site as soon as it is chosen, before Submit - "
                 "say so in the question asking the user's yes to the named file")
+    return ""
+
+
+def upload_ask(config: dict, answers: list[dict]) -> str:
+    """First form w/ a resume box: ask once whether Apply itself is the yes to upload (owner 2026-10-13)."""
+    if config.get("upload_on_apply") is None and any(a["kind"] == "file" and a.get("key") == "resume" for a in answers):
+        return ("ask once: when they click Apply, put their resume in the form without asking each time? (it reaches "
+                "the employer's site then - some sites before Submit) Yes (Recommended) -> upload_on_apply: true in "
+                "search settings, then prepare again; No -> false (a yes asked before each upload)")
     return ""
 
 
@@ -194,6 +207,8 @@ def prepare(slug: str, url: str, in_window: bool = False) -> None:
               "disability, armed forces) on forms, named before "
               "Submit? Yes -> self_identification.fill_on_forms: true in search settings, then prepare again; "
               "No -> false (asked on each form as now)")
+    if system and (ask := upload_ask(config, answers)):
+        print(ask)
     if keeping is None:
         print("ask once: keep the user's own answers for the next form (named before Submit, on this computer)? "
               "Yes -> saved_answers: true in search settings, No -> false")

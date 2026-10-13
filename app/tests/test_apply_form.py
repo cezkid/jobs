@@ -163,6 +163,29 @@ def test_accents_case_spacing_and_a_left_out_middle_name_are_no_mismatch(page):
     assert (got["First name"][0], got["Last name"][0]) == ("José", "García")
 
 
+# Apply = the yes to upload (owner 2026-10-13): on => resume box answered, cover letter still asked;
+# off or not yet asked => no file answered by the program; switched off later => the old yes lapses
+def test_apply_click_is_the_upload_yes_only_while_the_setting_is_on():
+    boxes = [q("Resume/CV", "file", "resume"), q("Cover letter", "file", "cover_letter")]
+    on = questions.draft(boxes, CONTACT, config={"upload_on_apply": True})
+    assert [(a["answer"], a["source"]) for a in on] == [(True, questions.UPLOAD_ON_APPLY), (None, questions.ASK)]
+    for setting in (None, False):
+        assert [a["answer"] for a in questions.draft(boxes, CONTACT, config={"upload_on_apply": setting})] == [None, None]
+    assert questions.draft(boxes, CONTACT, on, {"upload_on_apply": False})[0]["answer"] is None
+    said = [{**on[0], "source": questions.USER_SAID}]  # a yes given in the chat stays
+    assert questions.draft(boxes, CONTACT, said, {"upload_on_apply": False})[0]["answer"] is True
+
+
+def test_first_form_with_a_resume_box_asks_once_whether_apply_uploads():
+    resume = [{**q("Resume/CV", "file", "resume"), "answer": None, "source": questions.ASK}]
+    assert form.upload_ask({"upload_on_apply": None}, resume).startswith("ask once: when they click Apply")
+    assert form.upload_ask({"upload_on_apply": True}, resume) == form.upload_ask({"upload_on_apply": False}, resume) == ""
+    assert form.upload_ask({"upload_on_apply": None}, [{**q("Name"), "answer": None, "source": "resume"}]) == ""
+    told = [{**resume[0], "answer": True, "source": questions.UPLOAD_ON_APPLY}]
+    assert "Apply click was the yes" in form.upload_note(greenhouse, told)
+    assert "in the question asking" in form.upload_note(greenhouse, resume)
+
+
 def test_earlier_answers_survive_a_second_prepare():
     old = [{"id": "Why us?", "title": "Why us?", "answer": "Their words.", "source": "user"}]
     assert questions.draft([q("Why us?", "longtext")], CONTACT, old)[0]["answer"] == "Their words."
