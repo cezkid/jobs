@@ -43,3 +43,11 @@ def test_parts_split_the_suite_site_vs_app_claims_in_both():
     assert affected.in_part(app, "app") and not affected.in_part(app, "site")
     claims = "app/tests/test_site.py::test_site_claims_still_match_the_app"
     assert affected.in_part(claims, "app") and affected.in_part(claims, "site")
+
+
+# modules cite docs in comments: counting those picked 50 test files for a doc + extension edit
+def test_a_file_named_only_in_comments_or_docstrings_is_no_reader():
+    src = '"""See app-window.md."""\nimport x  # extension.js\nPATH = "app/vscode/today.js"\n'
+    strings = affected.code_strings(src)
+    assert "today.js" in strings and "app-window.md" not in strings and "extension.js" not in strings
+    assert "test_launch.py" not in picked("app/docs/app-window.md")
