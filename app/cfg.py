@@ -109,6 +109,12 @@ def title_mirror_always(config: dict) -> bool:
     return config["resume"].get("title_mirror") == "always"
 
 
+def top_line_title(config: dict) -> bool:
+    """Tailored copies put the posting's title in the top line (default for everyone, owner 2026-10-12);
+    `off` = the user chose to keep their own top line on every copy."""
+    return config["resume"].get("top_line_title", "always") != "off"
+
+
 def load_or_defaults() -> dict:
     """Merged settings when the user has them, the shipped defaults when they do not - for the
     commands that can run off an explicit path before setup (resume-render --master)."""
