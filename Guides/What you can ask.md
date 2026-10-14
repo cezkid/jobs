@@ -6,7 +6,8 @@ chat, type, press Enter. You never type commands or edit files.
 ## Just ask
 
 - **Jobs:** "Any new jobs?" · "Why is job 3 on my list?" · "Stop showing jobs from Acme Staffing" ·
-  "Tell me which employers are nonprofits"
+  "Hide jobs from staffing firms" · "Tell me which employers are nonprofits" - jobs a staffing firm
+  posted say "staffing firm" and sort lower
 - **Pay:** jobs paying less than your lowest pay are hidden, unless few new jobs come in that week -
   then the closest come back, marked. "Change my lowest pay" · "Hide jobs with no pay listed"
 - **Resume:** "How good is my resume?" · "Help me add numbers to my resume" · "Change my phone number" ·

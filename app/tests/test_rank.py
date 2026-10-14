@@ -155,6 +155,37 @@ def test_clearance_named_demoted_only_when_cannot_hold():
     assert rank.can_hold_clearance(green_card) is None
 
 
+# a staffing firm's posting says so and sorts below the employers' own; keep = named only; hidden on their yes
+def test_staffing_firm_named_sorted_lower_kept_or_hidden():
+    firm = dict(make_job("firm", title="IT Project Manager", company="System One", **usd(150000)), company_staffing=1)
+    direct = make_job("direct", title="IT Project Manager", company="Vanguard", **usd(120000))
+    assert "staffing firm" in rank.reasons(firm, CONFIG, NOW) and "staffing firm" not in rank.reasons(direct, CONFIG, NOW)
+    assert slugs(rank.rank([firm, direct], CONFIG, NOW)) == ["direct", "firm"]
+    keep = level_config(staffing="keep")
+    assert slugs(rank.rank([firm, direct], keep, NOW)) == ["firm", "direct"]
+    assert "staffing firm" in rank.reasons(firm, keep, NOW)
+    hide = cfg.merge(CONFIG, {"blocklist": {"staffing": True}})
+    assert slugs(rank.rank([firm, direct], hide, NOW)) == ["direct"]
+
+
+# no record says it: the firm's own name, or contract terms only a third party writes
+@pytest.mark.parametrize("company, text, expected", [
+    ("Burnetts Staffing", "", True), ("Motion Recruitment", "", True), ("TalentOla", "", True),
+    ("murphysfamilystaffing.zohorecruit.com", "", True), ("acme.zohorecruit.com", "", False),
+    ("Sapear Inc", "Rate-$60/per hr. on C2C all inclusive", True), ("ASK Consulting", "Pay rate: $75/hr. On W2", True),
+    ("ektello", "<p>W2 contract, 4 months</p>", True), ("Silicon Beach Solutions", "structured as a Corp-to-Corp engagement", True),
+    ("Acme", "Full-time role. No C2C or third parties.", False), ("Satsyil", "Employment: Full-Time, W2", False),
+    ("AmazonWebServices", "please contact your Recruiting Partner", False), ("Vanguard", "We value talent.", False)])
+def test_staffing_firm_by_name_or_terms(company, text, expected):
+    assert rank.staffing_firm(make_job("j", company=company, description=text)) is expected
+
+
+# a staffing firm the record files as a nonprofit is never named a nonprofit employer
+def test_staffing_firm_never_named_nonprofit():
+    firm = dict(make_job("firm", description="We place talent."), company_nonprofit=1, company_staffing=1)
+    assert rank.posting_says(firm, level_config(posting_says=["nonprofit"])["rank"]) == []
+
+
 def level_config(**rank_over):
     return cfg.merge(CONFIG, {"rank": rank_over})
 
