@@ -828,6 +828,17 @@ def test_overlapping_roles_count_once_toward_senior(master):
     assert any("claims senior" in v for v in top_line(master, SENIOR_JOB, "Senior Software Engineer"))
 
 
+def test_developer_years_count_as_engineer_years_toward_senior(master):
+    """2 years as Software Engineer + 7 as Lead Developer / Web Developer = 9 years toward Senior Frontend Engineer."""
+    engineer(master, [
+        {"id": "now", "company": "Initech", "title": "Software Engineer", "start": "2024-06", "end": "present", "bullets": []},
+        {"id": "lead", "company": "A", "title": "Lead Developer", "start": "2019-01", "end": "2024-05", "bullets": []},
+        {"id": "web", "company": "B", "title": "Web Developer", "start": "2017-06", "end": "2018-12", "bullets": []},
+    ])
+    assert tailor.related_years(master, "Senior Frontend Engineer", TODAY) >= 8
+    assert tailor.related_years(master, "Senior Data Analyst", TODAY) == 0
+
+
 @pytest.mark.parametrize("title", ["Lead Software Engineer", "Staff Software Engineer", "Principal Software Engineer",
                                    "Software Engineering Manager", "Software Engineer III"])
 def test_years_never_unlock_levels_past_senior(master, title):

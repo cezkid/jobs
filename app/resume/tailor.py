@@ -42,6 +42,9 @@ SENIORITY = ("senior", "lead", "leader", "principal", "staff", "manager", "direc
 SENIOR = "senior"
 SENIOR_YEARS = 8
 SENIOR_YEARS_FLOOR = 5
+# one kind of work under several names, for those years only (2026-10-13: years as Lead Developer
+# and Web Developer counted for nothing toward "Senior Frontend Engineer")
+SAME_WORK = {"developer": "engineer", "programmer": "engineer"}
 # a grade numeral ends a title ("Engineer III"); anywhere else it is a word ("IV Infusion Nurse" = intravenous)
 GRADES = {"i": 1, "ii": 2, "iii": 3, "iv": 4, "v": 5}
 # words two titles share by accident, not by naming the same work
@@ -167,7 +170,7 @@ Wording
 Summary
 - `summary`: at most {render.MAX_BLOCK_WORDS} words and {render.MAX_SUMMARY_LINES} lines, fragments over sentences, leads with the candidate's real current title and this job's core stack; null to omit. A candidate still studying (an education entry with `expected` true, or an `end` after today) leads with the degree they are earning and when ("Statistics student, expected May 2027"), unless their current job is the work this posting is for - never a title they don't hold. It may name a licence or certification the posting requires and the candidate holds. Build it only from facts in master. It sits in a narrower column than the bullets, and its last line follows the bullet rule: well filled, never a stub.
 - A `headline` in master prints above the summary; the summary need not repeat it.
-- `headline_title`: {TOP_LINE_ON if top_line else TOP_LINE_OFF} Whole words of the posting's title copied exactly (same capitals); pick the plain part ("Data Analyst" of "Data Analyst Rockstar - Remote"). It replaces the title part of the headline, the words before "{HEADLINE_BAR}": "Software Engineer {HEADLINE_BAR} Python, SQL" becomes "Backend Engineer {HEADLINE_BAR} Python, SQL"; the words after the bar print as written. No headline in master: the title alone becomes one. A master headline without "{HEADLINE_BAR}", or whose part before it is no job title (skills first), is the candidate's own sentence: null. Never abbreviate, never a level their current title or the headline's own title lacks ({", ".join(SENIORITY)}) - one exception: "Senior" when their years in this kind of work (roles sharing a word with the title) reach the posting's own years ask (at least {SENIOR_YEARS_FLOOR}), or {SENIOR_YEARS} when it states none; without them, leave the level word out ("Software Engineer" of "Senior Software Engineer"). The headline stays one row: drop words such as a location or team rather than wrap. Its words count as generated words, in place of the title words they replace.
+- `headline_title`: {TOP_LINE_ON if top_line else TOP_LINE_OFF} Whole words of the posting's title copied exactly (same capitals); pick the plain part ("Data Analyst" of "Data Analyst Rockstar - Remote"). It replaces the title part of the headline, the words before "{HEADLINE_BAR}": "Software Engineer {HEADLINE_BAR} Python, SQL" becomes "Backend Engineer {HEADLINE_BAR} Python, SQL"; the words after the bar print as written. No headline in master: the title alone becomes one. A master headline without "{HEADLINE_BAR}", or whose part before it is no job title (skills first), is the candidate's own sentence: null. Never abbreviate, never a level their current title or the headline's own title lacks ({", ".join(SENIORITY)}) - one exception: "Senior" when their years in this kind of work (roles sharing a word with the title; Developer and Programmer count as Engineer) reach the posting's own years ask (at least {SENIOR_YEARS_FLOOR}), or {SENIOR_YEARS} when it states none; without them, leave the level word out ("Software Engineer" of "Senior Software Engineer"). The headline stays one row: drop words such as a location or team rather than wrap. Its words count as generated words, in place of the title words they replace.
 - When the posting's requirements name a certification the candidate holds, code moves Certifications up to sit under the summary.
 
 Skills
@@ -342,9 +345,12 @@ def headline_title_problems(master: dict, job: dict, title: str, font: str = typ
 
 def related_years(master: dict, title: str, today: date) -> int:
     """Whole years in roles naming the same work as `title` (a shared title word past its level words),
-    overlaps once: 12 years as Software Engineer back "Senior Software Engineer", 12 as a cook do not."""
-    words = title_words(title) - set(SENIORITY)
-    roles = [r for r in master.get("roles") or [] if words & title_words(r["title"])]
+    overlaps once: 12 years as Software Engineer back "Senior Software Engineer", 12 as a cook do not;
+    Web Developer and Software Engineer are the same work (SAME_WORK)."""
+    def work(t: str) -> set[str]:
+        return {SAME_WORK.get(w, w) for w in title_words(t)}
+    words = work(title) - set(SENIORITY)
+    roles = [r for r in master.get("roles") or [] if words & work(r["title"])]
     return render.months_worked(roles, today) // 12
 
 
